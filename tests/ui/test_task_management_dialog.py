@@ -376,3 +376,225 @@ class TestTaskManagementDialogHelpers:
                 # Error should be handled by @handle_errors decorator
                 pass
 
+
+class TestTaskManagementDialogRealBehavior:
+    """Test task management dialog with real behavior verification."""
+    
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_save_task_settings_persists_to_disk(self, test_user, test_data_dir, qapp):
+        """Test that save_task_settings actually saves data to disk."""
+        # Arrange
+        dialog = TaskManagementDialog(parent=None, user_id=test_user)
+        dialog.ui.groupBox_checkBox_enable_task_management.setChecked(True)
+        
+        valid_settings = {
+            'time_periods': {
+                'morning': {
+                    'start_time': '09:00',
+                    'end_time': '12:00'
+                }
+            }
+        }
+        
+        # Create mock period widgets
+        mock_period = Mock()
+        mock_period.get_period_data.return_value = {'name': 'morning'}
+        dialog.task_widget.period_widgets = [mock_period]
+        
+        with patch.object(dialog.task_widget, 'get_task_settings', return_value=valid_settings):
+            with patch('ui.dialogs.task_management_dialog.validate_schedule_periods', return_value=(True, [])):
+                with patch('ui.dialogs.task_management_dialog.QMessageBox'):
+                    with patch('ui.dialogs.task_management_dialog.get_user_data') as mock_get_data:
+                        with patch('ui.dialogs.task_management_dialog.setup_default_task_tags'):
+                            with patch.object(dialog.task_widget, 'save_recurring_task_settings'):
+                                mock_get_data.return_value = {
+                                    'account': {
+                                        'features': {
+                                            'task_management': 'disabled'
+                                        }
+                                    }
+                                }
+                                
+                                # Act
+                                dialog.save_task_settings()
+                                
+                                # Assert - Verify data was saved
+                                from core.user_data_handlers import get_user_data
+                                saved_data = get_user_data(test_user, 'account')
+                                
+                                assert 'features' in saved_data.get('account', {}), \
+                                    "Account should have features"
+                                assert saved_data['account']['features'].get('task_management') == 'enabled', \
+                                    "Task management should be enabled in account"
+    
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_save_task_settings_updates_schedule_periods(self, test_user, test_data_dir, qapp):
+        """Test that save_task_settings updates schedule periods on disk."""
+        # Arrange
+        dialog = TaskManagementDialog(parent=None, user_id=test_user)
+        dialog.ui.groupBox_checkBox_enable_task_management.setChecked(True)
+        
+        valid_settings = {
+            'time_periods': {
+                'morning': {
+                    'start_time': '09:00',
+                    'end_time': '12:00'
+                },
+                'afternoon': {
+                    'start_time': '13:00',
+                    'end_time': '17:00'
+                }
+            }
+        }
+        
+        # Create mock period widgets
+        mock_period1 = Mock()
+        mock_period1.get_period_data.return_value = {'name': 'morning'}
+        mock_period2 = Mock()
+        mock_period2.get_period_data.return_value = {'name': 'afternoon'}
+        dialog.task_widget.period_widgets = [mock_period1, mock_period2]
+        
+        with patch.object(dialog.task_widget, 'get_task_settings', return_value=valid_settings):
+            with patch('ui.dialogs.task_management_dialog.validate_schedule_periods', return_value=(True, [])):
+                with patch('ui.dialogs.task_management_dialog.set_schedule_periods') as mock_set_periods:
+                    with patch('ui.dialogs.task_management_dialog.clear_schedule_periods_cache') as mock_clear_cache:
+                        with patch('ui.dialogs.task_management_dialog.update_user_account'):
+                            with patch('ui.dialogs.task_management_dialog.QMessageBox'):
+                                with patch('ui.dialogs.task_management_dialog.get_user_data') as mock_get_data:
+                                    with patch('ui.dialogs.task_management_dialog.setup_default_task_tags'):
+                                        with patch.object(dialog.task_widget, 'save_recurring_task_settings'):
+                                            mock_get_data.return_value = {
+                                                'account': {
+                                                    'features': {
+                                                        'task_management': 'disabled'
+                                                    }
+                                                }
+                                            }
+                                            
+                                            # Act
+                                            dialog.save_task_settings()
+                                            
+                                            # Assert - Verify schedule periods were updated
+                                            mock_set_periods.assert_called_once_with(
+                                                test_user, "tasks", valid_settings['time_periods']
+                                            ), "Should save schedule periods to disk"
+                                            mock_clear_cache.assert_called_once_with(test_user, "tasks"), \
+                                                "Should clear schedule cache after saving"
+    
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_save_task_settings_sets_up_default_tags_when_enabling(self, test_user, test_data_dir, qapp):
+        """Test that save_task_settings sets up default tags when enabling task management."""
+        # Arrange
+        dialog = TaskManagementDialog(parent=None, user_id=test_user)
+        dialog.ui.groupBox_checkBox_enable_task_management.setChecked(True)
+        
+        valid_settings = {
+            'time_periods': {
+                'morning': {
+                    'start_time': '09:00',
+                    'end_time': '12:00'
+                }
+            }
+        }
+        
+        # Create mock period widgets
+        mock_period = Mock()
+        mock_period.get_period_data.return_value = {'name': 'morning'}
+        dialog.task_widget.period_widgets = [mock_period]
+        
+        with patch.object(dialog.task_widget, 'get_task_settings', return_value=valid_settings):
+            with patch('ui.dialogs.task_management_dialog.validate_schedule_periods', return_value=(True, [])):
+                with patch('ui.dialogs.task_management_dialog.set_schedule_periods'):
+                    with patch('ui.dialogs.task_management_dialog.clear_schedule_periods_cache'):
+                        with patch('ui.dialogs.task_management_dialog.update_user_account'):
+                            with patch('ui.dialogs.task_management_dialog.QMessageBox'):
+                                with patch('ui.dialogs.task_management_dialog.get_user_data') as mock_get_data:
+                                    with patch('ui.dialogs.task_management_dialog.setup_default_task_tags') as mock_setup_tags:
+                                        with patch.object(dialog.task_widget, 'save_recurring_task_settings'):
+                                            mock_get_data.return_value = {
+                                                'account': {
+                                                    'features': {
+                                                        'task_management': 'disabled'
+                                                    }
+                                                }
+                                            }
+                                            
+                                            # Act
+                                            dialog.save_task_settings()
+                                            
+                                            # Assert - Should setup default tags when enabling
+                                            mock_setup_tags.assert_called_once_with(test_user), \
+                                                "Should setup default tags when enabling task management"
+    
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_on_enable_task_management_toggled_adds_default_period_when_enabled(self, test_user, test_data_dir, qapp):
+        """Test that on_enable_task_management_toggled adds default period when enabled."""
+        # Arrange
+        dialog = TaskManagementDialog(parent=None, user_id=test_user)
+        dialog.task_widget.period_widgets = []  # Clear existing periods
+        
+        with patch.object(dialog.task_widget, 'add_new_period') as mock_add:
+            # Act - Enable task management
+            dialog.on_enable_task_management_toggled(True)
+            
+            # Assert - Should add default period if none exist
+            if len(dialog.task_widget.period_widgets) == 0:
+                mock_add.assert_called_once(), \
+                    "Should add default period when enabling task management with no periods"
+    
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_save_task_settings_persists_after_reload(self, test_user, test_data_dir, qapp):
+        """Test that saved task settings persist after dialog reload."""
+        # Arrange
+        dialog = TaskManagementDialog(parent=None, user_id=test_user)
+        dialog.ui.groupBox_checkBox_enable_task_management.setChecked(True)
+        
+        valid_settings = {
+            'time_periods': {
+                'morning': {
+                    'start_time': '09:00',
+                    'end_time': '12:00'
+                }
+            }
+        }
+        
+        # Create mock period widgets
+        mock_period = Mock()
+        mock_period.get_period_data.return_value = {'name': 'morning'}
+        dialog.task_widget.period_widgets = [mock_period]
+        
+        with patch.object(dialog.task_widget, 'get_task_settings', return_value=valid_settings):
+            with patch('ui.dialogs.task_management_dialog.validate_schedule_periods', return_value=(True, [])):
+                with patch('ui.dialogs.task_management_dialog.QMessageBox'):
+                    with patch('ui.dialogs.task_management_dialog.get_user_data') as mock_get_data:
+                        with patch('ui.dialogs.task_management_dialog.setup_default_task_tags'):
+                            with patch.object(dialog.task_widget, 'save_recurring_task_settings'):
+                                mock_get_data.return_value = {
+                                    'account': {
+                                        'features': {
+                                            'task_management': 'disabled'
+                                        }
+                                    }
+                                }
+                                
+                                # Act - Save settings
+                                dialog.save_task_settings()
+                                
+                                # Create new dialog instance to simulate reload
+                                new_dialog = TaskManagementDialog(parent=None, user_id=test_user)
+                                
+                                # Assert - Verify data persists
+                                from core.user_data_handlers import get_user_data
+                                persisted_data = get_user_data(test_user, 'account')
+                                
+                                assert 'features' in persisted_data.get('account', {}), \
+                                    "Account should have features after reload"
+                                assert persisted_data['account']['features'].get('task_management') == 'enabled', \
+                                    "Task management should remain enabled after reload"
+
+

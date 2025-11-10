@@ -1,6 +1,6 @@
 # Legacy Reference Cleanup Report
 
-**Generated**: 2025-11-08 21:39:43
+**Generated**: 2025-11-09 15:42:04
 **Total Files with Issues**: 5
 **Legacy Compatibility Markers Detected**: 33
 

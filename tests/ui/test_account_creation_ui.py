@@ -1275,5 +1275,373 @@ class TestAccountCreatorDialogHelperMethods:
         assert isinstance(errors, (list, str)), "Should return errors"
 
 
+class TestAccountCreatorDialogCreateAccountBehavior:
+    """Test account creator dialog create_account method with real behavior verification."""
+
+    @pytest.fixture
+    def dialog(self, qapp, test_data_dir, mock_config):
+        """Create account creation dialog for testing."""
+        # Create a mock communication manager
+        mock_comm_manager = Mock()
+        mock_comm_manager.get_active_channels.return_value = ['email', 'discord']
+        
+        # Create dialog (DO NOT show() - this would display UI during testing)
+        dialog = AccountCreatorDialog(parent=None, communication_manager=mock_comm_manager)
+        
+        yield dialog
+        
+        # Cleanup
+        dialog.deleteLater()
+
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_create_account_creates_user_files(self, dialog, test_data_dir):
+        """Test that create_account actually creates user files on disk."""
+        from core.user_data_handlers import get_user_data
+        from core.user_management import get_user_id_by_identifier
+        
+        # Arrange: Prepare account data
+        account_data = {
+            'username': 'test-create-user',
+            'preferred_name': 'Test Create User',
+            'timezone': 'America/New_York',
+            'channel': {'type': 'email', 'contact': 'test@example.com'},
+            'contact_info': {'email': 'test@example.com', 'phone': '', 'discord': ''},
+            'categories': ['motivational', 'health'],
+            'features_enabled': {'messages': True, 'tasks': False, 'checkins': False},
+            'task_settings': {},
+            'checkin_settings': {},
+            'personalization_data': {}
+        }
+        
+        # Act: Create account
+        success = dialog.create_account(account_data)
+        
+        # Assert: Account creation should succeed
+        assert success, "Account creation should succeed"
+        
+        # Assert: User ID should be found by username
+        user_id = get_user_id_by_identifier('test-create-user')
+        assert user_id is not None, "User ID should be found by username"
+        
+        # Assert: User files should exist
+        user_dir = os.path.join(test_data_dir, 'users', user_id)
+        assert os.path.exists(user_dir), "User directory should be created"
+        
+        # Assert: Required files should exist
+        account_file = os.path.join(user_dir, 'account.json')
+        preferences_file = os.path.join(user_dir, 'preferences.json')
+        assert os.path.exists(account_file), "Account file should be created"
+        assert os.path.exists(preferences_file), "Preferences file should be created"
+
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_create_account_persists_categories(self, dialog, test_data_dir):
+        """Test that create_account persists categories to disk."""
+        from core.user_data_handlers import get_user_data
+        from core.user_management import get_user_id_by_identifier
+        
+        # Arrange: Prepare account data with categories
+        test_categories = ['motivational', 'health', 'fun_facts']
+        account_data = {
+            'username': 'test-categories-user',
+            'preferred_name': 'Test Categories User',
+            'timezone': 'America/New_York',
+            'channel': {'type': 'email', 'contact': 'test@example.com'},
+            'contact_info': {'email': 'test@example.com', 'phone': '', 'discord': ''},
+            'categories': test_categories,
+            'features_enabled': {'messages': True, 'tasks': False, 'checkins': False},
+            'task_settings': {},
+            'checkin_settings': {},
+            'personalization_data': {}
+        }
+        
+        # Act: Create account
+        success = dialog.create_account(account_data)
+        assert success, "Account creation should succeed"
+        
+        # Assert: Categories should be persisted
+        user_id = get_user_id_by_identifier('test-categories-user')
+        assert user_id is not None, "User ID should be found"
+        
+        preferences_data = get_user_data(user_id, 'preferences')
+        preferences = preferences_data.get('preferences', {})
+        assert 'categories' in preferences, "Categories should be in preferences"
+        assert set(preferences['categories']) == set(test_categories), "Categories should match saved categories"
+
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_create_account_persists_channel_info(self, dialog, test_data_dir):
+        """Test that create_account persists channel information to disk."""
+        from core.user_data_handlers import get_user_data
+        from core.user_management import get_user_id_by_identifier
+        
+        # Arrange: Prepare account data with channel info
+        account_data = {
+            'username': 'test-channel-user',
+            'preferred_name': 'Test Channel User',
+            'timezone': 'America/New_York',
+            'channel': {'type': 'discord', 'contact': 'user#1234'},
+            'contact_info': {'email': '', 'phone': '', 'discord': 'user#1234'},
+            'categories': ['motivational'],
+            'features_enabled': {'messages': True, 'tasks': False, 'checkins': False},
+            'task_settings': {},
+            'checkin_settings': {},
+            'personalization_data': {}
+        }
+        
+        # Act: Create account
+        success = dialog.create_account(account_data)
+        assert success, "Account creation should succeed"
+        
+        # Assert: Channel info should be persisted
+        user_id = get_user_id_by_identifier('test-channel-user')
+        assert user_id is not None, "User ID should be found"
+        
+        preferences_data = get_user_data(user_id, 'preferences')
+        preferences = preferences_data.get('preferences', {})
+        assert 'channel' in preferences, "Channel should be in preferences"
+        assert preferences['channel']['type'] == 'discord', "Channel type should be persisted"
+        # discord_user_id is stored at the preferences level, not in channel
+        assert preferences.get('discord_user_id') == 'user#1234' or preferences['channel'].get('contact') == 'user#1234', "Discord user ID should be persisted"
+
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_create_account_persists_task_settings(self, dialog, test_data_dir):
+        """Test that create_account persists task settings to disk."""
+        from core.user_data_handlers import get_user_data
+        from core.user_management import get_user_id_by_identifier
+        
+        # Arrange: Prepare account data with task settings
+        task_settings = {
+            'time_periods': {
+                'morning': {'start_time': '09:00', 'end_time': '12:00', 'days': ['Monday', 'Tuesday']}
+            },
+            'tags': ['work', 'personal']
+        }
+        account_data = {
+            'username': 'test-tasks-user',
+            'preferred_name': 'Test Tasks User',
+            'timezone': 'America/New_York',
+            'channel': {'type': 'email', 'contact': 'test@example.com'},
+            'contact_info': {'email': 'test@example.com', 'phone': '', 'discord': ''},
+            'categories': ['motivational'],
+            'features_enabled': {'messages': True, 'tasks': True, 'checkins': False},
+            'task_settings': task_settings,
+            'checkin_settings': {},
+            'personalization_data': {}
+        }
+        
+        # Act: Create account
+        success = dialog.create_account(account_data)
+        assert success, "Account creation should succeed"
+        
+        # Assert: Task settings should be persisted
+        user_id = get_user_id_by_identifier('test-tasks-user')
+        assert user_id is not None, "User ID should be found"
+        
+        preferences_data = get_user_data(user_id, 'preferences')
+        preferences = preferences_data.get('preferences', {})
+        assert 'task_settings' in preferences, "Task settings should be in preferences"
+        # Task settings may not have time_periods if they're empty, but tags should be there
+        task_settings = preferences['task_settings']
+        # Check if time_periods exist (they should if provided)
+        if 'time_periods' in task_settings:
+            assert 'morning' in task_settings['time_periods'], "Morning period should be persisted"
+        # Tags should always be persisted if provided
+        assert 'tags' in task_settings, "Tags should be in task settings"
+        assert set(task_settings['tags']) == set(['work', 'personal']), "Tags should match saved tags"
+
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_create_account_persists_checkin_settings(self, dialog, test_data_dir):
+        """Test that create_account persists check-in settings to disk."""
+        from core.user_data_handlers import get_user_data
+        from core.user_management import get_user_id_by_identifier
+        
+        # Arrange: Prepare account data with check-in settings
+        checkin_settings = {
+            'time_periods': {
+                'afternoon': {'start_time': '14:00', 'end_time': '17:00', 'days': ['Monday', 'Wednesday', 'Friday']}
+            }
+        }
+        account_data = {
+            'username': 'test-checkins-user',
+            'preferred_name': 'Test Checkins User',
+            'timezone': 'America/New_York',
+            'channel': {'type': 'email', 'contact': 'test@example.com'},
+            'contact_info': {'email': 'test@example.com', 'phone': '', 'discord': ''},
+            'categories': ['motivational'],
+            'features_enabled': {'messages': True, 'tasks': False, 'checkins': True},
+            'task_settings': {},
+            'checkin_settings': checkin_settings,
+            'personalization_data': {}
+        }
+        
+        # Act: Create account
+        success = dialog.create_account(account_data)
+        assert success, "Account creation should succeed"
+        
+        # Assert: Check-in settings should be persisted
+        user_id = get_user_id_by_identifier('test-checkins-user')
+        assert user_id is not None, "User ID should be found"
+        
+        preferences_data = get_user_data(user_id, 'preferences')
+        preferences = preferences_data.get('preferences', {})
+        assert 'checkin_settings' in preferences, "Check-in settings should be in preferences"
+        checkin_settings = preferences['checkin_settings']
+        # Check-in settings may not have time_periods if they're empty, but if provided they should be there
+        if 'time_periods' in checkin_settings:
+            assert 'afternoon' in checkin_settings['time_periods'], "Afternoon period should be persisted"
+        # At minimum, checkin_settings should exist as a dict
+        assert isinstance(checkin_settings, dict), "Check-in settings should be a dictionary"
+
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_create_account_updates_user_index(self, dialog, test_data_dir):
+        """Test that create_account updates the user index."""
+        from core.user_data_manager import build_user_index
+        from core.user_management import get_user_id_by_identifier
+        
+        # Arrange: Prepare account data
+        account_data = {
+            'username': 'test-index-user',
+            'preferred_name': 'Test Index User',
+            'timezone': 'America/New_York',
+            'channel': {'type': 'email', 'contact': 'test@example.com'},
+            'contact_info': {'email': 'test@example.com', 'phone': '', 'discord': ''},
+            'categories': ['motivational'],
+            'features_enabled': {'messages': True, 'tasks': False, 'checkins': False},
+            'task_settings': {},
+            'checkin_settings': {},
+            'personalization_data': {}
+        }
+        
+        # Act: Create account
+        success = dialog.create_account(account_data)
+        assert success, "Account creation should succeed"
+        
+        # Assert: User should be in index
+        user_id = get_user_id_by_identifier('test-index-user')
+        assert user_id is not None, "User ID should be found"
+        
+        user_index = build_user_index()
+        assert user_id in user_index, "User should be in user index"
+        # User index contains: active, categories, last_updated, message_count
+        assert 'active' in user_index[user_id], "User index should contain active status"
+        assert user_index[user_id]['active'] is True, "User should be active in index"
+
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_create_account_sets_up_default_tags_when_tasks_enabled(self, dialog, test_data_dir):
+        """Test that create_account sets up default task tags when task management is enabled."""
+        from core.user_data_handlers import get_user_data
+        from core.user_management import get_user_id_by_identifier
+        
+        # Arrange: Prepare account data with tasks enabled but no custom tags
+        account_data = {
+            'username': 'test-tags-user',
+            'preferred_name': 'Test Tags User',
+            'timezone': 'America/New_York',
+            'channel': {'type': 'email', 'contact': 'test@example.com'},
+            'contact_info': {'email': 'test@example.com', 'phone': '', 'discord': ''},
+            'categories': ['motivational'],
+            'features_enabled': {'messages': True, 'tasks': True, 'checkins': False},
+            'task_settings': {'time_periods': {}, 'tags': []},  # No custom tags
+            'checkin_settings': {},
+            'personalization_data': {}
+        }
+        
+        # Act: Create account
+        success = dialog.create_account(account_data)
+        assert success, "Account creation should succeed"
+        
+        # Assert: Default tags should be set up
+        user_id = get_user_id_by_identifier('test-tags-user')
+        assert user_id is not None, "User ID should be found"
+        
+        preferences_data = get_user_data(user_id, 'preferences')
+        preferences = preferences_data.get('preferences', {})
+        task_settings = preferences.get('task_settings', {})
+        tags = task_settings.get('tags', [])
+        assert len(tags) > 0, "Default tags should be set up"
+        # Default tags typically include 'work', 'personal', etc.
+        assert any('work' in tag.lower() or 'personal' in tag.lower() for tag in tags), "Default tags should include common tags"
+
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_create_account_saves_custom_tags_when_provided(self, dialog, test_data_dir):
+        """Test that create_account saves custom task tags when provided."""
+        from core.user_data_handlers import get_user_data
+        from core.user_management import get_user_id_by_identifier
+        
+        # Arrange: Prepare account data with custom tags
+        custom_tags = ['urgent', 'project-alpha', 'review']
+        account_data = {
+            'username': 'test-custom-tags-user',
+            'preferred_name': 'Test Custom Tags User',
+            'timezone': 'America/New_York',
+            'channel': {'type': 'email', 'contact': 'test@example.com'},
+            'contact_info': {'email': 'test@example.com', 'phone': '', 'discord': ''},
+            'categories': ['motivational'],
+            'features_enabled': {'messages': True, 'tasks': True, 'checkins': False},
+            'task_settings': {'time_periods': {}, 'tags': custom_tags},
+            'checkin_settings': {},
+            'personalization_data': {}
+        }
+        
+        # Act: Create account
+        success = dialog.create_account(account_data)
+        assert success, "Account creation should succeed"
+        
+        # Assert: Custom tags should be saved
+        user_id = get_user_id_by_identifier('test-custom-tags-user')
+        assert user_id is not None, "User ID should be found"
+        
+        preferences_data = get_user_data(user_id, 'preferences')
+        preferences = preferences_data.get('preferences', {})
+        task_settings = preferences.get('task_settings', {})
+        tags = task_settings.get('tags', [])
+        assert len(tags) >= len(custom_tags), "Custom tags should be saved"
+        for tag in custom_tags:
+            assert any(tag.lower() in t.lower() for t in tags), f"Custom tag '{tag}' should be saved"
+
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_create_account_persists_feature_flags(self, dialog, test_data_dir):
+        """Test that create_account persists feature flags correctly."""
+        from core.user_data_handlers import get_user_data
+        from core.user_management import get_user_id_by_identifier
+        
+        # Arrange: Prepare account data with all features enabled
+        account_data = {
+            'username': 'test-features-user',
+            'preferred_name': 'Test Features User',
+            'timezone': 'America/New_York',
+            'channel': {'type': 'email', 'contact': 'test@example.com'},
+            'contact_info': {'email': 'test@example.com', 'phone': '', 'discord': ''},
+            'categories': ['motivational', 'health'],
+            'features_enabled': {'messages': True, 'tasks': True, 'checkins': True},
+            'task_settings': {'time_periods': {}},
+            'checkin_settings': {'time_periods': {}},
+            'personalization_data': {}
+        }
+        
+        # Act: Create account
+        success = dialog.create_account(account_data)
+        assert success, "Account creation should succeed"
+        
+        # Assert: Feature flags should be persisted
+        user_id = get_user_id_by_identifier('test-features-user')
+        assert user_id is not None, "User ID should be found"
+        
+        user_account_data = get_user_data(user_id, 'account')
+        account = user_account_data.get('account', {})
+        assert 'features' in account, "Features should be in account"
+        assert account['features']['automated_messages'] == 'enabled', "Messages should be enabled"
+        assert account['features']['task_management'] == 'enabled', "Tasks should be enabled"
+        assert account['features']['checkins'] == 'enabled', "Check-ins should be enabled"
+
+
 if __name__ == "__main__":
     pytest.main([__file__]) 

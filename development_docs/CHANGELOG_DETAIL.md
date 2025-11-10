@@ -35,6 +35,65 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-09 - Test Coverage Expansion: Account Creator Dialog, Discord Bot, and Warning Fix **COMPLETED**
+
+**Problem**: Two modules had low test coverage: `ui/dialogs/account_creator_dialog.py` (48%) and `communication/communication_channels/discord/bot.py` (45%). Additionally, there was an outstanding RuntimeWarning in `test_save_checkin_settings_skips_validation_when_disabled` that needed to be suppressed.
+
+**Solution**: Created comprehensive behavior-focused test suites for both modules, adding 27 new tests that verify real system behavior, data persistence, and side effects. Fixed the RuntimeWarning by adding proper warning suppression.
+
+**Technical Changes**:
+- **Account Creator Dialog**: Expanded `tests/ui/test_account_creation_ui.py` with 9 behavior tests covering user file creation (`test_create_account_creates_user_files`), data persistence (`test_create_account_persists_categories`, `test_create_account_persists_channel_info`, `test_create_account_persists_task_settings`, `test_create_account_persists_checkin_settings`), user index updates (`test_create_account_updates_user_index`), task tag setup (`test_create_account_sets_up_default_tags_when_tasks_enabled`, `test_create_account_saves_custom_tags_when_provided`), and feature flag persistence (`test_create_account_persists_feature_flags`). Fixed tests to use correct data structure access (`get_user_data` returns nested dicts with 'preferences' and 'account' keys).
+- **Discord Bot**: Expanded `tests/behavior/test_discord_bot_behavior.py` with 18 behavior tests covering connection status updates (`test_shared_update_connection_status_actually_updates_state`, `test_shared_update_connection_status_handles_same_status`), user validation (`test_validate_discord_user_accessibility_returns_true_for_valid_user`, `test_validate_discord_user_accessibility_fetches_user_when_not_cached`, `test_validate_discord_user_accessibility_handles_not_found`, `test_validate_discord_user_accessibility_handles_forbidden`, `test_validate_discord_user_accessibility_handles_invalid_user_id`), message sending (`test_send_to_channel_sends_message`, `test_send_to_channel_sends_with_embed`, `test_send_to_channel_sends_with_view`, `test_send_to_channel_handles_errors`), session cleanup (`test_cleanup_aiohttp_sessions_cleans_up_sessions`, `test_cleanup_aiohttp_sessions_handles_already_closed`), command queue processing (`test_process_command_queue_processes_send_message`, `test_process_command_queue_processes_stop_command`), and event/command registration (`test_register_events_registers_event_handlers`, `test_register_events_skips_if_already_registered`, `test_register_commands_registers_commands`). Fixed tests to use proper mocking for async operations and correct exception construction for Discord API errors.
+- **Warning Fix**: Fixed RuntimeWarning in `test_save_checkin_settings_skips_validation_when_disabled` by adding warning suppression using `warnings.catch_warnings()` and `warnings.filterwarnings()`, matching the pattern used in Discord bot tests.
+
+**Files Modified**:
+- `tests/ui/test_account_creation_ui.py` (9 new behavior tests)
+- `tests/behavior/test_discord_bot_behavior.py` (18 new behavior tests)
+- `tests/unit/test_checkin_management_dialog.py` (added warning suppression)
+
+**Testing**:
+- Full test suite passes: 2,780 passed, 1 skipped, 0 failed
+- All 27 new tests pass with proper isolation
+- Verified no files written outside `tests/` directory
+- Tests follow Arrange-Act-Assert pattern and project testing guidelines
+- Tests verify real behavior: data persistence, side effects, and actual system changes
+- Warning count: 5 total (4 external library deprecation warnings + 1 expected RuntimeWarning from Discord bot test)
+
+**Impact**: Significantly improved test coverage for account creation and Discord bot modules. All new tests focus on verifying actual system behavior and data persistence, improving confidence in system reliability. Fixed outstanding RuntimeWarning. Total test count increased from 2,753 to 2,780 tests.
+
+### 2025-11-09 - Test Coverage Expansion: Communication Core, UI Dialogs, and Interaction Manager **COMPLETED**
+
+**Problem**: Six modules had low test coverage: `communication/core/__init__.py` (30%), `ui/dialogs/category_management_dialog.py` (48%), `ui/dialogs/task_management_dialog.py` (53%), `ui/widgets/task_settings_widget.py` (54%), `communication/message_processing/interaction_manager.py` (51%), and `communication/core/channel_orchestrator.py` (55%). These modules needed behavior-focused tests to verify actual system changes and data persistence.
+
+**Solution**: Created comprehensive behavior-focused test suites for all six modules, adding 63 new tests that verify real system behavior, data persistence, side effects, and integration workflows. All tests follow Arrange-Act-Assert pattern and project testing guidelines.
+
+**Technical Changes**:
+- **Communication Core Module**: Created `tests/unit/test_communication_core_init.py` with 17 tests covering direct imports, lazy imports via `__getattr__`, circular dependency handling, and real behavior of `RetryManager` and `QueuedMessage`. Tests verify that `__getattr__` intentionally does not use `@handle_errors` decorator to avoid circular dependencies.
+- **Category Management Dialog**: Expanded `tests/ui/test_category_management_dialog.py` with 5 behavior tests verifying data persistence (`test_save_category_settings_persists_to_disk`), account feature updates (`test_save_category_settings_updates_account_features`), cache clearing when disabled (`test_save_category_settings_clears_cache_when_disabled`), data loading from disk (`test_load_user_category_data_loads_from_disk`), and persistence after reload (`test_save_category_settings_persists_after_reload`). Tests use valid categories from `CATEGORY_KEYS` and compare sets to account for order differences.
+- **Task Management Dialog**: Expanded `tests/ui/test_task_management_dialog.py` with 5 behavior tests verifying account feature updates (`test_save_task_settings_persists_to_disk`), schedule period updates and cache clearing (`test_save_task_settings_updates_schedule_periods`), default tag setup when enabling (`test_save_task_settings_sets_up_default_tags_when_enabling`), default period addition when enabled (`test_on_enable_task_management_toggled_adds_default_period_when_enabled`), and persistence after reload (`test_save_task_settings_persists_after_reload`).
+- **Task Settings Widget**: Created `tests/ui/test_task_settings_widget.py` with 10 behavior tests covering data structure verification (`test_get_task_settings_returns_actual_data`), period management (`test_set_task_settings_actually_sets_periods`, `test_set_task_settings_clears_existing_periods`), statistics retrieval (`test_get_statistics_returns_real_data`), UI interactions (`test_remove_period_row_actually_removes_from_layout`, `test_undo_last_period_delete_actually_restores_period`), recurring task settings (`test_get_recurring_task_settings_returns_actual_ui_values`, `test_set_recurring_task_settings_actually_sets_ui_values`), and period number handling (`test_find_lowest_available_period_number_handles_gaps`, `test_add_new_period_creates_unique_names`). Fixed tests to pass `period_name` and `period_data` directly to `add_new_period()` instead of calling non-existent `set_period_data()` method.
+- **Interaction Manager**: Created `tests/behavior/test_communication_interaction_manager_behavior.py` with 12 behavior tests covering conversation record creation (`test_handle_message_creates_conversation_record`), bang command handling (`test_handle_message_handles_bang_commands`), slash command map retrieval (`test_get_slash_command_map_returns_actual_map`), flow command handling (`test_handle_message_handles_flow_commands`), shortcut handling (`test_handle_message_handles_shortcuts`), and command definition retrieval (`test_get_command_definitions_returns_actual_definitions`).
+- **Channel Orchestrator**: Created `tests/behavior/test_communication_manager_behavior.py` with 14 behavior tests covering singleton pattern (`test_communication_manager_is_singleton`), channel status retrieval (`test_get_channel_status_returns_status`), channel initialization (`test_start_all_initializes_channels`), message sending (`test_send_message_sync_sends_to_channel`), error handling (`test_send_message_sync_handles_channel_not_found`, `test_send_message_sync_handles_channel_not_ready`), and concurrent access (`test_communication_manager_handles_concurrent_access`). Fixed tests to use correct method names (`start_all` instead of `start`), correct enum values (`ChannelStatus.READY`/`STOPPED` instead of `CONNECTED`/`DISCONNECTED`), correct argument passing (`user_id` as keyword argument in `send_message_sync`), and correct patching targets (`core.config.validate_communication_channels`).
+
+**Files Created**:
+- `tests/unit/test_communication_core_init.py` (17 tests)
+- `tests/ui/test_task_settings_widget.py` (10 tests)
+- `tests/behavior/test_communication_interaction_manager_behavior.py` (12 tests)
+- `tests/behavior/test_communication_manager_behavior.py` (14 tests)
+
+**Files Modified**:
+- `tests/ui/test_category_management_dialog.py` (5 new behavior tests)
+- `tests/ui/test_task_management_dialog.py` (5 new behavior tests)
+
+**Testing**:
+- Full test suite passes: 2,753 passed, 1 skipped, 0 failed
+- All 63 new tests pass with proper isolation
+- Verified no files written outside `tests/` directory
+- Tests follow Arrange-Act-Assert pattern and project testing guidelines
+- Tests verify real behavior: data persistence, side effects, and actual system changes
+
+**Impact**: Significantly improved test coverage for communication core, UI dialogs, and interaction management modules. All new tests focus on verifying actual system behavior and data persistence, improving confidence in system reliability. Total test count increased from 2,690 to 2,753 tests.
+
 ### 2025-11-09 - Critical Fix: Scheduler User Detection Bug **COMPLETED**
 
 **Problem**: The scheduler was unable to find any users, logging "No users found for scheduling" and preventing all scheduled messages from being sent. This was a critical bug that broke the core scheduling functionality.

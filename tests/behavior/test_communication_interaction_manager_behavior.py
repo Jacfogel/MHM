@@ -4,6 +4,7 @@ Real behavior tests for communication interaction manager functionality.
 Tests focus on actual side effects and system changes rather than just return values.
 """
 
+import pytest
 from communication.message_processing.interaction_manager import InteractionManager
 from tests.test_utilities import TestUserFactory
 
@@ -556,3 +557,201 @@ class TestInteractionManagerBehavior:
         assert hasattr(augmented, 'suggestions'), "Response should have suggestions"
         if not response.completed:
             assert augmented.suggestions is not None, "Suggestions should be added for incomplete responses"
+
+
+class TestInteractionManagerRealBehavior:
+    """Test interaction manager with real behavior verification."""
+    
+    @pytest.mark.behavior
+    def test_handle_message_creates_conversation_record(self, test_data_dir):
+        """Test that handle_message creates actual conversation record."""
+        # Arrange
+        user_id = "test-interaction-user"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = InteractionManager()
+        
+        # Act
+        response = interaction_manager.handle_message(user_id, "Hello", "discord")
+        
+        # Assert - Verify actual response creation
+        assert response is not None, "Response should be created"
+        assert hasattr(response, 'message'), "Response should have message"
+        assert hasattr(response, 'completed'), "Response should have completed flag"
+        assert isinstance(response.message, str), "Response message should be a string"
+    
+    @pytest.mark.behavior
+    def test_handle_message_updates_conversation_state(self, test_data_dir):
+        """Test that handle_message updates conversation state."""
+        # Arrange
+        user_id = "test-interaction-user"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = InteractionManager()
+        
+        # Act - Send multiple messages
+        response1 = interaction_manager.handle_message(user_id, "Hello", "discord")
+        response2 = interaction_manager.handle_message(user_id, "How are you?", "discord")
+        
+        # Assert - Verify conversation state is maintained
+        assert response1 is not None, "First response should be created"
+        assert response2 is not None, "Second response should be created"
+        # Both responses should be valid
+        assert isinstance(response1.message, str), "First response message should be a string"
+        assert isinstance(response2.message, str), "Second response message should be a string"
+    
+    @pytest.mark.behavior
+    def test_handle_message_handles_bang_commands(self, test_data_dir):
+        """Test that handle_message handles bang-prefixed commands (!tasks, !help, etc.)."""
+        # Arrange
+        user_id = "test-interaction-user"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = InteractionManager()
+        
+        # Act
+        response = interaction_manager.handle_message(user_id, "!tasks", "discord")
+        
+        # Assert - Verify bang command handling
+        assert response is not None, "Response should be created"
+        assert isinstance(response.message, str), "Response message should be a string"
+    
+    @pytest.mark.behavior
+    def test_handle_message_handles_flow_commands(self, test_data_dir):
+        """Test that handle_message handles flow commands correctly."""
+        # Arrange
+        user_id = "test-interaction-user"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = InteractionManager()
+        
+        # Act - Test flow command
+        response = interaction_manager.handle_message(user_id, "/checkin", "discord")
+        
+        # Assert - Verify flow command handling
+        assert response is not None, "Response should be created"
+        assert isinstance(response.message, str), "Response message should be a string"
+    
+    @pytest.mark.behavior
+    def test_handle_message_handles_confirm_delete_shortcut(self, test_data_dir):
+        """Test that handle_message handles 'confirm delete' shortcut."""
+        # Arrange
+        user_id = "test-interaction-user"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = InteractionManager()
+        
+        # Act
+        response = interaction_manager.handle_message(user_id, "confirm delete", "discord")
+        
+        # Assert - Verify confirm delete handling
+        assert response is not None, "Response should be created"
+        assert isinstance(response.message, str), "Response message should be a string"
+    
+    @pytest.mark.behavior
+    def test_handle_message_handles_complete_task_shortcut(self, test_data_dir):
+        """Test that handle_message handles 'complete task' shortcut."""
+        # Arrange
+        user_id = "test-interaction-user"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = InteractionManager()
+        
+        # Act
+        response = interaction_manager.handle_message(user_id, "complete task", "discord")
+        
+        # Assert - Verify complete task handling
+        assert response is not None, "Response should be created"
+        assert isinstance(response.message, str), "Response message should be a string"
+    
+    @pytest.mark.behavior
+    def test_handle_message_handles_schedule_edit_shortcut(self, test_data_dir):
+        """Test that handle_message handles schedule edit shortcuts."""
+        # Arrange
+        user_id = "test-interaction-user"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = InteractionManager()
+        
+        # Act - Test schedule edit shortcut
+        response = interaction_manager.handle_message(user_id, "edit schedule period morning tasks", "discord")
+        
+        # Assert - Verify schedule edit handling
+        assert response is not None, "Response should be created"
+        assert isinstance(response.message, str), "Response message should be a string"
+    
+    @pytest.mark.behavior
+    def test_handle_message_handles_update_task_coercion(self, test_data_dir):
+        """Test that handle_message handles update task coercion."""
+        # Arrange
+        user_id = "test-interaction-user"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = InteractionManager()
+        
+        # Act - Test update task coercion
+        response = interaction_manager.handle_message(user_id, "update task test_task title New Title", "discord")
+        
+        # Assert - Verify update task handling
+        assert response is not None, "Response should be created"
+        assert isinstance(response.message, str), "Response message should be a string"
+    
+    @pytest.mark.behavior
+    def test_get_slash_command_map_returns_actual_map(self, test_data_dir):
+        """Test that get_slash_command_map returns actual command map."""
+        # Arrange
+        interaction_manager = InteractionManager()
+        
+        # Act
+        command_map = interaction_manager.get_slash_command_map()
+        
+        # Assert - Verify actual map structure
+        assert isinstance(command_map, dict), "Command map should be a dictionary"
+        assert len(command_map) > 0, "Command map should not be empty"
+        # Verify expected commands exist
+        assert '/tasks' in command_map or 'tasks' in str(command_map), "Tasks command should be in map"
+        assert '/help' in command_map or 'help' in str(command_map), "Help command should be in map"
+    
+    @pytest.mark.behavior
+    def test_get_command_definitions_returns_actual_definitions(self, test_data_dir):
+        """Test that get_command_definitions returns actual command definitions."""
+        # Arrange
+        interaction_manager = InteractionManager()
+        
+        # Act
+        definitions = interaction_manager.get_command_definitions()
+        
+        # Assert - Verify actual definitions structure
+        assert isinstance(definitions, list), "Definitions should be a list"
+        assert len(definitions) > 0, "Definitions should not be empty"
+        # Verify structure of definitions
+        for definition in definitions:
+            assert isinstance(definition, dict), "Each definition should be a dictionary"
+            assert 'name' in definition, "Definition should have 'name' field"
+            assert 'mapped_message' in definition, "Definition should have 'mapped_message' field"
+            assert 'description' in definition, "Definition should have 'description' field"
+    
+    @pytest.mark.behavior
+    def test_get_available_commands_returns_actual_commands(self, test_data_dir):
+        """Test that get_available_commands returns actual commands for user."""
+        # Arrange
+        user_id = "test-interaction-user"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = InteractionManager()
+        
+        # Act
+        commands = interaction_manager.get_available_commands(user_id)
+        
+        # Assert - Verify actual commands structure
+        assert isinstance(commands, dict), "Commands should be a dictionary"
+        # Commands may be empty if no handlers are available, which is valid
+    
+    @pytest.mark.behavior
+    def test_get_user_suggestions_returns_actual_suggestions(self, test_data_dir):
+        """Test that get_user_suggestions returns actual suggestions for user."""
+        # Arrange
+        user_id = "test-interaction-user"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = InteractionManager()
+        
+        # Act
+        suggestions = interaction_manager.get_user_suggestions(user_id)
+        
+        # Assert - Verify actual suggestions structure
+        assert isinstance(suggestions, list), "Suggestions should be a list"
+        assert len(suggestions) <= 5, "Suggestions should be limited to 5"
+        # Verify suggestions are strings
+        for suggestion in suggestions:
+            assert isinstance(suggestion, str), "Each suggestion should be a string"

@@ -370,25 +370,30 @@ class TestCheckinManagementDialogSave:
         # Arrange
         dialog.ui.groupBox_checkBox_enable_checkins.setChecked(False)
         
-        with patch.object(dialog.checkin_widget, 'get_checkin_settings') as mock_get:
-            mock_get.return_value = {'time_periods': {}, 'questions': {}}
+        # Suppress the expected RuntimeWarning about unawaited coroutine
+        import warnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=RuntimeWarning, message=".*coroutine.*was never awaited")
             
-            with patch('ui.dialogs.checkin_management_dialog.validate_schedule_periods') as mock_validate:
-                with patch('ui.dialogs.checkin_management_dialog.set_schedule_periods') as mock_set:
-                    with patch('ui.dialogs.checkin_management_dialog.update_user_preferences') as mock_update_prefs:
-                        with patch('ui.dialogs.checkin_management_dialog.update_user_account') as mock_update_account:
-                            with patch('ui.dialogs.checkin_management_dialog.get_user_data') as mock_get_data:
-                                mock_get_data.return_value = {'preferences': {}, 'account': {}}
-                                
-                                with patch('PySide6.QtWidgets.QMessageBox.information') as mock_info:
-                                    # Act
-                                    dialog.save_checkin_settings()
+            with patch.object(dialog.checkin_widget, 'get_checkin_settings') as mock_get:
+                mock_get.return_value = {'time_periods': {}, 'questions': {}}
+                
+                with patch('ui.dialogs.checkin_management_dialog.validate_schedule_periods') as mock_validate:
+                    with patch('ui.dialogs.checkin_management_dialog.set_schedule_periods') as mock_set:
+                        with patch('ui.dialogs.checkin_management_dialog.update_user_preferences') as mock_update_prefs:
+                            with patch('ui.dialogs.checkin_management_dialog.update_user_account') as mock_update_account:
+                                with patch('ui.dialogs.checkin_management_dialog.get_user_data') as mock_get_data:
+                                    mock_get_data.return_value = {'preferences': {}, 'account': {}}
                                     
-                                    # Assert
-                                    # Should not validate when disabled
-                                    mock_validate.assert_not_called()
-                                    # But should still save
-                                    mock_set.assert_called_once()
+                                    with patch('PySide6.QtWidgets.QMessageBox.information') as mock_info:
+                                        # Act
+                                        dialog.save_checkin_settings()
+                                        
+                                        # Assert
+                                        # Should not validate when disabled
+                                        mock_validate.assert_not_called()
+                                        # But should still save
+                                        mock_set.assert_called_once()
     
     @pytest.mark.ui
     @pytest.mark.unit

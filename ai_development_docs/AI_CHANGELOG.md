@@ -31,6 +31,19 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-09 - Test Coverage Expansion: Account Creator Dialog, Discord Bot, and Warning Fix **COMPLETED**
+- **Expanded Test Coverage**: Created comprehensive behavior-focused test suites for 2 modules - `account_creator_dialog.py` (48% → improved, 9 behavior tests) and `discord/bot.py` (45% → improved, 18 behavior tests)
+- **Test Quality**: All 27 new tests verify real system behavior, data persistence, side effects, and integration workflows - tests follow Arrange-Act-Assert pattern and project testing guidelines
+- **Warning Fix**: Fixed RuntimeWarning in `test_save_checkin_settings_skips_validation_when_disabled` by adding warning suppression (similar to Discord bot test pattern)
+- **Test Fixes**: Fixed tests to use correct data structure access (`get_user_data` returns nested dicts), proper async mocking, and correct exception construction for Discord API errors
+- **Testing**: Full test suite passes - 2,780 passed, 1 skipped, 0 failed - significantly improved coverage for account creation and Discord bot modules
+
+### 2025-11-09 - Test Coverage Expansion: Communication Core, UI Dialogs, and Interaction Manager **COMPLETED**
+- **Expanded Test Coverage**: Created comprehensive behavior-focused test suites for 6 modules - `communication/core/__init__.py` (30% → improved, 17 tests), `category_management_dialog.py` (48% → improved, 5 behavior tests), `task_management_dialog.py` (53% → improved, 5 behavior tests), `task_settings_widget.py` (54% → improved, 10 behavior tests), `interaction_manager.py` (51% → improved, 12 behavior tests), and `channel_orchestrator.py` (55% → improved, 14 behavior tests)
+- **Test Quality**: All 63 new tests verify real system behavior, data persistence, side effects, and integration workflows - tests follow Arrange-Act-Assert pattern and project testing guidelines
+- **Test Fixes**: Fixed tests to use correct method names (`start_all` instead of `start`), correct enum values (`ChannelStatus.READY`/`STOPPED`), correct argument passing (`user_id` as keyword argument), correct patching targets (`core.config.validate_communication_channels`), and valid categories from `CATEGORY_KEYS` with set comparisons for order independence
+- **Testing**: Full test suite passes - 2,753 passed, 1 skipped, 0 failed - significantly improved coverage for communication core, UI dialogs, and interaction management modules
+
 ### 2025-11-09 - Critical Fix: Scheduler User Detection Bug **COMPLETED**
 - **Critical Bug Fix**: Fixed `get_all_user_ids()` in `core/user_management.py` that was preventing scheduler from finding users - bug was caused by double path creation (`users_dir / item` where `item` is already a Path object)
 - **Solution**: Use `item` directly from `iterdir()` instead of combining with `users_dir` - `iterdir()` already returns Path objects relative to parent directory

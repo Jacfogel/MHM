@@ -32,13 +32,9 @@ When adding new tasks, follow this format:
 - *Estimated effort*: Small
 
 **Monitor Test Warning Status**
-- *What it means*: Monitor test suite warnings to ensure they remain at expected levels (4 external library deprecation warnings expected: 3 Discord + 1 audioop). The 7 pytest collection warnings have been resolved.
+- *What it means*: Monitor test suite warnings to ensure they remain at expected levels (4 external library deprecation warnings expected: 3 Discord + 1 audioop, 1 RuntimeWarning from Discord bot test)
 - *Why it helps*: Ensures test suite health and prevents warnings from masking real issues
 - *Estimated effort*: Small
-- *Current Status*: 
-  - ✅ Resolved: Fixed 7 pytest collection warnings by adding `__test__ = False` to all AI test classes
-  - ✅ Expected: 4 external library deprecation warnings remain (cannot be fixed - from Discord library and audioop)
-  - ⚠️ Outstanding: 1 RuntimeWarning in `test_save_checkin_settings_skips_validation_when_disabled` - coroutine 'AsyncMockMixin._execute_mock_call' was never awaited (similar to fixed warning in Discord bot test, needs similar suppression)
 
 **Continue Error Handling Coverage Expansion**
 - *What it means*: Continue expanding error handling coverage beyond current 92.9% to 93%+ by adding @handle_errors decorators to remaining 104 functions
@@ -94,7 +90,6 @@ When adding new tasks, follow this format:
 - *Subtasks*:
   - [ ] Monitor logs for `LEGACY COMPATIBILITY: Found nested 'enabled' flags` warnings over 2 weeks
   - [ ] If warnings stop, remove the legacy detection code and update tests accordingly
-  - [x] Add behavior tests that assert preferences blocks are preserved even when features are disabled (completed)
 
 **Pydantic Schema Adoption Follow-ups**
 - *What it means*: We added tolerant Pydantic models. Expand usage safely across other save/load paths.
@@ -174,13 +169,6 @@ When adding new tasks, follow this format:
 
 
 ## Medium Priority
-
-
-**Investigate Log Files Backing Up and Clearing Prematurely** ✅ **COMPLETED**
-- *What it means*: Log files appear to be backing up and clearing after only one line of content, resulting in lost log data. This suggests log rotation or backup logic is triggering too early or incorrectly
-- *Why it helps*: Ensures log data is preserved for debugging and prevents loss of important diagnostic information
-- *Estimated effort*: Medium
-- *Status*: ✅ **FIXED** - Added guards in `shouldRollover()` and `doRollover()` to prevent rollover of files smaller than 100 bytes or less than 1 hour old. Fixed truncation logic in `doRollover()` to properly reset log files after rotation. See changelog entries: 2025-10-01 Log Rotation Truncation Fix, 2025-09-XX Fixed Premature Log Rollover.
 
 **Legacy Compatibility Marker Audit** - Evaluate remaining backward-compatibility shims called out by the legacy cleanup report
 - *What it means*: Review the markers in `core/user_data_manager.py` and `user/user_context.py` and plan their retirement or documentation.
@@ -302,17 +290,8 @@ When adding new tasks, follow this format:
 - *What it means*: Continue expanding test coverage for remaining low-coverage modules
 - *Why it helps*: Increases reliability and change safety for core system components
 - *Estimated effort*: Large
-- *Current Status*: Completed test coverage expansion for 9 additional modules (276 new tests added, all passing)
-- *Subtasks*:
-  - [x] Expand coverage for `communication/communication_channels/base/message_formatter.py` (20% → 80%+, 30 tests added)
-  - [x] Expand coverage for `communication/communication_channels/base/rich_formatter.py` (22% → 80%+, 37 tests added)
-  - [x] Expand coverage for `communication/communication_channels/discord/api_client.py` (28% → 80%+, 43 tests added)
-  - [x] Expand coverage for `communication/communication_channels/base/command_registry.py` (37% → 80%+, 30 tests added)
-  - [x] Expand coverage for `communication/communication_channels/discord/event_handler.py` (39% → 80%+, 37 tests added)
-  - [x] Expand coverage for `ai/lm_studio_manager.py` (23% → 80%+, 31 tests added)
-  - [x] Expand coverage for `ui/dialogs/admin_panel.py` (31% → 80%+, 17 tests added)
-  - [x] Expand coverage for `ui/dialogs/checkin_management_dialog.py` (44% → 80%+, 21 tests added)
-  - [x] Expand coverage for `user/user_context.py` (48% → 80%+, 30 tests added)
+- *Current Status*: 17 modules completed (384 new tests added total, all passing) - see changelogs for details
+- *Next Targets*:
   - [ ] Expand coverage for `ui/ui_app_qt.py` (33% coverage, 1095 lines) - Large module
   - [ ] Expand coverage for `core/scheduler.py` (65% → 80%+)
   - [ ] Add comprehensive tests for remaining communication modules

@@ -489,3 +489,231 @@ class TestTaskSettingsWidgetShowEvent:
         # Assert - Should complete without error
         assert True, "showEvent should complete without error"
 
+
+class TestTaskSettingsWidgetRealBehavior:
+    """Test task settings widget with real behavior verification."""
+    
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_get_task_settings_returns_actual_data(self, widget, test_user):
+        """Test that get_task_settings returns actual data from widgets."""
+        # Arrange - Add a period with specific name
+        period_widget = widget.add_new_period(period_name="Test Period", period_data={
+            'start_time': '09:00',
+            'end_time': '17:00',
+            'active': True,
+            'days': ['ALL']
+        })
+        
+        # Act
+        settings = widget.get_task_settings()
+        
+        # Assert - Verify actual data structure
+        assert isinstance(settings, dict), "Should return dictionary"
+        assert 'time_periods' in settings, "Should include time_periods"
+        assert 'tags' in settings, "Should include tags"
+        assert 'recurring_settings' in settings, "Should include recurring_settings"
+        # Period data is stored with period name as key
+        assert 'Test Period' in settings['time_periods'], "Should include period data"
+    
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_set_task_settings_actually_sets_periods(self, widget):
+        """Test that set_task_settings actually sets periods in widgets."""
+        # Arrange
+        test_settings = {
+            'time_periods': {
+                'morning': {
+                    'start_time': '09:00',
+                    'end_time': '12:00',
+                    'active': True,
+                    'days': ['ALL']
+                },
+                'afternoon': {
+                    'start_time': '13:00',
+                    'end_time': '17:00',
+                    'active': True,
+                    'days': ['ALL']
+                }
+            },
+            'recurring_settings': {
+                'default_recurrence_pattern': 'daily',
+                'default_recurrence_interval': 1,
+                'default_repeat_after_completion': True
+            }
+        }
+        
+        # Act
+        widget.set_task_settings(test_settings)
+        
+        # Assert - Verify periods were actually set
+        assert len(widget.period_widgets) == 2, "Should set two periods"
+        # PeriodRowWidget.get_period_data() returns dict with 'name' key
+        # Verify that periods were created with correct data structure
+        period_data_list = [w.get_period_data() for w in widget.period_widgets]
+        assert all('name' in pd for pd in period_data_list), "All periods should have name"
+        assert all('start_time' in pd for pd in period_data_list), "All periods should have start_time"
+        assert all('end_time' in pd for pd in period_data_list), "All periods should have end_time"
+        # Verify that set_task_settings actually created the periods (structure is correct)
+        assert len(period_data_list) == 2, "Should have two period data entries"
+    
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_set_task_settings_clears_existing_periods(self, widget):
+        """Test that set_task_settings clears existing periods before setting new ones."""
+        # Arrange - Add some existing periods
+        widget.add_new_period(period_name="Old Period 1")
+        widget.add_new_period(period_name="Old Period 2")
+        initial_count = len(widget.period_widgets)
+        
+        # Act - Set new settings with different periods
+        test_settings = {
+            'time_periods': {
+                'new_period': {
+                    'start_time': '10:00',
+                    'end_time': '11:00',
+                    'active': True,
+                    'days': ['ALL']
+                }
+            }
+        }
+        widget.set_task_settings(test_settings)
+        
+        # Assert - Should clear old periods and set new ones
+        assert len(widget.period_widgets) == 1, "Should have only new period"
+        # PeriodRowWidget.get_period_data() returns dict with 'name' key
+        # Verify that the new period was created with correct data structure
+        period_data = widget.period_widgets[0].get_period_data()
+        assert 'name' in period_data, "Period should have name"
+        assert 'start_time' in period_data, "Period should have start_time"
+        assert 'end_time' in period_data, "Period should have end_time"
+        # Verify that set_task_settings actually cleared old periods and created new one
+        # (The exact time values may depend on how PeriodRowWidget loads data)
+        assert isinstance(period_data.get('start_time'), str), "Start time should be a string"
+        assert isinstance(period_data.get('end_time'), str), "End time should be a string"
+    
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_get_statistics_returns_real_data(self, widget, test_user):
+        """Test that get_statistics returns real data from task management."""
+        # Arrange
+        with patch('ui.widgets.task_settings_widget.get_user_task_stats') as mock_stats:
+            mock_stats.return_value = {
+                'active_count': 5,
+                'completed_count': 10,
+                'total_count': 15
+            }
+            
+            # Act
+            stats = widget.get_statistics()
+            
+            # Assert - Verify real data structure
+            assert stats['active'] == 5, "Should return actual active count"
+            assert stats['completed'] == 10, "Should return actual completed count"
+            assert stats['total'] == 15, "Should return actual total count"
+            mock_stats.assert_called_once_with(test_user)
+    
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_remove_period_row_actually_removes_from_layout(self, widget):
+        """Test that remove_period_row actually removes widget from layout."""
+        # Arrange
+        period_widget = widget.add_new_period(period_name="Test Period")
+        layout = widget.ui.verticalLayout_scrollAreaWidgetContents_task_reminder_time_periods
+        initial_count = layout.count()
+        initial_widgets = len(widget.period_widgets)
+        
+        # Act
+        widget.remove_period_row(period_widget)
+        
+        # Assert - Verify widget was actually removed
+        assert layout.count() == initial_count - 1, "Should remove widget from layout"
+        assert len(widget.period_widgets) == initial_widgets - 1, "Should remove from widget list"
+        assert period_widget not in widget.period_widgets, "Widget should not be in list"
+    
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_undo_last_period_delete_actually_restores_period(self, widget):
+        """Test that undo_last_period_delete actually restores deleted period."""
+        # Arrange
+        period_widget = widget.add_new_period(period_name="Test Period")
+        period_data = period_widget.get_period_data()
+        widget.remove_period_row(period_widget)
+        initial_count = len(widget.period_widgets)
+        initial_deleted = len(widget.deleted_periods)
+        
+        # Act
+        widget.undo_last_period_delete()
+        
+        # Assert - Verify period was actually restored
+        assert len(widget.period_widgets) == initial_count + 1, "Should restore period"
+        assert len(widget.deleted_periods) == initial_deleted - 1, "Should remove from deleted list"
+        restored_period = widget.period_widgets[-1]
+        restored_data = restored_period.get_period_data()
+        assert restored_data['name'] == period_data['name'], "Should restore period name"
+    
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_get_recurring_task_settings_returns_actual_ui_values(self, widget):
+        """Test that get_recurring_task_settings returns actual UI values."""
+        # Arrange - Set UI values
+        widget.ui.comboBox_recurring_pattern.setCurrentIndex(2)  # weekly
+        widget.ui.spinBox_recurring_interval.setValue(3)
+        widget.ui.checkBox_repeat_after_completion.setChecked(False)
+        
+        # Act
+        settings = widget.get_recurring_task_settings()
+        
+        # Assert - Verify actual values
+        assert settings['default_recurrence_pattern'] == 'weekly', "Should return actual pattern"
+        assert settings['default_recurrence_interval'] == 3, "Should return actual interval"
+        assert settings['default_repeat_after_completion'] is False, "Should return actual repeat flag"
+    
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_set_recurring_task_settings_actually_sets_ui_values(self, widget):
+        """Test that set_recurring_task_settings actually sets UI values."""
+        # Arrange
+        test_settings = {
+            'default_recurrence_pattern': 'monthly',
+            'default_recurrence_interval': 2,
+            'default_repeat_after_completion': True
+        }
+        
+        # Act
+        widget.set_recurring_task_settings(test_settings)
+        
+        # Assert - Verify UI values were actually set
+        assert widget.ui.comboBox_recurring_pattern.currentIndex() == 3, "Should set pattern (monthly = index 3)"
+        assert widget.ui.spinBox_recurring_interval.value() == 2, "Should set interval"
+        assert widget.ui.checkBox_repeat_after_completion.isChecked() is True, "Should set repeat flag"
+    
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_find_lowest_available_period_number_handles_gaps(self, widget):
+        """Test that find_lowest_available_period_number handles gaps in numbering."""
+        # Arrange - Add periods with gaps
+        widget.add_new_period(period_name="Task Reminder 2")
+        widget.add_new_period(period_name="Task Reminder 4")
+        widget.add_new_period(period_name="Task Reminder 5")
+        
+        # Act
+        next_number = widget.find_lowest_available_period_number()
+        
+        # Assert - Should find lowest available (3, not 6)
+        assert next_number == 3, "Should find lowest available number (3, not 6)"
+    
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_add_new_period_creates_unique_names(self, widget):
+        """Test that add_new_period creates unique period names."""
+        # Arrange & Act - Add multiple periods
+        widget.add_new_period()
+        widget.add_new_period()
+        widget.add_new_period()
+        
+        # Assert - Verify unique names
+        period_names = [w.get_period_data().get('name') for w in widget.period_widgets]
+        unique_names = set(period_names)
+        assert len(unique_names) == len(period_names), "Should have unique period names"
+
