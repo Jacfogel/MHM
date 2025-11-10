@@ -177,58 +177,6 @@ class UserContext:
         """
         return self.user_data.get('preferred_name')
 
-    # LEGACY COMPATIBILITY: Preference methods now delegate to UserPreferences
-    # TODO: Remove after all callers are updated to use UserPreferences directly
-    # REMOVAL PLAN:
-    # 1. Update all callers to use UserPreferences directly
-    # 2. Remove these delegation methods
-    # 3. Remove UserPreferences import when no longer needed
-    
-    @handle_errors("setting preference")
-    def set_preference(self, key, value):
-        """
-        Sets a user preference using UserPreferences.
-        
-        Args:
-            key (str): The preference key to be set.
-            value (any): The preference value to be set.
-        """
-        logger.warning("LEGACY COMPATIBILITY: UserContext.set_preference() called - use UserPreferences.set_preference() directly")
-        if hasattr(self, 'preferences') and self.preferences:
-            self.preferences.set_preference(key, value)
-        else:
-            logger.warning("UserPreferences not initialized - cannot set preference")
-
-    @handle_errors("getting preference", default_return=None)
-    def get_preference(self, key):
-        """
-        Retrieves a user preference using UserPreferences.
-        
-        Args:
-            key (str): The preference key to retrieve.
-        
-        Returns:
-            any: The current preference value, or None if not set.
-        """
-        logger.warning("LEGACY COMPATIBILITY: UserContext.get_preference() called - use UserPreferences.get_preference() directly")
-        if hasattr(self, 'preferences') and self.preferences:
-            return self.preferences.get_preference(key)
-        return None
-
-    @handle_errors("updating preference")
-    def update_preference(self, key, value):
-        """
-        Updates a user preference using UserPreferences.
-        
-        Args:
-            key (str): The preference key to be updated.
-            value (any): The preference value to be set.
-        """
-        logger.warning("LEGACY COMPATIBILITY: UserContext.update_preference() called - use UserPreferences.update_preference() directly")
-        if hasattr(self, 'preferences') and self.preferences:
-            self.preferences.update_preference(key, value)
-        else:
-            logger.warning("UserPreferences not initialized - cannot update preference")
 
 
     @handle_errors("getting instance context")

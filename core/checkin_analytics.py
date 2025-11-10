@@ -392,24 +392,9 @@ class CheckinAnalytics:
                 logger.debug(f"Auto-detected available fields: {enabled_fields}")
 
         if enabled_fields is not None:
-            # LEGACY COMPATIBILITY: For legacy enabled_fields, include any field that's in the data
-            # For new questions format, only include fields that are in candidate_fields
-            try:
-                from core.user_data_handlers import get_user_data
-                prefs = get_user_data(user_id, 'preferences') or {}
-                checkin_settings = (prefs.get('preferences') or {}).get('checkin_settings') or {}
-                is_legacy_format = isinstance(checkin_settings, dict) and 'enabled_fields' in checkin_settings
-            except Exception:
-                is_legacy_format = False
-                
-            if is_legacy_format:
-                # Legacy format: include any field that's in enabled_fields and has data
-                fields = enabled_fields
-                logger.debug(f"LEGACY: Using fields directly: {fields}")
-            else:
-                # New format: only include fields that are in candidate_fields
-                fields = [f for f in candidate_fields if f in enabled_fields]
-                logger.debug(f"NEW: Filtered fields: {fields}")
+            # Only include fields that are in candidate_fields
+            fields = [f for f in candidate_fields if f in enabled_fields]
+            logger.debug(f"Filtered fields: {fields}")
         else:
             fields = candidate_fields
 

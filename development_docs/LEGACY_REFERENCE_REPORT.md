@@ -1,14 +1,12 @@
 # Legacy Reference Cleanup Report
 
-**Generated**: 2025-11-09 15:42:04
-**Total Files with Issues**: 5
-**Legacy Compatibility Markers Detected**: 33
+**Generated**: 2025-11-09 19:13:12
+**Total Files with Issues**: 1
+**Legacy Compatibility Markers Detected**: 29
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
-- Legacy compatibility markers remain in 5 file(s) (5 total markers).
-- 3 file(s) still reference `enabled_fields`; confirm any clients still produce that payload.
-- 1 file(s) rely on legacy preference delegation paths; decide whether to modernise or retire them.
+- Legacy compatibility markers remain in 1 file(s) (1 total markers).
 
 ## Recommended Follow-Up
 1. Confirm whether legacy `enabled_fields` payloads are still produced; if not, plan removal and data migration.
@@ -58,7 +56,7 @@
   ```
 
 ## Legacy Compatibility Markers
-**Files Affected**: 5
+**Files Affected**: 1
 
 ### ai_development_tools\legacy_reference_cleanup.py
 **Issues Found**: 1
@@ -66,38 +64,6 @@
 - **Line 74**: `# LEGACY COMPATIBILITY:`
   ```
   r'# LEGACY COMPATIBILITY:',
-  ```
-
-### communication\command_handlers\analytics_handler.py
-**Issues Found**: 1
-
-- **Line 157**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Support old enabled_fields format
-  ```
-
-### communication\command_handlers\interaction_handlers.py
-**Issues Found**: 1
-
-- **Line 2386**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Support old enabled_fields format
-  ```
-
-### core\checkin_analytics.py
-**Issues Found**: 1
-
-- **Line 395**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: For legacy enabled_fields, include any field that's in the data
-  ```
-
-### user\user_context.py
-**Issues Found**: 1
-
-- **Line 180**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Preference methods now delegate to UserPreferences
   ```
 
 ## Old Bot Directory

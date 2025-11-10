@@ -93,7 +93,7 @@ python -m pytest tests/behavior/test_discord_automation_complete.py -v
 python -m pytest tests/behavior/test_*discord* -v
 
 # Manual Discord testing (when automation isn't sufficient)
-# See tests/MANUAL_DISCORD_TESTING_GUIDE.md for comprehensive testing checklist
+# See tests/MANUAL_TESTING_GUIDE.md for comprehensive testing checklist (consolidated from MANUAL_DISCORD_TESTING_GUIDE.md)
 ```
 
 ### **Test Categories**
@@ -253,7 +253,7 @@ def test_user_profile_saves_correctly(self, test_data_dir):
 - **Full Guide**: `tests/TESTING_GUIDE.md` - Complete testing framework documentation
 - **AI Functionality Tests**: `tests/AI_FUNCTIONALITY_TEST_PLAN.md` - AI functionality test plan and results
 - **Manual Testing**: `tests/MANUAL_TESTING_GUIDE.md` - UI testing procedures
-- **Discord Testing**: `tests/MANUAL_DISCORD_TESTING_GUIDE.md` - Discord command testing procedures
+- **Discord Testing**: `tests/MANUAL_TESTING_GUIDE.md` - Manual testing procedures including Discord (consolidated from MANUAL_DISCORD_TESTING_GUIDE.md)
 - **Discord Automation**: `tests/behavior/test_discord_automation_complete.py` - Automated Discord testing
 - **Error Handling**: `core/ERROR_HANDLING_GUIDE.md` - Exception handling patterns
 - **Development Workflow**: `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md` - Testing in development process

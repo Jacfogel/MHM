@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-09 - Legacy Code Cleanup and Documentation Drift Fixes **COMPLETED**
+- **Legacy Code Removal**: Verified and confirmed removal of all legacy `enabled_fields` format compatibility code and preference delegation methods - all code now uses new format/methods exclusively
+- **Path Drift Tool Improvements**: Enhanced documentation sync checker to handle false positives (valid package exports, legacy documentation files, Windows path separators) - reduced path drift issues from 5 to 0
+- **Documentation Fixes**: Fixed path references in AI_CHANGELOG.md, AI_FUNCTIONALITY_TEST_PLAN.md, and AI_TESTING_GUIDE.md to use full paths
+- **Verification**: Confirmed all 3 user directories use new format, no legacy code in production files, all 2,768 tests passing
+
 ### 2025-11-09 - Test Coverage Expansion: Account Creator Dialog, Discord Bot, and Warning Fix **COMPLETED**
 - **Expanded Test Coverage**: Created comprehensive behavior-focused test suites for 2 modules - `account_creator_dialog.py` (48% → improved, 9 behavior tests) and `discord/bot.py` (45% → improved, 18 behavior tests)
 - **Test Quality**: All 27 new tests verify real system behavior, data persistence, side effects, and integration workflows - tests follow Arrange-Act-Assert pattern and project testing guidelines
@@ -58,7 +64,7 @@ Guidelines:
 - **Testing**: Full test suite passes - 2,690 passed, 1 skipped, 0 failed - significantly improved coverage for communication channels, UI dialogs, and Discord bot module
 
 ### 2025-11-06 - Test Coverage Expansion for Communication and UI Modules **COMPLETED**
-- **Expanded Test Coverage**: Created comprehensive test suites for 9 modules - `message_formatter.py` (20% → 80%+, 30 tests), `rich_formatter.py` (22% → 80%+, 37 tests), `api_client.py` (28% → 80%+, 43 tests), `command_registry.py` (37% → 80%+, 30 tests), `event_handler.py` (39% → 80%+, 37 tests), `lm_studio_manager.py` (23% → 80%+, 31 tests), `admin_panel.py` (31% → 80%+, 17 tests), `checkin_management_dialog.py` (44% → 80%+, 21 tests), and `user_context.py` (48% → 80%+, 30 tests)
+- **Expanded Test Coverage**: Created comprehensive test suites for 9 modules - `message_formatter.py` (20% → 80%+, 30 tests), `rich_formatter.py` (22% → 80%+, 37 tests), `communication/communication_channels/discord/api_client.py` (28% → 80%+, 43 tests), `command_registry.py` (37% → 80%+, 30 tests), `event_handler.py` (39% → 80%+, 37 tests), `ai/lm_studio_manager.py` (23% → 80%+, 31 tests), `admin_panel.py` (31% → 80%+, 17 tests), `checkin_management_dialog.py` (44% → 80%+, 21 tests), and `user/user_context.py` (48% → 80%+, 30 tests)
 - **Test Quality**: All 276 new tests follow Arrange-Act-Assert pattern, verify actual system behavior, maintain proper test isolation, and cover initialization, success paths, edge cases, error handling, async operations, and UI interactions
 - **Testing**: Full test suite passes - 2,452 passed, 1 skipped, 0 failed - significantly improved coverage for communication channels, UI dialogs, and user management modules
 - **Impact**: All modules now have 80%+ coverage, improving system reliability and change safety. Total test count increased from 2,176 to 2,452 tests.
@@ -89,7 +95,7 @@ Guidelines:
 ---
 
 ### 2025-11-06 - UI Dialog Test Coverage Expansion and Test Quality Improvements **COMPLETED**
-- **Expanded Test Coverage**: Created comprehensive test suites for `process_watcher_dialog.py` (13% → 87% coverage, 28 tests) and `user_analytics_dialog.py` (15% coverage, 34 tests) with explicit Arrange-Act-Assert pattern
+- **Expanded Test Coverage**: Created comprehensive test suites for `ui/dialogs/process_watcher_dialog.py` (13% → 87% coverage, 28 tests) and `ui/dialogs/user_analytics_dialog.py` (15% coverage, 34 tests) with explicit Arrange-Act-Assert pattern
 - **Added Integration Tests**: Added 3 integration tests per dialog covering complete workflows (refresh → update tables → display data, analytics loading → display overview → display specific data)
 - **Test Structure Improvements**: Refactored all tests to explicitly follow Arrange-Act-Assert pattern with clear comments, improving readability and maintainability
 - **Test Fix**: Corrected `test_disable_tasks_for_full_user` to verify `task_settings` are preserved when feature is disabled (aligning with system design)
@@ -107,7 +113,7 @@ Guidelines:
 
 ### 2025-01-XX - Preferences Block Preservation When Features Disabled **COMPLETED**
 - **Preserved Settings Blocks**: Removed logic that deleted `task_settings` and `checkin_settings` blocks when features were disabled - settings now persist for future re-enablement
-- **Updated Behavior Tests**: Modified tests in `test_legacy_enabled_fields_compatibility.py` to verify blocks are preserved on full/partial updates even when features disabled
+- **Updated Behavior Tests**: Added tests to verify blocks are preserved on full/partial updates even when features disabled
 - **Impact**: Users can disable features without losing settings, allowing seamless re-enablement with previous preferences intact
 
 ---

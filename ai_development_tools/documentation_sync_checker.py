@@ -198,12 +198,27 @@ class DocumentationSyncChecker:
         # Enhanced filtering patterns for false positives
         self._setup_enhanced_filters()
         
+        # Files that document legacy patterns (expected to reference old paths)
+        # Use normalized paths (forward slashes) for comparison
+        legacy_documentation_files = {
+            'development_docs/LEGACY_REFERENCE_REPORT.md',
+            'development_docs\\LEGACY_REFERENCE_REPORT.md',  # Windows path
+            'development_docs/CHANGELOG_DETAIL.md',  # May contain historical references
+            'development_docs\\CHANGELOG_DETAIL.md',  # Windows path
+        }
+        
         # Check if documented paths exist
         for doc_file, paths in doc_paths.items():
             # Get the directory of the source file for relative path resolution
             source_dir = self.project_root / doc_file
             if source_dir.is_file():
                 source_dir = source_dir.parent
+            
+            # Skip legacy documentation files - they intentionally reference old paths
+            # Normalize path for comparison (handle both / and \)
+            normalized_doc_file = doc_file.replace('\\', '/')
+            if normalized_doc_file in legacy_documentation_files or doc_file in legacy_documentation_files:
+                continue
             
             for path in paths:
                 # Apply enhanced filtering
@@ -416,6 +431,14 @@ class DocumentationSyncChecker:
         
         # Skip if it's a common code pattern
         if path in self.code_patterns:
+            return True
+        
+        # Skip valid package-level exports (e.g., CommunicationManager from communication package)
+        # These are valid even if not directly importable via static analysis
+        valid_package_exports = {
+            'CommunicationManager',  # Exported via __getattr__ in communication/__init__.py
+        }
+        if path in valid_package_exports:
             return True
         
         # Check if this path exists in the codebase

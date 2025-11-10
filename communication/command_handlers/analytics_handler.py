@@ -154,16 +154,11 @@ class AnalyticsHandler(InteractionHandler):
                 prefs = get_user_data(user_id, 'preferences') or {}
                 checkin_settings = (prefs.get('preferences') or {}).get('checkin_settings') or {}
                 if isinstance(checkin_settings, dict):
-                    # LEGACY COMPATIBILITY: Support old enabled_fields format
-                    if 'enabled_fields' in checkin_settings:
-                        logger.warning(f"LEGACY COMPATIBILITY: User {user_id} using old enabled_fields format - consider migrating to questions format")
-                        enabled_fields = checkin_settings.get('enabled_fields', [])
-                    else:
-                        # Get enabled fields from new questions configuration
-                        questions = checkin_settings.get('questions', {})
-                        enabled_fields = [key for key, config in questions.items() 
-                                        if config.get('enabled', False) and 
-                                        config.get('type') in ['scale_1_5', 'number', 'yes_no']]
+                    # Get enabled fields from questions configuration
+                    questions = checkin_settings.get('questions', {})
+                    enabled_fields = [key for key, config in questions.items() 
+                                    if config.get('enabled', False) and 
+                                    config.get('type') in ['scale_1_5', 'number', 'yes_no']]
             except Exception:
                 enabled_fields = None
 

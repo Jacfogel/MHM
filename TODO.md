@@ -83,13 +83,6 @@ When adding new tasks, follow this format:
   - [ ] Simulate Discord disconnect during a scheduled check-in; confirm message queues and retries post-reconnect
   - [ ] Confirm single "User check-in started" entry after successful send
 
-**Legacy Preferences Flag Monitoring and Removal Plan**
-- *What it means*: We added LEGACY COMPATIBILITY handling that warns when nested `enabled` flags are present under `preferences.task_settings`/`checkin_settings`. Settings blocks are preserved even when features are disabled to allow re-enablement with previous settings intact. We need to monitor usage and plan removal.
-- *Why it helps*: Keeps data truthful (feature states live in `account.features`) while preserving user settings for future re-enablement.
-- *Estimated effort*: Small/Medium
-- *Subtasks*:
-  - [ ] Monitor logs for `LEGACY COMPATIBILITY: Found nested 'enabled' flags` warnings over 2 weeks
-  - [ ] If warnings stop, remove the legacy detection code and update tests accordingly
 
 **Pydantic Schema Adoption Follow-ups**
 - *What it means*: We added tolerant Pydantic models. Expand usage safely across other save/load paths.
