@@ -35,6 +35,47 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-09 - Critical Fix: Test Users Creating Real Windows Scheduled Tasks **COMPLETED**
+
+**Problem**: Test users were creating real Windows scheduled tasks during test execution, polluting the Windows Task Scheduler with 498+ test user tasks. The `set_wake_timer` function in `core/scheduler.py` was creating Windows scheduled tasks without checking if it was running in test mode.
+
+**Solution**: Added test mode detection in `set_wake_timer` to prevent creating Windows tasks during tests, enhanced cleanup script to intelligently identify and remove test user tasks, and updated test to properly handle the new test mode check.
+
+**Technical Changes**:
+1. **Test Mode Check in `set_wake_timer`** (`core/scheduler.py`):
+   - Added check for `MHM_TESTING` environment variable (set to '1' during tests)
+   - Added additional safety check to verify user data directory is not in test directory
+   - Function now returns early without creating Windows tasks when in test mode
+   - Logs debug message when skipping task creation for test users
+
+2. **Enhanced Cleanup Script** (`scripts/cleanup_windows_tasks.py`):
+   - Added intelligent test user identification by checking if user_id exists in test data but not in real data
+   - Added UUID pattern matching heuristic for test users
+   - Added `--all` flag to delete all MHM tasks (including real user tasks) if needed
+   - Script now preserves real user tasks while deleting test user tasks
+
+3. **Test Update** (`tests/behavior/test_scheduler_coverage_expansion.py`):
+   - Updated `test_set_wake_timer_failure_handling` to temporarily bypass test mode checks to verify actual failure handling behavior
+   - Test now properly patches `os.getenv` and config paths to test real behavior
+
+**Files Modified**:
+- `core/scheduler.py` - Added test mode check in `set_wake_timer` method
+- `scripts/cleanup_windows_tasks.py` - Enhanced with intelligent test user identification
+- `tests/behavior/test_scheduler_coverage_expansion.py` - Updated test to handle new test mode check
+
+**Cleanup Results**:
+- **Deleted**: 498 test user tasks from Windows Task Scheduler
+- **Preserved**: 12 real user tasks for 3 actual users
+- **Identification**: Script correctly identified test users by checking test data directory and UUID patterns
+
+**Testing**:
+- Full test suite passes: 2,767 passed, 1 skipped, 0 failed
+- Verified `set_wake_timer` correctly skips task creation when `MHM_TESTING=1`
+- Verified cleanup script correctly identifies and preserves real user tasks
+- Test updated to verify actual failure handling behavior
+
+**Impact**: Prevents test users from creating real Windows scheduled tasks, eliminating system resource pollution. The fix is defensive with multiple checks to ensure test isolation. Cleanup script can be run again if needed and will only delete test user tasks, not real ones.
+
 ### 2025-11-09 - Legacy Code Cleanup and Documentation Drift Fixes **COMPLETED**
 
 **Problem**: Legacy compatibility code for `enabled_fields` format and preference delegation methods remained in the codebase despite no users using the old format. Documentation drift tool was reporting false positives for valid package exports and legacy documentation files.

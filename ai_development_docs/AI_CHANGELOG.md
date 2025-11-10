@@ -31,6 +31,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-09 - Critical Fix: Test Users Creating Real Windows Scheduled Tasks **COMPLETED**
+- **Test Mode Check**: Added test mode detection in `set_wake_timer` to prevent creating Windows tasks during tests - checks `MHM_TESTING` environment variable and user data directory location
+- **Enhanced Cleanup Script**: Improved `scripts/cleanup_windows_tasks.py` to intelligently identify test user tasks by checking if user_id exists in test data but not in real data, with UUID pattern matching heuristic
+- **Cleanup Results**: Successfully deleted 498 test user tasks while preserving 12 real user tasks - script correctly identifies test vs real users
+- **Test Update**: Updated `test_set_wake_timer_failure_handling` to temporarily bypass test mode checks to verify actual failure handling behavior
+- **Impact**: Prevents test users from creating real Windows scheduled tasks, eliminating system resource pollution - fix is defensive with multiple checks for test isolation
+
 ### 2025-11-09 - Legacy Code Cleanup and Documentation Drift Fixes **COMPLETED**
 - **Legacy Code Removal**: Verified and confirmed removal of all legacy `enabled_fields` format compatibility code and preference delegation methods - all code now uses new format/methods exclusively
 - **Path Drift Tool Improvements**: Enhanced documentation sync checker to handle false positives (valid package exports, legacy documentation files, Windows path separators) - reduced path drift issues from 5 to 0

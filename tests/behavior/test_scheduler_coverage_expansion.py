@@ -713,7 +713,23 @@ class TestWakeTimerFunctionality:
         category = 'motivational'
         period = 'morning'
         
-        with patch('subprocess.run') as mock_run:
+        # Temporarily patch os.getenv to return None for MHM_TESTING to test actual failure handling
+        # Also patch get_user_data_dir to return a non-test path to bypass the directory check
+        # This allows us to verify the function handles subprocess failures correctly
+        original_getenv = os.getenv
+        def mock_getenv(key, default=None):
+            if key == 'MHM_TESTING':
+                return None  # Not in test mode for this test
+            return original_getenv(key, default)
+        
+        def mock_get_user_data_dir(uid):
+            # Return a path that doesn't contain 'test' to bypass the directory check
+            return f"data/users/{uid}"
+        
+        with patch('os.getenv', side_effect=mock_getenv), \
+             patch('core.config.get_user_data_dir', side_effect=mock_get_user_data_dir), \
+             patch('core.config.BASE_DATA_DIR', 'data'), \
+             patch('subprocess.run') as mock_run:
             mock_run.return_value.returncode = 1
             mock_run.return_value.stderr = "Access denied"
             

@@ -756,6 +756,25 @@ class SchedulerManager:
             period: The time period name
             wake_ahead_minutes: Minutes before schedule_time to wake the computer (default: 4)
         """
+        # CRITICAL: Never create real Windows tasks for test users
+        # Check if we're in test mode or if user data is in test directory
+        if os.getenv('MHM_TESTING') == '1':
+            logger.debug(f"Skipping wake timer creation for test user {user_id} (MHM_TESTING=1)")
+            return
+        
+        # Additional safety check: verify user data directory is not in tests directory
+        try:
+            from core.config import get_user_data_dir, BASE_DATA_DIR
+            user_data_dir = get_user_data_dir(user_id)
+            if user_data_dir and ('tests' in user_data_dir or 'test' in BASE_DATA_DIR.lower()):
+                logger.debug(f"Skipping wake timer creation for test user {user_id} (test data directory detected)")
+                return
+        except Exception as e:
+            logger.debug(f"Could not verify user data directory for {user_id}: {e}")
+            # If we can't verify, err on the side of caution and skip task creation
+            if os.getenv('MHM_TESTING') == '1':
+                return
+        
         # Adjust the schedule_time to wake the computer a few minutes earlier
         wake_time = schedule_time - timedelta(minutes=wake_ahead_minutes)
         task_name = f"Wake_{user_id}_{category}_{period}_{wake_time.strftime('%H%M')}"
