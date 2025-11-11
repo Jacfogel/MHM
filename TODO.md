@@ -75,13 +75,20 @@ When adding new tasks, follow this format:
     - [ ] Test context enhancement effectiveness
     - [ ] Validate personalization improvements
 
-**Discord Send Retry Monitoring**
+**Discord Send Retry Monitoring** ✅ **COMPLETED**
 - *What it means*: Verify queued retry behavior on disconnects and that check-in starts log only after successful delivery.
 - *Why it helps*: Prevents lost messages and duplicate check-in starts.
-- *Estimated effort*: Small
-- *Subtasks*:
-  - [ ] Simulate Discord disconnect during a scheduled check-in; confirm message queues and retries post-reconnect
-  - [ ] Confirm single "User check-in started" entry after successful send
+- *Status*: Completed verification and testing on 2025-11-10:
+  - Verified scheduled check-ins log "User check-in started" only after successful send (channel_orchestrator.py:1044-1049)
+  - Confirmed retry mechanism exists via RetryManager (communication/core/retry_manager.py)
+  - Verified failed messages are queued when send fails (send_message_sync queues failed messages when channel not ready)
+  - Created comprehensive test suite `tests/behavior/test_discord_checkin_retry_behavior.py` with 5 passing tests:
+    - test_checkin_message_queued_on_discord_disconnect: Verifies messages queue when Discord disconnects
+    - test_checkin_started_logged_once_after_successful_send: Verifies single log entry after successful send
+    - test_checkin_started_not_logged_on_failed_send: Verifies no log entry on failed send
+    - test_checkin_retry_after_discord_reconnect: Verifies retry mechanism works after reconnect
+    - test_multiple_checkin_attempts_only_log_once: Verifies multiple attempts only log once
+  - **Note**: Manual check-in path (conversation_flow_manager.py:225) logs before sending - this is a separate code path for user-initiated check-ins, not scheduled ones
 
 
 **Pydantic Schema Adoption Follow-ups**
@@ -198,15 +205,26 @@ When adding new tasks, follow this format:
 - *Status*: Legacy format conversion/extraction code has already been removed. Code now uses modern formats directly with comments confirming "no legacy conversion needed" and "no legacy extraction needed". All callers verified to use modern format.
 
 
-**Legacy Removal "Search-and-Close" Framework** - Tooling and checklist
+**Legacy Removal "Search-and-Close" Framework** ✅ **COMPLETED**
 - *What it means*: Build a checklist and helper tooling to update all references before removing legacy flags/paths; avoid fixed time windows.
 - *Why it helps*: Safe deprecations without relying on rare usage logs.
-- *Estimated effort*: Medium
+- *Status*: Completed framework on 2025-11-10:
+  - Created AI-optimized guide (`ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md`) with search-and-close process
+  - Enhanced `legacy_reference_cleanup.py` with `--find` command to find all references to a specific legacy item
+  - Added `--verify` command to check removal readiness with categorized recommendations
+  - Framework provides systematic 5-phase process: Find → Update → Verify → Remove → Test
+  - Tools categorize references (active code, tests, docs, config, archive) and provide actionable recommendations
+  - Integrated guidance into `.cursor/rules/quality-standards.mdc` and `.cursor/commands/refactor.md`
+  - No emojis in output for Windows compatibility
 
-**Testing Policy: Targeted Runs by Area (skip scripts/)**
+**Testing Policy: Targeted Runs by Area (skip scripts/)** ✅ **COMPLETED**
 - *What it means*: Default to running relevant test sections; consistently exclude `scripts/` tests.
 - *Why it helps*: Faster feedback while preserving isolation requirements.
-- *Estimated effort*: Small
+- *Status*: Completed on 2025-11-10:
+  - Documented scripts exclusion policy in `ai_development_docs/AI_TESTING_GUIDE.md` and `tests/TESTING_GUIDE.md`
+  - Added verification test `test_scripts_exclusion_policy.py` to ensure scripts/ is never discovered
+  - Policy is enforced via `pytest.ini` configuration (norecursedirs, collect_ignore, --ignore flags)
+  - Tests verify both that pytest doesn't discover scripts/ tests and that no test files exist in scripts/
 
 **Help/Docs: Prefer Slash Commands, keep Bang Commands** ✅ **COMPLETED**
 - *What it means*: Update help/UX text to prefer `/` commands with auto-suggested slash equivalents, while keeping `!` commands supported.
@@ -294,10 +312,16 @@ When adding new tasks, follow this format:
   - [ ] Ensure job runs before test steps and fails the pipeline on violations
   - [ ] Document the check in `logs/LOGGING_GUIDE.md` (contributor notes)
 
-**Scripts Directory Cleanup** - Clean up the `scripts/` directory
+**Scripts Directory Cleanup** ✅ **COMPLETED**
 - *What it means*: Remove outdated/broken files, organize remaining utilities, move AI tools to `ai_tools/`
 - *Why it helps*: Reduces confusion and keeps the codebase organized
-- *Estimated effort*: Medium
+- *Status*: Completed cleanup on 2025-11-10:
+  - Archived 14 outdated scripts (6 migration, 5 refactoring, 3 one-time enhancement scripts)
+  - Fixed broken import in `user_data_cli.py` (changed `core.utils` to `core.user_data_handlers`)
+  - Removed empty directories after archiving
+  - Updated `scripts/README.md` to reflect current active scripts
+  - Created cleanup analysis document (`scripts/CLEANUP_ANALYSIS.md`)
+  - All archived scripts moved to `archive/scripts/` subdirectories
 
 **Gitignore Cleanup** ✅ **COMPLETED**
 - *What it means*: Review and clean up `.gitignore`

@@ -73,6 +73,14 @@ python tests/ai/run_ai_functionality_tests.py
 # Logs: tests/logs/test_consolidated.log and tests/logs/test_run.log
 ```
 
+### **Test Discovery Policy**
+- **Scripts Directory Exclusion**: The `scripts/` directory is **always excluded** from test discovery
+  - Configured in `pytest.ini` via `norecursedirs = scripts`, `collect_ignore`, and `addopts --ignore=scripts`
+  - Tests should only exist in `tests/` directory subdirectories (unit, integration, behavior, ui)
+  - Scripts in `scripts/` are utilities and migration tools, not test code
+  - This policy is enforced automatically by pytest configuration to prevent accidental test discovery
+  - Verification: Run `python -m pytest --collect-only` to confirm no tests are discovered in `scripts/`
+
 ### **CRITICAL: Windows Task Prevention**
 ```powershell
 # Check for Windows task pollution

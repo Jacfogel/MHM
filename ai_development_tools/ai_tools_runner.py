@@ -10,11 +10,25 @@ project_root = Path(__file__).parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from .services.operations import (
-    AIToolsService,
-    COMMAND_REGISTRY,
-)
-from .services.common import COMMAND_CATEGORIES
+# Add ai_development_tools to path for relative imports when run as script
+ai_tools_path = Path(__file__).parent
+if str(ai_tools_path) not in sys.path:
+    sys.path.insert(0, str(ai_tools_path))
+
+# Handle both relative and absolute imports
+try:
+    from .services.operations import (
+        AIToolsService,
+        COMMAND_REGISTRY,
+    )
+    from .services.common import COMMAND_CATEGORIES
+except ImportError:
+    # Fallback for when run as script
+    from ai_development_tools.services.operations import (
+        AIToolsService,
+        COMMAND_REGISTRY,
+    )
+    from ai_development_tools.services.common import COMMAND_CATEGORIES
 
 from core.logger import get_component_logger
 

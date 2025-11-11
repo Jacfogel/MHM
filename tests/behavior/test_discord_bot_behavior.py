@@ -897,6 +897,7 @@ class TestDiscordBotIntegration:
 
     @pytest.mark.channels
     @pytest.mark.asyncio
+    @pytest.mark.filterwarnings("ignore::pytest.PytestUnraisableExceptionWarning")
     async def test_cleanup_event_loop_safely_cancels_tasks(self, test_data_dir):
         """Test that cleanup event loop safely cancels tasks"""
         bot = DiscordBot()
@@ -922,13 +923,27 @@ class TestDiscordBotIntegration:
         async def mock_wait_for(coro, timeout):
             return await coro
         
+        # Ensure aiohttp sessions are cleaned up before event loop closes
+        # This prevents PytestUnraisableExceptionWarning from aiohttp cleanup
+        # Mock _cleanup_aiohttp_sessions to prevent real aiohttp cleanup during test
+        async def mock_cleanup_aiohttp():
+            return True
+        
         with patch('asyncio.all_tasks', return_value=[mock_task1, mock_task2]):
             with patch('asyncio.gather', side_effect=mock_gather):
                 with patch('asyncio.wait_for', side_effect=mock_wait_for):
-                    result = await bot._cleanup_event_loop_safely(mock_loop)
-                    assert result is True, "Should return True after cleanup"
-                    mock_task1.cancel.assert_called_once()
-                    mock_task2.cancel.assert_called_once()
+                    with patch.object(bot, '_cleanup_aiohttp_sessions', side_effect=mock_cleanup_aiohttp):
+                        # Clean up aiohttp sessions first to prevent cleanup warnings
+                        await bot._cleanup_aiohttp_sessions()
+                        # Then clean up event loop
+                        result = await bot._cleanup_event_loop_safely(mock_loop)
+                        assert result is True, "Should return True after cleanup"
+                        mock_task1.cancel.assert_called_once()
+                        mock_task2.cancel.assert_called_once()
+                        
+                        # Force garbage collection to clean up any aiohttp objects before test ends
+                        import gc
+                        gc.collect()
 
     @pytest.mark.channels
     @pytest.mark.network

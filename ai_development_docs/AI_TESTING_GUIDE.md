@@ -21,6 +21,13 @@ python -m pytest tests/ui/ -v
 python tests/ai/run_ai_functionality_tests.py
 ```
 
+### **Test Discovery Policy**
+- **Scripts Directory Exclusion**: The `scripts/` directory is **always excluded** from test discovery
+  - Configured in `pytest.ini` via `norecursedirs`, `collect_ignore`, and `--ignore` flags
+  - Tests should only exist in `tests/` directory subdirectories
+  - Scripts in `scripts/` are utilities, not test code
+  - This policy is enforced automatically by pytest configuration
+
 ### **Test Categories (Priority Order)**
 1. **Unit Tests** - Individual function testing
 2. **Integration Tests** - Component interaction testing

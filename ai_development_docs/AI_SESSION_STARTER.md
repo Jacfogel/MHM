@@ -132,6 +132,7 @@ Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss'
 - **`AI_LOGGING_GUIDE.md`** - Fast logging patterns and troubleshooting
 - **`AI_TESTING_GUIDE.md`** - Fast testing patterns and procedures
 - **`AI_ERROR_HANDLING_GUIDE.md`** - Fast error handling patterns and recovery
+- **`AI_LEGACY_REMOVAL_GUIDE.md`** - Fast legacy code removal patterns (search-and-close approach)
 
 ---
 

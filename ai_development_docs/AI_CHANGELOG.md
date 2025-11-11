@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-10 - Testing Infrastructure Improvements and Discord Retry Verification **COMPLETED**
+- **Legacy Reference Cleanup Enhancement**: Fixed duplicate detection in `legacy_reference_cleanup.py` - improved deduplication logic handles overlapping pattern matches and exact position duplicates
+- **Testing Policy Documentation**: Completed "Testing Policy: Targeted Runs by Area" - documented scripts exclusion policy in both testing guides and added verification test `test_scripts_exclusion_policy.py`
+- **Discord Retry Behavior Testing**: Completed "Discord Send Retry Monitoring" - verified scheduled check-ins log only after successful send, created comprehensive 5-test suite for retry behavior and logging
+- **Test Warning Fix**: Fixed PytestUnraisableExceptionWarning from aiohttp cleanup in `test_cleanup_event_loop_safely_cancels_tasks` using pytest filterwarnings decorator
+
 ### 2025-11-10 - Test Performance Optimization: Caching Bug Fixes and Extensions **COMPLETED**
 - **Caching Bug Fix**: Fixed test isolation issue by using `copy.deepcopy()` instead of `.copy()` - nested dictionaries were being shared between tests causing failures
 - **Extended Caching**: Added caching to all fixed-configuration user creation methods (health, task, complex_checkins, disability, limited_data, inconsistent) for improved test performance

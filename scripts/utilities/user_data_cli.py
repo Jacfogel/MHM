@@ -18,7 +18,7 @@ from core.user_data_manager import (
     update_user_index,
     rebuild_user_index
 )
-from core.utils import get_all_user_ids
+from core.user_data_handlers import get_all_user_ids
 from core.logger import get_component_logger
 
 logger = get_component_logger('main')

@@ -5,7 +5,6 @@
 Folder PATH listing
 Volume serial number is 5EAC-07BC
 C:.
-|   .coverage
 |   .env
 |   .gitattributes
 |   .gitignore
@@ -326,101 +325,21 @@ C:.
 |   |   |   test_cache_manager.py
 |   |   |   test_context_includes_recent_messages.py
 |   |   |   
-|   |   \---results
-|   |           ai_functionality_test_results_20251101_201430.md
-|   |           ai_functionality_test_results_20251101_201859.md
-|   |           ai_functionality_test_results_20251101_203148.md
-|   |           ai_functionality_test_results_20251101_210054.md
-|   |           ai_functionality_test_results_20251102_031745.md
-|   |           ai_functionality_test_results_20251102_033626.md
-|   |           ai_functionality_test_results_20251103_032636.md
-|   |           ai_functionality_test_results_20251104_171625.md
-|   |           ai_functionality_test_results_20251104_171630.md
-|   |           ai_functionality_test_results_20251104_235559.md
-|   |           ai_functionality_test_results_latest.md
-|   |           
-|   +---behavior
-|   |       test_account_management_real_behavior.py
-|   |       test_ai_chatbot_behavior.py
-|   |       test_ai_context_builder_behavior.py
-|   |       test_ai_context_builder_coverage_expansion.py
-|   |       test_ai_conversation_history_behavior.py
-|   |       test_analytics_handler_behavior.py
-|   |       test_auto_cleanup_behavior.py
-|   |       test_backup_manager_behavior.py
-|   |       test_base_handler_behavior.py
-|   |       test_chat_interaction_storage_real_scenarios.py
-|   |       test_checkin_analytics_behavior.py
-|   |       test_checkin_expiry_semantics.py
-|   |       test_checkin_handler_behavior.py
-|   |       test_command_discovery_help.py
-|   |       test_command_parser_coverage_expansion_phase3_simple.py
-|   |       test_communication_behavior.py
-|   |       test_communication_command_parser_behavior.py
-|   |       test_communication_factory_coverage_expansion.py
-|   |       test_communication_interaction_manager_behavior.py
-|   |       test_communication_manager_coverage_expansion.py
-|   |       test_comprehensive_quantitative_analytics.py
-|   |       test_config_coverage_expansion_phase3_simple.py
-|   |       test_conversation_behavior.py
-|   |       test_conversation_flow_manager_behavior.py
-|   |       test_core_message_management_coverage_expansion.py
-|   |       test_core_service_coverage_expansion.py
-|   |       test_discord_advanced_automation.py
-|   |       test_discord_automation_complete.py
-|   |       test_discord_bot_behavior.py
-|   |       test_dynamic_checkin_behavior.py
-|   |       test_email_bot_behavior.py
-|   |       test_enhanced_command_parser_behavior.py
-|   |       test_error_handling_coverage_expansion_phase3_final.py
-|   |       test_headless_service_behavior.py
-|   |       test_interaction_handlers_behavior.py
-|   |       test_interaction_handlers_coverage_expansion.py
-|   |       test_legacy_enabled_fields_compatibility.py
-|   |       test_logger_behavior.py
-|   |       test_logger_coverage_expansion.py
-|   |       test_logger_coverage_expansion_phase3_simple.py
-|   |       test_message_behavior.py
-|   |       test_message_router_behavior.py
-|   |       test_observability_logging.py
-|   |       test_profile_display_formatting.py
-|   |       test_profile_handler_behavior.py
-|   |       test_quantitative_analytics_expansion.py
-|   |       test_response_tracking_behavior.py
-|   |       test_scheduler_behavior.py
-|   |       test_scheduler_coverage_expansion.py
-|   |       test_schedule_handler_behavior.py
-|   |       test_schedule_management_behavior.py
-|   |       test_schedule_suggestions.py
-|   |       test_service_behavior.py
-|   |       test_service_utilities_behavior.py
-|   |       test_static_logging_check.py
-|   |       test_task_behavior.py
-|   |       test_task_crud_disambiguation.py
-|   |       test_task_handler_behavior.py
-|   |       test_task_management_coverage_expansion.py
-|   |       test_ui_app_behavior.py
-|   |       test_ui_automation_complete.py
-|   |       test_user_context_behavior.py
-|   |       test_user_management_coverage_expansion.py
-|   |       test_utilities_demo.py
-|   |       
-|   +---communication
-|   |       test_channel_monitor.py
-|   |       test_retry_manager.py
-|   |       
-|   +---core
-|   |       test_file_auditor.py
-|   |       test_message_management.py
-|   |       test_python_interpreter_selection.py
-|   |       test_schedule_utilities.py
-|   |       
-|   +---data
-|   |   |   .last_cache_cleanup
-|   |   |   conversation_states.json
-|   |   |   
-|   |   +---backups
-    (backup files)
+|   |   +---results
+|   |   |       ai_functionality_test_results_20251101_201430.md
+|   |   |       ai_functionality_test_results_20251101_201859.md
+|   |   |       ai_functionality_test_results_20251101_203148.md
+|   |   |       ai_functionality_test_results_20251101_210054.md
+|   |   |       ai_functionality_test_results_20251102_031745.md
+|   |   |       ai_functionality_test_results_20251102_033626.md
+|   |   |       ai_functionality_test_results_20251103_032636.md
+|   |   |       ai_functionality_test_results_20251104_171625.md
+|   |   |       ai_functionality_test_results_20251104_171630.md
+|   |   |       ai_functionality_test_results_20251104_235559.md
+|   |   |       ai_functionality_test_results_latest.md
+|   |   |       
+|   |   \---__pycache__
+    (Python cache files)
 +---ui
 |   |   generate_ui_files.py
 |   |   README.md
@@ -493,135 +412,11 @@ C:.
 |   |       |   _black_version.pyi
 |   |       |   
 |   |       +---aiohappyeyeballs
-|   |       |       impl.py
-|   |       |       py.typed
-|   |       |       types.py
-|   |       |       utils.py
-|   |       |       _staggered.py
-|   |       |       __init__.py
-|   |       |       
-|   |       +---aiohappyeyeballs-2.6.1.dist-info
-|   |       |       INSTALLER
-|   |       |       LICENSE
-|   |       |       METADATA
-|   |       |       RECORD
-|   |       |       WHEEL
-|   |       |       
-|   |       +---aiohttp
-|   |       |   |   abc.py
-|   |       |   |   base_protocol.py
-|   |       |   |   client.py
-|   |       |   |   client_exceptions.py
-|   |       |   |   client_middlewares.py
-|   |       |   |   client_middleware_digest_auth.py
-|   |       |   |   client_proto.py
-|   |       |   |   client_reqrep.py
-|   |       |   |   client_ws.py
-|   |       |   |   compression_utils.py
-|   |       |   |   connector.py
-|   |       |   |   cookiejar.py
-|   |       |   |   formdata.py
-|   |       |   |   hdrs.py
-|   |       |   |   helpers.py
-|   |       |   |   http.py
-|   |       |   |   http_exceptions.py
-|   |       |   |   http_parser.py
-|   |       |   |   http_websocket.py
-|   |       |   |   http_writer.py
-|   |       |   |   log.py
-|   |       |   |   multipart.py
-|   |       |   |   payload.py
-|   |       |   |   payload_streamer.py
+|   |       |   |   impl.py
 |   |       |   |   py.typed
-|   |       |   |   pytest_plugin.py
-|   |       |   |   resolver.py
-|   |       |   |   streams.py
-|   |       |   |   tcp_helpers.py
-|   |       |   |   test_utils.py
-|   |       |   |   tracing.py
-|   |       |   |   typedefs.py
-|   |       |   |   web.py
-|   |       |   |   web_app.py
-|   |       |   |   web_exceptions.py
-|   |       |   |   web_fileresponse.py
-|   |       |   |   web_log.py
-|   |       |   |   web_middlewares.py
-|   |       |   |   web_protocol.py
-|   |       |   |   web_request.py
-|   |       |   |   web_response.py
-|   |       |   |   web_routedef.py
-|   |       |   |   web_runner.py
-|   |       |   |   web_server.py
-|   |       |   |   web_urldispatcher.py
-|   |       |   |   web_ws.py
-|   |       |   |   worker.py
-|   |       |   |   _cookie_helpers.py
-|   |       |   |   _cparser.pxd
-|   |       |   |   _find_header.pxd
-|   |       |   |   _headers.pxi
-|   |       |   |   _http_parser.cp312-win_amd64.pyd
-|   |       |   |   _http_parser.pyx
-|   |       |   |   _http_writer.cp312-win_amd64.pyd
-|   |       |   |   _http_writer.pyx
-|   |       |   |   __init__.py
-|   |       |   |   
-|   |       |   +---.hash
-|   |       |   |       hdrs.py.hash
-|   |       |   |       _cparser.pxd.hash
-|   |       |   |       _find_header.pxd.hash
-|   |       |   |       _http_parser.pyx.hash
-|   |       |   |       _http_writer.pyx.hash
-|   |       |   |       
-|   |       |   \---_websocket
-|   |       |       |   helpers.py
-|   |       |       |   mask.cp312-win_amd64.pyd
-|   |       |       |   mask.pxd
-|   |       |       |   mask.pyx
-|   |       |       |   models.py
-|   |       |       |   reader.py
-|   |       |       |   reader_c.cp312-win_amd64.pyd
-|   |       |       |   reader_c.pxd
-|   |       |       |   reader_c.py
-|   |       |       |   reader_py.py
-|   |       |       |   writer.py
-|   |       |       |   __init__.py
-|   |       |       |   
-|   |       |       \---.hash
-|   |       |               mask.pxd.hash
-|   |       |               mask.pyx.hash
-|   |       |               reader_c.pxd.hash
-|   |       |               
-|   |       +---aiohttp-3.13.2.dist-info
-|   |       |   |   INSTALLER
-|   |       |   |   METADATA
-|   |       |   |   RECORD
-|   |       |   |   top_level.txt
-|   |       |   |   WHEEL
-|   |       |   |   
-|   |       |   \---licenses
-|   |       |       |   LICENSE.txt
-|   |       |       |   
-|   |       |       \---vendor
-|   |       |           \---llhttp
-|   |       |                   LICENSE
-|   |       |                   
-|   |       +---aiosignal
-|   |       |       py.typed
-|   |       |       __init__.py
-|   |       |       
-|   |       +---aiosignal-1.4.0.dist-info
-|   |       |   |   INSTALLER
-|   |       |   |   METADATA
-|   |       |   |   RECORD
-|   |       |   |   top_level.txt
-|   |       |   |   WHEEL
-|   |       |   |   
-|   |       |   \---licenses
-|   |       |           LICENSE
-|   |       |           
-|   |       +---annotated_types
-|   |       |   |   py.typed
-|   |       |   |   test_cases.py
+|   |       |   |   types.py
+|   |       |   |   utils.py
+|   |       |   |   _staggered.py
 |   |       |   |   __init__.py
 |   |       |   |   
 |   |       |   \---__pycache__

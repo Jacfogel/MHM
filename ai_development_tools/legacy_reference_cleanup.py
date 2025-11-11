@@ -308,6 +308,238 @@ class LegacyReferenceCleanup:
         from datetime import datetime
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
+    def find_all_references(self, item_name: str) -> Dict[str, List[Dict[str, any]]]:
+        """
+        Find all references to a specific legacy item (function, class, module, etc.).
+        
+        Args:
+            item_name: Name of the legacy item to search for
+            
+        Returns:
+            Dictionary mapping file paths to lists of reference details
+        """
+        if logger:
+            logger.info(f"Searching for all references to '{item_name}'...")
+        
+        references = defaultdict(list)
+        
+        # Patterns to search for
+        search_patterns = [
+            # Direct imports
+            rf'from\s+[\w.]+?\s+import\s+{re.escape(item_name)}\b',
+            rf'import\s+{re.escape(item_name)}\b',
+            # Usage patterns
+            rf'\b{re.escape(item_name)}\s*\(',
+            rf'\b{re.escape(item_name)}\s*\.',
+            rf'\.{re.escape(item_name)}\b',
+            # String references (in comments, docstrings, etc.)
+            rf'["\']{re.escape(item_name)}["\']',
+            rf'`{re.escape(item_name)}`',
+        ]
+        
+        # Scan Python files
+        for py_file in self.project_root.rglob("*.py"):
+            if self.should_skip_file(py_file):
+                continue
+                
+            try:
+                with open(py_file, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                    content = ''.join(lines)
+                    
+                file_refs = []
+                # Collect all matches first, then deduplicate overlapping ones
+                all_matches = []
+                for line_num, line in enumerate(lines, 1):
+                    for pattern in search_patterns:
+                        matches = re.finditer(pattern, line, re.IGNORECASE)
+                        for match in matches:
+                            all_matches.append({
+                                'line': line_num,
+                                'line_content': line.strip(),
+                                'match': match.group(0),
+                                'pattern': pattern,
+                                'start': match.start(),
+                                'end': match.end(),
+                                'context': self._get_context(lines, line_num)
+                            })
+                
+                # Deduplicate: remove matches that overlap on the same line
+                # Keep the longest match when overlaps occur, or first match if same length
+                seen_lines = {}
+                for match in all_matches:
+                    line_num = match['line']
+                    start = match['start']
+                    end = match['end']
+                    
+                    if line_num not in seen_lines:
+                        seen_lines[line_num] = []
+                    
+                    # Check if this match overlaps with any existing match on this line
+                    should_add = True
+                    to_remove = []
+                    for i, existing in enumerate(seen_lines[line_num]):
+                        # Exact position match - skip duplicate (same pattern or different)
+                        if start == existing['start'] and end == existing['end']:
+                            should_add = False
+                            break
+                        # Check if ranges overlap (not disjoint)
+                        elif not (end <= existing['start'] or start >= existing['end']):
+                            # Overlaps found - decide which to keep
+                            new_length = end - start
+                            existing_length = existing['end'] - existing['start']
+                            if new_length > existing_length:
+                                # New match is longer - mark existing for removal
+                                to_remove.append(i)
+                            else:
+                                # Existing is longer or same - skip adding this match
+                                should_add = False
+                                break
+                    
+                    # Remove marked items (in reverse order to maintain indices)
+                    for i in reversed(to_remove):
+                        seen_lines[line_num].pop(i)
+                    
+                    if should_add:
+                        seen_lines[line_num].append(match)
+                
+                # Flatten results and remove internal keys
+                for line_matches in seen_lines.values():
+                    for match in line_matches:
+                        # Remove internal deduplication keys
+                        match.pop('start', None)
+                        match.pop('end', None)
+                        file_refs.append(match)
+                
+                if file_refs:
+                    references[str(py_file.relative_to(self.project_root))] = file_refs
+                    
+            except Exception as e:
+                if logger:
+                    logger.warning(f"Error reading {py_file}: {e}")
+        
+        # Scan Markdown files
+        for md_file in self.project_root.rglob("*.md"):
+            if self.should_skip_file(md_file):
+                continue
+                
+            try:
+                with open(md_file, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                    
+                file_refs = []
+                for line_num, line in enumerate(lines, 1):
+                    if item_name.lower() in line.lower():
+                        file_refs.append({
+                            'line': line_num,
+                            'line_content': line.strip(),
+                            'match': item_name,
+                            'pattern': 'text_search',
+                            'context': self._get_context(lines, line_num)
+                        })
+                
+                if file_refs:
+                    references[str(md_file.relative_to(self.project_root))] = file_refs
+                    
+            except Exception as e:
+                if logger:
+                    logger.warning(f"Error reading {md_file}: {e}")
+        
+        return dict(references)
+    
+    def _get_context(self, lines: List[str], line_num: int, context_lines: int = 2) -> str:
+        """Get context around a line for better reference understanding."""
+        start = max(0, line_num - context_lines - 1)
+        end = min(len(lines), line_num + context_lines)
+        context = lines[start:end]
+        return ''.join(context)
+    
+    def verify_removal_readiness(self, item_name: str) -> Dict[str, any]:
+        """
+        Verify that a legacy item is ready for removal.
+        
+        Checks:
+        - No active code references
+        - No test dependencies (or tests updated)
+        - Documentation references identified
+        - Configuration references checked
+        
+        Args:
+            item_name: Name of the legacy item to verify
+            
+        Returns:
+            Dictionary with verification results and recommendations
+        """
+        if logger:
+            logger.info(f"Verifying removal readiness for '{item_name}'...")
+        
+        references = self.find_all_references(item_name)
+        
+        # Categorize references
+        active_code = []
+        test_files = []
+        documentation = []
+        config_files = []
+        archive_files = []
+        
+        for file_path, refs in references.items():
+            file_path_lower = file_path.lower()
+            
+            if 'archive' in file_path_lower:
+                archive_files.append((file_path, refs))
+            elif file_path_lower.endswith('.md'):
+                documentation.append((file_path, refs))
+            elif 'test' in file_path_lower or file_path.startswith('tests/'):
+                test_files.append((file_path, refs))
+            elif 'config' in file_path_lower or file_path.endswith(('.json', '.yaml', '.yml', '.ini', '.toml')):
+                config_files.append((file_path, refs))
+            else:
+                active_code.append((file_path, refs))
+        
+        # Determine readiness
+        ready_for_removal = (
+            len(active_code) == 0 and
+            len(config_files) == 0
+        )
+        
+        # Generate recommendations
+        recommendations = []
+        if active_code:
+            recommendations.append(f"[ERROR] {len(active_code)} active code file(s) still reference '{item_name}' - must update before removal")
+        if test_files:
+            recommendations.append(f"[WARNING] {len(test_files)} test file(s) reference '{item_name}' - update tests or remove if testing legacy behavior")
+        if config_files:
+            recommendations.append(f"[ERROR] {len(config_files)} configuration file(s) reference '{item_name}' - must update before removal")
+        if documentation:
+            recommendations.append(f"[INFO] {len(documentation)} documentation file(s) reference '{item_name}' - update for clarity (except archive)")
+        if archive_files:
+            recommendations.append(f"[INFO] {len(archive_files)} archive file(s) reference '{item_name}' - can leave for historical context")
+        
+        if ready_for_removal:
+            recommendations.append("[OK] Ready for removal - no active code or configuration references found")
+        
+        return {
+            'item_name': item_name,
+            'ready_for_removal': ready_for_removal,
+            'references': references,
+            'categorized': {
+                'active_code': active_code,
+                'test_files': test_files,
+                'documentation': documentation,
+                'config_files': config_files,
+                'archive_files': archive_files
+            },
+            'counts': {
+                'total_files': len(references),
+                'active_code': len(active_code),
+                'test_files': len(test_files),
+                'documentation': len(documentation),
+                'config_files': len(config_files),
+                'archive_files': len(archive_files)
+            },
+            'recommendations': recommendations
+        }
+    
     def run(self, scan: bool = True, clean: bool = False, dry_run: bool = True) -> Dict[str, any]:
         """Run the legacy reference cleanup process."""
         results = {}
@@ -376,14 +608,70 @@ def main():
                        help='Preview changes without making them (default: True)')
     parser.add_argument('--force', action='store_true',
                        help='Force actual changes (overrides --dry-run)')
+    parser.add_argument('--find', type=str, metavar='ITEM',
+                       help='Find all references to a specific legacy item (function, class, module, etc.)')
+    parser.add_argument('--verify', type=str, metavar='ITEM',
+                       help='Verify that a legacy item is ready for removal')
     
     args = parser.parse_args()
+    
+    cleanup = LegacyReferenceCleanup()
+    
+    # Handle --find command
+    if args.find:
+        references = cleanup.find_all_references(args.find)
+        
+        print(f"\nReferences to '{args.find}':")
+        print(f"   Total files: {len(references)}")
+        
+        if references:
+            for file_path, refs in sorted(references.items()):
+                print(f"\n   {file_path} ({len(refs)} reference(s)):")
+                for ref in refs[:5]:  # Show first 5 references per file
+                    print(f"      Line {ref['line']}: {ref['line_content'][:80]}")
+                if len(refs) > 5:
+                    print(f"      ... and {len(refs) - 5} more")
+        else:
+            print("   No references found - item may be safe to remove")
+        
+        return
+    
+    # Handle --verify command
+    if args.verify:
+        verification = cleanup.verify_removal_readiness(args.verify)
+        
+        print(f"\nRemoval Readiness Verification for '{args.verify}':")
+        print(f"   Status: {'READY' if verification['ready_for_removal'] else 'NOT READY'}")
+        print(f"\n   Reference Summary:")
+        print(f"      Total files: {verification['counts']['total_files']}")
+        print(f"      Active code: {verification['counts']['active_code']}")
+        print(f"      Test files: {verification['counts']['test_files']}")
+        print(f"      Documentation: {verification['counts']['documentation']}")
+        print(f"      Config files: {verification['counts']['config_files']}")
+        print(f"      Archive files: {verification['counts']['archive_files']}")
+        
+        print(f"\n   Recommendations:")
+        for rec in verification['recommendations']:
+            # Remove emojis for Windows compatibility
+            rec_clean = rec.replace('❌', '[ERROR]').replace('⚠️', '[WARNING]').replace('ℹ️', '[INFO]').replace('✅', '[OK]')
+            print(f"      {rec_clean}")
+        
+        if verification['counts']['active_code'] > 0:
+            print(f"\n   Active Code Files (must update):")
+            for file_path, refs in verification['categorized']['active_code']:
+                print(f"      - {file_path} ({len(refs)} reference(s))")
+        
+        if verification['counts']['test_files'] > 0:
+            print(f"\n   Test Files (update or remove):")
+            for file_path, refs in verification['categorized']['test_files']:
+                print(f"      - {file_path} ({len(refs)} reference(s))")
+        
+        return
     
     # Handle force flag
     if args.force:
         args.dry_run = False
     
-    cleanup = LegacyReferenceCleanup()
     results = cleanup.run(scan=args.scan, clean=args.clean, dry_run=args.dry_run)
     
     if args.clean and not args.dry_run:

@@ -29,7 +29,7 @@
 
 ### AI-Facing Documents
 - `AI_SESSION_STARTER.md`, `AI_REFERENCE.md`, `AI_DEVELOPMENT_WORKFLOW.md`, `AI_ARCHITECTURE.md`, this guide -> quick patterns.
-- `AI_LOGGING_GUIDE.md`, `AI_TESTING_GUIDE.md`, `AI_ERROR_HANDLING_GUIDE.md` -> specialized technical guides.
+- `AI_LOGGING_GUIDE.md`, `AI_TESTING_GUIDE.md`, `AI_ERROR_HANDLING_GUIDE.md`, `AI_LEGACY_REMOVAL_GUIDE.md` -> specialized technical guides.
 
 ### Status and History
 - `AI_CHANGELOG.md`, `../TODO.md`, `development_docs/PLANS.md` -> current priorities and upcoming work.
@@ -75,6 +75,7 @@
 
 ### Paired Documentation
 - Update these pairs together with identical section order: `DEVELOPMENT_WORKFLOW` <-> `AI_DEVELOPMENT_WORKFLOW`, `ARCHITECTURE` <-> `AI_ARCHITECTURE`, `DOCUMENTATION_GUIDE` <-> this file, `CHANGELOG_DETAIL` <-> `AI_CHANGELOG`, `LOGGING_GUIDE` <-> `AI_LOGGING_GUIDE`, `TESTING_GUIDE` <-> `AI_TESTING_GUIDE`, `ERROR_HANDLING_GUIDE` <-> `AI_ERROR_HANDLING_GUIDE`.
+- **Legacy Removal**: `AI_LEGACY_REMOVAL_GUIDE.md` (AI-optimized) references `.cursor/rules/quality-standards.mdc` and `.cursor/rules/critical.mdc` for standards.
 
 ### Updating AI Documentation
 - Summarise key rules and point to the authoritative human doc.

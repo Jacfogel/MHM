@@ -35,6 +35,61 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-10 - Testing Infrastructure Improvements and Discord Retry Verification **COMPLETED**
+
+**Feature**: Enhanced testing infrastructure with policy documentation, improved legacy reference cleanup tool, comprehensive Discord retry behavior testing, and test warning fixes.
+
+**Technical Changes**:
+
+1. **Legacy Reference Cleanup Tool Enhancement** (`ai_development_tools/legacy_reference_cleanup.py`):
+   - Fixed duplicate detection issue where multiple patterns matching the same text caused duplicate results
+   - Improved deduplication logic to handle overlapping matches (keeps longest match) and exact position duplicates
+   - Changed from simple position tracking to comprehensive overlap detection with match length comparison
+   - Removed internal deduplication keys from output to keep results clean
+
+2. **Testing Policy Documentation** (`ai_development_docs/AI_TESTING_GUIDE.md`, `tests/TESTING_GUIDE.md`):
+   - Added "Test Discovery Policy" section documenting scripts directory exclusion
+   - Explained that `scripts/` is always excluded via `pytest.ini` configuration (norecursedirs, collect_ignore, --ignore flags)
+   - Created verification test `tests/unit/test_scripts_exclusion_policy.py` with 2 tests:
+     - `test_scripts_directory_excluded_from_test_discovery`: Verifies pytest doesn't discover tests in scripts/
+     - `test_scripts_directory_has_no_test_files`: Verifies no test files exist in scripts/ directory
+   - Updated TODO.md to mark "Testing Policy: Targeted Runs by Area (skip scripts/)" as completed
+
+3. **Discord Check-in Retry Behavior Testing** (`tests/behavior/test_discord_checkin_retry_behavior.py`):
+   - Created comprehensive test suite with 5 tests verifying Discord retry and logging behavior:
+     - `test_checkin_message_queued_on_discord_disconnect`: Verifies messages queue when Discord disconnects
+     - `test_checkin_started_logged_once_after_successful_send`: Verifies single log entry after successful send
+     - `test_checkin_started_not_logged_on_failed_send`: Verifies no log entry on failed send
+     - `test_checkin_retry_after_discord_reconnect`: Verifies retry mechanism works after reconnect
+     - `test_multiple_checkin_attempts_only_log_once`: Verifies multiple attempts only log once
+   - All tests use proper fixtures, actual user IDs (UUIDs), and verify real system state changes
+   - Tests follow Arrange-Act-Assert pattern and use TestUserFactory/TestDataManager helpers
+   - Updated TODO.md to mark "Discord Send Retry Monitoring" as completed
+
+4. **Test Warning Fix** (`tests/behavior/test_discord_bot_behavior.py`):
+   - Fixed PytestUnraisableExceptionWarning from aiohttp cleanup in `test_cleanup_event_loop_safely_cancels_tasks`
+   - Added `@pytest.mark.filterwarnings("ignore::pytest.PytestUnraisableExceptionWarning")` decorator
+   - Mocked `_cleanup_aiohttp_sessions` to prevent real aiohttp cleanup during test
+   - Added explicit aiohttp cleanup call and garbage collection before test ends
+   - Warning no longer appears in test output
+
+**Impact**: 
+- Improved test reliability and clarity with better duplicate detection in legacy cleanup tool
+- Established clear testing policy documentation for AI collaborators and developers
+- Comprehensive verification of Discord retry behavior ensures messages aren't lost and logging is accurate
+- Cleaner test output without spurious warnings improves test suite maintainability
+
+**Files Modified**:
+- `ai_development_tools/legacy_reference_cleanup.py` - Enhanced duplicate detection
+- `ai_development_docs/AI_TESTING_GUIDE.md` - Added test discovery policy section
+- `tests/TESTING_GUIDE.md` - Added test discovery policy section
+- `tests/unit/test_scripts_exclusion_policy.py` - New verification test file
+- `tests/behavior/test_discord_checkin_retry_behavior.py` - New comprehensive test suite
+- `tests/behavior/test_discord_bot_behavior.py` - Fixed aiohttp cleanup warning
+- `TODO.md` - Marked 2 tasks as completed
+
+**Testing**: All 2796 tests pass (2796 passed, 1 skipped, 6 warnings - all expected external library warnings)
+
 ### 2025-11-10 - Test Performance Optimization: Caching Improvements and Bug Fixes **COMPLETED**
 
 **Feature**: Fixed critical caching bug in test user factory and extended caching to all fixed-configuration user creation methods. Improved test isolation by using `copy.deepcopy()` instead of `.copy()` to prevent shared nested dictionary references.
