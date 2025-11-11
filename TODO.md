@@ -133,6 +133,24 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+**Optimize Audit System Performance**
+- *What it means*: Explore the audit system and adjust it so it runs in under 10 minutes (currently takes ~18-20 minutes)
+- *Why it helps*: Significantly improves workflow efficiency and makes full audits more practical for regular use
+- *Estimated effort*: Medium
+- *Areas to investigate*:
+  - Unused imports checker (currently ~7-8 minutes) - explore parallelization, caching, or incremental scanning
+  - Coverage regeneration (currently ~10 minutes) - explore parallel test execution or selective coverage
+  - Other contributing tools that may be slow
+
+**Accelerate Test Suite Execution**
+- *What it means*: Explore options to accelerate test runs further, possibly by using more parallel workers or optimizing test execution
+- *Why it helps*: Faster feedback loops improve development speed and make testing more practical
+- *Estimated effort*: Medium
+- *Areas to investigate*:
+  - Increase pytest parallel workers (currently using `-n auto`)
+  - Optimize slow tests or add pytest marks for better parallelization
+  - Profile test execution to identify bottlenecks
+
 **AI Chatbot Actionability Sprint** - Plan and implement actionable AI responses
 - *What it means*: Improve AI chat quality and enable robust task/message/profile CRUD, with awareness of recent automated messages and targeted, non-conflicting suggestions.
 - *Why it helps*: Addresses the user's biggest friction and increases real utility.
@@ -168,6 +186,78 @@ When adding new tasks, follow this format:
 
 ## Medium Priority
 
+**Investigate Test Coverage Analysis Failures**
+- *What it means*: Explore why tests that usually pass sometimes fail during test coverage analysis (e.g., `test_scheduled_user_creation`, `test_ensure_logs_directory_creates_directories`)
+- *Why it helps*: Ensures reliable test execution and accurate coverage metrics
+- *Estimated effort*: Small/Medium
+- *Areas to investigate*:
+  - Timing issues or race conditions that only appear during coverage collection
+  - Resource contention or file locking issues
+  - Differences in test execution order or environment during coverage runs
+
+**Optimize Unused Imports Checker**
+- *What it means*: Explore options for accelerating the unused imports checker (currently takes ~7-8 minutes) and reduce excessive logging
+- *Why it helps*: Makes the unused imports checker more practical for regular use and reduces log noise
+- *Estimated effort*: Medium
+- *Areas to investigate*:
+  - Parallelization of pylint analysis across files
+  - Caching of analysis results for unchanged files
+  - Incremental scanning (only check modified files)
+  - Reduce DEBUG-level logging that creates excessive log output
+
+**Fix Legacy Import Checker Self-Identification**
+- *What it means*: Improve legacy import checker so it doesn't positively identify itself as somewhere legacy imports are present
+- *Why it helps*: Reduces false positives and makes legacy cleanup reports more accurate
+- *Estimated effort*: Small
+- *Areas to investigate*:
+  - Exclude the checker's own file from legacy pattern matching
+  - Improve pattern matching to avoid matching the checker's own code
+
+**Expand Pytest Marks Usage**
+- *What it means*: Explore adding pytest marks to more tests to enable better test organization, filtering, and parallelization
+- *Why it helps*: Enables selective test execution, better test organization, and improved parallel test execution
+- *Estimated effort*: Medium
+- *Areas to investigate*:
+  - Add marks for test categories (unit, behavior, integration, ui)
+  - Add marks for test speed (fast, slow)
+  - Add marks for test dependencies or requirements
+  - Use marks to optimize parallel test execution
+
+**Systematic Documentation Review and Update**
+- *What it means*: Systematically review and update documentation to ensure information is current and accurate across all documentation files
+- *Why it helps*: Ensures documentation remains useful and prevents confusion from outdated information
+- *Estimated effort*: Large
+- *Areas to review*:
+  - Development guides (human and AI versions)
+  - Architecture documentation
+  - Testing guides
+  - Error handling guides
+  - Logging guides
+  - User-facing documentation
+  - API documentation
+  - Configuration documentation
+
+**Standardize Backup, Rotation, Archive, and Cleanup Approaches**
+- *What it means*: Review data, log and file backup, rotation, archive, cleanup approaches throughout the codebase and standardize them (including tests and ai_development_tools)
+- *Why it helps*: Ensures consistent behavior, reduces code duplication, and makes maintenance easier
+- *Estimated effort*: Medium
+- *Areas to review*:
+  - Log rotation and cleanup (core/logger.py, ai_development_tools)
+  - Backup creation and management (core/backup_manager.py, tests)
+  - File archiving (auto_cleanup.py, ai_development_tools)
+  - Test data cleanup (tests/test_utilities.py, test fixtures)
+  - Temporary file cleanup patterns
+
+**Reorganize AI Development Tools Subdirectory**
+- *What it means*: Reorganize ai_development_tools subdirectory, including a review of the files within to determine whether any of them are no longer active or useful
+- *Why it helps*: Improves organization, reduces confusion, and makes the tools easier to navigate and maintain
+- *Estimated effort*: Medium
+- *Areas to review*:
+  - Identify unused or obsolete tools
+  - Group related tools into logical subdirectories
+  - Update documentation to reflect new organization
+  - Archive or remove tools that are no longer needed
+  - Ensure all active tools are properly documented
 
 **Personalized User Suggestions Implementation** - Review and implement proper personalized suggestions
 - *What it means*: Review the current `get_user_suggestions()` function and implement proper personalized suggestion functionality
