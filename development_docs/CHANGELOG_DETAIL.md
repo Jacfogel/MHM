@@ -21,7 +21,7 @@ When adding new changes, follow this format:
 
 **Important Notes:**
 - **Outstanding tasks** should be documented in TODO.md, not in changelog entries
-- Entries should generally be limited to a maximum of 1 per day, if an entry already exists for the current day you can edit it to include additional updates. Exceptions may be made for multiple unrelated changes
+- Entries should generally be limited to a maximum of 1 per session, if an entry already exists for the current session you can edit it to include additional updates. Exceptions may be made for multiple unrelated changes
 - **Always add a corresponding entry** to AI_CHANGELOG.md when adding to this detailed changelog
 - **Paired document maintenance**: When updating human-facing documents, check if corresponding AI-facing documents need updates:
   - **../DEVELOPMENT_WORKFLOW.md** ? **../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md**
@@ -34,6 +34,107 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 
 ## Recent Changes (Most Recent First)
+
+### 2025-11-11 - User Data Flow Architecture Refactoring, Message Analytics Foundation, and Plan Maintenance **COMPLETED**
+
+**Feature**: Refactored user data save flow architecture, implemented message analytics foundation, and updated development plans to reflect current project scope and priorities.
+
+**Technical Changes**:
+
+1. **User Data Flow Architecture Refactoring**:
+   - **Two-Phase Save Implementation**:
+     - **Phase 1**: Merge all data types in-memory, validate all data, check cross-file invariants (all in-memory)
+     - **Phase 2**: Write all merged data types to disk atomically
+     - Created `_save_user_data__merge_all_types()` for Phase 1 merging
+     - Created `_save_user_data__write_all_types()` for Phase 2 writing
+     - Extracted `_save_user_data__merge_single_type()` to separate merge logic from save logic
+   - **In-Memory Cross-File Invariants**:
+     - Created `_save_user_data__check_cross_file_invariants()` that uses in-memory merged data
+     - Invariants now work with merged data instead of reading stale data from disk
+     - When invariants require updates to types not in original update (e.g., account when only preferences updated), data is added to merged_data and written in Phase 2
+     - Eliminates stale data issues when multiple types are saved simultaneously
+   - **Explicit Processing Order**:
+     - Defined `_DATA_TYPE_PROCESSING_ORDER = ['account', 'preferences', 'schedules', 'context', 'messages', 'tasks']`
+     - `valid_types_to_process` is now sorted by explicit order for deterministic behavior
+     - Cross-file invariants behave consistently regardless of input order
+   - **Eliminated Nested Saves**:
+     - Removed nested `update_user_account()` call from `update_user_preferences()` (line 1264)
+     - Cross-file invariants now update in-memory merged data instead of triggering separate save operations
+     - When account needs updating due to preferences having categories, it's added to merged_data and written once in Phase 2
+   - **Atomic Operations**:
+     - All types are written in Phase 2 after validation and invariants are checked
+     - Backup is created after validation/invariants, before writes (only valid data backed up)
+     - Result dict indicates success/failure per type for caller to handle partial failures
+     - Backup can be used for rollback if needed
+   - Files: `core/user_data_handlers.py`
+
+2. **Message Analytics Implementation**:
+   - Created `MessageAnalytics` class in `core/message_analytics.py`
+   - Implemented `get_message_frequency()` - analyzes message send frequency by category and time period
+   - Implemented `get_delivery_success_rate()` - tracks and analyzes message delivery success rates
+   - Implemented `get_message_summary()` - provides comprehensive summary combining frequency and delivery data
+   - Files: `core/message_analytics.py`
+
+3. **Message Analytics Testing**:
+   - Created comprehensive behavior test suite `tests/behavior/test_message_analytics_behavior.py`
+   - Added 7 behavior tests covering initialization, frequency analysis, delivery tracking, and summary generation
+   - All tests passing, verifying analytics functionality works correctly
+   - Files: `tests/behavior/test_message_analytics_behavior.py`
+
+4. **Development Plan Updates**:
+   - Marked "User engagement tracking" and "Message effectiveness metrics" as `[WARNING] **LONG-TERM/FUTURE**` in PLANS.md - requires multiple users for meaningful data
+   - Marked "Smart Home Integration Planning" as `[WARNING] **LONG-TERM/FUTURE**` - not applicable for current single-user personal assistant
+   - Updated "Message Deduplication Advanced Features" plan to "IN PROGRESS" status
+   - Marked "Message frequency analytics" as completed with implementation details
+   - Updated "User Context & Preferences Integration Investigation" to reflect that `UserPreferences` initialization was removed from `UserContext` and class is currently unused but functional
+   - Updated "User Data Flow Architecture Improvements" plan to "COMPLETED" status
+   - Files: `development_docs/PLANS.md`
+
+5. **UserPreferences Documentation Improvements**:
+   - Enhanced `user/user_preferences.py` docstring to clarify when to use `UserPreferences` class versus direct access (`get_user_data`/`update_user_preferences`)
+   - Added example usage snippet to guide future developers
+   - Clarified that class is functional but unused, available for workflows needing multiple preference changes
+   - Files: `user/user_preferences.py`
+
+6. **Temporary Document Cleanup**:
+   - Deleted `development_docs/REFACTOR_PLAN_DATA_FLOW.md` - temporary planning document that served its purpose during refactoring
+   - All key information preserved in PLANS.md and CHANGELOG_DETAIL.md
+   - Execution slices were historical implementation details, no longer needed for future reference
+
+**Impact**: 
+- **Robustness**: Cross-file invariants work correctly when multiple types are saved simultaneously (no stale data)
+- **Determinism**: Processing order is explicit and documented, eliminating order-dependent behavior
+- **Simplicity**: No nested saves - all updates happen in-memory, then written once
+- **Reliability**: Validation happens before backup, ensuring only valid data is backed up
+- **Maintainability**: Clear separation between merge/validate phase and write phase
+- **Analytics Foundation**: Message analytics system provides insights into message frequency and delivery effectiveness
+- **Plan Clarity**: Development plans now accurately reflect current project scope, marking multi-user features as long-term
+- **Documentation**: Improved guidance on when to use `UserPreferences` class vs direct access patterns
+- **Progress Tracking**: Plans updated to show accurate status of message deduplication features
+
+**Testing**: 
+- All 31 user management tests passing (unit + behavior)
+- `test_save_user_data_success` - verifies multi-type save works correctly
+- `test_update_user_preferences_success` - verifies cross-file invariants work without nested saves
+- All 7 message analytics behavior tests passing
+- Verified frequency analysis, delivery tracking, and summary generation work correctly
+- Added comprehensive test suite `tests/behavior/test_user_data_flow_architecture.py` with 12 behavior tests covering:
+  - Cross-file invariants with in-memory merged data (3 tests)
+  - Explicit processing order verification (2 tests)
+  - Atomic operation behavior (3 tests)
+  - No nested saves verification (2 tests)
+  - Two-phase save approach (2 tests)
+- All existing functionality preserved, backward compatible
+- Full test suite: 2,828 tests passing (2,816 + 12 new tests)
+
+**Files Modified**:
+- `core/user_data_handlers.py` - Complete refactor of `save_user_data()` and related functions
+- `core/message_analytics.py` - New file with MessageAnalytics class
+- `tests/behavior/test_message_analytics_behavior.py` - New test file with 7 behavior tests
+- `tests/behavior/test_user_data_flow_architecture.py` - New test file with 12 behavior tests for refactored architecture
+- `development_docs/PLANS.md` - Updated multiple plans to reflect current status and scope
+- `user/user_preferences.py` - Enhanced documentation and usage guidance
+- `development_docs/REFACTOR_PLAN_DATA_FLOW.md` - Deleted (temporary planning document, information preserved in PLANS.md and CHANGELOG_DETAIL.md)
 
 ### 2025-11-11 - Email Integration and Test Burn-in Validation Tooling **COMPLETED**
 

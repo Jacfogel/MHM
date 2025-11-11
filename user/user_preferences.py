@@ -2,7 +2,17 @@
 # 
 # NOTE: This module is available for use but is not currently integrated into the codebase.
 # The codebase currently accesses preferences directly via get_user_data() and update_user_preferences().
-# See development_docs/PLANS.md "User Preferences Integration Plan" for details.
+# 
+# When to use UserPreferences:
+# - When making multiple preference changes in sequence (avoids multiple update calls)
+# - When you need to track preference state changes during a workflow
+# - For future preference management UI features that need object-oriented access
+# 
+# When to use direct access (get_user_data/update_user_preferences):
+# - For single preference reads/writes (current pattern, works well)
+# - When you only need one preference value
+# 
+# See development_docs/PLANS.md "User Context & Preferences Integration Investigation" for details.
 
 from core.user_data_handlers import get_user_data, update_user_preferences
 from core.schedule_management import set_schedule_period_active, is_schedule_period_active
@@ -18,6 +28,17 @@ class UserPreferences:
     
     Provides methods for loading, saving, and managing user preferences
     including schedule period settings and general user preferences.
+    
+    Note: This class is available but currently unused in the codebase. Most code
+    accesses preferences directly via get_user_data() and update_user_preferences().
+    This class is useful for workflows that need to make multiple preference changes
+    or track preference state during operations.
+    
+    Example usage:
+        prefs = UserPreferences(user_id)
+        prefs.set_preference('theme', 'dark')
+        prefs.set_preference('notifications', True)
+        # Both changes saved automatically
     """
     
     def __init__(self, user_id):

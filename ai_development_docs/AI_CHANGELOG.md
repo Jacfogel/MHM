@@ -31,6 +31,18 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-11 - User Data Flow Architecture Refactoring, Message Analytics Foundation, and Plan Maintenance **COMPLETED**
+- **Two-Phase Save**: Refactored `save_user_data()` to merge/validate in Phase 1, write in Phase 2 - eliminates stale data issues when saving multiple types simultaneously
+- **In-Memory Cross-File Invariants**: Cross-file invariants now use merged in-memory data instead of reading from disk - works correctly when account+preferences saved together
+- **Explicit Processing Order**: Defined deterministic order (account -> preferences -> schedules -> context -> messages -> tasks) - eliminates order-dependent behavior
+- **Eliminated Nested Saves**: Removed nested `update_user_account()` call from `update_user_preferences()` - invariants update in-memory data and write once
+- **Atomic Operations**: All types written in Phase 2 after validation; backup created before writes; result dict indicates per-type success/failure
+- **Message Analytics**: Created `MessageAnalytics` class with frequency analysis, delivery success tracking, and summary generation - foundation for message deduplication advanced features
+- **Plan Updates**: Marked multi-user features (engagement tracking, effectiveness metrics) and Smart Home Integration as LONG-TERM/FUTURE in PLANS.md - accurately reflects current single-user scope
+- **UserPreferences Documentation**: Enhanced docstring in `user/user_preferences.py` to clarify when to use class vs direct access - class is functional but unused, useful for multi-change workflows
+- **Document Cleanup**: Deleted temporary `REFACTOR_PLAN_DATA_FLOW.md` - information preserved in PLANS.md and CHANGELOG_DETAIL.md
+- **Files**: `core/user_data_handlers.py` (refactor), `core/message_analytics.py` (new), `tests/behavior/test_message_analytics_behavior.py` (new, 7 tests), `tests/behavior/test_user_data_flow_architecture.py` (new, 12 tests), `development_docs/PLANS.md`, `user/user_preferences.py`; all 2,828 tests passing
+
 ### 2025-11-11 - Email Integration and Test Burn-in Validation **COMPLETED**
 - **Email Integration**: Implemented full email-based interaction system - email polling loop (30s intervals), message body extraction (plain text/HTML), email-to-user mapping, routing to InteractionManager, response sending with proper subjects
 - **Burn-in Tooling**: Added `--no-shim`, `--random-order`, and `--burnin-mode` options to `run_tests.py` for test validation runs without test data shim and with random order
