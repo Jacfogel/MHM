@@ -528,7 +528,8 @@ class CommunicationManager:
             success = await channel.send_message(recipient, message, **kwargs)
             
             # FIXED: Better return value validation
-            if success is True:
+            # Use == instead of is to handle mock return values correctly
+            if success is True or success == True:
                 # Enhanced logging with message content and time period
                 message_preview = message[:50] + "..." if len(message) > 50 else message
                 time_period = kwargs.get('time_period', 'unknown')
@@ -536,7 +537,7 @@ class CommunicationManager:
                 category = kwargs.get('category', 'unknown')
                 # Log will be handled by the deduplication logic below
                 return True
-            elif success is False:
+            elif success is False or success == False:
                 logger.warning(f"Channel {channel_name} returned False for message send to {recipient}")
                 return False
             else:
@@ -591,17 +592,17 @@ class CommunicationManager:
         self._check_logging_health()
         
         # Queue immediately if channel is not ready
-        try:
-            channel = self._channels_dict.get(channel_name)
-            not_ready = False
-            if not channel:
-                not_ready = True
-            elif channel_name == 'discord' and hasattr(channel, 'can_send_messages') and not channel.can_send_messages():
-                not_ready = True
-            elif channel and not channel.is_ready():
-                not_ready = True
-            if not_ready:
-                logger.error(f"Channel {channel_name} not ready - queuing message for retry")
+        channel = self._channels_dict.get(channel_name)
+        not_ready = False
+        if not channel:
+            not_ready = True
+        elif channel_name == 'discord' and hasattr(channel, 'can_send_messages') and not channel.can_send_messages():
+            not_ready = True
+        elif channel and not channel.is_ready():
+            not_ready = True
+        if not_ready:
+            logger.error(f"Channel {channel_name} not ready - queuing message for retry")
+            try:
                 self.send_message_sync__queue_failed_message(
                     kwargs.get('user_id', ''),
                     kwargs.get('category', 'unknown'),
@@ -609,11 +610,17 @@ class CommunicationManager:
                     recipient,
                     channel_name
                 )
-                return False
-        except Exception:
-            pass
+            except Exception as e:
+                logger.warning(f"Failed to queue message for retry: {e}")
+            return False
         
         try:
+            # Double-check channel exists before attempting to send
+            # This is a defensive check in case we somehow got past the earlier check
+            if channel_name not in self._channels_dict:
+                logger.error(f"Channel {channel_name} not found in channels_dict - cannot send")
+                return False
+            
             # Get the underlying bot directly
             if channel_name == 'discord':
                 discord_channel = self._channels_dict.get('discord')
@@ -644,10 +651,17 @@ class CommunicationManager:
                         logger.error(f"Direct Discord send failed: {e}")
                         
             # Fallback to async send
+            # Note: This should only be reached if channel exists and is ready
+            # If we get here with a non-existent channel, something went wrong
             try:
-                return self.send_message_sync__run_async_sync(
+                result = self.send_message_sync__run_async_sync(
                     self.send_message(channel_name, recipient, message, **kwargs)
                 )
+                # Ensure we return False if result is None or unexpected
+                if result is None:
+                    logger.warning(f"Async send_message returned None for channel {channel_name}")
+                    return False
+                return result
             except Exception as e:
                 logger.error(f"Fallback async send failed: {e}")
                 return False

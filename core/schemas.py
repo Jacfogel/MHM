@@ -98,13 +98,25 @@ class AccountModel(BaseModel):
     @field_validator("discord_user_id")
     @classmethod
     def _validate_discord_id(cls, v: str) -> str:
-        # Accept any non-empty string; tests and legacy data may use username#discriminator format
+        """
+        Validate and normalize Discord user ID.
+        
+        Discord user IDs are snowflakes (numeric IDs) that are 17-19 digits long.
+        Empty strings are allowed (Discord ID is optional).
+        """
         if not v:
             return ""
         if isinstance(v, str):
             normalized = v.strip()
             if normalized != v:
                 logger.debug(f"Discord ID normalized (whitespace trimmed): '{v}' -> '{normalized}'")
+            
+            # Validate format using centralized validation function
+            from core.user_data_validation import is_valid_discord_id
+            if normalized and not is_valid_discord_id(normalized):
+                logger.warning(f"Invalid Discord ID format: '{normalized}' - normalized to empty string")
+                return ""
+            
             return normalized
         else:
             logger.warning(f"Discord ID validation failed: expected string, got {type(v).__name__}: {v}")

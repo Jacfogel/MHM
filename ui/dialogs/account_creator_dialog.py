@@ -533,7 +533,11 @@ class AccountCreatorDialog(QDialog):
                     logger.warning("Validation failed: Please enter a valid phone number (digits only, minimum 10 digits)")
                     return False, "Please enter a valid phone number (digits only, minimum 10 digits)."
                 
-                # Discord ID doesn't need format validation - any string is acceptable
+                # Validate Discord ID if provided
+                from core.user_data_validation import is_valid_discord_id
+                if discord_id and not is_valid_discord_id(discord_id):
+                    logger.warning("Validation failed: Please enter a valid Discord user ID (17-19 digit number)")
+                    return False, "Please enter a valid Discord user ID (17-19 digit number)."
             else:
                 logger.warning("Validation failed: Channel widget not loaded")
                 return False, "Channel widget not loaded."

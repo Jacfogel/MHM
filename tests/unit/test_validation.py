@@ -12,6 +12,7 @@ import core
 from core.user_data_validation import (
     is_valid_email,
     is_valid_phone,
+    is_valid_discord_id,
     validate_schedule_periods__validate_time_format,
     _shared__title_case,
     validate_user_update,
@@ -95,6 +96,44 @@ class TestPrimitiveValidators:
         for phone in invalid_phones:
             result = is_valid_phone(phone)
             assert result is False, f"Phone {phone} should be invalid"
+    
+    @pytest.mark.unit
+    @pytest.mark.critical
+    @pytest.mark.smoke
+    def test_is_valid_discord_id_with_valid_ids(self):
+        """Test Discord ID validation with various valid Discord ID formats."""
+        valid_discord_ids = [
+            "12345678901234567",  # 17 digits (minimum)
+            "123456789012345678",  # 18 digits
+            "1234567890123456789",  # 19 digits (maximum)
+            "",  # Empty string is allowed (optional field)
+            "  12345678901234567  ",  # With whitespace (should be trimmed)
+        ]
+        
+        for discord_id in valid_discord_ids:
+            result = is_valid_discord_id(discord_id)
+            assert result is True, f"Discord ID '{discord_id}' should be valid"
+    
+    @pytest.mark.unit
+    @pytest.mark.critical
+    @pytest.mark.regression
+    def test_is_valid_discord_id_with_invalid_ids(self):
+        """Test Discord ID validation with various invalid Discord ID formats."""
+        invalid_discord_ids = [
+            "1234567890123456",  # 16 digits (too short)
+            "12345678901234567890",  # 20 digits (too long)
+            "1234567890123456a",  # Contains letter
+            "1234567890123456-",  # Contains hyphen
+            "1234567890123456.7",  # Contains dot
+            "username#1234",  # Old username format
+            "username",  # Just username
+            None,  # None value
+            12345678901234567,  # Integer instead of string
+        ]
+        
+        for discord_id in invalid_discord_ids:
+            result = is_valid_discord_id(discord_id)
+            assert result is False, f"Discord ID '{discord_id}' should be invalid"
     
     @pytest.mark.unit
     @pytest.mark.smoke

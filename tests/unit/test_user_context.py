@@ -64,18 +64,6 @@ class TestUserContextSingleton:
         # Assert
         assert hasattr(instance, 'user_data'), "Should have user_data attribute"
         assert isinstance(instance.user_data, dict), "Should initialize user_data as dict"
-    
-    @pytest.mark.unit
-    def test_singleton_initializes_preferences(self):
-        """Test: UserContext initializes preferences as None"""
-        # Arrange: Reset singleton to ensure clean state
-        UserContext._instance = None
-        
-        # Act
-        instance = UserContext()
-        
-        # Assert
-        assert instance.preferences is None, "Should initialize preferences as None"
 
 
 class TestUserContextUserID:
@@ -101,21 +89,8 @@ class TestUserContextUserID:
         assert context.user_data['user_id'] == user_id, "Should set user_id in user_data"
     
     @pytest.mark.unit
-    def test_set_user_id_initializes_preferences(self, context):
-        """Test: set_user_id initializes UserPreferences"""
-        # Arrange
-        user_id = "test_user_123"
-        
-        # Act
-        context.set_user_id(user_id)
-        
-        # Assert
-        assert context.preferences is not None, "Should initialize UserPreferences"
-        assert context.preferences.user_id == user_id, "Should set user_id on preferences"
-    
-    @pytest.mark.unit
-    def test_set_user_id_none_clears_preferences(self, context):
-        """Test: set_user_id with None clears preferences"""
+    def test_set_user_id_none_clears_user_id(self, context):
+        """Test: set_user_id with None clears user_id"""
         # Arrange
         user_id = "test_user_123"
         context.set_user_id(user_id)
@@ -125,7 +100,6 @@ class TestUserContextUserID:
         
         # Assert
         assert context.user_data['user_id'] is None, "Should clear user_id"
-        assert context.preferences is None, "Should clear preferences"
     
     @pytest.mark.unit
     def test_get_user_id_returns_user_id(self, context):

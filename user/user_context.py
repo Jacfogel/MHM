@@ -19,7 +19,6 @@ class UserContext:
             if cls._instance is None:
                 cls._instance = super(UserContext, cls).__new__(cls)
                 cls._instance.user_data = {}
-                cls._instance.preferences = None  # Will be initialized when user_id is set
         return cls._instance
 
     @handle_errors("loading user data")
@@ -112,14 +111,10 @@ class UserContext:
         """
         if user_id:
             self.user_data['user_id'] = user_id
-            # Initialize UserPreferences for this user
-            from user.user_preferences import UserPreferences
-            self.preferences = UserPreferences(user_id)
             logger.debug(f"UserContext: set_user_id called with {user_id}")
         else:
             logger.debug("UserContext: Clearing user_id (set to None during logout)")
             self.user_data['user_id'] = None
-            self.preferences = None
 
     @handle_errors("getting user ID", default_return=None)
     def get_user_id(self):

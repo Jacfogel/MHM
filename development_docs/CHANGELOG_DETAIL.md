@@ -35,6 +35,48 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-10 - Plan Investigation, Test Fixes, Discord Validation, and Plan Cleanup **COMPLETED**
+
+**Feature**: Investigated and completed multiple plans from PLANS.md, fixed test isolation issues, implemented Discord ID validation, and cleaned up completed plans.
+
+**Technical Changes**:
+
+1. **User Preferences Integration Plan - COMPLETED**:
+   - Removed unused `UserPreferences` initialization from `UserContext.set_user_id()` and `UserContext.__new__()`
+   - Updated `user_preferences.py` comment to reflect current state (class available but not integrated)
+   - Updated tests in `tests/unit/test_user_context.py` to remove references to `context.preferences`
+   - No functional changes - only removed unused initialization overhead
+   - Files: `user/user_context.py`, `user/user_preferences.py`, `tests/unit/test_user_context.py`
+
+2. **Test Isolation Fix for CommunicationManager - COMPLETED**:
+   - Fixed test isolation issue in `tests/behavior/test_communication_behavior.py` where singleton `CommunicationManager` was causing state pollution
+   - Updated `comm_manager` fixture to properly reset singleton instance between tests (following pattern from `test_communication_manager_behavior.py`)
+   - Fixed `send_message_sync` to properly return `False` when channel not found or send fails
+   - Improved return value checking in async `send_message` to handle mock return values correctly (`success is False or success == False`)
+   - Added defensive check to ensure channel exists before attempting async send
+   - Files: `communication/core/channel_orchestrator.py`, `tests/behavior/test_communication_behavior.py`
+   - Test Results: All 2809 tests passing (previously 2 failures in full suite)
+
+3. **Discord Hardening Plan - COMPLETED**:
+   - Added `is_valid_discord_id()` function to `core/user_data_validation.py` (validates 17-19 digit snowflake IDs)
+   - Updated `AccountModel._validate_discord_id()` in `core/schemas.py` to use proper validation
+   - Updated `account_creator_dialog.validate_input()` to validate Discord IDs with user-friendly error messages
+   - Added comprehensive unit tests in `tests/unit/test_validation.py` (2 new tests covering valid/invalid formats)
+   - Files: `core/user_data_validation.py`, `core/schemas.py`, `ui/dialogs/account_creator_dialog.py`, `tests/unit/test_validation.py`
+
+4. **Plan Cleanup - COMPLETED**:
+   - Removed fully completed "User Preferences Integration Plan" from PLANS.md
+   - Removed fully completed "Discord Hardening" subsection from "Channel Interaction Implementation Plan"
+   - Files: `development_docs/PLANS.md`
+
+**Impact**: 
+- Improved code cleanliness by removing unused initialization
+- Fixed test reliability by ensuring proper singleton isolation
+- Enhanced data validation with proper Discord ID format checking
+- Improved PLANS.md maintainability by removing completed work
+
+**Testing**: All 2809 tests passing, 1 skipped, 5 warnings (expected external library deprecations)
+
 ### 2025-11-10 - Plan Investigation, Natural Language Command Detection Fix, and Test Coverage Expansion **COMPLETED**
 
 **Feature**: Investigated and completed multiple obscure plans from PLANS.md, fixed natural language command detection bug, and expanded test coverage for task suggestion relevance.

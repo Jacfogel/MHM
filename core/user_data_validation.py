@@ -47,6 +47,45 @@ def is_valid_phone(phone):
         logger.warning(f"Phone validation failed: invalid format for '{phone}' (cleaned: '{cleaned}')")
     return is_valid
 
+@handle_errors("validating Discord ID", default_return=False)
+def is_valid_discord_id(discord_id: str) -> bool:
+    """
+    Validate Discord user ID format.
+    
+    Discord user IDs are snowflakes (numeric IDs) that are 17-19 digits long.
+    Empty strings are allowed (Discord ID is optional).
+    
+    Args:
+        discord_id: The Discord user ID to validate
+        
+    Returns:
+        bool: True if valid Discord ID format or empty, False otherwise
+    """
+    # Handle None explicitly
+    if discord_id is None:
+        logger.warning("Discord ID validation failed: None value provided")
+        return False
+    
+    # Empty string is allowed (optional field)
+    if discord_id == "":
+        return True
+    
+    if not isinstance(discord_id, str):
+        logger.warning(f"Discord ID validation failed: expected string, got {type(discord_id).__name__}")
+        return False
+    
+    # Remove whitespace
+    cleaned = discord_id.strip()
+    
+    # Discord snowflake IDs are 17-19 digit numbers
+    # Must be all digits and between 17-19 characters
+    if cleaned.isdigit() and 17 <= len(cleaned) <= 19:
+        logger.debug(f"Discord ID validation passed: {cleaned}")
+        return True
+    else:
+        logger.warning(f"Discord ID validation failed: invalid format for '{discord_id}' (must be 17-19 digit number)")
+        return False
+
 @handle_errors("validating time format", default_return=False)
 def validate_schedule_periods__validate_time_format(time_str: str) -> bool:
     if not time_str:

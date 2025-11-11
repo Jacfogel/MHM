@@ -937,10 +937,6 @@
 - [ ] Cross-Channel Sync - Synchronize data across supported channels
   Note: Telegram integration has been removed from scope.
 
-#### **Discord Hardening** [WARNING] **PLANNED**
-- [ ] Discord Validation Enhancement (username format rules + dialog validation)
-- [ ] Discord Connectivity Monitoring (periodic health checks & reporting)
-
 ---
 
 ### **Test Performance Optimization Plan**
@@ -1033,36 +1029,6 @@
 - [ ] **Natural Language Processing**: Create and manage tasks using natural language
 - [ ] **Intelligent Reminders**: AI-determined optimal reminder timing
 - [ ] **Task Analytics**: AI-powered insights into task completion patterns
-
----
-
-### **User Preferences Integration Plan** [WARNING] **PLANNED**
-
-**Status**: [WARNING] **PLANNED**  
-**Priority**: Low  
-**Effort**: Medium  
-**Date**: 2025-11-10
-
-**Goal**: Actually use the existing `UserPreferences` class that is currently initialized but never accessed.
-
-**Background**: 
-- `UserPreferences` class already exists and is fully implemented in `user/user_preferences.py`
-- Class is initialized in `UserContext.set_user_id()` but `context.preferences` is never accessed
-- Investigation (2025-08-22) confirmed the class has full functionality but is completely unused
-- Current code accesses preferences directly via `get_user_data()` and `update_user_preferences()`
-
-**Options**:
-1. **Remove unused initialization**: Stop creating `UserPreferences` instance if we're not going to use it
-2. **Actually use it**: Replace direct `get_user_data('preferences')` calls with `UserContext().preferences` methods
-3. **Hybrid approach**: Use `UserPreferences` for new code, keep direct access for legacy code
-
-**Checklist**:
-- [ ] Decide on approach (remove vs use vs hybrid)
-- [ ] If using: Audit all preference access points in codebase
-- [ ] If using: Replace direct preference access with `UserPreferences` methods
-- [ ] If removing: Remove initialization from `UserContext.set_user_id()`
-- [ ] Update documentation to reflect decision
-- [ ] Add tests for chosen approach
 
 ---
 

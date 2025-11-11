@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-10 - Plan Investigation, Test Fixes, Discord Validation, and Plan Cleanup **COMPLETED**
+- **User Preferences Cleanup**: Removed unused `UserPreferences` initialization from `UserContext` - class remains available but unused initialization overhead eliminated
+- **Test Isolation Fix**: Fixed CommunicationManager singleton test isolation issue - updated fixture to reset singleton between tests, fixed `send_message_sync` return value handling, all 2809 tests now pass consistently
+- **Discord ID Validation**: Implemented proper Discord user ID validation (17-19 digit snowflakes) - added validation function, updated schema and UI dialog, comprehensive tests added
+- **Plan Maintenance**: Removed fully completed plans from PLANS.md (User Preferences Integration, Discord Hardening) to keep file focused on active work
+
 ### 2025-11-10 - Plan Investigation, Natural Language Command Detection Fix, and Test Coverage **COMPLETED**
 - **Natural Language Command Detection Fix**: Fixed bug in `_detect_mode()` where "I need to buy groceries" was detected as chat instead of command_with_clarification - moved task intent phrase detection before command keyword check
 - **Suggestion Relevance Testing**: Created comprehensive test suite for task suggestion relevance (7 tests) - verified generic suggestions suppressed, handler asks for identifier, due date variations work, suggestions are actionable
