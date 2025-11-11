@@ -4,6 +4,7 @@ import asyncio
 import threading
 import time
 import random
+import re
 from typing import Dict, List, Optional, Any
 
 from core.logger import get_component_logger
@@ -61,6 +62,9 @@ class CommunicationManager:
         self._loop_thread = None
         self.scheduler_manager = None
         self._last_task_reminders = {}  # Track last task reminder per user: {user_id: task_id}
+        self._email_polling_thread = None
+        self._email_polling_stop_event = threading.Event()
+        self._processed_email_ids = set()  # Track processed emails to avoid duplicates
         
         # Initialize extracted modules
         # Pass send_message_sync as callback for retry manager
@@ -165,6 +169,158 @@ class CommunicationManager:
     def stop_all__stop_restart_monitor(self):
         """Stop the automatic restart monitor thread"""
         self.channel_monitor.stop_restart_monitor()
+
+    @handle_errors("starting email polling thread", default_return=None)
+    def start_all__start_email_polling(self):
+        """Start the email polling thread to process incoming emails"""
+        if self._email_polling_thread is not None and self._email_polling_thread.is_alive():
+            logger.debug("Email polling thread already running")
+            return
+        
+        self._email_polling_stop_event.clear()
+        self._email_polling_thread = threading.Thread(target=self._email_polling_loop, daemon=True)
+        self._email_polling_thread.start()
+        logger.info("Email polling thread started")
+
+    @handle_errors("stopping email polling thread", default_return=None)
+    def stop_all__stop_email_polling(self):
+        """Stop the email polling thread"""
+        if self._email_polling_thread is not None:
+            logger.info("Stopping email polling thread...")
+            self._email_polling_stop_event.set()
+            self._email_polling_thread.join(timeout=5)
+            if self._email_polling_thread.is_alive():
+                logger.warning("Email polling thread didn't stop within timeout")
+            else:
+                logger.info("Email polling thread stopped")
+            self._email_polling_thread = None
+
+    @handle_errors("email polling loop", default_return=None)
+    def _email_polling_loop(self):
+        """Background thread that periodically polls for incoming emails and processes them"""
+        logger.info("Email polling loop started")
+        poll_interval = 30  # Check for emails every 30 seconds
+        
+        while not self._email_polling_stop_event.is_set():
+            try:
+                # Only poll if email channel is available and ready
+                email_channel = self._channels_dict.get('email')
+                if email_channel and email_channel.is_ready() and self._running:
+                    # Poll for new emails
+                    try:
+                        # Use the event loop to run async receive_messages
+                        if self._main_loop and not self._main_loop.is_closed():
+                            future = asyncio.run_coroutine_threadsafe(
+                                email_channel.receive_messages(),
+                                self._main_loop
+                            )
+                            emails = future.result(timeout=10)
+                        else:
+                            # Fallback: create temporary loop
+                            loop = asyncio.new_event_loop()
+                            asyncio.set_event_loop(loop)
+                            emails = loop.run_until_complete(email_channel.receive_messages())
+                            loop.close()
+                        
+                        # Process each email
+                        for email_msg in emails:
+                            email_id = email_msg.get('message_id')
+                            if email_id and email_id not in self._processed_email_ids:
+                                self._process_incoming_email(email_msg)
+                                self._processed_email_ids.add(email_id)
+                                # Limit processed IDs set size to prevent memory growth
+                                if len(self._processed_email_ids) > 1000:
+                                    # Keep only the most recent 500
+                                    self._processed_email_ids = set(list(self._processed_email_ids)[-500:])
+                    except Exception as e:
+                        logger.error(f"Error polling for emails: {e}")
+                else:
+                    logger.debug("Email channel not available or not ready, skipping poll")
+                
+            except Exception as e:
+                logger.error(f"Error in email polling loop: {e}")
+            
+            # Wait for poll interval or stop event
+            if self._email_polling_stop_event.wait(timeout=poll_interval):
+                break
+        
+        logger.info("Email polling loop stopped")
+
+    @handle_errors("processing incoming email", default_return=None)
+    def _process_incoming_email(self, email_msg: Dict[str, Any]):
+        """Process an incoming email message and send response"""
+        try:
+            email_from = email_msg.get('from', '')
+            email_body = email_msg.get('body', '')
+            email_subject = email_msg.get('subject', '')
+            
+            if not email_from or not email_body:
+                logger.debug(f"Skipping email with missing from or body: {email_msg}")
+                return
+            
+            # Extract email address from "from" field (may be "Name <email@example.com>" or just "email@example.com")
+            email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', email_from)
+            if not email_match:
+                logger.warning(f"Could not extract email address from 'from' field: {email_from}")
+                return
+            
+            sender_email = email_match.group(0)
+            
+            # Map email to user ID
+            from core.user_management import get_user_id_by_identifier
+            user_id = get_user_id_by_identifier(sender_email)
+            
+            if not user_id:
+                logger.info(f"Email from unregistered user: {sender_email}")
+                # Send registration prompt
+                response_text = (
+                    f"I don't recognize you yet! Please register first using the MHM application. "
+                    f"Your email is: {sender_email}"
+                )
+                self._send_email_response(sender_email, response_text, email_subject)
+                return
+            
+            logger.info(f"Processing email from registered user: {sender_email} (user_id: {user_id})")
+            
+            # Route message to InteractionManager
+            from communication.message_processing.interaction_manager import handle_user_message
+            response = handle_user_message(user_id, email_body, "email")
+            
+            if response and response.message:
+                # Send response back via email
+                self._send_email_response(sender_email, response.message, f"Re: {email_subject}")
+            else:
+                logger.warning(f"No response generated for email from user {user_id}")
+                
+        except Exception as e:
+            logger.error(f"Error processing incoming email: {e}", exc_info=True)
+
+    @handle_errors("sending email response", default_return=None)
+    def _send_email_response(self, recipient_email: str, response_text: str, subject: str = "Re: Your Message"):
+        """Send an email response to a user"""
+        try:
+            email_channel = self._channels_dict.get('email')
+            if not email_channel or not email_channel.is_ready():
+                logger.error("Email channel not available for sending response")
+                return
+            
+            # Use the event loop to send email
+            if self._main_loop and not self._main_loop.is_closed():
+                future = asyncio.run_coroutine_threadsafe(
+                    email_channel.send_message(recipient_email, response_text, subject=subject),
+                    self._main_loop
+                )
+                future.result(timeout=10)
+            else:
+                # Fallback: create temporary loop
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(email_channel.send_message(recipient_email, response_text, subject=subject))
+                loop.close()
+            
+            logger.info(f"Email response sent to {recipient_email}")
+        except Exception as e:
+            logger.error(f"Error sending email response to {recipient_email}: {e}")
 
     # Old restart monitor methods removed - now handled by ChannelMonitor
     # Old retry loop methods removed - now handled by RetryManager
@@ -330,6 +486,10 @@ class CommunicationManager:
             
             # Start the restart monitor
             self.start_all__start_restart_monitor()
+            
+            # Start email polling if email channel is configured
+            if 'email' in self.channel_configs and self.channel_configs['email'].enabled:
+                self.start_all__start_email_polling()
             
             # Try async startup first
             try:
@@ -815,6 +975,9 @@ class CommunicationManager:
         """
         logger.info("Shutting down CommunicationManager...")
         self._running = False
+        
+        # Stop email polling
+        self.stop_all__stop_email_polling()
         
         # Stop all channels
         for name, channel in self._channels_dict.items():

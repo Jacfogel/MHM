@@ -753,8 +753,14 @@ class TestTaskManagementCoverageExpansion:
             mock_save_user_data.assert_called_once()
             
             # Verify default tags were added
+            # save_user_data signature: (user_id, data_updates) where data_updates is a dict
             call_args = mock_save_user_data.call_args[0]
-            default_tags = call_args[2]['task_settings']['tags']
+            assert len(call_args) >= 2, f"Expected at least 2 arguments, got {len(call_args)}"
+            user_id_arg = call_args[0]
+            data_updates = call_args[1]
+            assert user_id_arg == user_id, f"Expected user_id {user_id}, got {user_id_arg}"
+            assert 'preferences' in data_updates, f"Expected 'preferences' in data_updates, got {list(data_updates.keys())}"
+            default_tags = data_updates['preferences']['task_settings']['tags']
             assert 'work' in default_tags
             assert 'personal' in default_tags
             assert 'health' in default_tags

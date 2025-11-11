@@ -667,7 +667,14 @@ def _save_user_data__save_single_type(user_id: str, dt: str, updates: Dict[str, 
         preserve_categories_order: list | None = None
         if dt == "preferences" and isinstance(updates, dict) and isinstance(updates.get("categories"), list):
             preserve_categories_order = list(updates["categories"])  # exact order from caller
-        updated.update(updates)
+        
+        # Handle None values in updates - remove keys that are explicitly set to None
+        for key, value in updates.items():
+            if value is None:
+                # Explicitly remove the key if set to None
+                updated.pop(key, None)
+            else:
+                updated[key] = value
         
         # Handle field preservation and preference settings
         if dt == "account":

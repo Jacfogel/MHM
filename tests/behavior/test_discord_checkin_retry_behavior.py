@@ -57,10 +57,25 @@ class TestDiscordCheckinRetryBehavior:
     def test_checkin_message_queued_on_discord_disconnect(self, comm_manager, user_id, test_data_dir):
         """Test that check-in messages are queued when Discord disconnects during send."""
         # Arrange: Get actual user ID (UUID) for the test user
-        from core.user_data_handlers import get_user_data
+        from core.user_data_handlers import get_user_data, save_user_data
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, test_data_dir)
         if not actual_user_id:
             pytest.skip("Could not resolve actual user ID for test")
+        
+        # Ensure check-ins are enabled for this user and Discord channel is configured
+        user_data = get_user_data(actual_user_id, 'all', auto_create=True)
+        if 'account' in user_data:
+            user_data['account'].setdefault('features', {})['checkins'] = 'enabled'
+        if 'preferences' in user_data:
+            user_data['preferences'].setdefault('checkin_settings', {})['enabled'] = True
+            user_data['preferences']['checkin_settings']['frequency'] = 'daily'
+            # Set up Discord channel for messaging
+            user_data['preferences'].setdefault('channel', {})['type'] = 'discord'
+        save_user_data(actual_user_id, user_data)
+        
+        # Clear retry queue to ensure clean state
+        while not comm_manager.retry_manager._failed_message_queue.empty():
+            comm_manager.retry_manager._failed_message_queue.get()
         
         # Mock Discord bot to simulate disconnect - is_ready() returns False
         mock_discord_bot = Mock()

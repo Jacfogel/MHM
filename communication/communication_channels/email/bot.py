@@ -168,13 +168,74 @@ class EmailBot(BaseChannel):
                         if isinstance(email_subject, bytes):
                             email_subject = email_subject.decode()
                         email_from = msg.get("from")
+                        
+                        # Extract email body text
+                        body_text = self._receive_emails_sync__extract_body(msg)
+                        
                         messages.append({
                             'from': email_from,
                             'subject': email_subject,
+                            'body': body_text,
                             'message_id': email_id.decode()
                         })
         
         return messages
+    
+    @handle_errors("extracting email body text", default_return="")
+    def _receive_emails_sync__extract_body(self, msg: email.message.Message) -> str:
+        """Extract plain text body from email message"""
+        body_text = ""
+        
+        if msg.is_multipart():
+            for part in msg.walk():
+                content_type = part.get_content_type()
+                content_disposition = str(part.get("Content-Disposition"))
+                
+                # Skip attachments
+                if "attachment" in content_disposition:
+                    continue
+                
+                # Extract text from text/plain or text/html parts
+                if content_type == "text/plain":
+                    try:
+                        payload = part.get_payload(decode=True)
+                        if payload:
+                            charset = part.get_content_charset() or 'utf-8'
+                            body_text = payload.decode(charset, errors='ignore')
+                            break  # Prefer plain text
+                    except Exception as e:
+                        logger.debug(f"Error decoding plain text part: {e}")
+                elif content_type == "text/html" and not body_text:
+                    # Fallback to HTML if no plain text found
+                    try:
+                        payload = part.get_payload(decode=True)
+                        if payload:
+                            charset = part.get_content_charset() or 'utf-8'
+                            html_text = payload.decode(charset, errors='ignore')
+                            # Simple HTML stripping (remove tags)
+                            import re
+                            body_text = re.sub(r'<[^>]+>', '', html_text)
+                            body_text = re.sub(r'\s+', ' ', body_text).strip()
+                    except Exception as e:
+                        logger.debug(f"Error decoding HTML part: {e}")
+        else:
+            # Single part message
+            content_type = msg.get_content_type()
+            if content_type == "text/plain" or content_type == "text/html":
+                try:
+                    payload = msg.get_payload(decode=True)
+                    if payload:
+                        charset = msg.get_content_charset() or 'utf-8'
+                        body_text = payload.decode(charset, errors='ignore')
+                        if content_type == "text/html":
+                            # Simple HTML stripping
+                            import re
+                            body_text = re.sub(r'<[^>]+>', '', body_text)
+                            body_text = re.sub(r'\s+', ' ', body_text).strip()
+                except Exception as e:
+                    logger.debug(f"Error decoding message body: {e}")
+        
+        return body_text.strip()
 
     @handle_errors("performing email health check", default_return=False)
     async def health_check(self) -> bool:

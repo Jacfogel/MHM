@@ -66,12 +66,16 @@ def print_test_mode_info():
     print("  --workers N - Number of parallel workers (default: 2, or 'auto' for optimal)")
     print("  --coverage  - Run with coverage reporting")
     print("  --durations-all - Show timing for all tests")
+    print("  --no-shim   - Disable test data shim (for burn-in validation)")
+    print("  --random-order - Use random test order (for order independence validation)")
+    print("  --burnin-mode - Enable burn-in mode (combines --no-shim and --random-order)")
     print("\nExamples:")
     print("  python run_tests.py                    # Run all tests in parallel")
     print("  python run_tests.py --mode fast        # Quick unit tests only")
     print("  python run_tests.py --mode all --verbose # All tests with verbose output")
     print("  python run_tests.py --no-parallel      # Disable parallel execution")
     print("  python run_tests.py --workers 4       # Use 4 parallel workers")
+    print("  python run_tests.py --burnin-mode     # Validation run (no shim, random order)")
     print("="*60)
 
 def main():
@@ -124,6 +128,21 @@ def main():
         help="Ask pytest to report durations for all tests at the end"
     )
     parser.add_argument(
+        "--no-shim",
+        action="store_true",
+        help="Disable test data shim (ENABLE_TEST_DATA_SHIM=0) for burn-in validation"
+    )
+    parser.add_argument(
+        "--random-order",
+        action="store_true",
+        help="Use truly random test order (not fixed seed) for order independence validation"
+    )
+    parser.add_argument(
+        "--burnin-mode",
+        action="store_true",
+        help="Enable burn-in validation mode (combines --no-shim and --random-order)"
+    )
+    parser.add_argument(
         "--help-modes",
         action="store_true",
         help="Show detailed information about test modes"
@@ -138,8 +157,19 @@ def main():
     
     # Enforce safe defaults for Windows console
     os.environ.setdefault('PYTHONUTF8', '1')
+    
+    # Handle burn-in mode (combines --no-shim and --random-order)
+    if args.burnin_mode:
+        args.no_shim = True
+        args.random_order = True
+        print("[BURN-IN MODE] Enabled: --no-shim and --random-order for validation")
+    
     # Ensure test data shim is enabled by default for CI/local runs unless explicitly disabled
-    os.environ.setdefault('ENABLE_TEST_DATA_SHIM', '1')
+    if args.no_shim:
+        os.environ['ENABLE_TEST_DATA_SHIM'] = '0'
+        print("[BURN-IN] Test data shim disabled (ENABLE_TEST_DATA_SHIM=0)")
+    else:
+        os.environ.setdefault('ENABLE_TEST_DATA_SHIM', '1')
 
     # Base pytest command
     cmd = [sys.executable, "-m", "pytest"]
@@ -170,10 +200,16 @@ def main():
     # Set test environment variables
     os.environ['DISABLE_LOG_ROTATION'] = '1'  # Prevent log rotation issues during tests
     
-    # Add deterministic order unless user already provided a seed via env or PYTEST_ADDOPTS
+    # Handle test order randomization
     addopts = os.environ.get('PYTEST_ADDOPTS', '')
     has_seed = "--randomly-seed" in addopts or any(arg.startswith('--randomly-seed') for arg in sys.argv)
-    if not has_seed:
+    
+    if args.random_order:
+        # Use truly random order (pytest-randomly will generate a random seed)
+        # Don't add --randomly-seed, let pytest-randomly use a random seed
+        print("[BURN-IN] Using random test order (no fixed seed)")
+    elif not has_seed:
+        # Default: use fixed seed for deterministic runs
         cmd.extend(["--randomly-seed=12345"])  # default stable seed for order independence verification
 
     # Add coverage if requested
@@ -234,6 +270,10 @@ def main():
         print(f"Verbose: Yes")
     if args.coverage:
         print(f"Coverage: Yes")
+    if args.no_shim:
+        print(f"Test Data Shim: Disabled (burn-in validation)")
+    if args.random_order:
+        print(f"Test Order: Random (burn-in validation)")
     
     # Run the tests
     success = run_command(cmd, description, progress_interval=args.progress_interval)

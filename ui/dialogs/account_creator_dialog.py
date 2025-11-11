@@ -883,14 +883,15 @@ class AccountCreatorDialog(QDialog):
         task_settings = account_data.get('task_settings', {})
         custom_tags = task_settings.get('tags', [])
         
-        if custom_tags:
+        # Check if custom tags were provided (non-empty list)
+        if custom_tags and len(custom_tags) > 0:
             # Save custom tags that were added during account creation
             from tasks.task_management import add_user_task_tag
             for tag in custom_tags:
                 add_user_task_tag(user_id, tag)
             logger.info(f"Saved {len(custom_tags)} custom tags for new user {user_id}: {custom_tags}")
         else:
-            # Set up default tags only if no custom tags were added
+            # Set up default tags only if no custom tags were added (empty list or missing)
             from tasks.task_management import setup_default_task_tags
             setup_default_task_tags(user_id)
             logger.info(f"Set up default task tags for new user {user_id}")

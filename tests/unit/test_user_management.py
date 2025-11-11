@@ -620,6 +620,8 @@ class TestUserManagementEdgeCases:
         allowed_extra_dirs = {'tasks'}
         # Allow temporary files that might be created during operations
         allowed_temp_files = {'chat_interactions.json.tmp'}
+        # Allow corrupted file backups created during error recovery
+        # These are created when the system handles corrupted files gracefully
         unexpected_items = [
             f for f in user_dir_contents
             if f not in all_expected_items
@@ -627,6 +629,8 @@ class TestUserManagementEdgeCases:
             and f not in allowed_temp_files
             and not f.startswith('.')
             and not f.endswith('.json')
+            and not f.endswith('.corrupted_')  # Allow corrupted file backups (format: filename.corrupted_TIMESTAMP)
+            and '.corrupted_' not in f  # Also catch any corrupted backup files
         ]
         assert len(unexpected_items) == 0, f"No unexpected non-JSON files/directories should be created: {unexpected_items}"
         

@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-11 - Email Integration and Test Burn-in Validation **COMPLETED**
+- **Email Integration**: Implemented full email-based interaction system - email polling loop (30s intervals), message body extraction (plain text/HTML), email-to-user mapping, routing to InteractionManager, response sending with proper subjects
+- **Burn-in Tooling**: Added `--no-shim`, `--random-order`, and `--burnin-mode` options to `run_tests.py` for test validation runs without test data shim and with random order
+- **Order-Dependent Test Fixes**: Fixed 7 test failures exposed by random order - updated tests to match actual system design (task_settings preserved), fixed parser confusion, added missing setup, updated mock assertions for new signatures
+- **Test Results**: All 2,809 tests passing with `--burnin-mode` - test suite validated for order independence and ready for nightly burn-in runs
+
 ### 2025-11-10 - Plan Investigation, Test Fixes, Discord Validation, and Plan Cleanup **COMPLETED**
 - **User Preferences Cleanup**: Removed unused `UserPreferences` initialization from `UserContext` - class remains available but unused initialization overhead eliminated
 - **Test Isolation Fix**: Fixed CommunicationManager singleton test isolation issue - updated fixture to reset singleton between tests, fixed `send_message_sync` return value handling, all 2809 tests now pass consistently

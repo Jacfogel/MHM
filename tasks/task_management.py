@@ -713,7 +713,8 @@ def setup_default_task_tags(user_id: str) -> bool:
             task_settings['tags'] = default_tags
             preferences_data['task_settings'] = task_settings
             
-            if save_user_data(user_id, 'preferences', preferences_data):
+            # Fix: save_user_data expects a dict of data types, not individual type
+            if save_user_data(user_id, {'preferences': preferences_data}):
                 logger.info(f"Set up default task tags for user {user_id}: {default_tags}")
                 return True
             else:
