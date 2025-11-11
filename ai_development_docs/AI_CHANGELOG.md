@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-10 - Plan Investigation, Natural Language Command Detection Fix, and Test Coverage **COMPLETED**
+- **Natural Language Command Detection Fix**: Fixed bug in `_detect_mode()` where "I need to buy groceries" was detected as chat instead of command_with_clarification - moved task intent phrase detection before command keyword check
+- **Suggestion Relevance Testing**: Created comprehensive test suite for task suggestion relevance (7 tests) - verified generic suggestions suppressed, handler asks for identifier, due date variations work, suggestions are actionable
+- **Plan Status Updates**: Updated 4 plans to reflect actual implementation status (User Preferences, Dynamic Check-in Questions, Mood-Responsive AI, Natural Language Detection) - plans now accurately show what's done vs what's missing
+- **Test Results**: All 2,809 tests passing - natural language detection fix verified, no regressions
+
 ### 2025-11-10 - Testing Infrastructure Improvements and Discord Retry Verification **COMPLETED**
 - **Legacy Reference Cleanup Enhancement**: Fixed duplicate detection in `legacy_reference_cleanup.py` - improved deduplication logic handles overlapping pattern matches and exact position duplicates
 - **Testing Policy Documentation**: Completed "Testing Policy: Targeted Runs by Area" - documented scripts exclusion policy in both testing guides and added verification test `test_scripts_exclusion_policy.py`

@@ -35,6 +35,43 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-10 - Plan Investigation, Natural Language Command Detection Fix, and Test Coverage Expansion **COMPLETED**
+
+**Feature**: Investigated and completed multiple obscure plans from PLANS.md, fixed natural language command detection bug, and expanded test coverage for task suggestion relevance.
+
+**Technical Changes**:
+
+1. **Suggestion Relevance and Flow Prompting (Tasks) - COMPLETED**:
+   - Created comprehensive test suite `tests/behavior/test_task_suggestion_relevance.py` with 7 passing tests
+   - Verified generic suggestions are suppressed on targeted update_task prompts (handler sets suggestions=[] explicitly)
+   - Verified handler asks for task identifier when missing (tested handler directly)
+   - Verified both "due" and "due date" variations parse correctly in command parser
+   - Created actionable suggestions audit test that verifies 80%+ of suggestions can be parsed and have handlers
+   - Removed completed plan from PLANS.md
+
+2. **Natural Language Command Detection Fix** (`ai/chatbot.py`):
+   - Fixed bug where "I need to buy groceries" was detected as `chat` instead of `command_with_clarification`
+   - Root cause: `_detect_mode()` checked command keywords first and returned "chat" immediately if none found, before checking task intent phrases
+   - Solution: Moved task intent phrase detection BEFORE command keyword check
+   - Task intent phrases ("i need to", "i should", "i want to", etc.) + task verbs ("buy", "get", "do", "call", etc.) now trigger `command_with_clarification` mode
+   - Added additional task verbs: "pick up", "go to"
+   - Maintained backward compatibility with explicit commands
+   - Created test suite `tests/behavior/test_natural_language_command_detection.py` with 6 passing tests
+
+3. **Plan Status Updates**:
+   - Updated "User Preferences Integration Plan" to reflect actual state (class exists but unused)
+   - Updated "Dynamic Check-in Questions Plan" to PARTIALLY COMPLETE (core functionality exists, custom questions missing)
+   - Updated "Phase 2: Mood-Responsive AI" to PARTIALLY COMPLETE (mood data included in context, but prompts not dynamically modified)
+   - Enhanced placeholder in `ui/widgets/checkin_settings_widget.py` with detailed TODO comments for custom question implementation
+
+**Impact**: 
+- Natural language task requests now work correctly ("I need to buy groceries" triggers clarification mode)
+- Test coverage expanded for suggestion relevance and natural language detection
+- Plans now accurately reflect implementation status, making future work clearer
+- Improved documentation for incomplete features (custom questions placeholder)
+
+**Testing**: All 2,809 tests passing (1 skipped, 7 expected warnings). New tests follow testing guidelines (TestUserFactory, test_data_dir fixture, real behavior testing).
+
 ### 2025-11-10 - Testing Infrastructure Improvements and Discord Retry Verification **COMPLETED**
 
 **Feature**: Enhanced testing infrastructure with policy documentation, improved legacy reference cleanup tool, comprehensive Discord retry behavior testing, and test warning fixes.

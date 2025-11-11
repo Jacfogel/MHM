@@ -855,12 +855,29 @@ Additional Instructions:
         if not prompt_lower:
             return "chat"
 
+        words = prompt_lower.split()
+        stripped_prompt = prompt_lower.strip("?.! ")
+
+        # Check for task intent phrases FIRST (before command keywords)
+        # This handles natural language like "I need to buy groceries"
+        task_intent_phrases = [
+            "i need to", "i should", "i want to", "i have to", 
+            "remind me to", "i need", "i'd like to", "i want"
+        ]
+        task_verbs = ["buy", "get", "do", "call", "schedule", "complete", "finish", "pick up", "go to"]
+        
+        has_task_intent = any(phrase in prompt_lower for phrase in task_intent_phrases)
+        has_task_verb = any(verb in prompt_lower for verb in task_verbs)
+        
+        # If prompt has task intent phrase + task verb, it's likely a task request
+        if has_task_intent and has_task_verb and not any(word in prompt_lower for word in ["add", "create", "new"]):
+            # This is likely a natural language task request that needs clarification
+            return "command_with_clarification"
+
+        # Now check for explicit command keywords
         has_command_keyword = any(keyword in prompt_lower for keyword in command_keywords)
         if not has_command_keyword:
             return "chat"
-
-        words = prompt_lower.split()
-        stripped_prompt = prompt_lower.strip("?.! ")
 
         clarification_phrases = [
             "not sure",
@@ -928,22 +945,6 @@ Additional Instructions:
         elif any(phrase in prompt_lower for phrase in clarification_phrases):
             needs_clarification = True
         else:
-            # Check for task intent phrases that should trigger clarification
-            # Phrases like "I need to buy groceries" are between command and chat
-            task_intent_phrases = [
-                "i need to", "i should", "i want to", "i have to", 
-                "remind me to", "i need", "i'd like to", "i want"
-            ]
-            task_verbs = ["buy", "get", "do", "call", "schedule", "complete", "finish"]
-            
-            # If prompt has task intent phrase + task verb, it's likely a task request needing clarification
-            has_task_intent = any(phrase in prompt_lower for phrase in task_intent_phrases)
-            has_task_verb = any(verb in prompt_lower for verb in task_verbs)
-            
-            if has_task_intent and has_task_verb and not any(word in prompt_lower for word in ["add", "create", "new"]):
-                # This is likely a natural language task request that needs clarification
-                needs_clarification = True
-            
             has_question_request = '?' in prompt_lower and any(
                 pattern in prompt_lower for pattern in request_question_patterns
             )

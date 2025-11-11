@@ -277,7 +277,15 @@ class CheckinSettingsWidget(QWidget):
     
     @handle_errors("adding new question")
     def add_new_question(self):
-        """Add a new check-in question."""
+        """Add a new check-in question.
+        
+        TODO: Implement custom question creation functionality.
+        - Store custom questions in user preferences (checkin_settings.custom_questions)
+        - Support question types: scale_1_5, yes_no, number, optional_text
+        - Add validation rules for custom questions
+        - Integrate with DynamicCheckinManager to include custom questions in flow
+        - See development_docs/PLANS.md "Dynamic Check-in Questions Plan" for full requirements
+        """
         from PySide6.QtWidgets import QInputDialog, QMessageBox
         
         # Get question text from user
@@ -288,13 +296,24 @@ class CheckinSettingsWidget(QWidget):
         )
         
         if ok and question_text.strip():
-            # For now, just show a message that this would be implemented
-            # In a full implementation, this would add to a dynamic list
+            # TODO: Implement actual custom question creation
+            # This requires:
+            # 1. Question type selection dialog (scale_1_5, yes_no, number, optional_text)
+            # 2. Validation rules configuration
+            # 3. Storage in user preferences (checkin_settings.custom_questions)
+            # 4. Integration with DynamicCheckinManager
+            # 5. UI updates to show custom questions in the list
+            
             QMessageBox.information(
                 self, 
-                "Question Added", 
-                f"Question '{question_text}' would be added to your check-ins.\n\n"
-                "Note: Custom question functionality is planned for future updates."
+                "Custom Questions Coming Soon", 
+                f"Custom question functionality is planned for future updates.\n\n"
+                f"Your question: '{question_text}'\n\n"
+                "This feature will allow you to:\n"
+                "• Create custom check-in questions\n"
+                "• Choose question types (scale, yes/no, number, text)\n"
+                "• Set validation rules\n"
+                "• Include custom questions in your check-ins"
             )
         elif ok and not question_text.strip():
             QMessageBox.warning(

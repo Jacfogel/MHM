@@ -101,14 +101,14 @@ When adding new tasks, follow this format:
   - [ ] Add behavior tests for end-to-end save/load normalization
   - [ ] Add read-path normalization invocation to remaining reads that feed business logic (sweep `core/` and `communication/`)
 
-**Discord Task Edit Follow-ups and Suggestion Relevance**
+**Discord Task Edit Follow-ups and Suggestion Relevance** ✅ **COMPLETED**
 - *What it means*: Ensure edit-task prompts are actionable, suppress irrelevant suggestions, and add coverage for common follow-ups
 - *Why it helps*: Reduces confusion and makes conversations efficient
 - *Estimated effort*: Small/Medium
 - *Subtasks*:
-  - [ ] Behavior tests: edit task by name then change due date (natural language variations: "due date", "due")
-  - [ ] Behavior tests: verify no generic suggestions accompany targeted "what would you like to update" prompts
-  - [ ] Behavior tests: list tasks ? edit task flow ensures "which task" is asked when not specified
+  - [x] Behavior tests: edit task by name then change due date (natural language variations: "due date", "due")
+  - [x] Behavior tests: verify no generic suggestions accompany targeted "what would you like to update" prompts
+  - [x] Behavior tests: list tasks ? edit task flow ensures "which task" is asked when not specified
 
 **Channel-Agnostic Command Registry Follow-ups**
 - *What it means*: Finalize and monitor the new centralized command system and Discord integrations

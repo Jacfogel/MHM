@@ -80,32 +80,6 @@
 - **Mitigation**: Incremental refactoring with comprehensive testing after each change
 - **Rollback**: Maintain backward compatibility throughout implementation
 
-### **Natural Language Command Detection Review & Rework** [WARNING] **PLANNING**
-
-**Status**: [WARNING] **PLANNING**  
-**Priority**: Medium  
-**Effort**: Medium  
-**Date**: 2025-11-01
-
-**Objective**: Review and potentially completely rework natural language command detection patterns to better recognize task intent in natural language (e.g., "I need to buy groceries" should trigger clarification mode, not chat mode).
-
-**Current Issues**:
-- "I need to buy groceries" detected as `chat` mode instead of `command_with_clarification`
-- Some natural language task requests not properly recognized
-- Mode detection may need more comprehensive pattern matching or AI-based classification
-
-**Scope**:
-- [ ] Analyze current mode detection patterns in `ai/chatbot.py` `_detect_mode()` method
-- [ ] Review test results for natural language command detection (T-5.5)
-- [ ] Consider expanding pattern matching or using AI-powered classification for ambiguous cases
-- [ ] Test improvements with various natural language task request patterns
-- [ ] Ensure backward compatibility with existing command patterns
-
-**Success Criteria**:
-- [ ] Natural language task requests (e.g., "I need to...", "I should...") properly trigger clarification mode
-- [ ] No regressions in existing command detection (clear commands still work)
-- [ ] Test suite passes with improved detection
-
 ### **Error Handling Coverage Expansion** ?? **IN PROGRESS**
 
 **Status**: ?? **IN PROGRESS**  
@@ -145,27 +119,6 @@
 - [x] All tests continue passing (✅ 1899 passed, 1 skipped)
 - [x] No regressions introduced
 - [x] System stability maintained
-
-### **Analytics Scale Normalization (Mood/Energy)** [CHECKMARK] **COMPLETED**
-
-**Status**: [CHECKMARK] **COMPLETED**  
-**Priority**: High  
-**Effort**: Small/Medium  
-**Date**: 2025-09-12  
-**Completed**: 2025-11-09
-
-**Objective**: Align Mood (and Energy where shown) to 1-5 across analytics outputs.
-
-**Results**:
-- Updated `analytics_handler.py` to show Mood on a 1-5 scale; Energy adjusted in check-in history
-- Updated `interaction_handlers.py` wellness score display to show mood/energy on 1-5 scale (converted from 0-100)
-- Added missing `_handle_energy_trends()` method to `interaction_handlers.py` AnalyticsHandler
-- Extracted conversion helper functions (`convert_score_100_to_5`, `convert_score_5_to_100`) to `CheckinAnalytics` class
-- Refactored `_calculate_mood_score()` and `_calculate_energy_score()` to use helper functions
-- Added comprehensive unit tests (21 tests) for conversion functions including non-integer value handling
-- Verified all mood/energy displays consistently use 1-5 scale across the codebase
-
----
 
 ### **2025-09-16 - High Complexity Function Refactoring - Phase 2** 🔄 **IN PROGRESS**
 
@@ -595,40 +548,6 @@
 
 ---
 
-### **2025-08-25 - Windows Fatal Exception Investigation** [CHECKMARK] **COMPLETED**
-
-**Status**: [CHECKMARK] **COMPLETED**  
-**Priority**: High  
-**Effort**: Medium  
-**Dependencies**: None  
-**Completed**: 2025-11-06
-
-**Objective**: Investigate and fix the Windows fatal exception (access violation) that occurs during full test suite execution.
-
-**Background**: During comprehensive testing, a Windows fatal exception was encountered during full test suite execution. This issue needed investigation to ensure system stability and prevent crashes during testing.
-
-**Investigation Plan**:
-- [x] Analyze crash logs and error patterns
-- [x] Identify if issue is related to Discord bot threads or UI widget cleanup
-- [x] Determine if issue is Windows-specific or affects all platforms
-- [x] Check for memory management or threading issues
-- [x] Implement appropriate fix based on root cause analysis
-- [x] Test fix with full test suite execution
-- [x] Add crash detection and recovery mechanisms
-
-**Solution Implemented**:
-- **Thread Cleanup Fixture**: Added `cleanup_communication_threads` autouse fixture in `tests/conftest.py` to clean up CommunicationManager threads between tests
-- **Root Cause**: CommunicationManager threads were not being properly cleaned up between tests, causing crashes when UI tests processed events
-- **Fix**: Fixture automatically stops all channels after each test to prevent thread leaks while allowing the manager to persist
-
-**Success Criteria**:
-- [x] Root cause identified and documented (thread cleanup issue)
-- [x] Fix implemented and tested (thread cleanup fixture)
-- [x] Full test suite runs without fatal exceptions (verified in changelog)
-- [x] Prevention measures in place (autouse fixture prevents future issues)
-
----
-
 ### **2025-08-22 - User Context & Preferences Integration Investigation** ✅ **INVESTIGATION COMPLETE**
 
 **Status**: ✅ **INVESTIGATION COMPLETE**  
@@ -814,27 +733,33 @@
 
 ---
 
-### **Phase 2: Mood-Responsive AI & Advanced Intelligence** [WARNING] **NEW**
+### **Phase 2: Mood-Responsive AI & Advanced Intelligence** [WARNING] **PARTIALLY COMPLETE**
 
-**Goal**: Implement mood-responsive AI conversations and advanced emotional intelligence  
-**Status**: Planning Phase  
-**Estimated Duration**: 2-3 weeks
+**Status**: [WARNING] **PARTIALLY COMPLETE**  
+**Priority**: High  
+**Effort**: High  
+**Date**: 2025-11-10
 
-**Checklist**:
-- [ ] **Mood-Responsive AI Conversations** (High Impact, High Effort)
-  - [ ] Enhance mood tracking in check-ins with more granular detection
-  - [ ] Modify AI prompts based on detected mood and energy levels
-  - [ ] Add emotional state persistence and trend analysis
-  - [ ] Implement tone adaptation algorithms
-  - [ ] Test mood detection accuracy and AI response appropriateness
-  - [ ] Validate emotional state persistence and analysis
-- [ ] **Advanced Emotional Intelligence** (Medium Impact, High Effort)
-  - [ ] Enhance mood analysis algorithms with machine learning patterns
-  - [ ] Add emotional response templates for different moods
-  - [ ] Implement mood trend analysis and prediction
-  - [ ] Create emotional intelligence scoring system
-  - [ ] Test emotional intelligence accuracy and response quality
-  - [ ] Validate mood trend analysis and prediction accuracy
+**Goal**: Implement mood-responsive AI conversations and advanced emotional intelligence
+
+**Current State**:
+- ✅ **Mood data included in context**: AI chatbot includes mood and energy data from check-ins in context (`ai/chatbot.py`, `ai/context_builder.py`)
+- ✅ **Mood trend analysis**: Context builder analyzes mood trends (improving/declining/stable)
+- ✅ **Emotional intelligence in system prompt**: System prompt includes emotional intelligence instructions
+- ✅ **Mood-aware completion messages**: Check-in completion messages adapt based on mood/energy (`conversation_flow_manager.py`)
+- ❌ **Prompt modification based on mood**: Prompts are NOT dynamically modified based on mood/energy - mood data is only included in context
+- ❌ **Tone adaptation algorithms**: No explicit tone adaptation based on detected mood
+- ❌ **Emotional response templates**: No mood-specific response templates
+- ❌ **Mood prediction**: No predictive mood analysis
+
+**What's Missing**:
+- [ ] **Dynamic prompt modification**: Modify system prompt or add mood-specific instructions based on detected mood/energy levels
+- [ ] **Tone adaptation algorithms**: Implement algorithms that adjust response tone based on mood (e.g., more gentle for low mood, more energetic for high energy)
+- [ ] **Emotional response templates**: Create templates for different mood states (low mood = more supportive, high mood = more celebratory)
+- [ ] **Enhanced mood tracking**: More granular mood detection (beyond 1-5 scale)
+- [ ] **Mood prediction**: Predictive analysis of mood trends
+- [ ] **Emotional intelligence scoring**: System to score and improve emotional intelligence of responses
+- [ ] **Machine learning patterns**: Advanced ML-based mood analysis (currently uses simple averages/trends)
 
 ---
 
@@ -866,18 +791,6 @@
   - [ ] Create integration roadmap and timeline
   - [ ] Test integration feasibility with sample APIs
   - [ ] Validate integration architecture design
-
----
-
-### **Suggestion Relevance and Flow Prompting (Tasks)** [WARNING] **NEW**
-
-**Goal**: Provide context-appropriate suggestions and prompts that the system can actually handle
-
-**Checklist**:
-- [ ] Suppress generic suggestions on targeted prompts (e.g., update_task field prompt) — implemented in code, add tests
-- [ ] Ensure list->edit flows confirm task identifier when missing — add behavior tests
-- [ ] Cover natural language variations for due date updates ("due" vs "due date") — implemented in parser, add tests
-- [ ] Verify suggestions are actionable (handlers exist) — audit suggestions table vs handlers
 
 ---
 
@@ -1123,23 +1036,64 @@
 
 ---
 
-### **User Preferences Refactor Plan** [WARNING] **PLANNED**
+### **User Preferences Integration Plan** [WARNING] **PLANNED**
 
-**Goal**: Introduce `UserPreferences` class for centralized, type-safe preference management.
-- [ ] Define data model and serialization format
-- [ ] Implement class and adapter for current data files
-- [ ] Update accessors across UI/Core to use `UserPreferences`
-- [ ] Add migration helpers and tests
+**Status**: [WARNING] **PLANNED**  
+**Priority**: Low  
+**Effort**: Medium  
+**Date**: 2025-11-10
+
+**Goal**: Actually use the existing `UserPreferences` class that is currently initialized but never accessed.
+
+**Background**: 
+- `UserPreferences` class already exists and is fully implemented in `user/user_preferences.py`
+- Class is initialized in `UserContext.set_user_id()` but `context.preferences` is never accessed
+- Investigation (2025-08-22) confirmed the class has full functionality but is completely unused
+- Current code accesses preferences directly via `get_user_data()` and `update_user_preferences()`
+
+**Options**:
+1. **Remove unused initialization**: Stop creating `UserPreferences` instance if we're not going to use it
+2. **Actually use it**: Replace direct `get_user_data('preferences')` calls with `UserContext().preferences` methods
+3. **Hybrid approach**: Use `UserPreferences` for new code, keep direct access for legacy code
+
+**Checklist**:
+- [ ] Decide on approach (remove vs use vs hybrid)
+- [ ] If using: Audit all preference access points in codebase
+- [ ] If using: Replace direct preference access with `UserPreferences` methods
+- [ ] If removing: Remove initialization from `UserContext.set_user_id()`
+- [ ] Update documentation to reflect decision
+- [ ] Add tests for chosen approach
 
 ---
 
-### **Dynamic Check-in Questions Plan** [WARNING] **PLANNED**
+### **Dynamic Check-in Questions Plan** [WARNING] **PARTIALLY COMPLETE**
+
+**Status**: [WARNING] **PARTIALLY COMPLETE**  
+**Priority**: Medium  
+**Effort**: Medium  
+**Date**: 2025-11-10
 
 **Goal**: Implement fully dynamic custom check-in questions (UI + data + validation).
-- [ ] Design widget interactions (add/edit/remove, ordering, presets)
-- [ ] Define data model and validation rules
-- [ ] Persist/Load in user data; integrate into check-in flow
-- [ ] Add behavior and UI tests
+
+**Current State**:
+- ✅ **Data model exists**: Questions defined in `resources/default_checkin/questions.json` with types, validation, categories
+- ✅ **Validation rules implemented**: `DynamicCheckinManager` validates all question types (scale_1_5, yes_no, number, optional_text)
+- ✅ **Persist/Load enabled state**: User preferences store which questions are enabled/disabled
+- ✅ **Integration into check-in flow**: `ConversationManager` uses dynamic questions with weighted selection
+- ✅ **UI for enabling/disabling**: `CheckinSettingsWidget` has checkboxes for all predefined questions
+- ❌ **Custom questions not implemented**: `add_new_question()` method only shows placeholder message
+- ❌ **No ordering functionality**: Questions use weighted selection but no user-defined order
+- ❌ **No presets**: No preset question sets available
+
+**What's Missing**:
+- [ ] **Custom question creation**: Allow users to add their own questions (text, type, validation)
+- [ ] **Question editing**: Allow users to edit custom questions (not just predefined ones)
+- [ ] **Question removal**: Allow users to remove custom questions
+- [ ] **Question ordering**: Allow users to define custom question order (beyond weighted selection)
+- [ ] **Question presets**: Provide preset question sets (e.g., "Minimal", "Comprehensive", "Health Focus")
+- [ ] **Data persistence for custom questions**: Store custom questions in user data (currently only enabled/disabled state)
+- [ ] **Validation for custom questions**: Ensure custom questions have proper validation rules
+- [ ] **UI tests**: Add behavior tests for custom question management
 
 ---
 
