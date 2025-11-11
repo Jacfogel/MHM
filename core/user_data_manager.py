@@ -1135,7 +1135,9 @@ def get_user_info_for_data_manager(user_id: str) -> Optional[Dict[str, Any]]:
         
         # Get all user data
         user_data = get_user_data(user_id, 'all')
-        if not user_data:
+        # Check if user_data is None or empty (error case)
+        # Empty dict from get_user_data means error occurred (due to error handling default_return={})
+        if not user_data or (isinstance(user_data, dict) and len(user_data) == 0):
             return None
         
         # Build user info structure

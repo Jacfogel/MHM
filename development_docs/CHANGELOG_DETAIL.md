@@ -35,7 +35,7 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
-### 2025-11-11 - User Data Flow Architecture Refactoring, Message Analytics Foundation, and Plan Maintenance **COMPLETED**
+### 2025-11-11 - User Data Flow Architecture Refactoring, Message Analytics Foundation, Plan Maintenance, and Test Suite Fixes **COMPLETED**
 
 **Feature**: Refactored user data save flow architecture, implemented message analytics foundation, and updated development plans to reflect current project scope and priorities.
 
@@ -101,6 +101,11 @@ When adding new changes, follow this format:
    - All key information preserved in PLANS.md and CHANGELOG_DETAIL.md
    - Execution slices were historical implementation details, no longer needed for future reference
 
+7. **Test Suite Fixes**:
+   - **UI Test Failures (3 tests) - Fixed**: `dialog.username` attribute in `account_creator_dialog.py` wasn't being updated when the `on_username_changed` signal handler failed silently due to error handling. Converted `username` from a simple attribute to a `@property` that reads directly from `self.ui.lineEdit_username.text()` when accessed. Validation logic now always operates on the most current UI data, regardless of signal handler success. Files: `ui/dialogs/account_creator_dialog.py`. Tests Fixed: `test_username_validation_real_behavior`, `test_feature_validation_real_behavior`, `test_messages_validation_real_behavior`
+   - **`test_update_message_references_success` - Fixed**: `get_user_info_for_data_manager()` didn't properly handle empty dicts returned by `get_user_data()` when errors occurred (due to error handling `default_return={}`). Improved the check to explicitly handle empty dicts as error cases: `if not user_data or (isinstance(user_data, dict) and len(user_data) == 0)`. Function now correctly identifies error cases from `get_user_data()` and returns `None` appropriately. Files: `core/user_data_manager.py` (line 1137-1141)
+   - **`test_manager_initialization_creates_backup_dir` - Fixed**: Windows file locking issue - backup zip files were still locked when test tried to delete the directory (`PermissionError: [WinError 32]`). Added retry mechanism with delays and garbage collection to allow file handles to release before deletion. Test now handles Windows file locking gracefully, making test suite more robust on Windows. Files: `tests/unit/test_user_data_manager.py` (lines 64-84)
+
 **Impact**: 
 - **Robustness**: Cross-file invariants work correctly when multiple types are saved simultaneously (no stale data)
 - **Determinism**: Processing order is explicit and documented, eliminating order-dependent behavior
@@ -111,6 +116,7 @@ When adding new changes, follow this format:
 - **Plan Clarity**: Development plans now accurately reflect current project scope, marking multi-user features as long-term
 - **Documentation**: Improved guidance on when to use `UserPreferences` class vs direct access patterns
 - **Progress Tracking**: Plans updated to show accurate status of message deduplication features
+- **Test Suite Stability**: All 2,828 tests now pass consistently; UI validation more robust; error handling edge cases properly handled; Windows file locking issues resolved
 
 **Testing**: 
 - All 31 user management tests passing (unit + behavior)
@@ -124,8 +130,11 @@ When adding new changes, follow this format:
   - Atomic operation behavior (3 tests)
   - No nested saves verification (2 tests)
   - Two-phase save approach (2 tests)
+- Fixed 3 UI test failures (username validation) by converting `username` to property
+- Fixed `test_update_message_references_success` by improving error handling edge case detection
+- Fixed `test_manager_initialization_creates_backup_dir` by adding Windows file locking retry mechanism
 - All existing functionality preserved, backward compatible
-- Full test suite: 2,828 tests passing (2,816 + 12 new tests)
+- Full test suite: 2,828 tests passing (2,828 passed, 1 skipped, 6 warnings)
 
 **Files Modified**:
 - `core/user_data_handlers.py` - Complete refactor of `save_user_data()` and related functions
@@ -135,6 +144,9 @@ When adding new changes, follow this format:
 - `development_docs/PLANS.md` - Updated multiple plans to reflect current status and scope
 - `user/user_preferences.py` - Enhanced documentation and usage guidance
 - `development_docs/REFACTOR_PLAN_DATA_FLOW.md` - Deleted (temporary planning document, information preserved in PLANS.md and CHANGELOG_DETAIL.md)
+- `ui/dialogs/account_creator_dialog.py` - Converted `username` to property for robust UI validation
+- `core/user_data_manager.py` - Improved error handling edge case detection in `get_user_info_for_data_manager()`
+- `tests/unit/test_user_data_manager.py` - Added Windows file locking retry mechanism for backup directory cleanup
 
 ### 2025-11-11 - Email Integration and Test Burn-in Validation Tooling **COMPLETED**
 

@@ -187,6 +187,7 @@ def collect_period_data_from_widgets(widget_list, category: str) -> dict:
     return periods
 
 
+@handle_errors("converting period name for display", default_return="")
 def period_name_for_display(period_name: str, category: str) -> str:
     """
     Convert period name to display format using existing logic.
@@ -209,6 +210,7 @@ def period_name_for_display(period_name: str, category: str) -> str:
         return period_name
 
 
+@handle_errors("converting period name for storage", default_return="")
 def period_name_for_storage(display_name: str, category: str) -> str:
     """
     Convert display period name to storage format.

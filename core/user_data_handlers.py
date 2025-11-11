@@ -433,9 +433,7 @@ def get_user_data(
         pass
     return result 
 
-@handle_errors("saving user data", default_return=False)
-
-@handle_errors("validating user data input", default_return=(False, {}, ["Validation failed"]))
+@handle_errors("validating input parameters", default_return=(False, {}, []))
 def _save_user_data__validate_input(user_id: str, data_updates: Dict[str, Dict[str, Any]]) -> tuple[bool, Dict[str, bool], List[str]]:
     """
     Validate input parameters with enhanced validation.
@@ -809,7 +807,7 @@ def _save_user_data__update_index(user_id: str, result: Dict[str, bool], update_
 _DATA_TYPE_PROCESSING_ORDER = ['account', 'preferences', 'schedules', 'context', 'messages', 'tasks']
 
 
-@handle_errors("checking cross-file invariants with in-memory data", default_return=None)
+@handle_errors("checking cross-file invariants", default_return=None)
 def _save_user_data__check_cross_file_invariants(
     user_id: str, 
     merged_data: Dict[str, Dict[str, Any]], 
@@ -940,6 +938,7 @@ def _save_user_data__write_all_types(
     return result
 
 
+@handle_errors("saving user data", default_return={})
 def save_user_data(
     user_id: str,
     data_updates: Dict[str, Dict[str, Any]],

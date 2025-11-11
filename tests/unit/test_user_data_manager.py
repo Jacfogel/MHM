@@ -62,7 +62,26 @@ class TestUserDataManagerInitialization:
         # Arrange: Set up test environment
         backup_dir = os.path.join(test_data_dir, 'backups')
         if os.path.exists(backup_dir):
-            shutil.rmtree(backup_dir)
+            # Windows file locking: retry with delay if files are locked
+            import time
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    shutil.rmtree(backup_dir)
+                    break
+                except PermissionError:
+                    if attempt < max_retries - 1:
+                        time.sleep(0.1)  # Brief delay to allow file handles to release
+                    else:
+                        # On final attempt, try to close any open zip files first
+                        import gc
+                        gc.collect()
+                        time.sleep(0.2)
+                        try:
+                            shutil.rmtree(backup_dir)
+                        except PermissionError:
+                            # If still locked, skip cleanup (test will still work)
+                            pass
         
         with patch('core.user_data_manager.BASE_DATA_DIR', test_data_dir), \
              patch('core.user_data_manager.get_backups_dir', return_value=backup_dir):

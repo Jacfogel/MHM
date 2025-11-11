@@ -203,6 +203,7 @@ class MHMService:
             logger.error("Failed to restart logging system")
             return False
 
+    @handle_errors("checking and fixing logging", default_return=None)
     def check_and_fix_logging(self):
         """Check if logging is working and restart if needed"""
         global logger
@@ -500,6 +501,7 @@ class MHMService:
         """Get the base directory for test message request files."""
         return os.path.dirname(os.path.dirname(__file__))
 
+    @handle_errors("discovering test message request files", default_return=[])
     def _check_test_message_requests__discover_request_files(self, base_dir):
         """Discover all test message request files in the base directory."""
         base_path = Path(base_dir)
@@ -509,6 +511,7 @@ class MHMService:
                 request_files.append(str(file_path))
         return request_files
 
+    @handle_errors("parsing test message request file", default_return={'user_id': None, 'category': None, 'source': 'unknown'})
     def _check_test_message_requests__parse_request_file(self, request_file):
         """Parse and validate a test message request file."""
         import json
@@ -591,10 +594,12 @@ class MHMService:
             except Exception as e:
                 self._check_test_message_requests__handle_processing_error(request_file, filename, e)
     
+    @handle_errors("getting base directory for cleanup", default_return="")
     def _cleanup_test_message_requests__get_base_directory(self):
         """Get the base directory for test message request files."""
         return os.path.dirname(os.path.dirname(__file__))
     
+    @handle_errors("checking if file is test message request", default_return=False)
     def _cleanup_test_message_requests__is_test_message_request_file(self, filename):
         """Check if a filename matches the test message request file pattern."""
         return filename.startswith('test_message_request_') and filename.endswith('.flag')
@@ -619,11 +624,12 @@ class MHMService:
             if file_path.is_file() and self._cleanup_test_message_requests__is_test_message_request_file(file_path.name):
                 self._cleanup_test_message_requests__remove_request_file(str(file_path), file_path.name)
 
-    @handle_errors("checking reschedule requests")
+    @handle_errors("getting base directory for reschedule requests", default_return="")
     def _check_reschedule_requests__get_base_directory(self):
         """Get the base directory for reschedule request files."""
         return os.path.dirname(os.path.dirname(__file__))
 
+    @handle_errors("discovering reschedule request files", default_return=[])
     def _check_reschedule_requests__discover_request_files(self, base_dir):
         """Discover all reschedule request files in the base directory."""
         base_path = Path(base_dir)
@@ -633,6 +639,7 @@ class MHMService:
                 request_files.append(str(file_path))
         return request_files
 
+    @handle_errors("parsing reschedule request file", default_return={'user_id': None, 'category': None, 'source': 'unknown', 'timestamp': 0})
     def _check_reschedule_requests__parse_request_file(self, request_file):
         """Parse and validate a reschedule request file."""
         import json
@@ -774,6 +781,7 @@ class MHMService:
         except Exception:
             pass
 
+    @handle_errors("handling shutdown signal", default_return=None)
     def signal_handler(self, signum, frame):
         """
         Handle shutdown signals for graceful service termination.
@@ -807,6 +815,7 @@ class MHMService:
                 except:
                     pass
 
+@handle_errors("getting scheduler manager", default_return=None)
 def get_scheduler_manager():
     """Get the scheduler manager instance from the global service.
     Safely handle cases where the global 'service' symbol may not be defined yet.

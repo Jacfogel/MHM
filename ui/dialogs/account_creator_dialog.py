@@ -40,7 +40,7 @@ class AccountCreatorDialog(QDialog):
         
         self.parent = parent
         self.communication_manager = communication_manager
-        self.username = ""
+        self._username = ""
         self.preferred_name = ""
         self.personalization_data = {}
         
@@ -325,23 +325,32 @@ class AccountCreatorDialog(QDialog):
         else:
             super().keyPressEvent(event)
     
+    @handle_errors("handling username change", default_return=None)
     def on_username_changed(self):
         """Handle username change."""
-        try:
-            username_edit = self.ui.lineEdit_username
-            if username_edit:
-                self.username = username_edit.text().strip().lower()
-        except Exception as e:
-            logger.error(f"Error handling username change: {e}")
+        username_edit = self.ui.lineEdit_username
+        if username_edit:
+            self._username = username_edit.text().strip().lower()
     
+    @property
+    def username(self) -> str:
+        """Get username from field if not set, ensuring we always have the latest value."""
+        username_edit = self.ui.lineEdit_username
+        if username_edit:
+            self._username = username_edit.text().strip().lower()
+        return self._username
+    
+    @username.setter
+    def username(self, value: str):
+        """Set username value."""
+        self._username = value
+    
+    @handle_errors("handling preferred name change", default_return=None)
     def on_preferred_name_changed(self):
         """Handle preferred name change."""
-        try:
-            preferred_name_edit = self.ui.lineEdit_preferred_name
-            if preferred_name_edit:
-                self.preferred_name = preferred_name_edit.text().strip()
-        except Exception as e:
-            logger.error(f"Error handling preferred name change: {e}")
+        preferred_name_edit = self.ui.lineEdit_preferred_name
+        if preferred_name_edit:
+            self.preferred_name = preferred_name_edit.text().strip()
     
 
     
@@ -451,7 +460,7 @@ class AccountCreatorDialog(QDialog):
         """Validate the input and return (is_valid, error_message)."""
         logger.info("validate_input() called - starting validation")
         
-        # Check username
+        # Check username (property getter will read from field if needed)
         if not self.username:
             logger.warning("Validation failed: Username is required")
             return False, "Username is required."

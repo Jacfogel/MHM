@@ -320,7 +320,7 @@ class MessagesFileModel(BaseModel):
 
 # ------------------------------ Helper functions -----------------------------
 
-@handle_errors("validating account dictionary")
+@handle_errors("validating account dictionary", default_return=({}, ["Validation failed"]))
 def validate_account_dict(data: Dict[str, Any]) -> tuple[Dict[str, Any], List[str]]:
     try:
         errors: List[str] = []

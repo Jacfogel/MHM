@@ -62,6 +62,7 @@ USER_DATA_LOADERS = {
     }
 }
 
+@handle_errors("registering data loader", default_return=False)
 def register_data_loader(
     data_type: str,
     loader_func,
@@ -712,7 +713,7 @@ def update_channel_preferences(user_id: str, updates: Dict[str, Any], auto_creat
     result = save_user_data(user_id, {'preferences': updates}, auto_create=auto_create)
     return result.get('preferences', False)
 
-@handle_errors("creating new user")
+@handle_errors("creating new user", default_return=None)
 def create_new_user(user_data: Dict[str, Any]) -> str:
     """Create a new user with the new data structure."""
     user_id = str(uuid.uuid4())
@@ -1003,7 +1004,7 @@ def ensure_unique_ids(data):
     
     return data
 
-@handle_errors("loading and ensuring ids")
+@handle_errors("loading and ensuring ids", default_return=None)
 def load_and_ensure_ids(user_id):
     """Load messages for all categories and ensure IDs are unique for a user."""
     from core.user_data_handlers import get_user_data
@@ -1027,6 +1028,7 @@ def load_and_ensure_ids(user_id):
     
     logger.debug(f"Ensured message ids are unique for user '{user_id}'")
 
+@handle_errors("ensuring all categories have schedules", default_return=False)
 def ensure_all_categories_have_schedules(user_id: str, suppress_logging: bool = False) -> bool:
     """Ensure all categories in user preferences have corresponding schedules."""
     if not user_id:
@@ -1081,6 +1083,7 @@ logger.info(f"Registered {len(USER_DATA_LOADERS)} data loaders in centralized re
 # USER DATA UTILITY FUNCTIONS
 # ============================================================================
 
+@handle_errors("getting user categories", default_return=[])
 def get_user_categories(user_id: str) -> List[str]:
     """Get user's message categories using centralized system."""
     from core.user_data_handlers import get_user_data
@@ -1091,6 +1094,7 @@ def get_user_categories(user_id: str) -> List[str]:
         return user_data
     return []
 
+@handle_errors("getting user data with metadata", default_return={})
 def get_user_data_with_metadata(user_id: str, data_types: Union[str, List[str]] = 'all') -> Dict[str, Any]:
     """Get user data with file metadata using centralized system."""
     from core.user_data_handlers import get_user_data
@@ -1180,6 +1184,7 @@ def _load_presets_json() -> Dict[str, List[str]]:
     return _PRESETS_CACHE
 
 
+@handle_errors("getting predefined options", default_return=[])
 def get_predefined_options(field: str) -> List[str]:
     """Return predefined options for a personalization field."""
     presets = _load_presets_json()
@@ -1194,6 +1199,7 @@ def get_timezone_options() -> List[str]:
         # Fallback to hardcoded list if pytz is not available
         return TIMEZONE_OPTIONS
 
+@handle_errors("creating default personalization data", default_return={})
 def create_default_personalization_data() -> Dict[str, Any]:
     """Create default personalization data structure."""
     return {
@@ -1225,7 +1231,7 @@ def get_personalization_field(user_id: str, field: str) -> Any:
     context_data = user_data.get('context', {})
     return context_data.get(field)
 
-@handle_errors("updating personalization field")
+@handle_errors("updating personalization field", default_return=False)
 def update_personalization_field(user_id: str, field: str, value: Any) -> bool:
     """Update a specific field in personalization data using centralized system."""
     if not user_id or not field:
@@ -1239,7 +1245,7 @@ def update_personalization_field(user_id: str, field: str, value: Any) -> bool:
     })
     return result.get('context', False)
 
-@handle_errors("adding item to personalization list")
+@handle_errors("adding item to personalization list", default_return=False)
 def add_personalization_item(user_id: str, field: str, item: Any) -> bool:
     """Add an item to a list field in personalization data using centralized system."""
     if not user_id or not field:
@@ -1266,7 +1272,7 @@ def add_personalization_item(user_id: str, field: str, item: Any) -> bool:
     
     return True  # Item already exists
 
-@handle_errors("removing item from personalization list")
+@handle_errors("removing item from personalization list", default_return=False)
 def remove_personalization_item(user_id: str, field: str, item: Any) -> bool:
     """Remove an item from a list field in personalization data using centralized system."""
     if not user_id or not field:
@@ -1292,7 +1298,7 @@ def remove_personalization_item(user_id: str, field: str, item: Any) -> bool:
     
     return True  # Item doesn't exist
 
-@handle_errors("clearing personalization cache")
+@handle_errors("clearing personalization cache", default_return=None)
 def clear_personalization_cache(user_id: str = None) -> None:
     """Clear the personalization cache for a specific user or all users."""
     # Use the centralized cache clearing system
