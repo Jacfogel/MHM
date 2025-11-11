@@ -3,7 +3,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2025-10-21  
+> **Last Updated**: 2025-11-10
 > **See [TODO.md](TODO.md) for independent tasks**
 
 ---
@@ -12,9 +12,9 @@
 
 ### **AI Chatbot Actionability Sprint** **PLANNING**
 
-**Status**: **PLANNING**  
-**Priority**: High  
-**Effort**: Large  
+**Status**: **PLANNING**
+**Priority**: High
+**Effort**: Large
 **Date**: 2025-10-30
 
 **Objective**: Improve chat quality and enable robust action handling (task/message/profile CRUD) with context from recent automated messages and targeted, non-conflicting suggestions.
@@ -34,6 +34,32 @@
 **Notes**:
 - Tests by area are acceptable to iterate faster; full suite before shipping changes.
 - Keep both `!` and `/` commands; prefer slash in help/UX with auto-suggests.
+
+### **Mood-Aware Support Calibration** **PLANNING**
+
+**Status**: **PLANNING**
+**Priority**: High
+**Effort**: Medium
+**Date**: 2025-11-10
+
+**Objective**: Define how the assistant adapts tone, reminders, and check-ins based on user mood/energy cues while protecting quiet time boundaries.
+
+**Scope (initial threads)**:
+- [ ] Codify "safety net" language library with choose-your-support prompts.
+- [ ] Compare task breakdown helper formats (checklist vs. conversational) for stalled tasks.
+- [ ] Draft context-to-reminder content mapping covering energy, mood, and task age.
+- [ ] Rename and document "Unavailable" mode rules, including urgent escalation criteria.
+- [ ] Specify mood re-evaluation triggers and cooldowns.
+
+**Success Criteria**:
+- [ ] Safety net prompts feel grounding in sample conversations and pass tone review.
+- [ ] Reminder and task helper variants include decision guidance for when to use each.
+- [ ] Quiet periods respect "Unavailable" framing without work-centric language.
+- [ ] Mood cadence guidelines balance responsiveness with minimal nagging.
+
+**Notes**:
+- Capture findings in TODO task updates and tag future implementation tickets once guidelines are approved.
+- Validate prototypes against mobile UX constraints (concise, quick replies).
 
 ### **2025-09-16 - High Complexity Function Refactoring - Phase 2** 🔄 **IN PROGRESS**
 

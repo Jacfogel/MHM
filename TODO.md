@@ -166,6 +166,36 @@ When adding new tasks, follow this format:
 
 
 
+**Design Safety Net Response Library**
+- *What it means*: Draft and validate a library of "safety net" phrases that feel grounding when things are overwhelming, including branching prompts (listen/problem-solve/other) that match the user's preferred tone.
+- *Why it helps*: Ensures the assistant consistently signals it “gets it,” even when the user is unsure what support they need, aligning reminders with the emotional safety net vision.
+- *Estimated effort*: Medium
+- *Getting started*: Collect existing comforting phrases, prototype a few tone variants, and run with recent conversation logs to verify fit.
+
+**Task Breakdown Prompt Experiments**
+- *What it means*: Prototype both checklist-style subtasks and conversational follow-ups for stuck tasks, then capture which approach keeps users engaged on mobile.
+- *Why it helps*: Provides context-aware nudges that unblock stalled tasks, matching the user’s request for format experimentation.
+- *Estimated effort*: Small/Medium
+- *Acceptance criteria*: Document example prompts, note when to surface each format, and gather feedback from at least one real or simulated session.
+
+**Context-Aware Reminder Content Mapping**
+- *What it means*: Map task reminder content to user context (energy, mood, task age) so the system can choose the most relevant substance instead of generic nudges.
+- *Why it helps*: Addresses the user’s need for “it depends” reminders that feel situationally aware rather than repetitive.
+- *Estimated effort*: Medium
+- *Next steps*: Audit available context signals, define decision rules, and outline example reminder variants for contrasting scenarios.
+
+**Unavailable Mode Naming & Rules**
+- *What it means*: Replace “outside-work quiet mode” language with an “Unavailable/Do Not Disturb” concept and define what counts as urgent during those periods.
+- *Why it helps*: Aligns terminology with the user’s preference and prevents work-centric framing of downtime.
+- *Estimated effort*: Small
+- *Deliverable*: Updated glossary, configuration copy, and urgency criteria for reminders during unavailable slots.
+
+**Mood Re-evaluation Cadence Guidelines**
+- *What it means*: Specify triggers and guardrails for when the assistant should gently re-check mood/energy (e.g., disengagement signals, user-provided updates) without over-prompting.
+- *Why it helps*: Balances proactive support with respect for the user’s space, clarifying “when it should ask again” from the user’s feedback.
+- *Estimated effort*: Medium
+- *Definition of done*: Draft cadence rules, edge-case handling, and handoff to implementation/testing once validated.
+
 ## Medium Priority
 
 
