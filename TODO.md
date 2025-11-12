@@ -133,19 +133,6 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
-**CRITICAL: Investigate Email Polling Errors**
-- *What it means*: Investigate why email polling is failing repeatedly in `channel_orchestrator.py` - errors logged every 40 seconds with empty exception messages ("Error polling for emails: ") since changes made on 2025-11-11
-- *Why it helps*: Email polling is critical for receiving user messages - repeated failures prevent the system from receiving emails properly
-- *Estimated effort*: Medium
-- *Investigation Steps*:
-  - [ ] Check `_email_polling_loop()` in `communication/core/channel_orchestrator.py` (line 198-236)
-  - [ ] Review exception handling - exception messages appear empty in logs
-  - [ ] Check if email channel initialization is working correctly
-  - [ ] Verify event loop setup and async/await handling
-  - [ ] Check if `receive_messages()` is raising exceptions properly
-  - [ ] Review recent changes to email polling implementation (added 2025-11-11)
-- *Error Pattern*: Errors occur every ~40 seconds, exception message is empty, suggests exception handling or logging issue
-- *Files to Review*: `communication/core/channel_orchestrator.py`, `communication/communication_channels/email/bot.py`, `logs/errors.log` (lines 1794-1802)
 
 **Optimize Audit System Performance**
 - *What it means*: Explore the audit system and adjust it so it runs in under 10 minutes (currently takes ~18-20 minutes)

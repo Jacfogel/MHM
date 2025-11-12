@@ -31,6 +31,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-12 - Email Polling Timeout and Event Loop Fix **COMPLETED**
+- **Event Loop Fix**: Fixed email polling to check if loop thread is alive before using `run_coroutine_threadsafe()` - added fallback to temporary loop with `run_until_complete()` when main loop isn't running (coroutines were being submitted but never executed)
+- **Email Fetching Optimization**: Changed from fetching ALL emails to only UNSEEN emails, added 8-second socket timeout, limited to 20 emails per poll - polling now completes in ~3 seconds instead of timing out
+- **Error Handling**: Enhanced exception logging with full tracebacks, specific handling for `TimeoutError`/`RuntimeError`, proper handling of empty exception messages
+- **Impact**: Email polling now works reliably - no more timeout errors every 30-40 seconds, system can receive emails from users properly
+- **Files**: communication/core/channel_orchestrator.py, communication/communication_channels/email/bot.py
+
 ### 2025-11-12 - Parallel Test Execution Stability: File Locking and Race Condition Fixes **COMPLETED**
 - **File Locking System**: Created `core/file_locking.py` with Windows-compatible lock files and Unix fcntl support - thread-safe and process-safe JSON operations for `user_index.json` and other shared files
 - **Race Condition Fixes**: Updated all `user_index.json` access points (user_data_manager, user_management, test_utilities) to use `safe_json_read`/`safe_json_write` - eliminates corruption and race conditions in parallel execution

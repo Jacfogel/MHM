@@ -209,18 +209,34 @@ class CommunicationManager:
                     # Poll for new emails
                     try:
                         # Use the event loop to run async receive_messages
-                        if self._main_loop and not self._main_loop.is_closed():
-                            future = asyncio.run_coroutine_threadsafe(
-                                email_channel.receive_messages(),
-                                self._main_loop
-                            )
-                            emails = future.result(timeout=10)
+                        # Check if we have a running loop thread - if not, use temporary loop
+                        if self._loop_thread and self._loop_thread.is_alive() and self._main_loop and not self._main_loop.is_closed():
+                            try:
+                                logger.debug("Using main loop thread for email polling")
+                                future = asyncio.run_coroutine_threadsafe(
+                                    email_channel.receive_messages(),
+                                    self._main_loop
+                                )
+                                emails = future.result(timeout=10)
+                            except RuntimeError as loop_error:
+                                # Event loop may have been closed between check and use
+                                logger.warning(f"Event loop became invalid during email polling, using fallback: {loop_error}")
+                                # Fallback: create temporary loop
+                                loop = asyncio.new_event_loop()
+                                asyncio.set_event_loop(loop)
+                                try:
+                                    emails = loop.run_until_complete(email_channel.receive_messages())
+                                finally:
+                                    loop.close()
                         else:
-                            # Fallback: create temporary loop
+                            # Fallback: create temporary loop (main loop not running or not available)
+                            logger.debug("Using temporary event loop for email polling (main loop not running)")
                             loop = asyncio.new_event_loop()
                             asyncio.set_event_loop(loop)
-                            emails = loop.run_until_complete(email_channel.receive_messages())
-                            loop.close()
+                            try:
+                                emails = loop.run_until_complete(email_channel.receive_messages())
+                            finally:
+                                loop.close()
                         
                         # Process each email
                         for email_msg in emails:
@@ -232,13 +248,23 @@ class CommunicationManager:
                                 if len(self._processed_email_ids) > 1000:
                                     # Keep only the most recent 500
                                     self._processed_email_ids = set(list(self._processed_email_ids)[-500:])
+                    except asyncio.TimeoutError:
+                        logger.error("Error polling for emails: Timeout waiting for receive_messages() to complete (10s timeout exceeded)", exc_info=True)
+                    except RuntimeError as e:
+                        logger.error(f"Error polling for emails: RuntimeError - {e} (event loop may be closed or invalid)", exc_info=True)
                     except Exception as e:
-                        logger.error(f"Error polling for emails: {e}")
+                        # Enhanced error logging with full exception details
+                        error_type = type(e).__name__
+                        error_msg = str(e) if str(e) else f"Exception of type {error_type} with no message"
+                        logger.error(f"Error polling for emails: {error_type} - {error_msg}", exc_info=True)
                 else:
                     logger.debug("Email channel not available or not ready, skipping poll")
                 
             except Exception as e:
-                logger.error(f"Error in email polling loop: {e}")
+                # Enhanced error logging for outer exception handler
+                error_type = type(e).__name__
+                error_msg = str(e) if str(e) else f"Exception of type {error_type} with no message"
+                logger.error(f"Error in email polling loop: {error_type} - {error_msg}", exc_info=True)
             
             # Wait for poll interval or stop event
             if self._email_polling_stop_event.wait(timeout=poll_interval):

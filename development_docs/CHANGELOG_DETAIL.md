@@ -35,6 +35,38 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-12 - Email Polling Timeout and Event Loop Fix **COMPLETED**
+
+**Feature**: Fixed critical email polling failures that were causing timeout errors every 30-40 seconds. Root causes were: event loop not running (coroutines never executed), inefficient email fetching (fetching ALL emails instead of UNSEEN), and missing socket timeouts.
+
+**Technical Changes**:
+
+1. **Event Loop Fix** (`communication/core/channel_orchestrator.py`):
+   - Fixed `_email_polling_loop()` to check if loop thread is alive before using `run_coroutine_threadsafe()`
+   - Added fallback to temporary event loop with `run_until_complete()` when main loop isn't running
+   - Enhanced error logging with specific handling for `TimeoutError` and `RuntimeError` exceptions
+   - Added full traceback logging using `exc_info=True` to capture complete error context
+
+2. **Email Fetching Optimization** (`communication/communication_channels/email/bot.py`):
+   - Changed from fetching ALL emails to only UNSEEN emails (dramatically faster)
+   - Added 8-second socket timeout to IMAP connection to prevent indefinite hangs
+   - Limited processing to last 20 emails per poll to prevent timeout with large inboxes
+   - Mark successfully processed emails as SEEN to avoid re-fetching
+   - Improved error handling per email (continues processing if one fails)
+
+3. **Error Handling Improvements**:
+   - Enhanced exception logging with proper type and message extraction
+   - Added handling for empty exception messages with fallback text
+   - Improved event loop robustness with better fallback handling
+
+**Impact**: Email polling now completes successfully in ~3 seconds instead of timing out after 10 seconds. System can now reliably receive emails from users. No more repeated timeout errors in logs.
+
+**Files Modified**:
+- `communication/core/channel_orchestrator.py` (lines 198-257) - Event loop handling and error logging
+- `communication/communication_channels/email/bot.py` (lines 134-279) - Email fetching optimization and timeout handling
+
+**Testing**: Verified through log monitoring - email polling completes successfully every 30 seconds with no timeout errors. IMAP connection, login, and email search all working correctly.
+
 ### 2025-11-12 - Parallel Test Execution Stability: File Locking and Race Condition Fixes **COMPLETED**
 
 **Feature**: Implemented comprehensive file locking system for thread-safe and process-safe file operations, fixed multiple race conditions in parallel test execution, and resolved all flaky test failures. All 2,828 tests now pass consistently in parallel execution mode.

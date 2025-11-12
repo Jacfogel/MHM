@@ -131,7 +131,6 @@ class EmailBot(BaseChannel):
             server.login(EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD)
             server.sendmail(EMAIL_SMTP_USERNAME, recipient, msg.as_string())
 
-    @handle_errors("receiving email messages", default_return=[])
     async def receive_messages(self) -> List[Dict[str, Any]]:
         """Receive messages from email"""
         if not self.is_ready():
@@ -144,41 +143,124 @@ class EmailBot(BaseChannel):
             loop = asyncio.get_running_loop()
         except RuntimeError:
             loop = asyncio.get_event_loop()
-        messages = await loop.run_in_executor(None, self._receive_emails_sync)
-        logger.info(f"Received {len(messages)} emails.")
-        return messages
+        
+        try:
+            messages = await loop.run_in_executor(None, self._receive_emails_sync)
+            logger.info(f"Received {len(messages)} emails.")
+            return messages
+        except Exception as e:
+            logger.error(f"Exception in receive_messages executor: {type(e).__name__} - {e}", exc_info=True)
+            return []
 
     @handle_errors("receiving emails synchronously", default_return=[])
     def _receive_emails_sync(self) -> List[Dict[str, Any]]:
-        """Receive emails synchronously"""
+        """Receive emails synchronously - only fetches UNSEEN emails for efficiency"""
+        import socket
         messages = []
+        mail = None
         
-        with imaplib.IMAP4_SSL(EMAIL_IMAP_SERVER) as mail:
+        try:
+            # Create IMAP connection with socket timeout (8 seconds to leave buffer for overall 10s timeout)
+            # Set socket timeout before creating connection
+            socket.setdefaulttimeout(8)
+            logger.debug(f"Connecting to IMAP server: {EMAIL_IMAP_SERVER}")
+            mail = imaplib.IMAP4_SSL(EMAIL_IMAP_SERVER, timeout=8)
+            
+            logger.debug("Attempting IMAP login")
             mail.login(EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD)
+            logger.debug("IMAP login successful")
+            
+            logger.debug("Selecting inbox")
             mail.select("inbox")
-            status, message_ids = mail.search(None, "ALL")
+            
+            # Only search for UNSEEN emails (new emails) instead of ALL
+            # This is much faster and avoids processing already-seen emails
+            logger.debug("Searching for UNSEEN emails")
+            status, message_ids = mail.search(None, "UNSEEN")
+            
+            if status != 'OK' or not message_ids[0]:
+                logger.debug("No UNSEEN emails found")
+                mail.close()
+                mail.logout()
+                return messages
+            
             email_ids = message_ids[0].split()
-
+            
+            # Limit to last 20 emails to prevent timeout with large inboxes
+            # Process most recent emails first (reverse order)
+            email_ids = email_ids[-20:] if len(email_ids) > 20 else email_ids
+            
+            logger.info(f"Processing {len(email_ids)} new emails")
+            
+            processed_email_ids = []  # Track successfully processed email IDs
+            
             for email_id in email_ids:
-                status, msg_data = mail.fetch(email_id, "(RFC822)")
-                for response_part in msg_data:
-                    if isinstance(response_part, tuple):
-                        msg = email.message_from_bytes(response_part[1])
-                        email_subject = decode_header(msg["subject"])[0][0]
-                        if isinstance(email_subject, bytes):
-                            email_subject = email_subject.decode()
-                        email_from = msg.get("from")
+                try:
+                    status, msg_data = mail.fetch(email_id, "(RFC822)")
+                    if status != 'OK':
+                        logger.debug(f"Failed to fetch email {email_id}: {status}")
+                        continue
                         
-                        # Extract email body text
-                        body_text = self._receive_emails_sync__extract_body(msg)
-                        
-                        messages.append({
-                            'from': email_from,
-                            'subject': email_subject,
-                            'body': body_text,
-                            'message_id': email_id.decode()
-                        })
+                    for response_part in msg_data:
+                        if isinstance(response_part, tuple):
+                            msg = email.message_from_bytes(response_part[1])
+                            email_subject = decode_header(msg["subject"])[0][0]
+                            if isinstance(email_subject, bytes):
+                                email_subject = email_subject.decode()
+                            email_from = msg.get("from")
+                            
+                            # Extract email body text
+                            body_text = self._receive_emails_sync__extract_body(msg)
+                            
+                            messages.append({
+                                'from': email_from,
+                                'subject': email_subject,
+                                'body': body_text,
+                                'message_id': email_id.decode()
+                            })
+                            # Track this email as successfully processed
+                            processed_email_ids.append(email_id)
+                            break  # Only process first valid response part
+                except Exception as e:
+                    logger.warning(f"Error processing email {email_id}: {e}")
+                    continue  # Continue with next email even if one fails
+            
+            # Mark successfully processed emails as SEEN to avoid re-fetching them
+            if processed_email_ids:
+                try:
+                    # Mark all successfully processed email IDs as SEEN
+                    for email_id in processed_email_ids:
+                        mail.store(email_id, '+FLAGS', '\\Seen')
+                    logger.debug(f"Marked {len(processed_email_ids)} emails as SEEN")
+                except Exception as e:
+                    logger.warning(f"Failed to mark emails as SEEN: {e}")
+            
+            logger.debug("Email processing completed successfully")
+            mail.close()
+            mail.logout()
+        except socket.timeout as e:
+            logger.error(f"IMAP socket timeout in _receive_emails_sync after 8 seconds: {e}", exc_info=True)
+            # Try to clean up connection if it exists
+            try:
+                if mail:
+                    mail.close()
+                    mail.logout()
+            except Exception:
+                pass
+        except Exception as e:
+            logger.error(f"Error in _receive_emails_sync: {type(e).__name__} - {e}", exc_info=True)
+            # Try to clean up connection if it exists
+            try:
+                if mail:
+                    mail.close()
+                    mail.logout()
+            except Exception:
+                pass
+        finally:
+            # Reset socket timeout to default
+            socket.setdefaulttimeout(None)
         
+        logger.debug(f"Email receive operation completed, returning {len(messages)} messages")
         return messages
     
     @handle_errors("extracting email body text", default_return="")
