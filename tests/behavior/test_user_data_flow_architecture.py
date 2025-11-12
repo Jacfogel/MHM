@@ -143,7 +143,16 @@ class TestCrossFileInvariants:
         assert result.get('account') is True, "Account should be added and saved by cross-file invariant"
         
         # Verify account was updated
-        final_data = get_user_data(user_id, 'all')
+        # Retry in case of race conditions with file writes in parallel execution
+        import time
+        final_data = {}
+        for attempt in range(5):
+            final_data = get_user_data(user_id, 'all')
+            if final_data and 'account' in final_data:
+                break
+            if attempt < 4:
+                time.sleep(0.1)  # Brief delay before retry
+        assert final_data and 'account' in final_data, f"Account data should be loaded for user {user_id}"
         assert final_data['account']['features']['automated_messages'] == 'enabled', \
             "Account should be updated by cross-file invariant even though it wasn't in original update"
 
@@ -192,7 +201,16 @@ class TestProcessingOrder:
         assert result.get('context') is True, "Context should be processed"
         
         # Verify data was saved correctly (order shouldn't matter)
-        final_data = get_user_data(user_id, 'all')
+        # Retry in case of race conditions with file writes in parallel execution
+        import time
+        final_data = {}
+        for attempt in range(5):
+            final_data = get_user_data(user_id, 'all', auto_create=True)
+            if final_data and 'account' in final_data:
+                break
+            if attempt < 4:
+                time.sleep(0.1)  # Brief delay before retry
+        assert final_data and 'account' in final_data, f"Account data should be loaded. Got: {final_data}"
         assert final_data['account']['email'] == 'test@example.com', \
             "Account data should be saved correctly regardless of input order"
         assert 'motivational' in final_data['preferences']['categories'], \
@@ -238,7 +256,16 @@ class TestProcessingOrder:
         assert result.get('preferences') is True, "Preferences should be processed"
         
         # Verify cross-file invariant worked (account updated based on preferences)
-        final_data = get_user_data(user_id, 'all')
+        # Retry in case of race conditions with file writes in parallel execution
+        import time
+        final_data = {}
+        for attempt in range(5):
+            final_data = get_user_data(user_id, 'all', auto_create=True)
+            if final_data and 'account' in final_data and 'preferences' in final_data:
+                break
+            if attempt < 4:
+                time.sleep(0.1)  # Brief delay before retry
+        assert final_data and 'account' in final_data, f"Account data should be loaded. Got: {final_data}"
         assert final_data['account']['features']['automated_messages'] == 'enabled', \
             "Cross-file invariant should work correctly with account processed before preferences"
 
@@ -408,7 +435,16 @@ class TestNoNestedSaves:
             assert result is True, "Preferences should be updated successfully"
         
         # Verify cross-file invariant still worked (account updated via in-memory data)
-        final_data = get_user_data(user_id, 'all')
+        # Retry in case of race conditions with file writes in parallel execution
+        import time
+        final_data = {}
+        for attempt in range(5):
+            final_data = get_user_data(user_id, 'all', auto_create=True)
+            if final_data and 'account' in final_data and 'preferences' in final_data:
+                break
+            if attempt < 4:
+                time.sleep(0.1)  # Brief delay before retry
+        assert final_data and 'account' in final_data, f"Account data should be loaded. Got: {final_data}"
         assert final_data['account']['features']['automated_messages'] == 'enabled', \
             "Cross-file invariant should update account via in-memory data, not nested save"
         assert 'motivational' in final_data['preferences']['categories'], \
@@ -454,7 +490,16 @@ class TestNoNestedSaves:
             assert result.get('account') is True, "Account should be updated via cross-file invariant"
         
         # Verify cross-file invariant worked
-        final_data = get_user_data(user_id, 'all')
+        # Retry in case of race conditions with file writes in parallel execution
+        import time
+        final_data = {}
+        for attempt in range(5):
+            final_data = get_user_data(user_id, 'all')
+            if final_data and 'account' in final_data:
+                break
+            if attempt < 4:
+                time.sleep(0.1)  # Brief delay before retry
+        assert final_data and 'account' in final_data, f"Account data should be loaded for user {user_id}"
         assert final_data['account']['features']['automated_messages'] == 'enabled', \
             "Cross-file invariant should update account via in-memory data"
 
@@ -505,7 +550,16 @@ class TestTwoPhaseSave:
         assert result.get('preferences') is True, "Preferences should be saved in Phase 2"
         
         # Verify data was written (Phase 2 completed)
-        final_data = get_user_data(user_id, 'all')
+        # Retry in case of race conditions with file writes in parallel execution
+        import time
+        final_data = {}
+        for attempt in range(5):
+            final_data = get_user_data(user_id, 'all')
+            if final_data and 'account' in final_data and 'preferences' in final_data:
+                break
+            if attempt < 4:
+                time.sleep(0.1)  # Brief delay before retry
+        assert final_data and 'account' in final_data, f"Account data should be loaded for user {user_id}"
         assert final_data['account']['email'] == 'test@example.com', \
             "Account should be written to disk in Phase 2"
         assert 'motivational' in final_data['preferences']['categories'], \

@@ -201,6 +201,7 @@ def edit_message(user_id, category, message_id, updated_data):
 
     # Use new user-specific message file structure
     user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
+    user_messages_dir.mkdir(parents=True, exist_ok=True)  # Ensure directory exists
     file_path = user_messages_dir / f"{category}.json"
     
     data = load_json_data(str(file_path))

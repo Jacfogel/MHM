@@ -35,6 +35,68 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-12 - Parallel Test Execution Stability: File Locking and Race Condition Fixes **COMPLETED**
+
+**Feature**: Implemented comprehensive file locking system for thread-safe and process-safe file operations, fixed multiple race conditions in parallel test execution, and resolved all flaky test failures. All 2,828 tests now pass consistently in parallel execution mode.
+
+**Technical Changes**:
+
+1. **File Locking System Implementation** (`core/file_locking.py` - NEW FILE):
+   - Created cross-platform file locking utility with Windows-compatible lock file approach (atomic `.lock` file creation)
+   - Implemented Unix/Linux support using `fcntl.flock()` for exclusive file locks
+   - Added `safe_json_read()` and `safe_json_write()` functions with atomic write pattern (temp file + rename)
+   - File locking uses timeout-based retry mechanism (10-30 seconds) with configurable retry intervals
+   - Atomic writes prevent corruption if process crashes during write operations
+
+2. **User Index File Locking Integration**:
+   - **`core/user_data_manager.py`**: Updated `update_user_index()`, `remove_from_index()`, and `rebuild_full_index()` to use `safe_json_read`/`safe_json_write`
+   - **`core/user_management.py`**: Updated `get_user_id_by_identifier()` to use `safe_json_read` for all index lookups
+   - **`tests/test_utilities.py`**: Updated `create_basic_user__update_index()` and `get_test_user_id_by_internal_username()` to use file locking
+   - **`tests/conftest.py`**: Updated `materialize_user_minimal_via_public_apis()` to resolve UUIDs and ensure directory existence
+
+3. **Test Fixes - Race Conditions and UUID Resolution**:
+   - **`tests/ui/test_dialogs.py::test_user_data_access`**: Added UUID resolution with retry logic, directory existence checks, and ensured user indexing before materialization
+   - **`tests/integration/test_user_creation.py::test_multiple_users_same_channel`**: Fixed UUID resolution with index rebuilds, added immediate file verification after `save_user_data`, removed `print()` statements (replaced with logging)
+   - **`tests/behavior/test_backup_manager_behavior.py`**: 
+     - `test_backup_manager_with_large_user_data_real_behavior`: Fixed by ensuring user index update in `create_full_featured_user__with_test_dir`
+     - `test_backup_creation_and_validation_real_behavior`: Fixed by using same backup manager instance for validation (moved validation inside patch context)
+     - `test_list_backups_real_behavior`: Improved file size verification and retry logic
+   - **`tests/behavior/test_account_management_real_behavior.py`**: Fixed indentation error in schedule period management test
+   - **`tests/ui/test_widget_behavior.py::test_checkin_enablement_real_behavior`**: Added retry logic with index rebuild for user ID resolution
+
+4. **Additional Test Stability Improvements**:
+   - Added retry logic (5 attempts with 0.1s delays) for `get_user_data()` calls in multiple tests
+   - Added retry logic for `get_user_id_by_identifier()` with index rebuilds on failure
+   - Improved directory existence checks before file operations
+   - Added delays after user creation to ensure files are flushed to disk
+   - Enhanced error messages with diagnostic information
+
+5. **Code Quality Fixes**:
+   - Removed `print()` statements from `tests/integration/test_user_creation.py` (replaced with `test_logger.debug/error`) to comply with test policy
+   - Fixed indentation errors in `tests/behavior/test_account_management_real_behavior.py`
+
+**Impact**: 
+- **Test Suite Stability**: All 2,828 tests now pass consistently in parallel execution mode (6 workers, `-n auto`)
+- **Race Condition Elimination**: File locking prevents corruption and race conditions in `user_index.json` operations
+- **UUID Resolution Reliability**: Improved retry logic ensures users are findable immediately after creation
+- **Parallel Execution Safety**: Thread-safe and process-safe file operations enable reliable parallel test execution
+- **Performance**: Parallel execution significantly reduces test suite execution time while maintaining reliability
+
+**Files Modified**:
+- `core/file_locking.py` (NEW - 297 lines)
+- `core/user_data_manager.py` (updated user_index.json operations)
+- `core/user_management.py` (updated index lookups)
+- `tests/test_utilities.py` (updated user index operations, added UUID resolution to `create_full_featured_user__with_test_dir`)
+- `tests/conftest.py` (improved `materialize_user_minimal_via_public_apis` with UUID resolution)
+- `tests/ui/test_dialogs.py` (UUID resolution and directory checks)
+- `tests/integration/test_user_creation.py` (UUID resolution, removed print statements)
+- `tests/behavior/test_backup_manager_behavior.py` (multiple fixes)
+- `tests/behavior/test_account_management_real_behavior.py` (indentation fix)
+- `tests/ui/test_widget_behavior.py` (user ID resolution)
+- Plus 10+ additional test files with retry logic improvements
+
+**Testing**: Full test suite passes (2,828 passed, 1 skipped, 10 warnings) in parallel execution mode with `-n auto` and random seed `12345`. All previously flaky tests now pass consistently.
+
 ### 2025-11-11 - Audit System Performance Optimization and Test Suite Logging Improvements **COMPLETED**
 
 **Feature**: Optimized audit system performance (reduced from 18-20 minutes to under 10 minutes), fixed critical test suite bugs, improved logging verbosity, eliminated duplicate log entries, and documented flaky tests for parallel execution investigation.

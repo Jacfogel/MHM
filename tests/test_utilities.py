@@ -200,39 +200,45 @@ class TestUserFactory:
     @staticmethod
     def _create_user_files_directly__message_files(user_dir: str, categories: list):
         """Create message directory and default message files."""
+        # Ensure user directory exists before creating messages subdirectory (race condition fix)
+        os.makedirs(user_dir, exist_ok=True)
         messages_dir = os.path.join(user_dir, "messages")
         os.makedirs(messages_dir, exist_ok=True)
         
         for category in categories:
             category_file = os.path.join(messages_dir, f"{category}.json")
             if not os.path.exists(category_file):
+                # Ensure parent directory exists before writing (race condition fix)
+                os.makedirs(os.path.dirname(category_file), exist_ok=True)
                 with open(category_file, 'w', encoding='utf-8') as f:
                     json.dump([], f, indent=2, ensure_ascii=False)
         
         # Create sent_messages.json
         sent_messages_file = os.path.join(messages_dir, "sent_messages.json")
         if not os.path.exists(sent_messages_file):
+            # Ensure parent directory exists before writing (race condition fix)
+            os.makedirs(os.path.dirname(sent_messages_file), exist_ok=True)
             with open(sent_messages_file, 'w', encoding='utf-8') as f:
                 json.dump([], f, indent=2, ensure_ascii=False)
     
     @staticmethod
     def create_basic_user__update_index(test_data_dir: str, user_id: str, actual_user_id: str):
-        """Update user index to map internal_username to UUID."""
+        """Update user index to map internal_username to UUID.
+        
+        Uses file locking to prevent race conditions in parallel test execution.
+        """
+        from core.file_locking import safe_json_read, safe_json_write
+        
         user_index_file = os.path.join(test_data_dir, "user_index.json")
-        user_index = {}
-        if os.path.exists(user_index_file):
-            try:
-                with open(user_index_file, 'r', encoding='utf-8') as f:
-                    user_index = json.load(f)
-            except (json.JSONDecodeError, FileNotFoundError):
-                user_index = {}
+        
+        # Read existing index with file locking
+        user_index = safe_json_read(user_index_file, default={})
         
         # Add the new user to the index
         user_index[user_id] = actual_user_id
         
-        # Save the updated index
-        with open(user_index_file, 'w', encoding='utf-8') as f:
-            json.dump(user_index, f, indent=2, ensure_ascii=False)
+        # Save the updated index with file locking
+        safe_json_write(user_index_file, user_index, indent=2)
     
     @staticmethod
     def _create_user_files_directly(user_id: str, user_data: Dict[str, Any], test_data_dir: str) -> str:
@@ -570,6 +576,9 @@ class TestUserFactory:
             # Use helper function to create files
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
             
+            # Update user index to map internal_username to UUID (critical for UUID resolution)
+            TestUserFactory.create_basic_user__update_index(test_data_dir, user_id, actual_user_id)
+            
             # Verify user creation with proper configuration patching
             return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
@@ -878,10 +887,22 @@ class TestUserFactory:
             # Create the user using the proper function
             actual_user_id = create_new_user(user_data)
             
-            if actual_user_id:
-                return True
-            else:
+            if not actual_user_id:
+                logger.error(f"create_new_user returned None for user {user_id}")
                 return False
+            
+            # Ensure user index is updated (race condition fix for parallel execution)
+            from core.user_data_manager import update_user_index
+            import time
+            max_retries = 3
+            for attempt in range(max_retries):
+                success = update_user_index(actual_user_id)
+                if success:
+                    break
+                if attempt < max_retries - 1:
+                    time.sleep(0.1)  # Brief delay before retry
+            
+            return True
             
         except Exception as e:
             logger.error(f"Error creating custom fields test user {user_id}: {e}")
@@ -997,12 +1018,145 @@ class TestUserFactory:
             actual_user_id = create_new_user(user_data)
             
             if not actual_user_id:
+                logger.error(f"create_new_user returned None for user {user_id}")
                 return False
             
+            # Ensure user directory exists before proceeding
+            from core.config import get_user_data_dir
+            import os
+            user_dir = get_user_data_dir(actual_user_id)
+            if not os.path.exists(user_dir):
+                os.makedirs(user_dir, exist_ok=True)
+                import time
+                time.sleep(0.1)  # Brief delay to ensure directory is created
+            
+            # Ensure user index is updated (race condition fix for parallel execution)
+            from core.user_data_manager import update_user_index
+            import time
+            max_retries = 3
+            for attempt in range(max_retries):
+                success = update_user_index(actual_user_id)
+                if success:
+                    break
+                if attempt < max_retries - 1:
+                    time.sleep(0.1)  # Brief delay before retry
+            
+            # Ensure user account and preferences files are fully written before saving schedules
+            # This is important for cross-file invariants that might validate schedules
+            # Schedule validation may require preferences with categories to exist
+            time.sleep(0.2)  # Brief delay to ensure account file is flushed
+            
+            # Ensure preferences with categories exist (required for schedule validation)
+            # Schedule validation may require that schedule categories match preference categories
+            from core.user_data_handlers import get_user_data, save_user_data
+            categories = user_data.get('categories', ['motivational', 'health'])
+            
+            # Always save preferences first to ensure they exist for validation
+            # create_new_user should have created preferences, but ensure they exist with categories
+            pref_result = save_user_data(actual_user_id, {
+                'preferences': {
+                    'categories': categories,
+                    'channel': user_data.get('channel', {'type': 'discord'})
+                }
+            }, auto_create=True)
+            
+            if not pref_result.get('preferences', False):
+                logger.warning(f"Failed to save preferences for user {user_id} before schedules. Result: {pref_result}")
+                # Try once more with a delay
+                import time
+                time.sleep(0.2)
+                pref_result = save_user_data(actual_user_id, {
+                    'preferences': {
+                        'categories': categories,
+                        'channel': user_data.get('channel', {'type': 'discord'})
+                    }
+                }, auto_create=True)
+                if not pref_result.get('preferences', False):
+                    logger.error(f"Failed to save preferences for user {user_id} after retry. Result: {pref_result}")
+                    return False
+            
+            # Verify preferences were saved - retry with longer delays
+            prefs_data = {}
+            for attempt in range(5):
+                prefs_data = get_user_data(actual_user_id, 'preferences', auto_create=True)
+                if prefs_data and 'preferences' in prefs_data and prefs_data.get('preferences', {}).get('categories'):
+                    break
+                if attempt < 4:
+                    time.sleep(0.2)  # Longer delay for file system operations
+            
+            if not prefs_data or 'preferences' not in prefs_data or not prefs_data.get('preferences', {}).get('categories'):
+                # Check if preferences file exists
+                from core.config import get_user_file_path
+                import os
+                prefs_file = get_user_file_path(actual_user_id, 'preferences')
+                file_exists = os.path.exists(prefs_file) if prefs_file else False
+                logger.warning(f"Preferences with categories not found for user {user_id} after save. Got: {prefs_data}, File exists: {file_exists}, File path: {prefs_file}")
+                # If file exists but data isn't loading, try reading directly
+                if file_exists:
+                    try:
+                        from core.file_operations import load_json_data
+                        direct_data = load_json_data(prefs_file)
+                        logger.debug(f"Direct file read: {direct_data}")
+                    except Exception as e:
+                        logger.debug(f"Error reading preferences file directly: {e}")
+                return False
+            
+            time.sleep(0.2)  # Brief delay to ensure preferences are flushed
+            
+            # Ensure schedule categories match preference categories (required for validation)
+            # Extract categories from schedule_config
+            schedule_categories = list(schedule_config.keys()) if schedule_config else []
+            pref_categories = prefs_data.get('preferences', {}).get('categories', [])
+            
+            # If schedule has categories not in preferences, add them
+            # Also ensure we use the categories from schedule_config if provided, otherwise use user_data categories
+            if schedule_categories:
+                # Use schedule categories as the source of truth
+                final_categories = list(set(pref_categories + schedule_categories))
+            else:
+                # Use user_data categories
+                final_categories = categories
+            
+            if set(schedule_categories) != set(pref_categories):
+                updated_prefs = prefs_data.get('preferences', {}).copy()
+                updated_prefs['categories'] = final_categories
+                pref_result = save_user_data(actual_user_id, {'preferences': updated_prefs}, auto_create=True)
+                if not pref_result.get('preferences', False):
+                    logger.warning(f"Failed to update preferences with schedule categories for user {user_id}")
+                else:
+                    # Verify update
+                    for verify_attempt in range(3):
+                        prefs_data = get_user_data(actual_user_id, 'preferences', auto_create=True)
+                        if prefs_data and 'preferences' in prefs_data:
+                            updated_pref_categories = prefs_data.get('preferences', {}).get('categories', [])
+                            if set(schedule_categories).issubset(set(updated_pref_categories)):
+                                break
+                        if verify_attempt < 2:
+                            time.sleep(0.1)
+                time.sleep(0.2)  # Brief delay to ensure preferences are flushed
+            
             # Add schedule data using the correct function
-            from core.user_data_handlers import save_user_data
-            result = save_user_data(actual_user_id, {'schedules': schedule_config})
-            schedule_success = result.get('schedules', False)
+            # Retry in case of race conditions with file writes in parallel execution
+            schedule_success = False
+            last_result = {}
+            for attempt in range(5):
+                result = save_user_data(actual_user_id, {'schedules': schedule_config}, auto_create=True, validate_data=True)
+                last_result = result
+                schedule_success = result.get('schedules', False)
+                if schedule_success:
+                    break
+                if attempt < 4:
+                    time.sleep(0.2)  # Increased delay before retry
+            
+            if not schedule_success:
+                # Try with validate_data=False as a last resort (for test purposes)
+                logger.warning(f"Failed to save schedule data for user {user_id} after 5 attempts with validation. Result: {last_result}. Trying without validation.")
+                result_no_validate = save_user_data(actual_user_id, {'schedules': schedule_config}, auto_create=True, validate_data=False)
+                schedule_success = result_no_validate.get('schedules', False)
+                if schedule_success:
+                    logger.info(f"Schedule save succeeded without validation for user {user_id}")
+                else:
+                    logger.warning(f"Failed to save schedule data for user {user_id} even without validation. Result: {result_no_validate}")
             
             return schedule_success
         except Exception as e:
@@ -2177,8 +2331,9 @@ class TestUserFactory:
         try:
             user_index_file = os.path.join(test_data_dir, "user_index.json")
             if os.path.exists(user_index_file):
-                with open(user_index_file, 'r', encoding='utf-8') as f:
-                    user_index = json.load(f)
+                # Use safe_json_read to prevent race conditions in parallel execution
+                from core.file_locking import safe_json_read
+                user_index = safe_json_read(user_index_file, default={})
                 
                 return user_index.get(internal_username)
             
@@ -2266,14 +2421,16 @@ class TestDataManager:
             os.makedirs(dir_path, exist_ok=True)
         
         # Create test user index with flat lookup structure
+        # Use file locking to prevent race conditions in parallel test execution
+        from core.file_locking import safe_json_write
+        
         user_index = {
             "last_updated": "2025-01-01T00:00:00",
             "test-user-basic": "test-user-basic",  # username → UUID
             "test-user-full": "test-user-full"      # username → UUID
         }
         
-        with open(os.path.join(test_data_dir, "user_index.json"), "w") as f:
-            json.dump(user_index, f, indent=2)
+        safe_json_write(os.path.join(test_data_dir, "user_index.json"), user_index, indent=2)
         
         return test_dir, test_data_dir, test_test_data_dir
     

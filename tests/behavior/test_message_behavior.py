@@ -169,11 +169,16 @@ class TestMessageCRUD:
             os.remove(message_file)
         
         # Mock get_user_data_dir to return our test directory
-        with patch('core.message_management.get_user_data_dir', return_value=user_dir):
+        # Patch core.config.get_user_data_dir since that's where it's imported from
+        with patch('core.config.get_user_data_dir', return_value=user_dir):
             result = add_message(user_id, category, message_data)
 
             # Functions return None on success
             assert result is None
+
+            # Small delay to ensure file system operations complete (race condition fix)
+            import time
+            time.sleep(0.05)
 
             # Verify the message file was created and contains the message
             # Add some debugging for parallel execution issues
@@ -229,13 +234,29 @@ class TestMessageCRUD:
             json.dump(initial_data, f)
         
         # Mock get_user_data_dir to return our test directory
-        with patch('core.message_management.get_user_data_dir', return_value=user_dir):
+        # Note: message_management uses core.config.get_user_data_dir, not message_management.get_user_data_dir
+        with patch('core.config.get_user_data_dir', return_value=user_dir):
+            # Ensure directory exists before edit (race condition fix for parallel execution)
+            user_messages_dir = os.path.join(user_dir, 'messages')
+            os.makedirs(user_messages_dir, exist_ok=True)
+            
             result = edit_message(user_id, category, message_id, updated_data)
             
             # Functions return None on success
             assert result is None
             
             # Verify the message was updated in the file
+            # Retry in case of race conditions with file writes in parallel execution
+            import time
+            file_exists = False
+            for attempt in range(5):
+                if os.path.exists(message_file):
+                    file_exists = True
+                    break
+                if attempt < 4:
+                    time.sleep(0.1)  # Brief delay before retry
+            
+            assert file_exists, f"Message file should exist: {message_file}. Files in messages dir: {os.listdir(messages_dir) if os.path.exists(messages_dir) else 'N/A'}"
             with open(message_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 assert len(data['messages']) == 1
@@ -344,13 +365,20 @@ class TestMessageCRUD:
             json.dump(initial_data, f)
         
         # Mock get_user_data_dir to return our test directory
-        with patch('core.message_management.get_user_data_dir', return_value=user_dir):
+        # Patch core.config.get_user_data_dir since that's where it's imported from
+        with patch('core.config.get_user_data_dir', return_value=user_dir):
             result = delete_message(user_id, category, message_id)
             
             # Functions return None on success
             assert result is None
             
+            # Small delay to ensure file system operations complete (race condition fix)
+            import time
+            time.sleep(0.05)
+            
             # Verify the message was deleted from the file
+            # File should still exist (delete_message keeps empty file)
+            assert os.path.exists(message_file), f"Message file should still exist after delete: {message_file}"
             with open(message_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 assert len(data['messages']) == 1
@@ -621,21 +649,25 @@ class TestIntegration:
         }
         
         # Mock get_user_data_dir to return our test directory
-        with patch('core.message_management.get_user_data_dir', return_value=user_dir):
+        # Note: message_management uses core.config.get_user_data_dir, not message_management.get_user_data_dir
+        with patch('core.config.get_user_data_dir', return_value=user_dir):
             # 1. Add message
             result1 = add_message(user_id, category, new_message)
             assert result1 is None
 
             # Verify message was added
-            # Add some debugging for parallel execution issues
-            if not os.path.exists(message_file):
-                # Check if the directory exists
-                if not os.path.exists(messages_dir):
-                    raise AssertionError(f"Messages directory was not created: {messages_dir}")
-                # Check if any files were created
-                files_in_dir = os.listdir(messages_dir) if os.path.exists(messages_dir) else []
-                raise AssertionError(f"Message file was not created: {message_file}. Files in directory: {files_in_dir}")
-            assert os.path.exists(message_file)
+            # Retry in case of race conditions with file writes in parallel execution
+            import time
+            for attempt in range(5):
+                if os.path.exists(message_file):
+                    break
+                if attempt < 4:
+                    time.sleep(0.1)  # Brief delay before retry
+            
+            # Check if the directory exists
+            if not os.path.exists(messages_dir):
+                raise AssertionError(f"Messages directory was not created: {messages_dir}")
+            assert os.path.exists(message_file), f"Message file should exist: {message_file}"
             with open(message_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 assert len(data['messages']) == 1

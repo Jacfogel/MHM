@@ -9,9 +9,19 @@ ensure_qt_runtime()
 
 import pytest
 from unittest.mock import patch, Mock, mock_open, MagicMock
+from PySide6.QtWidgets import QApplication
 
 # Import the main UI application
 from ui.ui_app_qt import ServiceManager
+
+# Create QApplication instance for testing
+@pytest.fixture(scope="function")
+def qapp():
+    """Create QApplication instance for UI testing."""
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication([])
+    return app
 
 
 class TestMHMManagerUIServiceManager:
@@ -204,7 +214,7 @@ class TestMHMManagerUIServiceManager:
 class TestMHMManagerUI:
     """Test MHMManagerUI class methods."""
     
-    def test_mhm_manager_ui_initialization(self):
+    def test_mhm_manager_ui_initialization(self, qapp):
         """Test MHMManagerUI initializes correctly."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -227,7 +237,7 @@ class TestMHMManagerUI:
                     assert ui.status_timer is not None
                     mock_ui_instance.setupUi.assert_called_once()
     
-    def test_update_service_status_updates_display(self):
+    def test_update_service_status_updates_display(self, qapp):
         """Test that update_service_status updates the status display."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -307,7 +317,7 @@ class TestMHMManagerUI:
                     # Assert - Should not raise exception
                     assert True
     
-    def test_enable_content_management_enables_ui(self):
+    def test_enable_content_management_enables_ui(self, qapp):
         """Test that enable_content_management enables UI elements."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -329,7 +339,7 @@ class TestMHMManagerUI:
                     # The method should not raise exceptions
                     assert True
     
-    def test_disable_content_management_disables_ui(self):
+    def test_disable_content_management_disables_ui(self, qapp):
         """Test that disable_content_management disables UI elements."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -351,7 +361,7 @@ class TestMHMManagerUI:
                     # The method should not raise exceptions
                     assert True
     
-    def test_run_category_scheduler_runs_scheduler(self):
+    def test_run_category_scheduler_runs_scheduler(self, qapp):
         """Test that run_category_scheduler runs the category scheduler."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -377,7 +387,7 @@ class TestMHMManagerUI:
                             # Assert
                             mock_msgbox.information.assert_called()
     
-    def test_send_test_message_validation_checks_user(self):
+    def test_send_test_message_validation_checks_user(self, qapp):
         """Test that _send_test_message__validate_user_selection validates user selection."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -451,7 +461,7 @@ class TestMHMManagerUI:
                     mock_ui_instance.comboBox_users.clear.assert_called()
                     assert mock_ui_instance.comboBox_users.addItem.call_count >= 1
     
-    def test_on_user_selected_handles_empty_selection(self):
+    def test_on_user_selected_handles_empty_selection(self, qapp):
         """Test that on_user_selected handles empty selection."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -472,7 +482,7 @@ class TestMHMManagerUI:
                     # Verify user was cleared
                     assert ui.current_user is None
     
-    def test_run_full_scheduler_calls_scheduler(self):
+    def test_run_full_scheduler_calls_scheduler(self, qapp):
         """Test that run_full_scheduler calls scheduler correctly."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -496,7 +506,7 @@ class TestMHMManagerUI:
                             # Verify scheduler was called
                             mock_scheduler.assert_called_once()
     
-    def test_run_user_scheduler_requires_user_selection(self):
+    def test_run_user_scheduler_requires_user_selection(self, qapp):
         """Test that run_user_scheduler requires user selection."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -519,7 +529,7 @@ class TestMHMManagerUI:
                         # Verify warning was shown
                         mock_msgbox.warning.assert_called_once()
     
-    def test_enable_content_management_enables_buttons(self):
+    def test_enable_content_management_enables_buttons(self, qapp):
         """Test that enable_content_management enables buttons."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -532,13 +542,44 @@ class TestMHMManagerUI:
                     mock_timer.return_value = mock_timer_instance
                     mock_path.return_value.exists.return_value = True
                     
+                    # Mock all button widgets that enable_content_management accesses
+                    mock_ui_instance.pushButton_communication_settings = Mock()
+                    mock_ui_instance.pushButton_personalization = Mock()
+                    mock_ui_instance.pushButton_category_management = Mock()
+                    mock_ui_instance.pushButton_checkin_settings = Mock()
+                    mock_ui_instance.pushButton_task_management = Mock()
+                    mock_ui_instance.pushButton_task_crud = Mock()
+                    mock_ui_instance.pushButton_user_analytics = Mock()
+                    mock_ui_instance.pushButton_run_user_scheduler = Mock()
+                    mock_ui_instance.groupBox_category_actions = Mock()
+                    
                     ui = MHMManagerUI()
+                    
+                    # Reset mocks after initialization (initialize_ui calls disable_content_management)
+                    # This clears the calls from initialization so we can test enable_content_management cleanly
+                    mock_ui_instance.pushButton_communication_settings.setEnabled.reset_mock()
+                    mock_ui_instance.pushButton_personalization.setEnabled.reset_mock()
+                    mock_ui_instance.pushButton_category_management.setEnabled.reset_mock()
+                    mock_ui_instance.pushButton_checkin_settings.setEnabled.reset_mock()
+                    mock_ui_instance.pushButton_task_management.setEnabled.reset_mock()
+                    mock_ui_instance.pushButton_task_crud.setEnabled.reset_mock()
+                    mock_ui_instance.pushButton_user_analytics.setEnabled.reset_mock()
+                    mock_ui_instance.pushButton_run_user_scheduler.setEnabled.reset_mock()
+                    mock_ui_instance.groupBox_category_actions.setEnabled.reset_mock()
                     
                     # Test enable_content_management
                     ui.enable_content_management()
                     
-                    # Verify method completes without error
-                    assert True
+                    # Verify all buttons were enabled (after reset, should only be called once with True)
+                    mock_ui_instance.pushButton_communication_settings.setEnabled.assert_called_once_with(True)
+                    mock_ui_instance.pushButton_personalization.setEnabled.assert_called_once_with(True)
+                    mock_ui_instance.pushButton_category_management.setEnabled.assert_called_once_with(True)
+                    mock_ui_instance.pushButton_checkin_settings.setEnabled.assert_called_once_with(True)
+                    mock_ui_instance.pushButton_task_management.setEnabled.assert_called_once_with(True)
+                    mock_ui_instance.pushButton_task_crud.setEnabled.assert_called_once_with(True)
+                    mock_ui_instance.pushButton_user_analytics.setEnabled.assert_called_once_with(True)
+                    mock_ui_instance.pushButton_run_user_scheduler.setEnabled.assert_called_once_with(True)
+                    mock_ui_instance.groupBox_category_actions.setEnabled.assert_called_once_with(True)
     
     def test_disable_content_management_disables_buttons(self):
         """Test that disable_content_management disables buttons."""
@@ -658,7 +699,7 @@ class TestMHMManagerUI:
                         mock_dialog.assert_called_once()
                         mock_dialog_instance.show.assert_called_once()
     
-    def test_load_user_categories_loads_categories(self, test_data_dir):
+    def test_load_user_categories_loads_categories(self, test_data_dir, qapp):
         """Test that load_user_categories loads user categories."""
         from ui.ui_app_qt import MHMManagerUI
         from tests.test_utilities import TestUserFactory
@@ -686,7 +727,7 @@ class TestMHMManagerUI:
                     mock_ui_instance.comboBox_user_categories.clear.assert_called()
                     assert mock_ui_instance.comboBox_user_categories.addItem.call_count >= 0
     
-    def test_on_category_selected_handles_selection(self):
+    def test_on_category_selected_handles_selection(self, qapp):
         """Test that on_category_selected handles category selection."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -711,7 +752,7 @@ class TestMHMManagerUI:
                     # Verify method completes without error
                     assert True
     
-    def test_create_new_user_opens_dialog(self):
+    def test_create_new_user_opens_dialog(self, qapp):
         """Test that create_new_user opens account creation dialog."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -788,7 +829,7 @@ class TestMHMManagerUI:
                         # Verify dialog was created
                         mock_dialog.assert_called_once()
     
-    def test_manage_checkins_opens_dialog(self):
+    def test_manage_checkins_opens_dialog(self, qapp):
         """Test that manage_checkins opens dialog."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -888,7 +929,7 @@ class TestMHMManagerUI:
                         # Verify dialog was created
                         mock_dialog.assert_called_once()
     
-    def test_manage_user_analytics_opens_dialog(self):
+    def test_manage_user_analytics_opens_dialog(self, qapp):
         """Test that manage_user_analytics opens dialog."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -911,7 +952,7 @@ class TestMHMManagerUI:
                         # Verify dialog was opened
                         mock_open.assert_called_once()
     
-    def test_edit_user_messages_opens_dialog(self):
+    def test_edit_user_messages_opens_dialog(self, qapp):
         """Test that edit_user_messages opens dialog."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -962,7 +1003,7 @@ class TestMHMManagerUI:
                         # Verify dialog was opened
                         mock_open_dialog.assert_called_once()
     
-    def test_send_test_message_validates_user_selection(self):
+    def test_send_test_message_validates_user_selection(self, qapp):
         """Test that send_test_message validates user selection."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -1009,7 +1050,7 @@ class TestMHMManagerUI:
                         # Verify warning was shown
                         mock_msgbox.warning.assert_called_once()
     
-    def test_load_theme_loads_theme_file(self):
+    def test_load_theme_loads_theme_file(self, qapp):
         """Test that load_theme loads theme file."""
         from ui.ui_app_qt import MHMManagerUI
         from pathlib import Path

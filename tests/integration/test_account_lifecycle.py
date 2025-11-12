@@ -171,8 +171,15 @@ class TestAccountLifecycle:
         # Ensure minimal structure exists before file assertions
         self._ensure_minimal_structure(actual_user_id)
         # Assert - Verify actual file creation
+        # Retry in case of race conditions with directory creation in parallel execution
+        import time
         user_dir = os.path.join(self.test_data_dir, "users", actual_user_id)
-        assert os.path.exists(user_dir), "User directory should be created"
+        for attempt in range(5):
+            if os.path.exists(user_dir):
+                break
+            if attempt < 4:
+                time.sleep(0.1)  # Brief delay before retry
+        assert os.path.exists(user_dir), f"User directory should be created: {user_dir}"
         
         # Verify core user files exist
         assert os.path.exists(os.path.join(user_dir, "account.json")), "Account file should be created"
@@ -242,10 +249,21 @@ class TestAccountLifecycle:
         user_dir = os.path.join(self.test_data_dir, "users", actual_user_id)
         assert os.path.exists(user_dir), "User directory should be created"
         
-        # Verify core user files exist
-        assert os.path.exists(os.path.join(user_dir, "account.json")), "Account file should be created"
-        assert os.path.exists(os.path.join(user_dir, "preferences.json")), "Preferences file should be created"
-        assert os.path.exists(os.path.join(user_dir, "user_context.json")), "User context file should be created"
+        # Verify core user files exist - retry in case of race conditions with file writes in parallel execution
+        import time
+        account_file = os.path.join(user_dir, "account.json")
+        prefs_file = os.path.join(user_dir, "preferences.json")
+        context_file = os.path.join(user_dir, "user_context.json")
+        
+        for attempt in range(5):
+            if os.path.exists(account_file) and os.path.exists(prefs_file) and os.path.exists(context_file):
+                break
+            if attempt < 4:
+                time.sleep(0.1)  # Brief delay before retry
+        
+        assert os.path.exists(account_file), f"Account file should be created. User dir: {user_dir}, Files: {os.listdir(user_dir) if os.path.exists(user_dir) else 'N/A'}"
+        assert os.path.exists(prefs_file), "Preferences file should be created"
+        assert os.path.exists(context_file), "User context file should be created"
         
         # Verify data loading works (robust to order)
         self._materialize_and_verify(actual_user_id)
@@ -361,12 +379,23 @@ class TestAccountLifecycle:
         
         # Assert - Verify actual changes
         self._materialize_and_verify(actual_user_id)
-        updated_data = get_user_data(actual_user_id)
+        # Retry in case of race conditions with file writes in parallel execution
+        import time
+        updated_data = {}
+        for attempt in range(5):
+            updated_data = get_user_data(actual_user_id, 'all', auto_create=True)
+            if updated_data and "account" in updated_data:
+                checkins_status = updated_data.get("account", {}).get("features", {}).get("checkins")
+                if checkins_status == "enabled":
+                    break
+            if attempt < 4:
+                time.sleep(0.1)  # Brief delay before retry
         if "account" not in updated_data:
             from tests.conftest import materialize_user_minimal_via_public_apis as _mat
             _mat(actual_user_id)
-            updated_data = get_user_data(actual_user_id)
-        assert updated_data.get("account", {}).get("features", {}).get("checkins") == "enabled", "Check-ins should be enabled"
+            updated_data = get_user_data(actual_user_id, 'all', auto_create=True)
+        assert updated_data.get("account", {}).get("features", {}).get("checkins") == "enabled", \
+            f"Check-ins should be enabled. Got: {updated_data.get('account', {}).get('features', {})}"
         assert "checkin_settings" in updated_data["preferences"], "Check-in settings should exist"
         assert len(updated_data["schedules"]["motivational"]["periods"]) >= 1, "Should have at least 1 motivational period"
         assert len(updated_data["schedules"]["checkin"]["periods"]) == 1, "Should have 1 checkin period"
@@ -1029,8 +1058,10 @@ class TestAccountLifecycle:
         from core.user_data_handlers import save_user_data
         save_user_data(actual_user_id, {"preferences": {"task_settings": {"enabled": True, "reminder_frequency": "daily"}}})
         
-        # Recreate tasks file
-        with open(os.path.join(user_dir, "tasks", "tasks.json"), "w") as f:
+        # Recreate tasks file - ensure directory exists first
+        tasks_dir = os.path.join(user_dir, "tasks")
+        os.makedirs(tasks_dir, exist_ok=True)
+        with open(os.path.join(tasks_dir, "tasks.json"), "w") as f:
             json.dump({"tasks": []}, f, indent=2)
         
         # Verify features re-enabled

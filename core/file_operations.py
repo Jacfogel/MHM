@@ -251,6 +251,9 @@ def save_json_data(data, file_path):
     # Save the data
     tmp_path = None
     try:
+        # Ensure directory exists before writing (race condition fix)
+        directory.mkdir(parents=True, exist_ok=True)
+        
         tmp_path = file_path.with_suffix(file_path.suffix + '.tmp')
         with open(tmp_path, 'w', encoding='utf-8') as file:
             json.dump(data, file, indent=4, ensure_ascii=False)

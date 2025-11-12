@@ -324,9 +324,21 @@ class TestCheckinSettingsWidgetBehavior:
         success = TestUserFactory.create_user_with_complex_checkins(user_id, test_data_dir)
         assert success, f"Failed to create test user {user_id}"
         
-        # Get the actual user ID (UUID) from the test data
-        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, test_data_dir)
-        assert actual_user_id, f"Could not find actual user ID for {user_id}"
+        # Get the actual user ID (UUID) from the test data - retry in case of race conditions
+        from core.user_management import get_user_id_by_identifier
+        from core.user_data_manager import rebuild_user_index
+        import time
+        actual_user_id = None
+        for attempt in range(5):
+            actual_user_id = get_user_id_by_identifier(user_id) or TestUserFactory.get_test_user_id_by_internal_username(user_id, test_data_dir)
+            if actual_user_id:
+                break
+            # Rebuild index if lookup fails (race condition fix)
+            if attempt == 2:
+                rebuild_user_index()
+            if attempt < 4:
+                time.sleep(0.1)
+        assert actual_user_id, f"Could not find actual user ID for {user_id} after retries"
         
         # Create widget
         widget = CheckinSettingsWidget(user_id=actual_user_id, parent=None)

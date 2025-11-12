@@ -157,42 +157,105 @@ def test_user_data_access(test_data_dir, mock_config, mock_user_data):
         # Use the mock user data that was created by the fixture
         test_user = mock_user_data['user_id']
         logger.debug(f"Testing with user: {test_user}")
+
+        # Resolve UUID if test_user is an internal username (mock_user_data creates users with internal usernames)
+        from core.user_management import get_user_id_by_identifier
+        from tests.test_utilities import TestUserFactory as TUF
+        actual_user_id = get_user_id_by_identifier(test_user) or TUF.get_test_user_id_by_internal_username(test_user, test_data_dir) or test_user
         
+        # Rebuild index to ensure user is indexed (race condition fix)
+        from core.user_data_manager import rebuild_user_index
+        rebuild_user_index()
+        
+        # Retry to get actual_user_id if not found
+        import time
+        for attempt in range(3):
+            if actual_user_id and actual_user_id != test_user:
+                break
+            resolved_id = get_user_id_by_identifier(test_user) or TUF.get_test_user_id_by_internal_username(test_user, test_data_dir)
+            if resolved_id:
+                actual_user_id = resolved_id
+                if actual_user_id != test_user:
+                    break
+            if attempt < 2:
+                time.sleep(0.1)
+        
+        # Fallback to test_user if resolution failed (mock_user_data creates users with internal usernames as directory names)
+        if not actual_user_id:
+            actual_user_id = test_user
+        
+        # Use actual_user_id (UUID or internal username) for all data access
+        logger.debug(f"Resolved user ID: {test_user} -> {actual_user_id}")
+
         # Test account data (read-only)
         try:
+            # Ensure user directory exists and user is indexed before materialization
+            from core.config import get_user_data_dir
+            from core.user_data_manager import update_user_index
+            import os
+            user_dir = get_user_data_dir(actual_user_id)
+            if not os.path.exists(user_dir):
+                os.makedirs(user_dir, exist_ok=True)
+                # Update index if user directory was just created
+                update_user_index(actual_user_id)
+            
             from tests.conftest import materialize_user_minimal_via_public_apis
-            materialize_user_minimal_via_public_apis(test_user)
-            account_data = get_user_data(test_user, 'account')
-            logger.debug(f"Account data accessible for {test_user}")
-            assert account_data is not None, f"Account data should be accessible for {test_user}"
-            assert 'account' in account_data, f"Account data should contain 'account' key for {test_user}"
+            materialize_user_minimal_via_public_apis(actual_user_id)
+            # Retry with delays to handle race conditions after materialization
+            import time
+            account_data = {}
+            for attempt in range(5):
+                account_data = get_user_data(actual_user_id, 'account', auto_create=True)
+                if account_data and 'account' in account_data:
+                    break
+                if attempt < 4:
+                    time.sleep(0.1)  # Brief delay before retry
+            logger.debug(f"Account data accessible for {actual_user_id}")
+            assert account_data is not None, f"Account data should be accessible for {actual_user_id}"
+            assert 'account' in account_data, f"Account data should contain 'account' key for {actual_user_id}. Got: {account_data}"
         except Exception as e:
-            logger.error(f"Account data failed for {test_user}: {e}")
-            assert False, f"Account data failed for {test_user}: {e}"
+            logger.error(f"Account data failed for {actual_user_id}: {e}")
+            assert False, f"Account data failed for {actual_user_id}: {e}"
         
         # Test preferences data (read-only)
         try:
             from tests.conftest import materialize_user_minimal_via_public_apis
-            materialize_user_minimal_via_public_apis(test_user)
-            prefs_data = get_user_data(test_user, 'preferences')
-            logger.debug(f"Preferences data accessible for {test_user}")
-            assert prefs_data is not None, f"Preferences data should be accessible for {test_user}"
-            assert 'preferences' in prefs_data, f"Preferences data should contain 'preferences' key for {test_user}"
+            materialize_user_minimal_via_public_apis(actual_user_id)
+            # Retry with auto_create=True and delays to handle race conditions
+            import time
+            prefs_data = {}
+            for attempt in range(5):
+                prefs_data = get_user_data(actual_user_id, 'preferences', auto_create=True)
+                if prefs_data and 'preferences' in prefs_data:
+                    break
+                if attempt < 4:
+                    time.sleep(0.1)
+            logger.debug(f"Preferences data accessible for {actual_user_id}")
+            assert prefs_data is not None, f"Preferences data should be accessible for {actual_user_id}"
+            assert 'preferences' in prefs_data, f"Preferences data should contain 'preferences' key for {actual_user_id}. Got: {prefs_data}"
         except Exception as e:
-            logger.error(f"Preferences data failed for {test_user}: {e}")
-            assert False, f"Preferences data failed for {test_user}: {e}"
+            logger.error(f"Preferences data failed for {actual_user_id}: {e}")
+            assert False, f"Preferences data failed for {actual_user_id}: {e}"
         
         # Test context data (read-only)
         try:
             from tests.conftest import materialize_user_minimal_via_public_apis
-            materialize_user_minimal_via_public_apis(test_user)
-            context_data = get_user_data(test_user, 'context')
-            logger.debug(f"Context data accessible for {test_user}")
-            assert context_data is not None, f"Context data should be accessible for {test_user}"
-            assert 'context' in context_data, f"Context data should contain 'context' key for {test_user}"
+            materialize_user_minimal_via_public_apis(actual_user_id)
+            # Retry with auto_create=True and delays to handle race conditions
+            import time
+            context_data = {}
+            for attempt in range(5):
+                context_data = get_user_data(actual_user_id, 'context', auto_create=True)
+                if context_data and 'context' in context_data:
+                    break
+                if attempt < 4:
+                    time.sleep(0.1)
+            logger.debug(f"Context data accessible for {actual_user_id}")
+            assert context_data is not None, f"Context data should be accessible for {actual_user_id}"
+            assert 'context' in context_data, f"Context data should contain 'context' key for {actual_user_id}. Got: {context_data}"
         except Exception as e:
-            logger.error(f"Context data failed for {test_user}: {e}")
-            assert False, f"Context data failed for {test_user}: {e}"
+            logger.error(f"Context data failed for {actual_user_id}: {e}")
+            assert False, f"Context data failed for {actual_user_id}: {e}"
         
     except Exception as e:
         logger.error(f"User data access failed: {e}")

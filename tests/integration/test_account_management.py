@@ -288,6 +288,7 @@ def test_account_management_safe_operations():
     
     try:
         from core.user_data_handlers import get_user_data, save_user_data
+        import time
         
         # Create a temporary test user for safe operations
         temp_user_id = f"temp-test-{int(time.time())}"
@@ -332,16 +333,25 @@ def test_account_management_safe_operations():
         # Test reading temporary user data
         try:
             from tests.conftest import materialize_user_minimal_via_public_apis
+            import time
             materialize_user_minimal_via_public_apis(temp_user_id)
-            account_data = get_user_data(temp_user_id, 'account')
-            prefs_data = get_user_data(temp_user_id, 'preferences')
+            # Retry in case of race conditions with file writes in parallel execution
+            account_data = {}
+            prefs_data = {}
+            for attempt in range(5):
+                account_data = get_user_data(temp_user_id, 'account')
+                prefs_data = get_user_data(temp_user_id, 'preferences')
+                if account_data and prefs_data:
+                    break
+                if attempt < 4:
+                    time.sleep(0.1)  # Brief delay before retry
             
             if account_data and prefs_data:
                 print(f"  ✅ Temporary user data access: Successful")
                 assert True, "Temporary user data access should succeed"
             else:
-                print(f"  ❌ Temporary user data access: Failed")
-                assert False, "Temporary user data access failed"
+                print(f"  ❌ Temporary user data access: Failed - account_data: {bool(account_data)}, prefs_data: {bool(prefs_data)}")
+                assert False, f"Temporary user data access failed - account_data: {bool(account_data)}, prefs_data: {bool(prefs_data)}"
         except Exception as e:
             print(f"  ❌ Temporary user data access: Error - {e}")
             assert False, f"Temporary user data access error: {e}"

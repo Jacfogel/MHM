@@ -63,7 +63,16 @@ class TestDiscordCheckinRetryBehavior:
             pytest.skip("Could not resolve actual user ID for test")
         
         # Ensure check-ins are enabled for this user and Discord channel is configured
-        user_data = get_user_data(actual_user_id, 'all', auto_create=True)
+        # Retry in case of race conditions with file writes in parallel execution
+        import time
+        user_data = {}
+        for attempt in range(5):
+            user_data = get_user_data(actual_user_id, 'all', auto_create=True)
+            if user_data and ('account' in user_data or 'preferences' in user_data):
+                break
+            if attempt < 4:
+                time.sleep(0.1)  # Brief delay before retry
+        
         if 'account' in user_data:
             user_data['account'].setdefault('features', {})['checkins'] = 'enabled'
         if 'preferences' in user_data:
@@ -71,7 +80,10 @@ class TestDiscordCheckinRetryBehavior:
             user_data['preferences']['checkin_settings']['frequency'] = 'daily'
             # Set up Discord channel for messaging
             user_data['preferences'].setdefault('channel', {})['type'] = 'discord'
-        save_user_data(actual_user_id, user_data)
+        
+        save_result = save_user_data(actual_user_id, user_data)
+        # Ensure save completed (race condition fix)
+        time.sleep(0.1)
         
         # Clear retry queue to ensure clean state
         while not comm_manager.retry_manager._failed_message_queue.empty():

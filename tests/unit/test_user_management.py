@@ -191,10 +191,21 @@ class TestUserManagement:
         from core.config import get_user_data_dir
         actual_user_dir = get_user_data_dir(user_id)
         
-        # Verify the files were created
-        assert os.path.exists(os.path.join(actual_user_dir, 'account.json'))
-        assert os.path.exists(os.path.join(actual_user_dir, 'preferences.json'))
-        assert os.path.exists(os.path.join(actual_user_dir, 'user_context.json'))
+        # Verify the files were created - retry in case of race conditions with file writes in parallel execution
+        import time
+        account_file = os.path.join(actual_user_dir, 'account.json')
+        prefs_file = os.path.join(actual_user_dir, 'preferences.json')
+        context_file = os.path.join(actual_user_dir, 'user_context.json')
+        
+        for attempt in range(5):
+            if os.path.exists(account_file) and os.path.exists(prefs_file) and os.path.exists(context_file):
+                break
+            if attempt < 4:
+                time.sleep(0.1)  # Brief delay before retry
+        
+        assert os.path.exists(account_file), f"Account file should be created. User dir: {actual_user_dir}, Files: {os.listdir(actual_user_dir) if os.path.exists(actual_user_dir) else 'N/A'}"
+        assert os.path.exists(prefs_file), "Preferences file should be created"
+        assert os.path.exists(context_file), "User context file should be created"
         
         # Verify data can be loaded using the new hybrid function
         loaded_data = get_user_data(user_id, 'all')
@@ -654,9 +665,13 @@ class TestUserManagementEdgeCases:
         """Test getting single data type using hybrid API."""
         user_id = mock_user_data['user_id']
         
+        # Ensure files are flushed before reading (race condition fix for parallel execution)
+        import time
+        time.sleep(0.05)  # Brief delay to ensure file writes are complete
+        
         # Test getting only preferences
         user_data = get_user_data(user_id, 'preferences')
-        assert 'preferences' in user_data
+        assert 'preferences' in user_data, f"Expected preferences in user_data, got: {list(user_data.keys())}"
         assert 'account' not in user_data
         assert 'context' not in user_data
         
@@ -672,6 +687,10 @@ class TestUserManagementEdgeCases:
     def test_get_user_data_multiple_types(self, mock_user_data, mock_config):
         """Test getting multiple data types using hybrid API."""
         user_id = mock_user_data['user_id']
+        
+        # Ensure files are flushed before reading (race condition fix for parallel execution)
+        import time
+        time.sleep(0.05)  # Brief delay to ensure file writes are complete
         
         # Test getting account and preferences only
         user_data = get_user_data(user_id, ['account', 'preferences'])

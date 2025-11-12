@@ -56,19 +56,46 @@ class UserDataManager:
             return False
         
         # Load user profile
-        user_info = get_user_info_for_data_manager(user_id)
+        # Retry in case of race conditions with file writes in parallel execution
+        import time
+        user_info = None
+        for attempt in range(3):
+            user_info = get_user_info_for_data_manager(user_id)
+            if user_info:
+                break
+            if attempt < 2:
+                time.sleep(0.1)  # Brief delay before retry
+        
         if not user_info:
-            logger.error(f"User {user_id} not found")
+            logger.error(f"User {user_id} not found after retries")
             return False
         
         # Check if automated messages are enabled
-        account_result = get_user_data(user_id, 'account')
-        account_data = account_result.get('account', {})
+        # Retry in case of race conditions
+        account_result = None
+        account_data = {}
+        for attempt in range(3):
+            account_result = get_user_data(user_id, 'account')
+            account_data = account_result.get('account', {})
+            if account_data:
+                break
+            if attempt < 2:
+                time.sleep(0.1)  # Brief delay before retry
+        
         features = account_data.get('features', {})
         automated_messages_enabled = features.get('automated_messages', 'disabled') == 'enabled'
+        
         # Get user's categories
-        prefs_result = get_user_data(user_id, 'preferences')
-        categories = prefs_result.get('preferences', {}).get('categories', [])
+        # Retry in case of race conditions
+        prefs_result = None
+        categories = []
+        for attempt in range(3):
+            prefs_result = get_user_data(user_id, 'preferences')
+            categories = prefs_result.get('preferences', {}).get('categories', [])
+            if categories or attempt == 2:  # Accept empty categories on last attempt
+                break
+            if attempt < 2:
+                time.sleep(0.1)  # Brief delay before retry
         if not categories:
             if automated_messages_enabled:
                 logger.warning(f"No categories found for user {user_id} (automated messages enabled)")
@@ -153,39 +180,46 @@ class UserDataManager:
             logger.error(f"Invalid include_messages: {include_messages}")
             return ""
         """Create a complete backup of user's data"""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_filename = f"user_backup_{user_id}_{timestamp}.zip"
-        backup_path = str(Path(self.backup_dir) / backup_filename)
-        
-        with zipfile.ZipFile(backup_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-            # Backup user directory (profile, preferences, schedules, etc.)
-            user_dir = Path(get_user_data_dir(user_id))
-            if user_dir.exists():
-                for file_path in user_dir.rglob('*'):
-                    if file_path.is_file():
-                        arcname = os.path.relpath(str(file_path), BASE_DATA_DIR)
-                        zipf.write(str(file_path), arcname)
+        try:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_filename = f"user_backup_{user_id}_{timestamp}.zip"
+            backup_path = str(Path(self.backup_dir) / backup_filename)
             
-            # Backup message files if requested
-            if include_messages:
-                message_files = self.get_user_message_files(user_id)
-                for category, file_path in message_files.items():
-                    if os.path.exists(file_path):
-                        arcname = os.path.relpath(file_path, BASE_DATA_DIR)
-                        zipf.write(file_path, arcname)
+            # Ensure backup directory exists
+            Path(self.backup_dir).mkdir(parents=True, exist_ok=True)
             
-            # Add metadata
-            metadata = {
-                "user_id": user_id,
-                "backup_date": datetime.now().isoformat(),
-                "backup_type": "complete",
-                "includes_messages": include_messages,
-                "files_backed_up": zipf.namelist()
-            }
-            zipf.writestr("backup_metadata.json", json.dumps(metadata, indent=2))
-        
-        logger.info(f"User backup created: {backup_path}")
-        return backup_path
+            with zipfile.ZipFile(backup_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                # Backup user directory (profile, preferences, schedules, etc.)
+                user_dir = Path(get_user_data_dir(user_id))
+                if user_dir.exists():
+                    for file_path in user_dir.rglob('*'):
+                        if file_path.is_file():
+                            arcname = os.path.relpath(str(file_path), BASE_DATA_DIR)
+                            zipf.write(str(file_path), arcname)
+                
+                # Backup message files if requested
+                if include_messages:
+                    message_files = self.get_user_message_files(user_id)
+                    for category, file_path in message_files.items():
+                        if os.path.exists(file_path):
+                            arcname = os.path.relpath(file_path, BASE_DATA_DIR)
+                            zipf.write(file_path, arcname)
+                
+                # Add metadata
+                metadata = {
+                    "user_id": user_id,
+                    "backup_date": datetime.now().isoformat(),
+                    "backup_type": "complete",
+                    "includes_messages": include_messages,
+                    "files_backed_up": zipf.namelist()
+                }
+                zipf.writestr("backup_metadata.json", json.dumps(metadata, indent=2))
+            
+            logger.info(f"User backup created: {backup_path}")
+            return backup_path
+        except Exception as e:
+            logger.error(f"Error creating backup for user {user_id}: {e}")
+            return ""
     
     @handle_errors("exporting user data", default_return={})
     def export_user_data(self, user_id: str, export_format: str = "json") -> Dict[str, Any]:
@@ -645,12 +679,25 @@ class UserDataManager:
             bool: True if index was updated successfully
         """
         try:
-            # Load existing index
-            index_data = load_json_data(self.index_file) or {"last_updated": None}
+            # Use file locking for user_index.json to prevent race conditions in parallel execution
+            from core.file_locking import safe_json_read, safe_json_write
+            
+            # Load existing index with file locking
+            index_data = safe_json_read(self.index_file, default={"last_updated": None})
             
             # Get user account for identifiers
-            user_data_result = get_user_data(user_id, 'account')
-            user_account = user_data_result.get('account') or {}
+            # Retry in case of race conditions in parallel execution
+            user_data_result = None
+            user_account = {}
+            max_retries = 3
+            for attempt in range(max_retries):
+                user_data_result = get_user_data(user_id, 'account')
+                user_account = user_data_result.get('account') or {}
+                if user_account and user_account.get('internal_username'):
+                    break
+                if attempt < max_retries - 1:
+                    import time
+                    time.sleep(0.1)  # Brief delay before retry
             
             # Get identifiers for fast lookups
             internal_username = user_account.get('internal_username', '')
@@ -659,7 +706,7 @@ class UserDataManager:
             phone = user_account.get('phone', '')
             
             if not internal_username:
-                logger.warning(f"No internal_username found for user {user_id}")
+                logger.warning(f"No internal_username found for user {user_id} after {max_retries} attempts")
                 return False
             
             # Update flat lookup mappings for fast O(1) user ID resolution
@@ -679,10 +726,13 @@ class UserDataManager:
             # Add metadata
             index_data["last_updated"] = datetime.now().isoformat()
             
-            # Save updated index
-            save_json_data(index_data, self.index_file)
-            logger.debug(f"Updated user index for user {user_id} (internal_username: {internal_username})")
-            return True
+            # Save updated index with file locking
+            if safe_json_write(self.index_file, index_data, indent=4):
+                logger.debug(f"Updated user index for user {user_id} (internal_username: {internal_username})")
+                return True
+            else:
+                logger.error(f"Failed to save user index for user {user_id}")
+                return False
         except Exception as e:
             logger.error(f"Error updating user index for user {user_id}: {e}")
             return False
@@ -715,7 +765,11 @@ class UserDataManager:
             bool: True if user was removed from index successfully
         """
         try:
-            index_data = load_json_data(self.index_file) or {"last_updated": None}
+            # Use file locking for user_index.json to prevent race conditions in parallel execution
+            from core.file_locking import safe_json_read, safe_json_write
+            
+            # Load existing index with file locking
+            index_data = safe_json_read(self.index_file, default={"last_updated": None})
             
             # Get the user info from account.json to find all identifier mappings
             user_data_result = get_user_data(user_id, 'account')
@@ -741,7 +795,11 @@ class UserDataManager:
             
             # Update metadata
             index_data["last_updated"] = datetime.now().isoformat()
-            save_json_data(index_data, self.index_file)
+            
+            # Save updated index with file locking
+            if not safe_json_write(self.index_file, index_data, indent=4):
+                logger.error(f"Failed to save user index after removing user {user_id}")
+                return False
             
             logger.info(f"Removed user {user_id} (internal_username: {internal_username}) from index")
             return True
@@ -778,6 +836,9 @@ class UserDataManager:
                 logger.warning("No users found during index rebuild")
                 return True
 
+            # Use file locking for user_index.json to prevent race conditions in parallel execution
+            from core.file_locking import safe_json_write
+            
             # Initialize flat lookup structure
             index_data = {
                 "last_updated": datetime.now().isoformat()
@@ -810,7 +871,11 @@ class UserDataManager:
                     if phone:
                         index_data[f"phone:{phone}"] = user_id
             
-            save_json_data(index_data, self.index_file)
+            # Save rebuilt index with file locking
+            if not safe_json_write(self.index_file, index_data, indent=4):
+                logger.error("Failed to save rebuilt user index")
+                return False
+                
             user_count = len([uid for uid in user_ids if uid])
             logger.info(f"Rebuilt user index with {user_count} users")
             return True

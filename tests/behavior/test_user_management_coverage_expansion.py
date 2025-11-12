@@ -1033,19 +1033,22 @@ class TestUserDataManagerCoverageExpansion:
     def test_update_user_index_real_behavior(self, user_data_manager, test_path_factory):
         """Test updating user index."""
         # Mock get_all_user_ids to return test users
+        # Note: update_user_index now uses safe_json_write from file_locking.py
         with patch('core.user_data_manager.get_all_user_ids', return_value=[self.user_id, "user2"]), \
         patch('core.user_data_manager.get_user_data_summary') as mock_summary, \
-        patch('core.user_data_manager.save_json_data') as mock_save:
-            
+        patch('core.file_locking.safe_json_write') as mock_save:
+
             mock_summary.return_value = {
                 "user_id": self.user_id,
                 "summary_timestamp": "2024-01-01T00:00:00Z",
                 "data_types": ["messages"],
                 "counts": {"messages": 2}
             }
-            
+            # Mock safe_json_write to return True (success)
+            mock_save.return_value = True
+
             result = user_data_manager.update_user_index(self.user_id)
-            
+
             # Verify function was called
             assert result is True
             mock_save.assert_called_once()

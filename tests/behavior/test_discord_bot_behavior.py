@@ -400,8 +400,27 @@ class TestDiscordBotBehavior:
 
         ok = TestUserFactory.create_basic_user("task_user", enable_tasks=True, test_data_dir=test_data_dir)
         assert ok
-        internal_uid = get_user_id_by_identifier("task_user")
-        assert internal_uid
+        
+        # Ensure user index is updated (race condition fix)
+        from core.user_data_manager import rebuild_user_index
+        rebuild_user_index()
+        
+        # Retry to get user ID with delays
+        import time
+        internal_uid = None
+        for attempt in range(5):
+            internal_uid = get_user_id_by_identifier("task_user")
+            if internal_uid:
+                break
+            if attempt < 4:
+                time.sleep(0.1)
+        
+        # Fallback to TestUserFactory lookup
+        if not internal_uid:
+            from tests.test_utilities import TestUserFactory as TUF
+            internal_uid = TUF.get_test_user_id_by_internal_username("task_user", test_data_dir)
+        
+        assert internal_uid, f"Should be able to get UUID for user 'task_user'"
 
         from communication.message_processing.interaction_manager import handle_user_message
         # Our parser extracts title only; due date may be ignored in this path in tests – assert creation by title

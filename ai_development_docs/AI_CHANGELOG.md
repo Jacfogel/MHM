@@ -31,6 +31,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-12 - Parallel Test Execution Stability: File Locking and Race Condition Fixes **COMPLETED**
+- **File Locking System**: Created `core/file_locking.py` with Windows-compatible lock files and Unix fcntl support - thread-safe and process-safe JSON operations for `user_index.json` and other shared files
+- **Race Condition Fixes**: Updated all `user_index.json` access points (user_data_manager, user_management, test_utilities) to use `safe_json_read`/`safe_json_write` - eliminates corruption and race conditions in parallel execution
+- **Test Stability**: Fixed 7+ flaky tests with UUID resolution retry logic, directory existence checks, and improved error handling - all 2,828 tests now pass consistently in parallel mode
+- **Code Quality**: Removed print() statements from tests (replaced with logging), fixed indentation errors, improved backup manager validation
+- **Impact**: Parallel test execution now reliable - 6 workers with `-n auto` consistently passes all tests, significantly faster test runs while maintaining stability
+- **Files**: core/file_locking.py (NEW), core/user_data_manager.py, core/user_management.py, tests/test_utilities.py, tests/conftest.py, 10+ test files with retry logic improvements
+
 ### 2025-11-11 - Audit System Performance Optimization and Test Suite Logging Improvements **COMPLETED**
 - **Audit Performance**: Optimized unused imports checker with parallelization (multiprocessing) and caching (file mtime) - reduced full audit from 18-20 minutes to under 10 minutes (target achieved)
 - **Coverage Regeneration**: Enabled pytest-xdist parallel execution with auto workers and loadscope distribution - significantly faster test suite execution for coverage

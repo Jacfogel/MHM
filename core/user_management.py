@@ -809,11 +809,12 @@ def _get_user_id_by_identifier__by_internal_username(internal_username: str) -> 
     
     # Try fast lookup from user index first
     try:
-        from core.user_data_manager import load_json_data
         from core.config import BASE_DATA_DIR
         
+        # Use file locking for user_index.json to prevent race conditions in parallel execution
+        from core.file_locking import safe_json_read
         index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
-        index_data = load_json_data(index_file) or {}
+        index_data = safe_json_read(index_file, default={})
         
         # Check mapping (fast O(1) lookup)
         if internal_username in index_data:
@@ -842,11 +843,12 @@ def _get_user_id_by_identifier__by_email(email: str) -> Optional[str]:
     
     # Try fast lookup from user index first
     try:
-        from core.user_data_manager import load_json_data
         from core.config import BASE_DATA_DIR
         
+        # Use file locking for user_index.json to prevent race conditions in parallel execution
+        from core.file_locking import safe_json_read
         index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
-        index_data = load_json_data(index_file) or {}
+        index_data = safe_json_read(index_file, default={})
         
         # Check email mapping (fast O(1) lookup)
         email_key = f"email:{email}"
@@ -876,11 +878,12 @@ def _get_user_id_by_identifier__by_phone(phone: str) -> Optional[str]:
     
     # Try fast lookup from user index first
     try:
-        from core.user_data_manager import load_json_data
         from core.config import BASE_DATA_DIR
         
+        # Use file locking for user_index.json to prevent race conditions in parallel execution
+        from core.file_locking import safe_json_read
         index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
-        index_data = load_json_data(index_file) or {}
+        index_data = safe_json_read(index_file, default={})
         
         # Check phone mapping (fast O(1) lookup)
         phone_key = f"phone:{phone}"
@@ -926,11 +929,12 @@ def _get_user_id_by_identifier__by_discord_user_id(discord_user_id: str) -> Opti
     
     # Try fast lookup from user index first
     try:
-        from core.user_data_manager import load_json_data
         from core.config import BASE_DATA_DIR
         
+        # Use file locking for user_index.json to prevent race conditions in parallel execution
+        from core.file_locking import safe_json_read
         index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
-        index_data = load_json_data(index_file) or {}
+        index_data = safe_json_read(index_file, default={})
         
         # Check discord mapping (fast O(1) lookup)
         discord_key = f"discord:{discord_user_id}"
@@ -1322,11 +1326,12 @@ def get_user_id_by_identifier(identifier: str) -> Optional[str]:
     
     # Try fast lookup from user index first
     try:
-        from core.user_data_manager import load_json_data
         from core.config import BASE_DATA_DIR
         
+        # Use file locking for user_index.json to prevent race conditions in parallel execution
+        from core.file_locking import safe_json_read
         index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
-        index_data = load_json_data(index_file) or {}
+        index_data = safe_json_read(index_file, default={})
         
         # Check all possible mappings in order of likelihood
         # 1. Direct internal_username mapping (most common)

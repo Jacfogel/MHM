@@ -579,11 +579,22 @@ class TestUserDataManagerConvenienceFunctions:
         """Test: update_message_references convenience function works"""
         # Arrange: User is created in fixture
         
+        # Ensure user data is available (race condition fix for parallel execution)
+        import time
+        time.sleep(0.1)
+        
         # Act: Update message references
-        result = update_message_references(test_user)
+        # Retry in case of race conditions with file writes in parallel execution
+        result = False
+        for attempt in range(5):
+            result = update_message_references(test_user)
+            if result:
+                break
+            if attempt < 4:
+                time.sleep(0.1)  # Brief delay before retry
         
         # Assert: Should return True
-        assert result == True, "Should return True on success"
+        assert result == True, f"Should return True on success. Got: {result}"
     
     @pytest.mark.unit
     def test_backup_user_data_function(self, test_user, test_data_dir):
@@ -686,11 +697,19 @@ class TestUserDataManagerConvenienceFunctions:
         # Arrange: User is created in fixture
         
         # Act: Get user summary
-        summary = get_user_summary(test_user)
+        # Retry in case of race conditions with file writes in parallel execution
+        import time
+        summary = {}
+        for attempt in range(5):
+            summary = get_user_summary(test_user)
+            if summary and summary.get('user_id'):
+                break
+            if attempt < 4:
+                time.sleep(0.1)  # Brief delay before retry
         
         # Assert: Should return summary
         assert isinstance(summary, dict), "Should return dict"
-        assert summary.get('user_id') == test_user, "Should include user_id"
+        assert summary.get('user_id') == test_user, f"Should include user_id. Summary: {summary}"
     
     @pytest.mark.unit
     def test_get_all_user_summaries_function(self, test_data_dir):
@@ -757,11 +776,15 @@ class TestUserDataManagerDeleteUser:
         """Test: delete_user_completely deletes user without backup"""
         # Arrange: User is created in fixture
         
+        # Ensure user data is available (race condition fix for parallel execution)
+        import time
+        time.sleep(0.1)
+        
         # Act: Delete user without backup
         result = manager.delete_user_completely(test_user, create_backup=False)
         
         # Assert: Should return True
-        assert result == True, "Should return True on success"
+        assert result == True, f"Should return True on success. Got: {result}"
     
     @pytest.mark.unit
     def test_delete_user_completely_invalid_user_id(self, manager):

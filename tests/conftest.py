@@ -1293,6 +1293,27 @@ def materialize_user_minimal_via_public_apis(user_id: str) -> dict:
         update_user_preferences,
         update_user_schedules,
     )
+    from core.user_management import get_user_id_by_identifier
+    from core.config import get_user_data_dir
+    import os
+    
+    # Resolve UUID if user_id is an internal username (race condition fix)
+    # get_user_data_dir uses user_id directly, so we need to resolve UUIDs first
+    resolved_user_id = user_id
+    if not os.path.exists(get_user_data_dir(user_id)):
+        # Try to resolve UUID from internal username
+        from tests.test_utilities import TestUserFactory as TUF
+        uuid_resolved = get_user_id_by_identifier(user_id) or TUF.get_test_user_id_by_internal_username(user_id, os.getenv('TEST_DATA_DIR', 'tests/data'))
+        if uuid_resolved and uuid_resolved != user_id:
+            resolved_user_id = uuid_resolved
+            # Verify resolved UUID directory exists
+            if os.path.exists(get_user_data_dir(resolved_user_id)):
+                user_id = resolved_user_id
+    
+    # Ensure user directory exists before proceeding (race condition fix)
+    user_dir = get_user_data_dir(user_id)
+    if not os.path.exists(user_dir):
+        os.makedirs(user_dir, exist_ok=True)
 
     # Load current state
     current_all = get_user_data(user_id, 'all') or {}
@@ -1318,12 +1339,14 @@ def materialize_user_minimal_via_public_apis(user_id: str) -> dict:
     update_user_account(user_id, account_updates)
 
     # Preferences: add missing keys only
+    # Always ensure preferences exist (even if empty) to prevent get_user_data returning empty dict
     prefs_updates = {}
     if not current_prefs.get('categories'):
         prefs_updates['categories'] = ['motivational']
     if not current_prefs.get('channel'):
         prefs_updates['channel'] = {"type": "discord", "contact": "test#1234"}
-    if prefs_updates:
+    # Always update preferences to ensure file exists (race condition fix)
+    if prefs_updates or not current_prefs:
         update_user_preferences(user_id, prefs_updates)
 
     # Schedules: ensure motivational.morning exists; merge into existing
@@ -1841,6 +1864,8 @@ def mock_user_data(mock_config, test_data_dir, request):
     # Generate unique user ID for each test to prevent interference
     user_id = f"test-user-{uuid.uuid4().hex[:8]}"
     user_dir = os.path.join(test_data_dir, "users", user_id)
+    # Ensure parent directory exists first (race condition fix for parallel execution)
+    os.makedirs(os.path.dirname(user_dir), exist_ok=True)
     os.makedirs(user_dir, exist_ok=True)
     
     test_logger.debug(f"Creating mock user data for user: {user_id}")
@@ -1961,11 +1986,23 @@ def mock_user_data(mock_config, test_data_dir, request):
         json.dump(schedules_data, f, indent=2)
     
     # Ensure user is discoverable via identifier lookups
+    # Use file locking-aware update and retry if needed
     try:
         from core.user_data_manager import update_user_index
-        update_user_index(user_id)
-    except Exception:
-        pass
+        # Retry update_user_index in case of race conditions in parallel execution
+        max_retries = 3
+        for attempt in range(max_retries):
+            success = update_user_index(user_id)
+            if success:
+                break
+            if attempt < max_retries - 1:
+                import time
+                time.sleep(0.1)  # Brief delay before retry
+        if not success:
+            test_logger.warning(f"Failed to update user index for {user_id} after {max_retries} attempts")
+    except Exception as e:
+        test_logger.warning(f"Error updating user index for {user_id}: {e}")
+        # Don't fail the test, but log the issue
     
     test_logger.debug(f"Created complete mock user data files in: {user_dir}")
     

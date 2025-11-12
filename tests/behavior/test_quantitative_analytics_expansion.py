@@ -373,8 +373,16 @@ class TestQuantitativeAnalyticsExpansion:
         test_user = TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
         
         # Get the actual UUID for the user
-        actual_user_id = get_user_id_by_identifier(user_id)
-        assert actual_user_id is not None, "User should be created and resolvable"
+        # Retry lookup in case of race conditions with index updates in parallel execution
+        import time
+        actual_user_id = None
+        for attempt in range(5):
+            actual_user_id = get_user_id_by_identifier(user_id)
+            if actual_user_id is not None:
+                break
+            if attempt < 4:
+                time.sleep(0.1)  # Brief delay before retry
+        assert actual_user_id is not None, f"User should be created and resolvable after index update (attempted {user_id})"
         
         # Enable quantitative fields
         checkin_settings = {

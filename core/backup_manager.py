@@ -146,7 +146,12 @@ class BackupManager:
             # Create the backup zip file
             self._create_backup__create_zip_file(backup_path, backup_name, include_users, include_config, include_logs)
             
-            # Clean up old backups
+            # Verify backup file was actually created before proceeding
+            if not os.path.exists(backup_path):
+                logger.error(f"Backup file was not created at {backup_path}")
+                return None
+            
+            # Clean up old backups (only after verifying new backup exists)
             self._create_backup__cleanup_old_backups()
             
             logger.info(f"Backup created successfully: {backup_path}")
@@ -164,11 +169,16 @@ class BackupManager:
             logger.warning(f"User data directory does not exist: {core.config.USER_INFO_DIR_PATH}")
             return
         
+        user_count = 0
         for user_dir in user_info_path.iterdir():
             if user_dir.is_dir():
-                self._add_directory_to_zip(zipf, str(user_dir), f"users/{user_dir.name}")
+                try:
+                    self._add_directory_to_zip(zipf, str(user_dir), f"users/{user_dir.name}")
+                    user_count += 1
+                except Exception as e:
+                    logger.warning(f"Failed to backup user directory {user_dir.name}: {e}")
         
-        logger.debug("User data backed up successfully")
+        logger.debug(f"User data backed up successfully ({user_count} users)")
     
     @handle_errors("backing up config files")
     def _backup_config_files(self, zipf: zipfile.ZipFile) -> None:
@@ -249,17 +259,30 @@ class BackupManager:
     def _cleanup_old_backups(self) -> None:
         """Remove old backups by count and age retention policy."""
         try:
+            # Ensure backup directory exists before iterating (race condition fix)
+            if not os.path.exists(self.backup_dir):
+                return
+            
             # Gather .zip backups with mtime
             backup_files: list[tuple[str, float]] = []
             now_ts = time.time()
             backup_dir_path = Path(self.backup_dir)
-            for file_path in backup_dir_path.iterdir():
-                if file_path.is_file() and file_path.suffix == '.zip':
-                    try:
-                        mtime = file_path.stat().st_mtime
-                        backup_files.append((str(file_path), mtime))
-                    except Exception:
-                        continue
+            
+            # Re-check directory exists (parallel tests may delete it)
+            if not backup_dir_path.exists():
+                return
+                
+            try:
+                for file_path in backup_dir_path.iterdir():
+                    if file_path.is_file() and file_path.suffix == '.zip':
+                        try:
+                            mtime = file_path.stat().st_mtime
+                            backup_files.append((str(file_path), mtime))
+                        except Exception:
+                            continue
+            except Exception:
+                # Directory might have been deleted by another process
+                return
 
             if not backup_files:
                 return
@@ -269,9 +292,11 @@ class BackupManager:
             for file_path, mtime in list(backup_files):
                 if mtime < age_cutoff:
                     try:
-                        os.remove(file_path)
-                        logger.debug(f"Removed backup by age (> {self.backup_retention_days}d): {file_path}")
-                        backup_files.remove((file_path, mtime))
+                        # Re-check file exists before deleting (race condition fix)
+                        if os.path.exists(file_path):
+                            os.remove(file_path)
+                            logger.debug(f"Removed backup by age (> {self.backup_retention_days}d): {file_path}")
+                            backup_files.remove((file_path, mtime))
                     except Exception as e:
                         logger.warning(f"Failed to remove old backup {file_path}: {e}")
 
@@ -279,8 +304,10 @@ class BackupManager:
             backup_files.sort(key=lambda x: x[1], reverse=True)
             for file_path, _ in backup_files[self.max_backups:]:
                 try:
-                    os.remove(file_path)
-                    logger.debug(f"Removed backup by count (>{self.max_backups}): {file_path}")
+                    # Re-check file exists before deleting (race condition fix)
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                        logger.debug(f"Removed backup by count (>{self.max_backups}): {file_path}")
                 except Exception as e:
                     logger.warning(f"Failed to remove old backup {file_path}: {e}")
         except Exception as e:
@@ -291,14 +318,24 @@ class BackupManager:
         """List all available backups with metadata."""
         backups = []
         
+        # Ensure backup directory exists
         backup_dir_path = Path(self.backup_dir)
-        for file_path in backup_dir_path.iterdir():
-            if file_path.is_file() and file_path.suffix == '.zip':
-                try:
-                    backup_info = self._get_backup_info(str(file_path))
-                    backups.append(backup_info)
-                except Exception as e:
-                    logger.warning(f"Failed to get info for backup {file_path.name}: {e}")
+        if not backup_dir_path.exists():
+            logger.warning(f"Backup directory does not exist: {self.backup_dir}")
+            return backups
+        
+        try:
+            for file_path in backup_dir_path.iterdir():
+                if file_path.is_file() and file_path.suffix == '.zip':
+                    try:
+                        backup_info = self._get_backup_info(str(file_path))
+                        # Only include backups with valid info (non-empty dict)
+                        if backup_info:
+                            backups.append(backup_info)
+                    except Exception as e:
+                        logger.warning(f"Failed to get info for backup {file_path.name}: {e}")
+        except Exception as e:
+            logger.error(f"Error listing backups from {self.backup_dir}: {e}")
         
         # Sort by creation time (newest first)
         backups.sort(key=lambda x: x.get('created_at', ''), reverse=True)
@@ -387,41 +424,73 @@ class BackupManager:
             with zipfile.ZipFile(backup_path, 'r') as zipf:
                 # Restore user data
                 if restore_users:
-                    self._restore_user_data(zipf)
+                    try:
+                        self._restore_user_data(zipf)
+                    except Exception as e:
+                        logger.error(f"Failed to restore user data: {e}")
+                        raise
                 
                 # Restore configuration
                 if restore_config:
-                    self._restore_config_files(zipf)
+                    try:
+                        self._restore_config_files(zipf)
+                    except Exception as e:
+                        logger.error(f"Failed to restore config files: {e}")
+                        raise
                 
                 logger.info(f"Backup restored successfully from: {backup_path}")
                 return True
                 
         except Exception as e:
             logger.error(f"Failed to restore backup: {e}")
+            import traceback
+            logger.error(f"Restore traceback: {traceback.format_exc()}")
             return False
     
     @handle_errors("restoring user data")
     def _restore_user_data(self, zipf: zipfile.ZipFile) -> None:
         """Restore user data from backup."""
+        # Ensure base directory exists
+        base_dir = Path(core.config.BASE_DATA_DIR)
+        base_dir.mkdir(parents=True, exist_ok=True)
+        
         # Clear existing user data
-        if os.path.exists(core.config.USER_INFO_DIR_PATH):
-            shutil.rmtree(core.config.USER_INFO_DIR_PATH)
+        user_info_path = Path(core.config.USER_INFO_DIR_PATH)
+        if user_info_path.exists():
+            try:
+                shutil.rmtree(user_info_path)
+            except Exception as e:
+                logger.warning(f"Failed to remove existing user data directory: {e}")
         
         # Extract user data from backup
+        extracted_count = 0
         for file_info in zipf.infolist():
             if file_info.filename.startswith('users/'):
-                zipf.extract(file_info, core.config.BASE_DATA_DIR)
+                try:
+                    zipf.extract(file_info, base_dir)
+                    extracted_count += 1
+                except Exception as e:
+                    logger.warning(f"Failed to extract {file_info.filename}: {e}")
         
-        logger.info("User data restored successfully")
+        logger.info(f"User data restored successfully ({extracted_count} files extracted)")
     
     @handle_errors("restoring config files")
     def _restore_config_files(self, zipf: zipfile.ZipFile) -> None:
         """Restore configuration files from backup."""
+        # Ensure base directory exists
+        base_dir = Path(core.config.BASE_DATA_DIR)
+        base_dir.mkdir(parents=True, exist_ok=True)
+        
+        extracted_count = 0
         for file_info in zipf.infolist():
             if file_info.filename.startswith('config/'):
-                zipf.extract(file_info, core.config.BASE_DATA_DIR)
+                try:
+                    zipf.extract(file_info, base_dir)
+                    extracted_count += 1
+                except Exception as e:
+                    logger.warning(f"Failed to extract {file_info.filename}: {e}")
         
-        logger.info("Configuration files restored successfully")
+        logger.info(f"Configuration files restored successfully ({extracted_count} files extracted)")
     
     @handle_errors("checking backup file exists", default_return=False)
     def _validate_backup__check_file_exists(self, backup_path: str, errors: List[str]) -> bool:
@@ -485,9 +554,19 @@ class BackupManager:
     def _validate_backup__validate_content_requirements(self, zipf: zipfile.ZipFile, errors: List[str]) -> None:
         """Validate that backup contains required content."""
         # Check for required user data
+        # Note: Backups can be created without users (e.g., config-only backups)
+        # Only warn if manifest indicates users should be included but none are found
         user_files = [f for f in zipf.namelist() if f.startswith('users/')]
-        if not user_files:
-            errors.append("Backup contains no user data")
+        try:
+            manifest_data = zipf.read('manifest.json')
+            import json
+            manifest = json.loads(manifest_data)
+            if manifest.get('includes', {}).get('users', False) and not user_files:
+                errors.append("Backup manifest indicates users should be included but no user data found")
+        except Exception:
+            # If manifest can't be read or parsed, skip this check
+            # The manifest validation will catch manifest issues separately
+            pass
     
     @handle_errors("validating backup", default_return=(False, ["Validation failed"]))
     def validate_backup(self, backup_path: str) -> Tuple[bool, List[str]]:
