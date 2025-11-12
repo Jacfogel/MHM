@@ -103,8 +103,8 @@ def main():
     parser.add_argument(
         "--workers", 
         type=str, 
-        default="2",
-        help="Number of parallel workers (default: 2, or 'auto' to let pytest-xdist decide, or specify a number)"
+        default="auto",
+        help="Number of parallel workers (default: auto to let pytest-xdist decide, or specify a number like 2, 4, etc.)"
     )
     parser.add_argument(
         "--verbose", 

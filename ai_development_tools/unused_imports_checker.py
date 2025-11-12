@@ -16,10 +16,12 @@ import sys
 import subprocess
 import argparse
 import json
+import multiprocessing
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 from collections import defaultdict
 from datetime import datetime
+from functools import partial
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent
@@ -37,11 +39,57 @@ except ImportError:
 logger = get_component_logger("ai_development_tools")
 
 
+def _process_file_worker(args: Tuple[Path, str]) -> Tuple[Path, Optional[List[Dict]]]:
+    """Worker function for parallel file processing."""
+    file_path, project_root_str = args
+    project_root = Path(project_root_str)
+    
+    try:
+        # Run pylint with only unused-import enabled, JSON output
+        cmd = [
+            sys.executable, '-m', 'pylint',
+            '--disable=all',
+            '--enable=unused-import',
+            '--output-format=json',
+            str(file_path)
+        ]
+        
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=30,
+            cwd=project_root_str
+        )
+        
+        # Pylint returns non-zero if it finds issues, which is what we want
+        if result.stdout:
+            try:
+                issues = json.loads(result.stdout)
+                return (file_path, issues)
+            except json.JSONDecodeError:
+                return (file_path, None)
+        
+        return (file_path, [])
+        
+    except subprocess.TimeoutExpired:
+        return (file_path, None)
+    except Exception as e:
+        return (file_path, None)
+
+
 class UnusedImportsChecker:
     """Detects and categorizes unused imports in Python files."""
     
-    def __init__(self, project_root: str = "."):
+    def __init__(self, project_root: str = ".", max_workers: Optional[int] = None, use_cache: bool = True, verbose: bool = False):
         self.project_root = Path(project_root).resolve()
+        
+        # Parallelization settings
+        self.max_workers = max_workers or min(multiprocessing.cpu_count(), 8)  # Cap at 8 to avoid overload
+        self.use_cache = use_cache
+        self.verbose = verbose
+        self.cache_file = self.project_root / "ai_development_tools" / ".unused_imports_cache.json"
+        self.cache_data: Dict[str, Dict] = {}
         
         # Files to skip entirely
         # Import constants from services
@@ -73,7 +121,13 @@ class UnusedImportsChecker:
             'files_scanned': 0,
             'files_with_issues': 0,
             'total_unused': 0,
+            'cache_hits': 0,
+            'cache_misses': 0,
         }
+        
+        # Load cache if enabled
+        if self.use_cache:
+            self._load_cache()
     
     def should_scan_file(self, file_path: Path) -> bool:
         """Determine if a file should be scanned."""
@@ -113,8 +167,95 @@ class UnusedImportsChecker:
         
         return sorted(python_files)
     
+    def _load_cache(self) -> None:
+        """Load cache from disk if it exists."""
+        if self.cache_file.exists():
+            try:
+                with open(self.cache_file, 'r', encoding='utf-8') as f:
+                    self.cache_data = json.load(f)
+                if logger:
+                    logger.debug(f"Loaded cache with {len(self.cache_data)} entries")
+            except Exception as e:
+                if logger:
+                    logger.warning(f"Failed to load cache: {e}")
+                self.cache_data = {}
+    
+    def _save_cache(self) -> None:
+        """Save cache to disk."""
+        if not self.use_cache:
+            return
+        
+        try:
+            self.cache_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.cache_file, 'w', encoding='utf-8') as f:
+                json.dump(self.cache_data, f, indent=2)
+            if logger:
+                logger.debug(f"Saved cache with {len(self.cache_data)} entries")
+        except Exception as e:
+            if logger:
+                logger.warning(f"Failed to save cache: {e}")
+    
+    def _get_file_cache_key(self, file_path: Path) -> str:
+        """Generate cache key for a file."""
+        try:
+            rel_path = file_path.relative_to(self.project_root)
+            return str(rel_path).replace('\\', '/')
+        except ValueError:
+            return str(file_path)
+    
+    def _is_file_cached(self, file_path: Path) -> bool:
+        """Check if file results are cached and still valid."""
+        if not self.use_cache:
+            return False
+        
+        cache_key = self._get_file_cache_key(file_path)
+        if cache_key not in self.cache_data:
+            return False
+        
+        cached_mtime = self.cache_data[cache_key].get('mtime')
+        if cached_mtime is None:
+            return False
+        
+        try:
+            current_mtime = file_path.stat().st_mtime
+            return current_mtime == cached_mtime
+        except OSError:
+            return False
+    
+    def _get_cached_results(self, file_path: Path) -> Optional[List[Dict]]:
+        """Get cached results for a file."""
+        if not self._is_file_cached(file_path):
+            return None
+        
+        cache_key = self._get_file_cache_key(file_path)
+        cached_issues = self.cache_data[cache_key].get('issues', [])
+        self.stats['cache_hits'] += 1
+        return cached_issues if cached_issues else []
+    
+    def _cache_results(self, file_path: Path, issues: Optional[List[Dict]]) -> None:
+        """Cache results for a file."""
+        if not self.use_cache:
+            return
+        
+        try:
+            cache_key = self._get_file_cache_key(file_path)
+            mtime = file_path.stat().st_mtime
+            self.cache_data[cache_key] = {
+                'mtime': mtime,
+                'issues': issues if issues else []
+            }
+        except OSError:
+            pass
+    
     def run_pylint_on_file(self, file_path: Path) -> Optional[List[Dict]]:
         """Run pylint on a single file to detect unused imports."""
+        # Check cache first
+        cached = self._get_cached_results(file_path)
+        if cached is not None:
+            return cached
+        
+        self.stats['cache_misses'] += 1
+        
         try:
             # Run pylint with only unused-import enabled, JSON output
             cmd = [
@@ -134,16 +275,20 @@ class UnusedImportsChecker:
             )
             
             # Pylint returns non-zero if it finds issues, which is what we want
+            issues = None
             if result.stdout:
                 try:
                     issues = json.loads(result.stdout)
-                    return issues
                 except json.JSONDecodeError:
                     if logger:
                         logger.warning(f"Could not parse pylint output for {file_path}")
                     return None
+            else:
+                issues = []
             
-            return []
+            # Cache results
+            self._cache_results(file_path, issues)
+            return issues
             
         except subprocess.TimeoutExpired:
             if logger:
@@ -165,8 +310,6 @@ class UnusedImportsChecker:
         # Extract import name from the message
         message = issue.get('message', '')
         import_name = self._extract_import_name_from_message(message)
-        
-        # Debug output removed for cleaner operation
         
         # Check if it's in an __init__.py file
         if file_path.name == '__init__.py':
@@ -309,12 +452,14 @@ class UnusedImportsChecker:
         if import_name in mock_imports:
             # Check if used in @patch decorators or patch.object calls
             if '@patch' in file_content or 'patch.object' in file_content or 'with patch' in file_content:
-                print(f"DEBUG: Test mocking pattern found for {import_name} in {file_path_str}")
+                if self.verbose:
+                    print(f"DEBUG: Test mocking pattern found for {import_name} in {file_path_str}")
                 return True
             
             # For test files, assume mock imports are needed even without explicit usage
             # as they might be used in ways not easily detected by static analysis
-            print(f"DEBUG: Test mocking import assumed needed for {import_name} in {file_path_str}")
+            if self.verbose:
+                print(f"DEBUG: Test mocking import assumed needed for {import_name} in {file_path_str}")
             return True
         
         # Check for production functions that are commonly mocked in tests
@@ -338,12 +483,14 @@ class UnusedImportsChecker:
                 f'patch(',
             ]
             if any(pattern in file_content for pattern in patch_patterns):
-                print(f"DEBUG: Production function mocking pattern found for {import_name} in {file_path_str}")
+                if self.verbose:
+                    print(f"DEBUG: Production function mocking pattern found for {import_name} in {file_path_str}")
                 return True
             
             # For test files, assume production functions are needed for mocking
             # even without explicit @patch decorators
-            print(f"DEBUG: Production function mocking assumed needed for {import_name} in {file_path_str}")
+            if self.verbose:
+                print(f"DEBUG: Production function mocking assumed needed for {import_name} in {file_path_str}")
             return True
         
         return False
@@ -378,7 +525,8 @@ class UnusedImportsChecker:
                 'QApplication(',
             ]
             if any(pattern in file_content for pattern in qt_test_patterns):
-                print(f"DEBUG: Qt testing pattern found for {import_name} in {file_path_str}")
+                if self.verbose:
+                    print(f"DEBUG: Qt testing pattern found for {import_name} in {file_path_str}")
                 return True
         
         return False
@@ -444,13 +592,15 @@ class UnusedImportsChecker:
                 'IsolationManager',
             ]
             if any(pattern in file_content for pattern in test_patterns):
-                print(f"DEBUG: Test infrastructure pattern found for {import_name} in {file_path}")
+                if self.verbose:
+                    print(f"DEBUG: Test infrastructure pattern found for {import_name} in {file_path}")
                 return True
         
         # Check for test factory imports
         test_factory_patterns = ['TestDataFactory', 'TestUserDataFactory', 'TestUserFactory']
         if import_name in test_factory_patterns:
-            print(f"DEBUG: Test factory pattern found for {import_name} in {file_path}")
+            if self.verbose:
+                print(f"DEBUG: Test factory pattern found for {import_name} in {file_path}")
             return True
         
         # Check for UI widget imports in test files
@@ -458,7 +608,8 @@ class UnusedImportsChecker:
                              'CheckinSettingsWidget', 'TaskEditDialog', 'TaskCrudDialog', 'TaskCompletionDialog',
                              'open_schedule_editor']
         if import_name in ui_widget_patterns:
-            print(f"DEBUG: UI widget pattern found for {import_name} in {file_path}")
+            if self.verbose:
+                print(f"DEBUG: UI widget pattern found for {import_name} in {file_path}")
             return True
         
         return False
@@ -484,18 +635,21 @@ class UnusedImportsChecker:
         if import_name in production_mock_imports:
             # Check if there are comments indicating test mocking requirements
             if 'test mocking' in file_content.lower() or 'needed for test' in file_content.lower():
-                print(f"DEBUG: Production test mocking comment found for {import_name} in {file_path}")
+                if self.verbose:
+                    print(f"DEBUG: Production test mocking comment found for {import_name} in {file_path}")
                 return True
             
             # Check if there are test files that might mock this function
             # This is a heuristic - if the function name suggests it's commonly mocked
             if any(keyword in import_name.lower() for keyword in ['get_', 'save_', 'create_', 'update_', 'validate_']):
-                print(f"DEBUG: Production test mocking heuristic found for {import_name} in {file_path}")
+                if self.verbose:
+                    print(f"DEBUG: Production test mocking heuristic found for {import_name} in {file_path}")
                 return True
             
             # Special case for 'os' - check if there's a comment about test mocking
             if import_name == 'os' and ('test mocking' in file_content.lower() or 'needed for test' in file_content.lower()):
-                print(f"DEBUG: Production test mocking os comment found in {file_path}")
+                if self.verbose:
+                    print(f"DEBUG: Production test mocking os comment found in {file_path}")
                 return True
         
         return False
@@ -503,58 +657,112 @@ class UnusedImportsChecker:
     def scan_codebase(self) -> Dict:
         """Scan the entire codebase for unused imports."""
         if logger:
-            logger.info("Starting unused imports scan...")
+            logger.info(f"Starting unused imports scan (workers: {self.max_workers}, cache: {self.use_cache})...")
         
         python_files = self.find_python_files()
         self.stats['files_scanned'] = len(python_files)
         total_files = len(python_files)
         
         print(f"Scanning {total_files} Python files for unused imports...")
+        print(f"Using {self.max_workers} parallel workers, caching: {self.use_cache}")
         print("")  # Blank line before progress
         
-        for idx, file_path in enumerate(python_files, 1):
-            # Print progress every 10 files or on last file
-            if idx % 10 == 0 or idx == total_files:
-                percentage = int((idx / total_files) * 100)
-                print(f"[PROGRESS] Scanning files... {idx}/{total_files} ({percentage}%) - {self.stats['files_with_issues']} files with issues found", flush=True)
+        # Separate files into cached and uncached
+        files_to_scan = []
+        cached_results = {}
+        
+        for file_path in python_files:
+            cached = self._get_cached_results(file_path)
+            if cached is not None:
+                cached_results[file_path] = cached
+            else:
+                files_to_scan.append(file_path)
+        
+        # Process cached files first (fast)
+        for file_path, issues in cached_results.items():
+            if issues:
+                try:
+                    rel_path = file_path.relative_to(self.project_root)
+                    rel_path_str = str(rel_path).replace('\\', '/')
+                except ValueError:
+                    rel_path_str = str(file_path)
+                
+                self.stats['files_with_issues'] += 1
+                
+                for issue in issues:
+                    if issue.get('message-id') == 'W0611':  # unused-import
+                        category = self.categorize_unused_import(file_path, issue)
+                        
+                        self.findings[category].append({
+                            'file': rel_path_str,
+                            'line': issue.get('line', 0),
+                            'column': issue.get('column', 0),
+                            'message': issue.get('message', ''),
+                            'symbol': issue.get('symbol', ''),
+                        })
+                        
+                        self.stats['total_unused'] += 1
+        
+        # Process uncached files in parallel
+        if files_to_scan:
+            print(f"Processing {len(files_to_scan)} files (cached: {len(cached_results)})...")
             
-            try:
-                rel_path = file_path.relative_to(self.project_root)
-                rel_path_str = str(rel_path).replace('\\', '/')
-            except ValueError:
-                rel_path_str = str(file_path)
+            # Prepare arguments for worker function
+            worker_args = [(fp, str(self.project_root)) for fp in files_to_scan]
             
-            # Run pylint on the file
-            issues = self.run_pylint_on_file(file_path)
+            # Use multiprocessing Pool for parallel execution
+            with multiprocessing.Pool(processes=self.max_workers) as pool:
+                results = pool.map(_process_file_worker, worker_args)
             
-            if issues is None:
-                # Error occurred
-                continue
-            
-            if not issues:
-                # No unused imports
-                continue
-            
-            # File has unused imports
-            self.stats['files_with_issues'] += 1
-            
-            for issue in issues:
-                if issue.get('message-id') == 'W0611':  # unused-import
-                    category = self.categorize_unused_import(file_path, issue)
-                    
-                    self.findings[category].append({
-                        'file': rel_path_str,
-                        'line': issue.get('line', 0),
-                        'column': issue.get('column', 0),
-                        'message': issue.get('message', ''),
-                        'symbol': issue.get('symbol', ''),
-                    })
-                    
-                    self.stats['total_unused'] += 1
+            # Process results
+            for file_path, issues in results:
+                # Cache the results
+                if issues is not None:
+                    self._cache_results(file_path, issues)
+                
+                if issues is None:
+                    # Error occurred
+                    continue
+                
+                if not issues:
+                    # No unused imports
+                    continue
+                
+                # File has unused imports
+                self.stats['files_with_issues'] += 1
+                
+                try:
+                    rel_path = file_path.relative_to(self.project_root)
+                    rel_path_str = str(rel_path).replace('\\', '/')
+                except ValueError:
+                    rel_path_str = str(file_path)
+                
+                for issue in issues:
+                    if issue.get('message-id') == 'W0611':  # unused-import
+                        category = self.categorize_unused_import(file_path, issue)
+                        
+                        self.findings[category].append({
+                            'file': rel_path_str,
+                            'line': issue.get('line', 0),
+                            'column': issue.get('column', 0),
+                            'message': issue.get('message', ''),
+                            'symbol': issue.get('symbol', ''),
+                        })
+                        
+                        self.stats['total_unused'] += 1
+        
+        # Save cache
+        self._save_cache()
         
         print("")  # Blank line after progress
+        cache_info = ""
+        if self.use_cache:
+            cache_hits = self.stats.get('cache_hits', 0)
+            cache_misses = self.stats.get('cache_misses', 0)
+            cache_info = f" (cache: {cache_hits} hits, {cache_misses} misses)"
+        
         if logger:
-            logger.info(f"Scan complete. Found {self.stats['total_unused']} unused imports in {self.stats['files_with_issues']} files.")
+            logger.info(f"Scan complete. Found {self.stats['total_unused']} unused imports in {self.stats['files_with_issues']} files{cache_info}.")
         
         return {
             'findings': self.findings,
@@ -693,10 +901,12 @@ def main():
                        help='Output report path')
     parser.add_argument('--json', action='store_true',
                        help='Output JSON data to stdout')
+    parser.add_argument('--verbose', '-v', action='store_true',
+                       help='Show DEBUG messages during scanning')
     args = parser.parse_args()
     
     # Run the check
-    checker = UnusedImportsChecker(project_root)
+    checker = UnusedImportsChecker(project_root, verbose=args.verbose)
     results = checker.scan_codebase()
     
     # Generate report

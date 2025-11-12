@@ -33,7 +33,7 @@ logger = get_component_logger("ai_development_tools")
 class CoverageMetricsRegenerator:
     """Regenerates test coverage metrics for MHM."""
     
-    def __init__(self, project_root: str = "."):
+    def __init__(self, project_root: str = ".", parallel: bool = True, num_workers: Optional[str] = None):
         self.project_root = Path(project_root).resolve()
         self.coverage_plan_file = self.project_root / "development_docs" / "TEST_COVERAGE_EXPANSION_PLAN.md"
         self.coverage_config_path = self.project_root / "coverage.ini"
@@ -44,6 +44,8 @@ class CoverageMetricsRegenerator:
         self.pytest_stderr_log: Optional[Path] = None
         self.archived_directories: List[Dict[str, str]] = []
         self.command_logs: List[Path] = []
+        self.parallel = parallel
+        self.num_workers = num_workers or "auto"  # "auto" lets pytest-xdist decide, or specify a number
         self._configure_coverage_paths()
         self._migrate_legacy_logs()
         self.coverage_logs_dir.mkdir(parents=True, exist_ok=True)
@@ -115,15 +117,27 @@ class CoverageMetricsRegenerator:
             
             cmd = [
                 sys.executable, '-m', 'pytest',
+            ]
+            
+            # Add parallel execution if enabled
+            if self.parallel:
+                cmd.extend(['-n', self.num_workers])
+                # Use loadscope distribution to group tests by file/class for better isolation
+                # This reduces race conditions by keeping related tests together
+                cmd.extend(['--dist=loadscope'])
+                if logger:
+                    logger.info(f"Using parallel execution with {self.num_workers} workers (loadscope distribution)")
+            
+            cmd.extend([
                 *cov_args,
                 '--cov-report=term-missing',
                 f'--cov-report=json:{coverage_output}',
                 '--cov-config=coverage.ini',
-                '--tb=no',
-                '-q',
+                '--tb=line',  # Use line format for cleaner parallel output
+                '-q',  # Quiet mode - reduces output noise
                 '--maxfail=5',
                 'tests/'
-            ]
+            ])
             
             # Log the command being run for debugging
             cmd_str = ' '.join(cmd[:10]) + (' ...' if len(cmd) > 10 else '')
@@ -932,10 +946,19 @@ def main():
     parser.add_argument('--update-plan', action='store_true', 
                        help='Update TEST_COVERAGE_EXPANSION_PLAN.md with new metrics')
     parser.add_argument('--output-file', help='Output file for coverage report (optional)')
+    parser.add_argument('--no-parallel', action='store_true',
+                       help='Disable parallel test execution (parallel enabled by default)')
+    parser.add_argument('--workers', default='auto',
+                       help="Number of parallel workers (default: 'auto' to let pytest-xdist decide, or specify a number)")
     
     args = parser.parse_args()
     
-    regenerator = CoverageMetricsRegenerator()
+    # Only use num_workers if parallel is enabled
+    parallel_enabled = not args.no_parallel
+    regenerator = CoverageMetricsRegenerator(
+        parallel=parallel_enabled,
+        num_workers=args.workers if parallel_enabled else None
+    )
     results = regenerator.run(update_plan=args.update_plan)
     
     if args.output_file and results:

@@ -98,9 +98,10 @@ def setup_logging_isolation():
 # Set up logging isolation immediately
 setup_logging_isolation()
 
-# Set environment variable to indicate we're running tests, and enable verbose component logs under tests/logs
+# Set environment variable to indicate we're running tests
+# TEST_VERBOSE_LOGS defaults to '0' (quiet) - set to '1' for verbose DEBUG-level logging
 os.environ['MHM_TESTING'] = '1'
-os.environ['TEST_VERBOSE_LOGS'] = os.environ.get('TEST_VERBOSE_LOGS', '1')
+os.environ['TEST_VERBOSE_LOGS'] = os.environ.get('TEST_VERBOSE_LOGS', '0')
 # Disable core app log rotation during tests to avoid Windows file-in-use issues
 os.environ['DISABLE_LOG_ROTATION'] = '1'
 
@@ -113,18 +114,20 @@ os.environ['LOG_ARCHIVE_DIR'] = str(tests_logs_dir / 'archive')
 (tests_logs_dir / 'backups').mkdir(exist_ok=True)
 (tests_logs_dir / 'archive').mkdir(exist_ok=True)
 
-# Explicitly set all component log files under tests/logs to catch any env-based lookups
-os.environ['LOG_MAIN_FILE'] = str(tests_logs_dir / 'app.log')
-os.environ['LOG_DISCORD_FILE'] = str(tests_logs_dir / 'discord.log')
-os.environ['LOG_AI_FILE'] = str(tests_logs_dir / 'ai.log')
-os.environ['LOG_USER_ACTIVITY_FILE'] = str(tests_logs_dir / 'user_activity.log')
-os.environ['LOG_ERRORS_FILE'] = str(tests_logs_dir / 'errors.log')
-os.environ['LOG_COMMUNICATION_MANAGER_FILE'] = str(tests_logs_dir / 'communication_manager.log')
-os.environ['LOG_EMAIL_FILE'] = str(tests_logs_dir / 'email.log')
-
-os.environ['LOG_UI_FILE'] = str(tests_logs_dir / 'ui.log')
-os.environ['LOG_FILE_OPS_FILE'] = str(tests_logs_dir / 'file_ops.log')
-os.environ['LOG_SCHEDULER_FILE'] = str(tests_logs_dir / 'scheduler.log')
+# In test mode, all component logs go to test_consolidated.log
+# We'll set these up properly in setup_consolidated_test_logging fixture
+# For now, just point them to a placeholder - the fixture will redirect them
+consolidated_log_placeholder = str(tests_logs_dir / 'test_consolidated.log')
+os.environ['LOG_MAIN_FILE'] = consolidated_log_placeholder
+os.environ['LOG_DISCORD_FILE'] = consolidated_log_placeholder
+os.environ['LOG_AI_FILE'] = consolidated_log_placeholder
+os.environ['LOG_USER_ACTIVITY_FILE'] = consolidated_log_placeholder
+os.environ['LOG_ERRORS_FILE'] = consolidated_log_placeholder
+os.environ['LOG_COMMUNICATION_MANAGER_FILE'] = consolidated_log_placeholder
+os.environ['LOG_EMAIL_FILE'] = consolidated_log_placeholder
+os.environ['LOG_UI_FILE'] = consolidated_log_placeholder
+os.environ['LOG_FILE_OPS_FILE'] = consolidated_log_placeholder
+os.environ['LOG_SCHEDULER_FILE'] = consolidated_log_placeholder
 
 # Ensure all user data for tests is stored under tests/data to avoid
 # accidental writes to system directories like /tmp or the real data
@@ -397,14 +400,18 @@ def setup_test_logging():
     
     # Configure test logger
     test_logger = logging.getLogger("mhm_tests")
-    test_logger.setLevel(logging.DEBUG)
+    # Respect TEST_VERBOSE_LOGS: DEBUG if verbose, WARNING otherwise (to suppress PASSED messages)
+    verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
+    test_logger_level = logging.DEBUG if verbose_logs == "1" else logging.WARNING
+    test_logger.setLevel(test_logger_level)
     
     # Clear any existing handlers
     test_logger.handlers.clear()
     
     # Use simple file handler for test logs (no size-based rotation during session)
     file_handler = logging.FileHandler(test_log_file, encoding='utf-8')
-    file_handler.setLevel(logging.DEBUG)
+    # File handler level matches logger level to respect verbose setting
+    file_handler.setLevel(test_logger_level)
     
     # Console handler for test output
     console_handler = logging.StreamHandler()
@@ -455,9 +462,16 @@ class SessionLogRotationManager:
         self.rotation_needed = False
         
     def register_log_file(self, file_path):
-        """Register a log file for session-based rotation monitoring."""
-        if file_path and os.path.exists(file_path):
-            self.log_files.append(file_path)
+        """Register a log file for session-based rotation monitoring.
+        
+        Files are registered even if they don't exist yet - they'll be checked
+        for rotation when they're created.
+        """
+        if file_path:
+            # Convert to absolute path for consistency
+            abs_path = os.path.abspath(file_path)
+            if abs_path not in self.log_files:
+                self.log_files.append(abs_path)
     
     def check_rotation_needed(self):
         """Check if any log file exceeds the size limit."""
@@ -467,9 +481,11 @@ class SessionLogRotationManager:
                     file_size = os.path.getsize(log_file)
                     if file_size > self.max_size_bytes:
                         self.rotation_needed = True
-                        test_logger.info(f"Log file {log_file} exceeds {self.max_size_bytes} bytes, session rotation needed")
+                        size_mb = file_size / (1024 * 1024)
+                        test_logger.info(f"Log file {log_file} exceeds limit ({size_mb:.2f}MB > {self.max_size_bytes / (1024 * 1024):.2f}MB), rotation needed")
                         return True
-            except (OSError, FileNotFoundError):
+            except (OSError, FileNotFoundError) as e:
+                test_logger.debug(f"Could not check size for {log_file}: {e}")
                 continue
         return False
     
@@ -561,6 +577,11 @@ def _write_test_log_header(log_file: str, timestamp: str):
         log_file: Path to the log file
         timestamp: Timestamp string to include in header (format: 'YYYY-MM-DD HH:MM:SS')
     """
+    # Skip header writing in parallel worker processes to avoid duplicate headers
+    # pytest-xdist sets PYTEST_XDIST_WORKER for worker processes
+    if os.environ.get('PYTEST_XDIST_WORKER'):
+        return
+    
     log_filename = Path(log_file).name
     
     if 'test_run' in log_filename:
@@ -625,6 +646,8 @@ class LogLifecycleManager:
         
         if cleaned_count > 0:
             test_logger.info(f"Cleaned up {cleaned_count} old archive files (older than {self.archive_days} days)")
+        
+        return cleaned_count
     
     def archive_old_backups(self):
         """Move old backup files to archive directory."""
@@ -647,13 +670,16 @@ class LogLifecycleManager:
         
         if archived_count > 0:
             test_logger.info(f"Archived {archived_count} old backup files")
+        
+        return archived_count
     
     def perform_lifecycle_maintenance(self):
         """Perform all lifecycle maintenance operations."""
-        test_logger.info("Starting log lifecycle maintenance")
-        self.archive_old_backups()
-        self.cleanup_old_archives()
-        test_logger.info("Log lifecycle maintenance completed")
+        # Reduce verbosity - only log if something actually happens
+        archived_count = self.archive_old_backups()
+        cleanup_count = self.cleanup_old_archives()
+        if archived_count > 0 or cleanup_count > 0:
+            test_logger.debug(f"Log lifecycle maintenance: archived {archived_count}, cleaned {cleanup_count}")
 
 
 # Global log lifecycle manager
@@ -666,13 +692,27 @@ def setup_consolidated_test_logging():
 
     This replaces the complex multi-file logging system with a single consolidated log file
     that contains all component logs, making it much easier to manage and debug.
+    
+    In parallel execution mode (pytest-xdist), uses per-worker log files to avoid
+    file locking issues and interleaved log entries.
     """
-    # Create a single consolidated log file for all test logging
-    consolidated_log_file = Path(project_root) / "tests" / "logs" / "test_consolidated.log"
+    # Detect parallel execution mode
+    worker_id = os.environ.get('PYTEST_XDIST_WORKER')
+    is_parallel = worker_id is not None
+    
+    # Use per-worker log files in parallel mode to avoid file locking issues
+    if is_parallel:
+        # Per-worker log files: test_run_gw0.log, test_consolidated_gw0.log, etc.
+        consolidated_log_file = Path(project_root) / "tests" / "logs" / f"test_consolidated_{worker_id}.log"
+        test_run_log_file = Path(project_root) / "tests" / "logs" / f"test_run_{worker_id}.log"
+    else:
+        # Sequential mode: use standard log files
+        consolidated_log_file = Path(project_root) / "tests" / "logs" / "test_consolidated.log"
+        test_run_log_file = Path(project_root) / "tests" / "logs" / "test_run.log"
+    
     consolidated_log_file.parent.mkdir(exist_ok=True)
 
     # Ensure test_run.log exists so rotation manager can write headers to it
-    test_run_log_file = Path(project_root) / "tests" / "logs" / "test_run.log"
     if not test_run_log_file.exists():
         test_run_log_file.touch()
 
@@ -681,8 +721,39 @@ def setup_consolidated_test_logging():
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     # Write headers to both log files using the shared helper function
+    # (header function already skips workers, but we call it anyway for consistency)
     _write_test_log_header(str(test_run_log_file), timestamp)
     _write_test_log_header(str(consolidated_log_file), timestamp)
+
+    # In parallel mode, update environment variables to use per-worker consolidated log
+    # This prevents file locking issues - all component logs go to the per-worker consolidated file
+    if is_parallel:
+        logs_dir = Path(project_root) / "tests" / "logs"
+        worker_consolidated = str(consolidated_log_file)
+        # Point all component loggers to the per-worker consolidated log
+        os.environ['LOG_MAIN_FILE'] = worker_consolidated
+        os.environ['LOG_ERRORS_FILE'] = worker_consolidated
+        os.environ['LOG_DISCORD_FILE'] = worker_consolidated
+        os.environ['LOG_AI_FILE'] = worker_consolidated
+        os.environ['LOG_USER_ACTIVITY_FILE'] = worker_consolidated
+        os.environ['LOG_COMMUNICATION_MANAGER_FILE'] = worker_consolidated
+        os.environ['LOG_EMAIL_FILE'] = worker_consolidated
+        os.environ['LOG_UI_FILE'] = worker_consolidated
+        os.environ['LOG_FILE_OPS_FILE'] = worker_consolidated
+        os.environ['LOG_SCHEDULER_FILE'] = worker_consolidated
+    else:
+        # Sequential mode: point all component loggers to the consolidated log
+        consolidated_path = str(consolidated_log_file)
+        os.environ['LOG_MAIN_FILE'] = consolidated_path
+        os.environ['LOG_ERRORS_FILE'] = consolidated_path
+        os.environ['LOG_DISCORD_FILE'] = consolidated_path
+        os.environ['LOG_AI_FILE'] = consolidated_path
+        os.environ['LOG_USER_ACTIVITY_FILE'] = consolidated_path
+        os.environ['LOG_COMMUNICATION_MANAGER_FILE'] = consolidated_path
+        os.environ['LOG_EMAIL_FILE'] = consolidated_path
+        os.environ['LOG_UI_FILE'] = consolidated_path
+        os.environ['LOG_FILE_OPS_FILE'] = consolidated_path
+        os.environ['LOG_SCHEDULER_FILE'] = consolidated_path
 
     # Set up separate handlers for component logs vs test execution logs
     # Component logs go directly to test_consolidated.log (no test context)
@@ -701,7 +772,41 @@ def setup_consolidated_test_logging():
                                         datefmt='%Y-%m-%d %H:%M:%S')
     test_handler.setFormatter(test_formatter)
 
+    # CRITICAL: Ensure root logger has a valid level FIRST (child loggers inherit from root)
+    # This must happen before we configure other loggers to prevent None comparisons
+    root_logger = logging.getLogger()
+    if not isinstance(root_logger.level, int) or root_logger.level == logging.NOTSET:
+        root_logger.setLevel(logging.WARNING)  # Set a safe default level
+    
+    # Also ensure all existing loggers have valid levels before we start configuring
+    # Walk through logger hierarchy and ensure no None levels
+    for logger_name in list(logging.Logger.manager.loggerDict.keys()):
+        try:
+            logger_obj = logging.getLogger(logger_name)
+            if isinstance(logger_obj, logging.Logger):
+                # Ensure logger has a valid level (not None, not NOTSET without parent)
+                if logger_obj.level == logging.NOTSET:
+                    # If level is NOTSET, ensure parent has valid level
+                    parent = logger_obj.parent
+                    if parent and parent.level == logging.NOTSET:
+                        # Both logger and parent are NOTSET - set logger level
+                        logger_obj.setLevel(logging.WARNING)
+                elif logger_obj.level is None:
+                    # Level is None (invalid) - set to safe default
+                    logger_obj.setLevel(logging.WARNING)
+        except Exception:
+            continue  # Skip problematic loggers
+
+    # Force component loggers to reconfigure with new log paths
+    # Clear the component logger cache so they'll be recreated with updated paths
+    try:
+        from core.logger import _component_loggers
+        _component_loggers.clear()
+    except (ImportError, AttributeError):
+        pass  # If cache doesn't exist or isn't accessible, that's okay
+    
     # Ensure component loggers are created by importing the modules that create them
+    # This will recreate them with the updated environment variables
     try:
         from core.scheduler import SchedulerManager
         from core.service import MHMService
@@ -713,9 +818,17 @@ def setup_consolidated_test_logging():
     # Component loggers are now available for configuration
     
     # Configure loggers
-    for logger_name in logging.Logger.manager.loggerDict:
+    for logger_name in list(logging.Logger.manager.loggerDict.keys()):  # Use list() to avoid modification during iteration
         try:
+            # Skip pytest's internal loggers to avoid breaking pytest's logging
+            if logger_name.startswith('_pytest') or logger_name == 'pytest':
+                continue
+                
             logger_obj = logging.getLogger(logger_name)
+            
+            # Skip if logger_obj is not actually a Logger instance (could be PlaceHolder or other type)
+            if not isinstance(logger_obj, logging.Logger):
+                continue
 
             # Clear existing handlers
             for h in logger_obj.handlers[:]:
@@ -726,13 +839,34 @@ def setup_consolidated_test_logging():
                 logger_obj.removeHandler(h)
 
             # Set appropriate log level
+            # Validate logging constants are actually integers (defensive check)
+            if not isinstance(logging.DEBUG, int) or not isinstance(logging.INFO, int) or not isinstance(logging.WARNING, int):
+                # Logging module is in invalid state - skip configuration
+                test_logger.warning("Logging constants are invalid - skipping logger configuration")
+                continue
+            
             if logger_name.startswith("mhm."):
-                # Component loggers always use DEBUG level to capture all logs
-                level = logging.DEBUG
+                # Component loggers: use DEBUG only if verbose mode is enabled, otherwise INFO
+                # This prevents excessive logging during normal test runs
+                verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
+                level = logging.DEBUG if verbose_logs == "1" else logging.INFO
             else:
-                # Test execution loggers use DEBUG if verbose, WARNING otherwise
-                level = logging.DEBUG if os.getenv("TEST_VERBOSE_LOGS", "0") == "1" else logging.WARNING
-            logger_obj.setLevel(level)
+                # Test execution loggers: reduce verbosity to reduce log noise
+                # Only log INFO and above by default (skip DEBUG messages)
+                verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
+                level = logging.INFO if verbose_logs == "1" else logging.WARNING
+            
+            # Ensure level is a valid integer before setting
+            if level is None or not isinstance(level, int):
+                level = logging.WARNING  # Safe default
+            
+            # Set level with error handling in case logger is in invalid state
+            try:
+                logger_obj.setLevel(level)
+            except (TypeError, AttributeError) as e:
+                # Skip loggers that can't have their level set (might be in invalid state)
+                test_logger.debug(f"Skipping logger {logger_name} - cannot set level: {e}")
+                continue
 
             # Component loggers go to test_consolidated.log (no test context)
             if logger_name.startswith("mhm."):
@@ -742,11 +876,26 @@ def setup_consolidated_test_logging():
             else:
                 logger_obj.addHandler(test_handler)
                 logger_obj.propagate = True
+                
+                # Special handling for mhm_tests logger: ensure it respects verbose setting
+                if logger_name == "mhm_tests":
+                    verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
+                    test_level = logging.DEBUG if verbose_logs == "1" else logging.WARNING
+                    logger_obj.setLevel(test_level)
+                    # Also update handler level
+                    for handler in logger_obj.handlers:
+                        if isinstance(handler, logging.FileHandler):
+                            handler.setLevel(test_level)
 
         except Exception:
             # Never fail tests due to logging configuration issues
             continue
 
+    # Final check: ensure root logger still has valid level after configuration
+    root_logger = logging.getLogger()
+    if not isinstance(root_logger.level, int) or root_logger.level == logging.NOTSET:
+        root_logger.setLevel(logging.WARNING)  # Set a safe default level
+    
     # Register both log files with session rotation manager
     session_rotation_manager.register_log_file(str(consolidated_log_file))
     session_rotation_manager.register_log_file(str(test_run_log_file))
@@ -757,11 +906,9 @@ def setup_consolidated_test_logging():
     # Clean up any individual log files that were created before consolidated mode was enabled
     _cleanup_individual_log_files()
     
-    # Also clean up app.log and errors.log after consolidating their content
-    _consolidate_and_cleanup_main_logs()
-    
-    # Add test run start markers to both log files
-    _add_test_run_start_markers()
+    # Note: We no longer consolidate from app.log/errors.log because all component loggers
+    # now write directly to test_consolidated.log via environment variables
+    # This eliminates duplicate log entries and simplifies the logging system
 
 
 # REMOVED: cap_component_log_sizes_on_start fixture
@@ -808,7 +955,12 @@ def _cleanup_test_log_files():
 
 
 def _cleanup_individual_log_files():
-    """Clean up individual log files that were created before consolidated mode was enabled."""
+    """Clean up individual log files that were created before consolidated mode was enabled.
+    
+    NOTE: We no longer copy content from these files because component loggers write directly
+    to test_consolidated.log via environment variables. These files should not exist in
+    consolidated logging mode, so we just delete them.
+    """
     try:
         logs_dir = Path(project_root) / "tests" / "logs"
         if not logs_dir.exists():
@@ -826,19 +978,10 @@ def _cleanup_individual_log_files():
             log_file = logs_dir / log_file_name
             if log_file.exists():
                 try:
-                    # Check if file has content
-                    with open(log_file, 'r', encoding='utf-8') as f:
-                        content = f.read().strip()
-                        if len(content) > 0:
-                            # Copy content to consolidated log if it has useful content
-                            consolidated_log = logs_dir / "test_consolidated.log"
-                            if consolidated_log.exists():
-                                with open(consolidated_log, 'a', encoding='utf-8') as cf:
-                                    cf.write(f"\n# Content from {log_file_name}:\n{content}\n")
-                    
-                    # Remove the individual file
+                    # Just delete the file - component loggers write directly to consolidated log
+                    # No need to copy content as it's already in test_consolidated.log
                     log_file.unlink()
-                    test_logger.info(f"Cleaned up individual log file: {log_file_name}")
+                    test_logger.debug(f"Cleaned up individual log file: {log_file_name}")
                 except Exception as e:
                     test_logger.warning(f"Error cleaning up {log_file_name}: {e}")
                     
@@ -847,56 +990,13 @@ def _cleanup_individual_log_files():
 
 
 def _consolidate_and_cleanup_main_logs():
-    """Consolidate content from app.log and errors.log into the consolidated log, then clean them up."""
-    try:
-        logs_dir = Path(project_root) / "tests" / "logs"
-        if not logs_dir.exists():
-            return
-            
-        consolidated_log = logs_dir / "test_consolidated.log"
-        app_log = logs_dir / "app.log"
-        errors_log = logs_dir / "errors.log"
-        
-        # Consolidate app.log content
-        if app_log.exists():
-            try:
-                with open(app_log, 'r', encoding='utf-8') as f:
-                    app_content = f.read().strip()
-                    if len(app_content) > 0:
-                        with open(consolidated_log, 'a', encoding='utf-8') as cf:
-                            cf.write(f"\n# Content from app.log:\n{app_content}\n")
-                        test_logger.info("Consolidated app.log content into test_consolidated.log")
-            except Exception as e:
-                test_logger.warning(f"Error consolidating app.log: {e}")
-            finally:
-                # Remove app.log after consolidating
-                try:
-                    app_log.unlink()
-                    test_logger.info("Cleaned up app.log after consolidation")
-                except Exception as e:
-                    test_logger.warning(f"Error removing app.log: {e}")
-        
-        # Consolidate errors.log content
-        if errors_log.exists():
-            try:
-                with open(errors_log, 'r', encoding='utf-8') as f:
-                    errors_content = f.read().strip()
-                    if len(errors_content) > 0:
-                        with open(consolidated_log, 'a', encoding='utf-8') as cf:
-                            cf.write(f"\n# Content from errors.log:\n{errors_content}\n")
-                        test_logger.info("Consolidated errors.log content into test_consolidated.log")
-            except Exception as e:
-                test_logger.warning(f"Error consolidating errors.log: {e}")
-            finally:
-                # Remove errors.log after consolidating
-                try:
-                    errors_log.unlink()
-                    test_logger.info("Cleaned up errors.log after consolidation")
-                except Exception as e:
-                    test_logger.warning(f"Error removing errors.log: {e}")
-                    
-    except Exception as e:
-        test_logger.warning(f"Error during main log consolidation: {e}")
+    """DEPRECATED: No longer consolidates from app.log/errors.log.
+    
+    Component loggers now write directly to test_consolidated.log via environment variables.
+    This function is kept for backward compatibility but does nothing.
+    """
+    # Component loggers write directly to consolidated log, no consolidation needed
+    pass
 
 
 def _add_test_run_start_markers():
@@ -1117,9 +1217,8 @@ def session_log_rotation_check():
     """
     yield
     
-    # Final cleanup: consolidate any remaining app.log and errors.log files
-    # Do NOT rotate here - that would cause mid-work rotation
-    _consolidate_and_cleanup_main_logs()
+    # Note: We no longer consolidate from app.log/errors.log because all component loggers
+    # write directly to test_consolidated.log. This eliminates duplicate log entries.
 
 @pytest.fixture(scope="session", autouse=True)
 def isolate_logging():
@@ -1144,7 +1243,8 @@ def isolate_logging():
     root_logger.propagate = False
     main_logger.propagate = False
     
-    test_logger.info("Logging isolation activated - test logs will not appear in main app.log")
+    # Reduce verbosity - this is expected behavior, no need to log it
+    test_logger.debug("Logging isolation activated - test logs will not appear in main app.log")
     
     yield
     
@@ -2451,7 +2551,9 @@ def pytest_collection_modifyitems(config, items):
 
 def pytest_configure(config):
     """Configure pytest for MHM testing."""
-    test_logger.info("Configuring pytest for MHM testing")
+    # Only log from main process to avoid duplicate messages in parallel mode
+    if not os.environ.get('PYTEST_XDIST_WORKER'):
+        test_logger.debug("Configuring pytest for MHM testing")
     
     # Configure pytest tmpdir to use tests/data/tmp instead of creating pytest-of-* directories
     # This ensures all temporary files stay within tests/data
@@ -2575,25 +2677,135 @@ def pytest_collection_modifyitems(config, items):
 
 def pytest_sessionstart(session):
     """Log test session start."""
-    test_logger.info(f"Starting test session with {len(session.items)} tests")
-    test_logger.info(f"Test log file: {test_log_file}")
+    # Only log from main process to avoid duplicate messages in parallel mode
+    if not os.environ.get('PYTEST_XDIST_WORKER'):
+        test_logger.info(f"Starting test session with {len(session.items)} tests")
+        test_logger.info(f"Test log file: {test_log_file}")
+
+def _consolidate_worker_logs():
+    """Consolidate per-worker log files into main log files at the end of parallel test runs.
+    
+    This function should only be called from the main process (not workers).
+    It finds all worker log files (test_run_gw*.log, test_consolidated_gw*.log, etc.)
+    and combines them into the main log files.
+    """
+    # Only run in main process (not in workers)
+    if os.environ.get('PYTEST_XDIST_WORKER'):
+        return
+    
+    try:
+        logs_dir = Path(project_root) / "tests" / "logs"
+        if not logs_dir.exists():
+            return
+        
+        # Find all worker log files
+        worker_test_run_logs = sorted(logs_dir.glob("test_run_gw*.log"))
+        worker_consolidated_logs = sorted(logs_dir.glob("test_consolidated_gw*.log"))
+        
+        # If no worker logs found, nothing to consolidate
+        if not (worker_test_run_logs or worker_consolidated_logs):
+            return
+        
+        test_logger.info("Consolidating worker log files into main log files...")
+        
+        # Consolidate test_run logs
+        main_test_run_log = logs_dir / "test_run.log"
+        if worker_test_run_logs:
+            try:
+                with open(main_test_run_log, 'a', encoding='utf-8') as main_file:
+                    main_file.write(f"\n{'='*80}\n")
+                    main_file.write("# CONSOLIDATED FROM PARALLEL WORKERS\n")
+                    main_file.write(f"{'='*80}\n\n")
+                    
+                    for worker_log in worker_test_run_logs:
+                        worker_id = worker_log.stem.replace("test_run_", "")
+                        main_file.write(f"\n# --- Worker {worker_id} ---\n")
+                        try:
+                            with open(worker_log, 'r', encoding='utf-8') as worker_file:
+                                content = worker_file.read()
+                                if content.strip():
+                                    main_file.write(content)
+                                    if not content.endswith('\n'):
+                                        main_file.write('\n')
+                        except Exception as e:
+                            main_file.write(f"# Error reading {worker_log.name}: {e}\n")
+                        main_file.write(f"\n# --- End Worker {worker_id} ---\n\n")
+                
+                test_logger.info(f"Consolidated {len(worker_test_run_logs)} worker test_run logs into {main_test_run_log.name}")
+            except Exception as e:
+                test_logger.warning(f"Error consolidating test_run logs: {e}")
+        
+        # Consolidate consolidated logs
+        main_consolidated_log = logs_dir / "test_consolidated.log"
+        if worker_consolidated_logs:
+            try:
+                with open(main_consolidated_log, 'a', encoding='utf-8') as main_file:
+                    main_file.write(f"\n{'='*80}\n")
+                    main_file.write("# CONSOLIDATED FROM PARALLEL WORKERS\n")
+                    main_file.write(f"{'='*80}\n\n")
+                    
+                    for worker_log in worker_consolidated_logs:
+                        worker_id = worker_log.stem.replace("test_consolidated_", "")
+                        main_file.write(f"\n# --- Worker {worker_id} ---\n")
+                        try:
+                            with open(worker_log, 'r', encoding='utf-8') as worker_file:
+                                content = worker_file.read()
+                                if content.strip():
+                                    main_file.write(content)
+                                    if not content.endswith('\n'):
+                                        main_file.write('\n')
+                        except Exception as e:
+                            main_file.write(f"# Error reading {worker_log.name}: {e}\n")
+                        main_file.write(f"\n# --- End Worker {worker_id} ---\n\n")
+                
+                test_logger.info(f"Consolidated {len(worker_consolidated_logs)} worker consolidated logs into {main_consolidated_log.name}")
+            except Exception as e:
+                test_logger.warning(f"Error consolidating consolidated logs: {e}")
+        
+        # Clean up worker log files after consolidation
+        all_worker_logs = worker_test_run_logs + worker_consolidated_logs
+        cleaned_count = 0
+        for worker_log in all_worker_logs:
+            try:
+                worker_log.unlink()
+                cleaned_count += 1
+            except Exception as e:
+                test_logger.warning(f"Error removing worker log {worker_log.name}: {e}")
+        
+        if cleaned_count > 0:
+            test_logger.info(f"Cleaned up {cleaned_count} worker log files after consolidation")
+        
+        test_logger.info("Worker log consolidation completed")
+        
+    except Exception as e:
+        test_logger.warning(f"Error during worker log consolidation: {e}")
+
 
 def pytest_sessionfinish(session, exitstatus):
-    """Log test session finish."""
+    """Log test session finish and consolidate worker logs if running in parallel mode."""
     test_logger.info(f"Test session finished with exit status: {exitstatus}")
     if hasattr(session, 'testscollected'):
         test_logger.info(f"Tests collected: {session.testscollected}")
+    
+    # Consolidate worker logs at the end of the session (only in main process)
+    _consolidate_worker_logs()
 
 def pytest_runtest_logreport(report):
     """Log individual test results."""
     if report.when == 'call':
+        # Only log PASSED tests when verbose mode is enabled (to reduce log noise)
+        verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
         if report.passed:
-            test_logger.debug(f"PASSED: {report.nodeid}")
+            if verbose_logs == "1":
+                test_logger.debug(f"PASSED: {report.nodeid}")
+            # Otherwise, don't log passed tests - they're not interesting
         elif report.failed:
+            # Always log failures - these are important
             test_logger.error(f"FAILED: {report.nodeid}")
             if report.longrepr:
                 test_logger.error(f"Error details: {report.longrepr}")
         elif report.skipped:
+            # Always log skips - these might indicate issues
             test_logger.warning(f"SKIPPED: {report.nodeid}")
 
 @pytest.fixture(scope="session", autouse=True)

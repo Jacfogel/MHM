@@ -133,6 +133,20 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+**CRITICAL: Investigate Email Polling Errors**
+- *What it means*: Investigate why email polling is failing repeatedly in `channel_orchestrator.py` - errors logged every 40 seconds with empty exception messages ("Error polling for emails: ") since changes made on 2025-11-11
+- *Why it helps*: Email polling is critical for receiving user messages - repeated failures prevent the system from receiving emails properly
+- *Estimated effort*: Medium
+- *Investigation Steps*:
+  - [ ] Check `_email_polling_loop()` in `communication/core/channel_orchestrator.py` (line 198-236)
+  - [ ] Review exception handling - exception messages appear empty in logs
+  - [ ] Check if email channel initialization is working correctly
+  - [ ] Verify event loop setup and async/await handling
+  - [ ] Check if `receive_messages()` is raising exceptions properly
+  - [ ] Review recent changes to email polling implementation (added 2025-11-11)
+- *Error Pattern*: Errors occur every ~40 seconds, exception message is empty, suggests exception handling or logging issue
+- *Files to Review*: `communication/core/channel_orchestrator.py`, `communication/communication_channels/email/bot.py`, `logs/errors.log` (lines 1794-1802)
+
 **Optimize Audit System Performance**
 - *What it means*: Explore the audit system and adjust it so it runs in under 10 minutes (currently takes ~18-20 minutes)
 - *Why it helps*: Significantly improves workflow efficiency and makes full audits more practical for regular use
@@ -150,6 +164,42 @@ When adding new tasks, follow this format:
   - Increase pytest parallel workers (currently using `-n auto`)
   - Optimize slow tests or add pytest marks for better parallelization
   - Profile test execution to identify bottlenecks
+
+**Fix Flaky Tests in Parallel Execution Mode**
+- *What it means*: Investigate and fix tests that fail when run in parallel mode (`-n auto` with pytest-xdist) but pass when run sequentially
+- *Why it helps*: Ensures test reliability and enables safe use of parallel execution for faster test runs
+- *Estimated effort*: Medium
+- *Known Flaky Tests* (fail intermittently in parallel, pass sequentially):
+  - `tests/ui/test_ui_app_qt_main.py::TestMHMManagerUI::test_update_service_status_updates_display` - Likely race condition with UI state
+  - `tests/ui/test_ui_app_qt_main.py::TestMHMManagerUI::test_manage_tasks_opens_dialog` - UI dialog opening race condition (observed 2025-11-11)
+  - `tests/ui/test_account_creation_ui.py::TestAccountManagementRealBehavior::test_feature_enablement_persistence_real_behavior` - KeyError: 'account' - Possible shared state or file locking issue (observed 2025-11-11, multiple runs)
+  - `tests/behavior/test_backup_manager_behavior.py::TestBackupManagerBehavior::test_restore_backup_with_config_files_real_behavior` - assert False is True - Backup restoration failing in parallel (observed 2025-11-11, multiple runs)
+  - `tests/behavior/test_backup_manager_behavior.py::TestBackupManagerBehavior::test_list_backups_real_behavior` - AssertionError: assert 2 == 3 - Missing backup in list, possible race condition (observed 2025-11-11)
+  - `tests/integration/test_user_creation.py::TestUserCreationIntegration::test_user_with_all_features` - AssertionError: assert 'motivational' in {} - Schedules not saved/loaded correctly (observed 2025-11-11)
+  - `tests/integration/test_user_creation.py::TestUserCreationIntegration::test_multiple_users_same_channel` - KeyError: 'account' - Account data not saved/loaded correctly (observed 2025-11-11)
+  - `tests/behavior/test_discord_checkin_retry_behavior.py::TestDiscordCheckinRetryBehavior::test_checkin_message_queued_on_discord_disconnect` - AssertionError: queue size is 0 - Retry queue not working in parallel (observed 2025-11-11, multiple runs)
+  - `tests/behavior/test_interaction_handlers_behavior.py::TestInteractionHandlersBehavior::test_profile_handler_shows_actual_profile` - AssertionError: Failed to create test user - Permission denied on user_index.json (observed 2025-11-11)
+  - `tests/ui/test_widget_behavior.py::TestUserProfileSettingsWidgetBehavior::test_widget_initialization_real_behavior` - AssertionError: Could not find actual user ID - JSON parsing error, possible file corruption from parallel access (observed 2025-11-11)
+  - `tests/ui/test_widget_behavior.py::TestTaskSettingsWidgetBehavior::test_task_enablement_real_behavior` - AssertionError: Could not find actual user ID - User creation failing (observed 2025-11-11)
+  - `tests/unit/test_user_data_manager.py::TestUserDataManagerConvenienceFunctions::test_get_user_summary_function` - AssertionError: Should include user_id - Returns empty dict, possible race condition (observed 2025-11-11)
+  - `tests/unit/test_logger_unit.py::TestEnsureLogsDirectory::test_ensure_logs_directory_creates_directories` - AssertionError: Should create archive directory - File system race condition (observed 2025-11-11)
+  - `tests/behavior/test_utilities_demo.py::TestUtilitiesDemo::test_scheduled_user_creation` - AssertionError: Scheduled user should be created successfully - Intermittent failure
+- *Known Issues*:
+  - **File locking errors**: Multiple processes trying to access `tests/data/user_index.json` simultaneously (Permission denied: [Errno 13]) - **CRITICAL**: This is causing multiple test failures
+  - **File corruption**: JSON parsing errors ("Expecting value: line 1 column 1 (char 0)") suggesting files are being read while being written by another worker
+  - **errors.log still exists**: The `tests/logs/errors.log` file is still being created by component loggers, even though logs are redirected to consolidated log. File locking prevents cleanup (WinError 32/5). **Note**: At least it's no longer being copied repeatedly into test_consolidated.log (fixed 2025-11-11)
+  - File locking errors: Multiple processes trying to access `tests/logs/app.log` and `tests/logs/errors.log` simultaneously (WinError 32)
+  - Duplicate log content: Same log entries appearing multiple times in consolidated logs (likely due to multiple workers writing to same files) - **FIXED**: No longer copying from errors.log (2025-11-11)
+  - Test isolation: Some tests may be sharing singleton instances (e.g., `CommunicationManager`) causing race conditions
+- *Investigation Steps*:
+  - [ ] **PRIORITY**: Fix `user_index.json` file locking - multiple workers accessing same file causing Permission denied errors
+  - [ ] Run each flaky test individually in parallel mode to confirm flakiness
+  - [ ] Check for shared state (singletons, global variables, file system state)
+  - [ ] Review test fixtures for proper isolation (especially `comm_manager`, `test_data_dir`)
+  - [ ] Fix file locking issues in test log cleanup/setup
+  - [ ] Consider marking tests that require serial execution with `@pytest.mark.serial` (if pytest-xdist supports it) or grouping them separately
+  - [ ] Review `--dist=loadscope` distribution strategy - may need `--dist=worksteal` or custom grouping
+  - [ ] Investigate if `user_index.json` needs per-worker copies or file locking mechanism
 
 **AI Chatbot Actionability Sprint** - Plan and implement actionable AI responses
 - *What it means*: Improve AI chat quality and enable robust task/message/profile CRUD, with awareness of recent automated messages and targeted, non-conflicting suggestions.
@@ -215,6 +265,19 @@ When adding new tasks, follow this format:
 - *Definition of done*: Draft cadence rules, edge-case handling, and handoff to implementation/testing once validated.
 
 ## Medium Priority
+
+**Investigate Test Log Rotation Issues**
+- *What it means*: Investigate why `test_consolidated.log` is not rotating properly - file has grown to 500,000+ lines and should rotate at 5MB but rotation only happens at session start
+- *Why it helps*: Prevents log files from growing unbounded, improves log management and system performance
+- *Estimated effort*: Small/Medium
+- *Areas to investigate*:
+  - Check `SessionLogRotationManager` in `tests/conftest.py` - rotation check happens at session start only
+  - Verify rotation size threshold (5MB) is being checked correctly
+  - Consider adding rotation checks during test execution, not just at start
+  - Review if file size calculation is working correctly for large files
+  - Check if rotation is being prevented by file locking or other issues
+- *Current Status*: Rotation logic exists but only runs at session start - if a single session creates a huge log file, it won't rotate until next session
+- *Files to Review*: `tests/conftest.py` (SessionLogRotationManager class, setup_consolidated_test_logging fixture)
 
 **Investigate Test Coverage Analysis Failures**
 - *What it means*: Explore why tests that usually pass sometimes fail during test coverage analysis (e.g., `test_scheduled_user_creation`, `test_ensure_logs_directory_creates_directories`)

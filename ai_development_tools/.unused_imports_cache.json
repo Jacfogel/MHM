@@ -1,0 +1,4339 @@
+{
+  "ai/__init__.py": {
+    "mtime": 1762239950.5542183,
+    "issues": []
+  },
+  "ai/cache_manager.py": {
+    "mtime": 1760080339.73735,
+    "issues": []
+  },
+  "ai/chatbot.py": {
+    "mtime": 1762824995.8634748,
+    "issues": []
+  },
+  "ai/context_builder.py": {
+    "mtime": 1760377270.9669962,
+    "issues": []
+  },
+  "ai/conversation_history.py": {
+    "mtime": 1760377270.9685063,
+    "issues": []
+  },
+  "ai/lm_studio_manager.py": {
+    "mtime": 1762411575.257769,
+    "issues": []
+  },
+  "ai/prompt_manager.py": {
+    "mtime": 1762595629.3469226,
+    "issues": []
+  },
+  "ai_development_tools/__init__.py": {
+    "mtime": 1762165794.944414,
+    "issues": []
+  },
+  "ai_development_tools/ai_tools_runner.py": {
+    "mtime": 1762819308.0669475,
+    "issues": []
+  },
+  "ai_development_tools/analyze_documentation.py": {
+    "mtime": 1761545966.0071957,
+    "issues": []
+  },
+  "ai_development_tools/audit_function_registry.py": {
+    "mtime": 1761545966.0071957,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "ai_development_tools.audit_function_registry",
+        "obj": "",
+        "line": 21,
+        "column": 4,
+        "endLine": 21,
+        "endColumn": 116,
+        "path": "ai_development_tools\\audit_function_registry.py",
+        "symbol": "unused-import",
+        "message": "Unused summary_block imported from services.common",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "ai_development_tools.audit_function_registry",
+        "obj": "",
+        "line": 21,
+        "column": 4,
+        "endLine": 21,
+        "endColumn": 116,
+        "path": "ai_development_tools\\audit_function_registry.py",
+        "symbol": "unused-import",
+        "message": "Unused write_text imported from services.common",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "ai_development_tools/audit_module_dependencies.py": {
+    "mtime": 1762467151.5364304,
+    "issues": []
+  },
+  "ai_development_tools/audit_package_exports.py": {
+    "mtime": 1762467151.5339222,
+    "issues": []
+  },
+  "ai_development_tools/auto_document_functions.py": {
+    "mtime": 1762467151.5364304,
+    "issues": []
+  },
+  "ai_development_tools/config.py": {
+    "mtime": 1761562760.4766254,
+    "issues": []
+  },
+  "ai_development_tools/config_validator.py": {
+    "mtime": 1762467151.5339222,
+    "issues": []
+  },
+  "ai_development_tools/decision_support.py": {
+    "mtime": 1762466977.6350617,
+    "issues": []
+  },
+  "ai_development_tools/documentation_sync_checker.py": {
+    "mtime": 1762735991.1691072,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "ai_development_tools.documentation_sync_checker",
+        "obj": "",
+        "line": 32,
+        "column": 4,
+        "endLine": 36,
+        "endColumn": 5,
+        "path": "ai_development_tools\\documentation_sync_checker.py",
+        "symbol": "unused-import",
+        "message": "Unused DEFAULT_DOCS imported from services.constants",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "ai_development_tools/error_handling_coverage.py": {
+    "mtime": 1762466977.6350617,
+    "issues": []
+  },
+  "ai_development_tools/file_rotation.py": {
+    "mtime": 1762466416.412501,
+    "issues": []
+  },
+  "ai_development_tools/function_discovery.py": {
+    "mtime": 1762466977.6350617,
+    "issues": []
+  },
+  "ai_development_tools/generate_function_registry.py": {
+    "mtime": 1762466977.6350617,
+    "issues": []
+  },
+  "ai_development_tools/generate_module_dependencies.py": {
+    "mtime": 1762466977.6350617,
+    "issues": []
+  },
+  "ai_development_tools/legacy_reference_cleanup.py": {
+    "mtime": 1762819832.449987,
+    "issues": []
+  },
+  "ai_development_tools/quick_status.py": {
+    "mtime": 1762466977.6350617,
+    "issues": []
+  },
+  "ai_development_tools/regenerate_coverage_metrics.py": {
+    "mtime": 1762905043.5883942,
+    "issues": []
+  },
+  "ai_development_tools/services/__init__.py": {
+    "mtime": 1762166030.6289499,
+    "issues": []
+  },
+  "ai_development_tools/services/common.py": {
+    "mtime": 1761554347.9725535,
+    "issues": []
+  },
+  "ai_development_tools/services/constants.py": {
+    "mtime": 1761555372.677764,
+    "issues": []
+  },
+  "ai_development_tools/services/operations.py": {
+    "mtime": 1762478540.3465707,
+    "issues": []
+  },
+  "ai_development_tools/services/standard_exclusions.py": {
+    "mtime": 1761561518.9938097,
+    "issues": []
+  },
+  "ai_development_tools/system_signals.py": {
+    "mtime": 1762466977.6350617,
+    "issues": []
+  },
+  "ai_development_tools/tool_guide.py": {
+    "mtime": 1762466977.6330562,
+    "issues": []
+  },
+  "ai_development_tools/unused_imports_checker.py": {
+    "mtime": 1762904359.5157402,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "ai_development_tools.unused_imports_checker",
+        "obj": "",
+        "line": 24,
+        "column": 0,
+        "endLine": 24,
+        "endColumn": 29,
+        "path": "ai_development_tools\\unused_imports_checker.py",
+        "symbol": "unused-import",
+        "message": "Unused partial imported from functools",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "ai_development_tools/validate_ai_work.py": {
+    "mtime": 1762466977.6330562,
+    "issues": []
+  },
+  "ai_development_tools/version_sync.py": {
+    "mtime": 1762656733.944802,
+    "issues": []
+  },
+  "communication/__init__.py": {
+    "mtime": 1762411575.2587717,
+    "issues": []
+  },
+  "communication/command_handlers/__init__.py": {
+    "mtime": 1762166030.6289499,
+    "issues": []
+  },
+  "communication/command_handlers/analytics_handler.py": {
+    "mtime": 1762742263.3196037,
+    "issues": []
+  },
+  "communication/command_handlers/base_handler.py": {
+    "mtime": 1762373328.9733052,
+    "issues": []
+  },
+  "communication/command_handlers/checkin_handler.py": {
+    "mtime": 1762741286.2978292,
+    "issues": []
+  },
+  "communication/command_handlers/interaction_handlers.py": {
+    "mtime": 1762766846.4327633,
+    "issues": []
+  },
+  "communication/command_handlers/profile_handler.py": {
+    "mtime": 1760070264.9392748,
+    "issues": []
+  },
+  "communication/command_handlers/schedule_handler.py": {
+    "mtime": 1760080936.398748,
+    "issues": []
+  },
+  "communication/command_handlers/shared_types.py": {
+    "mtime": 1755928039.4404283,
+    "issues": []
+  },
+  "communication/command_handlers/task_handler.py": {
+    "mtime": 1760377270.9745393,
+    "issues": []
+  },
+  "communication/communication_channels/__init__.py": {
+    "mtime": 1762165794.944414,
+    "issues": []
+  },
+  "communication/communication_channels/base/base_channel.py": {
+    "mtime": 1760377270.9745393,
+    "issues": []
+  },
+  "communication/communication_channels/base/command_registry.py": {
+    "mtime": 1760377270.9745393,
+    "issues": []
+  },
+  "communication/communication_channels/base/message_formatter.py": {
+    "mtime": 1760377270.9745393,
+    "issues": []
+  },
+  "communication/communication_channels/base/rich_formatter.py": {
+    "mtime": 1760377270.987659,
+    "issues": []
+  },
+  "communication/communication_channels/discord/api_client.py": {
+    "mtime": 1760377270.987659,
+    "issues": []
+  },
+  "communication/communication_channels/discord/bot.py": {
+    "mtime": 1760833291.362373,
+    "issues": []
+  },
+  "communication/communication_channels/discord/event_handler.py": {
+    "mtime": 1760382013.4594142,
+    "issues": []
+  },
+  "communication/communication_channels/email/bot.py": {
+    "mtime": 1762841689.7089925,
+    "issues": []
+  },
+  "communication/core/__init__.py": {
+    "mtime": 1762411575.2587717,
+    "issues": []
+  },
+  "communication/core/channel_monitor.py": {
+    "mtime": 1760382013.461671,
+    "issues": []
+  },
+  "communication/core/channel_orchestrator.py": {
+    "mtime": 1762841689.7120035,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "communication.core.channel_orchestrator",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 68,
+        "path": "communication\\core\\channel_orchestrator.py",
+        "symbol": "unused-import",
+        "message": "Unused determine_file_path imported from core.file_operations",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "communication/core/factory.py": {
+    "mtime": 1760382013.486669,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "communication.core.factory",
+        "obj": "",
+        "line": 5,
+        "column": 0,
+        "endLine": 5,
+        "endColumn": 73,
+        "path": "communication\\core\\factory.py",
+        "symbol": "unused-import",
+        "message": "Unused get_available_channels imported from core.config",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "communication.core.factory",
+        "obj": "",
+        "line": 5,
+        "column": 0,
+        "endLine": 5,
+        "endColumn": 73,
+        "path": "communication\\core\\factory.py",
+        "symbol": "unused-import",
+        "message": "Unused get_channel_class_mapping imported from core.config",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "communication/core/retry_manager.py": {
+    "mtime": 1762411575.2513113,
+    "issues": []
+  },
+  "communication/message_processing/__init__.py": {
+    "mtime": 1762165794.944414,
+    "issues": []
+  },
+  "communication/message_processing/command_parser.py": {
+    "mtime": 1762043762.2586308,
+    "issues": []
+  },
+  "communication/message_processing/conversation_flow_manager.py": {
+    "mtime": 1762744124.2507374,
+    "issues": []
+  },
+  "communication/message_processing/interaction_manager.py": {
+    "mtime": 1761811472.826315,
+    "issues": []
+  },
+  "communication/message_processing/message_router.py": {
+    "mtime": 1760382013.4915264,
+    "issues": []
+  },
+  "core/__init__.py": {
+    "mtime": 1762426121.5523925,
+    "issues": []
+  },
+  "core/auto_cleanup.py": {
+    "mtime": 1762656733.948244,
+    "issues": []
+  },
+  "core/checkin_analytics.py": {
+    "mtime": 1762742384.0042298,
+    "issues": []
+  },
+  "core/checkin_dynamic_manager.py": {
+    "mtime": 1760917663.2039766,
+    "issues": []
+  },
+  "core/config.py": {
+    "mtime": 1762656733.9505596,
+    "issues": []
+  },
+  "core/error_handling.py": {
+    "mtime": 1762595629.3553085,
+    "issues": []
+  },
+  "core/file_auditor.py": {
+    "mtime": 1762595629.3563876,
+    "issues": []
+  },
+  "core/file_operations.py": {
+    "mtime": 1762595629.3563876,
+    "issues": []
+  },
+  "core/headless_service.py": {
+    "mtime": 1762656733.9505596,
+    "issues": []
+  },
+  "core/logger.py": {
+    "mtime": 1762656733.9531574,
+    "issues": []
+  },
+  "core/message_analytics.py": {
+    "mtime": 1762849543.4080434,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "core.message_analytics",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 40,
+        "path": "core\\message_analytics.py",
+        "symbol": "unused-import",
+        "message": "Unused datetime imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "core.message_analytics",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 40,
+        "path": "core\\message_analytics.py",
+        "symbol": "unused-import",
+        "message": "Unused timedelta imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "core.message_analytics",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 39,
+        "path": "core\\message_analytics.py",
+        "symbol": "unused-import",
+        "message": "Unused List imported from typing",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "core/message_management.py": {
+    "mtime": 1760773667.9968815,
+    "issues": []
+  },
+  "core/response_tracking.py": {
+    "mtime": 1762656733.9543374,
+    "issues": []
+  },
+  "core/schedule_management.py": {
+    "mtime": 1762902420.8972733,
+    "issues": []
+  },
+  "core/schedule_utilities.py": {
+    "mtime": 1760774424.7047906,
+    "issues": []
+  },
+  "core/scheduler.py": {
+    "mtime": 1762902452.503081,
+    "issues": []
+  },
+  "core/schemas.py": {
+    "mtime": 1762856623.5409284,
+    "issues": []
+  },
+  "core/service.py": {
+    "mtime": 1762856831.2104714,
+    "issues": []
+  },
+  "core/service_utilities.py": {
+    "mtime": 1762656733.9582193,
+    "issues": []
+  },
+  "core/ui_management.py": {
+    "mtime": 1762853919.7980313,
+    "issues": []
+  },
+  "core/user_data_handlers.py": {
+    "mtime": 1762854886.1028144,
+    "issues": []
+  },
+  "core/user_data_manager.py": {
+    "mtime": 1762858458.640717,
+    "issues": []
+  },
+  "core/user_data_validation.py": {
+    "mtime": 1762856623.5409284,
+    "issues": []
+  },
+  "core/user_management.py": {
+    "mtime": 1762857006.490383,
+    "issues": []
+  },
+  "run_headless_service.py": {
+    "mtime": 1761128659.4125512,
+    "issues": []
+  },
+  "tasks/__init__.py": {
+    "mtime": 1762239950.5542183,
+    "issues": []
+  },
+  "tasks/task_management.py": {
+    "mtime": 1762844798.1531975,
+    "issues": []
+  },
+  "tests/ai/ai_response_validator.py": {
+    "mtime": 1762079492.5144293,
+    "issues": []
+  },
+  "tests/ai/ai_test_base.py": {
+    "mtime": 1762079492.5144293,
+    "issues": []
+  },
+  "tests/ai/run_ai_functionality_tests.py": {
+    "mtime": 1762426121.5564988,
+    "issues": []
+  },
+  "tests/ai/test_ai_advanced.py": {
+    "mtime": 1762149046.2553408,
+    "issues": []
+  },
+  "tests/ai/test_ai_cache.py": {
+    "mtime": 1762073531.4741087,
+    "issues": []
+  },
+  "tests/ai/test_ai_core.py": {
+    "mtime": 1762149046.2553408,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_ai_core",
+        "obj": "",
+        "line": 8,
+        "column": 0,
+        "endLine": 8,
+        "endColumn": 11,
+        "path": "tests\\ai\\test_ai_core.py",
+        "symbol": "unused-import",
+        "message": "Unused import time",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ai/test_ai_errors.py": {
+    "mtime": 1762073531.4741087,
+    "issues": []
+  },
+  "tests/ai/test_ai_functionality_manual.py": {
+    "mtime": 1762149046.2553408,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_ai_functionality_manual",
+        "obj": "",
+        "line": 18,
+        "column": 0,
+        "endLine": 18,
+        "endColumn": 48,
+        "path": "tests\\ai\\test_ai_functionality_manual.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_ai_functionality_manual",
+        "obj": "",
+        "line": 24,
+        "column": 0,
+        "endLine": 24,
+        "endColumn": 49,
+        "path": "tests\\ai\\test_ai_functionality_manual.py",
+        "symbol": "unused-import",
+        "message": "Unused get_user_data imported from core.user_data_handlers",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ai/test_ai_integration.py": {
+    "mtime": 1762073531.4791758,
+    "issues": []
+  },
+  "tests/ai/test_ai_performance.py": {
+    "mtime": 1762073531.4791758,
+    "issues": []
+  },
+  "tests/ai/test_ai_quality.py": {
+    "mtime": 1762073531.4801984,
+    "issues": []
+  },
+  "tests/ai/test_cache_manager.py": {
+    "mtime": 1762378020.30407,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_cache_manager",
+        "obj": "",
+        "line": 7,
+        "column": 0,
+        "endLine": 7,
+        "endColumn": 37,
+        "path": "tests\\ai\\test_cache_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ai/test_context_includes_recent_messages.py": {
+    "mtime": 1762149046.2553408,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_context_includes_recent_messages",
+        "obj": "",
+        "line": 1,
+        "column": 0,
+        "endLine": 1,
+        "endColumn": 9,
+        "path": "tests\\ai\\test_context_includes_recent_messages.py",
+        "symbol": "unused-import",
+        "message": "Unused import os",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_account_management_real_behavior.py": {
+    "mtime": 1762844798.1509547,
+    "issues": []
+  },
+  "tests/behavior/test_ai_chatbot_behavior.py": {
+    "mtime": 1762378020.299717,
+    "issues": []
+  },
+  "tests/behavior/test_ai_context_builder_behavior.py": {
+    "mtime": 1760683707.1746845,
+    "issues": []
+  },
+  "tests/behavior/test_ai_context_builder_coverage_expansion.py": {
+    "mtime": 1760683707.1756854,
+    "issues": []
+  },
+  "tests/behavior/test_ai_conversation_history_behavior.py": {
+    "mtime": 1760683707.178366,
+    "issues": []
+  },
+  "tests/behavior/test_analytics_handler_behavior.py": {
+    "mtime": 1762334315.5956786,
+    "issues": []
+  },
+  "tests/behavior/test_auto_cleanup_behavior.py": {
+    "mtime": 1762478076.9160507,
+    "issues": []
+  },
+  "tests/behavior/test_backup_manager_behavior.py": {
+    "mtime": 1762773363.15716,
+    "issues": []
+  },
+  "tests/behavior/test_base_handler_behavior.py": {
+    "mtime": 1762373328.9779582,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_base_handler_behavior",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 42,
+        "path": "tests\\behavior\\test_base_handler_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused patch imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_base_handler_behavior",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 42,
+        "path": "tests\\behavior\\test_base_handler_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_chat_interaction_storage_real_scenarios.py": {
+    "mtime": 1762340104.1506884,
+    "issues": []
+  },
+  "tests/behavior/test_checkin_analytics_behavior.py": {
+    "mtime": 1760837804.328693,
+    "issues": []
+  },
+  "tests/behavior/test_checkin_expiry_semantics.py": {
+    "mtime": 1761805670.1217034,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_checkin_expiry_semantics",
+        "obj": "",
+        "line": 1,
+        "column": 0,
+        "endLine": 1,
+        "endColumn": 9,
+        "path": "tests\\behavior\\test_checkin_expiry_semantics.py",
+        "symbol": "unused-import",
+        "message": "Unused import os",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_checkin_handler_behavior.py": {
+    "mtime": 1762338392.1459506,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_checkin_handler_behavior",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 42,
+        "path": "tests\\behavior\\test_checkin_handler_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_checkin_handler_behavior",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 35,
+        "path": "tests\\behavior\\test_checkin_handler_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused datetime imported from datetime",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_command_discovery_help.py": {
+    "mtime": 1760508911.0930457,
+    "issues": []
+  },
+  "tests/behavior/test_command_parser_coverage_expansion_phase3_simple.py": {
+    "mtime": 1760683707.179603,
+    "issues": []
+  },
+  "tests/behavior/test_communication_behavior.py": {
+    "mtime": 1762830069.7391987,
+    "issues": []
+  },
+  "tests/behavior/test_communication_command_parser_behavior.py": {
+    "mtime": 1760837440.1839113,
+    "issues": []
+  },
+  "tests/behavior/test_communication_factory_coverage_expansion.py": {
+    "mtime": 1760837441.100613,
+    "issues": []
+  },
+  "tests/behavior/test_communication_interaction_manager_behavior.py": {
+    "mtime": 1762725687.991719,
+    "issues": []
+  },
+  "tests/behavior/test_communication_manager_behavior.py": {
+    "mtime": 1762726901.2297578,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_communication_manager_behavior",
+        "obj": "",
+        "line": 8,
+        "column": 0,
+        "endLine": 8,
+        "endColumn": 48,
+        "path": "tests\\behavior\\test_communication_manager_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_communication_manager_behavior",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 11,
+        "path": "tests\\behavior\\test_communication_manager_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused import time",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_communication_manager_behavior",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 114,
+        "path": "tests\\behavior\\test_communication_manager_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused BotInitializationError imported from communication.core.channel_orchestrator",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_communication_manager_behavior",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 114,
+        "path": "tests\\behavior\\test_communication_manager_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused MessageSendError imported from communication.core.channel_orchestrator",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_communication_manager_coverage_expansion.py": {
+    "mtime": 1762899569.2413974,
+    "issues": []
+  },
+  "tests/behavior/test_comprehensive_quantitative_analytics.py": {
+    "mtime": 1761989362.9863865,
+    "issues": []
+  },
+  "tests/behavior/test_config_coverage_expansion_phase3_simple.py": {
+    "mtime": 1762656733.971997,
+    "issues": []
+  },
+  "tests/behavior/test_conversation_behavior.py": {
+    "mtime": 1762340104.1496882,
+    "issues": []
+  },
+  "tests/behavior/test_conversation_flow_manager_behavior.py": {
+    "mtime": 1762340104.1506884,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_conversation_flow_manager_behavior",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 11,
+        "path": "tests\\behavior\\test_conversation_flow_manager_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused import json",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_conversation_flow_manager_behavior",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 9,
+        "path": "tests\\behavior\\test_conversation_flow_manager_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused import os",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_conversation_flow_manager_behavior",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 29,
+        "path": "tests\\behavior\\test_conversation_flow_manager_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused datetime imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_conversation_flow_manager_behavior",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 24,
+        "endColumn": 1,
+        "path": "tests\\behavior\\test_conversation_flow_manager_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused CHECKIN_START imported from communication.message_processing.conversation_flow_manager",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_conversation_flow_manager_behavior",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 24,
+        "endColumn": 1,
+        "path": "tests\\behavior\\test_conversation_flow_manager_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused CHECKIN_COMPLETE imported from communication.message_processing.conversation_flow_manager",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_core_message_management_coverage_expansion.py": {
+    "mtime": 1760683707.1819162,
+    "issues": []
+  },
+  "tests/behavior/test_core_service_coverage_expansion.py": {
+    "mtime": 1762656733.9730477,
+    "issues": []
+  },
+  "tests/behavior/test_discord_advanced_automation.py": {
+    "mtime": 1760839302.5328777,
+    "issues": []
+  },
+  "tests/behavior/test_discord_automation_complete.py": {
+    "mtime": 1760839302.5328777,
+    "issues": []
+  },
+  "tests/behavior/test_discord_bot_behavior.py": {
+    "mtime": 1762822765.6943104,
+    "issues": []
+  },
+  "tests/behavior/test_discord_checkin_retry_behavior.py": {
+    "mtime": 1762844798.1509547,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_discord_checkin_retry_behavior",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 54,
+        "path": "tests\\behavior\\test_discord_checkin_retry_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused call imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_discord_checkin_retry_behavior",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 14,
+        "path": "tests\\behavior\\test_discord_checkin_retry_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused import asyncio",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_discord_checkin_retry_behavior",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 29,
+        "path": "tests\\behavior\\test_discord_checkin_retry_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused datetime imported from datetime",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_dynamic_checkin_behavior.py": {
+    "mtime": 1760839302.5328777,
+    "issues": []
+  },
+  "tests/behavior/test_email_bot_behavior.py": {
+    "mtime": 1762340104.1506884,
+    "issues": []
+  },
+  "tests/behavior/test_enhanced_command_parser_behavior.py": {
+    "mtime": 1762340104.1412475,
+    "issues": []
+  },
+  "tests/behavior/test_error_handling_coverage_expansion_phase3_final.py": {
+    "mtime": 1760839302.5402355,
+    "issues": []
+  },
+  "tests/behavior/test_headless_service_behavior.py": {
+    "mtime": 1762413505.5239036,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_headless_service_behavior",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 9,
+        "path": "tests\\behavior\\test_headless_service_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused import os",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_headless_service_behavior",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 11,
+        "path": "tests\\behavior\\test_headless_service_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused import json",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_headless_service_behavior",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 24,
+        "path": "tests\\behavior\\test_headless_service_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused Path imported from pathlib",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_headless_service_behavior",
+        "obj": "",
+        "line": 18,
+        "column": 0,
+        "endLine": 18,
+        "endColumn": 48,
+        "path": "tests\\behavior\\test_headless_service_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused TestUserFactory imported from tests.test_utilities",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_interaction_handlers_behavior.py": {
+    "mtime": 1760839302.5402355,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_interaction_handlers_behavior",
+        "obj": "",
+        "line": 18,
+        "column": 0,
+        "endLine": 18,
+        "endColumn": 65,
+        "path": "tests\\behavior\\test_interaction_handlers_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused get_user_data imported from core.user_data_handlers",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_interaction_handlers_behavior",
+        "obj": "",
+        "line": 18,
+        "column": 0,
+        "endLine": 18,
+        "endColumn": 65,
+        "path": "tests\\behavior\\test_interaction_handlers_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused save_user_data imported from core.user_data_handlers",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_interaction_handlers_coverage_expansion.py": {
+    "mtime": 1761811472.8275976,
+    "issues": []
+  },
+  "tests/behavior/test_logger_behavior.py": {
+    "mtime": 1760511880.4319441,
+    "issues": []
+  },
+  "tests/behavior/test_logger_coverage_expansion.py": {
+    "mtime": 1760839302.5417402,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_logger_coverage_expansion",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 42,
+        "path": "tests\\behavior\\test_logger_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused mock_open imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_logger_coverage_expansion_phase3_simple.py": {
+    "mtime": 1762472442.2161584,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_logger_coverage_expansion_phase3_simple",
+        "obj": "",
+        "line": 7,
+        "column": 0,
+        "endLine": 7,
+        "endColumn": 13,
+        "path": "tests\\behavior\\test_logger_coverage_expansion_phase3_simple.py",
+        "symbol": "unused-import",
+        "message": "Unused import pytest",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_message_analytics_behavior.py": {
+    "mtime": 1762849543.4069827,
+    "issues": []
+  },
+  "tests/behavior/test_message_behavior.py": {
+    "mtime": 1762373328.974315,
+    "issues": []
+  },
+  "tests/behavior/test_message_router_behavior.py": {
+    "mtime": 1762378020.30407,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_message_router_behavior",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 42,
+        "path": "tests\\behavior\\test_message_router_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused patch imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_message_router_behavior",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 42,
+        "path": "tests\\behavior\\test_message_router_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_natural_language_command_detection.py": {
+    "mtime": 1762824995.8634748,
+    "issues": []
+  },
+  "tests/behavior/test_observability_logging.py": {
+    "mtime": 1760683707.2033527,
+    "issues": []
+  },
+  "tests/behavior/test_profile_display_formatting.py": {
+    "mtime": 1760683707.2073562,
+    "issues": []
+  },
+  "tests/behavior/test_profile_handler_behavior.py": {
+    "mtime": 1762334319.2824824,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_profile_handler_behavior",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 42,
+        "path": "tests\\behavior\\test_profile_handler_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_quantitative_analytics_expansion.py": {
+    "mtime": 1761989362.9863865,
+    "issues": []
+  },
+  "tests/behavior/test_response_tracking_behavior.py": {
+    "mtime": 1760683707.2033527,
+    "issues": []
+  },
+  "tests/behavior/test_schedule_handler_behavior.py": {
+    "mtime": 1762334316.8535595,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_schedule_handler_behavior",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 42,
+        "path": "tests\\behavior\\test_schedule_handler_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_schedule_management_behavior.py": {
+    "mtime": 1760839302.5417402,
+    "issues": []
+  },
+  "tests/behavior/test_schedule_suggestions.py": {
+    "mtime": 1762149046.2553408,
+    "issues": []
+  },
+  "tests/behavior/test_scheduler_behavior.py": {
+    "mtime": 1760839302.5417402,
+    "issues": []
+  },
+  "tests/behavior/test_scheduler_coverage_expansion.py": {
+    "mtime": 1762899570.4664109,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_scheduler_coverage_expansion",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 49,
+        "path": "tests\\behavior\\test_scheduler_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused get_user_data imported from core.user_data_handlers",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_scheduler_coverage_expansion",
+        "obj": "",
+        "line": 21,
+        "column": 0,
+        "endLine": 21,
+        "endColumn": 52,
+        "path": "tests\\behavior\\test_scheduler_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused get_user_categories imported from core.user_management",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_service_behavior.py": {
+    "mtime": 1762656733.9745507,
+    "issues": []
+  },
+  "tests/behavior/test_service_utilities_behavior.py": {
+    "mtime": 1762340104.1471796,
+    "issues": []
+  },
+  "tests/behavior/test_static_logging_check.py": {
+    "mtime": 1762340104.1506884,
+    "issues": []
+  },
+  "tests/behavior/test_task_behavior.py": {
+    "mtime": 1760847744.1837928,
+    "issues": []
+  },
+  "tests/behavior/test_task_crud_disambiguation.py": {
+    "mtime": 1762844798.1509547,
+    "issues": []
+  },
+  "tests/behavior/test_task_handler_behavior.py": {
+    "mtime": 1762334318.0268247,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_task_handler_behavior",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 42,
+        "path": "tests\\behavior\\test_task_handler_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_task_management_coverage_expansion.py": {
+    "mtime": 1762844798.1551995,
+    "issues": []
+  },
+  "tests/behavior/test_task_suggestion_relevance.py": {
+    "mtime": 1762823668.9010537,
+    "issues": []
+  },
+  "tests/behavior/test_ui_app_behavior.py": {
+    "mtime": 1761128659.4270332,
+    "issues": []
+  },
+  "tests/behavior/test_ui_automation_complete.py": {
+    "mtime": 1760847744.1837928,
+    "issues": []
+  },
+  "tests/behavior/test_user_context_behavior.py": {
+    "mtime": 1762772976.2426097,
+    "issues": []
+  },
+  "tests/behavior/test_user_data_flow_architecture.py": {
+    "mtime": 1762851871.8715308,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_user_data_flow_architecture",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 11,
+        "path": "tests\\behavior\\test_user_data_flow_architecture.py",
+        "symbol": "unused-import",
+        "message": "Unused import json",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_data_flow_architecture",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 48,
+        "path": "tests\\behavior\\test_user_data_flow_architecture.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_data_flow_architecture",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 48,
+        "path": "tests\\behavior\\test_user_data_flow_architecture.py",
+        "symbol": "unused-import",
+        "message": "Unused call imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_user_management_coverage_expansion.py": {
+    "mtime": 1760847744.1837928,
+    "issues": []
+  },
+  "tests/behavior/test_utilities_demo.py": {
+    "mtime": 1760843845.4175167,
+    "issues": []
+  },
+  "tests/communication/test_channel_monitor.py": {
+    "mtime": 1761128659.4290347,
+    "issues": []
+  },
+  "tests/communication/test_retry_manager.py": {
+    "mtime": 1760840480.0576594,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_retry_manager",
+        "obj": "",
+        "line": 6,
+        "column": 0,
+        "endLine": 6,
+        "endColumn": 11,
+        "path": "tests\\communication\\test_retry_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused import time",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_retry_manager",
+        "obj": "",
+        "line": 7,
+        "column": 0,
+        "endLine": 7,
+        "endColumn": 16,
+        "path": "tests\\communication\\test_retry_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused import threading",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/conftest.py": {
+    "mtime": 1762909229.481188,
+    "issues": []
+  },
+  "tests/core/test_file_auditor.py": {
+    "mtime": 1760840473.593692,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_file_auditor",
+        "obj": "",
+        "line": 8,
+        "column": 0,
+        "endLine": 8,
+        "endColumn": 37,
+        "path": "tests\\core\\test_file_auditor.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/core/test_message_management.py": {
+    "mtime": 1762149046.2553408,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_message_management",
+        "obj": "",
+        "line": 5,
+        "column": 0,
+        "endLine": 5,
+        "endColumn": 13,
+        "path": "tests\\core\\test_message_management.py",
+        "symbol": "unused-import",
+        "message": "Unused import pytest",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_message_management",
+        "obj": "",
+        "line": 7,
+        "column": 0,
+        "endLine": 7,
+        "endColumn": 11,
+        "path": "tests\\core\\test_message_management.py",
+        "symbol": "unused-import",
+        "message": "Unused import json",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_message_management",
+        "obj": "",
+        "line": 8,
+        "column": 0,
+        "endLine": 8,
+        "endColumn": 37,
+        "path": "tests\\core\\test_message_management.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_message_management",
+        "obj": "",
+        "line": 9,
+        "column": 0,
+        "endLine": 9,
+        "endColumn": 29,
+        "path": "tests\\core\\test_message_management.py",
+        "symbol": "unused-import",
+        "message": "Unused datetime imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_message_management",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 1,
+        "path": "tests\\core\\test_message_management.py",
+        "symbol": "unused-import",
+        "message": "Unused load_default_messages imported from core.message_management",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/core/test_python_interpreter_selection.py": {
+    "mtime": 1761128659.4330387,
+    "issues": []
+  },
+  "tests/core/test_schedule_utilities.py": {
+    "mtime": 1760847744.1837928,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_schedule_utilities",
+        "obj": "",
+        "line": 6,
+        "column": 0,
+        "endLine": 6,
+        "endColumn": 13,
+        "path": "tests\\core\\test_schedule_utilities.py",
+        "symbol": "unused-import",
+        "message": "Unused import pytest",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_schedule_utilities",
+        "obj": "",
+        "line": 7,
+        "column": 0,
+        "endLine": 7,
+        "endColumn": 35,
+        "path": "tests\\core\\test_schedule_utilities.py",
+        "symbol": "unused-import",
+        "message": "Unused time imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_schedule_utilities",
+        "obj": "",
+        "line": 8,
+        "column": 0,
+        "endLine": 8,
+        "endColumn": 37,
+        "path": "tests\\core\\test_schedule_utilities.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/debug_file_paths.py": {
+    "mtime": 1757210531.8843985,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "debug_file_paths",
+        "obj": "",
+        "line": 1,
+        "column": 0,
+        "endLine": 1,
+        "endColumn": 13,
+        "path": "tests\\debug_file_paths.py",
+        "symbol": "unused-import",
+        "message": "Unused import pytest",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/integration/test_account_lifecycle.py": {
+    "mtime": 1762418359.353051,
+    "issues": []
+  },
+  "tests/integration/test_account_management.py": {
+    "mtime": 1762773894.1307347,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_account_management",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 15,
+        "path": "tests\\integration\\test_account_management.py",
+        "symbol": "unused-import",
+        "message": "Unused import tempfile",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/integration/test_user_creation.py": {
+    "mtime": 1760847744.2004273,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_user_creation",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 11,
+        "path": "tests\\integration\\test_user_creation.py",
+        "symbol": "unused-import",
+        "message": "Unused import json",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_creation",
+        "obj": "",
+        "line": 15,
+        "column": 0,
+        "endLine": 15,
+        "endColumn": 15,
+        "path": "tests\\integration\\test_user_creation.py",
+        "symbol": "unused-import",
+        "message": "Unused import tempfile",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_creation",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 31,
+        "path": "tests\\integration\\test_user_creation.py",
+        "symbol": "unused-import",
+        "message": "Unused patch imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_creation",
+        "obj": "",
+        "line": 17,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 29,
+        "path": "tests\\integration\\test_user_creation.py",
+        "symbol": "unused-import",
+        "message": "Unused datetime imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_creation",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 26,
+        "endColumn": 1,
+        "path": "tests\\integration\\test_user_creation.py",
+        "symbol": "unused-import",
+        "message": "Unused update_user_account imported from core.user_data_handlers",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_creation",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 26,
+        "endColumn": 1,
+        "path": "tests\\integration\\test_user_creation.py",
+        "symbol": "unused-import",
+        "message": "Unused update_user_schedules imported from core.user_data_handlers",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_creation",
+        "obj": "",
+        "line": 28,
+        "column": 0,
+        "endLine": 28,
+        "endColumn": 101,
+        "path": "tests\\integration\\test_user_creation.py",
+        "symbol": "unused-import",
+        "message": "Unused validate_schedule_periods__validate_time_format imported from core.user_data_validation",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/test_error_handling_improvements.py": {
+    "mtime": 1762340104.1506884,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_error_handling_improvements",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 42,
+        "path": "tests\\test_error_handling_improvements.py",
+        "symbol": "unused-import",
+        "message": "Unused patch imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_error_handling_improvements",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 42,
+        "path": "tests\\test_error_handling_improvements.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_error_handling_improvements",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 24,
+        "path": "tests\\test_error_handling_improvements.py",
+        "symbol": "unused-import",
+        "message": "Unused Path imported from pathlib",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_error_handling_improvements",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 86,
+        "path": "tests\\test_error_handling_improvements.py",
+        "symbol": "unused-import",
+        "message": "Unused MHMError imported from core.error_handling",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_error_handling_improvements",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 86,
+        "path": "tests\\test_error_handling_improvements.py",
+        "symbol": "unused-import",
+        "message": "Unused DataError imported from core.error_handling",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_error_handling_improvements",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 86,
+        "path": "tests\\test_error_handling_improvements.py",
+        "symbol": "unused-import",
+        "message": "Unused FileOperationError imported from core.error_handling",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/test_isolation.py": {
+    "mtime": 1762149046.2415748,
+    "issues": []
+  },
+  "tests/test_utilities.py": {
+    "mtime": 1762776925.9940302,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_utilities",
+        "obj": "",
+        "line": 8,
+        "column": 0,
+        "endLine": 8,
+        "endColumn": 15,
+        "path": "tests\\test_utilities.py",
+        "symbol": "unused-import",
+        "message": "Unused import tempfile",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_utilities",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 24,
+        "path": "tests\\test_utilities.py",
+        "symbol": "unused-import",
+        "message": "Unused Path imported from pathlib",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_utilities",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 48,
+        "path": "tests\\test_utilities.py",
+        "symbol": "unused-import",
+        "message": "Unused create_new_user imported from core.user_management",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_utilities",
+        "obj": "",
+        "line": 20,
+        "column": 0,
+        "endLine": 20,
+        "endColumn": 50,
+        "path": "tests\\test_utilities.py",
+        "symbol": "unused-import",
+        "message": "Unused save_user_data imported from core.user_data_handlers",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_utilities",
+        "obj": "",
+        "line": 21,
+        "column": 0,
+        "endLine": 21,
+        "endColumn": 54,
+        "path": "tests\\test_utilities.py",
+        "symbol": "unused-import",
+        "message": "Unused ensure_user_directory imported from core.file_operations",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_account_creation_ui.py": {
+    "mtime": 1762772213.5237367,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_account_creation_ui",
+        "obj": "",
+        "line": 20,
+        "column": 0,
+        "endLine": 20,
+        "endColumn": 13,
+        "path": "tests\\ui\\test_account_creation_ui.py",
+        "symbol": "unused-import",
+        "message": "Unused import shutil",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_account_creation_ui",
+        "obj": "",
+        "line": 21,
+        "column": 0,
+        "endLine": 21,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_account_creation_ui.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_account_creation_ui",
+        "obj": "",
+        "line": 23,
+        "column": 0,
+        "endLine": 23,
+        "endColumn": 24,
+        "path": "tests\\ui\\test_account_creation_ui.py",
+        "symbol": "unused-import",
+        "message": "Unused Path imported from pathlib",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_account_creation_ui",
+        "obj": "",
+        "line": 24,
+        "column": 0,
+        "endLine": 24,
+        "endColumn": 64,
+        "path": "tests\\ui\\test_account_creation_ui.py",
+        "symbol": "unused-import",
+        "message": "Unused QWidget imported from PySide6.QtWidgets",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_account_creation_ui",
+        "obj": "",
+        "line": 24,
+        "column": 0,
+        "endLine": 24,
+        "endColumn": 64,
+        "path": "tests\\ui\\test_account_creation_ui.py",
+        "symbol": "unused-import",
+        "message": "Unused QMessageBox imported from PySide6.QtWidgets",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_account_creation_ui",
+        "obj": "",
+        "line": 25,
+        "column": 0,
+        "endLine": 25,
+        "endColumn": 37,
+        "path": "tests\\ui\\test_account_creation_ui.py",
+        "symbol": "unused-import",
+        "message": "Unused Qt imported from PySide6.QtCore",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_account_creation_ui",
+        "obj": "",
+        "line": 25,
+        "column": 0,
+        "endLine": 25,
+        "endColumn": 37,
+        "path": "tests\\ui\\test_account_creation_ui.py",
+        "symbol": "unused-import",
+        "message": "Unused QTimer imported from PySide6.QtCore",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_account_creation_ui",
+        "obj": "",
+        "line": 33,
+        "column": 0,
+        "endLine": 33,
+        "endColumn": 70,
+        "path": "tests\\ui\\test_account_creation_ui.py",
+        "symbol": "unused-import",
+        "message": "Unused create_user_files imported from core.file_operations",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_account_creation_ui",
+        "obj": "",
+        "line": 33,
+        "column": 0,
+        "endLine": 33,
+        "endColumn": 70,
+        "path": "tests\\ui\\test_account_creation_ui.py",
+        "symbol": "unused-import",
+        "message": "Unused get_user_file_path imported from core.file_operations",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_account_creation_ui",
+        "obj": "",
+        "line": 34,
+        "column": 0,
+        "endLine": 34,
+        "endColumn": 101,
+        "path": "tests\\ui\\test_account_creation_ui.py",
+        "symbol": "unused-import",
+        "message": "Unused is_valid_email imported from core.user_data_validation",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_account_creation_ui",
+        "obj": "",
+        "line": 34,
+        "column": 0,
+        "endLine": 34,
+        "endColumn": 101,
+        "path": "tests\\ui\\test_account_creation_ui.py",
+        "symbol": "unused-import",
+        "message": "Unused validate_schedule_periods__validate_time_format imported from core.user_data_validation",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_account_creation_ui",
+        "obj": "",
+        "line": 36,
+        "column": 0,
+        "endLine": 36,
+        "endColumn": 72,
+        "path": "tests\\ui\\test_account_creation_ui.py",
+        "symbol": "unused-import",
+        "message": "Unused CategorySelectionWidget imported from ui.widgets.category_selection_widget",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_account_creation_ui",
+        "obj": "",
+        "line": 37,
+        "column": 0,
+        "endLine": 37,
+        "endColumn": 70,
+        "path": "tests\\ui\\test_account_creation_ui.py",
+        "symbol": "unused-import",
+        "message": "Unused ChannelSelectionWidget imported from ui.widgets.channel_selection_widget",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_account_creation_ui",
+        "obj": "",
+        "line": 38,
+        "column": 0,
+        "endLine": 38,
+        "endColumn": 62,
+        "path": "tests\\ui\\test_account_creation_ui.py",
+        "symbol": "unused-import",
+        "message": "Unused TaskSettingsWidget imported from ui.widgets.task_settings_widget",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_account_creation_ui",
+        "obj": "",
+        "line": 39,
+        "column": 0,
+        "endLine": 39,
+        "endColumn": 68,
+        "path": "tests\\ui\\test_account_creation_ui.py",
+        "symbol": "unused-import",
+        "message": "Unused CheckinSettingsWidget imported from ui.widgets.checkin_settings_widget",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_account_creator_dialog_validation.py": {
+    "mtime": 1761128659.4382143,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_account_creator_dialog_validation",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 31,
+        "path": "tests\\ui\\test_account_creator_dialog_validation.py",
+        "symbol": "unused-import",
+        "message": "Unused patch imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_category_management_dialog.py": {
+    "mtime": 1762726901.2297578,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_category_management_dialog",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_category_management_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_category_management_dialog",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_category_management_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_category_management_dialog",
+        "obj": "",
+        "line": 17,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 55,
+        "path": "tests\\ui\\test_category_management_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused QMessageBox imported from PySide6.QtWidgets",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_category_management_dialog",
+        "obj": "",
+        "line": 18,
+        "column": 0,
+        "endLine": 18,
+        "endColumn": 29,
+        "path": "tests\\ui\\test_category_management_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused Qt imported from PySide6.QtCore",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_category_management_dialog",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 32,
+        "path": "tests\\ui\\test_category_management_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused QTest imported from PySide6.QtTest",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_channel_management_dialog_coverage_expansion.py": {
+    "mtime": 1761128659.440216,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_channel_management_dialog_coverage_expansion",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 98,
+        "path": "tests\\ui\\test_channel_management_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused get_user_data imported from core.user_data_handlers",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_channel_management_dialog_coverage_expansion",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 98,
+        "path": "tests\\ui\\test_channel_management_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused update_channel_preferences imported from core.user_data_handlers",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_channel_management_dialog_coverage_expansion",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 98,
+        "path": "tests\\ui\\test_channel_management_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused update_user_account imported from core.user_data_handlers",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_channel_management_dialog_coverage_expansion",
+        "obj": "",
+        "line": 17,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 68,
+        "path": "tests\\ui\\test_channel_management_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused is_valid_email imported from core.user_data_validation",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_channel_management_dialog_coverage_expansion",
+        "obj": "",
+        "line": 17,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 68,
+        "path": "tests\\ui\\test_channel_management_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused is_valid_phone imported from core.user_data_validation",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_dialog_behavior.py": {
+    "mtime": 1761128659.4412167,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_dialog_behavior",
+        "obj": "",
+        "line": 22,
+        "column": 0,
+        "endLine": 22,
+        "endColumn": 13,
+        "path": "tests\\ui\\test_dialog_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused import shutil",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_behavior",
+        "obj": "",
+        "line": 23,
+        "column": 0,
+        "endLine": 23,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_dialog_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused patch imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_behavior",
+        "obj": "",
+        "line": 23,
+        "column": 0,
+        "endLine": 23,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_dialog_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_behavior",
+        "obj": "",
+        "line": 23,
+        "column": 0,
+        "endLine": 23,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_dialog_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_behavior",
+        "obj": "",
+        "line": 24,
+        "column": 0,
+        "endLine": 24,
+        "endColumn": 35,
+        "path": "tests\\ui\\test_dialog_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused datetime imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_behavior",
+        "obj": "",
+        "line": 24,
+        "column": 0,
+        "endLine": 24,
+        "endColumn": 35,
+        "path": "tests\\ui\\test_dialog_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused time imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_behavior",
+        "obj": "",
+        "line": 26,
+        "column": 0,
+        "endLine": 26,
+        "endColumn": 73,
+        "path": "tests\\ui\\test_dialog_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused QWidget imported from PySide6.QtWidgets",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_behavior",
+        "obj": "",
+        "line": 26,
+        "column": 0,
+        "endLine": 26,
+        "endColumn": 73,
+        "path": "tests\\ui\\test_dialog_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused QMessageBox imported from PySide6.QtWidgets",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_behavior",
+        "obj": "",
+        "line": 26,
+        "column": 0,
+        "endLine": 26,
+        "endColumn": 73,
+        "path": "tests\\ui\\test_dialog_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused QDialog imported from PySide6.QtWidgets",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_behavior",
+        "obj": "",
+        "line": 27,
+        "column": 0,
+        "endLine": 27,
+        "endColumn": 37,
+        "path": "tests\\ui\\test_dialog_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused Qt imported from PySide6.QtCore",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_behavior",
+        "obj": "",
+        "line": 27,
+        "column": 0,
+        "endLine": 27,
+        "endColumn": 37,
+        "path": "tests\\ui\\test_dialog_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused QTimer imported from PySide6.QtCore",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_behavior",
+        "obj": "",
+        "line": 32,
+        "column": 0,
+        "endLine": 32,
+        "endColumn": 65,
+        "path": "tests\\ui\\test_dialog_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused save_user_data imported from core.user_data_handlers",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_behavior",
+        "obj": "",
+        "line": 33,
+        "column": 0,
+        "endLine": 33,
+        "endColumn": 70,
+        "path": "tests\\ui\\test_dialog_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused create_user_files imported from core.file_operations",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_behavior",
+        "obj": "",
+        "line": 33,
+        "column": 0,
+        "endLine": 33,
+        "endColumn": 70,
+        "path": "tests\\ui\\test_dialog_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused get_user_file_path imported from core.file_operations",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_behavior",
+        "obj": "",
+        "line": 39,
+        "column": 0,
+        "endLine": 39,
+        "endColumn": 66,
+        "path": "tests\\ui\\test_dialog_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused open_schedule_editor imported from ui.dialogs.schedule_editor_dialog",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_behavior",
+        "obj": "",
+        "line": 40,
+        "column": 0,
+        "endLine": 40,
+        "endColumn": 54,
+        "path": "tests\\ui\\test_dialog_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused TaskEditDialog imported from ui.dialogs.task_edit_dialog",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_behavior",
+        "obj": "",
+        "line": 41,
+        "column": 0,
+        "endLine": 41,
+        "endColumn": 54,
+        "path": "tests\\ui\\test_dialog_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused TaskCrudDialog imported from ui.dialogs.task_crud_dialog",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_behavior",
+        "obj": "",
+        "line": 42,
+        "column": 0,
+        "endLine": 42,
+        "endColumn": 66,
+        "path": "tests\\ui\\test_dialog_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused TaskCompletionDialog imported from ui.dialogs.task_completion_dialog",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_dialog_coverage_expansion.py": {
+    "mtime": 1761128659.4422176,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_dialog_coverage_expansion",
+        "obj": "",
+        "line": 25,
+        "column": 0,
+        "endLine": 25,
+        "endColumn": 13,
+        "path": "tests\\ui\\test_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused import shutil",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_coverage_expansion",
+        "obj": "",
+        "line": 26,
+        "column": 0,
+        "endLine": 26,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_coverage_expansion",
+        "obj": "",
+        "line": 26,
+        "column": 0,
+        "endLine": 26,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_coverage_expansion",
+        "obj": "",
+        "line": 27,
+        "column": 0,
+        "endLine": 27,
+        "endColumn": 35,
+        "path": "tests\\ui\\test_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused datetime imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_coverage_expansion",
+        "obj": "",
+        "line": 27,
+        "column": 0,
+        "endLine": 27,
+        "endColumn": 35,
+        "path": "tests\\ui\\test_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused time imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_coverage_expansion",
+        "obj": "",
+        "line": 28,
+        "column": 0,
+        "endLine": 28,
+        "endColumn": 24,
+        "path": "tests\\ui\\test_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused Path imported from pathlib",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_coverage_expansion",
+        "obj": "",
+        "line": 29,
+        "column": 0,
+        "endLine": 29,
+        "endColumn": 73,
+        "path": "tests\\ui\\test_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused QWidget imported from PySide6.QtWidgets",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_coverage_expansion",
+        "obj": "",
+        "line": 30,
+        "column": 0,
+        "endLine": 30,
+        "endColumn": 37,
+        "path": "tests\\ui\\test_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused Qt imported from PySide6.QtCore",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_coverage_expansion",
+        "obj": "",
+        "line": 30,
+        "column": 0,
+        "endLine": 30,
+        "endColumn": 37,
+        "path": "tests\\ui\\test_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused QTimer imported from PySide6.QtCore",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_coverage_expansion",
+        "obj": "",
+        "line": 31,
+        "column": 0,
+        "endLine": 31,
+        "endColumn": 32,
+        "path": "tests\\ui\\test_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused QTest imported from PySide6.QtTest",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_coverage_expansion",
+        "obj": "",
+        "line": 35,
+        "column": 0,
+        "endLine": 35,
+        "endColumn": 65,
+        "path": "tests\\ui\\test_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused save_user_data imported from core.user_data_handlers",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_coverage_expansion",
+        "obj": "",
+        "line": 35,
+        "column": 0,
+        "endLine": 35,
+        "endColumn": 65,
+        "path": "tests\\ui\\test_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused get_user_data imported from core.user_data_handlers",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_coverage_expansion",
+        "obj": "",
+        "line": 36,
+        "column": 0,
+        "endLine": 36,
+        "endColumn": 70,
+        "path": "tests\\ui\\test_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused create_user_files imported from core.file_operations",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_coverage_expansion",
+        "obj": "",
+        "line": 37,
+        "column": 0,
+        "endLine": 37,
+        "endColumn": 84,
+        "path": "tests\\ui\\test_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused get_schedule_time_periods imported from core.schedule_management",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_coverage_expansion",
+        "obj": "",
+        "line": 37,
+        "column": 0,
+        "endLine": 37,
+        "endColumn": 84,
+        "path": "tests\\ui\\test_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused set_schedule_periods imported from core.schedule_management",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_coverage_expansion",
+        "obj": "",
+        "line": 40,
+        "column": 0,
+        "endLine": 40,
+        "endColumn": 54,
+        "path": "tests\\ui\\test_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused TaskCrudDialog imported from ui.dialogs.task_crud_dialog",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_dialog_coverage_expansion",
+        "obj": "",
+        "line": 43,
+        "column": 0,
+        "endLine": 43,
+        "endColumn": 65,
+        "path": "tests\\ui\\test_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused TestDataFactory imported from tests.test_utilities",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_dialogs.py": {
+    "mtime": 1761128659.4432185,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_dialogs",
+        "obj": "",
+        "line": 15,
+        "column": 0,
+        "endLine": 15,
+        "endColumn": 24,
+        "path": "tests\\ui\\test_dialogs.py",
+        "symbol": "unused-import",
+        "message": "Unused Path imported from pathlib",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_message_editor_dialog.py": {
+    "mtime": 1762426037.1009512,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_message_editor_dialog",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_message_editor_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_message_editor_dialog",
+        "obj": "",
+        "line": 17,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 60,
+        "path": "tests\\ui\\test_message_editor_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused QTableWidgetItem imported from PySide6.QtWidgets",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_message_editor_dialog",
+        "obj": "",
+        "line": 18,
+        "column": 0,
+        "endLine": 18,
+        "endColumn": 29,
+        "path": "tests\\ui\\test_message_editor_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused Qt imported from PySide6.QtCore",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_message_editor_dialog",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 32,
+        "path": "tests\\ui\\test_message_editor_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused QTest imported from PySide6.QtTest",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_process_watcher_dialog.py": {
+    "mtime": 1762417263.60597,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_process_watcher_dialog",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_process_watcher_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_process_watcher_dialog",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 37,
+        "path": "tests\\ui\\test_process_watcher_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused Qt imported from PySide6.QtCore",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_process_watcher_dialog",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 37,
+        "path": "tests\\ui\\test_process_watcher_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused QTimer imported from PySide6.QtCore",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_process_watcher_dialog",
+        "obj": "",
+        "line": 20,
+        "column": 0,
+        "endLine": 20,
+        "endColumn": 32,
+        "path": "tests\\ui\\test_process_watcher_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused QTest imported from PySide6.QtTest",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_task_crud_dialog.py": {
+    "mtime": 1761128659.4447236,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_task_crud_dialog",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 37,
+        "path": "tests\\ui\\test_task_crud_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_crud_dialog",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 60,
+        "path": "tests\\ui\\test_task_crud_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused QTableWidgetItem imported from PySide6.QtWidgets",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_task_management_dialog.py": {
+    "mtime": 1762725434.4918232,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_task_management_dialog",
+        "obj": "",
+        "line": 18,
+        "column": 0,
+        "endLine": 18,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_task_management_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_management_dialog",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 55,
+        "path": "tests\\ui\\test_task_management_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused QMessageBox imported from PySide6.QtWidgets",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_management_dialog",
+        "obj": "",
+        "line": 20,
+        "column": 0,
+        "endLine": 20,
+        "endColumn": 29,
+        "path": "tests\\ui\\test_task_management_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused Qt imported from PySide6.QtCore",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_management_dialog",
+        "obj": "",
+        "line": 21,
+        "column": 0,
+        "endLine": 21,
+        "endColumn": 32,
+        "path": "tests\\ui\\test_task_management_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused QTest imported from PySide6.QtTest",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_task_settings_widget.py": {
+    "mtime": 1762725553.824385,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_task_settings_widget",
+        "obj": "",
+        "line": 18,
+        "column": 0,
+        "endLine": 18,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_task_settings_widget.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_settings_widget",
+        "obj": "",
+        "line": 18,
+        "column": 0,
+        "endLine": 18,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_task_settings_widget.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_settings_widget",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 64,
+        "path": "tests\\ui\\test_task_settings_widget.py",
+        "symbol": "unused-import",
+        "message": "Unused QWidget imported from PySide6.QtWidgets",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_settings_widget",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 64,
+        "path": "tests\\ui\\test_task_settings_widget.py",
+        "symbol": "unused-import",
+        "message": "Unused QMessageBox imported from PySide6.QtWidgets",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_settings_widget",
+        "obj": "",
+        "line": 20,
+        "column": 0,
+        "endLine": 20,
+        "endColumn": 29,
+        "path": "tests\\ui\\test_task_settings_widget.py",
+        "symbol": "unused-import",
+        "message": "Unused Qt imported from PySide6.QtCore",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_settings_widget",
+        "obj": "",
+        "line": 21,
+        "column": 0,
+        "endLine": 21,
+        "endColumn": 32,
+        "path": "tests\\ui\\test_task_settings_widget.py",
+        "symbol": "unused-import",
+        "message": "Unused QTest imported from PySide6.QtTest",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_ui_app_qt_core.py": {
+    "mtime": 1762340104.1506884,
+    "issues": []
+  },
+  "tests/ui/test_ui_app_qt_main.py": {
+    "mtime": 1762772213.5237367,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_ui_app_qt_main",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 13,
+        "path": "tests\\ui\\test_ui_app_qt_main.py",
+        "symbol": "unused-import",
+        "message": "Unused import pytest",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_ui_app_qt_main",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 59,
+        "path": "tests\\ui\\test_ui_app_qt_main.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_ui_button_verification.py": {
+    "mtime": 1762149046.2553408,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_ui_button_verification",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 37,
+        "path": "tests\\ui\\test_ui_button_verification.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_ui_button_verification",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 37,
+        "path": "tests\\ui\\test_ui_button_verification.py",
+        "symbol": "unused-import",
+        "message": "Unused patch imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_ui_components_headless.py": {
+    "mtime": 1762149046.2553408,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_ui_components_headless",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 31,
+        "path": "tests\\ui\\test_ui_components_headless.py",
+        "symbol": "unused-import",
+        "message": "Unused patch imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_ui_generation.py": {
+    "mtime": 1761128659.4525075,
+    "issues": []
+  },
+  "tests/ui/test_ui_widgets_coverage_expansion.py": {
+    "mtime": 1761128659.4540114,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_ui_widgets_coverage_expansion",
+        "obj": "",
+        "line": 22,
+        "column": 0,
+        "endLine": 22,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_ui_widgets_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_ui_widgets_coverage_expansion",
+        "obj": "",
+        "line": 22,
+        "column": 0,
+        "endLine": 22,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_ui_widgets_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_ui_widgets_coverage_expansion",
+        "obj": "",
+        "line": 23,
+        "column": 0,
+        "endLine": 23,
+        "endColumn": 29,
+        "path": "tests\\ui\\test_ui_widgets_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused datetime imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_ui_widgets_coverage_expansion",
+        "obj": "",
+        "line": 26,
+        "column": 0,
+        "endLine": 26,
+        "endColumn": 95,
+        "path": "tests\\ui\\test_ui_widgets_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused QWidget imported from PySide6.QtWidgets",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_ui_widgets_coverage_expansion",
+        "obj": "",
+        "line": 26,
+        "column": 0,
+        "endLine": 26,
+        "endColumn": 95,
+        "path": "tests\\ui\\test_ui_widgets_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused QListWidgetItem imported from PySide6.QtWidgets",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_ui_widgets_coverage_expansion",
+        "obj": "",
+        "line": 26,
+        "column": 0,
+        "endLine": 26,
+        "endColumn": 95,
+        "path": "tests\\ui\\test_ui_widgets_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused QInputDialog imported from PySide6.QtWidgets",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_ui_widgets_coverage_expansion",
+        "obj": "",
+        "line": 27,
+        "column": 0,
+        "endLine": 27,
+        "endColumn": 37,
+        "path": "tests\\ui\\test_ui_widgets_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused QTimer imported from PySide6.QtCore",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_ui_widgets_coverage_expansion",
+        "obj": "",
+        "line": 28,
+        "column": 0,
+        "endLine": 28,
+        "endColumn": 32,
+        "path": "tests\\ui\\test_ui_widgets_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused QTest imported from PySide6.QtTest",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_user_analytics_dialog.py": {
+    "mtime": 1762417263.60597,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_user_analytics_dialog",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_user_analytics_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_analytics_dialog",
+        "obj": "",
+        "line": 17,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 29,
+        "path": "tests\\ui\\test_user_analytics_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused datetime imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_analytics_dialog",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 29,
+        "path": "tests\\ui\\test_user_analytics_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused Qt imported from PySide6.QtCore",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_analytics_dialog",
+        "obj": "",
+        "line": 20,
+        "column": 0,
+        "endLine": 20,
+        "endColumn": 32,
+        "path": "tests\\ui\\test_user_analytics_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused QTest imported from PySide6.QtTest",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_user_profile_dialog_coverage_expansion.py": {
+    "mtime": 1761128659.4551163,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_user_profile_dialog_coverage_expansion",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 9,
+        "path": "tests\\ui\\test_user_profile_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused import os",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_profile_dialog_coverage_expansion",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 15,
+        "path": "tests\\ui\\test_user_profile_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused import tempfile",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_profile_dialog_coverage_expansion",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_user_profile_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_profile_dialog_coverage_expansion",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 29,
+        "path": "tests\\ui\\test_user_profile_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused datetime imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_profile_dialog_coverage_expansion",
+        "obj": "",
+        "line": 18,
+        "column": 0,
+        "endLine": 18,
+        "endColumn": 32,
+        "path": "tests\\ui\\test_user_profile_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused QTest imported from PySide6.QtTest",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_profile_dialog_coverage_expansion",
+        "obj": "",
+        "line": 21,
+        "column": 0,
+        "endLine": 21,
+        "endColumn": 65,
+        "path": "tests\\ui\\test_user_profile_dialog_coverage_expansion.py",
+        "symbol": "unused-import",
+        "message": "Unused TestDataFactory imported from tests.test_utilities",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_widget_behavior.py": {
+    "mtime": 1761128659.4561198,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_widget_behavior",
+        "obj": "",
+        "line": 22,
+        "column": 0,
+        "endLine": 22,
+        "endColumn": 15,
+        "path": "tests\\ui\\test_widget_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused import tempfile",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior",
+        "obj": "",
+        "line": 23,
+        "column": 0,
+        "endLine": 23,
+        "endColumn": 13,
+        "path": "tests\\ui\\test_widget_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused import shutil",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior",
+        "obj": "",
+        "line": 24,
+        "column": 0,
+        "endLine": 24,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_widget_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused patch imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior",
+        "obj": "",
+        "line": 24,
+        "column": 0,
+        "endLine": 24,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_widget_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior",
+        "obj": "",
+        "line": 24,
+        "column": 0,
+        "endLine": 24,
+        "endColumn": 48,
+        "path": "tests\\ui\\test_widget_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior",
+        "obj": "",
+        "line": 25,
+        "column": 0,
+        "endLine": 25,
+        "endColumn": 35,
+        "path": "tests\\ui\\test_widget_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused datetime imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior",
+        "obj": "",
+        "line": 25,
+        "column": 0,
+        "endLine": 25,
+        "endColumn": 35,
+        "path": "tests\\ui\\test_widget_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused time imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior",
+        "obj": "",
+        "line": 27,
+        "column": 0,
+        "endLine": 27,
+        "endColumn": 86,
+        "path": "tests\\ui\\test_widget_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused QMessageBox imported from PySide6.QtWidgets",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior",
+        "obj": "",
+        "line": 27,
+        "column": 0,
+        "endLine": 27,
+        "endColumn": 86,
+        "path": "tests\\ui\\test_widget_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused QDialog imported from PySide6.QtWidgets",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior",
+        "obj": "",
+        "line": 28,
+        "column": 0,
+        "endLine": 28,
+        "endColumn": 37,
+        "path": "tests\\ui\\test_widget_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused Qt imported from PySide6.QtCore",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior",
+        "obj": "",
+        "line": 28,
+        "column": 0,
+        "endLine": 28,
+        "endColumn": 37,
+        "path": "tests\\ui\\test_widget_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused QTimer imported from PySide6.QtCore",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior",
+        "obj": "",
+        "line": 29,
+        "column": 0,
+        "endLine": 29,
+        "endColumn": 32,
+        "path": "tests\\ui\\test_widget_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused QTest imported from PySide6.QtTest",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior",
+        "obj": "",
+        "line": 33,
+        "column": 0,
+        "endLine": 33,
+        "endColumn": 65,
+        "path": "tests\\ui\\test_widget_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused save_user_data imported from core.user_data_handlers",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior",
+        "obj": "",
+        "line": 33,
+        "column": 0,
+        "endLine": 33,
+        "endColumn": 65,
+        "path": "tests\\ui\\test_widget_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused get_user_data imported from core.user_data_handlers",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior",
+        "obj": "",
+        "line": 34,
+        "column": 0,
+        "endLine": 34,
+        "endColumn": 70,
+        "path": "tests\\ui\\test_widget_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused create_user_files imported from core.file_operations",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior",
+        "obj": "",
+        "line": 34,
+        "column": 0,
+        "endLine": 34,
+        "endColumn": 70,
+        "path": "tests\\ui\\test_widget_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused get_user_file_path imported from core.file_operations",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior",
+        "obj": "",
+        "line": 35,
+        "column": 0,
+        "endLine": 35,
+        "endColumn": 69,
+        "path": "tests\\ui\\test_widget_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused TestUserDataFactory imported from tests.test_utilities",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/ui/test_widget_behavior_simple.py": {
+    "mtime": 1761128659.4581213,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_widget_behavior_simple",
+        "obj": "",
+        "line": 15,
+        "column": 0,
+        "endLine": 15,
+        "endColumn": 37,
+        "path": "tests\\ui\\test_widget_behavior_simple.py",
+        "symbol": "unused-import",
+        "message": "Unused patch imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior_simple",
+        "obj": "",
+        "line": 15,
+        "column": 0,
+        "endLine": 15,
+        "endColumn": 37,
+        "path": "tests\\ui\\test_widget_behavior_simple.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior_simple",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 51,
+        "path": "tests\\ui\\test_widget_behavior_simple.py",
+        "symbol": "unused-import",
+        "message": "Unused QWidget imported from PySide6.QtWidgets",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior_simple",
+        "obj": "",
+        "line": 17,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 29,
+        "path": "tests\\ui\\test_widget_behavior_simple.py",
+        "symbol": "unused-import",
+        "message": "Unused Qt imported from PySide6.QtCore",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_widget_behavior_simple",
+        "obj": "",
+        "line": 18,
+        "column": 0,
+        "endLine": 18,
+        "endColumn": 32,
+        "path": "tests\\ui\\test_widget_behavior_simple.py",
+        "symbol": "unused-import",
+        "message": "Unused QTest imported from PySide6.QtTest",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_admin_panel.py": {
+    "mtime": 1762654741.8315015,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_admin_panel",
+        "obj": "",
+        "line": 17,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 48,
+        "path": "tests\\unit\\test_admin_panel.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_admin_panel",
+        "obj": "",
+        "line": 17,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 48,
+        "path": "tests\\unit\\test_admin_panel.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_admin_panel",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 29,
+        "path": "tests\\unit\\test_admin_panel.py",
+        "symbol": "unused-import",
+        "message": "Unused Qt imported from PySide6.QtCore",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_admin_panel",
+        "obj": "",
+        "line": 20,
+        "column": 0,
+        "endLine": 20,
+        "endColumn": 32,
+        "path": "tests\\unit\\test_admin_panel.py",
+        "symbol": "unused-import",
+        "message": "Unused QTest imported from PySide6.QtTest",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_ai_deterministic.py": {
+    "mtime": 1761988451.5924456,
+    "issues": []
+  },
+  "tests/unit/test_auto_cleanup_paths.py": {
+    "mtime": 1761128659.4581213,
+    "issues": []
+  },
+  "tests/unit/test_checkin_analytics_conversion.py": {
+    "mtime": 1762743207.6535661,
+    "issues": []
+  },
+  "tests/unit/test_checkin_management_dialog.py": {
+    "mtime": 1762729029.9622054,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_checkin_management_dialog",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 48,
+        "path": "tests\\unit\\test_checkin_management_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_checkin_management_dialog",
+        "obj": "",
+        "line": 20,
+        "column": 0,
+        "endLine": 20,
+        "endColumn": 64,
+        "path": "tests\\unit\\test_checkin_management_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused QMessageBox imported from PySide6.QtWidgets",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_checkin_management_dialog",
+        "obj": "",
+        "line": 21,
+        "column": 0,
+        "endLine": 21,
+        "endColumn": 29,
+        "path": "tests\\unit\\test_checkin_management_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused Qt imported from PySide6.QtCore",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_checkin_management_dialog",
+        "obj": "",
+        "line": 22,
+        "column": 0,
+        "endLine": 22,
+        "endColumn": 32,
+        "path": "tests\\unit\\test_checkin_management_dialog.py",
+        "symbol": "unused-import",
+        "message": "Unused QTest imported from PySide6.QtTest",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_cleanup.py": {
+    "mtime": 1760847744.2056704,
+    "issues": []
+  },
+  "tests/unit/test_command_registry.py": {
+    "mtime": 1762651306.9452226,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_command_registry",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 53,
+        "path": "tests\\unit\\test_command_registry.py",
+        "symbol": "unused-import",
+        "message": "Unused AsyncMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_command_registry",
+        "obj": "",
+        "line": 22,
+        "column": 0,
+        "endLine": 22,
+        "endColumn": 14,
+        "path": "tests\\unit\\test_command_registry.py",
+        "symbol": "unused-import",
+        "message": "Unused import discord",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_communication_core_init.py": {
+    "mtime": 1762725434.4918232,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_communication_core_init",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 42,
+        "path": "tests\\unit\\test_communication_core_init.py",
+        "symbol": "unused-import",
+        "message": "Unused patch imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_communication_core_init",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 42,
+        "path": "tests\\unit\\test_communication_core_init.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_communication_init.py": {
+    "mtime": 1762426037.1009512,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_communication_init",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 42,
+        "path": "tests\\unit\\test_communication_init.py",
+        "symbol": "unused-import",
+        "message": "Unused patch imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_communication_init",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 42,
+        "path": "tests\\unit\\test_communication_init.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_config.py": {
+    "mtime": 1762378890.1448064,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_config",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 18,
+        "path": "tests\\unit\\test_config.py",
+        "symbol": "unused-import",
+        "message": "Unused import core.config",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_discord_api_client.py": {
+    "mtime": 1762651102.3243937,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_discord_api_client",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 14,
+        "path": "tests\\unit\\test_discord_api_client.py",
+        "symbol": "unused-import",
+        "message": "Unused import asyncio",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_discord_event_handler.py": {
+    "mtime": 1762651306.9452226,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_discord_event_handler",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 14,
+        "path": "tests\\unit\\test_discord_event_handler.py",
+        "symbol": "unused-import",
+        "message": "Unused import asyncio",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_discord_event_handler",
+        "obj": "",
+        "line": 21,
+        "column": 0,
+        "endLine": 21,
+        "endColumn": 14,
+        "path": "tests\\unit\\test_discord_event_handler.py",
+        "symbol": "unused-import",
+        "message": "Unused import discord",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_enhanced_checkin_responses.py": {
+    "mtime": 1760917626.4039643,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_enhanced_checkin_responses",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 42,
+        "path": "tests\\unit\\test_enhanced_checkin_responses.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_error_handling.py": {
+    "mtime": 1760847744.2056704,
+    "issues": []
+  },
+  "tests/unit/test_file_operations.py": {
+    "mtime": 1762078733.7867687,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_file_operations",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 24,
+        "path": "tests\\unit\\test_file_operations.py",
+        "symbol": "unused-import",
+        "message": "Unused Path imported from pathlib",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_file_operations",
+        "obj": "",
+        "line": 20,
+        "column": 0,
+        "endLine": 20,
+        "endColumn": 50,
+        "path": "tests\\unit\\test_file_operations.py",
+        "symbol": "unused-import",
+        "message": "Unused FileOperationError imported from core.error_handling",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_lm_studio_manager.py": {
+    "mtime": 1762654741.8315015,
+    "issues": []
+  },
+  "tests/unit/test_logger_unit.py": {
+    "mtime": 1762477142.4367027,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_logger_unit",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 11,
+        "path": "tests\\unit\\test_logger_unit.py",
+        "symbol": "unused-import",
+        "message": "Unused import json",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_logger_unit",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 59,
+        "path": "tests\\unit\\test_logger_unit.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_logger_unit",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 59,
+        "path": "tests\\unit\\test_logger_unit.py",
+        "symbol": "unused-import",
+        "message": "Unused mock_open imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_logger_unit",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 31,
+        "endColumn": 1,
+        "path": "tests\\unit\\test_logger_unit.py",
+        "symbol": "unused-import",
+        "message": "Unused _get_log_paths_for_environment imported from core.logger",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_logging_components.py": {
+    "mtime": 1760847744.2056704,
+    "issues": []
+  },
+  "tests/unit/test_message_formatter.py": {
+    "mtime": 1762650320.209356,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_message_formatter",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 42,
+        "path": "tests\\unit\\test_message_formatter.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_message_formatter",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 1,
+        "path": "tests\\unit\\test_message_formatter.py",
+        "symbol": "unused-import",
+        "message": "Unused MessageFormatter imported from communication.communication_channels.base.message_formatter",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_message_formatter",
+        "obj": "",
+        "line": 20,
+        "column": 0,
+        "endLine": 20,
+        "endColumn": 41,
+        "path": "tests\\unit\\test_message_formatter.py",
+        "symbol": "unused-import",
+        "message": "Unused DataError imported from core.error_handling",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_no_prints_policy.py": {
+    "mtime": 1761993164.6914685,
+    "issues": []
+  },
+  "tests/unit/test_recurring_tasks.py": {
+    "mtime": 1760847744.2056704,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_recurring_tasks",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 1,
+        "path": "tests\\unit\\test_recurring_tasks.py",
+        "symbol": "unused-import",
+        "message": "Unused _create_next_recurring_task_instance imported from tasks.task_management",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_rich_formatter.py": {
+    "mtime": 1762650320.209356,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_rich_formatter",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 1,
+        "path": "tests\\unit\\test_rich_formatter.py",
+        "symbol": "unused-import",
+        "message": "Unused RichFormatter imported from communication.communication_channels.base.rich_formatter",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_schedule_management.py": {
+    "mtime": 1760847744.1837928,
+    "issues": []
+  },
+  "tests/unit/test_service_utilities_network.py": {
+    "mtime": 1761128659.4591222,
+    "issues": []
+  },
+  "tests/unit/test_user_context.py": {
+    "mtime": 1762827103.2488406,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_user_context",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 48,
+        "path": "tests\\unit\\test_user_context.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_context",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 48,
+        "path": "tests\\unit\\test_user_context.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_user_data_loader_idempotency.py": {
+    "mtime": 1759214215.6656363,
+    "issues": []
+  },
+  "tests/unit/test_user_data_loader_order_insensitivity.py": {
+    "mtime": 1760847744.2004273,
+    "issues": []
+  },
+  "tests/unit/test_user_data_manager.py": {
+    "mtime": 1762858458.640717,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_user_data_manager",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 59,
+        "path": "tests\\unit\\test_user_data_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_data_manager",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 59,
+        "path": "tests\\unit\\test_user_data_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_data_manager",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 59,
+        "path": "tests\\unit\\test_user_data_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused mock_open imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_data_manager",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 24,
+        "path": "tests\\unit\\test_user_data_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused Path imported from pathlib",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_data_manager",
+        "obj": "",
+        "line": 20,
+        "column": 0,
+        "endLine": 20,
+        "endColumn": 29,
+        "path": "tests\\unit\\test_user_data_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused datetime imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_data_manager",
+        "obj": "",
+        "line": 22,
+        "column": 0,
+        "endLine": 36,
+        "endColumn": 1,
+        "path": "tests\\unit\\test_user_data_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused delete_user_completely imported from core.user_data_manager",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_user_management.py": {
+    "mtime": 1762844798.1551995,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_user_management",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 31,
+        "path": "tests\\unit\\test_user_management.py",
+        "symbol": "unused-import",
+        "message": "Unused patch imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_management",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 1,
+        "path": "tests\\unit\\test_user_management.py",
+        "symbol": "unused-import",
+        "message": "Unused update_user_account imported from core.user_data_handlers",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_management",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 1,
+        "path": "tests\\unit\\test_user_management.py",
+        "symbol": "unused-import",
+        "message": "Unused update_user_context imported from core.user_data_handlers",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_validation.py": {
+    "mtime": 1762838167.8999865,
+    "issues": []
+  },
+  "ui/__init__.py": {
+    "mtime": 1762238891.8703425,
+    "issues": []
+  },
+  "ui/generate_ui_files.py": {
+    "mtime": 1762595629.3664482,
+    "issues": []
+  },
+  "ui/ui_app_qt.py": {
+    "mtime": 1762766531.33827,
+    "issues": []
+  },
+  "ui/widgets/__init__.py": {
+    "mtime": 1762166030.6289499,
+    "issues": []
+  },
+  "ui/widgets/category_selection_widget.py": {
+    "mtime": 1761081898.8579617,
+    "issues": []
+  },
+  "ui/widgets/channel_selection_widget.py": {
+    "mtime": 1761128659.4761703,
+    "issues": []
+  },
+  "ui/widgets/checkin_settings_widget.py": {
+    "mtime": 1762824620.6451106,
+    "issues": []
+  },
+  "ui/widgets/dynamic_list_container.py": {
+    "mtime": 1759726926.28001,
+    "issues": []
+  },
+  "ui/widgets/dynamic_list_field.py": {
+    "mtime": 1760507219.8328872,
+    "issues": []
+  },
+  "ui/widgets/period_row_widget.py": {
+    "mtime": 1761128659.478172,
+    "issues": []
+  },
+  "ui/widgets/tag_widget.py": {
+    "mtime": 1761128659.4795337,
+    "issues": []
+  },
+  "ui/widgets/task_settings_widget.py": {
+    "mtime": 1761128659.4815378,
+    "issues": []
+  },
+  "ui/widgets/user_profile_settings_widget.py": {
+    "mtime": 1762408814.7069714,
+    "issues": []
+  },
+  "user/__init__.py": {
+    "mtime": 1762166030.634457,
+    "issues": []
+  },
+  "user/context_manager.py": {
+    "mtime": 1760377270.9685063,
+    "issues": []
+  },
+  "user/user_context.py": {
+    "mtime": 1762827103.2488406,
+    "issues": []
+  },
+  "user/user_preferences.py": {
+    "mtime": 1762849825.3494096,
+    "issues": []
+  }
+}
