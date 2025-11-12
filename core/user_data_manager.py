@@ -1198,8 +1198,19 @@ def get_user_info_for_data_manager(user_id: str) -> Optional[Dict[str, Any]]:
     try:
         from core.user_data_handlers import get_user_data
         
-        # Get all user data
-        user_data = get_user_data(user_id, 'all')
+        # Get all user data with retry logic for parallel execution race conditions
+        import time
+        user_data = None
+        for attempt in range(3):
+            user_data = get_user_data(user_id, 'all', auto_create=True)
+            # Check if user_data is valid (has at least account data)
+            if user_data and isinstance(user_data, dict) and len(user_data) > 0:
+                account_data = user_data.get('account', {})
+                if account_data and account_data.get('internal_username'):
+                    break
+            if attempt < 2:
+                time.sleep(0.1)  # Brief delay before retry
+        
         # Check if user_data is None or empty (error case)
         # Empty dict from get_user_data means error occurred (due to error handling default_return={})
         if not user_data or (isinstance(user_data, dict) and len(user_data) == 0):

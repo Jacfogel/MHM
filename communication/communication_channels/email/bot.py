@@ -4,6 +4,7 @@ import smtplib
 import imaplib
 import email
 import asyncio
+import time
 from email.mime.text import MIMEText
 from email.header import decode_header
 from typing import List, Dict, Any
@@ -22,6 +23,9 @@ class EmailBotError(Exception):
     pass
 
 class EmailBot(BaseChannel):
+    # Class-level variable to track last timeout log time for rate limiting
+    _last_timeout_log_time = 0
+    _timeout_log_interval = 3600  # 1 hour in seconds
     @handle_errors("initializing email bot", default_return=None)
     def __init__(self, config: ChannelConfig = None):
         """
@@ -146,7 +150,8 @@ class EmailBot(BaseChannel):
         
         try:
             messages = await loop.run_in_executor(None, self._receive_emails_sync)
-            logger.info(f"Received {len(messages)} emails.")
+            if len(messages) > 0:
+                logger.info(f"Received {len(messages)} new email(s)")
             return messages
         except Exception as e:
             logger.error(f"Exception in receive_messages executor: {type(e).__name__} - {e}", exc_info=True)
@@ -239,7 +244,14 @@ class EmailBot(BaseChannel):
             mail.close()
             mail.logout()
         except socket.timeout as e:
-            logger.error(f"IMAP socket timeout in _receive_emails_sync after 8 seconds: {e}", exc_info=True)
+            # Rate limit timeout logging to once per hour (expected behavior when no emails)
+            current_time = time.time()
+            time_since_last_log = current_time - EmailBot._last_timeout_log_time
+            
+            if time_since_last_log >= EmailBot._timeout_log_interval:
+                # Log at DEBUG level since this is expected behavior when no emails are present
+                logger.debug(f"IMAP socket timeout in _receive_emails_sync after 8 seconds (expected when no emails): {e}")
+                EmailBot._last_timeout_log_time = current_time
             # Try to clean up connection if it exists
             try:
                 if mail:

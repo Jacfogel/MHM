@@ -174,6 +174,10 @@ When adding new tasks, follow this format:
   - ✅ `tests/behavior/test_account_management_real_behavior.py` - Fixed indentation error
   - ✅ `tests/ui/test_widget_behavior.py::TestCheckinSettingsWidgetBehavior::test_checkin_enablement_real_behavior` - Fixed user ID resolution with retry logic
   - ✅ `tests/integration/test_user_creation.py` - Removed print() statements to comply with test policy
+  - ✅ `tests/behavior/test_account_management_real_behavior.py::test_user_data_loading_real_behavior` - Fixed race condition in parallel execution by adding retry logic to `get_user_info_for_data_manager()` (2025-11-12)
+  - ✅ `tests/unit/test_user_data_manager.py::TestUserDataManagerIndex::test_update_user_index_success` - Fixed race condition in parallel execution (2025-11-12)
+  - ✅ `tests/behavior/test_account_management_real_behavior.py::test_category_management_real_behavior` - Fixed race condition in parallel execution (2025-11-12)
+  - ✅ `tests/unit/test_user_data_manager.py::TestUserDataManagerMessageReferences::test_update_message_references_success` - Fixed race condition in parallel execution (2025-11-12)
 - *Note on Previously Flaky Tests*: The following tests were observed failing on 2025-11-11 but are now passing in the latest test run (2025-11-12). They may still be intermittent and should be monitored over multiple runs:
   - `tests/ui/test_ui_app_qt_main.py::TestMHMManagerUI::test_update_service_status_updates_display` - Likely race condition with UI state (PASSING as of 2025-11-12)
   - `tests/ui/test_ui_app_qt_main.py::TestMHMManagerUI::test_manage_tasks_opens_dialog` - UI dialog opening race condition (PASSING as of 2025-11-12)

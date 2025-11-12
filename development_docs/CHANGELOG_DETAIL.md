@@ -35,6 +35,37 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-12 - Email Timeout Logging Reduction and Parallel Test Race Condition Fix **COMPLETED**
+
+**Feature**: Reduced IMAP socket timeout error logging frequency from every 30 seconds to once per hour, and fixed 4 flaky tests that were failing in parallel execution due to race conditions in user data loading.
+
+**Technical Changes**:
+
+1. **Email Timeout Logging Optimization** (`communication/communication_channels/email/bot.py`):
+   - Added rate limiting to IMAP socket timeout logging (once per hour maximum)
+   - Changed timeout log level from ERROR to DEBUG since timeouts are expected behavior when no emails are present
+   - Added class-level tracking variables (`_last_timeout_log_time`, `_timeout_log_interval`) to control logging frequency
+   - Updated timeout message to indicate this is expected behavior: "IMAP socket timeout in _receive_emails_sync after 8 seconds (expected when no emails)"
+   - Improved email receipt logging to only log when emails are actually received (`logger.info(f"Received {len(messages)} new email(s)")`)
+
+2. **Parallel Test Race Condition Fix** (`core/user_data_manager.py`):
+   - Added retry logic with validation to `get_user_info_for_data_manager()` function
+   - Retries up to 3 times with 0.1s delays when user data is not yet available
+   - Validates that account data with `internal_username` exists before proceeding
+   - Uses `auto_create=True` to ensure files are created if missing during parallel test execution
+   - Fixes race conditions where multiple tests create users simultaneously and data loading happens before files are fully written
+
+**Impact**: 
+- Email timeout errors now appear at most once per hour in logs instead of every 30 seconds, dramatically reducing log noise
+- All 4 previously failing tests now pass consistently in parallel execution mode (2828 passed, 0 failed, 1 skipped)
+- Improved reliability of user data operations in parallel test execution
+
+**Files Modified**:
+- `communication/communication_channels/email/bot.py` (lines 25-28, 153-154, 246-254) - Rate limiting and log level changes
+- `core/user_data_manager.py` (lines 1201-1212) - Retry logic for parallel execution
+
+**Testing**: All 67 email-related tests pass. All 4 previously failing tests (`test_user_data_loading_real_behavior`, `test_update_user_index_success`, `test_category_management_real_behavior`, `test_update_message_references_success`) now pass consistently in parallel execution mode.
+
 ### 2025-11-12 - Email Polling Timeout and Event Loop Fix **COMPLETED**
 
 **Feature**: Fixed critical email polling failures that were causing timeout errors every 30-40 seconds. Root causes were: event loop not running (coroutines never executed), inefficient email fetching (fetching ALL emails instead of UNSEEN), and missing socket timeouts.

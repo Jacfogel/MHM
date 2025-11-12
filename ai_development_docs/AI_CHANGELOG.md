@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-12 - Email Timeout Logging Reduction and Parallel Test Race Condition Fix **COMPLETED**
+- **Email Timeout Logging**: Added rate limiting to IMAP socket timeout errors (once per hour max), changed log level from ERROR to DEBUG - dramatically reduces log noise (was logging every 30 seconds, now once per hour)
+- **Parallel Test Fix**: Added retry logic with validation to `get_user_info_for_data_manager()` - fixes 4 flaky tests failing due to race conditions when multiple tests create users simultaneously
+- **Impact**: Email timeout errors reduced from constant noise to occasional debug messages, all 2,828 tests now pass consistently in parallel execution
+- **Files**: communication/communication_channels/email/bot.py, core/user_data_manager.py
+
 ### 2025-11-12 - Email Polling Timeout and Event Loop Fix **COMPLETED**
 - **Event Loop Fix**: Fixed email polling to check if loop thread is alive before using `run_coroutine_threadsafe()` - added fallback to temporary loop with `run_until_complete()` when main loop isn't running (coroutines were being submitted but never executed)
 - **Email Fetching Optimization**: Changed from fetching ALL emails to only UNSEEN emails, added 8-second socket timeout, limited to 20 emails per poll - polling now completes in ~3 seconds instead of timing out
