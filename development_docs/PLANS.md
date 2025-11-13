@@ -124,9 +124,9 @@
 - Capture findings in TODO task updates and tag future implementation tickets once guidelines are approved.
 - Validate prototypes against mobile UX constraints (concise, quick replies).
 
-### **2025-09-16 - High Complexity Function Refactoring - Phase 2** 🔄 **IN PROGRESS**
+### **2025-09-16 - High Complexity Function Refactoring - Phase 2** [IN PROGRESS] **IN PROGRESS**
 
-**Status**: 🔄 **IN PROGRESS**  
+**Status**: [IN PROGRESS] **IN PROGRESS**  
 **Priority**: High  
 **Effort**: Large  
 **Dependencies**: Audit completion (completed)
@@ -153,7 +153,7 @@
   - [x] Identify functions with highest impact on system stability
   - [x] Create refactoring plan with acceptance criteria for each function
 
-#### **Step 2: Refactoring Strategy Implementation** 🔄 **IN PROGRESS**
+#### **Step 2: Refactoring Strategy Implementation** [IN PROGRESS] **IN PROGRESS**
 - [x] **Next Priority Targets**
   - [x] `ui/widgets/user_profile_settings_widget.py::get_personalization_data` (complexity: 727) [CHECKMARK] **COMPLETED**
   - [ ] `ui/ui_app_qt.py::validate_configuration` (complexity: 692) [WARNING] **NEXT TARGET**
@@ -266,9 +266,9 @@
 
 ---
 
-### **2025-09-10 - Message Deduplication Advanced Features (Future)** 🔄 **IN PROGRESS**
+### **2025-09-10 - Message Deduplication Advanced Features (Future)** [IN PROGRESS] **IN PROGRESS**
 
-**Status**: 🔄 **IN PROGRESS**  
+**Status**: [IN PROGRESS] **IN PROGRESS**  
 **Priority**: Low  
 **Effort**: Large  
 **Dependencies**: Message deduplication system (completed)  
@@ -279,15 +279,15 @@
 **Background**: The core message deduplication system is complete and operational. These advanced features would enhance the system with analytics, user preference learning, and intelligent message selection capabilities.
 
 **Progress**: Basic message frequency analytics foundation implemented (2025-11-11):
-- ✅ Created `MessageAnalytics` class in `core/message_analytics.py`
-- ✅ Implemented `get_message_frequency()` - tracks frequency by category and time period
-- ✅ Implemented `get_delivery_success_rate()` - analyzes delivery success rates
-- ✅ Implemented `get_message_summary()` - comprehensive summary combining frequency and delivery data
-- ✅ Added comprehensive behavior tests (7 tests, all passing)
+- [OK] Created `MessageAnalytics` class in `core/message_analytics.py`
+- [OK] Implemented `get_message_frequency()` - tracks frequency by category and time period
+- [OK] Implemented `get_delivery_success_rate()` - analyzes delivery success rates
+- [OK] Implemented `get_message_summary()` - comprehensive summary combining frequency and delivery data
+- [OK] Added comprehensive behavior tests (7 tests, all passing)
 
 **Implementation Plan**:
 
-#### **Step 5.1: Analytics and Insights** 🔄 **IN PROGRESS**
+#### **Step 5.1: Analytics and Insights** [IN PROGRESS] **IN PROGRESS**
 - [x] **Message frequency analytics** [CHECKMARK] **COMPLETED** (2025-11-11)
   - [x] Track message send frequency by category and time period
   - [x] Generate reports on message delivery success rates
@@ -332,7 +332,7 @@
   - [ ] Continuous improvement through testing
 
 **Success Criteria**:
-- [x] Basic message frequency analytics implemented (✅ completed 2025-11-11)
+- [x] Basic message frequency analytics implemented ([OK] completed 2025-11-11)
 - [ ] Advanced analytics provide actionable insights
 - [ ] User engagement tracking improves message targeting
 - [ ] Smart recommendations increase user satisfaction
@@ -346,9 +346,9 @@
 
 ---
 
-### **2025-09-07 - Test Standardization Burn-in** 🔄 **ACTIVE**
+### **2025-09-07 - Test Standardization Burn-in** [IN PROGRESS] **ACTIVE**
 
-**Status**: 🔄 **ACTIVE**  
+**Status**: [IN PROGRESS] **ACTIVE**  
 **Priority**: High  
 **Effort**: Small
 
@@ -377,15 +377,15 @@
 - [ ] After 2 weeks green with `--burnin-mode`, gate or remove remaining test-only diagnostics
 
 **Success Criteria**:
-- [x] Tooling in place for burn-in validation runs (✅ completed)
+- [x] Tooling in place for burn-in validation runs ([OK] completed)
 - [ ] No failures under `--burnin-mode` runs for 2 consecutive weeks
-- [x] CI warning count reduced to external-only (✅ 4 external Discord warnings expected)
+- [x] CI warning count reduced to external-only ([OK] 4 external Discord warnings expected)
 
 ---
 
-### **2025-08-25 - Comprehensive Task System Improvements** 🔄 **IN PROGRESS**
+### **2025-08-25 - Comprehensive Task System Improvements** [IN PROGRESS] **IN PROGRESS**
 
-**Status**: 🔄 **IN PROGRESS**  
+**Status**: [IN PROGRESS] **IN PROGRESS**  
 **Priority**: High  
 **Effort**: Large (Multi-phase implementation)  
 **Dependencies**: None
@@ -396,7 +396,7 @@
 
 **Implementation Plan**:
 
-#### **Phase 1: Foundation Improvements (High Impact, Low-Medium Effort)** 🔄 **IN PROGRESS**
+#### **Phase 1: Foundation Improvements (High Impact, Low-Medium Effort)** [IN PROGRESS] **IN PROGRESS**
 
 **1. Recurring Tasks System** [CHECKMARK] **COMPLETED**
 - **Status**: [CHECKMARK] **COMPLETED**
@@ -579,9 +579,9 @@
 
 ---
 
-### **2025-08-22 - User Context & Preferences Integration Investigation** ✅ **INVESTIGATION COMPLETE**
+### **2025-08-22 - User Context & Preferences Integration Investigation** [OK] **INVESTIGATION COMPLETE**
 
-**Status**: ✅ **INVESTIGATION COMPLETE**  
+**Status**: [OK] **INVESTIGATION COMPLETE**  
 **Priority**: High  
 **Effort**: Medium  
 **Dependencies**: None  
@@ -626,7 +626,7 @@
 - [ ] Action plan for enhancing integration (recommendations below)
 
 **Recommendations**:
-1. ✅ **UserPreferences Initialization Removed**: The unused initialization from `UserContext` has been removed (completed)
+1. [OK] **UserPreferences Initialization Removed**: The unused initialization from `UserContext` has been removed (completed)
 2. **UserPreferences Usage**: Class remains available but unused. Could be useful for:
    - Workflows that need to make multiple preference changes (avoids multiple `update_user_preferences()` calls)
    - Code that needs to track preference state changes
@@ -634,13 +634,13 @@
    - **Status**: Low priority - current direct access pattern works well for single operations
 3. **Simplify UserContext**: Consider if `UserContext` should be simplified to just provide user ID/username, or if it should be more fully utilized
 4. **Consolidate Access Patterns**: Standardize on either direct `get_user_data()` calls or `UserContext` methods, not both
-5. ✅ **Documentation Updated**: Comment in `user_preferences.py` updated to reflect current state (completed 2025-11-11)
+5. [OK] **Documentation Updated**: Comment in `user/user_preferences.py` updated to reflect current state (completed 2025-11-11)
 
 ---
 
-### **2025-08-22 - Bot Module Naming & Clarity Refactoring** ✅ **INVESTIGATION COMPLETE**
+### **2025-08-22 - Bot Module Naming & Clarity Refactoring** [OK] **INVESTIGATION COMPLETE**
 
-**Status**: ✅ **INVESTIGATION COMPLETE**  
+**Status**: [OK] **INVESTIGATION COMPLETE**  
 **Priority**: High  
 **Effort**: Medium  
 **Dependencies**: None  
@@ -714,7 +714,7 @@
    - Consider renaming `ConversationManager` to `FlowManager` or `ConversationFlowManager`
 
 3. **Standardize Naming**:
-   - Use "Orchestrator" for high-level coordination (CommunicationManager → CommunicationOrchestrator)
+   - Use "Orchestrator" for high-level coordination (CommunicationManager -> CommunicationOrchestrator)
    - Use "Manager" for mid-level coordination (InteractionManager is appropriate)
    - Use "Handler" for specific type handlers (already correct)
    - Use "Parser" for parsing (already correct)
@@ -730,7 +730,7 @@
 
 ---
 
-### **Phase 1: Enhanced Task & Check-in Systems** 🔄 **IN PROGRESS**
+### **Phase 1: Enhanced Task & Check-in Systems** [IN PROGRESS] **IN PROGRESS**
 
 **Goal**: Improve task reminder system and check-in functionality to align with project vision  
 **Status**: Implementation Phase  
@@ -779,14 +779,14 @@
 **Goal**: Implement mood-responsive AI conversations and advanced emotional intelligence
 
 **Current State**:
-- ✅ **Mood data included in context**: AI chatbot includes mood and energy data from check-ins in context (`ai/chatbot.py`, `ai/context_builder.py`)
-- ✅ **Mood trend analysis**: Context builder analyzes mood trends (improving/declining/stable)
-- ✅ **Emotional intelligence in system prompt**: System prompt includes emotional intelligence instructions
-- ✅ **Mood-aware completion messages**: Check-in completion messages adapt based on mood/energy (`conversation_flow_manager.py`)
-- ❌ **Prompt modification based on mood**: Prompts are NOT dynamically modified based on mood/energy - mood data is only included in context
-- ❌ **Tone adaptation algorithms**: No explicit tone adaptation based on detected mood
-- ❌ **Emotional response templates**: No mood-specific response templates
-- ❌ **Mood prediction**: No predictive mood analysis
+- [OK] **Mood data included in context**: AI chatbot includes mood and energy data from check-ins in context (`ai/chatbot.py`, `ai/context_builder.py`)
+- [OK] **Mood trend analysis**: Context builder analyzes mood trends (improving/declining/stable)
+- [OK] **Emotional intelligence in system prompt**: System prompt includes emotional intelligence instructions
+- [OK] **Mood-aware completion messages**: Check-in completion messages adapt based on mood/energy (`conversation_flow_manager.py`)
+- [X] **Prompt modification based on mood**: Prompts are NOT dynamically modified based on mood/energy - mood data is only included in context
+- [X] **Tone adaptation algorithms**: No explicit tone adaptation based on detected mood
+- [X] **Emotional response templates**: No mood-specific response templates
+- [X] **Mood prediction**: No predictive mood analysis
 
 **What's Missing**:
 - [ ] **Dynamic prompt modification**: Modify system prompt or add mood-specific instructions based on detected mood/energy levels
@@ -969,7 +969,7 @@
 **Status**: Core Framework Complete, Discord Enhancement Complete, Email Integration Complete  
 **Goal**: Comprehensive user interactions through communication channels
 
-#### **Secondary Channel Implementation** 🔄 **IN PROGRESS**
+#### **Secondary Channel Implementation** [IN PROGRESS] **IN PROGRESS**
 - [x] Email Integration - Full email-based interaction system [CHECKMARK] **COMPLETED** (2025-11-11)
   - [x] Email message body extraction from incoming emails (plain text and HTML support)
   - [x] Email polling loop (checks every 30 seconds, tracks processed emails)
@@ -1084,14 +1084,14 @@
 **Goal**: Implement fully dynamic custom check-in questions (UI + data + validation).
 
 **Current State**:
-- ✅ **Data model exists**: Questions defined in `resources/default_checkin/questions.json` with types, validation, categories
-- ✅ **Validation rules implemented**: `DynamicCheckinManager` validates all question types (scale_1_5, yes_no, number, optional_text)
-- ✅ **Persist/Load enabled state**: User preferences store which questions are enabled/disabled
-- ✅ **Integration into check-in flow**: `ConversationManager` uses dynamic questions with weighted selection
-- ✅ **UI for enabling/disabling**: `CheckinSettingsWidget` has checkboxes for all predefined questions
-- ❌ **Custom questions not implemented**: `add_new_question()` method only shows placeholder message
-- ❌ **No ordering functionality**: Questions use weighted selection but no user-defined order
-- ❌ **No presets**: No preset question sets available
+- [OK] **Data model exists**: Questions defined in `resources/default_checkin/questions.json` with types, validation, categories
+- [OK] **Validation rules implemented**: `DynamicCheckinManager` validates all question types (scale_1_5, yes_no, number, optional_text)
+- [OK] **Persist/Load enabled state**: User preferences store which questions are enabled/disabled
+- [OK] **Integration into check-in flow**: `ConversationManager` uses dynamic questions with weighted selection
+- [OK] **UI for enabling/disabling**: `CheckinSettingsWidget` has checkboxes for all predefined questions
+- [X] **Custom questions not implemented**: `add_new_question()` method only shows placeholder message
+- [X] **No ordering functionality**: Questions use weighted selection but no user-defined order
+- [X] **No presets**: No preset question sets available
 
 **What's Missing**:
 - [ ] **Custom question creation**: Allow users to add their own questions (text, type, validation)
@@ -1105,7 +1105,7 @@
 
 ---
 
-## 🔄 **Plan Maintenance**
+## [IN PROGRESS] **Plan Maintenance**
 
 ### **How to Update This Plan**
 1. **Add new plans** with clear goals and checklist format
@@ -1122,7 +1122,7 @@
 
 ---
 
-## 📚 **Reference Information**
+## [REFERENCE] **Reference Information**
 
 ### **Key UI Patterns**
 - **Widget -> Dialog -> Core**: Data flows from widgets through dialogs to core handlers
@@ -1181,7 +1181,7 @@
 
 ---
 
-## 🔍 **Detailed Legacy Code Inventory**
+## [DETAILED] **Detailed Legacy Code Inventory**
 
 ### **1. Schedule Management Legacy Keys** [WARNING] **HIGH PRIORITY**
 **Location**: `core/schedule_management.py`  

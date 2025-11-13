@@ -465,7 +465,7 @@ class CoverageMetricsRegenerator:
         overall_data = {
             'total_statements': 0,
             'total_missed': 0,
-            'overall_coverage': 0
+            'overall_coverage': 0.0
         }
         
         # Look for TOTAL line
@@ -473,9 +473,15 @@ class CoverageMetricsRegenerator:
         match = re.search(total_pattern, output)
         
         if match:
-            overall_data['total_statements'] = int(match.group(1))
-            overall_data['total_missed'] = int(match.group(2))
-            overall_data['overall_coverage'] = int(match.group(3))
+            total_statements = int(match.group(1))
+            total_missed = int(match.group(2))
+            overall_data['total_statements'] = total_statements
+            overall_data['total_missed'] = total_missed
+            # Calculate coverage with 1 decimal place for accuracy
+            if total_statements > 0:
+                overall_data['overall_coverage'] = round((total_statements - total_missed) / total_statements * 100, 1)
+            else:
+                overall_data['overall_coverage'] = 0.0
             
         return overall_data
 
@@ -488,7 +494,7 @@ class CoverageMetricsRegenerator:
             return {
                 'total_statements': 0,
                 'total_missed': 0,
-                'overall_coverage': 0
+                'overall_coverage': 0.0
             }
         
         files = data.get('files', {})
@@ -501,9 +507,9 @@ class CoverageMetricsRegenerator:
             total_missed += int(summary.get('missing_lines', 0))
         
         if total_statements:
-            percent = int(round((total_statements - total_missed) / total_statements * 100))
+            percent = round((total_statements - total_missed) / total_statements * 100, 1)
         else:
-            percent = 0
+            percent = 0.0
         
         return {
             'total_statements': total_statements,
@@ -812,8 +818,15 @@ class CoverageMetricsRegenerator:
         """Generate a coverage summary for the plan."""
         summary_lines = []
         
-        # Overall coverage
-        summary_lines.append(f"### **Overall Coverage: {overall_data['overall_coverage']}%**")
+        # Overall coverage (format with 1 decimal place for accuracy)
+        coverage_value = overall_data['overall_coverage']
+        if isinstance(coverage_value, float):
+            coverage_str = f"{coverage_value:.1f}"
+        elif isinstance(coverage_value, int):
+            coverage_str = f"{coverage_value:.0f}"
+        else:
+            coverage_str = str(coverage_value)
+        summary_lines.append(f"### **Overall Coverage: {coverage_str}%**")
         summary_lines.append(f"- **Total Statements**: {overall_data['total_statements']:,}")
         summary_lines.append(f"- **Covered Statements**: {overall_data['total_statements'] - overall_data['total_missed']:,}")
         summary_lines.append(f"- **Uncovered Statements**: {overall_data['total_missed']:,}")

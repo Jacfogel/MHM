@@ -35,6 +35,50 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-13 - Documentation Sync Improvements and Tool Enhancements **COMPLETED**
+
+**Feature**: Fixed documentation synchronization issues, improved tool accuracy, and enhanced documentation sync checker to eliminate false positives.
+
+**Technical Changes**:
+
+1. **ASCII Compliance Fixes** (4 files):
+   - Replaced all non-ASCII characters with ASCII equivalents in `ai_development_docs/AI_CHANGELOG.md`, `development_docs/CHANGELOG_DETAIL.md`, `development_docs/PLANS.md`, and `TODO.md`
+   - Fixed 17 issues: replaced `→` with `->`, `≥` with `>=`, emojis (`🔄`, `✅`, `⚠️`, `❌`, `📚`, `🔍`) with text equivalents, and smart quotes with regular quotes
+   - Result: All files now ASCII-compliant (0 issues remaining)
+
+2. **Path Drift Fixes** (4 files):
+   - Fixed 6 incomplete file path references in documentation:
+     - `development_docs/TASK_SYSTEM_AUDIT.md`: Updated 6 incomplete paths (`task_handler.py` → `communication/command_handlers/task_handler.py`, `scheduler.py` → `core/scheduler.py`, `task_management.py` → `tasks/task_management.py`)
+     - `ai_development_docs/AI_CHANGELOG.md`: Fixed `discord/bot.py` → `communication/communication_channels/discord/bot.py`
+     - `TODO.md`: Removed reference to missing `scripts/CLEANUP_ANALYSIS.md`, updated archived script reference
+     - `development_docs/PLANS.md`: Fixed `user_preferences.py` → `user/user_preferences.py`
+   - Result: Path drift issues reduced from 7 to 1 (remaining is historical file deletion reference)
+
+3. **Documentation Sync Checker Improvements** (`ai_development_tools/documentation_sync_checker.py`):
+   - Added `_is_section_header_or_link_text()` method to detect and filter section headers from markdown links
+   - Enhanced markdown link processing to only process URL parts, skip link text unless it looks like a file path
+   - Improved filtering to recognize common section header words and anchor links
+   - Result: Eliminated 3 false positives (section headers "System Overview", "Recommendations", "Implementation Status" no longer flagged as module references)
+
+4. **Coverage Metrics Tool Precision** (`ai_development_tools/regenerate_coverage_metrics.py`):
+   - Updated coverage percentage calculation to use 1 decimal place precision (`round(..., 1)` instead of `int(round(...))`)
+   - Updated formatting to display floats with `.1f` and integers with `.0f`
+   - Result: Coverage plan now shows accurate 70.2% instead of rounded 73%
+
+**Impact**: Documentation synchronization issues reduced from 32 to 9 (23 fixed). All ASCII compliance issues resolved. Tool improvements eliminate false positives and provide more accurate metrics. Documentation is now cleaner and more maintainable.
+
+**Files Modified**:
+- `ai_development_docs/AI_CHANGELOG.md` (ASCII fixes, path fixes)
+- `development_docs/CHANGELOG_DETAIL.md` (ASCII fixes)
+- `development_docs/PLANS.md` (ASCII fixes, path fixes)
+- `development_docs/TASK_SYSTEM_AUDIT.md` (path fixes)
+- `TODO.md` (ASCII fixes, path fixes)
+- `ai_development_tools/documentation_sync_checker.py` (section header filtering)
+- `ai_development_tools/regenerate_coverage_metrics.py` (decimal precision)
+
+**Documentation**:
+- `development_docs/TEST_COVERAGE_EXPANSION_PLAN.md` (regenerated with accurate 70.2% coverage)
+
 ### 2025-11-13 - Discord Welcome Message System and Account Management Flow **COMPLETED**
 
 **Feature**: Implemented automatic welcome message system for new Discord users with interactive account creation/linking buttons, channel-agnostic account management architecture, and email-based confirmation codes for account linking.
@@ -623,7 +667,7 @@ When adding new changes, follow this format:
 1. **Legacy Compatibility Marker Audit** (`core/user_data_manager.py`, `user/user_context.py`, `core/user_data_handlers.py`):
    - Investigated referenced files for legacy compatibility markers - found none in target files
    - Confirmed all code uses modern formats (new `questions` format, not legacy `enabled_fields`)
-   - Renamed `_save_user_data__legacy_preferences()` → `_save_user_data__preserve_preference_settings()` to clarify purpose
+   - Renamed `_save_user_data__legacy_preferences()` -> `_save_user_data__preserve_preference_settings()` to clarify purpose
    - Updated function documentation to reflect it preserves settings blocks, not legacy format conversion
    - Updated comment in `user/user_preferences.py` to reflect actual state (initialized but unused)
 
@@ -1051,7 +1095,7 @@ When adding new changes, follow this format:
 - **Process Watcher Dialog Tests**: Created `tests/ui/test_process_watcher_dialog.py` with 28 tests covering initialization, refresh workflows, auto-refresh, process selection, filtering, and error handling. Coverage increased from 13% to 87%.
 - **User Analytics Dialog Tests**: Created `tests/ui/test_user_analytics_dialog.py` with 34 tests covering initialization, data loading, time period changes, tab navigation, refresh workflows, and error handling.
 - **Test Structure Improvements**: Refactored all tests to explicitly use Arrange-Act-Assert pattern with clear comments for each section, improving readability and maintainability.
-- **Integration Tests**: Added 3 integration tests per dialog covering complete workflows (refresh → update tables → display data, analytics loading → display overview → display specific data).
+- **Integration Tests**: Added 3 integration tests per dialog covering complete workflows (refresh -> update tables -> display data, analytics loading -> display overview -> display specific data).
 - **Test Fix**: Corrected `test_disable_tasks_for_full_user` in `tests/integration/test_account_lifecycle.py` to verify that `task_settings` are preserved when task management feature is disabled (aligning with system design that preserves settings for future re-enablement).
 
 **Files Created**:
@@ -1243,7 +1287,7 @@ if file_size < MIN_FILE_SIZE:
 - Updated `ai_development_docs/AI_CHANGELOG.md` with fix summary
 - Updated `development_docs/CHANGELOG_DETAIL.md` with detailed technical record
 
-**Outcome**: Log files now accumulate properly without premature clearing. The infinite error loop that was flooding `app.log` has been resolved. Log rotation now only occurs when files have meaningful content (≥100 bytes) and are at least 1 hour old.
+**Outcome**: Log files now accumulate properly without premature clearing. The infinite error loop that was flooding `app.log` has been resolved. Log rotation now only occurs when files have meaningful content (>=100 bytes) and are at least 1 hour old.
 
 ---
 
@@ -1335,17 +1379,17 @@ if file_size < MIN_FILE_SIZE:
 **Changes Made**:
 
 1. **Created Comprehensive Tests for Handler Modules**:
-   - **checkin_handler.py** (0% → comprehensive): Created 15+ behavior tests covering check-in start, status, error handling, and edge cases. Tests verify conversation_manager integration and check-in enablement validation.
-   - **schedule_handler.py** (0% → comprehensive): Created 25+ behavior tests covering schedule display, updates, period management, time parsing, and validation. Tests verify schedule period data structures and time format conversion.
-   - **analytics_handler.py** (9% → comprehensive): Expanded from 40 to 20+ behavior tests covering all analytics intents (mood trends, wellness scores, habit analysis, task analytics, etc.). Tests verify analytics method calls with correct parameters.
-   - **task_handler.py** (17% → comprehensive): Expanded from 69 to 29 behavior tests covering task CRUD operations, filtering, statistics, and helper methods. Tests verify task data transformation and persistence.
-   - **profile_handler.py** (35% → comprehensive): Expanded from 89 to 21 behavior tests covering profile display, updates (name, gender identity, health conditions, medications, allergies, interests, goals, notes), and statistics. Tests verify data structure transformations (comma-separated → lists, nested structures).
-   - **base_handler.py** (41% → comprehensive): Created 25 behavior tests covering abstract class behavior, validation methods (`_validate_user_id`, `_validate_parsed_command`), helper methods (`_create_error_response`), and error handling. Tests verify validation logic and error response creation.
+   - **checkin_handler.py** (0% -> comprehensive): Created 15+ behavior tests covering check-in start, status, error handling, and edge cases. Tests verify conversation_manager integration and check-in enablement validation.
+   - **schedule_handler.py** (0% -> comprehensive): Created 25+ behavior tests covering schedule display, updates, period management, time parsing, and validation. Tests verify schedule period data structures and time format conversion.
+   - **analytics_handler.py** (9% -> comprehensive): Expanded from 40 to 20+ behavior tests covering all analytics intents (mood trends, wellness scores, habit analysis, task analytics, etc.). Tests verify analytics method calls with correct parameters.
+   - **task_handler.py** (17% -> comprehensive): Expanded from 69 to 29 behavior tests covering task CRUD operations, filtering, statistics, and helper methods. Tests verify task data transformation and persistence.
+   - **profile_handler.py** (35% -> comprehensive): Expanded from 89 to 21 behavior tests covering profile display, updates (name, gender identity, health conditions, medications, allergies, interests, goals, notes), and statistics. Tests verify data structure transformations (comma-separated -> lists, nested structures).
+   - **base_handler.py** (41% -> comprehensive): Created 25 behavior tests covering abstract class behavior, validation methods (`_validate_user_id`, `_validate_parsed_command`), helper methods (`_create_error_response`), and error handling. Tests verify validation logic and error response creation.
 
 2. **Enhanced Test Quality Following Best Practices**:
    - **Verified Actual System Changes**: Tests now check exact data passed to save functions, not just that functions were called. For example, profile handler tests verify that comma-separated values are correctly converted to lists and placed in proper nested structures.
    - **Checked Side Effects**: Tests verify data structures are correctly modified (e.g., schedule periods have correct active status, task updates include correct fields).
-   - **Tested Data Transformation**: Tests verify input parsing (e.g., "tomorrow" → actual date, comma-separated strings → lists, time format conversion).
+   - **Tested Data Transformation**: Tests verify input parsing (e.g., "tomorrow" -> actual date, comma-separated strings -> lists, time format conversion).
    - **Improved Assertions**: Enhanced assertions to verify call arguments, data structures, and transformations throughout all handler tests.
 
 3. **Fixed Pytest Warnings**:
@@ -1427,10 +1471,10 @@ if file_size < MIN_FILE_SIZE:
    - Enhanced "Greeting Handling" instructions with explicit BAD/GOOD examples showing how to answer "How are you?" before redirecting
    - Enhanced "Question Handling" instructions with BAD/GOOD examples showing how to answer questions before redirecting
    - Enhanced "Requests for Information" instructions with BAD/GOOD examples for:
-     - "Tell me something helpful" → Should provide helpful info, not ask questions
-     - "Tell me about yourself" → Should describe AI capabilities, not ask user for info
-     - "Tell me a fact" → Should provide a fact, not ask questions
-     - "Tell me about your capabilities" → Should describe capabilities, not ask questions
+     - "Tell me something helpful" -> Should provide helpful info, not ask questions
+     - "Tell me about yourself" -> Should describe AI capabilities, not ask user for info
+     - "Tell me a fact" -> Should provide a fact, not ask questions
+     - "Tell me about your capabilities" -> Should describe capabilities, not ask questions
    - Updated instructions in `resources/assistant_system_prompt.txt`, `ai/prompt_manager.py` (fallback prompt), and `ai/chatbot.py` (`_create_comprehensive_context_prompt` method)
    - Added explicit examples showing what NOT to do (BAD examples) and what TO do (GOOD examples) to make instructions clearer
 
@@ -1484,7 +1528,7 @@ if file_size < MIN_FILE_SIZE:
    - **Removed All Hardcoded Text**: All sections are now data-driven
 
 3. **Dependency Formatting Fixes**:
-   - **AI Version**: Fixed duplicate module names (e.g., "config, config, config" → "config")
+   - **AI Version**: Fixed duplicate module names (e.g., "config, config, config" -> "config")
    - **Detail Version**: Fixed duplicate entries by merging imports by module name
    - **Improved Formatting**: Proper deduplication, sorted dependencies, cleaner output
 
@@ -1492,15 +1536,15 @@ if file_size < MIN_FILE_SIZE:
    - **Restored from Backup**: Found 85 manual enhancements in `archive/MODULE_DEPENDENCIES_preadjustment.md`
    - **Initial Restoration**: Restored 73 enhancements directly (modules with same paths)
    - **Renamed Module Mapping**: Created restoration script to map 9 renamed modules:
-     - `bot/ai_chatbot.py` → `ai/chatbot.py`
-     - `bot/base_channel.py` → `communication/communication_channels/base/base_channel.py`
-     - `bot/channel_factory.py` → `communication/core/factory.py`
-     - `bot/channel_registry.py` → `communication/communication_channels/base/command_registry.py`
-     - `bot/communication_manager.py` → `communication/core/channel_orchestrator.py`
-     - `bot/conversation_manager.py` → `communication/message_processing/conversation_flow_manager.py`
-     - `bot/discord_bot.py` → `communication/communication_channels/discord/bot.py`
-     - `bot/email_bot.py` → `communication/communication_channels/email/bot.py`
-     - `bot/user_context_manager.py` → `user/context_manager.py`
+     - `bot/ai_chatbot.py` -> `ai/chatbot.py`
+     - `bot/base_channel.py` -> `communication/communication_channels/base/base_channel.py`
+     - `bot/channel_factory.py` -> `communication/core/factory.py`
+     - `bot/channel_registry.py` -> `communication/communication_channels/base/command_registry.py`
+     - `bot/communication_manager.py` -> `communication/core/channel_orchestrator.py`
+     - `bot/conversation_manager.py` -> `communication/message_processing/conversation_flow_manager.py`
+     - `bot/discord_bot.py` -> `communication/communication_channels/discord/bot.py`
+     - `bot/email_bot.py` -> `communication/communication_channels/email/bot.py`
+     - `bot/user_context_manager.py` -> `user/context_manager.py`
    - **Final Result**: 82 of 85 enhancements preserved (9 restored for renamed modules, 3 lost because modules no longer exist: `bot/telegram_bot.py`, `core/validation.py`, `tests/task_management.py`)
    - **Duplicate Tag Fix**: Fixed 69 duplicate `<!-- MANUAL_ENHANCEMENT_END -->` tags introduced during restoration
    - **Preservation Verified**: Regenerated documentation confirmed 82 enhancements preserved through generation process
@@ -1592,7 +1636,7 @@ if file_size < MIN_FILE_SIZE:
      - FUNCTION_REGISTRY_DETAIL.md documented functions
      - Module-level public functions/classes
    - Supports `--package <name>` or `--all` flags
-   - Provides recommendations prioritized by usage (high ≥5, medium 2-4, low 0-1)
+   - Provides recommendations prioritized by usage (high >=5, medium 2-4, low 0-1)
 
 2. **Created Migration Plan (`development_docs/PLANS.md`)**:
    - Detailed 10-phase plan for migrating all packages to package-level exports
@@ -1600,7 +1644,7 @@ if file_size < MIN_FILE_SIZE:
    - Documents circular dependency handling strategy
 
 3. **Phase 0: High-Priority Exports (Complete)**:
-   - **Core package**: Added 7 high-usage exports (≥5 imports):
+   - **Core package**: Added 7 high-usage exports (>=5 imports):
      - `CheckinAnalytics`, `update_user_index`, `handle_ai_error`, `get_user_data_dir`, `get_user_categories`, `get_user_file_path`, `dynamic_checkin_manager`
      - Note: `get_schedule_time_periods`, `set_schedule_periods` documented as lazy imports due to circular dependencies
    - **Communication package**: Added 5 high-usage exports:
@@ -1945,7 +1989,7 @@ if file_size < MIN_FILE_SIZE:
 **Testing**:
 - AI functionality tests: 39 passed, 4 partial, 7 failed out of 50 tests
 - System prompt leak fix verified: No "User Context:", "IMPORTANT - Feature availability:", or "Additional Instructions:" found in any responses
-- Missing context improvements verified: T-2.1 improved from FAIL → PASS, T-6.2 improved from PARTIAL → PASS
+- Missing context improvements verified: T-2.1 improved from FAIL -> PASS, T-6.2 improved from PARTIAL -> PASS
 - Throttler test passes and properly verifies first-call behavior
 - Full behavior test suite: All service utilities behavior tests passing
 

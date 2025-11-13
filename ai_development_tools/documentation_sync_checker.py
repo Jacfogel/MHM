@@ -132,17 +132,27 @@ class DocumentationSyncChecker:
                         matches = re.findall(pattern, line)
                         for match in matches:
                             if isinstance(match, tuple):
-                                # Handle regex groups
-                                for group in match:
+                                # Handle regex groups (e.g., markdown links [text](url))
+                                for idx, group in enumerate(match):
                                     if group and not group.startswith(('http', '#')):
+                                        # For markdown links, only process the URL part (second group)
+                                        # Skip the link text (first group) as it's often not a file path
+                                        if idx == 0 and len(match) > 1:
+                                            # This is link text, skip unless it looks like a file path
+                                            if not (group.endswith(('.py', '.md')) or '/' in group or '\\' in group):
+                                                continue
                                         # Additional context filtering
                                         if not self._is_likely_code_snippet(group, line):
-                                            doc_paths[str(md_file.relative_to(self.project_root))].append(group)
+                                            # Skip section headers and common markdown link text
+                                            if not self._is_section_header_or_link_text(group, line):
+                                                doc_paths[str(md_file.relative_to(self.project_root))].append(group)
                             else:
                                 if match and not match.startswith(('http', '#')):
                                     # Additional context filtering
                                     if not self._is_likely_code_snippet(match, line):
-                                        doc_paths[str(md_file.relative_to(self.project_root))].append(match)
+                                        # Skip section headers and common markdown link text
+                                        if not self._is_section_header_or_link_text(match, line):
+                                            doc_paths[str(md_file.relative_to(self.project_root))].append(match)
                                 
             except Exception as e:
                 if logger:
@@ -364,6 +374,41 @@ class DocumentationSyncChecker:
         
         # Skip if it contains newlines (definitely a code snippet)
         if '\n' in path:
+            return True
+        
+        return False
+    
+    def _is_section_header_or_link_text(self, path: str, line: str) -> bool:
+        """Check if a path is actually a markdown section header or link text that shouldn't be treated as a file path."""
+        # Common section header patterns (title case, multiple words, no file extension)
+        if not path.endswith(('.py', '.md', '.json', '.txt', '.yaml', '.yml', '.toml', '.ini', '.cfg')):
+            # Check if it looks like a section header (title case, spaces, common words)
+            if ' ' in path and path[0].isupper():
+                # Common section header words
+                section_words = [
+                    'overview', 'summary', 'introduction', 'background', 'context',
+                    'recommendations', 'suggestions', 'guidelines', 'best practices',
+                    'implementation', 'status', 'progress', 'analysis', 'review',
+                    'findings', 'conclusion', 'next steps', 'action items', 'todo',
+                    'issues', 'problems', 'solutions', 'approach', 'strategy',
+                    'architecture', 'design', 'structure', 'organization', 'layout'
+                ]
+                path_lower = path.lower()
+                # If it contains section header words and doesn't look like a file path
+                if any(word in path_lower for word in section_words):
+                    # Check if it's in a markdown link pointing to an anchor
+                    if re.search(rf'\[{re.escape(path)}\]\(#', line):
+                        return True
+                    # Check if it's in a numbered list with markdown links
+                    if re.search(rf'^\d+\.\s*\[{re.escape(path)}\]\(#', line):
+                        return True
+        
+        # Skip if it's clearly a section header in a table of contents
+        if re.search(rf'^\d+\.\s*\[{re.escape(path)}\]\(#', line):
+            return True
+        
+        # Skip if it's in a markdown link that points to an anchor (not a file)
+        if re.search(rf'\[{re.escape(path)}\]\(#[^)]+\)', line):
             return True
         
         return False

@@ -22,7 +22,6 @@ C:.
 |   run_headless_service.py
 |   run_mhm.py
 |   run_tests.py
-|   test.log
 |   TODO.md
 |   
 +---.cursor
@@ -73,6 +72,7 @@ C:.
 |       AI_DOCUMENTATION_GUIDE.md
 |       AI_ERROR_HANDLING_GUIDE.md
 |       AI_FUNCTION_REGISTRY.md
+|       AI_LEGACY_REMOVAL_GUIDE.md
 |       AI_LOGGING_GUIDE.md
 |       AI_MODULE_DEPENDENCIES.md
 |       AI_REFERENCE.md
@@ -80,6 +80,7 @@ C:.
 |       AI_TESTING_GUIDE.md
 |       
 +---ai_development_tools
+|   |   .unused_imports_cache.json
 |   |   ai_audit_detailed_results.json
 |   |   AI_PRIORITIES.md
 |   |   AI_STATUS.md
@@ -117,9 +118,11 @@ C:.
 +---archive
     (archived files)
 +---communication
+|   |   README.md
 |   |   __init__.py
 |   |   
 |   +---command_handlers
+|   |   |   account_handler.py
 |   |   |   analytics_handler.py
 |   |   |   base_handler.py
 |   |   |   checkin_handler.py
@@ -141,9 +144,11 @@ C:.
 |   |   error_handling.py
 |   |   ERROR_HANDLING_GUIDE.md
 |   |   file_auditor.py
+|   |   file_locking.py
 |   |   file_operations.py
 |   |   headless_service.py
 |   |   logger.py
+|   |   message_analytics.py
 |   |   message_management.py
 |   |   response_tracking.py
 |   |   scheduler.py
@@ -164,7 +169,9 @@ C:.
 +---data
 |   |   .last_cache_cleanup
 |   |   conversation_states.json
+|   |   discord_welcome_tracking.json
 |   |   user_index.json
+|   |   welcome_tracking.json
 |   |   
 |   +---backups
     (backup files)
@@ -177,6 +184,7 @@ C:.
 |       LEGACY_REFERENCE_REPORT.md
 |       MODULE_DEPENDENCIES_DETAIL.md
 |       PLANS.md
+|       TASK_SYSTEM_AUDIT.md
 |       TEST_COVERAGE_EXPANSION_PLAN.md
 |       UI_COMPONENT_TESTING_STRATEGY.md
 |       UNUSED_IMPORTS_REPORT.md
@@ -214,14 +222,11 @@ C:.
 |           word_of_the_day.json
 |           
 +---scripts
-|   |   check_manual_enhancements.py
 |   |   cleanup_project.py
 |   |   cleanup_unused_imports.py
 |   |   cleanup_windows_tasks.py
 |   |   demo_dynamic_checkin.py
 |   |   README.md
-|   |   restore_manual_enhancements.py
-|   |   restore_missing_enhancements.py
 |   |   script_test_network_connectivity.py
 |   |   
 |   +---debug
@@ -239,15 +244,6 @@ C:.
 |   |       start_service.sh
 |   |       start_ui.bat
 |   |       start_ui.sh
-|   |       
-|   +---migration
-|   |       migrate_messaging_service.py
-|   |       migrate_schedules_cleanup.py
-|   |       migrate_schedule_format.py
-|   |       migrate_sent_messages.py
-|   |       migrate_sent_messages_to_chronological.py
-|   |       migrate_user_data_structure.py
-|   |       remove_user_id_from_sent_messages.py
 |   |       
 |   +---static_checks
 |   |       check_channel_loggers.py
@@ -276,19 +272,12 @@ C:.
 |       |   restore_custom_periods.py
 |       |   user_data_cli.py
 |       |   
-|       +---cleanup
-|       |       cleanup_backups.py
-|       |       cleanup_data_test_users.py
-|       |       cleanup_real_test_users.py
-|       |       cleanup_test_data.py
-|       |       cleanup_user_message_files.py
-|       |       
-|       \---refactoring
-|               analyze_migration_needs.py
-|               find_legacy_get_user_data.py
-|               find_legacy_imports.py
-|               fix_broken_imports.py
-|               migrate_legacy_imports.py
+|       \---cleanup
+|               cleanup_backups.py
+|               cleanup_data_test_users.py
+|               cleanup_real_test_users.py
+|               cleanup_test_data.py
+|               cleanup_user_message_files.py
 |               
 +---styles
 |       admin_theme.qss
@@ -304,6 +293,7 @@ C:.
 |   |   AI_FUNCTIONALITY_TEST_PLAN.md
 |   |   conftest.py
 |   |   debug_file_paths.py
+|   |   MANUAL_DISCORD_REMINDER_FOLLOWUP_TESTS.md
 |   |   MANUAL_TESTING_GUIDE.md
 |   |   TESTING_GUIDE.md
 |   |   test_error_handling_improvements.py

@@ -95,7 +95,7 @@
     "issues": []
   },
   "ai_development_tools/documentation_sync_checker.py": {
-    "mtime": 1762735991.1691072,
+    "mtime": 1763032363.8728476,
     "issues": [
       {
         "type": "warning",
@@ -219,7 +219,7 @@
     "issues": []
   },
   "communication/command_handlers/interaction_handlers.py": {
-    "mtime": 1762766846.4327633,
+    "mtime": 1763030330.489079,
     "issues": []
   },
   "communication/command_handlers/profile_handler.py": {
@@ -235,7 +235,7 @@
     "issues": []
   },
   "communication/command_handlers/task_handler.py": {
-    "mtime": 1760377270.9745393,
+    "mtime": 1762995628.1971903,
     "issues": []
   },
   "communication/communication_channels/__init__.py": {
@@ -263,7 +263,7 @@
     "issues": []
   },
   "communication/communication_channels/discord/bot.py": {
-    "mtime": 1760833291.362373,
+    "mtime": 1763025727.2673533,
     "issues": []
   },
   "communication/communication_channels/discord/event_handler.py": {
@@ -271,7 +271,7 @@
     "issues": []
   },
   "communication/communication_channels/email/bot.py": {
-    "mtime": 1762841689.7089925,
+    "mtime": 1762977951.0189974,
     "issues": []
   },
   "communication/core/__init__.py": {
@@ -283,7 +283,7 @@
     "issues": []
   },
   "communication/core/channel_orchestrator.py": {
-    "mtime": 1762841689.7120035,
+    "mtime": 1763016388.0265834,
     "issues": [
       {
         "type": "warning",
@@ -340,15 +340,15 @@
     "issues": []
   },
   "communication/message_processing/command_parser.py": {
-    "mtime": 1762043762.2586308,
+    "mtime": 1763030330.49008,
     "issues": []
   },
   "communication/message_processing/conversation_flow_manager.py": {
-    "mtime": 1762744124.2507374,
+    "mtime": 1763030330.4924808,
     "issues": []
   },
   "communication/message_processing/interaction_manager.py": {
-    "mtime": 1761811472.826315,
+    "mtime": 1763030330.489079,
     "issues": []
   },
   "communication/message_processing/message_router.py": {
@@ -372,7 +372,7 @@
     "issues": []
   },
   "core/config.py": {
-    "mtime": 1762656733.9505596,
+    "mtime": 1763013850.0730095,
     "issues": []
   },
   "core/error_handling.py": {
@@ -384,7 +384,7 @@
     "issues": []
   },
   "core/file_operations.py": {
-    "mtime": 1762595629.3563876,
+    "mtime": 1762948385.105381,
     "issues": []
   },
   "core/headless_service.py": {
@@ -440,7 +440,7 @@
     ]
   },
   "core/message_management.py": {
-    "mtime": 1760773667.9968815,
+    "mtime": 1762942518.4362712,
     "issues": []
   },
   "core/response_tracking.py": {
@@ -456,7 +456,7 @@
     "issues": []
   },
   "core/scheduler.py": {
-    "mtime": 1762902452.503081,
+    "mtime": 1762995450.8647153,
     "issues": []
   },
   "core/schemas.py": {
@@ -476,19 +476,33 @@
     "issues": []
   },
   "core/user_data_handlers.py": {
-    "mtime": 1762854886.1028144,
+    "mtime": 1762948657.2716832,
     "issues": []
   },
   "core/user_data_manager.py": {
-    "mtime": 1762858458.640717,
-    "issues": []
+    "mtime": 1762984015.476102,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "core.user_data_manager",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 102,
+        "path": "core\\user_data_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused save_json_data imported from core.file_operations",
+        "message-id": "W0611"
+      }
+    ]
   },
   "core/user_data_validation.py": {
-    "mtime": 1762856623.5409284,
+    "mtime": 1762934380.7932913,
     "issues": []
   },
   "core/user_management.py": {
-    "mtime": 1762857006.490383,
+    "mtime": 1762928795.6160533,
     "issues": []
   },
   "run_headless_service.py": {
@@ -500,7 +514,7 @@
     "issues": []
   },
   "tasks/task_management.py": {
-    "mtime": 1762844798.1531975,
+    "mtime": 1763027952.2245982,
     "issues": []
   },
   "tests/ai/ai_response_validator.py": {
@@ -625,7 +639,7 @@
     ]
   },
   "tests/behavior/test_account_management_real_behavior.py": {
-    "mtime": 1762844798.1509547,
+    "mtime": 1763030330.487077,
     "issues": []
   },
   "tests/behavior/test_ai_chatbot_behavior.py": {
@@ -649,11 +663,11 @@
     "issues": []
   },
   "tests/behavior/test_auto_cleanup_behavior.py": {
-    "mtime": 1762478076.9160507,
+    "mtime": 1762944485.9563668,
     "issues": []
   },
   "tests/behavior/test_backup_manager_behavior.py": {
-    "mtime": 1762773363.15716,
+    "mtime": 1762950396.6922863,
     "issues": []
   },
   "tests/behavior/test_base_handler_behavior.py": {
@@ -688,7 +702,7 @@
     ]
   },
   "tests/behavior/test_chat_interaction_storage_real_scenarios.py": {
-    "mtime": 1762340104.1506884,
+    "mtime": 1762941702.312775,
     "issues": []
   },
   "tests/behavior/test_checkin_analytics_behavior.py": {
@@ -826,7 +840,7 @@
     ]
   },
   "tests/behavior/test_communication_manager_coverage_expansion.py": {
-    "mtime": 1762899569.2413974,
+    "mtime": 1762992964.6674862,
     "issues": []
   },
   "tests/behavior/test_comprehensive_quantitative_analytics.py": {
@@ -928,11 +942,11 @@
     "issues": []
   },
   "tests/behavior/test_discord_bot_behavior.py": {
-    "mtime": 1762822765.6943104,
+    "mtime": 1763030330.4924808,
     "issues": []
   },
   "tests/behavior/test_discord_checkin_retry_behavior.py": {
-    "mtime": 1762844798.1509547,
+    "mtime": 1762933637.095423,
     "issues": [
       {
         "type": "warning",
@@ -1049,7 +1063,7 @@
     ]
   },
   "tests/behavior/test_interaction_handlers_behavior.py": {
-    "mtime": 1760839302.5402355,
+    "mtime": 1763027952.2245982,
     "issues": [
       {
         "type": "warning",
@@ -1128,7 +1142,7 @@
     "issues": []
   },
   "tests/behavior/test_message_behavior.py": {
-    "mtime": 1762373328.974315,
+    "mtime": 1762942518.4362712,
     "issues": []
   },
   "tests/behavior/test_message_router_behavior.py": {
@@ -1193,7 +1207,7 @@
     ]
   },
   "tests/behavior/test_quantitative_analytics_expansion.py": {
-    "mtime": 1761989362.9863865,
+    "mtime": 1762930337.9844346,
     "issues": []
   },
   "tests/behavior/test_response_tracking_behavior.py": {
@@ -1231,7 +1245,7 @@
     "issues": []
   },
   "tests/behavior/test_scheduler_coverage_expansion.py": {
-    "mtime": 1762899570.4664109,
+    "mtime": 1762992965.4402187,
     "issues": [
       {
         "type": "warning",
@@ -1320,7 +1334,7 @@
     "issues": []
   },
   "tests/behavior/test_user_data_flow_architecture.py": {
-    "mtime": 1762851871.8715308,
+    "mtime": 1762936757.9706707,
     "issues": [
       {
         "type": "warning",
@@ -1364,11 +1378,11 @@
     ]
   },
   "tests/behavior/test_user_management_coverage_expansion.py": {
-    "mtime": 1760847744.1837928,
+    "mtime": 1762929039.1321979,
     "issues": []
   },
   "tests/behavior/test_utilities_demo.py": {
-    "mtime": 1760843845.4175167,
+    "mtime": 1762942518.4327166,
     "issues": []
   },
   "tests/communication/test_channel_monitor.py": {
@@ -1407,7 +1421,7 @@
     ]
   },
   "tests/conftest.py": {
-    "mtime": 1762909229.481188,
+    "mtime": 1762949137.4872344,
     "issues": []
   },
   "tests/core/test_file_auditor.py": {
@@ -1565,12 +1579,25 @@
     ]
   },
   "tests/integration/test_account_lifecycle.py": {
-    "mtime": 1762418359.353051,
+    "mtime": 1762941702.308705,
     "issues": []
   },
   "tests/integration/test_account_management.py": {
-    "mtime": 1762773894.1307347,
+    "mtime": 1762934241.3991575,
     "issues": [
+      {
+        "type": "warning",
+        "module": "test_account_management",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 11,
+        "path": "tests\\integration\\test_account_management.py",
+        "symbol": "unused-import",
+        "message": "Unused import time",
+        "message-id": "W0611"
+      },
       {
         "type": "warning",
         "module": "test_account_management",
@@ -1587,7 +1614,7 @@
     ]
   },
   "tests/integration/test_user_creation.py": {
-    "mtime": 1760847744.2004273,
+    "mtime": 1762950178.0594919,
     "issues": [
       {
         "type": "warning",
@@ -1683,7 +1710,7 @@
     ]
   },
   "tests/test_error_handling_improvements.py": {
-    "mtime": 1762340104.1506884,
+    "mtime": 1763029461.3969443,
     "issues": [
       {
         "type": "warning",
@@ -1770,7 +1797,7 @@
     "issues": []
   },
   "tests/test_utilities.py": {
-    "mtime": 1762776925.9940302,
+    "mtime": 1762949367.7225287,
     "issues": [
       {
         "type": "warning",
@@ -1840,7 +1867,7 @@
     ]
   },
   "tests/ui/test_account_creation_ui.py": {
-    "mtime": 1762772213.5237367,
+    "mtime": 1762938777.0110013,
     "issues": [
       {
         "type": "warning",
@@ -2058,7 +2085,7 @@
     ]
   },
   "tests/ui/test_category_management_dialog.py": {
-    "mtime": 1762726901.2297578,
+    "mtime": 1762939354.7377672,
     "issues": [
       {
         "type": "warning",
@@ -2663,7 +2690,7 @@
     ]
   },
   "tests/ui/test_dialogs.py": {
-    "mtime": 1761128659.4432185,
+    "mtime": 1762947356.041978,
     "issues": [
       {
         "type": "warning",
@@ -2970,21 +2997,8 @@
     "issues": []
   },
   "tests/ui/test_ui_app_qt_main.py": {
-    "mtime": 1762772213.5237367,
+    "mtime": 1763027952.229287,
     "issues": [
-      {
-        "type": "warning",
-        "module": "test_ui_app_qt_main",
-        "obj": "",
-        "line": 10,
-        "column": 0,
-        "endLine": 10,
-        "endColumn": 13,
-        "path": "tests\\ui\\test_ui_app_qt_main.py",
-        "symbol": "unused-import",
-        "message": "Unused import pytest",
-        "message-id": "W0611"
-      },
       {
         "type": "warning",
         "module": "test_ui_app_qt_main",
@@ -3303,7 +3317,7 @@
     ]
   },
   "tests/ui/test_widget_behavior.py": {
-    "mtime": 1761128659.4561198,
+    "mtime": 1762950178.0594919,
     "issues": [
       {
         "type": "warning",
@@ -4138,7 +4152,7 @@
     "issues": []
   },
   "tests/unit/test_user_data_manager.py": {
-    "mtime": 1762858458.640717,
+    "mtime": 1762932916.6066923,
     "issues": [
       {
         "type": "warning",
@@ -4221,7 +4235,7 @@
     ]
   },
   "tests/unit/test_user_management.py": {
-    "mtime": 1762844798.1551995,
+    "mtime": 1762941702.308705,
     "issues": [
       {
         "type": "warning",
@@ -4277,7 +4291,7 @@
     "issues": []
   },
   "ui/ui_app_qt.py": {
-    "mtime": 1762766531.33827,
+    "mtime": 1763017468.9060917,
     "issues": []
   },
   "ui/widgets/__init__.py": {
@@ -4335,5 +4349,617 @@
   "user/user_preferences.py": {
     "mtime": 1762849825.3494096,
     "issues": []
+  },
+  "communication/command_handlers/account_handler.py": {
+    "mtime": 1763025858.6006248,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "communication.command_handlers.account_handler",
+        "obj": "",
+        "line": 370,
+        "column": 0,
+        "endLine": 370,
+        "endColumn": 11,
+        "path": "communication\\command_handlers\\account_handler.py",
+        "symbol": "unused-import",
+        "message": "Unused import time",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "communication/communication_channels/discord/account_flow_handler.py": {
+    "mtime": 1763024699.7487028,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "account_flow_handler",
+        "obj": "",
+        "line": 9,
+        "column": 0,
+        "endLine": 9,
+        "endColumn": 27,
+        "path": "communication\\communication_channels\\discord\\account_flow_handler.py",
+        "symbol": "unused-import",
+        "message": "Unused Optional imported from typing",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "communication/communication_channels/discord/webhook_handler.py": {
+    "mtime": 1763023506.0913787,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "webhook_handler",
+        "obj": "",
+        "line": 9,
+        "column": 0,
+        "endLine": 9,
+        "endColumn": 11,
+        "path": "communication\\communication_channels\\discord\\webhook_handler.py",
+        "symbol": "unused-import",
+        "message": "Unused import hmac",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "webhook_handler",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 14,
+        "path": "communication\\communication_channels\\discord\\webhook_handler.py",
+        "symbol": "unused-import",
+        "message": "Unused import hashlib",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "communication/communication_channels/discord/webhook_server.py": {
+    "mtime": 1763018588.0221562,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "webhook_server",
+        "obj": "",
+        "line": 9,
+        "column": 0,
+        "endLine": 9,
+        "endColumn": 37,
+        "path": "communication\\communication_channels\\discord\\webhook_server.py",
+        "symbol": "unused-import",
+        "message": "Unused Optional imported from typing",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "webhook_server",
+        "obj": "",
+        "line": 9,
+        "column": 0,
+        "endLine": 9,
+        "endColumn": 37,
+        "path": "communication\\communication_channels\\discord\\webhook_server.py",
+        "symbol": "unused-import",
+        "message": "Unused Callable imported from typing",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "webhook_server",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 1,
+        "path": "communication\\communication_channels\\discord\\webhook_server.py",
+        "symbol": "unused-import",
+        "message": "Unused verify_webhook_signature imported from communication.communication_channels.discord.webhook_handler",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "webhook_server",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 1,
+        "path": "communication\\communication_channels\\discord\\webhook_server.py",
+        "symbol": "unused-import",
+        "message": "Unused EVENT_APPLICATION_AUTHORIZED imported from communication.communication_channels.discord.webhook_handler",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "communication/communication_channels/discord/welcome_handler.py": {
+    "mtime": 1763024170.0166783,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "welcome_handler",
+        "obj": "",
+        "line": 8,
+        "column": 0,
+        "endLine": 8,
+        "endColumn": 27,
+        "path": "communication\\communication_channels\\discord\\welcome_handler.py",
+        "symbol": "unused-import",
+        "message": "Unused Optional imported from typing",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "communication/core/welcome_manager.py": {
+    "mtime": 1763024637.9269605,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "communication.core.welcome_manager",
+        "obj": "",
+        "line": 7,
+        "column": 0,
+        "endLine": 7,
+        "endColumn": 9,
+        "path": "communication\\core\\welcome_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused import os",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "communication.core.welcome_manager",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 38,
+        "path": "communication\\core\\welcome_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused Optional imported from typing",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "core/file_locking.py": {
+    "mtime": 1762929039.131799,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "core.file_locking",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 42,
+        "path": "core\\file_locking.py",
+        "symbol": "unused-import",
+        "message": "Unused Callable imported from typing",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "core.file_locking",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 42,
+        "path": "core\\file_locking.py",
+        "symbol": "unused-import",
+        "message": "Unused Any imported from typing",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_discord_task_reminder_followup.py": {
+    "mtime": 1762996503.3577456,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_discord_task_reminder_followup",
+        "obj": "",
+        "line": 9,
+        "column": 0,
+        "endLine": 9,
+        "endColumn": 40,
+        "path": "tests\\behavior\\test_discord_task_reminder_followup.py",
+        "symbol": "unused-import",
+        "message": "Unused datetime imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_discord_task_reminder_followup",
+        "obj": "",
+        "line": 9,
+        "column": 0,
+        "endLine": 9,
+        "endColumn": 40,
+        "path": "tests\\behavior\\test_discord_task_reminder_followup.py",
+        "symbol": "unused-import",
+        "message": "Unused timedelta imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_discord_task_reminder_followup",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 69,
+        "path": "tests\\behavior\\test_discord_task_reminder_followup.py",
+        "symbol": "unused-import",
+        "message": "Unused ParsedCommand imported from communication.command_handlers.shared_types",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_discord_task_reminder_followup",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 80,
+        "path": "tests\\behavior\\test_discord_task_reminder_followup.py",
+        "symbol": "unused-import",
+        "message": "Unused create_task imported from tasks.task_management",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_discord_task_reminder_followup",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 80,
+        "path": "tests\\behavior\\test_discord_task_reminder_followup.py",
+        "symbol": "unused-import",
+        "message": "Unused get_task_by_id imported from tasks.task_management",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_task_cleanup_bug.py": {
+    "mtime": 1763029461.393377,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_task_cleanup_bug",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 84,
+        "path": "tests\\behavior\\test_task_cleanup_bug.py",
+        "symbol": "unused-import",
+        "message": "Unused complete_task imported from tasks.task_management",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_task_error_handling.py": {
+    "mtime": 1762994202.055851,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_task_error_handling",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 11,
+        "path": "tests\\behavior\\test_task_error_handling.py",
+        "symbol": "unused-import",
+        "message": "Unused import json",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_error_handling",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 9,
+        "path": "tests\\behavior\\test_task_error_handling.py",
+        "symbol": "unused-import",
+        "message": "Unused import os",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_task_reminder_followup_behavior.py": {
+    "mtime": 1763028789.271543,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_task_reminder_followup_behavior",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 1,
+        "path": "tests\\behavior\\test_task_reminder_followup_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused ConversationManager imported from communication.message_processing.conversation_flow_manager",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_reminder_followup_behavior",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 1,
+        "path": "tests\\behavior\\test_task_reminder_followup_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused FLOW_NONE imported from communication.message_processing.conversation_flow_manager",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_reminder_followup_behavior",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 69,
+        "path": "tests\\behavior\\test_task_reminder_followup_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused ParsedCommand imported from communication.command_handlers.shared_types",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_reminder_followup_behavior",
+        "obj": "",
+        "line": 20,
+        "column": 0,
+        "endLine": 20,
+        "endColumn": 80,
+        "path": "tests\\behavior\\test_task_reminder_followup_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused load_active_tasks imported from tasks.task_management",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/integration/test_orphaned_reminder_cleanup.py": {
+    "mtime": 1763028789.271543,
+    "issues": []
+  },
+  "tests/integration/test_task_cleanup_real.py": {
+    "mtime": 1762994441.3857932,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_task_cleanup_real",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 40,
+        "path": "tests\\integration\\test_task_cleanup_real.py",
+        "symbol": "unused-import",
+        "message": "Unused datetime imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_cleanup_real",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 40,
+        "path": "tests\\integration\\test_task_cleanup_real.py",
+        "symbol": "unused-import",
+        "message": "Unused timedelta imported from datetime",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/integration/test_task_cleanup_real_bug_verification.py": {
+    "mtime": 1762994441.3857932,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_task_cleanup_real_bug_verification",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 42,
+        "path": "tests\\integration\\test_task_cleanup_real_bug_verification.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_cleanup_real_bug_verification",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 1,
+        "path": "tests\\integration\\test_task_cleanup_real_bug_verification.py",
+        "symbol": "unused-import",
+        "message": "Unused delete_task imported from tasks.task_management",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_cleanup_real_bug_verification",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 1,
+        "path": "tests\\integration\\test_task_cleanup_real_bug_verification.py",
+        "symbol": "unused-import",
+        "message": "Unused update_task imported from tasks.task_management",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/integration/test_task_cleanup_silent_failure.py": {
+    "mtime": 1763029461.393377,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_task_cleanup_silent_failure",
+        "obj": "",
+        "line": 9,
+        "column": 0,
+        "endLine": 9,
+        "endColumn": 42,
+        "path": "tests\\integration\\test_task_cleanup_silent_failure.py",
+        "symbol": "unused-import",
+        "message": "Unused patch imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_cleanup_silent_failure",
+        "obj": "",
+        "line": 9,
+        "column": 0,
+        "endLine": 9,
+        "endColumn": 42,
+        "path": "tests\\integration\\test_task_cleanup_silent_failure.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_cleanup_silent_failure",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 40,
+        "path": "tests\\integration\\test_task_cleanup_silent_failure.py",
+        "symbol": "unused-import",
+        "message": "Unused datetime imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_cleanup_silent_failure",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 40,
+        "path": "tests\\integration\\test_task_cleanup_silent_failure.py",
+        "symbol": "unused-import",
+        "message": "Unused timedelta imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_cleanup_silent_failure",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 84,
+        "path": "tests\\integration\\test_task_cleanup_silent_failure.py",
+        "symbol": "unused-import",
+        "message": "Unused delete_task imported from tasks.task_management",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/integration/test_task_reminder_integration.py": {
+    "mtime": 1762994163.0404384,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_task_reminder_integration",
+        "obj": "",
+        "line": 8,
+        "column": 0,
+        "endLine": 8,
+        "endColumn": 48,
+        "path": "tests\\integration\\test_task_reminder_integration.py",
+        "symbol": "unused-import",
+        "message": "Unused call imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_reminder_integration",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 11,
+        "path": "tests\\integration\\test_task_reminder_integration.py",
+        "symbol": "unused-import",
+        "message": "Unused import time",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_reminder_integration",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 15,
+        "endColumn": 1,
+        "path": "tests\\integration\\test_task_reminder_integration.py",
+        "symbol": "unused-import",
+        "message": "Unused get_task_by_id imported from tasks.task_management",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_reminder_integration",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 77,
+        "path": "tests\\integration\\test_task_reminder_integration.py",
+        "symbol": "unused-import",
+        "message": "Unused TaskManagementHandler imported from communication.command_handlers.task_handler",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_reminder_integration",
+        "obj": "",
+        "line": 17,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 90,
+        "path": "tests\\integration\\test_task_reminder_integration.py",
+        "symbol": "unused-import",
+        "message": "Unused ParsedCommand imported from communication.command_handlers.shared_types",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_task_reminder_integration",
+        "obj": "",
+        "line": 17,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 90,
+        "path": "tests\\integration\\test_task_reminder_integration.py",
+        "symbol": "unused-import",
+        "message": "Unused InteractionResponse imported from communication.command_handlers.shared_types",
+        "message-id": "W0611"
+      }
+    ]
   }
 }

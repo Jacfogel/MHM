@@ -359,38 +359,38 @@ Task Completed/Deleted/Updated
    - **Priority**: CRITICAL - System will crash when trying to complete/delete tasks with reminders
 
 2. **Reminder Period Follow-up Not Implemented**
-   - **Location**: `task_handler.py` line 117-123
+   - **Location**: `communication/command_handlers/task_handler.py` line 117-123
    - **Issue**: Task creation asks about reminder periods but doesn't handle the response
    - **Impact**: Users cannot set reminder periods through Discord conversation
    - **Priority**: High
 
 3. **Duplicate Task Finding Logic**
-   - **Location**: `task_handler.py` lines 559-728
+   - **Location**: `communication/command_handlers/task_handler.py` lines 559-728
    - **Issue**: Three identical `_find_task_by_identifier` methods (complete, delete, update)
    - **Impact**: Code duplication, maintenance burden
    - **Priority**: Medium
 
 4. **Reminder Cleanup Implementation Missing**
-   - **Location**: `scheduler.py` - no method to clean up specific task reminders
+   - **Location**: `core/scheduler.py` - no method to clean up specific task reminders
    - **Issue**: No way to remove reminders for a specific task_id
    - **Impact**: Orphaned reminders will accumulate, causing unnecessary deliveries
    - **Priority**: High
 
 #### Moderate Issues
 5. **Task Update Doesn't Validate All Fields**
-   - **Location**: `task_management.py` update_task()
+   - **Location**: `tasks/task_management.py` update_task()
    - **Issue**: Can update to invalid priority values, invalid dates
    - **Impact**: Data integrity issues
    - **Priority**: Medium
 
 6. **No Validation for Recurrence Pattern**
-   - **Location**: `task_handler.py` _handle_create_task()
+   - **Location**: `communication/command_handlers/task_handler.py` _handle_create_task()
    - **Issue**: Invalid recurrence_pattern values accepted
    - **Impact**: Tasks created with invalid recurrence patterns
    - **Priority**: Low
 
 7. **Task Stats May Fail Silently**
-   - **Location**: `task_handler.py` _handle_task_stats()
+   - **Location**: `communication/command_handlers/task_handler.py` _handle_task_stats()
    - **Issue**: If analytics unavailable, returns error message but doesn't log
    - **Impact**: Difficult to debug issues
    - **Priority**: Low
@@ -464,8 +464,8 @@ Task Completed/Deleted/Updated
    - **Priority**: Low
 
 4. **Circular Import Risk**
-   - `task_management.py` imports from `core.service` (scheduler)
-   - `scheduler.py` imports from `tasks.task_management`
+   - `tasks/task_management.py` imports from `core.service` (scheduler)
+   - `core/scheduler.py` imports from `tasks.task_management`
    - **Priority**: Low (currently works but fragile)
 
 ---
@@ -645,7 +645,7 @@ All tests follow the project's testing guidelines:
    - **Evidence**: Direct check confirms method doesn't exist in SchedulerManager
    - **Impact**: When tasks are completed/deleted, cleanup is attempted but fails silently
    - **Current Behavior**: 
-     - `cleanup_task_reminders()` in `task_management.py` calls `scheduler_manager.cleanup_task_reminders()`
+     - `cleanup_task_reminders()` in `tasks/task_management.py` calls `scheduler_manager.cleanup_task_reminders()`
      - Method doesn't exist, causing AttributeError
      - Error is caught by `@handle_errors` decorator
      - Function returns `False` but no error is logged (decorator swallows it)

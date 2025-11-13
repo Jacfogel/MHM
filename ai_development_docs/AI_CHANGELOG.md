@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-13 - Documentation Sync Improvements and Tool Enhancements **COMPLETED**
+- **ASCII Compliance**: Fixed 17 non-ASCII character issues across 4 files (emojis, smart quotes, symbols) - all files now ASCII-compliant
+- **Path Drift Fixes**: Fixed 6 incomplete file path references in documentation (TASK_SYSTEM_AUDIT.md, AI_CHANGELOG.md, TODO.md, PLANS.md) - reduced from 7 to 1 issue
+- **Tool Improvements**: Enhanced documentation sync checker to filter section headers (eliminated 3 false positives), updated coverage metrics tool to show decimal precision (70.2% instead of 73%)
+- **Impact**: Documentation sync issues reduced from 32 to 9, all ASCII compliance resolved, tools now more accurate and eliminate false positives
+
 ### 2025-11-13 - Discord Welcome Message System and Account Management Flow **COMPLETED**
 - **Discord Webhook Integration**: HTTP server receives APPLICATION_AUTHORIZED/DEAUTHORIZED events, sends automatic welcome DMs with interactive buttons immediately on app authorization (no user interaction required), ed25519 signature verification
 - **Channel-Agnostic Architecture**: Created welcome_manager and account_handler modules that work across channels, Discord-specific UI adapters handle buttons/modals
@@ -122,7 +128,7 @@ Guidelines:
 
 ### 2025-11-09 - Legacy Compatibility Audit and Module Investigation **COMPLETED**
 - **Legacy Audit Complete**: Investigated `core/user_data_manager.py` and `user/user_context.py` - no legacy markers found, all code uses modern formats
-- **Function Rename**: Renamed `_save_user_data__legacy_preferences()` → `_save_user_data__preserve_preference_settings()` to clarify purpose (preserves settings, not legacy conversion)
+- **Function Rename**: Renamed `_save_user_data__legacy_preferences()` -> `_save_user_data__preserve_preference_settings()` to clarify purpose (preserves settings, not legacy conversion)
 - **Integration Investigation**: Found `UserPreferences` initialized but unused, `UserContext` primarily used as singleton for user ID - documented gaps in PLANS.md
 - **Module Clarity Investigation**: Analyzed communication modules - found routing overlap and naming inconsistency, documented recommendations for future refactoring
 - **Windows Exception**: Marked investigation complete - fix already implemented via thread cleanup fixture
@@ -147,14 +153,14 @@ Guidelines:
 - **Verification**: Confirmed all 3 user directories use new format, no legacy code in production files, all 2,768 tests passing
 
 ### 2025-11-09 - Test Coverage Expansion: Account Creator Dialog, Discord Bot, and Warning Fix **COMPLETED**
-- **Expanded Test Coverage**: Created comprehensive behavior-focused test suites for 2 modules - `account_creator_dialog.py` (48% → improved, 9 behavior tests) and `discord/bot.py` (45% → improved, 18 behavior tests)
+- **Expanded Test Coverage**: Created comprehensive behavior-focused test suites for 2 modules - `account_creator_dialog.py` (48% -> improved, 9 behavior tests) and `communication/communication_channels/discord/bot.py` (45% -> improved, 18 behavior tests)
 - **Test Quality**: All 27 new tests verify real system behavior, data persistence, side effects, and integration workflows - tests follow Arrange-Act-Assert pattern and project testing guidelines
 - **Warning Fix**: Fixed RuntimeWarning in `test_save_checkin_settings_skips_validation_when_disabled` by adding warning suppression (similar to Discord bot test pattern)
 - **Test Fixes**: Fixed tests to use correct data structure access (`get_user_data` returns nested dicts), proper async mocking, and correct exception construction for Discord API errors
 - **Testing**: Full test suite passes - 2,780 passed, 1 skipped, 0 failed - significantly improved coverage for account creation and Discord bot modules
 
 ### 2025-11-09 - Test Coverage Expansion: Communication Core, UI Dialogs, and Interaction Manager **COMPLETED**
-- **Expanded Test Coverage**: Created comprehensive behavior-focused test suites for 6 modules - `communication/core/__init__.py` (30% → improved, 17 tests), `category_management_dialog.py` (48% → improved, 5 behavior tests), `task_management_dialog.py` (53% → improved, 5 behavior tests), `task_settings_widget.py` (54% → improved, 10 behavior tests), `interaction_manager.py` (51% → improved, 12 behavior tests), and `channel_orchestrator.py` (55% → improved, 14 behavior tests)
+- **Expanded Test Coverage**: Created comprehensive behavior-focused test suites for 6 modules - `communication/core/__init__.py` (30% -> improved, 17 tests), `category_management_dialog.py` (48% -> improved, 5 behavior tests), `task_management_dialog.py` (53% -> improved, 5 behavior tests), `task_settings_widget.py` (54% -> improved, 10 behavior tests), `interaction_manager.py` (51% -> improved, 12 behavior tests), and `channel_orchestrator.py` (55% -> improved, 14 behavior tests)
 - **Test Quality**: All 63 new tests verify real system behavior, data persistence, side effects, and integration workflows - tests follow Arrange-Act-Assert pattern and project testing guidelines
 - **Test Fixes**: Fixed tests to use correct method names (`start_all` instead of `start`), correct enum values (`ChannelStatus.READY`/`STOPPED`), correct argument passing (`user_id` as keyword argument), correct patching targets (`core.config.validate_communication_channels`), and valid categories from `CATEGORY_KEYS` with set comparisons for order independence
 - **Testing**: Full test suite passes - 2,753 passed, 1 skipped, 0 failed - significantly improved coverage for communication core, UI dialogs, and interaction management modules
@@ -166,14 +172,14 @@ Guidelines:
 - **Testing**: All 2,690 tests pass - verified fix works correctly and no regressions introduced
 
 ### 2025-01-09 - Test Coverage Expansion Session: Communication, UI, and Discord Bot Modules **COMPLETED**
-- **Expanded Test Coverage**: Created comprehensive test suites for 8 modules total - 7 communication and UI modules (30-55% → 70-80%+ coverage, 40+ tests) and Discord bot module (44% → 55% coverage, 18 new tests)
+- **Expanded Test Coverage**: Created comprehensive test suites for 8 modules total - 7 communication and UI modules (30-55% -> 70-80%+ coverage, 40+ tests) and Discord bot module (44% -> 55% coverage, 18 new tests)
 - **Test Fixes**: Fixed failing test `test_load_theme_loads_theme_file` by properly mocking `Path` objects and `setStyleSheet` before instance creation. Fixed hanging async tests by properly mocking `asyncio.gather`, `asyncio.wait_for`, and `asyncio.sleep` to prevent actual waits
 - **Warning Reduction**: Fixed RuntimeWarning in `test_check_network_health_checks_bot_latency` by adding warning suppression. Reduced warnings from 6 to 5 (1 outstanding RuntimeWarning remains in `test_save_checkin_settings_skips_validation_when_disabled`)
 - **Thread Cleanup**: Added `cleanup_communication_threads` autouse fixture in `tests/conftest.py` to clean up CommunicationManager threads between tests, preventing crashes when UI tests process events
 - **Testing**: Full test suite passes - 2,690 passed, 1 skipped, 0 failed - significantly improved coverage for communication channels, UI dialogs, and Discord bot module
 
 ### 2025-11-06 - Test Coverage Expansion for Communication and UI Modules **COMPLETED**
-- **Expanded Test Coverage**: Created comprehensive test suites for 9 modules - `message_formatter.py` (20% → 80%+, 30 tests), `rich_formatter.py` (22% → 80%+, 37 tests), `communication/communication_channels/discord/api_client.py` (28% → 80%+, 43 tests), `command_registry.py` (37% → 80%+, 30 tests), `event_handler.py` (39% → 80%+, 37 tests), `ai/lm_studio_manager.py` (23% → 80%+, 31 tests), `admin_panel.py` (31% → 80%+, 17 tests), `checkin_management_dialog.py` (44% → 80%+, 21 tests), and `user/user_context.py` (48% → 80%+, 30 tests)
+- **Expanded Test Coverage**: Created comprehensive test suites for 9 modules - `message_formatter.py` (20% -> 80%+, 30 tests), `rich_formatter.py` (22% -> 80%+, 37 tests), `communication/communication_channels/discord/api_client.py` (28% -> 80%+, 43 tests), `command_registry.py` (37% -> 80%+, 30 tests), `event_handler.py` (39% -> 80%+, 37 tests), `ai/lm_studio_manager.py` (23% -> 80%+, 31 tests), `admin_panel.py` (31% -> 80%+, 17 tests), `checkin_management_dialog.py` (44% -> 80%+, 21 tests), and `user/user_context.py` (48% -> 80%+, 30 tests)
 - **Test Quality**: All 276 new tests follow Arrange-Act-Assert pattern, verify actual system behavior, maintain proper test isolation, and cover initialization, success paths, edge cases, error handling, async operations, and UI interactions
 - **Testing**: Full test suite passes - 2,452 passed, 1 skipped, 0 failed - significantly improved coverage for communication channels, UI dialogs, and user management modules
 - **Impact**: All modules now have 80%+ coverage, improving system reliability and change safety. Total test count increased from 2,176 to 2,452 tests.
@@ -196,7 +202,7 @@ Guidelines:
 - **Testing**: All commands tested and working (`audit`, `status`, `docs`), full test suite passes (2280 passed), test mocks updated to include new `ai_dev_tools_file` key
 
 ### 2025-11-06 - Test Coverage Expansion for Priority Modules **COMPLETED**
-- **Expanded Test Coverage**: Created comprehensive test suites for 5 priority modules - `ai/lm_studio_manager.py` (23% → 80%+, 30 tests), `communication/__init__.py` (42% → 80%+, 30 tests), `ui/dialogs/message_editor_dialog.py` (23% → 80%+, 19 tests), `core/user_data_manager.py` (42% → 80%+, 42 tests), and `core/logger.py` (56% → 80%+, 33 tests)
+- **Expanded Test Coverage**: Created comprehensive test suites for 5 priority modules - `ai/lm_studio_manager.py` (23% -> 80%+, 30 tests), `communication/__init__.py` (42% -> 80%+, 30 tests), `ui/dialogs/message_editor_dialog.py` (23% -> 80%+, 19 tests), `core/user_data_manager.py` (42% -> 80%+, 42 tests), and `core/logger.py` (56% -> 80%+, 33 tests)
 - **Test Quality**: All 154 new tests follow Arrange-Act-Assert pattern, verify actual system behavior and side effects, and maintain proper test isolation (no files written outside `tests/` directory)
 - **UI Test Fixes**: Fixed hanging issues in message editor dialog tests by properly mocking `QMessageBox` and `QDialog.exec()` to prevent UI pop-ups from blocking test execution
 - **Impact**: Test suite now has 2,310 passing tests (1 skipped, 5 warnings) - significantly improved coverage for core system components with comprehensive error handling and edge case testing
@@ -204,8 +210,8 @@ Guidelines:
 ---
 
 ### 2025-11-06 - UI Dialog Test Coverage Expansion and Test Quality Improvements **COMPLETED**
-- **Expanded Test Coverage**: Created comprehensive test suites for `ui/dialogs/process_watcher_dialog.py` (13% → 87% coverage, 28 tests) and `ui/dialogs/user_analytics_dialog.py` (15% coverage, 34 tests) with explicit Arrange-Act-Assert pattern
-- **Added Integration Tests**: Added 3 integration tests per dialog covering complete workflows (refresh → update tables → display data, analytics loading → display overview → display specific data)
+- **Expanded Test Coverage**: Created comprehensive test suites for `ui/dialogs/process_watcher_dialog.py` (13% -> 87% coverage, 28 tests) and `ui/dialogs/user_analytics_dialog.py` (15% coverage, 34 tests) with explicit Arrange-Act-Assert pattern
+- **Added Integration Tests**: Added 3 integration tests per dialog covering complete workflows (refresh -> update tables -> display data, analytics loading -> display overview -> display specific data)
 - **Test Structure Improvements**: Refactored all tests to explicitly follow Arrange-Act-Assert pattern with clear comments, improving readability and maintainability
 - **Test Fix**: Corrected `test_disable_tasks_for_full_user` to verify `task_settings` are preserved when feature is disabled (aligning with system design)
 - **Impact**: All 2,156 tests pass - significantly improved test coverage for critical UI dialogs and established clear test structure patterns for future development
@@ -300,7 +306,7 @@ Guidelines:
 ### 2025-11-03 - Package-Level Exports Migration (Phase 0-2 Complete) **COMPLETED**
 - **Audit Script**: Created `ai_development_tools/audit_package_exports.py` to systematically identify what should be exported at package level based on actual imports, public API items, cross-module usage, and function registry
 - **Migration Plan**: Created detailed 10-phase plan in `development_docs/PLANS.md` for migrating all packages to package-level exports (14-24 hours estimated)
-- **Phase 0 Complete**: Added 15 high-usage exports (≥5 imports) across core, communication, ui, and tasks packages
+- **Phase 0 Complete**: Added 15 high-usage exports (>=5 imports) across core, communication, ui, and tasks packages
 - **Phase 1 Complete**: Added 17 medium-usage exports (2-4 imports) from core package
 - **Phase 2 Complete**: Added 92 low-usage/public API exports from core package (schema models, config functions, error handling classes, service utilities, file auditor, schedule utilities, auto cleanup, logger utilities, user data manager, user management)
 - **Progress**: Core package now has 175 exports (was 59), reducing missing exports from 300 to 185; Total 124 exports added across Phase 0-2

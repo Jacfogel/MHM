@@ -40,7 +40,7 @@ When adding new tasks, follow this format:
 - *What it means*: Continue improving error handling quality by replacing basic try-except blocks with @handle_errors decorator and adding error handling to remaining functions where appropriate
 - *Why it helps*: Improves system robustness and reliability by protecting more functions against errors
 - *Estimated effort*: Medium
-- *Current Status*: ✅ **94.25% coverage achieved** (1,392 of 1,477 functions protected, 1,280 with @handle_errors decorator) - **93%+ target achieved on 2025-11-10**
+- *Current Status*: [OK] **94.25% coverage achieved** (1,392 of 1,477 functions protected, 1,280 with @handle_errors decorator) - **93%+ target achieved on 2025-11-10**
 - *Remaining Work* (Optional):
   - [ ] **Continue Expanding Beyond 94.25%** (if desired):
     - [ ] Add error handling to remaining 85 functions where appropriate
@@ -73,7 +73,7 @@ When adding new tasks, follow this format:
     - [ ] Test context enhancement effectiveness
     - [ ] Validate personalization improvements
 
-**Discord Send Retry Monitoring** ✅ **COMPLETED**
+**Discord Send Retry Monitoring** [OK] **COMPLETED**
 - *What it means*: Verify queued retry behavior on disconnects and that check-in starts log only after successful delivery.
 - *Why it helps*: Prevents lost messages and duplicate check-in starts.
 - *Status*: Completed verification and testing on 2025-11-10:
@@ -99,7 +99,7 @@ When adding new tasks, follow this format:
   - [ ] Add behavior tests for end-to-end save/load normalization
   - [ ] Add read-path normalization invocation to remaining reads that feed business logic (sweep `core/` and `communication/`)
 
-**Discord Task Edit Follow-ups and Suggestion Relevance** ✅ **COMPLETED**
+**Discord Task Edit Follow-ups and Suggestion Relevance** [OK] **COMPLETED**
 - *What it means*: Ensure edit-task prompts are actionable, suppress irrelevant suggestions, and add coverage for common follow-ups
 - *Why it helps*: Reduces confusion and makes conversations efficient
 - *Estimated effort*: Small/Medium
@@ -152,11 +152,11 @@ When adding new tasks, follow this format:
   - Optimize slow tests or add pytest marks for better parallelization
   - Profile test execution to identify bottlenecks
 
-**Fix Flaky Tests in Parallel Execution Mode** ✅ **COMPLETED** (2025-11-12)
+**Fix Flaky Tests in Parallel Execution Mode** [OK] **COMPLETED** (2025-11-12)
 - *What it means*: Investigate and fix tests that fail when run in parallel mode (`-n auto` with pytest-xdist) but pass when run sequentially
 - *Why it helps*: Ensures test reliability and enables safe use of parallel execution for faster test runs
 - *Estimated effort*: Medium
-- *Status*: ✅ **File locking for user_index.json implemented** (2025-11-11)
+- *Status*: [OK] **File locking for user_index.json implemented** (2025-11-11)
   - Created `core/file_locking.py` with Windows-compatible file locking using lock files
   - Updated all `user_index.json` access points to use file locking:
     - `TestUserFactory.create_basic_user__update_index()` - uses `safe_json_read`/`safe_json_write`
@@ -167,17 +167,17 @@ When adding new tasks, follow this format:
   - File locking uses atomic lock file creation (`.lock` files) on Windows
   - All index operations now thread-safe and process-safe
 - *Fixed Tests* (2025-11-12):
-  - ✅ `tests/ui/test_dialogs.py::test_user_data_access` - Fixed UUID resolution and directory existence checks
-  - ✅ `tests/integration/test_user_creation.py::TestUserCreationIntegration::test_multiple_users_same_channel` - Fixed UUID resolution, directory creation, and immediate file verification
-  - ✅ `tests/behavior/test_backup_manager_behavior.py::TestBackupManagerBehavior::test_backup_manager_with_large_user_data_real_behavior` - Fixed by ensuring user index is updated after creating user files in `create_full_featured_user__with_test_dir`
-  - ✅ `tests/behavior/test_backup_manager_behavior.py::TestBackupManagerBehavior::test_backup_creation_and_validation_real_behavior` - Fixed by using same backup manager instance for validation
-  - ✅ `tests/behavior/test_account_management_real_behavior.py` - Fixed indentation error
-  - ✅ `tests/ui/test_widget_behavior.py::TestCheckinSettingsWidgetBehavior::test_checkin_enablement_real_behavior` - Fixed user ID resolution with retry logic
-  - ✅ `tests/integration/test_user_creation.py` - Removed print() statements to comply with test policy
-  - ✅ `tests/behavior/test_account_management_real_behavior.py::test_user_data_loading_real_behavior` - Fixed race condition in parallel execution by adding retry logic to `get_user_info_for_data_manager()` (2025-11-12)
-  - ✅ `tests/unit/test_user_data_manager.py::TestUserDataManagerIndex::test_update_user_index_success` - Fixed race condition in parallel execution (2025-11-12)
-  - ✅ `tests/behavior/test_account_management_real_behavior.py::test_category_management_real_behavior` - Fixed race condition in parallel execution (2025-11-12)
-  - ✅ `tests/unit/test_user_data_manager.py::TestUserDataManagerMessageReferences::test_update_message_references_success` - Fixed race condition in parallel execution (2025-11-12)
+  - [OK] `tests/ui/test_dialogs.py::test_user_data_access` - Fixed UUID resolution and directory existence checks
+  - [OK] `tests/integration/test_user_creation.py::TestUserCreationIntegration::test_multiple_users_same_channel` - Fixed UUID resolution, directory creation, and immediate file verification
+  - [OK] `tests/behavior/test_backup_manager_behavior.py::TestBackupManagerBehavior::test_backup_manager_with_large_user_data_real_behavior` - Fixed by ensuring user index is updated after creating user files in `create_full_featured_user__with_test_dir`
+  - [OK] `tests/behavior/test_backup_manager_behavior.py::TestBackupManagerBehavior::test_backup_creation_and_validation_real_behavior` - Fixed by using same backup manager instance for validation
+  - [OK] `tests/behavior/test_account_management_real_behavior.py` - Fixed indentation error
+  - [OK] `tests/ui/test_widget_behavior.py::TestCheckinSettingsWidgetBehavior::test_checkin_enablement_real_behavior` - Fixed user ID resolution with retry logic
+  - [OK] `tests/integration/test_user_creation.py` - Removed print() statements to comply with test policy
+  - [OK] `tests/behavior/test_account_management_real_behavior.py::test_user_data_loading_real_behavior` - Fixed race condition in parallel execution by adding retry logic to `get_user_info_for_data_manager()` (2025-11-12)
+  - [OK] `tests/unit/test_user_data_manager.py::TestUserDataManagerIndex::test_update_user_index_success` - Fixed race condition in parallel execution (2025-11-12)
+  - [OK] `tests/behavior/test_account_management_real_behavior.py::test_category_management_real_behavior` - Fixed race condition in parallel execution (2025-11-12)
+  - [OK] `tests/unit/test_user_data_manager.py::TestUserDataManagerMessageReferences::test_update_message_references_success` - Fixed race condition in parallel execution (2025-11-12)
 - *Note on Previously Flaky Tests*: The following tests were observed failing on 2025-11-11 but are now passing in the latest test run (2025-11-12). They may still be intermittent and should be monitored over multiple runs:
   - `tests/ui/test_ui_app_qt_main.py::TestMHMManagerUI::test_update_service_status_updates_display` - Likely race condition with UI state (PASSING as of 2025-11-12)
   - `tests/ui/test_ui_app_qt_main.py::TestMHMManagerUI::test_manage_tasks_opens_dialog` - UI dialog opening race condition (PASSING as of 2025-11-12)
@@ -235,50 +235,50 @@ When adding new tasks, follow this format:
 - *What it means*: Address 10 issues identified in AI functionality test results: prompt-response mismatches (greetings not acknowledged, questions redirected), fabricated check-in data, incorrect facts, repetitive responses, code fragments in command responses, and system prompt leaks
 - *Why it helps*: Improves AI response quality and ensures responses actually address user prompts appropriately
 - *Estimated effort*: Medium
-- *Current Status*: ✅ **IN PROGRESS** - Significant improvements made:
-  - ✅ T-1.1, T-12.2: Greeting handling instructions strengthened with BAD/GOOD examples (prompt updated, monitoring)
-  - ✅ T-1.2, T-12.4, T-15.2: Information request handling strengthened with explicit BAD/GOOD examples for "Tell me about your capabilities", "Tell me a fact", and "Tell me about yourself" (prompt updated, monitoring)
-  - ✅ T-2.1, T-2.3, T-8.1, T-14.1: Vague reference instructions strengthened (improved, still some remaining)
-  - ✅ T-4.1, T-9.2, T-13.3: Fabricated data prevention added
-  - ✅ T-13.3: Meta-text leak cleaning enhanced
-  - ✅ T-12.1: Information request handling added (should provide helpful info, not redirect)
-  - ✅ T-15.2: "Tell me about yourself" handling strengthened with explicit examples
-  - ✅ T-11.1: Code fragments in command responses - FIXED (added cleaning for cached responses and enhanced fragment detection)
-  - ✅ T-12.4: Incorrect fact with self-contradiction - PREVENTION ADDED (logical consistency instructions)
-  - ⚠️ T-15.1: System prompt instructions leaked (cleaning added, monitor)
+- *Current Status*: [OK] **IN PROGRESS** - Significant improvements made:
+  - [OK] T-1.1, T-12.2: Greeting handling instructions strengthened with BAD/GOOD examples (prompt updated, monitoring)
+  - [OK] T-1.2, T-12.4, T-15.2: Information request handling strengthened with explicit BAD/GOOD examples for "Tell me about your capabilities", "Tell me a fact", and "Tell me about yourself" (prompt updated, monitoring)
+  - [OK] T-2.1, T-2.3, T-8.1, T-14.1: Vague reference instructions strengthened (improved, still some remaining)
+  - [OK] T-4.1, T-9.2, T-13.3: Fabricated data prevention added
+  - [OK] T-13.3: Meta-text leak cleaning enhanced
+  - [OK] T-12.1: Information request handling added (should provide helpful info, not redirect)
+  - [OK] T-15.2: "Tell me about yourself" handling strengthened with explicit examples
+  - [OK] T-11.1: Code fragments in command responses - FIXED (added cleaning for cached responses and enhanced fragment detection)
+  - [OK] T-12.4: Incorrect fact with self-contradiction - PREVENTION ADDED (logical consistency instructions)
+  - [WARNING] T-15.1: System prompt instructions leaked (cleaning added, monitor)
 - *Specific Issues*:
-  - ✅ T-1.1, T-12.2: Prompt-response mismatches (greetings) - PROMPT UPDATED with BAD/GOOD examples (monitoring)
-  - ✅ T-1.2, T-12.4, T-15.2: Prompt-response mismatches (information requests) - PROMPT UPDATED with explicit BAD/GOOD examples (monitoring)
-  - ⚠️ T-8.1, T-9.3: Prompt-response mismatches (questions redirected) - IMPROVED (still monitoring)
-  - ✅ T-11.1: Code fragments in command responses - FIXED
-  - ✅ T-12.1: Generic motivational content instead of helpful information - IMPROVED
-  - ✅ T-12.4: Incorrect fact with self-contradiction - PREVENTION ADDED
-  - ✅ T-14.1, T-16.2: Fabricated check-in details/statistics - PREVENTION ADDED
-  - ✅ T-13.3: System prompt instructions leaked - CLEANING ENHANCED
+  - [OK] T-1.1, T-12.2: Prompt-response mismatches (greetings) - PROMPT UPDATED with BAD/GOOD examples (monitoring)
+  - [OK] T-1.2, T-12.4, T-15.2: Prompt-response mismatches (information requests) - PROMPT UPDATED with explicit BAD/GOOD examples (monitoring)
+  - [WARNING] T-8.1, T-9.3: Prompt-response mismatches (questions redirected) - IMPROVED (still monitoring)
+  - [OK] T-11.1: Code fragments in command responses - FIXED
+  - [OK] T-12.1: Generic motivational content instead of helpful information - IMPROVED
+  - [OK] T-12.4: Incorrect fact with self-contradiction - PREVENTION ADDED
+  - [OK] T-14.1, T-16.2: Fabricated check-in details/statistics - PREVENTION ADDED
+  - [OK] T-13.3: System prompt instructions leaked - CLEANING ENHANCED
 
 
 
 **Design Safety Net Response Library**
 - *What it means*: Draft and validate a library of "safety net" phrases that feel grounding when things are overwhelming, including branching prompts (listen/problem-solve/other) that match the user's preferred tone.
-- *Why it helps*: Ensures the assistant consistently signals it “gets it,” even when the user is unsure what support they need, aligning reminders with the emotional safety net vision.
+- *Why it helps*: Ensures the assistant consistently signals it "gets it," even when the user is unsure what support they need, aligning reminders with the emotional safety net vision.
 - *Estimated effort*: Medium
 - *Getting started*: Collect existing comforting phrases, prototype a few tone variants, and run with recent conversation logs to verify fit.
 
 **Task Breakdown Prompt Experiments**
 - *What it means*: Prototype both checklist-style subtasks and conversational follow-ups for stuck tasks, then capture which approach keeps users engaged on mobile.
-- *Why it helps*: Provides context-aware nudges that unblock stalled tasks, matching the user’s request for format experimentation.
+- *Why it helps*: Provides context-aware nudges that unblock stalled tasks, matching the user's request for format experimentation.
 - *Estimated effort*: Small/Medium
 - *Acceptance criteria*: Document example prompts, note when to surface each format, and gather feedback from at least one real or simulated session.
 
 **Context-Aware Reminder Content Mapping**
 - *What it means*: Map task reminder content to user context (energy, mood, task age) so the system can choose the most relevant substance instead of generic nudges.
-- *Why it helps*: Addresses the user’s need for “it depends” reminders that feel situationally aware rather than repetitive.
+- *Why it helps*: Addresses the user's need for "it depends" reminders that feel situationally aware rather than repetitive.
 - *Estimated effort*: Medium
 - *Next steps*: Audit available context signals, define decision rules, and outline example reminder variants for contrasting scenarios.
 
 **Mood Re-evaluation Cadence Guidelines**
 - *What it means*: Specify triggers and guardrails for when the assistant should gently re-check mood/energy (e.g., disengagement signals, user-provided updates) without over-prompting.
-- *Why it helps*: Balances proactive support with respect for the user’s space, clarifying “when it should ask again” from the user’s feedback.
+- *Why it helps*: Balances proactive support with respect for the user's space, clarifying "when it should ask again" from the user's feedback.
 - *Estimated effort*: Medium
 - *Definition of done*: Draft cadence rules, edge-case handling, and handoff to implementation/testing once validated.
 
@@ -385,7 +385,7 @@ When adding new tasks, follow this format:
 - *What it means*: Finish converting remaining path joins to `pathlib.Path` where appropriate.
 - *Why it helps*: Cross-platform safety and readability.
 - *Estimated effort*: Medium
-- *Current Status*: ⚠️ **ROLLED BACK** - Previous migration attempt was rolled back due to test issues:
+- *Current Status*: [WARNING] **ROLLED BACK** - Previous migration attempt was rolled back due to test issues:
   - Test `test_run_service_loop_shutdown_file_detection_real_behavior` was causing resource exhaustion and hanging
   - Path mocking in tests needs to be handled more carefully to prevent infinite loops
   - Need to ensure proper mocking of `pathlib.Path` operations in service loop tests
@@ -463,7 +463,7 @@ When adding new tasks, follow this format:
 - *Current Status*: 17 modules completed (384 new tests added total, all passing) - see changelogs for details
 - *Next Targets*:
   - [ ] Expand coverage for `ui/ui_app_qt.py` (33% coverage, 1095 lines) - Large module
-  - [ ] Expand coverage for `core/scheduler.py` (65% → 80%+)
+  - [ ] Expand coverage for `core/scheduler.py` (65% -> 80%+)
   - [ ] Add comprehensive tests for remaining communication modules
   - [ ] Focus on error handling and edge case coverage
 
@@ -485,18 +485,17 @@ When adding new tasks, follow this format:
   - [ ] Ensure job runs before test steps and fails the pipeline on violations
   - [ ] Document the check in `logs/LOGGING_GUIDE.md` (contributor notes)
 
-**Scripts Directory Cleanup** ✅ **COMPLETED**
+**Scripts Directory Cleanup** [OK] **COMPLETED**
 - *What it means*: Remove outdated/broken files, organize remaining utilities, move AI tools to `ai_tools/`
 - *Why it helps*: Reduces confusion and keeps the codebase organized
 - *Status*: Completed cleanup on 2025-11-10:
   - Archived 14 outdated scripts (6 migration, 5 refactoring, 3 one-time enhancement scripts)
-  - Fixed broken import in `user_data_cli.py` (changed `core.utils` to `core.user_data_handlers`)
+  - Fixed broken import in archived script (changed `core.utils` to `core.user_data_handlers`)
   - Removed empty directories after archiving
   - Updated `scripts/README.md` to reflect current active scripts
-  - Created cleanup analysis document (`scripts/CLEANUP_ANALYSIS.md`)
   - All archived scripts moved to `archive/scripts/` subdirectories
 
-**Gitignore Cleanup** ✅ **COMPLETED**
+**Gitignore Cleanup** [OK] **COMPLETED**
 - *What it means*: Review and clean up `.gitignore`
 - *Why it helps*: Ensures proper version control and prevents unnecessary files from being tracked
 - *Status*: Reviewed `.gitignore` file - found it to be comprehensive and well-organized. Fixed minor formatting issue (trailing space on `tests/logs/` entry). File properly excludes all necessary patterns including Python cache files, virtual environments, test artifacts, coverage files, IDE files, and project-specific temporary files.
@@ -506,12 +505,12 @@ When adding new tasks, follow this format:
 - *Why it helps*: Reduces confusion and improves the reliability of AI-assisted development
 - *Estimated effort*: Medium
 
-**Fix Treeview Refresh** ✅ **COMPLETED**
+**Fix Treeview Refresh** [OK] **COMPLETED**
 - *What it means*: Auto-refresh the message editing interface to reflect changes while maintaining current sorting
 - *Why it helps*: Better UX with immediate visual feedback
 - *Status*: Implemented sort preservation in message editor dialog and task CRUD dialog. Tables now preserve sort column and order when refreshing after add/edit/delete operations. Sorting is enabled on table widgets and sort state is saved before refresh and restored after repopulation. Applied to both message editor dialog (1 table) and task CRUD dialog (2 tables: active tasks and completed tasks).
 
-**Fix "process already stopped" notification issue** ✅ **OBSOLETE**
+**Fix "process already stopped" notification issue** [OK] **OBSOLETE**
 - *What it means*: Investigate why shutdown attempts result in "process already stopped" messages
 - *Why it helps*: Cleaner service management and better user experience
 - *Status*: Issue has not been observed in many months. The improved shutdown mechanism appears to have resolved the original issue. No code changes needed - system is working correctly.
