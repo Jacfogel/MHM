@@ -363,11 +363,30 @@ class TestUserDataManagerIndex:
         """Test: update_user_index updates index successfully"""
         # Arrange: User is created in fixture
         
+        # Ensure user data is available (race condition fix for parallel execution)
+        import time
+        from core.user_data_handlers import get_user_data
+        
+        # Wait for user account data to be available
+        max_retries = 5
+        user_account = None
+        for attempt in range(max_retries):
+            user_data = get_user_data(test_user, 'account', auto_create=False)
+            user_account = user_data.get('account') or {}
+            if user_account and user_account.get('internal_username'):
+                break
+            if attempt < max_retries - 1:
+                time.sleep(0.1)
+        
+        # Verify user account exists before proceeding
+        assert user_account and user_account.get('internal_username'), \
+            f"User account data not available for {test_user} after {max_retries} attempts"
+        
         # Act: Update user index
         result = manager.update_user_index(test_user)
         
         # Assert: Should return True
-        assert result == True, "Should return True on success"
+        assert result == True, f"Should return True on success. Got: {result}"
         
         # Assert: Index file should exist and contain user
         if os.path.exists(manager.index_file):
@@ -778,7 +797,18 @@ class TestUserDataManagerDeleteUser:
         
         # Ensure user data is available (race condition fix for parallel execution)
         import time
-        time.sleep(0.1)
+        from core.user_data_handlers import get_user_data
+        
+        # Wait for user account data to be available
+        max_retries = 5
+        user_account = None
+        for attempt in range(max_retries):
+            user_data = get_user_data(test_user, 'account', auto_create=False)
+            user_account = user_data.get('account') or {}
+            if user_account:
+                break
+            if attempt < max_retries - 1:
+                time.sleep(0.1)
         
         # Act: Delete user without backup
         result = manager.delete_user_completely(test_user, create_backup=False)

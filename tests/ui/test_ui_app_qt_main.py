@@ -906,7 +906,7 @@ class TestMHMManagerUI:
                         # Verify dialog was created
                         mock_dialog.assert_called_once()
     
-    def test_manage_personalization_opens_dialog(self):
+    def test_manage_personalization_opens_dialog(self, qapp):
         """Test that manage_personalization opens dialog."""
         from ui.ui_app_qt import MHMManagerUI
         
