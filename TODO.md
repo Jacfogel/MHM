@@ -431,6 +431,11 @@ When adding new tasks, follow this format:
 
 ## Low Priority
 
+**Differentiate Between New and Returning Users**
+- *What it means*: Implement logic to distinguish between users who are authorizing the app for the first time versus users who are returning after deauthorizing
+- *Why it helps*: Could enable personalized welcome messages or different onboarding flows for new vs. returning users
+- *Estimated effort*: Small/Medium
+- *Note*: Not important right now - current welcome system works fine for all users
 
 ### Documentation
 
@@ -510,6 +515,21 @@ When adding new tasks, follow this format:
 - *What it means*: Investigate why shutdown attempts result in "process already stopped" messages
 - *Why it helps*: Cleaner service management and better user experience
 - *Status*: Issue has not been observed in many months. The improved shutdown mechanism appears to have resolved the original issue. No code changes needed - system is working correctly.
+
+**Add Discord Username to account.json**
+- *What it means*: Store Discord username in account.json alongside discord_user_id for easier reference and display
+- *Why it helps*: Makes it easier to identify users, display usernames in UI, and reference users by their Discord username
+- *Estimated effort*: Small
+
+**Review Communication Module Architecture**
+- *What it means*: Review all modules in `communication/` directory to ensure they follow channel-agnostic architecture principles
+- *Why it helps*: Ensures consistency, reduces duplication, and makes it easier to add new communication channels
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Review `communication/core/channel_orchestrator.py` for email-specific code that should be channel-agnostic
+  - [ ] Identify other modules with channel-specific code that should be refactored
+  - [ ] Consider reorganizing/restructuring `communication/` directory for better organization
+  - [ ] Document channel-agnostic architecture patterns and guidelines
 
 **Add Performance Monitoring**
 - *What it means*: Track how long operations take across subsystems

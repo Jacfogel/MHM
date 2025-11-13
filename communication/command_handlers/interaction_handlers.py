@@ -178,7 +178,10 @@ class TaskManagementHandler(InteractionHandler):
                     interval_text = f"every {recurrence_pattern[:-2]}"  # Remove 'ly' for singular
                 response += f" (repeats: {interval_text})"
             
-            # Ask about reminder periods
+            # Ask about reminder periods and start follow-up flow
+            from communication.message_processing.conversation_flow_manager import conversation_manager
+            conversation_manager.start_task_reminder_followup(user_id, task_id)
+            
             response += "\n\nWould you like to set reminder periods for this task?"
             
             return InteractionResponse(
@@ -2713,17 +2716,34 @@ INTERACTION_HANDLERS = {
     'HelpHandler': HelpHandler(),
     'ScheduleManagementHandler': ScheduleManagementHandler(),
     'AnalyticsHandler': AnalyticsHandler(),
+    'AccountManagementHandler': None,  # Will be imported below to avoid circular imports
 }
 
 @handle_errors("getting interaction handler", default_return=None)
 def get_interaction_handler(intent: str) -> Optional[InteractionHandler]:
     """Get the appropriate handler for an intent"""
+    # Lazy import AccountManagementHandler to avoid circular imports
+    if 'AccountManagementHandler' not in INTERACTION_HANDLERS or INTERACTION_HANDLERS['AccountManagementHandler'] is None:
+        try:
+            from communication.command_handlers.account_handler import AccountManagementHandler
+            INTERACTION_HANDLERS['AccountManagementHandler'] = AccountManagementHandler()
+        except Exception as e:
+            logger.warning(f"Could not import AccountManagementHandler: {e}")
+    
     for handler in INTERACTION_HANDLERS.values():
-        if handler.can_handle(intent):
+        if handler and handler.can_handle(intent):
             return handler
     return None
 
 @handle_errors("getting all handlers", default_return={})
 def get_all_handlers() -> Dict[str, InteractionHandler]:
     """Get all registered handlers"""
-    return INTERACTION_HANDLERS.copy() 
+    # Ensure AccountManagementHandler is loaded
+    if 'AccountManagementHandler' not in INTERACTION_HANDLERS or INTERACTION_HANDLERS['AccountManagementHandler'] is None:
+        try:
+            from communication.command_handlers.account_handler import AccountManagementHandler
+            INTERACTION_HANDLERS['AccountManagementHandler'] = AccountManagementHandler()
+        except Exception as e:
+            logger.warning(f"Could not import AccountManagementHandler: {e}")
+    
+    return {k: v for k, v in INTERACTION_HANDLERS.items() if v is not None} 

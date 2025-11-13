@@ -35,6 +35,78 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-13 - Discord Welcome Message System and Account Management Flow **COMPLETED**
+
+**Feature**: Implemented automatic welcome message system for new Discord users with interactive account creation/linking buttons, channel-agnostic account management architecture, and email-based confirmation codes for account linking.
+
+**Technical Changes**:
+
+1. **Discord Webhook Integration** (`communication/communication_channels/discord/webhook_server.py`, `webhook_handler.py`):
+   - HTTP server on port 8080 to receive Discord APPLICATION_AUTHORIZED/DEAUTHORIZED webhook events
+   - ed25519 signature verification using PyNaCl for security
+   - Automatic welcome DM sent immediately when users authorize the app (no user interaction required)
+   - Clears welcomed status on deauthorization for re-welcome on reauthorization
+   - ngrok auto-launch support for development (DISCORD_AUTO_NGROK config)
+
+2. **Welcome Message System** (`communication/core/welcome_manager.py`, `communication/communication_channels/discord/welcome_handler.py`):
+   - Channel-agnostic welcome message logic and tracking
+   - Discord-specific UI adapter with interactive buttons ("Create a New Account", "Link to Existing Account")
+   - Welcome messages sent via webhook on authorization or fallback via on_message/on_interaction
+   - Tracks welcomed users to prevent duplicates
+
+3. **Account Management Handler** (`communication/command_handlers/account_handler.py`):
+   - Channel-agnostic account creation and linking logic
+   - Username validation and uniqueness checking
+   - Account linking with email confirmation codes (sent via email for security)
+   - Integration with core user management (`create_new_user`, `update_user_account`, `get_user_data`)
+
+4. **Discord Account Flow Handler** (`communication/communication_channels/discord/account_flow_handler.py`):
+   - Discord-specific UI adapter for account flows
+   - Modal dialogs for account creation (with username prefilling from Discord username if unique)
+   - Modal dialogs for account linking (username input, confirmation code input)
+   - Handles button interactions and routes to channel-agnostic handler
+
+5. **UI Status Indicators** (`ui/ui_app_qt.py`, `ui/designs/admin_panel.ui`):
+   - Added Discord Channel, Email Channel, and ngrok tunnel status indicators
+   - Dynamic status checking via log parsing for accurate running status
+   - ngrok PID display similar to main service status
+   - Status colors (green=Running, red=Stopped)
+
+6. **Confirmation Code Sending** (`communication/command_handlers/account_handler.py`):
+   - Fixed to send confirmation codes via email (not Discord) for security when linking accounts
+   - Uses communication manager with email channel
+   - Proper error handling and user feedback
+
+**Impact**: New Discord users now receive automatic welcome messages with interactive buttons immediately upon authorizing the app. Account creation and linking flows are fully functional with proper channel-agnostic architecture. Email-based confirmation codes ensure secure account linking. UI provides better visibility into service status. Comprehensive architecture documentation ensures consistent implementation and prevents code duplication across channels.
+
+**Files Modified**:
+- `communication/communication_channels/discord/webhook_server.py` (new)
+- `communication/communication_channels/discord/webhook_handler.py` (new)
+- `communication/core/welcome_manager.py` (new)
+- `communication/command_handlers/account_handler.py` (new)
+- `communication/communication_channels/discord/account_flow_handler.py` (new)
+- `communication/communication_channels/discord/welcome_handler.py` (refactored)
+- `communication/communication_channels/discord/bot.py` (webhook integration, button handling)
+- `ui/ui_app_qt.py` (status indicators)
+- `ui/designs/admin_panel.ui` (status labels)
+- `core/config.py` (DISCORD_PUBLIC_KEY, DISCORD_WEBHOOK_PORT, DISCORD_AUTO_NGROK)
+- `requirements.txt` (PyNaCl>=1.5.0)
+- `development_docs/PLANS.md` (Account Management System Improvements plan)
+- `TODO.md` (Discord username storage, communication module review)
+- `development_docs/TASK_SYSTEM_AUDIT.md` (account management work noted)
+- `tests/MANUAL_TESTING_GUIDE.md` (integrated reminder follow-up tests)
+
+**Documentation**:
+- `communication/communication_channels/discord/WEBHOOK_SETUP.md` (rewritten to describe implemented system)
+- `tests/MANUAL_TESTING_GUIDE.md` (integrated task reminder follow-up testing guide)
+- `communication/README.md` (created channel-agnostic architecture guide ~120 lines with 5 layers, patterns, DO/DON'T principles, guide for adding channels)
+- `.cursor/rules/communication-guidelines.mdc` (updated with critical architecture principles and rules ~30 lines)
+
+**Known Issues**:
+- Account creation feature enablement values need review (currently sets task_management/checkins but structure may not match account.json format)
+- Account creation flow could be enhanced with more user input (timezone, profile info, feature selection)
+- Some email-specific code in `communication/core/channel_orchestrator.py` may need refactoring for channel-agnostic architecture
+
 ### 2025-11-12 - Email Timeout Logging Reduction and Parallel Test Race Condition Fix **COMPLETED**
 
 **Feature**: Reduced IMAP socket timeout error logging frequency from every 30 seconds to once per hour, and fixed 4 flaky tests that were failing in parallel execution due to race conditions in user data loading.

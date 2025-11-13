@@ -6,6 +6,7 @@ pytz>=2023.3  # For timezone handling (used in scheduler.py)
 tzlocal>=5.3.1  # For detecting system timezone in account creation
 psutil>=5.9.0  # For process management in UI application
 dnspython>=2.4.0  # For DNS resolution with alternative servers
+PyNaCl>=1.5.0  # For Discord webhook signature verification (ed25519)
 
 # AI/ML dependencies  
 requests>=2.31.0  # For LM Studio HTTP API calls

@@ -11,6 +11,10 @@ import time
 import socket
 import enum
 import contextlib
+import subprocess
+import shutil
+import os
+import psutil
 
 from core.config import DISCORD_BOT_TOKEN, DISCORD_APPLICATION_ID
 from core.logger import get_component_logger
@@ -73,6 +77,11 @@ class DiscordBot(BaseChannel):
         self._sessions_to_cleanup = []
         # Task management for proper cleanup
         self._sync_task = None
+        # Webhook server for receiving installation events
+        self._webhook_server = None
+        # Ngrok process for webhook tunneling (auto-launched if enabled)
+        self._ngrok_process = None
+        self._ngrok_pid = None  # Store PID separately in case process reference is lost
         # Ensure BaseChannel logs for this instance also go to the Discord component log
         try:
             self.logger = discord_logger
@@ -702,6 +711,72 @@ class DiscordBot(BaseChannel):
                 self._sync_task = self.bot.loop.create_task(_sync_app_cmds())
             except Exception as e:
                 logger.debug(f"Failed to schedule app command sync: {e}")
+            
+            # Check for new users who have authorized the app (can now DM us)
+            # This runs periodically to catch users who authorized while bot was offline
+            async def _check_new_authorized_users():
+                try:
+                    from communication.communication_channels.discord.welcome_handler import (
+                        has_been_welcomed,
+                        mark_as_welcomed,
+                        get_welcome_message
+                    )
+                    
+                    # Get all users who can DM us (have authorized the app)
+                    # Note: We can't directly query this, but we can check when they first DM us
+                    # This is handled in on_message for DMs
+                    discord_logger.debug("Bot ready - will welcome users on Discord app authorization (via webhook) or first interaction")
+                except Exception as e:
+                    discord_logger.debug(f"Error checking for new authorized users: {e}")
+            
+            # Schedule the check (non-blocking)
+            try:
+                self.bot.loop.create_task(_check_new_authorized_users())
+            except Exception as e:
+                discord_logger.debug(f"Failed to schedule authorized user check: {e}")
+            
+            # Start webhook server for receiving installation events
+            try:
+                from communication.communication_channels.discord.webhook_server import WebhookServer
+                from core.config import DISCORD_WEBHOOK_PORT, DISCORD_AUTO_NGROK
+                
+                # Auto-launch ngrok if enabled
+                if DISCORD_AUTO_NGROK:
+                    self._start_ngrok_tunnel(DISCORD_WEBHOOK_PORT)
+                
+                self._webhook_server = WebhookServer(port=DISCORD_WEBHOOK_PORT, bot_instance=self)
+                if self._webhook_server.start():
+                    # Log message is handled by WebhookServer.start() - don't duplicate
+                    if self._ngrok_process:
+                        discord_logger.info(f"ngrok tunnel active - check ngrok web interface at http://127.0.0.1:4040 for public URL")
+                    else:
+                        # Check if ngrok is running externally
+                        ngrok_running = False
+                        try:
+                            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                                try:
+                                    if not proc.info['name']:
+                                        continue
+                                    proc_name = proc.info['name'].lower()
+                                    if 'ngrok' in proc_name:
+                                        cmdline = proc.info.get('cmdline', [])
+                                        if cmdline and 'http' in ' '.join(cmdline).lower():
+                                            if proc.is_running():
+                                                ngrok_running = True
+                                                discord_logger.info(f"ngrok tunnel detected (external) - check http://127.0.0.1:4040 for public URL")
+                                                break
+                                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                                    continue
+                        except Exception:
+                            pass
+                        
+                        if not ngrok_running:
+                            discord_logger.info(f"Webhook server ready on port {DISCORD_WEBHOOK_PORT} - configure webhook URL in Discord Developer Portal")
+                else:
+                    discord_logger.warning("Failed to start Discord webhook server")
+            except Exception as e:
+                discord_logger.warning(f"Could not start webhook server: {e}")
+                # Non-critical - bot will still work, just won't receive installation events
 
         @self.bot.event
         @handle_errors("handling Discord disconnect event", default_return=None)
@@ -750,6 +825,168 @@ class DiscordBot(BaseChannel):
             # Let discord.py handle reconnection for most errors
 
         @self.bot.event
+        @handle_errors("handling Discord interaction event", default_return=None)
+        async def on_interaction(interaction: discord.Interaction):
+            """Handle Discord interactions (slash commands, buttons, etc.)"""
+            try:
+                # Handle button clicks (component interactions)
+                if interaction.type == discord.InteractionType.component:
+                    # Check if this is a welcome message button
+                    if interaction.data and 'custom_id' in interaction.data:
+                        custom_id = interaction.data['custom_id']
+                        if custom_id.startswith('welcome_create_') or custom_id.startswith('welcome_link_'):
+                            # Extract Discord user ID from custom_id
+                            # Format: welcome_create_<discord_user_id> or welcome_link_<discord_user_id>
+                            parts = custom_id.split('_', 2)
+                            if len(parts) >= 3:
+                                discord_user_id = parts[2]
+                                
+                                from communication.communication_channels.discord.account_flow_handler import (
+                                    start_account_creation_flow,
+                                    start_account_linking_flow
+                                )
+                                
+                                # Get Discord username if available
+                                discord_username = interaction.user.name if interaction.user else None
+                                
+                                # Validate interaction type before proceeding
+                                if not isinstance(interaction, discord.Interaction):
+                                    discord_logger.error(f"Invalid interaction type for welcome button: {type(interaction)}")
+                                    await interaction.response.send_message(
+                                        "❌ An error occurred. Please try again.",
+                                        ephemeral=True
+                                    )
+                                    return
+                                
+                                if custom_id.startswith('welcome_create_'):
+                                    await start_account_creation_flow(interaction, discord_user_id, discord_username)
+                                elif custom_id.startswith('welcome_link_'):
+                                    await start_account_linking_flow(interaction, discord_user_id)
+                                return
+                    
+                    # Let other component interactions fall through to default handling
+                    # (buttons from other parts of the system)
+                    return
+                
+                # Handle application commands (slash commands)
+                if interaction.type == discord.InteractionType.application_command:
+                    discord_user_id = str(interaction.user.id)
+                    command_name = interaction.command.name if hasattr(interaction, 'command') and interaction.command else 'unknown'
+                    discord_logger.debug(f"DISCORD_INTERACTION: user_id={discord_user_id}, command={command_name}")
+                    
+                    # Check if this is a new user who hasn't been welcomed
+                    from communication.communication_channels.discord.welcome_handler import (
+                        has_been_welcomed,
+                        mark_as_welcomed,
+                        get_welcome_message
+                    )
+                    from core.user_management import get_user_id_by_identifier
+                    
+                    internal_user_id = get_user_id_by_identifier(discord_user_id)
+                    
+                    # Special handling for /start command (explicit welcome trigger)
+                    if command_name == 'start' and not internal_user_id:
+                        welcome_msg = get_welcome_message(discord_user_id, is_authorization=True)
+                        try:
+                            # Send welcome DM
+                            await interaction.user.send(welcome_msg)
+                            mark_as_welcomed(discord_user_id)
+                            if not interaction.response.is_done():
+                                await interaction.response.send_message(
+                                    "👋 Welcome! I've sent you setup instructions via DM. Check your direct messages!",
+                                    ephemeral=True
+                                )
+                            discord_logger.info(f"Sent welcome DM to newly authorized Discord user via /start: {discord_user_id}")
+                            return  # Don't process the command further
+                        except discord.Forbidden:
+                            # User has DMs disabled - respond in interaction instead
+                            mark_as_welcomed(discord_user_id)
+                            if not interaction.response.is_done():
+                                await interaction.response.send_message(
+                                    f"👋 Welcome! I see you've authorized MHM. However, I can't send you a direct message.\n\n"
+                                    f"**Your Discord ID:** `{discord_user_id}`\n\n"
+                                    f"**To get started:**\n"
+                                    f"- Create a new account via the MHM application UI with your Discord ID, or\n"
+                                    f"- Ask an administrator to link your Discord ID to an existing account",
+                                    ephemeral=True
+                                )
+                            discord_logger.info(f"Welcomed user {discord_user_id} via /start (DM blocked)")
+                            return
+                        except Exception as e:
+                            discord_logger.warning(f"Error sending welcome DM to {discord_user_id}: {e}")
+                    
+                    # For any other command, check if user needs welcome
+                    if not internal_user_id and not has_been_welcomed(discord_user_id):
+                        # User has authorized the app (they can use slash commands) but hasn't been welcomed
+                        welcome_msg = get_welcome_message(discord_user_id, is_authorization=True)
+                        
+                        try:
+                            # Send welcome DM (non-blocking - don't interfere with command processing)
+                            await interaction.user.send(welcome_msg)
+                            mark_as_welcomed(discord_user_id)
+                            discord_logger.info(f"Sent welcome DM to newly authorized Discord user via interaction: {discord_user_id}")
+                        except discord.Forbidden:
+                            # User has DMs disabled - mark as welcomed but don't interrupt command flow
+                            mark_as_welcomed(discord_user_id)
+                            discord_logger.info(f"User {discord_user_id} has DMs disabled, marked as welcomed")
+                        except Exception as e:
+                            discord_logger.warning(f"Error sending welcome DM to {discord_user_id}: {e}")
+                            
+            except Exception as e:
+                discord_logger.error(f"Error handling Discord interaction: {e}", exc_info=True)
+
+        @self.bot.event
+        @handle_errors("handling Discord guild join event", default_return=None)
+        async def on_guild_join(guild):
+            """Handle when the bot is added to a new Discord server"""
+            try:
+                discord_logger.info(f"Bot added to server: {guild.name} (ID: {guild.id})")
+                
+                # Try to find a suitable channel to send welcome message
+                # Prefer system channel, then first text channel the bot can send to
+                welcome_channel = None
+                
+                # Try system channel first (where Discord sends system messages)
+                if guild.system_channel and guild.system_channel.permissions_for(guild.me).send_messages:
+                    welcome_channel = guild.system_channel
+                    discord_logger.debug(f"Using system channel: {guild.system_channel.name}")
+                else:
+                    # Find first text channel the bot can send to
+                    for channel in guild.text_channels:
+                        if channel.permissions_for(guild.me).send_messages:
+                            welcome_channel = channel
+                            discord_logger.debug(f"Using text channel: {channel.name}")
+                            break
+                
+                if welcome_channel:
+                    welcome_msg = (
+                        f"👋 **Hello {guild.name}!**\n\n"
+                        f"I'm **MHM (Mental Health Manager)**, your mental health assistant bot. "
+                        f"I'm here to help you manage tasks, check-ins, reminders, and provide personalized support.\n\n"
+                        f"**To get started:**\n"
+                        f"1. Send me a message to get your Discord ID\n"
+                        f"2. Create or link a MHM account with that Discord ID\n"
+                        f"3. Start using commands like `/help` to see what I can do!\n\n"
+                        f"**Quick Commands:**\n"
+                        f"- `/help` - See all available commands\n"
+                        f"- `create task [description]` - Create a new task\n"
+                        f"- `show my tasks` - View your tasks\n"
+                        f"- `show my profile` - View your profile (once linked)\n\n"
+                        f"Feel free to ask me anything! I'm here to help. 🚀"
+                    )
+                    
+                    try:
+                        await welcome_channel.send(welcome_msg)
+                        discord_logger.info(f"Sent welcome message to {guild.name} in channel {welcome_channel.name}")
+                    except Exception as e:
+                        discord_logger.warning(f"Could not send welcome message to {guild.name}: {e}")
+                else:
+                    discord_logger.warning(f"Could not find a suitable channel to send welcome message in {guild.name}")
+                    
+            except Exception as e:
+                discord_logger.error(f"Error handling guild join for {guild.name}: {e}", exc_info=True)
+
+        @self.bot.event
         async def on_message(message):
             # COMPREHENSIVE LOGGING: Log ALL messages received
             discord_logger.debug(f"DISCORD_MESSAGE_RECEIVED: author_id={message.author.id}, content='{message.content[:100]}', channel={message.channel.id}, guild={message.guild.id if message.guild else 'DM'}")
@@ -771,10 +1008,80 @@ class DiscordBot(BaseChannel):
             
             if not internal_user_id:
                 discord_logger.warning(f"DISCORD_MESSAGE_UNRECOGNIZED: No internal user found for Discord ID {discord_user_id}")
-                await message.channel.send(
-                    f"I don't recognize you yet! Please register first using the MHM application. "
-                    f"Your Discord ID is: {discord_user_id}"
+                
+                # Send welcome message if this is the first time
+                from communication.communication_channels.discord.welcome_handler import (
+                    has_been_welcomed,
+                    mark_as_welcomed,
+                    get_welcome_message
                 )
+                
+                # Check if this is a DM (user-installable app authorization)
+                is_dm = isinstance(message.channel, discord.DMChannel)
+                
+                if not has_been_welcomed(discord_user_id):
+                    # Determine if this is an app authorization (DM) or server message
+                    welcome_msg = get_welcome_message(discord_user_id, is_authorization=is_dm)
+                    
+                    if is_dm:
+                        # User-installable app: user has authorized and sent first DM
+                        # Send welcome message as DM proactively
+                        try:
+                            await message.author.send(welcome_msg)
+                            mark_as_welcomed(discord_user_id)
+                            discord_logger.info(f"Sent welcome DM to newly authorized Discord user: {discord_user_id}")
+                        except discord.Forbidden:
+                            # User has DMs disabled or blocked bot - send in the channel instead
+                            await message.channel.send(
+                                f"I see you've authorized MHM! However, I can't send you a direct message. "
+                                f"Here's your Discord ID to get started: `{discord_user_id}`\n\n"
+                                f"**To get started:**\n"
+                                f"- Create a new account via the MHM application UI with your Discord ID, or\n"
+                                f"- Ask an administrator to link your Discord ID to an existing account"
+                            )
+                            mark_as_welcomed(discord_user_id)
+                            discord_logger.info(f"Welcomed user {discord_user_id} via channel (DM blocked)")
+                    else:
+                        # Server message - but user might have authorized the app
+                        # Try to send welcome DM first, fallback to channel
+                        try:
+                            await message.author.send(welcome_msg)
+                            mark_as_welcomed(discord_user_id)
+                            discord_logger.info(f"Sent welcome DM to new Discord user (from server message): {discord_user_id}")
+                        except discord.Forbidden:
+                            # Can't DM - send in channel instead
+                            await message.channel.send(welcome_msg)
+                            mark_as_welcomed(discord_user_id)
+                            discord_logger.info(f"Sent welcome message to new Discord user in channel: {discord_user_id}")
+                else:
+                    # User has been welcomed before
+                    if is_dm:
+                        # DM reminder - send as DM
+                        try:
+                            await message.author.send(
+                                f"I don't recognize you yet! To use MHM, you need to create or link a MHM account.\n\n"
+                                f"**Your Discord ID:** `{discord_user_id}`\n\n"
+                                f"**To get started:**\n"
+                                f"- Create a new account via the MHM application UI, or\n"
+                                f"- Ask an administrator to link your Discord ID to an existing account\n\n"
+                                f"Once your account is linked, I'll be able to help you with tasks, reminders, and more!"
+                            )
+                        except discord.Forbidden:
+                            # Fallback to channel if DM blocked
+                            await message.channel.send(
+                                f"Your Discord ID: `{discord_user_id}` - Please create or link a MHM account to get started!"
+                            )
+                    else:
+                        # Server reminder - send in channel
+                        await message.channel.send(
+                            f"I don't recognize you yet! To use MHM, you need to create or link a MHM account.\n\n"
+                            f"**Your Discord ID:** `{discord_user_id}`\n\n"
+                            f"**To get started:**\n"
+                            f"- Create a new account via the MHM application UI, or\n"
+                            f"- Ask an administrator to link your Discord ID to an existing account\n\n"
+                            f"Once your account is linked, I'll be able to help you with tasks, reminders, and more!"
+                        )
+                
                 return
             
             discord_logger.info(f"DISCORD_MESSAGE_USER_IDENTIFIED: Discord ID {discord_user_id} → Internal user {internal_user_id}")
@@ -855,7 +1162,12 @@ class DiscordBot(BaseChannel):
                     discord_user_id = str(interaction.user.id)
                     internal_user_id = get_user_id_by_identifier(discord_user_id)
                     if not internal_user_id:
-                        await interaction.response.send_message("Please register first to use this feature.")
+                        # Welcome message should have been sent by on_interaction handler
+                        # But provide helpful response if they try to use a command
+                        await interaction.response.send_message(
+                            f"Please create or link a MHM account to use this feature. Your Discord ID: `{discord_user_id}`",
+                            ephemeral=True
+                        )
                         return
                     try:
                         response = handle_user_message(internal_user_id, _mapped, "discord")
@@ -936,6 +1248,10 @@ class DiscordBot(BaseChannel):
         """Shutdown Discord bot safely with improved session and event loop management"""
         logger.info("Starting Discord bot shutdown...")
         
+        # Stop ngrok FIRST - don't wait for full bot shutdown
+        # This ensures ngrok stops even if shutdown hangs
+        self._stop_ngrok_tunnel()
+        
         # Send stop command to Discord thread
         try:
             self._command_queue.put(("stop", None))
@@ -979,9 +1295,22 @@ class DiscordBot(BaseChannel):
                     
                     # Additional cleanup for aiohttp sessions
                     await self._cleanup_aiohttp_sessions()
+                    
+                    # Stop webhook server
+                    if self._webhook_server:
+                        try:
+                            self._webhook_server.stop()
+                        except Exception as e:
+                            logger.debug(f"Error stopping webhook server: {e}")
+                    
+                    # Stop ngrok tunnel if running
+                    self._stop_ngrok_tunnel()
                         
                 except Exception as e:
                     logger.error(f"Error during Discord bot shutdown: {e}")
+        
+        # Ensure ngrok is stopped even if shutdown had errors
+        self._stop_ngrok_tunnel()
         
         self._set_status(ChannelStatus.STOPPED)
         logger.info("Discord bot shutdown completed")
@@ -1183,6 +1512,34 @@ class DiscordBot(BaseChannel):
                     return False
             except Exception as e:
                 logger.error(f"Error sending DM to Discord user {internal_user_id}: {e}")
+                return False
+        
+        # Handle direct Discord user ID (for account linking when user doesn't have internal ID yet)
+        if recipient.startswith("discord_direct:"):
+            discord_user_id = recipient.split(":", 1)[1]
+            # Send DM directly to Discord user ID (no internal user lookup needed)
+            try:
+                user_id_int = int(discord_user_id)
+                user = self.bot.get_user(user_id_int)
+                if not user:
+                    user = await self.bot.fetch_user(user_id_int)
+                
+                if user:
+                    if embed and view:
+                        await user.send(embed=embed, view=view)
+                    elif embed:
+                        await user.send(embed=embed)
+                    elif view:
+                        await user.send(message, view=view)
+                    else:
+                        await user.send(message)
+                    logger.info(f"Discord DM sent directly | {{\"discord_user_id\": \"{discord_user_id}\", \"message_length\": {len(message)}, \"has_embed\": {bool(embed)}, \"has_components\": {bool(view)}, \"message_preview\": \"{message[:50]}...\"}}")
+                    return True
+                else:
+                    logger.warning(f"Could not find Discord user {discord_user_id}")
+                    return False
+            except Exception as e:
+                logger.error(f"Error sending DM directly to Discord user {discord_user_id}: {e}")
                 return False
         
         # Try as a channel first (preferred method)
@@ -1495,6 +1852,160 @@ class DiscordBot(BaseChannel):
             logger.error(f"Manual reconnection failed: {e}")
             return False
 
+
+    @handle_errors("starting ngrok tunnel", default_return=None)
+    def _start_ngrok_tunnel(self, port: int):
+        """
+        Start ngrok tunnel for webhook server (development only).
+        
+        Args:
+            port: Local port to tunnel (e.g., 8080)
+        """
+        try:
+            # Check if ngrok is available
+            ngrok_path = shutil.which('ngrok')
+            if not ngrok_path:
+                discord_logger.warning("ngrok not found in PATH - auto-launch disabled. Install ngrok or set DISCORD_AUTO_NGROK=false")
+                return
+            
+            # Check if ngrok is already running (avoid duplicates)
+            if self._ngrok_process and self._ngrok_process.poll() is None:
+                discord_logger.info("ngrok tunnel already running (managed by this bot)")
+                return
+            
+            # Check if ngrok is already running from another process
+            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                try:
+                    if not proc.info['name']:
+                        continue
+                    proc_name = proc.info['name'].lower()
+                    if 'ngrok' in proc_name:
+                        cmdline = proc.info.get('cmdline', [])
+                        if cmdline and 'http' in ' '.join(cmdline).lower():
+                            if proc.is_running():
+                                discord_logger.info(f"ngrok tunnel already running externally (PID: {proc.info['pid']}) - skipping auto-launch")
+                                return
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    continue
+            
+            # Start ngrok process
+            discord_logger.info(f"Starting ngrok tunnel for port {port}...")
+            try:
+                # Windows: use CREATE_NO_WINDOW to hide console
+                # Unix: redirect output to avoid cluttering logs
+                if os.name == 'nt':  # Windows
+                    self._ngrok_process = subprocess.Popen(
+                        ['ngrok', 'http', str(port)],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                        creationflags=subprocess.CREATE_NO_WINDOW
+                    )
+                else:  # Unix/Linux/Mac
+                    self._ngrok_process = subprocess.Popen(
+                        ['ngrok', 'http', str(port)],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                    )
+                
+                # Give ngrok a moment to start
+                time.sleep(2)
+                
+                # Check if process started successfully
+                if self._ngrok_process.poll() is None:
+                    self._ngrok_pid = self._ngrok_process.pid  # Store PID for fallback cleanup
+                    discord_logger.info(f"ngrok tunnel started successfully (PID: {self._ngrok_process.pid})")
+                    discord_logger.info(f"ngrok web interface: http://127.0.0.1:4040")
+                    discord_logger.info(f"Check ngrok web interface for public URL to configure in Discord Developer Portal")
+                else:
+                    discord_logger.warning(f"ngrok process exited immediately (exit code: {self._ngrok_process.poll()})")
+                    self._ngrok_process = None
+                    self._ngrok_pid = None
+                    
+            except FileNotFoundError:
+                discord_logger.warning("ngrok executable not found - auto-launch disabled")
+                self._ngrok_process = None
+                self._ngrok_pid = None
+            except Exception as e:
+                discord_logger.warning(f"Failed to start ngrok: {e}")
+                self._ngrok_process = None
+                self._ngrok_pid = None
+                
+        except Exception as e:
+            discord_logger.warning(f"Error starting ngrok tunnel: {e}")
+            self._ngrok_process = None
+            self._ngrok_pid = None
+    
+    @handle_errors("stopping ngrok tunnel", default_return=None)
+    def _stop_ngrok_tunnel(self):
+        """Stop ngrok tunnel if running."""
+        # Check if we've already stopped ngrok (avoid duplicate stop attempts)
+        if not self._ngrok_process and not self._ngrok_pid:
+            # Already stopped or never started - skip silently
+            return
+        
+        stopped = False
+        
+        # Try to stop using process reference first
+        if self._ngrok_process:
+            try:
+                if self._ngrok_process.poll() is None:
+                    # Process is still running - terminate it
+                    pid = self._ngrok_process.pid
+                    discord_logger.info(f"Stopping ngrok tunnel (PID: {pid})...")
+                    self._ngrok_process.terminate()
+                    
+                    # Wait up to 5 seconds for graceful shutdown
+                    try:
+                        self._ngrok_process.wait(timeout=5)
+                        discord_logger.info("ngrok tunnel stopped")
+                        stopped = True
+                    except subprocess.TimeoutExpired:
+                        # Force kill if it doesn't stop gracefully
+                        discord_logger.warning("ngrok did not stop gracefully - forcing termination")
+                        self._ngrok_process.kill()
+                        self._ngrok_process.wait()
+                        discord_logger.info("ngrok tunnel force-stopped")
+                        stopped = True
+                else:
+                    # Process already exited
+                    exit_code = self._ngrok_process.poll()
+                    discord_logger.debug(f"ngrok tunnel already exited (exit code: {exit_code})")
+                    stopped = True
+                        
+                self._ngrok_process = None
+            except Exception as e:
+                discord_logger.warning(f"Error stopping ngrok tunnel via process reference: {e}")
+                self._ngrok_process = None
+        
+        # Fallback: Try to stop by PID if process reference was lost
+        if not stopped and self._ngrok_pid:
+            try:
+                discord_logger.info(f"Attempting to stop ngrok tunnel by PID (PID: {self._ngrok_pid})...")
+                proc = psutil.Process(self._ngrok_pid)
+                if proc.is_running():
+                    proc.terminate()
+                    try:
+                        proc.wait(timeout=5)
+                        discord_logger.info("ngrok tunnel stopped (via PID)")
+                        stopped = True
+                    except psutil.TimeoutExpired:
+                        proc.kill()
+                        proc.wait()
+                        discord_logger.info("ngrok tunnel force-stopped (via PID)")
+                        stopped = True
+                else:
+                    discord_logger.debug(f"ngrok process {self._ngrok_pid} already exited")
+                    stopped = True
+            except psutil.NoSuchProcess:
+                discord_logger.debug(f"ngrok process {self._ngrok_pid} not found (already stopped)")
+                stopped = True
+            except Exception as e:
+                discord_logger.warning(f"Error stopping ngrok tunnel by PID: {e}")
+        
+        # Clear references only after successful stop
+        if stopped:
+            self._ngrok_process = None
+            self._ngrok_pid = None
 
     # Keep the existing send_dm method for specific Discord functionality
     @handle_errors("sending Discord DM", default_return=False)

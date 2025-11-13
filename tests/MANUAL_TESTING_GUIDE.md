@@ -148,6 +148,112 @@
 - [ ] **Memory Usage** - Does the bot maintain stable memory usage?
 - [ ] **Response Consistency** - Are responses consistent under load?
 
+### **E. Task Reminder Follow-up Flow Testing**
+
+**Purpose**: Test the reminder period follow-up flow that occurs after task creation  
+**Status**: Ready for Testing
+
+#### Prerequisites
+- [ ] Discord bot is running (`python run_headless_service.py start`)
+- [ ] Bot is connected to your test server
+- [ ] You have a test user account set up
+- [ ] Task management is enabled for your user
+
+#### Test Scenarios
+
+**Test 1: Basic Reminder Flow - Minutes Before**
+- [ ] Send: `create task to call dentist tomorrow at 2pm`
+- [ ] Bot should respond asking about reminder periods
+- [ ] Send: `30 minutes to an hour before`
+- [ ] Bot should confirm reminders were set
+- [ ] Verify: Task has reminder_periods saved (check via `/tasks` or `show my tasks`)
+- [ ] Verify: Reminder times are approximately 30-60 minutes before 2pm (1:00-1:30 PM)
+
+**Test 2: Hours Before Reminder**
+- [ ] Send: `create task to buy groceries tomorrow at 3pm`
+- [ ] Bot asks about reminders
+- [ ] Send: `3 to 5 hours before`
+- [ ] Verify: Reminder periods set for 3-5 hours before 3pm (10 AM - 12 PM)
+
+**Test 3: Days Before Reminder**
+- [ ] Send: `create task to prepare presentation next Friday`
+- [ ] Bot asks about reminders
+- [ ] Send: `1 to 2 days before`
+- [ ] Verify: Reminder periods set for 1-2 days before due date
+
+**Test 4: No Reminders**
+- [ ] Send: `create task to water plants tomorrow`
+- [ ] Bot asks about reminders
+- [ ] Send: `no reminders` (or `no`, `skip`, `none`, `not needed`)
+- [ ] Verify: Bot responds: "Got it! No reminders will be set for this task."
+- [ ] Verify: Task has no reminder_periods field (or empty list)
+
+**Test 5: Task Without Due Date**
+- [ ] Send: `create task to organize desk`
+- [ ] Bot asks about reminders
+- [ ] Send: `30 minutes before`
+- [ ] Verify: Bot responds that task doesn't have a due date, so reminders can't be set
+- [ ] Verify: Task exists but has no reminder_periods
+
+**Test 6: Unparseable Response**
+- [ ] Send: `create task to call mom tomorrow at 1pm`
+- [ ] Bot asks about reminders
+- [ ] Send: `maybe sometime` (or `later`, `idk`, `whatever`)
+- [ ] Verify: Bot asks for clarification with examples
+
+**Test 7: Flow Cancellation**
+- [ ] Send: `create task to schedule appointment tomorrow`
+- [ ] Bot asks about reminders
+- [ ] Send: `/cancel` (or `cancel`)
+- [ ] Verify: Flow is cancelled, task still exists, no reminder periods set
+
+**Test 8: Multiple Tasks in Sequence**
+- [ ] Create first task with reminders
+- [ ] Immediately create second task
+- [ ] Verify: Both tasks exist independently, no flow state conflicts
+
+**Test 9: Natural Language Variations**
+- [ ] Test variations: `30 minutes to an hour before`, `3-5 hours before`, `1-2 days before`, `1 day before`, `2 hours before`
+- [ ] Verify: Common variations work, unparseable variations ask for clarification
+
+**Test 10: Task Update After Creation**
+- [ ] Create task without reminders
+- [ ] Update task with due date
+- [ ] Update task with reminder periods
+- [ ] Verify: Reminders are scheduled for updated task
+
+**Test 11: Reminder Follow-up with Due Time**
+- [ ] Send: `create task to attend meeting tomorrow at 3pm`
+- [ ] Set reminders: `30 minutes to an hour before`
+- [ ] Verify: Reminder times calculated correctly based on due_time (2:00-2:30 PM)
+
+**Test 12: Reminder Follow-up Without Due Time**
+- [ ] Send: `create task to finish report tomorrow`
+- [ ] Set reminders: `1 hour before`
+- [ ] Verify: Reminder times calculated based on default 9 AM time (8:00 AM)
+
+#### Edge Cases to Test
+- [ ] Very short time window (task due in 1 hour, try to set "30 minutes before")
+- [ ] Past due date (create task with past date, try to set reminders)
+- [ ] Special characters in task title
+- [ ] Multiple reminder responses before bot processes
+
+#### Verification Commands
+After each test:
+- [ ] Check task exists: `show my tasks` or `/tasks`
+- [ ] Check task details: Look for reminder_periods in task display
+- [ ] Check flow state: Try another command to ensure flow is cleared
+- [ ] Check logs: Review `logs/errors.log` for any errors
+
+#### Success Criteria
+✅ **All tests pass if**:
+- Task creation always triggers reminder follow-up (when task has due date)
+- Natural language parsing works for common patterns
+- Reminder periods are saved to task
+- Flow completes correctly
+- No flow state leaks between tasks
+- Error handling is graceful
+
 ### **D. Cross-Platform Testing**
 
 #### Different Discord Clients

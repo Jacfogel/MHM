@@ -31,6 +31,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-13 - Discord Welcome Message System and Account Management Flow **COMPLETED**
+- **Discord Webhook Integration**: HTTP server receives APPLICATION_AUTHORIZED/DEAUTHORIZED events, sends automatic welcome DMs with interactive buttons immediately on app authorization (no user interaction required), ed25519 signature verification
+- **Channel-Agnostic Architecture**: Created welcome_manager and account_handler modules that work across channels, Discord-specific UI adapters handle buttons/modals
+- **Account Creation & Linking**: Interactive buttons trigger modals, username prefilling from Discord username, email-based confirmation codes for secure account linking
+- **UI Status Indicators**: Added Discord Channel, Email Channel, and ngrok tunnel status with log-based accurate status checking
+- **Architecture Documentation**: Created `communication/README.md` (~120 lines) and updated `.cursor/rules/communication-guidelines.mdc` (~30 lines) with channel-agnostic architecture principles, patterns, and rules
+- **Impact**: New Discord users get automatic welcome with account setup, full account creation/linking flows functional, secure email confirmation for linking, comprehensive architecture documentation ensures consistent implementation
+
 ### 2025-11-12 - Email Timeout Logging Reduction and Parallel Test Race Condition Fix **COMPLETED**
 - **Email Timeout Logging**: Added rate limiting to IMAP socket timeout errors (once per hour max), changed log level from ERROR to DEBUG - dramatically reduces log noise (was logging every 30 seconds, now once per hour)
 - **Parallel Test Fix**: Added retry logic with validation to `get_user_info_for_data_manager()` - fixes 4 flaky tests failing due to race conditions when multiple tests create users simultaneously

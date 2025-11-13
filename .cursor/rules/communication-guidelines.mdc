@@ -5,7 +5,32 @@ alwaysApply: false
 ---
 # Communication Module Guidance
 
-- Respect channel contracts in `communication/communication_channels`; review channel docs (for example `communication/communication_channels/discord/DISCORD.md`) before modifying handlers.
+## Core Principle
+
+**Business logic is channel-agnostic; UI and channel-specific features are adapters.**
+
+- Core modules (`communication/core/`, `communication/command_handlers/`) work across all channels
+- Channel adapters (`communication/communication_channels/{channel}/`) handle UI and delegate to core logic
+
+## Critical Rules
+
+### ✅ DO
+- Put business logic in `core/` or `command_handlers/`
+- Use abstract types (`ParsedCommand`, `InteractionResponse`) - no channel-specific types in core
+- Delegate core logic from channel adapters
+
+### ❌ DON'T
+- Import Discord/Email modules in core logic
+- Create channel-specific UI (embeds, buttons, modals) in command handlers
+- Duplicate logic across channels - if it's the same, it belongs in core
+
+## Other Guidelines
+
+- Respect channel contracts in `communication/communication_channels`; review channel docs (e.g., `communication/communication_channels/discord/DISCORD.md`) before modifying handlers.
 - Prefer slash-command workflows over legacy `!` commands; deprecate and instrument legacy paths with warnings when touched.
 - Ensure message handling remains idempotent and logged via the channel-specific logger.
 - Update schema or payload changes across channel adapters and tests; consult `ai_development_docs/AI_REFERENCE.md` for protocol expectations.
+
+## Reference
+
+See `communication/README.md` for complete architecture documentation.

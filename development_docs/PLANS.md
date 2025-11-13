@@ -3,7 +3,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2025-11-10
+> **Last Updated**: 2025-11-13
 > **See [TODO.md](TODO.md) for independent tasks**
 
 ---
@@ -34,6 +34,69 @@
 **Notes**:
 - Tests by area are acceptable to iterate faster; full suite before shipping changes.
 - Keep both `!` and `/` commands; prefer slash in help/UX with auto-suggests.
+
+### **Discord App/Bot Capabilities Exploration** **PLANNING**
+
+**Status**: **PLANNING**
+**Priority**: Medium
+**Effort**: Medium
+**Date**: 2025-11-13
+
+**Objective**: Explore Discord's app/bot capabilities more thoroughly to identify additional features and integrations that could enhance the MHM Discord experience.
+
+**Scope**:
+- [ ] Research Discord's user-installable app features and limitations
+- [ ] Explore Discord's webhook event system beyond APPLICATION_AUTHORIZED/DEAUTHORIZED
+- [ ] Investigate Discord's interaction types (slash commands, buttons, modals, select menus)
+- [ ] Review Discord's message formatting and rich content capabilities
+- [ ] Explore Discord's permission system and OAuth2 scopes
+- [ ] Research Discord's rate limiting and best practices
+- [ ] Identify potential integrations with Discord's features (threads, forums, voice, etc.)
+
+**Success Criteria**:
+- [ ] Document findings about Discord capabilities relevant to MHM
+- [ ] Identify 3-5 potential feature enhancements based on Discord capabilities
+- [ ] Create a prioritized list of Discord integrations to consider
+
+**Notes**:
+- Current webhook implementation (APPLICATION_AUTHORIZED/DEAUTHORIZED) is working well
+- Focus on capabilities that align with MHM's communication-first, AI-led experience
+- Consider both user-installable app features and potential server bot features
+
+### **Account Management System Improvements** **PLANNING**
+
+**Status**: **PLANNING**
+**Priority**: High
+**Effort**: Medium
+**Date**: 2025-11-13
+
+**Objective**: Complete account linking functionality and enhance account creation with proper feature configuration and user preferences.
+
+**Scope**:
+- [x] **Fix Account Linking**: Get confirmation code sending working properly (COMPLETED 2025-11-13)
+  - [x] Confirmation codes now sent via email (not Discord) for security when linking accounts
+  - [ ] Test end-to-end account linking flow
+  - [ ] Handle edge cases (user already linked, invalid codes, expired codes)
+- [ ] **Fix Account Creation Feature Enablement**: Account creation currently sets incorrect feature enablement values
+  - [ ] Review how features are enabled/disabled in account.json
+  - [ ] Ensure account creation sets proper feature flags (task_management, checkins, automated_messages)
+  - [ ] Align with existing user account structure
+- [ ] **Enhance Account Creation Flow**: Add more user input during account creation
+  - [ ] Add feature selection (which features to enable: tasks, checkins, automated messages)
+  - [ ] Add timezone selection/configuration
+  - [ ] Add profile information collection (name, preferences, etc.)
+  - [ ] Consider multi-step flow or modal with multiple fields
+
+**Success Criteria**:
+- [ ] Account linking works end-to-end with confirmation codes sent via appropriate channel
+- [ ] Account creation sets correct feature enablement flags
+- [ ] New users can configure their preferences during account creation
+- [ ] Account creation flow is intuitive and doesn't overwhelm new users
+
+**Notes**:
+- Account creation currently works but has incorrect feature enablement (see account.json structure)
+- Account linking is partially implemented but confirmation code sending needs fixing
+- Consider making account creation a guided flow vs. single-step process
 
 ### **Mood-Aware Support Calibration** **PLANNING**
 

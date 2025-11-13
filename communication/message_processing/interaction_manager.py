@@ -49,6 +49,7 @@ class InteractionManager:
             
             # Channel-agnostic command definitions for discoverability across channels
             self._command_definitions: List[CommandDefinition] = [
+            CommandDefinition("start", "start", "Get started with MHM - receive welcome message and setup instructions", is_flow=False),
             CommandDefinition("tasks", "show my tasks", "Show your tasks", is_flow=False),
             CommandDefinition("profile", "show profile", "Show your profile", is_flow=False),
             CommandDefinition("schedule", "show schedule", "Show your schedules", is_flow=False),
@@ -176,12 +177,25 @@ class InteractionManager:
         user_state = conversation_manager.user_states.get(user_id, {"flow": 0, "state": 0, "data": {}})
         logger.info(f"FLOW_CHECK: User {user_id} flow state: {user_state.get('flow', 'None')} (type: {type(user_state.get('flow'))})")
         if user_state["flow"] != 0:
-            # User is in a flow (like check-in), let conversation manager handle it
-            logger.info(f"User {user_id} in active flow {user_state['flow']}, delegating to conversation manager")
-            reply_text, completed = conversation_manager.handle_inbound_message(user_id, message)
-            return InteractionResponse(reply_text, completed)
-        else:
-            logger.info(f"User {user_id} not in active flow, proceeding with command parsing")
+            # User is in a flow, but check if they're trying to issue a command
+            # Commands should bypass the flow and be processed normally
+            message_lower = message.strip().lower()
+            command_keywords = ['update task', 'complete task', 'delete task', 'show tasks', 'list tasks', 
+                               'create task', 'add task', 'new task', '/cancel', 'cancel']
+            is_command = any(message_lower.startswith(keyword) for keyword in command_keywords)
+            
+            if is_command:
+                # User is issuing a command, clear the flow and process the command
+                logger.info(f"User {user_id} in flow {user_state['flow']} but issued command, clearing flow and processing command")
+                conversation_manager.user_states.pop(user_id, None)
+                conversation_manager._save_user_states()
+            else:
+                # User is in a flow and not issuing a command, let conversation manager handle it
+                logger.info(f"User {user_id} in active flow {user_state['flow']}, delegating to conversation manager")
+                reply_text, completed = conversation_manager.handle_inbound_message(user_id, message)
+                return InteractionResponse(reply_text, completed)
+        
+        logger.info(f"User {user_id} not in active flow or command detected, proceeding with command parsing")
         
         # Simple confirm-delete shortcut: bypass parsing
         if message.strip().lower() == "confirm delete":
@@ -232,8 +246,10 @@ class InteractionManager:
             if parsing_result.parsed_command.intent == 'unknown' and message.lower().strip().startswith('update task'):
                 import re
                 coerced_entities = {}
-                # identifier right after 'update task'
-                m_id = re.search(r'^update\s+task\s+([^\n]+?)(?:\s+(title|priority|due|due\s+date)|$)', message, re.IGNORECASE)
+                # identifier right after 'update task' - extract number or first word/phrase
+                # Match: "update task <identifier>" where identifier is a number or word(s) before field keywords
+                # For "update task 1 priority high", we want identifier="1"
+                m_id = re.search(r'^update\s+task\s+(\d+|\w+)(?=\s+(?:title|priority|due|description)|$)', message, re.IGNORECASE)
                 if m_id:
                     ident = m_id.group(1).strip().strip('"')
                     coerced_entities['task_identifier'] = ident
@@ -241,7 +257,7 @@ class InteractionManager:
                 m_due = re.search(r'(?:due\s+date|due)\s+(.+)', message, re.IGNORECASE)
                 if m_due:
                     coerced_entities['due_date'] = m_due.group(1).strip()
-                m_pri = re.search(r'priority\s+(high|medium|low)', message, re.IGNORECASE)
+                m_pri = re.search(r'priority\s+(?:to\s+)?(high|medium|low|urgent|critical)', message, re.IGNORECASE)
                 if m_pri:
                     coerced_entities['priority'] = m_pri.group(1).lower()
                 m_title = re.search(r'(?:title\s+"([^"]+)"|title\s+([^\n]+)|rename\s+(?:task\s+)?(?:to\s+)?"?([^"\n]+)"?)', message, re.IGNORECASE)
@@ -270,7 +286,8 @@ class InteractionManager:
                     import re
                     coerced_entities = parsing_result.parsed_command.entities.copy()
                     if 'task_identifier' not in coerced_entities:
-                        m_id = re.search(r'^update\s+task\s+([^\n]+?)(?:\s+(title|priority|due|due\s+date)|$)', message, re.IGNORECASE)
+                        # Extract identifier (number or word) before field keywords
+                        m_id = re.search(r'^update\s+task\s+(\d+|\w+)(?=\s+(?:title|priority|due|description)|$)', message, re.IGNORECASE)
                         if m_id:
                             ident = m_id.group(1).strip().strip('"')
                             coerced_entities['task_identifier'] = ident
@@ -279,7 +296,9 @@ class InteractionManager:
                         if m_due:
                             coerced_entities['due_date'] = m_due.group(1).strip()
                     if 'priority' not in coerced_entities:
-                        m_pri = re.search(r'priority\s+(high|medium|low)', message, re.IGNORECASE)
+                        # Match priority values: high, medium, low, urgent, critical
+                        # Pattern allows for "priority high", "priority to high", etc.
+                        m_pri = re.search(r'priority\s+(?:to\s+)?(high|medium|low|urgent|critical)', message, re.IGNORECASE)
                         if m_pri:
                             coerced_entities['priority'] = m_pri.group(1).lower()
                     if 'title' not in coerced_entities:
@@ -301,7 +320,9 @@ class InteractionManager:
                         parsing_result.parsed_command.entities['due_date'] = m.group(1)
                 if parsing_result.parsed_command.intent == 'update_task' and 'priority' not in parsing_result.parsed_command.entities:
                     import re
-                    p = re.search(r'priority\s+(high|medium|low)', parsing_result.parsed_command.original_message, re.IGNORECASE)
+                    # Match priority values: high, medium, low, urgent, critical
+                    # Pattern allows for "priority high", "priority to high", etc.
+                    p = re.search(r'priority\s+(?:to\s+)?(high|medium|low|urgent|critical)', parsing_result.parsed_command.original_message, re.IGNORECASE)
                     if p:
                         parsing_result.parsed_command.entities['priority'] = p.group(1).lower()
                 if parsing_result.parsed_command.intent == 'update_task' and 'title' not in parsing_result.parsed_command.entities:

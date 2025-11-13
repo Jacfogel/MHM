@@ -8,7 +8,14 @@
 > **See [DEVELOPMENT_WORKFLOW.md](../../../DEVELOPMENT_WORKFLOW.md) for safe development practices**  
 > **See [QUICK_REFERENCE.md](../../../QUICK_REFERENCE.md) for essential commands**
 
-## How to Interact with MHM Bot
+## Getting Started
+
+### New Users
+When you first authorize the MHM Discord app, you'll automatically receive a welcome message with interactive buttons:
+- **Create a New Account** - Set up a new MHM account (username will be prefilled with your Discord username if available)
+- **Link to Existing Account** - Link your Discord account to an existing MHM account (confirmation code sent via email)
+
+You can also use the `/start` command to receive setup instructions if you didn't get the welcome message.
 
 ### Primary Method: Natural Language (Recommended)
 Talk to the bot naturally! It understands context and intent.
@@ -119,6 +126,32 @@ Talk to the bot naturally! It understands context and intent.
 
 ---
 
+### Account Management
+**What it does**: Create or link your MHM account to start using the system
+
+**Getting Started:**
+- When you authorize the MHM Discord app, you'll receive a welcome message with buttons
+- Click **"Create a New Account"** to set up a new MHM account
+- Click **"Link to Existing Account"** to link to an existing account (requires email confirmation code)
+
+**Explicit Commands:**
+- `/start` - Get setup instructions and account creation/linking options
+
+**Account Creation:**
+- Username will be prefilled with your Discord username if it's available
+- Choose a unique username for your MHM account
+- Your account is automatically linked to your Discord account
+
+**Account Linking:**
+- Enter your existing MHM username
+- A confirmation code will be sent to the email address associated with your MHM account
+- Enter the confirmation code to complete the linking process
+
+**Available Intents:**
+- create_account, link_account, check_account_status
+
+---
+
 ### System Commands
 **What it does**: Get help, view system status, and manage conversation flows
 
@@ -131,6 +164,7 @@ Talk to the bot naturally! It understands context and intent.
 
 **Explicit Commands:**
 - `/help` - Show help
+- `/start` - Get setup instructions (for new users)
 - `/status` - Show system status
 - `/clear` - Clear stuck flows
 - `/cancel` - Cancel current flow

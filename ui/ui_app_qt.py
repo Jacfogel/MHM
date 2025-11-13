@@ -3,7 +3,9 @@ import os
 import subprocess
 import psutil
 import time
+import re
 from pathlib import Path
+from datetime import datetime
 
 # Add parent directory to path so we can import from core
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -209,6 +211,29 @@ class ServiceManager:
         except Exception as e:
             logger.warning(f"Could not create shutdown file: {e}")
         
+        # Wait for graceful shutdown (service checks shutdown file every 2 seconds)
+        # Give it time to detect the file and shut down gracefully
+        # Discord bot shutdown can take time (closing connections, stopping ngrok, etc.)
+        logger.info("Waiting for graceful shutdown...")
+        max_wait_time = 20  # Wait up to 20 seconds for graceful shutdown (Discord can take time)
+        wait_interval = 0.5
+        waited = 0
+        
+        while waited < max_wait_time:
+            is_running, current_pid = self.is_service_running()
+            if not is_running:
+                logger.info("Service stopped gracefully")
+                QMessageBox.information(None, "Service Status", "MHM Service stopped successfully")
+                return True
+            time.sleep(wait_interval)
+            waited += wait_interval
+            # Log progress every 5 seconds
+            if int(waited) % 5 == 0:
+                logger.debug(f"Still waiting for graceful shutdown... ({int(waited)}s elapsed)")
+        
+        # If graceful shutdown didn't work, force terminate
+        logger.warning("Graceful shutdown timeout - forcing termination")
+        
         # Try to terminate ALL service processes
         found_processes = []
         for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
@@ -227,28 +252,15 @@ class ServiceManager:
                 continue
         
         if not found_processes:
-            # Wait-and-retry loop to confirm service is stopped
-            max_retries = 6  # 3 seconds total
-            for _ in range(max_retries):
-                is_running, current_pid = self.is_service_running()
-                if not is_running:
-                    break
-                time.sleep(0.5)
-            is_running, current_pid = self.is_service_running()
-            if not is_running:
-                logger.info("Service is not running - stop operation successful")
-                QMessageBox.information(None, "Service Status", "Service is already stopped")
-                return True
-            else:
-                logger.info(f"Service still detected with different PID {current_pid} - considering stop successful")
-                QMessageBox.information(None, "Service Status", "Service processes cleaned up successfully")
-                return True
+            # Service already stopped
+            logger.info("Service is not running - stop operation successful")
+            QMessageBox.information(None, "Service Status", "Service is already stopped")
+            return True
         else:
             if len(found_processes) > 1:
                 logger.info(f"Found {len(found_processes)} service processes, cleaning up all instances")
             else:
                 logger.info(f"Found {len(found_processes)} service process, terminating")
-            all_terminated = True
             
             for proc in found_processes:
                 proc_pid = proc.info['pid']
@@ -260,7 +272,7 @@ class ServiceManager:
                     continue
             
             # Wait for processes to terminate
-            time.sleep(1)
+            time.sleep(2)
             
             # Force kill if still running
             for proc in found_processes:
@@ -275,7 +287,7 @@ class ServiceManager:
             time.sleep(0.5)
             is_running, current_pid = self.is_service_running()
             if not is_running:
-                logger.info("Service stopped successfully")
+                logger.info("Service stopped successfully (force termination)")
                 QMessageBox.information(None, "Service Status", "MHM Service stopped successfully")
                 return True
             else:
@@ -442,6 +454,253 @@ class MHMManagerUI(QMainWindow):
         else:
             self.ui.label_service_status.setText("Service Status: Stopped")
             self.ui.label_service_status.setStyleSheet("color: red; font-weight: bold;")
+        
+        # Update Discord channel status
+        discord_running = self._check_discord_status()
+        if discord_running:
+            self.ui.label_discord_status.setText("Discord Channel: Running")
+            self.ui.label_discord_status.setStyleSheet("color: green; font-weight: bold;")
+        else:
+            self.ui.label_discord_status.setText("Discord Channel: Stopped")
+            self.ui.label_discord_status.setStyleSheet("color: red; font-weight: bold;")
+        
+        # Update Email channel status
+        email_running = self._check_email_status()
+        if email_running:
+            self.ui.label_email_status.setText("Email Channel: Running")
+            self.ui.label_email_status.setStyleSheet("color: green; font-weight: bold;")
+        else:
+            self.ui.label_email_status.setText("Email Channel: Stopped")
+            self.ui.label_email_status.setStyleSheet("color: red; font-weight: bold;")
+        
+        # Update ngrok tunnel status
+        ngrok_status = self._check_ngrok_status()
+        if ngrok_status['running']:
+            pid_text = f" (PID: {ngrok_status['pid']})" if ngrok_status['pid'] else ""
+            self.ui.label_ngrok_status.setText(f"ngrok tunnel: Running{pid_text}")
+            self.ui.label_ngrok_status.setStyleSheet("color: green; font-weight: bold;")
+        else:
+            self.ui.label_ngrok_status.setText("ngrok tunnel: Stopped")
+            self.ui.label_ngrok_status.setStyleSheet("color: red; font-weight: bold;")
+    
+    @handle_errors("checking Discord channel status", default_return=False)
+    def _check_discord_status(self) -> bool:
+        """Check if Discord channel is actually running and connected
+        
+        IMPORTANT: This will NEVER return True if the service is stopped.
+        Channels cannot run without the service, so we check service status first.
+        """
+        try:
+            # First check if service is running - channels can't run without the service
+            is_running, service_pid = self.service_manager.is_service_running()
+            if not is_running:
+                return False  # Service stopped = channel stopped (guaranteed)
+            
+            # Check if Discord is configured
+            from core.config import DISCORD_BOT_TOKEN
+            if not DISCORD_BOT_TOKEN:
+                return False
+            
+            # Check logs: if service is running, look for initialization message
+            # and check if there's a shutdown message after it
+            # Also verify the service PID matches to detect restarts
+            try:
+                discord_log_file = Path(__file__).parent.parent / 'logs' / 'discord.log'
+                if discord_log_file.exists():
+                    with open(discord_log_file, 'r', encoding='utf-8', errors='ignore') as f:
+                        lines = f.readlines()
+                    
+                    # Find the most recent initialization message
+                    last_init_time = None
+                    last_shutdown_time = None
+                    
+                    for line in reversed(lines):
+                        # Look for initialization messages
+                        if 'Discord bot initialized successfully' in line or 'Discord connection status changed to: connected' in line:
+                            timestamp_match = re.search(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})', line)
+                            if timestamp_match and last_init_time is None:
+                                try:
+                                    last_init_time = datetime.strptime(timestamp_match.group(1), '%Y-%m-%d %H:%M:%S')
+                                except ValueError:
+                                    pass
+                        
+                        # Look for shutdown messages
+                        if 'Discord bot shutdown completed' in line:
+                            timestamp_match = re.search(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})', line)
+                            if timestamp_match and last_shutdown_time is None:
+                                try:
+                                    last_shutdown_time = datetime.strptime(timestamp_match.group(1), '%Y-%m-%d %H:%M:%S')
+                                except ValueError:
+                                    pass
+                    
+                    # If we found an initialization, check if shutdown happened after it
+                    if last_init_time:
+                        # Check if initialization is recent (within last hour) to handle improper shutdowns
+                        # If initialization is very old and service was restarted, channel might not be running
+                        time_since_init = (datetime.now() - last_init_time).total_seconds()
+                        
+                        if last_shutdown_time is None or last_shutdown_time < last_init_time:
+                            # Initialized and not shut down (or shutdown was before initialization)
+                            # But if initialization is very old (>1 hour), be cautious - might be stale
+                            if time_since_init < 3600:  # Within last hour
+                                return True
+                            # Old initialization - check if service PID suggests a restart
+                            # If service PID changed, this is a new service instance
+                            # We can't easily check this, so assume running if service is running
+                            # (Better to show running than stopped if uncertain)
+                            return True
+                        # Shutdown happened after initialization - check if it's been restarted since
+                        # Look for any initialization after the shutdown
+                        for line in lines:
+                            if 'Discord bot initialized successfully' in line or 'Discord connection status changed to: connected' in line:
+                                timestamp_match = re.search(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})', line)
+                                if timestamp_match:
+                                    try:
+                                        init_time = datetime.strptime(timestamp_match.group(1), '%Y-%m-%d %H:%M:%S')
+                                        if init_time > last_shutdown_time:
+                                            # Check if this restart is recent
+                                            time_since_restart = (datetime.now() - init_time).total_seconds()
+                                            if time_since_restart < 3600:  # Within last hour
+                                                return True
+                                    except ValueError:
+                                        pass
+                    else:
+                        # No initialization found - channel never started or logs are empty
+                        # If service is running but no init message, channel likely failed to start
+                        return False
+            except Exception as e:
+                logger.debug(f"Error checking Discord logs: {e}")
+                # Fallback: if service is running and Discord is configured, assume it's running
+                # This handles cases where logs are unavailable
+                return True
+            
+            return False
+        except Exception as e:
+            logger.debug(f"Error checking Discord status: {e}")
+            return False
+    
+    @handle_errors("checking Email channel status", default_return=False)
+    def _check_email_status(self) -> bool:
+        """Check if Email channel is actually initialized and running
+        
+        IMPORTANT: This will NEVER return True if the service is stopped.
+        Channels cannot run without the service, so we check service status first.
+        """
+        try:
+            # First check if service is running - channels can't run without the service
+            is_running, service_pid = self.service_manager.is_service_running()
+            if not is_running:
+                return False  # Service stopped = channel stopped (guaranteed)
+            
+            # Check if Email is configured
+            from core.config import EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD
+            if not all([EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD]):
+                return False
+            
+            # Check logs: if service is running, look for initialization message
+            # and check if there's a shutdown message after it
+            # Also verify the service PID matches to detect restarts
+            try:
+                email_log_file = Path(__file__).parent.parent / 'logs' / 'email.log'
+                if email_log_file.exists():
+                    with open(email_log_file, 'r', encoding='utf-8', errors='ignore') as f:
+                        lines = f.readlines()
+                    
+                    # Find the most recent initialization and shutdown messages
+                    last_init_time = None
+                    last_shutdown_time = None
+                    
+                    for line in reversed(lines):
+                        # Look for initialization messages
+                        if 'EmailBot initialized successfully' in line:
+                            timestamp_match = re.search(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})', line)
+                            if timestamp_match and last_init_time is None:
+                                try:
+                                    last_init_time = datetime.strptime(timestamp_match.group(1), '%Y-%m-%d %H:%M:%S')
+                                except ValueError:
+                                    pass
+                        
+                        # Look for shutdown messages
+                        if 'EmailBot stopped' in line:
+                            timestamp_match = re.search(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})', line)
+                            if timestamp_match and last_shutdown_time is None:
+                                try:
+                                    last_shutdown_time = datetime.strptime(timestamp_match.group(1), '%Y-%m-%d %H:%M:%S')
+                                except ValueError:
+                                    pass
+                    
+                    # If we found an initialization, check if shutdown happened after it
+                    if last_init_time:
+                        # Check if initialization is recent (within last hour) to handle improper shutdowns
+                        # If initialization is very old and service was restarted, channel might not be running
+                        time_since_init = (datetime.now() - last_init_time).total_seconds()
+                        
+                        if last_shutdown_time is None or last_shutdown_time < last_init_time:
+                            # Initialized and not shut down (or shutdown was before initialization)
+                            # But if initialization is very old (>1 hour), be cautious - might be stale
+                            if time_since_init < 3600:  # Within last hour
+                                return True
+                            # Old initialization - check if service PID suggests a restart
+                            # If service PID changed, this is a new service instance
+                            # We can't easily check this, so assume running if service is running
+                            # (Better to show running than stopped if uncertain)
+                            return True
+                        # Shutdown happened after initialization - check if it's been restarted since
+                        # Look for any initialization after the shutdown
+                        for line in lines:
+                            if 'EmailBot initialized successfully' in line:
+                                timestamp_match = re.search(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})', line)
+                                if timestamp_match:
+                                    try:
+                                        init_time = datetime.strptime(timestamp_match.group(1), '%Y-%m-%d %H:%M:%S')
+                                        if init_time > last_shutdown_time:
+                                            # Check if this restart is recent
+                                            time_since_restart = (datetime.now() - init_time).total_seconds()
+                                            if time_since_restart < 3600:  # Within last hour
+                                                return True
+                                    except ValueError:
+                                        pass
+                    else:
+                        # No initialization found - channel never started or logs are empty
+                        # If service is running but no init message, channel likely failed to start
+                        return False
+            except Exception as e:
+                logger.debug(f"Error checking Email logs: {e}")
+                # Fallback: if service is running and Email is configured, assume it's running
+                # This handles cases where logs are unavailable
+                return True
+            
+            return False
+        except Exception as e:
+            logger.debug(f"Error checking Email status: {e}")
+            return False
+    
+    @handle_errors("checking ngrok tunnel status", default_return={'running': False, 'pid': None})
+    def _check_ngrok_status(self) -> dict:
+        """Check if ngrok tunnel is running and return PID"""
+        try:
+            # Look for ngrok processes
+            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                try:
+                    if not proc.info['name']:
+                        continue
+                    
+                    # Check if process name contains 'ngrok'
+                    proc_name = proc.info['name'].lower()
+                    if 'ngrok' in proc_name:
+                        # Check if it's actually running
+                        if proc.is_running():
+                            # Verify it's an HTTP tunnel (check cmdline)
+                            cmdline = proc.info.get('cmdline', [])
+                            if cmdline and 'http' in ' '.join(cmdline).lower():
+                                return {'running': True, 'pid': proc.info['pid']}
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    continue
+            
+            return {'running': False, 'pid': None}
+        except Exception as e:
+            logger.debug(f"Error checking ngrok status: {e}")
+            return {'running': False, 'pid': None}
     
     def start_service(self):
         """Start the MHM service"""

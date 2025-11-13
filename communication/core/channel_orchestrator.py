@@ -979,9 +979,15 @@ class CommunicationManager:
                 try:
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
-                    loop.run_until_complete(self._shutdown_all_async())
+                    # Add timeout to prevent hanging
+                    try:
+                        loop.run_until_complete(asyncio.wait_for(self._shutdown_all_async(), timeout=15.0))
+                    except asyncio.TimeoutError:
+                        logger.warning("Channel shutdown timed out after 15 seconds - forcing sync shutdown")
+                        self._shutdown_sync()
                     loop.close()
-                except Exception:
+                except Exception as e:
+                    logger.error(f"Error in async shutdown: {e}")
                     # Fallback to sync shutdown
                     self._shutdown_sync()
             
@@ -1009,7 +1015,14 @@ class CommunicationManager:
         for name, channel in self._channels_dict.items():
             try:
                 if hasattr(channel, 'shutdown'):
-                    asyncio.run(channel.shutdown())
+                    # Add timeout to prevent hanging
+                    try:
+                        asyncio.run(asyncio.wait_for(channel.shutdown(), timeout=10.0))
+                    except asyncio.TimeoutError:
+                        logger.warning(f"Channel {name} shutdown timed out after 10 seconds")
+                    except RuntimeError:
+                        # Event loop already running - try sync approach
+                        logger.warning(f"Could not run async shutdown for {name} - event loop conflict")
                 elif hasattr(channel, 'stop'):
                     channel.stop()  # Fallback for any remaining legacy channels
                 logger.debug(f"Channel {name} stopped")

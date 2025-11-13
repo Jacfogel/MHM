@@ -412,8 +412,10 @@ class TestErrorHandlingImprovements:
         result = create_task("user123", "title", description=123)
         assert result is None
         
+        # Invalid priority should use default (medium) instead of failing
         result = create_task("user123", "title", priority="invalid")
-        assert result is None
+        # Task should be created with default priority, not None
+        assert result is not None, "Task should be created with default priority for invalid priority value"
         
         result = create_task("user123", "title", reminder_periods="invalid")
         assert result is None

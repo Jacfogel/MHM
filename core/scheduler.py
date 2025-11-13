@@ -354,6 +354,10 @@ class SchedulerManager:
         schedule.every().day.at("01:00").do(self.run_full_daily_scheduler)
         logger.info("Scheduled full daily scheduler job at 01:00 (includes checkins, task reminders, cleanup, and backup check)")
         
+        # Schedule periodic orphaned reminder cleanup at 03:00 daily
+        schedule.every().day.at("03:00").do(self.cleanup_orphaned_task_reminders)
+        logger.info("Scheduled daily orphaned task reminder cleanup at 03:00")
+        
         # Log job count after daily job scheduling
         active_jobs = len(schedule.jobs)
         logger.info(f"Full daily scheduler complete: {active_jobs} total active jobs scheduled")
@@ -1300,6 +1304,151 @@ class SchedulerManager:
         except Exception as e:
             logger.error(f"Error scheduling task reminder for user {user_id}, task {task_id}: {e}")
             return False
+
+    @handle_errors("cleaning up task reminders")
+    def cleanup_task_reminders(self, user_id, task_id):
+        """
+        Clean up all reminders for a specific task.
+        
+        Finds and removes all APScheduler jobs that call handle_task_reminder for the given task_id.
+        Handles both one-time reminders (schedule_task_reminder_at_datetime) and daily reminders (schedule_task_reminder_at_time).
+        
+        Args:
+            user_id: The user's ID
+            task_id: The task ID to clean up reminders for
+            
+        Returns:
+            bool: True if cleanup succeeded (or no reminders found), False on error
+        """
+        try:
+            if not user_id or not task_id:
+                logger.error(f"Invalid parameters for cleanup_task_reminders: user_id={user_id}, task_id={task_id}")
+                return False
+            
+            # Count jobs before cleanup
+            initial_job_count = len(schedule.jobs)
+            jobs_to_remove = []
+            
+            # Find all jobs that call handle_task_reminder with this user_id and task_id
+            for job in schedule.jobs:
+                try:
+                    # Check if this is a task reminder job
+                    # Jobs created by schedule_task_reminder_at_datetime use: schedule.every(delay).seconds.do(handle_task_reminder, user_id=..., task_id=...)
+                    # Jobs created by schedule_task_reminder_at_time use: schedule.every().day.at(time).do(handle_task_reminder, user_id=..., task_id=...)
+                    
+                    # Check if job function is handle_task_reminder
+                    if hasattr(job.job_func, 'func') and job.job_func.func == self.handle_task_reminder:
+                        # Check keyword arguments for user_id and task_id
+                        if hasattr(job.job_func, 'keywords'):
+                            kwargs = job.job_func.keywords
+                            if kwargs.get('user_id') == user_id and kwargs.get('task_id') == task_id:
+                                jobs_to_remove.append(job)
+                                logger.debug(f"Found reminder job for task {task_id}, user {user_id}")
+                    
+                    # Also check positional arguments (some job types may use args instead of keywords)
+                    elif hasattr(job.job_func, 'args') and len(job.job_func.args) >= 2:
+                        args = job.job_func.args
+                        # handle_task_reminder signature: (self, user_id, task_id, ...)
+                        if len(args) >= 2 and args[0] == user_id and args[1] == task_id:
+                            # Verify it's actually handle_task_reminder
+                            if hasattr(job.job_func, 'func') and job.job_func.func == self.handle_task_reminder:
+                                jobs_to_remove.append(job)
+                                logger.debug(f"Found reminder job for task {task_id}, user {user_id} (positional args)")
+                
+                except Exception as e:
+                    # Skip jobs that can't be inspected
+                    logger.debug(f"Could not inspect job for cleanup: {e}")
+                    continue
+            
+            # Remove the identified jobs
+            jobs_removed = 0
+            for job in jobs_to_remove:
+                try:
+                    schedule.jobs.remove(job)
+                    jobs_removed += 1
+                    logger.debug(f"Removed reminder job for task {task_id}, user {user_id}")
+                except ValueError:
+                    # Job was already removed
+                    pass
+            
+            final_job_count = len(schedule.jobs)
+            logger.info(f"Cleaned up {jobs_removed} reminder job(s) for task {task_id}, user {user_id} "
+                       f"(from {initial_job_count} to {final_job_count} total jobs)")
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error cleaning up task reminders for task {task_id}, user {user_id}: {e}")
+            return False
+
+    @handle_errors("cleaning up orphaned task reminders")
+    def cleanup_orphaned_task_reminders(self):
+        """
+        Periodic cleanup job to remove reminders for tasks that no longer exist.
+        
+        Scans all scheduled reminder jobs and verifies the associated tasks still exist.
+        Removes reminders for tasks that have been deleted or completed.
+        Runs daily at 03:00.
+        """
+        try:
+            logger.info("Starting periodic cleanup of orphaned task reminders")
+            
+            # Get all active users (we'll need to scan their tasks)
+            from core.user_data_handlers import get_all_user_ids
+            user_ids = get_all_user_ids()
+            
+            orphaned_count = 0
+            total_checked = 0
+            
+            # Find all task reminder jobs
+            jobs_to_check = []
+            for job in schedule.jobs:
+                try:
+                    # Check if this is a task reminder job
+                    if hasattr(job.job_func, 'func') and job.job_func.func == self.handle_task_reminder:
+                        if hasattr(job.job_func, 'keywords'):
+                            kwargs = job.job_func.keywords
+                            user_id = kwargs.get('user_id')
+                            task_id = kwargs.get('task_id')
+                            if user_id and task_id:
+                                jobs_to_check.append((job, user_id, task_id))
+                                total_checked += 1
+                except Exception as e:
+                    logger.debug(f"Could not inspect job for orphaned cleanup: {e}")
+                    continue
+            
+            # Check each job's task still exists
+            from tasks.task_management import get_task_by_id
+            
+            for job, user_id, task_id in jobs_to_check:
+                try:
+                    task = get_task_by_id(user_id, task_id)
+                    if not task:
+                        # Task doesn't exist - remove the reminder job
+                        try:
+                            schedule.jobs.remove(job)
+                            orphaned_count += 1
+                            logger.info(f"Removed orphaned reminder for non-existent task {task_id}, user {user_id}")
+                        except ValueError:
+                            # Job was already removed
+                            pass
+                    elif task.get('completed', False):
+                        # Task is completed - remove the reminder job
+                        try:
+                            schedule.jobs.remove(job)
+                            orphaned_count += 1
+                            logger.info(f"Removed reminder for completed task {task_id}, user {user_id}")
+                        except ValueError:
+                            # Job was already removed
+                            pass
+                except Exception as e:
+                    logger.debug(f"Error checking task {task_id} for user {user_id}: {e}")
+                    continue
+            
+            logger.info(f"Orphaned reminder cleanup complete: checked {total_checked} reminders, removed {orphaned_count} orphaned reminders")
+            
+        except Exception as e:
+            logger.error(f"Error during orphaned task reminder cleanup: {e}", exc_info=True)
 
     @handle_errors("performing daily log archival")
     def perform_daily_log_archival(self):

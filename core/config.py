@@ -186,6 +186,11 @@ DISCORD_BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 # Optional: Discord application ID for slash command sync
 _app_id_env = os.getenv('DISCORD_APPLICATION_ID')
 DISCORD_APPLICATION_ID = int(_app_id_env) if _app_id_env and _app_id_env.isdigit() else None
+# Discord webhook configuration for installation events
+DISCORD_PUBLIC_KEY = os.getenv('DISCORD_PUBLIC_KEY', '')  # Public key for webhook signature verification
+DISCORD_WEBHOOK_PORT = int(os.getenv('DISCORD_WEBHOOK_PORT', '8080'))  # Port for webhook server
+# Auto-launch ngrok for webhook tunneling (development only)
+DISCORD_AUTO_NGROK = os.getenv('DISCORD_AUTO_NGROK', 'false').lower() in ('true', '1', 'yes')
 if not DISCORD_BOT_TOKEN:
     logger.warning("DISCORD_BOT_TOKEN not found - Discord channel will be disabled")
 

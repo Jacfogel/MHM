@@ -201,23 +201,35 @@ def create_task(user_id: str, title: str, description: str = "", due_date: str =
             logger.error("Valid user ID required for task creation")
             return None
             
-        if not title or not isinstance(title, str):
-            logger.error("Valid title required for task creation")
+        # Validate title (required field)
+        if not title or not isinstance(title, str) or not title.strip():
+            logger.error(f"Invalid or missing title: {title}")
             return None
-            
+        
         # Validate description parameter
         if description is not None and not isinstance(description, str):
             logger.error(f"Invalid description type: {type(description)}")
             return None
         
+        # Validate due_date format if provided
+        if due_date:
+            try:
+                # Validate date format YYYY-MM-DD
+                datetime.strptime(due_date, '%Y-%m-%d')
+            except ValueError:
+                # Try to parse as relative date or other format
+                logger.warning(f"Invalid due_date format '{due_date}', expected YYYY-MM-DD. Task will be created but due_date may be invalid.")
+                # Don't fail, but log warning
+        
         # Validate priority parameter
-        valid_priorities = ["low", "medium", "high", "urgent"]
+        valid_priorities = ["low", "medium", "high", "urgent", "critical"]
         if priority and not isinstance(priority, str):
             logger.error(f"Invalid priority type: {type(priority)}")
             return None
         if priority and priority.lower() not in valid_priorities:
             logger.error(f"Invalid priority value: {priority}. Must be one of {valid_priorities}")
-            return None
+            priority = "medium"  # Default to medium instead of failing
+            logger.warning(f"Using default priority 'medium' for task '{title}'")
         
         # Validate reminder_periods parameter
         if reminder_periods is not None and not isinstance(reminder_periods, list):
@@ -306,13 +318,35 @@ def update_task(user_id: str, task_id: str, updates: Dict[str, Any]) -> bool:
                 allowed_fields = ['title', 'description', 'due_date', 'due_time', 
                                 'reminder_periods', 'priority', 'tags', 'quick_reminders',
                                 'recurrence_pattern', 'recurrence_interval', 'repeat_after_completion', 'next_due_date']
+                
+                # Validate updates before applying
                 for field, value in updates.items():
-                    if field in allowed_fields:
-                        old_value = task.get(field, 'None')
-                        task[field] = value
-                        updated_fields.append(f"{field}: {old_value} -> {value}")
-                    else:
+                    if field not in allowed_fields:
                         logger.warning(f"Attempted to update disallowed field '{field}' for task {task_id}")
+                        continue
+                    
+                    # Validate field-specific values
+                    if field == 'priority':
+                        valid_priorities = ["low", "medium", "high", "urgent", "critical"]
+                        if value and value.lower() not in valid_priorities:
+                            logger.warning(f"Invalid priority value '{value}' for task {task_id}, skipping update")
+                            continue
+                    
+                    if field == 'due_date' and value:
+                        try:
+                            datetime.strptime(value, '%Y-%m-%d')
+                        except ValueError:
+                            logger.warning(f"Invalid due_date format '{value}' for task {task_id}, expected YYYY-MM-DD")
+                            # Don't skip, but log warning
+                    
+                    if field == 'title' and (not value or not isinstance(value, str) or not value.strip()):
+                        logger.warning(f"Invalid title update for task {task_id}, skipping")
+                        continue
+                    
+                    # Apply update
+                    old_value = task.get(field, 'None')
+                    task[field] = value
+                    updated_fields.append(f"{field}: {old_value} -> {value}")
                 
                 # Add last updated timestamp
                 task['last_updated'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -325,10 +359,14 @@ def update_task(user_id: str, task_id: str, updates: Dict[str, Any]) -> bool:
                     if 'reminder_periods' in updates:
                         # Clean up existing reminders
                         cleanup_task_reminders(user_id, task_id)
-                        # Schedule new reminders
+                        # Schedule new reminders (don't fail update if scheduling fails)
                         new_reminder_periods = updates['reminder_periods']
                         if new_reminder_periods:
-                            schedule_task_reminders(user_id, task_id, new_reminder_periods)
+                            try:
+                                schedule_task_reminders(user_id, task_id, new_reminder_periods)
+                            except Exception as schedule_error:
+                                # Log but don't fail the update - task is already saved with reminder_periods
+                                logger.warning(f"Failed to schedule reminders for task {task_id}, but task was updated: {schedule_error}")
                     
                     return True
                 else:
@@ -643,15 +681,28 @@ def cleanup_task_reminders(user_id: str, task_id: str) -> bool:
         
         scheduler_manager = get_scheduler_manager()
         if not scheduler_manager:
-            logger.error("Scheduler manager not available for cleaning up task reminders")
+            logger.warning(f"Scheduler manager not available for cleaning up task reminders for task {task_id}, user {user_id}")
             return False
         
-        scheduler_manager.cleanup_task_reminders(user_id, task_id)
-        logger.info(f"Cleaned up reminders for task {task_id}")
-        return True
+        # Log before attempting cleanup for better debugging
+        logger.debug(f"Attempting to clean up reminders for task {task_id}, user {user_id}")
         
+        result = scheduler_manager.cleanup_task_reminders(user_id, task_id)
+        
+        if result:
+            logger.info(f"Successfully cleaned up reminders for task {task_id}, user {user_id}")
+        else:
+            logger.warning(f"Failed to clean up reminders for task {task_id}, user {user_id} - cleanup returned False")
+        
+        return result
+        
+    except AttributeError as e:
+        # This should not happen now that method is implemented, but log it clearly if it does
+        logger.error(f"CRITICAL: cleanup_task_reminders method missing in SchedulerManager: {e}")
+        logger.error(f"This indicates the cleanup_task_reminders method was not properly implemented")
+        return False
     except Exception as e:
-        logger.error(f"Error cleaning up task reminders for task {task_id}: {e}")
+        logger.error(f"Error cleaning up task reminders for task {task_id}, user {user_id}: {e}", exc_info=True)
         return False
 
 # Removed unnecessary wrapper function - use get_user_data() directly

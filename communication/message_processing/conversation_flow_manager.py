@@ -34,6 +34,7 @@ logger = get_component_logger('communication_manager')
 # We'll define 'flow' constants
 FLOW_NONE = 0
 FLOW_CHECKIN = 1
+FLOW_TASK_REMINDER = 2
 
 
 
@@ -183,6 +184,18 @@ class ConversationManager:
         flow = user_state["flow"]
         if flow == FLOW_CHECKIN:
             return self._handle_checkin(user_id, user_state, message_text)
+        elif flow == FLOW_TASK_REMINDER:
+            # Check if user is trying to issue a command instead of responding to reminder question
+            # Commands like "update task", "complete task", "delete task" should clear the flow
+            message_lower = message_text.lower().strip()
+            command_keywords = ['update task', 'complete task', 'delete task', 'show tasks', 'list tasks', '/cancel', 'cancel']
+            if any(message_lower.startswith(keyword) for keyword in command_keywords):
+                # User is issuing a command, clear the flow and let the command be processed
+                logger.debug(f"User in FLOW_TASK_REMINDER but issued command '{message_text}', clearing flow")
+                self.user_states.pop(user_id, None)
+                self._save_user_states()
+                return ("", True)  # Return empty to let command be processed
+            return self._handle_task_reminder_followup(user_id, user_state, message_text)
         else:
             # Unknown flow - reset to default contextual chat
             self.user_states.pop(user_id, None)
@@ -755,6 +768,285 @@ class ConversationManager:
             logger.error(f"Error selecting check-in questions with weighting: {e}")
             # Fallback to simple random selection
             return random.sample(enabled_keys, min(len(enabled_keys), 6))
+
+    def _handle_task_reminder_followup(self, user_id: str, user_state: dict, message_text: str) -> tuple[str, bool]:
+        """
+        Handle user's response to reminder period question after task creation.
+        
+        Parses natural language responses like:
+        - "30 minutes to an hour before"
+        - "3 to 5 hours before"
+        - "1 to 2 days before"
+        - "No reminders needed" / "No" / "Skip"
+        """
+        from tasks.task_management import get_task_by_id
+        try:
+            task_id = user_state.get("data", {}).get("task_id")
+            if not task_id:
+                logger.error(f"Task reminder follow-up for user {user_id} but no task_id in state")
+                self.user_states.pop(user_id, None)
+                self._save_user_states()
+                return ("I couldn't find the task to update. The task was created successfully.", True)
+            
+            # Check if user wants to skip reminders
+            message_lower = message_text.lower().strip()
+            skip_patterns = ["no reminders", "no reminder", "no", "skip", "none", "not needed", "don't need", "don't want"]
+            if any(pattern in message_lower for pattern in skip_patterns):
+                # User doesn't want reminders - clear flow
+                self.user_states.pop(user_id, None)
+                self._save_user_states()
+                return ("Got it! No reminders will be set for this task.", True)
+            
+            # Parse reminder periods from natural language
+            reminder_periods = self._parse_reminder_periods_from_text(user_id, task_id, message_text)
+            logger.debug(f"Parsed reminder_periods for task {task_id}: {reminder_periods}")
+            
+            # Check if parsing succeeded and if task has due date
+            if not reminder_periods or len(reminder_periods) == 0:
+                # Couldn't parse - check if task has due date to give better error message
+                task = get_task_by_id(user_id, task_id)
+                if task and not task.get('due_date'):
+                    # Task has no due date, can't set reminder periods
+                    self.user_states.pop(user_id, None)
+                    self._save_user_states()
+                    return ("This task doesn't have a due date, so I can't set reminder periods. You can add a due date and reminders later by updating the task.", True)
+                # Couldn't parse reminder periods - ask for clarification
+                return (
+                    "I'm not sure what reminder timing you'd like. Please specify something like:\n"
+                    "- '30 minutes to an hour before'\n"
+                    "- '3 to 5 hours before'\n"
+                    "- '1 to 2 days before'\n"
+                    "- Or say 'no reminders' to skip",
+                    False
+                )
+            
+            # Check if task has due date (parsing already checked this, but verify)
+            task = get_task_by_id(user_id, task_id)
+            if not task:
+                logger.error(f"Task {task_id} not found when trying to set reminder periods")
+                self.user_states.pop(user_id, None)
+                self._save_user_states()
+                return ("I couldn't find the task to update. The task was created successfully.", True)
+            
+            if not task.get('due_date'):
+                # Task has no due date, can't set reminder periods
+                self.user_states.pop(user_id, None)
+                self._save_user_states()
+                return ("This task doesn't have a due date, so I can't set reminder periods. You can add a due date and reminders later by updating the task.", True)
+            
+            if reminder_periods:
+                # Update task with reminder periods
+                from tasks.task_management import update_task, schedule_task_reminders
+                
+                logger.debug(f"Updating task {task_id} with reminder periods: {reminder_periods}")
+                
+                # Update task with reminder periods
+                # Note: update_task will also call schedule_task_reminders internally, so we don't need to call it again
+                try:
+                    update_result = update_task(user_id, task_id, {'reminder_periods': reminder_periods})
+                    logger.debug(f"update_task returned: {update_result}")
+                    if not update_result:
+                        logger.error(f"update_task returned False for task {task_id} with reminder periods for user {user_id}")
+                        self.user_states.pop(user_id, None)
+                        self._save_user_states()
+                        return ("I had trouble saving the reminder periods. The task was created successfully. You can add reminders later by updating the task.", True)
+                    
+                    # Verify the task was updated correctly by reloading it
+                    updated_task = get_task_by_id(user_id, task_id)
+                    if not updated_task or 'reminder_periods' not in updated_task:
+                        logger.error(f"Task {task_id} was not updated with reminder_periods after update_task returned True")
+                        self.user_states.pop(user_id, None)
+                        self._save_user_states()
+                        return ("I had trouble saving the reminder periods. The task was created successfully. You can add reminders later by updating the task.", True)
+                    
+                    # Clear flow
+                    self.user_states.pop(user_id, None)
+                    self._save_user_states()
+                    
+                    periods_text = ", ".join([f"{p.get('date', '')} {p.get('start_time', '')}-{p.get('end_time', '')}" for p in reminder_periods])
+                    return (f"✅ Reminder periods set for this task: {periods_text}", True)
+                except Exception as update_error:
+                    logger.error(f"Exception in update_task for task {task_id}: {update_error}", exc_info=True)
+                    self.user_states.pop(user_id, None)
+                    self._save_user_states()
+                    return ("I had trouble saving the reminder periods. The task was created successfully. You can add reminders later by updating the task.", True)
+            else:
+                # Couldn't parse reminder periods - ask for clarification
+                return (
+                    "I'm not sure what reminder timing you'd like. Please specify something like:\n"
+                    "- '30 minutes to an hour before'\n"
+                    "- '3 to 5 hours before'\n"
+                    "- '1 to 2 days before'\n"
+                    "- Or say 'no reminders' to skip",
+                    False
+                )
+                
+        except Exception as e:
+            logger.error(f"Error handling task reminder follow-up for user {user_id}: {e}", exc_info=True)
+            # Don't clear flow on exception if it's a parsing issue - let user try again
+            # Only clear if it's a critical error
+            if "task_id" in str(e).lower() or "not found" in str(e).lower():
+                self.user_states.pop(user_id, None)
+                self._save_user_states()
+                return ("I had trouble setting up reminders, but your task was created successfully. You can add reminders later by updating the task.", True)
+            else:
+                # Parsing or other non-critical error - ask for clarification
+                return (
+                    "I'm not sure what reminder timing you'd like. Please specify something like:\n"
+                    "- '30 minutes to an hour before'\n"
+                    "- '3 to 5 hours before'\n"
+                    "- '1 to 2 days before'\n"
+                    "- Or say 'no reminders' to skip",
+                    False
+                )
+
+    def _parse_reminder_periods_from_text(self, user_id: str, task_id: str, text: str) -> list:
+        """
+        Parse reminder periods from natural language text.
+        
+        Examples:
+        - "30 minutes to an hour before" -> reminder 30-60 min before due time
+        - "3 to 5 hours before" -> reminder 3-5 hours before due time
+        - "1 to 2 days before" -> reminder 1-2 days before due date
+        
+        Returns list of reminder period dicts with date, start_time, end_time.
+        """
+        try:
+            import re
+            from datetime import datetime, timedelta
+            from tasks.task_management import get_task_by_id
+            
+            text_lower = text.lower().strip()
+            reminder_periods = []
+            
+            # Get task to find due date/time
+            task = get_task_by_id(user_id, task_id)
+            if not task or not task.get('due_date'):
+                logger.debug(f"Task {task_id} has no due_date, cannot parse reminder periods")
+                return []
+            
+            due_date_str = task.get('due_date')
+            due_time_str = task.get('due_time')
+            if not due_time_str or due_time_str.strip() == '':
+                due_time_str = '09:00'  # Default to 9 AM if no time specified
+            
+            try:
+                # Parse due date and time
+                due_datetime = datetime.strptime(f"{due_date_str} {due_time_str}", '%Y-%m-%d %H:%M')
+                logger.debug(f"Parsed due datetime for task {task_id}: {due_datetime}")
+            except ValueError as e:
+                # Try without time
+                try:
+                    due_datetime = datetime.strptime(due_date_str, '%Y-%m-%d')
+                    due_datetime = due_datetime.replace(hour=9, minute=0)  # Default to 9 AM
+                    logger.debug(f"Parsed due date only for task {task_id}: {due_datetime}")
+                except ValueError as e2:
+                    logger.warning(f"Could not parse due date/time for task {task_id}: {due_date_str} {due_time_str}, error: {e2}")
+                    return []
+            
+            # Parse time ranges from text
+            # Pattern: "X to Y [unit] before" or "X [unit] to [an] Y [unit] before"
+            # Handle "an hour" = 60 minutes (do this before parsing)
+            original_text = text_lower
+            text_lower = text_lower.replace('an hour', '60 minutes').replace('a hour', '60 minutes')
+            
+            logger.debug(f"Parsing reminder periods from text '{text}' (lowercase: '{text_lower}') for task {task_id} with due_datetime {due_datetime}")
+            
+            patterns = [
+                # Minutes - handle "X minutes to Y minutes before" or "X to Y minutes before"
+                (r'(\d+)\s*minutes?\s*(?:to|-)\s*(\d+)\s*minutes?\s*before', 'minutes'),
+                (r'(\d+)\s*(?:to|-)\s*(\d+)\s*minutes?\s*before', 'minutes'),
+                (r'(\d+)\s*minutes?\s*before', 'minutes'),  # Single value
+                (r'(\d+)\s*min\s*before', 'minutes'),
+                # Hours
+                (r'(\d+)\s*hours?\s*(?:to|-)\s*(\d+)\s*hours?\s*before', 'hours'),
+                (r'(\d+)\s*(?:to|-)\s*(\d+)\s*hours?\s*before', 'hours'),
+                (r'(\d+)\s*hours?\s*before', 'hours'),  # Single value
+                (r'(\d+)\s*hrs?\s*before', 'hours'),
+                # Days
+                (r'(\d+)\s*days?\s*(?:to|-)\s*(\d+)\s*days?\s*before', 'days'),
+                (r'(\d+)\s*(?:to|-)\s*(\d+)\s*days?\s*before', 'days'),
+                (r'(\d+)\s*days?\s*before', 'days'),  # Single value
+            ]
+            
+            for pattern, unit in patterns:
+                match = re.search(pattern, text_lower)
+                if match:
+                    logger.debug(f"Pattern '{pattern}' matched text '{text_lower}' with groups: {match.groups()}")
+                    try:
+                        start_val = int(match.group(1))
+                        # Check if pattern has a second group (for ranges like "3 to 5")
+                        if len(match.groups()) >= 2 and match.group(2):
+                            end_val = int(match.group(2))
+                        else:
+                            end_val = start_val  # Single value, use same for start and end
+                        
+                        logger.debug(f"Parsed values: start_val={start_val}, end_val={end_val}, unit={unit}")
+                        
+                        # Calculate reminder times
+                        if unit == 'minutes':
+                            start_delta = timedelta(minutes=end_val)  # End time = earlier (more minutes before)
+                            end_delta = timedelta(minutes=start_val)  # Start time = later (fewer minutes before)
+                        elif unit == 'hours':
+                            start_delta = timedelta(hours=end_val)
+                            end_delta = timedelta(hours=start_val)
+                        elif unit == 'days':
+                            start_delta = timedelta(days=end_val)
+                            end_delta = timedelta(days=start_val)
+                        else:
+                            logger.debug(f"Unknown unit '{unit}', skipping")
+                            continue
+                        
+                        # Calculate reminder datetime range
+                        reminder_start = due_datetime - start_delta
+                        reminder_end = due_datetime - end_delta
+                        
+                        logger.debug(f"Calculated reminder times: start={reminder_start}, end={reminder_end}")
+                        
+                        # Ensure reminder is in the future
+                        now = datetime.now()
+                        if reminder_end < now:
+                            logger.debug(f"Reminder time {reminder_end} is in the past (now={now}), skipping")
+                            continue
+                        
+                        # Create reminder period
+                        reminder_date = reminder_start.strftime('%Y-%m-%d')
+                        start_time = reminder_start.strftime('%H:%M')
+                        end_time = reminder_end.strftime('%H:%M')
+                        
+                        reminder_periods.append({
+                            'date': reminder_date,
+                            'start_time': start_time,
+                            'end_time': end_time
+                        })
+                        
+                        logger.info(f"Parsed reminder period for task {task_id}: {reminder_date} {start_time}-{end_time}")
+                        break  # Only parse first match
+                    except (ValueError, IndexError, AttributeError, TypeError) as e:
+                        logger.warning(f"Error parsing reminder pattern '{pattern}' for text '{text_lower}': {e}", exc_info=True)
+                        continue  # Try next pattern
+            
+            logger.debug(f"Final reminder_periods for task {task_id}: {reminder_periods}")
+            
+            return reminder_periods
+        except Exception as e:
+            logger.error(f"Exception in _parse_reminder_periods_from_text for task {task_id}, text '{text}': {e}", exc_info=True)
+            import traceback
+            traceback.print_exc()
+            return []
+
+    def start_task_reminder_followup(self, user_id: str, task_id: str) -> None:
+        """
+        Start a task reminder follow-up flow.
+        Called by task handler after creating a task.
+        """
+        self.user_states[user_id] = {
+            "flow": FLOW_TASK_REMINDER,
+            "state": 0,
+            "data": {"task_id": task_id}
+        }
+        self._save_user_states()
+        logger.debug(f"Started task reminder follow-up flow for user {user_id}, task {task_id}")
 
 # Create a global instance for convenience:
 conversation_manager = ConversationManager()

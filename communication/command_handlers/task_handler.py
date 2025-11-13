@@ -73,14 +73,26 @@ class TaskManagementHandler(InteractionHandler):
             due_date = self._handle_create_task__parse_relative_date(due_date)
         
         # Validate priority
-        valid_priorities = ['low', 'medium', 'high', 'critical']
+        valid_priorities = ['low', 'medium', 'high', 'urgent', 'critical']
         if priority not in valid_priorities:
+            logger.warning(f"Invalid priority '{priority}' provided, defaulting to 'medium'")
             priority = 'medium'
         
         # Validate recurrence pattern
         valid_patterns = ['daily', 'weekly', 'monthly', 'yearly']
         if recurrence_pattern and recurrence_pattern not in valid_patterns:
+            logger.warning(f"Invalid recurrence_pattern '{recurrence_pattern}' provided, ignoring")
             recurrence_pattern = None
+        
+        # Validate due_date format if provided
+        if due_date:
+            try:
+                # Try to parse the date to validate format
+                datetime.strptime(due_date, '%Y-%m-%d')
+            except ValueError:
+                logger.warning(f"Invalid due_date format '{due_date}', expected YYYY-MM-DD")
+                # Try to parse relative date
+                due_date = self._handle_create_task__parse_relative_date(due_date)
         
         # Create the task with enhanced properties
         task_data = {
@@ -113,7 +125,10 @@ class TaskManagementHandler(InteractionHandler):
                     interval_text = f"every {recurrence_pattern[:-2]}"  # Remove 'ly' for singular
                 response += f" (repeats: {interval_text})"
             
-            # Ask about reminder periods
+            # Ask about reminder periods and start follow-up flow
+            from communication.message_processing.conversation_flow_manager import conversation_manager
+            conversation_manager.start_task_reminder_followup(user_id, task_id)
+            
             response += "\n\nWould you like to set reminder periods for this task?"
             
             return InteractionResponse(
@@ -556,9 +571,23 @@ class TaskManagementHandler(InteractionHandler):
             logger.error(f"Error showing task statistics for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble showing your task statistics right now. Please try again.", True)
     
-    @handle_errors("finding task by identifier for completion")
-    def _handle_complete_task__find_task_by_identifier(self, tasks: List[Dict], identifier: str) -> Optional[Dict]:
-        """Find a task by number, name, or task_id"""
+    @handle_errors("finding task by identifier")
+    def _find_task_by_identifier(self, tasks: List[Dict], identifier: str) -> Optional[Dict]:
+        """
+        Find a task by number, name, or task_id.
+        
+        Shared method to eliminate code duplication. Used by complete, delete, and update handlers.
+        
+        Args:
+            tasks: List of task dictionaries to search
+            identifier: Task identifier (number, name, or task_id)
+            
+        Returns:
+            Task dictionary if found, None otherwise
+        """
+        if not identifier or not tasks:
+            return None
+        
         # Try as task_id first (UUID)
         for task in tasks:
             if task.get('task_id') == identifier or task.get('id') == identifier:
@@ -612,120 +641,21 @@ class TaskManagementHandler(InteractionHandler):
                         return task
         
         return None
+    
+    @handle_errors("finding task by identifier for completion")
+    def _handle_complete_task__find_task_by_identifier(self, tasks: List[Dict], identifier: str) -> Optional[Dict]:
+        """Find a task by number, name, or task_id - delegates to shared method."""
+        return self._find_task_by_identifier(tasks, identifier)
     
     @handle_errors("finding task by identifier for deletion")
     def _handle_delete_task__find_task_by_identifier(self, tasks: List[Dict], identifier: str) -> Optional[Dict]:
-        """Find a task by number, name, or task_id"""
-        # Try as task_id first (UUID)
-        for task in tasks:
-            if task.get('task_id') == identifier or task.get('id') == identifier:
-                return task
-        
-        # Try as number
-        try:
-            task_num = int(identifier)
-            if 1 <= task_num <= len(tasks):
-                return tasks[task_num - 1]
-        except ValueError:
-            pass
-        
-        # Try as name with improved matching
-        identifier_lower = identifier.lower().strip()
-        
-        # First try exact match
-        for task in tasks:
-            if identifier_lower == task['title'].lower():
-                return task
-        
-        # Then try contains match
-        for task in tasks:
-            if identifier_lower in task['title'].lower():
-                return task
-        
-        # Then try word-based matching for common task patterns
-        identifier_words = set(identifier_lower.split())
-        for task in tasks:
-            task_words = set(task['title'].lower().split())
-            # Check if any identifier words match task words
-            if identifier_words & task_words:  # Set intersection
-                return task
-        
-        # Finally try fuzzy matching for common variations
-        common_variations = {
-            'teeth': ['brush', 'brushing', 'tooth', 'dental'],
-            'hair': ['wash', 'washing', 'shampoo'],
-            'dishes': ['wash', 'washing', 'clean', 'cleaning'],
-            'laundry': ['wash', 'washing', 'clothes'],
-            'exercise': ['workout', 'gym', 'run', 'running', 'walk', 'walking'],
-            'medication': ['meds', 'medicine', 'pill', 'pills'],
-            'appointment': ['doctor', 'dentist', 'meeting', 'call'],
-        }
-        
-        for task in tasks:
-            task_lower = task['title'].lower()
-            for variation_key, variations in common_variations.items():
-                if identifier_lower in variations or identifier_lower == variation_key:
-                    if any(var in task_lower for var in variations + [variation_key]):
-                        return task
-        
-        return None
+        """Find a task by number, name, or task_id - delegates to shared method."""
+        return self._find_task_by_identifier(tasks, identifier)
     
     @handle_errors("finding task by identifier for update")
     def _handle_update_task__find_task_by_identifier(self, tasks: List[Dict], identifier: str) -> Optional[Dict]:
-        """Find a task by number, name, or task_id"""
-        # Try as task_id first (UUID)
-        for task in tasks:
-            if task.get('task_id') == identifier or task.get('id') == identifier:
-                return task
-        
-        # Try as number
-        try:
-            task_num = int(identifier)
-            if 1 <= task_num <= len(tasks):
-                return tasks[task_num - 1]
-        except ValueError:
-            pass
-        
-        # Try as name with improved matching
-        identifier_lower = identifier.lower().strip()
-        
-        # First try exact match
-        for task in tasks:
-            if identifier_lower == task['title'].lower():
-                return task
-        
-        # Then try contains match
-        for task in tasks:
-            if identifier_lower in task['title'].lower():
-                return task
-        
-        # Then try word-based matching for common task patterns
-        identifier_words = set(identifier_lower.split())
-        for task in tasks:
-            task_words = set(task['title'].lower().split())
-            # Check if any identifier words match task words
-            if identifier_words & task_words:  # Set intersection
-                return task
-        
-        # Finally try fuzzy matching for common variations
-        common_variations = {
-            'teeth': ['brush', 'brushing', 'tooth', 'dental'],
-            'hair': ['wash', 'washing', 'shampoo'],
-            'dishes': ['wash', 'washing', 'clean', 'cleaning'],
-            'laundry': ['wash', 'washing', 'clothes'],
-            'exercise': ['workout', 'gym', 'run', 'running', 'walk', 'walking'],
-            'medication': ['meds', 'medicine', 'pill', 'pills'],
-            'appointment': ['doctor', 'dentist', 'meeting', 'call'],
-        }
-        
-        for task in tasks:
-            task_lower = task['title'].lower()
-            for variation_key, variations in common_variations.items():
-                if identifier_lower in variations or identifier_lower == variation_key:
-                    if any(var in task_lower for var in variations + [variation_key]):
-                        return task
-        
-        return None
+        """Find a task by number, name, or task_id - delegates to shared method."""
+        return self._find_task_by_identifier(tasks, identifier)
     
     @handle_errors("getting help")
     def get_help(self) -> str:

@@ -880,10 +880,10 @@ def test_data_consistency_real_behavior(test_data_dir, mock_config):
         assert updated_data["preferences"]["channel"]["contact"] == "newcontact#5678", "Preferences should have new contact"
         assert updated_data["preferences"]["channel"]["contact"] == "newcontact#5678", "Preferences should have new contact"
         
-        print("  ✅ File synchronization: Success")
+        print("  [OK] File synchronization: Success")
         
     except Exception as e:
-        print(f"  ❌ Data consistency: Error - {e}")
+        print(f"  [ERROR] Data consistency: Error - {e}")
         raise
 
 def cleanup_test_environment(test_dir):
@@ -891,7 +891,7 @@ def cleanup_test_environment(test_dir):
     from tests.test_utilities import TestDataManager
     print("\n🧹 Cleaning up test environment...")
     TestDataManager.cleanup_test_environment(test_dir)
-    print("  ✅ Test environment cleaned up")
+    print("  [OK] Test environment cleaned up")
 
 def main():
     """Run all real behavior tests"""
@@ -933,9 +933,9 @@ def main():
         total_count += 1
         if "SUCCESS" in result:
             success_count += 1
-            print(f"✅ {test_name}: {result}")
+            print(f"[OK] {test_name}: {result}")
         else:
-            print(f"❌ {test_name}: {result}")
+            print(f"[ERROR] {test_name}: {result}")
     
     print(f"\n🎯 SUMMARY: {success_count}/{total_count} tests passed")
     success_rate = (success_count / total_count * 100) if total_count > 0 else 0

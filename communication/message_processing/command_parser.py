@@ -712,10 +712,11 @@ class EnhancedCommandParser:
         try:
             entities = {}
             
-            # Extract priority
-            if re.search(r'priority\s+(high|medium|low)', update_text, re.IGNORECASE):
-                match = re.search(r'priority\s+(high|medium|low)', update_text, re.IGNORECASE)
-                entities['priority'] = match.group(1)
+            # Extract priority (high, medium, low, urgent, critical)
+            # Pattern allows for "priority high", "priority to high", etc.
+            priority_match = re.search(r'priority\s+(?:to\s+)?(high|medium|low|urgent|critical)', update_text, re.IGNORECASE)
+            if priority_match:
+                entities['priority'] = priority_match.group(1).lower()
             
             # Extract due date (support 'due ...' and 'due date ...')
             due_match = re.search(r'(?:due\s+date|due)\s+(.+)', update_text, re.IGNORECASE)
