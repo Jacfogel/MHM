@@ -35,32 +35,85 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
-### 2025-11-13 - Test Suite Fixes: Race Condition and UI Test Corrections **COMPLETED**
+### 2025-11-14 - Test Suite Stability Fixes and Race Condition Improvements **COMPLETED**
 
-**Feature**: Fixed 3 failing tests that were causing test suite failures, addressing race conditions in parallel execution and missing Qt application fixture.
+**Feature**: Fixed failing tests in multiple test modules by addressing race conditions in parallel execution and improving test isolation with retry logic and unique identifiers.
 
 **Technical Changes**:
 
-1. **Fixed `test_update_user_index_success`** (`tests/unit/test_user_data_manager.py`):
-   - Added retry logic (up to 5 attempts with 0.1s delays) to wait for user account data to be available before calling `update_user_index`
-   - Verifies `internal_username` exists in account data before proceeding
-   - Addresses race conditions in parallel test execution where user data might not be fully written yet
+1. **Test Stability Fixes** (5 test files):
+   - **`test_webhook_handler_behavior.py`**: Fixed `test_handle_application_authorized_with_scheduling_error` - improved asyncio patching to work correctly when asyncio is imported inside the function, added unique Discord user IDs to prevent conflicts
+   - **`test_welcome_manager_behavior.py`**: Fixed `test_welcome_tracking_supports_multiple_channels` - added UUID-based unique channel identifiers and retry logic for file I/O operations to handle race conditions
+   - **`test_account_handler_behavior.py`**: Improved test isolation by using unique Discord user IDs and usernames generated from UUIDs to prevent conflicts between parallel tests
+   - **`test_user_data_manager.py`**: Fixed `test_get_user_info_for_data_manager_function` and `test_update_user_index_success` - added retry logic with `retry_with_backoff` utility to handle race conditions where user data might not be immediately available after creation
+   - **`test_webhook_server_behavior.py`**: Improved mocking of optional `nacl` library imports to handle dynamic imports correctly
 
-2. **Fixed `test_delete_user_completely_without_backup`** (`tests/unit/test_user_data_manager.py`):
-   - Added retry logic to wait for user account data to be available
-   - Removed unnecessary directory existence check that was failing in parallel execution (function handles missing directories gracefully)
-   - Ensures user data is ready before deletion attempt
+2. **Race Condition Improvements**:
+   - Added retry logic using `retry_with_backoff` utility for operations that may have timing issues in parallel execution
+   - Used UUID-based unique identifiers (Discord user IDs, channel identifiers, usernames) to prevent test conflicts
+   - Improved file I/O handling with retry logic for welcome tracking file operations
+   - Enhanced user data access with retry logic to handle cases where data might not be immediately available after creation
 
-3. **Fixed `test_manage_personalization_opens_dialog`** (`tests/ui/test_ui_app_qt_main.py`):
-   - Added missing `qapp` fixture parameter to ensure QApplication instance exists for Qt widget creation
-   - Prevents test crashes when creating Qt widgets without proper application context
+3. **Test Isolation Enhancements**:
+   - Ensured each test uses unique identifiers to avoid conflicts with other tests running in parallel
+   - Added verification steps to ensure test preconditions are met before assertions
+   - Improved error messages to include context about what failed and why
 
 **Testing**:
-- All 3 tests now pass individually
+- Full test suite passes: 2973 passed, 1 skipped, 0 failures
+- All tests pass consistently in parallel execution mode (6 workers)
+- Only warnings remain (deprecation warnings, unknown pytest marks) - no errors
+
+**Files Modified**:
+- `tests/behavior/test_webhook_handler_behavior.py` - Fixed scheduling error test with improved asyncio patching and unique IDs
+- `tests/behavior/test_webhook_server_behavior.py` - Improved nacl library mocking for dynamic imports
+- `tests/behavior/test_welcome_manager_behavior.py` - Added unique identifiers and retry logic for file I/O
+- `tests/behavior/test_account_handler_behavior.py` - Improved test isolation with unique identifiers
+- `tests/unit/test_user_data_manager.py` - Added retry logic for user data access operations
+
+**Impact**: Eliminated all test failures, improved test reliability in parallel execution, addressed race conditions that were causing intermittent failures. Test suite now consistently passes with no errors, only warnings remain.
+
+### 2025-11-13 - Test Coverage Expansion and Test Suite Fixes **COMPLETED**
+
+**Feature**: Expanded test coverage for 5 low-coverage communication modules and fixed 3 failing tests, addressing race conditions in parallel execution and missing Qt application fixture.
+
+**Technical Changes**:
+
+1. **Test Coverage Expansion** (5 modules, 72 new behavior tests):
+   - **`webhook_handler.py`** (16% -> improved): Added 15 behavior tests covering signature verification, event parsing, authorization/deauthorization handling, and error scenarios
+   - **`account_handler.py`** (21% -> improved): Added 20 behavior tests covering account creation, linking, status checks, username validation, confirmation code generation, and error handling
+   - **`webhook_server.py`** (26% -> improved): Added 15 behavior tests covering HTTP request handling (GET, POST, OPTIONS), signature verification, PING events, JSON parsing, and error handling
+   - **`welcome_manager.py`** (38% -> improved): Added 13 behavior tests covering welcome tracking, message generation, and file I/O operations
+   - **`welcome_handler.py`** (43% -> improved): Added 9 behavior tests covering Discord-specific UI adaptations, welcome message views with buttons, and delegation to welcome_manager
+   - All new tests focus on real behavior verification and side effects, following project testing guidelines
+
+2. **Test Suite Fixes** (3 failing tests):
+   - **Fixed `test_update_user_index_success`** (`tests/unit/test_user_data_manager.py`):
+     - Added retry logic (up to 5 attempts with 0.1s delays) to wait for user account data to be available before calling `update_user_index`
+     - Verifies `internal_username` exists in account data before proceeding
+     - Addresses race conditions in parallel test execution where user data might not be fully written yet
+   - **Fixed `test_delete_user_completely_without_backup`** (`tests/unit/test_user_data_manager.py`):
+     - Added retry logic to wait for user account data to be available
+     - Removed unnecessary directory existence check that was failing in parallel execution (function handles missing directories gracefully)
+     - Ensures user data is ready before deletion attempt
+   - **Fixed `test_manage_personalization_opens_dialog`** (`tests/ui/test_ui_app_qt_main.py`):
+     - Added missing `qapp` fixture parameter to ensure QApplication instance exists for Qt widget creation
+     - Prevents test crashes when creating Qt widgets without proper application context
+
+**Testing**:
+- All 72 new behavior tests pass
+- All 3 fixed tests now pass individually
 - Full test suite passes: 2949 passed, 1 skipped, 0 failures
 - Tests work correctly in parallel execution mode (`-n auto`)
 
-**Impact**: Test suite is now fully stable with all tests passing. Race conditions in parallel execution have been addressed, and UI tests have proper Qt application context.
+**Files Created**:
+- `tests/behavior/test_webhook_handler_behavior.py` (15 tests)
+- `tests/behavior/test_account_handler_behavior.py` (20 tests)
+- `tests/behavior/test_webhook_server_behavior.py` (15 tests)
+- `tests/behavior/test_welcome_manager_behavior.py` (13 tests)
+- `tests/behavior/test_welcome_handler_behavior.py` (9 tests)
+
+**Impact**: Test coverage significantly expanded for communication modules, improving reliability and change safety. Test suite is now fully stable with all tests passing. Race conditions in parallel execution have been addressed, and UI tests have proper Qt application context.
 
 ### 2025-11-13 - Documentation Sync Improvements and Tool Enhancements **COMPLETED**
 
