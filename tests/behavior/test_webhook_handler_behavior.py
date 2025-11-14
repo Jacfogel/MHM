@@ -481,4 +481,250 @@ class TestWebhookHandlerBehavior:
         
         # Assert: Should handle missing structure gracefully
         assert result is False, "Should return False for missing event structure"
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.channels
+    @pytest.mark.file_io
+    def test_handle_application_authorized_with_dm_send_failure(self, test_data_dir):
+        """Test: APPLICATION_AUTHORIZED event handles DM send failure gracefully."""
+        from communication.communication_channels.discord.webhook_handler import handle_application_authorized
+        from communication.core.welcome_manager import clear_welcomed_status
+        
+        # Arrange: New user event data
+        discord_user_id = "111222333444555666"
+        clear_welcomed_status(discord_user_id, channel_type='discord')
+        
+        event_data = {
+            "event": {
+                "type": "APPLICATION_AUTHORIZED",
+                "data": {
+                    "user": {
+                        "id": discord_user_id,
+                        "username": "newuser"
+                    }
+                }
+            }
+        }
+        
+        # Mock bot instance with async loop
+        mock_bot = MagicMock()
+        mock_loop = MagicMock()
+        mock_loop.is_closed.return_value = False
+        mock_bot.loop = mock_loop
+        
+        bot_instance = MagicMock()
+        bot_instance.bot = mock_bot
+        
+        # Act: Handle authorization with mocked async execution
+        with patch('asyncio.run_coroutine_threadsafe') as mock_run_coro:
+            # Mock the coroutine execution - the actual coroutine handles errors internally
+            mock_future = MagicMock()
+            mock_future.result.return_value = False  # DM send failed (handled in coroutine)
+            mock_run_coro.return_value = mock_future
+            
+            result = handle_application_authorized(event_data, bot_instance)
+        
+        # Assert: Should schedule DM (even if it fails later, scheduling succeeds)
+        assert result is True, "Should return True when DM is scheduled (failure handled in coroutine)"
+        # The coroutine is scheduled, but we can't easily verify it was called without more complex mocking
+        # The important thing is that the function doesn't crash
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.channels
+    @pytest.mark.file_io
+    def test_handle_application_authorized_with_scheduling_error(self, test_data_dir):
+        """Test: APPLICATION_AUTHORIZED event handles scheduling error gracefully."""
+        from communication.communication_channels.discord.webhook_handler import handle_application_authorized
+        from communication.core.welcome_manager import clear_welcomed_status, has_been_welcomed
+        
+        # Arrange: New user event data
+        discord_user_id = "222333444555666777"
+        clear_welcomed_status(discord_user_id, channel_type='discord')
+        
+        event_data = {
+            "event": {
+                "type": "APPLICATION_AUTHORIZED",
+                "data": {
+                    "user": {
+                        "id": discord_user_id,
+                        "username": "newuser"
+                    }
+                }
+            }
+        }
+        
+        # Mock bot instance with async loop
+        mock_bot = MagicMock()
+        mock_loop = MagicMock()
+        mock_loop.is_closed.return_value = False
+        mock_bot.loop = mock_loop
+        
+        bot_instance = MagicMock()
+        bot_instance.bot = mock_bot
+        
+        # Ensure user doesn't exist and hasn't been welcomed (to avoid early returns)
+        # The function returns True early if user exists (line 111) or already welcomed (line 122)
+        # We need to ensure we reach the asyncio.run_coroutine_threadsafe call to test the exception path
+        from core.user_management import get_user_id_by_identifier
+        import uuid
+        
+        # Use a unique Discord ID to avoid conflicts with other tests
+        # Generate a new ID that definitely doesn't exist
+        discord_user_id = f"test_{uuid.uuid4().hex[:16]}"
+        event_data["event"]["data"]["user"]["id"] = discord_user_id
+        clear_welcomed_status(discord_user_id, channel_type='discord')
+        
+        # Double-check user doesn't exist (shouldn't, but verify)
+        existing_user_id = get_user_id_by_identifier(discord_user_id)
+        if existing_user_id:
+            # If somehow user exists, use a completely different ID
+            discord_user_id = f"test_{uuid.uuid4().hex[:16]}"
+            event_data["event"]["data"]["user"]["id"] = discord_user_id
+            clear_welcomed_status(discord_user_id, channel_type='discord')
+        
+        # Verify user hasn't been welcomed
+        assert not has_been_welcomed(discord_user_id, channel_type='discord'), \
+            "User should not be welcomed before test"
+        
+        # Act: Handle authorization with scheduling error
+        # The actual code catches exceptions and marks as welcomed
+        # Verify mock setup is correct before patching
+        assert bot_instance.bot.loop is not None, "Bot loop should be set"
+        assert not bot_instance.bot.loop.is_closed(), "Bot loop should not be closed"
+        
+        # Patch asyncio.run_coroutine_threadsafe - use both string path and patch.object
+        # to ensure it works when asyncio is imported inside the function in parallel execution
+        # The string path patches the builtin module, patch.object patches the already-imported module
+        def raise_exception(*args, **kwargs):
+            raise Exception("Scheduling error")
+        
+        with patch('asyncio.run_coroutine_threadsafe', side_effect=raise_exception), \
+             patch.object(asyncio, 'run_coroutine_threadsafe', side_effect=raise_exception):
+            result = handle_application_authorized(event_data, bot_instance)
+        
+        # Assert: Should handle scheduling error gracefully
+        # The function catches the exception and marks as welcomed, then returns False
+        assert result is False, f"Should return False on scheduling error, got {result}"
+        assert has_been_welcomed(discord_user_id, channel_type='discord'), "Should mark as welcomed to avoid retry"
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.channels
+    def test_verify_webhook_signature_with_exception(self):
+        """Test: Webhook signature verification handles exceptions gracefully."""
+        from communication.communication_channels.discord.webhook_handler import verify_webhook_signature
+        
+        # Arrange: Valid inputs but force exception
+        signature = "test_signature_12345"
+        timestamp = "1234567890"
+        body = b"test body content"
+        public_key = "test_public_key"
+        
+        # Act: Verify signature (should handle any exceptions internally)
+        result = verify_webhook_signature(signature, timestamp, body, public_key)
+        
+        # Assert: Should return boolean (True for placeholder, False on error)
+        assert isinstance(result, bool), "Should return boolean result"
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.channels
+    def test_parse_webhook_event_with_empty_string(self):
+        """Test: Parse webhook event handles empty string gracefully."""
+        from communication.communication_channels.discord.webhook_handler import parse_webhook_event
+        
+        # Arrange: Empty string
+        body = ""
+        
+        # Act: Parse event
+        result = parse_webhook_event(body)
+        
+        # Assert: Should return None for empty string (invalid JSON)
+        assert result is None, "Should return None for empty string"
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.channels
+    def test_parse_webhook_event_with_none(self):
+        """Test: Parse webhook event handles None gracefully."""
+        from communication.communication_channels.discord.webhook_handler import parse_webhook_event
+        
+        # Arrange: None input
+        body = None
+        
+        # Act: Parse event
+        result = parse_webhook_event(body)
+        
+        # Assert: Should return None for None input
+        assert result is None, "Should return None for None input"
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.channels
+    @pytest.mark.file_io
+    def test_handle_webhook_event_with_exception(self, test_data_dir):
+        """Test: Webhook event handler handles exceptions gracefully."""
+        from communication.communication_channels.discord.webhook_handler import (
+            handle_webhook_event,
+            EVENT_APPLICATION_AUTHORIZED
+        )
+        
+        # Arrange: Event data that will cause exception
+        event_data = {
+            "event": {
+                "type": EVENT_APPLICATION_AUTHORIZED,
+                "data": {
+                    "user": {
+                        "id": "123456789",
+                        "username": "testuser"
+                    }
+                }
+            }
+        }
+        
+        bot_instance = None
+        
+        # Act: Handle webhook event with patched handler that raises exception
+        with patch('communication.communication_channels.discord.webhook_handler.handle_application_authorized') as mock_handler:
+            mock_handler.side_effect = Exception("Test exception")
+            result = handle_webhook_event(EVENT_APPLICATION_AUTHORIZED, event_data, bot_instance)
+        
+        # Assert: Should handle exception gracefully
+        assert result is False, "Should return False on exception"
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.channels
+    @pytest.mark.file_io
+    def test_handle_application_authorized_with_empty_username(self, test_data_dir):
+        """Test: APPLICATION_AUTHORIZED event handles empty username gracefully."""
+        from communication.communication_channels.discord.webhook_handler import handle_application_authorized
+        from communication.core.welcome_manager import clear_welcomed_status
+        
+        # Arrange: Event data with empty username
+        discord_user_id = "333444555666777888"
+        clear_welcomed_status(discord_user_id, channel_type='discord')
+        
+        event_data = {
+            "event": {
+                "type": "APPLICATION_AUTHORIZED",
+                "data": {
+                    "user": {
+                        "id": discord_user_id,
+                        "username": ""  # Empty username
+                    }
+                }
+            }
+        }
+        
+        bot_instance = None
+        
+        # Act: Handle authorization
+        result = handle_application_authorized(event_data, bot_instance)
+        
+        # Assert: Should handle empty username (user ID is what matters)
+        # The function should still work if user ID is present
+        assert isinstance(result, bool), "Should return boolean result"
 

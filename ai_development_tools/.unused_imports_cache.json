@@ -141,7 +141,7 @@
     "issues": []
   },
   "ai_development_tools/regenerate_coverage_metrics.py": {
-    "mtime": 1762905043.5883942,
+    "mtime": 1763032918.7382371,
     "issues": []
   },
   "ai_development_tools/services/__init__.py": {
@@ -840,7 +840,7 @@
     ]
   },
   "tests/behavior/test_communication_manager_coverage_expansion.py": {
-    "mtime": 1762992964.6674862,
+    "mtime": 1763072786.0282996,
     "issues": []
   },
   "tests/behavior/test_comprehensive_quantitative_analytics.py": {
@@ -1245,7 +1245,7 @@
     "issues": []
   },
   "tests/behavior/test_scheduler_coverage_expansion.py": {
-    "mtime": 1762992965.4402187,
+    "mtime": 1763072786.5446851,
     "issues": [
       {
         "type": "warning",
@@ -2997,7 +2997,7 @@
     "issues": []
   },
   "tests/ui/test_ui_app_qt_main.py": {
-    "mtime": 1763027952.229287,
+    "mtime": 1763074763.6334305,
     "issues": [
       {
         "type": "warning",
@@ -4152,7 +4152,7 @@
     "issues": []
   },
   "tests/unit/test_user_data_manager.py": {
-    "mtime": 1762932916.6066923,
+    "mtime": 1763074525.7405517,
     "issues": [
       {
         "type": "warning",
@@ -4958,6 +4958,134 @@
         "path": "tests\\integration\\test_task_reminder_integration.py",
         "symbol": "unused-import",
         "message": "Unused InteractionResponse imported from communication.command_handlers.shared_types",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_account_handler_behavior.py": {
+    "mtime": 1763073455.2489588,
+    "issues": []
+  },
+  "tests/behavior/test_webhook_handler_behavior.py": {
+    "mtime": 1763073455.2489588,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_webhook_handler_behavior",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 14,
+        "path": "tests\\behavior\\test_webhook_handler_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused import asyncio",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_webhook_server_behavior.py": {
+    "mtime": 1763073647.5080867,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_webhook_server_behavior",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 16,
+        "path": "tests\\behavior\\test_webhook_server_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused import threading",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_webhook_server_behavior",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 48,
+        "path": "tests\\behavior\\test_webhook_server_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_webhook_server_behavior",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 34,
+        "path": "tests\\behavior\\test_webhook_server_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused HTTPServer imported from http.server",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_webhook_server_behavior",
+        "obj": "",
+        "line": 15,
+        "column": 0,
+        "endLine": 15,
+        "endColumn": 22,
+        "path": "tests\\behavior\\test_webhook_server_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused BytesIO imported from io",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_welcome_handler_behavior.py": {
+    "mtime": 1763074134.902963,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_welcome_handler_behavior",
+        "obj": "",
+        "line": 9,
+        "column": 0,
+        "endLine": 9,
+        "endColumn": 42,
+        "path": "tests\\behavior\\test_welcome_handler_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/behavior/test_welcome_manager_behavior.py": {
+    "mtime": 1763074134.902963,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_welcome_manager_behavior",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 9,
+        "path": "tests\\behavior\\test_welcome_manager_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused import os",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_welcome_manager_behavior",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 1,
+        "path": "tests\\behavior\\test_welcome_manager_behavior.py",
+        "symbol": "unused-import",
+        "message": "Unused WELCOME_TRACKING_FILE imported from communication.core.welcome_manager",
         "message-id": "W0611"
       }
     ]

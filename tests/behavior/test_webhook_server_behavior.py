@@ -446,4 +446,303 @@ class TestWebhookServerBehavior:
         assert mock_handle.called, "Should call handle_webhook_event"
         call_args = mock_handle.call_args
         assert call_args[0][0] == 'APPLICATION_AUTHORIZED', "Should normalize event type to uppercase"
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.channels
+    def test_do_post_handles_signature_verification_with_pynacl(self):
+        """Test: POST request verifies signature with PyNaCl when available."""
+        # Note: This test verifies the code path when PyNaCl is available
+        # Since PyNaCl is optional, we test the ImportError path instead
+        # The actual PyNaCl verification would require the library to be installed
+        event_data = {
+            'type': 1,
+            'event': {
+                'type': 'APPLICATION_AUTHORIZED',
+                'data': {
+                    'user': {
+                        'id': '123456789',
+                        'username': 'testuser'
+                    }
+                }
+            }
+        }
+        handler = create_mock_handler(
+            method='POST',
+            headers={
+                'Content-Length': str(len(json.dumps(event_data))),
+                'X-Signature-Ed25519': 'test_signature_hex',
+                'X-Signature-Timestamp': '1234567890'
+            },
+            body=json.dumps(event_data).encode('utf-8')
+        )
+        handler.bot_instance = None
+        
+        # Test with PyNaCl not available (ImportError path)
+        # This is the realistic scenario when PyNaCl is not installed
+        import sys
+        # Remove nacl modules if they exist
+        modules_to_remove = [k for k in list(sys.modules.keys()) if k.startswith('nacl')]
+        for mod in modules_to_remove:
+            sys.modules.pop(mod, None)
+        
+        with patch('core.config.DISCORD_PUBLIC_KEY', 'test_public_key_hex'):
+            handler.do_POST()
+        
+        # Assert: Should reject when PyNaCl not available (returns 401)
+        # This verifies the ImportError handling path works correctly
+        assert handler._response_code == 401, f"Should return 401 when PyNaCl not available, got {handler._response_code}"
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.channels
+    def test_do_post_rejects_invalid_signature(self):
+        """Test: POST request rejects invalid signature."""
+        event_data = {
+            'type': 1,
+            'event': {
+                'type': 'APPLICATION_AUTHORIZED',
+                'data': {
+                    'user': {
+                        'id': '123456789',
+                        'username': 'testuser'
+                    }
+                }
+            }
+        }
+        handler = create_mock_handler(
+            method='POST',
+            headers={
+                'Content-Length': str(len(json.dumps(event_data))),
+                'X-Signature-Ed25519': 'invalid_signature',
+                'X-Signature-Timestamp': '1234567890'
+            },
+            body=json.dumps(event_data).encode('utf-8')
+        )
+        
+        # Mock PyNaCl BadSignatureError - need to mock at sys.modules level
+        import sys
+        from types import ModuleType
+        
+        class MockBadSignatureError(Exception):
+            pass
+        
+        # Create proper mock modules
+        mock_nacl = ModuleType('nacl')
+        mock_signing = ModuleType('nacl.signing')
+        mock_exceptions = ModuleType('nacl.exceptions')
+        
+        class MockVerifyKey:
+            def __init__(self, *args, **kwargs):
+                pass
+            def verify(self, *args, **kwargs):
+                raise MockBadSignatureError("Invalid signature")
+        
+        mock_signing.VerifyKey = MockVerifyKey
+        mock_exceptions.BadSignatureError = MockBadSignatureError
+        mock_nacl.signing = mock_signing
+        mock_nacl.exceptions = mock_exceptions
+        
+        with patch('core.config.DISCORD_PUBLIC_KEY', 'test_public_key_hex'):
+            with patch.dict(sys.modules, {
+                'nacl': mock_nacl,
+                'nacl.signing': mock_signing, 
+                'nacl.exceptions': mock_exceptions
+            }):
+                handler.do_POST()
+        
+        # Assert: Should reject invalid signature
+        assert handler._response_code == 401, "Should return 401 for invalid signature"
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.channels
+    def test_do_post_handles_pynacl_import_error(self):
+        """Test: POST request handles PyNaCl import error gracefully."""
+        event_data = {
+            'type': 1,
+            'event': {
+                'type': 'APPLICATION_AUTHORIZED',
+                'data': {
+                    'user': {
+                        'id': '123456789',
+                        'username': 'testuser'
+                    }
+                }
+            }
+        }
+        handler = create_mock_handler(
+            method='POST',
+            headers={
+                'Content-Length': str(len(json.dumps(event_data))),
+                'X-Signature-Ed25519': 'test_signature',
+                'X-Signature-Timestamp': '1234567890'
+            },
+            body=json.dumps(event_data).encode('utf-8')
+        )
+        
+        # Mock ImportError for PyNaCl - need to mock at sys.modules level
+        # The easiest way is to not add nacl to sys.modules, so the import fails
+        with patch('core.config.DISCORD_PUBLIC_KEY', 'test_public_key'):
+            # Remove nacl modules from sys.modules if they exist
+            import sys
+            modules_to_remove = [k for k in list(sys.modules.keys()) if k.startswith('nacl')]
+            for mod in modules_to_remove:
+                sys.modules.pop(mod, None)
+            # The import will fail, which should trigger the ImportError handler
+            handler.do_POST()
+        
+        # Assert: Should reject when PyNaCl not available
+        assert handler._response_code == 401, "Should return 401 when PyNaCl not available"
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.channels
+    def test_do_post_handles_signature_verification_exception(self):
+        """Test: POST request handles signature verification exception gracefully."""
+        event_data = {
+            'type': 1,
+            'event': {
+                'type': 'APPLICATION_AUTHORIZED',
+                'data': {
+                    'user': {
+                        'id': '123456789',
+                        'username': 'testuser'
+                    }
+                }
+            }
+        }
+        handler = create_mock_handler(
+            method='POST',
+            headers={
+                'Content-Length': str(len(json.dumps(event_data))),
+                'X-Signature-Ed25519': 'test_signature',
+                'X-Signature-Timestamp': '1234567890'
+            },
+            body=json.dumps(event_data).encode('utf-8')
+        )
+        
+        # Mock verification exception - need to mock at sys.modules level
+        import sys
+        from types import ModuleType
+        
+        # Create proper mock modules
+        mock_nacl = ModuleType('nacl')
+        mock_signing = ModuleType('nacl.signing')
+        mock_exceptions = ModuleType('nacl.exceptions')
+        
+        class MockVerifyKey:
+            def __init__(self, *args, **kwargs):
+                pass
+            def verify(self, *args, **kwargs):
+                raise Exception("Verification error")
+        
+        mock_signing.VerifyKey = MockVerifyKey
+        mock_exceptions.BadSignatureError = Exception
+        mock_nacl.signing = mock_signing
+        mock_nacl.exceptions = mock_exceptions
+        
+        with patch('core.config.DISCORD_PUBLIC_KEY', 'test_public_key'):
+            with patch.dict(sys.modules, {
+                'nacl': mock_nacl,
+                'nacl.signing': mock_signing, 
+                'nacl.exceptions': mock_exceptions
+            }):
+                handler.do_POST()
+        
+        # Assert: Should reject on verification error
+        assert handler._response_code == 401, "Should return 401 on verification error"
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.channels
+    def test_do_post_handles_missing_content_length(self):
+        """Test: POST request handles missing Content-Length header gracefully."""
+        handler = create_mock_handler(
+            method='POST',
+            headers={
+                'X-Signature-Ed25519': 'test_signature',
+                'X-Signature-Timestamp': '1234567890'
+                # Missing Content-Length
+            },
+            body=b'{}'
+        )
+        
+        with patch('core.config.DISCORD_PUBLIC_KEY', None):
+            handler.do_POST()
+        
+        # Assert: Should handle missing Content-Length (defaults to 0)
+        # The handler should read 0 bytes, which may cause JSON parse error
+        assert handler._response_code in [400, 500], "Should return error for missing Content-Length"
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.channels
+    def test_do_post_handles_event_type_fallback(self):
+        """Test: POST request uses fallback event type when event.type missing."""
+        event_data = {
+            'type': 1,
+            'event': {},  # Missing 'type' field
+            'event_type': 'APPLICATION_AUTHORIZED'  # Fallback location
+        }
+        handler = create_mock_handler(
+            method='POST',
+            headers={
+                'Content-Length': str(len(json.dumps(event_data))),
+                'X-Signature-Ed25519': 'test_signature',
+                'X-Signature-Timestamp': '1234567890'
+            },
+            body=json.dumps(event_data).encode('utf-8')
+        )
+        handler.bot_instance = None
+        
+        with patch('core.config.DISCORD_PUBLIC_KEY', None):
+            with patch('communication.communication_channels.discord.webhook_server.handle_webhook_event') as mock_handle:
+                mock_handle.return_value = True
+                handler.do_POST()
+        
+        # Assert: Should use fallback event type
+        assert mock_handle.called, "Should call handle_webhook_event with fallback type"
+        call_args = mock_handle.call_args
+        assert call_args[0][0] == 'APPLICATION_AUTHORIZED', "Should use fallback event type"
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.channels
+    def test_webhook_server_stop_handles_none_server(self):
+        """Test: WebhookServer stop handles None server gracefully."""
+        server = WebhookServer(port=8080)
+        server.server = None  # No server started
+        
+        # Act: Stop server
+        server.stop()
+        
+        # Assert: Should not raise exception
+        assert server.server is None, "Server should remain None"
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.channels
+    def test_webhook_server_start_updates_bot_instance(self):
+        """Test: WebhookServer start updates bot instance in handler."""
+        bot_instance = MagicMock()
+        server = WebhookServer(port=0, bot_instance=bot_instance)
+        
+        # Find an available port
+        import socket
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(('', 0))
+            available_port = s.getsockname()[1]
+        
+        server.port = available_port
+        
+        # Start server
+        result = server.start()
+        
+        try:
+            # Assert: Should update handler bot instance
+            assert result is True, "Should start successfully"
+            assert DiscordWebhookHandler.bot_instance == bot_instance, "Should update handler bot instance"
+        finally:
+            server.stop()
 

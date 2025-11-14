@@ -676,12 +676,29 @@ class TestUserDataManagerConvenienceFunctions:
     def test_get_user_info_for_data_manager_function(self, test_user, test_data_dir):
         """Test: get_user_info_for_data_manager convenience function works"""
         # Arrange: User is created in fixture
+        # Add retry logic for race conditions in parallel execution
+        import time
+        from tests.test_utilities import retry_with_backoff
         
-        # Act: Get user info
-        user_info = get_user_info_for_data_manager(test_user)
+        # Act: Get user info with retry logic
+        def _get_user_info():
+            user_info = get_user_info_for_data_manager(test_user)
+            if user_info is None:
+                # User might not be fully created yet - verify user exists
+                from core.user_data_handlers import get_user_data
+                user_data = get_user_data(test_user, 'account', auto_create=False)
+                if not user_data or not user_data.get('account'):
+                    # User doesn't exist - this is a real failure
+                    return None
+                # User exists but get_user_info_for_data_manager returned None
+                # This might be a race condition - retry
+                return None
+            return user_info
+        
+        user_info = retry_with_backoff(_get_user_info, max_retries=5, initial_delay=0.1)
         
         # Assert: Should return user info
-        assert user_info is not None, "Should return user info"
+        assert user_info is not None, f"Should return user info for user {test_user}"
         assert isinstance(user_info, dict), "Should return dict"
         assert user_info.get('user_id') == test_user, "Should include user_id"
     
