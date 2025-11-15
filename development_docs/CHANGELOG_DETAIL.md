@@ -35,6 +35,55 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-01-14 - Test Coverage Expansion for User Preferences, UI Management, and Prompt Manager **COMPLETED**
+
+**Feature**: Expanded test coverage for three low-coverage modules by adding 102 new unit tests covering initialization, CRUD operations, error handling, and edge cases.
+
+**Technical Changes**:
+
+1. **User Preferences Module** (`user/user_preferences.py`):
+   - Created `tests/unit/test_user_preferences.py` with 26 new tests
+   - Covered `UserPreferences` class initialization and preference loading
+   - Tested preference CRUD operations: `set_preference`, `get_preference`, `update_preference`, `remove_preference`, `get_all_preferences`
+   - Tested schedule period management: `set_schedule_period_active`, `is_schedule_period_active`
+   - Added error handling tests for all methods with `@handle_errors` decorator
+   - Added edge case tests for missing data, invalid inputs, and error recovery scenarios
+
+2. **UI Management Module** (`core/ui_management.py`):
+   - Created `tests/unit/test_ui_management.py` with 27 new tests
+   - Covered widget management: `clear_period_widgets_from_layout`, `add_period_widget_to_layout`, `load_period_widgets_for_category`
+   - Covered data collection: `collect_period_data_from_widgets`
+   - Covered name conversion: `period_name_for_display`, `period_name_for_storage`
+   - Added error handling tests for all functions
+   - Added edge case tests for invalid inputs, missing widgets, and error recovery
+
+3. **Prompt Manager Module** (`ai/prompt_manager.py`):
+   - Created `tests/unit/test_prompt_manager.py` with 49 new tests
+   - Covered `PromptManager` initialization and custom prompt loading
+   - Tested prompt retrieval: `get_prompt`, `get_prompt_template`, `get_available_prompts`
+   - Tested template management: `add_prompt_template`, `remove_prompt_template`, `reload_custom_prompt`
+   - Covered contextual prompt creation: `create_contextual_prompt`, `create_task_prompt`, `create_checkin_prompt`
+   - Added comprehensive error handling tests for all methods
+   - Added edge case tests for missing files, invalid templates, and error recovery
+
+**Testing**:
+- All 102 new tests passing
+- Full test suite: 3,100 passed, 1 skipped, 0 failures
+- Tests follow real behavior testing patterns (verify actual system changes, not just return values)
+- Proper test isolation (no files written outside `tests/` directory)
+
+**Impact**: Significantly improved test coverage for three core system modules, increasing overall system reliability and change safety. All tests follow established patterns and maintain test suite stability.
+
+**Files Modified**:
+- `tests/unit/test_user_preferences.py` (new file, 26 tests)
+- `tests/unit/test_ui_management.py` (new file, 27 tests)
+- `tests/unit/test_prompt_manager.py` (new file, 49 tests)
+
+**Documentation Updates**:
+- Updated `TODO.md` to reflect 20 modules completed (486 total new tests)
+- Updated `development_docs/PLANS.md` with new coverage expansion plan entry
+- Updated both changelog files
+
 ### 2025-11-14 - Enhanced Discord Account Creation with Feature Selection **COMPLETED**
 
 **Feature**: Added feature selection and timezone configuration to Discord account creation flow, allowing users to choose which features to enable during account setup.

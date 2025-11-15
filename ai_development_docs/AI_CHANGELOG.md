@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-01-14 - Test Coverage Expansion for User Preferences, UI Management, and Prompt Manager **COMPLETED**
+- **Coverage Expansion**: Added 102 new unit tests across 3 low-coverage modules - `user/user_preferences.py` (26 tests), `core/ui_management.py` (27 tests), `ai/prompt_manager.py` (49 tests) - all tests passing
+- **Test Quality**: All new tests follow real behavior testing patterns, verify actual system changes, and maintain proper test isolation
+- **Test Results**: Full test suite stable at 3,100 passed tests (1 skipped) - all 102 new tests passing
+- **Impact**: Significantly improved test coverage for core system modules, increasing overall system reliability and change safety
+
 ### 2025-11-14 - Enhanced Discord Account Creation with Feature Selection **COMPLETED**
 - **Feature Selection**: Added multi-step Discord account creation flow with feature selection (tasks, checkins, automated messages) and timezone configuration - users can now choose features during setup
 - **Backward Compatibility**: Maintained defaults (tasks=True, checkins=True, messages=False) for existing account creation paths - all existing tests pass

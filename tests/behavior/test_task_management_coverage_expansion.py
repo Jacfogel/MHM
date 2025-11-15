@@ -38,6 +38,7 @@ from tasks.task_management import (
     get_tasks_due_soon,
     are_tasks_enabled,
     schedule_task_reminders,
+    cleanup_task_reminders,
     add_user_task_tag,
     remove_user_task_tag,
     setup_default_task_tags,
@@ -372,6 +373,183 @@ class TestTaskManagementCoverageExpansion:
         
         assert result is False
 
+    def test_update_task_disallowed_field_real_behavior(self, mock_user_data_dir, user_id):
+        """Test that updating with disallowed fields is skipped but update continues."""
+        # Create a task first
+        task_id = create_task(user_id, "Test Task", "Original Description")
+        
+        # Update with disallowed field (task_id, completed, created_at are not in allowed_fields)
+        updates = {
+            'title': 'Updated Title',
+            'task_id': 'new-id',  # Disallowed - should be skipped
+            'completed': True,  # Disallowed - should be skipped
+            'created_at': '2024-01-01'  # Disallowed - should be skipped
+        }
+        
+        result = update_task(user_id, task_id, updates)
+        
+        assert result is True  # Update should succeed with allowed fields
+        
+        # Verify only allowed fields were updated
+        tasks = load_active_tasks(user_id)
+        task = tasks[0]
+        assert task['title'] == 'Updated Title'  # Allowed field updated
+        assert task['task_id'] == task_id  # Disallowed field not updated
+        assert task['completed'] is False  # Disallowed field not updated
+        assert task['created_at'] != '2024-01-01'  # Disallowed field not updated
+
+    def test_update_task_invalid_priority_real_behavior(self, mock_user_data_dir, user_id):
+        """Test that invalid priority values are skipped but update continues."""
+        # Create a task first
+        task_id = create_task(user_id, "Test Task", priority="medium")
+        
+        # Update with invalid priority
+        updates = {
+            'title': 'Updated Title',
+            'priority': 'invalid_priority',  # Invalid - should be skipped
+            'description': 'Updated Description'
+        }
+        
+        result = update_task(user_id, task_id, updates)
+        
+        assert result is True  # Update should succeed with valid fields
+        
+        # Verify priority was not updated but other fields were
+        tasks = load_active_tasks(user_id)
+        task = tasks[0]
+        assert task['title'] == 'Updated Title'
+        assert task['description'] == 'Updated Description'
+        assert task['priority'] == 'medium'  # Should remain unchanged
+
+    def test_update_task_invalid_priority_case_sensitivity_real_behavior(self, mock_user_data_dir, user_id):
+        """Test that priority validation is case-insensitive."""
+        # Create a task first
+        task_id = create_task(user_id, "Test Task", priority="medium")
+        
+        # Update with valid priority but wrong case (should work due to .lower())
+        updates = {
+            'priority': 'HIGH'  # Valid when lowercased
+        }
+        
+        result = update_task(user_id, task_id, updates)
+        
+        assert result is True
+        
+        # Verify priority was updated (case-insensitive)
+        tasks = load_active_tasks(user_id)
+        task = tasks[0]
+        assert task['priority'] == 'HIGH'  # Stored as provided
+
+    def test_update_task_invalid_due_date_format_real_behavior(self, mock_user_data_dir, user_id):
+        """Test that invalid due_date format logs warning but update continues."""
+        # Create a task first
+        task_id = create_task(user_id, "Test Task", due_date="2024-12-31")
+        
+        # Update with invalid date format
+        updates = {
+            'title': 'Updated Title',
+            'due_date': 'invalid-date-format'  # Invalid format - warning logged but update continues
+        }
+        
+        result = update_task(user_id, task_id, updates)
+        
+        assert result is True  # Update should succeed despite invalid date format
+        
+        # Verify update was applied (invalid date is stored but warning was logged)
+        tasks = load_active_tasks(user_id)
+        task = tasks[0]
+        assert task['title'] == 'Updated Title'
+        assert task['due_date'] == 'invalid-date-format'  # Invalid date is still stored
+
+    def test_update_task_invalid_title_real_behavior(self, mock_user_data_dir, user_id):
+        """Test that invalid title updates are skipped but update continues."""
+        # Create a task first
+        task_id = create_task(user_id, "Original Title", "Original Description")
+        
+        # Update with invalid title (empty, None, or non-string)
+        updates = {
+            'title': '',  # Empty - should be skipped
+            'description': 'Updated Description'
+        }
+        
+        result = update_task(user_id, task_id, updates)
+        
+        assert result is True  # Update should succeed with valid fields
+        
+        # Verify title was not updated but description was
+        tasks = load_active_tasks(user_id)
+        task = tasks[0]
+        assert task['title'] == 'Original Title'  # Should remain unchanged
+        assert task['description'] == 'Updated Description'  # Valid field updated
+
+    def test_update_task_invalid_title_none_real_behavior(self, mock_user_data_dir, user_id):
+        """Test that None title is skipped."""
+        # Create a task first
+        task_id = create_task(user_id, "Original Title")
+        
+        # Update with None title
+        updates = {
+            'title': None,  # None - should be skipped
+            'priority': 'high'
+        }
+        
+        result = update_task(user_id, task_id, updates)
+        
+        assert result is True
+        
+        # Verify title was not updated
+        tasks = load_active_tasks(user_id)
+        task = tasks[0]
+        assert task['title'] == 'Original Title'
+        assert task['priority'] == 'high'  # Valid field updated
+
+    def test_update_task_reminder_scheduling_failure_real_behavior(self, mock_user_data_dir, user_id):
+        """Test that reminder scheduling failure doesn't fail the update."""
+        # Create a task first
+        task_id = create_task(user_id, "Test Task")
+        
+        # Update with reminder periods
+        updates = {
+            'title': 'Updated Title',
+            'reminder_periods': [
+                {'date': '2024-12-30', 'start_time': '09:00', 'end_time': '10:00'}
+            ]
+        }
+        
+        # Mock schedule_task_reminders to raise an exception
+        with patch('tasks.task_management.cleanup_task_reminders') as mock_cleanup, \
+             patch('tasks.task_management.schedule_task_reminders', side_effect=Exception("Scheduler error")) as mock_schedule:
+            
+            result = update_task(user_id, task_id, updates)
+            
+            # Update should succeed even if scheduling fails
+            assert result is True
+            mock_cleanup.assert_called_once_with(user_id, task_id)
+            mock_schedule.assert_called_once_with(user_id, task_id, updates['reminder_periods'])
+        
+        # Verify task was updated despite scheduling failure
+        tasks = load_active_tasks(user_id)
+        task = tasks[0]
+        assert task['title'] == 'Updated Title'
+        assert task['reminder_periods'] == updates['reminder_periods']  # Reminder periods saved
+
+    def test_update_task_save_failure_real_behavior(self, mock_user_data_dir, user_id):
+        """Test that save failure returns False."""
+        # Create a task first
+        task_id = create_task(user_id, "Test Task")
+        
+        # Mock save_active_tasks to return False
+        with patch('tasks.task_management.save_active_tasks', return_value=False):
+            updates = {'title': 'Updated Title'}
+            result = update_task(user_id, task_id, updates)
+            
+            assert result is False  # Should return False on save failure
+        
+        # Verify task was not updated (save failed)
+        tasks = load_active_tasks(user_id)
+        task = tasks[0]
+        assert task['title'] == 'Test Task'  # Should remain unchanged
+
     def test_complete_task_with_completion_data_real_behavior(self, mock_user_data_dir, user_id):
         """Test task completion with custom completion data."""
         # Create a task
@@ -427,6 +605,120 @@ class TestTaskManagementCoverageExpansion:
         result = complete_task(user_id, "non-existent-id")
         
         assert result is False
+
+    def test_complete_task_partial_completion_data_real_behavior(self, mock_user_data_dir, user_id):
+        """Test completion with partial completion_data (missing date/time)."""
+        # Create a task
+        task_id = create_task(user_id, "Test Task")
+        
+        # Complete with partial completion data (missing date/time)
+        completion_data = {
+            'completion_notes': 'Task completed successfully'
+            # Missing completion_date and completion_time
+        }
+        
+        with patch('tasks.task_management.cleanup_task_reminders') as mock_cleanup:
+            result = complete_task(user_id, task_id, completion_data)
+            
+            assert result is True
+            mock_cleanup.assert_called_once_with(user_id, task_id)
+        
+        # Verify task was completed with default timestamp
+        completed_tasks = load_completed_tasks(user_id)
+        assert len(completed_tasks) == 1
+        
+        task = completed_tasks[0]
+        assert task['completed'] is True
+        assert task['completed_at'] is not None  # Should use default timestamp
+        assert task['completion_notes'] == 'Task completed successfully'
+
+    def test_complete_task_save_failure_real_behavior(self, mock_user_data_dir, user_id):
+        """Test that save failure returns False."""
+        # Create a task
+        task_id = create_task(user_id, "Test Task")
+        
+        # Mock save operations to fail
+        with patch('tasks.task_management.save_active_tasks', return_value=False), \
+             patch('tasks.task_management.cleanup_task_reminders'):
+            result = complete_task(user_id, task_id)
+            
+            assert result is False  # Should return False on save failure
+        
+        # Verify task was not moved to completed (save failed)
+        active_tasks = load_active_tasks(user_id)
+        assert len(active_tasks) == 1  # Task should still be active
+        assert active_tasks[0]['task_id'] == task_id
+        assert active_tasks[0]['completed'] is False
+
+    def test_complete_task_save_completed_failure_real_behavior(self, mock_user_data_dir, user_id):
+        """Test that failure to save completed tasks returns False."""
+        # Create a task
+        task_id = create_task(user_id, "Test Task")
+        
+        # Track the original active tasks count
+        original_active = load_active_tasks(user_id)
+        assert len(original_active) == 1
+        
+        # Mock save_active_tasks to succeed but save_completed_tasks to fail
+        with patch('tasks.task_management.save_active_tasks', return_value=True) as mock_save_active, \
+             patch('tasks.task_management.save_completed_tasks', return_value=False) as mock_save_completed, \
+             patch('tasks.task_management.cleanup_task_reminders'):
+            result = complete_task(user_id, task_id)
+            
+            assert result is False  # Should return False when save_completed_tasks fails
+            # Verify save_active_tasks was called with updated list (without completed task)
+            mock_save_active.assert_called_once()
+            # Verify save_completed_tasks was called but failed
+            mock_save_completed.assert_called_once()
+        
+        # Note: Since we're mocking save operations, the actual file state won't change
+        # But we can verify the save operations were called with correct data
+        # The key is that the function returns False when save_completed_tasks fails
+
+    def test_complete_task_cleanup_failure_real_behavior(self, mock_user_data_dir, user_id):
+        """Test that cleanup failure doesn't fail the completion."""
+        # Create a task
+        task_id = create_task(user_id, "Test Task")
+        
+        # Mock cleanup_task_reminders to return False (but completion should still succeed)
+        with patch('tasks.task_management.cleanup_task_reminders', return_value=False):
+            result = complete_task(user_id, task_id)
+            
+            # Completion should succeed even if cleanup fails
+            assert result is True
+        
+        # Verify task was completed despite cleanup failure
+        completed_tasks = load_completed_tasks(user_id)
+        assert len(completed_tasks) == 1
+        assert completed_tasks[0]['completed'] is True
+
+    def test_complete_task_recurring_creation_failure_real_behavior(self, mock_user_data_dir, user_id):
+        """Test that recurring task creation failure doesn't fail the completion."""
+        # Create a recurring task
+        task_id = create_task(
+            user_id,
+            "Recurring Task",
+            recurrence_pattern="daily",
+            recurrence_interval=1,
+            repeat_after_completion=True
+        )
+        
+        # Mock _create_next_recurring_task_instance to return False
+        with patch('tasks.task_management.cleanup_task_reminders'), \
+             patch('tasks.task_management._create_next_recurring_task_instance', return_value=False):
+            result = complete_task(user_id, task_id)
+            
+            # Completion should succeed even if recurring task creation fails
+            assert result is True
+        
+        # Verify task was completed despite recurring task creation failure
+        completed_tasks = load_completed_tasks(user_id)
+        assert len(completed_tasks) == 1
+        assert completed_tasks[0]['completed'] is True
+        
+        # Verify no new recurring task was created
+        active_tasks = load_active_tasks(user_id)
+        assert len(active_tasks) == 0  # No new recurring task instance
 
     def test_restore_task_real_behavior(self, mock_user_data_dir, user_id):
         """Test task restoration from completed to active."""
@@ -568,6 +860,76 @@ class TestTaskManagementCoverageExpansion:
         
         assert due_soon_tasks == []
 
+    def test_get_tasks_due_soon_boundary_condition_real_behavior(self, mock_user_data_dir, user_id):
+        """Test get_tasks_due_soon with tasks exactly at cutoff_date."""
+        # Create tasks with different due dates
+        today = datetime.now().date()
+        exactly_cutoff = (today + timedelta(days=7)).strftime('%Y-%m-%d')  # Exactly 7 days ahead
+        just_over = (today + timedelta(days=8)).strftime('%Y-%m-%d')  # Just over 7 days
+        
+        id_exact = create_task(user_id, "Exact Cutoff Task", due_date=exactly_cutoff)
+        id_over = create_task(user_id, "Over Cutoff Task", due_date=just_over)
+        
+        # Get tasks due within 7 days
+        due_soon_tasks = get_tasks_due_soon(user_id, days_ahead=7)
+        
+        # Should include task exactly at cutoff (<= cutoff_date)
+        task_ids = [task['task_id'] for task in due_soon_tasks]
+        assert id_exact in task_ids  # Exactly at cutoff should be included
+        assert id_over not in task_ids  # Just over should not be included
+
+    def test_get_tasks_due_soon_sorting_real_behavior(self, mock_user_data_dir, user_id):
+        """Test that get_tasks_due_soon returns tasks sorted by due_date."""
+        today = datetime.now().date()
+        dates = [
+            (today + timedelta(days=5)).strftime('%Y-%m-%d'),
+            (today + timedelta(days=2)).strftime('%Y-%m-%d'),
+            (today + timedelta(days=7)).strftime('%Y-%m-%d'),
+            (today + timedelta(days=1)).strftime('%Y-%m-%d')
+        ]
+        
+        # Create tasks with different due dates
+        for i, date in enumerate(dates):
+            create_task(user_id, f"Task {i}", due_date=date)
+        
+        # Get tasks due within 7 days
+        due_soon_tasks = get_tasks_due_soon(user_id, days_ahead=7)
+        
+        # Verify tasks are sorted by due_date
+        assert len(due_soon_tasks) == 4
+        due_dates = [task['due_date'] for task in due_soon_tasks]
+        assert due_dates == sorted(due_dates)  # Should be sorted ascending
+
+    def test_are_tasks_enabled_missing_account_data_real_behavior(self, mock_user_data_dir, user_id):
+        """Test are_tasks_enabled with missing account data."""
+        # Mock get_user_data to return empty result
+        with patch('tasks.task_management.get_user_data', return_value={}):
+            result = are_tasks_enabled(user_id)
+            
+            assert result is False  # Should return False when account data is missing
+
+    def test_are_tasks_enabled_invalid_account_structure_real_behavior(self, mock_user_data_dir, user_id):
+        """Test are_tasks_enabled with invalid account structure."""
+        # Mock get_user_data to return invalid structure
+        with patch('tasks.task_management.get_user_data', return_value={'account': None}):
+            result = are_tasks_enabled(user_id)
+            
+            assert result is False  # Should return False with invalid structure
+
+    def test_ensure_task_directory_non_string_user_id_real_behavior(self, mock_user_data_dir):
+        """Test ensure_task_directory with non-string user_id."""
+        # Test with integer user_id
+        result = ensure_task_directory(123)
+        assert result is False
+        
+        # Test with None user_id
+        result = ensure_task_directory(None)
+        assert result is False
+        
+        # Test with dict user_id
+        result = ensure_task_directory({'id': 'test'})
+        assert result is False
+
     # ============================================================================
     # Task Status and Feature Tests
     # ============================================================================
@@ -635,8 +997,97 @@ class TestTaskManagementCoverageExpansion:
         
         assert result is True
 
-    # Task reminder cleanup tests removed - function no longer exists
-    # Task reminders are now managed consistently with other jobs
+    def test_schedule_task_reminders_scheduler_method_failure_real_behavior(self, mock_user_data_dir, user_id):
+        """Test that scheduler method failure is handled gracefully."""
+        # Create a task
+        task_id = create_task(user_id, "Test Task")
+        
+        reminder_periods = [
+            {'date': '2024-12-30', 'start_time': '09:00', 'end_time': '10:00'},
+            {'date': '2024-12-31', 'start_time': '10:00', 'end_time': '11:00'}
+        ]
+        
+        # Mock scheduler manager with method that returns False
+        mock_scheduler = Mock()
+        mock_scheduler.schedule_task_reminder_at_datetime.return_value = False
+        
+        with patch('core.service.get_scheduler_manager', return_value=mock_scheduler):
+            result = schedule_task_reminders(user_id, task_id, reminder_periods)
+            
+            # Should return False if no reminders were scheduled
+            assert result is False
+            assert mock_scheduler.schedule_task_reminder_at_datetime.call_count == 2
+
+    def test_schedule_task_reminders_partial_success_real_behavior(self, mock_user_data_dir, user_id):
+        """Test that partial scheduling success returns True."""
+        # Create a task
+        task_id = create_task(user_id, "Test Task")
+        
+        reminder_periods = [
+            {'date': '2024-12-30', 'start_time': '09:00', 'end_time': '10:00'},
+            {'date': '2024-12-31', 'start_time': '10:00', 'end_time': '11:00'}
+        ]
+        
+        # Mock scheduler manager with mixed success/failure
+        mock_scheduler = Mock()
+        mock_scheduler.schedule_task_reminder_at_datetime.side_effect = [True, False]  # First succeeds, second fails
+        
+        with patch('core.service.get_scheduler_manager', return_value=mock_scheduler):
+            result = schedule_task_reminders(user_id, task_id, reminder_periods)
+            
+            # Should return True if at least one reminder was scheduled
+            assert result is True
+            assert mock_scheduler.schedule_task_reminder_at_datetime.call_count == 2
+
+    def test_schedule_task_reminders_exception_handling_real_behavior(self, mock_user_data_dir, user_id):
+        """Test that exceptions during scheduling are handled."""
+        # Create a task
+        task_id = create_task(user_id, "Test Task")
+        
+        reminder_periods = [
+            {'date': '2024-12-30', 'start_time': '09:00', 'end_time': '10:00'}
+        ]
+        
+        # Mock scheduler manager to raise exception
+        mock_scheduler = Mock()
+        mock_scheduler.schedule_task_reminder_at_datetime.side_effect = Exception("Scheduler error")
+        
+        with patch('core.service.get_scheduler_manager', return_value=mock_scheduler):
+            result = schedule_task_reminders(user_id, task_id, reminder_periods)
+            
+            # Should return False on exception
+            assert result is False
+
+    def test_cleanup_task_reminders_scheduler_failure_real_behavior(self, mock_user_data_dir, user_id):
+        """Test that cleanup failure returns False."""
+        # Create a task
+        task_id = create_task(user_id, "Test Task")
+        
+        # Mock scheduler manager with cleanup that returns False
+        mock_scheduler = Mock()
+        mock_scheduler.cleanup_task_reminders.return_value = False
+        
+        with patch('core.service.get_scheduler_manager', return_value=mock_scheduler):
+            result = cleanup_task_reminders(user_id, task_id)
+            
+            # Should return False when cleanup fails
+            assert result is False
+            mock_scheduler.cleanup_task_reminders.assert_called_once_with(user_id, task_id)
+
+    def test_cleanup_task_reminders_exception_handling_real_behavior(self, mock_user_data_dir, user_id):
+        """Test that exceptions during cleanup are handled."""
+        # Create a task
+        task_id = create_task(user_id, "Test Task")
+        
+        # Mock scheduler manager to raise exception
+        mock_scheduler = Mock()
+        mock_scheduler.cleanup_task_reminders.side_effect = Exception("Cleanup error")
+        
+        with patch('core.service.get_scheduler_manager', return_value=mock_scheduler):
+            result = cleanup_task_reminders(user_id, task_id)
+            
+            # Should return False on exception
+            assert result is False
 
     # ============================================================================
     # Task Tag Management Tests

@@ -502,7 +502,7 @@
     "issues": []
   },
   "core/user_management.py": {
-    "mtime": 1762928795.6160533,
+    "mtime": 1763156885.339243,
     "issues": []
   },
   "run_headless_service.py": {
@@ -621,7 +621,7 @@
     ]
   },
   "tests/ai/test_context_includes_recent_messages.py": {
-    "mtime": 1762149046.2553408,
+    "mtime": 1763163717.8493161,
     "issues": [
       {
         "type": "warning",
@@ -998,7 +998,7 @@
     "issues": []
   },
   "tests/behavior/test_enhanced_command_parser_behavior.py": {
-    "mtime": 1762340104.1412475,
+    "mtime": 1763164086.7777596,
     "issues": []
   },
   "tests/behavior/test_error_handling_coverage_expansion_phase3_final.py": {
@@ -1211,7 +1211,7 @@
     "issues": []
   },
   "tests/behavior/test_response_tracking_behavior.py": {
-    "mtime": 1760683707.2033527,
+    "mtime": 1763162982.5208335,
     "issues": []
   },
   "tests/behavior/test_schedule_handler_behavior.py": {
@@ -1276,7 +1276,7 @@
     ]
   },
   "tests/behavior/test_service_behavior.py": {
-    "mtime": 1762656733.9745507,
+    "mtime": 1763165325.49245,
     "issues": []
   },
   "tests/behavior/test_service_utilities_behavior.py": {
@@ -1314,7 +1314,7 @@
     ]
   },
   "tests/behavior/test_task_management_coverage_expansion.py": {
-    "mtime": 1762844798.1551995,
+    "mtime": 1763191318.8127885,
     "issues": []
   },
   "tests/behavior/test_task_suggestion_relevance.py": {
@@ -2997,7 +2997,7 @@
     "issues": []
   },
   "tests/ui/test_ui_app_qt_main.py": {
-    "mtime": 1763074763.6334305,
+    "mtime": 1763162982.5212908,
     "issues": [
       {
         "type": "warning",
@@ -4152,7 +4152,7 @@
     "issues": []
   },
   "tests/unit/test_user_data_manager.py": {
-    "mtime": 1763074525.7405517,
+    "mtime": 1763164475.8964658,
     "issues": [
       {
         "type": "warning",
@@ -4235,7 +4235,7 @@
     ]
   },
   "tests/unit/test_user_management.py": {
-    "mtime": 1762941702.308705,
+    "mtime": 1763164475.8964658,
     "issues": [
       {
         "type": "warning",
@@ -4351,15 +4351,15 @@
     "issues": []
   },
   "communication/command_handlers/account_handler.py": {
-    "mtime": 1763025858.6006248,
+    "mtime": 1763156885.3382342,
     "issues": [
       {
         "type": "warning",
         "module": "communication.command_handlers.account_handler",
         "obj": "",
-        "line": 370,
+        "line": 380,
         "column": 0,
-        "endLine": 370,
+        "endLine": 380,
         "endColumn": 11,
         "path": "communication\\command_handlers\\account_handler.py",
         "symbol": "unused-import",
@@ -4369,7 +4369,7 @@
     ]
   },
   "communication/communication_channels/discord/account_flow_handler.py": {
-    "mtime": 1763024699.7487028,
+    "mtime": 1763156885.3382342,
     "issues": [
       {
         "type": "warning",
@@ -4643,7 +4643,7 @@
     ]
   },
   "tests/behavior/test_task_error_handling.py": {
-    "mtime": 1762994202.055851,
+    "mtime": 1763164646.5440712,
     "issues": [
       {
         "type": "warning",
@@ -4963,29 +4963,15 @@
     ]
   },
   "tests/behavior/test_account_handler_behavior.py": {
-    "mtime": 1763073455.2489588,
+    "mtime": 1763162472.004265,
     "issues": []
   },
   "tests/behavior/test_webhook_handler_behavior.py": {
-    "mtime": 1763073455.2489588,
-    "issues": [
-      {
-        "type": "warning",
-        "module": "test_webhook_handler_behavior",
-        "obj": "",
-        "line": 10,
-        "column": 0,
-        "endLine": 10,
-        "endColumn": 14,
-        "path": "tests\\behavior\\test_webhook_handler_behavior.py",
-        "symbol": "unused-import",
-        "message": "Unused import asyncio",
-        "message-id": "W0611"
-      }
-    ]
+    "mtime": 1763127058.80785,
+    "issues": []
   },
   "tests/behavior/test_webhook_server_behavior.py": {
-    "mtime": 1763073647.5080867,
+    "mtime": 1763127058.8088505,
     "issues": [
       {
         "type": "warning",
@@ -5042,7 +5028,7 @@
     ]
   },
   "tests/behavior/test_welcome_handler_behavior.py": {
-    "mtime": 1763074134.902963,
+    "mtime": 1763126946.7648332,
     "issues": [
       {
         "type": "warning",
@@ -5060,7 +5046,7 @@
     ]
   },
   "tests/behavior/test_welcome_manager_behavior.py": {
-    "mtime": 1763074134.902963,
+    "mtime": 1763127058.8098514,
     "issues": [
       {
         "type": "warning",

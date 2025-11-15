@@ -73,22 +73,6 @@ When adding new tasks, follow this format:
     - [ ] Test context enhancement effectiveness
     - [ ] Validate personalization improvements
 
-**Discord Send Retry Monitoring** [OK] **COMPLETED**
-- *What it means*: Verify queued retry behavior on disconnects and that check-in starts log only after successful delivery.
-- *Why it helps*: Prevents lost messages and duplicate check-in starts.
-- *Status*: Completed verification and testing on 2025-11-10:
-  - Verified scheduled check-ins log "User check-in started" only after successful send (channel_orchestrator.py:1044-1049)
-  - Confirmed retry mechanism exists via RetryManager (communication/core/retry_manager.py)
-  - Verified failed messages are queued when send fails (send_message_sync queues failed messages when channel not ready)
-  - Created comprehensive test suite `tests/behavior/test_discord_checkin_retry_behavior.py` with 5 passing tests:
-    - test_checkin_message_queued_on_discord_disconnect: Verifies messages queue when Discord disconnects
-    - test_checkin_started_logged_once_after_successful_send: Verifies single log entry after successful send
-    - test_checkin_started_not_logged_on_failed_send: Verifies no log entry on failed send
-    - test_checkin_retry_after_discord_reconnect: Verifies retry mechanism works after reconnect
-    - test_multiple_checkin_attempts_only_log_once: Verifies multiple attempts only log once
-  - **Note**: Manual check-in path (conversation_flow_manager.py:225) logs before sending - this is a separate code path for user-initiated check-ins, not scheduled ones
-
-
 **Pydantic Schema Adoption Follow-ups**
 - *What it means*: We added tolerant Pydantic models. Expand usage safely across other save/load paths.
 - *Why it helps*: Stronger validation and normalized data.
@@ -98,15 +82,6 @@ When adding new tasks, follow this format:
   - [ ] Add unit tests for `validate_*_dict` helpers with edge-case payloads (extras, nulls, invalid times/days)
   - [ ] Add behavior tests for end-to-end save/load normalization
   - [ ] Add read-path normalization invocation to remaining reads that feed business logic (sweep `core/` and `communication/`)
-
-**Discord Task Edit Follow-ups and Suggestion Relevance** [OK] **COMPLETED**
-- *What it means*: Ensure edit-task prompts are actionable, suppress irrelevant suggestions, and add coverage for common follow-ups
-- *Why it helps*: Reduces confusion and makes conversations efficient
-- *Estimated effort*: Small/Medium
-- *Subtasks*:
-  - [x] Behavior tests: edit task by name then change due date (natural language variations: "due date", "due")
-  - [x] Behavior tests: verify no generic suggestions accompany targeted "what would you like to update" prompts
-  - [x] Behavior tests: list tasks ? edit task flow ensures "which task" is asked when not specified
 
 **Channel-Agnostic Command Registry Follow-ups**
 - *What it means*: Finalize and monitor the new centralized command system and Discord integrations
@@ -133,24 +108,13 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+### **Flaky Test: Response Tracking Concurrent Access** [WARNING] **INVESTIGATE**
+**Location**: `tests/behavior/test_response_tracking_behavior.py::TestResponseTrackingIntegration::test_response_tracking_concurrent_access_safety`  
+**Issue**: Timing/race condition in concurrent file access - test expects 2 items after write but gets 0  
+**Category**: Flaky test (pre-existing, unrelated to recent changes)  
+**Status**: Fails intermittently under parallel execution  
+**Next Steps**: Investigate file I/O timing, consider marking as flaky or fixing race condition
 
-**Optimize Audit System Performance**
-- *What it means*: Explore the audit system and adjust it so it runs in under 10 minutes (currently takes ~18-20 minutes)
-- *Why it helps*: Significantly improves workflow efficiency and makes full audits more practical for regular use
-- *Estimated effort*: Medium
-- *Areas to investigate*:
-  - Unused imports checker (currently ~7-8 minutes) - explore parallelization, caching, or incremental scanning
-  - Coverage regeneration (currently ~10 minutes) - explore parallel test execution or selective coverage
-  - Other contributing tools that may be slow
-
-**Accelerate Test Suite Execution**
-- *What it means*: Explore options to accelerate test runs further, possibly by using more parallel workers or optimizing test execution
-- *Why it helps*: Faster feedback loops improve development speed and make testing more practical
-- *Estimated effort*: Medium
-- *Areas to investigate*:
-  - Increase pytest parallel workers (currently using `-n auto`)
-  - Optimize slow tests or add pytest marks for better parallelization
-  - Profile test execution to identify bottlenecks
 
 **Fix Flaky Tests in Parallel Execution Mode** [OK] **COMPLETED** (2025-11-13)
 - *What it means*: Investigate and fix tests that fail when run in parallel mode (`-n auto` with pytest-xdist) but pass when run sequentially
@@ -202,30 +166,6 @@ When adding new tasks, follow this format:
   - [ ] Fix file locking issues in test log cleanup/setup
   - [ ] Consider marking tests that require serial execution with `@pytest.mark.serial` (if pytest-xdist supports it) or grouping them separately
   - [ ] Review `--dist=loadscope` distribution strategy - may need `--dist=worksteal` or custom grouping
-
-**Investigate Discord Checkin Retry Queue Logic Issue** - Separate Investigation Required
-- *What it means*: Multiple Discord checkin retry tests are failing due to logic issues in the communication manager, not race conditions.
-- *Why it helps*: Ensures check-in messages are properly queued for retry when Discord disconnects, preventing lost messages, and ensures proper logging behavior.
-- *Estimated effort*: Medium
-- *Status*: Needs investigation - multiple tests consistently failing
-- *Test Details*:
-  - Test 1: `tests/behavior/test_discord_checkin_retry_behavior.py::TestDiscordCheckinRetryBehavior::test_checkin_message_queued_on_discord_disconnect`
-    - Issue: When Discord bot `is_ready()` returns `False`, `handle_message_sending()` should queue the message for retry, but queue remains empty
-    - Observed: 2025-11-12, multiple test runs (not race condition - consistent failure)
-  - Test 2: `tests/behavior/test_discord_checkin_retry_behavior.py::TestDiscordCheckinRetryBehavior::test_checkin_started_logged_once_after_successful_send`
-    - Issue: "User check-in started" log message is not being logged when message is successfully sent (expected exactly 1 log, got 0)
-    - Observed: 2025-11-12, multiple test runs (not race condition - consistent failure)
-    - Note: Test mocks `send_message_sync` to return `True`, but log message is not captured by mocked logger
-- *Investigation Steps*:
-  - [ ] Review `communication.core.channel_orchestrator.CommunicationManager.handle_message_sending()` implementation
-  - [ ] Check if logging happens before or after message send, and if mocking affects log capture
-  - [ ] Verify that queue logic is correctly implemented for disconnected channels
-  - [ ] Check if `send_message_sync` properly detects `is_ready() == False` and queues messages
-  - [ ] Verify `RetryManager` queue mechanism is being called correctly
-  - [ ] Check if message type "checkin" has special handling that might bypass retry queue
-  - [ ] Review test setup - ensure mock Discord bot is properly configured
-  - [ ] Test with real Discord disconnect scenario to verify behavior
-  - [ ] Check logs for any errors or warnings during message send attempt
 
 **AI Chatbot Actionability Sprint** - Plan and implement actionable AI responses
 - *What it means*: Improve AI chat quality and enable robust task/message/profile CRUD, with awareness of recent automated messages and targeted, non-conflicting suggestions.
@@ -462,7 +402,8 @@ When adding new tasks, follow this format:
 - *What it means*: Continue expanding test coverage for remaining low-coverage modules
 - *Why it helps*: Increases reliability and change safety for core system components
 - *Estimated effort*: Large
-- *Current Status*: 17 modules completed (384 new tests added total, all passing) - see changelogs for details
+- *Current Status*: 20 modules completed (486 new tests added total, all passing) - see changelogs for details
+  - **Latest additions** (2025-01-14): `user/user_preferences.py` (26 tests), `core/ui_management.py` (27 tests), `ai/prompt_manager.py` (49 tests)
 - *Next Targets*:
   - [ ] Expand coverage for `ui/ui_app_qt.py` (33% coverage, 1095 lines) - Large module
   - [ ] Expand coverage for `core/scheduler.py` (65% -> 80%+)
