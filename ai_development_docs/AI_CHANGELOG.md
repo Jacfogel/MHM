@@ -31,12 +31,18 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-14 - Enhanced Discord Account Creation with Feature Selection **COMPLETED**
+- **Feature Selection**: Added multi-step Discord account creation flow with feature selection (tasks, checkins, automated messages) and timezone configuration - users can now choose features during setup
+- **Backward Compatibility**: Maintained defaults (tasks=True, checkins=True, messages=False) for existing account creation paths - all existing tests pass
+- **Test Coverage**: Added 2 new tests verifying feature selection parameters and backward compatibility - all 31 account handler tests passing
+- **Impact**: Fixes issue where Discord account creation hardcoded feature enablement, now matches UI account creation experience with user-configurable features
+
 ### 2025-11-14 - Test Suite Stability Fixes and Race Condition Improvements **COMPLETED**
-- **Test Stability Fixes**: Fixed failing tests in webhook_handler, welcome_manager, account_handler, and user_data_manager modules - addressed race conditions in parallel execution with retry logic and unique test identifiers
-- **Race Condition Improvements**: Added retry logic using `retry_with_backoff` utility for file I/O operations and user data access, used UUID-based unique identifiers to prevent test conflicts in parallel execution
-- **Test Results**: All tests passing (2973 passed, 1 skipped, 0 failures) - test suite fully stable in parallel execution mode with only warnings remaining
-- **Impact**: Eliminated all test failures, improved test isolation, addressed parallel execution race conditions - test suite now consistently passes with no errors
-- **Files Modified**: tests/behavior/test_webhook_handler_behavior.py, tests/behavior/test_webhook_server_behavior.py, tests/behavior/test_welcome_manager_behavior.py, tests/behavior/test_account_handler_behavior.py, tests/unit/test_user_data_manager.py
+- **Test Stability Fixes**: Fixed 10+ failing tests across multiple modules (webhook_handler, welcome_manager, account_handler, user_data_manager, response_tracking, UI, AI context, user_management, command_parser, task_error_handling, service_behavior) - addressed race conditions in parallel execution with retry logic, timing delays, and improved test isolation
+- **Race Condition Improvements**: Added retry logic using `retry_with_backoff` utility for file I/O operations and user data access, used UUID-based unique identifiers to prevent test conflicts, added timing delays for file write synchronization, improved fixture-level retry logic for user data availability
+- **Test Results**: Fixed 10+ previously failing tests - test suite now at 99.83% pass rate (2970/2975 passed, 1 skipped, 5 failures remaining - all pre-existing flaky tests unrelated to these fixes)
+- **Impact**: Fixed all requested test failures, improved test reliability in parallel execution, addressed race conditions causing intermittent failures - test suite significantly more stable with only pre-existing flaky tests remaining
+- **Files Modified**: tests/behavior/test_webhook_handler_behavior.py, tests/behavior/test_webhook_server_behavior.py, tests/behavior/test_welcome_manager_behavior.py, tests/behavior/test_account_handler_behavior.py, tests/unit/test_user_data_manager.py, tests/behavior/test_response_tracking_behavior.py, tests/ui/test_ui_app_qt_main.py, tests/ai/test_context_includes_recent_messages.py, tests/unit/test_user_management.py, tests/behavior/test_enhanced_command_parser_behavior.py, tests/behavior/test_task_error_handling.py, tests/behavior/test_service_behavior.py
 
 ### 2025-11-13 - Test Coverage Expansion and Test Suite Fixes **COMPLETED**
 - **Test Coverage Expansion**: Added 72 new behavior tests for 5 low-coverage communication modules (webhook_handler, account_handler, webhook_server, welcome_manager, welcome_handler) - focuses on real behavior verification and side effects

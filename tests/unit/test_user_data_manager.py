@@ -348,6 +348,9 @@ class TestUserDataManagerIndex:
     @pytest.fixture
     def test_user(self, test_data_dir):
         """Create test user."""
+        from tests.test_utilities import retry_with_backoff
+        from core.user_data_handlers import get_user_data
+        
         user_id = "test_index_user"
         TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
@@ -355,6 +358,26 @@ class TestUserDataManagerIndex:
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
+        
+        # Wait for account file to be created with retry logic
+        # For minimal users, the account file might not have internal_username immediately
+        def check_account():
+            user_data = get_user_data(actual_user_id, 'account', auto_create=False)
+            user_account = user_data.get('account') or {}
+            # Check if account file exists (even if internal_username is not set yet for minimal users)
+            if user_account or os.path.exists(get_user_file_path(actual_user_id, 'account')):
+                return actual_user_id
+            raise ValueError(f"User account data not available for {actual_user_id}")
+        
+        # Retry to ensure account file is available (with more lenient check for minimal users)
+        from core.config import get_user_file_path
+        import os
+        retry_with_backoff(
+            check_account,
+            max_retries=10,
+            initial_delay=0.1,
+            backoff_factor=1.5
+        )
         
         return actual_user_id
     
@@ -366,21 +389,26 @@ class TestUserDataManagerIndex:
         # Ensure user data is available (race condition fix for parallel execution)
         import time
         from core.user_data_handlers import get_user_data
+        from tests.test_utilities import retry_with_backoff
         
-        # Wait for user account data to be available
-        max_retries = 5
-        user_account = None
-        for attempt in range(max_retries):
+        # Wait for user account data to be available with retry logic
+        def check_user_account():
             user_data = get_user_data(test_user, 'account', auto_create=False)
             user_account = user_data.get('account') or {}
             if user_account and user_account.get('internal_username'):
-                break
-            if attempt < max_retries - 1:
-                time.sleep(0.1)
+                return user_account
+            raise ValueError(f"User account data not available for {test_user}")
+        
+        user_account = retry_with_backoff(
+            check_user_account,
+            max_retries=10,
+            initial_delay=0.1,
+            backoff_factor=1.5
+        )
         
         # Verify user account exists before proceeding
         assert user_account and user_account.get('internal_username'), \
-            f"User account data not available for {test_user} after {max_retries} attempts"
+            f"User account data not available for {test_user} after retries"
         
         # Act: Update user index
         result = manager.update_user_index(test_user)
@@ -599,18 +627,40 @@ class TestUserDataManagerConvenienceFunctions:
         # Arrange: User is created in fixture
         
         # Ensure user data is available (race condition fix for parallel execution)
-        import time
-        time.sleep(0.1)
+        from tests.test_utilities import retry_with_backoff
         
-        # Act: Update message references
-        # Retry in case of race conditions with file writes in parallel execution
-        result = False
-        for attempt in range(5):
+        # Wait for user account data to be available with retry logic
+        def check_user_account():
+            from core.user_data_handlers import get_user_data
+            user_data = get_user_data(test_user, 'account', auto_create=False)
+            user_account = user_data.get('account') or {}
+            if user_account and user_account.get('internal_username'):
+                return user_account
+            raise ValueError(f"User account data not available for {test_user}")
+        
+        # Ensure user account exists before proceeding
+        user_account = retry_with_backoff(
+            check_user_account,
+            max_retries=10,
+            initial_delay=0.1,
+            backoff_factor=1.5
+        )
+        assert user_account and user_account.get('internal_username'), \
+            f"User account data not available for {test_user} after retries"
+        
+        # Act: Update message references with retry logic
+        def update_references():
             result = update_message_references(test_user)
             if result:
-                break
-            if attempt < 4:
-                time.sleep(0.1)  # Brief delay before retry
+                return result
+            raise ValueError(f"update_message_references returned False for {test_user}")
+        
+        result = retry_with_backoff(
+            update_references,
+            max_retries=10,
+            initial_delay=0.1,
+            backoff_factor=1.5
+        )
         
         # Assert: Should return True
         assert result == True, f"Should return True on success. Got: {result}"

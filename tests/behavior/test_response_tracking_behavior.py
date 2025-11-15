@@ -593,23 +593,35 @@ class TestResponseTrackingIntegration:
     
     def test_response_tracking_concurrent_access_safety(self, test_data_dir):
         """Test that response tracking handles concurrent access safely."""
+        import time
+        import os
         user_id = "test-user-concurrent"
         
         # Arrange - Mock file path to use test directory
         checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
         
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(checkins_file), exist_ok=True)
+        
         # Create initial data with explicit timestamp to control sorting
         with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
             store_user_response(user_id, {"mood": 5, "timestamp": "2025-01-01 10:00:00"}, "checkin")
+        
+        # Small delay to ensure file is written
+        time.sleep(0.05)
         
         # Act - Simulate concurrent access by reading and writing simultaneously
         # This tests that the file operations are thread-safe
         with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
             recent1 = get_recent_responses(user_id, "checkin", limit=5)
             store_user_response(user_id, {"mood": 7, "timestamp": "2025-01-02 10:00:00"}, "checkin")
+            
+            # Small delay to ensure file is written before second read
+            time.sleep(0.05)
+            
             recent2 = get_recent_responses(user_id, "checkin", limit=5)
         
         # Assert - Both operations should work correctly
-        assert len(recent1) == 1, "First read should work"
-        assert len(recent2) == 2, "Second read should include new data"
+        assert len(recent1) == 1, f"First read should work, got {len(recent1)} items"
+        assert len(recent2) == 2, f"Second read should include new data, got {len(recent2)} items"
         assert recent2[0]["mood"] == 7, "Should see most recent data first (newer timestamp)" 

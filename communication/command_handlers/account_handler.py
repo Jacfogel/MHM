@@ -79,14 +79,24 @@ class AccountManagementHandler(InteractionHandler):
         channel_identifier = entities.get('channel_identifier', '')
         channel_type = entities.get('channel_type', 'discord')
         
+        # Extract feature selection (default to True for backward compatibility)
+        tasks_enabled = entities.get('tasks_enabled', True)
+        checkins_enabled = entities.get('checkins_enabled', True)
+        messages_enabled = entities.get('messages_enabled', False)
+        timezone = entities.get('timezone', 'America/Regina')
+        
         # Create the account
         try:
+            # Categories should be empty list initially (user can add categories later via UI)
+            # The messages_enabled flag will be used to set automated_messages feature
             user_data = {
                 'internal_username': username,
-                'categories': [],
-                'task_settings': {'enabled': True},
-                'checkin_settings': {'enabled': True},
-                'channel': {'type': channel_type}
+                'categories': [],  # Start with empty - user can add categories later
+                'task_settings': {'enabled': tasks_enabled},
+                'checkin_settings': {'enabled': checkins_enabled},
+                'channel': {'type': channel_type},
+                'timezone': timezone,
+                'messages_enabled': messages_enabled  # Explicit flag for automated_messages feature
             }
             
             # Add channel-specific identifier

@@ -104,6 +104,100 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
+    def test_handle_create_account_with_feature_selection(self, test_data_dir):
+        """Test: Create account with feature selection parameters sets correct feature flags."""
+        handler = AccountManagementHandler()
+        
+        # Clear any existing user
+        discord_user_id = "999888777666555444"
+        existing_user_id = get_user_id_by_identifier(discord_user_id)
+        if existing_user_id:
+            from core.user_management import remove_user
+            remove_user(existing_user_id)
+        
+        parsed_command = ParsedCommand(
+            intent='create_account',
+            entities={
+                'username': 'featuretestuser',
+                'channel_identifier': discord_user_id,
+                'channel_type': 'discord',
+                'tasks_enabled': False,
+                'checkins_enabled': True,
+                'messages_enabled': True,
+                'timezone': 'America/New_York'
+            },
+            confidence=0.9,
+            original_message='create account'
+        )
+        
+        response = handler.handle(discord_user_id, parsed_command)
+        
+        # Assert: Should create account successfully
+        assert response.completed is True, "Should complete account creation"
+        
+        # Verify user was created
+        created_user_id = get_user_id_by_identifier(discord_user_id)
+        assert created_user_id is not None, "User should be created"
+        
+        # Verify feature flags are set correctly
+        user_data = get_user_data(created_user_id, 'account')
+        account_data = user_data.get('account', {})
+        features = account_data.get('features', {})
+        
+        assert features.get('task_management') == 'disabled', "Task management should be disabled"
+        assert features.get('checkins') == 'enabled', "Check-ins should be enabled"
+        assert features.get('automated_messages') == 'enabled', "Automated messages should be enabled"
+        assert account_data.get('timezone') == 'America/New_York', "Timezone should be set correctly"
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    def test_handle_create_account_backward_compatibility_defaults(self, test_data_dir):
+        """Test: Create account without feature selection uses backward-compatible defaults."""
+        handler = AccountManagementHandler()
+        
+        # Clear any existing user
+        discord_user_id = "888777666555444333"
+        existing_user_id = get_user_id_by_identifier(discord_user_id)
+        if existing_user_id:
+            from core.user_management import remove_user
+            remove_user(existing_user_id)
+        
+        # Create account without feature selection parameters (backward compatibility)
+        parsed_command = ParsedCommand(
+            intent='create_account',
+            entities={
+                'username': 'defaulttestuser',
+                'channel_identifier': discord_user_id,
+                'channel_type': 'discord'
+                # No feature selection parameters - should use defaults
+            },
+            confidence=0.9,
+            original_message='create account'
+        )
+        
+        response = handler.handle(discord_user_id, parsed_command)
+        
+        # Assert: Should create account successfully
+        assert response.completed is True, "Should complete account creation"
+        
+        # Verify user was created
+        created_user_id = get_user_id_by_identifier(discord_user_id)
+        assert created_user_id is not None, "User should be created"
+        
+        # Verify default feature flags (tasks=True, checkins=True, messages=False)
+        user_data = get_user_data(created_user_id, 'account')
+        account_data = user_data.get('account', {})
+        features = account_data.get('features', {})
+        
+        assert features.get('task_management') == 'enabled', "Task management should default to enabled"
+        assert features.get('checkins') == 'enabled', "Check-ins should default to enabled"
+        assert features.get('automated_messages') == 'disabled', "Automated messages should default to disabled"
+        assert account_data.get('timezone') == 'America/Regina', "Timezone should default to America/Regina"
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.file_io
     def test_handle_create_account_without_username(self, test_data_dir):
         """Test: Create account without username asks for username."""
         handler = AccountManagementHandler()

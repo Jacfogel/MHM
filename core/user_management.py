@@ -730,7 +730,11 @@ def create_new_user(user_data: Dict[str, Any]) -> str:
         "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         "updated_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         "features": {
-            "automated_messages": "enabled" if user_data.get('categories') else "disabled",
+            # Check for explicit messages_enabled flag first, then fall back to categories check (for backward compatibility)
+            "automated_messages": "enabled" if (
+                user_data.get('messages_enabled', False) or 
+                (user_data.get('categories') and len(user_data.get('categories', [])) > 0)
+            ) else "disabled",
             "checkins": "enabled" if user_data.get('checkin_settings', {}).get('enabled', False) else "disabled",
             "task_management": "enabled" if user_data.get('task_settings', {}).get('enabled', False) else "disabled"
         },

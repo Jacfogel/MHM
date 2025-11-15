@@ -77,27 +77,29 @@
   - [x] Confirmation codes now sent via email (not Discord) for security when linking accounts
   - [ ] Test end-to-end account linking flow
   - [ ] Handle edge cases (user already linked, invalid codes, expired codes)
-- [ ] **Fix Account Creation Feature Enablement**: Account creation currently sets incorrect feature enablement values
-  - [ ] Review how features are enabled/disabled in account.json
-  - [ ] Ensure account creation sets proper feature flags (task_management, checkins, automated_messages)
-  - [ ] Align with existing user account structure
-- [ ] **Enhance Account Creation Flow**: Add more user input during account creation
-  - [ ] Add feature selection (which features to enable: tasks, checkins, automated messages)
-  - [ ] Add timezone selection/configuration
-  - [ ] Add profile information collection (name, preferences, etc.)
-  - [ ] Consider multi-step flow or modal with multiple fields
+- [x] **Fix Account Creation Feature Enablement**: Account creation currently sets incorrect feature enablement values (COMPLETED 2025-11-14)
+  - [x] Review how features are enabled/disabled in account.json
+  - [x] Ensure account creation sets proper feature flags (task_management, checkins, automated_messages)
+  - [x] Align with existing user account structure
+  - [x] Updated `create_new_user` to handle `messages_enabled` flag properly
+- [x] **Enhance Account Creation Flow**: Add more user input during account creation (COMPLETED 2025-11-14 for Discord)
+  - [x] Add feature selection (which features to enable: tasks, checkins, automated messages) - Discord flow complete
+  - [x] Add timezone selection/configuration - Discord flow complete
+  - [ ] Add profile information collection (name, preferences, etc.) - Future enhancement
+  - [x] Consider multi-step flow or modal with multiple fields - Discord flow uses modal + view pattern
 
 **Success Criteria**:
 - [ ] Account linking works end-to-end with confirmation codes sent via appropriate channel
-- [ ] Account creation sets correct feature enablement flags
-- [ ] New users can configure their preferences during account creation
-- [ ] Account creation flow is intuitive and doesn't overwhelm new users
+- [x] Account creation sets correct feature enablement flags (COMPLETED 2025-11-14)
+- [x] New users can configure their preferences during account creation (COMPLETED 2025-11-14 for Discord)
+- [x] Account creation flow is intuitive and doesn't overwhelm new users (COMPLETED 2025-11-14 for Discord)
 
 **Notes**:
-- Account creation currently works but has incorrect feature enablement (see account.json structure)
+- Account creation via Discord now supports feature selection and timezone configuration (2025-11-14)
+- Account creation via UI already had feature selection - Discord flow now matches this experience
 - Account linking is partially implemented but confirmation code sending needs fixing
+- Future: Consider adding profile information collection during account creation (name, preferences, etc.)
 - Consider making account creation a guided flow vs. single-step process
-
 ### **Mood-Aware Support Calibration** **PLANNING**
 
 **Status**: **PLANNING**

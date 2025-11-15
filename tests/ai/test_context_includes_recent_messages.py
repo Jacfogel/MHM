@@ -43,6 +43,10 @@ class TestAIContextRecentMessages:
         )
         assert ok2
 
+        # Small delay to ensure file writes are flushed before reading
+        import time
+        time.sleep(0.1)
+
         # Build context prompt and ensure recent automated messages are included
         bot = get_ai_chatbot()
         messages = bot._create_comprehensive_context_prompt(user_id, "hello")

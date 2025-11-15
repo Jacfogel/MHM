@@ -149,8 +149,15 @@ class TestMHMService:
         # Verify log file exists
         assert os.path.exists(log_file)
         
-        with patch('core.service.LOG_MAIN_FILE', log_file), \
-             patch('core.service.logging.getLogger') as mock_get_logger:
+        # Patch both core.service and core.config LOG_MAIN_FILE since the code imports from config
+        with patch('core.config.LOG_MAIN_FILE', log_file), \
+             patch('core.service.LOG_MAIN_FILE', log_file), \
+             patch('core.service.logging.getLogger') as mock_get_logger, \
+             patch('core.logger.force_restart_logging') as mock_force_restart:
+            
+            # Mock force_restart_logging to return False so it doesn't actually restart
+            # This prevents the log file from being recreated
+            mock_force_restart.return_value = False
             
             mock_logger = Mock()
             mock_get_logger.return_value = mock_logger
@@ -160,7 +167,7 @@ class TestMHMService:
             service.check_and_fix_logging()
             
             # Verify real behavior - log file still exists after check
-            assert os.path.exists(log_file)
+            assert os.path.exists(log_file), f"Log file should still exist after check_and_fix_logging. File: {log_file}"
             # The function calls getLogger multiple times for different loggers
             # (httpx, discord, etc.), so we check it was called at least once
             assert mock_get_logger.call_count >= 1

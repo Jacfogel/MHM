@@ -781,7 +781,7 @@ class TestMHMManagerUI:
                             # Verify dialog was created
                             mock_dialog.assert_called_once()
     
-    def test_manage_communication_settings_opens_dialog(self):
+    def test_manage_communication_settings_opens_dialog(self, qapp):
         """Test that manage_communication_settings opens dialog."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -789,22 +789,25 @@ class TestMHMManagerUI:
             with patch('ui.ui_app_qt.QTimer') as mock_timer:
                 with patch('ui.ui_app_qt.Path') as mock_path:
                     with patch('ui.dialogs.channel_management_dialog.ChannelManagementDialog') as mock_dialog:
-                        mock_ui_instance = Mock()
-                        mock_ui.return_value = mock_ui_instance
-                        mock_timer_instance = Mock()
-                        mock_timer.return_value = mock_timer_instance
-                        mock_path.return_value.exists.return_value = True
-                        mock_dialog_instance = Mock()
-                        mock_dialog.return_value = mock_dialog_instance
-                        
-                        ui = MHMManagerUI()
-                        ui.current_user = "test_user"
-                        
-                        # Test manage_communication_settings
-                        ui.manage_communication_settings()
-                        
-                        # Verify dialog was created
-                        mock_dialog.assert_called_once()
+                        with patch('communication.core.channel_orchestrator.CommunicationManager') as mock_comm_manager_class:
+                            mock_ui_instance = Mock()
+                            mock_ui.return_value = mock_ui_instance
+                            mock_timer_instance = Mock()
+                            mock_timer.return_value = mock_timer_instance
+                            mock_path.return_value.exists.return_value = True
+                            mock_dialog_instance = Mock()
+                            mock_dialog.return_value = mock_dialog_instance
+                            mock_comm_manager = Mock()
+                            mock_comm_manager_class.return_value = mock_comm_manager
+                            
+                            ui = MHMManagerUI()
+                            ui.current_user = "test_user"
+                            
+                            # Test manage_communication_settings
+                            ui.manage_communication_settings()
+                            
+                            # Verify dialog was created
+                            mock_dialog.assert_called_once()
     
     def test_manage_categories_opens_dialog(self):
         """Test that manage_categories opens dialog."""
