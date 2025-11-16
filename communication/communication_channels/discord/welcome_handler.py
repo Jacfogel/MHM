@@ -5,9 +5,12 @@ Discord-specific UI adapter for welcome messages.
 Uses the channel-agnostic welcome_manager for core logic.
 """
 
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
+
+if TYPE_CHECKING:
+    import discord
 from communication.core.welcome_manager import (
     has_been_welcomed as _has_been_welcomed,
     mark_as_welcomed as _mark_as_welcomed,

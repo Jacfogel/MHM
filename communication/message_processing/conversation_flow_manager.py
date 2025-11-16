@@ -347,10 +347,7 @@ class ConversationManager:
         intro = (
             "🌟 Check-in Time! 🌟\n\n"
             "Hi! It's time for your check-in. This helps me understand how you're doing and provide better support.\n\n"
-            f"Let's start: {first_question_text}\n\n"
-            "💡 You can answer with numbers, words like 'three and a half', or type 'skip' to skip any question.\n"
-            "Type /cancel anytime to exit.\n"
-            "Type /checkin anytime to start a new check-in"
+            f"Let's start: {first_question_text}"
         )
         # Update state to current question without advancing index
         user_state['state'] = QUESTION_STATES.get(first_question_key, CHECKIN_START)

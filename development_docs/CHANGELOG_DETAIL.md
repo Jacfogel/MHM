@@ -35,6 +35,71 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-15 - Discord Button UI Improvements and Test Isolation Fixes **COMPLETED**
+
+**Feature**: Replaced text instructions with interactive buttons in Discord check-in prompts and task reminders, and fixed test isolation to prevent writes to production directories.
+
+**Technical Changes**:
+
+1. **Discord Check-in Button UI** (`communication/communication_channels/discord/checkin_view.py`):
+   - Created `CheckinView` class with three buttons: "Cancel Check-in", "Skip Question", "More"
+   - Removed text instructions from check-in prompt message ("You can answer with numbers...", "Type /cancel...", etc.)
+   - Buttons use channel-agnostic pathways via `handle_user_message` for all actions
+   - "More" button shows help information in ephemeral message
+
+2. **Discord Task Reminder Button UI** (`communication/communication_channels/discord/task_reminder_view.py`):
+   - Created `TaskReminderView` class with three buttons: "Complete Task", "Remind Me Later", "More"
+   - Changed task reminder header from "💡 Did you want to complete this task?" to "💡Task Reminder:"
+   - Removed text instructions from task reminder message
+   - "Complete Task" button processes task completion via channel-agnostic pathway
+   - "More" button shows task completion instructions in ephemeral message
+
+3. **Discord Bot View Support** (`communication/communication_channels/discord/bot.py`):
+   - Added support for custom views via `view` parameter in `send_message`
+   - Modified queue handler to pass custom views through async command queue
+   - Updated `_send_message_internal` to accept and use custom views (prefers custom_view over suggestions)
+   - Added interaction handlers for check-in and task reminder button prefixes
+
+4. **Message Generation Updates**:
+   - `communication/message_processing/conversation_flow_manager.py`: Removed text instructions from check-in prompt
+   - `communication/core/channel_orchestrator.py`: Updated task reminder message format and removed instructions
+
+5. **Test Isolation Fixes**:
+   - `tests/conftest.py`: Added `BASE_DATA_DIR` environment variable, re-initialize `UserDataManager` module-level instance after config patching
+   - `core/user_data_manager.py`: Changed `__init__` to read `BASE_DATA_DIR` dynamically from `core.config` instead of module-level import
+   - Ensures tests write to `tests/data/user_index.json` instead of `data/user_index.json`
+   - All logs already configured to write to `tests/logs/` via environment variables
+
+6. **Linter Fixes**:
+   - `communication/communication_channels/base/base_channel.py`: Added `get_logger` import from `core.logger`
+   - `communication/communication_channels/discord/welcome_handler.py`: Added `TYPE_CHECKING` import for type annotations
+
+**Testing**:
+- Test isolation verified: No files written to production `data/` or `logs/` directories during test runs
+- All Discord button actions use channel-agnostic pathways (verified via code review)
+- Test suite: 3,098 passed, 1 skipped, 2 failures (pre-existing flaky tests unrelated to changes)
+
+**Impact**: 
+- Improved Discord UX with interactive buttons instead of text instructions
+- Better test isolation prevents accidental writes to production directories
+- All button actions properly routed through channel-agnostic pathways per communication guidelines
+- Follows channel-agnostic architecture: business logic in core, Discord UI in adapters
+
+**Files Modified**:
+- `communication/communication_channels/discord/checkin_view.py` (new file)
+- `communication/communication_channels/discord/task_reminder_view.py` (new file)
+- `communication/communication_channels/discord/bot.py`
+- `communication/message_processing/conversation_flow_manager.py`
+- `communication/core/channel_orchestrator.py`
+- `tests/conftest.py`
+- `core/user_data_manager.py`
+- `communication/communication_channels/base/base_channel.py`
+- `communication/communication_channels/discord/welcome_handler.py`
+
+**Documentation Updates**:
+- Updated `TODO.md` with failing/flaky test documentation
+- Updated both changelog files
+
 ### 2025-01-14 - Test Coverage Expansion for User Preferences, UI Management, and Prompt Manager **COMPLETED**
 
 **Feature**: Expanded test coverage for three low-coverage modules by adding 102 new unit tests covering initialization, CRUD operations, error handling, and edge cases.

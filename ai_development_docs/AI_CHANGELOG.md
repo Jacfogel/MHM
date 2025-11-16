@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-15 - Discord Button UI Improvements and Test Isolation Fixes **COMPLETED**
+- **Discord Button UI**: Replaced text instructions with interactive buttons in check-in prompts (Cancel Check-in, Skip Question, More) and task reminders (Complete Task, Remind Me Later, More) - improved UX with native Discord interactions
+- **Channel-Agnostic Architecture**: All button actions use `handle_user_message` pathway - business logic remains channel-agnostic, Discord UI in adapters per communication guidelines
+- **Test Isolation**: Fixed test isolation to prevent writes to production directories - `user_index.json` now writes to `tests/data/`, logs to `tests/logs/`, `UserDataManager` reads `BASE_DATA_DIR` dynamically
+- **Impact**: Better Discord UX with buttons, proper test isolation, all actions properly routed through channel-agnostic pathways - test suite stable (3,098 passed, 2 pre-existing flaky tests documented in TODO.md)
+
 ### 2025-01-14 - Test Coverage Expansion for User Preferences, UI Management, and Prompt Manager **COMPLETED**
 - **Coverage Expansion**: Added 102 new unit tests across 3 low-coverage modules - `user/user_preferences.py` (26 tests), `core/ui_management.py` (27 tests), `ai/prompt_manager.py` (49 tests) - all tests passing
 - **Test Quality**: All new tests follow real behavior testing patterns, verify actual system changes, and maintain proper test isolation

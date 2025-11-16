@@ -137,12 +137,25 @@ tests_data_dir = (Path(__file__).parent / 'data').resolve()
 tests_data_dir.mkdir(exist_ok=True)
 (tests_data_dir / 'users').mkdir(parents=True, exist_ok=True)
 os.environ['TEST_DATA_DIR'] = os.environ.get('TEST_DATA_DIR', str(tests_data_dir))
+# Also set BASE_DATA_DIR for any code that reads it directly
+os.environ['BASE_DATA_DIR'] = str(tests_data_dir)
 
 # Import core modules for testing (after logging isolation is set up)
 # Force core config paths to tests/data early so all modules see test isolation
 import core.config as _core_config
 _core_config.BASE_DATA_DIR = str(tests_data_dir)
 _core_config.USER_INFO_DIR_PATH = str(tests_data_dir / 'users')
+
+# CRITICAL: Re-initialize UserDataManager module-level instance if it was already imported
+# This ensures the module-level instance uses the test directory
+try:
+    import core.user_data_manager as udm_module
+    from core.user_data_manager import UserDataManager
+    # Recreate the module-level instance with updated BASE_DATA_DIR
+    if hasattr(udm_module, 'user_data_manager'):
+        udm_module.user_data_manager = UserDataManager()
+except (ImportError, NameError):
+    pass  # UserDataManager not imported yet, will use correct paths when imported
 
 # Session-start guard: ensure loader registry identity and completeness
 @pytest.fixture(scope="session", autouse=True)

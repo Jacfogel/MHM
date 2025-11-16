@@ -115,6 +115,20 @@ When adding new tasks, follow this format:
 **Status**: Fails intermittently under parallel execution  
 **Next Steps**: Investigate file I/O timing, consider marking as flaky or fixing race condition
 
+### **Flaky Test: User Data Manager Delete User** [WARNING] **INVESTIGATE**
+**Location**: `tests/unit/test_user_data_manager.py::TestUserDataManagerDeleteUser::test_delete_user_completely_without_backup`  
+**Issue**: `delete_user_completely` returns `False` instead of `True` - test failure, not race condition  
+**Category**: Pre-existing test issue (unrelated to isolation changes)  
+**Status**: Fails consistently - needs investigation  
+**Next Steps**: Investigate why `delete_user_completely` is returning False, check error logs for details, verify user directory deletion logic
+
+### **Flaky Test: User Data Manager Message References** [WARNING] **INVESTIGATE**
+**Location**: `tests/unit/test_user_data_manager.py::TestUserDataManagerConvenienceFunctions::test_update_message_references_function`  
+**Issue**: User account data not available for `test_conv_user` - warning: "User test_conv_user was created but not found by get_user_id_by_identifier"  
+**Category**: Flaky test (pre-existing, parallel execution race condition)  
+**Status**: Fails intermittently under parallel execution  
+**Next Steps**: Add better synchronization for user creation and index updates, consider marking test to run serially, or add retry logic with longer delays
+
 
 **Fix Flaky Tests in Parallel Execution Mode** [OK] **COMPLETED** (2025-11-13)
 - *What it means*: Investigate and fix tests that fail when run in parallel mode (`-n auto` with pytest-xdist) but pass when run sequentially

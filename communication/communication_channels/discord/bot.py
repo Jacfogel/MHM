@@ -663,6 +663,10 @@ class DiscordBot(BaseChannel):
                             # New format: message with rich data and suggestions
                             recipient, message, rich_data, suggestions = args
                             result = await self._send_message_internal(recipient, message, rich_data, suggestions)
+                        elif len(args) == 5:
+                            # New format: message with rich data, suggestions, and custom view
+                            recipient, message, rich_data, suggestions, custom_view = args
+                            result = await self._send_message_internal(recipient, message, rich_data, suggestions, custom_view)
                         else:
                             logger.error(f"Invalid send_message args: {args}")
                             result = False
@@ -863,6 +867,20 @@ class DiscordBot(BaseChannel):
                                 elif custom_id.startswith('welcome_link_'):
                                     await start_account_linking_flow(interaction, discord_user_id)
                                 return
+                        
+                        # Handle check-in buttons
+                        elif custom_id.startswith('checkin_'):
+                            # Check-in buttons are handled by the view's callback methods
+                            # The view is attached to the message, so discord.py will handle it automatically
+                            # We just need to let it pass through
+                            return
+                        
+                        # Handle task reminder buttons
+                        elif custom_id.startswith('task_'):
+                            # Task reminder buttons are handled by the view's callback methods
+                            # The view is attached to the message, so discord.py will handle it automatically
+                            # We just need to let it pass through
+                            return
                     
                     # Let other component interactions fall through to default handling
                     # (buttons from other parts of the system)
@@ -1349,9 +1367,13 @@ class DiscordBot(BaseChannel):
         # Check for rich response data
         rich_data = kwargs.get('rich_data', {})
         suggestions = kwargs.get('suggestions', [])
+        custom_view = kwargs.get('view', None)
         
-        # Send command to Discord thread with rich data
-        self._command_queue.put(("send_message", (recipient, message, rich_data, suggestions)))
+        # Send command to Discord thread with rich data and optional custom view
+        if custom_view:
+            self._command_queue.put(("send_message", (recipient, message, rich_data, suggestions, custom_view)))
+        else:
+            self._command_queue.put(("send_message", (recipient, message, rich_data, suggestions)))
         
         # Wait for result with timeout
         timeout = 10  # 10 seconds
@@ -1428,7 +1450,7 @@ class DiscordBot(BaseChannel):
             return False
 
     @handle_errors("sending Discord message internally", default_return=False)
-    async def _send_message_internal(self, recipient: str, message: str, rich_data: Dict[str, Any] = None, suggestions: List[str] = None) -> bool:
+    async def _send_message_internal(self, recipient: str, message: str, rich_data: Dict[str, Any] = None, suggestions: List[str] = None, custom_view = None) -> bool:
         """
         Send Discord message internally with validation.
         
@@ -1471,9 +1493,11 @@ class DiscordBot(BaseChannel):
         if rich_data:
             embed = self._create_discord_embed(message, rich_data)
         
-        # Create view with buttons if suggestions are provided
+        # Create view with buttons - prefer custom_view, then suggestions
         view = None
-        if suggestions:
+        if custom_view:
+            view = custom_view
+        elif suggestions:
             view = self._create_action_row(suggestions)
         
         # Handle special Discord user marker first

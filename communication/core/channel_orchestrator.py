@@ -1253,9 +1253,18 @@ class CommunicationManager:
             # Initialize flow without logging start yet; log only after successful send
             reply_text, completed = conversation_manager._start_dynamic_checkin(user_id)
             
+            # Create custom view for check-in buttons (Discord only)
+            custom_view = None
+            if messaging_service == 'discord':
+                try:
+                    from communication.communication_channels.discord.checkin_view import get_checkin_view
+                    custom_view = get_checkin_view(user_id)
+                except Exception as e:
+                    logger.warning(f"Could not create check-in view for Discord: {e}")
+            
             # Send the initial message to the user with retry support
             success = self.send_message_sync(messaging_service, recipient, reply_text, 
-                                           user_id=user_id, category="checkin")
+                                           user_id=user_id, category="checkin", view=custom_view)
             
             if success:
                 logger.info(f"Successfully sent check-in prompt to user {user_id} and initialized flow")
@@ -1540,8 +1549,18 @@ class CommunicationManager:
         # Create the task reminder message
         reminder_message = self._create_task_reminder_message(task)
         
+        # Create custom view for task reminder buttons (Discord only)
+        custom_view = None
+        if messaging_service == 'discord':
+            try:
+                from communication.communication_channels.discord.task_reminder_view import get_task_reminder_view
+                task_title = task.get('title', 'Untitled Task')
+                custom_view = get_task_reminder_view(user_id, task_id, task_title)
+            except Exception as e:
+                logger.warning(f"Could not create task reminder view for Discord: {e}")
+        
         # Send the reminder
-        success = self.send_message_sync(messaging_service, recipient, reminder_message)
+        success = self.send_message_sync(messaging_service, recipient, reminder_message, view=custom_view)
         
         if success:
             logger.info(f"Task reminder sent successfully for user {user_id}, task {task_id}")
@@ -1608,7 +1627,7 @@ class CommunicationManager:
         }.get(priority, '🟡')
         
         # Build the message
-        message = f"📋 **Task Reminder** {priority_emoji}\n\n"
+        message = f"💡 **Task Reminder:** {priority_emoji}\n\n"
         message += f"**{title}**\n"
         
         if description:
@@ -1617,20 +1636,7 @@ class CommunicationManager:
         if due_date:
             message += f"📅 **Due:** {due_date}\n"
         
-        message += f"⚡ **Priority:** {priority.title()}\n\n"
-        
-        # Add task completion instructions with task identifier
-        if task_id:
-            # Use a short identifier (first 8 characters of task_id)
-            short_id = task_id[:8]
-            message += f"💡 **To complete this task:**\n"
-            message += f"• Reply: `complete task {short_id}`\n"
-            message += f"• Or: `complete task \"{title}\"`\n"
-            message += f"• Or: `list tasks` to see all your tasks"
-        else:
-            message += "💡 **To complete this task:**\n"
-            message += f"• Reply: `complete task \"{title}\"`\n"
-            message += f"• Or: `list tasks` to see all your tasks"
+        message += f"⚡ **Priority:** {priority.title()}"
         
         return message
 

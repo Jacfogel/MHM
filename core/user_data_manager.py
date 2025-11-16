@@ -35,7 +35,9 @@ class UserDataManager:
         Sets up backup directory and index file path for user data management operations.
         """
         try:
-            self.index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
+            # Read BASE_DATA_DIR dynamically to support test isolation
+            from core.config import BASE_DATA_DIR as current_base_dir
+            self.index_file = str(Path(current_base_dir) / "user_index.json")
             # Redirect backups under tests/data when in test mode
             self.backup_dir = get_backups_dir()
             os.makedirs(self.backup_dir, exist_ok=True)
