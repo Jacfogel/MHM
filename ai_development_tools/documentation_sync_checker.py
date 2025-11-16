@@ -551,6 +551,7 @@ class DocumentationSyncChecker:
         header = [
             "# Project Directory Tree",
             "",
+            "> **File**: `development_docs/DIRECTORY_TREE.md`",
             "> **Generated**: This file is auto-generated. Do not edit manually.",
             ""
         ]

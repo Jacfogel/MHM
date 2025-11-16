@@ -2,6 +2,7 @@
 description: "UI development guidance"
 globs: ui/**
 alwaysApply: false
+file: ".cursor/rules/ui-guidelines.mdc"
 ---
 # UI Module Guidance
 

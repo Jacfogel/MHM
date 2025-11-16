@@ -1,5 +1,7 @@
 # AI Session Starter - Essential Context for New Sessions
 
+
+> **File**: `ai_development_docs/AI_SESSION_STARTER.md`
 > **Purpose**: Essential context for AI assistants starting new chat sessions  
 > **Audience**: AI Assistant (Cursor, Codex, etc.)  
 > **Status**: **ACTIVE** - Always include this in new sessions  

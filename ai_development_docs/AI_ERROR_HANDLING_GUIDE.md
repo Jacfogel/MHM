@@ -1,5 +1,7 @@
 # AI Error Handling Guide - Quick Reference
 
+
+> **File**: `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`
 > **Purpose**: Fast error handling patterns and troubleshooting for AI collaborators  
 > **Style**: Concise, pattern-focused, actionable  
 > **For details**: See [core/ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md)

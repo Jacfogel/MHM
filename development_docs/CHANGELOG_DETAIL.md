@@ -1,5 +1,7 @@
 # CHANGELOG_DETAIL.md - Complete Detailed Changelog History
 
+
+> **File**: `development_docs/CHANGELOG_DETAIL.md`
 > **Audience**: Developers and contributors  
 > **Purpose**: Full historical record of project changes  
 > **Style**: Chronological, detailed, reference-oriented
@@ -34,6 +36,55 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 
 ## Recent Changes (Most Recent First)
+
+### 2025-11-15 - Documentation File Address Standard Implementation **COMPLETED**
+
+**Feature**: Implemented file address standard for all documentation files (.md and .mdc), ensuring every file includes its relative path from project root for easier navigation and cross-referencing.
+
+**Technical Changes**:
+
+1. **File Address Script** (`scripts/utilities/add_documentation_addresses.py`):
+   - Created utility script to automatically add file addresses to all documentation files
+   - Supports both .md files (metadata block format: `> **File**: `path``) and .mdc files (YAML frontmatter or HTML comment)
+   - Intelligently handles different file structures (titles, metadata blocks, YAML frontmatter, Cursor references)
+   - Automatically skips generated files (11 files), archive directories, and tests subdirectories
+   - Includes files directly in `tests/` directory (like `tests/AI_FUNCTIONALITY_TEST_PLAN.md`) but excludes deeper subdirectories
+   - Refined `has_file_address()` function to only check first 30 lines (header/metadata section) to avoid false positives from examples in content
+   - Added `--dry-run` and `--verbose` flags for safe testing
+
+2. **Documentation Standards Updated**:
+   - Updated `DOCUMENTATION_GUIDE.md` with comprehensive file address requirement section, including format specifications and maintenance instructions
+   - Updated `ai_development_docs/AI_DOCUMENTATION_GUIDE.md` with concise file address standard for AI collaborators
+   - Both guides now document the standard and reference the maintenance script
+
+3. **Generated File Generators Updated** (all now include file addresses in output):
+   - `ai_development_tools/services/operations.py` - AI_STATUS.md and AI_PRIORITIES.md
+   - `ai_development_tools/generate_function_registry.py` - FUNCTION_REGISTRY_DETAIL.md and AI_FUNCTION_REGISTRY.md
+   - `ai_development_tools/generate_module_dependencies.py` - MODULE_DEPENDENCIES_DETAIL.md and AI_MODULE_DEPENDENCIES.md
+   - `ai_development_tools/documentation_sync_checker.py` - DIRECTORY_TREE.md
+   - `ai_development_tools/legacy_reference_cleanup.py` - LEGACY_REFERENCE_REPORT.md
+   - `ai_development_tools/unused_imports_checker.py` - UNUSED_IMPORTS_REPORT.md
+   - `ai_development_tools/regenerate_coverage_metrics.py` - TEST_COVERAGE_EXPANSION_PLAN.md (now uses standard generated header format)
+
+4. **Manual File Updates**:
+   - Added file address to `development_docs/HIGH_COMPLEXITY_FUNCTIONS_ANALYSIS.md` (manually maintained file)
+   - Applied file addresses to all 56 non-generated documentation files via script execution
+
+**Impact**: All documentation files now include their file addresses, making navigation and cross-referencing significantly easier. Generated files will automatically include addresses in future regenerations. The standard is documented and maintained via automated script.
+
+**Files Modified**:
+- `scripts/utilities/add_documentation_addresses.py` (new)
+- `DOCUMENTATION_GUIDE.md`
+- `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`
+- `development_docs/HIGH_COMPLEXITY_FUNCTIONS_ANALYSIS.md`
+- `ai_development_tools/services/operations.py`
+- `ai_development_tools/generate_function_registry.py`
+- `ai_development_tools/generate_module_dependencies.py`
+- `ai_development_tools/documentation_sync_checker.py`
+- `ai_development_tools/legacy_reference_cleanup.py`
+- `ai_development_tools/unused_imports_checker.py`
+- `ai_development_tools/regenerate_coverage_metrics.py`
+- All 56 documentation files (file addresses added)
 
 ### 2025-11-15 - UI Dialog Accuracy Improvements and Discord View Creation Fixes **COMPLETED**
 

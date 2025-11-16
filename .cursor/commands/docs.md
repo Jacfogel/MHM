@@ -1,5 +1,7 @@
 # Regenerate Documentation
 
+
+> **File**: `.cursor/commands/docs.md`
 ## Overview
 Rebuild generated documentation assets and verify sync; does not touch legacy or unused-import reports.
 

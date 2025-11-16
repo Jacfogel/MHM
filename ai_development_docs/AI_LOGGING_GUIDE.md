@@ -1,5 +1,7 @@
 # AI Logging Guide - Quick Reference
 
+
+> **File**: `ai_development_docs/AI_LOGGING_GUIDE.md`
 > **Purpose**: Fast logging patterns and troubleshooting tips for AI collaborators  
 > **For details**: See [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md)
 

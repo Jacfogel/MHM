@@ -1,5 +1,7 @@
 # Run AI Functionality Tests
 
+
+> **File**: `.cursor/commands/ai-functionality-tests.md`
 ## Overview
 Execute AI functionality tests (manual review tests) that validate AI response quality, performance, and edge cases. **The AI (you) MUST review the results and document findings directly in the test results file.** This includes validating PASS/PARTIAL/FAIL grading and identifying tests that were incorrectly graded.
 

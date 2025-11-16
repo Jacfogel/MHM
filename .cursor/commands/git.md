@@ -1,5 +1,7 @@
 # Git Wrap-Up
 
+
+> **File**: `.cursor/commands/git.md`
 ## Overview
 Stage, commit, and push changes safely.
 

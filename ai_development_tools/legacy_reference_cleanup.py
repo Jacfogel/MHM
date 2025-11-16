@@ -194,7 +194,8 @@ class LegacyReferenceCleanup:
 
         report_lines.append("# Legacy Reference Cleanup Report")
         report_lines.append("")
-        report_lines.append(f"**Generated**: {self.get_current_timestamp()}")
+        report_lines.append("> **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`")
+        report_lines.append(f"> **Generated**: {self.get_current_timestamp()}")
 
         affected_files = {file_path for files in findings.values() for file_path, _, _ in files}
         report_lines.append(f"**Total Files with Issues**: {len(affected_files)}")

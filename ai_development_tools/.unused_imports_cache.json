@@ -95,7 +95,7 @@
     "issues": []
   },
   "ai_development_tools/documentation_sync_checker.py": {
-    "mtime": 1763032363.8728476,
+    "mtime": 1763260321.3950813,
     "issues": [
       {
         "type": "warning",
@@ -125,15 +125,15 @@
     "issues": []
   },
   "ai_development_tools/generate_function_registry.py": {
-    "mtime": 1762466977.6350617,
+    "mtime": 1763260321.3909588,
     "issues": []
   },
   "ai_development_tools/generate_module_dependencies.py": {
-    "mtime": 1762466977.6350617,
+    "mtime": 1763260321.3916702,
     "issues": []
   },
   "ai_development_tools/legacy_reference_cleanup.py": {
-    "mtime": 1762819832.449987,
+    "mtime": 1763260321.3950813,
     "issues": []
   },
   "ai_development_tools/quick_status.py": {
@@ -141,7 +141,7 @@
     "issues": []
   },
   "ai_development_tools/regenerate_coverage_metrics.py": {
-    "mtime": 1763032918.7382371,
+    "mtime": 1763260540.724774,
     "issues": []
   },
   "ai_development_tools/services/__init__.py": {
@@ -157,7 +157,7 @@
     "issues": []
   },
   "ai_development_tools/services/operations.py": {
-    "mtime": 1762478540.3465707,
+    "mtime": 1763260321.3909588,
     "issues": []
   },
   "ai_development_tools/services/standard_exclusions.py": {
@@ -173,7 +173,7 @@
     "issues": []
   },
   "ai_development_tools/unused_imports_checker.py": {
-    "mtime": 1762904359.5157402,
+    "mtime": 1763260321.3950813,
     "issues": [
       {
         "type": "warning",
@@ -243,7 +243,7 @@
     "issues": []
   },
   "communication/communication_channels/base/base_channel.py": {
-    "mtime": 1760377270.9745393,
+    "mtime": 1763250395.6355665,
     "issues": []
   },
   "communication/communication_channels/base/command_registry.py": {
@@ -263,7 +263,7 @@
     "issues": []
   },
   "communication/communication_channels/discord/bot.py": {
-    "mtime": 1763025727.2673533,
+    "mtime": 1763258235.7693212,
     "issues": []
   },
   "communication/communication_channels/discord/event_handler.py": {
@@ -283,7 +283,7 @@
     "issues": []
   },
   "communication/core/channel_orchestrator.py": {
-    "mtime": 1763016388.0265834,
+    "mtime": 1763258235.764135,
     "issues": [
       {
         "type": "warning",
@@ -344,7 +344,7 @@
     "issues": []
   },
   "communication/message_processing/conversation_flow_manager.py": {
-    "mtime": 1763030330.4924808,
+    "mtime": 1763239892.0454762,
     "issues": []
   },
   "communication/message_processing/interaction_manager.py": {
@@ -456,15 +456,29 @@
     "issues": []
   },
   "core/scheduler.py": {
-    "mtime": 1762995450.8647153,
-    "issues": []
+    "mtime": 1763252077.2041564,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "core.scheduler",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 44,
+        "path": "core\\scheduler.py",
+        "symbol": "unused-import",
+        "message": "Unused Optional imported from typing",
+        "message-id": "W0611"
+      }
+    ]
   },
   "core/schemas.py": {
     "mtime": 1762856623.5409284,
     "issues": []
   },
   "core/service.py": {
-    "mtime": 1762856831.2104714,
+    "mtime": 1763258235.764135,
     "issues": []
   },
   "core/service_utilities.py": {
@@ -480,7 +494,7 @@
     "issues": []
   },
   "core/user_data_manager.py": {
-    "mtime": 1762984015.476102,
+    "mtime": 1763250874.7479258,
     "issues": [
       {
         "type": "warning",
@@ -1322,7 +1336,7 @@
     "issues": []
   },
   "tests/behavior/test_ui_app_behavior.py": {
-    "mtime": 1761128659.4270332,
+    "mtime": 1763258591.513729,
     "issues": []
   },
   "tests/behavior/test_ui_automation_complete.py": {
@@ -1421,7 +1435,7 @@
     ]
   },
   "tests/conftest.py": {
-    "mtime": 1762949137.4872344,
+    "mtime": 1763250874.749093,
     "issues": []
   },
   "tests/core/test_file_auditor.py": {
@@ -4291,7 +4305,7 @@
     "issues": []
   },
   "ui/ui_app_qt.py": {
-    "mtime": 1763017468.9060917,
+    "mtime": 1763258235.7671473,
     "issues": []
   },
   "ui/widgets/__init__.py": {
@@ -4475,7 +4489,7 @@
     ]
   },
   "communication/communication_channels/discord/welcome_handler.py": {
-    "mtime": 1763024170.0166783,
+    "mtime": 1763250395.6355665,
     "issues": [
       {
         "type": "warning",
@@ -4484,7 +4498,7 @@
         "line": 8,
         "column": 0,
         "endLine": 8,
-        "endColumn": 27,
+        "endColumn": 42,
         "path": "communication\\communication_channels\\discord\\welcome_handler.py",
         "symbol": "unused-import",
         "message": "Unused Optional imported from typing",
@@ -5072,6 +5086,224 @@
         "path": "tests\\behavior\\test_welcome_manager_behavior.py",
         "symbol": "unused-import",
         "message": "Unused WELCOME_TRACKING_FILE imported from communication.core.welcome_manager",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "communication/communication_channels/discord/checkin_view.py": {
+    "mtime": 1763249975.1639318,
+    "issues": []
+  },
+  "communication/communication_channels/discord/task_reminder_view.py": {
+    "mtime": 1763249975.1639318,
+    "issues": []
+  },
+  "tests/unit/test_prompt_manager.py": {
+    "mtime": 1763193019.7321322,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_prompt_manager",
+        "obj": "",
+        "line": 17,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 9,
+        "path": "tests\\unit\\test_prompt_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused import os",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_prompt_manager",
+        "obj": "",
+        "line": 18,
+        "column": 0,
+        "endLine": 18,
+        "endColumn": 15,
+        "path": "tests\\unit\\test_prompt_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused import tempfile",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_prompt_manager",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 59,
+        "path": "tests\\unit\\test_prompt_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_prompt_manager",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 59,
+        "path": "tests\\unit\\test_prompt_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_prompt_manager",
+        "obj": "",
+        "line": 20,
+        "column": 0,
+        "endLine": 20,
+        "endColumn": 24,
+        "path": "tests\\unit\\test_prompt_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused Path imported from pathlib",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_prompt_manager",
+        "obj": "",
+        "line": 23,
+        "column": 0,
+        "endLine": 23,
+        "endColumn": 67,
+        "path": "tests\\unit\\test_prompt_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused AI_SYSTEM_PROMPT_PATH imported from core.config",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_prompt_manager",
+        "obj": "",
+        "line": 23,
+        "column": 0,
+        "endLine": 23,
+        "endColumn": 67,
+        "path": "tests\\unit\\test_prompt_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused AI_USE_CUSTOM_PROMPT imported from core.config",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_ui_management.py": {
+    "mtime": 1763193019.7321322,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_ui_management",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 48,
+        "path": "tests\\unit\\test_ui_management.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/unit/test_user_preferences.py": {
+    "mtime": 1763193019.7321322,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "test_user_preferences",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 48,
+        "path": "tests\\unit\\test_user_preferences.py",
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_preferences",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 48,
+        "path": "tests\\unit\\test_user_preferences.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_preferences",
+        "obj": "",
+        "line": 17,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 24,
+        "path": "tests\\unit\\test_user_preferences.py",
+        "symbol": "unused-import",
+        "message": "Unused Path imported from pathlib",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_preferences",
+        "obj": "",
+        "line": 20,
+        "column": 0,
+        "endLine": 20,
+        "endColumn": 74,
+        "path": "tests\\unit\\test_user_preferences.py",
+        "symbol": "unused-import",
+        "message": "Unused get_user_data imported from core.user_data_handlers",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_preferences",
+        "obj": "",
+        "line": 20,
+        "column": 0,
+        "endLine": 20,
+        "endColumn": 74,
+        "path": "tests\\unit\\test_user_preferences.py",
+        "symbol": "unused-import",
+        "message": "Unused update_user_preferences imported from core.user_data_handlers",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_preferences",
+        "obj": "",
+        "line": 21,
+        "column": 0,
+        "endLine": 21,
+        "endColumn": 90,
+        "path": "tests\\unit\\test_user_preferences.py",
+        "symbol": "unused-import",
+        "message": "Unused set_schedule_period_active imported from core.schedule_management",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_preferences",
+        "obj": "",
+        "line": 21,
+        "column": 0,
+        "endLine": 21,
+        "endColumn": 90,
+        "path": "tests\\unit\\test_user_preferences.py",
+        "symbol": "unused-import",
+        "message": "Unused is_schedule_period_active imported from core.schedule_management",
         "message-id": "W0611"
       }
     ]

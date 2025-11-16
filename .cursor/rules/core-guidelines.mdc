@@ -2,6 +2,7 @@
 description: "Core service safety notes"
 globs: core/**
 alwaysApply: false
+file: ".cursor/rules/core-guidelines.mdc"
 ---
 # Core Module Guidance
 

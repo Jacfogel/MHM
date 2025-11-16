@@ -1,5 +1,7 @@
 # AI Reference - Troubleshooting & System Understanding
 
+
+> **File**: `ai_development_docs/AI_REFERENCE.md`
 > **Purpose**: Troubleshooting patterns and deep system understanding for AI collaborators  
 > **For context**: See [AI_SESSION_STARTER.md](AI_SESSION_STARTER.md)
 

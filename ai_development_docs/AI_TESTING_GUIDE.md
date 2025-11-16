@@ -1,5 +1,7 @@
 # AI Testing Guide - Quick Reference
 
+
+> **File**: `ai_development_docs/AI_TESTING_GUIDE.md`
 > **Purpose**: Fast testing patterns and troubleshooting for AI collaborators  
 > **Style**: Concise, pattern-focused, actionable  
 > **For details**: See [tests/TESTING_GUIDE.md](../tests/TESTING_GUIDE.md)

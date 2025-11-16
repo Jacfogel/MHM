@@ -1,5 +1,7 @@
 # Plan a Refactor
 
+
+> **File**: `.cursor/commands/refactor.md`
 ## Overview
 Design and execute a safe, incremental refactor while honouring project safety rules.
 

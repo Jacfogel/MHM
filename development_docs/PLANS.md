@@ -1,5 +1,7 @@
 # MHM Development Plans
 
+
+> **File**: `development_docs/PLANS.md`
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  

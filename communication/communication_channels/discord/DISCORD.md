@@ -1,5 +1,7 @@
 # Discord Commands and Usage
 
+
+> **File**: `communication/communication_channels/discord/DISCORD.md`
 > **Audience**: Users and contributors  
 > **Purpose**: Complete guide for Discord commands and natural language usage  
 > **Style**: User-friendly, comprehensive, beginner-friendly

@@ -1,5 +1,7 @@
 # Communication Module - Channel-Agnostic Architecture
 
+
+> **File**: `communication/README.md`
 > **Purpose**: Guide to channel-agnostic architecture principles and structure
 
 ---

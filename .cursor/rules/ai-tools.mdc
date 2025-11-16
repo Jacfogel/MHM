@@ -2,6 +2,7 @@
 description: "AI development tooling guidance"
 globs: ai_development_tools/**
 alwaysApply: false
+file: ".cursor/rules/ai-tools.mdc"
 ---
 # AI Development Tools - Quick Guide
 

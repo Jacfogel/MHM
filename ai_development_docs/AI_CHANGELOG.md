@@ -1,5 +1,7 @@
 # AI Changelog - Brief Summary for AI Context
 
+
+> **File**: `ai_development_docs/AI_CHANGELOG.md`
 > **Audience**: AI collaborators (Cursor, Codex, etc.)
 > **Purpose**: Lightweight summary of recent changes
 > **Style**: Concise, essential-only, scannable
@@ -30,6 +32,13 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+
+### 2025-11-15 - Documentation File Address Standard Implementation **COMPLETED**
+- **File Address Standard**: All documentation files (.md and .mdc) now include their relative path from project root in metadata blocks
+- **Automation Script**: Created `scripts/utilities/add_documentation_addresses.py` to automatically add/update file addresses - skips generated files, archive/, and tests/ subdirectories
+- **Generator Updates**: Updated all 7 generator scripts to include file addresses in generated output (AI_STATUS, AI_PRIORITIES, FUNCTION_REGISTRY, MODULE_DEPENDENCIES, DIRECTORY_TREE, LEGACY_REFERENCE_REPORT, UNUSED_IMPORTS_REPORT, TEST_COVERAGE_EXPANSION_PLAN)
+- **Documentation**: Updated DOCUMENTATION_GUIDE.md and AI_DOCUMENTATION_GUIDE.md with file address standard specifications
+- **Impact**: 56 documentation files now have addresses, all future generated files will include addresses automatically, navigation and cross-referencing significantly improved
 
 ### 2025-11-15 - UI Dialog Accuracy Improvements and Discord View Creation Fixes **COMPLETED**
 - **User Actions Section**: Added new "User Actions" section to admin panel with "Send Check-in Prompt" and "Send Task Reminder" buttons for testing

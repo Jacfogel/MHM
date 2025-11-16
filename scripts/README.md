@@ -1,5 +1,7 @@
 # Scripts Directory
 
+
+> **File**: `scripts/README.md`
 > **Audience**: Developers using MHM utility scripts and tools  
 > **Purpose**: Guide for utility scripts, migration tools, and testing scripts  
 > **Style**: Technical, reference-oriented, tool-focused

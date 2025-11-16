@@ -1,5 +1,7 @@
 # MHM Project Vision
 
+
+> **File**: `PROJECT_VISION.md`
 > **Audience**: Human Developer, AI Collaborators, and Future Contributors  
 > **Purpose**: Overarching vision, mission, and long-term direction  
 > **Style**: Inspirational, strategic, future-focused

@@ -1,3 +1,5 @@
+> **File**: `QUICK_REFERENCE.md`
+
 ﻿# Quick Reference Guide
 
 > **Audience**: Human Developer (Beginner Programmer)  

@@ -1,5 +1,7 @@
 # Run Fast Audit
 
+
+> **File**: `.cursor/commands/audit.md`
 ## Overview
 Refresh code health metrics without running coverage or heavy hygiene checks.
 

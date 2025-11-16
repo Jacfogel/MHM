@@ -1,5 +1,7 @@
 # How to Run MHM
 
+
+> **File**: `HOW_TO_RUN.md`
 > **Audience**: New users and developers setting up the project  
 > **Purpose**: Step-by-step setup and launch instructions  
 > **Style**: Clear, beginner-friendly, troubleshooting-focused

@@ -1,5 +1,7 @@
 # AI Architecture - Quick Reference
 
+
+> **File**: `ai_development_docs/AI_ARCHITECTURE.md`
 > **Purpose**: High-impact architectural cues for AI collaborators  
 > **Style**: Concise, pattern-focused, cross-linked  
 > **For details**: See [ARCHITECTURE.md](../ARCHITECTURE.md)

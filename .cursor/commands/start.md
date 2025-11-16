@@ -1,5 +1,7 @@
 # Start New Session
 
+
+> **File**: `.cursor/commands/start.md`
 ## Overview
 Kick off a chat with fresh context and confirm today's goal before acting.
 

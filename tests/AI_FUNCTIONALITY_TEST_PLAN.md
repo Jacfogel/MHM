@@ -1,5 +1,7 @@
 # AI Functionality Test Plan
 
+
+> **File**: `tests/AI_FUNCTIONALITY_TEST_PLAN.md`
 > **Created**: 2025-10-27  
 > **Updated**: 2025-11-01  
 > **Purpose**: Comprehensive test plan for system AI functionality  

@@ -1,5 +1,7 @@
 # AI System Documentation
 
+
+> **File**: `ai/README.md`
 > **Purpose**: Comprehensive documentation for the MHM AI system architecture, components, and behavior  
 > **Last Updated**: 2025-11-01
 

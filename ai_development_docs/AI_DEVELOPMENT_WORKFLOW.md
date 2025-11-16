@@ -1,5 +1,7 @@
 # AI Development Workflow - Quick Reference
 
+
+> **File**: `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`
 > **Purpose**: Condensed development workflow guidance for AI collaborators  
 > **Style**: Pattern-first, actionable, link-heavy  
 > **For details**: See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md)

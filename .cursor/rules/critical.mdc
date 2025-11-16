@@ -4,6 +4,7 @@ description: "Essential project rules that must always be followed"
 globs: ["**/*"]
 priority: 1
 lastUpdated: "2025-10-22"
+file: ".cursor/rules/critical.mdc"
 ---
 
 # Critical Rules - Always Apply

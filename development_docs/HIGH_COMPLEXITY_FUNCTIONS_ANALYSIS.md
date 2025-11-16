@@ -1,5 +1,7 @@
 # High Complexity Functions Analysis & Test Coverage Status
 
+> **File**: `development_docs/HIGH_COMPLEXITY_FUNCTIONS_ANALYSIS.md`
+
 ## Overview
 - Last updated: 2025-10-01
 - Source data: `python ai_development_tools/function_discovery.py` (application modules only, tests excluded)

@@ -1,5 +1,7 @@
 # MHM Testing Framework
 
+
+> **File**: `tests/TESTING_GUIDE.md`
 > **Audience**: Developers and AI assistants working on MHM  
 > **Purpose**: Comprehensive testing framework focused on real behavior, integration scenarios, and side effect verification  
 > **Style**: Technical, comprehensive, actionable  

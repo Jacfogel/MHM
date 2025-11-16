@@ -1,5 +1,7 @@
 # Manual Discord Testing: Task Reminder Follow-up Flow
 
+
+> **File**: `tests/MANUAL_DISCORD_REMINDER_FOLLOWUP_TESTS.md`
 **Purpose**: Test the reminder period follow-up flow that occurs after task creation  
 **Date**: 2025-11-12  
 **Status**: Ready for Testing

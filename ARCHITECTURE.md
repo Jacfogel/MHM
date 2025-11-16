@@ -1,5 +1,7 @@
 # MHM System Architecture
 
+
+> **File**: `ARCHITECTURE.md`
 > **Audience**: Human developers building or maintaining the platform  
 > **Purpose**: Explain system design, module responsibilities, and data flow  
 > **Style**: Technical, detailed, reference-oriented  

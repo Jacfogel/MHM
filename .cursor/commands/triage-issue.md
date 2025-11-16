@@ -1,5 +1,7 @@
 # Triage an Issue
 
+
+> **File**: `.cursor/commands/triage-issue.md`
 ## Overview
 Investigate failures methodically before proposing fixes.
 

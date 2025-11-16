@@ -1,5 +1,7 @@
 # Explore Work Options
 
+
+> **File**: `.cursor/commands/explore-options.md`
 ## Overview
 Help choose the next task by comparing effort, impact, and prerequisites.
 

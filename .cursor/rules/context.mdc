@@ -4,6 +4,7 @@ description: "Project snapshot and quick references"
 globs: ["**/*.md", "**/*.txt"]
 priority: 2
 lastUpdated: "2025-10-22"
+file: ".cursor/rules/context.mdc"
 ---
 
 # Project Context - Read Before Working

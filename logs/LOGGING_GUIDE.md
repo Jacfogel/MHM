@@ -1,5 +1,7 @@
 # Enhanced Logging System Guide
 
+
+> **File**: `logs/LOGGING_GUIDE.md`
 > **Audience**: Developers working with MHM logging system  
 > **Purpose**: Guide for enhanced logging system with component-based separation  
 > **Style**: Technical, comprehensive, reference-oriented

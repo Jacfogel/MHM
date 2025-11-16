@@ -1,5 +1,7 @@
 # Close Session
 
+
+> **File**: `.cursor/commands/close.md`
 ## Overview
 Wrap up the session, record follow-ups, and confirm next steps.
 

@@ -1,4 +1,6 @@
-# AI Documentation Guide - Quick Reference
+@AI_DOCUMENTATION_GUIDE.md# AI Documentation Guide - Quick Reference
+
+> **File**: `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`
 
 > **Purpose**: Fast navigation of documentation assets for AI collaborators  
 > **Style**: Concise, pattern-focused, actionable  
@@ -40,8 +42,15 @@
 
 ## Standards and Templates
 
+### File Address Requirement
+- **All documentation files** (.md and .mdc) must include their file address (relative path from project root).
+- **Format for .md files**: `> **File**: `relative/path/to/file.md`` (in metadata block)
+- **Format for .mdc files**: `file: "relative/path/to/file.mdc"` (in YAML frontmatter) or `<!-- File: relative/path/to/file.mdc -->` (as comment)
+- **Purpose**: Makes it easy to identify file location and navigate between related documents.
+- **Maintenance**: Use `python scripts/utilities/add_documentation_addresses.py` to add/update addresses across all files.
+
 ### Standard Document Structure
-- Metadata block (audience, purpose, style) + quick reference + main sections.
+- File address (if applicable) + metadata block (audience, purpose, style) + quick reference + main sections.
 - Keep section order aligned across paired docs.
 - Link to the partner document for the opposite audience.
 
@@ -100,7 +109,8 @@
 - Archive or rotate outputs as needed for audits.
 
 ### Known Generated Files
-- Reference the full generated-file roster in `../DOCUMENTATION_GUIDE.md`.
+- **Important**: Generated files must be updated via their generator scripts, not edited directly. This includes adding file addresses - update the generator, not the file.
+- Reference the full generated-file roster in `../DOCUMENTATION_GUIDE.md` (includes `HIGH_COMPLEXITY_FUNCTIONS_ANALYSIS.md`, `TEST_COVERAGE_EXPANSION_PLAN.md`, and others).
 - Prioritise these when responding: `ai_development_tools/AI_STATUS.md`, `ai_development_tools/AI_PRIORITIES.md`, `development_docs/DIRECTORY_TREE.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`.
 
 ## Resources

@@ -1,5 +1,7 @@
 # Code Review Checklist
 
+
+> **File**: `.cursor/commands/review.md`
 ## Overview
 Provide a focused review that surfaces blocking issues first. Use this for PRs, targeted module audits, or process reviews.
 

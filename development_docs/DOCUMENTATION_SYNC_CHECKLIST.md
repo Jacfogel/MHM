@@ -1,5 +1,7 @@
 # Documentation Synchronization Checklist
 
+
+> **File**: `development_docs/DOCUMENTATION_SYNC_CHECKLIST.md`
 > **Audience**: Human developers and AI collaborators  
 > **Purpose**: Centralized checklist to ensure paired AI/human documentation remains synchronized  
 > **Style**: Checklist-focused, maintenance-oriented, systematic  

@@ -1,5 +1,7 @@
 # Exception Handling Guide - MHM System
 
+
+> **File**: `core/ERROR_HANDLING_GUIDE.md`
 > **Audience**: Developers, AI collaborators, and maintainers  
 > **Purpose**: Comprehensive guide to the MHM exception handling system  
 > **Style**: Technical, comprehensive, actionable  

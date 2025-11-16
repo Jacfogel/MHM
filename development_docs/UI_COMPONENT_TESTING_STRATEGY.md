@@ -1,5 +1,7 @@
 # UI Component Testing Strategy
 
+
+> **File**: `development_docs/UI_COMPONENT_TESTING_STRATEGY.md`
 > **Purpose**: Comprehensive strategy for testing UI components with proper isolation
 > **Audience**: Developers and AI assistants working on MHM UI testing
 > **Status**: **ACTIVE** - Implementation in progress

@@ -1,5 +1,7 @@
 # Run Tests
 
+
+> **File**: `.cursor/commands/test.md`
 ## Overview
 Execute the full test suite, maintain isolation, and report outcomes.
 

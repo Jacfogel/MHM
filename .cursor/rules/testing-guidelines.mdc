@@ -2,6 +2,7 @@
 description: "Testing conventions"
 globs: tests/**,ai_development_docs\AI_TESTING_GUIDE.md
 alwaysApply: false
+file: ".cursor/rules/testing-guidelines.mdc"
 ---
 # Test Suite Guidance
 

@@ -4,6 +4,7 @@ description: "Completeness, consistency, and collaboration expectations"
 globs: ["**/*"]
 priority: 4
 lastUpdated: "2025-10-24"
+file: ".cursor/rules/quality-standards.mdc"
 ---
 
 # Quality and Collaboration Standards

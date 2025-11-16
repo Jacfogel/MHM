@@ -1,5 +1,7 @@
 # AI Legacy Code Removal Guide - Quick Reference
 
+
+> **File**: `ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md`
 > **Purpose**: Fast patterns for safely removing legacy code using search-and-close approach  
 > **For context**: See `.cursor/rules/quality-standards.mdc` and `.cursor/rules/critical.mdc` for legacy code standards
 

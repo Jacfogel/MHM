@@ -1,5 +1,7 @@
 # MHM Manual Testing Guide
 
+
+> **File**: `tests/MANUAL_TESTING_GUIDE.md`
 > **Audience**: Developers and testers performing manual testing for scenarios not covered by automation  
 > **Purpose**: Comprehensive manual testing guide focusing on visual verification, user experience, and real-world integration  
 > **Style**: Step-by-step, checklist-focused, testing-oriented  

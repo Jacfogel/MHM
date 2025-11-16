@@ -1,5 +1,7 @@
 # Run Full Audit
 
+
+> **File**: `.cursor/commands/full-audit.md`
 ## Overview
 Regenerate complete health metrics, including coverage, legacy scans, and unused-import reports.
 

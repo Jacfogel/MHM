@@ -1,5 +1,7 @@
 # Discord Webhook Implementation
 
+
+> **File**: `communication/communication_channels/discord/WEBHOOK_SETUP.md`
 **Purpose**: Automatic welcome messages when users authorize the MHM Discord app  
 **Date**: 2025-11-12
 
