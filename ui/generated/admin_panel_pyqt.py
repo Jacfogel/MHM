@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'admin_panel.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.9.1
+## Created by: Qt User Interface Compiler version 6.10.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -227,6 +227,28 @@ class Ui_ui_app_mainwindow(object):
 
         self.verticalLayout_4.addWidget(self.groupBox_category_actions)
 
+        self.groupBox_user_actions = QGroupBox(self.groupBox_user_management)
+        self.groupBox_user_actions.setObjectName(u"groupBox_user_actions")
+        self.verticalLayout_6 = QVBoxLayout(self.groupBox_user_actions)
+        self.verticalLayout_6.setObjectName(u"verticalLayout_6")
+        self.gridLayout_5 = QGridLayout()
+        self.gridLayout_5.setObjectName(u"gridLayout_5")
+        self.pushButton_send_checkin_prompt = QPushButton(self.groupBox_user_actions)
+        self.pushButton_send_checkin_prompt.setObjectName(u"pushButton_send_checkin_prompt")
+
+        self.gridLayout_5.addWidget(self.pushButton_send_checkin_prompt, 0, 0, 1, 1)
+
+        self.pushButton_send_task_reminder = QPushButton(self.groupBox_user_actions)
+        self.pushButton_send_task_reminder.setObjectName(u"pushButton_send_task_reminder")
+
+        self.gridLayout_5.addWidget(self.pushButton_send_task_reminder, 0, 1, 1, 1)
+
+
+        self.verticalLayout_6.addLayout(self.gridLayout_5)
+
+
+        self.verticalLayout_4.addWidget(self.groupBox_user_actions)
+
 
         self.verticalLayout.addWidget(self.groupBox_user_management)
 
@@ -300,6 +322,9 @@ class Ui_ui_app_mainwindow(object):
         self.pushButton_edit_messages.setText(QCoreApplication.translate("ui_app_mainwindow", u"Edit Messages", None))
         self.pushButton_edit_schedules.setText(QCoreApplication.translate("ui_app_mainwindow", u"Edit Schedules", None))
         self.pushButton_run_category_scheduler.setText(QCoreApplication.translate("ui_app_mainwindow", u"Run Category Scheduler", None))
+        self.groupBox_user_actions.setTitle(QCoreApplication.translate("ui_app_mainwindow", u"User Actions", None))
+        self.pushButton_send_checkin_prompt.setText(QCoreApplication.translate("ui_app_mainwindow", u"Send Check-in Prompt", None))
+        self.pushButton_send_task_reminder.setText(QCoreApplication.translate("ui_app_mainwindow", u"Send Task Reminder", None))
         self.menuDebug.setTitle(QCoreApplication.translate("ui_app_mainwindow", u"Debug", None))
         self.menuCache_Management.setTitle(QCoreApplication.translate("ui_app_mainwindow", u"Cache Management", None))
         self.menuAdmin.setTitle(QCoreApplication.translate("ui_app_mainwindow", u"Admin", None))

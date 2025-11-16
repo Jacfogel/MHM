@@ -400,11 +400,14 @@ class MHMService:
                         self.running = False
                         break
                 
-                # Check for test message request files
-                self.check_test_message_requests()
-                
-                # Check for reschedule request files
-                self.check_reschedule_requests()
+                # Check for request files (optimized: only scan if .flag files exist)
+                base_dir = self._check_test_message_requests__get_base_directory()
+                if self._has_any_request_files(base_dir):
+                    # Only do full scan if request files might exist
+                    self.check_test_message_requests()
+                    self.check_checkin_prompt_requests()
+                    self.check_task_reminder_requests()
+                    self.check_reschedule_requests()
                 
                 time.sleep(2)  # Sleep for 2 seconds
             
@@ -500,6 +503,20 @@ class MHMService:
     def _check_test_message_requests__get_base_directory(self):
         """Get the base directory for test message request files."""
         return os.path.dirname(os.path.dirname(__file__))
+    
+    @handle_errors("checking if request files exist", default_return=False)
+    def _has_any_request_files(self, base_dir):
+        """Quick check if any request files exist (optimization to avoid full scan when not needed)."""
+        try:
+            base_path = Path(base_dir)
+            # Quick check: just see if directory has any .flag files
+            # This is much faster than iterating all files
+            for file_path in base_path.iterdir():
+                if file_path.is_file() and file_path.name.endswith('.flag'):
+                    return True
+            return False
+        except Exception:
+            return True  # If we can't check, assume files might exist and do full scan
 
     @handle_errors("discovering test message request files", default_return=[])
     def _check_test_message_requests__discover_request_files(self, base_dir):
@@ -552,8 +569,111 @@ class MHMService:
         if self.communication_manager:
             self.communication_manager.handle_message_sending(user_id, category)
             logger.info(f"Test message sent successfully for {user_id}, category={category}")
+            
+            # Get the actual message that was sent from the communication manager
+            actual_message = getattr(self.communication_manager, '_last_sent_message', {}).get('message')
+            if actual_message and self.communication_manager._last_sent_message.get('user_id') == user_id and self.communication_manager._last_sent_message.get('category') == category:
+                # Write response file with actual message content for UI to read
+                self._check_test_message_requests__write_response(user_id, category, actual_message)
         else:
             logger.error("Communication manager not available for test message")
+    
+    @handle_errors("getting message content for test message", default_return=None)
+    def _check_test_message_requests__get_message_content(self, user_id: str, category: str) -> str:
+        """Get the actual message content that will be sent."""
+        try:
+            # Use the same logic as _send_predefined_message to get the message
+            from core.schedule_utilities import get_current_time_periods_with_validation, get_current_day_names
+            from core.message_management import get_recent_messages
+            from pathlib import Path
+            from core.config import get_user_data_dir
+            from core.file_operations import load_json_data
+            
+            matching_periods, valid_periods = get_current_time_periods_with_validation(user_id, category)
+            
+            # Remove 'ALL' from matching_periods if there are other periods
+            if 'ALL' in matching_periods and len(matching_periods) > 1:
+                matching_periods = [p for p in matching_periods if p != 'ALL']
+            if not matching_periods and 'ALL' in valid_periods:
+                matching_periods = ['ALL']
+            
+            # Load messages
+            user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
+            file_path = user_messages_dir / f"{category}.json"
+            data = load_json_data(str(file_path))
+            
+            if data and 'messages' in data:
+                current_days = get_current_day_names()
+                
+                all_messages = [
+                    msg for msg in data['messages']
+                    if any(day in msg.get('days', []) for day in current_days)
+                    and any(period in msg.get('time_periods', []) for period in matching_periods)
+                ]
+                
+                if all_messages:
+                    # Apply deduplication
+                    recent_messages = get_recent_messages(user_id, category=category, limit=50, days_back=60)
+                    recent_content = {msg.get('message', '').strip().lower() for msg in recent_messages if msg.get('message')}
+                    
+                    available_messages = []
+                    for msg in all_messages:
+                        message_content = msg.get('message', '').strip()
+                        if message_content and message_content.lower() not in recent_content:
+                            available_messages.append(msg)
+                    
+                    if not available_messages:
+                        available_messages = all_messages
+                    
+                    # Use weighted selection (same as CommunicationManager._select_weighted_message)
+                    if available_messages:
+                        import random
+                        specific_period_messages = []
+                        all_period_messages = []
+                        
+                        for msg in available_messages:
+                            time_periods = msg.get('time_periods', [])
+                            has_specific_periods = any(period != 'ALL' for period in time_periods)
+                            if has_specific_periods:
+                                specific_period_messages.append(msg)
+                            else:
+                                all_period_messages.append(msg)
+                        
+                        # Weighted selection: 70% chance for specific periods, 30% chance for 'ALL' periods
+                        if specific_period_messages and random.random() < 0.7:
+                            selected_msg = random.choice(specific_period_messages)
+                        elif all_period_messages:
+                            selected_msg = random.choice(all_period_messages)
+                        else:
+                            selected_msg = random.choice(available_messages)
+                        
+                        return selected_msg.get('message', '')
+        except Exception as e:
+            logger.debug(f"Could not get message content: {e}")
+        return None
+    
+    @handle_errors("writing test message response", default_return=None)
+    def _check_test_message_requests__write_response(self, user_id: str, category: str, message: str):
+        """Write the actual message content to a response file for the UI to read."""
+        try:
+            import json
+            from datetime import datetime
+            base_dir = self._check_test_message_requests__get_base_directory()
+            response_file = Path(base_dir) / f'test_message_response_{user_id}_{category}.flag'
+            
+            response_data = {
+                "user_id": user_id,
+                "category": category,
+                "message": message,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            with open(response_file, 'w') as f:
+                json.dump(response_data, f, indent=2)
+            
+            logger.debug(f"Wrote test message response file: {response_file}")
+        except Exception as e:
+            logger.debug(f"Could not write response file: {e}")
 
     def _check_test_message_requests__cleanup_request_file(self, request_file, filename):
         """Clean up a processed request file."""
@@ -593,6 +713,126 @@ class MHMService:
                 
             except Exception as e:
                 self._check_test_message_requests__handle_processing_error(request_file, filename, e)
+    
+    @handle_errors("checking check-in prompt requests")
+    def check_checkin_prompt_requests(self):
+        """Check for and process check-in prompt request files from admin panel"""
+        base_dir = self._check_test_message_requests__get_base_directory()
+        base_path = Path(base_dir)
+        
+        for file_path in base_path.iterdir():
+            if file_path.is_file() and file_path.name.startswith('checkin_prompt_request_') and file_path.name.endswith('.flag'):
+                filename = os.path.basename(file_path)
+                try:
+                    import json
+                    with open(file_path, 'r') as f:
+                        request_data = json.load(f)
+                    
+                    user_id = request_data.get('user_id')
+                    if user_id and self.communication_manager:
+                        # Get user preferences to determine messaging service and recipient
+                        from core.user_data_handlers import get_user_data
+                        prefs_result = get_user_data(user_id, 'preferences', normalize_on_read=True)
+                        preferences = prefs_result.get('preferences')
+                        
+                        if preferences:
+                            messaging_service = preferences.get('channel', {}).get('type')
+                            if messaging_service:
+                                recipient = self.communication_manager._get_recipient_for_service(user_id, messaging_service, preferences)
+                                if recipient:
+                                    # Get first question before sending (for response file)
+                                    first_question = self._get_checkin_first_question(user_id)
+                                    
+                                    self.communication_manager._send_checkin_prompt(user_id, messaging_service, recipient)
+                                    logger.info(f"Check-in prompt sent successfully for {user_id}")
+                                    
+                                    # Write response file with first question for UI
+                                    if first_question:
+                                        self._write_checkin_response(user_id, first_question)
+                    
+                    # Clean up the request file
+                    os.remove(file_path)
+                    logger.info(f"Processed check-in prompt request: {filename}")
+                except Exception as e:
+                    logger.error(f"Error processing check-in prompt request {filename}: {e}")
+                    try:
+                        os.remove(file_path)
+                    except Exception:
+                        pass
+    
+    @handle_errors("getting check-in first question", default_return=None)
+    def _get_checkin_first_question(self, user_id: str) -> str:
+        """Get the first question that will be asked in the check-in."""
+        try:
+            from communication.message_processing.conversation_flow_manager import conversation_manager
+            from core.user_data_handlers import get_user_data
+            
+            # Get enabled questions
+            prefs_result = get_user_data(user_id, 'preferences')
+            checkin_prefs = prefs_result.get('preferences', {}).get('checkin_settings', {})
+            enabled_questions = checkin_prefs.get('questions', {})
+            
+            # Get question order (same logic as service will use)
+            question_order = conversation_manager._select_checkin_questions_with_weighting(user_id, enabled_questions)
+            if question_order:
+                first_question_key = question_order[0]
+                first_question = conversation_manager._get_question_text(first_question_key, {})
+                return first_question
+        except Exception as e:
+            logger.debug(f"Could not get check-in first question: {e}")
+        return None
+    
+    @handle_errors("writing check-in response", default_return=None)
+    def _write_checkin_response(self, user_id: str, first_question: str):
+        """Write the first check-in question to a response file for the UI to read."""
+        try:
+            import json
+            from datetime import datetime
+            base_dir = self._check_test_message_requests__get_base_directory()
+            response_file = Path(base_dir) / f'checkin_prompt_response_{user_id}.flag'
+            
+            response_data = {
+                "user_id": user_id,
+                "first_question": first_question,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            with open(response_file, 'w') as f:
+                json.dump(response_data, f, indent=2)
+            
+            logger.debug(f"Wrote check-in prompt response file: {response_file}")
+        except Exception as e:
+            logger.debug(f"Could not write check-in response file: {e}")
+    
+    @handle_errors("checking task reminder requests")
+    def check_task_reminder_requests(self):
+        """Check for and process task reminder request files from admin panel"""
+        base_dir = self._check_test_message_requests__get_base_directory()
+        base_path = Path(base_dir)
+        
+        for file_path in base_path.iterdir():
+            if file_path.is_file() and file_path.name.startswith('task_reminder_request_') and file_path.name.endswith('.flag'):
+                filename = os.path.basename(file_path)
+                try:
+                    import json
+                    with open(file_path, 'r') as f:
+                        request_data = json.load(f)
+                    
+                    user_id = request_data.get('user_id')
+                    task_id = request_data.get('task_id')
+                    if user_id and task_id and self.communication_manager:
+                        self.communication_manager.handle_task_reminder(user_id, task_id)
+                        logger.info(f"Task reminder sent successfully for {user_id}, task {task_id}")
+                    
+                    # Clean up the request file
+                    os.remove(file_path)
+                    logger.info(f"Processed task reminder request: {filename}")
+                except Exception as e:
+                    logger.error(f"Error processing task reminder request {filename}: {e}")
+                    try:
+                        os.remove(file_path)
+                    except Exception:
+                        pass
     
     @handle_errors("getting base directory for cleanup", default_return="")
     def _cleanup_test_message_requests__get_base_directory(self):

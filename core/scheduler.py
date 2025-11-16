@@ -1070,7 +1070,7 @@ class SchedulerManager:
     
     @handle_errors("selecting task by weight for reminder", default_return=None)
     def _select_task_for_reminder__select_task_by_weight(self, task_weights, incomplete_tasks):
-        """Select a task based on calculated weights."""
+        """Select a task based on calculated weights using weighted random selection."""
         import random
         
         if not task_weights:
@@ -1081,42 +1081,30 @@ class SchedulerManager:
             # Fallback to random selection if all weights are zero or invalid
             return random.choice(incomplete_tasks)
         
-        # Build lookup tables for the current task set
-        task_lookup = {}
-        active_keys = set()
-        best_key: Optional[str] = None
-        best_score = float('-inf')
-        best_tie = (float('-inf'), 0)
+        # Use weighted random selection for proper semi-random behavior
+        # This ensures higher-weighted tasks are more likely but not always selected
+        rand_value = random.uniform(0, total_weight)
+        cumulative_weight = 0.0
         
-        for index, (task, weight) in enumerate(task_weights):
-            task_key = self._select_task_for_reminder__task_key(task, index)
-            active_keys.add(task_key)
-            previous_score = self._reminder_selection_state.get(task_key, 0.0)
-            current_score = previous_score + weight
-            self._reminder_selection_state[task_key] = current_score
-            task_lookup[task_key] = task
-            
-            tie_breaker = (weight, -index)
-            # Smoothly prefer higher scores; fall back to tie-breaker to keep ordering stable
-            if current_score > best_score or (
-                abs(current_score - best_score) < 1e-9 and tie_breaker > best_tie
-            ):
-                best_key = task_key
-                best_score = current_score
-                best_tie = tie_breaker
-        
-        if best_key is None:
-            return random.choice(incomplete_tasks)
-        
-        # Remove stale state for tasks that are no longer in the set
+        # Clean up stale state first
+        active_keys = {self._select_task_for_reminder__task_key(t, i) 
+                      for i, (t, _) in enumerate(task_weights)}
         for key in list(self._reminder_selection_state.keys()):
             if key not in active_keys:
                 self._reminder_selection_state.pop(key, None)
         
-        # Subtract the total weight to keep the accumulator bounded
-        self._reminder_selection_state[best_key] = self._reminder_selection_state.get(best_key, 0.0) - total_weight
+        for index, (task, weight) in enumerate(task_weights):
+            cumulative_weight += weight
+            if rand_value <= cumulative_weight:
+                # Update accumulated state for smooth distribution over time
+                task_key = self._select_task_for_reminder__task_key(task, index)
+                previous_score = self._reminder_selection_state.get(task_key, 0.0)
+                self._reminder_selection_state[task_key] = previous_score + weight
+                
+                return task
         
-        return task_lookup[best_key]
+        # Fallback to last task if something went wrong
+        return task_weights[-1][0] if task_weights else random.choice(incomplete_tasks)
 
     def select_task_for_reminder(self, incomplete_tasks: List[Dict[str, Any]]) -> Dict[str, Any]:
         """

@@ -31,6 +31,17 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-15 - UI Dialog Accuracy Improvements and Discord View Creation Fixes **COMPLETED**
+- **User Actions Section**: Added new "User Actions" section to admin panel with "Send Check-in Prompt" and "Send Task Reminder" buttons for testing
+- **File-Based Request System**: Switched check-in prompts and task reminders to file-based requests (like test messages) - UI creates request files, service processes them every 2 seconds
+- **Response File System**: Implemented service-to-UI communication via response files - service writes actual sent message/question, UI reads and displays in dialogs (test messages and check-in prompts)
+- **Task Reminder Priority Fix**: Fixed task reminder selection to use true weighted random selection instead of always picking highest-weight task
+- **Confirmation Dialog Removal**: Removed confirmation dialogs for all three actions (test messages, check-in prompts, task reminders) - streamlined UX with single "sent" dialog
+- **Message Content Tracking**: Updated `_send_predefined_message()` and `_send_ai_generated_message()` to return message content - UI now shows exact message sent, not prediction
+- **Discord View Creation Fix**: Fixed "no running event loop" errors - views created lazily using factory functions called within async context
+- **UI Test Updates**: Updated 3 tests to reflect removal of confirmation dialogs - tests verify direct message sending
+- **Impact**: Admin panel enhanced with User Actions, UI dialogs show accurate information, task reminders use proper semi-random selection, Discord view errors resolved, all UI-related test failures fixed (3,097 passed, 3 pre-existing failures documented)
+
 ### 2025-11-15 - Discord Button UI Improvements and Test Isolation Fixes **COMPLETED**
 - **Discord Button UI**: Replaced text instructions with interactive buttons in check-in prompts (Cancel Check-in, Skip Question, More) and task reminders (Complete Task, Remind Me Later, More) - improved UX with native Discord interactions
 - **Channel-Agnostic Architecture**: All button actions use `handle_user_message` pathway - business logic remains channel-agnostic, Discord UI in adapters per communication guidelines

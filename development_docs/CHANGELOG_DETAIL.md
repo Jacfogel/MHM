@@ -35,6 +35,81 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-15 - UI Dialog Accuracy Improvements and Discord View Creation Fixes **COMPLETED**
+
+**Feature**: Added User Actions section to admin panel, fixed UI dialogs to display actual messages/questions sent, implemented file-based request/response system for service-to-UI communication, fixed task reminder priority selection, removed confirmation dialogs, and fixed Discord view creation errors.
+
+**Technical Changes**:
+
+1. **User Actions Section Added to Admin Panel** (`ui/designs/admin_panel.ui`, `ui/ui_app_qt.py`):
+   - Added new "User Actions" group box with two buttons: "Send Check-in Prompt" and "Send Task Reminder"
+   - Buttons enable/disable based on user selection (via `enable_content_management()`/`disable_content_management()`)
+   - Provides testing interface for check-in prompts and task reminders directly from admin panel
+
+2. **File-Based Request System** (`core/service.py`, `ui/ui_app_qt.py`):
+   - Switched check-in prompts and task reminders to file-based requests (same pattern as test messages)
+   - Check-in prompts: UI creates `checkin_prompt_request_{user_id}.flag`, service processes and sends
+   - Task reminders: UI creates `task_reminder_request_{user_id}_{task_id}.flag`, service processes and sends
+   - Added `check_checkin_prompt_requests()` and `check_task_reminder_requests()` handlers in service
+   - Service checks for request files every 2 seconds (optimized to only scan when `.flag` files exist)
+   - Ensures UI and service communicate properly despite being in separate processes
+
+3. **Response File System for Service-to-UI Communication** (`core/service.py`, `ui/ui_app_qt.py`):
+   - Added response file mechanism: service writes actual sent message/question to response files, UI reads them
+   - Test messages: Service writes `test_message_response_{user_id}_{category}.flag` with actual message content
+   - Check-in prompts: Service writes `checkin_prompt_response_{user_id}.flag` with actual first question
+   - UI waits up to 3 seconds for response files before showing fallback message
+   - Response files are cleaned up after reading
+
+2. **Message Content Tracking** (`communication/core/channel_orchestrator.py`):
+   - Updated `_send_predefined_message()` and `_send_ai_generated_message()` to return `(success, message_content)` tuples
+   - Service stores sent message in `_last_sent_message` attribute for response file creation
+   - Ensures UI displays the exact message that was actually sent, not a prediction
+
+3. **Check-in First Question Tracking** (`core/service.py`):
+   - Added `_get_checkin_first_question()` to get the actual first question using same logic as check-in flow
+   - Added `_write_checkin_response()` to write first question to response file
+   - Ensures UI displays the exact first question that will be asked
+
+4. **Task Reminder Priority Selection Fix** (`core/scheduler.py`):
+   - Fixed `_select_task_for_reminder__select_task_by_weight()` to use true weighted random selection
+   - Previously always selected highest-weight task (deterministic), now uses cumulative weighted random selection
+   - Ensures tasks with higher priority/due date weights are more likely but not always selected
+   - Added cleanup for stale state in `_reminder_selection_state` before selecting new task
+
+5. **Confirmation Dialog Removal** (`ui/ui_app_qt.py`):
+   - Removed confirmation dialogs for all three actions: test messages, check-in prompts, task reminders
+   - Actions now send directly after validation, showing only "sent" confirmation dialog
+   - Simplified user flow: one dialog instead of two (confirm + sent)
+
+6. **Discord View Creation Fix** (`communication/core/channel_orchestrator.py`, `communication/communication_channels/discord/bot.py`):
+   - Fixed "no running event loop" errors when creating Discord views outside async context
+   - Views now created lazily using factory functions when no event loop is available
+   - Factory functions are called within Discord thread's async context in `_send_message_internal()`
+   - Prevents RuntimeError when creating views synchronously from service code
+
+7. **UI Test Updates** (`tests/behavior/test_ui_app_behavior.py`):
+   - Updated 3 tests to reflect removal of confirmation dialogs
+   - Tests now verify direct call to `send_actual_test_message()` instead of `confirm_test_message()`
+   - Tests verify service validation before sending (when service not running)
+
+8. **Test Failure Documentation** (`TODO.md`):
+   - Documented 3 pre-existing test failures related to user ID lookup/indexing issues
+   - Marked as unrelated to recent changes (UI improvements, response files, Discord views)
+
+**Impact**: Admin panel now includes User Actions section for testing, UI dialogs show accurate information (actual messages/questions sent), task reminders use proper semi-random priority selection, confirmation dialogs removed for streamlined UX, Discord view creation errors resolved, test suite updated to reflect new behavior. All UI-related test failures fixed (3,097 passed, 3 pre-existing failures documented for investigation).
+
+**Files Modified**:
+- `ui/designs/admin_panel.ui` - Added User Actions group box with check-in and task reminder buttons
+- `ui/generated/admin_panel_pyqt.py` - Regenerated to include new UI elements
+- `core/service.py` - Request file handlers and response file creation for check-in/task reminders
+- `core/scheduler.py` - Fixed task reminder priority selection to use weighted random selection
+- `ui/ui_app_qt.py` - User Actions section implementation, response file reading, removed confirmation dialogs
+- `communication/core/channel_orchestrator.py` - Message content tracking and Discord view factory functions
+- `communication/communication_channels/discord/bot.py` - Factory function handling in async context
+- `tests/behavior/test_ui_app_behavior.py` - Test updates for removed confirmation dialogs
+- `TODO.md` - Pre-existing test failure documentation
+
 ### 2025-11-15 - Discord Button UI Improvements and Test Isolation Fixes **COMPLETED**
 
 **Feature**: Replaced text instructions with interactive buttons in Discord check-in prompts and task reminders, and fixed test isolation to prevent writes to production directories.

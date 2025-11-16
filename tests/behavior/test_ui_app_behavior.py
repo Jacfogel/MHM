@@ -606,37 +606,38 @@ class TestUIAppIntegration:
                                 app.ui.comboBox_user_categories.currentIndex = MagicMock(return_value=1)
                                 app.ui.comboBox_user_categories.itemData = MagicMock(return_value="motivational")
                                 
-                                # Mock confirm_test_message to avoid actual dialog
-                                app.confirm_test_message = MagicMock()
+                                # Mock send_actual_test_message to avoid actual file operations
+                                app.send_actual_test_message = MagicMock()
                                 
                                 app.send_test_message()
                                 
-                                # ✅ VERIFY REAL BEHAVIOR: Should call confirm_test_message
-                                app.confirm_test_message.assert_called_once_with("motivational")
+                                # ✅ VERIFY REAL BEHAVIOR: Should call send_actual_test_message directly (no confirmation step)
+                                app.send_actual_test_message.assert_called_once_with("motivational")
 
     @pytest.mark.behavior
     @pytest.mark.ui
     @pytest.mark.critical
     def test_confirm_test_message_user_confirms_real_behavior(self, qt_app, test_data_dir):
-        """REAL BEHAVIOR TEST: Test confirm_test_message when user confirms."""
+        """REAL BEHAVIOR TEST: Test send_actual_test_message is called directly (confirmation step removed)."""
         # ✅ VERIFY REAL BEHAVIOR: Mock UI components
         with patch('ui.ui_app_qt.Ui_ui_app_mainwindow'):
             with patch('ui.ui_app_qt.MHMManagerUI.load_ui'):
                 with patch('ui.ui_app_qt.MHMManagerUI.connect_signals'):
                     with patch('ui.ui_app_qt.MHMManagerUI.initialize_ui'):
                         with patch('ui.ui_app_qt.MHMManagerUI.update_service_status'):
-                            with patch('ui.ui_app_qt.QMessageBox') as mock_msgbox:
+                            with patch('ui.ui_app_qt.QMessageBox'):
                                 # Act
                                 app = MHMManagerUI()
                                 app.current_user = "test-user"
                                 
-                                # Mock message box to return Yes
-                                mock_msgbox.question.return_value = mock_msgbox.StandardButton.Yes
+                                # Mock service manager to return running
+                                app.service_manager.is_service_running = MagicMock(return_value=(True, 12345))
                                 
                                 # Mock send_actual_test_message to avoid actual file operations
                                 app.send_actual_test_message = MagicMock()
                                 
-                                app.confirm_test_message("motivational")
+                                # Call send_actual_test_message directly (no confirmation step)
+                                app.send_actual_test_message("motivational")
                                 
                                 # ✅ VERIFY REAL BEHAVIOR: Should call send_actual_test_message
                                 app.send_actual_test_message.assert_called_once_with("motivational")
@@ -645,27 +646,27 @@ class TestUIAppIntegration:
     @pytest.mark.ui
     @pytest.mark.critical
     def test_confirm_test_message_user_cancels_real_behavior(self, qt_app, test_data_dir):
-        """REAL BEHAVIOR TEST: Test confirm_test_message when user cancels."""
+        """REAL BEHAVIOR TEST: Test that send_test_message validates service before sending (confirmation step removed)."""
         # ✅ VERIFY REAL BEHAVIOR: Mock UI components
         with patch('ui.ui_app_qt.Ui_ui_app_mainwindow'):
             with patch('ui.ui_app_qt.MHMManagerUI.load_ui'):
                 with patch('ui.ui_app_qt.MHMManagerUI.connect_signals'):
                     with patch('ui.ui_app_qt.MHMManagerUI.initialize_ui'):
                         with patch('ui.ui_app_qt.MHMManagerUI.update_service_status'):
-                            with patch('ui.ui_app_qt.QMessageBox') as mock_msgbox:
+                            with patch('ui.ui_app_qt.QMessageBox'):
                                 # Act
                                 app = MHMManagerUI()
                                 app.current_user = "test-user"
                                 
-                                # Mock message box to return No
-                                mock_msgbox.question.return_value = mock_msgbox.StandardButton.No
+                                # Mock service manager to return NOT running
+                                app.service_manager.is_service_running = MagicMock(return_value=(False, None))
                                 
-                                # Mock send_actual_test_message to verify it's not called
+                                # Mock send_actual_test_message to verify it's not called when service is down
                                 app.send_actual_test_message = MagicMock()
                                 
-                                app.confirm_test_message("motivational")
+                                app.send_test_message()
                                 
-                                # ✅ VERIFY REAL BEHAVIOR: Should NOT call send_actual_test_message
+                                # ✅ VERIFY REAL BEHAVIOR: Should NOT call send_actual_test_message when service is not running
                                 app.send_actual_test_message.assert_not_called()
 
     @pytest.mark.behavior

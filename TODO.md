@@ -129,6 +129,22 @@ When adding new tasks, follow this format:
 **Status**: Fails intermittently under parallel execution  
 **Next Steps**: Add better synchronization for user creation and index updates, consider marking test to run serially, or add retry logic with longer delays
 
+### **Pre-existing Test Failures: User ID Lookup Issues** [WARNING] **INVESTIGATE**
+**Location**: Multiple tests failing with `get_user_id_by_identifier` returning `None`  
+**Issue**: User ID lookup failing after user creation - tests create users but cannot resolve UUIDs  
+**Category**: Pre-existing test issues (unrelated to recent UI/response file changes)  
+**Status**: Fails consistently - needs investigation  
+**Affected Tests**:
+- `tests/behavior/test_interaction_handlers_behavior.py::TestInteractionHandlersBehavior::test_task_management_handler_completes_actual_task` - User `test_user_789` not found after creation
+- `tests/integration/test_user_creation.py::TestUserCreationScenarios::test_user_creation_with_schedules` - User `test-schedule-user-new` not found after creation with schedules
+- `tests/behavior/test_interaction_handlers_behavior.py::TestInteractionHandlersBehavior::test_profile_handler_shows_actual_profile` - Profile handler not showing user name (may be related to user lookup or data loading issue)
+**Next Steps**: 
+- Investigate why `get_user_id_by_identifier` is returning `None` after user creation
+- Check if user index is being updated correctly after user creation
+- Verify test user creation utilities are properly updating the user index
+- Review timing/race conditions in user creation and index updates
+- Check if index rebuild is needed or if there's a synchronization issue
+
 
 **Fix Flaky Tests in Parallel Execution Mode** [OK] **COMPLETED** (2025-11-13)
 - *What it means*: Investigate and fix tests that fail when run in parallel mode (`-n auto` with pytest-xdist) but pass when run sequentially
@@ -212,6 +228,12 @@ When adding new tasks, follow this format:
   - [OK] T-14.1, T-16.2: Fabricated check-in details/statistics - PREVENTION ADDED
   - [OK] T-13.3: System prompt instructions leaked - CLEANING ENHANCED
 
+
+**Investigate and Fix Discord Button UI Issue**
+- *What it means*: Investigate why Discord buttons are not showing up in check-in prompts (Cancel Check-in, Skip Question, More) and task reminders (Complete Task, Remind Me Later, More) despite the 2025-11-15 improvement that replaced text instructions with interactive buttons
+- *Why it helps*: Restores the improved UX with native Discord interactions that was intended in the recent improvement
+- *Estimated effort*: Small/Medium
+- *Related to*: 2025-11-15 Discord Button UI Improvements (marked as COMPLETED but buttons not appearing)
 
 
 **Design Safety Net Response Library**

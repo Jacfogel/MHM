@@ -1496,7 +1496,15 @@ class DiscordBot(BaseChannel):
         # Create view with buttons - prefer custom_view, then suggestions
         view = None
         if custom_view:
-            view = custom_view
+            # Handle factory functions (callables) - create view within async context
+            if callable(custom_view) and not isinstance(custom_view, type):
+                try:
+                    view = custom_view()
+                except Exception as e:
+                    logger.error(f"Error creating view from factory function: {e}")
+                    view = None
+            else:
+                view = custom_view
         elif suggestions:
             view = self._create_action_row(suggestions)
         

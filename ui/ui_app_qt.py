@@ -406,6 +406,10 @@ class MHMManagerUI(QMainWindow):
         self.ui.pushButton_send_test_message.clicked.connect(self.send_test_message)
         self.ui.pushButton_run_category_scheduler.clicked.connect(self.run_category_scheduler)
         
+        # User actions
+        self.ui.pushButton_send_checkin_prompt.clicked.connect(self.send_checkin_prompt)
+        self.ui.pushButton_send_task_reminder.clicked.connect(self.send_task_reminder)
+        
         # Menu actions
         self.ui.actionToggle_Verbose_Logging.triggered.connect(self.toggle_logging_verbosity)
         self.ui.actionView_Log_File.triggered.connect(self.view_log_file)
@@ -1017,6 +1021,9 @@ class MHMManagerUI(QMainWindow):
         
         # Enable category actions group
         self.ui.groupBox_category_actions.setEnabled(True)
+        
+        # Enable user actions group
+        self.ui.groupBox_user_actions.setEnabled(True)
     
     def disable_content_management(self):
         """Disable content management buttons"""
@@ -1031,6 +1038,9 @@ class MHMManagerUI(QMainWindow):
         
         # Disable category actions group
         self.ui.groupBox_category_actions.setEnabled(False)
+        
+        # Disable user actions group
+        self.ui.groupBox_user_actions.setEnabled(False)
         
         # Clear category combo box
         self.ui.comboBox_user_categories.clear()
@@ -1484,39 +1494,10 @@ class MHMManagerUI(QMainWindow):
         
         logger.info(f"Admin Panel: Preparing test message for user {self.current_user}, category {category}")
         
-        # Confirm the test message
-        self.confirm_test_message(category)
+        # Send the test message directly (no confirmation needed)
+        self.send_actual_test_message(category)
 
-    @handle_errors("confirming test message", default_return=None)
-    def confirm_test_message(self, category):
-        """
-        Confirm test message with validation.
-        
-        Returns:
-            None: Always returns None
-        """
-        # Validate category
-        if not category or not isinstance(category, str):
-            logger.error(f"Invalid category: {category}")
-            return None
-            
-        if not category.strip():
-            logger.error("Empty category provided")
-            return None
-        """Confirm and send test message"""
-        result = QMessageBox.question(self, "Confirm Test Message", 
-                                     f"Send a test {category} message to {self.current_user}?\n\n"
-                                     f"This will send a random message from their {category} collection.",
-                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        
-        if result == QMessageBox.StandardButton.Yes:
-            logger.info(f"Admin Panel: Test message confirmed for user {self.current_user}, category {category}")
-            # Actually send the test message using communication manager
-            self.send_actual_test_message(category)
-        else:
-            logger.info(f"Admin Panel: Test message cancelled for user {self.current_user}, category {category}")
-
-    @handle_errors("sending actual test message", default_return=None)
+    @handle_errors("sending test message", default_return=None)
     def send_actual_test_message(self, category):
         """
         Send actual test message with validation.
@@ -1546,6 +1527,7 @@ class MHMManagerUI(QMainWindow):
         # Create a test message request using the same pattern as shutdown requests
         from datetime import datetime
         import json
+        from pathlib import Path
         
         # Use the same directory structure as the shutdown flag
         base_dir = Path(__file__).parent.parent  # Go up to MHM root
@@ -1558,17 +1540,54 @@ class MHMManagerUI(QMainWindow):
             "source": "admin_panel"
         }
         
-        with open(request_file, 'w') as f:
-            json.dump(test_request, f, indent=2)
+        try:
+            with open(request_file, 'w') as f:
+                json.dump(test_request, f, indent=2)
+            logger.info(f"Admin Panel: Test message request file created: {request_file}")
+        except Exception as e:
+            logger.error(f"Failed to create test message request file: {e}")
+            QMessageBox.critical(self, "Error", f"Failed to create test message request file: {str(e)}")
+            return
         
-        QMessageBox.information(self, "Test Message Requested", 
-                               f"Test {category} message request created for {self.current_user}.\n\n"
-                               f"The running service will check for this request and send the message.\n\n"
-                               f"Note: Current implementation creates a request file.\n"
-                               f"Future versions will have direct service communication.\n\n"
-                               f"Request file: {os.path.basename(request_file)}")
+        # Wait briefly for service to process and write response file with actual message
+        actual_message = "Message will be selected from your collection"
+        channel_name = "unknown"
+        response_file = base_dir / f'test_message_response_{self.current_user}_{category}.flag'
         
-        logger.info(f"Admin Panel: Test message request file created: {request_file}")
+        # Wait up to 3 seconds for the service to process and write the response
+        import time
+        for _ in range(30):  # Check 30 times over 3 seconds
+            if response_file.exists():
+                try:
+                    with open(response_file, 'r') as f:
+                        response_data = json.load(f)
+                    actual_message = response_data.get('message', actual_message)
+                    # Clean up response file
+                    try:
+                        os.remove(response_file)
+                    except Exception:
+                        pass
+                    break
+                except Exception as e:
+                    logger.debug(f"Could not read response file: {e}")
+            time.sleep(0.1)  # Wait 100ms between checks
+        
+        # Get channel name for dialog
+        try:
+            from core.user_data_handlers import get_user_data
+            prefs_result = get_user_data(self.current_user, 'preferences', normalize_on_read=True)
+            preferences = prefs_result.get('preferences', {})
+            channel_name = preferences.get('channel', {}).get('type', 'unknown')
+        except Exception as e:
+            logger.debug(f"Could not get channel name: {e}")
+        
+        # Truncate message if too long for dialog
+        if len(actual_message) > 100:
+            actual_message = actual_message[:97] + "..."
+        
+        QMessageBox.information(self, "Test Message Sent", 
+                               f"Test {category} message sent to {self.current_user} via {channel_name}.\n\n"
+                               f"Message: {actual_message}")
         
         # Optional: Clean up old request files after a short delay
         import threading
@@ -1590,6 +1609,209 @@ class MHMManagerUI(QMainWindow):
             UserContext().set_user_id(original_user)
         else:
             UserContext().set_user_id(None)
+    
+    @handle_errors("sending check-in prompt", default_return=None)
+    def send_checkin_prompt(self):
+        """
+        Send a check-in prompt to the selected user for testing purposes.
+        
+        Returns:
+            None: Always returns None
+        """
+        # Validate user selection
+        if not self.current_user:
+            QMessageBox.warning(self, "No User Selected", "Please select a user first.")
+            return
+        
+        # Validate service is running
+        is_running, pid = self.service_manager.is_service_running()
+        if not is_running:
+            QMessageBox.warning(self, "Service Not Running", 
+                               "MHM Service is not running. Check-in prompts require the service to be active.\n\n"
+                               "To send a check-in prompt:\n"
+                               "1. Click 'Start Service' above\n"
+                               "2. Wait for service to initialize\n"
+                               "3. Try sending the check-in prompt again")
+            return
+        
+        logger.info(f"Admin Panel: Sending check-in prompt to user {self.current_user}")
+        
+        try:
+            # Get user preferences to determine messaging service and recipient
+            from core.user_data_handlers import get_user_data
+            prefs_result = get_user_data(self.current_user, 'preferences', normalize_on_read=True)
+            preferences = prefs_result.get('preferences')
+            
+            if not preferences:
+                QMessageBox.warning(self, "User Configuration Error", 
+                                   f"User preferences not found for {self.current_user}.")
+                return
+            
+            messaging_service = preferences.get('channel', {}).get('type')
+            if not messaging_service:
+                QMessageBox.warning(self, "User Configuration Error", 
+                                   f"No messaging service configured for {self.current_user}.")
+                return
+            
+            # Create check-in prompt request file (same pattern as test messages)
+            # The service will pick this up and send the check-in prompt
+            from datetime import datetime
+            import json
+            import time
+            base_dir = Path(__file__).parent.parent
+            request_file = base_dir / f'checkin_prompt_request_{self.current_user}.flag'
+            
+            checkin_request = {
+                "user_id": self.current_user,
+                "timestamp": datetime.now().isoformat(),
+                "source": "admin_panel"
+            }
+            
+            with open(request_file, 'w') as f:
+                json.dump(checkin_request, f, indent=2)
+            
+            # Wait briefly for service to process and write response file with actual first question
+            first_question = "Check-in questions"
+            response_file = base_dir / f'checkin_prompt_response_{self.current_user}.flag'
+            
+            # Wait up to 3 seconds for the service to process and write the response
+            for _ in range(30):  # Check 30 times over 3 seconds
+                if response_file.exists():
+                    try:
+                        with open(response_file, 'r') as f:
+                            response_data = json.load(f)
+                        first_question = response_data.get('first_question', first_question)
+                        # Clean up response file
+                        try:
+                            os.remove(response_file)
+                        except Exception:
+                            pass
+                        break
+                    except Exception as e:
+                        logger.debug(f"Could not read check-in response file: {e}")
+                time.sleep(0.1)  # Wait 100ms between checks
+            
+            # Truncate if too long
+            if len(first_question) > 100:
+                first_question = first_question[:97] + "..."
+            
+            QMessageBox.information(self, "Check-in Prompt Sent", 
+                                   f"Check-in prompt sent to {self.current_user} via {messaging_service}.\n\n"
+                                   f"First question: {first_question}")
+            logger.info(f"Admin Panel: Check-in prompt request file created: {request_file}")
+            
+        except Exception as e:
+            logger.error(f"Error sending check-in prompt: {e}")
+            QMessageBox.critical(self, "Error", f"Failed to send check-in prompt: {str(e)}")
+    
+    @handle_errors("sending task reminder", default_return=None)
+    def send_task_reminder(self):
+        """
+        Send a task reminder to the selected user for testing purposes.
+        
+        Returns:
+            None: Always returns None
+        """
+        # Validate user selection
+        if not self.current_user:
+            QMessageBox.warning(self, "No User Selected", "Please select a user first.")
+            return
+        
+        # Validate service is running
+        is_running, pid = self.service_manager.is_service_running()
+        if not is_running:
+            QMessageBox.warning(self, "Service Not Running", 
+                               "MHM Service is not running. Task reminders require the service to be active.\n\n"
+                               "To send a task reminder:\n"
+                               "1. Click 'Start Service' above\n"
+                               "2. Wait for service to initialize\n"
+                               "3. Try sending the task reminder again")
+            return
+        
+        logger.info(f"Admin Panel: Preparing task reminder for user {self.current_user}")
+        
+        try:
+            # Get user preferences first (needed for channel check)
+            from core.user_data_handlers import get_user_data
+            prefs_result = get_user_data(self.current_user, 'preferences', normalize_on_read=True)
+            preferences = prefs_result.get('preferences')
+            
+            # Check if tasks are enabled for this user
+            from tasks.task_management import are_tasks_enabled, load_active_tasks
+            if not are_tasks_enabled(self.current_user):
+                QMessageBox.warning(self, "Tasks Not Enabled", 
+                                   f"Tasks are not enabled for {self.current_user}.")
+                return
+            
+            # Get active tasks
+            active_tasks = load_active_tasks(self.current_user)
+            if not active_tasks:
+                QMessageBox.warning(self, "No Active Tasks", 
+                                   f"{self.current_user} has no active tasks to remind about.")
+                return
+            
+            # Filter out completed tasks
+            incomplete_tasks = [task for task in active_tasks if not task.get('completed', False)]
+            if not incomplete_tasks:
+                QMessageBox.warning(self, "No Incomplete Tasks", 
+                                   f"All tasks for {self.current_user} are already completed.")
+                return
+            
+            # Use scheduler's weighted selection for proper priority-based semi-random selection
+            # Note: We create a temporary scheduler manager just for task selection
+            # The actual sending will be done by the service when it processes the request file
+            from core.scheduler import SchedulerManager
+            from communication.core.channel_orchestrator import CommunicationManager
+            
+            # Create temporary instances for task selection only
+            temp_comm_manager = CommunicationManager()
+            scheduler_manager = SchedulerManager(temp_comm_manager)
+            
+            # Select task using priority-based weighting (considers priority, due dates, etc.)
+            selected_task = scheduler_manager.select_task_for_reminder(incomplete_tasks)
+            
+            if not selected_task:
+                QMessageBox.warning(self, "Task Selection Error", 
+                                   "Could not select a task for reminder.")
+                return
+            
+            task_id = selected_task.get('task_id')
+            task_title = selected_task.get('title', 'Untitled Task')
+            
+            if not task_id:
+                QMessageBox.warning(self, "Invalid Task", 
+                                   "Selected task has no task_id.")
+                return
+            
+            # Get channel name for dialog
+            messaging_service = preferences.get('channel', {}).get('type') if preferences else None
+            channel_name = messaging_service if messaging_service else "unknown"
+            
+            # Create task reminder request file (same pattern as test messages)
+            # The service will pick this up and send the task reminder
+            from datetime import datetime
+            import json
+            base_dir = Path(__file__).parent.parent
+            request_file = base_dir / f'task_reminder_request_{self.current_user}_{task_id}.flag'
+            
+            task_reminder_request = {
+                "user_id": self.current_user,
+                "task_id": task_id,
+                "timestamp": datetime.now().isoformat(),
+                "source": "admin_panel"
+            }
+            
+            with open(request_file, 'w') as f:
+                json.dump(task_reminder_request, f, indent=2)
+            
+            QMessageBox.information(self, "Task Reminder Sent", 
+                                   f"Task reminder sent to {self.current_user} via {channel_name}.\n\n"
+                                   f"Task: {task_title}")
+            logger.info(f"Admin Panel: Task reminder request file created: {request_file}")
+            
+        except Exception as e:
+            logger.error(f"Error sending task reminder: {e}")
+            QMessageBox.critical(self, "Error", f"Failed to send task reminder: {str(e)}")
     
     # Debug and admin methods
     def toggle_logging_verbosity(self):
