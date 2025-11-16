@@ -591,6 +591,7 @@ class TestResponseTrackingIntegration:
         # The file should be created successfully (the exact data structure may vary)
         # The main point is that error recovery works and creates a valid file
     
+    @pytest.mark.no_parallel
     def test_response_tracking_concurrent_access_safety(self, test_data_dir):
         """Test that response tracking handles concurrent access safely."""
         import time

@@ -54,6 +54,7 @@ class TestDiscordCheckinRetryBehavior:
         manager = CommunicationManager()
         return manager
     
+    @pytest.mark.no_parallel
     def test_checkin_message_queued_on_discord_disconnect(self, comm_manager, user_id, test_data_dir):
         """Test that check-in messages are queued when Discord disconnects during send."""
         # Arrange: Get actual user ID (UUID) for the test user

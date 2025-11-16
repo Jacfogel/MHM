@@ -1,139 +1,53 @@
 # MHM Testing Framework
 
-
 > **File**: `tests/TESTING_GUIDE.md`
 > **Audience**: Developers and AI assistants working on MHM  
-> **Purpose**: Comprehensive testing framework focused on real behavior, integration scenarios, and side effect verification  
+> **Purpose**: Comprehensive testing framework focused on real behavior, integration scenarios, and side-effect verification  
 > **Style**: Technical, comprehensive, actionable  
-> **Status**: **ACTIVE** - Real behavior testing implemented, expanding coverage  
-> **Last Updated**: 2025-09-28
+> **Status**: ACTIVE - Real behavior testing implemented, expanding coverage
 
-> **See [README.md](../README.md) for complete navigation and project overview**  
-> **See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) for safe development practices**  
-> **See [QUICK_REFERENCE.md](../QUICK_REFERENCE.md) for essential commands**  
-> **See [MANUAL_TESTING_GUIDE.md](MANUAL_TESTING_GUIDE.md) for comprehensive manual testing for non-automated scenarios**  
-> **See [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md) for exception handling patterns**
 
 ## Quick Reference
 
-### **Test Suite Hanging Prevention**
-```python
-# Qt components in tests require proper mocking to avoid hanging
-# Mock-based approach provides same coverage without Qt initialization dependencies
+This section lists the most common testing tasks and where to look.
 
-# BAD: Direct Qt instantiation in tests
-def test_ui_validation():
-    manager = MHMManagerUI()  # HANGS - requires Qt app context
+- How do I run all tests quickly?  
+  - Use `python run_tests.py` (defaults to parallel execution with pytest-xdist if installed).
+- How do I run only unit or integration tests?  
+  - Use `python run_tests.py --type unit` or `python run_tests.py --type integration`.
+- How do I disable parallel execution?  
+  - Add `--no-parallel` to the command: `python run_tests.py --no-parallel`.
+- How do I run tests with coverage?  
+  - Use `python run_tests.py --coverage`.
+- How do I run a specific test file or test function?  
+  - Use pytest directly, for example:  
+    - `pytest tests/unit/test_example.py`  
+    - `pytest tests/unit/test_example.py::TestExample::test_case`
+- Where do I find manual testing steps?  
+  - See the "Manual Testing Procedures" section in this guide.
+- Where do I find AI-optimized testing guidance?  
+  - See `ai_development_docs/AI_TESTING_GUIDE.md`.
 
-# GOOD: Mock-based testing
-def test_ui_validation():
-    class MockMHMManagerUI:
-        def on_user_selected(self, user_id):
-            if user_id is None or user_id == "":
-                return None
-            return user_id
-    
-    manager = MockMHMManagerUI()
-    # Test validation logic without Qt dependencies
-```
 
-### **Analytics Test Patching**
-```python
-# Analytics tests must match backend function usage
-# Test patching must target correct import paths and function names
+## Testing Philosophy and Priorities
 
-# BAD: Patching wrong function
-with patch('core.checkin_analytics.get_recent_checkins', return_value=mock_data):
-    result = analytics.get_mood_trends('user', days=30)  # FAILS
+The testing strategy for MHM focuses on real-world behavior and resilience:
 
-# GOOD: Patching correct function  
-with patch('core.checkin_analytics.get_checkins_by_days', return_value=mock_data):
-    result = analytics.get_mood_trends('user', days=30)  # WORKS
-```
+- Behavior and integration first  
+  - Prefer tests that exercise realistic flows across modules (for example, sending a scheduled message through Discord) rather than isolated unit checks only.
+- Verify side effects  
+  - Tests should confirm that side effects (messages sent, files written, logs generated) occur correctly and safely.
+- Guard critical paths  
+  - Critical flows (scheduling, message delivery, AI interactions, user data handling) should be covered by a mix of automatic and manual tests.
+- Keep tests maintainable  
+  - Favor clear fixtures, stable test data, and predictable setup/teardown over clever but fragile patterns.
+- Parallel-safe by default  
+  - New tests should be written to work under parallel execution unless there is a strong reason they cannot.
 
-### **Test Execution**
-```powershell
-# Run all tests
-python run_tests.py
+For more context on how testing fits into the broader development process, see the testing-related sections in `DEVELOPMENT_WORKFLOW.md`.
 
-# Run specific test types
-python run_tests.py --type unit
-python run_tests.py --type integration
-python run_tests.py --verbose
 
-# Run automation tests
-python -m pytest tests/behavior/test_*automation* -v
-
-# Run specific automation categories
-python -m pytest tests/behavior/test_discord_automation_complete.py -v
-python -m pytest tests/behavior/test_ui_automation_complete.py -v
-python -m pytest tests/behavior/test_discord_advanced_automation.py -v
-
-# Run AI functionality tests (manual review tests)
-python tests/ai/run_ai_functionality_tests.py
-# Results: tests/ai/results/ai_functionality_test_results_latest.md
-# Logs: tests/logs/test_consolidated.log and tests/logs/test_run.log
-```
-
-### **Test Discovery Policy**
-- **Scripts Directory Exclusion**: The `scripts/` directory is **always excluded** from test discovery
-  - Configured in `pytest.ini` via `norecursedirs = scripts`, `collect_ignore`, and `addopts --ignore=scripts`
-  - Tests should only exist in `tests/` directory subdirectories (unit, integration, behavior, ui)
-  - Scripts in `scripts/` are utilities and migration tools, not test code
-  - This policy is enforced automatically by pytest configuration to prevent accidental test discovery
-  - Verification: Run `python -m pytest --collect-only` to confirm no tests are discovered in `scripts/`
-
-### **CRITICAL: Windows Task Prevention**
-```powershell
-# Check for Windows task pollution
-schtasks /query /fo csv /nh | findstr "Wake_" | Measure-Object
-
-# Clean up Windows tasks if needed
-python scripts/cleanup_windows_tasks.py
-```
-
-### **Test Categories**
-- **Unit Tests**: Individual function testing
-- **Integration Tests**: Cross-module workflows
-- **Behavior Tests**: Real system behavior verification
-- **UI Tests**: User interface functionality
-- **Automation Tests**: Comprehensive automated testing for UI and Discord scenarios
-- **AI Functionality Tests**: Manual review tests for AI response quality (see `tests/AI_FUNCTIONALITY_TEST_PLAN.md`)
-  - Validates response quality, context usage, prompt matching, and detects AI fabrication
-  - Results include full responses, context information, and validation issues
-  - Tests automatically check for truncation, code fragments, fabrication, and prompt mismatches
-
-The testing framework prioritizes **real behavior testing**, **side effect verification**, and **integration scenarios** to ensure system reliability and catch issues early.
-
-## Automation Coverage
-✅ **UI Dialog Testing** - All 7 dialog types fully automated  
-✅ **Discord Command Testing** - All 15 basic + 16 advanced scenarios automated  
-✅ **Data Persistence Testing** - Save/load functionality automated  
-✅ **Error Handling Testing** - Edge cases and recovery automated  
-
-**Manual Testing Focus**: Visual verification, user experience, performance, and real-world integration testing.
-
-## Testing Philosophy & Priorities
-
-### **Core Principles**
-1. **Real Behavior Testing**: Tests verify actual system changes, not just return values
-2. **Side Effect Verification**: Functions are verified to actually change system state
-3. **Integration Scenarios**: Test real-world workflows that span multiple modules
-4. **Data Persistence**: Verify that changes are actually saved and persist
-5. **Error Recovery**: Test how the system handles and recovers from errors
-
-### **Test Quality Standards**
-- **Isolation**: Tests don't interfere with each other or real data
-- **Completeness**: Tests verify the full workflow, not just individual steps
-- **Maintainability**: Tests are easy to understand and update
-- **Reliability**: Tests produce consistent, repeatable results
-
-### **Test Data Cleanup Standards**
-- **Pre-run**: Remove `tests/data/pytest-of-Julie`, clear `tests/data/tmp`, remove stray config files
-- **Post-run**: Clear `tests/data/tmp` and `tests/data/flags`, remove test backups and logs
-- **Users directory**: All test users must reside under `tests/data/users/<id>`, fail if found elsewhere
-
-## Test Organization Structure
+## Test Types and Structure
 
 Tests are organized by real-world features and workflows to encourage integration testing and real behavior verification.
 
@@ -146,440 +60,340 @@ tests/
 `-- ui/                                  # UI-specific tests
 ```
 
-### **Test Categories**
-- **Unit Tests**: Individual function testing with mocked dependencies
-- **Integration Tests**: Cross-module workflows and component interactions
-- **Behavior Tests**: Real system behavior verification with side effects
-- **UI Tests**: User interface functionality and dialog testing
+High-level types:
+
+- Unit tests  
+  - Focus on small, isolated pieces of logic with minimal external dependencies.
+- Integration tests  
+  - Cover multiple modules and the interactions between them.
+- Behavior tests  
+  - Exercise end-to-end flows as closely as possible to real usage.
+- UI tests  
+  - Focus on dialogs, widgets, signals/slots, and visual behavior in the Qt UI.
+
+### Test discovery and scripts directory
+
+- Pytest is configured to discover tests under the `tests/` directory.  
+- The `scripts/` directory is explicitly excluded from test discovery (for example, via `norecursedirs` or `--ignore=scripts` in `pytest.ini`).  
+- New tests should be added under `tests/` and not under `scripts/`.
+
+Test behavior is also controlled using pytest markers defined in `pytest.ini` (for example: `unit`, `integration`, `behavior`, `ui`, `slow`, `external`, `manual`, `smoke`, `critical`). Use markers to describe the intent and constraints of each test.
 
 ## Test Utilities and Infrastructure
 
-### **Critical Requirements**
-- **Data Isolation**: All tests must use `tests/data/` directory only
-- **Environment Isolation**: Use `monkeypatch.setenv()` for env vars, never `os.environ[...] = ...`
-- **Mock External Systems**: Never create real Windows tasks or system resources
-- **UI Testing**: Use headless mode, mock Qt applications
-- **User Data Access**: Use `TestUserFactory` and centralized `get_user_data()` over custom scaffolding
+Several shared utilities support the test suite. Key elements include:
 
-### **CRITICAL: Windows Task Prevention Requirements**
-**MANDATORY**: All tests that interact with scheduler functionality MUST prevent Windows task creation.
+- `tests/conftest.py`  
+  - Centralized fixtures and hooks.  
+  - Logging configuration for tests, including per-worker logs when running in parallel.  
+  - Test data directory management and path safety checks.
+- `tests/test_utilities.py`  
+  - Shared helpers for fixtures, fake data, and common assertions.  
+  - Prefer these helpers over ad-hoc test code when possible.
+- Temporary directories  
+  - Tests should use the configured temporary directory structure (for example, `tests/data/tmp`) rather than writing into arbitrary locations.
+- Logging for tests  
+  - Test runs produce log files (for example, `test_run.log`, `test_consolidated.log`) that are useful for debugging, especially under parallel execution.
+- Data shims and guards  
+  - Fixtures and helpers ensure user data directories are not accidentally modified during tests.
+- File system hygiene  
+  - Tests must leave no artefacts outside the `tests` directory.  
+  - Keep test data under `tests/data/`, and ensure any generated files are cleaned up during teardown or via fixtures.
 
-#### **Required Mocking Patterns**
-```python
-# CORRECT: Mock the scheduler method to prevent real Windows tasks
-from unittest.mock import patch
+### Windows Task Prevention (critical)
 
-def test_scheduler_functionality():
-    with patch.object(scheduler_manager, 'set_wake_timer') as mock_wake_timer:
-        # Test the functionality
-        scheduler_manager.set_wake_timer(schedule_time, user_id, category, period)
-        
-        # Verify the method was called with correct parameters
-        mock_wake_timer.assert_called_once_with(schedule_time, user_id, category, period)
-```
+On Windows, tests must never create or modify real scheduled tasks:
 
-#### **FORBIDDEN Patterns**
-```python
-# WRONG: Never call real scheduler methods in tests
-def test_scheduler_functionality():
-    # This creates real Windows tasks - FORBIDDEN
-    scheduler_manager.set_wake_timer(schedule_time, user_id, category, period)
-    
-    # This also creates real Windows tasks - FORBIDDEN
-    subprocess.run(['schtasks', '/create', ...])
-```
+- Always mock scheduler integrations that would create or update tasks (for example, patch `scheduler_manager.set_wake_timer` and related methods).  
+- Never call `schtasks` or similar Task Scheduler commands directly from tests.  
+- If Task Scheduler becomes polluted during development, use the cleanup script and guidance provided in the repository (for example, a `cleanup_windows_tasks.py` script and associated PowerShell commands).
 
-#### **Verification Commands**
-```powershell
-# Check for Windows task pollution after test runs
-schtasks /query /fo csv /nh | findstr "Wake_" | Measure-Object
+For detailed infrastructure behavior and configuration, refer to the fixtures and comments in `tests/conftest.py`, `tests/test_utilities.py`, and the logging patterns described in `logs/LOGGING_GUIDE.md` and `AI_LOGGING_GUIDE.md`.
 
-# Clean up if tasks are found
-python scripts/cleanup_windows_tasks.py
-```
+## Running Tests
 
-#### **Test Categories Requiring Special Attention**
-- **Scheduler Tests**: `test_scheduler_*.py` - MUST mock `set_wake_timer`
-- **Wake Timer Tests**: Any test with "wake" or "timer" in name
-- **Real Behavior Tests**: Tests with "real_behavior" in name - MUST use proper mocking
-- **Integration Tests**: Tests that exercise full scheduler workflows
+This section covers the main ways to run tests.
 
-#### **Enforcement Rules**
-1. **Pre-Test Check**: Verify no Windows tasks exist before running tests
-2. **Post-Test Check**: Verify no new Windows tasks were created
-3. **Mock Verification**: All scheduler methods must be mocked in tests
-4. **Cleanup Required**: Any test that creates Windows tasks must clean them up immediately
-5. **Documentation**: All scheduler tests must document their mocking strategy
+### Using run_tests.py (recommended)
 
-### **Key Fixtures**
-- `force_test_data_directory` (session, autouse): routes all temp I/O to `tests/data`
-- `env_guard_and_restore` (function, autouse): snapshots/restores critical env vars
-- `path_sanitizer` (function, autouse): asserts temp directory stays within `tests/data`
-- `test_path_factory` (function): creates per-test directory under `tests/data/tmp/<uuid>`
-- `fix_user_data_loaders` (function, autouse): ensures centralized loaders are registered
+The `run_tests.py` script provides a safer, standardized entry point for running tests.
 
-### **Critical Testing Methodology**
-**Always investigate the actual implementation first** - Read source code before writing tests
-- **Understand real behavior** - Implementation may import functions dynamically with specific data structures
-- **Test what actually exists** - Verify what's available in codebase, don't assume functions exist
-- **Start with basic functionality** - Begin simple before attempting complex interaction tests
-- **Verify imports and dependencies** - Check what modules and functions are actually imported
+Common examples:
 
-### **Centralized Test Utilities**
-Comprehensive utilities in `tests/test_utilities.py`:
-
-#### **Test User Factory**
-```python
-from tests.test_utilities import TestUserFactory
-
-# Create different user types for testing
-TestUserFactory.create_basic_user("user1")
-TestUserFactory.create_discord_user("discord_user")
-TestUserFactory.create_user_with_health_focus("health_user")
-```
-
-**Available User Types** (12 comprehensive types):
-- **Basic Types**: `basic_user`, `minimal_user`, `full_featured_user`
-- **Channel-Specific**: `discord_user`, `email_user`, `telegram_user`
-- **Feature-Focused**: `health_focus`, `task_focus`, `disabilities`
-- **Complex Configurations**: `complex_checkins`, `custom_fields`, `schedules`
-- **Edge Cases**: `limited_data`, `inconsistent_data`
-
-## Test Categories & Markers
-
-### **Core Test Type Markers**
-| Marker | Purpose | Usage |
-|--------|---------|-------|
-| `@pytest.mark.unit` | Fast, isolated function tests | Individual function testing |
-| `@pytest.mark.integration` | Multi-module workflow tests | Component interaction testing |
-| `@pytest.mark.behavior` | Real system behavior tests | Side effect verification |
-| `@pytest.mark.ui` | UI component tests | Dialog and widget testing |
-
-### **Performance & Resource Markers**
-| Marker | Purpose | Usage |
-|--------|---------|-------|
-| `@pytest.mark.slow` | Slow-running tests | Tests taking >1 second |
-| `@pytest.mark.performance` | Performance testing | Load and benchmark tests |
-| `@pytest.mark.memory` | Memory-intensive tests | Large data operations |
-| `@pytest.mark.network` | Network-dependent tests | API calls, external services |
-| `@pytest.mark.external` | External service tests | Discord, email, Telegram |
-| `@pytest.mark.file_io` | Heavy file operations | File creation, reading, writing |
-
-### **Feature-Specific Markers**
-| Marker | Purpose | Usage |
-|--------|---------|-------|
-| `@pytest.mark.tasks` | Task management tests | Task CRUD operations |
-| `@pytest.mark.checkins` | Check-in system tests | Check-in functionality |
-| `@pytest.mark.schedules` | Schedule management tests | Time period management |
-| `@pytest.mark.messages` | Message system tests | Automated messaging |
-| `@pytest.mark.analytics` | Analytics tests | Reporting and insights |
-| `@pytest.mark.user_management` | User account tests | Account management |
-| `@pytest.mark.channels` | Communication tests | Discord, email, Telegram |
-
-## Quick Start
-
-### **Install Testing Dependencies**
 ```bash
-pip install -r requirements.txt
-```
-
-### **Run All Tests**
-```bash
-python run_tests.py
-```
-
-### **Run Specific Test Categories**
-```bash
-# Unit tests only (fastest)
-python run_tests.py --type unit
-
-# Integration tests only
-python run_tests.py --type integration
-
-# Behavior tests only
-python run_tests.py --type behavior
-
-# UI tests only
-python run_tests.py --type ui
-
-# Quick tests (excludes slow tests)
-python run_tests.py --quick
-```
-
-### **Run with Coverage**
-```bash
-python run_tests.py --coverage
-```
-
-### **Run in Parallel**
-```bash
-python run_tests.py --parallel
-```
-
-### **Order Independence**
-```bash
-# Install plugin once (in CI or locally)
-pip install pytest-randomly
-
-# Run with randomized order to enforce determinism
-python -m pytest --randomly-seed=auto
-```
-The suite should remain green under randomized order. Import-order guards and one-time loader registration in `tests/conftest.py` support this.
-
-## Test Commands
-
-### **Basic Commands**
-```bash
-# Run all tests
+# Run all tests (parallel by default)
 python run_tests.py
 
-# Run with verbose output
-python run_tests.py --verbose
-
-# Run specific test type
+# Run only unit tests
 python run_tests.py --type unit
+
+# Run only integration tests
 python run_tests.py --type integration
-python run_tests.py --type behavior
-python run_tests.py --type ui
-python run_tests.py --type slow
 
-# Run quick tests only
-python run_tests.py --quick
-```
+# Run all tests without parallel execution
+python run_tests.py --no-parallel
 
-### **Advanced Commands**
-```bash
-# Run with coverage report
+# Run with coverage reporting
 python run_tests.py --coverage
 
-# Run tests in parallel
-python run_tests.py --parallel
-
-# Combine options
-python run_tests.py --type integration --verbose --coverage
+# Run with explicit worker count (for example, 2 workers)
+python run_tests.py --workers 2
 ```
 
-### **Direct Pytest Commands**
+Key points:
+
+- Parallel execution is enabled by default (see "Parallel Execution" below).  
+- Use `--no-parallel` when debugging test issues or when working on tests that interact with shared resources.  
+- Coverage flags collect code coverage metrics during the run.
+
+### Using pytest directly
+
+You can also call pytest directly for targeted runs:
+
 ```bash
-# Run specific test file
-python -m pytest tests/integration/test_account_lifecycle.py
+# Run a single file
+pytest tests/unit/test_example.py
 
-# Run specific test function
-python -m pytest tests/integration/test_account_lifecycle.py::TestAccountLifecycle::test_create_account_with_all_features
+# Run a single test
+pytest tests/unit/test_example.py::TestExample::test_case
 
-# Run tests matching pattern
-python -m pytest -k "account"
-
-# Run tests with specific marker
-python -m pytest -m "integration"
+# Run tests with markers
+pytest -m "unit and not slow"
 ```
 
-## Test Architecture
+When using pytest directly, remember that you are bypassing `run_tests.py` safety defaults. Use the same logging and path patterns described in this guide.
 
-### **Fixtures**
-The testing framework provides several shared fixtures in `conftest.py`:
 
-- `test_data_dir` - Temporary test data directory
-- `mock_user_data` - Mock user data for testing
-- `mock_config` - Mock configuration for testing
-- `mock_logger` - Mock logger for testing
-- `temp_file` - Temporary file for testing
-- `mock_ai_response` - Mock AI response data
-- `mock_task_data` - Mock task data
-- `mock_message_data` - Mock message data
+## Parallel Execution
 
-### **Real Behavior Testing Patterns**
+Parallel execution uses pytest-xdist to run tests across multiple workers. It is powerful but can expose race conditions and resource conflicts.
 
-#### **File Operation Verification**
-```python
-def test_create_user_creates_files(test_data_dir):
-    """Test that creating a user actually creates the required files."""
-    # Arrange
-    user_id = "test-user"
-    
-    # Act
-    create_user(user_id, user_data)
-    
-    # Assert - Verify actual file creation
-    user_dir = os.path.join(test_data_dir, "users", user_id)
-    assert os.path.exists(user_dir), "User directory should be created"
-    assert os.path.exists(os.path.join(user_dir, "account.json")), "Account file should be created"
-    assert os.path.exists(os.path.join(user_dir, "preferences.json")), "Preferences file should be created"
-```
+### How parallel execution is enabled
 
-#### **Data Persistence Verification**
-```python
-def test_update_preferences_persists_changes(test_data_dir):
-    """Test that preference updates are actually saved to disk."""
-    # Arrange
-    user_id = "test-user"
-    create_user(user_id, initial_data)
-    
-    # Act
-    new_preferences = {"timezone": "America/Los_Angeles"}
-    update_user_preferences(user_id, new_preferences)
-    
-    # Assert - Verify actual data persistence
-    loaded_data = get_user_data(user_id)
-    assert loaded_data["preferences"]["timezone"] == "America/Los_Angeles", "Changes should persist"
-```
+- `run_tests.py` adds `-n auto` or `-n <workers>` when parallel execution is enabled.  
+- By default, `run_tests.py` runs tests in parallel unless `--no-parallel` is specified.  
+- `tests/conftest.py` configures per-worker log files and environment variables to reduce file locking issues.
 
-## Coverage Reports
+### Risks and constraints
 
-When running tests with coverage, reports are generated in:
+Parallel runs can fail even when serial runs pass due to:
 
-- **HTML Report**: `htmlcov/index.html` - Interactive coverage report
-- **Terminal Report**: Shows missing lines in terminal output
+- Shared files or directories that are not properly isolated per test.  
+- Global mutable state or singletons that are not reset between tests.  
+- Interactions with external resources (network, Discord, email, filesystem) that cannot safely handle concurrent access.
 
-### **Coverage Targets**
-- **Core Modules**: `core/`, `communication/`, `ai/`, `tasks/`, `user/`
-- **Target Coverage**: 80%+ for critical modules
-- **Current Coverage**: 29% of codebase (9 out of 31+ modules)
+When a test fails only under parallel execution:
 
-## Writing Tests
+- Re-run the same tests with `--no-parallel`.  
+- If the test passes serially, investigate for race conditions, shared state, or resource conflicts.  
+- Consider whether the test should be reworked to be parallel-safe.
 
-### **Test Naming Convention**
-- Test files: `test_<feature_or_module>.py`
-- Test classes: `Test<FeatureName>`
-- Test methods: `test_<scenario>_<expected_behavior>`
+### `no_parallel` marker
 
-### **Example Test Structure**
+Tests that cannot be made parallel-safe should be marked explicitly:
+
 ```python
 import pytest
-import os
-import json
-from unittest.mock import patch, Mock
 
-class TestAccountLifecycle:
-    """Test complete account lifecycle workflows."""
-    
-    @pytest.mark.integration
-    def test_create_account_with_all_features(self, test_data_dir):
-        """Test creating an account with all features enabled."""
-        # Arrange
-        user_id = "test-user"
-        account_data = {
-            "internal_username": user_id,
-            "enabled_features": ["messages", "tasks", "checkins"]
-        }
-        
-        # Act
-        create_user(user_id, account_data)
-        
-        # Assert - Verify actual system changes
-        user_dir = os.path.join(test_data_dir, "users", user_id)
-        assert os.path.exists(user_dir), "User directory should be created"
-        
-        # Verify account file
-        account_file = os.path.join(user_dir, "account.json")
-        assert os.path.exists(account_file), "Account file should be created"
-        
-        with open(account_file, 'r') as f:
-            saved_data = json.load(f)
-        assert saved_data["enabled_features"] == ["messages", "tasks", "checkins"], "Features should be saved"
-        
-        # Verify feature-specific files
-        assert os.path.exists(os.path.join(user_dir, "tasks")), "Tasks directory should be created"
-        assert os.path.exists(os.path.join(user_dir, "checkins.json")), "Check-ins file should be created"
+@pytest.mark.no_parallel
+def test_critical_singleton_behavior():
+    ...
 ```
 
-### **Test Markers**
-Use appropriate markers for test categorization:
+Intended usage:
 
-```python
-@pytest.mark.unit          # Fast, isolated tests
-@pytest.mark.integration   # Component interaction tests
-@pytest.mark.behavior      # Real behavior and side effect tests
-@pytest.mark.ui            # UI functionality tests
-@pytest.mark.slow          # Performance or large data tests
-```
+- Use `@pytest.mark.no_parallel` for tests that modify real files, use shared resources, or require exclusive access to external systems.  
+- Keep the number of `no_parallel` tests as small as possible and document the reason in comments.  
+- Prefer making tests parallel-safe where feasible (for example, by isolating state or using per-test temp directories).
 
-### **Best Practices**
-1. **Test Real Behavior**: Verify actual system changes, not just return values
-2. **Verify Side Effects**: Ensure functions actually change system state
-3. **Use Descriptive Names**: Test names should clearly describe the scenario and expected behavior
-4. **Arrange-Act-Assert**: Structure tests with clear sections
-5. **Use Fixtures**: Leverage shared fixtures for common test data
-6. **Test Integration**: Focus on workflows that span multiple modules
-7. **Verify Data Persistence**: Ensure changes are actually saved and persist
-8. **Test Error Recovery**: Include tests for error conditions and recovery
+In the future, `run_tests.py` and pytest configuration may be updated to:
 
-## Debugging Tests
+- Run parallel-safe tests with xdist.  
+- Run `no_parallel` tests separately in serial mode.
 
-### **Running Single Tests**
+Even before that is fully wired, the marker is useful for identifying tests that need special attention.
+
+## Manual Testing Procedures
+
+Some behaviors are difficult or impractical to cover through automation alone. This section consolidates the manual testing guidance previously found in `MANUAL_TESTING_GUIDE.md`.
+
+### When to perform manual testing
+
+Manual testing is especially important:
+
+- Before tagging a release or deploying to a new environment.  
+- After major changes to the UI, scheduling logic, or communication flows.  
+- When fixing bugs that are heavily UX-related or require real integrations.
+
+### Core manual testing flows
+
+At a minimum, perform these flows before releases:
+
+1. **Application startup and shutdown**
+   - Start the background service and UI using the standard commands in `HOW_TO_RUN.md`.  
+   - Confirm logs are created, and no unexpected errors appear on startup or shutdown.
+
+2. **Discord integration (real server)**
+   - Invite the bot to a test server.  
+   - Verify that commands (for example, check-ins, cancellations, help) work as expected.  
+   - Confirm that messages appear in the correct channels and DMs.  
+   - Check error behavior when invalid commands are issued.
+
+3. **Email integration (if configured)**
+   - Trigger messages or notifications via email.  
+   - Confirm emails are sent and formatted correctly.  
+   - Verify that retries, failures, and error logs behave as expected.
+
+4. **Scheduling and reminders**
+   - Configure a small set of messages and schedules.  
+   - Verify reminders fire at reasonable times and within the intended periods.  
+   - Confirm that cancellations, snoozes (if implemented), and rescheduling behave correctly.
+
+5. **UI workflows (Qt)**
+   - Open and close main dialogs and common configuration screens.  
+   - Perform basic CRUD operations on messages and schedules.  
+   - Confirm that validation errors are displayed clearly and that invalid input is rejected gracefully.
+
+### UI-focused checklists
+
+When manually testing the UI:
+
+- Layout and visuals  
+  - Dialogs are appropriately sized, aligned, and use consistent styling.  
+  - Text is readable and labels are clear.
+
+- Navigation  
+  - Users can tab through fields logically.  
+  - Keyboard shortcuts and standard keys (Enter, Escape) behave as expected.  
+  - Buttons and menu items perform the actions they advertise.
+
+- Feedback and errors  
+  - Error messages are clear, specific, and actionable.  
+  - Loading or waiting states are clearly indicated.  
+  - Validation feedback appears near the relevant fields.
+
+### Reporting manual testing
+
+When documenting manual testing:
+
+- Note which flows were covered and on which environment (local, staging, etc.).  
+- Record any unexpected behavior, even if it is not a clear failure.  
+- Create or update issues for any bugs or UX concerns discovered.  
+- If relevant, extend or adjust automated tests to cover fixed issues.
+
+For more structured or checklist-based manual testing, you can adapt the content of this section into separate documents or issue templates, but this section is the canonical reference.
+
+
+## Writing and Extending Tests
+
+This section covers how to add and modify tests.
+
+### General guidelines
+
+- Keep tests small and focused on a single concern.  
+- Prefer deterministic tests over ones that rely on timing, randomness, or external state.  
+- Use descriptive test names that convey behavior and expectation (for example, `test_feature_behavior_expected`).  
+- When you discover a missing test, but cannot add it immediately, document the gap clearly via a TODO or issue.  
+- Prefer fixtures and shared helpers over ad-hoc setup inside tests.
+
+### Where to put new tests
+
+- New unit tests  
+  - Place them in `tests/unit/` alongside tests for the same module or feature.  
+- New integration or behavior tests  
+  - Place them in `tests/integration/` or `tests/behavior/` depending on scope.  
+- New UI tests  
+  - Place them in `tests/ui/` and follow existing patterns for dialogs, widgets, and signals/slots.
+
+### Using markers
+
+Add markers to describe intent and constraints:
+
+- `@pytest.mark.unit`, `@pytest.mark.integration`, `@pytest.mark.behavior`, `@pytest.mark.ui`  
+- `@pytest.mark.slow`, `@pytest.mark.external`, `@pytest.mark.file_io`, `@pytest.mark.manual`  
+- `@pytest.mark.flaky`, `@pytest.mark.known_issue`, `@pytest.mark.regression`, `@pytest.mark.smoke`, `@pytest.mark.critical`  
+- `@pytest.mark.no_parallel` for tests that must not run under parallel execution (for example, tests that modify real files, use shared resources, or require exclusive access).
+
+Markers make it easier to select and filter tests, especially in CI or targeted debugging sessions.
+
+### Test data, fixtures, and helpers
+
+- Use fixtures defined in `tests/conftest.py` and helpers in `tests/test_utilities.py` instead of duplicating setup logic.  
+- Keep test data under `tests/data/` and use temporary directories for generated files.  
+- Ensure any files created by tests are removed during teardown or via fixtures to avoid artefacts outside `tests/`.
+
+For examples of good patterns, consult existing tests in the repository and the patterns summarized in `AI_TESTING_GUIDE.md`.
+
+## Coverage and Reporting
+
+Coverage helps identify untested or lightly-tested code.
+
+### Running with coverage
+
+Use `run_tests.py` for a standardized coverage run:
+
 ```bash
-# Run specific test with verbose output
-python -m pytest tests/integration/test_account_lifecycle.py::TestAccountLifecycle::test_create_account_with_all_features -v
-
-# Run with print statements visible
-python -m pytest tests/integration/test_account_lifecycle.py -s
-
-# Run with full traceback
-python -m pytest tests/integration/test_account_lifecycle.py --tb=long
+python run_tests.py --coverage
 ```
 
-### **Debugging with PDB**
-```python
-import pdb
+This typically integrates with pytest-cov or a similar plugin to produce coverage reports.
 
-def test_debug_example():
-    result = some_function()
-    pdb.set_trace()  # Debugger will stop here
-    assert result == expected
-```
+### Interpreting coverage
 
-### **Common Issues**
-1. **Import Errors**: Ensure project root is in Python path
-2. **Fixture Errors**: Check fixture dependencies and scope
-3. **Path Issues**: Use `test_data_dir` fixture for file operations
-4. **Data Isolation**: Ensure tests don't interfere with each other
+- Coverage percentage is a guide, not a goal by itself.  
+- Focus on covering critical behavior paths, error handling, and integration points.  
+- Low coverage in low-risk helper modules is less concerning than gaps around critical flows.
 
-## Test Priorities & Roadmap
+Coverage-related configuration and thresholds (if any) live alongside test tooling or CI configuration. For detailed interpretation and tooling integration, see any coverage-specific documentation or CI pipeline configuration files.
 
-### **Current Status**
-- **1,481 tests passing** with 95% success rate
-- **9 modules covered** (29% of codebase)
-- **Real behavior testing** implemented for covered modules
-- **Integration testing** framework established
 
-### **High Priority (Next 1-2 weeks)**
-1. **UI Layer Testing** - Add tests for all dialogs and widgets
-2. **Discord Command Testing** - Complete automation for all Discord command scenarios
-3. **Core Services Testing** - Test message management, schedule management
-4. **Integration Scenarios** - Complete account lifecycle, feature enablement workflows
+## Debugging and Troubleshooting
 
-### **Medium Priority (Next month)**
-1. **Performance Testing** - Load testing, stress testing
-2. **Error Recovery Testing** - Comprehensive error scenario coverage
-3. **Cross-Platform Testing** - Test on different platforms
-4. **Advanced Integration** - Complex multi-user scenarios
+When tests fail or behave unexpectedly:
 
-### **Long-term Goals**
-1. **80%+ Coverage** - Comprehensive coverage of all modules
-2. **Automated Testing** - CI/CD integration
-3. **Performance Monitoring** - Automated performance regression testing
-4. **User Acceptance Testing** - End-to-end user workflow testing
+- Check the test logs  
+  - Inspect `test_run.log` and `test_consolidated.log` for errors and tracebacks.
+- Re-run failing tests with more detail  
+  - Use `pytest -vv` or add `--no-parallel` to isolate concurrency issues.
+- Compare serial vs parallel behavior  
+  - If a test passes with `--no-parallel` but fails with parallel execution, investigate for shared state, file conflicts, or external resource limits.
+- Use markers to focus runs  
+  - For example, `pytest -m "integration and not slow"` to narrow down failures.
+- Watch for flakes  
+  - If a test sometimes passes and sometimes fails, mark it as `flaky` and investigate timing, ordering, or dependency issues.
 
-## Maintenance Guidelines
+For additional error handling and logging strategies, see `core/ERROR_HANDLING_GUIDE.md` and `logs/LOGGING_GUIDE.md`.
 
-### **When Adding New Features**
-1. **Write tests first** - Test-driven development approach
-2. **Include integration tests** - Test the complete workflow
-3. **Verify real behavior** - Ensure tests verify actual system changes
-4. **Update this README** - Document new test patterns and requirements
 
-### **When Modifying Existing Features**
-1. **Update existing tests** - Ensure tests reflect new behavior
-2. **Add new test cases** - Cover new scenarios and edge cases
-3. **Verify test isolation** - Ensure changes don't break other tests
-4. **Run full test suite** - Verify nothing else is broken
+## Automation and Channel-Specific Tests
 
-### **When Refactoring Code**
-1. **Keep tests working** - Tests should help catch regressions
-2. **Update test organization** - Move tests to appropriate categories
-3. **Simplify test logic** - Remove unnecessary complexity
-4. **Document changes** - Update test documentation
+Some tests focus on specific communication channels or automation flows:
 
----
+- Discord tests  
+  - Use markers such as `external`, `communication`, or any Discord-specific markers defined in `pytest.ini`.  
+  - Prefer using test or sandbox servers to avoid polluting real channels.
 
-**Remember**: The goal is to have confidence that changes work correctly and don't break existing functionality. Real behavior testing and integration scenarios are key to achieving this goal.
+- Email tests  
+  - Use test accounts or sandbox environments.  
+  - Avoid sending email to real users during automated runs.
+
+- AI and service tests  
+  - Use markers like `ai`, `service`, `behavior` as appropriate.  
+  - Where possible, stub or mock external AI APIs while still validating integration behavior.
+
+Channel-specific automation patterns and examples may also be described in `AI_TESTING_GUIDE.md` for faster reference.
+
+
+## Maintenance and Roadmap
+
+Keeping the test suite healthy is an ongoing task.
+
+- Expand coverage where behavior is critical or fragile.  
+- Refactor tests periodically to remove duplication and improve clarity.  
+- Reduce the number of `flaky`, `known_issue`, and `manual` tests over time by improving automation and stability.  
+- Keep parallel execution safe by:
+  - Identifying and fixing race conditions.  
+  - Using `no_parallel` only where necessary and documenting why.  
+- Align testing improvements with the priorities described in `PROJECT_VISION.md` and `DEVELOPMENT_WORKFLOW.md`.
+
+When in doubt about how to extend or adjust the testing framework, start with this guide, then consult `AI_TESTING_GUIDE.md` for AI-optimized hints and patterns.

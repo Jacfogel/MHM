@@ -146,10 +146,8 @@ VERSION_SYNC = {
         "DEVELOPMENT_WORKFLOW.md",
         "DOCUMENTATION_GUIDE.md",
         "PROJECT_VISION.md",
-        "development_docs/DOCUMENTATION_SYNC_CHECKLIST.md",
         "development_docs/PLANS.md",
         "ARCHITECTURE.md",
-        "QUICK_REFERENCE.md",
         "HOW_TO_RUN.md"
     ],
     'generated_docs': [
@@ -184,7 +182,6 @@ VERSION_SYNC = {
         "scripts/README.md"
     ],
     'tests_docs': [
-        "tests/MANUAL_TESTING_GUIDE.md",
         "tests/TESTING_GUIDE.md"
     ],
     'core_system_files': [

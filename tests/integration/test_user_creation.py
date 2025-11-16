@@ -35,6 +35,7 @@ class TestUserCreationScenarios:
     @pytest.mark.critical
     @pytest.mark.regression
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_basic_email_user_creation(self, test_data_dir, mock_config):
         """Test creating a basic email user with minimal settings."""
         user_id = 'test-basic-email'
@@ -113,6 +114,7 @@ class TestUserCreationScenarios:
         assert loaded_data['context']['gender_identity'] == ['they/them']
     
     @pytest.mark.unit
+    @pytest.mark.no_parallel
     def test_user_with_custom_fields(self, test_data_dir, mock_config):
         """Test creating a user with extensive custom fields using enhanced test utilities."""
         user_id = 'test-custom-fields'
@@ -145,6 +147,7 @@ class TestUserCreationScenarios:
         assert 'Improve executive functioning' in loaded_data['context']['goals']
     
     @pytest.mark.unit
+    @pytest.mark.no_parallel
     def test_user_creation_with_schedules(self, test_data_dir, mock_config):
         """Test creating a user with schedule periods using enhanced test utilities."""
         user_id = 'test-schedule-user-new'

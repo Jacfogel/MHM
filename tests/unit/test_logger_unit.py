@@ -511,6 +511,7 @@ class TestEnsureLogsDirectory:
     """Test ensure_logs_directory function."""
     
     @pytest.mark.unit
+    @pytest.mark.no_parallel
     def test_ensure_logs_directory_creates_directories(self, test_data_dir):
         """Test: ensure_logs_directory creates directories"""
         from tests.test_utilities import TestLogPathMocks

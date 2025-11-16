@@ -37,6 +37,45 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-16 - Flaky Test Detection Improvements and Parallel Execution Marker Application **COMPLETED**
+
+**Feature**: Enhanced flaky test detection script with progress saving and resume capability, and applied `@pytest.mark.no_parallel` marker to 10 additional tests identified in flaky test report to improve test suite stability under parallel execution.
+
+**Technical Changes**:
+
+1. **Flaky Test Detector Enhancements** (`scripts/test_flaky_detector.py`):
+   - Added progress saving functionality - saves progress every N runs (default: 10, configurable via `--save-interval`)
+   - Implemented resume capability - script can resume from last saved checkpoint if interrupted
+   - Progress stored in JSON format (`tests/flaky_detector_progress.json`) with run number, failures, passes, and timestamp
+   - Progress file automatically cleaned up on successful completion
+   - Added `--progress-file` and `--save-interval` command-line arguments for customization
+   - Progress saved even on timeout or error conditions to prevent data loss
+
+2. **Parallel Execution Marker Application**:
+   - Applied `@pytest.mark.no_parallel` to 10 additional tests identified in flaky test report:
+     - `tests/ui/test_task_management_dialog.py::test_save_task_settings_persists_to_disk`
+     - `tests/behavior/test_message_behavior.py::test_edit_message_success`
+     - `tests/behavior/test_message_behavior.py::test_delete_message_success`
+     - `tests/behavior/test_message_behavior.py::test_full_message_lifecycle`
+     - `tests/behavior/test_chat_interaction_storage_real_scenarios.py::test_chat_interaction_performance_with_large_history`
+     - `tests/ui/test_ui_app_qt_main.py::test_refresh_user_list_loads_users`
+     - `tests/unit/test_user_management.py::test_save_user_data_success`
+     - `tests/integration/test_user_creation.py::test_basic_email_user_creation`
+     - `tests/integration/test_user_creation.py::test_user_with_custom_fields`
+     - `tests/integration/test_user_creation.py::test_user_creation_with_schedules`
+   - All marked tests modify shared files (user_index.json, message files, user data files) or perform file I/O that conflicts in parallel execution
+
+**Impact**: Flaky test detector can now safely run long overnight sessions (100+ runs) with automatic progress saving and resume capability. Test suite stability improved by ensuring tests that modify shared resources run serially after parallel execution completes. Total of 52 tests now marked with `@pytest.mark.no_parallel` (42 from previous session + 10 new).
+
+**Files Modified**:
+- `scripts/test_flaky_detector.py` (progress saving, resume capability)
+- `tests/ui/test_task_management_dialog.py` (added `@pytest.mark.no_parallel`)
+- `tests/behavior/test_message_behavior.py` (added `@pytest.mark.no_parallel` to 3 tests)
+- `tests/behavior/test_chat_interaction_storage_real_scenarios.py` (added `@pytest.mark.no_parallel`)
+- `tests/ui/test_ui_app_qt_main.py` (added `@pytest.mark.no_parallel`)
+- `tests/unit/test_user_management.py` (added `@pytest.mark.no_parallel`)
+- `tests/integration/test_user_creation.py` (added `@pytest.mark.no_parallel` to 3 tests)
+
 ### 2025-11-15 - Documentation File Address Standard Implementation **COMPLETED**
 
 **Feature**: Implemented file address standard for all documentation files (.md and .mdc), ensuring every file includes its relative path from project root for easier navigation and cross-referencing.

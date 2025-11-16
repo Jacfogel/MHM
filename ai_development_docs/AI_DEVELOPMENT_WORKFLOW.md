@@ -1,143 +1,170 @@
-# AI Development Workflow - Quick Reference
+# AI Development Workflow Guide
 
-
-> **File**: `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`
+> **File**: `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`  
 > **Purpose**: Condensed development workflow guidance for AI collaborators  
-> **Style**: Pattern-first, actionable, link-heavy  
-> **For details**: See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md)
+> **Style**: Pattern-first, routing-focused  
+
+For more detailed guidance, examples, and rationale for any topic in this file, use the matching sections in `DEVELOPMENT_WORKFLOW.md`.
+
 
 ## Quick Reference
 
-### Essential Commands
-```powershell
-venv\Scripts\activate
-python run_headless_service.py start
-pip install -r requirements.txt
-$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"; Copy-Item . ../MHM_backup_$timestamp -Recurse
-```
+Use this file for patterns on how to plan, implement, test, and document changes.
 
-### Decision Guide
-1. Need next action? -> Follow "Development Process" steps.
-2. About to touch code? -> Check "Safety First" shortcuts.
-3. Running tests? -> Scan "Testing Strategy" for coverage priorities.
-4. Updating docs? -> Record in both changelog files.
+When you need more detail on a specific area:
+
+- Testing and parallel execution: `AI_TESTING_GUIDE.md`
+- Documentation rules and sync: `AI_DOCUMENTATION_GUIDE.md`
+- Architecture and module layout: `AI_ARCHITECTURE.md`
+- Logging: `AI_LOGGING_GUIDE.md`
+- Error handling: `AI_ERROR_HANDLING_GUIDE.md`
+
+Core safety and quality rules:
+
+- Work inside `(venv)` before running Python or tests.  
+- Use `core.user_data_handlers.get_user_data()` and related helpers for user data; do not add new direct file-access wrappers.  
+- Prefer module imports plus explicit usage (for example, `import core.utils` then `core.utils.validate_and_format_time()`).  
+- Test incrementally after each meaningful change; route to `AI_TESTING_GUIDE.md` for patterns.  
+- Record changes in `development_docs/CHANGELOG_DETAIL.md` and summarize them in `ai_development_docs/AI_CHANGELOG.md`.  
+- Follow documentation rules in `AI_DOCUMENTATION_GUIDE.md` when editing docs.
+
 
 ## Safety First
 
-### Core Safety Rules
-- Stay in the virtual environment; never install packages globally.
-- Create a timestamped backup before risky edits.
-- Work in small increments with tests between each change.
-- Document every meaningful update in both changelog files.
-- Escalate questions early with concrete context.
-- Run the Audit-First tooling before producing documentation deliverables.
+Minimal rules for safe changes:
 
-### Pre-Change Checklist
-- Confirm `(venv)` is active; activate if missing.
-- Run `python run_headless_service.py start` to confirm baseline health (for AI collaborators - launches service directly).
-- Create a backup folder using the command above.
-- Outline your plan, test approach, and touched files.
+- Assume real user data and real machines; avoid destructive actions.  
+- Treat scheduling, user data, and communication channels as high-risk areas; prefer small, reversible changes.  
+- Stay inside `(venv)` and avoid global package installs.  
+- Encourage backups and frequent commits before broad edits or refactors.  
+- When something looks risky or confusing:
+  - Suggest pausing, capturing a short summary (what changed / what broke / what was expected),  
+  - Then asking for help instead of guessing.
+
 
 ## Virtual Environment Best Practices
 
-### Why It Matters
-- Keeps dependencies isolated and reproducible.
-- Protects against permission issues on Windows.
-- Ensures collaborators share the same environment snapshot.
+Key patterns for environment handling:
 
-### Common Commands
-```powershell
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-pip freeze > requirements.txt
-```
+- Create venv once: `python -m venv venv`.  
+- Activate in each session: `venv\\Scripts\\activate`.  
+- Install dependencies: `pip install -r requirements.txt`.  
+- If imports fail after a pull, suggest: `pip install -r requirements.txt --force-reinstall` inside `(venv)`.  
+- Keep changes to dependencies reflected in `requirements.txt`; avoid global installs.
 
-### Troubleshooting
-- "Command not found" -> activate the venv.
-- Import failures -> reinstall requirements with `--force-reinstall`.
-- Permission problems -> relaunch PowerShell as Administrator.
+For step-by-step instructions, combine this with "Environment Setup" in `HOW_TO_RUN.md` and the environment section of `DEVELOPMENT_WORKFLOW.md` when needed.
+
 
 ## Development Process
 
+Use this high-level loop when reasoning about changes or suggesting steps.
+
 ### Step 1: Plan
-- Capture the objective, risks, and validation strategy.
-- Note any communication-channel behaviour that must stay intact.
+
+- Capture the goal in plain language.  
+- Identify risks: user data, scheduling, multi-channel behavior, or external services.  
+- Decide how success will be verified (specific tests or manual flows).  
+- Note which docs may need updates (for example, `HOW_TO_RUN.md`, `README.md`, specific guides).
 
 ### Step 2: Implement
-- Ship the smallest safe slice.
-- Use `get_user_data()` helpers-wrappers were removed.
-- Prefer package-level imports: `from core import CheckinAnalytics` (module-level imports still work).
-- Verify behaviour after each slice.
+
+- Recommend small, reversible slices rather than large rewrites.  
+- Encourage use of existing helpers and patterns:
+  - Data: `core.user_data_handlers.get_user_data()` and related functions.  
+  - Logging / errors: follow `AI_LOGGING_GUIDE.md` and `AI_ERROR_HANDLING_GUIDE.md`.  
+- Avoid suggesting new thin wrappers or deep, fragile imports.
 
 ### Step 3: Test
-- Target the change, then nearby surfaces.
-- Run the app via `python run_headless_service.py start` to launch the service directly and verify comms flows 
 
-### Step 4: Document
-- Update both changelog files (detailed vs summary).
-- Revise any impacted guides or READMEs.
-- Record new dependencies in `requirements.txt`.
+- Start with targeted tests for the changed behavior, then broaden (unit → integration → behavior → UI).  
+- Route to `AI_TESTING_GUIDE.md` for commands, markers, and parallel-safety rules.  
+- For Discord/email-dependent features, recommend minimal manual verification per "Manual Testing Procedures" in `tests/TESTING_GUIDE.md`.
+
+### Step 4: Document and Clean Up
+
+- Suggest updating `development_docs/CHANGELOG_DETAIL.md` plus a concise entry in `ai_development_docs/AI_CHANGELOG.md`.  
+- Update any affected guides (for example, `HOW_TO_RUN.md`, `README.md`, or specific topic guides).  
+- Remove clearly dead code, obsolete comments, and unused imports where safe.
+
 
 ## Testing Strategy
 
-### Incremental Testing
-- Test every slice immediately.
-- Expand outward: unit -> integration -> behaviour/UI.
+AI view of testing:
 
-### Test Categories
-- Unit, integration, behaviour, UI (PySide6), and communication channel flows.
+- Default to **incremental testing**: test each slice before moving on.  
+- Prefer behavior and integration tests when deciding where to add coverage.  
+- Verify side effects (messages, files, logs), not just return values.  
+- Encourage parallel-safe tests and use `@pytest.mark.no_parallel` only when necessary.
 
-### Tips
-- Capture failing output for fast iteration.
-- Leave TODOs documenting coverage gaps you find.
+Routing:
+
+- Commands and patterns: `AI_TESTING_GUIDE.md`.  
+- Explanations and manual flows: `tests/TESTING_GUIDE.md` and the testing sections of `DEVELOPMENT_WORKFLOW.md` when needed.
+
 
 ## Common Tasks
 
-### Adding a New Feature
-- Backup -> plan small milestones -> implement slice -> test -> document.
+Patterns for frequent change types.
 
-### Fixing a Bug
-- Reproduce -> isolate -> apply targeted fix -> regression-test.
+- **New feature**  
+  - Plan user-visible behavior and side effects.  
+  - Implement in small slices; add tests alongside changes.  
+  - Run relevant tests and minimal manual checks.  
+  - Update docs and changelogs.
 
-### Refactoring Code
-- Understand current flow -> script the refactor steps -> execute slice by slice with tests and documentation updates.
+- **Bug fix**  
+  - Reproduce and capture logs or traces.  
+  - Apply the smallest fix that clearly resolves the issue.  
+  - Add or adjust tests so it cannot silently regress.  
+  - Update docs if behavior changed.
+
+- **Refactor**  
+  - Preserve behavior; change structure only.  
+  - Break into reversible steps and test heavily between steps.  
+  - Remove obsolete wrappers/helpers and update imports and docs.
+
 
 ## Emergency Procedures
 
-### If Something Breaks Badly
-- Stop changes, restore the latest backup, gather error context, escalate.
+When things go wrong, AI guidance should be:
 
-### If You Are Stuck
-- Write up the goal, attempts, and blockers; ask focused questions.
+- Stop making additional edits; avoid compounding the problem.  
+- Gather error messages, stack traces, and a brief description of what changed.  
+- If available, consider restoring from a recent backup rather than experimenting blindly.  
+- Suggest summarising:
+  - What changed,  
+  - What broke,  
+  - What was expected.  
+- Encourage asking for help using that summary instead of risky trial-and-error.
+
 
 ## Learning Resources
-- `DEVELOPMENT_WORKFLOW.md` for deep context.
-- `README.md`, `ARCHITECTURE.md`, and `DOCUMENTATION_GUIDE.md` for supporting detail.
-- `AI_LOGGING_GUIDE.md` for logging patterns and troubleshooting.
-- `AI_TESTING_GUIDE.md` for testing patterns and procedures.
-- `AI_ERROR_HANDLING_GUIDE.md` for error handling patterns and recovery.
+
+Routing only:
+
+- Project-specific patterns: `DEVELOPMENT_WORKFLOW.md`, `DOCUMENTATION_GUIDE.md`, `ARCHITECTURE.md`.  
+- AI behavior and constraints: `AI_SESSION_STARTER.md` and `.cursor/rules/`.  
+- Testing, logging, error handling: `AI_TESTING_GUIDE.md`, `AI_LOGGING_GUIDE.md`, `AI_ERROR_HANDLING_GUIDE.md`.  
+- General Python/Qt questions: external docs or tutorials (avoid fabricating URLs).
+
 
 ## Success Tips
-- Prefer clarity over speed.
-- Keep communication specific.
-- Celebrate incremental wins; note lessons in the changelog.
+
+Minimal coaching for AI suggestions:
+
+- Prefer small, well-tested changes over broad, risky refactors.  
+- Keep tests, docs, and changelogs aligned with actual behavior.  
+- Follow existing patterns for logging, error handling, and configuration rather than inventing new ones.  
+- Emphasize clarity and maintainability over cleverness in both code and tests.
+
 
 ## Git Workflow (PowerShell-Safe)
 
-### Avoid Terminal Freezes
-- Do not run bare `git log`, `git show`, or `git diff`-they trigger pagers in PowerShell.
+AI view of Git usage for this project:
 
-### Safe Alternatives
-```powershell
-git log --oneline -5 | Out-String
-git show --name-only <commit> | Out-String
-git diff --name-only HEAD..origin/main | Out-String
-git status --porcelain | Out-String
-```
+- Encourage the standard cycle:
+  - Check status → stage → commit → fetch → diff → pull → push.  
+- Suggest safe inspection commands (for example, `git status`, `git log --oneline`, `git show`) rather than destructive operations.  
+- Recommend backups before big merges or refactors and test runs after pulling significant changes.
 
-### Standard Git Cycle
-- Status -> stage -> commit -> fetch -> diff -> pull -> push.
-
-### Handling Merge Conflicts
-- Identify conflicted files, resolve manually, `git add`, commit, push.
+For explicit PowerShell examples and conflict-handling steps, see "Git Workflow (PowerShell-Safe)" in `DEVELOPMENT_WORKFLOW.md`.

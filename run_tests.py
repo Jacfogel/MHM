@@ -174,8 +174,15 @@ def main():
     # Base pytest command
     cmd = [sys.executable, "-m", "pytest"]
     
+    # Track if we need to exclude no_parallel tests from parallel execution
+    exclude_no_parallel = False
+    
     # Add parallel execution (enabled by default, can be disabled with --no-parallel)
+    # When parallel is enabled, exclude no_parallel tests from parallel execution
+    # They will be run separately in serial mode
     if not args.no_parallel:
+        exclude_no_parallel = True
+        
         # Use 'auto' to let pytest-xdist determine optimal worker count, or use specified number
         # Default to 2 workers for safety (some tests may have race conditions with more workers)
         if args.workers == "auto":
@@ -222,10 +229,14 @@ def main():
     if args.durations_all:
         cmd.append("--durations=0")
     
+    # Track marker filters for later use in no_parallel test run
+    mode_marker_filter = None
+    
     # Add test selection based on mode
     if args.mode == "fast":
         # Fast tests: unit tests only
-        cmd.extend(["tests/unit/", "-m", "not slow"])
+        cmd.extend(["tests/unit/"])
+        mode_marker_filter = "not slow"
         description = "Fast Tests (Unit tests only, excluding slow tests)"
         
     elif args.mode == "unit":
@@ -240,17 +251,20 @@ def main():
         
     elif args.mode == "behavior":
         # Behavior tests
-        cmd.extend(["tests/behavior/", "-m", "not slow"])
+        cmd.extend(["tests/behavior/"])
+        mode_marker_filter = "not slow"
         description = "Behavior Tests (excluding slow tests)"
         
     elif args.mode == "ui":
         # UI tests
-        cmd.extend(["tests/ui/", "-m", "not slow"])
+        cmd.extend(["tests/ui/"])
+        mode_marker_filter = "not slow"
         description = "UI Tests (excluding slow tests)"
         
     elif args.mode == "slow":
         # Slow tests only
-        cmd.extend(["tests/", "-m", "slow"])
+        cmd.extend(["tests/"])
+        mode_marker_filter = "slow"
         description = "Slow Tests Only"
         
     elif args.mode == "all":
@@ -258,12 +272,25 @@ def main():
         cmd.extend(["tests/"])
         description = "All Tests (Unit, Integration, Behavior, UI)"
     
+    # Add marker filters (combine mode filter with no_parallel exclusion if needed)
+    marker_parts = []
+    if mode_marker_filter:
+        marker_parts.append(mode_marker_filter)
+    if exclude_no_parallel:
+        marker_parts.append("not no_parallel")
+    
+    if marker_parts:
+        # Combine all marker filters with "and"
+        combined_filter = " and ".join(marker_parts)
+        cmd.extend(["-m", combined_filter])
+    
     # Print clear information about what we're running
     print(f"\nMHM Test Runner")
     print(f"Mode: {args.mode}")
     print(f"Description: {description}")
     if not args.no_parallel:
         print(f"Parallel: Yes ({args.workers} workers)")
+        print(f"Note: Tests marked with @pytest.mark.no_parallel will run separately in serial mode")
     else:
         print(f"Parallel: No (disabled)")
     if args.verbose:
@@ -277,6 +304,54 @@ def main():
     
     # Run the tests
     success = run_command(cmd, description, progress_interval=args.progress_interval)
+    
+    # If parallel execution was enabled, also run no_parallel tests separately in serial mode
+    if success and not args.no_parallel:
+        # Create a separate command for no_parallel tests (serial execution)
+        no_parallel_cmd = [sys.executable, "-m", "pytest"]
+        
+        # Build marker filter: combine no_parallel with mode filter if present
+        if mode_marker_filter:
+            # Combine markers: e.g., "no_parallel and not slow" or "no_parallel and slow"
+            no_parallel_cmd.extend(["-m", f"no_parallel and {mode_marker_filter}"])
+        else:
+            no_parallel_cmd.extend(["-m", "no_parallel"])  # Only run no_parallel tests
+        
+        # Copy test selection from main command (directory paths)
+        if args.mode == "fast":
+            no_parallel_cmd.extend(["tests/unit/"])
+        elif args.mode == "unit":
+            no_parallel_cmd.extend(["tests/unit/"])
+        elif args.mode == "integration":
+            no_parallel_cmd.extend(["tests/integration/"])
+        elif args.mode == "behavior":
+            no_parallel_cmd.extend(["tests/behavior/"])
+        elif args.mode == "ui":
+            no_parallel_cmd.extend(["tests/ui/"])
+        elif args.mode == "slow":
+            no_parallel_cmd.extend(["tests/"])
+        elif args.mode == "all":
+            no_parallel_cmd.extend(["tests/"])
+        
+        # Copy other options
+        if args.verbose:
+            no_parallel_cmd.append("-v")
+        if args.coverage:
+            no_parallel_cmd.extend(["--cov=core", "--cov=communication", "--cov=ui", "--cov=tasks", "--cov=user", "--cov=ai", "--cov-report=html:tests/coverage_html", "--cov-report=term"])
+        if args.durations_all:
+            no_parallel_cmd.append("--durations=0")
+        
+        # Copy randomization settings
+        if args.random_order:
+            pass  # Don't add seed for random order
+        elif not has_seed:
+            no_parallel_cmd.extend(["--randomly-seed=12345"])
+        
+        print(f"\n[NO_PARALLEL] Running tests marked with @pytest.mark.no_parallel in serial mode...")
+        no_parallel_success = run_command(no_parallel_cmd, "No-Parallel Tests (Serial)", progress_interval=args.progress_interval)
+        
+        if not no_parallel_success:
+            success = False
     
     if success:
         print(f"\n[PASSED] {description} passed!")

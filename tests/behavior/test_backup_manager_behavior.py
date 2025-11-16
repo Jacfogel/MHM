@@ -116,6 +116,7 @@ class TestBackupManagerBehavior:
         assert self.backup_manager.max_backups == 10
         assert self.backup_manager.backup_retention_days == 30
     
+    @pytest.mark.no_parallel
     def test_create_backup_with_user_data_real_behavior(self):
         """Test backup creation includes user data."""
 
@@ -243,6 +244,7 @@ class TestBackupManagerBehavior:
         # Verify old backup was removed
         assert not os.path.exists(old_backup_path)
     
+    @pytest.mark.no_parallel
     def test_list_backups_real_behavior(self):
         """Test listing backups returns correct metadata."""
         # Create multiple backups with unique names to avoid parallel test interference
@@ -470,6 +472,7 @@ class TestBackupManagerBehavior:
         assert is_valid is False
         assert len(errors) > 0
     
+    @pytest.mark.no_parallel
     def test_restore_backup_with_config_files_real_behavior(self):
         """Test backup restoration with configuration files."""
         # Create backup with config files

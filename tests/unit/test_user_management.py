@@ -150,6 +150,7 @@ class TestUserManagement:
     @pytest.mark.user_management
     @pytest.mark.critical
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_save_user_data_success(self, test_data_dir, mock_config):
         """Test saving user data successfully using centralized utilities."""
         from tests.test_utilities import TestUserDataFactory

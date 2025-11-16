@@ -8,7 +8,6 @@
 
 > **See [README.md](../README.md) for complete navigation and project overview**  
 > **See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) for safe development practices**  
-> **See [QUICK_REFERENCE.md](../QUICK_REFERENCE.md) for essential commands**
 
 ## 🚀 Quick Reference
 

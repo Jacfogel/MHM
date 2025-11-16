@@ -62,6 +62,7 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_handle_create_account_with_valid_username(self, test_data_dir):
         """Test: Create account with valid username creates user and saves data."""
         handler = AccountManagementHandler()
@@ -104,6 +105,7 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_handle_create_account_with_feature_selection(self, test_data_dir):
         """Test: Create account with feature selection parameters sets correct feature flags."""
         handler = AccountManagementHandler()
@@ -152,6 +154,7 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_handle_create_account_backward_compatibility_defaults(self, test_data_dir):
         """Test: Create account without feature selection uses backward-compatible defaults."""
         handler = AccountManagementHandler()
@@ -292,6 +295,7 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_handle_check_account_status_without_user(self, test_data_dir):
         """Test: Check account status indicates no account for new user."""
         handler = AccountManagementHandler()
@@ -515,6 +519,7 @@ class TestAccountHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
+    @pytest.mark.no_parallel
     def test_get_user_id_by_username_returns_correct_id(self, test_data_dir):
         """Test: Get user ID by username returns correct user ID."""
         handler = AccountManagementHandler()
@@ -775,6 +780,7 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_handle_create_account_with_email_channel(self, test_data_dir):
         """Test: Create account works with email channel type."""
         handler = AccountManagementHandler()

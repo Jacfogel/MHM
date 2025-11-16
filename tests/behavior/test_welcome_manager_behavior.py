@@ -146,6 +146,7 @@ class TestWelcomeManagerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_welcome_tracking_supports_multiple_channels(self, test_data_dir):
         """Test: Welcome tracking supports multiple channel types."""
         with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
@@ -187,6 +188,7 @@ class TestWelcomeManagerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_welcome_tracking_supports_multiple_users(self, test_data_dir):
         """Test: Welcome tracking supports multiple users."""
         with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
@@ -264,6 +266,7 @@ class TestWelcomeManagerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_mark_as_welcomed_persists_across_calls(self, test_data_dir):
         """Test: mark_as_welcomed persists data across multiple calls."""
         with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):

@@ -11,7 +11,6 @@ DEFAULT_DOCS: Tuple[str, ...] = (
     'DOCUMENTATION_GUIDE.md',
     'DEVELOPMENT_WORKFLOW.md',
     'ARCHITECTURE.md',
-    'QUICK_REFERENCE.md',
     'TODO.md',
     'development_docs/FUNCTION_REGISTRY_DETAIL.md',
     'development_docs/MODULE_DEPENDENCIES_DETAIL.md',

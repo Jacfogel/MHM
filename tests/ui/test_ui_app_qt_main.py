@@ -436,6 +436,7 @@ class TestMHMManagerUI:
                             assert result is False, "Should return False when service not running"
                             mock_msgbox.warning.assert_called()
     
+    @pytest.mark.no_parallel
     def test_refresh_user_list_loads_users(self, test_data_dir):
         """Test that refresh_user_list loads users correctly."""
         from ui.ui_app_qt import MHMManagerUI
@@ -604,6 +605,7 @@ class TestMHMManagerUI:
                     # Verify method completes without error
                     assert True
     
+    @pytest.mark.no_parallel
     def test_update_user_index_on_startup_calls_rebuild(self):
         """Test that update_user_index_on_startup calls rebuild_user_index."""
         from ui.ui_app_qt import MHMManagerUI

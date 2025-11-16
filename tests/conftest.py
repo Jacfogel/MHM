@@ -2570,7 +2570,7 @@ def mock_schedule_data():
 
 # Configure pytest
 def pytest_collection_modifyitems(config, items):
-    """Exclude AI test files that are run via run_ai_functionality_tests.py from pytest collection."""
+    """Exclude AI test files that are run via run_ai_functionality_tests.py from pytest collection and add default markers."""
     # These test classes are designed to be run via run_ai_functionality_tests.py, not pytest
     # They have __init__ constructors that require parameters, which causes pytest collection warnings
     ai_test_files = [
@@ -2581,6 +2581,7 @@ def pytest_collection_modifyitems(config, items):
         'tests/ai/test_ai_performance.py',
         'tests/ai/test_ai_quality.py',
         'tests/ai/test_ai_advanced.py',
+        'tests/ai/test_ai_functionality_manual.py',  # Manual test runner, not a pytest test
     ]
     
     items_to_remove = []
@@ -2596,8 +2597,15 @@ def pytest_collection_modifyitems(config, items):
                 items_to_remove.append(item)
                 break
     
+    # Remove excluded items
     for item in items_to_remove:
         items.remove(item)
+    
+    # Add default markers to remaining items
+    for item in items:
+        # Add unit marker by default if no marker is present
+        if not any(item.iter_markers()):
+            item.add_marker(pytest.mark.unit)
 
 def pytest_configure(config):
     """Configure pytest for MHM testing."""
@@ -2717,13 +2725,9 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "debug: mark test as debug specific"
     )
-
-def pytest_collection_modifyitems(config, items):
-    """Modify test collection to add default markers."""
-    for item in items:
-        # Add unit marker by default if no marker is present
-        if not any(item.iter_markers()):
-            item.add_marker(pytest.mark.unit)
+    config.addinivalue_line(
+        "markers", "no_parallel: mark test as must not run under pytest-xdist parallel execution"
+    )
 
 def pytest_sessionstart(session):
     """Log test session start."""

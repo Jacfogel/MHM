@@ -100,6 +100,7 @@ class TestCheckinManagementDialogInitialization:
     
     @pytest.mark.ui
     @pytest.mark.unit
+    @pytest.mark.no_parallel
     def test_initialization_loads_user_data(self, qapp, test_data_dir, mock_config):
         """Test: CheckinManagementDialog loads user data on initialization"""
         # Arrange

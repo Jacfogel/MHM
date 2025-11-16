@@ -227,6 +227,7 @@ class TestAccountCreationDialogRealBehavior:
     
     @pytest.mark.ui
     @pytest.mark.slow
+    @pytest.mark.no_parallel
     def test_feature_validation_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test feature validation with proper category requirements."""
         # Set up username and timezone first (required for validation to proceed past these checks)
@@ -1352,6 +1353,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
+    @pytest.mark.no_parallel
     def test_create_account_persists_categories(self, dialog, test_data_dir):
         """Test that create_account persists categories to disk."""
         from core.user_data_handlers import get_user_data
@@ -1423,6 +1425,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
+    @pytest.mark.no_parallel
     def test_create_account_persists_task_settings(self, dialog, test_data_dir):
         """Test that create_account persists task settings to disk."""
         from core.user_data_handlers import get_user_data
@@ -1470,6 +1473,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
+    @pytest.mark.no_parallel
     def test_create_account_persists_checkin_settings(self, dialog, test_data_dir):
         """Test that create_account persists check-in settings to disk."""
         from core.user_data_handlers import get_user_data
@@ -1522,6 +1526,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
+    @pytest.mark.no_parallel
     def test_create_account_updates_user_index(self, dialog, test_data_dir):
         """Test that create_account updates the user index."""
         from core.user_data_manager import build_user_index

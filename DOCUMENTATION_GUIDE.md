@@ -1,202 +1,393 @@
 # Documentation Guide
 
+> **File**: `DOCUMENTATION_GUIDE.md`  
+> **Audience**: Developers and contributors  
+> **Purpose**: Organize, author, and maintain project documentation  
+> **Style**: Comprehensive reference with actionable guidance
+
+
+## Quick Reference
+
+This section helps you choose the right documentation file quickly and safely.
+
+### Core entry points
+
+- **Project overview and philosophy**  
+  See `README.md` for high-level context, core principles, and navigation.
+
+- **Environment setup and run commands**  
+  See the "Quick Start (Recommended)" and "Environment Setup" sections in `HOW_TO_RUN.md`.
+
+- **Development workflow**  
+  See `DEVELOPMENT_WORKFLOW.md` for the detailed standard development cycle and safe-change process.  
+  For a condensed workflow summary, see `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`.
+
+- **Architecture and data flow**  
+  See `ARCHITECTURE.md` for module layout, data handling patterns, and UI architecture.  
+  For an AI-optimized summary, see `ai_development_docs/AI_ARCHITECTURE.md`.
+
+- **Logging, testing, and error handling**  
+  - Logging: `logs/LOGGING_GUIDE.md` and `ai_development_docs/AI_LOGGING_GUIDE.md`  
+  - Testing: `tests/TESTING_GUIDE.md` and `ai_development_docs/AI_TESTING_GUIDE.md`  
+  - Error handling: `core/ERROR_HANDLING_GUIDE.md` and `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`
+
+- **AI collaboration and rules**  
+  - Session constraints and guardrails: `ai_development_docs/AI_SESSION_STARTER.md`  
+  - AI navigation and patterns: `ai_development_docs/AI_REFERENCE.md`
+
+- **Change history and priorities**  
+  - Detailed change history: `development_docs/CHANGELOG_DETAIL.md`  
+  - AI-focused summaries: `ai_development_docs/AI_CHANGELOG.md`  
+  - Plans and roadmaps: `TODO.md`, `development_docs/PLANS.md`
+
+### When editing documentation
+
+- If you edit any document that has an AI or human counterpart, you must follow the rules in the "Documentation Synchronization Checklist" section below.
+- Use generated reports (for example, `development_docs/LEGACY_REFERENCE_REPORT.md`) to detect stale references and path drift before finalizing changes.
+
+
+## Documentation Categories
+
+This section defines how documentation is grouped and how each group should be used.
+
+### Human-facing documents
+
+Human-facing documents are the detailed, explanatory sources of truth. They prioritize context, rationale, and troubleshooting.
+
+Examples:
+
+- **`README.md`**  
+  High-level introduction, philosophy, and navigation.
+
+- **`HOW_TO_RUN.md`**  
+  Environment setup, run commands, and troubleshooting for starting services and the UI.
+
+- **`DEVELOPMENT_WORKFLOW.md`**  
+  Safe development cycle, preconditions, standard tasks, and emergency procedures.
+
+- **`ARCHITECTURE.md`**  
+  Directory layout, module responsibilities, user data model, and UI patterns.
+
+- **`logs/LOGGING_GUIDE.md`**  
+  Logging design, logger hierarchy, log file locations, rotation, and analysis approaches.
+
+- **`tests/TESTING_GUIDE.md`**  
+  Testing philosophy, types, organization, commands, parallel execution notes, and manual testing procedures.
+
+- **`core/ERROR_HANDLING_GUIDE.md`**  
+  Error handling architecture, patterns, recovery strategies, and error logging practices.
+
+- **`PROJECT_VISION.md`**  
+  Longer-term goals, values, and direction of the project.
+
+When in doubt, human-focused docs are the place to look for rationale, context, and full explanations.
+
+### AI-facing documents
+
+AI-facing documents are concise references that help AI collaborators behave safely and efficiently. They summarize patterns and route to the right human documents.
+
+Key AI-facing docs:
+
+- **`ai_development_docs/AI_SESSION_STARTER.md`**  
+  Session constraints, must-follow rules, and safety boundaries.
+
+- **`ai_development_docs/AI_REFERENCE.md`**  
+  AI-oriented troubleshooting, escalation patterns, and routing to other AI docs.
+
+- **`ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`**  
+  Condensed development workflow, with links to sections in `DEVELOPMENT_WORKFLOW.md`.
+
+- **`ai_development_docs/AI_ARCHITECTURE.md`**  
+  High-level architectural cues and module overviews, with references to `ARCHITECTURE.md`.
+
+- **`ai_development_docs/AI_DOCUMENTATION_GUIDE.md`**  
+  AI-focused navigation for the documentation set and quick reference for sync rules.
+
+- **`ai_development_docs/AI_LOGGING_GUIDE.md`**  
+  Fast logging usage patterns, triage workflows, and log locations.
+
+- **`ai_development_docs/AI_TESTING_GUIDE.md`**  
+  Fast testing patterns, commands, and debugging guidance.
+
+- **`ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`**  
+  Error handling patterns, error categories, and links to `core/ERROR_HANDLING_GUIDE.md`.
+
+- **`ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md`**  
+  Patterns for safely removing legacy code and using automated reports.
+
+AI-facing docs should not duplicate full explanations when a human doc already covers them; they should instead point to the relevant section.
+
+### Generated and analytical documentation
+
+Some documents are generated by tools and must not be hand-edited. They are used as references and reports, not as primary editing targets.
+
+Examples (non-exhaustive):
+
+- **`development_docs/FUNCTION_REGISTRY_DETAIL.md`**  
+- **`development_docs/MODULE_DEPENDENCIES_DETAIL.md`**  
+- **`development_docs/LEGACY_REFERENCE_REPORT.md`**  
+- **`development_docs/UNUSED_IMPORTS_REPORT.md`**  
+- **`development_docs/HIGH_COMPLEXITY_FUNCTIONS_ANALYSIS.md`**  
+- **`development_docs/TEST_COVERAGE_EXPANSION_PLAN.md`**  
+- **`ai_development_docs/AI_FUNCTION_REGISTRY.md`**  
+- **`ai_development_docs/AI_MODULE_DEPENDENCIES.md`**
+
+For a more complete list and generation details, see the "Generated Documentation Standards" section below.
+
+
+## Standards and Templates
+
+This section defines how documentation files should be structured and labeled.
+
+### File address requirement for `.md` files
+
+Every documentation file (`.md`) must include a file address line in its metadata so it can be located and referenced unambiguously.
+
+Required format:
+
+```markdown
+> **File**: `relative/path/from/project/root.md`
+> **Audience**: [Target audience]
+> **Purpose**: [What this document is for]
+> **Style**: [Tone and depth]
+```
+
+Examples:
+
+```markdown
+# Documentation Guide
 
 > **File**: `DOCUMENTATION_GUIDE.md`
 > **Audience**: Developers and contributors  
 > **Purpose**: Organize, author, and maintain project documentation  
 > **Style**: Comprehensive reference with actionable guidance
-
-> **See [README.md](README.md) for complete navigation and project overview**  
-> **See [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md) for AI-optimized quick reference**
-
-## Quick Reference
-
-### Document Selection Decision Tree
-1. **New to the project?** Start with `README.md`.
-2. **Need setup or run instructions?** Read `HOW_TO_RUN.md` and `QUICK_REFERENCE.md`.
-3. **Planning development work?** Follow `DEVELOPMENT_WORKFLOW.md`.
-4. **Exploring the architecture?** Dive into `ARCHITECTURE.md`.
-5. **Looking for AI collaboration context?** Check `ai_development_docs/AI_*` files.
-6. **Tracking current status?** Review `TODO.md` and `ai_development_docs/AI_CHANGELOG.md`.
-7. **Need full history?** Consult `development_docs/CHANGELOG_DETAIL.md`.
-8. **Auditing decisions or functions?** Use `development_docs/FUNCTION_REGISTRY_DETAIL.md` and `development_docs/MODULE_DEPENDENCIES_DETAIL.md`.
-
-### Key Navigation Links
-- **Project Overview**: `README.md`
-- **Getting Started**: `HOW_TO_RUN.md`
-- **Safe Practices**: `DEVELOPMENT_WORKFLOW.md`
-- **Architecture**: `ARCHITECTURE.md`
-- **AI Collaboration**: `ai_development_docs/AI_SESSION_STARTER.md`
-- **Changelog**: `development_docs/CHANGELOG_DETAIL.md`
-
-## Documentation Categories
-
-### Human-Facing Documents
-- **`README.md`**: High-level project introduction and navigation.
-- **`HOW_TO_RUN.md`**: Environment setup, running services, troubleshooting.
-- **`DEVELOPMENT_WORKFLOW.md`**: Safe development workflow with detailed explanations.
-- **`ARCHITECTURE.md`**: System design, modules, and data flow descriptions.
-
-### AI-Facing Documents
-- **`ai_development_docs/AI_SESSION_STARTER.md`**: Essential constraints for new AI sessions.
-- **`ai_development_docs/AI_REFERENCE.md`**: Troubleshooting, rules, and escalation paths for AI collaborators.
-- **`ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`**: Condensed workflow guidance.
-- **`ai_development_docs/AI_ARCHITECTURE.md`**: High-level architecture cues and patterns.
-- **`ai_development_docs/AI_DOCUMENTATION_GUIDE.md`**: Navigation aid for the AI documentation set.
-- **`ai_development_docs/AI_LOGGING_GUIDE.md`**: Fast logging patterns and troubleshooting.
-- **`ai_development_docs/AI_TESTING_GUIDE.md`**: Fast testing patterns and troubleshooting.
-- **`ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`**: Fast error handling patterns and recovery.
-
-### Status and History
-- **`development_docs/CHANGELOG_DETAIL.md`**: Authoritative audit trail of changes.
-- **`ai_development_docs/AI_CHANGELOG.md`**: Trimmed summaries for AI context windows.
-- **`TODO.md`** and **`development_docs/PLANS.md`**: Active and upcoming work items.
-
-### Technical Reference
-- **`development_docs/FUNCTION_REGISTRY_DETAIL.md`**: Documentation for functions organized by module.
-- **`development_docs/MODULE_DEPENDENCIES_DETAIL.md`**: Dependency mapping and architectural coupling notes (hybrid auto-generated with manual enhancements preserved - see Maintenance Rules).
-- **`ai_development_tools/audit_package_exports.py`**: Audit tool for verifying package-level exports (use `--package <name>` or `--all`).
-- **`.cursor/rules/*.mdc`**: Cursor rule files that govern AI behaviour.
-
-## Standards and Templates
-
-### File Address Requirement
-Every documentation file (.md or .mdc) must include its file address (relative path from project root) to make navigation and cross-referencing easier.
-
-**Format for .md files:**
-- Add `> **File**: `relative/path/to/file.md`` in the metadata block, typically after the title and before or within the metadata block (Audience, Purpose, Style).
-
-**Format for .mdc files:**
-- Add `file: "relative/path/to/file.mdc"` in the YAML frontmatter, or
-- Add `<!-- File: relative/path/to/file.mdc -->` as a comment if no frontmatter exists.
-
-**Examples:**
-```markdown
-# Document Title
-
-> **File**: `docs/guide.md`
-> **Audience**: [Target audience]  
-> **Purpose**: [What this document is for]  
-> **Style**: [Tone and depth]
 ```
+
+For nested documents:
+
+```markdown
+# Logging Guide
+
+> **File**: `logs/LOGGING_GUIDE.md`
+> **Audience**: Developers working with logging  
+> **Purpose**: Describe logging architecture, usage, and troubleshooting  
+> **Style**: Technical, example-driven
+```
+
+### File address requirement for `.mdc` rule files
+
+For `.mdc` rule files used by tools like Cursor:
+
+- Use YAML frontmatter with a `file` field, or
+- Use a comment line if there is no frontmatter.
+
+Example with frontmatter:
 
 ```yaml
 ---
-description: "Rule description"
-file: ".cursor/rules/rule.mdc"
+description: "AI behavior rules for error handling"
+file: ".cursor/rules/error_handling.mdc"
 ---
 ```
 
-**Maintenance:**
-- Use `python scripts/utilities/add_documentation_addresses.py` to automatically add or update file addresses across all documentation files.
-- Run with `--dry-run` to preview changes before applying them.
-- The script intelligently handles different file structures and won't duplicate existing addresses.
-- **Note for Generated Files**: Generated documentation files (see "Known Generated Files" below) must have their file addresses added by updating the generator scripts, not by editing the files directly. The script will skip files in `archive/` and `tests/` directories.
+Example with comment:
 
-### Standard Document Structure
-Maintain a consistent structure for readability and automation:
 ```markdown
-# Document Title
-
-> **File**: `relative/path/to/file.md`
-> **Audience**: [Target audience]  
-> **Purpose**: [What this document is for]  
-> **Style**: [Tone and depth]
-
-> **See [README.md](README.md) ...**  
-> **See [AI_*](ai_development_docs/AI_*.md) ...**
-
-## Quick Reference
-[Decision tree or navigation aids]
-
-## Main Sections
-[Detailed, well-structured content]
+<!-- File: .cursor/rules/error_handling.mdc -->
 ```
 
-### Cursor Command Documentation Standards
-- **Audience**: Commands describe what the AI should do, not raw shell scripts.
-- **PowerShell Native**: Use parameterised PowerShell with `$LASTEXITCODE` checks.
-- **Structured Output**: Define required report sections so responses are consistent.
-- **Action-Oriented**: Break steps into ordered lists the AI can follow without guesswork.
-- **Critical Files Lists**: Specify the exact files to read, especially for audits or reviews.
+### Structure guidelines for human-facing docs
 
-### Coding and Naming References
-- **Helper functions** follow `_main_function__helper_name` pattern for traceability.
-- **Implementation modules** should expose clear public APIs instead of wrappers.
-- **Documentation** should refer to the canonical module or function name that appears in code.
-- **Package-level imports**: Use `from <package> import <item>` pattern when available (e.g., `from core import CheckinAnalytics`). Module-level imports (`from core.checkin_analytics import CheckinAnalytics`) still work for backward compatibility. See `development_docs/PLANS.md` for migration details.
+Human-facing documentation should generally follow this pattern:
 
-## Audience-Specific Optimization
+1. H1 title that clearly names the topic.  
+2. Metadata block with File, Audience, Purpose, Style.  
+3. "Quick Reference" section listing the most common lookups or tasks.  
+4. Detailed sections ordered from general concepts to specific patterns and troubleshooting.  
+5. References and resources at the end.
 
-### Human-Facing Documents
-- Provide context before instructions so newer developers understand the "why".
-- Include full examples, code snippets, and expected outcomes.
-- Use encouraging language and highlight safety precautions.
-- Cross-reference related guides to reduce guesswork.
+Each section should be self-contained and include links to source code, tools, or other docs where appropriate.
 
-### AI-Facing Documents
-- Keep entries concise and pattern-focused.
-- Provide decision trees and checklists instead of long narratives.
-- Link back to the human documents for complete explanations.
-- Avoid duplicating the same detail across multiple AI files to preserve context space.
+### Structure guidelines for AI-facing docs
+
+AI-facing documentation should:
+
+- Start with an H1 title and a metadata block (at minimum a File line and brief Purpose).  
+- Use a "Quick Reference" section at the top for common decision points.  
+- Prioritize checklists, short lists, and explicit references over long prose.  
+- Prefer linking to specific sections in human-facing docs for context and rationale.  
+- Avoid reproducing generic rules that already live in `.cursor/rules` or `AI_SESSION_STARTER.md`.
+
+
+## Documentation Synchronization Checklist
+
+This section replaces the standalone `DOCUMENTATION_SYNC_CHECKLIST.md`. It defines how to keep paired documentation files synchronized.
+
+### Paired documentation files
+
+The following pairs must be kept in sync:
+
+- `DEVELOPMENT_WORKFLOW.md` ↔ `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`  
+- `ARCHITECTURE.md` ↔ `ai_development_docs/AI_ARCHITECTURE.md`  
+- `DOCUMENTATION_GUIDE.md` ↔ `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`  
+- `development_docs/CHANGELOG_DETAIL.md` ↔ `ai_development_docs/AI_CHANGELOG.md`  
+
+Specialized guides:
+
+- `logs/LOGGING_GUIDE.md` ↔ `ai_development_docs/AI_LOGGING_GUIDE.md`  
+- `tests/TESTING_GUIDE.md` ↔ `ai_development_docs/AI_TESTING_GUIDE.md`  
+- `core/ERROR_HANDLING_GUIDE.md` ↔ `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`
+
+Rules for paired docs:
+
+- The **set of H2 headings must be identical** between the human and AI version.  
+- You may shorten, reorder, or add subheadings (H3, H4) independently, as long as the H2 set stays the same.  
+- When you add, rename, or remove any H2 in one file, you must make the same change in its pair.
+
+### Before making documentation changes
+
+Use this checklist before editing any doc that might be part of a pair:
+
+- Identify whether the file has an AI or human counterpart.  
+- If it does, open both files at the same time.  
+- Run the docs sync tools if needed to detect existing drift (see "Automated tools" below).  
+- Review `development_docs/LEGACY_REFERENCE_REPORT.md` for path drift and outdated references.
+
+### During documentation updates
+
+While editing paired docs:
+
+- Update the human-facing doc first to get the full explanation correct.  
+- Update the AI-facing doc second, summarizing and routing to the human doc instead of duplicating text.  
+- Keep the H2 headings aligned between both files (add/remove/rename at the same time).  
+- Verify all cross-references between docs are still accurate (paths, section names, and filenames).
+
+### After documentation updates
+
+When you are done editing:
+
+- Run the docs sync tools again to confirm there are no new sync issues.  
+- Skim the diffs of both files to check that H2 headings match as a set.  
+- Update any "Last Updated" metadata if present.  
+- Validate that links to generated reports or other docs resolve correctly in the repository.
+
+### Automated tools
+
+Several automation tools support documentation and sync:
+
+- `python ai_development_tools/ai_tools_runner.py docs-sync`  
+  Scans for mismatched headings and path drift in documentation.
+
+- `python ai_development_tools/ai_tools_runner.py legacy-cleanup`  
+  Analyses references and code paths for deprecated or stale usage.
+
+- `python ai_development_tools/ai_tools_runner.py version-sync`  
+  Helps ensure version strings remain coherent across files.
+
+Additional tools such as `audit`, `quick-status`, `test-coverage`, and `validate-work` live in `ai_development_tools/ai_tools_runner.py` and may output supporting reports used by documentation.
+
+For detailed tool behavior, see `ai_development_tools/README.md`.
+
 
 ## Maintenance Guidelines
 
-### Paired Documentation
-- Update human and AI counterparts together: `DEVELOPMENT_WORKFLOW.md` <-> `AI_DEVELOPMENT_WORKFLOW.md`, `ARCHITECTURE.md` <-> `AI_ARCHITECTURE.md`, `DOCUMENTATION_GUIDE.md` <-> `AI_DOCUMENTATION_GUIDE.md`, `development_docs/CHANGELOG_DETAIL.md` <-> `AI_CHANGELOG.md`, `logs/LOGGING_GUIDE.md` <-> `AI_LOGGING_GUIDE.md`, `tests/TESTING_GUIDE.md` <-> `AI_TESTING_GUIDE.md`, `core/ERROR_HANDLING_GUIDE.md` <-> `AI_ERROR_HANDLING_GUIDE.md`.
-- Keep the section order identical between paired files for predictable navigation.
+This section covers ongoing maintenance practices beyond basic synchronization.
 
-### Updating AI Documentation
-- Summarise only what is critical for decision-making.
-- Replace large explanations with links to the human counterpart.
-- Remove redundant sections when the information already exists in another AI document.
+### Updating AI documentation
 
-### Updating Human Documentation
-- Add context, examples, and rationale to support less experienced developers.
-- Maintain a supportive tone and include troubleshooting tips.
-- Ensure cross-references point to the newest sources of truth.
+When updating an AI-facing document:
 
-### Adding New Documentation
-- Identify the primary audience first.
-- Follow the structure and tone guidelines for that audience.
-- Add the new file to this guide and, if needed, create its paired document.
-- Review automated tools (audits, generators) to determine whether they should track the new file.
+- Prefer referencing other AI docs first, then human docs.  
+- Keep content brief and operational: commands, patterns, and routing.  
+- Remove redundant text when another AI doc already covers the same rule.  
+- Add explicit references to the relevant section in the paired human doc for context.  
+- When you add a new section in the AI doc, ensure the same H2 exists in the paired human doc.
+
+### Updating human documentation
+
+When updating a human-facing document:
+
+- Provide enough context and examples that a beginner developer can follow the guidance.  
+- Include motivations, edge cases, and troubleshooting tips where they matter.  
+- Keep cross-references up to date; prefer linking to specific sections instead of entire files when possible.  
+- If the doc has an AI counterpart, make sure the AI doc still accurately summarizes and routes to the correct sections.
+
+### Adding new documentation
+
+When adding a new documentation file:
+
+- Decide whether it should be human-facing, AI-facing, or both.  
+- If a new pair is needed, register it conceptually under "Paired documentation files" and ensure both files share the same H2 set.  
+- Follow the file address requirement and standard structure for the chosen audience.  
+- If the document is generated, ensure it follows the "Generated Documentation Standards" section rather than these general rules.
+
+### Generated documentation maintenance
+
+- Never manually edit generated files listed in "Generated Documentation Standards".  
+- To update generated content, change the generating tool or its configuration and regenerate.  
+- If a generated file gains manually curated sections, document the rules clearly in this guide and in the generating tool's README.
+
 
 ## Generated Documentation Standards
 
-### Identification Requirements
-Every generated file must open with:
+This section defines how generated docs must identify themselves and how they are maintained.
+
+### Identification requirements
+
+Every generated file must begin with a clear statement that it is generated and not to be edited manually.
+
+Example:
+
 ```markdown
-> **Generated**: This file is auto-generated by [TOOL_NAME]. Do not edit manually.
-> **Generated by**: [TOOL_NAME] - [DESCRIPTION]
-> **Last Generated**: [TIMESTAMP]
-> **Source**: [SOURCE FILES OR COMMANDS]
+> **Generated**: This file is auto-generated by ai_development_tools/generate_function_registry.py. Do not edit manually.
+> **Generated by**: ai_development_tools/generate_function_registry.py
 ```
 
-### Maintenance Rules
-- Regenerate files by running the tool-never edit generated content manually.
-- **Exception**: `MODULE_DEPENDENCIES_DETAIL.md` uses a hybrid approach: content between `<!-- MANUAL_ENHANCEMENT_START -->` and `<!-- MANUAL_ENHANCEMENT_END -->` is preserved during regeneration, allowing manual enhancements (descriptions, key functions, special considerations) alongside auto-generated dependency information. The generator now includes validation and reporting to ensure enhancements are preserved correctly.
-- Update tool metadata whenever the generator changes behaviour.
-- Archive prior outputs when trimming or rotating files to keep history auditable.
+Generated metadata should include:
 
-### Known Generated Files
-**Important**: These files are auto-generated by tools. To update them (including adding file addresses), update the generator scripts, not the files themselves.
+- The generating tool path.  
+- A brief description of what the tool does.  
+- Any important notes (for example, whether manual annotations are preserved).
 
-- `ai_development_tools/AI_STATUS.md` - Generated by `ai_development_tools/ai_tools_runner.py audit`
-- `ai_development_tools/AI_PRIORITIES.md` - Generated by `ai_development_tools/ai_tools_runner.py audit`
-- `development_docs/DIRECTORY_TREE.md` - Generated by `ai_development_tools/documentation_sync_checker.py`
-- `development_docs/FUNCTION_REGISTRY_DETAIL.md` - Generated by `ai_development_tools/generate_function_registry.py`
-- `development_docs/MODULE_DEPENDENCIES_DETAIL.md` - Generated by `ai_development_tools/generate_module_dependencies.py` (hybrid: auto-generated with manual enhancements preserved)
-- `development_docs/LEGACY_REFERENCE_REPORT.md` - Generated by `ai_development_tools/legacy_reference_cleanup.py`
-- `development_docs/UNUSED_IMPORTS_REPORT.md` - Generated by `ai_development_tools/unused_imports_checker.py`
-- `development_docs/HIGH_COMPLEXITY_FUNCTIONS_ANALYSIS.md` - Generated by analysis tools (manually maintained based on generated data)
-- `development_docs/TEST_COVERAGE_EXPANSION_PLAN.md` - Generated by `ai_development_tools/regenerate_coverage_metrics.py --update-plan`
-- `ai_development_docs/AI_FUNCTION_REGISTRY.md` - Generated by `ai_development_tools/generate_function_registry.py`
-- `ai_development_docs/AI_MODULE_DEPENDENCIES.md` - Generated by `ai_development_tools/generate_module_dependencies.py`
+### Maintenance rules
+
+- Do not hand-edit generated outputs except where explicitly allowed and documented.  
+- To change the content of a generated file, update the script in `ai_development_tools` or related tooling and regenerate.  
+- If manual annotations are allowed (for example, in a "hybrid" report), clearly mark which sections are tool-owned and which are human-owned.
+
+### Known generated files
+
+Common generated files include:
+
+- `development_docs/FUNCTION_REGISTRY_DETAIL.md`  
+- `development_docs/MODULE_DEPENDENCIES_DETAIL.md`  
+- `development_docs/LEGACY_REFERENCE_REPORT.md`  
+- `development_docs/UNUSED_IMPORTS_REPORT.md`  
+- `development_docs/HIGH_COMPLEXITY_FUNCTIONS_ANALYSIS.md`  
+- `development_docs/TEST_COVERAGE_EXPANSION_PLAN.md`  
+- `ai_development_docs/AI_FUNCTION_REGISTRY.md`  
+- `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
+
+For a full and current list, refer to generated file headers and the `ai_development_tools/README.md` documentation.
+
 
 ## Resources
 
-- `.cursor/rules/` for AI collaboration policies.
-- `ai_development_tools/README.md` for automation entry points.
-- Prior changelog entries for historical context and lessons learned.
-- Team knowledge base or meeting notes for decisions not yet documented elsewhere.
+Useful supporting materials and locations:
+
+- `.cursor/rules/`  
+  Rulesets that govern AI behavior and baseline constraints.
+
+- `ai_development_docs/AI_SESSION_STARTER.md`  
+  Required reading for AI collaborators before performing code changes.
+
+- `ai_development_docs/AI_REFERENCE.md`  
+  Central AI navigation and troubleshooting reference.
+
+- `development_docs/CHANGELOG_DETAIL.md` and `ai_development_docs/AI_CHANGELOG.md`  
+  Detailed and condensed histories of changes.
+
+- `ai_development_tools/README.md`  
+  Entry point for documentation on analysis, audit, and sync tools.
+
+- Team notes, meeting summaries, and planning docs in `development_docs/` or adjacent locations for context not yet formalized here.

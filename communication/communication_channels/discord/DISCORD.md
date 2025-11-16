@@ -8,7 +8,6 @@
 
 > **See [README.md](../../../README.md) for complete navigation and project overview**  
 > **See [DEVELOPMENT_WORKFLOW.md](../../../DEVELOPMENT_WORKFLOW.md) for safe development practices**  
-> **See [QUICK_REFERENCE.md](../../../QUICK_REFERENCE.md) for essential commands**
 
 ## Getting Started
 
@@ -209,5 +208,5 @@ To exit a flow: say "cancel" or "/cancel"
 
 ### Troubleshooting
 - If a command isn't recognized, try `help` or `commands` to see supported forms
-- For full setup and environment variables, see `README.md` and `QUICK_REFERENCE.md`
+- For full setup and environment variables, see `README.md`
 

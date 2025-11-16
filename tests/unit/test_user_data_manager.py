@@ -382,6 +382,7 @@ class TestUserDataManagerIndex:
         return actual_user_id
     
     @pytest.mark.unit
+    @pytest.mark.no_parallel
     def test_update_user_index_success(self, manager, test_user, test_data_dir):
         """Test: update_user_index updates index successfully"""
         # Arrange: User is created in fixture
@@ -435,6 +436,7 @@ class TestUserDataManagerIndex:
         assert result == False, "Should return False for invalid user_id"
     
     @pytest.mark.unit
+    @pytest.mark.no_parallel
     def test_remove_from_index_success(self, manager, test_user, test_data_dir):
         """Test: remove_from_index removes user from index successfully"""
         # Arrange: User is created in fixture, update index first
@@ -459,6 +461,7 @@ class TestUserDataManagerIndex:
         assert result == False, "Should return False for invalid user_id"
     
     @pytest.mark.unit
+    @pytest.mark.no_parallel
     def test_rebuild_full_index_success(self, manager, test_data_dir):
         """Test: rebuild_full_index rebuilds index successfully"""
         # Arrange: Create test users
@@ -622,6 +625,7 @@ class TestUserDataManagerConvenienceFunctions:
         return actual_user_id
     
     @pytest.mark.unit
+    @pytest.mark.no_parallel
     def test_update_message_references_function(self, test_user, test_data_dir):
         """Test: update_message_references convenience function works"""
         # Arrange: User is created in fixture
@@ -699,6 +703,7 @@ class TestUserDataManagerConvenienceFunctions:
         assert isinstance(summary, dict), "Should return dict"
     
     @pytest.mark.unit
+    @pytest.mark.no_parallel
     def test_update_user_index_function(self, test_user, test_data_dir):
         """Test: update_user_index convenience function works"""
         # Arrange: User is created in fixture
@@ -710,6 +715,7 @@ class TestUserDataManagerConvenienceFunctions:
         assert result == True, "Should return True on success"
     
     @pytest.mark.unit
+    @pytest.mark.no_parallel
     def test_rebuild_user_index_function(self, test_data_dir):
         """Test: rebuild_user_index convenience function works"""
         # Arrange: Create test users
@@ -847,6 +853,7 @@ class TestUserDataManagerDeleteUser:
         return actual_user_id
     
     @pytest.mark.unit
+    @pytest.mark.no_parallel
     def test_delete_user_completely_with_backup(self, manager, test_user, test_data_dir):
         """Test: delete_user_completely deletes user with backup"""
         # Arrange: User is created in fixture
@@ -858,6 +865,7 @@ class TestUserDataManagerDeleteUser:
         assert result == True, "Should return True on success"
     
     @pytest.mark.unit
+    @pytest.mark.no_parallel
     def test_delete_user_completely_without_backup(self, manager, test_user, test_data_dir):
         """Test: delete_user_completely deletes user without backup"""
         # Arrange: User is created in fixture

@@ -382,6 +382,7 @@ class TestTaskManagementDialogRealBehavior:
     
     @pytest.mark.ui
     @pytest.mark.behavior
+    @pytest.mark.no_parallel
     def test_save_task_settings_persists_to_disk(self, test_user, test_data_dir, qapp):
         """Test that save_task_settings actually saves data to disk."""
         # Arrange

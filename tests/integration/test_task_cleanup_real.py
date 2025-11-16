@@ -157,6 +157,7 @@ class TestTaskCleanupReal:
     @pytest.mark.integration
     @pytest.mark.tasks
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_update_task_verifies_actual_changes_persist(self, test_data_dir):
         """
         Test: Updating a task modifies task data and persists to file system.

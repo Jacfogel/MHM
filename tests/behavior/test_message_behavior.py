@@ -202,6 +202,7 @@ class TestMessageCRUD:
     
     @pytest.mark.messages
     @pytest.mark.regression
+    @pytest.mark.no_parallel
     def test_edit_message_success(self, test_data_dir):
         """Test editing a message successfully."""
         user_id = "test-user-edit"
@@ -332,6 +333,7 @@ class TestMessageCRUD:
     
     @pytest.mark.messages
     @pytest.mark.critical
+    @pytest.mark.no_parallel
     def test_delete_message_success(self, test_data_dir):
         """Test deleting a message successfully."""
         user_id = "test-user-delete"
@@ -618,6 +620,7 @@ class TestIntegration:
     
     @pytest.mark.messages
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_full_message_lifecycle(self, test_data_dir):
         """Test complete message lifecycle (add, edit, delete)."""
         import uuid

@@ -974,6 +974,7 @@ class TestUserDataManagerCoverageExpansion:
         assert user_data_manager.index_file.endswith("user_index.json"), "Index file should be user_index.json"
     
     @pytest.mark.behavior
+    @pytest.mark.no_parallel
     def test_update_message_references_real_behavior(self, user_data_manager, test_path_factory):
         """Test updating message references in user profile."""
         # Mock get_user_info_for_data_manager to return test data
@@ -1030,6 +1031,7 @@ class TestUserDataManagerCoverageExpansion:
             assert "logs" in result
     
     @pytest.mark.behavior
+    @pytest.mark.no_parallel
     def test_update_user_index_real_behavior(self, user_data_manager, test_path_factory):
         """Test updating user index."""
         # Mock get_all_user_ids to return test users
@@ -1067,6 +1069,7 @@ class TestUserDataManagerCoverageExpansion:
             assert "user_id" in result
     
     @pytest.mark.behavior
+    @pytest.mark.no_parallel
     def test_update_message_references_no_user_real_behavior(self, user_data_manager, test_path_factory):
         """Test update message references when user doesn't exist."""
         # Mock get_user_info_for_data_manager to return None
@@ -1093,6 +1096,7 @@ class TestUserDataManagerCoverageExpansion:
             assert "messages" in result
     
     @pytest.mark.behavior
+    @pytest.mark.no_parallel
     def test_update_user_index_error_handling_real_behavior(self, user_data_manager, test_path_factory):
         """Test update user index error handling."""
         # Mock get_all_user_ids to raise exception

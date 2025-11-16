@@ -1317,6 +1317,7 @@ class TestSelectTaskForReminderBehavior:
         assert result == task
     
     @pytest.mark.behavior
+    @pytest.mark.no_parallel
     def test_select_task_for_reminder_priority_weighting_real_behavior(self, scheduler_manager):
         """Test priority-based weighting works correctly."""
         tasks = [

@@ -179,6 +179,7 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.channels
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_handle_application_authorized_with_existing_user(self, test_data_dir):
         """Test: APPLICATION_AUTHORIZED event skips welcome for existing user."""
         from communication.communication_channels.discord.webhook_handler import handle_application_authorized

@@ -1,237 +1,325 @@
 # Development Workflow Guide
 
-
-> **File**: `DEVELOPMENT_WORKFLOW.md`
+> **File**: `DEVELOPMENT_WORKFLOW.md`  
 > **Audience**: Human developer (beginner programmer)  
 > **Purpose**: Safe development practices and day-to-day procedures  
-> **Style**: Comprehensive, step-by-step, supportive
+> **Style**: Comprehensive, step-by-step, practical
 
-> **See [README.md](README.md) for complete navigation and project overview**  
-> **See [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) for AI-optimized quick reference**
 
 ## Quick Reference
 
-### Essential Commands
+This section summarizes the most common tasks and where to look for detail.
+
+- Project overview and navigation  
+  - See `README.md`.
+
+- Environment setup and running the app  
+  - See "Environment Setup" and "Quick Start (Recommended)" in `HOW_TO_RUN.md`.
+
+- Running tests  
+  - See `tests/TESTING_GUIDE.md` (full) and `ai_development_docs/AI_TESTING_GUIDE.md` (AI-optimized).
+
+- Updating documentation  
+  - See `DOCUMENTATION_GUIDE.md` and `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`.
+
+- Architecture and data flow  
+  - See `ARCHITECTURE.md` and `ai_development_docs/AI_ARCHITECTURE.md`.
+
+- If you are unsure what to do next  
+  - Start with "Development Process" below, then consult the relevant guide for testing, docs, or logging.
+
+
+### Essential Commands (PowerShell, from repo root)
+
 ```powershell
-# Activate environment
+# Create the virtual environment (once)
+python -m venv venv
+
+# Activate the virtual environment (each new shell)
 venv\Scripts\activate
 
-# Run the application
-# For human users (UI interface)
-python run_mhm.py
+# Install or refresh dependencies
+pip install -r requirements.txt
 
-# For AI collaborators (headless service)
+# Run the headless service (background core + bots)
 python run_headless_service.py start
 
-# Create a timestamped backup
-$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-Copy-Item -Path "." -Destination "../MHM_backup_$timestamp" -Recurse
+# Run the UI + service (see HOW_TO_RUN.md for details)
+python run_mhm.py
 
-# Install dependencies
-pip install -r requirements.txt
+# Run tests via helper script (parallel by default)
+python run_tests.py
+
+# Create a timestamped backup (simple whole-repo copy one level up)
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"; `
+  Copy-Item . ../MHM_backup_$timestamp -Recurse
 ```
 
-### Decision Guide
-1. **Planning the next step?** Review the "Development Process" section.
-2. **About to code?** Walk through "Safety First" and the pre-change checklist.
-3. **Need to test?** Follow the "Testing Strategy" section.
-4. **Writing documentation?** Update both changelog files and any affected guides.
-5. **Feeling stuck?** Check "Emergency Procedures" and ask for help early.
+When in doubt: activate the virtual environment, make a backup, then follow the "Development Process" steps.
+
 
 ## Safety First
 
 ### Core Safety Rules
-1. **Work inside the virtual environment** to avoid polluting the global Python install.
-2. **Create a backup before major edits** using the PowerShell command above.
-3. **Test incrementally** after each small change to catch regressions early.
-4. **Document every meaningful change** in `development_docs/CHANGELOG_DETAIL.md` and summarise it in `ai_development_docs/AI_CHANGELOG.md`.
-5. **Ask questions early** with concrete examples of what is confusing.
-6. **Use the Audit-First Protocol** before producing documentation so automated quality checks guide your updates.
+
+1. **Work inside the virtual environment**  
+   - Always ensure your prompt shows `(venv)` before running Python or test commands.
+
+2. **Back up before major edits**  
+   - Use the timestamped backup command above before large refactors, cross-cutting changes, or doc rewrites.
+
+3. **Test incrementally**  
+   - After each meaningful change, run the smallest relevant test slice (unit, integration, or behavior) before moving on.
+
+4. **Use the official data-access helpers**  
+   - All user data access must go through `core.user_data_handlers.get_user_data()` and related helpers.  
+   - Do not reintroduce or create new direct file-access wrappers.
+
+5. **Keep imports consistent**  
+   - Prefer module imports and explicit usage (for example, `import core.utils` then `core.utils.validate_and_format_time()`).  
+   - Avoid reintroducing removed wrapper functions or deep, brittle imports.
+
+6. **Document meaningful changes**  
+   - Describe each meaningful change in `development_docs/CHANGELOG_DETAIL.md`.  
+   - Ensure the summarized change appears in `ai_development_docs/AI_CHANGELOG.md`.
+
+7. **Use the Audit-First Protocol for docs**  
+   - Before editing documentation, consult `DOCUMENTATION_GUIDE.md` and follow the Audit-First instructions so automated checks remain effective.
+
+8. **Ask for help early**  
+   - When something feels risky or confusing, stop, collect a short description and errors, and ask for help instead of guessing.
+
 
 ### Pre-Change Checklist
-1. Confirm the virtual environment prompt shows `(venv)`. If not, run `venv\Scripts\activate`.
-2. Run `python run_headless_service.py start` to make sure the current state is healthy (for AI collaborators - launches service directly).
-3. Create a timestamped backup of the repository.
-4. Outline what you plan to change, how you'll test it, and which files might be affected.
+
+Before starting significant work:
+
+1. Confirm `(venv)` appears in the prompt. If not, run `venv\Scripts\activate`.  
+2. Confirm you can start the service (for example, `python run_headless_service.py start`) without unexpected errors.  
+3. Create a timestamped backup of the repo if you are changing multiple modules or refactoring core logic.  
+4. Write down:
+   - What you plan to change.  
+   - How you will test it (specific commands).  
+   - Which files you expect to touch.  
+5. Identify any high-risk areas (for example, user data handling, scheduling, cross-channel behavior). If unsure, treat it as high risk.
+
 
 ## Virtual Environment Best Practices
 
 ### Why It Matters
-- Keeps the system Python installation clean and conflict free.
-- Makes dependency management explicit through `requirements.txt`.
-- Avoids permission issues on Windows.
-- Ensures collaborators can reproduce the environment exactly.
 
-### Common Commands
+- Keeps the system Python installation clean and conflict free.  
+- Makes dependency management explicit through `requirements.txt`.  
+- Reduces permission issues on Windows.  
+- Ensures others can reproduce your environment from scratch.
+
+### Common Commands (PowerShell)
+
 ```powershell
 # Create the environment (once)
 python -m venv venv
 
-# Activate the environment (each session)
+# Activate (each session)
 venv\Scripts\activate
 
-# Install dependencies after activation
+# Install dependencies
 pip install -r requirements.txt
 
-# Add a new dependency
-pip install package_name
+# Upgrade a package and refresh requirements
+pip install some_package --upgrade
 pip freeze > requirements.txt
 
-# Leave the environment
+# Deactivate when you are done
 deactivate
 ```
 
 ### Troubleshooting
-- **Command not found**: Make sure `(venv)` appears in the prompt.
-- **Import errors**: Reinstall requirements with `pip install -r requirements.txt --force-reinstall`.
-- **Permission issues**: Reopen PowerShell as Administrator or adjust execution policy.
+
+- **"python: command not found" or wrong version**  
+  - Confirm Python is installed and on PATH; see `HOW_TO_RUN.md` if setup fails.
+
+- **Import errors after pulling recent changes**  
+  - Run `pip install -r requirements.txt --force-reinstall` inside `(venv)`.
+
+- **Permission problems on Windows**  
+  - Reopen PowerShell as Administrator if needed.  
+  - Avoid installing packages outside the `(venv)` environment.
+
 
 ## Development Process
 
-### Step 1: Plan
-- Define the goal in plain language.
-- Identify risks and edge cases.
-- Decide how you will verify success.
-- Note any user communication requirements.
+Use this as your default loop for any change: features, bug fixes, or refactors.
 
-### Step 2: Implement
-- Work in the smallest safe increments.
-- Run quick tests after each change.
-- Confirm user-facing features continue to work through every communication channel.
-- Keep functions focused and remove unnecessary wrappers.
-- All user data access must go through `get_user_data()` and related helpers.
-- Prefer package-level imports: Use `from core import CheckinAnalytics` pattern when available (e.g., `from communication import CommunicationManager`, `from ui import TaskEditDialog`). Module-level imports (`from core.checkin_analytics import CheckinAnalytics`) still work for backward compatibility. See `development_docs/PLANS.md` for migration details.
+### Step 1: Plan
+
+- Describe the goal in plain language.  
+- Identify risks and edge cases (especially user data, scheduling, and channel-specific behavior).  
+- Decide how you will verify success (specific tests or manual flows).  
+- Note any documentation that might need updates (README, HOW_TO_RUN, specific guides).
+
+### Step 2: Implement (Small Slices)
+
+- Work in **small, testable increments**.  
+- Keep functions focused; avoid reintroducing thin wrappers that just call other functions.  
+- Use consistent imports and the official helpers (for example, `get_user_data()` from `core.user_data_handlers`).  
+- Maintain the existing patterns for logging, error handling, and configuration (see `LOGGING_GUIDE.md` and `ERROR_HANDLING_GUIDE.md`).
 
 ### Step 3: Test
-- Test the feature you just touched.
-- Exercise related areas that might be impacted.
-- Run `python run_headless_service.py start` to launch the service directly and verify communication flows, especially Discord (for AI collaborators).
+
+- Start with targeted tests that cover the change directly.  
+- Expand outward: unit -> integration -> behavior -> UI flows.  
+- Use `python run_tests.py` for broad runs, and see `tests/TESTING_GUIDE.md` for details and parallel-safe practices.  
+- For features that depend on Discord or email, perform minimal manual verification as described in "Manual Testing Procedures" in `tests/TESTING_GUIDE.md`.
 
 ### Step 4: Document
-- Record the change in `development_docs/CHANGELOG_DETAIL.md`.
-- Add a concise summary to `ai_development_docs/AI_CHANGELOG.md`.
-- Update any affected guides and note new dependencies.
+
+- Update `development_docs/CHANGELOG_DETAIL.md` with a clear description of what changed and why.  
+- Ensure `ai_development_docs/AI_CHANGELOG.md` contains a concise summary referencing the same change.  
+- Update any impacted docs (for example, `HOW_TO_RUN.md`, `README.md`, or specialized guides).  
+- If you introduce new patterns for testing, logging, or error handling, update the relevant guide pair (human + AI).
+
+### Step 5: Clean Up
+
+- Remove dead code, commented-out blocks that are no longer accurate, and unused imports.  
+- Run tests one more time for safety if you touched many files.  
+- Confirm Git status is clean (`git status`) and your changes are committed with a clear message.  
+
 
 ## Testing Strategy
 
 ### Incremental Testing
-- Test after every meaningful change.
-- Start with unit-level checks, then integration, then behavior.
-- Confirm UI workflows, communication channels, and scheduler tasks.
+
+- Test after every meaningful change, even if small.  
+- Start with unit-level checks, then expand to integration and behavior tests.  
+- Confirm UI workflows and communication channels still behave correctly for affected features.  
+- For details and commands, see "Quick Reference" and "Testing Strategy" in `tests/TESTING_GUIDE.md`.
 
 ### Test Categories
-- **Unit tests**: Individual functions and small modules.
-- **Integration tests**: Multiple components working together.
-- **Behavior tests**: End-to-end scenarios mirroring real usage.
-- **UI tests**: PySide6 dialogs and widgets.
 
-### Tips
-- Use `print()` or logging when debugging.
-- Rerun failing tests immediately to confirm fixes.
-- Keep notes on test coverage gaps you notice.
+- **Unit tests** – Validate small pieces of logic in isolation.  
+- **Integration tests** – Verify multiple modules working together (for example, scheduling + communication).  
+- **Behavior tests** – Exercise realistic end-to-end flows (for example, a check-in through Discord).  
+- **UI tests** – Focus on PySide6 dialogs, widgets, and signal/slot behavior.
+
+For AI-optimized testing instructions and patterns, see `ai_development_docs/AI_TESTING_GUIDE.md`.
+
 
 ## Common Tasks
 
 ### Adding a New Feature
-1. Plan the feature and consider user touchpoints.
-2. Back up the project and ensure `(venv)` is active.
-3. Implement in small, testable slices.
-4. Test after each slice and at the end-to-end level.
-5. Document the new behavior and any configuration changes.
+
+1. Plan the feature and consider user-facing touchpoints and side effects.  
+2. Ensure `(venv)` is active and create a backup if the change is broad.  
+3. Implement the feature in small, testable slices.  
+4. Add or update tests to cover the new behavior.  
+5. Run the relevant tests and minimal manual checks.  
+6. Update documentation and changelogs.
 
 ### Fixing a Bug
-1. Reproduce the bug reliably.
-2. Trace the root cause using logs, breakpoints, or print statements.
-3. Apply the smallest fix that solves the issue.
-4. Test the fix plus nearby functionality.
-5. Update documentation to describe the resolution.
+
+1. Reproduce the bug reliably (note inputs, environment, logs).  
+2. Use logs, breakpoints, or targeted prints to find the root cause.  
+3. Apply the smallest change that fully resolves the issue.  
+4. Add or adjust tests so the bug cannot silently return.  
+5. Update documentation and changelogs if behavior changed.  
 
 ### Refactoring Code
-1. Understand the existing behavior before moving code.
-2. Break refactorings into clear, reversible steps.
-3. Keep functions purposeful-remove redundant wrappers.
-4. Run targeted and regression tests after each step.
-5. Update imports, references, and docs to match the new structure.
-6. **Package-level imports advantage**: When using package-level imports (`from core import CheckinAnalytics`), module renaming requires fewer import updates since most code imports from the package level. Module-level imports still work for backward compatibility.
+
+1. Understand existing behavior before moving code.  
+2. Break refactors into clear, reversible steps.  
+3. Keep functions purposeful; remove redundant wrapper functions and unused helpers.  
+4. Run targeted and regression tests after each step.  
+5. Update imports and documentation to reflect the new structure.  
+6. If you change test or logging patterns, update the associated guides.
+
 
 ## Emergency Procedures
 
 ### If Something Breaks Badly
-1. Pause and avoid making additional changes.
-2. Restore the backup you created before starting.
-3. Capture errors or stack traces for later analysis.
-4. Ask for help with a brief summary and the error output.
+
+1. Stop and avoid making additional edits.  
+2. Capture the error message, traceback, and any logs.  
+3. If needed, restore from the most recent backup you created.  
+4. Describe what you changed, what broke, and what you expected to happen.  
+5. Ask for help with this summary and relevant code snippets instead of guessing.
 
 ### If You Are Stuck
-1. Take a short break and reset.
-2. Write down what you know, what you tried, and what failed.
-3. Formulate a specific question with context and code snippets.
-4. Explore an alternate approach or pair with another developer.
+
+1. Take a short break and reset.  
+2. Write down:
+   - What you tried.  
+   - What happened.  
+   - What you expected.  
+3. Formulate specific questions based on that summary.  
+4. Review relevant guides (development, testing, or documentation) for patterns.  
+5. If needed, ask for help and attach the summary, stack traces, and logs.
+
 
 ## Learning Resources
 
-- [Python Official Tutorial](https://docs.python.org/3/tutorial/)
-- [Real Python](https://realpython.com/)
-- Project documentation in `development_docs/` and `.cursor/rules/`
-- Team meeting notes or prior changelog entries for historical context
+- `README.md` and project-specific guides in `development_docs/`.  
+- `.cursor/rules/` and `ai_development_docs/` for AI-focused instructions and constraints.  
+- Official Python resources and tutorials (for syntax and standard library questions).  
+- Existing tests and modules as concrete examples of project patterns.  
+
 
 ## Success Tips
 
-1. Start with small improvements to build confidence.
-2. Test often to catch regressions early.
-3. Keep communication open and questions specific.
-4. Celebrate progress and document lessons learned.
-5. Be patient-steady progress matters more than speed.
+1. Start with small, low-risk changes to build confidence.  
+2. Keep changes narrow and well-tested before expanding scope.  
+3. Prefer clarity over cleverness in both code and tests.  
+4. Keep documentation current when you change behavior or patterns.  
+5. Use logs and error-handling patterns consistently; do not invent new ad-hoc styles.  
+
 
 ## Git Workflow (PowerShell-Safe)
 
-### Avoid Terminal Freezes
-Do **not** run bare `git log`, `git show`, or `git diff` commands in PowerShell-they invoke a pager that hangs the terminal.
+These commands are designed to be safe defaults on Windows PowerShell.
 
-### Safe Alternatives
+### Basic Commands
+
 ```powershell
+# See what changed
+git status | Out-String
+
 # View recent commits
-git log --oneline -5 | Out-String
+git log --oneline -10 | Out-String
 
-# Show a commit summary
-git show --name-only <commit> | Out-String
-
-# Compare with remote
-git diff --name-only HEAD..origin/main | Out-String
-
-# Check current status
-git status --porcelain | Out-String
+# Inspect a specific commit
+git show <commit> | Out-String
 ```
 
-### Standard Git Cycle
-```powershell
-# 1. Review current changes
-git status --porcelain | Out-String
+### Standard Change Cycle
 
-# 2. Stage updates
+```powershell
+# Check current status
+git status | Out-String
+
+# Stage changes
 git add .
 
-# 3. Commit with a descriptive message
-git commit -m "Describe the change"
+# Commit with a clear message
+git commit -m "Short, specific summary"
 
-# 4. Pull remote updates
+# Fetch and review remote changes
 git fetch origin
 git diff --name-only HEAD..origin/main | Out-String
-git pull origin main
 
-# 5. Push your work
+# Pull and push
+git pull origin main
 git push origin main
 ```
 
 ### Handling Merge Conflicts
+
 ```powershell
-# Identify conflicting files
+# See which files conflict
 git status --porcelain | Out-String
 
-# After resolving conflicts
+# After resolving conflicts in your editor
 git add .
 git commit -m "Resolve merge conflicts"
 git push origin main
 ```
 
-Always pair Git operations with the backup and testing practices described earlier to keep the repository healthy.
+Pair Git operations with the backup and testing practices described earlier, especially before large merges or rebases.

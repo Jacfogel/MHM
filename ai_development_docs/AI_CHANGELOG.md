@@ -33,6 +33,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-16 - Flaky Test Detection Improvements and Parallel Execution Marker Application **COMPLETED**
+- **Flaky Test Detector Enhancements**: Added progress saving and resume capability to `scripts/test_flaky_detector.py` - saves progress every N runs (default: 10), can resume from checkpoint if interrupted, progress stored in JSON format, automatically cleaned up on completion
+- **Parallel Execution Markers**: Applied `@pytest.mark.no_parallel` to 10 additional tests identified in flaky test report - tests that modify shared files (user_index.json, message files, user data) now run serially after parallel execution
+- **Impact**: Flaky test detector safe for long overnight runs (100+ runs), test suite stability improved with 52 total tests marked for serial execution (42 previous + 10 new), reduces race conditions in parallel test execution
+
 ### 2025-11-15 - Documentation File Address Standard Implementation **COMPLETED**
 - **File Address Standard**: All documentation files (.md and .mdc) now include their relative path from project root in metadata blocks
 - **Automation Script**: Created `scripts/utilities/add_documentation_addresses.py` to automatically add/update file addresses - skips generated files, archive/, and tests/ subdirectories

@@ -13,3 +13,4 @@ file: ".cursor/rules/testing-guidelines.mdc"
 - Review `ai_development_docs/AI_TESTING_GUIDE.md` when adding or changing tests; for additional detail see `tests/TESTING_GUIDE.md`.
 - Keep test data inside `tests/data/` and remove any generated artefacts during cleanup.
 - **AI Functionality Tests**: Run with `python tests/ai/run_ai_functionality_tests.py`. These are manual review tests that automatically validate AI responses for quality issues. Results in `tests/ai/results/`, logs in `tests/logs/test_consolidated.log` and `test_run.log`.
+- **Parallel Execution**: Use `@pytest.mark.no_parallel` for tests that modify real files, use shared resources, or require exclusive access to prevent conflicts when running with pytest-xdist.

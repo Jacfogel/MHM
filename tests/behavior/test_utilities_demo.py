@@ -297,6 +297,7 @@ class TestUtilitiesDemo:
             assert actual_morning_period.get("end_time") == expected_morning_period["end_time"], "End time should match"
             # Note: Days might be normalized to uppercase or different format, so we don't assert on that
 
+    @pytest.mark.no_parallel
     def test_comprehensive_user_types(self, test_data_dir):
         """Test all comprehensive user types to ensure they cover real user scenarios."""
         from tests.test_utilities import TestUserFactory
