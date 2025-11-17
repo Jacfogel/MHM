@@ -9,6 +9,7 @@ import os
 import sys
 import traceback
 import logging
+import threading
 from typing import Optional, Dict, Any, Callable, List
 from datetime import datetime
 
@@ -21,6 +22,9 @@ if not _safe_logger.handlers:
     handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
     _safe_logger.addHandler(handler)
     _safe_logger.setLevel(logging.WARNING)
+
+# Thread-local flag to prevent recursion in error logging
+_logging_lock = threading.local()
 
 # ============================================================================
 # CUSTOM EXCEPTIONS
@@ -496,27 +500,45 @@ class ErrorHandler:
     
     def _log_error(self, error: Exception, context: Dict[str, Any]):
         """Log error with context."""
-        error_msg = f"Error in {context.get('operation', 'unknown operation')}: {error}"
-        if context.get('file_path'):
-            error_msg += f" (File: {context['file_path']})"
-        if context.get('user_id'):
-            error_msg += f" (User: {context['user_id']})"
+        # Prevent recursion: if we're already logging an error, just use safe logger
+        if hasattr(_logging_lock, 'logging_error'):
+            # Already in error logging, use safe logger only
+            try:
+                error_msg = f"Error in {context.get('operation', 'unknown operation')}: {error}"
+                _safe_logger.error(error_msg, exc_info=False)  # Don't include exc_info to avoid more recursion
+            except Exception:
+                # Even safe logger failed, give up silently to prevent infinite recursion
+                pass
+            return
         
+        # Set flag to prevent recursion
+        _logging_lock.logging_error = True
         try:
-            from core.logger import get_component_logger
-            logger = get_component_logger('main')
-            error_logger = get_component_logger('errors')
-            logger.error(error_msg, exc_info=True)
-            # Use component logger for structured error logging
-            error_logger.error("Error occurred", 
-                             operation=context.get('operation', 'unknown'),
-                             error_type=type(error).__name__,
-                             error_message=str(error),
-                             file_path=context.get('file_path'),
-                             user_id=context.get('user_id'))
-        except Exception as log_error:
-            # If component logger fails, use safe logger to avoid circular dependency
-            _safe_logger.error(f"{error_msg} (component logger failed: {log_error})", exc_info=True)
+            error_msg = f"Error in {context.get('operation', 'unknown operation')}: {error}"
+            if context.get('file_path'):
+                error_msg += f" (File: {context['file_path']})"
+            if context.get('user_id'):
+                error_msg += f" (User: {context['user_id']})"
+            
+            try:
+                from core.logger import get_component_logger
+                logger = get_component_logger('main')
+                error_logger = get_component_logger('errors')
+                logger.error(error_msg, exc_info=True)
+                # Use component logger for structured error logging
+                error_logger.error("Error occurred", 
+                                 operation=context.get('operation', 'unknown'),
+                                 error_type=type(error).__name__,
+                                 error_message=str(error),
+                                 file_path=context.get('file_path'),
+                                 user_id=context.get('user_id'))
+            except Exception as log_error:
+                # If component logger fails, use safe logger to avoid circular dependency
+                _safe_logger.error(f"{error_msg} (component logger failed: {log_error})", exc_info=True)
+        finally:
+            # Always clear the flag
+            if hasattr(_logging_lock, 'logging_error'):
+                delattr(_logging_lock, 'logging_error')
     
     def _show_user_error(self, error: Exception, context: Dict[str, Any], 
                         custom_message: str = None):

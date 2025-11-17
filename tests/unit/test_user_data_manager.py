@@ -122,32 +122,12 @@ class TestUserDataManagerMessageReferences:
         return actual_user_id
     
     @pytest.mark.unit
+    @pytest.mark.no_parallel
     def test_update_message_references_success(self, manager, test_user, test_data_dir):
         """Test: update_message_references updates references successfully"""
-        # Arrange: User is created in fixture
-        # Add retry logic for race conditions in parallel execution
-        import time
-        from core.user_data_handlers import get_user_data
-        
-        # Ensure user data is fully loaded before testing
-        for attempt in range(5):
-            user_data = get_user_data(test_user, 'account', auto_create=False)
-            if user_data and user_data.get('account'):
-                break
-            if attempt < 4:
-                time.sleep(0.1)
-        
-        # Act: Update message references with retry
-        result = None
-        for attempt in range(5):
-            result = manager.update_message_references(test_user)
-            if result is True:
-                break
-            if attempt < 4:
-                time.sleep(0.1)
-        
-        # Assert: Should return True
-        assert result == True, f"Should return True on success. Got: {result}"
+        # Arrange: User is created in fixture and this test runs serially because it touches shared files.
+        result = manager.update_message_references(test_user)
+        assert result is True, f"Should return True on success. Got: {result}"
     
     @pytest.mark.unit
     def test_update_message_references_invalid_user_id(self, manager):
@@ -365,69 +345,40 @@ class TestUserDataManagerIndex:
     
     @pytest.fixture
     def test_user(self, test_data_dir):
-        """Create test user."""
-        from tests.test_utilities import retry_with_backoff
-        from core.user_data_handlers import get_user_data
+        """Create test user.
+        
+        Note: This fixture is used by tests marked @pytest.mark.no_parallel,
+        so serial execution ensures data is available without retry logic.
+        """
+        from core.user_management import get_user_id_by_identifier
+        from core.user_data_manager import rebuild_user_index
         
         user_id = "test_index_user"
         TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
-        from core.user_management import get_user_id_by_identifier
+        # Rebuild index to ensure user is discoverable (serial execution ensures this works)
+        rebuild_user_index()
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
-        
-        # Wait for account file to be created with retry logic
-        # For minimal users, the account file might not have internal_username immediately
-        def check_account():
-            user_data = get_user_data(actual_user_id, 'account', auto_create=False)
-            user_account = user_data.get('account') or {}
-            # Check if account file exists (even if internal_username is not set yet for minimal users)
-            if user_account or os.path.exists(get_user_file_path(actual_user_id, 'account')):
-                return actual_user_id
-            raise ValueError(f"User account data not available for {actual_user_id}")
-        
-        # Retry to ensure account file is available (with more lenient check for minimal users)
-        from core.config import get_user_file_path
-        import os
-        retry_with_backoff(
-            check_account,
-            max_retries=10,
-            initial_delay=0.1,
-            backoff_factor=1.5
-        )
         
         return actual_user_id
     
     @pytest.mark.unit
     @pytest.mark.no_parallel
     def test_update_user_index_success(self, manager, test_user, test_data_dir):
-        """Test: update_user_index updates index successfully"""
+        """Test: update_user_index updates index successfully
+        
+        Marked as no_parallel because it modifies user_index.json.
+        """
         # Arrange: User is created in fixture
-        
-        # Ensure user data is available (race condition fix for parallel execution)
-        import time
         from core.user_data_handlers import get_user_data
-        from tests.test_utilities import retry_with_backoff
         
-        # Wait for user account data to be available with retry logic
-        def check_user_account():
-            user_data = get_user_data(test_user, 'account', auto_create=False)
-            user_account = user_data.get('account') or {}
-            if user_account and user_account.get('internal_username'):
-                return user_account
-            raise ValueError(f"User account data not available for {test_user}")
-        
-        user_account = retry_with_backoff(
-            check_user_account,
-            max_retries=10,
-            initial_delay=0.1,
-            backoff_factor=1.5
-        )
-        
-        # Verify user account exists before proceeding
+        # Verify user account exists (serial execution ensures data is available)
+        user_data = get_user_data(test_user, 'account', auto_create=False)
+        user_account = user_data.get('account') or {}
         assert user_account and user_account.get('internal_username'), \
-            f"User account data not available for {test_user} after retries"
+            f"User account data not available for {test_user}"
         
         # Act: Update user index
         result = manager.update_user_index(test_user)
@@ -631,58 +582,33 @@ class TestUserDataManagerConvenienceFunctions:
     
     @pytest.fixture
     def test_user(self, test_data_dir):
-        """Create test user."""
+        """Create test user and return the actual UUID to avoid index timing issues."""
         user_id = "test_conv_user"
-        TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
-        
-        from core.user_management import get_user_id_by_identifier
-        actual_user_id = get_user_id_by_identifier(user_id)
-        if actual_user_id is None:
-            actual_user_id = user_id
-        
-        return actual_user_id
+        success, actual_user_id = TestUserFactory.create_minimal_user_and_get_id(
+            user_id,
+            test_data_dir=test_data_dir
+        )
+        assert success, f"Failed to create minimal user {user_id}"
+        return actual_user_id or user_id
     
     @pytest.mark.unit
     @pytest.mark.no_parallel
     def test_update_message_references_function(self, test_user, test_data_dir):
-        """Test: update_message_references convenience function works"""
+        """Test: update_message_references convenience function works
+        
+        Marked as no_parallel because it modifies user message files.
+        """
         # Arrange: User is created in fixture
+        from core.user_data_handlers import get_user_data
         
-        # Ensure user data is available (race condition fix for parallel execution)
-        from tests.test_utilities import retry_with_backoff
-        
-        # Wait for user account data to be available with retry logic
-        def check_user_account():
-            from core.user_data_handlers import get_user_data
-            user_data = get_user_data(test_user, 'account', auto_create=False)
-            user_account = user_data.get('account') or {}
-            if user_account and user_account.get('internal_username'):
-                return user_account
-            raise ValueError(f"User account data not available for {test_user}")
-        
-        # Ensure user account exists before proceeding
-        user_account = retry_with_backoff(
-            check_user_account,
-            max_retries=10,
-            initial_delay=0.1,
-            backoff_factor=1.5
-        )
+        # Verify user account exists (serial execution ensures data is available)
+        user_data = get_user_data(test_user, 'account', auto_create=False)
+        user_account = user_data.get('account') or {}
         assert user_account and user_account.get('internal_username'), \
-            f"User account data not available for {test_user} after retries"
+            f"User account data not available for {test_user}"
         
-        # Act: Update message references with retry logic
-        def update_references():
-            result = update_message_references(test_user)
-            if result:
-                return result
-            raise ValueError(f"update_message_references returned False for {test_user}")
-        
-        result = retry_with_backoff(
-            update_references,
-            max_retries=10,
-            initial_delay=0.1,
-            backoff_factor=1.5
-        )
+        # Act: Update message references
+        result = update_message_references(test_user)
         
         # Assert: Should return True
         assert result == True, f"Should return True on success. Got: {result}"
@@ -747,29 +673,16 @@ class TestUserDataManagerConvenienceFunctions:
         assert result == True, "Should return True on success"
     
     @pytest.mark.unit
+    @pytest.mark.no_parallel
     def test_get_user_info_for_data_manager_function(self, test_user, test_data_dir):
-        """Test: get_user_info_for_data_manager convenience function works"""
+        """Test: get_user_info_for_data_manager convenience function works
+        
+        Marked as no_parallel because it reads user data files that may be modified by other tests.
+        """
         # Arrange: User is created in fixture
-        # Add retry logic for race conditions in parallel execution
-        import time
-        from tests.test_utilities import retry_with_backoff
         
-        # Act: Get user info with retry logic
-        def _get_user_info():
-            user_info = get_user_info_for_data_manager(test_user)
-            if user_info is None:
-                # User might not be fully created yet - verify user exists
-                from core.user_data_handlers import get_user_data
-                user_data = get_user_data(test_user, 'account', auto_create=False)
-                if not user_data or not user_data.get('account'):
-                    # User doesn't exist - this is a real failure
-                    return None
-                # User exists but get_user_info_for_data_manager returned None
-                # This might be a race condition - retry
-                return None
-            return user_info
-        
-        user_info = retry_with_backoff(_get_user_info, max_retries=5, initial_delay=0.1)
+        # Act: Get user info (serial execution ensures data is available)
+        user_info = get_user_info_for_data_manager(test_user)
         
         # Assert: Should return user info
         assert user_info is not None, f"Should return user info for user {test_user}"
@@ -802,33 +715,17 @@ class TestUserDataManagerConvenienceFunctions:
         assert isinstance(index_data, dict), "Should return dict"
     
     @pytest.mark.unit
+    @pytest.mark.no_parallel
     def test_get_user_summary_function(self, test_user, test_data_dir):
-        """Test: get_user_summary convenience function works"""
-        # Arrange: User is created in fixture
-        # Ensure user data is fully loaded before testing
-        import time
-        from core.user_data_handlers import get_user_data
-        from core.user_data_manager import get_user_info_for_data_manager
+        """Test: get_user_summary convenience function works
         
-        # Wait for user to be fully created and accessible
-        for attempt in range(10):
-            user_data = get_user_data(test_user, 'account', auto_create=False)
-            user_info = get_user_info_for_data_manager(test_user)
-            if user_data and user_data.get('account') and user_info:
-                break
-            if attempt < 9:
-                time.sleep(0.1)
+        Marked as no_parallel because it reads user data files that may be modified by other tests.
+        """
+        # Arrange: User is created in fixture
         
         # Act: Get user summary
-        # Retry in case of race conditions with file writes in parallel execution
-        summary = {}
-        for attempt in range(10):
-            summary = get_user_summary(test_user)
-            if summary and summary.get('user_id'):
-                break
-            if attempt < 9:
-                time.sleep(0.1)  # Brief delay before retry
-        
+        summary = get_user_summary(test_user)
+
         # Assert: Should return summary
         assert isinstance(summary, dict), "Should return dict"
         assert summary.get('user_id') == test_user, f"Should include user_id. Summary: {summary}"

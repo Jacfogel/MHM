@@ -207,6 +207,7 @@ class TestInteractionHandlersBehavior:
         assert isinstance(response, InteractionResponse), "Should return InteractionResponse"
         assert "Task 1" in response.message or "Task 2" in response.message, "Should list created tasks"
     
+    @pytest.mark.no_parallel
     def test_task_management_handler_completes_actual_task(self, test_data_dir):
         """Test that TaskManagementHandler actually completes a task in the system."""
         handler = TaskManagementHandler()
@@ -217,6 +218,10 @@ class TestInteractionHandlersBehavior:
         
         # Get the actual UUID for the created user
         from core.user_management import get_user_id_by_identifier
+        from core.user_data_manager import rebuild_user_index
+        
+        # Rebuild index to ensure user is discoverable (modifies user_index.json)
+        rebuild_user_index()
         actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, "Should be able to get UUID for created user"
 
@@ -282,10 +287,13 @@ class TestInteractionHandlersBehavior:
         # Create test user using centralized utilities
         from tests.test_utilities import TestUserFactory
         from core.user_management import get_user_id_by_identifier
+        from core.user_data_manager import rebuild_user_index
         success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success, "Failed to create test user"
         
         # Get the actual UUID for the created user
+        # Rebuild index to ensure user is discoverable (modifies user_index.json)
+        rebuild_user_index()
         actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, "Should be able to get UUID for created user"
         

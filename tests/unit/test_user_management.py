@@ -190,34 +190,13 @@ class TestUserManagement:
         
         # Get the actual user directory (UUID-based)
         from core.config import get_user_data_dir
-        from tests.test_utilities import retry_with_backoff
         
         actual_user_dir = get_user_data_dir(user_id)
         account_file = os.path.join(actual_user_dir, 'account.json')
         prefs_file = os.path.join(actual_user_dir, 'preferences.json')
         context_file = os.path.join(actual_user_dir, 'user_context.json')
         
-        # Verify the files were created - use retry logic to handle race conditions with file writes in parallel execution
-        def check_files_exist():
-            if not os.path.exists(actual_user_dir):
-                raise ValueError(f"User directory does not exist: {actual_user_dir}")
-            if not os.path.exists(account_file):
-                raise ValueError(f"Account file does not exist: {account_file}")
-            if not os.path.exists(prefs_file):
-                raise ValueError(f"Preferences file does not exist: {prefs_file}")
-            if not os.path.exists(context_file):
-                raise ValueError(f"Context file does not exist: {context_file}")
-            return True
-        
-        # Retry with backoff to wait for files to be created
-        retry_with_backoff(
-            check_files_exist,
-            max_retries=10,
-            initial_delay=0.1,
-            backoff_factor=1.5
-        )
-        
-        # Final assertions with detailed error messages
+        # Verify the files were created (serial execution ensures files are written)
         assert os.path.exists(account_file), f"Account file should be created. User dir: {actual_user_dir}, Files: {os.listdir(actual_user_dir) if os.path.exists(actual_user_dir) else 'N/A'}"
         assert os.path.exists(prefs_file), f"Preferences file should be created. User dir: {actual_user_dir}, Files: {os.listdir(actual_user_dir) if os.path.exists(actual_user_dir) else 'N/A'}"
         assert os.path.exists(context_file), f"User context file should be created. User dir: {actual_user_dir}, Files: {os.listdir(actual_user_dir) if os.path.exists(actual_user_dir) else 'N/A'}"
@@ -454,22 +433,13 @@ class TestUserManagementEdgeCases:
         
         # ✅ VERIFY REAL BEHAVIOR: Check user directory was created
         # Get the actual user ID (UUID) that was created to find the correct directory
-        # Use retry logic to handle race conditions with user index updates in parallel execution
+        # Serial execution ensures index is updated before lookup
         from core.user_management import get_user_id_by_identifier
-        from tests.test_utilities import retry_with_backoff
+        from core.user_data_manager import rebuild_user_index
         
-        def get_user_id():
-            actual_user_id = get_user_id_by_identifier(user_id)
-            if actual_user_id is not None:
-                return actual_user_id
-            raise ValueError(f"User ID not found for identifier: {user_id}")
-        
-        actual_user_id = retry_with_backoff(
-            get_user_id,
-            max_retries=10,
-            initial_delay=0.1,
-            backoff_factor=1.5
-        )
+        # Rebuild index to ensure user is discoverable (serial execution ensures this works)
+        rebuild_user_index()
+        actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, "Should be able to get UUID for created user"
         actual_user_dir = os.path.join(test_data_dir, 'users', actual_user_id)
         

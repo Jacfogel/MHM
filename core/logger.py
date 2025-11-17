@@ -239,6 +239,11 @@ class ComponentLogger:
         # Get environment-specific log paths
         log_paths = _get_log_paths_for_environment()
         
+        # Ensure log directory exists before creating handler
+        log_file_dir = os.path.dirname(log_file_path)
+        if log_file_dir:
+            os.makedirs(log_file_dir, exist_ok=True)
+        
         # Create file handler with rotation to backup directory
         file_handler = BackupDirectoryRotatingFileHandler(
             log_file_path,
@@ -342,16 +347,20 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
     Supports both time-based and size-based rotation.
     """
     
-    @handle_errors("initializing timed rotating file handler")
     def __init__(self, filename, backup_dir, maxBytes=0, backupCount=0, encoding=None, delay=False, when='midnight', interval=1):
+        # Ensure log file directory exists BEFORE calling super().__init__() which tries to open the file
+        log_file_dir = os.path.dirname(filename)
+        if log_file_dir:
+            os.makedirs(log_file_dir, exist_ok=True)
+        
+        # Ensure backup directory exists (even during tests, as tests may need it)
+        os.makedirs(backup_dir, exist_ok=True)
+        
         # TimedRotatingFileHandler expects: filename, when='h', interval=1, backupCount=0, encoding=None, delay=False, utc=False, atTime=None
         super().__init__(filename, when=when, interval=interval, backupCount=backupCount, encoding=encoding, delay=delay)
         self.backup_dir = backup_dir
         self.base_filename = filename
         self.maxBytes = maxBytes
-        
-        # Ensure backup directory exists (even during tests, as tests may need it)
-        os.makedirs(self.backup_dir, exist_ok=True)
     
     @handle_errors("checking if rollover should occur")
     def shouldRollover(self, record):

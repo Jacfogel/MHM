@@ -189,6 +189,7 @@ class TestBackupManagerBehavior:
             # Note: .env and requirements.txt may not exist in test environment
             # so we only check for files that we know exist
     
+    @pytest.mark.no_parallel
     def test_create_backup_with_all_components_real_behavior(self):
         """Test backup creation with all components."""
         # Ensure test user exists in the user data directory

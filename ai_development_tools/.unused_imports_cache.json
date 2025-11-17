@@ -83,7 +83,7 @@
     "issues": []
   },
   "ai_development_tools/config.py": {
-    "mtime": 1761562760.4766254,
+    "mtime": 1763292302.176039,
     "issues": []
   },
   "ai_development_tools/config_validator.py": {
@@ -153,7 +153,7 @@
     "issues": []
   },
   "ai_development_tools/services/constants.py": {
-    "mtime": 1761555372.677764,
+    "mtime": 1763292306.829822,
     "issues": []
   },
   "ai_development_tools/services/operations.py": {
@@ -677,11 +677,11 @@
     "issues": []
   },
   "tests/behavior/test_auto_cleanup_behavior.py": {
-    "mtime": 1762944485.9563668,
+    "mtime": 1763337741.6890063,
     "issues": []
   },
   "tests/behavior/test_backup_manager_behavior.py": {
-    "mtime": 1762950396.6922863,
+    "mtime": 1763345451.3916838,
     "issues": []
   },
   "tests/behavior/test_base_handler_behavior.py": {
@@ -716,7 +716,7 @@
     ]
   },
   "tests/behavior/test_chat_interaction_storage_real_scenarios.py": {
-    "mtime": 1762941702.312775,
+    "mtime": 1763294405.3916173,
     "issues": []
   },
   "tests/behavior/test_checkin_analytics_behavior.py": {
@@ -960,7 +960,7 @@
     "issues": []
   },
   "tests/behavior/test_discord_checkin_retry_behavior.py": {
-    "mtime": 1762933637.095423,
+    "mtime": 1763290132.8558483,
     "issues": [
       {
         "type": "warning",
@@ -1077,7 +1077,7 @@
     ]
   },
   "tests/behavior/test_interaction_handlers_behavior.py": {
-    "mtime": 1763027952.2245982,
+    "mtime": 1763337741.6890063,
     "issues": [
       {
         "type": "warning",
@@ -1156,7 +1156,7 @@
     "issues": []
   },
   "tests/behavior/test_message_behavior.py": {
-    "mtime": 1762942518.4362712,
+    "mtime": 1763294405.3916173,
     "issues": []
   },
   "tests/behavior/test_message_router_behavior.py": {
@@ -1225,7 +1225,7 @@
     "issues": []
   },
   "tests/behavior/test_response_tracking_behavior.py": {
-    "mtime": 1763162982.5208335,
+    "mtime": 1763287908.9118917,
     "issues": []
   },
   "tests/behavior/test_schedule_handler_behavior.py": {
@@ -1259,7 +1259,7 @@
     "issues": []
   },
   "tests/behavior/test_scheduler_coverage_expansion.py": {
-    "mtime": 1763072786.5446851,
+    "mtime": 1763292368.7939072,
     "issues": [
       {
         "type": "warning",
@@ -1294,7 +1294,7 @@
     "issues": []
   },
   "tests/behavior/test_service_utilities_behavior.py": {
-    "mtime": 1762340104.1471796,
+    "mtime": 1763345451.3916838,
     "issues": []
   },
   "tests/behavior/test_static_logging_check.py": {
@@ -1392,11 +1392,11 @@
     ]
   },
   "tests/behavior/test_user_management_coverage_expansion.py": {
-    "mtime": 1762929039.1321979,
+    "mtime": 1763287908.9118917,
     "issues": []
   },
   "tests/behavior/test_utilities_demo.py": {
-    "mtime": 1762942518.4327166,
+    "mtime": 1763292368.7888432,
     "issues": []
   },
   "tests/communication/test_channel_monitor.py": {
@@ -1435,7 +1435,7 @@
     ]
   },
   "tests/conftest.py": {
-    "mtime": 1763250874.749093,
+    "mtime": 1763337998.4070466,
     "issues": []
   },
   "tests/core/test_file_auditor.py": {
@@ -1593,7 +1593,7 @@
     ]
   },
   "tests/integration/test_account_lifecycle.py": {
-    "mtime": 1762941702.308705,
+    "mtime": 1763336309.415621,
     "issues": []
   },
   "tests/integration/test_account_management.py": {
@@ -1628,7 +1628,7 @@
     ]
   },
   "tests/integration/test_user_creation.py": {
-    "mtime": 1762950178.0594919,
+    "mtime": 1763345451.3953168,
     "issues": [
       {
         "type": "warning",
@@ -1881,7 +1881,7 @@
     ]
   },
   "tests/ui/test_account_creation_ui.py": {
-    "mtime": 1762938777.0110013,
+    "mtime": 1763336309.415621,
     "issues": [
       {
         "type": "warning",
@@ -2704,7 +2704,7 @@
     ]
   },
   "tests/ui/test_dialogs.py": {
-    "mtime": 1762947356.041978,
+    "mtime": 1763338855.2560759,
     "issues": [
       {
         "type": "warning",
@@ -2779,7 +2779,7 @@
     ]
   },
   "tests/ui/test_process_watcher_dialog.py": {
-    "mtime": 1762417263.60597,
+    "mtime": 1763290132.8538475,
     "issues": [
       {
         "type": "warning",
@@ -2867,7 +2867,7 @@
     ]
   },
   "tests/ui/test_task_management_dialog.py": {
-    "mtime": 1762725434.4918232,
+    "mtime": 1763294405.3916173,
     "issues": [
       {
         "type": "warning",
@@ -3011,7 +3011,7 @@
     "issues": []
   },
   "tests/ui/test_ui_app_qt_main.py": {
-    "mtime": 1763162982.5212908,
+    "mtime": 1763294405.3951623,
     "issues": [
       {
         "type": "warning",
@@ -3082,7 +3082,7 @@
     "issues": []
   },
   "tests/ui/test_ui_widgets_coverage_expansion.py": {
-    "mtime": 1761128659.4540114,
+    "mtime": 1763338471.5621154,
     "issues": [
       {
         "type": "warning",
@@ -3696,7 +3696,7 @@
     "issues": []
   },
   "tests/unit/test_checkin_management_dialog.py": {
-    "mtime": 1762729029.9622054,
+    "mtime": 1763292368.79132,
     "issues": [
       {
         "type": "warning",
@@ -3939,7 +3939,7 @@
     "issues": []
   },
   "tests/unit/test_file_operations.py": {
-    "mtime": 1762078733.7867687,
+    "mtime": 1763292368.7939072,
     "issues": [
       {
         "type": "warning",
@@ -3974,7 +3974,7 @@
     "issues": []
   },
   "tests/unit/test_logger_unit.py": {
-    "mtime": 1762477142.4367027,
+    "mtime": 1763290132.8558483,
     "issues": [
       {
         "type": "warning",
@@ -4166,90 +4166,25 @@
     "issues": []
   },
   "tests/unit/test_user_data_manager.py": {
-    "mtime": 1763164475.8964658,
+    "mtime": 1763366905.3291633,
     "issues": [
       {
-        "type": "warning",
+        "type": "error",
         "module": "test_user_data_manager",
         "obj": "",
-        "line": 14,
-        "column": 0,
-        "endLine": 14,
-        "endColumn": 59,
+        "line": 143,
+        "column": 9,
+        "endLine": null,
+        "endColumn": null,
         "path": "tests\\unit\\test_user_data_manager.py",
-        "symbol": "unused-import",
-        "message": "Unused Mock imported from unittest.mock",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "test_user_data_manager",
-        "obj": "",
-        "line": 14,
-        "column": 0,
-        "endLine": 14,
-        "endColumn": 59,
-        "path": "tests\\unit\\test_user_data_manager.py",
-        "symbol": "unused-import",
-        "message": "Unused MagicMock imported from unittest.mock",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "test_user_data_manager",
-        "obj": "",
-        "line": 14,
-        "column": 0,
-        "endLine": 14,
-        "endColumn": 59,
-        "path": "tests\\unit\\test_user_data_manager.py",
-        "symbol": "unused-import",
-        "message": "Unused mock_open imported from unittest.mock",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "test_user_data_manager",
-        "obj": "",
-        "line": 19,
-        "column": 0,
-        "endLine": 19,
-        "endColumn": 24,
-        "path": "tests\\unit\\test_user_data_manager.py",
-        "symbol": "unused-import",
-        "message": "Unused Path imported from pathlib",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "test_user_data_manager",
-        "obj": "",
-        "line": 20,
-        "column": 0,
-        "endLine": 20,
-        "endColumn": 29,
-        "path": "tests\\unit\\test_user_data_manager.py",
-        "symbol": "unused-import",
-        "message": "Unused datetime imported from datetime",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "test_user_data_manager",
-        "obj": "",
-        "line": 22,
-        "column": 0,
-        "endLine": 36,
-        "endColumn": 1,
-        "path": "tests\\unit\\test_user_data_manager.py",
-        "symbol": "unused-import",
-        "message": "Unused delete_user_completely imported from core.user_data_manager",
-        "message-id": "W0611"
+        "symbol": "syntax-error",
+        "message": "Parsing failed: 'expected an indented block after 'for' statement on line 142 (test_user_data_manager, line 143)'",
+        "message-id": "E0001"
       }
     ]
   },
   "tests/unit/test_user_management.py": {
-    "mtime": 1763164475.8964658,
+    "mtime": 1763294405.395728,
     "issues": [
       {
         "type": "warning",
@@ -4401,7 +4336,7 @@
     ]
   },
   "communication/communication_channels/discord/webhook_handler.py": {
-    "mtime": 1763023506.0913787,
+    "mtime": 1763350239.6561785,
     "issues": [
       {
         "type": "warning",
@@ -4427,6 +4362,19 @@
         "path": "communication\\communication_channels\\discord\\webhook_handler.py",
         "symbol": "unused-import",
         "message": "Unused import hashlib",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "webhook_handler",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 9,
+        "path": "communication\\communication_channels\\discord\\webhook_handler.py",
+        "symbol": "unused-import",
+        "message": "Unused import os",
         "message-id": "W0611"
       }
     ]
@@ -4749,7 +4697,7 @@
     "issues": []
   },
   "tests/integration/test_task_cleanup_real.py": {
-    "mtime": 1762994441.3857932,
+    "mtime": 1763292368.7888432,
     "issues": [
       {
         "type": "warning",
@@ -4977,11 +4925,11 @@
     ]
   },
   "tests/behavior/test_account_handler_behavior.py": {
-    "mtime": 1763162472.004265,
+    "mtime": 1763366905.1922722,
     "issues": []
   },
   "tests/behavior/test_webhook_handler_behavior.py": {
-    "mtime": 1763127058.80785,
+    "mtime": 1763290132.861268,
     "issues": []
   },
   "tests/behavior/test_webhook_server_behavior.py": {
@@ -5060,7 +5008,7 @@
     ]
   },
   "tests/behavior/test_welcome_manager_behavior.py": {
-    "mtime": 1763127058.8098514,
+    "mtime": 1763292368.7888432,
     "issues": [
       {
         "type": "warning",

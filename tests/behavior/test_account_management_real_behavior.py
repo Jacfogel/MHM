@@ -91,8 +91,12 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
 @pytest.mark.user_management
 @pytest.mark.critical
 @pytest.mark.file_io
+@pytest.mark.no_parallel
 def test_user_data_loading_real_behavior(test_data_dir, mock_config):
-    """Test actual user data loading with file verification"""
+    """Test actual user data loading with file verification
+    
+    Marked as no_parallel because it modifies user data files and user_index.json.
+    """
     import logging
     logging.getLogger("mhm_tests").debug("Testing User Data Loading (Real Behavior)...")
     
@@ -111,44 +115,32 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
         from core.user_data_handlers import get_user_data
         from core.user_management import get_user_id_by_identifier
         
-        # Get the UUID for the basic user (robust to index/materialization timing)
-        from tests.test_utilities import TestUserFactory, retry_with_backoff
+        # Get the UUID for the basic user (serial execution ensures index is updated)
+        from tests.test_utilities import TestUserFactory
+        from core.user_data_manager import rebuild_user_index
         
-        def _get_basic_user_id():
-            return (
-                get_user_id_by_identifier(f"test-user-basic-{test_id}")
-                or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
-                or f"test-user-basic-{test_id}"
-            )
+        # Rebuild index to ensure user is discoverable
+        rebuild_user_index()
+        basic_user_id = (
+            get_user_id_by_identifier(f"test-user-basic-{test_id}")
+            or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
+            or f"test-user-basic-{test_id}"
+        )
         
-        basic_user_id = retry_with_backoff(_get_basic_user_id, max_retries=3, initial_delay=0.1)
-        
-        # Materialize and load basic user with retry logic
+        # Materialize and load basic user (serial execution ensures files are written)
         from tests.conftest import materialize_user_minimal_via_public_apis
+        import time
         
-        def _materialize_and_load():
-            materialize_user_minimal_via_public_apis(basic_user_id)
-            # Add small delay to ensure files are written
-            import time
-            time.sleep(0.1)
-            return get_user_data(basic_user_id, "all", auto_create=True)
-        
-        basic_data = retry_with_backoff(_materialize_and_load, max_retries=5, initial_delay=0.2)
+        materialize_user_minimal_via_public_apis(basic_user_id)
+        time.sleep(0.1)  # Small delay to ensure files are written
+        basic_data = get_user_data(basic_user_id, "all", auto_create=True)
 
         # Verify actual data structure
         assert "account" in basic_data, "Account data should be loaded"
         assert "preferences" in basic_data, "Preferences data should be loaded"
         assert "schedules" in basic_data, "Schedules data should be loaded"
         
-        # Verify actual content
-        # Retry in case of race conditions with file writes in parallel execution
-        import time
-        for attempt in range(5):
-            basic_data = get_user_data(basic_user_id, "all")
-            if basic_data and "account" in basic_data and "features" in basic_data.get("account", {}):
-                break
-            if attempt < 4:
-                time.sleep(0.1)  # Brief delay before retry
+        # Verify actual content (serial execution ensures data is available)
         assert basic_data and "account" in basic_data, f"Account data should be loaded for user {basic_user_id}"
         assert basic_data["account"]["features"]["automated_messages"] == "enabled", "Basic user should have messages enabled"
         # Enforce expected baseline to avoid order interference
@@ -166,25 +158,19 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
         
         logging.getLogger("mhm_tests").debug("Basic user data loading: Success")
         
-        # Get the UUID for the full user (robust to parallel execution) with retry logic
-        from tests.test_utilities import retry_with_backoff
-        
-        def _get_full_user_id():
-            return (
-                get_user_id_by_identifier(f"test-user-full-{test_id}")
-                or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-full-{test_id}", test_data_dir)
-                or f"test-user-full-{test_id}"
-            )
-        
-        full_user_id = retry_with_backoff(_get_full_user_id, max_retries=3, initial_delay=0.1)
+        # Get the UUID for the full user (serial execution ensures index is updated)
+        rebuild_user_index()
+        full_user_id = (
+            get_user_id_by_identifier(f"test-user-full-{test_id}")
+            or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-full-{test_id}", test_data_dir)
+            or f"test-user-full-{test_id}"
+        )
         assert full_user_id is not None, "Should be able to get UUID for full user"
         
-        # Materialize and load full user with retry logic
-        def _materialize_and_load_full():
-            materialize_user_minimal_via_public_apis(full_user_id)
-            return get_user_data(full_user_id, "all", auto_create=True)
-        
-        full_data = retry_with_backoff(_materialize_and_load_full, max_retries=3, initial_delay=0.1)
+        # Materialize and load full user (serial execution ensures files are written)
+        materialize_user_minimal_via_public_apis(full_user_id)
+        time.sleep(0.1)  # Small delay to ensure files are written
+        full_data = get_user_data(full_user_id, "all", auto_create=True)
         try:
             # Force enable all features for full user
             from core.user_data_handlers import save_user_data
@@ -228,6 +214,7 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
 @pytest.mark.user_management
 @pytest.mark.critical
 @pytest.mark.file_io
+@pytest.mark.no_parallel
 def test_feature_enablement_real_behavior(test_data_dir, mock_config):
     """Test actual feature enablement with file creation/deletion"""
     import logging
@@ -243,23 +230,20 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
         from core.user_data_handlers import save_user_data, get_user_data
         from core.user_management import get_user_id_by_identifier
         
-        # Get the UUID for the basic user (robust to index/materialization timing) with retry logic
-        from tests.test_utilities import TestUserFactory, retry_with_backoff
+        # Get the UUID for the basic user (serial execution ensures index is updated)
+        from tests.test_utilities import TestUserFactory
+        from core.user_data_manager import rebuild_user_index
         
-        def _get_basic_user_id():
-            return (
-                get_user_id_by_identifier(f"test-user-basic-{test_id}")
-                or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
-                or f"test-user-basic-{test_id}"
-            )
+        # Rebuild index to ensure user is discoverable
+        rebuild_user_index()
+        basic_user_id = (
+            get_user_id_by_identifier(f"test-user-basic-{test_id}")
+            or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
+            or f"test-user-basic-{test_id}"
+        )
         
-        basic_user_id = retry_with_backoff(_get_basic_user_id, max_retries=3, initial_delay=0.1)
-        
-        # Test enabling check-ins for basic user with retry logic
-        def _load_basic_data():
-            return get_user_data(basic_user_id, "all", auto_create=True)
-        
-        basic_data = retry_with_backoff(_load_basic_data, max_retries=3, initial_delay=0.1)
+        # Test enabling check-ins for basic user (serial execution ensures data is available)
+        basic_data = get_user_data(basic_user_id, "all", auto_create=True)
         
         # Enable check-ins
         basic_data["account"]["features"]["checkins"] = "enabled"
@@ -286,20 +270,13 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
         
         logging.getLogger("mhm_tests").debug("Enable check-ins: Success")
         
-        # Get the UUID for the full user with retry logic
-        from tests.test_utilities import retry_with_backoff
-        
-        def _get_full_user_id():
-            return get_user_id_by_identifier(f"test-user-full-{test_id}")
-        
-        full_user_id = retry_with_backoff(_get_full_user_id, max_retries=3, initial_delay=0.1)
+        # Get the UUID for the full user (serial execution ensures index is updated)
+        rebuild_user_index()
+        full_user_id = get_user_id_by_identifier(f"test-user-full-{test_id}")
         assert full_user_id is not None, "Should be able to get UUID for full user"
         
-        # Test disabling tasks for full user with retry logic
-        def _load_full_data():
-            return get_user_data(full_user_id, "all")
-        
-        full_data = retry_with_backoff(_load_full_data, max_retries=3, initial_delay=0.1)
+        # Test disabling tasks for full user (serial execution ensures data is available)
+        full_data = get_user_data(full_user_id, "all")
         
         # Disable tasks
         full_data["account"]["features"]["task_management"] = "disabled"
@@ -325,8 +302,12 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
 @pytest.mark.user_management
 @pytest.mark.file_io
 @pytest.mark.regression
+@pytest.mark.no_parallel
 def test_category_management_real_behavior(test_data_dir, mock_config):
-    """Test actual category management with file persistence"""
+    """Test actual category management with file persistence
+    
+    Marked as no_parallel because it modifies user data files.
+    """
     import logging
     import uuid
     test_id = str(uuid.uuid4())[:8]
@@ -367,15 +348,8 @@ def test_category_management_real_behavior(test_data_dir, mock_config):
             
             # Test adding a new category
             logging.getLogger("mhm_tests").debug("Testing category addition...")
-            # Retry with delays and auto_create=True to handle race conditions
-            import time
-            loaded_data = {}
-            for attempt in range(5):
-                loaded_data = get_user_data(user_id, 'all', auto_create=True)
-                if loaded_data and 'preferences' in loaded_data and loaded_data['preferences'].get('categories'):
-                    break
-                if attempt < 4:
-                    time.sleep(0.1)  # Brief delay before retry
+            # Load data (serial execution ensures files are written)
+            loaded_data = get_user_data(user_id, 'all', auto_create=True)
             assert loaded_data and 'preferences' in loaded_data, f"Preferences data should be loaded for user {user_id}. Got: {loaded_data}"
             if 'fun_facts' not in loaded_data['preferences']['categories']:
                 loaded_data['preferences']['categories'].append('fun_facts')
@@ -390,15 +364,8 @@ def test_category_management_real_behavior(test_data_dir, mock_config):
             
             # Test removing a category
             logging.getLogger("mhm_tests").debug("Testing category removal...")
-            # Retry with delays and auto_create=True to handle race conditions
-            import time
-            loaded_data = {}
-            for attempt in range(5):
-                loaded_data = get_user_data(user_id, 'all', auto_create=True)
-                if loaded_data and 'preferences' in loaded_data and loaded_data['preferences'].get('categories'):
-                    break
-                if attempt < 4:
-                    time.sleep(0.1)  # Brief delay before retry
+            # Load data (serial execution ensures files are written)
+            loaded_data = get_user_data(user_id, 'all', auto_create=True)
             assert loaded_data and 'preferences' in loaded_data, f"Preferences data should be loaded for user {user_id}. Got: {loaded_data}"
             if 'health' in loaded_data['preferences']['categories']:
                 loaded_data['preferences']['categories'].remove('health')
@@ -443,8 +410,12 @@ def test_category_management_real_behavior(test_data_dir, mock_config):
 @pytest.mark.schedules
 @pytest.mark.file_io
 @pytest.mark.regression
+@pytest.mark.no_parallel
 def test_schedule_period_management_real_behavior(test_data_dir):
-    """Test actual schedule period management with file persistence"""
+    """Test actual schedule period management with file persistence
+    
+    Marked as no_parallel because it modifies user data files and schedules.
+    """
     import logging
     logging.getLogger("mhm_tests").debug("Testing Schedule Period Management (Real Behavior)...")
     
@@ -461,24 +432,21 @@ def test_schedule_period_management_real_behavior(test_data_dir):
             from tests.test_utilities import TestUserFactory
             from tests.conftest import materialize_user_minimal_via_public_apis
             
-            # Get the UUID for the basic user (robust to parallel execution) with retry logic
-            from tests.test_utilities import retry_with_backoff
+            # Get the UUID for the basic user (serial execution ensures index is updated)
+            from core.user_data_manager import rebuild_user_index
             
-            def _get_basic_user_id():
-                return (
-                    get_user_id_by_identifier(f"test-user-basic-{test_id}")
-                    or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
-                    or f"test-user-basic-{test_id}"
-                )
+            rebuild_user_index()
+            basic_user_id = (
+                get_user_id_by_identifier(f"test-user-basic-{test_id}")
+                or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
+                or f"test-user-basic-{test_id}"
+            )
             
-            basic_user_id = retry_with_backoff(_get_basic_user_id, max_retries=3, initial_delay=0.1)
-            
-            # Materialize user to ensure data exists with retry logic
-            def _materialize_and_load():
-                materialize_user_minimal_via_public_apis(basic_user_id)
-                return get_user_data(basic_user_id, "all", auto_create=True)
-            
-            basic_data = retry_with_backoff(_materialize_and_load, max_retries=5, initial_delay=0.2)
+            # Materialize user to ensure data exists (serial execution ensures files are written)
+            import time
+            materialize_user_minimal_via_public_apis(basic_user_id)
+            time.sleep(0.1)  # Small delay to ensure files are written
+            basic_data = get_user_data(basic_user_id, "all", auto_create=True)
             
             # Ensure schedules exist - create_test_user_data should have created them, but verify
             if 'schedules' not in basic_data or 'motivational' not in basic_data.get('schedules', {}):
@@ -569,8 +537,12 @@ def test_schedule_period_management_real_behavior(test_data_dir):
 # @pytest.mark.user_management
 # @pytest.mark.file_io
 # @pytest.mark.slow
+@pytest.mark.no_parallel
 def test_integration_scenarios_real_behavior(test_data_dir):
-    """Test complex integration scenarios with multiple operations"""
+    """Test complex integration scenarios with multiple operations
+    
+    Marked as no_parallel because it modifies user data files and user_index.json.
+    """
     import logging
     logging.getLogger("mhm_tests").debug("Testing Integration Scenarios (Real Behavior)...")
     
@@ -585,26 +557,22 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             from core.user_data_handlers import save_user_data, get_user_data
             from core.user_management import get_user_id_by_identifier
 
-            # Get the UUID for the basic user with retry logic
-            from tests.test_utilities import retry_with_backoff
+            # Get the UUID for the basic user (serial execution ensures index is updated)
+            from core.user_data_manager import rebuild_user_index
             
-            def _get_basic_user_id():
-                return (
-                    get_user_id_by_identifier(f"test-user-basic-{test_id}")
-                    or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
-                    or f"test-user-basic-{test_id}"
-                )
-            
-            basic_user_id = retry_with_backoff(_get_basic_user_id, max_retries=5, initial_delay=0.2)
+            rebuild_user_index()
+            basic_user_id = (
+                get_user_id_by_identifier(f"test-user-basic-{test_id}")
+                or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
+                or f"test-user-basic-{test_id}"
+            )
             assert basic_user_id is not None, f"Should be able to get UUID for basic user (test_id: {test_id})"
 
             # Scenario 1: User opts into check-ins for the first time
             logging.getLogger("mhm_tests").debug("Testing: User opts into check-ins for the first time")
 
-            def _load_basic_data():
-                return get_user_data(basic_user_id, "all", auto_create=True)
-
-            basic_data = retry_with_backoff(_load_basic_data, max_retries=5, initial_delay=0.2)
+            # Load basic data (serial execution ensures data is available)
+            basic_data = get_user_data(basic_user_id, "all", auto_create=True)
             if "account" not in basic_data:
                 from tests.conftest import materialize_user_minimal_via_public_apis as _mat
                 import time
@@ -653,14 +621,8 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             import time
             time.sleep(0.1)
 
-            # Verify integration - retry in case of race conditions
-            updated_data = {}
-            for attempt in range(5):
-                updated_data = get_user_data(basic_user_id, "all", auto_create=True)
-                if updated_data.get("account", {}).get("features", {}).get("checkins") == "enabled":
-                    break
-                if attempt < 4:
-                    time.sleep(0.1)
+            # Verify integration (serial execution ensures data is available)
+            updated_data = get_user_data(basic_user_id, "all", auto_create=True)
             assert updated_data.get("account", {}).get("features", {}).get("checkins") == "enabled", f"Check-ins should be enabled. Got: {updated_data.get('account', {}).get('features', {})}"
             assert "checkin_settings" in updated_data["preferences"], "Check-in settings should exist"
             assert len(updated_data["schedules"]["motivational"]["periods"]) >= 2, "Should have motivational schedule periods"
@@ -678,23 +640,17 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             # Scenario 2: User disables task management and re-enables it
             logging.getLogger("mhm_tests").debug("Testing: User disables task management and re-enables it")
             
-            # Get the UUID for the full user (robust to parallel execution) with retry logic
-            from tests.test_utilities import TestUserFactory, retry_with_backoff
-            
-            def _get_full_user_id():
-                return (
-                    get_user_id_by_identifier(f"test-user-full-{test_id}")
-                    or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-full-{test_id}", test_data_dir)
-                    or f"test-user-full-{test_id}"
-                )
-            
-            full_user_id = retry_with_backoff(_get_full_user_id, max_retries=3, initial_delay=0.1)
+            # Get the UUID for the full user (serial execution ensures index is updated)
+            rebuild_user_index()
+            full_user_id = (
+                get_user_id_by_identifier(f"test-user-full-{test_id}")
+                or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-full-{test_id}", test_data_dir)
+                or f"test-user-full-{test_id}"
+            )
             assert full_user_id is not None, "Should be able to get UUID for full user"
             
-            def _load_full_data():
-                return get_user_data(full_user_id, "all", auto_create=True)
-
-            full_data = retry_with_backoff(_load_full_data, max_retries=5, initial_delay=0.2)
+            # Load full data (serial execution ensures data is available)
+            full_data = get_user_data(full_user_id, "all", auto_create=True)
             if "account" not in full_data:
                 from tests.conftest import materialize_user_minimal_via_public_apis as _mat
                 import time
@@ -766,15 +722,9 @@ def test_integration_scenarios_real_behavior(test_data_dir):
                 save_result = save_user_data(basic_user_id, {"preferences": basic_data["preferences"]})
                 logging.getLogger("mhm_tests").debug(f"Save result: {save_result}")
 
-            # Verify category added with retry for race conditions
-            import time
-            for attempt in range(3):
-                updated_data = get_user_data(basic_user_id, "all", auto_create=True)
-                logging.getLogger("mhm_tests").debug(f"Attempt {attempt + 1}: Categories: {updated_data['preferences']['categories']}")
-                if test_category in updated_data["preferences"]["categories"]:
-                    break
-                if attempt < 2:  # Don't sleep on last attempt
-                    time.sleep(0.1)  # Brief delay for file system consistency
+            # Verify category added (serial execution ensures data is available)
+            updated_data = get_user_data(basic_user_id, "all", auto_create=True)
+            logging.getLogger("mhm_tests").debug(f"Categories: {updated_data['preferences']['categories']}")
 
             assert test_category in updated_data["preferences"]["categories"], f"{test_category} category should be added. Current categories: {updated_data['preferences']['categories']}"
 
@@ -797,8 +747,12 @@ def test_integration_scenarios_real_behavior(test_data_dir):
 @pytest.mark.user_management
 @pytest.mark.file_io
 @pytest.mark.regression
+@pytest.mark.no_parallel
 def test_data_consistency_real_behavior(test_data_dir, mock_config):
-    """Test data consistency across multiple operations"""
+    """Test data consistency across multiple operations
+    
+    Marked as no_parallel because it modifies user data files.
+    """
     import logging
     import uuid
     test_id = str(uuid.uuid4())[:8]
@@ -857,15 +811,8 @@ def test_data_consistency_real_behavior(test_data_dir, mock_config):
         logging.getLogger("mhm_tests").debug("User index consistency: Success")
         
         # Test that account.json and preferences.json stay in sync
-        # Retry in case of race conditions with file writes in parallel execution
-        import time
-        basic_data = {}
-        for attempt in range(5):
-            basic_data = get_user_data(basic_uuid, "all", auto_create=True)
-            if basic_data and "preferences" in basic_data and "channel" in basic_data.get("preferences", {}):
-                break
-            if attempt < 4:
-                time.sleep(0.2)  # Increased delay before retry
+        # Load data (serial execution ensures files are written)
+        basic_data = get_user_data(basic_uuid, "all", auto_create=True)
         assert basic_data and "preferences" in basic_data, f"Preferences data should be loaded for user {basic_uuid}. Got: {basic_data}"
         assert "channel" in basic_data["preferences"], f"Channel should be in preferences for user {basic_uuid}"
         

@@ -159,21 +159,13 @@ class TestUserCreationScenarios:
         assert success, f"Failed to create schedule test user {user_id}"
         
         # Get the UUID for the user
-        # Retry lookup in case of race conditions with index updates in parallel execution
         from core.user_management import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
         from tests.test_utilities import TestUserFactory as TUF
-        import time
-        actual_user_id = None
-        for attempt in range(5):
-            actual_user_id = get_user_id_by_identifier(user_id) or TUF.get_test_user_id_by_internal_username(user_id, test_data_dir)
-            if actual_user_id is not None:
-                break
-            # Rebuild index if lookup fails (race condition fix)
-            if attempt == 2:
-                rebuild_user_index()
-            if attempt < 4:
-                time.sleep(0.1)  # Brief delay before retry
+        
+        # Rebuild index to ensure user is discoverable (modifies user_index.json)
+        rebuild_user_index()
+        actual_user_id = get_user_id_by_identifier(user_id) or TUF.get_test_user_id_by_internal_username(user_id, test_data_dir)
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id} after index update. Tried get_user_id_by_identifier and TestUserFactory lookup."
         
         # Verify schedule data can be loaded
@@ -632,8 +624,12 @@ class TestUserCreationIntegration:
             assert loaded_data['account']['channel']['type'] == 'email'
     
     @pytest.mark.integration
+    @pytest.mark.no_parallel
     def test_user_with_all_features(self, test_data_dir, mock_config):
-        """Test creating a user with all possible features enabled."""
+        """Test creating a user with all possible features enabled.
+        
+        Marked as no_parallel because it modifies shared user data files and user_index.json.
+        """
         user_id = 'test-all-features-new'
         
         # Account with all channel types (should choose one)

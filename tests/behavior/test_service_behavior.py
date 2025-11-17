@@ -139,8 +139,12 @@ class TestMHMService:
     
     @pytest.mark.service
     @pytest.mark.slow
+    @pytest.mark.no_parallel
     def test_check_and_fix_logging_real_behavior(self, temp_dir, service):
-        """REAL BEHAVIOR TEST: Test logging health check with real file operations."""
+        """REAL BEHAVIOR TEST: Test logging health check with real file operations.
+        
+        Marked as no_parallel because it modifies log files that may conflict with other tests.
+        """
         # Create real log file
         log_file = os.path.join(temp_dir, 'test.log')
         with open(log_file, 'w') as f:

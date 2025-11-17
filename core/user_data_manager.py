@@ -317,26 +317,40 @@ class UserDataManager:
         if not isinstance(create_backup, bool):
             logger.error(f"Invalid create_backup: {create_backup}")
             return False
-        """Completely remove all traces of a user from the system"""
+        
         if create_backup:
             backup_path = self.backup_user_data(user_id, include_messages=True)
-            logger.info(f"Backup created before deletion: {backup_path}")
+            if backup_path:
+                logger.info(f"Backup created before deletion: {backup_path}")
         
         # Delete user directory
         user_dir = get_user_data_dir(user_id)
         if os.path.exists(user_dir):
-            shutil.rmtree(user_dir)
-            logger.info(f"Deleted user directory: {user_dir}")
+            try:
+                shutil.rmtree(user_dir)
+                logger.info(f"Deleted user directory: {user_dir}")
+            except Exception as e:
+                logger.warning(f"Error deleting user directory {user_dir}: {e}")
+                # Continue with other cleanup steps
         
         # Delete message files
-        message_files = self.get_user_message_files(user_id)
-        for category, file_path in message_files.items():
-            if os.path.exists(file_path):
-                os.remove(file_path)
-                logger.info(f"Deleted message file: {file_path}")
+        try:
+            message_files = self.get_user_message_files(user_id)
+            for category, file_path in message_files.items():
+                if os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                        logger.info(f"Deleted message file: {file_path}")
+                    except Exception as e:
+                        logger.warning(f"Error deleting message file {file_path}: {e}")
+        except Exception as e:
+            logger.warning(f"Error getting message files for user {user_id}: {e}")
         
-        # Update user index
-        self.remove_from_index(user_id)
+        # Update user index (remove from index even if directory doesn't exist)
+        try:
+            self.remove_from_index(user_id)
+        except Exception as e:
+            logger.warning(f"Error removing user {user_id} from index: {e}")
         
         logger.info(f"User {user_id} completely removed from system")
         return True

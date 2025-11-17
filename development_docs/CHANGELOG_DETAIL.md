@@ -37,6 +37,76 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-17 - Logger Recursion Fix & Test Retry Logic Cleanup **COMPLETED**
+
+**Feature**: Fixed critical logger recursion issue and eliminated unnecessary retry logic from tests by adopting `@pytest.mark.no_parallel` as the primary strategy for handling race conditions in parallel execution.
+
+**Issues Addressed**:
+
+1. **Logger Recursion Bug**:
+   - Infinite recursion in error handler when logging failed due to missing log directories
+   - Caused `RecursionError: maximum recursion depth exceeded` in `test_get_component_logger_handles_invalid_name`
+   - Root cause: `BackupDirectoryRotatingFileHandler.__init__` was decorated with `@handle_errors`, creating recursion loop when directories didn't exist
+
+2. **Unnecessary Retry Logic in Tests**:
+   - Tests already marked `@pytest.mark.no_parallel` still contained retry logic that was no longer needed
+   - Tests modifying shared files used retry logic instead of proper serialization markers
+   - `retry_with_backoff` function defined but unused after cleanup
+
+**Technical Changes**:
+
+1. **Logger System Fixes** (`core/logger.py`, `core/error_handling.py`):
+   - Removed `@handle_errors` decorator from `BackupDirectoryRotatingFileHandler.__init__`
+   - Ensured log directories exist BEFORE calling `super().__init__()` in handler initialization
+   - Added directory creation in `ComponentLogger.__init__` before creating file handlers
+   - Added recursion guard in `ErrorHandler._log_error` using thread-local flag to prevent re-entry when logging itself fails
+
+2. **Test Serialization** (applied `@pytest.mark.no_parallel` to 9 additional tests):
+   - `tests/integration/test_user_creation.py::test_user_with_all_features` - modifies shared user data files and user_index.json
+   - `tests/behavior/test_service_behavior.py::test_check_and_fix_logging_real_behavior` - modifies log files
+   - `tests/behavior/test_backup_manager_behavior.py::test_create_backup_with_all_components_real_behavior` - modifies user data directories
+   - `tests/behavior/test_welcome_manager_behavior.py` - module-level marker, modifies shared welcome_tracking.json files
+   - `tests/unit/test_user_data_manager.py::test_get_user_info_for_data_manager_function` - reads user data files
+   - `tests/unit/test_user_management.py::test_user_lifecycle` - creates/deletes user files and modifies user_index.json
+   - `tests/behavior/test_task_error_handling.py::test_task_with_past_due_date` - creates task files
+   - `tests/behavior/test_account_management_real_behavior.py` - 5 tests (user_data_loading, feature_enablement, category_management, schedule_period_management, integration_scenarios, data_consistency) - modify user data files and user_index.json
+
+3. **Retry Logic Removal**:
+   - Removed `retry_with_backoff` calls from 3 tests already marked `@pytest.mark.no_parallel`:
+     - `test_update_user_index_success`
+     - `test_update_message_references_function`
+     - `test_save_user_data_success`
+   - Removed `retry_with_backoff` calls and manual retry loops from 9 newly marked tests
+   - Simplified `test_user` fixture in `TestUserDataManagerIndex` - removed retry logic, uses `rebuild_user_index()` directly
+   - Removed unused `retry_with_backoff` function from `tests/test_utilities.py`
+
+4. **Test Runner Enhancement** (`run_tests.py`):
+   - Improved combined-summary footer to match pytest's colored output format
+   - Conditionally display "deselected" counts only when all phases report them
+   - Preserve ANSI colors while parsing structured stats from JUnit XML and raw output
+   - Dynamic coloring of summary line based on test results (red for failures, yellow for warnings, green for success)
+
+**Files Changed**:
+- `core/logger.py`: Directory creation before handler initialization, removed problematic decorator
+- `core/error_handling.py`: Added recursion guard in `_log_error` method
+- `tests/integration/test_user_creation.py`: Added `@pytest.mark.no_parallel` marker
+- `tests/behavior/test_service_behavior.py`: Added `@pytest.mark.no_parallel` marker
+- `tests/behavior/test_backup_manager_behavior.py`: Added `@pytest.mark.no_parallel` marker
+- `tests/behavior/test_welcome_manager_behavior.py`: Module-level `pytestmark = pytest.mark.no_parallel`, removed retry logic
+- `tests/unit/test_user_data_manager.py`: Added `@pytest.mark.no_parallel` to 1 test, removed retry logic from 3 tests, simplified fixture
+- `tests/unit/test_user_management.py`: Removed retry logic from 1 test, added `@pytest.mark.no_parallel` to 1 test
+- `tests/behavior/test_task_error_handling.py`: Added `@pytest.mark.no_parallel` marker, removed retry logic
+- `tests/behavior/test_account_management_real_behavior.py`: Added `@pytest.mark.no_parallel` to 6 tests, removed retry logic
+- `tests/test_utilities.py`: Removed unused `retry_with_backoff` function
+- `run_tests.py`: Enhanced summary footer formatting and color preservation
+
+**Result**: 
+- All 3,100 tests passing (0 failures, 1 skipped)
+- Logger system resilient to missing directories and prevents infinite recursion
+- Test suite uses `@pytest.mark.no_parallel` as primary strategy for shared-resource tests, eliminating unnecessary retry logic
+- Cleaner, more maintainable test code with proper serialization markers instead of retry workarounds
+- Test runner provides clear, colorized summary matching pytest's output format
+
 ### 2025-11-16 - Test Stability Improvements, Coroutine Warning Suppression, and Parallel Execution Marker Application **COMPLETED**
 
 **Feature**: Improved test suite stability by adding `@pytest.mark.no_parallel` markers to flaky tests, implementing retry logic for race conditions, fixing test failures, suppressing coroutine warnings at source, and adding custom pytest markers.

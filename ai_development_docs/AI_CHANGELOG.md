@@ -33,6 +33,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-17 - Logger Recursion Fix & Test Retry Logic Cleanup **COMPLETED**
+- **Critical Logger Fix**: Fixed infinite recursion in error handler when logging failed due to missing directories - removed `@handle_errors` decorator from `BackupDirectoryRotatingFileHandler.__init__`, ensured directories exist before handler init, added recursion guard in `ErrorHandler._log_error`
+- **Test Serialization Strategy**: Applied `@pytest.mark.no_parallel` to 9 additional tests modifying shared files (user data files, user_index.json, task files, schedules) - primary approach for handling race conditions per testing guidelines
+- **Retry Logic Removal**: Removed all `retry_with_backoff` calls and manual retry loops from tests - eliminated retry logic from tests already marked `@pytest.mark.no_parallel` (3 tests) and from newly marked tests (9 tests), removed unused `retry_with_backoff` function from `test_utilities.py`
+- **Test Runner Enhancement**: Improved `run_tests.py` footer to match pytest's colored summary format, conditionally display deselected counts, preserve ANSI colors while parsing stats
+- **Result**: All 3,100 tests passing (0 failures), logger resilient to missing directories, test suite stable with proper serialization strategy replacing retry logic
+
 ### 2025-11-16 - Test Stability Improvements, Coroutine Warning Suppression, and Parallel Execution Marker Application **COMPLETED**
 - **Parallel Execution Markers**: Added `@pytest.mark.no_parallel` to 5 additional flaky tests (test_user_data_access, test_handle_check_account_status_with_existing_user, test_multiple_users_same_channel, test_profile_handler_shows_actual_profile, test_calculate_cache_size_large_cache_scenario_real_behavior) - total 57 tests now marked for serial execution
 - **Test Stability Fixes**: Implemented retry logic in 4 tests to handle race conditions (test_handle_check_account_status_with_existing_user, test_update_message_references_success, test_get_user_summary_function, test_update_user_index_success) - fixed indentation error, adjusted assertion logic in test_service_utilities_performance_under_load, ensured test user exists in test_create_backup_with_all_components_real_behavior

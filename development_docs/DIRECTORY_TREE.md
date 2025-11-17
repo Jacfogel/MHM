@@ -6,7 +6,9 @@
 Folder PATH listing
 Volume serial number is 5EAC-07BC
 C:.
+|   .cursorignore
 |   .env
+|   .env.example
 |   .gitattributes
 |   .gitignore
 |   ARCHITECTURE.md
@@ -17,7 +19,6 @@ C:.
 |   PROJECT_VISION.md
 |   pyproject.toml
 |   pytest.ini
-|   QUICK_REFERENCE.md
 |   README.md
 |   requirements.txt
 |   run_headless_service.py
@@ -179,7 +180,6 @@ C:.
 +---development_docs
 |       CHANGELOG_DETAIL.md
 |       DIRECTORY_TREE.md
-|       DOCUMENTATION_SYNC_CHECKLIST.md
 |       FUNCTION_REGISTRY_DETAIL.md
 |       HIGH_COMPLEXITY_FUNCTIONS_ANALYSIS.md
 |       LEGACY_REFERENCE_REPORT.md
@@ -227,6 +227,7 @@ C:.
 |   |   cleanup_unused_imports.py
 |   |   cleanup_windows_tasks.py
 |   |   demo_dynamic_checkin.py
+|   |   flaky_detector.py
 |   |   README.md
 |   |   script_test_network_connectivity.py
 |   |   
@@ -262,26 +263,26 @@ C:.
 |   |           script_test_lm_studio.py
 |   |           script_test_new_modules.py
 |   |           
-|   \---utilities
-|       |   add_checkin_schedules.py
-|       |   add_documentation_addresses.py
-|       |   check_checkin_schedules.py
-|       |   cleanup_duplicate_messages.py
-|       |   cleanup_test_users.py
-|       |   fix_user_schedules.py
-|       |   rebuild_index.py
-|       |   regenerate_ui.ps1
-|       |   restore_custom_periods.py
-|       |   user_data_cli.py
-|       |   
-|       +---cleanup
-|       |       cleanup_backups.py
-|       |       cleanup_data_test_users.py
-|       |       cleanup_real_test_users.py
-|       |       cleanup_test_data.py
-|       |       cleanup_user_message_files.py
-|       |       
-|       \---__pycache__
+|   +---utilities
+|   |   |   add_checkin_schedules.py
+|   |   |   add_documentation_addresses.py
+|   |   |   check_checkin_schedules.py
+|   |   |   cleanup_duplicate_messages.py
+|   |   |   cleanup_test_users.py
+|   |   |   fix_user_schedules.py
+|   |   |   rebuild_index.py
+|   |   |   regenerate_ui.ps1
+|   |   |   restore_custom_periods.py
+|   |   |   user_data_cli.py
+|   |   |   
+|   |   +---cleanup
+|   |   |       cleanup_backups.py
+|   |   |       cleanup_data_test_users.py
+|   |   |       cleanup_real_test_users.py
+|   |   |       cleanup_test_data.py
+|   |   |       cleanup_user_message_files.py
+|   |   |       
+|   |   \---__pycache__
     (Python cache files)
 +---styles
 |       admin_theme.qss
@@ -297,8 +298,8 @@ C:.
 |   |   AI_FUNCTIONALITY_TEST_PLAN.md
 |   |   conftest.py
 |   |   debug_file_paths.py
+|   |   flaky_test_report.md
 |   |   MANUAL_DISCORD_REMINDER_FOLLOWUP_TESTS.md
-|   |   MANUAL_TESTING_GUIDE.md
 |   |   TESTING_GUIDE.md
 |   |   test_error_handling_improvements.py
 |   |   test_isolation.py
@@ -390,30 +391,6 @@ C:.
 |   |   __init__.py
 |   |   
 |   \---__pycache__
-    (Python cache files)
-+---venv
-|   |   pyvenv.cfg
-|   |   
-|   +---Include
-|   +---Lib
-|   |   \---site-packages
-|   |       |   30fcd23745efe32ce681__mypyc.cp312-win_amd64.pyd
-|   |       |   mccabe.py
-|   |       |   mypy_extensions.py
-|   |       |   py.py
-|   |       |   typing_extensions.py
-|   |       |   _black_version.py
-|   |       |   _black_version.pyi
-|   |       |   
-|   |       +---aiohappyeyeballs
-|   |       |   |   impl.py
-|   |       |   |   py.typed
-|   |       |   |   types.py
-|   |       |   |   utils.py
-|   |       |   |   _staggered.py
-|   |       |   |   __init__.py
-|   |       |   |   
-|   |       |   \---__pycache__
     (Python cache files)
 
 ---

@@ -249,10 +249,12 @@ class TestTaskEdgeCases:
     @pytest.mark.tasks
     @pytest.mark.edge_cases
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_task_with_past_due_date(self, test_data_dir):
-        """Test creating a task with a past due_date."""
-        from tests.test_utilities import retry_with_backoff
+        """Test creating a task with a past due_date.
         
+        Marked as no_parallel because it creates task files that may conflict with other tests.
+        """
         user_id = "test_user_past_due"
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
@@ -265,19 +267,8 @@ class TestTaskEdgeCases:
         
         assert task_id is not None, "Task should be created even with past due_date"
         
-        # Use retry logic to handle race conditions with file writes in parallel execution
-        def get_task():
-            task = get_task_by_id(user_id, task_id)
-            if task is None:
-                raise ValueError(f"Task {task_id} not found for user {user_id}")
-            return task
-        
-        task = retry_with_backoff(
-            get_task,
-            max_retries=10,
-            initial_delay=0.1,
-            backoff_factor=1.5
-        )
+        # Get task (serial execution ensures file is written)
+        task = get_task_by_id(user_id, task_id)
         
         assert task is not None, f"Task should be retrievable. Task ID: {task_id}"
         assert task['due_date'] == past_date, "Past due_date should be stored"

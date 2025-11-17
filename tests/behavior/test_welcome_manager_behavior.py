@@ -18,6 +18,8 @@ from communication.core.welcome_manager import (
     WELCOME_TRACKING_FILE
 )
 
+pytestmark = pytest.mark.no_parallel
+
 
 class TestWelcomeManagerBehavior:
     """Test welcome manager real behavior and side effects."""
@@ -146,7 +148,6 @@ class TestWelcomeManagerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
-    @pytest.mark.no_parallel
     def test_welcome_tracking_supports_multiple_channels(self, test_data_dir):
         """Test: Welcome tracking supports multiple channel types."""
         with patch('communication.core.welcome_manager.BASE_DATA_DIR', test_data_dir):
@@ -160,30 +161,16 @@ class TestWelcomeManagerBehavior:
             # Mark as welcomed for Email
             mark_as_welcomed(channel_identifier, channel_type='email')
             
-            # Assert: Both should be tracked separately (with retry for race conditions)
-            import time
-            from tests.test_utilities import retry_with_backoff
-            
-            def _check_discord_welcomed():
-                return has_been_welcomed(channel_identifier, channel_type='discord')
-            
-            def _check_email_welcomed():
-                return has_been_welcomed(channel_identifier, channel_type='email')
-            
-            assert retry_with_backoff(_check_discord_welcomed, max_retries=3, initial_delay=0.1), "Discord should be welcomed"
-            assert retry_with_backoff(_check_email_welcomed, max_retries=3, initial_delay=0.1), "Email should be welcomed"
+            # Assert: Both should be tracked separately
+            assert has_been_welcomed(channel_identifier, channel_type='discord'), "Discord should be welcomed"
+            assert has_been_welcomed(channel_identifier, channel_type='email'), "Email should be welcomed"
             
             # Clear one, other should remain
             clear_welcomed_status(channel_identifier, channel_type='discord')
             
-            # Verify Discord is cleared
-            def _check_discord_cleared():
-                return not has_been_welcomed(channel_identifier, channel_type='discord')
-            
-            assert retry_with_backoff(_check_discord_cleared, max_retries=3, initial_delay=0.1), "Discord should be cleared"
-            
-            # Verify Email is still welcomed
-            assert retry_with_backoff(_check_email_welcomed, max_retries=3, initial_delay=0.1), "Email should still be welcomed"
+            # Verify Discord is cleared and Email remains welcomed
+            assert not has_been_welcomed(channel_identifier, channel_type='discord'), "Discord should be cleared"
+            assert has_been_welcomed(channel_identifier, channel_type='email'), "Email should still be welcomed"
     
     @pytest.mark.behavior
     @pytest.mark.communication

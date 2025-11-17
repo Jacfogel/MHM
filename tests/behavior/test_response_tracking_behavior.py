@@ -593,7 +593,10 @@ class TestResponseTrackingIntegration:
     
     @pytest.mark.no_parallel
     def test_response_tracking_concurrent_access_safety(self, test_data_dir):
-        """Test that response tracking handles concurrent access safely."""
+        """Test that response tracking handles concurrent access safely.
+        
+        Marked as no_parallel because it modifies shared checkins.json file.
+        """
         import time
         import os
         user_id = "test-user-concurrent"
@@ -609,7 +612,7 @@ class TestResponseTrackingIntegration:
             store_user_response(user_id, {"mood": 5, "timestamp": "2025-01-01 10:00:00"}, "checkin")
         
         # Small delay to ensure file is written
-        time.sleep(0.05)
+        time.sleep(0.1)
         
         # Act - Simulate concurrent access by reading and writing simultaneously
         # This tests that the file operations are thread-safe
@@ -618,7 +621,7 @@ class TestResponseTrackingIntegration:
             store_user_response(user_id, {"mood": 7, "timestamp": "2025-01-02 10:00:00"}, "checkin")
             
             # Small delay to ensure file is written before second read
-            time.sleep(0.05)
+            time.sleep(0.1)
             
             recent2 = get_recent_responses(user_id, "checkin", limit=5)
         

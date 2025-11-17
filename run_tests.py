@@ -11,6 +11,9 @@ import argparse
 import os
 import time
 import xml.etree.ElementTree as ET
+import threading
+import queue
+import re
 from typing import Dict, Optional, Tuple
 
 # Simple ANSI color codes for terminal output (works in modern PowerShell)
@@ -25,6 +28,8 @@ RED = '\033[31m'
 YELLOW = '\033[33m'
 RESET = '\033[0m'
 
+ANSI_ESCAPE_RE = re.compile(r'\x1b\[[0-9;]*m')
+
 def parse_junit_xml(xml_path: str) -> Dict[str, int]:
     """
     Parse JUnit XML report to extract test statistics.
@@ -37,7 +42,8 @@ def parse_junit_xml(xml_path: str) -> Dict[str, int]:
         'skipped': 0,
         'warnings': 0,
         'errors': 0,
-        'total': 0
+        'total': 0,
+        'deselected': 0
     }
     
     if not os.path.exists(xml_path):
@@ -102,12 +108,40 @@ def run_command(cmd, description, progress_interval: int = 30, capture_output: b
             # Generate JUnit XML report for parsing (doesn't affect colors)
             cmd_with_junit = cmd + ['--junit-xml', junit_xml_path]
             
+            # Ensure pytest keeps ANSI colors even though we're piping output
+            contains_color_flag = any(opt.startswith('--color') for opt in cmd_with_junit)
+            if not contains_color_flag:
+                cmd_with_junit.append('--color=yes')
+            
+            # Capture output to parse warnings, but also write to terminal to preserve colors
+            # Use a pipe that we can read from AND write to terminal
+            output_queue = queue.Queue()
+            output_lines = []
+            
+            def read_output(pipe, queue_obj):
+                """Read from pipe and put lines in queue, also write to terminal."""
+                for line in iter(pipe.readline, ''):
+                    if line:
+                        queue_obj.put(line)
+                        # Also write to terminal to preserve colors
+                        sys.stdout.write(line)
+                        sys.stdout.flush()
+                pipe.close()
+            
             # Let pytest write directly to terminal - this preserves ALL colors
+            # We'll parse warnings from the output if we can capture it
             process = subprocess.Popen(
                 cmd_with_junit,
-                stdout=None,  # Direct to terminal - preserves colors!
-                stderr=None   # Direct to terminal - preserves colors!
+                stdout=subprocess.PIPE,  # Capture for parsing
+                stderr=subprocess.STDOUT,  # Merge stderr into stdout
+                universal_newlines=True,
+                bufsize=1
             )
+            
+            # Start thread to read output and display it
+            output_thread = threading.Thread(target=read_output, args=(process.stdout, output_queue))
+            output_thread.daemon = True
+            output_thread.start()
             
             # Monitor progress while process runs
             next_tick = start_time + max(1, progress_interval)
@@ -122,15 +156,66 @@ def run_command(cmd, description, progress_interval: int = 30, capture_output: b
             # Wait for process to complete
             process.wait()
             
-            # Parse results from JUnit XML (preserves colors in terminal output)
+            # Wait for output thread to finish
+            output_thread.join(timeout=1)
+            
+            # Collect all output lines
+            while not output_queue.empty():
+                try:
+                    output_lines.append(output_queue.get_nowait())
+                except queue.Empty:
+                    break
+            
+            output = ''.join(output_lines)
+            output_plain = ANSI_ESCAPE_RE.sub('', output)
+            
+            summary_counts = {}
+            summary_line_matches = re.findall(r'={5,}\s*(.+?)\s*={5,}', output_plain, re.MULTILINE)
+            if summary_line_matches:
+                summary_content = summary_line_matches[-1]
+                count_matches = re.findall(
+                    r'(\d+)\s+(failed|passed|skipped|warnings?|deselected|errors?)',
+                    summary_content,
+                    re.IGNORECASE
+                )
+                for count_str, label in count_matches:
+                    key = label.lower()
+                    if key in ('warning', 'warnings'):
+                        key = 'warnings'
+                    elif key in ('error', 'errors'):
+                        key = 'errors'
+                    summary_counts[key] = int(count_str)
+            
+            # Parse results from JUnit XML
             results = parse_junit_xml(junit_xml_path)
             
-            # We can't extract warnings/failures details without capturing output
-            warnings = ''
-            failures = ''
-            output = ''
+            # Ensure expected keys exist
+            results.setdefault('warnings', 0)
+            results.setdefault('deselected', 0)
             
-            duration = int(time.time() - start_time)
+            # Update results with parsed summary counts
+            for key, value in summary_counts.items():
+                results[key] = value
+            
+            # Parse warnings/failures details from pytest output
+            warnings_text = ''
+            failures_text = ''
+            
+            # Extract warnings count from pytest output (e.g., "10 warnings in 143.99s")
+            # Look for pattern like "1 failed, 3023 passed, 1 skipped, 10 warnings in 143.99s"
+            warnings_match = re.search(r'(\d+)\s+warnings?\s+in\s+[\d.]+s', output_plain)
+            if not warnings_match:
+                # Also try pattern without "in" (some pytest versions)
+                warnings_match = re.search(r',\s*(\d+)\s+warnings?\s+in', output_plain)
+            if warnings_match:
+                results['warnings'] = int(warnings_match.group(1))
+            
+            # Extract failures from short test summary
+            failures_section = re.search(r'FAILED\s+(.+?)(?=\n\n|\n===|$)', output_plain, re.DOTALL)
+            if failures_section:
+                failures_text = failures_section.group(1).strip()
+            
+            duration = time.time() - start_time
             
             # Print status message
             if process.returncode == 0:
@@ -144,8 +229,8 @@ def run_command(cmd, description, progress_interval: int = 30, capture_output: b
                 'output': output,
                 'results': results,
                 'duration': duration,
-                'warnings': warnings,
-                'failures': failures
+                'warnings': warnings_text,
+                'failures': failures_text
             }
         finally:
             # Clean up temp file
@@ -185,12 +270,13 @@ def print_combined_summary(parallel_results: Optional[Dict], no_parallel_results
         'skipped': parallel_res.get('skipped', 0) + no_parallel_res.get('skipped', 0),
         'warnings': parallel_res.get('warnings', 0) + no_parallel_res.get('warnings', 0),
         'errors': parallel_res.get('errors', 0) + no_parallel_res.get('errors', 0),
+        'deselected': parallel_res.get('deselected', 0) + no_parallel_res.get('deselected', 0),
     }
     combined['total'] = combined['passed'] + combined['failed'] + combined['skipped'] + combined['errors']
     
-    # Calculate total duration
-    parallel_duration = parallel_results.get('duration', 0) if parallel_results and isinstance(parallel_results, dict) else 0
-    no_parallel_duration = no_parallel_results.get('duration', 0) if no_parallel_results and isinstance(no_parallel_results, dict) else 0
+    # Calculate total duration (ensure floats for decimal precision)
+    parallel_duration = float(parallel_results.get('duration', 0)) if parallel_results and isinstance(parallel_results, dict) else 0.0
+    no_parallel_duration = float(no_parallel_results.get('duration', 0)) if no_parallel_results and isinstance(no_parallel_results, dict) else 0.0
     total_duration = parallel_duration + no_parallel_duration
     
     # Collect all warnings and failures
@@ -219,6 +305,7 @@ def print_combined_summary(parallel_results: Optional[Dict], no_parallel_results
     print(f"  Passed:       {combined['passed']}")
     print(f"  Failed:       {combined['failed']}")
     print(f"  Skipped:      {combined['skipped']}")
+    print(f"  Deselected:   {combined['deselected']}")
     print(f"  Warnings:     {combined['warnings']}")
     
     # Show breakdown if we ran tests in two phases (parallel + serial)
@@ -228,13 +315,15 @@ def print_combined_summary(parallel_results: Optional[Dict], no_parallel_results
         p_failed = parallel_res.get('failed', 0)
         p_skipped = parallel_res.get('skipped', 0)
         p_warnings = parallel_res.get('warnings', 0)
+        p_deselected = parallel_res.get('deselected', 0)
         s_passed = no_parallel_res.get('passed', 0)
         s_failed = no_parallel_res.get('failed', 0)
         s_skipped = no_parallel_res.get('skipped', 0)
         s_warnings = no_parallel_res.get('warnings', 0)
+        s_deselected = no_parallel_res.get('deselected', 0)
         
-        print(f"  Parallel Tests:    {p_passed} passed, {p_failed} failed, {p_skipped} skipped, {p_warnings} warnings ({parallel_duration}s)")
-        print(f"  Serial Tests:      {s_passed} passed, {s_failed} failed, {s_skipped} skipped, {s_warnings} warnings ({no_parallel_duration}s)")
+        print(f"  Parallel Tests:    {p_passed} passed, {p_failed} failed, {p_skipped} skipped, {p_deselected} deselected, {p_warnings} warnings ({parallel_duration}s)")
+        print(f"  Serial Tests:      {s_passed} passed, {s_failed} failed, {s_skipped} skipped, {s_deselected} deselected, {s_warnings} warnings ({no_parallel_duration}s)")
         
         print(f"\nTotal Duration: {total_duration}s")
     elif parallel_duration > 0:
@@ -257,22 +346,49 @@ def print_combined_summary(parallel_results: Optional[Dict], no_parallel_results
                 print(f"\nFrom {source}:")
                 print(warning_text)
     
-    # Final summary line in pytest format
+    # Final summary line in pytest format - match pytest's exact format
     print()
-    summary_parts = []
-    if combined['failed'] > 0:
-        summary_parts.append(f"{RED}{combined['failed']} failed{RESET}")
-    if combined['passed'] > 0:
-        summary_parts.append(f"{GREEN}{combined['passed']} passed{RESET}")
+    parallel_deselected = parallel_res.get('deselected', 0)
+    serial_deselected = no_parallel_res.get('deselected', 0) if no_parallel_results and isinstance(no_parallel_results, dict) else None
+    if serial_deselected is None:
+        include_deselected_in_summary = parallel_deselected > 0
+    else:
+        include_deselected_in_summary = parallel_deselected > 0 and serial_deselected > 0
+    
+    summary_parts = [
+        f"{RED}{combined['failed']} failed{RESET}",
+        f"{GREEN}{combined['passed']} passed{RESET}",
+    ]
+    if include_deselected_in_summary:
+        summary_parts.append(f"{YELLOW}{combined['deselected']} deselected{RESET}")
     if combined['skipped'] > 0:
         summary_parts.append(f"{YELLOW}{combined['skipped']} skipped{RESET}")
-    if combined['warnings'] > 0:
-        summary_parts.append(f"{YELLOW}{combined['warnings']} warnings{RESET}")
+    summary_parts.append(f"{YELLOW}{combined['warnings']} warnings{RESET}")
     
     summary_text = ", ".join(summary_parts)
-    duration_str = f"{total_duration:.2f}" if total_duration > 0 else "0.00"
-    # Match requested format: =============== X failed, Y passed, Z skipped, W warnings in ##.## seconds ===============
-    summary_line = f"{'='*15} {summary_text} in {duration_str} seconds {'='*15}"
+    
+    # Format duration like pytest: "143.99s (0:02:23)"
+    duration_decimal = f"{total_duration:.2f}s"
+    # Calculate human-readable format (hours:minutes:seconds)
+    hours = int(total_duration // 3600)
+    minutes = int((total_duration % 3600) // 60)
+    seconds = int(total_duration % 60)
+    duration_human = f"({hours}:{minutes:02d}:{seconds:02d})"
+    duration_str = f"{duration_decimal} {duration_human}"
+    
+    # Color-code border based on result state
+    if combined['failed'] > 0:
+        border_color = RED
+    elif combined['warnings'] > 0:
+        border_color = YELLOW
+    else:
+        border_color = GREEN
+    
+    border = f"{border_color}{'='*10}{RESET}"
+    duration_segment = f"{border_color}in {duration_str}{RESET}"
+    
+    # Match pytest's format with colored components
+    summary_line = f"{border} {summary_text}, {duration_segment} {border}"
     print(summary_line)
     print()
 

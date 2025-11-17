@@ -1,206 +1,233 @@
-# Enhanced Logging System Guide
+> **File**: logs/LOGGING_GUIDE.md
 
-> **File**: `logs/LOGGING_GUIDE.md`  
-> **Audience**: Developers and AI collaborators working with the MHM logging system  
-> **Purpose**: Explain how logging is structured, where logs live, and how to use them for debugging and maintenance  
-> **Style**: Technical, comprehensive, reference-oriented
+# Logging Guide
 
+This document describes how logging works in MHM and how to use it safely when developing or debugging.
 
-## Quick Reference
+If you need a compact, AI-focused reference, see `ai_development_docs/AI_LOGGING_GUIDE.md`. That doc points back here for deeper explanations and examples.
 
-Use this section when you need to debug something quickly.
+---
 
-- Start with `errors.log` for unhandled errors and critical issues.  
-- Then check the component log for the area you are working on (for example, `discord.log`, `scheduler.log`, `ui.log`).  
-- Use `app.log` when behavior is unclear and you need a high-level view of application flow.  
-- For communication issues, check `communication_manager.log`, `discord.log`, `email.log`, and `message.log`.  
-- For scheduling issues, check `scheduler.log` and any related component logs (for example, `file_ops.log` for archival).  
-- For user activity and check-ins, check `user_activity.log` and related analytics logs.
+## Purpose and Scope
 
-PowerShell triage snippets from the repo root:
+MHM uses a central logging system to:
 
-```powershell
-# Show all log files and their last write times
-Get-ChildItem logs/*.log | Select-Object Name, LastWriteTime | Format-Table -AutoSize
+- Track normal behavior (info, debug)
+- Record warnings and recoverable errors
+- Capture critical failures for troubleshooting
+- Support long-term maintenance (legacy compatibility, deprecation paths)
+- Provide input for audits, coverage, and quality tooling
 
-# Follow the main error log
-Get-Content logs/errors.log -Wait -Tail 50
+This guide covers:
 
-# Search for a specific user or ID across logs
-Select-String -Path 'logs/*.log' -Pattern 'user_id=123' | Select-Object Path, LineNumber, Line
+- Overall logging architecture
+- Log levels and when to use them
+- Component log files and directory layout
+- Environment-based configuration
+- Rotation, archival, and maintenance
+- Legacy compatibility logging
+- Best practices and examples
+
+---
+
+## Logging Architecture
+
+### Central logger module
+
+The logging system is centralized in `core/logger.py`:
+
+- Provides helpers (for example `logger.get_component_logger(name)`) that:
+  - Attach the correct handlers (file and optional console)
+  - Use the configured log format
+  - Direct output to the right component log file
+
+Always obtain loggers via the central helper instead of calling `logging.getLogger` directly. This keeps formats, destinations, and levels consistent across the codebase.
+
+### Component loggers
+
+Common components include:
+
+- `main` / core service → `logs/app.log`
+- `discord` → `logs/discord.log`
+- `email` → `logs/email.log`
+- `telegram` → `logs/telegram.log` (currently disabled in code, but logging path exists)
+- `scheduler` → `logs/scheduler.log`
+- `ui` → `logs/ui.log`
+- `ai` → `logs/ai.log`
+- `file_ops` → `logs/file_ops.log`
+- `user_activity` → `logs/user_activity.log`
+- `errors` → `logs/errors.log`
+
+The actual mapping is defined in `core/logger.py` and may be overridden via environment variables (see below).
+
+### Format
+
+Log messages follow a standard format similar to:
+
+```text
+YYYY-MM-DD HH:MM:SS,mmm | LEVEL | component | message...
 ```
 
+This format is enforced by the handlers in `core/logger.py` so logs remain consistent across modules and processes.
 
-## Directory Structure
+---
 
-The logging system uses a dedicated `logs/` directory with per-component log files and two subdirectories for rotated and archived logs.
+## Log Levels and When to Use Them
 
-Example layout:
+MHM uses standard Python logging levels:
+
+### DEBUG
+
+Highly detailed information for debugging and development.
+
+- Avoid in hot paths unless it is genuinely useful during troubleshooting.
+
+### INFO
+
+Normal operational messages.
+
+- Startup/shutdown, configuration loaded, tasks scheduled or completed.
+
+### WARNING
+
+Something unexpected or degraded, but the system can continue.
+
+- Network retry, fallback behavior, use of a legacy path, soft validation failure.
+
+### ERROR
+
+A failure of an operation that affects current behavior but does not crash the whole system.
+
+- Unhandled exceptions in a specific operation that are caught by the error handler.
+
+### CRITICAL
+
+Serious failures that may require immediate attention.
+
+- For example, configuration missing such that the system cannot start, or data corruption detected.
+
+Use the lowest level that clearly conveys the severity while keeping noise manageable.
+
+---
+
+## Component Log Files and Layout
+
+Default structure (may vary slightly as the project evolves):
 
 ```text
 logs/
-|-- app.log                    # Main application logs (active)
-|-- discord.log                # Discord bot logs (active)
-|-- ai.log                     # AI interactions and processing (active)
-|-- user_activity.log          # User actions and check-ins (active)
-|-- errors.log                 # Error and critical messages (active)
-|-- communication_manager.log  # Communication orchestration (active)
-|-- email.log                  # Email bot operations (active)
-|-- file_ops.log               # File operations (active)
-|-- scheduler.log              # Scheduler operations (active)
-|-- ui.log                     # UI operations (active)
-|-- message.log                # Message processing (active)
-|-- backups/                   # Rotated log files (recent, uncompressed)
-`-- archive/                   # Compressed / older logs
+|-- app.log              # Main application log
+|-- errors.log           # Centralized error log
+|-- ai.log               # AI interactions and tooling
+|-- discord.log          # Discord bot and interactions
+|-- email.log            # Email sending/receiving
+|-- telegram.log         # Telegram integration (currently disabled)
+|-- scheduler.log        # Scheduling and timers
+|-- ui.log               # Qt UI events and actions
+|-- file_ops.log         # File operations, backups, auto-cleanup
+|-- user_activity.log    # High-level user actions/events
+|-- backups/             # Rotated/backup log files (see config)
+`-- archive/             # Archived/long-term storage
 ```
 
-Directory purposes:
-
-- **Active logs** – Current log files being written to.  
-- **Backups** – Rotated log files kept for a limited time (recent days).  
-- **Archive** – Compressed logs kept for long-term retention.
-
-
-## Component Loggers
-
-The enhanced logging system uses **component loggers** instead of one global logger. Each major subsystem has its own named logger and log file.
-
-### Component loggers and files
-
-| Logger name              | File                          | Purpose                               |
-|--------------------------|-------------------------------|---------------------------------------|
-| `main`                   | `app.log`                     | Overall application flow              |
-| `discord`                | `discord.log`                 | Discord bot activity                  |
-| `ai`                     | `ai.log`                      | AI processing and interactions        |
-| `user_activity`          | `user_activity.log`           | User actions and check-ins            |
-| `errors`                 | `errors.log`                  | Errors and critical issues            |
-| `communication_manager`  | `communication_manager.log`   | Message routing and orchestration     |
-| `email`                  | `email.log`                   | Email bot operations                  |
-| `file_ops`               | `file_ops.log`                | File operations and backups           |
-| `scheduler`              | `scheduler.log`               | Scheduling and timer operations       |
-| `ui`                     | `ui.log`                      | UI interactions and dialogs           |
-| `message`                | `message.log`                 | Message processing and templating     |
-
-### Typical module → logger mapping
-
-Core modules:
-
-- `core/service.py` – `main`, `discord`  
-- `core/user_data_handlers.py` – `main`, `user_activity`  
-- `core/config.py` – `main`  
-- `core/schedule_utilities.py` – `scheduler`  
-- `core/file_operations.py` – `file_ops`  
-- `core/scheduler.py` – `scheduler`  
-- `core/backup_manager.py` – `file_ops`, `main`  
-- `core/message_management.py` – `message`  
-- `core/user_management.py` – `main`, `user_activity`  
-- `core/checkin_dynamic_manager.py` – `user_activity`  
-- `core/checkin_analytics.py` – `user_activity`  
-- `core/response_tracking.py` – `user_activity`  
-
-Communication modules:
-
-- `communication/core/channel_orchestrator.py` – `communication_manager`, `user_activity`  
-- `communication/communication_channels/discord/bot.py` – `discord`  
-- `communication/communication_channels/email/bot.py` – `email`  
-- `communication/message_processing/message_router.py` – `message`  
-
-AI modules:
-
-- `ai/chatbot.py` – `ai`  
-- `ai/lm_studio_manager.py` – `ai`  
-
-UI modules:
-
-- `ui/ui_app_qt.py` – `ui`  
-- `ui/dialogs/*.py` – `ui`  
-- `ui/widgets/*.py` – `ui`  
-
-
-## Log Rotation and Archival
-
-Logs rotate and are archived automatically to keep disk usage under control.
-
-- Daily rotation moves active logs into `logs/backups/`.  
-- Older backups are compressed and moved into `logs/archive/`.  
-- The scheduler triggers daily archival and cleanup tasks.  
-- Default retention periods:
-  - Recent uncompressed backups – kept for several days.  
-  - Archived compressed logs – kept for longer-term history.
-
-Key helper functions (names may vary slightly depending on implementation):
-
-- `compress_old_logs()` – Compress logs older than a threshold into `.gz` files in `archive/`.  
-- `cleanup_old_archives(max_days=30)` – Remove very old archives.  
-- `cleanup_old_logs()` – Remove old backup files when needed.
-
-Scheduler integration:
-
-- Daily archival is orchestrated through the scheduler system (for example, `SchedulerManager.perform_daily_log_archival()`).  
-- All log archival operations write to `scheduler.log` and component logs.  
-- Errors during archival are handled by the standard error handling system and should appear in `errors.log`.  
-
-
-## Configuration
-
-Logging paths and options are controlled primarily through environment variables and configuration helpers in `core.config` and related modules.
-
-Examples of configuration entries (conceptual):
+Tests may also write logs under:
 
 ```text
-# Base log directory
-LOG_DIR=logs
-
-# Core log files
-LOG_APP_FILE=logs/app.log
-LOG_ERRORS_FILE=logs/errors.log
-
-# Communication log files
-LOG_DISCORD_FILE=logs/discord.log
-LOG_EMAIL_FILE=logs/email.log
-LOG_COMMUNICATION_MANAGER_FILE=logs/communication_manager.log
-LOG_MESSAGE_FILE=logs/message.log
-
-# AI system log files
-LOG_AI_FILE=logs/ai.log
-
-# UI and management log files
-LOG_UI_FILE=logs/ui.log
-LOG_BACKUP_FILE=logs/backup.log
-LOG_SCHEDULER_FILE=logs/scheduler.log
-
-# Analytics and check-in log files
-LOG_USER_ACTIVITY_FILE=logs/user_activity.log
+tests/logs/
 ```
 
-Guidelines:
+when test logging is enabled (see `TEST_VERBOSE_LOGS` below).
 
-- Keep all log paths under the `logs/` directory by default.  
-- Use the configuration helpers rather than hard-coding paths in new modules.  
-- When changing log structure, update both configuration and this guide.  
+---
 
+## Configuration (Environment Variables)
 
-## Best Practices
+Logging is configured via environment variables loaded in `core/config.py`. From your `.env`:
 
-### Logging style
+### Core locations
 
-- Use clear, concise messages with enough context to understand what happened.  
-- Include identifiers (user id, task id, channel id) where helpful for correlation.  
-- Avoid logging secrets, full tokens, or sensitive personal data.  
-- Prefer `INFO` for normal operations, `WARNING` for recoverable issues, `ERROR` for failures, and `CRITICAL` for unrecoverable conditions.  
-- Use `DEBUG` sparingly and remove or downgrade noisy debug logs once issues are resolved.
+- `LOGS_DIR`  
+  Root logs directory (default: `logs`).
 
-### Integration with error handling
+- `LOG_BACKUP_DIR`  
+  Directory for backup copies of logs (default: `logs/backups`).
 
-- When catching exceptions, log the error with context and then use the established error handling patterns (see `core/ERROR_HANDLING_GUIDE.md` and `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`).  
-- Prefer raising well-structured custom exceptions after logging, instead of returning ambiguous values.  
-- Ensure that user-facing errors and logs remain in sync so issues can be diagnosed from logs alone.  
+- `LOG_ARCHIVE_DIR`  
+  Directory for archived logs (default: `logs/archive`).
 
+- `LOG_FILE_PATH`  
+  Main app log file path (often the same as `LOG_MAIN_FILE`).
 
+### Per-component log files
 
-### Legacy Compatibility Logging Standard
+Optional overrides (all default under `LOGS_DIR`):
 
-Use the following format for any temporary legacy paths:
+- `LOG_MAIN_FILE`
+- `LOG_DISCORD_FILE`
+- `LOG_AI_FILE`
+- `LOG_USER_ACTIVITY_FILE`
+- `LOG_ERRORS_FILE`
+- `LOG_COMMUNICATION_MANAGER_FILE`
+- `LOG_EMAIL_FILE`
+- `LOG_TELEGRAM_FILE`
+- `LOG_UI_FILE`
+- `LOG_FILE_OPS_FILE`
+- `LOG_SCHEDULER_FILE`
+
+If unset, `core/logger.py` derives sensible defaults under `LOGS_DIR`.
+
+### Levels and rotation
+
+- `LOG_LEVEL`  
+  Overall log level (console and file): `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`.  
+  Default is typically `WARNING` for production-like runs.
+
+- `LOG_MAX_BYTES`  
+  Max size of each log file before rotation (for example `5242880` for ~5 MB).
+
+- `LOG_BACKUP_COUNT`  
+  Number of rotated log files to keep per component.
+
+- `LOG_COMPRESS_BACKUPS`  
+  `true` / `false` (or `1` / `0`) to control compression of rotated logs.
+
+- `DISABLE_LOG_ROTATION`  
+  Set to `1` to disable rotation entirely (for example, during certain types of debugging).
+
+### Testing and diagnostics
+
+- `MHM_TESTING`  
+  Flag used to indicate tests are running. Logging behavior may adjust (for example, different destinations or verbosity).
+
+- `TEST_VERBOSE_LOGS`  
+  Set to `1` to write detailed test logs under `tests/logs`.  
+  Set to `0` (default) to avoid clutter when running tests frequently.
+
+Other diagnostic and backup environment variables (such as `BACKUP_RETENTION_DAYS` and file-auditor settings) may affect how long logs and backups are kept, but are not logging-exclusive.
+
+---
+
+## Log Rotation, Backups, and Archival
+
+Rotation is typically implemented via rotating handlers configured in `core/logger.py`:
+
+- When a log file reaches `LOG_MAX_BYTES`, it is rotated.
+- Up to `LOG_BACKUP_COUNT` rotated files are kept (for example `app.log.1`, `app.log.2`, ...).
+- If `LOG_COMPRESS_BACKUPS` is enabled, rotated logs may be gzipped or otherwise compressed.
+
+Supporting scripts and services (for example, `backup_manager.py`, `auto_cleanup.py`, and scheduled tasks) may:
+
+- Move older logs into `LOG_ARCHIVE_DIR`
+- Enforce retention policies
+- Clean up stale or oversized log directories
+
+Exact behavior is driven both by configuration and those scripts; always check the implementation when making changes to retention policies.
+
+---
+
+## Legacy Compatibility Logging Standard
+
+Use the following pattern for any temporary legacy paths:
 
 ```python
 # LEGACY COMPATIBILITY: [Brief description]
@@ -213,73 +240,112 @@ logger.warning("LEGACY COMPATIBILITY: <what was called>; use <new path> instead"
 ```
 
 Guidelines:
-- Only add legacy paths when necessary to prevent breakage
-- Always log usage at WARNING level to track and plan removal
-- Add a clear removal condition and steps
 
-## Log Analysis and Triage
+- Only add legacy paths when necessary to prevent breakage.
+- Always log legacy usage at `WARNING` level so it is visible in `errors.log` and metrics.
+- Add a clear removal condition and specific steps.
+- As part of refactors, search for `LEGACY COMPATIBILITY` and reduce/remove those code paths when safe.
 
-Use these patterns when investigating a problem.
+---
 
-### General triage
+## Maintenance and Cleanup
 
-1. Check `errors.log` first for stack traces and critical issues.  
-2. Identify the subsystem involved (UI, scheduler, Discord, email, AI, user data).  
-3. Open the corresponding component log (for example, `discord.log`, `scheduler.log`, `ui.log`).  
-4. Use timestamps and identifiers to follow the flow across multiple logs.  
-5. If nothing is obvious, inspect `app.log` for higher-level context.
+Operational guidelines:
 
-### Useful PowerShell commands
+- Keep logs out of version control. They should be ignored via `.gitignore`.
+- Monitor disk usage in `LOGS_DIR`; adjust `LOG_MAX_BYTES` and `LOG_BACKUP_COUNT` if logs grow too quickly.
+- When changing log locations or file names:
+  - Update `.env` and `core/config.py` as needed.
+  - Confirm that `core/logger.py` still initializes correctly.
 
-From the repo root:
+Backups and auto-cleanup tools:
 
-```powershell
-# Tail a specific log
-Get-Content logs/discord.log -Wait -Tail 50
+- `backup_manager.py` and `auto_cleanup.py` participate in overall log and data maintenance.
+- Their exact behavior (retention, archive structure) should be reviewed before changing retention-related environment variables or directory layouts.
 
-# Search for a specific phrase across all logs
-Select-String -Path 'logs/*.log' -Pattern 'ERROR' | Select-Object Path, LineNumber, Line
+---
 
-# Show only ERROR/CRITICAL lines from errors.log
-Select-String -Path 'logs/errors.log' -Pattern 'ERROR|CRITICAL'
+## Best Practices
+
+### Always use component loggers
+
+Prefer `core.logger.get_component_logger("scheduler")` (or equivalent) instead of `logging.getLogger()` directly.
+
+### Log context, not secrets
+
+- Include identifiers, counts, and high-level context.
+- Never log passwords, tokens, or sensitive user content.
+
+### Log expected errors at appropriate levels
+
+- Validation failures that are handled → `INFO` or `WARNING`.
+- Unexpected exceptions → `ERROR` or `CRITICAL` (depending on impact), via the central error handling system.
+
+### Keep DEBUG focused and temporary
+
+Use `DEBUG` for detailed diagnostics; remove or tone down once issues are resolved.
+
+### Align logging with error handling
+
+Most error paths should flow through the centralized error handling decorators and helpers (see `ERROR_HANDLING_GUIDE.md`).
+
+### Respect test settings
+
+When writing tests that assert on logs, use helpers/fixtures in `tests/test_utilities.py` rather than ad-hoc file manipulation.
+
+---
+
+## Usage Examples
+
+### Basic component logger
+
+```python
+from core import logger
+
+log = logger.get_component_logger("scheduler")
+
+def schedule_next_run():
+    log.info("Scheduling next run for health reminders")
+    # ...
 ```
 
+### Logging a handled error with context
 
-## Maintenance
+```python
+from core import logger
 
-Routine tasks:
+log = logger.get_component_logger("email")
 
-- Periodically check log file sizes and rotation behavior.  
-- Ensure that `backups/` and `archive/` do not grow without bound.  
-- Run cleanup helpers (`cleanup_old_logs()`, `cleanup_old_archives()`) when needed or verify that scheduled tasks are running.  
-- Confirm that new modules use the correct component loggers rather than creating ad-hoc log files.
+def send_email(to_address, subject, body):
+    try:
+        # ... send email
+        ...
+    except Exception as exc:
+        log.error(
+            "Email send failed",
+            exc_info=True,
+            extra={"to": to_address, "subject": subject},
+        )
+        # Defer structured handling to the central error handler where appropriate
+```
 
-When making structural changes to logging:
+### Legacy compatibility example
 
-- Update the configuration and this guide.  
-- Ensure that any new component logger has a clear purpose, file path, and is integrated into rotation/archival.  
-- Update `ai_development_docs/AI_LOGGING_GUIDE.md` so AI collaborators route to the correct logs.  
+```python
+from core import logger
 
+log = logger.get_component_logger("main")
 
-## Troubleshooting
+def old_entry_point():
+    # LEGACY COMPATIBILITY: Kept for older external scripts that still call this function.
+    # TODO: Remove after all external callers have been migrated to run_mhm.py.
+    # REMOVAL PLAN:
+    # 1. Identify and notify remaining callers.
+    # 2. Provide migration guidance and timeline.
+    # 3. Remove this function and associated documentation.
+    log.warning("LEGACY COMPATIBILITY: old_entry_point; use run_mhm.py main entry instead")
+    # Delegate to new path
+    # ...
+```
 
-### Symptoms: logs not updating
-
-- Verify the `logs/` directory exists and is writable.  
-- Confirm that the relevant process is running (for example, via Task Manager or `Get-Process python`).  
-- Check for file locks or permission issues; if necessary, stop other processes that may be holding log files open.  
-- Restart the service or application and watch `errors.log` for startup issues.
-
-### Symptoms: no errors but incorrect behavior
-
-- Use `app.log` to understand the high-level flow around the time of the issue.  
-- Use the component logs to inspect detailed behavior.  
-- Cross-reference any unusual events with `errors.log` to see if subtle exceptions are being caught and logged.  
-- If necessary, temporarily increase logging detail for the relevant component (for example, enabling more DEBUG logs).
-
-### Symptoms: disk space issues
-
-- Check the size of `logs/`, `logs/backups/`, and `logs/archive/`.  
-- Run the cleanup helpers to remove old backups and archives.  
-- Ensure that rotation and archival are actually running (scheduler log, scheduler configuration).  
-- Consider tightening retention if logs grow faster than expected.  
+For a concise reference aimed at AI collaborators, see `ai_development_docs/AI_LOGGING_GUIDE.md`.
