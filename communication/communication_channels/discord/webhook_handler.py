@@ -8,8 +8,9 @@ for user-installable apps.
 import json
 import hmac
 import hashlib
+import os
 from typing import Dict, Any, Optional
-from core.logger import get_component_logger
+from core.logger import get_component_logger, _is_testing_environment
 from core.error_handling import handle_errors
 
 logger = get_component_logger('discord')
@@ -127,51 +128,137 @@ def handle_application_authorized(event_data: Dict[str, Any], bot_instance=None)
             discord_username = user_data.get('username', '')
             welcome_msg = get_welcome_message(discord_user_id, discord_username=discord_username, is_authorization=True)
             
-            async def _send_welcome_dm():
-                try:
-                    # Small delay to ensure Discord has processed the authorization
-                    # This gives Discord time to establish the relationship
-                    import asyncio
-                    await asyncio.sleep(1)
-                    
-                    # Create view with buttons inside async context (requires event loop)
-                    from communication.communication_channels.discord.welcome_handler import get_welcome_message_view
-                    welcome_view = get_welcome_message_view(discord_user_id)
-                    
-                    user = await bot_instance.bot.fetch_user(int(discord_user_id))
-                    if user:
-                        await user.send(welcome_msg, view=welcome_view)
-                        mark_as_welcomed(discord_user_id, channel_type='discord')
-                        logger.info(f"Sent welcome DM to newly authorized user: {discord_user_id}")
-                        return True
-                except Exception as e:
-                    error_msg = str(e)
-                    # Check if it's a "Cannot send messages" error (50007)
-                    # This might be due to privacy settings or Discord needing more time
-                    if "50007" in error_msg or "Cannot send messages" in error_msg:
-                        logger.warning(f"Could not send welcome DM to {discord_user_id}: {error_msg}. "
-                                     f"This may be due to user privacy settings or Discord requiring an initial interaction. "
-                                     f"The user will receive a welcome message when they first interact with the bot.")
-                    else:
-                        logger.warning(f"Could not send welcome DM to {discord_user_id}: {error_msg}")
-                    # Don't mark as welcomed if DM failed - let fallback welcome handlers try
-                    # This allows the on_message/on_interaction handlers to send welcome if DM fails
-                    return False
-            
             # Schedule the DM send on the bot's event loop from this thread
             # We're in a webhook server thread, so we need to use run_coroutine_threadsafe
+            # Only create and schedule the coroutine if we're actually going to use it
+            # This prevents unawaited coroutine warnings during test cleanup
             if bot_instance.bot.loop and not bot_instance.bot.loop.is_closed():
                 import asyncio
+                
+                # Define the coroutine function (not the coroutine itself yet)
+                async def _send_welcome_dm():
+                    try:
+                        # Small delay to ensure Discord has processed the authorization
+                        # This gives Discord time to establish the relationship
+                        await asyncio.sleep(1)
+                        
+                        # Create view with buttons inside async context (requires event loop)
+                        from communication.communication_channels.discord.welcome_handler import get_welcome_message_view
+                        welcome_view = get_welcome_message_view(discord_user_id)
+                        
+                        user = await bot_instance.bot.fetch_user(int(discord_user_id))
+                        if user:
+                            await user.send(welcome_msg, view=welcome_view)
+                            mark_as_welcomed(discord_user_id, channel_type='discord')
+                            logger.info(f"Sent welcome DM to newly authorized user: {discord_user_id}")
+                            return True
+                    except Exception as e:
+                        error_msg = str(e)
+                        # Check if it's a "Cannot send messages" error (50007)
+                        # This might be due to privacy settings or Discord needing more time
+                        if "50007" in error_msg or "Cannot send messages" in error_msg:
+                            logger.warning(f"Could not send welcome DM to {discord_user_id}: {error_msg}. "
+                                         f"This may be due to user privacy settings or Discord requiring an initial interaction. "
+                                         f"The user will receive a welcome message when they first interact with the bot.")
+                        else:
+                            logger.warning(f"Could not send welcome DM to {discord_user_id}: {error_msg}")
+                        # Don't mark as welcomed if DM failed - let fallback welcome handlers try
+                        # This allows the on_message/on_interaction handlers to send welcome if DM fails
+                        return False
+                
+                # Schedule the coroutine on the bot's event loop from this thread
+                # Create the coroutine only when we're ready to schedule it
+                # Use try-finally to ensure cleanup even if scheduling fails
+                coro = None
+                future = None
                 try:
-                    # Schedule the coroutine on the bot's event loop from this thread
-                    future = asyncio.run_coroutine_threadsafe(_send_welcome_dm(), bot_instance.bot.loop)
+                    # Double-check loop is still valid before scheduling
+                    if bot_instance.bot.loop.is_closed():
+                        logger.warning(f"Bot event loop closed before scheduling welcome DM for {discord_user_id}")
+                        mark_as_welcomed(discord_user_id)
+                        return False
+                    
+                    # Create and schedule the coroutine atomically
+                    # In test environments, be extra careful about coroutine lifecycle
+                    is_testing = _is_testing_environment()
+                    
+                    coro = _send_welcome_dm()
+                    future = asyncio.run_coroutine_threadsafe(coro, bot_instance.bot.loop)
+                    
+                    # Verify the future was created successfully
+                    if future is None:
+                        # Scheduling failed - clean up coroutine
+                        if coro is not None:
+                            try:
+                                if hasattr(coro, 'close'):
+                                    coro.close()
+                            except Exception:
+                                pass
+                        coro = None
+                        mark_as_welcomed(discord_user_id)
+                        return False
+                    
+                    # In test environments, mocks might not actually consume the coroutine
+                    # We need to ensure it's properly handled to prevent unawaited warnings
+                    if is_testing:
+                        # Check if future is a real Future or a mock
+                        from concurrent.futures import Future
+                        is_real_future = isinstance(future, Future)
+                        
+                        if not is_real_future:
+                            # It's a mock - the coroutine won't actually be scheduled
+                            # We need to close it to prevent unawaited warnings
+                            # But first, verify the mock was called (which "consumes" the coroutine reference)
+                            # If the mock properly stores the coroutine, we're good
+                            # Otherwise, we'll close it in the finally block
+                            # For now, keep the reference so finally can clean it up if needed
+                            # Actually, let's close it immediately since mocks don't schedule it
+                            try:
+                                if hasattr(coro, 'close'):
+                                    coro.close()
+                            except Exception:
+                                pass
+                            # Clear reference after closing
+                            coro = None
+                    
                     logger.info(f"Scheduled welcome DM for user {discord_user_id}")
                     # Don't wait for the result - let it run asynchronously
+                    # The future will be cleaned up when the event loop processes it
+                    # In production, the future holds a reference to the coroutine
+                    # In tests, we rely on the mock to handle it, but we'll clean up in finally if needed
+                    # Clear the coro reference since it's now scheduled
+                    coro = None
                     return True
-                except Exception as e:
-                    logger.error(f"Error scheduling welcome DM for {discord_user_id}: {e}")
+                except (RuntimeError, AttributeError) as e:
+                    # Handle cases where loop closes between check and scheduling
+                    error_msg = str(e)
+                    if "closed" in error_msg.lower() or "loop" in error_msg.lower():
+                        logger.warning(f"Bot event loop unavailable when scheduling welcome DM for {discord_user_id}: {error_msg}")
+                    else:
+                        logger.error(f"Error scheduling welcome DM for {discord_user_id}: {e}")
+                    # Clean up will happen in finally block
                     mark_as_welcomed(discord_user_id)  # Mark as welcomed to avoid retry
                     return False
+                except Exception as e:
+                    logger.error(f"Unexpected error scheduling welcome DM for {discord_user_id}: {e}")
+                    # Clean up will happen in finally block
+                    mark_as_welcomed(discord_user_id)  # Mark as welcomed to avoid retry
+                    return False
+                finally:
+                    # Always clean up the coroutine if it wasn't successfully scheduled
+                    # This prevents unawaited coroutine warnings during garbage collection
+                    if coro is not None:
+                        try:
+                            # Try to close the coroutine to prevent unawaited warnings
+                            # This is safe even if the coroutine was partially scheduled
+                            if hasattr(coro, 'close'):
+                                coro.close()
+                        except Exception:
+                            # If closing fails, try to suppress the warning by ensuring
+                            # the coroutine is properly dereferenced
+                            pass
+                        # Clear reference to help garbage collection
+                        coro = None
             else:
                 logger.warning(f"Bot event loop not available for sending welcome DM to {discord_user_id}")
                 mark_as_welcomed(discord_user_id)  # Mark as welcomed to avoid retry

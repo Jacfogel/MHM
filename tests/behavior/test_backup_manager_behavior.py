@@ -191,6 +191,11 @@ class TestBackupManagerBehavior:
     
     def test_create_backup_with_all_components_real_behavior(self):
         """Test backup creation with all components."""
+        # Ensure test user exists in the user data directory
+        # The fixture creates a test user, but we need to ensure it's in the right location
+        test_user_in_backup_dir = "test-backup-full-user"
+        TestUserFactory.create_basic_user(test_user_in_backup_dir, enable_checkins=True, enable_tasks=True, test_data_dir=self.test_data_dir)
+        
         # Apply patches for this test
         with patch.object(core.config, 'USER_INFO_DIR_PATH', self.user_data_dir), \
              patch.object(core.config, 'BASE_DATA_DIR', self.test_data_dir):
@@ -212,7 +217,9 @@ class TestBackupManagerBehavior:
             file_list = zipf.namelist()
             
             # Should contain all components
-            assert any(f.startswith('users/') for f in file_list)
+            # Note: users/ directory might be empty if no users exist, but we created one above
+            user_files = [f for f in file_list if f.startswith('users/')]
+            assert len(user_files) > 0, f"Backup should contain user files. Found: {file_list[:20]}"
             assert any(f.startswith('config/') for f in file_list)
             assert 'manifest.json' in file_list
     
@@ -410,6 +417,7 @@ class TestBackupManagerBehavior:
         assert len(errors) > 0
         assert any("not found" in error.lower() for error in errors)
     
+    @pytest.mark.no_parallel
     def test_backup_creation_and_validation_real_behavior(self):
         """Test backup creation and validation functionality."""
         # Ensure test user exists before creating backup
@@ -619,6 +627,7 @@ class TestBackupManagerBehavior:
         # Verify operation failed
         assert success is False
     
+    @pytest.mark.no_parallel
     def test_backup_manager_with_large_user_data_real_behavior(self):
         """Test backup manager with large user data."""
         # Create multiple users with substantial data

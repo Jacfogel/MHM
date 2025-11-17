@@ -136,8 +136,9 @@ For current development priorities and completed improvements, see **TODO.md** a
 If you see two service processes when using the play/debug button in VS Code or Cursor, this is due to IDE/debugger quirks, not a problem with the project code. For the most reliable experience, run the app from a terminal with your virtual environment activated.
 
 #### **"Command not found" Errors**
-- **Solution**: Make sure your virtual environment is activated. You should see `(venv)` at the beginning of your command prompt.
-- **Fix**: Run `venv\Scripts\activate` (Windows) or `source venv/bin/activate` (macOS/Linux)
+- **Solution**: Make sure your virtual environment is activated. You should see `(.venv)` at the beginning of your command prompt.
+- **Fix (Windows, PowerShell)**: Run `.\.venv\Scripts\Activate.ps1`
+- **Fix (macOS/Linux, bash/zsh)**: Run `source .venv/bin/activate`
 
 #### **Import Errors**
 - **Solution**: Try reinstalling dependencies in your virtual environment

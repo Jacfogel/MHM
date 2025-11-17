@@ -10,42 +10,271 @@ import subprocess
 import argparse
 import os
 import time
-from pathlib import Path
+import xml.etree.ElementTree as ET
+from typing import Dict, Optional, Tuple
 
-def run_command(cmd, description, progress_interval: int = 30):
-    """Run a command and return success status with periodic progress logs."""
-    print(f"\n{'='*60}")
-    print(f"Running: {description}")
-    print(f"Command: {' '.join(cmd)}")
-    print(f"{'='*60}")
+# Simple ANSI color codes for terminal output (works in modern PowerShell)
+# Enable ANSI color support in Windows
+if sys.platform == 'win32':
+    import ctypes
+    kernel32 = ctypes.windll.kernel32
+    kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)  # Enable ANSI escape sequences
+
+GREEN = '\033[32m'
+RED = '\033[31m'
+YELLOW = '\033[33m'
+RESET = '\033[0m'
+
+def parse_junit_xml(xml_path: str) -> Dict[str, int]:
+    """
+    Parse JUnit XML report to extract test statistics.
+    
+    Returns a dictionary with: passed, failed, skipped, warnings, errors, total
+    """
+    results = {
+        'passed': 0,
+        'failed': 0,
+        'skipped': 0,
+        'warnings': 0,
+        'errors': 0,
+        'total': 0
+    }
+    
+    if not os.path.exists(xml_path):
+        return results
+    
+    try:
+        tree = ET.parse(xml_path)
+        root = tree.getroot()
+        
+        # JUnit XML structure: <testsuites> contains <testsuite> elements
+        # Each testsuite has attributes: tests, failures, errors, skipped
+        for testsuite in root.findall('.//testsuite'):
+            tests = int(testsuite.get('tests', 0))
+            failures = int(testsuite.get('failures', 0))
+            errors = int(testsuite.get('errors', 0))
+            skipped = int(testsuite.get('skipped', 0))
+            
+            results['total'] += tests
+            results['failed'] += failures
+            results['errors'] += errors
+            results['skipped'] += skipped
+            results['passed'] += (tests - failures - errors - skipped)
+        
+        # If no testsuites found, try direct attributes on root
+        if results['total'] == 0:
+            results['total'] = int(root.get('tests', 0))
+            results['failed'] = int(root.get('failures', 0))
+            results['errors'] = int(root.get('errors', 0))
+            results['skipped'] = int(root.get('skipped', 0))
+            results['passed'] = results['total'] - results['failed'] - results['errors'] - results['skipped']
+    except Exception:
+        # If parsing fails, return empty results
+        pass
+    
+    return results
+
+def run_command(cmd, description, progress_interval: int = 30, capture_output: bool = True):
+    """
+    Run a command and return results with periodic progress logs.
+    
+    Args:
+        cmd: Command to run
+        description: Description for progress messages
+        progress_interval: Seconds between progress updates
+        capture_output: If True, capture results via JUnit XML (always True in practice)
+    
+    Returns:
+        dict with 'success', 'output', 'results', 'duration', 'warnings', 'failures' keys
+    """
+    print(f"\nRunning: {description}...")
 
     start_time = time.time()
+    
     try:
-        process = subprocess.Popen(cmd)
-        next_tick = start_time + max(1, progress_interval)
-        # Periodic progress output
-        while True:
-            ret = process.poll()
-            now = time.time()
-            if now >= next_tick:
-                elapsed = int(now - start_time)
-                print(f"[PROGRESS] {description} running for {elapsed}s...")
-                next_tick += max(1, progress_interval)
-            if ret is not None:
-                break
-            time.sleep(0.5)
-
-        total = int(time.time() - start_time)
-        if process.returncode == 0:
-            print(f"\n[SUCCESS] {description} completed successfully in {total}s")
-            return True
-        else:
-            print(f"\n[FAILED] {description} failed with exit code {process.returncode} after {total}s")
-            return False
+        # To preserve pytest's colors, let it write directly to the terminal (no pipe)
+        # Use JUnit XML report to get structured results without capturing output
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False, encoding='utf-8', suffix='.xml') as tmp_file:
+            junit_xml_path = tmp_file.name
+        
+        try:
+            # Generate JUnit XML report for parsing (doesn't affect colors)
+            cmd_with_junit = cmd + ['--junit-xml', junit_xml_path]
+            
+            # Let pytest write directly to terminal - this preserves ALL colors
+            process = subprocess.Popen(
+                cmd_with_junit,
+                stdout=None,  # Direct to terminal - preserves colors!
+                stderr=None   # Direct to terminal - preserves colors!
+            )
+            
+            # Monitor progress while process runs
+            next_tick = start_time + max(1, progress_interval)
+            while process.poll() is None:
+                now = time.time()
+                if now >= next_tick:
+                    elapsed = int(now - start_time)
+                    print(f"[PROGRESS] {description} running for {elapsed}s...")
+                    next_tick += max(1, progress_interval)
+                time.sleep(0.5)
+            
+            # Wait for process to complete
+            process.wait()
+            
+            # Parse results from JUnit XML (preserves colors in terminal output)
+            results = parse_junit_xml(junit_xml_path)
+            
+            # We can't extract warnings/failures details without capturing output
+            warnings = ''
+            failures = ''
+            output = ''
+            
+            duration = int(time.time() - start_time)
+            
+            # Print status message
+            if process.returncode == 0:
+                print(f"\n{GREEN}[SUCCESS]{RESET} {description} completed successfully in {duration}s")
+            else:
+                print(f"\n{RED}[FAILED]{RESET} {description} failed with exit code {process.returncode} after {duration}s")
+            
+            # Return dict with all information
+            return {
+                'success': process.returncode == 0,
+                'output': output,
+                'results': results,
+                'duration': duration,
+                'warnings': warnings,
+                'failures': failures
+            }
+        finally:
+            # Clean up temp file
+            try:
+                if os.path.exists(junit_xml_path):
+                    os.unlink(junit_xml_path)
+            except:
+                pass
     except Exception as e:
         total = int(time.time() - start_time)
-        print(f"\n[FAILED] {description} error after {total}s: {e}")
-        return False
+        return {
+            'success': False,
+            'output': '',
+            'results': {},
+            'duration': total,
+            'warnings': '',
+            'failures': ''
+        }
+
+def print_combined_summary(parallel_results: Optional[Dict], no_parallel_results: Optional[Dict], description: str):
+    """
+    Print a combined summary of test results from both parallel and serial runs.
+    
+    Args:
+        parallel_results: Results dict from parallel test run (or None if not run)
+        no_parallel_results: Results dict from serial test run (or None if not run)
+        description: Test mode description
+    """
+    # Extract results from both runs
+    parallel_res = parallel_results.get('results', {}) if parallel_results and isinstance(parallel_results, dict) else {}
+    no_parallel_res = no_parallel_results.get('results', {}) if no_parallel_results and isinstance(no_parallel_results, dict) else {}
+    
+    # Combine results
+    combined = {
+        'passed': parallel_res.get('passed', 0) + no_parallel_res.get('passed', 0),
+        'failed': parallel_res.get('failed', 0) + no_parallel_res.get('failed', 0),
+        'skipped': parallel_res.get('skipped', 0) + no_parallel_res.get('skipped', 0),
+        'warnings': parallel_res.get('warnings', 0) + no_parallel_res.get('warnings', 0),
+        'errors': parallel_res.get('errors', 0) + no_parallel_res.get('errors', 0),
+    }
+    combined['total'] = combined['passed'] + combined['failed'] + combined['skipped'] + combined['errors']
+    
+    # Calculate total duration
+    parallel_duration = parallel_results.get('duration', 0) if parallel_results and isinstance(parallel_results, dict) else 0
+    no_parallel_duration = no_parallel_results.get('duration', 0) if no_parallel_results and isinstance(no_parallel_results, dict) else 0
+    total_duration = parallel_duration + no_parallel_duration
+    
+    # Collect all warnings and failures
+    all_warnings = []
+    all_failures = []
+    
+    if parallel_results and isinstance(parallel_results, dict):
+        if parallel_results.get('warnings'):
+            all_warnings.append(('Parallel Tests', parallel_results['warnings']))
+        if parallel_results.get('failures'):
+            all_failures.append(('Parallel Tests', parallel_results['failures']))
+    
+    if no_parallel_results and isinstance(no_parallel_results, dict):
+        if no_parallel_results.get('warnings'):
+            all_warnings.append(('Serial Tests', no_parallel_results['warnings']))
+        if no_parallel_results.get('failures'):
+            all_failures.append(('Serial Tests', no_parallel_results['failures']))
+    
+    # Print combined summary
+    print(f"\n{'='*80}")
+    print(f"COMBINED TEST RESULTS SUMMARY")
+    print(f"{'='*80}")
+    print(f"Mode: {description}")
+    print(f"\nTest Statistics:")
+    print(f"  Total Tests:  {combined['total']}")
+    print(f"  Passed:       {combined['passed']}")
+    print(f"  Failed:       {combined['failed']}")
+    print(f"  Skipped:      {combined['skipped']}")
+    print(f"  Warnings:     {combined['warnings']}")
+    
+    # Show breakdown if we ran tests in two phases (parallel + serial)
+    if no_parallel_results and isinstance(no_parallel_results, dict):
+        print(f"\nBreakdown:")
+        p_passed = parallel_res.get('passed', 0)
+        p_failed = parallel_res.get('failed', 0)
+        p_skipped = parallel_res.get('skipped', 0)
+        p_warnings = parallel_res.get('warnings', 0)
+        s_passed = no_parallel_res.get('passed', 0)
+        s_failed = no_parallel_res.get('failed', 0)
+        s_skipped = no_parallel_res.get('skipped', 0)
+        s_warnings = no_parallel_res.get('warnings', 0)
+        
+        print(f"  Parallel Tests:    {p_passed} passed, {p_failed} failed, {p_skipped} skipped, {p_warnings} warnings ({parallel_duration}s)")
+        print(f"  Serial Tests:      {s_passed} passed, {s_failed} failed, {s_skipped} skipped, {s_warnings} warnings ({no_parallel_duration}s)")
+        
+        print(f"\nTotal Duration: {total_duration}s")
+    elif parallel_duration > 0:
+        # Single run (--no-parallel was used)
+        print(f"\nDuration: {parallel_duration}s")
+    
+    # Show failures details
+    if all_failures:
+        print(f"\nFAILURES:")
+        for source, failure_text in all_failures:
+            if failure_text:
+                print(f"\nFrom {source}:")
+                print(failure_text)
+    
+    # Show warnings details
+    if all_warnings:
+        print(f"\nWARNINGS:")
+        for source, warning_text in all_warnings:
+            if warning_text:
+                print(f"\nFrom {source}:")
+                print(warning_text)
+    
+    # Final summary line in pytest format
+    print()
+    summary_parts = []
+    if combined['failed'] > 0:
+        summary_parts.append(f"{RED}{combined['failed']} failed{RESET}")
+    if combined['passed'] > 0:
+        summary_parts.append(f"{GREEN}{combined['passed']} passed{RESET}")
+    if combined['skipped'] > 0:
+        summary_parts.append(f"{YELLOW}{combined['skipped']} skipped{RESET}")
+    if combined['warnings'] > 0:
+        summary_parts.append(f"{YELLOW}{combined['warnings']} warnings{RESET}")
+    
+    summary_text = ", ".join(summary_parts)
+    duration_str = f"{total_duration:.2f}" if total_duration > 0 else "0.00"
+    # Match requested format: =============== X failed, Y passed, Z skipped, W warnings in ##.## seconds ===============
+    summary_line = f"{'='*15} {summary_text} in {duration_str} seconds {'='*15}"
+    print(summary_line)
+    print()
 
 def print_test_mode_info():
     """Print helpful information about test modes."""
@@ -302,11 +531,19 @@ def main():
     if args.random_order:
         print(f"Test Order: Random (burn-in validation)")
     
+    print(f"\nPytest Configuration:")
+    print(f"  Platform: {sys.platform}")
+    print(f"  Python: {sys.version.split()[0]}")
+    if not args.random_order and not has_seed:
+        print(f"  Random Seed: 12345 (fixed for reproducibility)")
+    
     # Run the tests
-    success = run_command(cmd, description, progress_interval=args.progress_interval)
+    parallel_results = run_command(cmd, description, progress_interval=args.progress_interval)
+    success = parallel_results['success']
     
     # If parallel execution was enabled, also run no_parallel tests separately in serial mode
-    if success and not args.no_parallel:
+    no_parallel_results = None
+    if not args.no_parallel:
         # Create a separate command for no_parallel tests (serial execution)
         no_parallel_cmd = [sys.executable, "-m", "pytest"]
         
@@ -348,17 +585,24 @@ def main():
             no_parallel_cmd.extend(["--randomly-seed=12345"])
         
         print(f"\n[NO_PARALLEL] Running tests marked with @pytest.mark.no_parallel in serial mode...")
-        no_parallel_success = run_command(no_parallel_cmd, "No-Parallel Tests (Serial)", progress_interval=args.progress_interval)
+        no_parallel_results = run_command(no_parallel_cmd, "No-Parallel Tests (Serial)", progress_interval=args.progress_interval)
+        no_parallel_success = no_parallel_results['success']
         
         if not no_parallel_success:
             success = False
     
+    # Print combined summary (always show, even if tests failed)
+    # Handle case where parallel_results might be a bool (backward compatibility)
+    if not isinstance(parallel_results, dict):
+        # Convert bool to dict format for summary
+        parallel_results = {'success': parallel_results, 'results': {}, 'duration': 0, 'output': ''}
+    print_combined_summary(parallel_results, no_parallel_results, description)
+    
+    # Final status message (summary already printed above)
     if success:
-        print(f"\n[PASSED] {description} passed!")
         return 0
     else:
-        print(f"\n[FAILED] {description} failed!")
         return 1
 
 if __name__ == "__main__":
-    sys.exit(main()) 
+    sys.exit(main())

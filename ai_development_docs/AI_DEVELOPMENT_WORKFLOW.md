@@ -9,24 +9,27 @@ For more detailed guidance, examples, and rationale for any topic in this file, 
 
 ## Quick Reference
 
-Use this file for patterns on how to plan, implement, test, and document changes.
+Use this to decide what to do next and which docs to open.
 
-When you need more detail on a specific area:
-
-- Testing and parallel execution: `AI_TESTING_GUIDE.md`
-- Documentation rules and sync: `AI_DOCUMENTATION_GUIDE.md`
-- Architecture and module layout: `AI_ARCHITECTURE.md`
-- Logging: `AI_LOGGING_GUIDE.md`
-- Error handling: `AI_ERROR_HANDLING_GUIDE.md`
+- Project overview  
+  - `README.md`
+- Environment setup and running the app  
+  - "Environment Setup" and "Quick Start (Recommended)" in `HOW_TO_RUN.md`
+- Testing  
+  - `ai_development_docs/AI_TESTING_GUIDE.md` → `tests/TESTING_GUIDE.md`
+- Documentation  
+  - `ai_development_docs/AI_DOCUMENTATION_GUIDE.md` → `DOCUMENTATION_GUIDE.md`
+- Architecture  
+  - `ai_development_docs/AI_ARCHITECTURE.md` → `ARCHITECTURE.md`
 
 Core safety and quality rules:
 
-- Work inside `(venv)` before running Python or tests.  
+- Work inside `(.venv)` before running Python or tests.  
 - Use `core.user_data_handlers.get_user_data()` and related helpers for user data; do not add new direct file-access wrappers.  
 - Prefer module imports plus explicit usage (for example, `import core.utils` then `core.utils.validate_and_format_time()`).  
 - Test incrementally after each meaningful change; route to `AI_TESTING_GUIDE.md` for patterns.  
 - Record changes in `development_docs/CHANGELOG_DETAIL.md` and summarize them in `ai_development_docs/AI_CHANGELOG.md`.  
-- Follow documentation rules in `AI_DOCUMENTATION_GUIDE.md` when editing docs.
+- Follow documentation rules in `AI_DOCUMENTATION_GUIDE.md` / `DOCUMENTATION_GUIDE.md` when editing docs.
 
 
 ## Safety First
@@ -35,7 +38,7 @@ Minimal rules for safe changes:
 
 - Assume real user data and real machines; avoid destructive actions.  
 - Treat scheduling, user data, and communication channels as high-risk areas; prefer small, reversible changes.  
-- Stay inside `(venv)` and avoid global package installs.  
+- Stay inside `(.venv)` and avoid global package installs.  
 - Encourage backups and frequent commits before broad edits or refactors.  
 - When something looks risky or confusing:
   - Suggest pausing, capturing a short summary (what changed / what broke / what was expected),  
@@ -46,14 +49,26 @@ Minimal rules for safe changes:
 
 Key patterns for environment handling:
 
-- Create venv once: `python -m venv venv`.  
-- Activate in each session: `venv\\Scripts\\activate`.  
+- Create .venv once: `python -m .venv .venv`.  
+- Activate in each session: `.venv\\Scripts\\activate`.  
 - Install dependencies: `pip install -r requirements.txt`.  
-- If imports fail after a pull, suggest: `pip install -r requirements.txt --force-reinstall` inside `(venv)`.  
+- If imports fail after a pull, suggest: `pip install -r requirements.txt --force-reinstall` inside `(.venv)`.  
 - Keep changes to dependencies reflected in `requirements.txt`; avoid global installs.
 
 For step-by-step instructions, combine this with "Environment Setup" in `HOW_TO_RUN.md` and the environment section of `DEVELOPMENT_WORKFLOW.md` when needed.
 
+
+
+### Configuration and .env
+
+- Configuration is driven by environment variables loaded from a `.env` file via `config.py` (python-dotenv).
+- Use `.env.example` as a template: copy it to `.env` and fill in tokens, credentials, and any overrides you need.
+- Key groups of settings:
+  - Core paths and data roots: `BASE_DATA_DIR`, `USER_INFO_DIR_PATH`, `DEFAULT_MESSAGES_DIR_PATH`.
+  - Logging: `LOGS_DIR`, component log files, and rotation settings.
+  - Channels: `EMAIL_*`, `DISCORD_BOT_TOKEN`, and related flags.
+  - AI / LM Studio: `LM_STUDIO_*`, `AI_*` timeouts and temperature values.
+- For automated checks and reports, prefer the `config` command in `ai_development_tools/ai_tools_runner.py` (see `ai_development_tools/README.md`).
 
 ## Development Process
 
@@ -71,7 +86,7 @@ Use this high-level loop when reasoning about changes or suggesting steps.
 - Recommend small, reversible slices rather than large rewrites.  
 - Encourage use of existing helpers and patterns:
   - Data: `core.user_data_handlers.get_user_data()` and related functions.  
-  - Logging / errors: follow `AI_LOGGING_GUIDE.md` and `AI_ERROR_HANDLING_GUIDE.md`.  
+  - Logging / errors: follow `LOGGING_GUIDE.md` and `ERROR_HANDLING_GUIDE.md`.  
 - Avoid suggesting new thin wrappers or deep, fragile imports.
 
 ### Step 3: Test

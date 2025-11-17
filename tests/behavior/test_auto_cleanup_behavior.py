@@ -293,6 +293,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
+    @pytest.mark.no_parallel
     def test_calculate_cache_size_large_cache_scenario_real_behavior(self, temp_test_dir):
         """REAL BEHAVIOR TEST: Test calculating cache size with large number of files."""
         # ✅ VERIFY REAL BEHAVIOR: Create many cache files to simulate large cache

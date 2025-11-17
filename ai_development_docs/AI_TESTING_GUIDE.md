@@ -14,8 +14,8 @@ Use this section to decide how to run tests or where to look next.
 - Run all tests (parallel by default):  
   - `python run_tests.py`
 - Run by type:  
-  - Unit: `python run_tests.py --type unit`  
-  - Integration: `python run_tests.py --type integration`
+  - Unit: `python run_tests.py --mode unit`  
+  - Integration: `python run_tests.py --mode integration`
 - Disable parallel execution:  
   - `python run_tests.py --no-parallel`
 - Run with coverage:  
@@ -69,6 +69,7 @@ Key points:
 
 - Shared fixtures and hooks: `tests/conftest.py`.  
 - Helpers for fixtures, fake data, and shared assertions: `tests/test_utilities.py`.  
+- For Windows Task Scheduler and system-call isolation, use helpers in `tests/test_isolation.py` (for example, `IsolationManager` and related functions).  
 - Use test data and temp paths under `tests/data/`; tests must not leave artefacts outside `tests/`.  
 - On Windows, tests must not create real scheduled tasks:
   - Always mock scheduler integrations (for example, `scheduler_manager.set_wake_timer`).  
@@ -83,8 +84,8 @@ Preferred approach (safe defaults):
 
 - Use `run_tests.py` for most tasks:
   - `python run_tests.py` (parallel, all tests)  
-  - `python run_tests.py --type unit`  
-  - `python run_tests.py --type integration`  
+  - `python run_tests.py --mode unit`  
+  - `python run_tests.py --mode integration`  
   - `python run_tests.py --coverage`  
   - `python run_tests.py --no-parallel` when debugging or working with shared resources.
 
@@ -197,4 +198,3 @@ High-level AI guidance:
 - Reduce `flaky`, `known_issue`, and `manual` tests by improving automation.  
 - Keep tests parallel-safe where possible and use `no_parallel` only when necessary.  
 - Align testing improvements with `AI_DEVELOPMENT_WORKFLOW.md` and `PROJECT_VISION.md`.
-

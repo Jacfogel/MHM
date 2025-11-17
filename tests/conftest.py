@@ -2691,6 +2691,24 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "channels: mark test as communication channel functionality"
     )
+    config.addinivalue_line(
+        "markers", "discord: mark test as requiring Discord integration"
+    )
+    config.addinivalue_line(
+        "markers", "reminders: mark test as reminder functionality"
+    )
+    config.addinivalue_line(
+        "markers", "scheduler: mark test as scheduler functionality"
+    )
+    config.addinivalue_line(
+        "markers", "bug: mark test as specific bug fixes"
+    )
+    config.addinivalue_line(
+        "markers", "error_handling: mark test as error handling scenarios"
+    )
+    config.addinivalue_line(
+        "markers", "edge_cases: mark test as edge case scenarios"
+    )
     
     # Test quality markers
     config.addinivalue_line(

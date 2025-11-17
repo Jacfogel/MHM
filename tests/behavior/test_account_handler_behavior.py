@@ -242,6 +242,7 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_handle_create_account_with_existing_username(self, test_data_dir):
         """Test: Create account with existing username rejects."""
         handler = AccountManagementHandler()
@@ -266,6 +267,7 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_handle_check_account_status_with_existing_user(self, test_data_dir):
         """Test: Check account status returns account info for existing user."""
         handler = AccountManagementHandler()
@@ -274,7 +276,20 @@ class TestAccountHandlerBehavior:
         discord_user_id = "222333444555666777"
         TestUserFactory.create_discord_user(discord_user_id, test_data_dir=test_data_dir)
         
-        internal_user_id = get_user_id_by_identifier(discord_user_id)
+        # Ensure user index is updated (race condition fix)
+        from core.user_data_manager import rebuild_user_index
+        rebuild_user_index()
+        
+        # Retry lookup in case of race conditions
+        import time
+        internal_user_id = None
+        for attempt in range(5):
+            internal_user_id = get_user_id_by_identifier(discord_user_id)
+            if internal_user_id:
+                break
+            if attempt < 4:
+                time.sleep(0.1)
+        
         assert internal_user_id is not None, "User should exist"
         
         parsed_command = ParsedCommand(
@@ -366,6 +381,7 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_handle_link_account_sends_confirmation_code(self, test_data_dir):
         """Test: Link account sends confirmation code for valid username."""
         handler = AccountManagementHandler()
@@ -411,6 +427,7 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_handle_link_account_verifies_confirmation_code(self, test_data_dir):
         """Test: Link account verifies confirmation code and links account."""
         handler = AccountManagementHandler()
@@ -504,6 +521,7 @@ class TestAccountHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
+    @pytest.mark.no_parallel
     def test_username_exists_checks_existing_username(self, test_data_dir):
         """Test: Username exists check finds existing username."""
         handler = AccountManagementHandler()
@@ -623,6 +641,7 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_handle_link_account_with_email_channel(self, test_data_dir):
         """Test: Link account works with email channel type."""
         handler = AccountManagementHandler()
@@ -662,6 +681,7 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_handle_link_account_with_already_linked_discord(self, test_data_dir):
         """Test: Link account rejects when Discord account already linked to different user."""
         handler = AccountManagementHandler()
@@ -707,6 +727,7 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_handle_link_account_with_already_linked_email(self, test_data_dir):
         """Test: Link account rejects when email already linked to different user."""
         handler = AccountManagementHandler()
@@ -741,6 +762,7 @@ class TestAccountHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_handle_link_account_with_invalid_pending_operation(self, test_data_dir):
         """Test: Link account rejects when pending operation doesn't match."""
         handler = AccountManagementHandler()

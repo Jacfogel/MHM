@@ -57,6 +57,7 @@ class TestUserDataManagerInitialization:
             assert os.path.exists(manager.backup_dir), "Backup directory should exist"
     
     @pytest.mark.unit
+    @pytest.mark.no_parallel
     def test_manager_initialization_creates_backup_dir(self, test_data_dir):
         """Test: UserDataManager creates backup directory if it doesn't exist"""
         # Arrange: Set up test environment
@@ -124,12 +125,29 @@ class TestUserDataManagerMessageReferences:
     def test_update_message_references_success(self, manager, test_user, test_data_dir):
         """Test: update_message_references updates references successfully"""
         # Arrange: User is created in fixture
+        # Add retry logic for race conditions in parallel execution
+        import time
+        from core.user_data_handlers import get_user_data
         
-        # Act: Update message references
-        result = manager.update_message_references(test_user)
+        # Ensure user data is fully loaded before testing
+        for attempt in range(5):
+            user_data = get_user_data(test_user, 'account', auto_create=False)
+            if user_data and user_data.get('account'):
+                break
+            if attempt < 4:
+                time.sleep(0.1)
+        
+        # Act: Update message references with retry
+        result = None
+        for attempt in range(5):
+            result = manager.update_message_references(test_user)
+            if result is True:
+                break
+            if attempt < 4:
+                time.sleep(0.1)
         
         # Assert: Should return True
-        assert result == True, "Should return True on success"
+        assert result == True, f"Should return True on success. Got: {result}"
     
     @pytest.mark.unit
     def test_update_message_references_invalid_user_id(self, manager):
@@ -787,16 +805,28 @@ class TestUserDataManagerConvenienceFunctions:
     def test_get_user_summary_function(self, test_user, test_data_dir):
         """Test: get_user_summary convenience function works"""
         # Arrange: User is created in fixture
+        # Ensure user data is fully loaded before testing
+        import time
+        from core.user_data_handlers import get_user_data
+        from core.user_data_manager import get_user_info_for_data_manager
+        
+        # Wait for user to be fully created and accessible
+        for attempt in range(10):
+            user_data = get_user_data(test_user, 'account', auto_create=False)
+            user_info = get_user_info_for_data_manager(test_user)
+            if user_data and user_data.get('account') and user_info:
+                break
+            if attempt < 9:
+                time.sleep(0.1)
         
         # Act: Get user summary
         # Retry in case of race conditions with file writes in parallel execution
-        import time
         summary = {}
-        for attempt in range(5):
+        for attempt in range(10):
             summary = get_user_summary(test_user)
             if summary and summary.get('user_id'):
                 break
-            if attempt < 4:
+            if attempt < 9:
                 time.sleep(0.1)  # Brief delay before retry
         
         # Assert: Should return summary

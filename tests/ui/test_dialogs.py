@@ -142,6 +142,7 @@ def test_generated_files_exist():
 @pytest.mark.critical
 @pytest.mark.regression
 @pytest.mark.slow
+@pytest.mark.no_parallel
 def test_user_data_access(test_data_dir, mock_config, mock_user_data):
     """Test that we can access user data for testing - READ ONLY"""
     logger = logging.getLogger("mhm_tests")

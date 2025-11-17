@@ -510,6 +510,7 @@ class TestAccountLifecycle:
     @pytest.mark.regression
     @pytest.mark.slow
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_reenable_tasks_for_user(self):
         """Test re-enabling tasks for a user who previously had them disabled."""
         from core.user_data_handlers import save_user_data, get_user_data

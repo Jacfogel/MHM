@@ -67,6 +67,7 @@ class TestUserCreationScenarios:
     @pytest.mark.critical
     @pytest.mark.regression
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_discord_user_creation(self, test_data_dir, mock_config):
         """Test creating a Discord user with full features enabled."""
         user_id = 'test-discord-user'
@@ -343,6 +344,7 @@ class TestUserCreationIntegration:
     """Test integration scenarios for user creation."""
     
     @pytest.mark.integration
+    @pytest.mark.no_parallel
     def test_full_user_lifecycle(self, test_data_dir, mock_config):
         """Test complete user lifecycle: create, update, delete."""
         user_id = 'test-lifecycle-new'
@@ -474,6 +476,7 @@ class TestUserCreationIntegration:
         assert 'Testing' in final_context['context']['interests']
     
     @pytest.mark.integration
+    @pytest.mark.no_parallel
     def test_multiple_users_same_channel(self, test_data_dir, mock_config):
         """Test creating multiple users with the same channel type."""
         users = [

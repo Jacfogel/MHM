@@ -275,10 +275,10 @@ When you are done editing:
 
 Several automation tools support documentation and sync:
 
-- `python ai_development_tools/ai_tools_runner.py docs-sync`  
+- `python ai_development_tools/ai_tools_runner.py doc-sync`  
   Scans for mismatched headings and path drift in documentation.
 
-- `python ai_development_tools/ai_tools_runner.py legacy-cleanup`  
+- `python ai_development_tools/ai_tools_runner.py legacy`  
   Analyses references and code paths for deprecated or stale usage.
 
 - `python ai_development_tools/ai_tools_runner.py version-sync`  
@@ -370,6 +370,21 @@ Common generated files include:
 
 For a full and current list, refer to generated file headers and the `ai_development_tools/README.md` documentation.
 
+### Automation commands for generated docs
+
+Use `ai_development_tools/ai_tools_runner.py` for documentation-related automation (for example, sync checks and report generation), instead of editing generated files by hand.
+
+Typical documentation-related commands include:
+
+- `docs` – regenerate documentation artifacts and reports  
+- `doc-sync` – check documentation synchronisation and paired headings  
+- `coverage` – regenerate coverage metrics that feed into documentation planning  
+- `legacy` – scan for legacy references that may require documentation updates  
+- `unused-imports` – detect unused imports and generate reports under `development_docs/`  
+- `trees` – generate directory tree reports that can be referenced from documentation  
+- `status` – print a quick system status summary that can inform high-level docs
+
+The definitive list of commands and their semantics lives in `ai_development_tools/README.md` and `ai_development_tools/operations.py`. Do not duplicate that full reference here; treat this guide as a routing layer and use the README as the source of truth for command behavior.
 
 ## Resources
 

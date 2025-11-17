@@ -102,7 +102,7 @@ Treat these as synchronized pairs:
 
 - Before editing a paired doc, check if it has a counterpart and open both.  
 - Prefer updating the detailed doc first, then adjust the AI doc to match.  
-- After edits, run `python ai_development_tools/ai_tools_runner.py docs-sync` if available and fix any mismatches.
+- After edits, run `python ai_development_tools/ai_tools_runner.py doc-sync` if available and fix any mismatches.
 
 
 ## Maintenance Guidelines
@@ -126,6 +126,24 @@ AI view of generated docs.
 
 For generator usage and tooling details, see `ai_development_tools/README.md`.
 
+
+For documentation automation (sync checks, reports, analysis), call:
+
+```bash
+python ai_development_tools/ai_tools_runner.py <command>
+```
+
+and rely on `ai_development_tools/README.md` for command descriptions and options.
+
+Typical documentation-related commands to suggest (without redefining them here):
+
+- `docs`  
+- `doc-sync`  
+- `coverage`  
+- `legacy`  
+- `unused-imports`  
+- `trees`  
+- `status`  
 
 ## Resources
 

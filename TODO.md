@@ -52,6 +52,15 @@ When adding new tasks, follow this format:
     - [ ] Replace remaining 103 basic try-except blocks with @handle_errors decorator
     - [ ] Improve error handling quality from basic to excellent
 
+**Investigate and Update Direct Uses of error_handler.handle_error**
+- *What it means*: Investigate and probably update any direct use of `error_handler.handle_error(e, context, "operation")` throughout the codebase
+- *Why it helps*: Ensures consistent error handling patterns and may identify opportunities to use centralized error handling decorators or helpers instead
+- *Estimated effort*: Small/Medium
+- *Areas to investigate*:
+  - Review all direct calls to `error_handler.handle_error()` (found in `core/error_handling.py` and test files)
+  - Determine if these should use `@handle_errors` decorator or other centralized error handling patterns
+  - Update direct calls to use preferred error handling approach where appropriate
+
 **Phase 1: Enhanced Task & Check-in Systems** ?? **In Progress**
 - *What it means*: Implement priority-based task reminders, semi-random check-ins, and response analysis to align with project vision
 - *Why it helps*: Provides immediate improvements to core functionality that directly supports user's executive functioning needs

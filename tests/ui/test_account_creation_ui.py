@@ -675,6 +675,7 @@ class TestAccountCreationErrorHandling:
     """Test error handling in account creation and management."""
     
     @pytest.mark.ui
+    @pytest.mark.no_parallel
     def test_duplicate_username_handling_real_behavior(self, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test handling of duplicate usernames using enhanced test utilities."""
         # Create first user using enhanced centralized utilities
@@ -734,6 +735,7 @@ class TestAccountCreationErrorHandling:
         assert loaded_data_1['account']['internal_username'] != loaded_data_2['account']['internal_username']
     
     @pytest.mark.ui
+    @pytest.mark.no_parallel
     def test_invalid_data_handling_real_behavior(self, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test handling of invalid data during account creation."""
         user_id = 'test-invalid-data'
@@ -1637,6 +1639,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
+    @pytest.mark.no_parallel
     def test_create_account_persists_feature_flags(self, dialog, test_data_dir):
         """Test that create_account persists feature flags correctly."""
         from core.user_data_handlers import get_user_data

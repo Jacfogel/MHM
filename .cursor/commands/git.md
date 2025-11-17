@@ -10,7 +10,7 @@ Stage, commit, and push changes safely.
    ```powershell
    git status
    ```
-2. Stage intended files:
+2. Stage intended files (default to all files):
    ```powershell
    git add <paths>
    ```

@@ -1,189 +1,71 @@
 # Exception Handling Guide - MHM System
 
-
-> **File**: `core/ERROR_HANDLING_GUIDE.md`
+> **File**: `core/ERROR_HANDLING_GUIDE.md`  
 > **Audience**: Developers, AI collaborators, and maintainers  
-> **Purpose**: Comprehensive guide to the MHM exception handling system  
+> **Purpose**: Describe the centralized error handling architecture, patterns, and best practices for the MHM system  
 > **Style**: Technical, comprehensive, actionable  
-> **Status**: **ACTIVE** - Always follow these patterns
+> **Status**: ACTIVE – follow these patterns for all new code
 
-> **See [README.md](../README.md) for complete navigation and project overview**  
-> **See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) for safe development practices**  
-> **See [QUICK_REFERENCE.md](../QUICK_REFERENCE.md) for essential commands**
 
-## 🚀 Quick Reference
+## Quick Reference
 
-### **Error Handling Patterns**
-- **Use centralized error handling**: `core/error_handling.py`
-- **Follow exception hierarchy**: `MHMError` → specific exceptions
-- **Implement recovery strategies**: Automatic retry mechanisms
-- **Log errors properly**: Use structured logging with context
+Use this section when you need a fast reminder of how errors should be handled.
 
-### **Common Error Types**
-- **Configuration Errors**: Invalid settings or missing files
-- **Data Errors**: Corrupted or invalid user data
-- **Communication Errors**: Discord/email failures
-- **UI Errors**: Interface failures and user input issues
+Core rules:
 
-### **Error Handling Coverage Analysis**
-- **Audit Integration**: Error handling coverage is automatically analyzed during audits
-- **Coverage Metrics**: Tracks error handling patterns, quality, and missing coverage
-- **Quality Assessment**: Rates error handling from "none" to "excellent" based on patterns used
-- **Actionable Recommendations**: Provides specific guidance for improving error handling coverage
+- Use the centralized decorator `@handle_errors` for most public functions and UI/event handlers.  
+- Raise structured custom exceptions derived from `MHMError` (not ad-hoc `Exception`).  
+- Do not silently swallow exceptions; either handle them meaningfully or let them be managed by a higher-level handler.  
+- Use safe defaults via `default_return` in `@handle_errors` only when there is a clear, documented fallback.  
+- Log errors once at the appropriate layer; avoid duplicate logs for the same failure.  
+- Map low-level library or OS exceptions into meaningful domain errors (`DataError`, `FileOperationError`, `ConfigurationError`, `CommunicationError`, `SchedulerError`, `UserInterfaceError`, `AIError`, `ValidationError`, `RecoveryError`).
 
-## 🎯 **Overview**
-
-The MHM system implements a comprehensive, centralized exception handling system designed to:
-- **Provide graceful error recovery** with automatic retry mechanisms
-- **Ensure system stability** through proper error isolation
-- **Improve user experience** with friendly error messages
-- **Enable debugging** through structured error logging
-- **Support maintainability** with consistent error handling patterns
-
-## 🔧 **Enhanced Error Handling Patterns**
-
-### **Input Validation**
-All functions now include comprehensive input validation to prevent errors before they occur:
+Minimal example:
 
 ```python
+from core.error_handling import handle_errors, DataError
+
 @handle_errors("loading user data", default_return={})
 def load_user_data(user_id: str) -> dict:
-    # Validate user_id
-    if not user_id or not isinstance(user_id, str):
-        logger.error(f"Invalid user_id: {user_id}")
-        return {}
-        
-    if not user_id.strip():
-        logger.error("Empty user_id provided")
-        return {}
-    
-    # Function logic here
-    return data
-```
-
-### **Proper Default Return Values**
-Functions now specify appropriate default return values based on their return type:
-
-```python
-# Functions returning lists
-@handle_errors("getting user list", default_return=[])
-def get_user_list() -> List[str]:
-    # Function logic here
-    return users
-
-# Functions returning dicts
-@handle_errors("loading config", default_return={})
-def load_config() -> Dict[str, Any]:
-    # Function logic here
-    return config
-
-# Functions returning bool
-@handle_errors("saving data", default_return=False)
-def save_data(data: dict) -> bool:
-    # Function logic here
-    return success
-
-# Functions returning strings
-@handle_errors("generating response", default_return="")
-def generate_response(prompt: str) -> str:
-    # Function logic here
-    return response
-```
-
-### **Enhanced Context Parameters**
-Functions now include context parameters for better error tracking and recovery:
-
-```python
-@handle_errors("processing file", default_return=False, context={"file_path": "data.json"})
-def process_file(file_path: str) -> bool:
-    # Validate file_path
-    if not file_path or not isinstance(file_path, str):
-        logger.error(f"Invalid file_path: {file_path}")
-        return False
-        
-    if not file_path.strip():
-        logger.error("Empty file_path provided")
-        return False
-    
-    # Function logic here
-    return success
-```
-
-### **Specialized Error Handlers**
-For critical operations, use specialized error handlers instead of generic decorators:
-
-```python
-# File operations
-try:
-    data = load_file("path/to/file.json")
-except Exception as e:
-    handle_file_error(e, "path/to/file.json", "loading data", user_id="123")
-    return {}
-
-# Network operations
-try:
-    response = send_message(channel, recipient, message)
-except Exception as e:
-    handle_network_error(e, "sending message", user_id="123")
-    return False
-
-# Communication operations
-try:
-    result = discord_bot.send_message(user, message)
-except Exception as e:
-    handle_communication_error(e, "discord", "sending message", user_id="123")
-    return False
-```
-
-### **Validation Integration**
-Connect error handling with existing validation systems:
-
-```python
-from core.schemas import PreferencesModel
-from core.user_data_validation import validate_user_preferences
-
-@handle_errors("updating user preferences", default_return=False)
-def update_user_preferences(user_id: str, preferences: dict) -> bool:
-    # Validate user_id
-    if not user_id or not isinstance(user_id, str):
-        logger.error(f"Invalid user_id: {user_id}")
-        return False
-        
-    if not user_id.strip():
-        logger.error("Empty user_id provided")
-        return False
-    
-    # Validate preferences structure
-    validation_result = validate_user_preferences(preferences)
-    if not validation_result.get('is_valid'):
-        logger.error(f"Invalid preferences for {user_id}: {validation_result.get('errors')}")
-        return False
-    
-    # Use Pydantic model for additional validation
     try:
-        validated_prefs = PreferencesModel(**preferences)
-        # Continue with validated data
-    except Exception as e:
-        handle_validation_error(e, "preferences", "validating preferences", user_id)
-        return False
-    
-    # Function logic here
-    return success
+        return _load_user_data_from_disk(user_id)
+    except OSError as e:
+        # Wrap low-level exception
+        raise DataError(f"Failed to load user data for {user_id}") from e
 ```
 
-## 🏗️ **Architecture**
 
-### **Core Components**
+## Error Handling Architecture
 
-1. **Custom Exception Hierarchy** (`core/error_handling.py`)
-2. **Error Recovery Strategies** (Automatic recovery mechanisms)
-3. **Centralized Error Handler** (Single point of error processing)
-4. **Decorators and Utilities** (Easy-to-use error handling tools)
-5. **Convenience Functions** (Specialized error handling for common scenarios)
+The MHM error handling system is built around:
 
-### **Exception Hierarchy**
+- A centralized decorator: `handle_errors(operation: str, default_return: Any = None, context: dict | None = None)`  
+- A base exception: `MHMError`  
+- A structured hierarchy of domain-specific exceptions (see the next section).  
+- Standardized logging and recovery behavior:
+  - The decorator logs exceptions with context.  
+  - It can return a safe fallback value (`default_return`) or re-raise.  
+- Integration points:
+  - Service and background tasks (core modules).  
+  - Communication channels (Discord, email, future channels).  
+  - UI event handlers and dialogs.  
+  - AI integration flows.
 
-```
+Typical call chain:
+
+1. Low-level function (file IO, network) raises a library/OS exception.  
+2. Mid-level function wraps that exception into a domain-specific `MHMError` subclass.  
+3. Top-level function or UI handler is decorated with `@handle_errors`, which:
+   - Logs the error with context,  
+   - Applies a recovery strategy (fallback, user message, or shutdown),  
+   - Returns a default value if configured, or re-raises when required.
+
+
+## Exception Hierarchy
+
+All custom exceptions derive from `MHMError`. A simplified tree:
+
+```text
 MHMError (Base Exception)
 ├── DataError
 │   └── FileOperationError
@@ -196,310 +78,289 @@ MHMError (Base Exception)
 └── RecoveryError
 ```
 
-## 🛠️ **Usage Patterns**
+Usage guidance:
 
-### **1. Using the @handle_errors Decorator**
+- `MHMError`: base for all system-specific errors. Do not raise raw `Exception` when a more specific type is available.  
+- `DataError`: data integrity, missing/invalid user data, JSON issues, etc.  
+- `FileOperationError`: failures reading/writing files, permissions, path issues.  
+- `ConfigurationError`: invalid or missing configuration (env vars, config files).  
+- `CommunicationError`: errors when interacting with Discord, email, or other channels.  
+- `SchedulerError`: failures in scheduling, timers, or wake timers.  
+- `UserInterfaceError`: UI operations that fail (dialogs, widget actions).  
+- `AIError`: AI provider failures, timeouts, or invalid responses.  
+- `ValidationError`: invalid user or config input detected during validation.  
+- `RecoveryError`: failure of a recovery operation that was intended to fix or compensate for another error.
 
-**Recommended for most functions:**
+When introducing a new error type:
 
-```python
-from core.error_handling import handle_errors
+- Inherit from `MHMError`.  
+- Keep the name and docstring clear and specific.  
+- Update this guide and `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` with usage notes.
 
-@handle_errors("loading user data", default_return={})
-def load_user_data(user_id: str) -> dict:
-    # Your function logic here
-    return data
-```
 
-**Parameters:**
-- `operation`: Description of what the function does
-- `context`: Additional context dictionary
-- `user_friendly`: Whether to show user-friendly error messages (default: True)
-- `default_return`: Value to return if error occurs and can't be recovered
+## Core Patterns
+### Central ErrorHandler and recovery strategies (implementation detail)
 
-### **2. Using Convenience Functions**
+The decorator-based pattern is built on a global `ErrorHandler` instance defined in `core/error_handling.py`:
 
-**For specific error types:**
+- `ErrorHandler` maintains:
+  - A list of `ErrorRecoveryStrategy` implementations (for example `FileNotFoundRecovery`, `JSONDecodeRecovery`, `NetworkRecovery`, `ConfigurationRecovery`).
+  - An `error_count` map and `max_retries` guard to avoid infinite retry loops.
+  - Centralized logging into both the main component logger and `errors` logger with structured fields (operation, error type, error message, file path, user id).
+- `handle_errors(...)` delegates to this global `error_handler` and, on successful recovery, retries the operation once before returning `default_return`.
 
-```python
-from core.error_handling import (
-    handle_file_error,
-    handle_network_error,
-    handle_communication_error,
-    handle_configuration_error,
-    handle_validation_error,
-    handle_ai_error
-)
+Recommended usage:
 
-# File operations
-try:
-    data = load_file("path/to/file.json")
-except Exception as e:
-    handle_file_error(e, "path/to/file.json", "loading data", user_id="123")
+- For new or refactored code, prefer:
+  - Decorating boundary functions with `@handle_errors`, and
+  - Using the convenience helpers (`safe_file_operation`, `handle_file_error`, `handle_communication_error`, etc.) rather than calling `error_handler.handle_error(...)` directly.
+- Direct calls to `error_handler.handle_error(...)` should be treated as an internal mechanism for error-handling infrastructure and existing legacy paths, not a primary pattern for new features.
+- When extending recovery behaviour, add or refine `ErrorRecoveryStrategy` classes carefully and document changes in this guide and `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`.
 
-# Network operations
-try:
-    response = send_message(channel, recipient, message)
-except Exception as e:
-    handle_network_error(e, "sending message", user_id="123")
 
-# Communication operations
-try:
-    result = discord_bot.send_message(user, message)
-except Exception as e:
-    handle_communication_error(e, "discord", "sending message", user_id="123")
-```
+### Decorator usage: `@handle_errors`
 
-### **3. Using the Safe File Context Manager**
+Use `@handle_errors` for most entry-point functions, especially those that:
 
-**For file operations:**
+- Are called from UI event handlers.  
+- Trigger scheduled tasks or background jobs.  
+- Interact with external services (Discord, email, AI).  
+- Manipulate user data or configuration.
+
+Example:
 
 ```python
-from core.error_handling import safe_file_operation
+from core.error_handling import handle_errors, SchedulerError
 
-with safe_file_operation("path/to/file.json", "loading user data", user_id="123"):
-    # File operations here are automatically protected
-    with open("path/to/file.json", "r") as f:
-        data = json.load(f)
-```
-
-**Benefits:**
-- Automatic error handling for all file operations within the context
-- Proper error logging with file path and operation context
-- Automatic recovery for common file errors (missing files, permission issues)
-- User-friendly error messages when operations fail
-
-### **4. Direct Error Handler Usage**
-
-**For complex scenarios:**
-
-```python
-from core.error_handling import error_handler
-
-try:
-    # Your operation here
-    result = complex_operation()
-except Exception as e:
-    context = {
-        'user_id': user_id,
-        'operation_type': 'complex_operation',
-        'additional_data': some_data
-    }
-    recovered = error_handler.handle_error(e, context, "complex operation")
-    if not recovered:
-        # Handle the case where recovery failed
-        return fallback_value
-```
-
-## 🔄 **Error Recovery Strategies**
-
-The system includes automatic recovery strategies for common error types:
-
-### **1. FileNotFoundRecovery**
-- **Handles**: `FileNotFoundError`, file operation errors with "not found"
-- **Action**: Creates missing files with appropriate default data
-- **Use Case**: User data files, configuration files, message files
-
-### **2. JSONDecodeRecovery**
-- **Handles**: `json.JSONDecodeError`, JSON-related file operation errors
-- **Action**: Creates backup of corrupted file and recreates with default data
-- **Use Case**: Corrupted JSON files, malformed data files
-
-### **3. NetworkRecovery**
-- **Handles**: `ConnectionError`, `TimeoutError`, `OSError`, network-related communication errors
-- **Action**: Waits for network connectivity and retries
-- **Use Case**: Discord API calls, email sending, external service communication
-
-### **4. ConfigurationRecovery**
-- **Handles**: `ConfigurationError`, configuration-related `KeyError`
-- **Action**: Uses default configuration values
-- **Use Case**: Missing configuration settings, invalid configuration values
-
-## 📝 **Best Practices**
-
-### **DO:**
-- ✅ Use `@handle_errors` decorator for most functions
-- ✅ Provide meaningful operation descriptions
-- ✅ Use appropriate default return values
-- ✅ Include user_id in context when available
-- ✅ Use convenience functions for specific error types
-- ✅ Let the system handle recovery automatically
-- ✅ Test error scenarios in your code
-
-### **DON'T:**
-- ❌ Use bare `except Exception:` blocks without proper handling
-- ❌ Ignore errors or use `pass` without logging
-- ❌ Create custom exception handling when the system provides it
-- ❌ Suppress errors without understanding the impact
-- ❌ Forget to test error recovery scenarios
-
-## 🎨 **Error Message Guidelines**
-
-### **User-Friendly Messages**
-The system automatically converts technical errors to user-friendly messages:
-
-- **FileNotFoundError**: "Could not find required file. The system will try to create it automatically."
-- **PermissionError**: "Permission denied. Please check file permissions and try again."
-- **ConnectionError**: "Connection failed. Please check your internet connection and try again."
-- **TimeoutError**: "Operation timed out. Please try again."
-- **ValueError**: "Invalid data format. Please check your input and try again."
-- **KeyError**: "Missing required information. Please check your input and try again."
-- **TypeError**: "Data type error. Please check your input format and try again."
-
-### **Technical Logging**
-All errors are logged with:
-- Full exception details and traceback
-- Operation context
-- User ID (when available)
-- File paths (when relevant)
-- Timestamp and error type
-
-### **Component Logger Integration**
-The error handling system integrates with the MHM component logging system:
-- **Main Logger**: General application errors go to `app.log`
-- **Error Logger**: Structured error information goes to `errors.log`
-- **Component Loggers**: Errors are also logged to relevant component logs (e.g., Discord errors to `discord.log`)
-- **Structured Data**: Error context is logged with structured metadata for analysis
-
-## 🔧 **Configuration**
-
-### **Error Handler Settings**
-```python
-# In core/error_handling.py
-class ErrorHandler:
-    def __init__(self):
-        self.max_retries = 3  # Maximum retry attempts
-        self.recovery_strategies = [
-            FileNotFoundRecovery(),
-            JSONDecodeRecovery(),
-            NetworkRecovery(),
-            ConfigurationRecovery(),
-        ]
-```
-
-### **Custom Recovery Strategies**
-You can add custom recovery strategies by extending `ErrorRecoveryStrategy`:
-
-```python
-class CustomRecovery(ErrorRecoveryStrategy):
-    def __init__(self):
-        super().__init__("Custom Recovery", "Handles specific error types")
-    
-    def can_handle(self, error: Exception) -> bool:
-        return isinstance(error, CustomError)
-    
-    def recover(self, error: Exception, context: Dict[str, Any]) -> bool:
-        # Implement recovery logic
-        return True
-```
-
-## 🧪 **Testing Error Handling**
-
-### **Unit Tests**
-```python
-def test_error_handling():
-    # Test that errors are properly caught and handled
-    with pytest.raises(FileNotFoundError):
-        load_nonexistent_file()
-    
-    # Test recovery mechanisms
-    result = load_file_with_recovery("missing_file.json")
-    assert result == default_data
-```
-
-### **Integration Tests**
-```python
-def test_network_error_recovery():
-    # Simulate network failure
-    with mock_network_failure():
-        result = send_message_with_recovery()
-        assert result is not None  # Should recover
-```
-
-## 📊 **Monitoring and Debugging**
-
-### **Error Logging**
-All errors are logged to:
-- **Main log**: `logs/app.log` - General application errors
-- **Error log**: `logs/errors.log` - Structured error information
-- **Component logs**: Specific component error logs
-
-### **Error Metrics**
-The system tracks:
-- Error counts by type and operation
-- Recovery success rates
-- Retry attempts and outcomes
-
-### **Debugging Tips**
-1. Check `logs/errors.log` for structured error information
-2. Look for recovery strategy logs in `logs/app.log`
-3. Use error context to understand failure points
-4. Monitor error counts to identify recurring issues
-
-## 🚨 **Critical Error Scenarios**
-
-### **High Priority**
-1. **File System Errors**: Missing user data, corrupted files
-2. **Network Failures**: Discord API, email service failures
-3. **Configuration Issues**: Missing environment variables, invalid settings
-4. **Data Validation Errors**: Invalid user input, malformed data
-
-### **Recovery Priorities**
-1. **User Data**: Always attempt recovery for user data files
-2. **Communication**: Retry network operations with backoff
-3. **Configuration**: Use sensible defaults when possible
-4. **Validation**: Provide clear error messages for user input
-
-## 🔄 **Migration Guide**
-
-### **Converting Existing Code**
-
-**Before (Bad):**
-```python
-def load_user_data(user_id):
+@handle_errors("initializing scheduler", default_return=False)
+def init_scheduler() -> bool:
     try:
-        with open(f"data/users/{user_id}.json", "r") as f:
-            return json.load(f)
+        scheduler.setup()
+        return True
     except Exception as e:
-        print(f"Error: {e}")
-        return {}
+        raise SchedulerError("Failed to initialize scheduler") from e
 ```
 
-**After (Good):**
+Key parameters:
+
+- `operation` – short description of what this function is doing.  
+- `default_return` – safe fallback result when recovery is possible.  
+- `context` – dict of additional context (user id, schedule id, message id, etc.) useful for logging.
+
+### Where to catch vs where to raise
+
+- Catch exceptions at boundaries:
+  - UI event handlers.  
+  - API or channel entry points.  
+  - Scheduler entry points.  
+- Raise structured exceptions in lower-level functions:
+  - Wrap library/OS exceptions in domain-specific `MHMError` subclasses.  
+- Avoid catching exceptions just to log and re-raise without adding context; either:
+  - Add meaningful context then re-raise, or  
+  - Let `@handle_errors` perform the logging at the boundary.
+
+### Validation first
+
+Before performing side effects:
+
+- Validate inputs and configuration; raise `ValidationError` or `ConfigurationError` early.  
+- Use clear messages so logs and UIs can surface actionable information.
+
+
+## Data and File Operations
+
+Data and file handling is a common source of errors; use consistent patterns.
+
+### Safe file operations
+
+- Use helper functions that encapsulate reading/writing JSON or other formats.  
+- Wrap low-level exceptions (`OSError`, `JSONDecodeError`, etc.) in `FileOperationError` or `DataError`.  
+- Always validate that paths point to expected directories and files.
+
+Example:
+
 ```python
-@handle_errors("loading user data", default_return={})
-def load_user_data(user_id):
-    with open(f"data/users/{user_id}.json", "r") as f:
-        return json.load(f)
+from core.error_handling import FileOperationError
+
+def load_json_file(path: str) -> dict:
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError) as e:
+        raise FileOperationError(f"Failed to load JSON file: {path}") from e
 ```
 
-### **Gradual Migration**
-1. Start with high-risk functions (file operations, network calls)
-2. Add error handling to user-facing functions
-3. Update internal functions as you encounter them
-4. Test error scenarios after each migration
+### User data handling
 
-## 📚 **Related Documentation**
+- Errors reading or writing user-specific data should be raised as `DataError` or `FileOperationError`.  
+- When falling back to default user data, document the behavior and ensure it is safe (for example, does not silently discard important settings).  
+- Avoid partial writes; use atomic writes or temporary files where applicable.
 
-- **`core/error_handling.py`**: Complete implementation
-- **`tests/unit/test_error_handling.py`**: Test examples
-- **`CHANGELOG_DETAIL.md`**: Recent error handling improvements
-- **`AI_CHANGELOG.md`**: AI-focused error handling updates
 
-## 🎯 **Future Enhancements**
+## Configuration and External Services
 
-### **Planned Improvements**
-1. **Metrics Dashboard**: Real-time error monitoring
-2. **Advanced Recovery**: Machine learning-based recovery strategies
-3. **User Notifications**: Proactive error notifications
-4. **Performance Monitoring**: Error impact on system performance
+Configuration and external dependencies are frequent failure points.
 
-### **Extension Points**
-1. **Custom Recovery Strategies**: Domain-specific error recovery
-2. **Error Analytics**: Advanced error pattern analysis
-3. **Integration Hooks**: Third-party error handling integration
-4. **Configuration Management**: Dynamic error handling configuration
+### Configuration errors
 
----
+- When environment variables or config entries are missing or invalid, raise `ConfigurationError`.  
+- Do not guess defaults that can hide misconfiguration; require explicit configuration for critical values.  
+- Validate configuration early on app startup and fail fast with clear messages.
 
-**Remember**: Good error handling is not just about catching errors—it's about providing a smooth, reliable user experience even when things go wrong. The MHM error handling system is designed to make your code more robust and your users happier.
+### Communication and external services
+
+- Map errors from Discord, email, and other services into `CommunicationError`.  
+- For AI provider issues (timeouts, invalid responses, connection failures), use `AIError`.  
+- For scheduler or timer operations (including OS-level wake timers), use `SchedulerError`.
+
+Example:
+
+```python
+from core.error_handling import CommunicationError
+
+def send_discord_message(channel, content: str) -> None:
+    try:
+        channel.send(content)
+    except Exception as e:
+        raise CommunicationError("Failed to send Discord message") from e
+```
+
+
+## Recovery Strategies
+
+Recovery is about safely continuing when something goes wrong.
+
+### Default returns and fallbacks
+
+Use `default_return` in `@handle_errors` when:
+
+- There is a safe, well-understood fallback.  
+- The caller can behave correctly with that default.  
+- The fallback and its implications are documented in code comments and, where relevant, in human-facing docs.
+
+### Retries
+
+- Consider retries for transient failures (network, external services).  
+- Keep retry counts low; avoid endless loops.  
+- If a retry fails, escalate to a structured error (`RecoveryError` or a more specific type) and log clearly.
+
+### Graceful degradation
+
+Examples:
+
+- If AI responses are unavailable, fall back to pre-defined messages (raising/logging `AIError` but continuing).  
+- If a single user’s data is corrupted, log a `DataError` and fall back to defaults for that user while preserving logs for investigation.  
+- If scheduling fails, log a `SchedulerError` and avoid partial or incorrect scheduling state.
+
+### When to fail fast
+
+- When configuration is invalid or missing for critical functionality.  
+- When continuing may corrupt user data or cause repeated spam/abuse (for example, repeated messages to the same channel).  
+- When invariants about user data or schedules are violated.
+
+
+## Logging and Context
+
+Error handling and logging must work together.
+
+### Logging strategy
+
+- Errors should be logged with:
+  - The operation name.  
+  - The exception type and message.  
+  - Relevant context (user id, schedule id, channel, etc.).  
+- Prefer structured logging where possible (dict-like context payloads).  
+- Avoid logging secrets, tokens, or sensitive PII.
+
+### Which logs to use
+
+- See `logs/LOGGING_GUIDE.md` and `ai_development_docs/AI_LOGGING_GUIDE.md` for details.  
+- As a rule:
+  - Component logs (for example, `discord.log`, `scheduler.log`, `ui.log`) capture subsystem activity.  
+  - `errors.log` collects consolidated error information.  
+  - `app.log` provides high-level flow.
+
+### Error metrics and audit integration
+
+The structured entries written by `ErrorHandler` to the `errors` logger are used by the AI development tools to analyse error handling quality and coverage.
+
+- Each logged error includes operation, error type, message, file path (if applicable), and user id (when available).
+- AI audit tools (see `ai_development_tools/README.md`) aggregate these logs to:
+  - Track error counts by type and operation.
+  - Identify hot spots where recovery fails or is missing.
+  - Feed into coverage and quality reports such as error handling coverage analysis.
+- When changing error logging structure, ensure that `errors` log entries still include these fields so metrics remain meaningful.
+
+### Legacy compatibility markers
+
+When introducing temporary compatibility paths:
+
+```python
+# LEGACY COMPATIBILITY: [Brief description]
+# TODO: Remove after [specific condition]
+# REMOVAL PLAN:
+# 1. [Step 1]
+# 2. [Step 2]
+# 3. [Step 3]
+logger.warning("LEGACY COMPATIBILITY: <what was called>; use <new path> instead")
+```
+
+Guidelines:
+
+- Only add legacy paths when necessary to prevent breakage.  
+- Always log usage at WARNING level to track and plan removal.  
+- Add a clear removal condition and steps.  
+- Coordinate with `ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md` when planning removal.  
+
+
+## Testing and Troubleshooting
+
+### Testing error handling
+
+- Add tests that verify:
+  - Specific exceptions are raised for specific failures.  
+  - `@handle_errors` returns the expected `default_return` when configured.  
+  - Logs are written for key error scenarios (where practical).  
+  - Recovery paths behave as expected (retries, fallbacks, degradation).
+
+- Use pytest patterns and markers described in:
+  - `ai_development_docs/AI_TESTING_GUIDE.md`  
+  - `tests/TESTING_GUIDE.md`
+
+Examples:
+
+- Unit tests that simulate file IO failures and assert `FileOperationError`.  
+- Integration tests that simulate communication failures and assert `CommunicationError` or recovery behavior.  
+- Tests for scheduler failures that assert `SchedulerError` and safe shutdown or fallback.
+
+### Troubleshooting production issues
+
+When something goes wrong:
+
+1. Check `logs/errors.log` for stack traces and structured error entries.  
+2. Check the relevant component log (for example, `discord.log`, `scheduler.log`, `ui.log`).  
+3. Identify the exception type and operation.  
+4. See where the exception originates and whether it is being handled correctly.  
+5. If a recovery path is failing, consider introducing or refining `RecoveryError` handling.  
+
+
+### Error handling coverage and metrics
+
+In addition to individual tests, the AI development tools provide automated error handling coverage analysis:
+
+- See `ai_development_tools/README.md` for how to run `ai_tools_runner.py` commands (for example `audit` in fast or full mode).
+- The error handling coverage tooling scans functions for patterns such as:
+  - Presence of `@handle_errors` on boundary functions.
+  - Use of domain-specific `MHMError` subclasses.
+  - Missing or incomplete error handling in critical operations.
+- Use these reports to prioritise improvements to exception mapping, recovery paths, and logging context.
+
+## Resources
+
+For related topics and further detail:
+
+- `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` – condensed patterns and AI-optimized view.  
+- `logs/LOGGING_GUIDE.md` and `ai_development_docs/AI_LOGGING_GUIDE.md` – logging structure, component loggers, and triage.  
+- `DEVELOPMENT_WORKFLOW.md` and `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md` – safe development and deployment patterns.  
+- `tests/TESTING_GUIDE.md` and `ai_development_docs/AI_TESTING_GUIDE.md` – testing patterns, including error-path testing.  
+- `ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md` – broader strategy for managing legacy code and planned removal.

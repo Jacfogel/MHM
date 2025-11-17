@@ -273,6 +273,7 @@ class TestInteractionHandlersBehavior:
         # Check-in might complete immediately if no questions are configured, or start a flow
         assert "check" in response.message.lower() or "feeling" in response.message.lower() or "mood" in response.message.lower(), "Should mention check-in related content"
     
+    @pytest.mark.no_parallel
     def test_profile_handler_shows_actual_profile(self, test_data_dir):
         """Test that ProfileHandler shows actual user profile data."""
         handler = ProfileHandler()

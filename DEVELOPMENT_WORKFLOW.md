@@ -33,10 +33,10 @@ This section summarizes the most common tasks and where to look for detail.
 
 ```powershell
 # Create the virtual environment (once)
-python -m venv venv
+python -m .venv .venv
 
 # Activate the virtual environment (each new shell)
-venv\Scripts\activate
+.venv\Scripts\activate
 
 # Install or refresh dependencies
 pip install -r requirements.txt
@@ -63,7 +63,7 @@ When in doubt: activate the virtual environment, make a backup, then follow the 
 ### Core Safety Rules
 
 1. **Work inside the virtual environment**  
-   - Always ensure your prompt shows `(venv)` before running Python or test commands.
+   - Always ensure your prompt shows `(.venv)` before running Python or test commands.
 
 2. **Back up before major edits**  
    - Use the timestamped backup command above before large refactors, cross-cutting changes, or doc rewrites.
@@ -94,7 +94,7 @@ When in doubt: activate the virtual environment, make a backup, then follow the 
 
 Before starting significant work:
 
-1. Confirm `(venv)` appears in the prompt. If not, run `venv\Scripts\activate`.  
+1. Confirm `(.venv)` appears in the prompt. If not, run `.venv\Scripts\activate`.  
 2. Confirm you can start the service (for example, `python run_headless_service.py start`) without unexpected errors.  
 3. Create a timestamped backup of the repo if you are changing multiple modules or refactoring core logic.  
 4. Write down:
@@ -117,10 +117,10 @@ Before starting significant work:
 
 ```powershell
 # Create the environment (once)
-python -m venv venv
+python -m .venv .venv
 
 # Activate (each session)
-venv\Scripts\activate
+.venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -139,12 +139,43 @@ deactivate
   - Confirm Python is installed and on PATH; see `HOW_TO_RUN.md` if setup fails.
 
 - **Import errors after pulling recent changes**  
-  - Run `pip install -r requirements.txt --force-reinstall` inside `(venv)`.
+  - Run `pip install -r requirements.txt --force-reinstall` inside `(.venv)`.
 
 - **Permission problems on Windows**  
   - Reopen PowerShell as Administrator if needed.  
-  - Avoid installing packages outside the `(venv)` environment.
+  - Avoid installing packages outside the `(.venv)` environment.
 
+
+
+### Configuration and .env
+
+MHM uses environment variables (loaded via `python-dotenv` in `config.py`) to control paths, logging, channels, and AI behavior.
+
+- The `.env` file in the project root is the primary place to configure the app for local development.  
+- A `.env.example` file provides a safe template; copy it to `.env` and fill in values for your machine (tokens, credentials, and any overrides).  
+- Defaults are defined in `config.py`, but values in `.env` take precedence at runtime.
+
+Key groups of settings in `.env`:
+
+- Core paths and data roots  
+  - `BASE_DATA_DIR`, `USER_INFO_DIR_PATH`, `DEFAULT_MESSAGES_DIR_PATH`.
+
+- Logging  
+  - `LOGS_DIR`, `LOG_LEVEL`, rotation settings, and component log files.
+
+- Channels  
+  - Email: `EMAIL_SMTP_*`, `EMAIL_IMAP_*`.  
+  - Discord: `DISCORD_BOT_TOKEN`, `DISCORD_PUBLIC_KEY`, `DISCORD_WEBHOOK_PORT`, `DISCORD_AUTO_NGROK`.
+
+- AI / LM Studio  
+  - `LM_STUDIO_*` (endpoint, model, timeouts).  
+  - `AI_*` timeouts, cache settings, response length limits, and temperatures.
+
+- Testing and diagnostics  
+  - `MHM_TESTING`, `TEST_DATA_DIR`, `TEST_LOGS_DIR`.  
+  - File auditing flags (`FILE_AUDIT_*`).
+
+For configuration validation and a summary of active settings, use the AI dev tools `config` command (see `ai_development_tools/README.md`), which wraps the helpers in `config.py` such as `validate_all_configuration()` and `print_configuration_report()`.
 
 ## Development Process
 
@@ -209,7 +240,7 @@ For AI-optimized testing instructions and patterns, see `ai_development_docs/AI_
 ### Adding a New Feature
 
 1. Plan the feature and consider user-facing touchpoints and side effects.  
-2. Ensure `(venv)` is active and create a backup if the change is broad.  
+2. Ensure `(.venv)` is active and create a backup if the change is broad.  
 3. Implement the feature in small, testable slices.  
 4. Add or update tests to cover the new behavior.  
 5. Run the relevant tests and minimal manual checks.  

@@ -91,6 +91,8 @@ class TestUIWidgetsCoverageExpansion:
         """Ensure widgets are properly cleaned up after each test."""
         yield
         # Force garbage collection to clean up any remaining widgets
+        # Note: This may trigger warnings about unawaited coroutines from async mocks
+        # These are expected in test environments and are filtered in pytest.ini
         import gc
         gc.collect()
 

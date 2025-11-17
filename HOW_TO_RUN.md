@@ -16,18 +16,18 @@
 ### Step 1: Set up Virtual Environment
 ```powershell
 # Create a virtual environment
-python -m venv venv
+python -m .venv .venv
 
 # Activate the virtual environment
 # On Windows:
-venv\Scripts\activate
+.venv\Scripts\activate
 # On macOS/Linux:
-source venv/bin/activate
+source .venv/bin/activate
 ```
 
 ### Step 2: Install Dependencies
 ```powershell
-# Make sure your virtual environment is activated (you should see (venv) in your prompt)
+# Make sure your virtual environment is activated (you should see (.venv) in your prompt)
 pip install -r requirements.txt
 ```
 
@@ -79,14 +79,14 @@ You can also run individual components directly if needed:
 
 - **Always activate your virtual environment** before running the app
 - **Never install dependencies globally** - this can cause conflicts
-- **If you see (venv) in your terminal prompt**, you're using the virtual environment correctly
+- **If you see (.venv) in your terminal prompt**, you're using the virtual environment correctly
 - **To deactivate the virtual environment**, simply type `deactivate`
 - **Windows Python Processes**: On Windows, you may see two Python processes when running scripts - this is normal behavior and doesn't affect functionality
 
 ## 🆘 Troubleshooting
 
 ### "Command not found" errors
-Make sure your virtual environment is activated. You should see `(venv)` at the beginning of your command prompt.
+Make sure your virtual environment is activated. You should see `(.venv)` at the beginning of your command prompt.
 
 ### Import errors
 Try reinstalling dependencies in your virtual environment:
@@ -102,18 +102,18 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
 ### Multiple Python processes on Windows
-If you see two Python processes when running the app (one with venv Python, one with system Python), this is normal Windows behavior. The venv Python process runs your actual code, while the system Python process is a harmless Windows artifact.
+If you see two Python processes when running the app (one with .venv Python, one with system Python), this is normal Windows behavior. The .venv Python process runs your actual code, while the system Python process is a harmless Windows artifact.
 
 ## ❓ Frequently Asked Questions
 
 ### **Q: Do I need to install Python globally?**
 **A**: No! Always use a virtual environment. This keeps your system Python clean and prevents conflicts with other projects.
 
-### **Q: What if I see "(venv)" but the app still doesn't work?**
+### **Q: What if I see "(.venv)" but the app still doesn't work?**
 **A**: Try deactivating and reactivating your virtual environment:
 ```powershell
 deactivate
-venv\Scripts\activate
+.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
@@ -131,7 +131,7 @@ pip install -r requirements.txt
 **A**: Check `logs/app.log` (default log location) for application logs.
 
 ### **Q: Why do I see two Python processes when running the app on Windows?**
-**A**: This is normal Windows behavior. Windows launches both your venv Python and system Python when running scripts. The venv Python runs your actual code, while the system Python is a harmless Windows artifact.
+**A**: This is normal Windows behavior. Windows launches both your .venv Python and system Python when running scripts. The .venv Python runs your actual code, while the system Python is a harmless Windows artifact.
 
 ## 📚 Next Steps
 - **Project Overview**: See [README.md](README.md) for features and architecture
