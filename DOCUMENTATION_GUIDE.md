@@ -204,8 +204,8 @@ Human-facing documentation should generally follow this pattern:
 2. Metadata block with File, Audience, Purpose, Style.  
 3. "Quick Reference" section listing the most common lookups or tasks.  
 4. Detailed sections ordered from general concepts to specific patterns and troubleshooting.  
-5. References and resources at the end.
-6. Number H2/H3 headings (for example `## 3. Architecture Overview`, `### 3.2 Command handlers`) so paired docs stay aligned and navigation is easier.
+5. References and resources at the end.  
+6. Number H2/H3 headings (for example `## 3. Architecture Overview`, `### 3.2. Command handlers`) so paired docs stay aligned and navigation is easier. 
 
 Each section should be self-contained and include links to source code, tools, or other docs where appropriate.
 
@@ -218,6 +218,16 @@ AI-facing documentation should:
 - Prioritize checklists, short lists, and explicit references over long prose.  
 - Prefer linking to specific sections in human-facing docs for context and rationale.  
 - Avoid reproducing generic rules that already live in `.cursor/rules` or `ai_development_docs/AI_SESSION_STARTER.md`.
+
+### 2.5. Heading numbering standard
+
+All main documentation files must use numbered H2 and H3 headings:
+
+- **H2 headings**: Numbered sequentially starting at 1 (e.g., `## 1. Section Title`, `## 2. Next Section`)
+- **H3 headings**: Numbered with parent section number (e.g., `### 2.1. Subsection`, `### 2.2. Another Subsection`)
+- **Standard format**: Numbers must include a trailing period and space (e.g., `## 2. Title` not `## 2 Title`)
+- **Exceptions**: Changelog files, plan files, and TODO.md are excluded from numbering as they have their own structure
+- **Special cases**: Q&A headings (e.g., "Q: ...") and Step headings (e.g., "Step 1: ...") should be converted to bold text, not numbered
 
 
 ## 3. Documentation Synchronization Checklist
@@ -277,7 +287,7 @@ When you are done editing:
 Several automation tools support documentation and sync:
 
 - `python ai_development_tools/ai_tools_runner.py doc-sync`  
-  Scans for mismatched headings and path drift in documentation.
+  Scans for mismatched headings, path drift, ASCII compliance, and heading numbering issues in documentation.
 
 - `python ai_development_tools/ai_tools_runner.py legacy`  
   Analyses references and code paths for deprecated or stale usage.

@@ -38,19 +38,6 @@ When adding new tasks, follow this format:
 - *Why it helps*: Ensures test suite health and prevents warnings from masking real issues
 - *Estimated effort*: Small
 
-**Documentation Heading Numbering Standardization** [OK] **COMPLETED**
-- *What it means*: Apply numbered headings (H2) and subheadings (H3) consistently across all main documentation files, and enhance doc sync checker to validate consecutive numbering starting at 1 (or 0)
-- *Why it helps*: Improves navigation, consistency, and maintainability of documentation; makes it easier to reference specific sections
-- *Status*: Completed on 2025-11-18 - All documentation sync checks now pass (0 issues)
-- *Subtasks*:
-  - [x] Create script to automatically number headings and subheadings in markdown files
-  - [x] Apply numbering to main docs: PROJECT_VISION.md, README.md, HOW_TO_RUN.md, ARCHITECTURE.md, UI_GUIDE.md, SCRIPTS_GUIDE.md, DISCORD_GUIDE.md, AI_DEV_TOOLS_GUIDE.md, AI_SESSION_STARTER.md, AI_REFERENCE.md, AI_LEGACY_REMOVAL_GUIDE.md, AI_ARCHITECTURE.md
-  - [x] Apply numbering to changelog/plan docs: AI_CHANGELOG.md, CHANGELOG_DETAIL.md, PLANS.md, TODO.md (changelogs/plans skipped from numbering as they have their own structure)
-  - [x] Enhance documentation_sync_checker.py to validate consecutive numbering (starting at 1 or 0)
-  - [x] Test script on sample files before full application
-  - [x] Review and manually adjust any edge cases the script doesn't handle well
-  - [x] Fix non-standard numbering formats (missing trailing periods) in ERROR_HANDLING_GUIDE.md, AI_ERROR_HANDLING_GUIDE.md, LOGGING_GUIDE.md
-  - [x] Fix section ordering in AI_TESTING_GUIDE.md to match TESTING_GUIDE.md
 
 **Continue Error Handling Quality Improvements** (Optional)
 - *What it means*: Continue improving error handling quality by replacing basic try-except blocks with @handle_errors decorator and adding error handling to remaining functions where appropriate
@@ -197,6 +184,27 @@ When adding new tasks, follow this format:
 - *Definition of done*: Draft cadence rules, edge-case handling, and handoff to implementation/testing once validated.
 
 ## Medium Priority
+
+**Integrate Documentation Utility Scripts into AI Tools Runner**
+- *What it means*: Integrate `scripts/number_documentation_headings.py` and possibly other useful utility scripts (e.g., path validation, reference checking) into `ai_development_tools/ai_tools_runner.py` or `ai_development_tools/documentation_sync_checker.py` as subcommands
+- *Why it helps*: Makes documentation maintenance tools more discoverable and easier to use through the centralized tool runner; enables batch operations and integration with audit workflows
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Add `number-headings` or `fix-numbering` subcommand to `ai_tools_runner.py`
+  - [ ] Support batch operations (e.g., `number-headings --all` to process all default docs)
+  - [ ] Consider integrating into `doc-sync` workflow or as a separate validation/fix step
+  - [ ] Evaluate other utility scripts in `scripts/` that could benefit from integration
+  - [ ] Update documentation to reflect new command structure
+
+**Update Inter-Documentation References to Include Section Numbers**
+- *What it means*: Update cross-references between documentation files to include section numbers and titles (e.g., "See section 3.2. Logging Architecture in LOGGING_GUIDE.md" instead of just "See LOGGING_GUIDE.md")
+- *Why it helps*: Makes references more precise and easier to navigate, especially with numbered headings now standardized; improves documentation usability
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Audit all documentation files for cross-references
+  - [ ] Update references to include section numbers and titles where applicable
+  - [ ] Create script or tool to help identify and update references automatically
+  - [ ] Update documentation standards to require section numbers in references
 
 **Investigate Test Log Rotation Issues**
 - *What it means*: Investigate why `test_consolidated.log` is not rotating properly - file has grown to 500,000+ lines and should rotate at 5MB but rotation only happens at session start

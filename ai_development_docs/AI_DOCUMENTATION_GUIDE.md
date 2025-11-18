@@ -65,11 +65,19 @@ Generated docs are read-only inputs (for example: registries, dependency maps, l
 Minimal standards AI must respect.
 
 - Every `.md` doc must include a `> **File**: \`...\`` line with its path from the repo root.  
-- Number H2 and H3 headings (for example `## 2. Logging Architecture`, `### 2.1 Central logger module`) and ensure numbering stays aligned with any paired document.  
+- Number H2 and H3 headings (for example `## 2. Logging Architecture`, `### 2.1. Central logger module`) and ensure numbering stays aligned with any paired document. 
 - Detailed docs should also include Audience/Purpose/Style when helpful.  
 - Every `.mdc` rule file must either:
   - Use YAML frontmatter with a `file:` field, or  
   - Include a comment like `<!-- File: .cursor/rules/example.mdc -->`.
+
+### 2.1. Heading numbering standard
+
+- H2 headings: Sequential numbering starting at 1 (e.g., `## 1. Section`, `## 2. Next`)
+- H3 headings: Parent section number + sub-number (e.g., `### 2.1. Subsection`, `### 2.2. Another`)
+- Standard format: Trailing period and space required (e.g., `## 2. Title` not `## 2 Title`)
+- Exceptions: Changelogs, plans, TODO.md excluded (own structure)
+- Special cases: Q&A and Step headings → bold text, not numbered
 
 When suggesting new docs or edits:
 
