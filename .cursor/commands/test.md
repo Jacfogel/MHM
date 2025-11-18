@@ -20,7 +20,7 @@ Execute the full test suite, maintain isolation, and report outcomes.
 
 ## Additional Guidance
 - `ai_development_docs/AI_REFERENCE.md` for troubleshooting patterns.
-- `tests/MANUAL_TESTING_GUIDE.md` for UI walkthroughs when behaviour changes.
+- Manual testing walkthroughs now live in `tests/TESTING_GUIDE.md`; follow that guidance when behaviour changes.
 - `development_docs/TEST_COVERAGE_EXPANSION_PLAN.md` when planning coverage improvements.
 - **AI Functionality Tests**: Run `python tests/ai/run_ai_functionality_tests.py` for manual review tests of AI response quality. See `.cursor/commands/ai-functionality-tests.md` for detailed workflow.
 

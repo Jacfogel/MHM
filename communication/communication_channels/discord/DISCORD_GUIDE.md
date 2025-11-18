@@ -1,7 +1,7 @@
 # Discord Commands and Usage
 
 
-> **File**: `communication/communication_channels/discord/DISCORD.md`
+> **File**: `communication/communication_channels/discord/DISCORD_GUIDE.md`
 > **Audience**: Users and contributors  
 > **Purpose**: Complete guide for Discord commands and natural language usage  
 > **Style**: User-friendly, comprehensive, beginner-friendly
@@ -9,28 +9,28 @@
 > **See [README.md](../../../README.md) for complete navigation and project overview**  
 > **See [DEVELOPMENT_WORKFLOW.md](../../../DEVELOPMENT_WORKFLOW.md) for safe development practices**  
 
-## Getting Started
+## 1. Getting Started
 
-### New Users
+### 1.1. New Users
 When you first authorize the MHM Discord app, you'll automatically receive a welcome message with interactive buttons:
 - **Create a New Account** - Set up a new MHM account (username will be prefilled with your Discord username if available)
 - **Link to Existing Account** - Link your Discord account to an existing MHM account (confirmation code sent via email)
 
 You can also use the `/start` command to receive setup instructions if you didn't get the welcome message.
 
-### Primary Method: Natural Language (Recommended)
+### 1.2. Primary Method: Natural Language (Recommended)
 Talk to the bot naturally! It understands context and intent.
 - "I need to create a task to call mom tomorrow"
 - "How am I feeling today?" (starts check-in)
 - "Show me my tasks"
 
-### Alternative Methods
+### 1.3. Alternative Methods
 - **Slash Commands**: `/command` - Discord-native commands (preferred, auto-complete in Discord)
 - **Bang Commands**: `!command` - Classic prefix commands (also supported)
 
-## Available Commands
+## 2. Available Commands
 
-### Task Management
+### 2.1. Task Management
 **What it does**: Create, view, update, and complete your tasks
 
 **Natural Language Examples:**
@@ -51,7 +51,7 @@ Talk to the bot naturally! It understands context and intent.
 
 ---
 
-### Check-ins (Conversational Flow)
+### 2.2. Check-ins (Conversational Flow)
 **What it does**: Start an interactive check-in conversation about your mood, energy, and wellbeing
 
 **Natural Language Examples:**
@@ -71,7 +71,7 @@ Talk to the bot naturally! It understands context and intent.
 
 ---
 
-### Profile Management
+### 2.3. Profile Management
 **What it does**: View and update your personal information, health conditions, and preferences
 
 **Natural Language Examples:**
@@ -89,7 +89,7 @@ Talk to the bot naturally! It understands context and intent.
 
 ---
 
-### Schedule Management
+### 2.4. Schedule Management
 **What it does**: View and manage your daily schedules and time periods
 
 **Natural Language Examples:**
@@ -107,7 +107,7 @@ Talk to the bot naturally! It understands context and intent.
 
 ---
 
-### Analytics & Insights
+### 2.5. Analytics & Insights
 **What it does**: View your wellness analytics, mood trends, and performance insights
 
 **Natural Language Examples:**
@@ -127,7 +127,7 @@ Talk to the bot naturally! It understands context and intent.
 
 ---
 
-### Account Management
+### 2.6. Account Management
 **What it does**: Create or link your MHM account to start using the system
 
 **Getting Started:**
@@ -153,7 +153,7 @@ Talk to the bot naturally! It understands context and intent.
 
 ---
 
-### System Commands
+### 2.7. System Commands
 **What it does**: Get help, view system status, and manage conversation flows
 
 **Natural Language Examples:**
@@ -175,13 +175,13 @@ Talk to the bot naturally! It understands context and intent.
 
 ---
 
-## Command Types Explained
+## 3. Command Types Explained
 
-### Single-Turn Commands
+### 3.1. Single-Turn Commands
 Most commands are "single-turn" - you ask, bot responds once.
 Examples: show profile, list tasks, show analytics
 
-### Conversational Flows
+### 3.2. Conversational Flows
 Some commands start multi-turn conversations:
 - **Check-ins**: Bot asks questions, waits for responses
 - **Task creation**: May ask for clarification
@@ -189,24 +189,24 @@ Some commands start multi-turn conversations:
 
 To exit a flow: say "cancel" or "/cancel"
 
-## Tips for Best Experience
+## 4. Tips for Best Experience
 
 1. **Use Natural Language**: More flexible and conversational
 2. **Be Specific**: "complete the groceries task" vs "complete task"
 3. **Ask for Help**: Say "help" anytime to see available commands
 4. **Flow Management**: Use "/cancel" to exit stuck conversations
 
-## Technical Notes
+## 5. Technical Notes
 
-### Scales and Values
+### 5.1. Scales and Values
 - Mood and energy values display on a 1–5 scale (e.g., `Mood 3/5`)
 - Composite analytics scores use 0–100 scaling (e.g., `Overall Score: 78/100`)
 
-### Slash Commands
+### 5.2. Slash Commands
 - When `DISCORD_APPLICATION_ID` is set, dynamic slash commands are registered
 - Unknown `/` or `!` prefixes fall back to the natural language parser if not matched
 
-### Troubleshooting
+### 5.3. Troubleshooting
 - If a command isn't recognized, try `help` or `commands` to see supported forms
 - For full setup and environment variables, see `README.md`
 

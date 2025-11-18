@@ -12,9 +12,11 @@ DEFAULT_DOCS: Tuple[str, ...] = (
     'DEVELOPMENT_WORKFLOW.md',
     'ARCHITECTURE.md',
     'TODO.md',
-    'development_docs/FUNCTION_REGISTRY_DETAIL.md',
-    'development_docs/MODULE_DEPENDENCIES_DETAIL.md',
+    'PROJECT_VISION.md',
+    'development_docs/CHANGELOG_DETAIL.md',
+    'development_docs/PLANS.md',
     'ai_development_docs/AI_SESSION_STARTER.md',
+    'ai_development_docs/AI_ARCHITECTURE.md',
     'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
     'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
     'ai_development_docs/AI_CHANGELOG.md',
@@ -22,6 +24,17 @@ DEFAULT_DOCS: Tuple[str, ...] = (
     'ai_development_docs/AI_LOGGING_GUIDE.md',
     'ai_development_docs/AI_TESTING_GUIDE.md',
     'ai_development_docs/AI_ERROR_HANDLING_GUIDE.md',
+    'ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md',
+    'core/ERROR_HANDLING_GUIDE.md',
+    'logs/LOGGING_GUIDE.md',
+    'tests/TESTING_GUIDE.md',
+    'communication/COMMUNICATION_GUIDE.md',
+    'communication/communication_channels/discord/DISCORD_GUIDE.md',
+    'scripts/SCRIPTS_GUIDE.md',
+    'ui/UI_GUIDE.md',
+    'ai/SYSTEM_AI_GUIDE.md',
+    'ai_development_tools/AI_DEV_TOOLS_GUIDE.md',
+
 )
 
 PAIRED_DOCS: Dict[str, str] = {
@@ -142,7 +155,7 @@ THIRD_PARTY_LIBRARIES: Tuple[str, ...] = (
 )
 
 COMMON_FUNCTION_NAMES: Tuple[str, ...] = (
-    'get_logger', 'handle_errors', 'safe_file_operation', 'error_handler', 
+    'get_logger', 'handle_errors', 'safe_file_operation', 
     'get_component_logger', 'cleanup_old_logs', 'functions', 'statements',
     'handle_file_error', 'handle_network_error', 'handle_communication_error',
     'handle_configuration_error', 'handle_validation_error', 'handle_ai_error',

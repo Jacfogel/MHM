@@ -8,17 +8,28 @@ For detailed rationale, examples, and human-focused explanations, see matching s
 
 ---
 
-## 1. Purpose
+## 1. Purpose and Scope
 
 - Use the **central logger module** (`core/logger.py`) for all logging.
 - Keep **log levels and destinations consistent** across the project.
 - Avoid ad-hoc `print` or `logging.getLogger()` calls.
 
+This guide covers overall logging architecture, log levels, component log files, environment-based configuration, rotation and archival, legacy compatibility logging, and best practices.
+
 ---
 
-## 2. Core Patterns
+## 2. Logging Architecture
 
-### 2.1 Always use the component logger helper
+The logging system is centralized in `core/logger.py`:
+
+- Provides helpers (for example `logger.get_component_logger(name)`) that:
+  - Attach the correct handlers (file and optional console)
+  - Use the configured log format
+  - Direct output to the right component log file
+
+Always obtain loggers via the central helper instead of calling `logging.getLogger` directly. This keeps formats, destinations, and levels consistent across the codebase.
+
+### 2.1. Always use the component logger helper
 
 Preferred pattern:
 
@@ -48,7 +59,7 @@ Centralization in `core/logger.py` ensures:
 
 ---
 
-## 3. Log Levels
+## 3. Log Levels and When to Use Them
 
 Use standard levels with clear intent:
 
@@ -62,20 +73,20 @@ Avoid using `DEBUG` for routine information; keep it focused on real troubleshoo
 
 ---
 
-## 4. Component Logs and Files
+## 4. Component Log Files and Layout
 
 Common components and expected logs (defaults):
 
-- `main` → `logs/app.log`
-- `errors` → `logs/errors.log`
-- `ai` → `logs/ai.log`
-- `discord` → `logs/discord.log`
-- `email` → `logs/email.log`
-- `telegram` → `logs/telegram.log` (integration currently disabled)
-- `scheduler` → `logs/scheduler.log`
-- `ui` → `logs/ui.log`
-- `file_ops` → `logs/file_ops.log`
-- `user_activity` → `logs/user_activity.log`
+- `main` -> `logs/app.log`
+- `errors` -> `logs/errors.log`
+- `ai` -> `logs/ai.log`
+- `discord` -> `logs/discord.log`
+- `email` -> `logs/email.log`
+- `telegram` -> `logs/telegram.log` (integration currently disabled)
+- `scheduler` -> `logs/scheduler.log`
+- `ui` -> `logs/ui.log`
+- `file_ops` -> `logs/file_ops.log`
+- `user_activity` -> `logs/user_activity.log`
 
 File mapping and overrides are implemented in `core/logger.py` and `core/config.py`.
 
@@ -89,7 +100,7 @@ For details and directory structure, see **"Component Log Files and Layout"** in
 
 ---
 
-## 5. Environment-Based Configuration
+## 5. Configuration (Environment Variables)
 
 Key environment variables (from `.env`, interpreted by `core/config.py`):
 
@@ -128,7 +139,21 @@ When modifying or introducing new logging behavior, ensure it respects these env
 
 ---
 
-## 6. Legacy Compatibility Logging
+## 6. Log Rotation, Backups, and Archival
+
+Rotation is typically implemented via rotating handlers configured in `core/logger.py`:
+
+- When a log file reaches `LOG_MAX_BYTES`, it is rotated.
+- Up to `LOG_BACKUP_COUNT` rotated files are kept (for example `app.log.1`, `app.log.2`, ...).
+- If `LOG_COMPRESS_BACKUPS` is enabled, rotated logs may be gzipped or otherwise compressed.
+
+Supporting scripts and services (for example, `backup_manager.py`, `auto_cleanup.py`, and scheduled tasks) may:
+
+- Move older logs into `LOG_ARCHIVE_DIR`
+- Enforce retention policies
+- Clean up stale or oversized log directories
+
+## 7. Legacy Compatibility Logging Standard
 
 When adding or maintaining a legacy code path, use the standard pattern:
 
@@ -157,7 +182,7 @@ For human-oriented context and examples, see **"Legacy Compatibility Logging Sta
 
 ---
 
-## 7. Maintenance and Cleanup
+## 8. Maintenance and Cleanup
 
 Background tools (for example `backup_manager.py`, `auto_cleanup.py`, scheduled jobs) manage:
 
@@ -172,7 +197,7 @@ When changing log paths, rotation settings, or retention policies:
 
 ---
 
-## 8. Best Practices
+## 9. Best Practices
 
 When editing or adding code:
 
@@ -187,3 +212,9 @@ For tests:
 - Respect `TEST_VERBOSE_LOGS` and `MHM_TESTING` flags.
 
 For detailed guidance, examples, and troubleshooting tips, see `logs/LOGGING_GUIDE.md`.
+
+## 10. Usage Examples
+
+- Component logger basics -> see `logs/LOGGING_GUIDE.md` section 10.1.
+- Logging handled errors with context -> see section 10.2 of the human guide.
+- Legacy compatibility example -> see section 10.3 of the human guide for the required comment block and warning pattern.

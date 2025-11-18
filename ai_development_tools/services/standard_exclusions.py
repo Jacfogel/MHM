@@ -42,6 +42,7 @@ UNIVERSAL_EXCLUSIONS = [
     '*.swp',
     '*.swo',
     '*~',
+    '.cursorignore',
     
     # OS generated files
     '.DS_Store',
@@ -97,6 +98,10 @@ CONTEXT_EXCLUSIONS = {
         'ai_development_tools/ai_audit_detailed_results.json',
         'ai_development_docs/AI_MODULE_DEPENDENCIES.md',
         'ai_development_docs/AI_FUNCTION_REGISTRY.md',
+        'development_docs/DIRECTORY_TREE.md',
+        'development_docs/FUNCTION_REGISTRY_DETAIL.md',
+        'development_docs/LEGACY_REFERENCE_REPORT.md',
+        'development_docs/MODULE_DEPENDENCIES_DETAIL.md',
         'ui/generated/*',
         '*/ui/generated/*',
         # Windows path variants
@@ -106,6 +111,10 @@ CONTEXT_EXCLUSIONS = {
         'ai_development_tools\\ai_audit_detailed_results.json',
         'ai_development_docs\\AI_MODULE_DEPENDENCIES.md',
         'ai_development_docs\\AI_FUNCTION_REGISTRY.md',
+        'development_docs\\DIRECTORY_TREE.md',
+        'development_docs\\FUNCTION_REGISTRY_DETAIL.md',
+        'development_docs\\LEGACY_REFERENCE_REPORT.md',
+        'development_docs\\MODULE_DEPENDENCIES_DETAIL.md',
         'ui\\generated\\*',
         '*\\ui\\generated\\*',
     ],

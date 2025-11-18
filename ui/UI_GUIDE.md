@@ -1,7 +1,7 @@
 # UI Development Guide
 
 
-> **File**: `ui/README.md`
+> **File**: `ui/UI_GUIDE.md`
 > **Audience**: Developers working on MHM UI components  
 > **Purpose**: Guide for UI development, generation, and maintenance  
 > **Style**: Technical, step-by-step, reference-oriented
@@ -9,9 +9,9 @@
 > **See [README.md](../README.md) for complete navigation and project overview**  
 > **See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) for safe development practices**  
 
-## 🚀 Quick Reference
+## Quick Reference
 
-### **UI Generation Commands**
+**UI Generation Commands**
 ```powershell
 # Generate all UI files with proper headers (RECOMMENDED)
 python ui/generate_ui_files.py
@@ -23,13 +23,13 @@ python ui/generate_ui_files.py ui/designs/{filename}.ui
 pyside6-uic ui/designs/{filename}.ui -o ui/generated/{filename}_pyqt.py
 ```
 
-### **UI Development Workflow**
+**UI Development Workflow**
 1. **Design**: Create/edit `.ui` files in `ui/designs/`
 2. **Generate**: Run `python ui/generate_ui_files.py` to create Python classes with proper headers
 3. **Implement**: Create dialog classes in `ui/dialogs/`
 4. **Test**: Verify UI functionality and integration
 
-### **Generated UI Files**
+**Generated UI Files**
 All UI files are auto-generated from `.ui` files in `ui/designs/` and stored in `ui/generated/`:
 
 **Dialog Files:**
@@ -60,7 +60,7 @@ All UI files are auto-generated from `.ui` files in `ui/designs/` and stored in 
 
 **Note**: All generated files include proper headers identifying them as auto-generated and should not be edited manually.
 
-## UI Generation
+## 1. UI Generation
 
 **Command**: `pyside6-uic ui/designs/{filename}.ui -o ui/generated/{filename}_pyqt.py`
 
@@ -68,14 +68,14 @@ All UI files are auto-generated from `.ui` files in `ui/designs/` and stored in 
 
 **Important**: Always regenerate after editing .ui files. Never edit generated Python files directly.
 
-## File Structure
+## 2. File Structure
 
 - `ui/designs/` - Qt Designer .ui files (source)
 - `ui/generated/` - Auto-generated Python UI classes
 - `ui/dialogs/` - Dialog implementations using generated UI
 - `ui/widgets/` - Reusable widget implementations
 
-## Usage Pattern
+## 3. Usage Pattern
 
 ```python
 from ui.generated.{filename}_pyqt import Ui_{ClassName}

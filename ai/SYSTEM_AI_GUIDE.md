@@ -1,7 +1,7 @@
 # AI System Documentation
 
 
-> **File**: `ai/README.md`
+> **File**: `ai/SYSTEM_AI_GUIDE.md`
 > **Purpose**: Comprehensive documentation for the MHM AI system architecture, components, and behavior  
 > **Last Updated**: 2025-11-01
 
@@ -9,9 +9,9 @@
 
 The MHM AI system provides intelligent, context-aware responses for mental health support. It uses LM Studio (local language model) via HTTP API and includes sophisticated context management, response caching, and fallback mechanisms.
 
-## Architecture
+## 1. Architecture
 
-### Core Components
+### 1.1. Core Components
 
 1. **`ai/chatbot.py`** - Main AI chatbot logic and LM Studio integration
 2. **`ai/prompt_manager.py`** - Manages AI prompts and templates
@@ -19,7 +19,7 @@ The MHM AI system provides intelligent, context-aware responses for mental healt
 4. **`user/context_manager.py`** - Builds comprehensive user context
 5. **`ai/lm_studio_manager.py`** - LM Studio connection management
 
-### Singleton Pattern
+### 1.2. Singleton Pattern
 
 The AI system uses a **Singleton pattern** for the chatbot instance:
 
@@ -31,9 +31,9 @@ chatbot = get_ai_chatbot()  # Returns shared AIChatBotSingleton instance
 
 This ensures a single instance across the application, with shared connection state and caching.
 
-## Main Entry Points
+## 2. Main Entry Points
 
-### 1. `generate_response()`
+### 2.1. `generate_response()`
 
 Basic AI response generation without full context.
 
@@ -60,7 +60,7 @@ def generate_response(
 response = chatbot.generate_response("How are you?", user_id="user123")
 ```
 
-### 2. `generate_contextual_response()`
+### 2.2. `generate_contextual_response()`
 
 Context-aware response generation with full user data.
 
@@ -85,7 +85,7 @@ def generate_contextual_response(
 response = chatbot.generate_contextual_response("user123", "How am I doing today?")
 ```
 
-### 3. `generate_personalized_message()`
+### 2.3. `generate_personalized_message()`
 
 Generates personalized messages based on recent check-in data (for automated messages).
 
@@ -97,17 +97,17 @@ def generate_personalized_message(
 ) -> str
 ```
 
-## Mode Detection
+## 3. Mode Detection
 
 The AI system automatically detects the appropriate mode based on user input:
 
-### Mode Types
+### 3.1. Mode Types
 
 1. **`chat`** - General conversation, wellness support
 2. **`command`** - Explicit command requests (e.g., "add task buy groceries")
 3. **`command_with_clarification`** - Ambiguous requests needing clarification
 
-### Detection Logic (`_detect_mode()`)
+### 3.2. Detection Logic (`_detect_mode()`)
 
 **Command Mode Triggers:**
 - Explicit command keywords: "add task", "create task", "list tasks", etc.
@@ -122,9 +122,9 @@ The AI system automatically detects the appropriate mode based on user input:
 **Chat Mode:**
 - Everything else defaults to chat mode
 
-## Context Building
+## 4. Context Building
 
-### Context Sources
+### 4.1. Context Sources
 
 The AI has access to extensive user context formatted in **natural language** (not JSON):
 
@@ -176,7 +176,7 @@ The AI has access to extensive user context formatted in **natural language** (n
    - Recent messages sent to user
    - Task reminders received
 
-### Context Format
+### 4.2. Context Format
 
 Context is formatted as **natural language narrative** rather than structured data:
 
@@ -204,9 +204,9 @@ Their interests include: health, wellness, mindfulness
 
 This natural language format is easier for language models to understand than structured JSON, and the explicit feature availability ensures the AI doesn't reference features the user hasn't opted into.
 
-## Prompt System
+## 5. Prompt System
 
-### Prompt Types
+### 5.1. Prompt Types
 
 The system supports multiple prompt templates:
 
@@ -215,7 +215,7 @@ The system supports multiple prompt templates:
 3. **`neurodivergent_support`** - Specialized support for ADHD/depression
 4. **`checkin`** - Check-in assistance
 
-### Prompt Customization
+### 5.2. Prompt Customization
 
 Custom prompts can be loaded from `resources/assistant_system_prompt.txt` (controlled by `AI_USE_CUSTOM_PROMPT` config).
 
@@ -224,7 +224,7 @@ Custom prompts can be loaded from `resources/assistant_system_prompt.txt` (contr
 2. Built-in template for requested type
 3. Default `wellness` prompt
 
-### Prompt Instructions
+### 5.3. Prompt Instructions
 
 The system prompts include detailed instructions for:
 - **Greeting Handling**: Answer "How are you?" before redirecting, acknowledge greetings
@@ -236,7 +236,7 @@ The system prompts include detailed instructions for:
 
 All instructions include explicit BAD/GOOD examples to guide AI behavior. See `resources/assistant_system_prompt.txt` for the complete custom prompt with all instructions.
 
-### Command Mode Prompt Format
+### 5.4. Command Mode Prompt Format
 
 Command mode uses a **key-value format** (not JSON) for better AI compatibility:
 
@@ -250,9 +250,9 @@ The parser supports multiple formats:
 2. JSON format (legacy support)
 3. Natural language (fallback parsing)
 
-## Response Processing
+## 6. Response Processing
 
-### Post-Processing Steps
+### 6.1. Post-Processing Steps
 
 1. **Command Extraction** (`_extract_command_from_response()`)
    - For command mode: Extracts clean structured format
@@ -270,9 +270,9 @@ The parser supports multiple formats:
    - Context-aware prompt selection
    - Only applied to non-command modes
 
-## Caching
+## 7. Caching
 
-### Response Cache
+### 7.1. Response Cache
 
 - **Purpose**: Avoid regenerating identical responses
 - **Scope**: Cached by prompt + user_id + mode
@@ -283,22 +283,22 @@ The parser supports multiple formats:
   - Cached for command/clarification modes (deterministic)
   - LRU eviction when full
 
-### Context Cache
+### 7.2. Context Cache
 
 - **Purpose**: Cache expensive context building
 - **TTL**: 5 minutes (`CONTEXT_CACHE_TTL`)
 - **Max Size**: 100 entries
 
-## Error Handling & Fallbacks
+## 8. Error Handling & Fallbacks
 
-### Fallback Hierarchy
+### 8.1. Fallback Hierarchy
 
 1. **LM Studio Available** → Generate via API
 2. **Connection Test Fails** → Enhanced contextual fallback
 3. **API Busy/Timeout** → Contextual fallback with user data
 4. **Generation Error** → Contextual fallback
 
-### Contextual Fallback (`_get_contextual_fallback()`)
+### 8.2. Contextual Fallback (`_get_contextual_fallback()`)
 
 When LM Studio is unavailable, the system uses intelligent keyword-based responses:
 
@@ -312,9 +312,9 @@ When LM Studio is unavailable, the system uses intelligent keyword-based respons
 - Connection error: "I'm having some technical difficulties right now. Could you please try again in a moment?"
 - Mood inquiry: Provides actual mood data if available
 
-## Configuration
+## 9. Configuration
 
-### Key Settings (in `core/config.py`)
+### 9.1. Key Settings (in `core/config.py`)
 
 **Connection:**
 - `LM_STUDIO_BASE_URL` - API endpoint (default: `http://localhost:1234/v1`)
@@ -341,9 +341,9 @@ When LM Studio is unavailable, the system uses intelligent keyword-based respons
 - `AI_CACHE_RESPONSES` - Enable/disable caching (default: true)
 - `AI_RESPONSE_CACHE_TTL` - Cache TTL (300s = 5 minutes)
 
-## Concurrency & Threading
+## 10. Concurrency & Threading
 
-### Locking Strategy
+### 10.1. Locking Strategy
 
 - **Per-User Locks**: Each user has a dedicated lock (`_locks_by_user`)
 - **Lock Timeout**: 3 seconds max wait
@@ -351,9 +351,9 @@ When LM Studio is unavailable, the system uses intelligent keyword-based respons
 
 This prevents concurrent generation conflicts while allowing better concurrency than a single global lock.
 
-## Data Flow
+## 11. Data Flow
 
-### Contextual Response Generation Flow
+### 11.1. Contextual Response Generation Flow
 
 ```
 User Prompt
@@ -384,21 +384,21 @@ Store Conversation Interaction
 Return Response
 ```
 
-## Integration Points
+## 12. Integration Points
 
-### Storage
+### 12.1. Storage
 - Conversation history stored via `store_chat_interaction()`
 - Context data loaded via `get_user_data()`, `get_recent_checkins()`, etc.
 
-### Command Parsing
+### 12.2. Command Parsing
 - Command responses parsed by `communication/message_processing/command_parser.py`
 - Supports key-value, JSON, and natural language formats
 
-### User Context
+### 12.3. User Context
 - Context built by `user/context_manager.py`
 - Includes profile, activity, preferences, mood trends, conversation history
 
-## Best Practices
+## 13. Best Practices
 
 1. **Use `generate_contextual_response()`** for user-facing interactions - it provides better personalization
 2. **Use `generate_response()`** for simple, non-contextual needs (e.g., testing)
@@ -407,7 +407,7 @@ Return Response
 5. **Respect timeouts** - use appropriate timeout for the use case (quick vs. contextual)
 6. **Cache appropriately** - command mode benefits from caching, chat mode should vary
 
-## Testing
+## 14. Testing
 
 AI functionality tests are in `tests/ai/`:
 
@@ -415,49 +415,49 @@ AI functionality tests are in `tests/ai/`:
 - Tests validate response quality, context usage, mode detection, and error handling
 - Results: `tests/ai/results/ai_functionality_test_results_latest.md`
 
-## Troubleshooting
+## 15. Troubleshooting
 
-### LM Studio Not Available
+### 15.1. LM Studio Not Available
 - Check if LM Studio is running on configured port
 - Verify `LM_STUDIO_BASE_URL` in config
 - System will use fallbacks automatically
 
-### Slow Responses
+### 15.2. Slow Responses
 - Check timeout settings
 - Verify context isn't too large (natural language context is verbose)
 - Consider caching for deterministic responses
 
-### Poor Response Quality
+### 15.3. Poor Response Quality
 - Check prompt customization (`resources/assistant_system_prompt.txt`)
 - Verify context includes relevant data
 - Review prompt templates in `ai/prompt_manager.py`
 - Check if AI is fabricating data (run AI functionality tests)
 - Verify responses match prompts (run AI functionality tests)
 
-### Response Truncation
+### 15.4. Response Truncation
 - Check `max_tokens` in prompt templates (`ai/prompt_manager.py`)
 - Verify `AI_MAX_RESPONSE_TOKENS` in config
 - Model may be stopping early despite token limits
 
-### AI Fabricating Data
+### 15.5. AI Fabricating Data
 - AI may claim check-ins, tasks, or data exist when context shows none
 - Context explicitly states "They have not completed any check-ins yet" when no data exists
 - Verify context building includes explicit "no data" messages
 - Run AI functionality tests to detect this issue (T-4.1)
 
-### AI Referencing Non-existent Context
+### 15.6. AI Referencing Non-existent Context
 - AI may reference conversation history or check-ins that don't exist
 - Context should explicitly state when features are disabled or data is missing
 - Tests validate that AI doesn't make references without actual context
 
-### Context Not Being Used
+### 15.7. Context Not Being Used
 - Ensure `generate_contextual_response()` is used (not `generate_response()`)
 - Check that user_id is valid
 - Verify context building isn't failing silently
 
-## Module Reference
+## 16. Module Reference
 
-### `ai/chatbot.py`
+### 16.1. `ai/chatbot.py`
 - `AIChatBotSingleton` - Main chatbot class
 - `get_ai_chatbot()` - Get singleton instance
 - `generate_response()` - Basic response generation
@@ -465,19 +465,19 @@ AI functionality tests are in `tests/ai/`:
 - `_detect_mode()` - Mode detection logic
 - `_create_comprehensive_context_prompt()` - Context prompt builder
 
-### `ai/prompt_manager.py`
+### 16.2. `ai/prompt_manager.py`
 - `PromptManager` - Prompt template management
 - `get_prompt_manager()` - Get singleton instance
 - `get_prompt()` - Get prompt for type
 - `get_prompt_template()` - Get full template object
 
-### `ai/cache_manager.py`
+### 16.3. `ai/cache_manager.py`
 - `ResponseCache` - Response caching
 - `ContextCache` - Context caching
 - `get_response_cache()` - Get response cache instance
 - `get_context_cache()` - Get context cache instance
 
-### `user/context_manager.py`
+### 16.4. `user/context_manager.py`
 - `UserContextManager` - Context building
 - `get_ai_context()` - Build comprehensive context
 - `format_context_for_ai()` - Format context as string

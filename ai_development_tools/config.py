@@ -133,7 +133,7 @@ VERSION_SYNC = {
         "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
         "ai_development_docs/AI_REFERENCE.md",
         "ai_development_docs/AI_SESSION_STARTER.md",
-        "ai_development_tools/README.md"
+        "ai_development_tools/AI_DEV_TOOLS_GUIDE.md"
     ],
     'generated_ai_docs': [
         "ai_development_docs/AI_FUNCTION_REGISTRY.md",
@@ -170,7 +170,7 @@ VERSION_SYNC = {
         ".cursor/commands/README.md"
     ],
     'communication_docs': [
-        "communication/communication_channels/discord/DISCORD.md"
+        "communication/communication_channels/discord/DISCORD_GUIDE.md"
     ],
     'core_docs': [
         "core/ERROR_HANDLING_GUIDE.md"
@@ -179,7 +179,7 @@ VERSION_SYNC = {
         "logs/LOGGING_GUIDE.md"
     ],
     'scripts_docs': [
-        "scripts/README.md"
+        "scripts/SCRIPTS_GUIDE.md"
     ],
     'tests_docs': [
         "tests/TESTING_GUIDE.md"

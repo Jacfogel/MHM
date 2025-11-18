@@ -22,11 +22,11 @@ Use this to decide which doc to open or reference.
 - AI behavior rules and escalation: `AI_SESSION_STARTER.md`, `.cursor/rules/`, `AI_REFERENCE.md`
 
 
-## Documentation Categories
+## 1. Documentation Categories
 
 Minimal rules for which class of doc to use.
 
-### Detailed documentation
+### 1.1. Detailed documentation
 
 Use detailed docs when:
 
@@ -39,7 +39,7 @@ Key examples:
 `../tests/TESTING_GUIDE.md`, `../core/ERROR_HANDLING_GUIDE.md`,  
 `../DOCUMENTATION_GUIDE.md`.
 
-### AI-facing documents
+### 1.2. AI-facing documents
 
 Use AI docs when:
 
@@ -52,7 +52,7 @@ Key examples:
 `AI_LOGGING_GUIDE.md`, `AI_TESTING_GUIDE.md`, `AI_ERROR_HANDLING_GUIDE.md`,  
 `AI_DOCUMENTATION_GUIDE.md`.
 
-### Generated and analytical docs
+### 1.3. Generated and analytical docs
 
 Generated docs are read-only inputs (for example: registries, dependency maps, legacy reports).
 
@@ -60,11 +60,12 @@ Generated docs are read-only inputs (for example: registries, dependency maps, l
 - When they are wrong or stale, suggest updating the generator and regenerating the file rather than manual edits.
 
 
-## Standards and Templates
+## 2. Standards and Templates
 
 Minimal standards AI must respect.
 
 - Every `.md` doc must include a `> **File**: \`...\`` line with its path from the repo root.  
+- Number H2 and H3 headings (for example `## 2. Logging Architecture`, `### 2.1 Central logger module`) and ensure numbering stays aligned with any paired document.  
 - Detailed docs should also include Audience/Purpose/Style when helpful.  
 - Every `.mdc` rule file must either:
   - Use YAML frontmatter with a `file:` field, or  
@@ -76,36 +77,36 @@ When suggesting new docs or edits:
 - Keep AI docs short and routing-focused; avoid re-explaining detailed content from the paired docs.
 
 
-## Documentation Synchronization Checklist
+## 3. Documentation Synchronization Checklist
 
 AI summary of the sync rules. Full detail is in `DOCUMENTATION_GUIDE.md`.
 
-### Paired documentation files
+### 3.1. Paired documentation files
 
 Treat these as synchronized pairs:
 
-- `DEVELOPMENT_WORKFLOW.md` ↔ `AI_DEVELOPMENT_WORKFLOW.md`  
-- `ARCHITECTURE.md` ↔ `AI_ARCHITECTURE.md`  
-- `DOCUMENTATION_GUIDE.md` ↔ `AI_DOCUMENTATION_GUIDE.md`  
-- `development_docs/CHANGELOG_DETAIL.md` ↔ `AI_CHANGELOG.md`  
-- `logs/LOGGING_GUIDE.md` ↔ `AI_LOGGING_GUIDE.md`  
-- `tests/TESTING_GUIDE.md` ↔ `AI_TESTING_GUIDE.md`  
-- `core/ERROR_HANDLING_GUIDE.md` ↔ `AI_ERROR_HANDLING_GUIDE.md`
+- `DEVELOPMENT_WORKFLOW.md` <-> `AI_DEVELOPMENT_WORKFLOW.md`  
+- `ARCHITECTURE.md` <-> `AI_ARCHITECTURE.md`  
+- `DOCUMENTATION_GUIDE.md` <-> `AI_DOCUMENTATION_GUIDE.md`  
+- `development_docs/CHANGELOG_DETAIL.md` <-> `AI_CHANGELOG.md`  
+- `logs/LOGGING_GUIDE.md` <-> `AI_LOGGING_GUIDE.md`  
+- `tests/TESTING_GUIDE.md` <-> `AI_TESTING_GUIDE.md`  
+- `core/ERROR_HANDLING_GUIDE.md` <-> `AI_ERROR_HANDLING_GUIDE.md`
 
-### Hard rules
+### 3.2. Hard rules
 
 - The H2 heading set must be identical across each pair.  
 - If you add, remove, or rename an H2 in one file, you must do the same in its pair.  
 - H3+ structure can differ.
 
-### Minimal checklist
+### 3.3. Minimal checklist
 
 - Before editing a paired doc, check if it has a counterpart and open both.  
 - Prefer updating the detailed doc first, then adjust the AI doc to match.  
 - After edits, run `python ai_development_tools/ai_tools_runner.py doc-sync` if available and fix any mismatches.
 
 
-## Maintenance Guidelines
+## 4. Maintenance Guidelines
 
 High-level guidance.
 
@@ -114,7 +115,7 @@ High-level guidance.
 - Prefer extending existing sections over inventing new top-level docs; if a new pair is truly needed, ensure both sides share the same H2 set and add them to the pairing list above.
 
 
-## Generated Documentation Standards
+## 5. Generated Documentation Standards
 
 AI view of generated docs.
 
@@ -124,7 +125,7 @@ AI view of generated docs.
   - Updating the generator (for example, scripts in `ai_development_tools/`), then  
   - Regenerating the file.
 
-For generator usage and tooling details, see `ai_development_tools/README.md`.
+For generator usage and tooling details, see `ai_development_tools/AI_DEV_TOOLS_GUIDE.md`.
 
 
 For documentation automation (sync checks, reports, analysis), call:
@@ -133,7 +134,7 @@ For documentation automation (sync checks, reports, analysis), call:
 python ai_development_tools/ai_tools_runner.py <command>
 ```
 
-and rely on `ai_development_tools/README.md` for command descriptions and options.
+and rely on `ai_development_tools/AI_DEV_TOOLS_GUIDE.md` for command descriptions and options.
 
 Typical documentation-related commands to suggest (without redefining them here):
 
@@ -145,12 +146,12 @@ Typical documentation-related commands to suggest (without redefining them here)
 - `trees`  
 - `status`  
 
-## Resources
+## 6. Resources
 
 If this file is not enough:
 
 - `DOCUMENTATION_GUIDE.md` for detailed rules and rationale.  
-- `ai_development_tools/README.md` for documentation-related tools and reports.  
+- `ai_development_tools/AI_DEV_TOOLS_GUIDE.md` for documentation-related tools and reports.  
 - `AI_SESSION_STARTER.md` for session-wide constraints and priorities.  
 - `AI_REFERENCE.md` for routing and escalation patterns.  
 - `AI_CHANGELOG.md` for recent changes that may affect documentation.

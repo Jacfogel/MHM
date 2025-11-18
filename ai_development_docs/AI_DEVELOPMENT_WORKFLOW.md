@@ -16,11 +16,11 @@ Use this to decide what to do next and which docs to open.
 - Environment setup and running the app  
   - "Environment Setup" and "Quick Start (Recommended)" in `HOW_TO_RUN.md`
 - Testing  
-  - `ai_development_docs/AI_TESTING_GUIDE.md` → `tests/TESTING_GUIDE.md`
+  - `ai_development_docs/AI_TESTING_GUIDE.md` -> `tests/TESTING_GUIDE.md`
 - Documentation  
-  - `ai_development_docs/AI_DOCUMENTATION_GUIDE.md` → `DOCUMENTATION_GUIDE.md`
+  - `ai_development_docs/AI_DOCUMENTATION_GUIDE.md` -> `DOCUMENTATION_GUIDE.md`
 - Architecture  
-  - `ai_development_docs/AI_ARCHITECTURE.md` → `ARCHITECTURE.md`
+  - `ai_development_docs/AI_ARCHITECTURE.md` -> `ARCHITECTURE.md`
 
 Core safety and quality rules:
 
@@ -32,7 +32,7 @@ Core safety and quality rules:
 - Follow documentation rules in `AI_DOCUMENTATION_GUIDE.md` / `DOCUMENTATION_GUIDE.md` when editing docs.
 
 
-## Safety First
+## 1. Safety First
 
 Minimal rules for safe changes:
 
@@ -45,7 +45,7 @@ Minimal rules for safe changes:
   - Then asking for help instead of guessing.
 
 
-## Virtual Environment Best Practices
+## 2. Virtual Environment Best Practices
 
 Key patterns for environment handling:
 
@@ -59,7 +59,7 @@ For step-by-step instructions, combine this with "Environment Setup" in `HOW_TO_
 
 
 
-### Configuration and .env
+### 2.1. Configuration and .env
 
 - Configuration is driven by environment variables loaded from a `.env` file via `config.py` (python-dotenv).
 - Use `.env.example` as a template: copy it to `.env` and fill in tokens, credentials, and any overrides you need.
@@ -68,20 +68,20 @@ For step-by-step instructions, combine this with "Environment Setup" in `HOW_TO_
   - Logging: `LOGS_DIR`, component log files, and rotation settings.
   - Channels: `EMAIL_*`, `DISCORD_BOT_TOKEN`, and related flags.
   - AI / LM Studio: `LM_STUDIO_*`, `AI_*` timeouts and temperature values.
-- For automated checks and reports, prefer the `config` command in `ai_development_tools/ai_tools_runner.py` (see `ai_development_tools/README.md`).
+- For automated checks and reports, prefer the `config` command in `ai_development_tools/ai_tools_runner.py` (see `ai_development_tools/AI_DEV_TOOLS_GUIDE.md`).
 
-## Development Process
+## 3. Development Process
 
 Use this high-level loop when reasoning about changes or suggesting steps.
 
-### Step 1: Plan
+**Step 1: Plan**
 
 - Capture the goal in plain language.  
 - Identify risks: user data, scheduling, multi-channel behavior, or external services.  
 - Decide how success will be verified (specific tests or manual flows).  
 - Note which docs may need updates (for example, `HOW_TO_RUN.md`, `README.md`, specific guides).
 
-### Step 2: Implement
+**Step 2: Implement**
 
 - Recommend small, reversible slices rather than large rewrites.  
 - Encourage use of existing helpers and patterns:
@@ -89,20 +89,20 @@ Use this high-level loop when reasoning about changes or suggesting steps.
   - Logging / errors: follow `LOGGING_GUIDE.md` and `ERROR_HANDLING_GUIDE.md`.  
 - Avoid suggesting new thin wrappers or deep, fragile imports.
 
-### Step 3: Test
+**Step 3: Test**
 
-- Start with targeted tests for the changed behavior, then broaden (unit → integration → behavior → UI).  
+- Start with targeted tests for the changed behavior, then broaden (unit -> integration -> behavior -> UI).  
 - Route to `AI_TESTING_GUIDE.md` for commands, markers, and parallel-safety rules.  
 - For Discord/email-dependent features, recommend minimal manual verification per "Manual Testing Procedures" in `tests/TESTING_GUIDE.md`.
 
-### Step 4: Document and Clean Up
+**Step 4: Document and Clean Up**
 
 - Suggest updating `development_docs/CHANGELOG_DETAIL.md` plus a concise entry in `ai_development_docs/AI_CHANGELOG.md`.  
 - Update any affected guides (for example, `HOW_TO_RUN.md`, `README.md`, or specific topic guides).  
 - Remove clearly dead code, obsolete comments, and unused imports where safe.
 
 
-## Testing Strategy
+## 4. Testing Strategy
 
 AI view of testing:
 
@@ -117,7 +117,7 @@ Routing:
 - Explanations and manual flows: `tests/TESTING_GUIDE.md` and the testing sections of `DEVELOPMENT_WORKFLOW.md` when needed.
 
 
-## Common Tasks
+## 5. Common Tasks
 
 Patterns for frequent change types.
 
@@ -139,7 +139,7 @@ Patterns for frequent change types.
   - Remove obsolete wrappers/helpers and update imports and docs.
 
 
-## Emergency Procedures
+## 6. Emergency Procedures
 
 When things go wrong, AI guidance should be:
 
@@ -153,7 +153,7 @@ When things go wrong, AI guidance should be:
 - Encourage asking for help using that summary instead of risky trial-and-error.
 
 
-## Learning Resources
+## 7. Learning Resources
 
 Routing only:
 
@@ -163,7 +163,7 @@ Routing only:
 - General Python/Qt questions: external docs or tutorials (avoid fabricating URLs).
 
 
-## Success Tips
+## 8. Success Tips
 
 Minimal coaching for AI suggestions:
 
@@ -173,12 +173,12 @@ Minimal coaching for AI suggestions:
 - Emphasize clarity and maintainability over cleverness in both code and tests.
 
 
-## Git Workflow (PowerShell-Safe)
+## 9. Git Workflow (PowerShell-Safe)
 
 AI view of Git usage for this project:
 
 - Encourage the standard cycle:
-  - Check status → stage → commit → fetch → diff → pull → push.  
+  - Check status -> stage -> commit -> fetch -> diff -> pull -> push.  
 - Suggest safe inspection commands (for example, `git status`, `git log --oneline`, `git show`) rather than destructive operations.  
 - Recommend backups before big merges or refactors and test runs after pulling significant changes.
 

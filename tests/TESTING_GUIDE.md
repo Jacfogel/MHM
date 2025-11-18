@@ -29,7 +29,7 @@ This section lists the most common testing tasks and where to look.
   - See `ai_development_docs/AI_TESTING_GUIDE.md`.
 
 
-## Testing Philosophy and Priorities
+## 1. Testing Philosophy and Priorities
 
 The testing strategy for MHM focuses on real-world behavior and resilience:
 
@@ -47,7 +47,7 @@ The testing strategy for MHM focuses on real-world behavior and resilience:
 Where deeper technical detail is needed, see `ai_development_docs/AI_TESTING_GUIDE.md` for a compact view and use this document for full patterns and rationale.
 
 
-## Test Layout and Discovery
+## 2. Test Layout and Discovery
 
 Pytest configuration is defined in `pytest.ini` and `tests/conftest.py`.
 
@@ -66,32 +66,7 @@ Test behavior is also controlled using pytest markers defined in `pytest.ini`. T
 Use markers to describe the intent and constraints of each test.
 
 
-## Test Utilities and Infrastructure
-
-Several shared utilities support the test suite. Key elements include:
-
-- `tests/conftest.py`  
-  - Centralized fixtures and hooks.  
-  - Logging configuration for tests, including per-worker logs when running in parallel.  
-  - Test data directory management and path safety checks.
-- `tests/test_utilities.py`  
-  - Shared helpers for fixtures, fake data, and common assertions.  
-  - Prefer these helpers over ad-hoc test code when possible.
-- `tests/test_isolation.py`  
-  - Helpers for isolating Windows Task Scheduler and other system calls (for example, `IsolationManager`, `mock_system_calls`, `verify_no_real_tasks_created`).  
-  - Use these utilities for tests that might otherwise create real Windows tasks or other system resources.  
-- Temporary directories  
-  - Tests should use the configured temporary directory structure under `tests/data/` (for example, `tests/data/tmp`) rather than writing into arbitrary locations.
-- Logging for tests  
-  - Test runs produce log files (for example, `test_run.log`, `test_consolidated.log`) that are useful for debugging, especially under parallel execution.
-- Data shims and guards  
-  - Fixtures and helpers ensure user data directories are not accidentally modified during tests.
-- File system hygiene  
-  - Tests must leave no artefacts outside the `tests` directory.  
-  - Keep test data under `tests/data/`, and ensure any generated files are cleaned up during teardown or via fixtures.
-
-
-## Test Types and Structure
+## 3. Test Types and Structure
 
 Tests are organized by real-world features and workflows to encourage integration testing and real behavior verification.
 
@@ -121,7 +96,7 @@ Placement guidelines:
 - Place cross-module flows under `integration` or `behavior`.  
 - Place dialog and widget interaction tests under `ui` (for example, verifying signals, slots, and validation behavior).
 
-### Where to put new tests
+### 3.1. Where to put new tests
 
 - New unit tests  
   - Place them in `tests/unit/` alongside tests for the same module or feature.  
@@ -130,7 +105,31 @@ Placement guidelines:
 - New UI tests  
   - Place them in `tests/ui/` and follow existing patterns for dialogs, widgets, and signals/slots.
 
-## File System Safety and Isolation
+## 4. Test Utilities and Infrastructure
+
+Several shared utilities support the test suite. Key elements include:
+
+- `tests/conftest.py`  
+  - Centralized fixtures and hooks.  
+  - Logging configuration for tests, including per-worker logs when running in parallel.  
+  - Test data directory management and path safety checks.
+- `tests/test_utilities.py`  
+  - Shared helpers for fixtures, fake data, and common assertions.  
+  - Prefer these helpers over ad-hoc test code when possible.
+- `tests/test_isolation.py`  
+  - Helpers for isolating Windows Task Scheduler and other system calls (for example, `IsolationManager`, `mock_system_calls`, `verify_no_real_tasks_created`).  
+  - Use these utilities for tests that might otherwise create real Windows tasks or other system resources.  
+- Temporary directories  
+  - Tests should use the configured temporary directory structure under `tests/data/` (for example, `tests/data/tmp`) rather than writing into arbitrary locations.
+- Logging for tests  
+  - Test runs produce log files (for example, `test_run.log`, `test_consolidated.log`) that are useful for debugging, especially under parallel execution.
+- Data shims and guards  
+  - Fixtures and helpers ensure user data directories are not accidentally modified during tests.
+- File system hygiene  
+  - Tests must leave no artefacts outside the `tests` directory.  
+  - Keep test data under `tests/data/`, and ensure any generated files are cleaned up during teardown or via fixtures.
+
+## 5. File System Safety and Isolation
 
 The tests must not corrupt real user data or create uncontrolled artefacts.
 
@@ -140,7 +139,7 @@ Key rules:
 - Paths for user data and configuration are redirected to test-specific directories via `tests/conftest.py`.  
 - Tests should not read from or write to real user directories (for example, directories under `%APPDATA%`, `Documents`, or production data paths).
 
-### Windows Task Prevention (critical)
+### 5.1. Windows Task Prevention (critical)
 
 On Windows, tests must never create or modify real scheduled tasks:
 
@@ -153,12 +152,12 @@ For advanced isolation during tests that might trigger scheduler or other system
 For detailed infrastructure behavior and configuration, refer to the logging patterns described in `logs/LOGGING_GUIDE.md` and `AI_LOGGING_GUIDE.md`.
 
 
-## Running Tests
+## 6. Running Tests
 
 This section covers the main ways to run tests.
 
 
-### Using run_tests.py (recommended)
+### 6.1. Using run_tests.py (recommended)
 
 The `run_tests.py` script provides a safer, standardized entry point for running tests.
 
@@ -191,7 +190,7 @@ Key points:
 - Coverage flags collect code coverage metrics during the run.
 
 
-### Using pytest directly
+### 6.2. Using pytest directly
 
 You can also call pytest directly for targeted runs:
 
@@ -209,17 +208,17 @@ pytest -m "unit and not slow"
 This is useful during focused development or when inspecting specific failures.
 
 
-## Parallel Execution
+## 7. Parallel Execution
 
 Parallel execution is handled via pytest-xdist and is enabled by default when using `run_tests.py`.
 
-### How parallel execution is enabled
+### 7.1. How parallel execution is enabled
 
 - `run_tests.py` adds `-n auto` or `-n <workers>` when parallel execution is enabled.  
 - By default, `run_tests.py` runs tests in parallel unless `--no-parallel` is specified.  
 - `tests/conftest.py` configures per-worker log files and environment variables to reduce file locking issues.
 
-### Risks and constraints
+### 7.2. Risks and constraints
 
 Parallel runs can fail even when serial runs pass due to:
 
@@ -227,7 +226,7 @@ Parallel runs can fail even when serial runs pass due to:
 - Global mutable state or singletons that are not reset between tests.  
 - Interactions with external resources (network, Discord, email, filesystem) that cannot safely handle concurrent access.
 
-### no_parallel marker
+### 7.3. no_parallel marker
 
 Tests that cannot be made parallel-safe should be marked explicitly:
 
@@ -247,17 +246,17 @@ Intended usage:
 
 This marker prevents unstable behavior in parallel runs while keeping the default path fast.
 
-### When a test fails only under parallel execution
+### 7.4. When a test fails only under parallel execution
 
 - Re-run the same tests with `--no-parallel`.  
 - If the test passes serially, investigate for race conditions, shared state, or resource conflicts.  
 - Consider whether the test should be reworked to be parallel-safe, or explicitly marked with `@pytest.mark.no_parallel` with a clear comment.
 
-## Coverage and Reporting
+## 8. Coverage and Reporting
 
 Coverage helps identify untested or lightly-tested code and is integrated into the test runner.
 
-### Running with coverage
+### 8.1. Running with coverage
 
 Use `run_tests.py` for a standardized coverage run:
 
@@ -272,7 +271,7 @@ Typical outputs:
 - A `.coverage` data file in the project root or under `tests/`.  
 - Optionally, an HTML report (for example, `coverage_html/`) showing per-file and per-line coverage.
 
-### Interpreting coverage
+### 8.2. Interpreting coverage
 
 - Coverage percentage is a guide, not a goal by itself.  
 - Focus on covering critical behavior paths, error handling, and integration points.  
@@ -281,13 +280,13 @@ Typical outputs:
 
 Coverage-related configuration and thresholds (if any) live alongside test tooling or CI configuration. For detailed interpretation and tooling integration, see any coverage-specific documentation or CI pipeline configuration files.
 
-## Manual Testing Procedures
+## 9. Manual Testing Procedures
 
 Some behaviors are difficult or impractical to cover through automated tests alone. Manual checks complement the automated suite and are required for certain changes.
 
-This section consolidates manual testing guidance previously found in `MANUAL_TESTING_GUIDE.md`.
+This section consolidates manual testing guidance previously maintained in the legacy manual testing guide.
 
-### When to perform manual testing
+### 9.1. When to perform manual testing
 
 Manual testing is especially important:
 
@@ -295,7 +294,7 @@ Manual testing is especially important:
 - After major changes to the UI, scheduling logic, or communication flows.  
 - When fixing bugs that are heavily UX-related or require real integrations.
 
-### Core manual testing flows
+### 9.2. Core manual testing flows
 
 At a minimum, perform these flows before releases:
 
@@ -322,7 +321,7 @@ At a minimum, perform these flows before releases:
    - Perform basic CRUD operations on messages and schedules.  
    - Confirm that validation errors are displayed clearly and that invalid input is rejected gracefully.
 
-### UI-focused checklists
+### 9.3. UI-focused checklists
 
 When manually testing the UI:
 
@@ -340,7 +339,7 @@ When manually testing the UI:
   - Loading or waiting states are clearly indicated.  
   - Validation feedback appears near the relevant fields.
 
-### Reporting manual testing
+### 9.4. Reporting manual testing
 
 When documenting manual testing:
 
@@ -351,17 +350,17 @@ When documenting manual testing:
 
 For more structured or checklist-based manual testing, you can adapt the content of this section into separate documents or issue templates, but this section is the canonical reference.
 
-## Writing and Extending Tests
+## 10. Writing and Extending Tests
 
 This section covers guidelines for writing new tests or improving existing ones.
 
-### Placement and naming
+### 10.1. Placement and naming
 
 - Place tests in the appropriate directory (`unit`, `integration`, `behavior`, `ui`).  
 - Use descriptive names that convey the behavior under test (for example, `test_schedule_creation_valid_input` instead of `test_schedule`).  
 - Group related tests into classes only when shared setup or teardown is needed.
 
-### Using markers
+### 10.2. Using markers
 
 Use markers from `pytest.ini` to describe test characteristics:
 
@@ -371,19 +370,19 @@ Use markers from `pytest.ini` to describe test characteristics:
 
 Markers help the runner select appropriate subsets (for example, fast-only tests or behavior tests).
 
-### Using shared fixtures and helpers
+### 10.3. Using shared fixtures and helpers
 
 - Prefer fixtures from `tests/conftest.py` over ad-hoc setup logic.  
 - Use helpers in `tests/test_utilities.py` for creating mock data, users, or configuration.  
 - Use `tests/test_isolation.py` utilities when tests might touch scheduler or system-level calls.
 
-### Quality expectations
+### 10.4. Quality expectations
 
 - Tests should be deterministic and not rely on wall-clock timing or external services unless clearly marked (for example, `slow` or `external`).  
 - Prefer clear, assertive expectations and avoid overly broad assertions.  
 - Where behavior is intentionally not covered, document the gap (for example, TODOs or issues) rather than silently ignoring it.
 
-## Debugging and Troubleshooting
+## 11. Debugging and Troubleshooting
 
 When tests fail:
 
@@ -402,8 +401,7 @@ For error-handling and logging patterns that frequently appear in failures, see:
 - `core/ERROR_HANDLING_GUIDE.md` and `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`  
 - `logs/LOGGING_GUIDE.md` and `ai_development_docs/AI_LOGGING_GUIDE.md`
 
-
-## Automation and Channel-Specific Tests
+## 12. Automation and Channel-Specific Tests
 
 Some tests focus on specific communication channels or automation flows.
 
@@ -424,7 +422,7 @@ Some tests focus on specific communication channels or automation flows.
 
 Channel-specific automation patterns and examples may also be described in `AI_TESTING_GUIDE.md` for faster reference.
 
-## Maintenance and Roadmap
+## 13. Maintenance and Roadmap
 
 The testing framework will continue to evolve. Priorities include:
 

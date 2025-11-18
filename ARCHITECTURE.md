@@ -9,11 +9,11 @@
 
 > **See [README.md](README.md) for complete navigation and project overview**  
 > **See [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md) for AI-optimized quick reference**  
-> **See [ai/README.md](ai/README.md) for comprehensive AI system documentation**
+> **See [ai/SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md) for comprehensive AI system documentation**
 
 ## Quick Reference
 
-### Key Module Decision Guide
+**Key Module Decision Guide**
 1. **User data access** -> `core/user_data_handlers.py`, `core/user_data_validation.py`
 2. **UI components** -> `ui/dialogs/`, `ui/widgets/`, `ui/ui_app_qt.py`
 3. **Communication flows** -> `communication/`
@@ -21,13 +21,13 @@
 5. **Configuration** -> `core/config.py`
 6. **Testing utilities** -> `tests/` and `tests/logs/`
 
-### Data Flow Overview
+**Data Flow Overview**
 - **User Data**: `data/users/{user_id}/` -> `core/user_data_handlers.py` -> communication and UI layers.
 - **Messages**: `resources/default_messages/` -> copied into `data/users/{user_id}/messages/` when a category is enabled.
 - **Configuration**: `.env` -> `core/config.py` -> runtime components.
 - **UI Rendering**: `.ui` files -> `ui/generated/` classes -> `ui/dialogs/` implementations -> `ui/ui_app_qt.py` shell.
 
-### User Data Flow Diagram
+**User Data Flow Diagram**
 
 The following diagram illustrates how user data flows through the system from entry points (UI, Discord, Email) through validation and processing to final storage:
 
@@ -132,23 +132,23 @@ flowchart TD
 
 **Note**: The AI Chatbot is used internally by the Command Parser for AI-enhanced command parsing and contextual chat responses, not as a separate entry point.
 
-### AI System Integration
+**AI System Integration**
 
 The AI system (`ai/`) provides intelligent, context-aware responses and is integrated into the communication flow:
 - **Entry Point**: Called by the Command Parser for enhanced parsing and contextual responses
 - **Components**: `ai/chatbot.py` (main logic), `ai/prompt_manager.py` (prompts), `ai/cache_manager.py` (caching), `ai/lm_studio_manager.py` (LM Studio connection)
 - **Context Building**: Uses `user/context_manager.py` to build comprehensive user context from user data
 - **Fallback**: Falls back to contextual responses if LM Studio is unavailable
-- **See**: [ai/README.md](ai/README.md) for detailed AI system architecture
+- **See**: [ai/SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md) for detailed AI system architecture
 
-### Critical Files
+**Critical Files**
 - `run_mhm.py` -> main entry point.
 - `core/service.py` -> background service lifecycle.
 - `ui/ui_app_qt.py` -> admin interface shell.
 - `core/user_data_handlers.py` -> unified user data access.
 - `communication/core/channel_orchestrator.py` -> channel coordination.
 
-## Directory Overview
+## 1. Directory Overview
 
 - **`core/`**: Business logic, services, scheduling, analytics, and configuration utilities.
 - **`communication/`**: Channel orchestration (Discord, email, future integrations) and conversation flows.
@@ -167,7 +167,7 @@ The AI system (`ai/`) provides intelligent, context-aware responses and is integ
 - **`styles/`**: QSS themes for the UI.
 - **`.cursor/rules/`**: Cursor rule files that govern AI collaborator behaviour.
 
-## User Data Model
+## 2. User Data Model
 
 Each user has a dedicated directory under `data/users/{user_id}/` containing:
 - `account.json`: Identification and contact info.
@@ -182,14 +182,14 @@ Each user has a dedicated directory under `data/users/{user_id}/` containing:
 - Message files are user-specific and created only for categories the user has enabled.
 - When saving preferences, always write the full flat dictionary back to `preferences.json`.
 
-## Data Handling Patterns
+## 3. Data Handling Patterns
 
 - Load, modify, and save complete structures to avoid partial writes.
 - Use centralized validation in `core/user_data_validation.py` for consistency.
 - Leverage `core/config.py` for paths and environment configuration-never hardcode paths.
 - Schedule-related operations must respect the helper functions in `core/scheduler.py` and `core/schedule_management.py`.
 
-## Key Modules and Responsibilities
+## 4. Key Modules and Responsibilities
 
 - **`core/user_management.py`, `core/user_data_handlers.py`**: Unified data loading, merging, and saving.
 - **`core/message_management.py`, `core/response_tracking.py`**: Message dispatch, tracking, and analytics.
@@ -199,7 +199,7 @@ Each user has a dedicated directory under `data/users/{user_id}/` containing:
 - **`ui/dialogs/` and `ui/widgets/`**: Interactive UI components with business logic.
 - **`ai_development_tools/`**: Audit workflows, documentation analysis, and changelog tooling.
 
-## UI Architecture and Naming Conventions
+## 5. UI Architecture and Naming Conventions
 
 - **Designs** (`ui/designs/`): `.ui` files authored in Qt Designer.
 - **Generated** (`ui/generated/`): Auto-generated Python classes named `*_pyqt.py`.
@@ -207,14 +207,14 @@ Each user has a dedicated directory under `data/users/{user_id}/` containing:
 - **Widgets** (`ui/widgets/`): Reusable components such as `ui/widgets/task_settings_widget.py`; use `_widget` or `_settings_widget` suffixes for clarity.
 - **Naming**: Avoid redundant prefixes; rely on module paths for context.
 
-### File Mapping Examples
+### 5.1. File Mapping Examples
 | Purpose | Design | Generated | Implementation |
 |---------|--------|-----------|----------------|
 | Category management | `ui/designs/category_management_dialog.ui` | `ui/generated/category_management_dialog_pyqt.py` | `ui/dialogs/category_management_dialog.py` |
 | Account creation | `ui/designs/account_creator_dialog.ui` | `ui/generated/account_creator_dialog_pyqt.py` | `ui/dialogs/account_creator_dialog.py` |
 | Task settings | `ui/designs/task_settings_widget.ui` | `ui/generated/task_settings_widget_pyqt.py` | `ui/widgets/task_settings_widget.py` |
 
-## Adding New Features Safely
+## 6. Adding New Features Safely
 
 1. Use `get_user_data()` helpers for all user data and extend the schema carefully.
 2. Update preferences by reading and writing the full flat dictionary.
@@ -222,7 +222,7 @@ Each user has a dedicated directory under `data/users/{user_id}/` containing:
 4. Follow established naming conventions for UI additions and regenerate `.ui` files as needed.
 5. Update this architecture file when introducing new subsystems or altering data flow.
 
-## Development Notes
+## 7. Development Notes
 
 - When launching from VS Code or Cursor, two service processes may appear due to debugger behaviour; running from an activated PowerShell terminal avoids confusion.
 - Keep architecture documentation synchronized with implementation changes-particularly when refactoring shared services or communication workflows.

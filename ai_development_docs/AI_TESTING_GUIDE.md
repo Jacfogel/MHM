@@ -33,7 +33,7 @@ Core safety and quality rules:
 - Use `@pytest.mark.no_parallel` for tests that modify real files, share resources, or require exclusive access.
 
 
-## Testing Philosophy and Priorities
+## 1. Testing Philosophy and Priorities
 
 - Favor behavior and integration tests when adding coverage.  
 - Verify side effects (messages, files, logs), not just return values.  
@@ -41,29 +41,42 @@ Core safety and quality rules:
 - Aim for parallel-safe tests; use `no_parallel` only when necessary.
 
 
-## Test Types and Structure
+## 2. Test Layout and Discovery
+
+Pytest configuration is defined in `pytest.ini` and `tests/conftest.py`.
+
+Key points:
+
+- Pytest is configured to discover tests under the `tests/` directory.  
+- The `scripts/` directory is explicitly excluded from test discovery (for example, via `norecursedirs` or `--ignore=scripts` in `pytest.ini`).  
+- New tests should be added under `tests/` and not under `scripts/`.
+
+Test behavior is also controlled using pytest markers defined in `pytest.ini`. These include markers such as:
+
+- `unit`, `integration`, `behavior`, `ui`  
+- `slow`, `external`, `manual`, `smoke`, `critical`  
+- `no_parallel`, `no_data_shim`, and other constraints
+
+Use markers to describe the intent and constraints of each test.
+
+## 3. Test Types and Structure
 
 Layout:
 
-- `tests/unit/` – unit tests for individual modules.  
-- `tests/integration/` – integration tests for features and flows.  
-- `tests/behavior/` – end-to-end behavior tests.  
-- `tests/ui/` – Qt UI tests.  
-- `tests/conftest.py` – shared fixtures, hooks, and configuration.
-
-Discovery rules:
-
-- Tests must live under `tests/`.  
-- The `scripts/` directory is excluded from pytest discovery (for example via `norecursedirs` / `--ignore=scripts`); do not put tests there.
+- `tests/unit/` - unit tests for individual modules.  
+- `tests/integration/` - integration tests for features and flows.  
+- `tests/behavior/` - end-to-end behavior tests.  
+- `tests/ui/` - Qt UI tests.  
+- `tests/conftest.py` - shared fixtures, hooks, and configuration.
 
 Placement:
 
-- Pure logic → `unit`.  
-- Cross-module flows → `integration` or `behavior`.  
-- Dialogs and widgets → `ui`.
+- Pure logic -> `unit`.  
+- Cross-module flows -> `integration` or `behavior`.  
+- Dialogs and widgets -> `ui`.
 
 
-## Test Utilities and Infrastructure
+## 4. Test Utilities and Infrastructure
 
 Key points:
 
@@ -77,8 +90,28 @@ Key points:
 
 For logging patterns referenced from tests, see `AI_LOGGING_GUIDE.md` and `logs/LOGGING_GUIDE.md`.
 
+## 5. File System Safety and Isolation
 
-## Running Tests
+The tests must not corrupt real user data or create uncontrolled artefacts.
+
+Key rules:
+
+- All test writes go into `tests/data/` or subdirectories created under it.  
+- Paths for user data and configuration are redirected to test-specific directories via `tests/conftest.py`.  
+- Tests should not read from or write to real user directories (for example, directories under `%APPDATA%`, `Documents`, or production data paths).
+
+### 5.1. Windows Task Prevention (critical)
+
+On Windows, tests must never create or modify real scheduled tasks:
+
+- Always mock scheduler integrations that would create or update Task Scheduler entries (for example, patch `scheduler_manager.set_wake_timer` and related methods).  
+- Never call `schtasks` or similar Task Scheduler commands directly from tests.  
+- If Task Scheduler becomes polluted during development, use the dedicated cleanup mechanisms (for example, `scripts/cleanup_windows_tasks.py` and associated PowerShell commands).
+
+For advanced isolation during tests that might trigger scheduler or other system calls, use `tests/test_isolation.py` (for example, wrap code in `IsolationManager`).
+
+
+## 6. Running Tests
 
 Preferred approach (safe defaults):
 
@@ -96,7 +129,7 @@ For focused or ad-hoc runs:
   - `pytest -m "integration and not slow"`
 
 
-## Parallel Execution
+## 7. Parallel Execution
 
 Minimal rules:
 
@@ -114,7 +147,14 @@ When failures appear only in parallel runs:
 - Keep `no_parallel` usage minimal and document the reason in comments.
 
 
-## Manual Testing Procedures
+## 8. Coverage and Reporting
+
+- Use `python run_tests.py --coverage` to collect coverage.  
+- Treat coverage as a guide; emphasize behavior and critical-path coverage over hitting a percentage.  
+- For CI integration or thresholds, consult the coverage configuration used by the project.
+
+
+## 9. Manual Testing Procedures
 
 When to rely on manual testing:
 
@@ -131,7 +171,7 @@ Core flows:
 - UI workflows: opening dialogs, editing messages and schedules, error handling.
 
 
-## Writing and Extending Tests
+## 10. Writing and Extending Tests
 
 Placement:
 
@@ -146,14 +186,7 @@ Quality rules:
 - When you see gaps you cannot fill immediately, suggest adding TODOs or issues.
 
 
-## Coverage and Reporting
-
-- Use `python run_tests.py --coverage` to collect coverage.  
-- Treat coverage as a guide; emphasize behavior and critical-path coverage over hitting a percentage.  
-- For CI integration or thresholds, consult the coverage configuration used by the project.
-
-
-## Debugging and Troubleshooting
+## 11. Debugging and Troubleshooting
 
 When tests fail:
 
@@ -169,7 +202,7 @@ If a failure occurs only in parallel runs:
 For error-handling and logging patterns that surface in test failures, see `AI_ERROR_HANDLING_GUIDE.md` and `AI_LOGGING_GUIDE.md`.
 
 
-## Automation and Channel-Specific Tests
+## 12. Automation and Channel-Specific Tests
 
 AI view:
 
@@ -190,7 +223,7 @@ AI view:
   - Consolidated results: typically under `tests/ai/results/ai_functionality_test_results_latest.md`.
 
 
-## Maintenance and Roadmap
+## 13. Maintenance and Roadmap
 
 High-level AI guidance:
 

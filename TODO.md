@@ -38,6 +38,20 @@ When adding new tasks, follow this format:
 - *Why it helps*: Ensures test suite health and prevents warnings from masking real issues
 - *Estimated effort*: Small
 
+**Documentation Heading Numbering Standardization** [OK] **COMPLETED**
+- *What it means*: Apply numbered headings (H2) and subheadings (H3) consistently across all main documentation files, and enhance doc sync checker to validate consecutive numbering starting at 1 (or 0)
+- *Why it helps*: Improves navigation, consistency, and maintainability of documentation; makes it easier to reference specific sections
+- *Status*: Completed on 2025-11-18 - All documentation sync checks now pass (0 issues)
+- *Subtasks*:
+  - [x] Create script to automatically number headings and subheadings in markdown files
+  - [x] Apply numbering to main docs: PROJECT_VISION.md, README.md, HOW_TO_RUN.md, ARCHITECTURE.md, UI_GUIDE.md, SCRIPTS_GUIDE.md, DISCORD_GUIDE.md, AI_DEV_TOOLS_GUIDE.md, AI_SESSION_STARTER.md, AI_REFERENCE.md, AI_LEGACY_REMOVAL_GUIDE.md, AI_ARCHITECTURE.md
+  - [x] Apply numbering to changelog/plan docs: AI_CHANGELOG.md, CHANGELOG_DETAIL.md, PLANS.md, TODO.md (changelogs/plans skipped from numbering as they have their own structure)
+  - [x] Enhance documentation_sync_checker.py to validate consecutive numbering (starting at 1 or 0)
+  - [x] Test script on sample files before full application
+  - [x] Review and manually adjust any edge cases the script doesn't handle well
+  - [x] Fix non-standard numbering formats (missing trailing periods) in ERROR_HANDLING_GUIDE.md, AI_ERROR_HANDLING_GUIDE.md, LOGGING_GUIDE.md
+  - [x] Fix section ordering in AI_TESTING_GUIDE.md to match TESTING_GUIDE.md
+
 **Continue Error Handling Quality Improvements** (Optional)
 - *What it means*: Continue improving error handling quality by replacing basic try-except blocks with @handle_errors decorator and adding error handling to remaining functions where appropriate
 - *Why it helps*: Improves system robustness and reliability by protecting more functions against errors
@@ -393,7 +407,7 @@ When adding new tasks, follow this format:
   - Archived 14 outdated scripts (6 migration, 5 refactoring, 3 one-time enhancement scripts)
   - Fixed broken import in archived script (changed `core.utils` to `core.user_data_handlers`)
   - Removed empty directories after archiving
-  - Updated `scripts/README.md` to reflect current active scripts
+  - Updated `scripts/SCRIPTS_GUIDE.md` to reflect current active scripts
   - All archived scripts moved to `archive/scripts/` subdirectories
 
 **Gitignore Cleanup** [OK] **COMPLETED**

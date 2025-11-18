@@ -55,7 +55,7 @@ If you are unsure how to route a new error path, prefer using the decorator and 
 
 ## 3. Usage Patterns
 
-### 3.1 Decorated functions (preferred)
+### 3.1. Decorated functions (preferred)
 
 Use the decorator on entry points where errors should be centrally captured:
 
@@ -85,7 +85,7 @@ The decorator typically:
 - Optionally reports or flags the error for metrics.
 - Returns a sensible fallback (for example, `None`, a default value, or a standardized error result).
 
-### 3.2 Direct calls to `error_handler`
+### 3.2. Direct calls to `error_handler`
 
 For certain cases, you may need to call the handler directly:
 
@@ -148,7 +148,7 @@ Use these categories to choose log levels and to shape messages for later troubl
 
 Separate user-facing messages from log messages.
 
-### 5.1 User-facing messages
+### 5.1. User-facing messages
 
 - Short, clear, and non-technical.
 - Focus on what the user can do (if anything).
@@ -160,7 +160,7 @@ Example:
 "Could not send your email right now. Please check your internet connection and try again."
 ```
 
-### 5.2 Log messages
+### 5.2. Log messages
 
 - Include enough context for developers to understand what failed and why.
 - Reference component and action (for example `component="email"`, `action="send_message"`).
@@ -263,7 +263,7 @@ Legacy compatibility should follow the `LEGACY COMPATIBILITY` logging pattern de
 
 ## 10. Examples
 
-### Decorated background task
+### 10.1. Decorated background task
 
 ```python
 from core.error_handling import handle_errors
@@ -277,7 +277,13 @@ def run_cycle():
     # ... work ...
 ```
 
-### Explicit error handling in a low-level helper
+### 10.2. Explicit error handling in a low-level helper
+
+## 11. Cross-References
+
+- Logging implementation guidance -> `logs/LOGGING_GUIDE.md`.
+- Testing approaches for error handling -> `tests/TESTING_GUIDE.md`.
+- AI-facing summary -> `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`.
 
 ```python
 from core import error_handling

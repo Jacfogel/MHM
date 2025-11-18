@@ -16,7 +16,7 @@ python ai_development_tools/legacy_reference_cleanup.py --verify "LegacyItemName
 python ai_development_tools/ai_tools_runner.py legacy
 ```
 
-## Standards
+## 1. Standards
 
 **Adding Legacy Code:**
 - Mark with `# LEGACY COMPATIBILITY:` header
@@ -30,7 +30,7 @@ python ai_development_tools/ai_tools_runner.py legacy
 - Run full test suite after removal
 - Update changelogs
 
-## Process
+## 2. Process
 
 **1. Find:** `--find "legacy_item"` (checks imports, usage, tests, docs, config)
 
@@ -48,7 +48,7 @@ python ai_development_tools/ai_tools_runner.py legacy
 - Run full test suite
 - Verify service starts
 
-## Checklist
+## 3. Checklist
 
 Before removal:
 - [ ] `--find` shows no active code/config references
@@ -57,7 +57,7 @@ Before removal:
 - [ ] Full test suite passes
 - [ ] Service starts without errors
 
-## Tools
+## 4. Tools
 
 **legacy_reference_cleanup.py:**
 - `--find <ITEM>`: Find all references
@@ -67,7 +67,7 @@ Before removal:
 
 **ai_tools_runner.py:** `legacy` (part of `audit --full`)
 
-## Best Practices
+## 5. Best Practices
 
 1. One item at a time
 2. Test after each update
@@ -75,6 +75,6 @@ Before removal:
 4. Verify thoroughly before removal
 5. Document removal in changelogs
 
-## Success Criteria
+## 6. Success Criteria
 
 Ready when: `--verify` shows "READY", zero active code/config refs, tests passing, service runs

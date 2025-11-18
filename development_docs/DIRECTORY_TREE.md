@@ -55,6 +55,9 @@ C:.
     (pytest cache files)
 +---.venv
     (virtual environment files)
++---.vscode
+|       settings.json
+|       
 +---ai
 |   |   cache_manager.py
 |   |   chatbot.py
@@ -62,7 +65,7 @@ C:.
 |   |   conversation_history.py
 |   |   lm_studio_manager.py
 |   |   prompt_manager.py
-|   |   README.md
+|   |   SYSTEM_AI_GUIDE.md
 |   |   __init__.py
 |   |   
 |   \---__pycache__
@@ -84,6 +87,7 @@ C:.
 +---ai_development_tools
 |   |   .unused_imports_cache.json
 |   |   ai_audit_detailed_results.json
+|   |   AI_DEV_TOOLS_GUIDE.md
 |   |   AI_PRIORITIES.md
 |   |   AI_STATUS.md
 |   |   ai_tools_runner.py
@@ -106,7 +110,6 @@ C:.
 |   |   generate_module_dependencies.py
 |   |   legacy_reference_cleanup.py
 |   |   quick_status.py
-|   |   README.md
 |   |   regenerate_coverage_metrics.py
 |   |   system_signals.py
 |   |   tool_guide.py
@@ -120,7 +123,7 @@ C:.
 +---archive
     (archived files)
 +---communication
-|   |   README.md
+|   |   COMMUNICATION_GUIDE.md
 |   |   __init__.py
 |   |   
 |   +---command_handlers
@@ -228,7 +231,8 @@ C:.
 |   |   cleanup_windows_tasks.py
 |   |   demo_dynamic_checkin.py
 |   |   flaky_detector.py
-|   |   README.md
+|   |   number_documentation_headings.py
+|   |   SCRIPTS_GUIDE.md
 |   |   script_test_network_connectivity.py
 |   |   
 |   +---debug
@@ -337,8 +341,8 @@ C:.
     (Python cache files)
 +---ui
 |   |   generate_ui_files.py
-|   |   README.md
 |   |   ui_app_qt.py
+|   |   UI_GUIDE.md
 |   |   __init__.py
 |   |   
 |   +---designs

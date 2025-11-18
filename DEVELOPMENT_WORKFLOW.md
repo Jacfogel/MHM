@@ -29,11 +29,11 @@ This section summarizes the most common tasks and where to look for detail.
   - Start with "Development Process" below, then consult the relevant guide for testing, docs, or logging.
 
 
-### Essential Commands (PowerShell, from repo root)
+**Essential Commands (PowerShell, from repo root)**
 
 ```powershell
 # Create the virtual environment (once)
-python -m .venv .venv
+python -m venv .venv
 
 # Activate the virtual environment (each new shell)
 .venv\Scripts\activate
@@ -58,9 +58,9 @@ $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"; `
 When in doubt: activate the virtual environment, make a backup, then follow the "Development Process" steps.
 
 
-## Safety First
+## 1. Safety First
 
-### Core Safety Rules
+### 1.1. Core Safety Rules
 
 1. **Work inside the virtual environment**  
    - Always ensure your prompt shows `(.venv)` before running Python or test commands.
@@ -90,7 +90,7 @@ When in doubt: activate the virtual environment, make a backup, then follow the 
    - When something feels risky or confusing, stop, collect a short description and errors, and ask for help instead of guessing.
 
 
-### Pre-Change Checklist
+### 1.2. Pre-Change Checklist
 
 Before starting significant work:
 
@@ -104,20 +104,20 @@ Before starting significant work:
 5. Identify any high-risk areas (for example, user data handling, scheduling, cross-channel behavior). If unsure, treat it as high risk.
 
 
-## Virtual Environment Best Practices
+## 2. Virtual Environment Best Practices
 
-### Why It Matters
+### 2.1. Why It Matters
 
 - Keeps the system Python installation clean and conflict free.  
 - Makes dependency management explicit through `requirements.txt`.  
 - Reduces permission issues on Windows.  
 - Ensures others can reproduce your environment from scratch.
 
-### Common Commands (PowerShell)
+### 2.2. Common Commands (PowerShell)
 
 ```powershell
 # Create the environment (once)
-python -m .venv .venv
+python -m venv .venv
 
 # Activate (each session)
 .venv\Scripts\activate
@@ -133,7 +133,7 @@ pip freeze > requirements.txt
 deactivate
 ```
 
-### Troubleshooting
+### 2.3. Troubleshooting
 
 - **"python: command not found" or wrong version**  
   - Confirm Python is installed and on PATH; see `HOW_TO_RUN.md` if setup fails.
@@ -147,7 +147,7 @@ deactivate
 
 
 
-### Configuration and .env
+### 2.4. Configuration and .env
 
 MHM uses environment variables (loaded via `python-dotenv` in `config.py`) to control paths, logging, channels, and AI behavior.
 
@@ -175,69 +175,69 @@ Key groups of settings in `.env`:
   - `MHM_TESTING`, `TEST_DATA_DIR`, `TEST_LOGS_DIR`.  
   - File auditing flags (`FILE_AUDIT_*`).
 
-For configuration validation and a summary of active settings, use the AI dev tools `config` command (see `ai_development_tools/README.md`), which wraps the helpers in `config.py` such as `validate_all_configuration()` and `print_configuration_report()`.
+For configuration validation and a summary of active settings, use the AI dev tools `config` command (see `ai_development_tools/AI_DEV_TOOLS_GUIDE.md`), which wraps the helpers in `config.py` such as `validate_all_configuration()` and `print_configuration_report()`.
 
-## Development Process
+## 3. Development Process
 
 Use this as your default loop for any change: features, bug fixes, or refactors.
 
-### Step 1: Plan
+### 3.1. Step 1: Plan
 
 - Describe the goal in plain language.  
 - Identify risks and edge cases (especially user data, scheduling, and channel-specific behavior).  
 - Decide how you will verify success (specific tests or manual flows).  
 - Note any documentation that might need updates (README, HOW_TO_RUN, specific guides).
 
-### Step 2: Implement (Small Slices)
+### 3.2. Step 2: Implement (Small Slices)
 
 - Work in **small, testable increments**.  
 - Keep functions focused; avoid reintroducing thin wrappers that just call other functions.  
 - Use consistent imports and the official helpers (for example, `get_user_data()` from `core.user_data_handlers`).  
 - Maintain the existing patterns for logging, error handling, and configuration (see `LOGGING_GUIDE.md` and `ERROR_HANDLING_GUIDE.md`).
 
-### Step 3: Test
+### 3.3. Step 3: Test
 
 - Start with targeted tests that cover the change directly.  
 - Expand outward: unit -> integration -> behavior -> UI flows.  
 - Use `python run_tests.py` for broad runs, and see `tests/TESTING_GUIDE.md` for details and parallel-safe practices.  
 - For features that depend on Discord or email, perform minimal manual verification as described in "Manual Testing Procedures" in `tests/TESTING_GUIDE.md`.
 
-### Step 4: Document
+### 3.4. Step 4: Document
 
 - Update `development_docs/CHANGELOG_DETAIL.md` with a clear description of what changed and why.  
 - Ensure `ai_development_docs/AI_CHANGELOG.md` contains a concise summary referencing the same change.  
 - Update any impacted docs (for example, `HOW_TO_RUN.md`, `README.md`, or specialized guides).  
 - If you introduce new patterns for testing, logging, or error handling, update the relevant guide pair (human + AI).
 
-### Step 5: Clean Up
+### 3.5. Step 5: Clean Up
 
 - Remove dead code, commented-out blocks that are no longer accurate, and unused imports.  
 - Run tests one more time for safety if you touched many files.  
 - Confirm Git status is clean (`git status`) and your changes are committed with a clear message.  
 
 
-## Testing Strategy
+## 4. Testing Strategy
 
-### Incremental Testing
+### 4.1. Incremental Testing
 
 - Test after every meaningful change, even if small.  
 - Start with unit-level checks, then expand to integration and behavior tests.  
 - Confirm UI workflows and communication channels still behave correctly for affected features.  
 - For details and commands, see "Quick Reference" and "Testing Strategy" in `tests/TESTING_GUIDE.md`.
 
-### Test Categories
+### 4.2. Test Categories
 
-- **Unit tests** – Validate small pieces of logic in isolation.  
-- **Integration tests** – Verify multiple modules working together (for example, scheduling + communication).  
-- **Behavior tests** – Exercise realistic end-to-end flows (for example, a check-in through Discord).  
-- **UI tests** – Focus on PySide6 dialogs, widgets, and signal/slot behavior.
+- **Unit tests** - Validate small pieces of logic in isolation.  
+- **Integration tests** - Verify multiple modules working together (for example, scheduling + communication).  
+- **Behavior tests** - Exercise realistic end-to-end flows (for example, a check-in through Discord).  
+- **UI tests** - Focus on PySide6 dialogs, widgets, and signal/slot behavior.
 
 For AI-optimized testing instructions and patterns, see `ai_development_docs/AI_TESTING_GUIDE.md`.
 
 
-## Common Tasks
+## 5. Common Tasks
 
-### Adding a New Feature
+### 5.1. Adding a New Feature
 
 1. Plan the feature and consider user-facing touchpoints and side effects.  
 2. Ensure `(.venv)` is active and create a backup if the change is broad.  
@@ -246,7 +246,7 @@ For AI-optimized testing instructions and patterns, see `ai_development_docs/AI_
 5. Run the relevant tests and minimal manual checks.  
 6. Update documentation and changelogs.
 
-### Fixing a Bug
+### 5.2. Fixing a Bug
 
 1. Reproduce the bug reliably (note inputs, environment, logs).  
 2. Use logs, breakpoints, or targeted prints to find the root cause.  
@@ -254,7 +254,7 @@ For AI-optimized testing instructions and patterns, see `ai_development_docs/AI_
 4. Add or adjust tests so the bug cannot silently return.  
 5. Update documentation and changelogs if behavior changed.  
 
-### Refactoring Code
+### 5.3. Refactoring Code
 
 1. Understand existing behavior before moving code.  
 2. Break refactors into clear, reversible steps.  
@@ -264,9 +264,9 @@ For AI-optimized testing instructions and patterns, see `ai_development_docs/AI_
 6. If you change test or logging patterns, update the associated guides.
 
 
-## Emergency Procedures
+## 6. Emergency Procedures
 
-### If Something Breaks Badly
+### 6.1. If Something Breaks Badly
 
 1. Stop and avoid making additional edits.  
 2. Capture the error message, traceback, and any logs.  
@@ -274,7 +274,7 @@ For AI-optimized testing instructions and patterns, see `ai_development_docs/AI_
 4. Describe what you changed, what broke, and what you expected to happen.  
 5. Ask for help with this summary and relevant code snippets instead of guessing.
 
-### If You Are Stuck
+### 6.2. If You Are Stuck
 
 1. Take a short break and reset.  
 2. Write down:
@@ -286,7 +286,7 @@ For AI-optimized testing instructions and patterns, see `ai_development_docs/AI_
 5. If needed, ask for help and attach the summary, stack traces, and logs.
 
 
-## Learning Resources
+## 7. Learning Resources
 
 - `README.md` and project-specific guides in `development_docs/`.  
 - `.cursor/rules/` and `ai_development_docs/` for AI-focused instructions and constraints.  
@@ -294,7 +294,7 @@ For AI-optimized testing instructions and patterns, see `ai_development_docs/AI_
 - Existing tests and modules as concrete examples of project patterns.  
 
 
-## Success Tips
+## 8. Success Tips
 
 1. Start with small, low-risk changes to build confidence.  
 2. Keep changes narrow and well-tested before expanding scope.  
@@ -303,11 +303,11 @@ For AI-optimized testing instructions and patterns, see `ai_development_docs/AI_
 5. Use logs and error-handling patterns consistently; do not invent new ad-hoc styles.  
 
 
-## Git Workflow (PowerShell-Safe)
+## 9. Git Workflow (PowerShell-Safe)
 
 These commands are designed to be safe defaults on Windows PowerShell.
 
-### Basic Commands
+### 9.1. Basic Commands
 
 ```powershell
 # See what changed
@@ -320,7 +320,7 @@ git log --oneline -10 | Out-String
 git show <commit> | Out-String
 ```
 
-### Standard Change Cycle
+### 9.2. Standard Change Cycle
 
 ```powershell
 # Check current status
@@ -341,7 +341,7 @@ git pull origin main
 git push origin main
 ```
 
-### Handling Merge Conflicts
+### 9.3. Handling Merge Conflicts
 
 ```powershell
 # See which files conflict

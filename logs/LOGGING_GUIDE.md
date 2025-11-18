@@ -8,7 +8,7 @@ If you need a compact, AI-focused reference, see `ai_development_docs/AI_LOGGING
 
 ---
 
-## Purpose and Scope
+## 1. Purpose and Scope
 
 MHM uses a central logging system to:
 
@@ -30,9 +30,9 @@ This guide covers:
 
 ---
 
-## Logging Architecture
+## 2. Logging Architecture
 
-### Central logger module
+### 2.1. Central logger module
 
 The logging system is centralized in `core/logger.py`:
 
@@ -43,24 +43,24 @@ The logging system is centralized in `core/logger.py`:
 
 Always obtain loggers via the central helper instead of calling `logging.getLogger` directly. This keeps formats, destinations, and levels consistent across the codebase.
 
-### Component loggers
+### 2.2. Component loggers
 
 Common components include:
 
-- `main` / core service → `logs/app.log`
-- `discord` → `logs/discord.log`
-- `email` → `logs/email.log`
-- `telegram` → `logs/telegram.log` (currently disabled in code, but logging path exists)
-- `scheduler` → `logs/scheduler.log`
-- `ui` → `logs/ui.log`
-- `ai` → `logs/ai.log`
-- `file_ops` → `logs/file_ops.log`
-- `user_activity` → `logs/user_activity.log`
-- `errors` → `logs/errors.log`
+- `main` / core service -> `logs/app.log`
+- `discord` -> `logs/discord.log`
+- `email` -> `logs/email.log`
+- `telegram` -> `logs/telegram.log` (currently disabled in code, but logging path exists)
+- `scheduler` -> `logs/scheduler.log`
+- `ui` -> `logs/ui.log`
+- `ai` -> `logs/ai.log`
+- `file_ops` -> `logs/file_ops.log`
+- `user_activity` -> `logs/user_activity.log`
+- `errors` -> `logs/errors.log`
 
 The actual mapping is defined in `core/logger.py` and may be overridden via environment variables (see below).
 
-### Format
+### 2.3. Format
 
 Log messages follow a standard format similar to:
 
@@ -72,35 +72,35 @@ This format is enforced by the handlers in `core/logger.py` so logs remain consi
 
 ---
 
-## Log Levels and When to Use Them
+## 3. Log Levels and When to Use Them
 
 MHM uses standard Python logging levels:
 
-### DEBUG
+### 3.1. DEBUG
 
 Highly detailed information for debugging and development.
 
 - Avoid in hot paths unless it is genuinely useful during troubleshooting.
 
-### INFO
+### 3.2. INFO
 
 Normal operational messages.
 
 - Startup/shutdown, configuration loaded, tasks scheduled or completed.
 
-### WARNING
+### 3.3. WARNING
 
 Something unexpected or degraded, but the system can continue.
 
 - Network retry, fallback behavior, use of a legacy path, soft validation failure.
 
-### ERROR
+### 3.4. ERROR
 
 A failure of an operation that affects current behavior but does not crash the whole system.
 
 - Unhandled exceptions in a specific operation that are caught by the error handler.
 
-### CRITICAL
+### 3.5. CRITICAL
 
 Serious failures that may require immediate attention.
 
@@ -110,7 +110,7 @@ Use the lowest level that clearly conveys the severity while keeping noise manag
 
 ---
 
-## Component Log Files and Layout
+## 4. Component Log Files and Layout
 
 Default structure (may vary slightly as the project evolves):
 
@@ -140,11 +140,11 @@ when test logging is enabled (see `TEST_VERBOSE_LOGS` below).
 
 ---
 
-## Configuration (Environment Variables)
+## 5. Configuration (Environment Variables)
 
 Logging is configured via environment variables loaded in `core/config.py`. From your `.env`:
 
-### Core locations
+### 5.1. Core locations
 
 - `LOGS_DIR`  
   Root logs directory (default: `logs`).
@@ -158,7 +158,7 @@ Logging is configured via environment variables loaded in `core/config.py`. From
 - `LOG_FILE_PATH`  
   Main app log file path (often the same as `LOG_MAIN_FILE`).
 
-### Per-component log files
+### 5.2. Per-component log files
 
 Optional overrides (all default under `LOGS_DIR`):
 
@@ -176,7 +176,7 @@ Optional overrides (all default under `LOGS_DIR`):
 
 If unset, `core/logger.py` derives sensible defaults under `LOGS_DIR`.
 
-### Levels and rotation
+### 5.3. Levels and rotation
 
 - `LOG_LEVEL`  
   Overall log level (console and file): `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`.  
@@ -194,7 +194,7 @@ If unset, `core/logger.py` derives sensible defaults under `LOGS_DIR`.
 - `DISABLE_LOG_ROTATION`  
   Set to `1` to disable rotation entirely (for example, during certain types of debugging).
 
-### Testing and diagnostics
+### 5.4. Testing and diagnostics
 
 - `MHM_TESTING`  
   Flag used to indicate tests are running. Logging behavior may adjust (for example, different destinations or verbosity).
@@ -207,7 +207,7 @@ Other diagnostic and backup environment variables (such as `BACKUP_RETENTION_DAY
 
 ---
 
-## Log Rotation, Backups, and Archival
+## 6. Log Rotation, Backups, and Archival
 
 Rotation is typically implemented via rotating handlers configured in `core/logger.py`:
 
@@ -225,7 +225,7 @@ Exact behavior is driven both by configuration and those scripts; always check t
 
 ---
 
-## Legacy Compatibility Logging Standard
+## 7. Legacy Compatibility Logging Standard
 
 Use the following pattern for any temporary legacy paths:
 
@@ -248,7 +248,7 @@ Guidelines:
 
 ---
 
-## Maintenance and Cleanup
+## 8. Maintenance and Cleanup
 
 Operational guidelines:
 
@@ -265,39 +265,39 @@ Backups and auto-cleanup tools:
 
 ---
 
-## Best Practices
+## 9. Best Practices
 
-### Always use component loggers
+### 9.1. Always use component loggers
 
 Prefer `core.logger.get_component_logger("scheduler")` (or equivalent) instead of `logging.getLogger()` directly.
 
-### Log context, not secrets
+### 9.2. Log context, not secrets
 
 - Include identifiers, counts, and high-level context.
 - Never log passwords, tokens, or sensitive user content.
 
-### Log expected errors at appropriate levels
+### 9.3. Log expected errors at appropriate levels
 
 - Validation failures that are handled → `INFO` or `WARNING`.
 - Unexpected exceptions → `ERROR` or `CRITICAL` (depending on impact), via the central error handling system.
 
-### Keep DEBUG focused and temporary
+### 9.4. Keep DEBUG focused and temporary
 
 Use `DEBUG` for detailed diagnostics; remove or tone down once issues are resolved.
 
-### Align logging with error handling
+### 9.5. Align logging with error handling
 
 Most error paths should flow through the centralized error handling decorators and helpers (see `ERROR_HANDLING_GUIDE.md`).
 
-### Respect test settings
+### 9.6. Respect test settings
 
 When writing tests that assert on logs, use helpers/fixtures in `tests/test_utilities.py` rather than ad-hoc file manipulation.
 
 ---
 
-## Usage Examples
+## 10. Usage Examples
 
-### Basic component logger
+### 10.1. Basic component logger
 
 ```python
 from core import logger
@@ -309,7 +309,7 @@ def schedule_next_run():
     # ...
 ```
 
-### Logging a handled error with context
+### 10.2. Logging a handled error with context
 
 ```python
 from core import logger
@@ -329,7 +329,7 @@ def send_email(to_address, subject, body):
         # Defer structured handling to the central error handler where appropriate
 ```
 
-### Legacy compatibility example
+### 10.3. Legacy compatibility example
 
 ```python
 from core import logger
