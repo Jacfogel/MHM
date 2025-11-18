@@ -102,16 +102,9 @@ def handle_application_authorized(event_data: Dict[str, Any], bot_instance=None)
         
         logger.info(f"User authorized app: Discord ID {discord_user_id}, username: {discord_username}")
         
-        # Check if user already has an account
-        from core.user_management import get_user_id_by_identifier
-        internal_user_id = get_user_id_by_identifier(discord_user_id)
-        
-        if internal_user_id:
-            logger.debug(f"User {discord_user_id} already has MHM account: {internal_user_id}")
-            # User already linked - no need to send welcome
-            return True
-        
         # Check if we've already welcomed this user (using channel-agnostic manager)
+        # This check should happen regardless of whether they have an account,
+        # since users who deauthorize and reauthorize should get a welcome message
         from communication.core.welcome_manager import (
             has_been_welcomed,
             mark_as_welcomed
@@ -121,6 +114,13 @@ def handle_application_authorized(event_data: Dict[str, Any], bot_instance=None)
         if has_been_welcomed(discord_user_id, channel_type='discord'):
             logger.debug(f"User {discord_user_id} already welcomed")
             return True
+        
+        # Check if user already has an account (for logging purposes)
+        from core.user_management import get_user_id_by_identifier
+        internal_user_id = get_user_id_by_identifier(discord_user_id)
+        
+        if internal_user_id:
+            logger.debug(f"User {discord_user_id} already has MHM account: {internal_user_id}, but not yet welcomed - sending welcome message")
         
         # Send welcome DM
         if bot_instance and hasattr(bot_instance, 'bot') and bot_instance.bot:

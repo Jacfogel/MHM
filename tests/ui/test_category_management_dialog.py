@@ -576,6 +576,7 @@ class TestCategoryManagementDialogRealBehavior:
     
     @pytest.mark.ui
     @pytest.mark.behavior
+    @pytest.mark.no_parallel
     def test_save_category_settings_persists_after_reload(self, test_user, test_data_dir, qapp):
         """Test that saved category settings persist after dialog reload."""
         # Arrange - Ensure user has checkins enabled so validation passes

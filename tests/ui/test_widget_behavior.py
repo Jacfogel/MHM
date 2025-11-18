@@ -85,6 +85,7 @@ class TestTagWidgetBehavior:
     @pytest.mark.user_management
     @pytest.mark.tasks
     @pytest.mark.checkins
+    @pytest.mark.no_parallel
     def test_widget_initialization_real_behavior(self, widget):
         """REAL BEHAVIOR TEST: Test widget initializes correctly with proper UI state."""
         # ✅ VERIFY INITIAL STATE: Check widget exists and is not visible during testing

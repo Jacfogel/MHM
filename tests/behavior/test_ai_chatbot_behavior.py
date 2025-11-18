@@ -561,6 +561,7 @@ class TestAIChatBotIntegration:
     
     @pytest.mark.ai
     @pytest.mark.critical
+    @pytest.mark.no_parallel
     def test_ai_chatbot_with_real_user_data(self, test_data_dir, mock_config):
         """Test AI chatbot with real user data files."""
         user_id = "integration_test_user"

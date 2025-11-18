@@ -632,6 +632,7 @@ class TestMHMManagerUI:
                         # Verify rebuild was called once (after reset)
                         mock_rebuild.assert_called_once()
     
+    @pytest.mark.no_parallel
     def test_toggle_logging_verbosity_toggles_logging(self):
         """Test that toggle_logging_verbosity toggles logging."""
         from ui.ui_app_qt import MHMManagerUI
@@ -811,6 +812,7 @@ class TestMHMManagerUI:
                             # Verify dialog was created
                             mock_dialog.assert_called_once()
     
+    @pytest.mark.no_parallel
     def test_manage_categories_opens_dialog(self):
         """Test that manage_categories opens dialog."""
         from ui.ui_app_qt import MHMManagerUI
@@ -886,6 +888,7 @@ class TestMHMManagerUI:
                         # Verify dialog was created
                         mock_dialog.assert_called_once()
     
+    @pytest.mark.no_parallel
     def test_manage_task_crud_opens_dialog(self):
         """Test that manage_task_crud opens dialog."""
         from ui.ui_app_qt import MHMManagerUI

@@ -181,12 +181,16 @@ class TestWebhookHandlerBehavior:
     @pytest.mark.file_io
     @pytest.mark.no_parallel
     def test_handle_application_authorized_with_existing_user(self, test_data_dir):
-        """Test: APPLICATION_AUTHORIZED event skips welcome for existing user."""
+        """Test: APPLICATION_AUTHORIZED event skips welcome for already-welcomed user."""
         from communication.communication_channels.discord.webhook_handler import handle_application_authorized
+        from communication.core.welcome_manager import mark_as_welcomed
         
-        # Arrange: Create existing user
+        # Arrange: Create existing user and mark as already welcomed
         discord_user_id = "111222333444555666"
         TestUserFactory.create_discord_user(discord_user_id, test_data_dir=test_data_dir)
+        
+        # Mark user as already welcomed (simulating they were welcomed before)
+        mark_as_welcomed(discord_user_id, channel_type='discord')
         
         # Verify user exists
         internal_user_id = get_user_id_by_identifier(discord_user_id)
@@ -204,13 +208,13 @@ class TestWebhookHandlerBehavior:
             }
         }
         
-        bot_instance = None  # Not needed for existing users
+        bot_instance = None  # Not needed for already-welcomed users
         
         # Act: Handle authorization
         result = handle_application_authorized(event_data, bot_instance)
         
-        # Assert: Should return True (user already exists, no welcome needed)
-        assert result is True, "Should handle existing user successfully"
+        # Assert: Should return True (user already welcomed, no welcome needed)
+        assert result is True, "Should handle already-welcomed user successfully"
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -391,6 +395,81 @@ class TestWebhookHandlerBehavior:
         # Assert: Should handle deauthorization and clear welcomed status
         assert result is True, "Should handle deauthorization successfully"
         assert not has_been_welcomed(discord_user_id, channel_type='discord'), "Should clear welcomed status"
+    
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.channels
+    @pytest.mark.file_io
+    @pytest.mark.no_parallel
+    def test_deauthorize_then_reauthorize_sends_welcome(self, test_data_dir):
+        """Test: User who deauthorizes then reauthorizes should receive welcome message."""
+        from communication.communication_channels.discord.webhook_handler import (
+            handle_webhook_event,
+            handle_application_authorized,
+            EVENT_APPLICATION_DEAUTHORIZED,
+            EVENT_APPLICATION_AUTHORIZED
+        )
+        from communication.core.welcome_manager import mark_as_welcomed, has_been_welcomed
+        from unittest.mock import MagicMock, AsyncMock
+        
+        # Arrange: Create existing user and mark as welcomed
+        discord_user_id = "555666777888999000"
+        TestUserFactory.create_discord_user(discord_user_id, test_data_dir=test_data_dir)
+        mark_as_welcomed(discord_user_id, channel_type='discord')
+        assert has_been_welcomed(discord_user_id, channel_type='discord'), "User should be welcomed initially"
+        
+        # Step 1: Deauthorize (should clear welcomed status)
+        deauth_event_data = {
+            "event": {
+                "type": "APPLICATION_DEAUTHORIZED",
+                "data": {
+                    "user": {
+                        "id": discord_user_id,
+                        "username": "testuser"
+                    }
+                }
+            }
+        }
+        result = handle_webhook_event(EVENT_APPLICATION_DEAUTHORIZED, deauth_event_data, None)
+        assert result is True, "Should handle deauthorization successfully"
+        assert not has_been_welcomed(discord_user_id, channel_type='discord'), "Should clear welcomed status after deauthorization"
+        
+        # Step 2: Reauthorize (should send welcome message since welcomed status was cleared)
+        auth_event_data = {
+            "event": {
+                "type": "APPLICATION_AUTHORIZED",
+                "data": {
+                    "user": {
+                        "id": discord_user_id,
+                        "username": "testuser"
+                    }
+                }
+            }
+        }
+        
+        # Mock bot instance with event loop
+        mock_bot = MagicMock()
+        mock_loop = MagicMock()
+        mock_loop.is_closed.return_value = False
+        mock_bot.loop = mock_loop
+        mock_bot.fetch_user = AsyncMock(return_value=MagicMock())
+        mock_user = MagicMock()
+        mock_user.send = AsyncMock()
+        mock_bot.fetch_user.return_value = mock_user
+        
+        bot_instance = MagicMock()
+        bot_instance.bot = mock_bot
+        
+        # Mock asyncio.run_coroutine_threadsafe to capture the coroutine
+        with patch('asyncio.run_coroutine_threadsafe') as mock_run_coro:
+            mock_future = MagicMock()
+            mock_run_coro.return_value = mock_future
+            
+            result = handle_application_authorized(auth_event_data, bot_instance)
+            
+            # Assert: Should schedule welcome DM (user was deauthorized, so needs welcome)
+            assert result is True, "Should handle reauthorization successfully"
+            assert mock_run_coro.called, "Should schedule welcome DM for reauthorized user"
     
     @pytest.mark.behavior
     @pytest.mark.communication

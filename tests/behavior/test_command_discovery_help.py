@@ -56,7 +56,7 @@ class TestCommandDiscoveryHelp:
         # Verify help navigation
         assert "examples" in message.lower()
         assert "commands" in message.lower()
-        assert "discord.md" in message.lower()
+        assert "discord_guide.md" in message.lower()
 
     def test_commands_list_response(self, test_data_dir):
         """Test that commands list response shows complete command list."""
@@ -346,4 +346,4 @@ class TestCommandDiscoveryHelp:
         # Should provide clear next steps
         assert "examples" in message.lower()
         assert "commands" in message.lower()
-        assert "discord.md" in message.lower()
+        assert "discord_guide.md" in message.lower()

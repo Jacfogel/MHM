@@ -138,6 +138,7 @@ class TestAccountLifecycle:
     @pytest.mark.regression
     @pytest.mark.slow
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_create_basic_account(self):
         """Test creating a basic account with only messages enabled."""
         from core.user_data_handlers import save_user_data, get_user_data
@@ -206,6 +207,7 @@ class TestAccountLifecycle:
     @pytest.mark.regression
     @pytest.mark.slow
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_create_full_account(self):
         """Test creating a full account with all features enabled."""
         from core.user_data_handlers import save_user_data, get_user_data
@@ -414,6 +416,7 @@ class TestAccountLifecycle:
     @pytest.mark.regression
     @pytest.mark.slow
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_disable_tasks_for_full_user(self):
         """Test disabling tasks for a user who has all features enabled."""
         from core.user_data_handlers import save_user_data, get_user_data
@@ -844,6 +847,7 @@ class TestAccountLifecycle:
     
     @pytest.mark.integration
     @pytest.mark.slow
+    @pytest.mark.no_parallel
     def test_modify_schedule_period(self):
         """Test modifying an existing schedule period."""
         from core.user_data_handlers import save_user_data, get_user_data

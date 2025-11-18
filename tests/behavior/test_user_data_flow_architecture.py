@@ -19,6 +19,7 @@ class TestCrossFileInvariants:
     @pytest.mark.user_management
     @pytest.mark.critical
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_cross_file_invariant_preferences_categories_enables_account_messages(self, test_data_dir, mock_config):
         """
         Test: When preferences are saved with categories, account.features.automated_messages 
@@ -69,6 +70,7 @@ class TestCrossFileInvariants:
     @pytest.mark.user_management
     @pytest.mark.critical
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_cross_file_invariant_simultaneous_account_preferences_save(self, test_data_dir, mock_config):
         """
         Test: When account and preferences are saved simultaneously, cross-file invariants 

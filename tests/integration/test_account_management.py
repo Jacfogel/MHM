@@ -122,6 +122,7 @@ def test_account_management_functions():
 @pytest.mark.critical
 @pytest.mark.regression
 @pytest.mark.file_io
+@pytest.mark.no_parallel
 def test_account_management_data_structures(test_data_dir, mock_config):
     """Test that account management can handle the expected data structures"""
     import logging

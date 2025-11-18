@@ -147,6 +147,7 @@ class TestMessageCRUD:
     
     @pytest.mark.messages
     @pytest.mark.critical
+    @pytest.mark.no_parallel
     def test_add_message_success(self, test_data_dir):
         """Test adding a message successfully."""
         user_id = "test-user-add"

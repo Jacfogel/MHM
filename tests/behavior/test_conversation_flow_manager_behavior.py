@@ -230,6 +230,7 @@ class TestConversationFlowManagerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_conversation_manager_clear_all_states(self, test_data_dir):
         """Test that ConversationManager clears all states correctly."""
         manager = ConversationManager()

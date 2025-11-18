@@ -472,6 +472,7 @@ class TestAccountManagementRealBehavior:
     """Test account management functionality with real behavior verification."""
     
     @pytest.mark.ui
+    @pytest.mark.no_parallel
     def test_user_profile_dialog_integration(self, qapp, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test user profile dialog integration with real user data."""
         from core.user_data_handlers import save_user_data, get_user_data

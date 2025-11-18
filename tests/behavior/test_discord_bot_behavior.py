@@ -566,6 +566,7 @@ class TestDiscordBotIntegration:
     @pytest.mark.channels
     @pytest.mark.behavior
     @pytest.mark.critical
+    @pytest.mark.no_parallel
     def test_discord_message_to_interaction_manager_complete_task_prompt(self, test_data_dir):
         """End-to-end-ish: ensure plain 'complete task' routes to InteractionManager and returns a helpful prompt, not a generic error."""
         # Arrange: create a basic user and map a fake Discord ID

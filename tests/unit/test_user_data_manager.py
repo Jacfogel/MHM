@@ -744,6 +744,7 @@ class TestUserDataManagerConvenienceFunctions:
         assert isinstance(summaries, list), "Should return list"
     
     @pytest.mark.unit
+    @pytest.mark.no_parallel
     def test_get_user_analytics_summary_function(self, test_user, test_data_dir):
         """Test: get_user_analytics_summary convenience function works"""
         # Arrange: User is created in fixture

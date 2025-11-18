@@ -1566,7 +1566,7 @@ class HelpHandler(InteractionHandler):
                 "**Need More Help?**\n"
                 "• Say \"examples\" for more natural language examples\n"
                 "• Say \"commands\" for a complete command list\n"
-                "• Visit DISCORD.md for full documentation\n\n"
+                "• Visit DISCORD_GUIDE.md for full documentation\n\n"
                 "Just start typing naturally - I'll understand what you want to do!",
                 True
             )
@@ -1626,7 +1626,7 @@ class HelpHandler(InteractionHandler):
         response += "**Need More Help?**\n"
         response += "• Say \"examples\" for natural language examples\n"
         response += "• Say \"help [topic]\" for specific help (tasks, checkin, profile, etc.)\n"
-        response += "• Visit DISCORD.md for complete documentation"
+        response += "• Visit DISCORD_GUIDE.md for complete documentation"
         
         return InteractionResponse(response, True)
     

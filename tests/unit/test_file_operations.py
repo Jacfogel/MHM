@@ -708,6 +708,7 @@ class TestFileOperationsPerformance:
     @pytest.mark.slow
     @pytest.mark.file_io
     @pytest.mark.performance
+    @pytest.mark.no_parallel
     def test_save_large_json_data(self, temp_file):
         """Test saving large JSON data with performance verification."""
         import time

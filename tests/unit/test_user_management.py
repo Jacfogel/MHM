@@ -85,6 +85,7 @@ class TestUserManagement:
     @pytest.mark.unit
     @pytest.mark.user_management
     @pytest.mark.critical
+    @pytest.mark.no_parallel
     def test_get_user_context_success(self, mock_user_data, mock_config):
         """Test getting user context successfully."""
         context_result = get_user_data(mock_user_data['user_id'], 'context')
@@ -113,6 +114,7 @@ class TestUserManagement:
     @pytest.mark.unit
     @pytest.mark.user_management
     @pytest.mark.critical
+    @pytest.mark.no_parallel
     def test_hybrid_get_user_data_success(self, mock_user_data):
         """Test loading user data successfully using new hybrid API."""
         user_id = mock_user_data['user_id']
@@ -242,6 +244,7 @@ class TestUserManagement:
     @pytest.mark.unit
     @pytest.mark.user_management
     @pytest.mark.regression
+    @pytest.mark.no_parallel
     def test_update_user_preferences_success(self, mock_user_data, mock_config):
         """Test updating user preferences successfully."""
         new_preferences = {
@@ -302,6 +305,7 @@ class TestUserManagement:
     @pytest.mark.user_management
     @pytest.mark.smoke
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_get_user_data_account_with_email(self, test_data_dir, mock_config):
         """Test getting user account with email successfully."""
         # Test creating a user with email and getting their account
@@ -408,6 +412,7 @@ class TestUserManagementEdgeCases:
     @pytest.mark.critical
     @pytest.mark.file_io
     @pytest.mark.slow
+    @pytest.mark.no_parallel
     def test_user_lifecycle(self, test_data_dir, mock_config):
         """Test complete user lifecycle with real side effects and system state verification."""
         user_id = 'test-user-lifecycle-complete'

@@ -224,6 +224,7 @@ class TestBackupManagerBehavior:
             assert any(f.startswith('config/') for f in file_list)
             assert 'manifest.json' in file_list
     
+    @pytest.mark.no_parallel
     def test_backup_rotation_by_count_real_behavior(self):
         """Test backup rotation removes old backups by count."""
         # Create more backups than max_backups
