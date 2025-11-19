@@ -25,6 +25,7 @@ from core.logger import (
 )
 
 
+@pytest.mark.behavior
 class TestLoggerCoverageExpansionPhase3Simple:
     """Simple test suite to expand logger coverage from 68% to 75%+"""
 

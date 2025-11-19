@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 from core.message_analytics import MessageAnalytics
 
 
+@pytest.mark.behavior
 class TestMessageAnalyticsInitializationBehavior:
     """Test MessageAnalytics initialization with real behavior verification."""
     
@@ -28,6 +29,7 @@ class TestMessageAnalyticsInitializationBehavior:
         assert isinstance(analytics, MessageAnalytics), "Should be correct type"
 
 
+@pytest.mark.behavior
 class TestMessageAnalyticsFrequencyBehavior:
     """Test message frequency analysis with real behavior verification."""
     
@@ -115,6 +117,7 @@ class TestMessageAnalyticsFrequencyBehavior:
         assert all(cat == 'motivational' for cat in result['category_counts'].keys()), "Should only have motivational category"
 
 
+@pytest.mark.behavior
 class TestMessageAnalyticsDeliveryBehavior:
     """Test message delivery success rate analysis with real behavior verification."""
     
@@ -178,6 +181,7 @@ class TestMessageAnalyticsDeliveryBehavior:
         assert 'period_days' in result, "Should have period_days"
 
 
+@pytest.mark.behavior
 class TestMessageAnalyticsSummaryBehavior:
     """Test message summary functionality with real behavior verification."""
     

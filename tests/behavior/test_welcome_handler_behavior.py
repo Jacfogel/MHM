@@ -21,7 +21,7 @@ class TestWelcomeHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     @pytest.mark.file_io
     def test_has_been_welcomed_delegates_to_manager(self, test_data_dir):
         """Test: has_been_welcomed delegates to welcome_manager with discord channel type."""
@@ -39,7 +39,7 @@ class TestWelcomeHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     @pytest.mark.file_io
     def test_mark_as_welcomed_delegates_to_manager(self, test_data_dir):
         """Test: mark_as_welcomed delegates to welcome_manager with discord channel type."""
@@ -58,7 +58,7 @@ class TestWelcomeHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     @pytest.mark.file_io
     def test_clear_welcomed_status_delegates_to_manager(self, test_data_dir):
         """Test: clear_welcomed_status delegates to welcome_manager with discord channel type."""
@@ -78,7 +78,7 @@ class TestWelcomeHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_get_welcome_message_delegates_to_manager(self):
         """Test: get_welcome_message delegates to welcome_manager with discord channel type."""
         discord_user_id = 'discord_user_message'
@@ -101,7 +101,7 @@ class TestWelcomeHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_get_welcome_message_without_username(self):
         """Test: get_welcome_message works without username."""
         discord_user_id = 'discord_user_no_username'
@@ -116,7 +116,7 @@ class TestWelcomeHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_get_welcome_message_view_creates_discord_view(self):
         """Test: get_welcome_message_view creates Discord View with buttons."""
         discord_user_id = 'discord_user_view'
@@ -136,7 +136,7 @@ class TestWelcomeHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_get_welcome_message_view_handles_errors_gracefully(self):
         """Test: get_welcome_message_view handles errors gracefully."""
         discord_user_id = 'discord_user_error'
@@ -150,7 +150,7 @@ class TestWelcomeHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_get_welcome_message_view_function_exists(self):
         """Test: get_welcome_message_view function exists and is callable."""
         # Verify function exists and can be called
@@ -164,7 +164,7 @@ class TestWelcomeHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     @pytest.mark.file_io
     def test_welcome_handler_integration_with_manager(self, test_data_dir):
         """Test: Welcome handler functions integrate correctly with welcome_manager."""

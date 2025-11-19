@@ -21,7 +21,7 @@ class TestDiscordTaskReminderFollowup:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    @pytest.mark.discord
+    @pytest.mark.communication
     @patch('core.service.get_scheduler_manager')
     def test_discord_task_creation_triggers_reminder_followup(self, mock_get_scheduler, test_data_dir):
         """Test that creating a task via Discord triggers reminder follow-up flow."""
@@ -54,7 +54,7 @@ class TestDiscordTaskReminderFollowup:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    @pytest.mark.discord
+    @pytest.mark.communication
     @patch('core.service.get_scheduler_manager')
     def test_discord_reminder_followup_complete_flow(self, mock_get_scheduler, test_data_dir):
         """Test complete Discord flow: create task -> set reminders."""
@@ -93,7 +93,7 @@ class TestDiscordTaskReminderFollowup:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    @pytest.mark.discord
+    @pytest.mark.communication
     @patch('core.service.get_scheduler_manager')
     def test_discord_reminder_followup_no_reminders(self, mock_get_scheduler, test_data_dir):
         """Test Discord flow: create task -> decline reminders."""

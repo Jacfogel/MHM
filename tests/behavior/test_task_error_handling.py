@@ -28,7 +28,7 @@ class TestTaskErrorHandling:
     
     @pytest.mark.behavior
     @pytest.mark.tasks
-    @pytest.mark.error_handling
+    @pytest.mark.critical
     @pytest.mark.file_io
     def test_create_task_invalid_user_id(self, test_data_dir):
         """Test that creating a task with invalid user_id fails gracefully."""
@@ -40,7 +40,7 @@ class TestTaskErrorHandling:
     
     @pytest.mark.behavior
     @pytest.mark.tasks
-    @pytest.mark.error_handling
+    @pytest.mark.critical
     @pytest.mark.file_io
     def test_create_task_missing_title(self, test_data_dir):
         """Test that creating a task without title fails gracefully."""
@@ -55,7 +55,7 @@ class TestTaskErrorHandling:
     
     @pytest.mark.behavior
     @pytest.mark.tasks
-    @pytest.mark.error_handling
+    @pytest.mark.critical
     @pytest.mark.file_io
     def test_create_task_invalid_priority(self, test_data_dir):
         """Test that creating a task with invalid priority uses default."""
@@ -71,7 +71,7 @@ class TestTaskErrorHandling:
     
     @pytest.mark.behavior
     @pytest.mark.tasks
-    @pytest.mark.error_handling
+    @pytest.mark.critical
     @pytest.mark.file_io
     def test_create_task_invalid_date_format(self, test_data_dir):
         """Test that creating a task with invalid date format is handled."""
@@ -87,7 +87,7 @@ class TestTaskErrorHandling:
     
     @pytest.mark.behavior
     @pytest.mark.tasks
-    @pytest.mark.error_handling
+    @pytest.mark.critical
     @pytest.mark.file_io
     def test_update_task_not_found(self, test_data_dir):
         """Test that updating a non-existent task fails gracefully."""
@@ -99,7 +99,7 @@ class TestTaskErrorHandling:
     
     @pytest.mark.behavior
     @pytest.mark.tasks
-    @pytest.mark.error_handling
+    @pytest.mark.critical
     @pytest.mark.file_io
     def test_complete_task_not_found(self, test_data_dir):
         """Test that completing a non-existent task fails gracefully."""
@@ -111,7 +111,7 @@ class TestTaskErrorHandling:
     
     @pytest.mark.behavior
     @pytest.mark.tasks
-    @pytest.mark.error_handling
+    @pytest.mark.critical
     @pytest.mark.file_io
     def test_delete_task_not_found(self, test_data_dir):
         """Test that deleting a non-existent task fails gracefully."""
@@ -123,7 +123,7 @@ class TestTaskErrorHandling:
     
     @pytest.mark.behavior
     @pytest.mark.tasks
-    @pytest.mark.error_handling
+    @pytest.mark.critical
     @pytest.mark.file_io
     def test_schedule_reminders_no_scheduler(self, test_data_dir):
         """Test that scheduling reminders when scheduler unavailable fails gracefully."""
@@ -142,7 +142,7 @@ class TestTaskErrorHandling:
     
     @pytest.mark.behavior
     @pytest.mark.tasks
-    @pytest.mark.error_handling
+    @pytest.mark.critical
     @pytest.mark.file_io
     def test_schedule_reminders_incomplete_period_data(self, test_data_dir):
         """Test that scheduling reminders with incomplete period data is handled."""
@@ -171,7 +171,7 @@ class TestTaskErrorHandling:
     
     @pytest.mark.behavior
     @pytest.mark.tasks
-    @pytest.mark.error_handling
+    @pytest.mark.critical
     @pytest.mark.file_io
     def test_load_tasks_corrupted_json(self, test_data_dir):
         """Test that loading tasks from corrupted JSON is handled."""
@@ -197,7 +197,7 @@ class TestTaskErrorHandling:
     
     @pytest.mark.behavior
     @pytest.mark.tasks
-    @pytest.mark.error_handling
+    @pytest.mark.critical
     def test_handler_invalid_intent(self):
         """Test that handler handles invalid intent gracefully."""
         handler = TaskManagementHandler()
@@ -223,7 +223,7 @@ class TestTaskEdgeCases:
     
     @pytest.mark.behavior
     @pytest.mark.tasks
-    @pytest.mark.edge_cases
+    @pytest.mark.regression
     @pytest.mark.file_io
     def test_task_with_no_due_date_but_reminders(self, test_data_dir):
         """Test creating a task with reminders but no due_date."""
@@ -247,7 +247,7 @@ class TestTaskEdgeCases:
     
     @pytest.mark.behavior
     @pytest.mark.tasks
-    @pytest.mark.edge_cases
+    @pytest.mark.regression
     @pytest.mark.file_io
     @pytest.mark.no_parallel
     def test_task_with_past_due_date(self, test_data_dir):
@@ -275,7 +275,7 @@ class TestTaskEdgeCases:
     
     @pytest.mark.behavior
     @pytest.mark.tasks
-    @pytest.mark.edge_cases
+    @pytest.mark.regression
     @pytest.mark.file_io
     def test_task_with_very_long_title(self, test_data_dir):
         """Test creating a task with a very long title."""
@@ -291,7 +291,7 @@ class TestTaskEdgeCases:
     
     @pytest.mark.behavior
     @pytest.mark.tasks
-    @pytest.mark.edge_cases
+    @pytest.mark.regression
     @pytest.mark.file_io
     def test_task_with_unicode_characters(self, test_data_dir):
         """Test creating a task with unicode characters."""
@@ -307,7 +307,7 @@ class TestTaskEdgeCases:
     
     @pytest.mark.behavior
     @pytest.mark.tasks
-    @pytest.mark.edge_cases
+    @pytest.mark.regression
     @pytest.mark.file_io
     def test_task_with_special_characters_in_description(self, test_data_dir):
         """Test creating a task with special characters in description."""
@@ -327,7 +327,7 @@ class TestTaskEdgeCases:
     
     @pytest.mark.behavior
     @pytest.mark.tasks
-    @pytest.mark.edge_cases
+    @pytest.mark.regression
     @pytest.mark.file_io
     def test_multiple_tasks_same_title(self, test_data_dir):
         """Test creating multiple tasks with the same title."""

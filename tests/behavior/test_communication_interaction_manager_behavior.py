@@ -9,6 +9,8 @@ from communication.message_processing.interaction_manager import InteractionMana
 from tests.test_utilities import TestUserFactory
 
 
+@pytest.mark.behavior
+@pytest.mark.communication
 class TestInteractionManagerBehavior:
     """Test real behavior of interaction manager functionality."""
 

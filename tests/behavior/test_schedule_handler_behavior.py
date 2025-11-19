@@ -24,7 +24,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_handler_can_handle_intents(self):
         """Test that ScheduleManagementHandler can handle all expected intents."""
         handler = ScheduleManagementHandler()
@@ -39,7 +39,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_handler_get_help(self):
         """Test that ScheduleManagementHandler returns help text."""
         handler = ScheduleManagementHandler()
@@ -51,7 +51,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_handler_get_examples(self):
         """Test that ScheduleManagementHandler returns example commands."""
         handler = ScheduleManagementHandler()
@@ -65,7 +65,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.file_io
     @patch('core.schedule_management.get_schedule_time_periods')
     @patch('core.user_management.get_user_categories')
@@ -106,7 +106,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.file_io
     @patch('core.schedule_management.get_schedule_time_periods')
     @patch('core.user_management.get_user_categories')
@@ -148,7 +148,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.file_io
     @patch('core.schedule_management.get_schedule_time_periods')
     @patch('core.user_management.get_user_categories')
@@ -181,7 +181,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.file_io
     @patch('core.schedule_management.set_schedule_periods')
     @patch('core.schedule_management.get_schedule_time_periods')
@@ -231,7 +231,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.file_io
     @patch('core.schedule_management.set_schedule_periods')
     @patch('core.schedule_management.get_schedule_time_periods')
@@ -281,7 +281,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_handler_update_schedule_missing_params(self, test_data_dir):
         """Test that ScheduleManagementHandler handles missing parameters."""
         handler = ScheduleManagementHandler()
@@ -309,7 +309,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.file_io
     @patch('core.schedule_management.get_schedule_time_periods')
     @patch('core.user_management.get_user_categories')
@@ -349,7 +349,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.file_io
     @patch('core.schedule_management.set_schedule_periods')
     @patch('core.schedule_management.get_schedule_time_periods')
@@ -409,7 +409,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_handler_add_schedule_period_missing_params(self, test_data_dir):
         """Test that ScheduleManagementHandler handles missing parameters for add period."""
         handler = ScheduleManagementHandler()
@@ -437,7 +437,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_handler_add_schedule_period_invalid_days(self, test_data_dir):
         """Test that ScheduleManagementHandler handles invalid days."""
         handler = ScheduleManagementHandler()
@@ -470,7 +470,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_handler_parse_time_format_12hour(self):
         """Test that ScheduleManagementHandler parses 12-hour time format."""
         handler = ScheduleManagementHandler()
@@ -500,7 +500,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_handler_parse_time_format_24hour(self):
         """Test that ScheduleManagementHandler parses 24-hour time format."""
         handler = ScheduleManagementHandler()
@@ -519,7 +519,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_handler_parse_time_format_hour_only(self):
         """Test that ScheduleManagementHandler parses hour-only format."""
         handler = ScheduleManagementHandler()
@@ -534,7 +534,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.file_io
     @patch('core.schedule_management.set_schedule_periods')
     @patch('core.schedule_management.get_schedule_time_periods')
@@ -596,7 +596,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.file_io
     @patch('core.schedule_management.get_schedule_time_periods')
     def test_schedule_handler_edit_schedule_period_not_found(self, mock_get_periods, test_data_dir):
@@ -631,7 +631,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_handler_edit_schedule_period_missing_params(self, test_data_dir):
         """Test that ScheduleManagementHandler handles missing parameters for edit period."""
         handler = ScheduleManagementHandler()
@@ -659,7 +659,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.file_io
     @patch('core.schedule_management.set_schedule_periods')
     @patch('core.schedule_management.get_schedule_time_periods')
@@ -704,7 +704,7 @@ class TestScheduleHandlerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_handler_unknown_intent(self, test_data_dir):
         """Test that ScheduleManagementHandler handles unknown intents appropriately."""
         handler = ScheduleManagementHandler()

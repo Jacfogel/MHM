@@ -83,7 +83,7 @@
     "issues": []
   },
   "ai_development_tools/config.py": {
-    "mtime": 1763292302.176039,
+    "mtime": 1763451012.1821375,
     "issues": []
   },
   "ai_development_tools/config_validator.py": {
@@ -95,7 +95,7 @@
     "issues": []
   },
   "ai_development_tools/documentation_sync_checker.py": {
-    "mtime": 1763260321.3950813,
+    "mtime": 1763468750.1468797,
     "issues": [
       {
         "type": "warning",
@@ -153,7 +153,7 @@
     "issues": []
   },
   "ai_development_tools/services/constants.py": {
-    "mtime": 1763292306.829822,
+    "mtime": 1763460820.0196948,
     "issues": []
   },
   "ai_development_tools/services/operations.py": {
@@ -161,7 +161,7 @@
     "issues": []
   },
   "ai_development_tools/services/standard_exclusions.py": {
-    "mtime": 1761561518.9938097,
+    "mtime": 1763460462.8650742,
     "issues": []
   },
   "ai_development_tools/system_signals.py": {
@@ -219,7 +219,7 @@
     "issues": []
   },
   "communication/command_handlers/interaction_handlers.py": {
-    "mtime": 1763030330.489079,
+    "mtime": 1763455930.0660825,
     "issues": []
   },
   "communication/command_handlers/profile_handler.py": {
@@ -271,7 +271,7 @@
     "issues": []
   },
   "communication/communication_channels/email/bot.py": {
-    "mtime": 1762977951.0189974,
+    "mtime": 1763470772.2640553,
     "issues": []
   },
   "communication/core/__init__.py": {
@@ -376,7 +376,7 @@
     "issues": []
   },
   "core/error_handling.py": {
-    "mtime": 1762595629.3553085,
+    "mtime": 1763375392.710685,
     "issues": []
   },
   "core/file_auditor.py": {
@@ -392,7 +392,7 @@
     "issues": []
   },
   "core/logger.py": {
-    "mtime": 1762656733.9531574,
+    "mtime": 1763375392.710685,
     "issues": []
   },
   "core/message_analytics.py": {
@@ -494,7 +494,7 @@
     "issues": []
   },
   "core/user_data_manager.py": {
-    "mtime": 1763250874.7479258,
+    "mtime": 1763368614.6029544,
     "issues": [
       {
         "type": "warning",
@@ -617,7 +617,7 @@
     "issues": []
   },
   "tests/ai/test_cache_manager.py": {
-    "mtime": 1762378020.30407,
+    "mtime": 1763542363.2007325,
     "issues": [
       {
         "type": "warning",
@@ -635,7 +635,7 @@
     ]
   },
   "tests/ai/test_context_includes_recent_messages.py": {
-    "mtime": 1763163717.8493161,
+    "mtime": 1763542363.2007325,
     "issues": [
       {
         "type": "warning",
@@ -653,23 +653,23 @@
     ]
   },
   "tests/behavior/test_account_management_real_behavior.py": {
-    "mtime": 1763030330.487077,
+    "mtime": 1763547645.3307335,
     "issues": []
   },
   "tests/behavior/test_ai_chatbot_behavior.py": {
-    "mtime": 1762378020.299717,
+    "mtime": 1763544125.0951881,
     "issues": []
   },
   "tests/behavior/test_ai_context_builder_behavior.py": {
-    "mtime": 1760683707.1746845,
+    "mtime": 1763544125.0951881,
     "issues": []
   },
   "tests/behavior/test_ai_context_builder_coverage_expansion.py": {
-    "mtime": 1760683707.1756854,
+    "mtime": 1763544125.0951881,
     "issues": []
   },
   "tests/behavior/test_ai_conversation_history_behavior.py": {
-    "mtime": 1760683707.178366,
+    "mtime": 1763544125.0995152,
     "issues": []
   },
   "tests/behavior/test_analytics_handler_behavior.py": {
@@ -681,7 +681,7 @@
     "issues": []
   },
   "tests/behavior/test_backup_manager_behavior.py": {
-    "mtime": 1763345451.3916838,
+    "mtime": 1763538912.1163366,
     "issues": []
   },
   "tests/behavior/test_base_handler_behavior.py": {
@@ -720,11 +720,11 @@
     "issues": []
   },
   "tests/behavior/test_checkin_analytics_behavior.py": {
-    "mtime": 1760837804.328693,
+    "mtime": 1763538912.1173983,
     "issues": []
   },
   "tests/behavior/test_checkin_expiry_semantics.py": {
-    "mtime": 1761805670.1217034,
+    "mtime": 1763538912.1173983,
     "issues": [
       {
         "type": "warning",
@@ -773,11 +773,11 @@
     ]
   },
   "tests/behavior/test_command_discovery_help.py": {
-    "mtime": 1760508911.0930457,
+    "mtime": 1763538912.123151,
     "issues": []
   },
   "tests/behavior/test_command_parser_coverage_expansion_phase3_simple.py": {
-    "mtime": 1760683707.179603,
+    "mtime": 1763542375.3948226,
     "issues": []
   },
   "tests/behavior/test_communication_behavior.py": {
@@ -785,15 +785,15 @@
     "issues": []
   },
   "tests/behavior/test_communication_command_parser_behavior.py": {
-    "mtime": 1760837440.1839113,
+    "mtime": 1763538912.123151,
     "issues": []
   },
   "tests/behavior/test_communication_factory_coverage_expansion.py": {
-    "mtime": 1760837441.100613,
+    "mtime": 1763542375.3948226,
     "issues": []
   },
   "tests/behavior/test_communication_interaction_manager_behavior.py": {
-    "mtime": 1762725687.991719,
+    "mtime": 1763544125.1005156,
     "issues": []
   },
   "tests/behavior/test_communication_manager_behavior.py": {
@@ -854,7 +854,7 @@
     ]
   },
   "tests/behavior/test_communication_manager_coverage_expansion.py": {
-    "mtime": 1763072786.0282996,
+    "mtime": 1763544125.1005156,
     "issues": []
   },
   "tests/behavior/test_comprehensive_quantitative_analytics.py": {
@@ -862,15 +862,15 @@
     "issues": []
   },
   "tests/behavior/test_config_coverage_expansion_phase3_simple.py": {
-    "mtime": 1762656733.971997,
+    "mtime": 1763542375.3948226,
     "issues": []
   },
   "tests/behavior/test_conversation_behavior.py": {
-    "mtime": 1762340104.1496882,
+    "mtime": 1763544125.1005156,
     "issues": []
   },
   "tests/behavior/test_conversation_flow_manager_behavior.py": {
-    "mtime": 1762340104.1506884,
+    "mtime": 1763454454.6406195,
     "issues": [
       {
         "type": "warning",
@@ -948,19 +948,19 @@
     "issues": []
   },
   "tests/behavior/test_discord_advanced_automation.py": {
-    "mtime": 1760839302.5328777,
+    "mtime": 1763538912.123151,
     "issues": []
   },
   "tests/behavior/test_discord_automation_complete.py": {
-    "mtime": 1760839302.5328777,
+    "mtime": 1763542375.3948226,
     "issues": []
   },
   "tests/behavior/test_discord_bot_behavior.py": {
-    "mtime": 1763030330.4924808,
+    "mtime": 1763548196.9954069,
     "issues": []
   },
   "tests/behavior/test_discord_checkin_retry_behavior.py": {
-    "mtime": 1763290132.8558483,
+    "mtime": 1763538796.6592987,
     "issues": [
       {
         "type": "warning",
@@ -1004,23 +1004,23 @@
     ]
   },
   "tests/behavior/test_dynamic_checkin_behavior.py": {
-    "mtime": 1760839302.5328777,
+    "mtime": 1763542375.385785,
     "issues": []
   },
   "tests/behavior/test_email_bot_behavior.py": {
-    "mtime": 1762340104.1506884,
+    "mtime": 1763542375.385785,
     "issues": []
   },
   "tests/behavior/test_enhanced_command_parser_behavior.py": {
-    "mtime": 1763164086.7777596,
+    "mtime": 1763542375.3862891,
     "issues": []
   },
   "tests/behavior/test_error_handling_coverage_expansion_phase3_final.py": {
-    "mtime": 1760839302.5402355,
+    "mtime": 1763538796.6638267,
     "issues": []
   },
   "tests/behavior/test_headless_service_behavior.py": {
-    "mtime": 1762413505.5239036,
+    "mtime": 1763548196.9954069,
     "issues": [
       {
         "type": "warning",
@@ -1077,7 +1077,7 @@
     ]
   },
   "tests/behavior/test_interaction_handlers_behavior.py": {
-    "mtime": 1763337741.6890063,
+    "mtime": 1763544125.1105266,
     "issues": [
       {
         "type": "warning",
@@ -1108,7 +1108,7 @@
     ]
   },
   "tests/behavior/test_interaction_handlers_coverage_expansion.py": {
-    "mtime": 1761811472.8275976,
+    "mtime": 1763542375.3898067,
     "issues": []
   },
   "tests/behavior/test_logger_behavior.py": {
@@ -1116,7 +1116,7 @@
     "issues": []
   },
   "tests/behavior/test_logger_coverage_expansion.py": {
-    "mtime": 1760839302.5417402,
+    "mtime": 1763542375.3898067,
     "issues": [
       {
         "type": "warning",
@@ -1134,29 +1134,15 @@
     ]
   },
   "tests/behavior/test_logger_coverage_expansion_phase3_simple.py": {
-    "mtime": 1762472442.2161584,
-    "issues": [
-      {
-        "type": "warning",
-        "module": "test_logger_coverage_expansion_phase3_simple",
-        "obj": "",
-        "line": 7,
-        "column": 0,
-        "endLine": 7,
-        "endColumn": 13,
-        "path": "tests\\behavior\\test_logger_coverage_expansion_phase3_simple.py",
-        "symbol": "unused-import",
-        "message": "Unused import pytest",
-        "message-id": "W0611"
-      }
-    ]
+    "mtime": 1763538796.671789,
+    "issues": []
   },
   "tests/behavior/test_message_analytics_behavior.py": {
-    "mtime": 1762849543.4069827,
+    "mtime": 1763538912.123151,
     "issues": []
   },
   "tests/behavior/test_message_behavior.py": {
-    "mtime": 1763294405.3916173,
+    "mtime": 1763538912.1226473,
     "issues": []
   },
   "tests/behavior/test_message_router_behavior.py": {
@@ -1199,7 +1185,7 @@
     "issues": []
   },
   "tests/behavior/test_profile_display_formatting.py": {
-    "mtime": 1760683707.2073562,
+    "mtime": 1763542375.3898067,
     "issues": []
   },
   "tests/behavior/test_profile_handler_behavior.py": {
@@ -1225,11 +1211,11 @@
     "issues": []
   },
   "tests/behavior/test_response_tracking_behavior.py": {
-    "mtime": 1763287908.9118917,
+    "mtime": 1763544125.1005156,
     "issues": []
   },
   "tests/behavior/test_schedule_handler_behavior.py": {
-    "mtime": 1762334316.8535595,
+    "mtime": 1763538036.1992462,
     "issues": [
       {
         "type": "warning",
@@ -1247,19 +1233,19 @@
     ]
   },
   "tests/behavior/test_schedule_management_behavior.py": {
-    "mtime": 1760839302.5417402,
+    "mtime": 1763538796.6758528,
     "issues": []
   },
   "tests/behavior/test_schedule_suggestions.py": {
-    "mtime": 1762149046.2553408,
+    "mtime": 1763542375.3898067,
     "issues": []
   },
   "tests/behavior/test_scheduler_behavior.py": {
-    "mtime": 1760839302.5417402,
+    "mtime": 1763538036.1992462,
     "issues": []
   },
   "tests/behavior/test_scheduler_coverage_expansion.py": {
-    "mtime": 1763292368.7939072,
+    "mtime": 1763538036.1992462,
     "issues": [
       {
         "type": "warning",
@@ -1290,11 +1276,11 @@
     ]
   },
   "tests/behavior/test_service_behavior.py": {
-    "mtime": 1763165325.49245,
+    "mtime": 1763548196.9954069,
     "issues": []
   },
   "tests/behavior/test_service_utilities_behavior.py": {
-    "mtime": 1763345451.3916838,
+    "mtime": 1763548196.9954069,
     "issues": []
   },
   "tests/behavior/test_static_logging_check.py": {
@@ -1302,11 +1288,11 @@
     "issues": []
   },
   "tests/behavior/test_task_behavior.py": {
-    "mtime": 1760847744.1837928,
+    "mtime": 1763538912.123151,
     "issues": []
   },
   "tests/behavior/test_task_crud_disambiguation.py": {
-    "mtime": 1762844798.1509547,
+    "mtime": 1763538796.6788807,
     "issues": []
   },
   "tests/behavior/test_task_handler_behavior.py": {
@@ -1328,7 +1314,7 @@
     ]
   },
   "tests/behavior/test_task_management_coverage_expansion.py": {
-    "mtime": 1763191318.8127885,
+    "mtime": 1763538796.6823864,
     "issues": []
   },
   "tests/behavior/test_task_suggestion_relevance.py": {
@@ -1336,19 +1322,19 @@
     "issues": []
   },
   "tests/behavior/test_ui_app_behavior.py": {
-    "mtime": 1763258591.513729,
+    "mtime": 1763544125.1636071,
     "issues": []
   },
   "tests/behavior/test_ui_automation_complete.py": {
-    "mtime": 1760847744.1837928,
+    "mtime": 1763542375.3948226,
     "issues": []
   },
   "tests/behavior/test_user_context_behavior.py": {
-    "mtime": 1762772976.2426097,
+    "mtime": 1763544125.1015174,
     "issues": []
   },
   "tests/behavior/test_user_data_flow_architecture.py": {
-    "mtime": 1762936757.9706707,
+    "mtime": 1763454463.2834,
     "issues": [
       {
         "type": "warning",
@@ -1392,19 +1378,19 @@
     ]
   },
   "tests/behavior/test_user_management_coverage_expansion.py": {
-    "mtime": 1763287908.9118917,
+    "mtime": 1763544125.1125286,
     "issues": []
   },
   "tests/behavior/test_utilities_demo.py": {
-    "mtime": 1763292368.7888432,
+    "mtime": 1763551367.22446,
     "issues": []
   },
   "tests/communication/test_channel_monitor.py": {
-    "mtime": 1761128659.4290347,
+    "mtime": 1763542363.2007325,
     "issues": []
   },
   "tests/communication/test_retry_manager.py": {
-    "mtime": 1760840480.0576594,
+    "mtime": 1763542363.2007325,
     "issues": [
       {
         "type": "warning",
@@ -1435,11 +1421,11 @@
     ]
   },
   "tests/conftest.py": {
-    "mtime": 1763337998.4070466,
+    "mtime": 1763548497.5555675,
     "issues": []
   },
   "tests/core/test_file_auditor.py": {
-    "mtime": 1760840473.593692,
+    "mtime": 1763542363.201507,
     "issues": [
       {
         "type": "warning",
@@ -1457,21 +1443,8 @@
     ]
   },
   "tests/core/test_message_management.py": {
-    "mtime": 1762149046.2553408,
+    "mtime": 1763542363.201507,
     "issues": [
-      {
-        "type": "warning",
-        "module": "test_message_management",
-        "obj": "",
-        "line": 5,
-        "column": 0,
-        "endLine": 5,
-        "endColumn": 13,
-        "path": "tests\\core\\test_message_management.py",
-        "symbol": "unused-import",
-        "message": "Unused import pytest",
-        "message-id": "W0611"
-      },
       {
         "type": "warning",
         "module": "test_message_management",
@@ -1527,25 +1500,12 @@
     ]
   },
   "tests/core/test_python_interpreter_selection.py": {
-    "mtime": 1761128659.4330387,
+    "mtime": 1763542363.201507,
     "issues": []
   },
   "tests/core/test_schedule_utilities.py": {
-    "mtime": 1760847744.1837928,
+    "mtime": 1763542363.2096705,
     "issues": [
-      {
-        "type": "warning",
-        "module": "test_schedule_utilities",
-        "obj": "",
-        "line": 6,
-        "column": 0,
-        "endLine": 6,
-        "endColumn": 13,
-        "path": "tests\\core\\test_schedule_utilities.py",
-        "symbol": "unused-import",
-        "message": "Unused import pytest",
-        "message-id": "W0611"
-      },
       {
         "type": "warning",
         "module": "test_schedule_utilities",
@@ -1593,11 +1553,11 @@
     ]
   },
   "tests/integration/test_account_lifecycle.py": {
-    "mtime": 1763336309.415621,
+    "mtime": 1763428178.1849363,
     "issues": []
   },
   "tests/integration/test_account_management.py": {
-    "mtime": 1762934241.3991575,
+    "mtime": 1763551367.22446,
     "issues": [
       {
         "type": "warning",
@@ -1628,7 +1588,7 @@
     ]
   },
   "tests/integration/test_user_creation.py": {
-    "mtime": 1763345451.3953168,
+    "mtime": 1763374713.2636516,
     "issues": [
       {
         "type": "warning",
@@ -1724,7 +1684,7 @@
     ]
   },
   "tests/test_error_handling_improvements.py": {
-    "mtime": 1763029461.3969443,
+    "mtime": 1763542363.2106748,
     "issues": [
       {
         "type": "warning",
@@ -1811,7 +1771,7 @@
     "issues": []
   },
   "tests/test_utilities.py": {
-    "mtime": 1762949367.7225287,
+    "mtime": 1763377940.1494558,
     "issues": [
       {
         "type": "warning",
@@ -1881,7 +1841,7 @@
     ]
   },
   "tests/ui/test_account_creation_ui.py": {
-    "mtime": 1763336309.415621,
+    "mtime": 1763457802.0208733,
     "issues": [
       {
         "type": "warning",
@@ -2081,15 +2041,15 @@
     ]
   },
   "tests/ui/test_account_creator_dialog_validation.py": {
-    "mtime": 1761128659.4382143,
+    "mtime": 1763542375.3948226,
     "issues": [
       {
         "type": "warning",
         "module": "test_account_creator_dialog_validation",
         "obj": "",
-        "line": 11,
+        "line": 13,
         "column": 0,
-        "endLine": 11,
+        "endLine": 13,
         "endColumn": 31,
         "path": "tests\\ui\\test_account_creator_dialog_validation.py",
         "symbol": "unused-import",
@@ -2099,7 +2059,7 @@
     ]
   },
   "tests/ui/test_category_management_dialog.py": {
-    "mtime": 1762939354.7377672,
+    "mtime": 1763544633.3758771,
     "issues": [
       {
         "type": "warning",
@@ -2169,7 +2129,7 @@
     ]
   },
   "tests/ui/test_channel_management_dialog_coverage_expansion.py": {
-    "mtime": 1761128659.440216,
+    "mtime": 1763538796.6918252,
     "issues": [
       {
         "type": "warning",
@@ -2478,7 +2438,7 @@
     ]
   },
   "tests/ui/test_dialog_coverage_expansion.py": {
-    "mtime": 1761128659.4422176,
+    "mtime": 1763544125.1125286,
     "issues": [
       {
         "type": "warning",
@@ -2779,7 +2739,7 @@
     ]
   },
   "tests/ui/test_process_watcher_dialog.py": {
-    "mtime": 1763290132.8538475,
+    "mtime": 1763548196.9994345,
     "issues": [
       {
         "type": "warning",
@@ -2867,7 +2827,7 @@
     ]
   },
   "tests/ui/test_task_management_dialog.py": {
-    "mtime": 1763294405.3916173,
+    "mtime": 1763544125.1125286,
     "issues": [
       {
         "type": "warning",
@@ -2924,7 +2884,7 @@
     ]
   },
   "tests/ui/test_task_settings_widget.py": {
-    "mtime": 1762725553.824385,
+    "mtime": 1763544185.5833173,
     "issues": [
       {
         "type": "warning",
@@ -3007,11 +2967,11 @@
     ]
   },
   "tests/ui/test_ui_app_qt_core.py": {
-    "mtime": 1762340104.1506884,
+    "mtime": 1763538796.6938694,
     "issues": []
   },
   "tests/ui/test_ui_app_qt_main.py": {
-    "mtime": 1763294405.3951623,
+    "mtime": 1763542375.3948226,
     "issues": [
       {
         "type": "warning",
@@ -3029,15 +2989,15 @@
     ]
   },
   "tests/ui/test_ui_button_verification.py": {
-    "mtime": 1762149046.2553408,
+    "mtime": 1763542375.3948226,
     "issues": [
       {
         "type": "warning",
         "module": "test_ui_button_verification",
         "obj": "",
-        "line": 12,
+        "line": 14,
         "column": 0,
-        "endLine": 12,
+        "endLine": 14,
         "endColumn": 37,
         "path": "tests\\ui\\test_ui_button_verification.py",
         "symbol": "unused-import",
@@ -3048,9 +3008,9 @@
         "type": "warning",
         "module": "test_ui_button_verification",
         "obj": "",
-        "line": 12,
+        "line": 14,
         "column": 0,
-        "endLine": 12,
+        "endLine": 14,
         "endColumn": 37,
         "path": "tests\\ui\\test_ui_button_verification.py",
         "symbol": "unused-import",
@@ -3060,15 +3020,15 @@
     ]
   },
   "tests/ui/test_ui_components_headless.py": {
-    "mtime": 1762149046.2553408,
+    "mtime": 1763542375.3948226,
     "issues": [
       {
         "type": "warning",
         "module": "test_ui_components_headless",
         "obj": "",
-        "line": 12,
+        "line": 14,
         "column": 0,
-        "endLine": 12,
+        "endLine": 14,
         "endColumn": 31,
         "path": "tests\\ui\\test_ui_components_headless.py",
         "symbol": "unused-import",
@@ -3082,7 +3042,7 @@
     "issues": []
   },
   "tests/ui/test_ui_widgets_coverage_expansion.py": {
-    "mtime": 1763338471.5621154,
+    "mtime": 1763538796.6989546,
     "issues": [
       {
         "type": "warning",
@@ -3248,7 +3208,7 @@
     ]
   },
   "tests/ui/test_user_profile_dialog_coverage_expansion.py": {
-    "mtime": 1761128659.4551163,
+    "mtime": 1763544125.1622355,
     "issues": [
       {
         "type": "warning",
@@ -3331,7 +3291,7 @@
     ]
   },
   "tests/ui/test_widget_behavior.py": {
-    "mtime": 1762950178.0594919,
+    "mtime": 1763454457.3679845,
     "issues": [
       {
         "type": "warning",
@@ -3688,7 +3648,7 @@
     "issues": []
   },
   "tests/unit/test_auto_cleanup_paths.py": {
-    "mtime": 1761128659.4581213,
+    "mtime": 1763538912.123151,
     "issues": []
   },
   "tests/unit/test_checkin_analytics_conversion.py": {
@@ -3850,7 +3810,7 @@
     ]
   },
   "tests/unit/test_config.py": {
-    "mtime": 1762378890.1448064,
+    "mtime": 1763548196.9994345,
     "issues": [
       {
         "type": "warning",
@@ -3917,7 +3877,7 @@
     ]
   },
   "tests/unit/test_enhanced_checkin_responses.py": {
-    "mtime": 1760917626.4039643,
+    "mtime": 1763542375.3948226,
     "issues": [
       {
         "type": "warning",
@@ -3939,7 +3899,7 @@
     "issues": []
   },
   "tests/unit/test_file_operations.py": {
-    "mtime": 1763292368.7939072,
+    "mtime": 1763544185.583648,
     "issues": [
       {
         "type": "warning",
@@ -4079,11 +4039,11 @@
     ]
   },
   "tests/unit/test_no_prints_policy.py": {
-    "mtime": 1761993164.6914685,
+    "mtime": 1763551776.6150703,
     "issues": []
   },
   "tests/unit/test_recurring_tasks.py": {
-    "mtime": 1760847744.2056704,
+    "mtime": 1763538796.7065709,
     "issues": [
       {
         "type": "warning",
@@ -4119,11 +4079,11 @@
     ]
   },
   "tests/unit/test_schedule_management.py": {
-    "mtime": 1760847744.1837928,
+    "mtime": 1763538036.1992462,
     "issues": []
   },
   "tests/unit/test_service_utilities_network.py": {
-    "mtime": 1761128659.4591222,
+    "mtime": 1763538912.123151,
     "issues": []
   },
   "tests/unit/test_user_context.py": {
@@ -4158,33 +4118,98 @@
     ]
   },
   "tests/unit/test_user_data_loader_idempotency.py": {
-    "mtime": 1759214215.6656363,
+    "mtime": 1763538912.123151,
     "issues": []
   },
   "tests/unit/test_user_data_loader_order_insensitivity.py": {
-    "mtime": 1760847744.2004273,
+    "mtime": 1763538912.123151,
     "issues": []
   },
   "tests/unit/test_user_data_manager.py": {
-    "mtime": 1763366905.3291633,
+    "mtime": 1763450253.4237232,
     "issues": [
       {
-        "type": "error",
+        "type": "warning",
         "module": "test_user_data_manager",
         "obj": "",
-        "line": 143,
-        "column": 9,
-        "endLine": null,
-        "endColumn": null,
+        "line": 14,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 59,
         "path": "tests\\unit\\test_user_data_manager.py",
-        "symbol": "syntax-error",
-        "message": "Parsing failed: 'expected an indented block after 'for' statement on line 142 (test_user_data_manager, line 143)'",
-        "message-id": "E0001"
+        "symbol": "unused-import",
+        "message": "Unused Mock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_data_manager",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 59,
+        "path": "tests\\unit\\test_user_data_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_data_manager",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 59,
+        "path": "tests\\unit\\test_user_data_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused mock_open imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_data_manager",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 24,
+        "path": "tests\\unit\\test_user_data_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused Path imported from pathlib",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_data_manager",
+        "obj": "",
+        "line": 20,
+        "column": 0,
+        "endLine": 20,
+        "endColumn": 29,
+        "path": "tests\\unit\\test_user_data_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused datetime imported from datetime",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "test_user_data_manager",
+        "obj": "",
+        "line": 22,
+        "column": 0,
+        "endLine": 36,
+        "endColumn": 1,
+        "path": "tests\\unit\\test_user_data_manager.py",
+        "symbol": "unused-import",
+        "message": "Unused delete_user_completely imported from core.user_data_manager",
+        "message-id": "W0611"
       }
     ]
   },
   "tests/unit/test_user_management.py": {
-    "mtime": 1763294405.395728,
+    "mtime": 1763454461.0445738,
     "issues": [
       {
         "type": "warning",
@@ -4228,7 +4253,7 @@
     ]
   },
   "tests/unit/test_validation.py": {
-    "mtime": 1762838167.8999865,
+    "mtime": 1763538036.1992462,
     "issues": []
   },
   "ui/__init__.py": {
@@ -4240,7 +4265,7 @@
     "issues": []
   },
   "ui/ui_app_qt.py": {
-    "mtime": 1763258235.7671473,
+    "mtime": 1763451282.5884614,
     "issues": []
   },
   "ui/widgets/__init__.py": {
@@ -4336,7 +4361,7 @@
     ]
   },
   "communication/communication_channels/discord/webhook_handler.py": {
-    "mtime": 1763350239.6561785,
+    "mtime": 1763418922.8813043,
     "issues": [
       {
         "type": "warning",
@@ -4517,7 +4542,7 @@
     ]
   },
   "tests/behavior/test_discord_task_reminder_followup.py": {
-    "mtime": 1762996503.3577456,
+    "mtime": 1763536920.6073556,
     "issues": [
       {
         "type": "warning",
@@ -4587,7 +4612,7 @@
     ]
   },
   "tests/behavior/test_task_cleanup_bug.py": {
-    "mtime": 1763029461.393377,
+    "mtime": 1763548196.9994345,
     "issues": [
       {
         "type": "warning",
@@ -4605,7 +4630,7 @@
     ]
   },
   "tests/behavior/test_task_error_handling.py": {
-    "mtime": 1763164646.5440712,
+    "mtime": 1763548196.9994345,
     "issues": [
       {
         "type": "warning",
@@ -4693,7 +4718,7 @@
     ]
   },
   "tests/integration/test_orphaned_reminder_cleanup.py": {
-    "mtime": 1763028789.271543,
+    "mtime": 1763537025.239107,
     "issues": []
   },
   "tests/integration/test_task_cleanup_real.py": {
@@ -4842,7 +4867,7 @@
     ]
   },
   "tests/integration/test_task_reminder_integration.py": {
-    "mtime": 1762994163.0404384,
+    "mtime": 1763536919.8253312,
     "issues": [
       {
         "type": "warning",
@@ -4925,15 +4950,15 @@
     ]
   },
   "tests/behavior/test_account_handler_behavior.py": {
-    "mtime": 1763366905.1922722,
+    "mtime": 1763369143.2605505,
     "issues": []
   },
   "tests/behavior/test_webhook_handler_behavior.py": {
-    "mtime": 1763290132.861268,
+    "mtime": 1763536932.487208,
     "issues": []
   },
   "tests/behavior/test_webhook_server_behavior.py": {
-    "mtime": 1763127058.8088505,
+    "mtime": 1763536931.549045,
     "issues": [
       {
         "type": "warning",
@@ -4990,7 +5015,7 @@
     ]
   },
   "tests/behavior/test_welcome_handler_behavior.py": {
-    "mtime": 1763126946.7648332,
+    "mtime": 1763536930.662024,
     "issues": [
       {
         "type": "warning",
@@ -5008,7 +5033,7 @@
     ]
   },
   "tests/behavior/test_welcome_manager_behavior.py": {
-    "mtime": 1763292368.7888432,
+    "mtime": 1763374122.9208379,
     "issues": [
       {
         "type": "warning",
@@ -5047,7 +5072,7 @@
     "issues": []
   },
   "tests/unit/test_prompt_manager.py": {
-    "mtime": 1763193019.7321322,
+    "mtime": 1763538796.7058582,
     "issues": [
       {
         "type": "warning",
@@ -5143,7 +5168,7 @@
     ]
   },
   "tests/unit/test_ui_management.py": {
-    "mtime": 1763193019.7321322,
+    "mtime": 1763538796.707827,
     "issues": [
       {
         "type": "warning",
@@ -5161,7 +5186,7 @@
     ]
   },
   "tests/unit/test_user_preferences.py": {
-    "mtime": 1763193019.7321322,
+    "mtime": 1763538796.7091675,
     "issues": [
       {
         "type": "warning",

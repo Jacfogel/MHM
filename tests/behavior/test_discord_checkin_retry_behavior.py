@@ -15,6 +15,7 @@ from datetime import datetime
 from tests.test_utilities import TestUserFactory, TestDataManager
 
 
+@pytest.mark.behavior
 class TestDiscordCheckinRetryBehavior:
     """Test Discord check-in retry behavior and logging."""
     

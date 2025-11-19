@@ -14,6 +14,8 @@ from unittest.mock import patch, MagicMock
 from user.context_manager import UserContextManager
 
 
+@pytest.mark.behavior
+@pytest.mark.user_management
 class TestUserContextManagerBehavior:
     """Test UserContextManager real behavior and side effects."""
     
@@ -584,6 +586,8 @@ class TestUserContextManagerBehavior:
         assert len(manager.conversation_history) == 0, "Should have no remaining user data"
 
 
+@pytest.mark.behavior
+@pytest.mark.user_management
 class TestUserContextManagerIntegration:
     """Integration tests for UserContextManager with real user data."""
     

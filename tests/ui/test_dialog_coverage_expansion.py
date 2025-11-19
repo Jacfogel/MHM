@@ -56,8 +56,8 @@ def qapp():
 class TestScheduleEditorDialogBehavior:
     """Test schedule editor dialog with real behavior verification."""
     
-    @pytest.fixture
-    def test_user_data(self, test_data_dir):
+    @pytest.fixture(name="test_user_data")
+    def schedule_editor_user_data(self, test_data_dir):
         """Create test user with schedule data."""
         user_id = "test_schedule_editor"
         
@@ -267,8 +267,8 @@ class TestScheduleEditorDialogBehavior:
 class TestTaskEditDialogBehavior:
     """Test TaskEditDialog behavior."""
     
-    @pytest.fixture
-    def test_user_data(self, test_data_dir):
+    @pytest.fixture(name="test_user_data")
+    def task_edit_user_data(self, test_data_dir):
         user_id = "test_task_edit"
         test_user_factory = TestUserFactory()
         test_user_factory.create_basic_user(user_id, test_data_dir=test_data_dir)
@@ -611,8 +611,8 @@ class TestTaskEditDialogBehavior:
 class TestTaskCompletionDialogBehavior:
     """Test task completion dialog with real behavior verification."""
     
-    @pytest.fixture
-    def test_user_data(self, test_data_dir):
+    @pytest.fixture(name="test_user_data")
+    def task_completion_user_data(self, test_data_dir):
         """Create test user with task data."""
         user_id = "test_task_completion"
         
@@ -669,8 +669,8 @@ class TestTaskCompletionDialogBehavior:
 class TestUserProfileDialogBehavior:
     """Test UserProfileDialog behavior."""
     
-    @pytest.fixture
-    def test_user_data(self, test_data_dir):
+    @pytest.fixture(name="test_user_data")
+    def user_profile_user_data(self, test_data_dir):
         user_id = "test_user_profile"
         test_user_factory = TestUserFactory()
         test_user_factory.create_basic_user(user_id, test_data_dir=test_data_dir)

@@ -8,23 +8,29 @@ Focuses on real file operations, data persistence, and cross-module interactions
 import sys
 import os
 import json
+import logging
 import pytest
+
+TEST_LOGGER = logging.getLogger("mhm_tests")
+
+from tests.conftest import materialize_user_minimal_via_public_apis
+from tests.test_utilities import TestUserFactory
 
 # Do not modify sys.path; rely on package imports
 
-pytestmark = pytest.mark.debug
+pytestmark = [pytest.mark.behavior, pytest.mark.user_management]
 
 def setup_test_environment(test_data_dir):
     """Create isolated test environment with temporary directories"""
     from tests.test_utilities import TestDataManager
     
     import logging
-    logging.getLogger("mhm_tests").debug("Setting up test environment...")
+    TEST_LOGGER.debug("Setting up test environment...")
     return TestDataManager.setup_test_environment()
 
 def create_test_user_data(user_id, test_data_dir, base_state="basic"):
     """Create test user data with specific base state using centralized utilities"""
-    from tests.test_utilities import TestUserFactory, TestDataFactory
+    from tests.test_utilities import TestDataFactory
     
     if base_state == "basic":
         # Basic user with only messages enabled
@@ -407,7 +413,7 @@ def test_category_management_real_behavior(test_data_dir, mock_config):
         raise
 
 @pytest.mark.behavior
-@pytest.mark.schedules
+@pytest.mark.scheduler
 @pytest.mark.file_io
 @pytest.mark.regression
 @pytest.mark.no_parallel
@@ -531,13 +537,12 @@ def test_schedule_period_management_real_behavior(test_data_dir):
         logging.getLogger("mhm_tests").error(f"Schedule period management: Error - {e}")
         raise
 
-# TEMPORARILY DISABLED: This test has syntax errors that need to be fixed
-# @pytest.mark.behavior
-# @pytest.mark.integration
-# @pytest.mark.user_management
-# @pytest.mark.file_io
-# @pytest.mark.slow
 @pytest.mark.no_parallel
+@pytest.mark.behavior
+@pytest.mark.integration
+@pytest.mark.user_management
+@pytest.mark.file_io
+@pytest.mark.slow
 def test_integration_scenarios_real_behavior(test_data_dir):
     """Test complex integration scenarios with multiple operations
     
@@ -574,9 +579,8 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             # Load basic data (serial execution ensures data is available)
             basic_data = get_user_data(basic_user_id, "all", auto_create=True)
             if "account" not in basic_data:
-                from tests.conftest import materialize_user_minimal_via_public_apis as _mat
                 import time
-                _mat(basic_user_id)
+                materialize_user_minimal_via_public_apis(basic_user_id)
                 time.sleep(0.1)  # Brief delay to ensure files are written
                 basic_data = get_user_data(basic_user_id, "all", auto_create=True)
             
@@ -652,9 +656,8 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             # Load full data (serial execution ensures data is available)
             full_data = get_user_data(full_user_id, "all", auto_create=True)
             if "account" not in full_data:
-                from tests.conftest import materialize_user_minimal_via_public_apis as _mat
                 import time
-                _mat(full_user_id)
+                materialize_user_minimal_via_public_apis(full_user_id)
                 time.sleep(0.1)  # Brief delay to ensure files are written
                 full_data = get_user_data(full_user_id, "all", auto_create=True)
             
@@ -784,13 +787,12 @@ def test_data_consistency_real_behavior(test_data_dir, mock_config):
         # Perform multiple operations
         from core.user_management import get_user_id_by_identifier
         basic_uuid = get_user_id_by_identifier(f"test-user-basic-{test_id}") or f"test-user-basic-{test_id}"
-        from tests.conftest import materialize_user_minimal_via_public_apis as _mat
         import time
-        _mat(basic_uuid)
+        materialize_user_minimal_via_public_apis(basic_uuid)
         time.sleep(0.1)  # Brief delay to ensure files are written
         basic_data = get_user_data(basic_uuid, "all", auto_create=True)
         if "account" not in basic_data:
-            _mat(basic_uuid)
+            materialize_user_minimal_via_public_apis(basic_uuid)
             time.sleep(0.1)  # Brief delay to ensure files are written
             basic_data = get_user_data(basic_uuid, "all", auto_create=True)
         basic_data.setdefault("account", {})["timezone"] = "America/Los_Angeles"
@@ -827,23 +829,26 @@ def test_data_consistency_real_behavior(test_data_dir, mock_config):
         assert updated_data["preferences"]["channel"]["contact"] == "newcontact#5678", "Preferences should have new contact"
         assert updated_data["preferences"]["channel"]["contact"] == "newcontact#5678", "Preferences should have new contact"
         
-        print("  [OK] File synchronization: Success")
+        TEST_LOGGER.info("File synchronization: Success")
         
     except Exception as e:
-        print(f"  [ERROR] Data consistency: Error - {e}")
+        TEST_LOGGER.error("Data consistency: Error - %s", e)
         raise
 
 def cleanup_test_environment(test_dir):
     """Clean up test environment"""
     from tests.test_utilities import TestDataManager
-    print("\n🧹 Cleaning up test environment...")
+    TEST_LOGGER.info("Cleaning up test environment...")
     TestDataManager.cleanup_test_environment(test_dir)
-    print("  [OK] Test environment cleaned up")
+    TEST_LOGGER.info("Test environment cleaned up")
 
 def main():
     """Run all real behavior tests"""
-    print("🚀 Starting Real Behavior Testing for Account Management")
-    print("=" * 60)
+    TEST_LOGGER.info("Starting Real Behavior Testing for Account Management")
+    TEST_LOGGER.info("=" * 60)
+
+    import uuid
+    test_id = str(uuid.uuid4())[:8]
     
     # Setup test environment
     test_dir, test_data_dir, test_test_data_dir = setup_test_environment(test_data_dir)
@@ -869,9 +874,9 @@ def main():
     cleanup_test_environment(test_dir)
     
     # Print results summary
-    print("\n" + "=" * 60)
-    print("📊 REAL BEHAVIOR TESTING RESULTS")
-    print("=" * 60)
+    TEST_LOGGER.info("=" * 60)
+    TEST_LOGGER.info("REAL BEHAVIOR TESTING RESULTS")
+    TEST_LOGGER.info("=" * 60)
     
     success_count = 0
     total_count = 0
@@ -880,18 +885,18 @@ def main():
         total_count += 1
         if "SUCCESS" in result:
             success_count += 1
-            print(f"[OK] {test_name}: {result}")
+            TEST_LOGGER.info("[OK] %s: %s", test_name, result)
         else:
-            print(f"[ERROR] {test_name}: {result}")
+            TEST_LOGGER.error("[ERROR] %s: %s", test_name, result)
     
-    print(f"\n🎯 SUMMARY: {success_count}/{total_count} tests passed")
+    TEST_LOGGER.info("SUMMARY: %s/%s tests passed", success_count, total_count)
     success_rate = (success_count / total_count * 100) if total_count > 0 else 0
-    print(f"📈 Success Rate: {success_rate:.1f}%")
+    TEST_LOGGER.info("Success Rate: %.1f%%", success_rate)
     
     if success_count == total_count:
-        print("🎉 ALL REAL BEHAVIOR TESTS PASSED!")
+        TEST_LOGGER.info("All real behavior tests passed")
     else:
-        print("⚠️ Some tests failed - review results above")
+        TEST_LOGGER.warning("Some tests failed - review results above")
     
     return success_count == total_count
 

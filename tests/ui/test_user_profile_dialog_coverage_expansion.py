@@ -32,8 +32,8 @@ def qapp():
 class TestUserProfileDialogCoverageExpansion:
     """Comprehensive test suite for UserProfileDialog coverage expansion."""
     
-    @pytest.fixture
-    def test_user_data(self, test_data_dir):
+    @pytest.fixture(name="test_user_data")
+    def user_profile_user_data(self, test_data_dir):
         """Create test user with personalization data."""
         user_id = "test_user_profile_coverage"
         

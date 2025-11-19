@@ -702,12 +702,14 @@ class TestFileOperationsEdgeCases:
         real_user_dir = os.path.join('data', 'users', user_id)
         assert not os.path.exists(real_user_dir), f"Test should not write to real data dir: {real_user_dir}"
 
+@pytest.mark.unit
+@pytest.mark.file_io
 class TestFileOperationsPerformance:
     """Test file operations performance and large data handling."""
     
     @pytest.mark.slow
     @pytest.mark.file_io
-    @pytest.mark.performance
+    @pytest.mark.slow
     @pytest.mark.no_parallel
     def test_save_large_json_data(self, temp_file):
         """Test saving large JSON data with performance verification."""
@@ -824,7 +826,7 @@ class TestFileOperationsPerformance:
     
     @pytest.mark.slow
     @pytest.mark.file_io
-    @pytest.mark.performance
+    @pytest.mark.slow
     def test_load_large_json_data(self, temp_file):
         """Test loading large JSON data."""
         # Create and save large test data

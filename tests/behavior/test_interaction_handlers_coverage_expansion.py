@@ -33,6 +33,7 @@ def test_data_dir(test_path_factory):
     return test_path_factory
 
 
+@pytest.mark.behavior
 class TestTaskManagementHandlerCoverage:
     """Test TaskManagementHandler comprehensive coverage."""
     
@@ -542,6 +543,7 @@ class TestTaskManagementHandlerCoverage:
         assert all(isinstance(example, str) for example in examples)
 
 
+@pytest.mark.behavior
 class TestCheckinHandlerCoverage:
     """Test CheckinHandler comprehensive coverage."""
     
@@ -639,6 +641,7 @@ class TestCheckinHandlerCoverage:
             assert "/5" in response.message
 
 
+@pytest.mark.behavior
 class TestProfileHandlerCoverage:
     """Test ProfileHandler comprehensive coverage."""
     
@@ -726,6 +729,7 @@ class TestProfileHandlerCoverage:
         assert "statistics" in response.message.lower()
 
 
+@pytest.mark.behavior
 class TestScheduleManagementHandlerCoverage:
     """Test ScheduleManagementHandler comprehensive coverage."""
     
@@ -768,6 +772,7 @@ class TestScheduleManagementHandlerCoverage:
         # Response depends on what was updated
 
 
+@pytest.mark.behavior
 class TestAnalyticsHandlerCoverage:
     """Test AnalyticsHandler comprehensive coverage."""
     
@@ -919,6 +924,7 @@ class TestAnalyticsHandlerCoverage:
         assert "/5" in response.message
 
 
+@pytest.mark.behavior
 class TestHelpHandlerCoverage:
     """Test HelpHandler comprehensive coverage."""
     
@@ -981,6 +987,7 @@ class TestHelpHandlerCoverage:
         assert "example" in response.message.lower()
 
 
+@pytest.mark.behavior
 class TestErrorHandling:
     """Test error handling in interaction handlers."""
     
@@ -1005,6 +1012,7 @@ class TestErrorHandling:
         # Should handle the error gracefully
 
 
+@pytest.mark.behavior
 class TestTaskManagementAdvancedCoverage:
     """Test advanced task management functionality for coverage expansion."""
     
@@ -1236,6 +1244,7 @@ class TestTaskManagementAdvancedCoverage:
         assert "which task" in response.message.lower() or "specify" in response.message.lower()
 
 
+@pytest.mark.behavior
 class TestCheckinHandlerAdvancedCoverage:
     """Test advanced checkin handler functionality for coverage expansion."""
     
@@ -1313,6 +1322,7 @@ class TestCheckinHandlerAdvancedCoverage:
         # Should handle invalid response gracefully
 
 
+@pytest.mark.behavior
 class TestProfileHandlerAdvancedCoverage:
     """Test advanced profile handler functionality for coverage expansion."""
     
@@ -1366,6 +1376,7 @@ class TestProfileHandlerAdvancedCoverage:
         assert "no valid updates" in response.message.lower() or "specify" in response.message.lower()
 
 
+@pytest.mark.behavior
 class TestScheduleManagementHandlerAdvancedCoverage:
     """Test advanced schedule management functionality for coverage expansion."""
     
@@ -1420,6 +1431,7 @@ class TestScheduleManagementHandlerAdvancedCoverage:
         assert "specify" in response.message.lower() or "update" in response.message.lower()
 
 
+@pytest.mark.behavior
 class TestAnalyticsHandlerAdvancedCoverage:
     """Test advanced analytics handler functionality for coverage expansion."""
     
@@ -1466,6 +1478,7 @@ class TestAnalyticsHandlerAdvancedCoverage:
         # Should show specific metric if available
 
 
+@pytest.mark.behavior
 class TestHelpHandlerAdvancedCoverage:
     """Test advanced help handler functionality for coverage expansion."""
     

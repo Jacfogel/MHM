@@ -36,6 +36,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-01-27 - Pytest Markers Analysis and Standardization **COMPLETED**
+- Reduced pytest markers from 40 to 18 (55% reduction) by removing unused/redundant markers and consolidating overlapping functionality
+- Applied markers systematically to all 162 test files (100% coverage) with category, feature, speed, quality, and resource markers
+- Updated documentation with comprehensive marker usage guidelines in TESTING_GUIDE.md and AI_TESTING_GUIDE.md
+- Fixed test policy violations: replaced 69 print() statements with logging in test_account_management.py and test_utilities_demo.py
+- All tests passing (3101 passed, 1 skipped) with proper marker coverage enabling better test selection and filtering
+
 ### 2025-11-18 - Documentation Heading Numbering Standardization Implementation **COMPLETED**
 - Implemented numbered heading standard (H2/H3) across ~20 documentation files
 - Created numbering script to auto-number headings, fix non-standard formats, out-of-order numbering, emoji removal, Q&A/Step conversion

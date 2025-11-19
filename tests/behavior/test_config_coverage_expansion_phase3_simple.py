@@ -5,9 +5,12 @@ Simple version that works with the actual implementation
 
 import os
 from unittest.mock import patch
+import pytest
+
 import core.config
 
 
+@pytest.mark.behavior
 class TestConfigCoverageExpansionPhase3Simple:
     """Test coverage expansion for core/config.py - Phase 3 Simple"""
 

@@ -1,11 +1,11 @@
 import os
 
+import pytest
 
-def test_no_print_calls_in_tests_except_debug_marked():
-    """Policy: tests should not use print(); prefer logging or assertions.
 
-    Allowed: files containing '@pytest.mark.debug' marker.
-    """
+@pytest.mark.unit
+def test_no_print_calls_in_tests():
+    """Policy: tests should not use print(); prefer logging or assertions."""
     root = os.path.join(os.path.dirname(__file__), '..')
     root = os.path.abspath(root)
 
@@ -18,8 +18,6 @@ def test_no_print_calls_in_tests_except_debug_marked():
             try:
                 with open(path, 'r', encoding='utf-8') as f:
                     text = f.read()
-                if ('@pytest.mark.debug' in text) or ('pytestmark = pytest.mark.debug' in text) or ('pytest.mark.debug' in text):
-                    continue
                 # Ignore conftest informational prints for now
                 if name == 'conftest.py' and os.path.basename(dirpath) == 'tests':
                     continue
@@ -28,6 +26,9 @@ def test_no_print_calls_in_tests_except_debug_marked():
                     continue
                 # Skip scripts directory
                 if 'scripts' in dirpath:
+                    continue
+                # Skip this test file itself (it contains 'print(' in the check logic)
+                if name == 'test_no_prints_policy.py':
                     continue
                 # Skip AI functionality test module files (they're not pytest tests)
                 # Normalize path separators for cross-platform compatibility

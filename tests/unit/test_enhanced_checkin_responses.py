@@ -14,6 +14,7 @@ from core.checkin_dynamic_manager import DynamicCheckinManager
 from core.checkin_analytics import CheckinAnalytics
 
 
+@pytest.mark.unit
 class TestEnhancedNumericalParsing:
     """Test enhanced numerical response parsing."""
     
@@ -120,6 +121,7 @@ class TestEnhancedNumericalParsing:
             assert result is None, f"Should return None for: {input_val}"
 
 
+@pytest.mark.unit
 class TestEnhancedYesNoParsing:
     """Test enhanced yes/no response parsing."""
     
@@ -187,6 +189,7 @@ class TestEnhancedYesNoParsing:
             assert error is not None, f"Should have error: {response}"
 
 
+@pytest.mark.unit
 class TestSkipFunctionality:
     """Test skip functionality for all question types."""
     
@@ -247,6 +250,7 @@ class TestSkipFunctionality:
         assert error is None, "Skip should have no error"
 
 
+@pytest.mark.unit
 class TestAnalyticsSkippedQuestions:
     """Test that skipped questions are handled properly in analytics."""
     
@@ -314,6 +318,7 @@ class TestAnalyticsSkippedQuestions:
         assert summaries['medication_taken']['average'] == 0.67
 
 
+@pytest.mark.unit
 class TestScaleQuestionsWithEnhancedParsing:
     """Test scale questions with enhanced numerical parsing."""
     

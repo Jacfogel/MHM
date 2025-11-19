@@ -5,6 +5,10 @@ from communication.message_processing.conversation_flow_manager import conversat
 from tests.test_utilities import setup_test_data_environment, cleanup_test_data_environment, create_test_user
 
 
+import pytest
+
+@pytest.mark.behavior
+@pytest.mark.checkins
 class TestCheckinExpirySemantics:
     def setup_method(self):
         self.test_dir, self.test_data_dir, _ = setup_test_data_environment()

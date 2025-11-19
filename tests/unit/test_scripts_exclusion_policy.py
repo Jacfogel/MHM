@@ -10,7 +10,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 
+
+@pytest.mark.unit
 def test_scripts_directory_excluded_from_test_discovery():
     """Verify that pytest does not discover any tests in scripts/ directory."""
     project_root = Path(__file__).parent.parent.parent
@@ -43,6 +46,7 @@ def test_scripts_directory_excluded_from_test_discovery():
     )
 
 
+@pytest.mark.unit
 def test_scripts_directory_has_no_test_files():
     """Verify that scripts/ directory does not contain test files."""
     project_root = Path(__file__).parent.parent.parent

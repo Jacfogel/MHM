@@ -14,6 +14,8 @@ from core.message_management import (
 )
 
 
+@pytest.mark.unit
+@pytest.mark.messages
 class TestGetMessageCategories:
     """Test get_message_categories function."""
     
@@ -42,6 +44,8 @@ class TestGetMessageCategories:
             assert result == []
 
 
+@pytest.mark.unit
+@pytest.mark.messages
 class TestStoreSentMessage:
     """Test store_sent_message function."""
     

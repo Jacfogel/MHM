@@ -4,9 +4,13 @@ Real behavior tests for communication command parser functionality.
 Tests focus on actual side effects and system changes rather than just return values.
 """
 
+import pytest
+
 from communication.message_processing.command_parser import EnhancedCommandParser
 
 
+@pytest.mark.behavior
+@pytest.mark.communication
 class TestCommandParserBehavior:
     """Test real behavior of command parser functionality."""
 

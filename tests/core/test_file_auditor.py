@@ -17,6 +17,7 @@ from core.file_auditor import (
 )
 
 
+@pytest.mark.unit
 class TestFileAuditorUtilities:
     """Test utility functions."""
     
@@ -81,6 +82,7 @@ class TestFileAuditorUtilities:
         assert _classify_path("C:\\tests\\data\\test.json") == "tests"
 
 
+@pytest.mark.unit
 class TestFileAuditor:
     """Test FileAuditor class."""
     
@@ -129,6 +131,7 @@ class TestFileAuditor:
         assert result is True
 
 
+@pytest.mark.unit
 class TestFileAuditorSingleton:
     """Test FileAuditor singleton functions."""
     
@@ -149,6 +152,7 @@ class TestFileAuditorSingleton:
             mock_stop.assert_called_once()
 
 
+@pytest.mark.unit
 class TestRecordCreated:
     """Test record_created function."""
     
@@ -289,6 +293,7 @@ class TestRecordCreated:
                 assert payload['classification'] == expected_classification
 
 
+@pytest.mark.unit
 class TestFileAuditorErrorHandling:
     """Test FileAuditor error handling."""
     

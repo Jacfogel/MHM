@@ -27,7 +27,7 @@ class TestTaskReminderIntegration:
     
     @pytest.mark.integration
     @pytest.mark.tasks
-    @pytest.mark.reminders
+    @pytest.mark.tasks
     @pytest.mark.file_io
     def test_task_creation_with_reminders_schedules_reminders(self, test_data_dir):
         """Test that creating a task with reminder_periods schedules reminders."""
@@ -65,7 +65,7 @@ class TestTaskReminderIntegration:
     
     @pytest.mark.integration
     @pytest.mark.tasks
-    @pytest.mark.reminders
+    @pytest.mark.tasks
     @pytest.mark.file_io
     def test_task_completion_cleans_up_reminders(self, test_data_dir):
         """Test that completing a task cleans up its reminders."""
@@ -102,7 +102,7 @@ class TestTaskReminderIntegration:
     
     @pytest.mark.integration
     @pytest.mark.tasks
-    @pytest.mark.reminders
+    @pytest.mark.tasks
     @pytest.mark.file_io
     def test_task_deletion_cleans_up_reminders(self, test_data_dir):
         """Test that deleting a task cleans up its reminders."""
@@ -139,7 +139,7 @@ class TestTaskReminderIntegration:
     
     @pytest.mark.integration
     @pytest.mark.tasks
-    @pytest.mark.reminders
+    @pytest.mark.tasks
     @pytest.mark.file_io
     def test_task_update_with_new_reminders_reschedules(self, test_data_dir):
         """Test that updating a task with new reminder_periods reschedules reminders."""
@@ -185,7 +185,7 @@ class TestTaskReminderIntegration:
     
     @pytest.mark.integration
     @pytest.mark.tasks
-    @pytest.mark.reminders
+    @pytest.mark.tasks
     @pytest.mark.file_io
     def test_recurring_task_completion_creates_next_instance_with_reminders(self, test_data_dir):
         """Test that completing a recurring task creates next instance and schedules its reminders."""
@@ -235,7 +235,7 @@ class TestReminderDeliveryIntegration:
     """Integration tests for reminder delivery."""
     
     @pytest.mark.integration
-    @pytest.mark.reminders
+    @pytest.mark.tasks
     @pytest.mark.file_io
     def test_reminder_delivery_skips_completed_tasks(self, test_data_dir):
         """Test that reminders are not sent for completed tasks."""
@@ -263,7 +263,7 @@ class TestReminderDeliveryIntegration:
         mock_comm_manager.handle_task_reminder.assert_not_called()
     
     @pytest.mark.integration
-    @pytest.mark.reminders
+    @pytest.mark.tasks
     @pytest.mark.file_io
     def test_reminder_delivery_sends_for_active_tasks(self, test_data_dir):
         """Test that reminders are sent for active tasks."""

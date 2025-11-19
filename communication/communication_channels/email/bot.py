@@ -86,13 +86,15 @@ class EmailBot(BaseChannel):
     @handle_errors("testing SMTP connection")
     def initialize__test_smtp_connection(self):
         """Test SMTP connection synchronously"""
-        with smtplib.SMTP_SSL(EMAIL_SMTP_SERVER, 465) as server:
+        # Use 10 second timeout to prevent indefinite hangs (slightly longer than IMAP for TLS handshake)
+        with smtplib.SMTP_SSL(EMAIL_SMTP_SERVER, 465, timeout=10) as server:
             server.login(EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD)
 
     @handle_errors("testing IMAP connection")
     def initialize__test_imap_connection(self):
         """Test IMAP connection synchronously"""
-        with imaplib.IMAP4_SSL(EMAIL_IMAP_SERVER) as mail:
+        # Use 8 second timeout to match timeout used in _receive_emails_sync
+        with imaplib.IMAP4_SSL(EMAIL_IMAP_SERVER, timeout=8) as mail:
             mail.login(EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD)
 
     @handle_errors("shutting down email bot", default_return=False)
@@ -131,7 +133,8 @@ class EmailBot(BaseChannel):
         msg['To'] = recipient
         msg['Subject'] = subject
 
-        with smtplib.SMTP_SSL(EMAIL_SMTP_SERVER, 465) as server:
+        # Use 10 second timeout to prevent indefinite hangs (slightly longer than IMAP for TLS handshake)
+        with smtplib.SMTP_SSL(EMAIL_SMTP_SERVER, 465, timeout=10) as server:
             server.login(EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD)
             server.sendmail(EMAIL_SMTP_USERNAME, recipient, msg.as_string())
 

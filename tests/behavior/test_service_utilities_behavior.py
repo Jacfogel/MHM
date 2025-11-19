@@ -15,11 +15,11 @@ from core.service_utilities import (
 from core.user_data_validation import _shared__title_case
 
 
+@pytest.mark.behavior
 class TestServiceUtilitiesBehavior:
     """Test real behavior of service utility functions."""
     
     @pytest.mark.behavior
-    @pytest.mark.service
     @pytest.mark.critical
     def test_throttler_initialization_creates_proper_structure(self, test_data_dir):
         """Test that Throttler initialization creates proper internal structure."""
@@ -34,7 +34,6 @@ class TestServiceUtilitiesBehavior:
         assert throttler.last_run is None, "Should initialize last_run to None"
     
     @pytest.mark.behavior
-    @pytest.mark.service
     @pytest.mark.critical
     def test_throttler_should_run_returns_true_on_first_call(self, test_data_dir):
         """Test that Throttler should_run returns True on first call and sets last_run."""
@@ -49,7 +48,6 @@ class TestServiceUtilitiesBehavior:
         assert throttler.last_run is not None, "last_run should be set on first call to enable throttling"
     
     @pytest.mark.behavior
-    @pytest.mark.service
     @pytest.mark.regression
     def test_throttler_should_run_respects_interval(self, test_data_dir):
         """Test that Throttler should_run respects the time interval."""
@@ -70,7 +68,6 @@ class TestServiceUtilitiesBehavior:
         assert throttler.last_run is not None, "last_run should be updated after interval"
     
     @pytest.mark.behavior
-    @pytest.mark.service
     @pytest.mark.regression
     def test_throttler_handles_invalid_timestamp_format(self, test_data_dir):
         """Test that Throttler handles invalid timestamp format gracefully."""
@@ -86,7 +83,6 @@ class TestServiceUtilitiesBehavior:
         assert throttler.last_run is not None, "Should update last_run with valid timestamp"
     
     @pytest.mark.behavior
-    @pytest.mark.service
     @pytest.mark.file_io
     @pytest.mark.critical
     def test_create_reschedule_request_creates_actual_file(self, test_data_dir):
@@ -172,7 +168,6 @@ class TestServiceUtilitiesBehavior:
             # Assert
             assert is_running is False, "Should return False when process check fails"
     
-    @pytest.mark.network
     def test_wait_for_network_returns_true_when_network_available(self, test_data_dir):
         """Test that wait_for_network returns True when network is available."""
         # Arrange - Mock socket to simulate successful connection
@@ -187,7 +182,6 @@ class TestServiceUtilitiesBehavior:
             mock_socket.assert_called_once_with(("8.8.8.8", 53))
     
     @pytest.mark.slow
-    @pytest.mark.network
     def test_wait_for_network_returns_false_when_network_unavailable(self, test_data_dir):
         """Test that wait_for_network returns False when network is unavailable."""
         # Arrange - Mock socket to simulate connection failure
@@ -370,6 +364,7 @@ class TestServiceUtilitiesBehavior:
         assert result1 == "AI Chatbot MHM System", "Should produce correct title case"
 
 
+@pytest.mark.behavior
 class TestServiceUtilitiesIntegration:
     """Test integration between service utility functions."""
     
@@ -400,7 +395,6 @@ class TestServiceUtilitiesIntegration:
                     assert call_args['category'] == category, "Should include category"
     
     @pytest.mark.slow
-    @pytest.mark.network
     def test_service_utilities_error_recovery_with_real_operations(self, test_data_dir):
         """Test error recovery when working with real operations."""
         # Test 1: Network recovery

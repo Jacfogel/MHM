@@ -9,9 +9,12 @@ from tests.conftest import ensure_qt_runtime
 ensure_qt_runtime()
 
 
+import pytest
+
 from unittest.mock import patch
 
 
+@pytest.mark.ui
 class TestUIComponentsHeadless:
     """Test UI components using headless approach."""
     

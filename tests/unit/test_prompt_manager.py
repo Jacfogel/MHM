@@ -23,6 +23,7 @@ from ai.prompt_manager import PromptManager, PromptTemplate, get_prompt_manager
 from core.config import AI_SYSTEM_PROMPT_PATH, AI_USE_CUSTOM_PROMPT
 
 
+@pytest.mark.unit
 class TestPromptManager:
     """Comprehensive test coverage for PromptManager class."""
     

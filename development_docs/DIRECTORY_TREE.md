@@ -226,10 +226,14 @@ C:.
 |           word_of_the_day.json
 |           
 +---scripts
+|   |   add_category_markers.py
+|   |   analyze_non_standard_tests.md
+|   |   analyze_test_markers.py
 |   |   cleanup_project.py
 |   |   cleanup_unused_imports.py
 |   |   cleanup_windows_tasks.py
 |   |   demo_dynamic_checkin.py
+|   |   find_tests_missing_category_markers.py
 |   |   flaky_detector.py
 |   |   number_documentation_headings.py
 |   |   SCRIPTS_GUIDE.md

@@ -14,6 +14,7 @@ from unittest.mock import patch, Mock
 from ui.ui_app_qt import ServiceManager
 
 
+@pytest.mark.ui
 class TestServiceManagerCore:
     """Test ServiceManager core functionality without UI dependencies."""
     

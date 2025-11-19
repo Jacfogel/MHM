@@ -83,7 +83,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_do_get_returns_health_check(self):
         """Test: GET request returns health check response."""
         handler = create_mock_handler(method='GET')
@@ -99,7 +99,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_do_options_returns_cors_headers(self):
         """Test: OPTIONS request returns CORS headers."""
         handler = create_mock_handler(method='OPTIONS')
@@ -114,7 +114,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_do_post_rejects_missing_signature_headers(self):
         """Test: POST request without signature headers is rejected."""
         handler = create_mock_handler(method='POST', headers={}, body=b'{}')
@@ -126,7 +126,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_do_post_handles_ping_event(self):
         """Test: POST request with PING event returns 204."""
         ping_event = {'type': 0}
@@ -149,7 +149,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_do_post_rejects_invalid_json(self):
         """Test: POST request with invalid JSON is rejected."""
         handler = create_mock_handler(
@@ -170,7 +170,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_do_post_handles_application_authorized_event(self):
         """Test: POST request with APPLICATION_AUTHORIZED event is handled."""
         event_data = {
@@ -211,7 +211,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_do_post_handles_event_handling_failure(self):
         """Test: POST request returns 500 when event handling fails."""
         event_data = {
@@ -247,7 +247,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_do_post_rejects_missing_event_type(self):
         """Test: POST request with missing event type is rejected."""
         event_data = {
@@ -272,7 +272,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_webhook_server_initialization(self):
         """Test: WebhookServer initializes correctly."""
         bot_instance = MagicMock()
@@ -286,7 +286,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     @pytest.mark.slow
     def test_webhook_server_start_creates_server(self):
         """Test: WebhookServer start creates and starts HTTP server."""
@@ -319,7 +319,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_webhook_server_stop_shuts_down_server(self):
         """Test: WebhookServer stop shuts down server."""
         server = WebhookServer(port=0)
@@ -351,7 +351,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_webhook_server_start_handles_port_in_use(self):
         """Test: WebhookServer start handles port already in use gracefully."""
         # Create a server on a port
@@ -370,7 +370,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_log_message_uses_custom_logger(self):
         """Test: log_message uses custom logger instead of stderr."""
         handler = create_mock_handler()
@@ -386,7 +386,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_do_post_handles_exception_gracefully(self):
         """Test: POST request handles exceptions gracefully."""
         handler = create_mock_handler(
@@ -411,7 +411,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_do_post_normalizes_event_type_to_uppercase(self):
         """Test: POST request normalizes event type to uppercase."""
         event_data = {
@@ -449,7 +449,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_do_post_handles_signature_verification_with_pynacl(self):
         """Test: POST request verifies signature with PyNaCl when available."""
         # Note: This test verifies the code path when PyNaCl is available
@@ -495,7 +495,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_do_post_rejects_invalid_signature(self):
         """Test: POST request rejects invalid signature."""
         event_data = {
@@ -556,7 +556,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_do_post_handles_pynacl_import_error(self):
         """Test: POST request handles PyNaCl import error gracefully."""
         event_data = {
@@ -597,7 +597,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_do_post_handles_signature_verification_exception(self):
         """Test: POST request handles signature verification exception gracefully."""
         event_data = {
@@ -655,7 +655,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_do_post_handles_missing_content_length(self):
         """Test: POST request handles missing Content-Length header gracefully."""
         handler = create_mock_handler(
@@ -677,7 +677,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_do_post_handles_event_type_fallback(self):
         """Test: POST request uses fallback event type when event.type missing."""
         event_data = {
@@ -708,7 +708,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_webhook_server_stop_handles_none_server(self):
         """Test: WebhookServer stop handles None server gracefully."""
         server = WebhookServer(port=8080)
@@ -722,7 +722,7 @@ class TestWebhookServerBehavior:
     
     @pytest.mark.behavior
     @pytest.mark.communication
-    @pytest.mark.channels
+    @pytest.mark.communication
     def test_webhook_server_start_updates_bot_instance(self):
         """Test: WebhookServer start updates bot instance in handler."""
         bot_instance = MagicMock()

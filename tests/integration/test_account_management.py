@@ -7,7 +7,7 @@ READ-ONLY - Does not modify any real user data
 
 import os
 import pytest
-pytestmark = pytest.mark.debug
+import logging
 import time
 import tempfile
 
@@ -204,7 +204,7 @@ def test_account_management_data_structures(test_data_dir, mock_config):
             assert False, f"Context data structure error: {e}"
         
     except Exception as e:
-        print(f"  ❌ Data structure testing failed: {e}")
+        logging.getLogger("mhm_tests").error(f"Data structure testing failed: {e}")
         assert False, f"Data structure testing failed: {e}"
 
 @pytest.mark.integration
@@ -214,7 +214,7 @@ def test_account_management_data_structures(test_data_dir, mock_config):
 @pytest.mark.file_io
 def test_account_management_validation():
     """Test that account management validation works correctly"""
-    print("\n🔍 Testing Account Management Validation...")
+    logging.getLogger("mhm_tests").info("Testing Account Management Validation...")
     
     try:
         from core.user_data_validation import validate_user_update
@@ -229,13 +229,13 @@ def test_account_management_validation():
             is_valid, errors = validate_user_update('test-user', 'account', valid_updates)
             
             if is_valid:
-                print(f"  ✅ Account validation: Valid updates accepted")
+                logging.getLogger("mhm_tests").info("Account validation: Valid updates accepted")
                 assert True, "Valid account updates should be accepted"
             else:
-                print(f"  ❌ Account validation: Valid updates rejected - {errors}")
+                logging.getLogger("mhm_tests").warning(f"Account validation: Valid updates rejected - {errors}")
                 assert False, f"Valid account updates were rejected: {errors}"
         except Exception as e:
-            print(f"  ❌ Account validation: Error - {e}")
+            logging.getLogger("mhm_tests").error(f"Account validation: Error - {e}")
             assert False, f"Account validation error: {e}"
         
         # Test invalid account updates
@@ -247,13 +247,13 @@ def test_account_management_validation():
             is_valid, errors = validate_user_update('test-user', 'account', invalid_updates)
             
             if not is_valid:
-                print(f"  ✅ Account validation: Invalid updates correctly rejected")
+                logging.getLogger("mhm_tests").info("Account validation: Invalid updates correctly rejected")
                 assert True, "Invalid account updates should be rejected"
             else:
-                print(f"  ❌ Account validation: Invalid updates incorrectly accepted")
+                logging.getLogger("mhm_tests").warning("Account validation: Invalid updates incorrectly accepted")
                 assert False, "Invalid account updates were incorrectly accepted"
         except Exception as e:
-            print(f"  ❌ Account validation: Error - {e}")
+            logging.getLogger("mhm_tests").error(f"Account validation: Error - {e}")
             assert False, f"Account validation error: {e}"
         
         # Test preferences validation
@@ -265,17 +265,17 @@ def test_account_management_validation():
             is_valid, errors = validate_user_update('test-user', 'preferences', valid_prefs)
             
             if is_valid:
-                print(f"  ✅ Preferences validation: Valid updates accepted")
+                logging.getLogger("mhm_tests").info("Preferences validation: Valid updates accepted")
                 assert True, "Valid preferences updates should be accepted"
             else:
-                print(f"  ❌ Preferences validation: Valid updates rejected - {errors}")
+                logging.getLogger("mhm_tests").warning(f"Preferences validation: Valid updates rejected - {errors}")
                 assert False, f"Valid preferences updates were rejected: {errors}"
         except Exception as e:
-            print(f"  ❌ Preferences validation: Error - {e}")
+            logging.getLogger("mhm_tests").error(f"Preferences validation: Error - {e}")
             assert False, f"Preferences validation error: {e}"
         
     except Exception as e:
-        print(f"  ❌ Validation testing failed: {e}")
+        logging.getLogger("mhm_tests").error(f"Validation testing failed: {e}")
         assert False, f"Validation testing failed: {e}"
 
 @pytest.mark.integration
@@ -285,7 +285,7 @@ def test_account_management_validation():
 @pytest.mark.file_io
 def test_account_management_safe_operations():
     """Test account management operations with temporary test data"""
-    print("\n🔍 Testing Account Management Safe Operations...")
+    logging.getLogger("mhm_tests").info("Testing Account Management Safe Operations...")
     
     try:
         from core.user_data_handlers import get_user_data, save_user_data
@@ -322,13 +322,13 @@ def test_account_management_safe_operations():
             })
             
             if save_result.get('account') and save_result.get('preferences'):
-                print(f"  ✅ Temporary user creation: Successful")
+                logging.getLogger("mhm_tests").info("Temporary user creation: Successful")
                 assert True, "Temporary user creation should succeed"
             else:
-                print(f"  ❌ Temporary user creation: Failed - {save_result}")
+                logging.getLogger("mhm_tests").warning(f"Temporary user creation: Failed - {save_result}")
                 assert False, f"Temporary user creation failed: {save_result}"
         except Exception as e:
-            print(f"  ❌ Temporary user creation: Error - {e}")
+            logging.getLogger("mhm_tests").error(f"Temporary user creation: Error - {e}")
             assert False, f"Temporary user creation error: {e}"
         
         # Test reading temporary user data
@@ -348,13 +348,13 @@ def test_account_management_safe_operations():
                     time.sleep(0.1)  # Brief delay before retry
             
             if account_data and prefs_data:
-                print(f"  ✅ Temporary user data access: Successful")
+                logging.getLogger("mhm_tests").info("Temporary user data access: Successful")
                 assert True, "Temporary user data access should succeed"
             else:
-                print(f"  ❌ Temporary user data access: Failed - account_data: {bool(account_data)}, prefs_data: {bool(prefs_data)}")
+                logging.getLogger("mhm_tests").warning(f"Temporary user data access: Failed - account_data: {bool(account_data)}, prefs_data: {bool(prefs_data)}")
                 assert False, f"Temporary user data access failed - account_data: {bool(account_data)}, prefs_data: {bool(prefs_data)}"
         except Exception as e:
-            print(f"  ❌ Temporary user data access: Error - {e}")
+            logging.getLogger("mhm_tests").error(f"Temporary user data access: Error - {e}")
             assert False, f"Temporary user data access error: {e}"
         
         # Test updating temporary user data
@@ -364,27 +364,27 @@ def test_account_management_safe_operations():
             })
             
             if update_result.get('account'):
-                print(f"  ✅ Temporary user update: Successful")
+                logging.getLogger("mhm_tests").info("Temporary user update: Successful")
                 assert True, "Temporary user update should succeed"
             else:
-                print(f"  ❌ Temporary user update: Failed - {update_result}")
+                logging.getLogger("mhm_tests").warning(f"Temporary user update: Failed - {update_result}")
                 assert False, f"Temporary user update failed: {update_result}"
         except Exception as e:
-            print(f"  ❌ Temporary user update: Error - {e}")
+            logging.getLogger("mhm_tests").error(f"Temporary user update: Error - {e}")
             assert False, f"Temporary user update error: {e}"
         
         # Clean up temporary user (optional - let it be cleaned up automatically)
         try:
             # We could delete the temporary user here, but for safety we'll let it remain
             # The system has automatic cleanup mechanisms
-            print(f"  ✅ Temporary user cleanup: Left for automatic cleanup")
+            logging.getLogger("mhm_tests").info("Temporary user cleanup: Left for automatic cleanup")
             assert True, "Temporary user cleanup should succeed"
         except Exception as e:
-            print(f"  ⚠️ Temporary user cleanup: Error - {e}")
+            logging.getLogger("mhm_tests").warning(f"Temporary user cleanup: Error - {e}")
             assert False, f"Temporary user cleanup error: {e}"
         
     except Exception as e:
-        print(f"  ❌ Safe operations testing failed: {e}")
+        logging.getLogger("mhm_tests").error(f"Safe operations testing failed: {e}")
         assert False, f"Safe operations testing failed: {e}"
 
 @pytest.mark.integration
@@ -394,7 +394,7 @@ def test_account_management_safe_operations():
 @pytest.mark.file_io
 def test_account_management_integration():
     """Test that account management integrates properly with other systems"""
-    print("\n🔍 Testing Account Management Integration...")
+    logging.getLogger("mhm_tests").info("Testing Account Management Integration...")
     
     try:
         from core.user_data_handlers import get_user_data, save_user_data
@@ -412,23 +412,23 @@ def test_account_management_integration():
             prefs_file = get_user_file_path(test_user, 'preferences')
             
             if os.path.exists(account_file) and os.path.exists(prefs_file):
-                print(f"  ✅ File path integration: Files accessible")
+                logging.getLogger("mhm_tests").info("File path integration: Files accessible")
                 results["file_path_integration"] = "INTEGRATION_SUCCESS"
             else:
-                print(f"  ❌ File path integration: Files not found")
+                logging.getLogger("mhm_tests").warning("File path integration: Files not found")
                 results["file_path_integration"] = "INTEGRATION_FAILED"
         except Exception as e:
-            print(f"  ❌ File path integration: Error - {e}")
+            logging.getLogger("mhm_tests").error(f"File path integration: Error - {e}")
             results["file_path_integration"] = f"ERROR: {e}"
         
         # Test user index integration
         try:
             # This should update the user index
             update_user_index(test_user)
-            print(f"  ✅ User index integration: Index update successful")
+            logging.getLogger("mhm_tests").info("User index integration: Index update successful")
             assert True, "User index integration should succeed"
         except Exception as e:
-            print(f"  ❌ User index integration: Error - {e}")
+            logging.getLogger("mhm_tests").error(f"User index integration: Error - {e}")
             assert False, f"User index integration error: {e}"
         
         # Test data consistency
@@ -438,17 +438,17 @@ def test_account_management_integration():
             account_data2 = get_user_data(test_user, 'account')
             
             if account_data1 == account_data2:
-                print(f"  ✅ Data consistency: Consistent across reads")
+                logging.getLogger("mhm_tests").info("Data consistency: Consistent across reads")
                 assert True, "Data consistency should be maintained"
             else:
-                print(f"  ❌ Data consistency: Inconsistent data")
+                logging.getLogger("mhm_tests").warning("Data consistency: Inconsistent data")
                 assert False, "Data consistency failed"
         except Exception as e:
-            print(f"  ❌ Data consistency: Error - {e}")
+            logging.getLogger("mhm_tests").error(f"Data consistency: Error - {e}")
             assert False, f"Data consistency error: {e}"
         
     except Exception as e:
-        print(f"  ❌ Integration testing failed: {e}")
+        logging.getLogger("mhm_tests").error(f"Integration testing failed: {e}")
         assert False, f"Integration testing failed: {e}"
 
 # Note: This file contains pytest test functions that should be run with pytest

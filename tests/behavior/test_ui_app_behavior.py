@@ -15,6 +15,8 @@ from PySide6.QtWidgets import QApplication
 from ui.ui_app_qt import MHMManagerUI, ServiceManager
 
 
+@pytest.mark.behavior
+@pytest.mark.ui
 class TestUIAppBehavior:
     """Test real behavior of the main UI application."""
     
@@ -369,6 +371,8 @@ class TestUIAppBehavior:
                             assert app.current_user is None, "User should be cleared"
 
 
+@pytest.mark.behavior
+@pytest.mark.ui
 class TestUIAppIntegration:
     """Test integration between UI app components."""
     

@@ -20,6 +20,8 @@ from core.user_data_handlers import save_user_data
 from core.config import AI_CLARIFICATION_TEMPERATURE
 
 
+@pytest.mark.behavior
+@pytest.mark.ai
 class TestAIChatBotBehavior:
     """Test AI chatbot real behavior and side effects."""
     
@@ -556,6 +558,8 @@ class TestAIChatBotBehavior:
         assert chatbot.is_ai_available() is not None, "Chatbot should remain available after multiple uses"
 
 
+@pytest.mark.behavior
+@pytest.mark.ai
 class TestAIChatBotIntegration:
     """Test AI chatbot integration with other system components."""
     

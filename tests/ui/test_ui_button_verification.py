@@ -9,9 +9,12 @@ from tests.conftest import ensure_qt_runtime
 ensure_qt_runtime()
 
 
+import pytest
+
 from unittest.mock import Mock, patch
 
 
+@pytest.mark.ui
 class TestUIComponentStructure:
     """Test that UI components have the expected structure and methods."""
     
@@ -62,6 +65,7 @@ class TestUIComponentStructure:
         assert hasattr(MHMManagerUI, 'stop_service')
 
 
+@pytest.mark.ui
 class TestUIButtonConnections:
     """Test that UI button connections are properly defined."""
     
@@ -96,6 +100,7 @@ class TestUIButtonConnections:
         assert callable(CheckinManagementDialog.save_checkin_settings)
 
 
+@pytest.mark.ui
 class TestUIDataHandling:
     """Test that UI data handling methods work correctly."""
     
@@ -172,6 +177,7 @@ class TestUIDataHandling:
         assert callable(CheckinManagementDialog.save_checkin_settings)
 
 
+@pytest.mark.ui
 class TestUIEventHandling:
     """Test that UI event handling methods are properly defined."""
     
@@ -204,6 +210,7 @@ class TestUIEventHandling:
         assert callable(CheckinManagementDialog.on_enable_checkins_toggled)
 
 
+@pytest.mark.ui
 class TestUIIntegrationPoints:
     """Test that UI components have proper integration points."""
     
@@ -242,6 +249,7 @@ class TestUIIntegrationPoints:
         assert callable(CheckinManagementDialog.reject)
 
 
+@pytest.mark.ui
 class TestUIValidationLogic:
     """Test that UI validation logic works correctly."""
     

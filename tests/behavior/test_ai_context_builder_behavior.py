@@ -7,10 +7,14 @@ Tests focus on actual side effects and system changes rather than just return va
 import os
 from datetime import datetime
 
+import pytest
+
 from ai.context_builder import ContextBuilder
 from tests.test_utilities import TestUserFactory, TestDataFactory
 
 
+@pytest.mark.behavior
+@pytest.mark.ai
 class TestContextBuilderBehavior:
     """Test real behavior of context builder functionality."""
 

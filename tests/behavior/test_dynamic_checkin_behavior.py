@@ -3,10 +3,13 @@ Behavior tests for the dynamic check-in system.
 Tests the new dynamic question and response system.
 """
 
+import pytest
+
 from core.checkin_dynamic_manager import dynamic_checkin_manager
 from communication.message_processing.conversation_flow_manager import conversation_manager
 
 
+@pytest.mark.behavior
 class TestDynamicCheckinManager:
     """Test the dynamic check-in manager functionality."""
     
@@ -122,6 +125,7 @@ class TestDynamicCheckinManager:
         assert 'type' in ui_questions['mood']
 
 
+@pytest.mark.behavior
 class TestDynamicCheckinIntegration:
     """Test integration with the conversation flow manager."""
     
@@ -168,6 +172,7 @@ class TestDynamicCheckinIntegration:
         assert result['message'] is not None
 
 
+@pytest.mark.behavior
 class TestDynamicCheckinVariety:
     """Test that the system provides variety in responses."""
     

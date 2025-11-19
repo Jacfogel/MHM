@@ -54,7 +54,7 @@ class TestProcessWatcherDialogInitialization:
                 dialog.deleteLater()
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_dialog_initialization(self, dialog):
         """Test dialog initializes correctly with proper UI state."""
         # Arrange: Dialog is created in fixture
@@ -81,7 +81,7 @@ class TestProcessWatcherDialogInitialization:
         assert dialog.auto_refresh_checkbox.text() == "Auto Refresh: OFF", "Auto-refresh button should show OFF"
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_tab_widget_setup(self, dialog):
         """Test tab widget is set up correctly."""
         assert dialog.tab_widget.count() == 3, "Should have 3 tabs"
@@ -90,7 +90,7 @@ class TestProcessWatcherDialogInitialization:
         assert dialog.tab_widget.tabText(2) == "Process Details", "Third tab should be Process Details"
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_table_widget_setup(self, dialog):
         """Test table widgets are set up correctly."""
         # All processes table
@@ -121,7 +121,7 @@ class TestProcessWatcherRefresh:
                 dialog.deleteLater()
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_refresh_processes_calls_update_methods(self, dialog):
         """Test refresh_processes calls update methods."""
         # Arrange: Set up mocks for update methods
@@ -135,7 +135,7 @@ class TestProcessWatcherRefresh:
                 mock_update_mhm.assert_called_once()
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_update_all_processes_with_python_processes(self, dialog):
         """Test update_all_processes populates table with Python processes."""
         # Arrange: Create mock process info
@@ -163,7 +163,7 @@ class TestProcessWatcherRefresh:
             assert "python test.py" in dialog.all_processes_table.item(0, 2).text(), "Command line should be correct"
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_update_all_processes_filters_non_python(self, dialog):
         """Test update_all_processes filters out non-Python processes."""
         # Create mock process info for non-Python process
@@ -186,7 +186,7 @@ class TestProcessWatcherRefresh:
             assert dialog.all_processes_table.rowCount() == 0, "Should have 0 rows (non-Python filtered)"
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_update_all_processes_handles_psutil_errors(self, dialog):
         """Test update_all_processes handles psutil errors gracefully."""
         import psutil
@@ -203,7 +203,7 @@ class TestProcessWatcherRefresh:
             assert dialog.all_processes_table.rowCount() == 0, "Should handle psutil errors gracefully"
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_update_mhm_processes_with_service_processes(self, dialog):
         """Test update_mhm_processes populates table with MHM service processes."""
         # Create mock service process info
@@ -232,7 +232,7 @@ class TestProcessWatcherRefresh:
                 assert dialog.mhm_processes_table.item(0, 6).text() == "running", "Status should be correct"
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_update_mhm_processes_handles_psutil_errors(self, dialog):
         """Test update_mhm_processes handles psutil errors gracefully."""
         import psutil
@@ -271,7 +271,7 @@ class TestProcessWatcherAutoRefresh:
                 dialog.deleteLater()
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_toggle_auto_refresh_enables(self, dialog):
         """Test toggle_auto_refresh enables auto-refresh."""
         # Arrange: Verify initial state
@@ -286,7 +286,7 @@ class TestProcessWatcherAutoRefresh:
         assert dialog.refresh_timer.isActive(), "Timer should be active"
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_toggle_auto_refresh_disables(self, dialog):
         """Test toggle_auto_refresh disables auto-refresh."""
         # Enable first
@@ -300,7 +300,7 @@ class TestProcessWatcherAutoRefresh:
         assert not dialog.refresh_timer.isActive(), "Timer should not be active"
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_auto_refresh_timer_triggers_refresh(self, dialog):
         """Test auto-refresh timer is connected and can trigger refresh."""
         # Verify timer is connected to refresh_processes
@@ -333,7 +333,7 @@ class TestProcessWatcherSelection:
                 dialog.deleteLater()
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_on_process_selected_all_processes_tab(self, dialog):
         """Test on_process_selected calls update_process_details_from_all for all processes tab."""
         dialog.tab_widget.setCurrentIndex(0)  # All processes tab
@@ -344,7 +344,7 @@ class TestProcessWatcherSelection:
             mock_update.assert_called_once()
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_on_process_selected_mhm_processes_tab(self, dialog):
         """Test on_process_selected calls update_process_details_from_mhm for MHM processes tab."""
         dialog.tab_widget.setCurrentIndex(1)  # MHM processes tab
@@ -355,7 +355,7 @@ class TestProcessWatcherSelection:
             mock_update.assert_called_once()
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_update_process_details_from_all_with_selection(self, dialog):
         """Test update_process_details_from_all updates details when process is selected."""
         # Add a row to the table
@@ -369,7 +369,7 @@ class TestProcessWatcherSelection:
             mock_show.assert_called_once_with(12345)
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_update_process_details_from_all_no_selection(self, dialog):
         """Test update_process_details_from_all does nothing when no process is selected."""
         dialog.all_processes_table.setRowCount(0)
@@ -381,7 +381,7 @@ class TestProcessWatcherSelection:
             mock_show.assert_not_called()
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_update_process_details_from_mhm_with_selection(self, dialog):
         """Test update_process_details_from_mhm updates details when process is selected."""
         # Add a row to the table
@@ -395,7 +395,7 @@ class TestProcessWatcherSelection:
             mock_show.assert_called_once_with(54321)
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_update_process_details_from_mhm_no_selection(self, dialog):
         """Test update_process_details_from_mhm does nothing when no process is selected."""
         dialog.mhm_processes_table.setRowCount(0)
@@ -422,7 +422,7 @@ class TestProcessWatcherDetails:
                 dialog.deleteLater()
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_show_process_details_with_valid_process(self, dialog):
         """Test show_process_details displays details for valid process."""
         import psutil
@@ -451,7 +451,7 @@ class TestProcessWatcherDetails:
             assert "test.py" in details_text, "Should show command line (test.py)"
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_show_process_details_with_no_such_process(self, dialog):
         """Test show_process_details handles NoSuchProcess error."""
         import psutil
@@ -465,7 +465,7 @@ class TestProcessWatcherDetails:
             assert "Process may have terminated" in details_text, "Should show helpful message"
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_show_process_details_with_access_denied(self, dialog):
         """Test show_process_details handles AccessDenied error."""
         import psutil
@@ -479,7 +479,7 @@ class TestProcessWatcherDetails:
             assert "access is denied" in details_text, "Should show access denied message"
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_show_process_details_with_environ_error(self, dialog):
         """Test show_process_details handles environ access errors."""
         import psutil
@@ -519,7 +519,7 @@ class TestProcessWatcherErrorHandling:
                 dialog.deleteLater()
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_refresh_processes_handles_errors(self, dialog):
         """Test refresh_processes handles errors gracefully."""
         with patch.object(dialog, 'update_all_processes', side_effect=Exception("Test error")):
@@ -530,7 +530,7 @@ class TestProcessWatcherErrorHandling:
             assert dialog is not None, "Dialog should still exist after error"
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_update_all_processes_handles_exceptions(self, dialog):
         """Test update_all_processes handles exceptions gracefully."""
         with patch('ui.dialogs.process_watcher_dialog.psutil.process_iter', side_effect=Exception("Test error")):
@@ -541,7 +541,7 @@ class TestProcessWatcherErrorHandling:
             assert dialog.all_processes_table.rowCount() >= 0, "Table should have valid row count"
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_update_mhm_processes_handles_exceptions(self, dialog):
         """Test update_mhm_processes handles exceptions gracefully."""
         with patch('core.service_utilities.get_service_processes', side_effect=Exception("Test error")):
@@ -552,7 +552,7 @@ class TestProcessWatcherErrorHandling:
             assert dialog.mhm_processes_table.rowCount() >= 0, "Table should have valid row count"
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_show_process_details_handles_exceptions(self, dialog):
         """Test show_process_details handles exceptions gracefully."""
         with patch('ui.dialogs.process_watcher_dialog.psutil.Process', side_effect=Exception("Test error")):
@@ -579,7 +579,7 @@ class TestProcessWatcherClose:
                 dialog.deleteLater()
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_close_event_stops_timer(self, dialog):
         """Test closeEvent stops refresh timer."""
         # Enable auto-refresh
@@ -596,7 +596,7 @@ class TestProcessWatcherClose:
         assert close_event.isAccepted(), "Close event should be accepted"
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     def test_close_event_handles_missing_timer(self, dialog):
         """Test closeEvent handles missing timer gracefully."""
         # Arrange: Remove timer attribute
@@ -627,7 +627,7 @@ class TestProcessWatcherIntegration:
                 dialog.deleteLater()
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     @pytest.mark.integration
     def test_complete_refresh_workflow(self, dialog):
         """Test complete refresh workflow: refresh -> update tables -> display data."""
@@ -668,7 +668,7 @@ class TestProcessWatcherIntegration:
         assert dialog.mhm_processes_table.item(0, 0).text() == "54321", "Service process PID should be displayed"
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     @pytest.mark.integration
     def test_complete_selection_workflow(self, dialog):
         """Test complete selection workflow: select process -> show details."""
@@ -712,7 +712,7 @@ class TestProcessWatcherIntegration:
         assert "running" in details_text, "Should show process status"
     
     @pytest.mark.ui
-    @pytest.mark.service
+    @pytest.mark.ui
     @pytest.mark.integration
     @pytest.mark.no_parallel
     def test_auto_refresh_workflow(self, dialog):

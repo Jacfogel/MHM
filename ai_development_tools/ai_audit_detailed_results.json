@@ -1,9 +1,9 @@
 {
   "generated_by": "ai_tools_runner.py - AI Development Tools Runner",
-  "last_generated": "2025-11-18 06:37:51",
+  "last_generated": "2025-11-19 05:49:41",
   "source": "python ai_development_tools/ai_tools_runner.py audit",
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2025-11-18T06:37:51.539263",
+  "timestamp": "2025-11-19T05:49:41.993726",
   "successful": [
     "function_discovery",
     "decision_support",
@@ -2549,14 +2549,14 @@
     },
     "analyze_documentation": {
       "success": true,
-      "output": "{\n  \"artifacts\": [\n    {\n      \"file\": \"development_docs/CHANGELOG_DETAIL.md\",\n      \"line\": 8905,\n      \"pattern\": \"triple_question_marks\",\n      \"snippet\": \"### ??? Recent Changes (Most Recent First)\"\n    }\n  ],\n  \"documents\": [\n    \"ARCHITECTURE.md\",\n    \"DEVELOPMENT_WORKFLOW.md\",\n    \"DOCUMENTATION_GUIDE.md\",\n    \"HOW_TO_RUN.md\",\n    \"PROJECT_VISION.md\",\n    \"README.md\",\n    \"TODO.md\",\n    \"ai/SYSTEM_AI_GUIDE.md\",\n    \"ai_development_docs/AI_ARCHITECTURE.md\",\n    \"ai_development_docs/AI_CHANGELOG.md\",\n    \"ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md\",\n    \"ai_development_docs/AI_DOCUMENTATION_GUIDE.md\",\n    \"ai_development_docs/AI_ERROR_HANDLING_GUIDE.md\",\n    \"ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md\",\n    \"ai_development_docs/AI_LOGGING_GUIDE.md\",\n    \"ai_development_docs/AI_REFERENCE.md\",\n    \"ai_development_docs/AI_SESSION_STARTER.md\",\n    \"ai_development_docs/AI_TESTING_GUIDE.md\",\n    \"ai_development_tools/AI_DEV_TOOLS_GUIDE.md\",\n    \"communication/COMMUNICATION_GUIDE.md\",\n    \"communication/communication_channels/discord/DISCORD_GUIDE.md\",\n    \"core/ERROR_HANDLING_GUIDE.md\",\n    \"development_docs/CHANGELOG_DETAIL.md\",\n    \"development_docs/PLANS.md\",\n    \"logs/LOGGING_GUIDE.md\",\n    \"scripts/SCRIPTS_GUIDE.md\",\n    \"tests/TESTING_GUIDE.md\",\n    \"ui/UI_GUIDE.md\"\n  ],\n  \"duplicates\": [\n    {\n      \"ai_file\": \"ai_development_docs/AI_TESTING_GUIDE.md\",\n      \"content_length\": 705,\n      \"human_file\": \"tests/TESTING_GUIDE.md\",\n      \"section\": \"2. Test Layout and Discovery\"\n    },\n    {\n      \"ai_file\": \"ai_development_docs/AI_TESTING_GUIDE.md\",\n      \"content_length\": 425,\n      \"human_file\": \"tests/TESTING_GUIDE.md\",\n      \"section\": \"5. File System Safety and Isolation\"\n    },\n    {\n      \"ai_file\": \"ai_development_docs/AI_ERROR_HANDLING_GUIDE.md\",\n      \"content_length\": 699,\n      \"human_file\": \"core/ERROR_HANDLING_GUIDE.md\",\n      \"section\": \"9. Legacy and Migration\"\n    },\n    {\n      \"ai_file\": \"ai_development_docs/AI_ERROR_HANDLING_GUIDE.md\",\n      \"content_length\": 267,\n      \"human_file\": \"core/ERROR_HANDLING_GUIDE.md\",\n      \"section\": \"10.1. Decorated background task\"\n    }\n  ],\n  \"missing\": [],\n  \"placeholders\": []\n}\n",
+      "output": "{\n  \"artifacts\": [\n    {\n      \"file\": \"development_docs/CHANGELOG_DETAIL.md\",\n      \"line\": 8939,\n      \"pattern\": \"triple_question_marks\",\n      \"snippet\": \"### ??? Recent Changes (Most Recent First)\"\n    }\n  ],\n  \"documents\": [\n    \"ARCHITECTURE.md\",\n    \"DEVELOPMENT_WORKFLOW.md\",\n    \"DOCUMENTATION_GUIDE.md\",\n    \"HOW_TO_RUN.md\",\n    \"PROJECT_VISION.md\",\n    \"README.md\",\n    \"TODO.md\",\n    \"ai/SYSTEM_AI_GUIDE.md\",\n    \"ai_development_docs/AI_ARCHITECTURE.md\",\n    \"ai_development_docs/AI_CHANGELOG.md\",\n    \"ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md\",\n    \"ai_development_docs/AI_DOCUMENTATION_GUIDE.md\",\n    \"ai_development_docs/AI_ERROR_HANDLING_GUIDE.md\",\n    \"ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md\",\n    \"ai_development_docs/AI_LOGGING_GUIDE.md\",\n    \"ai_development_docs/AI_REFERENCE.md\",\n    \"ai_development_docs/AI_SESSION_STARTER.md\",\n    \"ai_development_docs/AI_TESTING_GUIDE.md\",\n    \"ai_development_tools/AI_DEV_TOOLS_GUIDE.md\",\n    \"communication/COMMUNICATION_GUIDE.md\",\n    \"communication/communication_channels/discord/DISCORD_GUIDE.md\",\n    \"core/ERROR_HANDLING_GUIDE.md\",\n    \"development_docs/CHANGELOG_DETAIL.md\",\n    \"development_docs/PLANS.md\",\n    \"logs/LOGGING_GUIDE.md\",\n    \"scripts/SCRIPTS_GUIDE.md\",\n    \"tests/TESTING_GUIDE.md\",\n    \"ui/UI_GUIDE.md\"\n  ],\n  \"duplicates\": [\n    {\n      \"ai_file\": \"ai_development_docs/AI_TESTING_GUIDE.md\",\n      \"content_length\": 425,\n      \"human_file\": \"tests/TESTING_GUIDE.md\",\n      \"section\": \"5. File System Safety and Isolation\"\n    },\n    {\n      \"ai_file\": \"ai_development_docs/AI_ERROR_HANDLING_GUIDE.md\",\n      \"content_length\": 699,\n      \"human_file\": \"core/ERROR_HANDLING_GUIDE.md\",\n      \"section\": \"9. Legacy and Migration\"\n    },\n    {\n      \"ai_file\": \"ai_development_docs/AI_ERROR_HANDLING_GUIDE.md\",\n      \"content_length\": 267,\n      \"human_file\": \"core/ERROR_HANDLING_GUIDE.md\",\n      \"section\": \"10.1. Decorated background task\"\n    }\n  ],\n  \"missing\": [],\n  \"placeholders\": []\n}\n",
       "error": "",
       "returncode": 1,
       "data": {
         "artifacts": [
           {
             "file": "development_docs/CHANGELOG_DETAIL.md",
-            "line": 8905,
+            "line": 8939,
             "pattern": "triple_question_marks",
             "snippet": "### ??? Recent Changes (Most Recent First)"
           }
@@ -2592,12 +2592,6 @@
           "ui/UI_GUIDE.md"
         ],
         "duplicates": [
-          {
-            "ai_file": "ai_development_docs/AI_TESTING_GUIDE.md",
-            "content_length": 705,
-            "human_file": "tests/TESTING_GUIDE.md",
-            "section": "2. Test Layout and Discovery"
-          },
           {
             "ai_file": "ai_development_docs/AI_TESTING_GUIDE.md",
             "content_length": 425,
@@ -3435,7 +3429,7 @@
     },
     "documentation_sync_checker": {
       "success": true,
-      "output": "\nSUMMARY:\n   Status: PASS\n   Total Issues: 0\n   Paired Doc Issues: 0\n   Path Drift Issues: 0\n   ASCII Compliance Issues: 0\n   Heading Numbering Issues: 0\n\nAll documentation synchronization checks passed!\n",
+      "output": "\nSUMMARY:\n   Status: FAIL\n   Total Issues: 4\n   Paired Doc Issues: 0\n   Path Drift Issues: 1\n   ASCII Compliance Issues: 3\n   Heading Numbering Issues: 0\n\nPATH DRIFT ISSUES:\n   Total files with issues: 1\n   Total issues found: 1\n   Top files with most issues:\n     ARCHITECTURE.md: 1 issues\n\nASCII COMPLIANCE ISSUES:\n   Total files with non-ASCII characters: 3\n   Total issues found: 3\n   Files with non-ASCII characters:\n     ai_development_docs/AI_ARCHITECTURE.md: 1 issues\n       - Non-ASCII character '' (U+2013) at positions: [2008, 2116, 2187, 2283, 2387]...\n     ai_development_docs/AI_DOCUMENTATION_GUIDE.md: 1 issues\n       - Non-ASCII character '' (U+2192) at positions: [3166]\n     development_docs/CHANGELOG_DETAIL.md: 1 issues\n       - Non-ASCII character '' (U+2192) at positions: [3206, 3236, 3267, 3290, 3319]...\n\nFound 4 documentation synchronization issues.\n   Consider running with --fix to attempt automatic fixes.\n",
       "error": "",
       "returncode": 0,
       "data": {
@@ -3445,99 +3439,6 @@
         "path_drift_files": [],
         "status": "UNKNOWN"
       }
-    },
-    "legacy_reference_cleanup": {
-      "success": true,
-      "data": {
-        "files_with_issues": 5,
-        "legacy_markers": 1,
-        "report_path": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_docs\\LEGACY_REFERENCE_REPORT.md"
-      },
-      "timestamp": "2025-11-18T06:38:04.586067"
-    },
-    "validate_ai_work": {
-      "success": true,
-      "data": {
-        "success": true,
-        "output": "",
-        "error": "",
-        "returncode": 0
-      },
-      "timestamp": "2025-11-18T06:38:04.586067"
-    },
-    "system_signals": {
-      "success": true,
-      "data": {
-        "timestamp": "2025-11-18T06:38:03.364262",
-        "system_health": {
-          "overall_status": "OK",
-          "core_files": {
-            "run_mhm.py": "OK",
-            "run_headless_service.py": "OK",
-            "run_tests.py": "OK",
-            "core/service.py": "OK",
-            "core/config.py": "OK",
-            "core/logger.py": "OK",
-            "requirements.txt": "OK",
-            "pyproject.toml": "OK"
-          },
-          "key_directories": {
-            ".": "OK",
-            "ai": "OK",
-            "communication": "OK",
-            "core": "OK",
-            "tasks": "OK",
-            "ui": "OK",
-            "user": "OK",
-            "tests": "OK"
-          },
-          "last_audit": "2025-11-18T06:37:51.549347",
-          "warnings": [],
-          "errors": []
-        },
-        "recent_activity": {
-          "recent_changes": [
-            ".cursor\\commands\\test.md",
-            "ARCHITECTURE.md",
-            "DEVELOPMENT_WORKFLOW.md",
-            "DOCUMENTATION_GUIDE.md",
-            "HOW_TO_RUN.md",
-            "PROJECT_VISION.md",
-            "README.md",
-            "TODO.md",
-            "ai\\SYSTEM_AI_GUIDE.md",
-            "ai_development_docs\\AI_ARCHITECTURE.md",
-            "ai_development_docs\\AI_CHANGELOG.md",
-            "ai_development_docs\\AI_DEVELOPMENT_WORKFLOW.md",
-            "ai_development_docs\\AI_DOCUMENTATION_GUIDE.md",
-            "ai_development_docs\\AI_ERROR_HANDLING_GUIDE.md",
-            "ai_development_docs\\AI_LEGACY_REMOVAL_GUIDE.md"
-          ],
-          "git_status": "Modified",
-          "last_commit": null,
-          "uncommitted_changes": true
-        },
-        "critical_alerts": [],
-        "performance_indicators": {
-          "log_file_sizes": {
-            "ai.log": "0.0MB",
-            "ai_dev_tools.log": "1.0MB",
-            "app.log": "0.1MB",
-            "communication_manager.log": "0.1MB",
-            "discord.log": "0.0MB",
-            "email.log": "0.0MB",
-            "errors.log": "0.0MB",
-            "file_ops.log": "0.0MB",
-            "message.log": "0.0MB",
-            "scheduler.log": "0.0MB",
-            "ui.log": "0.0MB",
-            "user_activity.log": "0.0MB"
-          },
-          "cache_status": "Unknown",
-          "memory_usage": "Unknown"
-        }
-      },
-      "timestamp": "2025-11-18T06:38:04.586067"
     }
   }
 }

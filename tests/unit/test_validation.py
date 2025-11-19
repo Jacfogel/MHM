@@ -499,7 +499,7 @@ class TestSchedulePeriodsValidation:
     """Test schedule periods validation with real behavior verification."""
     
     @pytest.mark.unit
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     def test_validate_schedule_periods_success(self):
         """Test successful schedule periods validation."""
@@ -524,7 +524,7 @@ class TestSchedulePeriodsValidation:
         assert len(errors) == 0, f"Should have no errors, got: {errors}"
     
     @pytest.mark.unit
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.regression
     def test_validate_schedule_periods_empty(self):
         """Test schedule periods validation with empty periods."""
@@ -536,7 +536,7 @@ class TestSchedulePeriodsValidation:
         assert "At least one time period is required" in errors[0]
     
     @pytest.mark.unit
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.regression
     def test_validate_schedule_periods_no_active_periods(self):
         """Test schedule periods validation with no active periods."""
@@ -555,7 +555,7 @@ class TestSchedulePeriodsValidation:
         assert "At least one time period must be enabled" in errors[0]
     
     @pytest.mark.unit
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.regression
     def test_validate_schedule_periods_all_period_excluded(self):
         """Test that ALL period is excluded from active period requirement."""
@@ -574,7 +574,7 @@ class TestSchedulePeriodsValidation:
         assert "At least one time period must be enabled" in errors[0]
     
     @pytest.mark.unit
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.regression
     def test_validate_schedule_periods_missing_times(self):
         """Test schedule periods validation with missing start/end times."""
@@ -593,7 +593,7 @@ class TestSchedulePeriodsValidation:
         assert "must have both start_time and end_time" in errors[0]
     
     @pytest.mark.unit
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.regression
     def test_validate_schedule_periods_invalid_time_format(self):
         """Test schedule periods validation with invalid time format."""
@@ -612,7 +612,7 @@ class TestSchedulePeriodsValidation:
         assert "invalid start_time format" in errors[0]
     
     @pytest.mark.unit
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.regression
     def test_validate_schedule_periods_invalid_time_order(self):
         """Test schedule periods validation with invalid time ordering."""
@@ -631,7 +631,7 @@ class TestSchedulePeriodsValidation:
         assert "start_time must be before end_time" in errors[0]
     
     @pytest.mark.unit
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.regression
     def test_validate_schedule_periods_invalid_days_type(self):
         """Test schedule periods validation with invalid days type."""
@@ -650,7 +650,7 @@ class TestSchedulePeriodsValidation:
         assert "days must be a list" in errors[0]
     
     @pytest.mark.unit
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.regression
     def test_validate_schedule_periods_empty_days(self):
         """Test schedule periods validation with empty days list."""
@@ -669,7 +669,7 @@ class TestSchedulePeriodsValidation:
         assert "must have at least one day selected" in errors[0]
     
     @pytest.mark.unit
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.regression
     def test_validate_schedule_periods_invalid_days(self):
         """Test schedule periods validation with invalid day names."""

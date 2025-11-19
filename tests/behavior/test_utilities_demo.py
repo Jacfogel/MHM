@@ -7,19 +7,20 @@ Demonstrates how to use the centralized test utilities to eliminate redundancy
 import os
 import pytest
 import json
+import logging
 from tests.test_utilities import (
     TestUserFactory, TestUserDataFactory,
     create_test_user, setup_test_data_environment, cleanup_test_data_environment
 )
 
 
-pytestmark = pytest.mark.debug
+pytestmark = [pytest.mark.behavior]
 
+@pytest.mark.behavior
 class TestUtilitiesDemo:
     """Demonstration of centralized test utilities usage"""
     
     @pytest.mark.behavior
-    @pytest.mark.debug
     @pytest.mark.smoke
     def test_basic_user_creation(self, test_data_dir):
         """Demonstrate creating a basic test user"""
@@ -32,7 +33,6 @@ class TestUtilitiesDemo:
         assert success, "Factory user creation should succeed"
     
     @pytest.mark.behavior
-    @pytest.mark.debug
     @pytest.mark.smoke
     def test_discord_user_creation(self, test_data_dir):
         """Demonstrate creating a Discord-specific test user"""
@@ -44,7 +44,6 @@ class TestUtilitiesDemo:
         assert success, "Discord factory user creation should succeed"
     
     @pytest.mark.behavior
-    @pytest.mark.debug
     @pytest.mark.smoke
     def test_full_featured_user_creation(self, test_data_dir):
         """Demonstrate creating a full-featured test user"""
@@ -56,7 +55,6 @@ class TestUtilitiesDemo:
         assert success, "Full factory user creation should succeed"
     
     @pytest.mark.behavior
-    @pytest.mark.debug
     @pytest.mark.smoke
     def test_minimal_user_creation(self, test_data_dir):
         """Demonstrate creating a minimal test user"""
@@ -68,7 +66,6 @@ class TestUtilitiesDemo:
         assert success, "Minimal factory user creation should succeed"
     
     @pytest.mark.behavior
-    @pytest.mark.debug
     @pytest.mark.smoke
     def test_user_data_factory_usage(self, test_data_dir):
         """Demonstrate using the user data factory for custom data structures"""
@@ -152,7 +149,7 @@ class TestUtilitiesDemo:
         for user_id in ["multi_basic", "multi_discord", "multi_full", "multi_minimal"]:
             actual_user_id = get_user_id_by_identifier(user_id)
             if actual_user_id is None:
-                print(f"Warning: get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
+                logging.getLogger("mhm_tests").warning(f"get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
                 # Skip the detailed assertions for now
                 assert True, f"User creation succeeded, identifier lookup issue needs investigation"
             else:
@@ -175,7 +172,7 @@ class TestUtilitiesDemo:
         from core.user_management import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
-            print(f"Warning: get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
+            logging.getLogger("mhm_tests").warning(f"get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
             assert True, f"User creation succeeded, identifier lookup issue needs investigation"
         else:
@@ -191,7 +188,7 @@ class TestUtilitiesDemo:
             account_result = get_user_data(actual_user_id, 'account')
             account_data = account_result.get('account', {})
             if not account_data:
-                print(f"Warning: get_user_data returned empty account data for {actual_user_id}. This may indicate a data loader issue.")
+                logging.getLogger("mhm_tests").warning(f"get_user_data returned empty account data for {actual_user_id}. This may indicate a data loader issue.")
                 # Skip the detailed assertions for now
                 assert True, f"User creation succeeded, data loading issue needs investigation"
             else:
@@ -217,7 +214,7 @@ class TestUtilitiesDemo:
         from core.user_management import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
-            print(f"Warning: get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
+            logging.getLogger("mhm_tests").warning(f"get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
             assert True, f"User creation succeeded, identifier lookup issue needs investigation"
         else:
@@ -269,7 +266,7 @@ class TestUtilitiesDemo:
         from core.user_management import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
-            print(f"Warning: get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
+            logging.getLogger("mhm_tests").warning(f"get_user_id_by_identifier returned None for {user_id}. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
             assert True, f"User creation succeeded, identifier lookup issue needs investigation"
         else:
@@ -352,24 +349,21 @@ class TestUtilitiesDemo:
                     assert 'preferences' in user_data, f"{user_type_name} should have preferences data"
                     assert 'context' in user_data, f"{user_type_name} should have context data"
                     
-                    print(f"✅ {user_type_name}: Created successfully")
+                    logging.getLogger("mhm_tests").info(f"{user_type_name}: Created successfully")
                 else:
-                    print(f"❌ {user_type_name}: Failed to create")
+                    logging.getLogger("mhm_tests").warning(f"{user_type_name}: Failed to create")
                     
             except Exception as e:
-                print(f"❌ {user_type_name}: Error - {e}")
+                logging.getLogger("mhm_tests").error(f"{user_type_name}: Error - {e}")
                 results[user_type_name] = False
         
         # Summary
         successful_types = [name for name, success in results.items() if success]
         failed_types = [name for name, success in results.items() if not success]
         
-        print(f"\n📊 Summary:")
-        print(f"✅ Successful: {len(successful_types)}/{len(user_types)}")
-        print(f"❌ Failed: {len(failed_types)}/{len(user_types)}")
-        
+        logging.getLogger("mhm_tests").info(f"Summary: Successful: {len(successful_types)}/{len(user_types)}, Failed: {len(failed_types)}/{len(user_types)}")
         if failed_types:
-            print(f"Failed types: {', '.join(failed_types)}")
+            logging.getLogger("mhm_tests").warning(f"Failed types: {', '.join(failed_types)}")
         
         # Assert that most user types succeed (allowing for some edge cases)
         success_rate = len(successful_types) / len(user_types)
@@ -389,7 +383,7 @@ class TestUtilitiesDemo:
         user_data1 = get_user_data(actual_user_id1) if actual_user_id1 else get_user_data("phone_only_user")
         # Check if user_data1 is empty (indicating the same issue we fixed in user management tests)
         if not user_data1:
-            print(f"Warning: get_user_data returned empty dict for phone_only_user. This may indicate a data loader issue.")
+            logging.getLogger("mhm_tests").warning(f"get_user_data returned empty dict for phone_only_user. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
             assert True, "User creation succeeded, data loading issue needs investigation"
         else:
@@ -405,7 +399,7 @@ class TestUtilitiesDemo:
         user_data2 = get_user_data(actual_user_id2) if actual_user_id2 else get_user_data("complex_checkin_user")
         # Check if user_data2 is empty
         if not user_data2:
-            print(f"Warning: get_user_data returned empty dict for complex_checkin_user. This may indicate a data loader issue.")
+            logging.getLogger("mhm_tests").warning(f"get_user_data returned empty dict for complex_checkin_user. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
             assert True, "User creation succeeded, data loading issue needs investigation"
         else:
@@ -427,7 +421,7 @@ class TestUtilitiesDemo:
         
         # Check if user_data3 is empty
         if not user_data3:
-            print(f"Warning: get_user_data returned empty dict for minimal_data_user. This may indicate a data loader issue.")
+            logging.getLogger("mhm_tests").warning(f"get_user_data returned empty dict for minimal_data_user. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
             assert True, "User creation succeeded, data loading issue needs investigation"
         else:
@@ -448,7 +442,7 @@ class TestUtilitiesDemo:
         
         # Check if user_data4 is empty
         if not user_data4:
-            print(f"Warning: get_user_data returned empty dict for health_focus_user. This may indicate a data loader issue.")
+            logging.getLogger("mhm_tests").warning(f"get_user_data returned empty dict for health_focus_user. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
             assert True, "User creation succeeded, data loading issue needs investigation"
         else:
@@ -471,7 +465,7 @@ class TestUtilitiesDemo:
         
         # Check if user_data5 is empty
         if not user_data5:
-            print(f"Warning: get_user_data returned empty dict for task_focus_user. This may indicate a data loader issue.")
+            logging.getLogger("mhm_tests").warning(f"get_user_data returned empty dict for task_focus_user. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
             assert True, "User creation succeeded, data loading issue needs investigation"
         else:
@@ -484,7 +478,7 @@ class TestUtilitiesDemo:
             assert "Productivity" in interests, "Should have productivity interest"
             assert "Organization" in interests, "Should have organization interest"
         
-        print("✅ All real user scenarios tested successfully")
+        logging.getLogger("mhm_tests").info("All real user scenarios tested successfully")
     
     def test_edge_case_users(self, test_data_dir):
         """Test edge cases and boundary conditions for user creation."""
@@ -518,7 +512,7 @@ class TestUtilitiesDemo:
         user_data3 = get_user_data(actual_user_id3) if actual_user_id3 else get_user_data("disabled_user")
         # Check if user_data3 is empty
         if not user_data3:
-            print(f"Warning: get_user_data returned empty dict for disabled_user. This may indicate a data loader issue.")
+            logging.getLogger("mhm_tests").warning(f"get_user_data returned empty dict for disabled_user. This may indicate a data loader issue.")
             # Skip the detailed assertions for now
             assert True, "User creation succeeded, data loading issue needs investigation"
         else:
@@ -530,14 +524,14 @@ class TestUtilitiesDemo:
         # Edge case 4: User with empty string user_id (should fail gracefully)
         success4 = TestUserFactory.create_basic_user("", test_data_dir=test_data_dir)
         # This might fail, but should not crash the system
-        print(f"Empty user ID creation result: {success4}")
+        logging.getLogger("mhm_tests").info(f"Empty user ID creation result: {success4}")
         
         # Edge case 5: User with None user_id (should fail gracefully)
         try:
             success5 = TestUserFactory.create_basic_user(None, test_data_dir=test_data_dir)
-            print(f"None user ID creation result: {success5}")
+            logging.getLogger("mhm_tests").info(f"None user ID creation result: {success5}")
         except Exception as e:
-            print(f"None user ID creation failed as expected: {e}")
+            logging.getLogger("mhm_tests").info(f"None user ID creation failed as expected: {e}")
         
         # Edge case 6: User with only numbers in user_id
         numeric_user_id = "12345"
@@ -548,7 +542,7 @@ class TestUtilitiesDemo:
         user_data6 = get_user_data(actual_user_id6) if actual_user_id6 else get_user_data(numeric_user_id)
         assert user_data6 is not None, "Numeric user ID should have loadable data"
         
-        print("✅ All edge case scenarios tested successfully")
+        logging.getLogger("mhm_tests").info("All edge case scenarios tested successfully")
     
     def test_user_data_consistency(self, test_data_dir):
         """Test that all user types produce consistent data structures."""
@@ -578,7 +572,7 @@ class TestUtilitiesDemo:
                 
                 # Check if user_data is empty
                 if not user_data:
-                    print(f"Warning: get_user_data returned empty dict for {user_id}. This may indicate a data loader issue.")
+                    logging.getLogger("mhm_tests").warning(f"get_user_data returned empty dict for {user_id}. This may indicate a data loader issue.")
                     # Skip the detailed assertions for now
                     assert True, f"{user_id} user creation succeeded, data loading issue needs investigation"
                 else:
@@ -605,15 +599,16 @@ class TestUtilitiesDemo:
                     for field in required_context_fields:
                         assert field in context, f"{user_id} context should have {field} field"
                     
-                    print(f"✅ {user_id}: Consistent structure verified")
+                    logging.getLogger("mhm_tests").info(f"{user_id}: Consistent structure verified")
                 
             except Exception as e:
-                print(f"❌ {user_id}: Structure verification failed - {e}")
+                logging.getLogger("mhm_tests").error(f"{user_id}: Structure verification failed - {e}")
                 raise
         
-        print("✅ All user types have consistent data structures")
+        logging.getLogger("mhm_tests").info("All user types have consistent data structures")
 
 
+@pytest.mark.behavior
 class TestUtilitiesBenefits:
     """Demonstrate the benefits of centralized test utilities"""
     
@@ -659,8 +654,8 @@ class TestUtilitiesBenefits:
 
 if __name__ == "__main__":
     # This file can also be run directly to demonstrate the utilities
-    print("🧪 Test Utilities Demo")
-    print("=" * 40)
+    logging.getLogger("mhm_tests").info("Test Utilities Demo")
+    logging.getLogger("mhm_tests").info("=" * 40)
     
     # Setup test environment
     test_dir, test_data_dir, test_test_data_dir = setup_test_data_environment()
@@ -670,17 +665,17 @@ if __name__ == "__main__":
         # Note: mock_config fixture already handles this properly
         
         # Demonstrate user creation
-        print("Creating test users...")
+        logging.getLogger("mhm_tests").info("Creating test users...")
         success = create_test_user("demo_user", user_type="basic", test_data_dir=test_data_dir)
-        print(f"Basic user creation: {'✅' if success else '❌'}")
+        logging.getLogger("mhm_tests").info(f"Basic user creation: {'Success' if success else 'Failed'}")
         
         success = create_test_user("demo_discord", user_type="discord", test_data_dir=test_data_dir)
-        print(f"Discord user creation: {'✅' if success else '❌'}")
+        logging.getLogger("mhm_tests").info(f"Discord user creation: {'Success' if success else 'Failed'}")
         
         success = create_test_user("demo_full", user_type="full", test_data_dir=test_data_dir)
-        print(f"Full user creation: {'✅' if success else '❌'}")
+        logging.getLogger("mhm_tests").info(f"Full user creation: {'Success' if success else 'Failed'}")
         
-        print("\n🎉 Demo completed successfully!")
+        logging.getLogger("mhm_tests").info("Demo completed successfully!")
         
     finally:
         # Cleanup

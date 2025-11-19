@@ -24,6 +24,7 @@ def qapp():
     return app
 
 
+@pytest.mark.ui
 class TestMHMManagerUIServiceManager:
     """Test ServiceManager functionality which is the core of the UI."""
     
@@ -213,6 +214,7 @@ class TestMHMManagerUIServiceManager:
             assert result == (False, None)
 
 
+@pytest.mark.ui
 class TestMHMManagerUI:
     """Test MHMManagerUI class methods."""
     

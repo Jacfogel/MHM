@@ -362,13 +362,47 @@ This section covers guidelines for writing new tests or improving existing ones.
 
 ### 10.2. Using markers
 
-Use markers from `pytest.ini` to describe test characteristics:
+Pytest markers categorize tests and enable selective execution. MHM uses 18 streamlined markers aligned with component structure.
 
-- `unit`, `integration`, `behavior`, `ui`  
-- `slow`, `external`, `manual`, `smoke`, `critical`  
-- `no_parallel`, `no_data_shim`, and other constraints
+**Required (every test):** Exactly one category marker:
+- `unit` (tests/unit/), `integration` (tests/integration/), `behavior` (tests/behavior/), `ui` (tests/ui/)
 
-Markers help the runner select appropriate subsets (for example, fast-only tests or behavior tests).
+**Feature markers (recommended):** `tasks`, `scheduler`, `checkins`, `messages`, `analytics`, `user_management`, `communication`, `ai`
+
+**Speed:** `slow` (>1s, excluded from fast runs), `fast` (<100ms, optional)
+
+**Resources:** `asyncio` (async tests), `no_parallel` (use sparingly, only when tests cannot be parallel-safe)
+
+**Quality:** `critical` (core functionality), `regression` (prevents regressions), `smoke` (basic checks)
+
+**Examples:**
+```python
+@pytest.mark.unit
+@pytest.mark.tasks
+def test_create_task(): ...
+
+@pytest.mark.integration
+@pytest.mark.tasks
+@pytest.mark.scheduler
+@pytest.mark.critical
+def test_task_reminder_scheduling(): ...
+
+@pytest.mark.behavior
+@pytest.mark.communication
+@pytest.mark.slow
+@pytest.mark.asyncio
+@pytest.mark.no_parallel
+def test_discord_delivery(): ...
+```
+
+**Filtering:**
+```bash
+pytest -m "unit"                    # Category only
+pytest -m "tasks and not slow"      # Feature + speed
+pytest -m "communication and not no_parallel"  # Feature + resource
+```
+
+**Decision:** 1) Category (required), 2) Feature (recommended), 3) Speed/resource/quality (optional)
 
 ### 10.3. Using shared fixtures and helpers
 
@@ -406,7 +440,7 @@ For error-handling and logging patterns that frequently appear in failures, see:
 Some tests focus on specific communication channels or automation flows.
 
 - Discord tests  
-  - Use markers such as `external`, `communication`, or any Discord-specific markers defined in `pytest.ini`.  
+  - Use markers such as `communication` (Discord is a communication channel).  
   - Prefer using test or sandbox servers to avoid polluting real channels.  
   - Validate both successful paths and error handling (for example, missing permissions or network issues).
 
@@ -416,7 +450,7 @@ Some tests focus on specific communication channels or automation flows.
   - Where possible, mock or stub the email transport while verifying that messages are constructed correctly.
 
 - AI and service tests  
-  - Use markers like `ai`, `service`, `behavior` as appropriate.  
+  - Use markers like `ai`, `behavior` as appropriate.  
   - Where possible, stub or mock external AI APIs while still validating integration behavior.  
   - Ensure error handling paths are covered for timeouts, bad responses, or configuration errors.
 

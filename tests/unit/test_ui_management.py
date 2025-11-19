@@ -26,6 +26,7 @@ from core.ui_management import (
 )
 
 
+@pytest.mark.unit
 class TestUIManagement:
     """Comprehensive test coverage for UI management functions."""
     

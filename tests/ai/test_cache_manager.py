@@ -8,6 +8,8 @@ from unittest.mock import patch, Mock
 from ai.cache_manager import ResponseCache, ContextCache, CacheEntry, get_response_cache, get_context_cache
 
 
+@pytest.mark.unit
+@pytest.mark.ai
 class TestResponseCache:
     """Test ResponseCache functionality."""
     
@@ -259,6 +261,8 @@ class TestResponseCache:
         assert entry.user_id == "user1"
 
 
+@pytest.mark.unit
+@pytest.mark.ai
 class TestContextCache:
     """Test ContextCache functionality."""
     
@@ -345,6 +349,8 @@ class TestContextCache:
         assert cache.get("user2") == {"name": "Jane"}
 
 
+@pytest.mark.unit
+@pytest.mark.ai
 class TestGlobalCacheInstances:
     """Test global cache instance functions."""
     
@@ -390,6 +396,8 @@ class TestGlobalCacheInstances:
             cache_module._context_cache = original_context_cache
 
 
+@pytest.mark.unit
+@pytest.mark.ai
 class TestCacheEntry:
     """Test CacheEntry dataclass."""
     
@@ -425,6 +433,8 @@ class TestCacheEntry:
         assert entry.metadata == metadata
 
 
+@pytest.mark.unit
+@pytest.mark.ai
 class TestCacheThreadSafety:
     """Test cache thread safety."""
     

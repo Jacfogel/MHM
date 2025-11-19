@@ -23,6 +23,9 @@ from communication.core.channel_orchestrator import CommunicationManager
 from communication.communication_channels.base.base_channel import ChannelStatus, ChannelConfig
 from tests.test_utilities import TestUserFactory
 
+
+@pytest.mark.behavior
+@pytest.mark.communication
 class TestCommunicationManagerCoverageExpansion:
     """Comprehensive tests for CommunicationManager uncovered functionality."""
     

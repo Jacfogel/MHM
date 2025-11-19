@@ -51,13 +51,31 @@ Key points:
 - The `scripts/` directory is explicitly excluded from test discovery (for example, via `norecursedirs` or `--ignore=scripts` in `pytest.ini`).  
 - New tests should be added under `tests/` and not under `scripts/`.
 
-Test behavior is also controlled using pytest markers defined in `pytest.ini`. These include markers such as:
+Test behavior is also controlled using pytest markers defined in `pytest.ini`. MHM uses 18 streamlined markers aligned with component structure.
 
-- `unit`, `integration`, `behavior`, `ui`  
-- `slow`, `external`, `manual`, `smoke`, `critical`  
-- `no_parallel`, `no_data_shim`, and other constraints
+**Required markers (every test needs exactly one):**
+- `unit`, `integration`, `behavior`, `ui`
 
-Use markers to describe the intent and constraints of each test.
+**Feature markers (indicate what functionality is tested):**
+- `tasks`, `scheduler`, `checkins`, `messages`, `analytics`, `user_management`, `communication`, `ai`
+
+**Speed markers:**
+- `slow` (>1 second), `fast` (<100ms, optional)
+
+**Resource markers:**
+- `asyncio`, `no_parallel`
+
+**Quality markers:**
+- `critical`, `regression`, `smoke`
+
+**Usage:**
+- Every test must have one category marker (`unit`, `integration`, `behavior`, or `ui`)
+- Add feature markers to indicate what functionality is tested
+- Use `slow` for tests >1 second (excluded from fast runs)
+- Use `no_parallel` only when tests cannot be made parallel-safe
+- Multiple markers can be combined: `@pytest.mark.unit @pytest.mark.tasks @pytest.mark.critical`
+
+For detailed marker usage guidelines and examples, see section 10.2 in `tests/TESTING_GUIDE.md`.
 
 ## 3. Test Types and Structure
 
@@ -176,8 +194,10 @@ Core flows:
 Placement:
 
 - Put new tests in the appropriate directory (`unit`, `integration`, `behavior`, `ui`).  
-- Use pytest markers from `pytest.ini` to describe type and constraints (for example, `unit`, `integration`, `behavior`, `ui`, `slow`, `external`, `manual`, `smoke`, `critical`).  
-- Use `@pytest.mark.no_parallel` for tests that must not run in parallel.
+- **Required**: Every test must have exactly one category marker (`unit`, `integration`, `behavior`, or `ui`).  
+- **Recommended**: Add feature markers (`tasks`, `scheduler`, `communication`, etc.) to indicate what functionality is tested.  
+- **Optional**: Add speed (`slow`), resource (`asyncio`, `no_parallel`), or quality (`critical`, `regression`, `smoke`) markers as appropriate.  
+- Use `@pytest.mark.no_parallel` only when tests cannot be made parallel-safe (use sparingly).
 
 Quality rules:
 

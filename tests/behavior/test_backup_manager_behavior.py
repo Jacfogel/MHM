@@ -22,6 +22,7 @@ from tests.test_utilities import TestUserFactory, TestDataFactory
 import core.config
 
 
+@pytest.mark.behavior
 class TestBackupManagerBehavior:
     """Test BackupManager behavior with real file system operations."""
     

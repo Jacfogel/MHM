@@ -8,9 +8,12 @@ from unittest.mock import patch, Mock
 import core
 
 from communication.core.factory import ChannelFactory
+import pytest
+
 from communication.communication_channels.base.base_channel import BaseChannel, ChannelConfig
 
 
+@pytest.mark.behavior
 class TestCommunicationFactoryCoverageExpansion:
     """Test coverage expansion for Communication Factory module."""
 

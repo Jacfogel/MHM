@@ -1,6 +1,9 @@
 import importlib
 
+import pytest
 
+
+@pytest.mark.unit
 def test_loader_registry_identity_and_idempotency():
     # Reload modules to ensure current state
     um = importlib.import_module('core.user_management')

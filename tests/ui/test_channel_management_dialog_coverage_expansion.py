@@ -17,6 +17,7 @@ from core.user_data_handlers import get_user_data, update_channel_preferences, u
 from core.user_data_validation import is_valid_email, is_valid_phone
 
 
+@pytest.mark.ui
 class TestChannelManagementDialogCoverageExpansion:
     """Test coverage expansion for ChannelManagementDialog."""
 

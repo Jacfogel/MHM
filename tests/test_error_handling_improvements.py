@@ -27,6 +27,7 @@ from ai.chatbot import AIChatBotSingleton
 from tasks.task_management import create_task, load_active_tasks, ensure_task_directory
 
 
+@pytest.mark.integration
 class TestErrorHandlingImprovements:
     """Test suite for improved error handling patterns."""
     

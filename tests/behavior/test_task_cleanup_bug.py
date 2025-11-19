@@ -22,7 +22,7 @@ class TestTaskCleanupBug:
     
     @pytest.mark.behavior
     @pytest.mark.tasks
-    @pytest.mark.bug
+    @pytest.mark.regression
     @pytest.mark.file_io
     def test_cleanup_task_reminders_method_exists(self, test_data_dir):
         """

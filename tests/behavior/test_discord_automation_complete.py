@@ -16,9 +16,12 @@ from communication.command_handlers.profile_handler import ProfileHandler
 from communication.command_handlers.interaction_handlers import HelpHandler
 from communication.command_handlers.task_handler import TaskManagementHandler
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
+import pytest
+
 from tests.test_utilities import TestUserFactory
 
 
+@pytest.mark.behavior
 class TestDiscordCompleteAutomation:
     """Complete automated testing for all Discord command scenarios."""
 

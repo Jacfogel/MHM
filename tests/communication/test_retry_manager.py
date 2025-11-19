@@ -11,6 +11,8 @@ from unittest.mock import patch, Mock
 from communication.core.retry_manager import RetryManager, QueuedMessage
 
 
+@pytest.mark.unit
+@pytest.mark.communication
 class TestQueuedMessage:
     """Test QueuedMessage dataclass."""
     
@@ -53,6 +55,8 @@ class TestQueuedMessage:
         assert message.retry_delay == 600
 
 
+@pytest.mark.unit
+@pytest.mark.communication
 class TestRetryManager:
     """Test RetryManager functionality."""
     

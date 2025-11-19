@@ -12,6 +12,7 @@ from core.error_handling import (
 )
 
 
+@pytest.mark.behavior
 class TestErrorHandlingCoverageExpansionPhase3Final:
     """Test coverage expansion for core/error_handling.py - Phase 3 Final"""
 

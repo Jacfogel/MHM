@@ -11,9 +11,13 @@ Tests cover:
 - Error recovery and resilience testing
 """
 
+import pytest
+
 from tests.test_utilities import TestUserFactory
 
 
+@pytest.mark.behavior
+@pytest.mark.communication
 class TestDiscordAdvancedAutomation:
     """Advanced automated testing for Discord command scenarios."""
 

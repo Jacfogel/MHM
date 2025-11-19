@@ -3,9 +3,13 @@ import os
 from ai.chatbot import get_ai_chatbot
 from core.message_management import store_sent_message
 from core.response_tracking import store_user_response
+import pytest
+
 from tests.test_utilities import setup_test_data_environment, cleanup_test_data_environment
 
 
+@pytest.mark.behavior
+@pytest.mark.ai
 class TestAIContextRecentMessages:
     def setup_method(self):
         # Ensure tests run in isolated test data environment

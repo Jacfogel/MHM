@@ -37,8 +37,8 @@ def qapp():
     # Don't quit the app as it might be used by other tests
 
 
-@pytest.fixture
-def test_user(test_data_dir):
+@pytest.fixture(name="test_user")
+def task_settings_user(test_data_dir):
     """Create a test user for task settings tests."""
     user_id = "test_task_settings_user"
     TestUserFactory.create_basic_user(user_id, enable_tasks=True, test_data_dir=test_data_dir)

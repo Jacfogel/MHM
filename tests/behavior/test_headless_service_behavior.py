@@ -18,6 +18,7 @@ from core.headless_service import HeadlessServiceManager
 from tests.test_utilities import TestUserFactory
 
 
+@pytest.mark.behavior
 class TestHeadlessServiceManagerBehavior:
     """Test headless service manager real behavior and side effects."""
     
@@ -32,14 +33,14 @@ class TestHeadlessServiceManagerBehavior:
         return test_path_factory
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     def test_headless_service_manager_initialization(self, manager):
         """Test that HeadlessServiceManager initializes correctly."""
         assert manager.service_process is None, "service_process should be None initially"
         assert manager.running is False, "running should be False initially"
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     @pytest.mark.file_io
     @patch('core.headless_service.get_service_processes')
     def test_get_headless_service_status_no_processes(self, mock_get_processes, manager):
@@ -53,7 +54,7 @@ class TestHeadlessServiceManagerBehavior:
         mock_get_processes.assert_called_once()
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     @pytest.mark.file_io
     @patch('core.headless_service.get_service_processes')
     def test_get_headless_service_status_with_headless_process(self, mock_get_processes, manager):
@@ -76,7 +77,7 @@ class TestHeadlessServiceManagerBehavior:
         mock_get_processes.assert_called_once()
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     @pytest.mark.file_io
     @patch('core.headless_service.get_service_processes')
     def test_get_headless_service_status_with_multiple_processes(self, mock_get_processes, manager):
@@ -108,7 +109,7 @@ class TestHeadlessServiceManagerBehavior:
         mock_get_processes.assert_called_once()
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     @pytest.mark.file_io
     @patch('core.headless_service.get_service_processes')
     @patch('core.headless_service.is_ui_service_running')
@@ -122,7 +123,7 @@ class TestHeadlessServiceManagerBehavior:
         assert result is True, "Should return True when no conflicts"
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     @pytest.mark.file_io
     @patch('core.headless_service.get_service_processes')
     @patch('core.headless_service.is_ui_service_running')
@@ -145,7 +146,7 @@ class TestHeadlessServiceManagerBehavior:
         assert result is True, "Should return True to allow restart"
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     @pytest.mark.file_io
     @patch('core.headless_service.get_service_processes')
     @patch('core.headless_service.is_ui_service_running')
@@ -159,7 +160,7 @@ class TestHeadlessServiceManagerBehavior:
         assert result is True, "Should return True (will stop UI services first)"
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     @pytest.mark.file_io
     def test_start_headless_service_success(self, manager, test_data_dir):
         """Test starting headless service successfully."""
@@ -185,7 +186,7 @@ class TestHeadlessServiceManagerBehavior:
                                 mock_popen.assert_called_once()
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     @pytest.mark.file_io
     def test_start_headless_service_stops_existing_headless(self, manager):
         """Test that starting headless service stops existing headless service."""
@@ -223,7 +224,7 @@ class TestHeadlessServiceManagerBehavior:
                 mock_stop_headless.assert_called_once()
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     @pytest.mark.file_io
     @patch('core.headless_service.get_service_processes')
     @patch('core.headless_service.is_ui_service_running')
@@ -250,7 +251,7 @@ class TestHeadlessServiceManagerBehavior:
         mock_stop_ui.assert_called_once()
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     @pytest.mark.file_io
     @patch('core.headless_service.get_service_processes')
     @patch('core.headless_service.is_ui_service_running')
@@ -265,7 +266,7 @@ class TestHeadlessServiceManagerBehavior:
         assert manager.running is False, "Should keep running as False"
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     @pytest.mark.file_io
     @patch('core.headless_service.get_service_processes')
     @patch('core.headless_service.is_ui_service_running')
@@ -285,7 +286,7 @@ class TestHeadlessServiceManagerBehavior:
         assert manager.running is False, "Should set running to False"
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     @pytest.mark.file_io
     @patch('core.headless_service.get_service_processes')
     @patch('core.headless_service.is_ui_service_running')
@@ -305,7 +306,7 @@ class TestHeadlessServiceManagerBehavior:
         assert result is True, "Should return True on success"
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     @pytest.mark.file_io
     @patch('core.headless_service.get_service_processes')
     @patch('core.headless_service.is_headless_service_running')
@@ -349,7 +350,7 @@ class TestHeadlessServiceManagerBehavior:
         assert len(info['ui_services']) == 1, "Should count UI services"
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     @pytest.mark.file_io
     @patch('core.headless_service.os.path.dirname')
     @patch('builtins.open', create=True)
@@ -368,7 +369,7 @@ class TestHeadlessServiceManagerBehavior:
         mock_file.write.assert_called()
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     @pytest.mark.file_io
     @patch('core.headless_service.os.path.dirname')
     @patch('builtins.open', create=True)
@@ -387,7 +388,7 @@ class TestHeadlessServiceManagerBehavior:
         mock_file.write.assert_called()
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     @pytest.mark.file_io
     def test_main_function_start_action(self, test_data_dir):
         """Test main function with start action."""
@@ -413,7 +414,7 @@ class TestHeadlessServiceManagerBehavior:
             mock_exit.assert_called_once_with(0)
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     @pytest.mark.file_io
     def test_main_function_stop_action(self, test_data_dir):
         """Test main function with stop action."""
@@ -439,7 +440,7 @@ class TestHeadlessServiceManagerBehavior:
             mock_exit.assert_called_once_with(0)
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     @pytest.mark.file_io
     def test_main_function_status_action(self, test_data_dir):
         """Test main function with status action."""
@@ -465,7 +466,7 @@ class TestHeadlessServiceManagerBehavior:
             mock_print.assert_called()
     
     @pytest.mark.behavior
-    @pytest.mark.service
+    @pytest.mark.behavior
     @pytest.mark.file_io
     def test_main_function_info_action(self, test_data_dir):
         """Test main function with info action."""

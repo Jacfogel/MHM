@@ -11,6 +11,7 @@ from unittest.mock import patch
 from communication.message_processing.command_parser import EnhancedCommandParser
 
 
+@pytest.mark.behavior
 class TestEnhancedCommandParserBehavior:
     """Test real behavior of Enhanced Command Parser."""
     
@@ -334,6 +335,7 @@ class TestEnhancedCommandParserBehavior:
                     assert match is not None, f"Compiled pattern {i} for intent {intent} should match test input"
 
 
+@pytest.mark.behavior
 class TestEnhancedCommandParserIntegration:
     """Test integration behavior of Enhanced Command Parser."""
     

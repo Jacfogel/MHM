@@ -11,6 +11,8 @@ from unittest.mock import Mock, patch
 from communication.core.channel_monitor import ChannelMonitor
 
 
+@pytest.mark.unit
+@pytest.mark.communication
 class TestChannelMonitor:
     """Test ChannelMonitor functionality."""
     

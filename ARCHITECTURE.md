@@ -1,228 +1,411 @@
 # MHM System Architecture
 
-
 > **File**: `ARCHITECTURE.md`
 > **Audience**: Human developers building or maintaining the platform  
 > **Purpose**: Explain system design, module responsibilities, and data flow  
 > **Style**: Technical, detailed, reference-oriented  
-> **Last Updated**: 2025-11-04
+> **Last Updated**: 2025-11-19
 
-> **See [README.md](README.md) for complete navigation and project overview**  
-> **See [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md) for AI-optimized quick reference**  
-> **See [ai/SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md) for comprehensive AI system documentation**
+See `README.md` for navigation and project overview.  
+See section 2. Configuration and .env in `DEVELOPMENT_WORKFLOW.md` for environment setup.  
+For supporting details on logging, testing, and error handling, see:
 
-## Quick Reference
+- Section 2. Logging Architecture in `logs/LOGGING_GUIDE.md`  
+- Section 2. Test Layout and Discovery in `tests/TESTING_GUIDE.md`  
+- Section 2. Architecture Overview in `core/ERROR_HANDLING_GUIDE.md`  
 
-**Key Module Decision Guide**
-1. **User data access** -> `core/user_data_handlers.py`, `core/user_data_validation.py`
-2. **UI components** -> `ui/dialogs/`, `ui/widgets/`, `ui/ui_app_qt.py`
-3. **Communication flows** -> `communication/`
-4. **Scheduling and reminders** -> `core/scheduler.py`, `core/schedule_management.py`
-5. **Configuration** -> `core/config.py`
-6. **Testing utilities** -> `tests/` and `tests/logs/`
-
-**Data Flow Overview**
-- **User Data**: `data/users/{user_id}/` -> `core/user_data_handlers.py` -> communication and UI layers.
-- **Messages**: `resources/default_messages/` -> copied into `data/users/{user_id}/messages/` when a category is enabled.
-- **Configuration**: `.env` -> `core/config.py` -> runtime components.
-- **UI Rendering**: `.ui` files -> `ui/generated/` classes -> `ui/dialogs/` implementations -> `ui/ui_app_qt.py` shell.
-
-**User Data Flow Diagram**
-
-The following diagram illustrates how user data flows through the system from entry points (UI, Discord, Email) through validation and processing to final storage:
-
-```mermaid
-flowchart TD
-    subgraph Entry["Entry Points"]
-        UI["UI Dialogs<br/>& Widgets"]
-        Discord["Discord<br/>Bot"]
-        Email["Email<br/>Channel"]
-    end
-    
-    subgraph Routing["Message Routing"]
-        IntMgr["Interaction<br/>Manager"]
-        Parser["Command Parser<br/>(+ AI Chatbot)"]
-        Handlers["Command<br/>Handlers"]
-    end
-    
-    subgraph DataProc["Data Processing"]
-        DataHandlers["User Data<br/>Handlers"]
-        InputVal["Input<br/>Validation"]
-        Backup["Create<br/>Backup"]
-        DataVal["Data<br/>Validation"]
-        Merge["Merge with<br/>Current Data"]
-        Legacy["Legacy<br/>Compatibility"]
-        Normalize["Normalize<br/>(Pydantic)"]
-        Invariants["Cross-file<br/>Invariants"]
-    end
-    
-    subgraph Storage["Storage Layer"]
-        FileOps["File<br/>Operations"]
-        Files[("JSON Files<br/>account.json<br/>preferences.json<br/>schedules.json<br/>context.json")]
-        Index["Update<br/>User Index"]
-        Cache["Invalidate<br/>Cache"]
-    end
-    
-    UI --> DataHandlers
-    Discord --> IntMgr
-    Email --> IntMgr
-    IntMgr --> Parser
-    Parser --> Handlers
-    Handlers --> DataHandlers
-    
-    DataHandlers --> InputVal
-    InputVal --> Backup
-    Backup --> DataVal
-    DataVal --> Loop["For Each<br/>Data Type"]
-    Loop --> Merge
-    Merge --> Legacy
-    Legacy --> Normalize
-    Normalize --> Invariants
-    Invariants --> FileOps
-    FileOps --> Files
-    Files --> Index
-    Index --> Cache
-    
-    Files -.->|"Read"| DataHandlers
-    DataHandlers -.->|"Return"| UI
-    DataHandlers -.->|"Return"| Handlers
-    Handlers -.->|"Return"| IntMgr
-    IntMgr -.->|"Return"| Discord
-    IntMgr -.->|"Return"| Email
-    
-    classDef entryPoint fill:#e1f5ff,stroke:#01579b,stroke-width:2px,color:#000000
-    classDef routing fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000000
-    classDef processing fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000000
-    classDef storage fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000
-    
-    class UI,Discord,Email entryPoint
-    class IntMgr,Parser,Handlers routing
-    class DataHandlers,InputVal,Backup,DataVal,Loop,Merge,Legacy,Normalize,Invariants processing
-    class FileOps,Files,Index,Cache storage
-```
-
-**Detailed Flow Steps:**
-
-1. **Entry Points**: 
-   - **UI Dialogs/Widgets**: Call `save_user_data()` directly
-   - **Discord/Email**: Send messages through channels
-
-2. **Message Routing** (Discord/Email only):
-   - **Interaction Manager**: Routes messages to appropriate handlers
-   - **Command Parser**: Parses natural language using AI Chatbot for enhanced parsing
-   - **Command Handlers**: Execute commands (task_handler, profile_handler, etc.)
-
-3. **Data Processing**:
-   - **Input Validation**: Validates user_id and data structure (once for all types)
-   - **Backup Creation**: Creates backup before modifications (once for all types, if enabled)
-   - **Data Validation**: Validates data against schema rules (once for all types)
-   - **Per-Data-Type Loop**: The following steps run for each data type (account, preferences, schedules, etc.):
-     - **Merge Current Data**: Merges updates with existing data from disk
-     - **Legacy Compatibility**: Handles backward-compatible field mappings
-     - **Normalization**: Applies Pydantic schema validation and normalization
-     - **Cross-file Invariants**: Ensures consistency across related files (e.g., categories <-> schedules, automated_messages <-> account features)
-     - **File Operations**: Writes validated data to JSON files
-
-4. **Storage** (after loop completes):
-   - **JSON Files**: All data types written to `data/users/{user_id}/` (account.json, preferences.json, schedules.json, context.json)
-   - **Update Index**: Updates user index for fast lookup (once after all types saved)
-   - **Invalidate Cache**: Clears cached data to ensure freshness (once after index update)
-
-**Read Flow**: Data retrieval follows the reverse path - handlers read from files and return data to entry points (shown as dotted lines).
-
-**Note**: The AI Chatbot is used internally by the Command Parser for AI-enhanced command parsing and contextual chat responses, not as a separate entry point.
-
-**AI System Integration**
-
-The AI system (`ai/`) provides intelligent, context-aware responses and is integrated into the communication flow:
-- **Entry Point**: Called by the Command Parser for enhanced parsing and contextual responses
-- **Components**: `ai/chatbot.py` (main logic), `ai/prompt_manager.py` (prompts), `ai/cache_manager.py` (caching), `ai/lm_studio_manager.py` (LM Studio connection)
-- **Context Building**: Uses `user/context_manager.py` to build comprehensive user context from user data
-- **Fallback**: Falls back to contextual responses if LM Studio is unavailable
-- **See**: [ai/SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md) for detailed AI system architecture
-
-**Critical Files**
-- `run_mhm.py` -> main entry point.
-- `core/service.py` -> background service lifecycle.
-- `ui/ui_app_qt.py` -> admin interface shell.
-- `core/user_data_handlers.py` -> unified user data access.
-- `communication/core/channel_orchestrator.py` -> channel coordination.
+---
 
 ## 1. Directory Overview
 
-- **`core/`**: Business logic, services, scheduling, analytics, and configuration utilities.
-- **`communication/`**: Channel orchestration (Discord, email, future integrations) and conversation flows.
-- **`ui/`**: PySide6-based admin console with designs, generated code, dialogs, and widgets.
-- **`data/`**: Runtime user data, per-user directories, logs, and cached state.
-- **`resources/default_messages/`**: Template messages for onboarding and ongoing support.
-- **`resources/`**: Additional presets, assets, and shared resources.
-- **`ai/`**: Local AI integration modules.
-- **`ai_development_docs/`**: AI-focused documentation for quick reference.
-- **`ai_development_tools/`**: Automation for audits, documentation sync, and report generation.
-- **`development_docs/`**: Human-focused references (changelog, dependencies, plans).
-- **`scripts/`**: Utilities for migrations, cleanup, and maintenance tasks.
-- **`tasks/`**: Task and reminder definitions plus supporting helpers.
-- **`tests/`**: Unit, integration, behavior, and UI tests plus supporting fixtures.
-- **`tests/logs/`**: Captured test run logs kept separate from runtime logs.
-- **`styles/`**: QSS themes for the UI.
-- **`.cursor/rules/`**: Cursor rule files that govern AI collaborator behaviour.
+This section describes the top-level directories. It should match the actual project tree.
+
+- `ai/`  
+  AI integration modules, including optional LM Studio integration and local helpers for
+  context building or summarization. See section 1. Overview in `ai/AI_SYSTEM_GUIDE.md`
+  if present.
+
+- `ai_development_docs/`  
+  AI-focused documentation used by tools such as Cursor. These files are kept in sync at the
+  H2 level with their human counterparts (for example `tests/TESTING_GUIDE.md`).
+
+- `ai_development_tools/`  
+  AI tools runner and commands (for example `doc-sync`, `config`, `coverage`). These automate
+  documentation checks, configuration reports, and similar meta-tasks. See section 2. Commands
+  and Usage in `ai_development_tools/AI_DEV_TOOLS_GUIDE.md`.
+
+- `communication/`  
+  Channel orchestration and message flows. This is where Discord, email, and any future channels
+  are wired into the core service. Channel adapters should stay thin and delegate business logic
+  to `core/` and `tasks/`. See section 2. Channel Layers and Boundaries in
+  `communication/COMMUNICATION_GUIDE.md`.
+
+- `core/`  
+  Core business logic and services. Includes configuration loading, logging setup, error handling,
+  the background service, schedulers, and user data helpers.
+
+- `data/`  
+  Per-user runtime data. The most important folder is `data/users/`, which contains one directory
+  per user. Tests must not write here directly; they use `tests/data/` instead.
+
+- `development_docs/`  
+  Human-focused development documentation such as detailed changelog history and longer-term
+  plans. See section 1. Overview in `development_docs/CHANGELOG_DETAIL.md` for change history.
+
+- `logs/`  
+  Application and component logs. See section 2. Logging Architecture in `logs/LOGGING_GUIDE.md`
+  for the detailed logging scheme.
+
+- `resources/`  
+  Shared templates and assets. Message templates live under `resources/default_messages/` and are
+  copied into user-specific folders the first time a category is enabled.
+
+- `styles/`  
+  QSS themes and styling assets for the admin UI.
+
+- `tasks/`  
+  Task and reminder definitions plus helpers for scheduling. This is where recurring work,
+  reminder setup, and task orchestration live.
+
+- `tests/`  
+  Unit, integration, behavior, and UI tests plus fixtures. Test-only data lives under
+  `tests/data/`. Logs from test runs may be collected under `tests/logs/`. See section 2.
+  Test Layout and Discovery and section 3. Test Types and Structure in `tests/TESTING_GUIDE.md`.
+
+- `ui/`  
+  PySide6 admin application:
+  - `.ui` design files.  
+  - Generated Python code created from `.ui`.  
+  - Dialog and widget classes that connect generated code to real logic.  
+  - The main shell in `ui/ui_app_qt.py` which connects UI components to the service.
+
+- `user/`  
+  Instance-level preferences and settings that apply to the whole installation, not just
+  individual users under `data/users/`. This directory should change rarely and any new files
+  must be documented explicitly.
+
+If you add or remove top-level directories, update this section and the matching section in
+`ai_development_docs/AI_ARCHITECTURE.md`.
+
+---
 
 ## 2. User Data Model
 
-Each user has a dedicated directory under `data/users/{user_id}/` containing:
-- `account.json`: Identification and contact info.
-- `preferences.json`: **Flat dictionary** of preferences (never nested under another key).
-- `schedules.json`: Reminder and check-in scheduling data.
-- `user_context.json`: Personalized context for messaging and interactions.
-- `messages/`: Per-category message templates, copied from `resources/default_messages/` when enabled.
-- `tasks/`, `checkins.json`, `chat_interactions.json`, and other feature-specific files as needed.
+Each user has a dedicated directory under `data/users/{user_id}/`. Typical contents include:
 
-**Important rules**:
-- All user data access goes through `core/user_data_handlers.get_user_data()` and associated save helpers.
-- Message files are user-specific and created only for categories the user has enabled.
-- When saving preferences, always write the full flat dictionary back to `preferences.json`.
+- `account.json`  
+  Identification and contact information for the user (name, email, channel identifiers).
+
+- `preferences.json`  
+  Flat dictionary of preferences. There is no nested root key. All keys are top-level so they
+  are easy to diff and edit.
+
+- `schedules.json`  
+  Reminder and check-in scheduling data. Encodes which time periods are active, how often messages
+  are sent, and any category-specific overrides.
+
+- `user_context.json`  
+  Personalized context for messaging and interactions (health notes, motivational themes, other
+  context that helps generate better messages).
+
+- `messages/`  
+  Per-category message templates copied from `resources/default_messages/` when the category is
+  first enabled for this user. Users can customize or disable individual messages without
+  touching the shared templates.
+
+- Additional JSON files and subdirectories (for example `checkins.json`,
+  `chat_interactions.json`, and other feature-specific artefacts) as features evolve.
+
+Important rules:
+
+1. All user data access goes through helpers in `core/user_data_handlers.py`.  
+   Feature code should not open JSON files in `data/users/` directly. This keeps validation,
+   backups, and migration logic centralized.
+
+2. Preferences are always stored and loaded as a flat dictionary.  
+   If you need nested structures at runtime, build them in memory. Avoid changing the on-disk
+   layout without an explicit migration plan.
+
+3. Message files are user-specific.  
+   Template changes belong in `resources/default_messages/`. Per-user message changes belong in
+   `data/users/{user_id}/messages/`.
+
+4. New per-user files should follow a clear naming convention and be documented here.  
+   Describe what they are for, how they are written, and which module owns them.
+
+For more validation and schema details, see the relevant models and helpers in
+`core/user_data_validation.py` and the sections on data validation in section 4.
+Test Utilities and Infrastructure in `tests/TESTING_GUIDE.md`.
+
+### 2.1. User Data Flow Diagram
+
+The diagram below shows how data flows from entry points (UI and channels) through validation
+and processing to storage. This is adapted from the original architecture diagram.
+
+```mermaid
+flowchart TD
+
+  subgraph Entry["Entry Points"]
+    UI["UI Dialogs & Widgets"]
+    Discord["Discord Bot"]
+    Email["Email Channel"]
+  end
+
+  subgraph Routing["Message Routing"]
+    IntMgr["Interaction Manager"]
+    Parser["Command Parser (+ AI Chatbot)"]
+    Handlers["Command Handlers"]
+  end
+
+  subgraph DataProc["Data Processing"]
+    DataHandlers["User Data Handlers"]
+    InputVal["Input Validation"]
+    Backup["Create Backup"]
+    DataVal["Data Validation"]
+    Loop["For Each Data Type"]
+    Merge["Merge with Current Data"]
+    Legacy["Legacy Compatibility"]
+    Normalize["Normalize (Pydantic)"]
+    Invariants["Cross-file Invariants"]
+  end
+
+  subgraph Storage["Storage Layer"]
+    FileOps["File Operations"]
+    Files["JSON Files\naccount.json\npreferences.json\nschedules.json\nuser_context.json"]
+    Index["Update User Index"]
+    Cache["Invalidate Cache"]
+  end
+
+  UI --> DataHandlers
+  Discord --> IntMgr
+  Email --> IntMgr
+
+  IntMgr --> Parser
+  Parser --> Handlers
+  Handlers --> DataHandlers
+
+  DataHandlers --> InputVal
+  InputVal --> Backup
+  Backup --> DataVal
+  DataVal --> Loop
+  Loop --> Merge
+  Merge --> Legacy
+  Legacy --> Normalize
+  Normalize --> Invariants
+  Invariants --> FileOps
+  FileOps --> Files
+  Files --> Index
+  Index --> Cache
+
+  Files -.->|"Read"| DataHandlers
+  DataHandlers -.->|"Return"| UI
+  DataHandlers -.->|"Return"| Handlers
+  Handlers -.->|"Return"| IntMgr
+  IntMgr -.->|"Return"| Discord
+  IntMgr -.->|"Return"| Email
+
+  classDef entryPoint fill:#e1f5ff,stroke:#01579b,stroke-width:2px,color:#000000
+  classDef routing fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000000
+  classDef processing fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000000
+  classDef storage fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000
+
+  class UI,Discord,Email entryPoint
+  class IntMgr,Parser,Handlers routing
+  class DataHandlers,InputVal,Backup,DataVal,Loop,Merge,Legacy,Normalize,Invariants processing
+  class FileOps,Files,Index,Cache storage
+```
+
+Use this diagram when reasoning about where to add validation, backups, or legacy handling.
+
+---
 
 ## 3. Data Handling Patterns
 
-- Load, modify, and save complete structures to avoid partial writes.
-- Use centralized validation in `core/user_data_validation.py` for consistency.
-- Leverage `core/config.py` for paths and environment configuration-never hardcode paths.
-- Schedule-related operations must respect the helper functions in `core/scheduler.py` and `core/schedule_management.py`.
+Data handling in MHM is designed around safety and clarity.
+
+- Centralized user data access  
+  - Use `get_user_data()` and related helpers in `core/user_data_handlers.py`.  
+  - Keep raw file access inside these helpers or tightly related modules.
+
+- Validation before write  
+  - Use validation functions or models in `core/user_data_validation.py`.  
+  - Reject or correct invalid data early and log clear errors.
+
+- Backups on risky operations  
+  - Before major migrations or schema changes, create backups of the user directory or
+    specific files.  
+  - Backups should live in a predictable location (for example under `data/backups/`) and be
+    mentioned in logs.
+
+- Clear separation of template and instance data  
+  - Shared templates live under `resources/default_messages/`.  
+  - User-specific instances live under `data/users/{user_id}/messages/` and are safe to edit
+    per user.
+
+- Legacy compatibility and migration  
+  - When you need to support an old on-disk format, add a clearly marked legacy path.  
+  - Use the legacy compatibility logging pattern described in section 7.
+    Legacy Compatibility Logging Standard in `logs/LOGGING_GUIDE.md`.
+
+When adding new data or changing existing structures:
+
+1. Decide whether the data is per-user or global.  
+2. Decide whether it belongs under `data/users/` or `resources/`. Only use `user/` for
+   instance-level configuration that truly applies to the whole installation.  
+3. Add validation logic and tests (see section 10. Writing and Extending Tests in
+   `tests/TESTING_GUIDE.md`).  
+4. Document the new files here and in any relevant guides.
+
+---
 
 ## 4. Key Modules and Responsibilities
 
-- **`core/user_management.py`, `core/user_data_handlers.py`**: Unified data loading, merging, and saving.
-- **`core/message_management.py`, `core/response_tracking.py`**: Message dispatch, tracking, and analytics.
-- **`core/scheduler.py`, `core/service.py`**: Background task orchestration and service lifecycle.
-- **`communication/core/channel_orchestrator.py`**: Central coordination of communication channels.
-- **`ui/ui_app_qt.py`**: Admin application entry point and shell for dialogs/widgets.
-- **`ui/dialogs/` and `ui/widgets/`**: Interactive UI components with business logic.
-- **`ai_development_tools/`**: Audit workflows, documentation analysis, and changelog tooling.
+This section summarizes the most important modules and how they relate. It is not a complete
+listing of every file.
+
+- `run_mhm.py`  
+  Entry point for the admin UI. Prepares the Python interpreter path, sets up environment
+  context, and launches the PySide6 application defined in `ui/ui_app_qt.py`.
+
+- `run_headless_service.py` and `core/headless_service.py`  
+  Command-line entry point and manager for the background service without the UI. Responsible
+  for starting, stopping, and inspecting the service while avoiding conflicts with the UI.
+
+- `core/service.py`  
+  Main service implementation. Owns the lifetime of the background processes that send
+  reminders, handle scheduling, and coordinate with communication components.
+
+- `core/config.py`  
+  Central configuration loader. Reads environment variables (typically from `.env` via
+  `python-dotenv`), validates them, and exposes configuration to the rest of the system.
+  For configuration details and validation patterns, see section 5. Configuration
+  (Environment Variables) in `logs/LOGGING_GUIDE.md`.
+
+- `core/logger.py`  
+  Central logging setup. Provides component loggers and attaches handlers to the
+  appropriate log files under `logs/`. For log levels, file layout, and rotation rules,
+  see section 2. Logging Architecture and section 4. Component Log Files and Layout in
+  `logs/LOGGING_GUIDE.md`.
+
+- `core/error_handling.py`  
+  Shared error handling logic and decorators. Connects error handling to logging and, where
+  applicable, to basic metrics. For the broader design and patterns, see section 2.
+  Architecture Overview in `core/ERROR_HANDLING_GUIDE.md`.
+
+- `core/user_data_handlers.py` and `core/user_data_validation.py`  
+  Read and write user data in a safe and consistent way, with validation and optional
+  migration paths. See section 2. User Data Model and section 3. Data Handling Patterns
+  in this file.
+
+- `communication/` modules  
+  Implement and coordinate channels such as Discord and email. Channel modules should
+  focus on translating service events into channel-specific calls and delegating shared
+  logic to `core/` and `tasks/`. See section 1. Core Principle in
+  `communication/COMMUNICATION_GUIDE.md`.
+
+- `tasks/` modules  
+  Define recurring tasks and reminder logic. These modules are wired into the scheduler
+  and the service loop to send messages and perform periodic maintenance.
+
+- `ui/ui_app_qt.py`  
+  Top-level PySide6 application shell. Connects dialogs and widgets to the backend service,
+  handles app-level configuration, and exposes operations like starting and stopping the
+  service from the UI.
+
+When making changes, prefer updating one layer at a time and keep clear boundaries between
+core logic, UI, and channels. For test strategy around these modules, see section 3.
+Test Types and Structure in `tests/TESTING_GUIDE.md`.
+
+---
 
 ## 5. UI Architecture and Naming Conventions
 
-- **Designs** (`ui/designs/`): `.ui` files authored in Qt Designer.
-- **Generated** (`ui/generated/`): Auto-generated Python classes named `*_pyqt.py`.
-- **Dialogs** (`ui/dialogs/`): Feature-specific modules such as `ui/dialogs/category_management_dialog.py`; keep descriptive names that use `_dialog` or `_management_dialog` suffixes.
-- **Widgets** (`ui/widgets/`): Reusable components such as `ui/widgets/task_settings_widget.py`; use `_widget` or `_settings_widget` suffixes for clarity.
-- **Naming**: Avoid redundant prefixes; rely on module paths for context.
+The UI follows a consistent pattern so that designs, generated code, and dialogs remain in sync.
 
-### 5.1. File Mapping Examples
-| Purpose | Design | Generated | Implementation |
-|---------|--------|-----------|----------------|
-| Category management | `ui/designs/category_management_dialog.ui` | `ui/generated/category_management_dialog_pyqt.py` | `ui/dialogs/category_management_dialog.py` |
-| Account creation | `ui/designs/account_creator_dialog.ui` | `ui/generated/account_creator_dialog_pyqt.py` | `ui/dialogs/account_creator_dialog.py` |
-| Task settings | `ui/designs/task_settings_widget.ui` | `ui/generated/task_settings_widget_pyqt.py` | `ui/widgets/task_settings_widget.py` |
+Typical structure:
 
-## 6. Adding New Features Safely
+- `ui/designs/`  
+  Raw `.ui` files created with Qt Designer. These define layout and widgets but no business
+  logic.
 
-1. Use `get_user_data()` helpers for all user data and extend the schema carefully.
-2. Update preferences by reading and writing the full flat dictionary.
-3. Document new message categories or files in `resources/default_messages/` and per-user directories.
-4. Follow established naming conventions for UI additions and regenerate `.ui` files as needed.
-5. Update this architecture file when introducing new subsystems or altering data flow.
+- `ui/generated/` (or similar)  
+  Generated Python code produced from `.ui` files. These files are not edited by hand.
+  Manual changes will be lost when regenerating.
+
+- `ui/dialogs/`  
+  Dialog classes that inherit from the generated forms. Business logic, signal connections,
+  and service integration live here.
+
+- `ui/widgets/`  
+  Reusable widgets that can be embedded into multiple dialogs or views. They also inherit
+  from generated forms where appropriate.
+
+- `ui/ui_app_qt.py`  
+  Application entry shell. Sets up the main window, wires menus and navigation, and connects
+  actions to dialogs and service operations.
+
+Naming conventions:
+
+- Dialog design: `something_dialog.ui`  
+- Dialog generated: `something_dialog_pyqt.py` (or similar)  
+- Dialog implementation: `ui/dialogs/something_dialog.py` with class `SomethingDialog`
+
+- Widget design: `something_widget.ui`  
+- Widget generated: `something_widget_pyqt.py`  
+- Widget implementation: `ui/widgets/something_widget.py` with class `SomethingWidget`
+
+The goal is that when you see a dialog in the UI, you can easily find:
+
+1. The `.ui` design file.  
+2. The generated form.  
+3. The implementation that attaches behavior.
+
+If you add new dialogs or widgets, follow the same pattern. Only update this section if you
+introduce a new convention. For UI testing and manual QA, see section 9. Manual Testing
+Procedures in `tests/TESTING_GUIDE.md`.
+
+---
+
+## 6. Channel-Agnostic Architecture
+
+MHM is designed so that most business logic is channel-agnostic.
+
+- Business logic and data handling live in `core/` and `tasks/`.  
+- Channel adapters in `communication/` translate between service events and channel-specific
+  APIs (Discord, email, and future channels).  
+- UI components in `ui/` act as another adapter layer, turning user actions into calls into
+  `core/` and `tasks/`.
+
+When implementing new features or channels:
+
+1. Put shared behavior in `core/` or `tasks/` when possible.  
+2. Keep `communication/` modules focused on translating events and payloads, not business rules.  
+3. Use the patterns and examples in section 2. Channel Layers and Boundaries in
+   `communication/COMMUNICATION_GUIDE.md`.  
+
+This separation keeps features reusable across channels and reduces the risk of subtle behavior
+differences between Discord, email, and the UI.
+
+---
 
 ## 7. Development Notes
 
-- When launching from VS Code or Cursor, two service processes may appear due to debugger behaviour; running from an activated PowerShell terminal avoids confusion.
-- Keep architecture documentation synchronized with implementation changes-particularly when refactoring shared services or communication workflows.
+- Avoid running multiple service instances.  
+  When using an IDE like VS Code or Cursor, it is easy to accidentally start the service twice.
+  Prefer running `python run_mhm.py` or `python run_headless_service.py start` from an activated
+  terminal and verify with the `status` command.
+
+- Keep docs and code in sync.  
+  Whenever you add or remove major modules, update this file and the matching
+  `ai_development_docs/AI_ARCHITECTURE.md`. Use the documentation sync checker to enforce H2
+  alignment between paired docs.
+
+- Use established logging and error handling patterns.  
+  Prefer `core/logger.py` and `core/error_handling.py` plus the guidance in section 2.
+  Logging Architecture in `logs/LOGGING_GUIDE.md` and section 2. Architecture Overview in
+  `core/ERROR_HANDLING_GUIDE.md` instead of ad-hoc prints or try/except blocks.
+
+- Learn by small steps.  
+  The architecture is built to support safe, incremental changes. Make one change at a time,
+  observe its impact, and use logging and tests to confirm behavior. For overall development
+  process, see section 2. Standards and Templates in `DEVELOPMENT_WORKFLOW.md`.

@@ -3,10 +3,13 @@
 import importlib
 from pathlib import Path
 
+import pytest
+
 import core.config as config_module
 import core.auto_cleanup as auto_cleanup
 
 
+@pytest.mark.unit
 def test_update_cleanup_timestamp_respects_test_data_dir(monkeypatch, tmp_path):
     """Ensure cleanup tracker file is written inside configured test data directory."""
     global config_module, auto_cleanup

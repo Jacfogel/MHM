@@ -32,6 +32,7 @@ from core.message_management import (
 )
 
 
+@pytest.mark.behavior
 class TestMessageCategories:
     """Test message category functionality."""
     
@@ -69,6 +70,7 @@ class TestMessageCategories:
             assert categories == []
 
 
+@pytest.mark.behavior
 class TestDefaultMessages:
     """Test default message loading functionality."""
     
@@ -142,6 +144,7 @@ class TestDefaultMessages:
                     pass  # Best effort cleanup
 
 
+@pytest.mark.behavior
 class TestMessageCRUD:
     """Test message CRUD operations."""
     
@@ -417,6 +420,7 @@ class TestMessageCRUD:
             mock_load.assert_called_once()
 
 
+@pytest.mark.behavior
 class TestSentMessages:
     """Test sent message tracking functionality."""
     
@@ -497,6 +501,7 @@ class TestSentMessages:
             mock_load.assert_called_once()
 
 
+@pytest.mark.behavior
 class TestMessageFileManagement:
     """Test message file creation and management."""
     
@@ -546,6 +551,7 @@ class TestMessageFileManagement:
             assert mock_create_file.call_count == 2
 
 
+@pytest.mark.behavior
 class TestErrorHandling:
     """Test error handling in message management functions."""
     
@@ -616,6 +622,7 @@ class TestErrorHandling:
             assert result is False or result is None
 
 
+@pytest.mark.behavior
 class TestIntegration:
     """Test integration between message management functions."""
     

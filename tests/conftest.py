@@ -2637,47 +2637,34 @@ def pytest_configure(config):
         "markers", "ui: mark test as testing UI components"
     )
     
-    # Performance & resource markers
+    # Speed markers
     config.addinivalue_line(
-        "markers", "slow: mark test as slow running"
+        "markers", "slow: mark test as slow running (>1 second)"
     )
     config.addinivalue_line(
-        "markers", "performance: mark test as performance testing"
+        "markers", "fast: mark test as fast running (<100ms, optional)"
     )
+    
+    # Resource markers
     config.addinivalue_line(
-        "markers", "memory: mark test as memory intensive"
-    )
-    config.addinivalue_line(
-        "markers", "network: mark test as requiring network connectivity"
-    )
-    config.addinivalue_line(
-        "markers", "external: mark test as requiring external services"
+        "markers", "asyncio: mark test as requiring asyncio support"
     )
     config.addinivalue_line(
         "markers", "file_io: mark test as having heavy file operations"
     )
     
-    # Feature-specific markers
+    # Feature-specific markers (aligned with component loggers)
     config.addinivalue_line(
         "markers", "ai: mark test as requiring AI functionality"
-    )
-    config.addinivalue_line(
-        "markers", "service: mark test as testing service functionality"
     )
     config.addinivalue_line(
         "markers", "communication: mark test as testing communication channels"
     )
     config.addinivalue_line(
-        "markers", "config: mark test as configuration and settings functionality"
-    )
-    config.addinivalue_line(
-        "markers", "tasks: mark test as task management functionality"
+        "markers", "tasks: mark test as task management functionality (includes reminders)"
     )
     config.addinivalue_line(
         "markers", "checkins: mark test as check-in system functionality"
-    )
-    config.addinivalue_line(
-        "markers", "schedules: mark test as schedule management functionality"
     )
     config.addinivalue_line(
         "markers", "messages: mark test as message system functionality"
@@ -2689,34 +2676,10 @@ def pytest_configure(config):
         "markers", "user_management: mark test as user account management functionality"
     )
     config.addinivalue_line(
-        "markers", "channels: mark test as communication channel functionality"
-    )
-    config.addinivalue_line(
-        "markers", "discord: mark test as requiring Discord integration"
-    )
-    config.addinivalue_line(
-        "markers", "reminders: mark test as reminder functionality"
-    )
-    config.addinivalue_line(
         "markers", "scheduler: mark test as scheduler functionality"
-    )
-    config.addinivalue_line(
-        "markers", "bug: mark test as specific bug fixes"
-    )
-    config.addinivalue_line(
-        "markers", "error_handling: mark test as error handling scenarios"
-    )
-    config.addinivalue_line(
-        "markers", "edge_cases: mark test as edge case scenarios"
     )
     
     # Test quality markers
-    config.addinivalue_line(
-        "markers", "flaky: mark test as occasionally failing"
-    )
-    config.addinivalue_line(
-        "markers", "known_issue: mark test as testing known bugs or limitations"
-    )
     config.addinivalue_line(
         "markers", "regression: mark test as preventing regression issues"
     )
@@ -2725,23 +2688,6 @@ def pytest_configure(config):
     )
     config.addinivalue_line(
         "markers", "critical: mark test as critical path test"
-    )
-    
-    # Development workflow markers
-    config.addinivalue_line(
-        "markers", "wip: mark test as work in progress"
-    )
-    config.addinivalue_line(
-        "markers", "todo: mark test as not yet implemented"
-    )
-    config.addinivalue_line(
-        "markers", "skip_ci: mark test as to skip in CI/CD pipeline"
-    )
-    config.addinivalue_line(
-        "markers", "manual: mark test as requiring manual intervention"
-    )
-    config.addinivalue_line(
-        "markers", "debug: mark test as debug specific"
     )
     config.addinivalue_line(
         "markers", "no_parallel: mark test as must not run under pytest-xdist parallel execution"

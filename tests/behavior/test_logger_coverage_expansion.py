@@ -38,6 +38,7 @@ from core.logger import (
 )
 
 
+@pytest.mark.behavior
 class TestLoggerCoverageExpansion:
     """Test Core Logger coverage expansion with real behavior verification."""
     
@@ -658,6 +659,7 @@ class TestLoggerCoverageExpansion:
         assert True, "Function should execute without error"
 
 
+@pytest.mark.behavior
 class TestLoggerIntegration:
     """Test integration behavior of Core Logger."""
     

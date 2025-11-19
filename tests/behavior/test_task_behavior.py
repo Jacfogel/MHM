@@ -33,6 +33,7 @@ from tasks.task_management import (
     get_user_task_stats
 )
 
+@pytest.mark.behavior
 class TestTaskManagement:
     """Test cases for task management functions."""
     

@@ -11,9 +11,12 @@ Tests cover:
 - Complete user workflows
 """
 
+import pytest
+
 from tests.test_utilities import TestUserFactory
 
 
+@pytest.mark.behavior
 class TestUICompleteAutomation:
     """Complete automated testing for all UI dialog scenarios."""
 

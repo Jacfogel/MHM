@@ -14,6 +14,7 @@ from tasks.task_management import (
 )
 
 
+@pytest.mark.unit
 class TestRecurringTasks:
     """Test recurring tasks functionality."""
     

@@ -39,6 +39,8 @@ from core.user_management import (
 )
 
 
+@pytest.mark.behavior
+@pytest.mark.user_management
 class TestUserManagementCoverageExpansion:
     """Test Core User Management coverage expansion with real behavior verification."""
     
@@ -687,6 +689,8 @@ class TestUserManagementCoverageExpansion:
         assert saved_data.get("account_status") == "active", "Should save correct status"
 
 
+@pytest.mark.behavior
+@pytest.mark.user_management
 class TestUserManagementIntegration:
     """Test integration behavior of Core User Management."""
     
@@ -914,6 +918,8 @@ class TestUserManagementIntegration:
             assert result is True, "All results should be valid"
 
 
+@pytest.mark.behavior
+@pytest.mark.user_management
 class TestUserDataManagerCoverageExpansion:
     """Test Core UserDataManager coverage expansion with real behavior verification."""
     

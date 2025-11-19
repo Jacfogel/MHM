@@ -246,15 +246,6 @@ When adding new tasks, follow this format:
   - Exclude the checker's own file from legacy pattern matching
   - Improve pattern matching to avoid matching the checker's own code
 
-**Expand Pytest Marks Usage**
-- *What it means*: Explore adding pytest marks to more tests to enable better test organization, filtering, and parallelization
-- *Why it helps*: Enables selective test execution, better test organization, and improved parallel test execution
-- *Estimated effort*: Medium
-- *Areas to investigate*:
-  - Add marks for test categories (unit, behavior, integration, ui)
-  - Add marks for test speed (fast, slow)
-  - Add marks for test dependencies or requirements
-  - Use marks to optimize parallel test execution
 
 **Systematic Documentation Review and Update**
 - *What it means*: Systematically review and update documentation to ensure information is current and accurate across all documentation files
@@ -408,35 +399,10 @@ When adding new tasks, follow this format:
   - [ ] Ensure job runs before test steps and fails the pipeline on violations
   - [ ] Document the check in `logs/LOGGING_GUIDE.md` (contributor notes)
 
-**Scripts Directory Cleanup** [OK] **COMPLETED**
-- *What it means*: Remove outdated/broken files, organize remaining utilities, move AI tools to `ai_tools/`
-- *Why it helps*: Reduces confusion and keeps the codebase organized
-- *Status*: Completed cleanup on 2025-11-10:
-  - Archived 14 outdated scripts (6 migration, 5 refactoring, 3 one-time enhancement scripts)
-  - Fixed broken import in archived script (changed `core.utils` to `core.user_data_handlers`)
-  - Removed empty directories after archiving
-  - Updated `scripts/SCRIPTS_GUIDE.md` to reflect current active scripts
-  - All archived scripts moved to `archive/scripts/` subdirectories
-
-**Gitignore Cleanup** [OK] **COMPLETED**
-- *What it means*: Review and clean up `.gitignore`
-- *Why it helps*: Ensures proper version control and prevents unnecessary files from being tracked
-- *Status*: Reviewed `.gitignore` file - found it to be comprehensive and well-organized. Fixed minor formatting issue (trailing space on `tests/logs/` entry). File properly excludes all necessary patterns including Python cache files, virtual environments, test artifacts, coverage files, IDE files, and project-specific temporary files.
-
 **Improve AI Terminal Interaction Reliability**
 - *What it means*: Investigate why AI assistants often misinterpret PowerShell output or make incorrect assumptions
 - *Why it helps*: Reduces confusion and improves the reliability of AI-assisted development
 - *Estimated effort*: Medium
-
-**Fix Treeview Refresh** [OK] **COMPLETED**
-- *What it means*: Auto-refresh the message editing interface to reflect changes while maintaining current sorting
-- *Why it helps*: Better UX with immediate visual feedback
-- *Status*: Implemented sort preservation in message editor dialog and task CRUD dialog. Tables now preserve sort column and order when refreshing after add/edit/delete operations. Sorting is enabled on table widgets and sort state is saved before refresh and restored after repopulation. Applied to both message editor dialog (1 table) and task CRUD dialog (2 tables: active tasks and completed tasks).
-
-**Fix "process already stopped" notification issue** [OK] **OBSOLETE**
-- *What it means*: Investigate why shutdown attempts result in "process already stopped" messages
-- *Why it helps*: Cleaner service management and better user experience
-- *Status*: Issue has not been observed in many months. The improved shutdown mechanism appears to have resolved the original issue. No code changes needed - system is working correctly.
 
 **Add Discord Username to account.json**
 - *What it means*: Store Discord username in account.json alongside discord_user_id for easier reference and display

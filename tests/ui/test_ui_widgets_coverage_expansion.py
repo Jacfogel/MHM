@@ -33,6 +33,7 @@ from ui.widgets.period_row_widget import PeriodRowWidget
 from ui.widgets.dynamic_list_container import DynamicListContainer
 
 
+@pytest.mark.ui
 class TestUIWidgetsCoverageExpansion:
     """Comprehensive test coverage expansion for UI widgets."""
     

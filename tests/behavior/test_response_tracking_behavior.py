@@ -20,6 +20,7 @@ from core.response_tracking import (
 )
 
 
+@pytest.mark.behavior
 class TestResponseTrackingBehavior:
     """Test real behavior of response tracking functions."""
     
@@ -489,6 +490,8 @@ class TestResponseTrackingBehavior:
         assert "timestamp" in data[1], "Second entry should have timestamp"
 
 
+@pytest.mark.behavior
+@pytest.mark.analytics
 class TestResponseTrackingIntegration:
     """Test integration between response tracking functions."""
     

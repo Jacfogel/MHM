@@ -38,7 +38,7 @@ class TestSchedulerManagerLifecycle:
     """Test SchedulerManager lifecycle and threading."""
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     def test_scheduler_manager_initialization_real_behavior(self, mock_communication_manager):
         """Test SchedulerManager initialization with real behavior verification."""
@@ -52,7 +52,7 @@ class TestSchedulerManagerLifecycle:
         # Note: last_run_time is only set when run_daily_scheduler is called, not during initialization
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     @pytest.mark.slow
     def test_run_daily_scheduler_thread_creation_real_behavior(self, scheduler_manager):
@@ -83,7 +83,7 @@ class TestSchedulerManagerLifecycle:
                         scheduler_manager.stop_scheduler()
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     @pytest.mark.slow
     def test_stop_scheduler_thread_cleanup_real_behavior(self, scheduler_manager):
@@ -115,7 +115,7 @@ class TestSchedulerManagerLifecycle:
                         assert scheduler_manager.scheduler_thread is None
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_stop_scheduler_no_thread_graceful_handling(self, scheduler_manager):
         """Test stopping scheduler when no thread is running."""
         # Should not raise any exceptions and should log appropriately
@@ -129,7 +129,7 @@ class TestMessageScheduling:
     """Test message scheduling functionality."""
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     def test_schedule_all_users_immediately_real_behavior(self, scheduler_manager, test_data_dir):
         """Test scheduling all users immediately with real behavior verification."""
@@ -198,7 +198,7 @@ class TestMessageScheduling:
             mock_get_users.assert_called_once()
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     def test_schedule_new_user_real_behavior(self, scheduler_manager, test_data_dir):
         """Test scheduling a newly created user."""
@@ -229,7 +229,7 @@ class TestMessageScheduling:
                         mock_task_schedule.assert_called_once_with(user_id)
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     def test_schedule_daily_message_job_real_behavior(self, scheduler_manager):
         """Test scheduling daily messages for a specific user and category."""
@@ -262,7 +262,7 @@ class TestMessageScheduling:
                     mock_schedule_period.assert_called_once_with(user_id, category, 'morning')
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_daily_message_job_no_periods(self, scheduler_manager):
         """Test scheduling daily messages when no periods are available."""
         user_id = 'test-user'
@@ -279,7 +279,7 @@ class TestMessageScheduling:
                 mock_schedule_period.assert_not_called()
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     def test_schedule_message_for_period_real_behavior(self, scheduler_manager):
         """Test scheduling a message for a specific period."""
@@ -314,7 +314,7 @@ class TestMessageScheduling:
                         assert mock_wake.call_count >= 0  # Allow for the case where it doesn't reach this point
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_message_for_period_time_conflict_retry(self, scheduler_manager):
         """Test scheduling with time conflicts and retry logic."""
         user_id = 'test-user'
@@ -351,7 +351,7 @@ class TestTaskReminderScheduling:
     """Test task reminder scheduling functionality."""
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     def test_schedule_all_task_reminders_real_behavior(self, scheduler_manager):
         """Test scheduling all task reminders for a user."""
@@ -400,7 +400,7 @@ class TestTaskReminderScheduling:
                             assert True  # Method completed without error
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_all_task_reminders_tasks_disabled(self, scheduler_manager):
         """Test scheduling task reminders when tasks are disabled."""
         user_id = 'test-user'
@@ -419,7 +419,7 @@ class TestTaskReminderScheduling:
                     mock_load_tasks.assert_not_called()
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     def test_schedule_task_reminder_at_time_real_behavior(self, scheduler_manager):
         """Test scheduling a task reminder at a specific time."""
@@ -446,7 +446,7 @@ class TestTaskReminderScheduling:
                 mock_wake_timer.assert_called_once()
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_task_reminder_at_time_completed_task(self, scheduler_manager):
         """Test scheduling task reminder for a completed task."""
         user_id = 'test-user'
@@ -468,7 +468,7 @@ class TestTaskReminderScheduling:
             mock_get_task.assert_called_once_with(user_id, task_id)
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_get_random_time_within_task_period_real_behavior(self, scheduler_manager):
         """Test generating random time within a task period."""
         start_time = '09:00'
@@ -496,7 +496,7 @@ class TestTimeManagement:
     """Test time management and conflict detection."""
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     def test_is_time_conflict_with_conflict_real_behavior(self, scheduler_manager):
         """Test time conflict detection when conflicts exist."""
@@ -518,7 +518,7 @@ class TestTimeManagement:
             assert result is True
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_is_time_conflict_no_conflict_different_user(self, scheduler_manager):
         """Test time conflict detection with different user."""
         user_id = 'test-user'
@@ -539,7 +539,7 @@ class TestTimeManagement:
             assert result is False
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     def test_get_random_time_within_period_future_scheduling(self, scheduler_manager):
         """Test getting random time for future scheduling."""
@@ -575,7 +575,7 @@ class TestTimeManagement:
             assert start_time <= result_time <= end_time
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_get_random_time_within_period_invalid_period(self, scheduler_manager):
         """Test getting random time with invalid period."""
         user_id = 'test-user'
@@ -602,7 +602,7 @@ class TestMessageHandling:
     """Test message handling and retry logic."""
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     def test_handle_sending_scheduled_message_success(self, scheduler_manager):
         """Test successful message sending."""
@@ -616,7 +616,7 @@ class TestMessageHandling:
         scheduler_manager.communication_manager.handle_message_sending.assert_called_once_with(user_id, category)
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_handle_sending_scheduled_message_with_retries(self, scheduler_manager):
         """Test message sending with retry logic."""
         user_id = 'test-user'
@@ -637,7 +637,7 @@ class TestMessageHandling:
             mock_sleep.assert_called_once_with(1)
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     def test_handle_task_reminder_success(self, scheduler_manager):
         """Test successful task reminder sending."""
@@ -661,7 +661,7 @@ class TestMessageHandling:
                 mock_update_task.assert_called_once_with(user_id, task_id, {'reminder_sent': True})
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_handle_task_reminder_completed_task(self, scheduler_manager):
         """Test task reminder for completed task."""
         user_id = 'test-user'
@@ -687,7 +687,7 @@ class TestWakeTimerFunctionality:
     """Test wake timer functionality (Windows scheduled tasks)."""
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     def test_set_wake_timer_real_behavior(self, scheduler_manager):
         """Test setting wake timer for scheduled messages."""
@@ -705,7 +705,7 @@ class TestWakeTimerFunctionality:
             mock_wake_timer.assert_called_once_with(schedule_time, user_id, category, period)
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_set_wake_timer_failure_handling(self, scheduler_manager):
         """Test wake timer failure handling."""
         schedule_time = datetime.now() + timedelta(hours=1)
@@ -743,7 +743,7 @@ class TestCleanupOperations:
     """Test cleanup operations."""
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     def test_cleanup_old_tasks_real_behavior(self, scheduler_manager):
         """Test cleaning up old scheduled tasks."""
@@ -787,7 +787,7 @@ class TestStandaloneFunctions:
     """Test standalone scheduler functions."""
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     def test_schedule_all_task_reminders_standalone_real_behavior(self):
         """Test standalone schedule_all_task_reminders function."""
@@ -806,7 +806,7 @@ class TestStandaloneFunctions:
     # Task reminders are now managed consistently with other jobs
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     def test_process_user_schedules_real_behavior(self):
         """Test processing schedules for a specific user."""
@@ -829,7 +829,7 @@ class TestStandaloneFunctions:
                 mock_process.assert_any_call(user_id, 'health')
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     def test_process_category_schedule_real_behavior(self):
         """Test processing schedule for a specific category."""
@@ -853,7 +853,7 @@ class TestStandaloneFunctions:
                 mock_scheduler_instance.schedule_daily_message_job.assert_called_once_with(user_id, category)
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_get_user_checkin_preferences_real_behavior(self):
         """Test getting user check-in preferences."""
         user_id = 'test-user'
@@ -882,7 +882,7 @@ class TestErrorHandling:
     """Test error handling and edge cases."""
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_scheduler_manager_no_communication_manager(self):
         """Test scheduler manager with no communication manager."""
         # Test real behavior: should handle None communication manager gracefully
@@ -894,7 +894,7 @@ class TestErrorHandling:
         assert scheduler.running is False
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_handle_sending_scheduled_message_no_communication_manager(self, scheduler_manager):
         """Test message sending with no communication manager."""
         scheduler_manager.communication_manager = None
@@ -905,7 +905,7 @@ class TestErrorHandling:
         # Should complete without raising exceptions
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_handle_task_reminder_no_communication_manager(self, scheduler_manager):
         """Test task reminder with no communication manager."""
         scheduler_manager.communication_manager = None
@@ -916,7 +916,7 @@ class TestErrorHandling:
         # Should complete without raising exceptions
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_get_random_time_within_period_missing_times(self, scheduler_manager):
         """Test getting random time with missing start/end times."""
         user_id = 'test-user'
@@ -939,7 +939,7 @@ class TestErrorHandling:
             assert result is None
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_message_for_period_max_retries_exceeded(self, scheduler_manager):
         """Test scheduling with max retries exceeded."""
         user_id = 'test-user'
@@ -967,7 +967,7 @@ class TestSchedulerLoopCoverage:
     """Test scheduler loop functionality and error handling."""
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.slow
     def test_scheduler_loop_daily_job_scheduling_real_behavior(self, scheduler_manager, test_data_dir):
         """Test that scheduler loop properly schedules daily jobs for all users."""
@@ -1010,7 +1010,7 @@ class TestSchedulerLoopCoverage:
                 assert not scheduler_manager.scheduler_thread.is_alive(), "Scheduler thread should be stopped"
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.filterwarnings("ignore::pytest.PytestUnhandledThreadExceptionWarning")
     @pytest.mark.slow
     def test_scheduler_loop_error_handling_real_behavior(self, scheduler_manager):
@@ -1043,7 +1043,7 @@ class TestSchedulerLoopCoverage:
             assert scheduler_manager.scheduler_thread is None or not scheduler_manager.scheduler_thread.is_alive()
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.slow
     def test_scheduler_loop_stop_event_handling_real_behavior(self, scheduler_manager):
         """Test scheduler loop properly responds to stop events."""
@@ -1072,7 +1072,7 @@ class TestCheckinSchedulingCoverage:
     """Test check-in scheduling functionality."""
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_checkin_at_exact_time_real_behavior(self, scheduler_manager):
         """Test scheduling check-in at exact time with real behavior."""
         user_id = 'test-checkin-user'
@@ -1108,7 +1108,7 @@ class TestCheckinSchedulingCoverage:
             mock_wake_timer.assert_called_once()
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_checkin_missing_period_real_behavior(self, scheduler_manager):
         """Test check-in scheduling with missing time period."""
         user_id = 'test-checkin-user'
@@ -1125,7 +1125,7 @@ class TestCheckinSchedulingCoverage:
             # No assertions needed - function should complete without error
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_checkin_missing_start_time_real_behavior(self, scheduler_manager):
         """Test check-in scheduling with missing start time."""
         user_id = 'test-checkin-user'
@@ -1150,7 +1150,7 @@ class TestTaskReminderSchedulingCoverage:
     """Test task reminder scheduling functionality."""
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_all_task_reminders_with_tasks_real_behavior(self, scheduler_manager):
         """Test scheduling task reminders when tasks exist."""
         user_id = 'test-task-user'
@@ -1197,7 +1197,7 @@ class TestTaskReminderSchedulingCoverage:
             mock_schedule_task.assert_called()
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_all_task_reminders_no_tasks_real_behavior(self, scheduler_manager):
         """Test scheduling task reminders when no tasks exist."""
         user_id = 'test-task-user'
@@ -1224,7 +1224,7 @@ class TestTaskReminderSchedulingCoverage:
             # No assertions needed - function should complete without error
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_all_task_reminders_missing_times_real_behavior(self, scheduler_manager):
         """Test scheduling task reminders with missing start/end times."""
         user_id = 'test-task-user'
@@ -1258,7 +1258,7 @@ class TestWakeTimerCoverage:
     """Test wake timer functionality."""
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_set_wake_timer_success_real_behavior(self, scheduler_manager):
         """Test successful wake timer setting."""
         user_id = 'test-wake-user'
@@ -1275,7 +1275,7 @@ class TestWakeTimerCoverage:
             mock_wake_timer.assert_called_once_with(schedule_time, user_id, category, period)
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_set_wake_timer_process_failure_real_behavior(self, scheduler_manager):
         """Test wake timer setting when process fails."""
         user_id = 'test-wake-user'

@@ -15,6 +15,8 @@ from communication.message_processing.conversation_flow_manager import Conversat
 from communication.message_processing.conversation_flow_manager import QUESTION_STATES
 
 
+@pytest.mark.behavior
+@pytest.mark.communication
 class TestConversationManagerBehavior:
     """Test ConversationManager real behavior and side effects."""
     
@@ -528,6 +530,8 @@ class TestConversationManagerBehavior:
         assert "cancel" in reply.lower(), "Should acknowledge cancellation"
 
 
+@pytest.mark.behavior
+@pytest.mark.communication
 class TestConversationManagerIntegration:
     """Integration tests for ConversationManager with real user data."""
     

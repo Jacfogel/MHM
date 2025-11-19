@@ -20,7 +20,7 @@ class TestPeriodValidation:
     """Tests for time validation and conversion helpers."""
 
     @pytest.mark.unit
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_validate_and_format_time(self):
         """Ensure various time formats are normalized to HH:MM."""
         assert get_period_data__validate_and_format_time("9") == "9:00"
@@ -31,7 +31,7 @@ class TestPeriodValidation:
         assert get_period_data__validate_and_format_time("25:00") is None
 
     @pytest.mark.unit
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_time_conversion_helpers(self):
         """Verify 12h/24h conversion helpers."""
         assert get_period_data__time_24h_to_12h_display("00:30") == (12, 30, False)
@@ -46,7 +46,7 @@ class TestScheduleManagement:
     """Tests for schedule period lifecycle operations."""
 
     @pytest.mark.unit
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_period_lifecycle(self, mock_user_data, mock_config):
         """Add, edit, deactivate, and delete a schedule period."""
         user_id = mock_user_data["user_id"]

@@ -20,6 +20,8 @@ from tasks.task_management import create_task, load_active_tasks
 from tests.test_utilities import TestUserFactory
 
 
+@pytest.mark.behavior
+@pytest.mark.communication
 class TestInteractionHandlersBehavior:
     """Test interaction handlers real behavior and side effects."""
     
@@ -108,7 +110,7 @@ class TestInteractionHandlersBehavior:
         assert not handler.can_handle('start_checkin'), "ProfileHandler should not handle start_checkin"
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_management_handler_can_handle_intents(self):
         """Test that ScheduleManagementHandler can handle all expected intents."""
         handler = ScheduleManagementHandler()

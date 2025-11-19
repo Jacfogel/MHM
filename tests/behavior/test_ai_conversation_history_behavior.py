@@ -6,10 +6,14 @@ Tests focus on actual side effects and system changes rather than just return va
 
 from datetime import datetime
 
+import pytest
+
 from ai.conversation_history import ConversationHistory
 from tests.test_utilities import TestUserFactory
 
 
+@pytest.mark.behavior
+@pytest.mark.ai
 class TestConversationHistoryBehavior:
     """Test real behavior of conversation history functionality."""
 

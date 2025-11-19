@@ -1,86 +1,184 @@
 # AI Architecture - Quick Reference
 
+> **File**: `ai_development_docs/AI_ARCHITECTURE.md`  
+> **Purpose**: Route AI tools to the right modules and human docs with minimal context use.  
+> For more detailed guidance, examples, and rationale for any topic in this file, use the
+> matching sections in `ARCHITECTURE.md`.
 
-> **File**: `ai_development_docs/AI_ARCHITECTURE.md`
-> **Purpose**: High-impact architectural cues for AI collaborators  
-> **Style**: Concise, pattern-focused, cross-linked  
-> **For details**: See [ARCHITECTURE.md](../ARCHITECTURE.md)
+Use this file as a router. Decide what you are changing, then jump to the right modules and
+sections in `ARCHITECTURE.md` and other detailed guides.
 
-## Quick Reference
+Typical questions and starting points:
 
-**Key Module Decision Guide**
-1. User data access -> `core/user_data_handlers.py`, `core/user_data_validation.py`
-2. UI components -> `ui/dialogs/`, `ui/widgets/`, `ui/ui_app_qt.py`
-3. Communication flows -> `communication/`
-4. Scheduling/reminders -> `core/scheduler.py`, `core/schedule_management.py`
-5. Configuration -> `core/config.py`
+- User data access or schema changes  
+  -> `core/user_data_handlers.py`, `core/user_data_validation.py`  
+  -> Details: see section 2. User Data Model and section 3. Data Handling Patterns in
+     `ARCHITECTURE.md`.
 
-**Data Flow Overview**
-- User data: `data/users/{user_id}/` -> handlers -> UI/communication.
-- Messages: `resources/default_messages/` -> per-user `messages/` folders.
-- Config: `.env` -> `core/config.py` -> runtime.
+- UI layout, dialogs, or widgets  
+  -> `ui/ui_app_qt.py`, `ui/dialogs/`, `ui/widgets/`  
+  -> Details: see section 5. UI Architecture and Naming Conventions in `ARCHITECTURE.md`.
 
-**Critical Files**
-- `run_mhm.py` -> main entry point.
-- `core/service.py` -> background service lifecycle.
-- `ui/ui_app_qt.py` -> admin interface shell.
-- `core/user_data_handlers.py` -> unified user data access.
-- `communication/core/channel_orchestrator.py` -> channel coordination.
+- Scheduling or reminder logic  
+  -> `core/service.py`, `tasks/`  
+  -> Details: see section 4. Key Modules and Responsibilities in `ARCHITECTURE.md`.
+
+- Channel behavior (Discord, email, etc.)  
+  -> `communication/` modules  
+  -> Details: see section 4. Key Modules and Responsibilities and section 6.
+     Channel-Agnostic Architecture in `ARCHITECTURE.md`, plus section 2.
+     Channel Layers and Boundaries in `communication/COMMUNICATION_GUIDE.md`.
+
+- Configuration and environment variables  
+  -> `.env`, `.env.example`, `core/config.py`  
+  -> Details: see configuration notes in section 4. Key Modules and Responsibilities in
+     `ARCHITECTURE.md` and section 5. Configuration (Environment Variables) in
+     `logs/LOGGING_GUIDE.md`.
+
+- Logging and error handling  
+  -> `core/logger.py`, `core/error_handling.py`, `logs/`  
+  -> Details: see section 2. Logging Architecture in `logs/LOGGING_GUIDE.md` and
+     section 2. Architecture Overview in `core/ERROR_HANDLING_GUIDE.md`.
+
+---
 
 ## 1. Directory Overview
-- `core/`: Core business logic, scheduling, analytics.
-- `communication/`: Channel orchestrators and message flows.
-- `ui/`: PySide6 admin app (designs, generated code, dialogs, widgets).
-- `data/`: Per-user runtime stores plus logs.
-- `resources/default_messages/`: Message templates copied per user.
-- `resources/`: Additional presets, assets, and shared resources.
-- `ai/`: Local AI integration modules.
-- `ai_development_docs/`: AI-focused documentation for quick reference.
-- `ai_development_tools/`: Automation for audits, documentation sync, and reporting.
-- `development_docs/`: Human references (changelog, dependencies, plans).
-- `scripts/`: Utilities for migrations, cleanup, and maintenance tasks.
-- `tasks/`: Task and reminder definitions plus supporting helpers.
-- `tests/`: Unit, integration, behavior, and UI tests plus supporting fixtures.
-- `tests/logs/`: Captured test run logs kept separate from runtime logs.
-- `styles/`: QSS themes for the UI.
-- `.cursor/rules/`: Cursor rule files guiding AI collaborators.
+
+Top-level routing only; do not duplicate full descriptions here.
+
+- `core/` – core logic, config, logging, error handling, service, schedulers, user data helpers.  
+- `communication/` – channel orchestrators and adapters (Discord, email, etc.).  
+- `ui/` – PySide6 admin app (designs, generated code, dialogs, widgets, `ui/ui_app_qt.py`).  
+- `data/` – per-user runtime data under `data/users/{user_id}/` (use handlers, not raw file IO).  
+- `resources/` – shared templates and assets (`resources/default_messages/` for message templates).  
+- `ai/` – AI integration (LM Studio and helpers).  
+- `ai_development_docs/` – AI-focused documentation for routing and constraints.  
+- `ai_development_tools/` – tools runner and commands such as `doc-sync`, `config`, `coverage`.  
+- `development_docs/` – human references (changelog, dependencies, plans).  
+- `tasks/` – reminder and task definitions.  
+- `tests/` – tests, fixtures, `tests/data/`, `tests/logs/`. See section 2. Test Layout and Discovery
+  in `tests/TESTING_GUIDE.md`.  
+- `logs/` – runtime logs. See section 2. Logging Architecture in `logs/LOGGING_GUIDE.md`.  
+- `styles/` – QSS themes.  
+- `user/` – instance-level preferences and settings.
+
+If you introduce or remove top-level directories, update this list and the matching section
+in `ARCHITECTURE.md`.
+
+---
 
 ## 2. User Data Model
-- Per-user directory with `account.json`, flat `preferences.json`, `schedules.json`, `user_context.json`, optional feature files.
-- Message files only exist for enabled categories and live in `messages/` under each user.
-- Access exclusively through `core/user_data_handlers.get_user_data()` and save helpers.
+
+Per-user directory: `data/users/{user_id}/`.
+
+Common files:
+
+- `account.json` – identity and channel identifiers.  
+- `preferences.json` – flat preference dictionary (no nested root key).  
+- `schedules.json` – time periods, categories, and frequencies.  
+- `user_context.json` – extra context for messaging and AI.  
+- `messages/` – per-category messages copied from `resources/default_messages/`.
+
+AI rules:
+
+- Always use `core/user_data_handlers.py` and `core/user_data_validation.py` for reads and writes.  
+- Treat preferences as flat; build nested structures in memory only.  
+- New per-user files must be documented in both this section and section 2. User Data Model in
+  `ARCHITECTURE.md`.
+
+---
 
 ## 3. Data Handling Patterns
-- Read -> modify -> save full structures (no partial writes).
-- Use validators in `core/user_data_validation.py`.
-- Leverage `core/config.py` for all paths and environment details.
-- Scheduler helpers manage timing and wake timers-do not bypass them.
+
+Preserve these patterns when generating or editing code:
+
+- Centralized access  
+  - Use helpers in `core/user_data_handlers.py`.  
+  - Avoid direct `open()` on `data/users/...` in feature code.
+
+- Validate before writing  
+  - Use validators or models from `core/user_data_validation.py`.  
+  - Log clear errors on invalid data.
+
+- Template versus instance  
+  - Templates: `resources/default_messages/`.  
+  - Per-user instances: `data/users/{user_id}/messages/`.
+
+- Legacy and migration  
+  - Use explicit legacy branches and the logging pattern from section 7.
+    Legacy Compatibility Logging Standard in `logs/LOGGING_GUIDE.md`.
+
+If you need full rationale or examples, see section 3. Data Handling Patterns in `ARCHITECTURE.md`.
+
+---
 
 ## 4. Key Modules and Responsibilities
-- `core/user_data_handlers.py` / `core/user_management.py`: load/merge/save data.
-- `core/message_management.py`, `core/response_tracking.py`: communication analytics.
-- `core/scheduler.py`, `core/service.py`: background execution.
-- `communication/core/channel_orchestrator.py`: channel coordination.
-- `ui/ui_app_qt.py` plus `ui/dialogs/`, `ui/widgets/`: admin interface.
-- `ai_development_tools/`: audits, docs analysis, reporting.
+
+Use this list to anchor AI changes to the right modules.
+
+- `run_mhm.py` – UI entry point; launches the PySide6 admin app.  
+- `run_headless_service.py` / `core/headless_service.py` – CLI and manager for the headless
+  background service.  
+- `core/service.py` – background service implementation and lifecycle.  
+- `core/config.py` – configuration loader and validator (reads `.env` via python-dotenv).
+  See section 5. Configuration (Environment Variables) in `logs/LOGGING_GUIDE.md`.  
+- `core/logger.py` – logging configuration and component loggers. See section 2.
+  Logging Architecture in `logs/LOGGING_GUIDE.md`.  
+- `core/error_handling.py` – shared error handling decorators and integration with logging and
+  basic metrics. See section 2. Architecture Overview in `core/ERROR_HANDLING_GUIDE.md`.  
+- `core/user_data_handlers.py`, `core/user_data_validation.py` – user data entry points.  
+- `communication/` – channel orchestrators and adapters that turn service events into messages on
+  Discord, email, etc.  
+- `tasks/` – task and reminder definitions used by schedulers.  
+- `ui/ui_app_qt.py` – UI shell that wires dialogs to the service.
+
+For more detailed descriptions, see section 4. Key Modules and Responsibilities in `ARCHITECTURE.md`.
+
+---
 
 ## 5. UI Architecture and Naming Conventions
-- Designs: `ui/designs/*.ui` -> Generated: `ui/generated/*_pyqt.py` -> Implementations: `ui/dialogs/` or `ui/widgets/`.
-- Dialogs follow names like `ui/dialogs/category_management_dialog.py`; use `_dialog` or `_management_dialog` suffixes.
-- Widgets follow names like `ui/widgets/task_settings_widget.py`; use `_widget` or `_settings_widget` suffixes.
-- Avoid redundant prefixes-paths convey context.
 
-### 5.1. File Mapping Examples
-- Category management: design `ui/designs/category_management_dialog.ui` -> generated `ui/generated/category_management_dialog_pyqt.py` -> implementation `ui/dialogs/category_management_dialog.py`.
-- Account creation: design `ui/designs/account_creator_dialog.ui` -> generated `ui/generated/account_creator_dialog_pyqt.py` -> implementation `ui/dialogs/account_creator_dialog.py`.
-- Task settings: design `ui/designs/task_settings_widget.ui` -> generated `ui/generated/task_settings_widget_pyqt.py` -> implementation `ui/widgets/task_settings_widget.py`.
+Follow the standard design-generated-implementation pattern:
 
-## 6. Adding New Features Safely
-- Use `get_user_data()` helpers and preserve flat preference structure.
-- Document new message templates and copy rules.
-- Follow established naming when extending UI components; regenerate `.ui` outputs via tooling.
-- Update `ARCHITECTURE.md` when altering flows or introducing subsystems.
+- Designs: `.ui` files (for example `category_management_dialog.ui`).  
+- Generated: Python modules from `.ui` (for example `category_management_dialog_pyqt.py`).  
+- Implementations: dialog and widget classes (for example `ui/dialogs/category_management_dialog.py`).
+
+AI rules:
+
+- Do not edit generated code. Change behavior in dialogs, widgets, or `ui/ui_app_qt.py`.  
+- Keep names aligned across design, generated, and implementation files.  
+- For a new dialog or widget, follow the existing naming patterns and update `ARCHITECTURE.md`
+  only if conventions change.
+
+Details and examples live in section 5. UI Architecture and Naming Conventions in `ARCHITECTURE.md`.
+
+---
+
+## 6. Channel-Agnostic Architecture
+
+When adding or modifying channel behavior:
+
+- Put shared business logic in `core/` and `tasks/`.  
+- Keep `communication/` modules focused on translating service events into channel-specific
+  API calls and payloads.  
+- UI components in `ui/` should act as another adapter layer, not a place for business rules.
+
+Reference material:
+
+- Section 6. Channel-Agnostic Architecture in `ARCHITECTURE.md`.  
+- Section 1. Core Principle and section 2. Channel Layers and Boundaries in
+  `communication/COMMUNICATION_GUIDE.md`.
+
+---
 
 ## 7. Development Notes
-- IDE debug runs may spawn two service processes-prefer running from an activated terminal for clarity.
-- Keep this quick reference aligned with the detailed architecture doc after refactors.
+
+- Use `run_mhm.py` for UI workflows and `run_headless_service.py` for headless workflows.  
+- Use logs under `logs/` and error handling in `core/error_handling.py` to debug issues.
+  See section 2. Logging Architecture in `logs/LOGGING_GUIDE.md` and section 2.
+  Architecture Overview in `core/ERROR_HANDLING_GUIDE.md`.  
+- Keep `ai_*` docs in sync with their human counterparts at the H2 level (use the documentation
+  sync checker).  
+- For any non-trivial refactor, read the relevant section in `ARCHITECTURE.md` before editing
+  code. For overall workflow, see section 2. Standards and Templates in `DEVELOPMENT_WORKFLOW.md`.

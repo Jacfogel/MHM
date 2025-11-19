@@ -2,6 +2,9 @@
 
 import importlib
 
+import pytest
+
+
 def _reload_in_order(first_module: str, second_module: str):
     first = importlib.import_module(first_module)
     second = importlib.import_module(second_module)
@@ -10,6 +13,7 @@ def _reload_in_order(first_module: str, second_module: str):
     return first, second
 
 
+@pytest.mark.unit
 def test_loader_registry_shared_and_complete_regardless_of_import_order():
     # Case 1: user_management then user_data_handlers
     um1, udh1 = _reload_in_order('core.user_management', 'core.user_data_handlers')

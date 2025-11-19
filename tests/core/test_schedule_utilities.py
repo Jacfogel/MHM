@@ -14,6 +14,8 @@ from core.schedule_utilities import (
 )
 
 
+@pytest.mark.unit
+@pytest.mark.scheduler
 class TestScheduleUtilities:
     """Test schedule utility functions."""
     

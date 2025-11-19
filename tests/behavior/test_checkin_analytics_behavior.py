@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 
 from core.checkin_analytics import CheckinAnalytics
 
+@pytest.mark.behavior
 class TestCheckinAnalyticsInitializationBehavior:
     """Test CheckinAnalytics initialization with real behavior verification."""
     
@@ -26,6 +27,7 @@ class TestCheckinAnalyticsInitializationBehavior:
         assert analytics is not None, "CheckinAnalytics should be created successfully"
         assert isinstance(analytics, CheckinAnalytics), "Should be correct type"
 
+@pytest.mark.behavior
 class TestCheckinAnalyticsMoodTrendsBehavior:
     """Test mood trends analysis with real behavior verification."""
     
@@ -104,6 +106,7 @@ class TestCheckinAnalyticsMoodTrendsBehavior:
         assert 'error' in result, "Should return error with invalid mood data"
         assert result['error'] == 'Analysis failed', "Should have correct error message"
 
+@pytest.mark.behavior
 class TestCheckinAnalyticsHabitAnalysisBehavior:
     """Test habit analysis with real behavior verification."""
     
@@ -179,6 +182,7 @@ class TestCheckinAnalyticsHabitAnalysisBehavior:
         assert 0 <= result['overall_completion'] <= 100, "Overall completion should be percentage"
         assert breakfast_stats['completion_rate'] == 50.0, "Breakfast should be 50% (every other day)"
 
+@pytest.mark.behavior
 class TestCheckinAnalyticsSleepAnalysisBehavior:
     """Test sleep analysis with real behavior verification."""
     
@@ -243,6 +247,7 @@ class TestCheckinAnalyticsSleepAnalysisBehavior:
         assert 3.0 <= result['average_quality'] <= 5.0, "Average quality should be in valid range"
         assert isinstance(result['recommendations'], list), "Recommendations should be list"
 
+@pytest.mark.behavior
 class TestCheckinAnalyticsWellnessScoreBehavior:
     """Test wellness score calculation with real behavior verification."""
     
@@ -315,6 +320,7 @@ class TestCheckinAnalyticsWellnessScoreBehavior:
         assert result['level'] in ['Excellent', 'Good', 'Fair', 'Poor'], "Level should be valid"
         assert isinstance(result['recommendations'], list), "Recommendations should be list"
 
+@pytest.mark.behavior
 class TestCheckinAnalyticsHistoryBehavior:
     """Test check-in history functionality with real behavior verification."""
     
@@ -371,6 +377,7 @@ class TestCheckinAnalyticsHistoryBehavior:
             assert 'mood' in checkin, "Each check-in should have mood"
             # Notes may not be present in all check-ins
 
+@pytest.mark.behavior
 class TestCheckinAnalyticsCompletionRateBehavior:
     """Test completion rate calculation with real behavior verification."""
     
@@ -429,6 +436,7 @@ class TestCheckinAnalyticsCompletionRateBehavior:
         assert result['period_days'] == 30, "Should have correct period"
         assert 0 <= result['rate'] <= 100, "Completion rate should be percentage"
 
+@pytest.mark.behavior
 class TestCheckinAnalyticsTaskStatsBehavior:
     """Test task weekly stats with real behavior verification."""
     

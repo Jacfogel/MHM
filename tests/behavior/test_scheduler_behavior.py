@@ -31,7 +31,7 @@ class TestSchedulerManager:
         return SchedulerManager(mock_communication_manager)
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     @pytest.mark.regression
     def test_scheduler_manager_initialization(self, mock_communication_manager):
@@ -44,7 +44,7 @@ class TestSchedulerManager:
         assert scheduler._stop_event is not None
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     @pytest.mark.regression
     def test_stop_scheduler_no_thread(self, scheduler_manager):
@@ -53,7 +53,7 @@ class TestSchedulerManager:
         scheduler_manager.stop_scheduler()
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     @pytest.mark.regression
     def test_is_job_for_category_no_jobs(self, scheduler_manager):
@@ -62,7 +62,7 @@ class TestSchedulerManager:
         assert result is False
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     @pytest.mark.regression
     def test_is_job_for_category_with_matching_job(self, scheduler_manager):
@@ -83,7 +83,7 @@ class TestSchedulerManager:
             assert result is True
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     @pytest.mark.regression
     def test_is_job_for_category_with_non_matching_job(self, scheduler_manager):
@@ -99,7 +99,7 @@ class TestSchedulerManager:
             assert result is False
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     @pytest.mark.regression
     def test_get_random_time_within_period_valid_times(self, scheduler_manager):
@@ -135,7 +135,7 @@ class TestSchedulerManager:
             mock_get_periods.assert_called_once_with(user_id, category)
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     @pytest.mark.regression
     def test_get_random_time_within_period_invalid_times(self, scheduler_manager):
@@ -158,7 +158,7 @@ class TestSchedulerManager:
             mock_get_periods.assert_called_once_with(user_id, category)
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     @pytest.mark.regression
     def test_is_time_conflict_no_conflicts(self, scheduler_manager):
@@ -169,7 +169,7 @@ class TestSchedulerManager:
         assert result is False
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     @pytest.mark.regression
     def test_cleanup_old_tasks(self, scheduler_manager, test_data_dir):
@@ -193,7 +193,7 @@ class TestSchedulerManager:
             scheduler_manager.cleanup_old_tasks(user_id, category)
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     @pytest.mark.critical
     @pytest.mark.regression
     def test_log_scheduled_tasks(self, scheduler_manager):
@@ -217,7 +217,7 @@ class TestSchedulerFunctions:
     """Test standalone scheduler functions."""
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_get_user_categories_success(self, mock_user_data):
         """Test getting user categories successfully."""
         user_id = mock_user_data['user_id']
@@ -234,7 +234,7 @@ class TestSchedulerFunctions:
             assert 'fun_facts' in categories
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_get_user_categories_no_user(self):
         """Test getting categories for non-existent user."""
         with patch('core.user_data_handlers.get_user_data') as mock_get_data:
@@ -246,7 +246,7 @@ class TestSchedulerFunctions:
             assert len(categories) == 0
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_get_user_task_preferences_success(self, mock_user_data):
         """Test getting user task preferences successfully."""
         user_id = mock_user_data['user_id']
@@ -267,7 +267,7 @@ class TestSchedulerFunctions:
         assert prefs.get('reminder_time') == '10:00'
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_get_user_task_preferences_no_user(self):
         """Test getting task preferences for non-existent user."""
         prefs_result = get_user_data('nonexistent-user', 'preferences')
@@ -277,7 +277,7 @@ class TestSchedulerFunctions:
         assert len(prefs) == 0
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_get_user_checkin_preferences_success(self, mock_user_data):
         """Test getting user check-in preferences successfully."""
         user_id = mock_user_data['user_id']
@@ -297,7 +297,7 @@ class TestSchedulerFunctions:
         assert prefs.get('frequency') == 'daily'
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_get_user_checkin_preferences_no_user(self):
         """Test getting check-in preferences for non-existent user."""
         prefs_result = get_user_data('nonexistent-user', 'preferences')
@@ -349,7 +349,7 @@ class TestSchedulerEdgeCases:
     """Test scheduler edge cases and error conditions."""
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_scheduler_with_empty_user_list(self, mock_communication_manager):
         """Test scheduler behavior with no users."""
         scheduler = SchedulerManager(mock_communication_manager)
@@ -361,7 +361,7 @@ class TestSchedulerEdgeCases:
             scheduler.schedule_all_users_immediately()
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_scheduler_with_invalid_user_data(self, mock_communication_manager):
         """Test scheduler behavior with invalid user data."""
         scheduler = SchedulerManager(mock_communication_manager)
@@ -376,7 +376,7 @@ class TestSchedulerEdgeCases:
                 scheduler.schedule_all_users_immediately()
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_random_time_generation_consistency(self, mock_communication_manager):
         """Test that random time generation is consistent within bounds."""
         scheduler = SchedulerManager(mock_communication_manager)
@@ -417,7 +417,7 @@ class TestTaskReminderFunctions:
     """Test task reminder specific functions."""
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_all_task_reminders_success(self, test_data_dir):
         """Test scheduling all task reminders for a user."""
         user_id = 'test-task-user'
@@ -441,7 +441,7 @@ class TestTaskReminderFunctions:
             schedule_all_task_reminders(user_id)
     
     @pytest.mark.behavior
-    @pytest.mark.schedules
+    @pytest.mark.scheduler
     def test_schedule_all_task_reminders_disabled(self, test_data_dir):
         """Test scheduling task reminders when task management is disabled."""
         user_id = 'test-task-user'
