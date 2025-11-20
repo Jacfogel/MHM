@@ -17,14 +17,27 @@ import pytest
 def test_scripts_directory_excluded_from_test_discovery():
     """Verify that pytest does not discover any tests in scripts/ directory."""
     project_root = Path(__file__).parent.parent.parent
+    scripts_dir = project_root / "scripts"
     
-    # Run pytest collection to see what tests would be discovered
+    if not scripts_dir.exists():
+        pytest.skip("scripts/ directory does not exist; policy satisfied.")
+    
+    # Run pytest collection limited to scripts/ for faster, deterministic results
     result = subprocess.run(
-        [sys.executable, "-m", "pytest", "--collect-only", "-q"],
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "scripts",
+            "--collect-only",
+            "-q",
+            "--disable-warnings",
+        ],
         cwd=project_root,
         capture_output=True,
         text=True,
-        timeout=30
+        timeout=60,
+        check=False,
     )
     
     # Check that no tests from scripts/ are collected
@@ -33,10 +46,12 @@ def test_scripts_directory_excluded_from_test_discovery():
     # Look for any references to scripts/ in the collected tests
     scripts_tests = []
     for line in output.split('\n'):
-        if 'scripts' in line.lower() and ('test' in line.lower() or '::' in line):
-            # Filter out false positives (like "scripts" in comments or paths)
-            if 'scripts/' in line or 'scripts\\' in line:
-                scripts_tests.append(line.strip())
+        normalized = line.strip()
+        if not normalized:
+            continue
+        if "::" in normalized:
+            if "scripts/" in normalized or "scripts\\" in normalized:
+                scripts_tests.append(normalized)
     
     # Assert no tests from scripts/ were discovered
     assert not scripts_tests, (

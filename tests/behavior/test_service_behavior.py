@@ -365,12 +365,12 @@ class TestMHMService:
         for file_path in created_files:
             assert os.path.exists(file_path)
         
-        # Mock file listing to return our test files
-        with patch('core.service.os.listdir', return_value=files_to_create), \
-             patch('core.service.os.path.dirname', return_value=temp_base_dir), \
+        # The cleanup method uses Path.iterdir() and calls _cleanup_test_message_requests__get_base_directory()
+        # Patch the helper method to return our temp directory instead of the project root
+        with patch.object(service, '_cleanup_test_message_requests__get_base_directory', return_value=temp_base_dir), \
              patch('core.service.os.remove') as mock_remove:
             
-            # Run cleanup - this will use real os.path.join and os.remove
+            # Run cleanup - this will use Path.iterdir() on temp_base_dir and real os.remove
             service.cleanup_test_message_requests()
             
             # Verify real behavior - only test message request files were marked for removal

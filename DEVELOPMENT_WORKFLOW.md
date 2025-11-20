@@ -4,6 +4,8 @@
 > **Audience**: Human developer (beginner programmer)  
 > **Purpose**: Safe development practices and day-to-day procedures  
 > **Style**: Comprehensive, step-by-step, practical
+> **Pair**: `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`
+> This document is paired with `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`, and any potential changes must be considered within the context of both docs.
 
 
 ## Quick Reference
@@ -11,19 +13,19 @@
 This section summarizes the most common tasks and where to look for detail.
 
 - Project overview and navigation  
-  - See `README.md`.
+  - See section 3. "Quick Start" in `README.md`.
 
 - Environment setup and running the app  
-  - See "Environment Setup" and "Quick Start (Recommended)" in `HOW_TO_RUN.md`.
+  - See section 1. "Quick Start (Recommended)" in `HOW_TO_RUN.md` for environment setup and first-run commands.
 
 - Running tests  
-  - See `tests/TESTING_GUIDE.md` (full) and `ai_development_docs/AI_TESTING_GUIDE.md` (AI-optimized).
+  - See section 1. "Testing Philosophy and Priorities" and section 2. "Test Layout and Discovery" in `tests/TESTING_GUIDE.md`.
 
 - Updating documentation  
-  - See `DOCUMENTATION_GUIDE.md` and `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`.
+  - See section 1. "Documentation Categories" in `DOCUMENTATION_GUIDE.md`.
 
 - Architecture and data flow  
-  - See `ARCHITECTURE.md` and `ai_development_docs/AI_ARCHITECTURE.md`.
+  - See section 4. "Key Modules and Responsibilities" in `ARCHITECTURE.md`.
 
 - If you are unsure what to do next  
   - Start with "Development Process" below, then consult the relevant guide for testing, docs, or logging.
@@ -44,7 +46,7 @@ pip install -r requirements.txt
 # Run the headless service (background core + bots)
 python run_headless_service.py start
 
-# Run the UI + service (see HOW_TO_RUN.md for details)
+# Run the UI + service (see `HOW_TO_RUN.md`, section 1. "Quick Start (Recommended)" for details)
 python run_mhm.py
 
 # Run tests via helper script (parallel by default)
@@ -84,7 +86,7 @@ When in doubt: activate the virtual environment, make a backup, then follow the 
    - Ensure the summarized change appears in `ai_development_docs/AI_CHANGELOG.md`.
 
 7. **Use the Audit-First Protocol for docs**  
-   - Before editing documentation, consult `DOCUMENTATION_GUIDE.md` and follow the Audit-First instructions so automated checks remain effective.
+   - Before editing documentation, consult section 3. "Documentation Synchronization Checklist" in `DOCUMENTATION_GUIDE.md` so Audit-First instructions remain effective.
 
 8. **Ask for help early**  
    - When something feels risky or confusing, stop, collect a short description and errors, and ask for help instead of guessing.
@@ -136,7 +138,7 @@ deactivate
 ### 2.3. Troubleshooting
 
 - **"python: command not found" or wrong version**  
-  - Confirm Python is installed and on PATH; see `HOW_TO_RUN.md` if setup fails.
+  - Confirm Python is installed and on PATH; see section 5. "Troubleshooting" in `HOW_TO_RUN.md` if setup fails.
 
 - **Import errors after pulling recent changes**  
   - Run `pip install -r requirements.txt --force-reinstall` inside `(.venv)`.
@@ -193,20 +195,20 @@ Use this as your default loop for any change: features, bug fixes, or refactors.
 - Work in **small, testable increments**.  
 - Keep functions focused; avoid reintroducing thin wrappers that just call other functions.  
 - Use consistent imports and the official helpers (for example, `get_user_data()` from `core.user_data_handlers`).  
-- Maintain the existing patterns for logging, error handling, and configuration (see `LOGGING_GUIDE.md` and `ERROR_HANDLING_GUIDE.md`).
+- Maintain the existing patterns for logging, error handling, and configuration (see section 2. "Logging Architecture" in `logs/LOGGING_GUIDE.md` and section 2. "Architecture Overview" in `core/ERROR_HANDLING_GUIDE.md`).
 
 ### 3.3. Step 3: Test
 
 - Start with targeted tests that cover the change directly.  
 - Expand outward: unit -> integration -> behavior -> UI flows.  
-- Use `python run_tests.py` for broad runs, and see `tests/TESTING_GUIDE.md` for details and parallel-safe practices.  
-- For features that depend on Discord or email, perform minimal manual verification as described in "Manual Testing Procedures" in `tests/TESTING_GUIDE.md`.
+- Use `python run_tests.py` for broad runs, and see section 6. "Running Tests" and section 7. "Parallel Execution" in `tests/TESTING_GUIDE.md` for details and parallel-safe practices.  
+- For features that depend on Discord or email, perform minimal manual verification as described in section 9. "Manual Testing Procedures" in `tests/TESTING_GUIDE.md`.
 
 ### 3.4. Step 4: Document
 
 - Update `development_docs/CHANGELOG_DETAIL.md` with a clear description of what changed and why.  
 - Ensure `ai_development_docs/AI_CHANGELOG.md` contains a concise summary referencing the same change.  
-- Update any impacted docs (for example, `HOW_TO_RUN.md`, `README.md`, or specialized guides).  
+- Update any impacted docs (for example, section 1. "Quick Start (Recommended)" in `HOW_TO_RUN.md`, section 3. "Quick Start" in `README.md`, or specialized guides).
 - If you introduce new patterns for testing, logging, or error handling, update the relevant guide pair (human + AI).
 
 ### 3.5. Step 5: Clean Up
@@ -223,7 +225,7 @@ Use this as your default loop for any change: features, bug fixes, or refactors.
 - Test after every meaningful change, even if small.  
 - Start with unit-level checks, then expand to integration and behavior tests.  
 - Confirm UI workflows and communication channels still behave correctly for affected features.  
-- For details and commands, see "Quick Reference" and "Testing Strategy" in `tests/TESTING_GUIDE.md`.
+- For details and commands, see "Quick Reference" and section 6. "Running Tests" in `tests/TESTING_GUIDE.md`.
 
 ### 4.2. Test Categories
 
@@ -232,7 +234,7 @@ Use this as your default loop for any change: features, bug fixes, or refactors.
 - **Behavior tests** - Exercise realistic end-to-end flows (for example, a check-in through Discord).  
 - **UI tests** - Focus on PySide6 dialogs, widgets, and signal/slot behavior.
 
-For AI-optimized testing instructions and patterns, see `ai_development_docs/AI_TESTING_GUIDE.md`.
+For AI-optimized testing instructions and patterns, see the matching sections in `ai_development_docs/AI_TESTING_GUIDE.md`.
 
 
 ## 5. Common Tasks

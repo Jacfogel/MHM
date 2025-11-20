@@ -2337,6 +2337,21 @@ class TestUserFactory:
                 
                 return user_index.get(internal_username)
             
+            # Fallback: scan user directories when index is missing or out-of-date
+            users_dir = os.path.join(test_data_dir, "users")
+            if os.path.exists(users_dir):
+                from core.file_locking import safe_json_read  # reuse helper
+                for entry in os.listdir(users_dir):
+                    user_dir = os.path.join(users_dir, entry)
+                    account_file = os.path.join(user_dir, "account.json")
+                    if not os.path.exists(account_file):
+                        continue
+                    account_data = safe_json_read(account_file, default={})
+                    if account_data.get("internal_username") == internal_username:
+                        # Update the index so future lookups are fast and consistent
+                        TestUserFactory.create_basic_user__update_index(test_data_dir, internal_username, entry)
+                        return entry
+            
             return None
             
         except Exception as e:

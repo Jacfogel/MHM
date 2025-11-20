@@ -4,6 +4,8 @@
 > **Audience**: Developers and contributors  
 > **Purpose**: Organize, author, and maintain project documentation  
 > **Style**: Comprehensive reference with actionable guidance
+> **Pair**: `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`
+> This document is paired with `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`, and any potential changes must be considered within the context of both docs.
 
 
 ## Quick Reference
@@ -44,6 +46,7 @@ This section helps you choose the right documentation file quickly and safely.
 
 - If you edit any document that has an AI or human counterpart, you must follow the rules in the "Documentation Synchronization Checklist" section below.
 - Use generated reports (for example, `development_docs/LEGACY_REFERENCE_REPORT.md`) to detect stale references and path drift before finalizing changes.
+
 
 
 ## 1. Documentation Categories
@@ -137,11 +140,11 @@ For a more complete list and generation details, see the "Generated Documentatio
 
 ## 2. Standards and Templates
 
-This section defines how documentation files should be structured and labeled.
+This section defines how documentation files should be structured, labeled, and cross-referenced.
 
-### 2.1. File address requirement for `.md` files
+### 2.1. Metadata for `.md` documentation files
 
-Every documentation file (`.md`) must include a file address line in its metadata so it can be located and referenced unambiguously.
+Every documentation file (`.md`) must start with a metadata block so it can be located and referenced unambiguously.
 
 Required format:
 
@@ -150,36 +153,33 @@ Required format:
 > **Audience**: [Target audience]
 > **Purpose**: [What this document is for]
 > **Style**: [Tone and depth]
+> **Pair**: `<PAIRED_DOC_PATH>`  # Omit or leave blank if the doc has no AI/human pair
 ```
 
-Examples:
+Notes:
+- `File` must always match the relative path from the project root (for example, `logs/LOGGING_GUIDE.md`).
+- `Pair` must be present for all docs that participate in a doc pair (for example, `ai_development_docs/AI_LOGGING_GUIDE.md`).
+- The pairing line should be followed by a short sentence stating that changes must be considered in the context of both docs.
+
+Example:
 
 ```markdown
 # Documentation Guide
 
 > **File**: `DOCUMENTATION_GUIDE.md`
-> **Audience**: Developers and contributors  
-> **Purpose**: Organize, author, and maintain project documentation  
+> **Audience**: Developers and contributors
+> **Purpose**: Organize, author, and maintain project documentation
 > **Style**: Comprehensive reference with actionable guidance
+> **Pair**: `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`
+> This document is paired with `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`, and any potential changes must be considered within the context of both docs.
 ```
 
-For nested documents:
-
-```markdown
-# Logging Guide
-
-> **File**: `logs/LOGGING_GUIDE.md`
-> **Audience**: Developers working with logging  
-> **Purpose**: Describe logging architecture, usage, and troubleshooting  
-> **Style**: Technical, example-driven
-```
-
-### 2.2. File address requirement for `.mdc` rule files
+### 2.2. Metadata for `.mdc` rule files
 
 For `.mdc` rule files used by tools like Cursor:
 
-- Use YAML frontmatter with a `file` field, or
-- Use a comment line if there is no frontmatter.
+- Prefer YAML frontmatter with a `file` field, or,
+- Use a single comment line if there is no frontmatter.
 
 Example with frontmatter:
 
@@ -190,7 +190,7 @@ file: ".cursor/rules/testing-guidelines.mdc"
 ---
 ```
 
-Example with comment:
+Example with comment only:
 
 ```markdown
 <!-- File: .cursor/rules/testing-guidelines.mdc -->
@@ -198,37 +198,40 @@ Example with comment:
 
 ### 2.3. Structure guidelines for human-facing docs
 
-Human-facing documentation should generally follow this pattern:
+Human-facing docs (for example, `DOCUMENTATION_GUIDE.md`, `logs/LOGGING_GUIDE.md`, `tests/TESTING_GUIDE.md`) should:
 
-1. H1 title that clearly names the topic.  
-2. Metadata block with File, Audience, Purpose, Style.  
-3. "Quick Reference" section listing the most common lookups or tasks.  
-4. Detailed sections ordered from general concepts to specific patterns and troubleshooting.  
-5. References and resources at the end.  
-6. Number H2/H3 headings (for example `## 3. Architecture Overview`, `### 3.2. Command handlers`) so paired docs stay aligned and navigation is easier. 
-
-Each section should be self-contained and include links to source code, tools, or other docs where appropriate.
+- Use numbered H2/H3 headings as described in section 2.5.
+- Include detailed explanations, rationale, and examples.
+- Prefer step-by-step checklists where possible.
+- Cross-reference other docs using specific section numbers when you are pointing to particular behavior or rules.
 
 ### 2.4. Structure guidelines for AI-facing docs
 
-AI-facing documentation should:
+AI-facing docs in `ai_development_docs/` should:
 
-- Start with an H1 title and a metadata block (at minimum a File line and brief Purpose).  
-- Use a "Quick Reference" section at the top for common decision points.  
-- Prioritize checklists, short lists, and explicit references over long prose.  
-- Prefer linking to specific sections in human-facing docs for context and rationale.  
-- Avoid reproducing generic rules that already live in `.cursor/rules` or `ai_development_docs/AI_SESSION_STARTER.md`.
+- Keep content short and routing-focused.
+- Prefer linking to AI_* docs first, then to human docs for deep detail.
+- Avoid reproducing long explanations that already exist in human-facing docs.
+- Emphasize constraints, entry points, and which sections of human docs to use.
 
 ### 2.5. Heading numbering standard
 
 All main documentation files must use numbered H2 and H3 headings:
 
-- **H2 headings**: Numbered sequentially starting at 1 (e.g., `## 1. Section Title`, `## 2. Next Section`)
-- **H3 headings**: Numbered with parent section number (e.g., `### 2.1. Subsection`, `### 2.2. Another Subsection`)
-- **Standard format**: Numbers must include a trailing period and space (e.g., `## 2. Title` not `## 2 Title`)
-- **Exceptions**: Changelog files, plan files, and TODO.md are excluded from numbering as they have their own structure
-- **Special cases**: Q&A headings (e.g., "Q: ...") and Step headings (e.g., "Step 1: ...") should be converted to bold text, not numbered
+- **H2 headings**: Numbered sequentially starting at 1 (for example, `## 1. Section Title`, `## 2. Next Section`).
+- **H3 headings**: Numbered with the parent section number (for example, `### 2.1. Subsection`, `### 2.2. Another Subsection`).
+- **Standard format**: Numbers must include a trailing period and space (for example, `## 2. Title` not `## 2 Title`).
+- **Exceptions**: Changelog files, plan files, and `TODO.md` are excluded from numbering as they have their own structure.
+- **Special cases**: Q&A headings (for example, `Q: ...`) and step headings (for example, `Step 1: ...`) should be converted to bold text instead of additional numbered headings.
 
+### 2.6. Cross-referencing standards
+
+Use these rules whenever you link from one documentation file to another:
+
+- When referencing another topic from a detailed (human) doc, prefer the detailed doc in that category first (for example, `tests/TESTING_GUIDE.md`). If an AI-facing doc exists, you may mention it as the AI counterpart.
+- When referencing another topic from an AI doc, prefer the AI_* doc first (for example, `ai_development_docs/AI_TESTING_GUIDE.md`). That AI doc should then route to the matching human doc as needed.
+- When referencing a specific section in another doc, use numbered section references, for example: `See section 2. "Logging Architecture" in logs/LOGGING_GUIDE.md.`
+- Paired docs must maintain identical H2 heading sets. When you add, rename, remove, or reorder an H2 in one doc, apply the same change in its paired doc.
 
 ## 3. Documentation Synchronization Checklist
 

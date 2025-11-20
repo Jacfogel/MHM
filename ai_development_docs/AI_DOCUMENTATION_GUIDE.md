@@ -1,26 +1,34 @@
 # AI Documentation Guide
 
-> **File**: `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`  
-> **Purpose**: Fast routing across docs for AI collaborators  
-> **Style**: Minimal, routing-first  
-
-For more detailed guidance, examples, and rationale for any topic in this file, use the matching sections in `DOCUMENTATION_GUIDE.md`.
-
+> **File**: `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`
+> **Pair**: `DOCUMENTATION_GUIDE.md`
+> **Audience**: AI collaborators and tools
+> **Purpose**: Fast routing across docs for AI collaborators
+> **Style**: Minimal, routing-first
+> For detailed behavior and rationale, use the matching sections in `DOCUMENTATION_GUIDE.md`.
+> Keep this file's H2 headings in lockstep with `DOCUMENTATION_GUIDE.md` whenever you change the structure.
 
 ## Quick Reference
 
 Use this to decide which doc to open or reference.
 
 - Project overview and philosophy: `../README.md`
-- Environment setup and run commands: `../HOW_TO_RUN.md` (Quick Start, Environment Setup)
+- Environment setup and run commands: `../HOW_TO_RUN.md` (Quick Start, Troubleshooting)
 - Development workflow and safe changes: `AI_DEVELOPMENT_WORKFLOW.md`
-- Architecture and data flow: `AI_ARCHITECTURE.md`
-- Logging: `AI_LOGGING_GUIDE.md`
-- Testing and parallel execution: `AI_TESTING_GUIDE.md`
-- Error handling and recovery: `AI_ERROR_HANDLING_GUIDE.md`
-- Legacy removal and analysis: `AI_LEGACY_REMOVAL_GUIDE.md` and reports in `../development_docs/`
-- AI behavior rules and escalation: `AI_SESSION_STARTER.md`, `.cursor/rules/`, `AI_REFERENCE.md`
+- Logging, testing, and error handling:
+  - Logging: `AI_LOGGING_GUIDE.md`
+  - Testing: `AI_TESTING_GUIDE.md`
+  - Error handling: `AI_ERROR_HANDLING_GUIDE.md`
+- Documentation system and sync rules:
+  - This doc: `AI_DOCUMENTATION_GUIDE.md` (routing rules and doc classes)
+  - Detailed behavior: `../DOCUMENTATION_GUIDE.md`, section 1. "Documentation Categories" and section 3. "Documentation Synchronization Checklist"
+- AI collaboration and navigation helpers:
+  - Session constraints and guardrails: `AI_SESSION_STARTER.md`
+  - AI navigation and patterns: `AI_REFERENCE.md`
 
+- Cross-referencing standards (AI view):
+  - From AI docs, prefer AI_* docs first. Only reference detailed human docs directly when you need to send a human to specific deep explanations.
+  - From human docs, prefer human docs first. For full rules, see section 3. "Documentation Synchronization Checklist" in `DOCUMENTATION_GUIDE.md`.
 
 ## 1. Documentation Categories
 

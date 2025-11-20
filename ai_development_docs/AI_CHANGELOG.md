@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-20 - Test Infrastructure Robustness Improvements and Flaky Test Fixes **COMPLETED**
+- Enhanced test log rotation to occur at both session start and end, preventing unbounded log file growth
+- Made `rebuild_user_index()` and `update_user_index()` more robust with increased retries (3-5 attempts), longer delays (0.2s), and retry logic for file writes to handle race conditions in parallel execution
+- Fixed multiple flaky tests: `test_cleanup_test_message_requests_real_behavior` (corrected mocks), Discord bot tests (prevented real aiohttp sessions), `test_tag_selection_mode_real_behavior` (added directory scan fallback), scripts collection timeout (narrowed scope), `test_complete_account_lifecycle` (added retries and `@pytest.mark.no_parallel`)
+- Result: All 3101 tests pass consistently, test suite runs in ~4 minutes, user index operations reliable under concurrent load
+
 ### 2025-11-20 - PLANS.md and TODO.md Systematic Review and Documentation Consolidation **COMPLETED**
 - Systematically reviewed all 16 active plans in PLANS.md, condensed completed portions, removed 5 fully completed plans, updated status indicators throughout
 - Consolidated 4 separate plan documents into PLANS.md: UI Component Testing Strategy, High Complexity Function Analysis next steps, AI Functionality Test Plan remaining work, archived TASK_SYSTEM_AUDIT

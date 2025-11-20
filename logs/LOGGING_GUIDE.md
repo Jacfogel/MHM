@@ -1,10 +1,13 @@
-> **File**: logs/LOGGING_GUIDE.md
-
 # Logging Guide
+
+> **File**: `logs/LOGGING_GUIDE.md`  
+> **Audience**: Developers and maintainers  
+> **Purpose**: Describe logging architecture, behavior, and maintenance tasks for MHM  
+> **Style**: Technical, example-driven, detailed  
+> **Pair**: `ai_development_docs/AI_LOGGING_GUIDE.md`  
 
 This document describes how logging works in MHM and how to use it safely when developing or debugging.
 
-If you need a compact, AI-focused reference, see `ai_development_docs/AI_LOGGING_GUIDE.md`. That doc points back here for deeper explanations and examples.
 
 ---
 
@@ -287,7 +290,7 @@ Use `DEBUG` for detailed diagnostics; remove or tone down once issues are resolv
 
 ### 9.5. Align logging with error handling
 
-Most error paths should flow through the centralized error handling decorators and helpers (see `ERROR_HANDLING_GUIDE.md`).
+Most error paths should flow through the centralized error handling decorators and helpers (see section 3. Usage Patterns and section 4. Error Categories and Severity in `core/ERROR_HANDLING_GUIDE.md`).
 
 ### 9.6. Respect test settings
 
@@ -347,5 +350,3 @@ def old_entry_point():
     # Delegate to new path
     # ...
 ```
-
-For a concise reference aimed at AI collaborators, see `ai_development_docs/AI_LOGGING_GUIDE.md`.

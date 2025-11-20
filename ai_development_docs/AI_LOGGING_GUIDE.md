@@ -1,220 +1,181 @@
-> **File**: ai_development_docs/AI_LOGGING_GUIDE.md
-
 # AI Logging Guide
 
-This document is a compact reference for how to use logging in MHM when making code changes or writing tests.
+> **File**: `ai_development_docs/AI_LOGGING_GUIDE.md`  
+> **Pair**: `logs/LOGGING_GUIDE.md`  
+> **Audience**: AI assistants and automation tools  
+> **Purpose**: Fast routing across logging-related docs for AI collaborators  
+> **Style**: Minimal, routing-first  
 
-For detailed rationale, examples, and human-focused explanations, see matching sections in `logs/LOGGING_GUIDE.md`.
+> This AI document is paired with `logs/LOGGING_GUIDE.md`. Keep this file's H2 headings in lockstep with `logs/LOGGING_GUIDE.md` whenever you change the structure. For detailed guidance, examples, and rationale for any topic in this file, use the matching sections in `logs/LOGGING_GUIDE.md`.
 
 ---
 
 ## 1. Purpose and Scope
 
-- Use the **central logger module** (`core/logger.py`) for all logging.
-- Keep **log levels and destinations consistent** across the project.
-- Avoid ad-hoc `print` or `logging.getLogger()` calls.
+Use this file to decide **where** to look and **which helpers to call** when you need logging:
 
-This guide covers overall logging architecture, log levels, component log files, environment-based configuration, rotation and archival, legacy compatibility logging, and best practices.
+- Prefer `core/logger.py` helpers over raw `logging` calls.  
+- Prefer component loggers (for example `get_component_logger("scheduler")`) over the root logger.  
 
 ---
 
 ## 2. Logging Architecture
 
-The logging system is centralized in `core/logger.py`:
+High-level rules:
 
-- Provides helpers (for example `logger.get_component_logger(name)`) that:
-  - Attach the correct handlers (file and optional console)
-  - Use the configured log format
-  - Direct output to the right component log file
+- Initialize logging once via `setup_logging()` in `core/logger.py` from top-level entry points (`run_mhm.py`, scripts).  
+- For all new code, obtain a logger via `core.logger.get_component_logger(component_name)`.  
+- Do **not** call `logging.basicConfig` or construct ad-hoc handlers.
 
-Always obtain loggers via the central helper instead of calling `logging.getLogger` directly. This keeps formats, destinations, and levels consistent across the codebase.
+Where to look:
 
-### 2.1. Always use the component logger helper
+- Directory layout and key modules -> section 4. "Key Modules and Responsibilities" in `ai_development_docs/AI_ARCHITECTURE.md`.
 
-Preferred pattern:
+Common component names (mapped in `core/logger.py`):
 
-```python
-from core import logger
+- `main`, `errors`, `ai`, `discord`, `email`, `communication_manager`, `scheduler`, `ui`, `file_ops`, `user_activity`, plus a few specialized ones (for example `backup`, `checkin_dynamic`, `ai_development_tools`).  
 
-log = logger.get_component_logger("scheduler")
-
-log.info("Scheduling next run")
-log.warning("Schedule delay detected")
-log.error("Failed to schedule next run", exc_info=True)
-```
-
-Do **not** create raw loggers like:
-
-```python
-# Avoid
-import logging
-log = logging.getLogger("scheduler")
-```
-
-Centralization in `core/logger.py` ensures:
-
-- Consistent formats
-- Correct file destinations
-- Respect for environment configuration
+When in doubt, check the current `log_file_map` in `core/logger.py` rather than inventing new names.
 
 ---
 
 ## 3. Log Levels and When to Use Them
 
-Use standard levels with clear intent:
+Core behavior:
 
-- **DEBUG**: detailed diagnostics during development or investigation.
-- **INFO**: normal, expected behavior (startup, shutdown, periodic events).
-- **WARNING**: degraded or unexpected behavior that is handled.
-- **ERROR**: failed operation that affects current behavior but is contained.
-- **CRITICAL**: serious or process-threatening failures.
+- Use standard levels: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`.  
+- Only use `DEBUG` for temporary or diagnostic detail.  
+- Use `INFO` for normal, high-level events (startup, shutdown, periodic jobs).  
+- Use `WARNING` for degraded but handled behavior.  
+- Use `ERROR` for failures that affect behavior but are contained by error handling.  
+- Use `CRITICAL` for process-threatening situations.
 
-Avoid using `DEBUG` for routine information; keep it focused on real troubleshooting.
+Routing:
+
+- For how log levels interact with error categories and logging, see section 4. "Error Categories and Severity" and section 5.2. "Log messages" in `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`.
 
 ---
 
 ## 4. Component Log Files and Layout
 
-Common components and expected logs (defaults):
+- Directory overview -> section 1. "Directory Overview" in `ai_development_docs/AI_ARCHITECTURE.md`.
 
-- `main` -> `logs/app.log`
-- `errors` -> `logs/errors.log`
-- `ai` -> `logs/ai.log`
-- `discord` -> `logs/discord.log`
-- `email` -> `logs/email.log`
-- `telegram` -> `logs/telegram.log` (integration currently disabled)
-- `scheduler` -> `logs/scheduler.log`
-- `ui` -> `logs/ui.log`
-- `file_ops` -> `logs/file_ops.log`
-- `user_activity` -> `logs/user_activity.log`
+Key patterns:
 
-File mapping and overrides are implemented in `core/logger.py` and `core/config.py`.
+- Component log files live under `LOGS_DIR` (or `tests/logs` when `MHM_TESTING=1`).  
+- Backup files live under `LOG_BACKUP_DIR`.  
+- Older compressed archives live under `LOG_ARCHIVE_DIR`.  
+- Do **not** hard-code paths; use configuration from `core/config.py` and the mapping in `core/logger.py`.
 
 When adding a new component:
 
-- Use a clear component name (for example `"backup"`, `"auditor"`).
-- Add a mapping in `core/logger.py` if needed.
-- Avoid inventing many one-off component names.
-
-For details and directory structure, see **"Component Log Files and Layout"** in `logs/LOGGING_GUIDE.md`.
+1. Add or reuse a component name in the `log_file_map` inside `core/logger.py`.  
+2. Use `get_component_logger("<name>")` in the relevant module.  
+3. Update section 4. Component Log Files and Layout in `logs/LOGGING_GUIDE.md` if the new component is permanent.
 
 ---
 
 ## 5. Configuration (Environment Variables)
 
-Key environment variables (from `.env`, interpreted by `core/config.py`):
+Where behavior is configured:
 
-- `LOG_LEVEL`: global level for console/file (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`).
-- `LOGS_DIR`: root logs directory (default `logs`).
-- `LOG_BACKUP_DIR`: directory for rotated/backup logs (default `logs/backups`).
-- `LOG_ARCHIVE_DIR`: directory for archived logs (default `logs/archive`).
-- `LOG_FILE_PATH` / `LOG_MAIN_FILE`: main application log path.
+- Logging-related settings live in `core/config.py` and are usually driven by `.env` values.  
+- AI-focused configuration overview -> section 5. Configuration and Integration in `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` (for shared patterns).
 
-Per-component overrides (defaults under `LOGS_DIR` if unset):
+Key environment flags (refer to config and human logging guide for full list):
 
-- `LOG_DISCORD_FILE`
-- `LOG_AI_FILE`
-- `LOG_USER_ACTIVITY_FILE`
-- `LOG_ERRORS_FILE`
-- `LOG_COMMUNICATION_MANAGER_FILE`
-- `LOG_EMAIL_FILE`
-- `LOG_TELEGRAM_FILE`
-- `LOG_UI_FILE`
-- `LOG_FILE_OPS_FILE`
-- `LOG_SCHEDULER_FILE`
+- `LOG_LEVEL` – console verbosity; file logs always capture `DEBUG`.  
+- `LOGS_DIR`, `LOG_BACKUP_DIR`, `LOG_ARCHIVE_DIR` – directories for active, backup, and archived logs.  
+- `LOG_MAIN_FILE`, `LOG_ERRORS_FILE`, `LOG_AI_FILE`, etc. – per-component file paths.  
+- `MHM_TESTING` – switches logging into test mode (for example, `tests/logs`).  
+- `TEST_VERBOSE_LOGS` – when `1`, enables detailed component logs during tests.
 
-Rotation and size:
+Do not introduce new logging environment variables without updating:
 
-- `LOG_MAX_BYTES`: max size before rotation.
-- `LOG_BACKUP_COUNT`: number of rotated files to keep.
-- `LOG_COMPRESS_BACKUPS`: whether to compress backups.
-- `DISABLE_LOG_ROTATION`: set to `1` to turn rotation off (use only when necessary).
-
-Testing and diagnostics:
-
-- `MHM_TESTING`: indicates tests are running.
-- `TEST_VERBOSE_LOGS`: set to `1` to write detailed test logs under `tests/logs`.
-
-When modifying or introducing new logging behavior, ensure it respects these environment settings.
+- Section 5. Configuration (Environment Variables) in `logs/LOGGING_GUIDE.md`.  
+- The constants in `core/config.py`.
 
 ---
 
 ## 6. Log Rotation, Backups, and Archival
 
-Rotation is typically implemented via rotating handlers configured in `core/logger.py`:
+Core behavior is implemented by `BackupDirectoryRotatingFileHandler` and helpers in `core/logger.py`:
 
-- When a log file reaches `LOG_MAX_BYTES`, it is rotated.
-- Up to `LOG_BACKUP_COUNT` rotated files are kept (for example `app.log.1`, `app.log.2`, ...).
-- If `LOG_COMPRESS_BACKUPS` is enabled, rotated logs may be gzipped or otherwise compressed.
+- Time-based and size-based rotation ensure logs don’t grow unbounded.  
+- Rotated files are moved into `LOG_BACKUP_DIR`.  
+- Older logs can be compressed and moved to `LOG_ARCHIVE_DIR` via maintenance helpers.
 
-Supporting scripts and services (for example, `backup_manager.py`, `auto_cleanup.py`, and scheduled tasks) may:
+Where to look:
 
-- Move older logs into `LOG_ARCHIVE_DIR`
-- Enforce retention policies
-- Clean up stale or oversized log directories
+- Implementation details -> `BackupDirectoryRotatingFileHandler`, `compress_old_logs`, `cleanup_old_logs`, and `cleanup_old_archives` in `core/logger.py`.  
+- For disk-usage policies or schedules, see `backup_manager.py` and `auto_cleanup.py`.
+
+AI usage:
+
+- Don’t reimplement rotation; call existing helpers or adjust configuration.  
+- If you change rotation policies, update section 6 in `logs/LOGGING_GUIDE.md` to match.
+
+---
 
 ## 7. Legacy Compatibility Logging Standard
 
-When adding or maintaining a legacy code path, use the standard pattern:
+For any legacy path that you **must** keep temporarily:
 
-```python
-log.warning("LEGACY COMPATIBILITY: <what was called>; use <new path> instead")
-```
+- Follow the comment+warning pattern documented in section 7. Legacy Compatibility Logging Standard in `logs/LOGGING_GUIDE.md`.  
+- Log at `WARNING` so usage is visible in `errors.log`.  
+- Include a clear removal condition and steps in the comment block.
 
-And keep the full comment block:
+AI rules:
 
-```python
-# LEGACY COMPATIBILITY: [Brief description]
-# TODO: Remove after [specific condition]
-# REMOVAL PLAN:
-# 1. [Step 1]
-# 2. [Step 2]
-# 3. [Step 3]
-```
-
-Rules:
-
-- Only use this when truly needed to preserve compatibility.
-- Always log at `WARNING` level so usage is visible.
-- Make the removal plan and condition clear.
-
-For human-oriented context and examples, see **"Legacy Compatibility Logging Standard"** in `logs/LOGGING_GUIDE.md`.
+- Never introduce a legacy path without:  
+  - A migration plan, and  
+  - A `LEGACY COMPATIBILITY` comment block as defined in section 7 of `logs/LOGGING_GUIDE.md`.  
+- Coordinate with the error-handling patterns in `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` when legacy behavior impacts error reporting.
 
 ---
 
 ## 8. Maintenance and Cleanup
 
-Background tools (for example `backup_manager.py`, `auto_cleanup.py`, scheduled jobs) manage:
+Responsibilities:
 
-- Log backups under `LOG_BACKUP_DIR`
-- Archives under `LOG_ARCHIVE_DIR`
-- General retention (guided by env variables such as `BACKUP_RETENTION_DAYS`)
+- Implementation helpers are in `core/logger.py`, `backup_manager.py`, and `auto_cleanup.py`.
 
-When changing log paths, rotation settings, or retention policies:
+AI usage:
 
-- Confirm that backup/cleanup scripts still target the correct directories.
-- Avoid breaking assumptions in those tools (for example, moving or renaming directories without updating the scripts).
+- When proposing automated cleanup tasks, rely on:  
+  - `cleanup_old_logs()` and `compress_old_logs()` in `core/logger.py`.  
+  - `cleanup_old_archives()` for long-term archive trimming.  
+- Keep retention thresholds and schedules aligned with section 8 of `logs/LOGGING_GUIDE.md`.
 
 ---
 
 ## 9. Best Practices
 
-When editing or adding code:
+High-level rules:
 
-- Always obtain a logger via `core.logger.get_component_logger(<component_name>)`.
-- Do not log secrets or sensitive data.
-- Include enough context in messages (what, where, which user or ID) without over-logging.
-- Allow the centralized error handling system to drive most error logging (see `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`).
+- Always use component loggers (via `get_component_logger`) in new code.  
+- Log structured context (key-value pairs) instead of concatenated strings where useful.  
+- Never log secrets, tokens, or PHI/PII.  
+- Make log messages line up with error categories from `core/ERROR_HANDLING_GUIDE.md`.  
+- Respect testing flags (`MHM_TESTING`, `TEST_VERBOSE_LOGS`) and don’t force real log paths during tests.  
 
-For tests:
+Cross-doc routing:
 
-- Use helpers and fixtures from `tests/test_utilities.py` when asserting on logs or creating temporary paths.
-- Respect `TEST_VERBOSE_LOGS` and `MHM_TESTING` flags.
+- Error-handling patterns -> `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`.  
+- Testing and log assertions -> `ai_development_docs/AI_TESTING_GUIDE.md`.  
+- General development workflow -> `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`.
 
-For detailed guidance, examples, and troubleshooting tips, see `logs/LOGGING_GUIDE.md`.
+---
 
 ## 10. Usage Examples
 
-- Component logger basics -> see `logs/LOGGING_GUIDE.md` section 10.1.
-- Logging handled errors with context -> see section 10.2 of the human guide.
-- Legacy compatibility example -> see section 10.3 of the human guide for the required comment block and warning pattern.
+This section intentionally **does not** duplicate code samples. Use it as a map:
+
+- Basic component logger usage -> section 10.1. Basic component logger in `logs/LOGGING_GUIDE.md`.  
+- Logging handled errors with context -> section 10.2. Logging a handled error with context in `logs/LOGGING_GUIDE.md`.  
+- Legacy compatibility example -> section 10.3. Legacy compatibility example in `logs/LOGGING_GUIDE.md`.  
+
+If you need new patterns:
+
+1. Sketch them in `logs/LOGGING_GUIDE.md` under section 10. Usage Examples.  
+2. Add a short pointer here (one bullet) that routes AI back to the new example.

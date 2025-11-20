@@ -155,19 +155,6 @@ When adding new tasks, follow this format:
   - [ ] Create script or tool to help identify and update references automatically
   - [ ] Update documentation standards to require section numbers in references
 
-**Investigate Test Log Rotation Issues**
-- *What it means*: Investigate why `test_consolidated.log` is not rotating properly - file has grown to 500,000+ lines and should rotate at 5MB but rotation only happens at session start
-- *Why it helps*: Prevents log files from growing unbounded, improves log management and system performance
-- *Estimated effort*: Small/Medium
-- *Areas to investigate*:
-  - Check `SessionLogRotationManager` in `tests/conftest.py` - rotation check happens at session start only
-  - Verify rotation size threshold (5MB) is being checked correctly
-  - Consider adding rotation checks during test execution, not just at start
-  - Review if file size calculation is working correctly for large files
-  - Check if rotation is being prevented by file locking or other issues
-- *Current Status*: Rotation logic exists but only runs at session start - if a single session creates a huge log file, it won't rotate until next session
-- *Files to Review*: `tests/conftest.py` (SessionLogRotationManager class, setup_consolidated_test_logging fixture)
-
 **Investigate Test Coverage Analysis Failures**
 - *What it means*: Explore why tests that usually pass sometimes fail during test coverage analysis (e.g., `test_scheduled_user_creation`, `test_ensure_logs_directory_creates_directories`)
 - *Why it helps*: Ensures reliable test execution and accurate coverage metrics

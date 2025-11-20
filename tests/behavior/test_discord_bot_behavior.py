@@ -178,13 +178,19 @@ class TestDiscordBotBehavior:
         """Test that Discord bot initialization fails gracefully without token"""
         bot = DiscordBot()
         
-        with patch.object(core.config, 'DISCORD_BOT_TOKEN', None):
-            with patch.object(bot, '_check_dns_resolution', return_value=False):
-                with patch.object(bot, '_check_network_connectivity', return_value=False):
-                    result = asyncio.run(bot.initialize())
-                    
-                    # Should fail gracefully without token and network connectivity
-                    assert isinstance(result, bool), "Initialization should return boolean"
+        with patch('discord.ext.commands.Bot') as mock_bot_class:
+            mock_bot = MagicMock()
+            mock_bot_class.return_value = mock_bot
+            mock_bot.is_ready.return_value = True
+            mock_bot.is_closed.return_value = False
+            mock_bot.latency = 0.1
+            with patch.object(core.config, 'DISCORD_BOT_TOKEN', None):
+                with patch.object(bot, '_check_dns_resolution', return_value=False):
+                    with patch.object(bot, '_check_network_connectivity', return_value=False):
+                        result = asyncio.run(bot.initialize())
+                        
+                        # Should fail gracefully without token and network connectivity
+                        assert isinstance(result, bool), "Initialization should return boolean"
 
     @pytest.mark.communication
     @pytest.mark.slow
@@ -325,14 +331,20 @@ class TestDiscordBotBehavior:
         """Test that Discord bot initialize actually creates a thread"""
         bot = DiscordBot()
         
-        with patch('threading.Thread') as mock_thread_class:
-            mock_thread = MagicMock()
-            mock_thread_class.return_value = mock_thread
-            
-            asyncio.run(bot.initialize())
-            
-            assert mock_thread_class.called, "Thread should be created"
-            assert mock_thread.start.called, "Thread should be started"
+        with patch('discord.ext.commands.Bot') as mock_bot_class:
+            mock_bot = MagicMock()
+            mock_bot_class.return_value = mock_bot
+            mock_bot.is_ready.return_value = True
+            mock_bot.is_closed.return_value = False
+            mock_bot.latency = 0.1
+            with patch('threading.Thread') as mock_thread_class:
+                mock_thread = MagicMock()
+                mock_thread_class.return_value = mock_thread
+                
+                asyncio.run(bot.initialize())
+                
+                assert mock_thread_class.called, "Thread should be created"
+                assert mock_thread.start.called, "Thread should be started"
 
     @pytest.mark.communication
     def test_interaction_manager_single_response(self, test_data_dir):
@@ -658,11 +670,17 @@ class TestDiscordBotIntegration:
         bot = DiscordBot()
         
         # Test that errors don't crash the system
-        with patch.object(core.config, 'DISCORD_BOT_TOKEN', None):
-            result = asyncio.run(bot.initialize())
-            
-            assert isinstance(result, bool), "Should return boolean result"
-            # Note: In a real environment without token, this would fail gracefully
+        with patch('discord.ext.commands.Bot') as mock_bot_class:
+            mock_bot = MagicMock()
+            mock_bot_class.return_value = mock_bot
+            mock_bot.is_ready.return_value = True
+            mock_bot.is_closed.return_value = False
+            mock_bot.latency = 0.1
+            with patch.object(core.config, 'DISCORD_BOT_TOKEN', None):
+                result = asyncio.run(bot.initialize())
+                
+                assert isinstance(result, bool), "Should return boolean result"
+                # Note: In a real environment without token, this would fail gracefully
 
     @pytest.mark.communication
     @pytest.mark.regression
@@ -717,16 +735,22 @@ class TestDiscordBotIntegration:
         bot = DiscordBot()
         
         # Test error recovery
-        with patch.object(core.config, 'DISCORD_BOT_TOKEN', None):
-            result = asyncio.run(bot.initialize())
-            assert isinstance(result, bool), "Should return boolean result"
-            
-            # Test recovery
-            with patch.object(core.config, 'DISCORD_BOT_TOKEN', 'valid_token'):
-                with patch.object(bot, '_check_dns_resolution', return_value=True):
-                    with patch.object(bot, '_check_network_connectivity', return_value=True):
-                        result = asyncio.run(bot.manual_reconnect())
-                        assert isinstance(result, bool), "Reconnect should return boolean"
+        with patch('discord.ext.commands.Bot') as mock_bot_class:
+            mock_bot = MagicMock()
+            mock_bot_class.return_value = mock_bot
+            mock_bot.is_ready.return_value = True
+            mock_bot.is_closed.return_value = False
+            mock_bot.latency = 0.1
+            with patch.object(core.config, 'DISCORD_BOT_TOKEN', None):
+                result = asyncio.run(bot.initialize())
+                assert isinstance(result, bool), "Should return boolean result"
+                
+                # Test recovery
+                with patch.object(core.config, 'DISCORD_BOT_TOKEN', 'valid_token'):
+                    with patch.object(bot, '_check_dns_resolution', return_value=True):
+                        with patch.object(bot, '_check_network_connectivity', return_value=True):
+                            result = asyncio.run(bot.manual_reconnect())
+                            assert isinstance(result, bool), "Reconnect should return boolean"
 
     @pytest.mark.communication
     @pytest.mark.regression
@@ -897,16 +921,16 @@ class TestDiscordBotIntegration:
         mock_session.close = AsyncMock()
         
         # Mock asyncio.wait_for to raise TimeoutError (simulating timeout)
-        # This prevents close() from being awaited, which is expected behavior
         async def mock_wait_for(coro, timeout):
+            # Await the coroutine to avoid un-awaited warnings, then raise timeout
+            try:
+                await coro
+            except Exception:
+                pass
             raise asyncio.TimeoutError()
         
         with patch('asyncio.wait_for', side_effect=mock_wait_for):
-            # Suppress the expected RuntimeWarning about unawaited coroutine
-            import warnings
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", category=RuntimeWarning, message=".*coroutine.*was never awaited")
-                result = await bot._cleanup_session_with_timeout(mock_session)
+            result = await bot._cleanup_session_with_timeout(mock_session)
             assert result is False, "Should return False on timeout"
 
     @pytest.mark.communication

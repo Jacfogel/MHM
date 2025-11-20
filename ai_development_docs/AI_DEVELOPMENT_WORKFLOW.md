@@ -1,185 +1,190 @@
 # AI Development Workflow Guide
 
 > **File**: `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`  
-> **Purpose**: Condensed development workflow guidance for AI collaborators  
-> **Style**: Pattern-first, routing-focused  
+> **Pair**: `DEVELOPMENT_WORKFLOW.md`
+> **Audience**: AI collaborators and tools
+> **Purpose**: Route AI assistance to the right docs and safe workflows
+> **Style**: Minimal, routing-first
+> For detailed behavior and rationale, use the matching sections in `DEVELOPMENT_WORKFLOW.md`.
+> Keep this file's H2 headings in lockstep with `DEVELOPMENT_WORKFLOW.md` whenever you change the structure.
 
-For more detailed guidance, examples, and rationale for any topic in this file, use the matching sections in `DEVELOPMENT_WORKFLOW.md`.
 
+---
 
 ## Quick Reference
 
-Use this to decide what to do next and which docs to open.
+- Purpose of this doc:
+  - Route AI tools to the right human docs, sections, and commands.
+  - Enforce safe patterns for making and testing changes.
+- Always prefer:
+  - Human workflow doc: `DEVELOPMENT_WORKFLOW.md` (full detail).
+  - This AI doc: high-level routing and constraints.
+- When you need more detail, jump to:
+  - Running the app and environment commands:
+  - Testing:
+    - `ai_development_docs/AI_TESTING_GUIDE.md` (routing for which tests to run and which commands to use).
+  - Logging:
+    - `ai_development_docs/AI_LOGGING_GUIDE.md` (routing for logging patterns and component log usage).
+  - Error handling:
+    - `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` (routing for error categories and handling patterns).
+  - Documentation:
+    - `ai_development_docs/AI_DOCUMENTATION_GUIDE.md` (routing for documentation categories and sync rules).
+  - Architecture and responsibilities:
+    - `ai_development_docs/AI_ARCHITECTURE.md` (routing for key modules, responsibilities, and patterns).
+- Data and configuration rules:
+  - Use `core.user_data_handlers.get_user_data()` and related helpers for user data access; do not invent new direct file-access wrappers.
+  - Use `.env` and `core/config.py` for configuration; do not add ad hoc `os.getenv` calls outside the established patterns.
 
-- Project overview  
-  - `README.md`
-- Environment setup and running the app  
-  - "Environment Setup" and "Quick Start (Recommended)" in `HOW_TO_RUN.md`
-- Testing  
-  - `ai_development_docs/AI_TESTING_GUIDE.md` -> `tests/TESTING_GUIDE.md`
-- Documentation  
-  - `ai_development_docs/AI_DOCUMENTATION_GUIDE.md` -> `DOCUMENTATION_GUIDE.md`
-- Architecture  
-  - `ai_development_docs/AI_ARCHITECTURE.md` -> `ARCHITECTURE.md`
-
-Core safety and quality rules:
-
-- Work inside `(.venv)` before running Python or tests.  
-- Use `core.user_data_handlers.get_user_data()` and related helpers for user data; do not add new direct file-access wrappers.  
-- Prefer module imports plus explicit usage (for example, `import core.utils` then `core.utils.validate_and_format_time()`).  
-- Test incrementally after each meaningful change; route to `AI_TESTING_GUIDE.md` for patterns.  
-- Record changes in `development_docs/CHANGELOG_DETAIL.md` and summarize them in `ai_development_docs/AI_CHANGELOG.md`.  
-- Follow documentation rules in `AI_DOCUMENTATION_GUIDE.md` / `DOCUMENTATION_GUIDE.md` when editing docs.
-
+---
 
 ## 1. Safety First
 
-Minimal rules for safe changes:
+- Default assumptions:
+  - The user is working on the `main` branch unless they say otherwise.
+  - The virtual environment is `.venv` in the project root.
+- When giving instructions:
+  - Prefer small, reversible changes instead of broad refactors.
+  - Do not invent new entry points; use the ones documented in:
+- For crashes, confusing errors, or suspected configuration issues, route to:
+- For the full safety checklist, see section 1. "Safety First" in `DEVELOPMENT_WORKFLOW.md`.
 
-- Assume real user data and real machines; avoid destructive actions.  
-- Treat scheduling, user data, and communication channels as high-risk areas; prefer small, reversible changes.  
-- Stay inside `(.venv)` and avoid global package installs.  
-- Encourage backups and frequent commits before broad edits or refactors.  
-- When something looks risky or confusing:
-  - Suggest pausing, capturing a short summary (what changed / what broke / what was expected),  
-  - Then asking for help instead of guessing.
-
+---
 
 ## 2. Virtual Environment Best Practices
 
-Key patterns for environment handling:
-
-- Create .venv once: `python -m .venv .venv`.  
-- Activate in each session: `.venv\\Scripts\\activate`.  
-- Install dependencies: `pip install -r requirements.txt`.  
-- If imports fail after a pull, suggest: `pip install -r requirements.txt --force-reinstall` inside `(.venv)`.  
-- Keep changes to dependencies reflected in `requirements.txt`; avoid global installs.
-
-For step-by-step instructions, combine this with "Environment Setup" in `HOW_TO_RUN.md` and the environment section of `DEVELOPMENT_WORKFLOW.md` when needed.
-
-
-
-### 2.1. Configuration and .env
-
-- Configuration is driven by environment variables loaded from a `.env` file via `config.py` (python-dotenv).
-- Use `.env.example` as a template: copy it to `.env` and fill in tokens, credentials, and any overrides you need.
-- Key groups of settings:
-  - Core paths and data roots: `BASE_DATA_DIR`, `USER_INFO_DIR_PATH`, `DEFAULT_MESSAGES_DIR_PATH`.
-  - Logging: `LOGS_DIR`, component log files, and rotation settings.
-  - Channels: `EMAIL_*`, `DISCORD_BOT_TOKEN`, and related flags.
-  - AI / LM Studio: `LM_STUDIO_*`, `AI_*` timeouts and temperature values.
-- For automated checks and reports, prefer the `config` command in `ai_development_tools/ai_tools_runner.py` (see `ai_development_tools/AI_DEV_TOOLS_GUIDE.md`).
-
+- Assume a standard virtual environment named `.venv` in the project root.
+- When the user asks how to create or activate the environment, point them to:
+  - `HOW_TO_RUN.md`, section 1. "Quick Start (Recommended)" for setup and activation commands.
+  - `HOW_TO_RUN.md`, section 5. "Troubleshooting" if activation fails or Python is not on PATH.
+- Do not invent alternative virtual environment layouts (different names or locations) unless the user explicitly tells you they are using something else.
+- If imports fail or dependencies look broken:
+  - Suggest reinstalling dependencies inside the active `.venv` with `pip install -r requirements.txt`.
+  - Then route the user back to `HOW_TO_RUN.md`, section 5. "Troubleshooting" and `README.md`, section 10. "Troubleshooting" for deeper diagnostics.
 ## 3. Development Process
 
-Use this high-level loop when reasoning about changes or suggesting steps.
+Use the same high‑level loop as the human development workflow, but keep answers short and routing‑focused:
 
-**Step 1: Plan**
+- Plan the change.
+- Implement in small, reviewable slices.
+- Test (automated + minimal manual verification).
+- Document and clean up.
 
-- Capture the goal in plain language.  
-- Identify risks: user data, scheduling, multi-channel behavior, or external services.  
-- Decide how success will be verified (specific tests or manual flows).  
-- Note which docs may need updates (for example, `HOW_TO_RUN.md`, `README.md`, specific guides).
+When planning:
 
-**Step 2: Implement**
+- Ask which parts of the system are affected (UI, core, bots, tests, docs).
+- Route yourself or the user to:
+  - `AI_ARCHITECTURE.md` for where new logic should live and how components interact.
+  - `AI_TESTING_GUIDE.md` for where tests should go and which kinds of tests to add.
+  - `AI_DOCUMENTATION_GUIDE.md` for which docs must be updated and how to keep pairs in sync.
 
-- Recommend small, reversible slices rather than large rewrites.  
-- Encourage use of existing helpers and patterns:
-  - Data: `core.user_data_handlers.get_user_data()` and related functions.  
-  - Logging / errors: follow `LOGGING_GUIDE.md` and `ERROR_HANDLING_GUIDE.md`.  
-- Avoid suggesting new thin wrappers or deep, fragile imports.
+When implementing:
 
-**Step 3: Test**
+- Prefer small, reversible changes instead of broad refactors.
+- Use existing helpers and patterns:
+  - Data access: functions in `core/user_data_handlers.py`.
+  - Configuration: `core/config.py` and `.env` values, not ad hoc `os.getenv` calls.
+  - Logging: patterns described in `AI_LOGGING_GUIDE.md`.
+  - Error handling: patterns described in `AI_ERROR_HANDLING_GUIDE.md`.
+- Preserve existing comments and structure unless a human doc explicitly says to remove or replace something.
+- Do not invent new global patterns for logging, configuration, or data access; reuse the existing ones.
 
-- Start with targeted tests for the changed behavior, then broaden (unit -> integration -> behavior -> UI).  
-- Route to `AI_TESTING_GUIDE.md` for commands, markers, and parallel-safety rules.  
-- For Discord/email-dependent features, recommend minimal manual verification per "Manual Testing Procedures" in `tests/TESTING_GUIDE.md`.
+When documenting:
 
-**Step 4: Document and Clean Up**
-
-- Suggest updating `development_docs/CHANGELOG_DETAIL.md` plus a concise entry in `ai_development_docs/AI_CHANGELOG.md`.  
-- Update any affected guides (for example, `HOW_TO_RUN.md`, `README.md`, or specific topic guides).  
-- Remove clearly dead code, obsolete comments, and unused imports where safe.
-
-
+- Decide which docs to update using `AI_DOCUMENTATION_GUIDE.md`.
+- Keep H2 headings aligned across doc pairs as described in `DOCUMENTATION_GUIDE.md`, section 3. "Documentation Synchronization Checklist".
 ## 4. Testing Strategy
 
-AI view of testing:
+- Always propose tests when suggesting code changes.
+- For where and how to write tests, route to:
+  - `ai_development_docs/AI_TESTING_GUIDE.md` for routing and quick commands.
+- Default commands you may recommend:
+  - Targeted module or test-file runs only if they match patterns described in the human testing guide.
+- For deeper AI-specific testing patterns, route the tool to `ai_development_docs/AI_TESTING_GUIDE.md` instead of re-explaining them here.
 
-- Default to **incremental testing**: test each slice before moving on.  
-- Prefer behavior and integration tests when deciding where to add coverage.  
-- Verify side effects (messages, files, logs), not just return values.  
-- Encourage parallel-safe tests and use `@pytest.mark.no_parallel` only when necessary.
-
-Routing:
-
-- Commands and patterns: `AI_TESTING_GUIDE.md`.  
-- Explanations and manual flows: `tests/TESTING_GUIDE.md` and the testing sections of `DEVELOPMENT_WORKFLOW.md` when needed.
-
+---
 
 ## 5. Common Tasks
 
-Patterns for frequent change types.
+Use these patterns for frequent change types. Keep responses concise and route to the right AI docs for details.
 
-- **New feature**  
-  - Plan user-visible behavior and side effects.  
-  - Implement in small slices; add tests alongside changes.  
-  - Run relevant tests and minimal manual checks.  
-  - Update docs and changelogs.
+**New feature**
 
-- **Bug fix**  
-  - Reproduce and capture logs or traces.  
-  - Apply the smallest fix that clearly resolves the issue.  
-  - Add or adjust tests so it cannot silently regress.  
-  - Update docs if behavior changed.
+- Clarify the user‑visible behavior and which channels or components are involved.
+- Propose small, incremental changes rather than a large, all‑at‑once implementation.
+- Recommend tests to add or update, using `AI_TESTING_GUIDE.md` to choose scope and commands.
+- Identify which docs should be updated (for example, `README.md`, `HOW_TO_RUN.md`, or a guide) using `AI_DOCUMENTATION_GUIDE.md`.
 
-- **Refactor**  
-  - Preserve behavior; change structure only.  
-  - Break into reversible steps and test heavily between steps.  
-  - Remove obsolete wrappers/helpers and update imports and docs.
+**Bug fix**
 
+- Ask how the bug reproduces and whether there are relevant logs.
+- Suggest checking component logs using patterns from `AI_LOGGING_GUIDE.md`.
+- Recommend the smallest change that clearly fixes the issue.
+- Ensure tests cover the bug going forward, guided by `AI_TESTING_GUIDE.md`.
 
+**Refactor**
+
+- Keep behavior the same while improving structure or clarity.
+- Use `AI_ARCHITECTURE.md` to confirm that responsibilities are in the right modules.
+- Encourage running the relevant tests (see `AI_TESTING_GUIDE.md`) after each significant step.
+- Remind the user to update or confirm docs where behavior, naming, or public interfaces have changed.
+
+When the user asks high‑level questions like:
+
+- "How do I run the app or service?"
+- "Where should this new logic live?"
+- "How do I log this?"
+- "How should I handle this error?"
+- "What docs should I update?"
+
+answer briefly and route to the appropriate AI doc:
+
+- Running and environment: `AI_DEVELOPMENT_WORKFLOW.md` (this doc) plus `HOW_TO_RUN.md` for commands.
+- Placement and responsibilities: `AI_ARCHITECTURE.md`.
+- Logging: `AI_LOGGING_GUIDE.md`.
+- Error handling: `AI_ERROR_HANDLING_GUIDE.md`.
+- Documentation: `AI_DOCUMENTATION_GUIDE.md`.
 ## 6. Emergency Procedures
 
-When things go wrong, AI guidance should be:
+When things look broken or confusing:
 
-- Stop making additional edits; avoid compounding the problem.  
-- Gather error messages, stack traces, and a brief description of what changed.  
-- If available, consider restoring from a recent backup rather than experimenting blindly.  
-- Suggest summarising:
-  - What changed,  
-  - What broke,  
-  - What was expected.  
-- Encourage asking for help using that summary instead of risky trial-and-error.
+- For environment or startup failures:
+- For unexpected tracebacks, crashes, or repeated errors:
+- For failing or flaky tests:
+- For documentation that appears inconsistent with behavior:
+- For the full emergency checklist, see section 6. "Emergency Procedures" in `DEVELOPMENT_WORKFLOW.md`.
 
+---
 
 ## 7. Learning Resources
 
-Routing only:
+- Beginners should be pointed to:
+  - `DEVELOPMENT_WORKFLOW.md`, section 7. "Learning Resources".
+- For deeper understanding of structure and data flow:
+- For learning about testing, logging, and error handling:
+  - `ai_development_docs/AI_TESTING_GUIDE.md`, `ai_development_docs/AI_LOGGING_GUIDE.md`, and `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` for routing.
 
-- Project-specific patterns: `DEVELOPMENT_WORKFLOW.md`, `DOCUMENTATION_GUIDE.md`, `ARCHITECTURE.md`.  
-- AI behavior and constraints: `AI_SESSION_STARTER.md` and `.cursor/rules/`.  
-- Testing, logging, error handling: `AI_TESTING_GUIDE.md`, `AI_LOGGING_GUIDE.md`, `AI_ERROR_HANDLING_GUIDE.md`.  
-- General Python/Qt questions: external docs or tutorials (avoid fabricating URLs).
+Keep guidance brief and always route to the human docs for long explanations.
 
+---
 
 ## 8. Success Tips
 
-Minimal coaching for AI suggestions:
+- Always:
+  - Use existing helpers for data, configuration, logging, and error handling.
+  - Keep changes small and easy to review.
+- Never:
+  - Invent new file layouts, entry points, or global patterns that are not already documented.
+  - Duplicate large sections of human docs inside AI docs; instead, point back to the correct section.
 
-- Prefer small, well-tested changes over broad, risky refactors.  
-- Keep tests, docs, and changelogs aligned with actual behavior.  
-- Follow existing patterns for logging, error handling, and configuration rather than inventing new ones.  
-- Emphasize clarity and maintainability over cleverness in both code and tests.
+For a fuller list of tips and examples, see section 8. "Success Tips" in `DEVELOPMENT_WORKFLOW.md`.
 
+---
 
 ## 9. Git Workflow (PowerShell-Safe)
 
-AI view of Git usage for this project:
-
-- Encourage the standard cycle:
-  - Check status -> stage -> commit -> fetch -> diff -> pull -> push.  
-- Suggest safe inspection commands (for example, `git status`, `git log --oneline`, `git show`) rather than destructive operations.  
-- Recommend backups before big merges or refactors and test runs after pulling significant changes.
-
-For explicit PowerShell examples and conflict-handling steps, see "Git Workflow (PowerShell-Safe)" in `DEVELOPMENT_WORKFLOW.md`.
+- Git guidance should be aligned with section 9. "Git Workflow (PowerShell-Safe)" in `DEVELOPMENT_WORKFLOW.md`.
+- High-level rules for AI assistance:
+  - Do not suggest complex branching strategies unless the user asks; default to simple `main`-based workflows.
+  - Prefer commands that are safe in PowerShell on Windows.
+  - Encourage small, frequent commits with clear messages summarizing the change.
+- When users need more detailed Git instructions, always route them back to `DEVELOPMENT_WORKFLOW.md`, section 9, instead of inventing new workflows here.

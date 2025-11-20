@@ -702,18 +702,24 @@ class UserDataManager:
             index_data = safe_json_read(self.index_file, default={"last_updated": None})
             
             # Get user account for identifiers
-            # Retry in case of race conditions in parallel execution
+            # Retry in case of race conditions in parallel execution (e.g., account file just created)
             user_data_result = None
             user_account = {}
-            max_retries = 3
+            max_retries = 5  # Increased from 3 to handle parallel test execution
+            retry_delay = 0.2  # Increased from 0.1s to 0.2s for better reliability
+            import time
+            
             for attempt in range(max_retries):
-                user_data_result = get_user_data(user_id, 'account')
-                user_account = user_data_result.get('account') or {}
-                if user_account and user_account.get('internal_username'):
-                    break
+                try:
+                    user_data_result = get_user_data(user_id, 'account')
+                    user_account = user_data_result.get('account') or {}
+                    if user_account and user_account.get('internal_username'):
+                        break
+                except Exception as e:
+                    logger.debug(f"Attempt {attempt + 1}/{max_retries} to get account data for {user_id} failed: {e}")
+                
                 if attempt < max_retries - 1:
-                    import time
-                    time.sleep(0.1)  # Brief delay before retry
+                    time.sleep(retry_delay)
             
             # Get identifiers for fast lookups
             internal_username = user_account.get('internal_username', '')
@@ -722,7 +728,7 @@ class UserDataManager:
             phone = user_account.get('phone', '')
             
             if not internal_username:
-                logger.warning(f"No internal_username found for user {user_id} after {max_retries} attempts")
+                logger.warning(f"No internal_username found for user {user_id} after {max_retries} attempts (account keys: {list(user_account.keys())})")
                 return False
             
             # Update flat lookup mappings for fast O(1) user ID resolution
@@ -743,12 +749,19 @@ class UserDataManager:
             index_data["last_updated"] = datetime.now().isoformat()
             
             # Save updated index with file locking
-            if safe_json_write(self.index_file, index_data, indent=4):
-                logger.debug(f"Updated user index for user {user_id} (internal_username: {internal_username})")
-                return True
-            else:
-                logger.error(f"Failed to save user index for user {user_id}")
-                return False
+            # Retry write operation in case of temporary lock contention
+            max_write_retries = 3
+            write_retry_delay = 0.15
+            for write_attempt in range(max_write_retries):
+                if safe_json_write(self.index_file, index_data, indent=4):
+                    logger.debug(f"Updated user index for user {user_id} (internal_username: {internal_username})")
+                    return True
+                if write_attempt < max_write_retries - 1:
+                    logger.debug(f"Write attempt {write_attempt + 1}/{max_write_retries} failed for {user_id}, retrying...")
+                    time.sleep(write_retry_delay)
+            
+            logger.error(f"Failed to save user index for user {user_id} after {max_write_retries} attempts")
+            return False
         except Exception as e:
             logger.error(f"Error updating user index for user {user_id}: {e}")
             return False
@@ -850,53 +863,98 @@ class UserDataManager:
             user_ids = get_all_user_ids()
             if not user_ids:
                 logger.warning("No users found during index rebuild")
+                # Return True for empty case - this is a valid state
                 return True
 
             # Use file locking for user_index.json to prevent race conditions in parallel execution
             from core.file_locking import safe_json_write
+            import time
             
             # Initialize flat lookup structure
             index_data = {
                 "last_updated": datetime.now().isoformat()
             }
             
-            for user_id in user_ids:
-                if user_id:
-                    # Get user account for identifiers
-                    user_data_result = get_user_data(user_id, 'account')
-                    user_account = user_data_result.get('account') or {}
-                    
-                    # Get identifiers for fast lookups
-                    internal_username = user_account.get('internal_username', '')
-                    email = user_account.get('email', '')
-                    discord_user_id = user_account.get('discord_user_id', '')
-                    phone = user_account.get('phone', '')
-                    
-                    if not internal_username:
-                        logger.warning(f"No internal_username found for user {user_id}, skipping")
-                        continue
-                    
-                    # Add all identifier mappings for fast lookups
-                    index_data[internal_username] = user_id
-                    
-                    # Add prefixed identifier mappings
-                    if email:
-                        index_data[f"email:{email}"] = user_id
-                    if discord_user_id:
-                        index_data[f"discord:{discord_user_id}"] = user_id
-                    if phone:
-                        index_data[f"phone:{phone}"] = user_id
+            # Track successful and failed user indexings
+            successful_count = 0
+            failed_count = 0
+            max_retries = 3
+            retry_delay = 0.2
             
-            # Save rebuilt index with file locking
-            if not safe_json_write(self.index_file, index_data, indent=4):
-                logger.error("Failed to save rebuilt user index")
-                return False
+            for user_id in user_ids:
+                if not user_id:
+                    continue
+                    
+                # Get user account for identifiers with retries for race conditions
+                user_account = {}
+                for attempt in range(max_retries):
+                    try:
+                        user_data_result = get_user_data(user_id, 'account')
+                        user_account = user_data_result.get('account') or {}
+                        if user_account and user_account.get('internal_username'):
+                            break
+                    except Exception as e:
+                        logger.debug(f"Attempt {attempt + 1}/{max_retries} to get account data for {user_id} during rebuild failed: {e}")
+                    
+                    if attempt < max_retries - 1:
+                        time.sleep(retry_delay)
                 
-            user_count = len([uid for uid in user_ids if uid])
-            logger.info(f"Rebuilt user index with {user_count} users")
-            return True
+                # Get identifiers for fast lookups (outside retry loop)
+                internal_username = user_account.get('internal_username', '')
+                email = user_account.get('email', '')
+                discord_user_id = user_account.get('discord_user_id', '')
+                phone = user_account.get('phone', '')
+                
+                if not internal_username:
+                    logger.warning(f"No internal_username found for user {user_id} after {max_retries} attempts, skipping")
+                    failed_count += 1
+                    continue
+                
+                # Add all identifier mappings for fast lookups
+                index_data[internal_username] = user_id
+                
+                # Add prefixed identifier mappings
+                if email:
+                    index_data[f"email:{email}"] = user_id
+                if discord_user_id:
+                    index_data[f"discord:{discord_user_id}"] = user_id
+                if phone:
+                    index_data[f"phone:{phone}"] = user_id
+                
+                successful_count += 1
+            
+            # Save rebuilt index with file locking (retry on failure)
+            max_write_retries = 3
+            write_retry_delay = 0.15
+            write_success = False
+            for write_attempt in range(max_write_retries):
+                if safe_json_write(self.index_file, index_data, indent=4):
+                    write_success = True
+                    break
+                if write_attempt < max_write_retries - 1:
+                    logger.debug(f"Write attempt {write_attempt + 1}/{max_write_retries} failed during rebuild, retrying...")
+                    time.sleep(write_retry_delay)
+            
+            if not write_success:
+                logger.error("Failed to save rebuilt user index after retries")
+                return False
+            
+            # Rebuild is considered successful if we indexed at least some users
+            # (partial success is better than total failure)
+            if successful_count > 0:
+                logger.info(f"Rebuilt user index with {successful_count} users (skipped {failed_count} users)")
+                return True
+            elif failed_count > 0:
+                # All users failed - this is a real problem
+                logger.error(f"Failed to index any users during rebuild ({failed_count} users failed)")
+                return False
+            else:
+                # No users to index (edge case)
+                logger.info("Rebuilt user index (no users to index)")
+                return True
+                
         except Exception as e:
-            logger.error(f"Error rebuilding full user index: {e}")
+            logger.error(f"Error rebuilding full user index: {e}", exc_info=True)
             return False
     
     @handle_errors("searching users", default_return=[])

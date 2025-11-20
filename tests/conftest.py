@@ -502,7 +502,6 @@ class SessionLogRotationManager:
                 continue
         return False
     
-    
     def _write_log_header(self, log_file: str, timestamp: str):
         """Write a formatted header to a log file during rotation.
         
@@ -536,12 +535,17 @@ class SessionLogRotationManager:
         with open(log_file, 'w', encoding='utf-8') as f:
             f.write(header_text)
     
-    def rotate_all_logs(self):
-        """Rotate all registered log files together to maintain continuity."""
-        if not self.rotation_needed:
+    def rotate_all_logs(self, rotation_context="session"):
+        """Rotate all registered log files together to maintain continuity.
+        
+        Args:
+            rotation_context: Context string for logging (e.g., "session start", "session end")
+        """
+        # Check if rotation is needed first
+        if not self.check_rotation_needed():
             return
             
-        test_logger.info("Starting session-based log rotation for all log files")
+        test_logger.info(f"Starting {rotation_context} log rotation for all log files")
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         timestamp_display = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
@@ -580,7 +584,7 @@ class SessionLogRotationManager:
                 test_logger.warning(f"Failed to rotate {log_file}: {e}")
         
         self.rotation_needed = False
-        test_logger.info("Session-based log rotation completed")
+        test_logger.info(f"{rotation_context.capitalize()} log rotation completed")
 
 # Helper function for writing log headers
 def _write_test_log_header(log_file: str, timestamp: str):
@@ -913,7 +917,7 @@ def setup_consolidated_test_logging():
     session_rotation_manager.register_log_file(str(consolidated_log_file))
     session_rotation_manager.register_log_file(str(test_run_log_file))
     if session_rotation_manager.check_rotation_needed():
-        session_rotation_manager.rotate_all_logs()
+        session_rotation_manager.rotate_all_logs(rotation_context="session start")
         test_logger.info("Performed automatic log rotation at session start")
     
     # Clean up any individual log files that were created before consolidated mode was enabled
@@ -2800,10 +2804,15 @@ def _consolidate_worker_logs():
 
 
 def pytest_sessionfinish(session, exitstatus):
-    """Log test session finish and consolidate worker logs if running in parallel mode."""
+    """Log test session finish, check for log rotation, and consolidate worker logs if running in parallel mode."""
     test_logger.info(f"Test session finished with exit status: {exitstatus}")
     if hasattr(session, 'testscollected'):
         test_logger.info(f"Tests collected: {session.testscollected}")
+    
+    # Check for log rotation at session end (before consolidating worker logs)
+    if session_rotation_manager.check_rotation_needed():
+        session_rotation_manager.rotate_all_logs(rotation_context="session end")
+        test_logger.info("Performed automatic log rotation at session end")
     
     # Consolidate worker logs at the end of the session (only in main process)
     _consolidate_worker_logs()
