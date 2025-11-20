@@ -5,33 +5,48 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2025-01-27
+> **Last Updated**: 2025-11-20
 > **See [TODO.md](TODO.md) for independent tasks**
 
 ---
 
-## [PHONE] **Current Active Plans**
+## [ACTIVE] **Current Active Plans**
 
-### **AI Chatbot Actionability Sprint** **PLANNING**
+### **AI Chatbot Actionability Sprint** **IN PROGRESS**
 
-**Status**: **PLANNING**
-**Priority**: High
-**Effort**: Large
-**Date**: 2025-10-30
+**Status**: **IN PROGRESS**  
+**Priority**: High  
+**Effort**: Large  
+**Date**: 2025-10-30  
+**Last Updated**: 2025-11-20
 
 **Objective**: Improve chat quality and enable robust action handling (task/message/profile CRUD) with context from recent automated messages and targeted, non-conflicting suggestions.
 
-**Scope (first slices)**:
-- [ ] Parser reliability for common natural phrases (done: schedule edit without times)
-- [ ] Curated prompts for disambiguation/confirmations (done: delete/complete; extend as needed)
-- [ ] AI context: recent automated message awareness, check-in summaries (done; monitor)
-- [ ] Task CRUD completeness: name-based update extraction for title/priority/due (done; watch)
+**Progress**:
+- [x] Parser reliability for common natural phrases (schedule edit without times - completed)
+- [x] Curated prompts for disambiguation/confirmations (delete/complete - completed; extend as needed)
+- [x] AI context: recent automated message awareness, check-in summaries (completed; monitor)
+- [x] Task CRUD completeness: name-based update extraction for title/priority/due (completed; watch)
+- [x] Natural language command detection fix (2025-11-10 - "I need to buy groceries" now works)
+- [x] Suggestion relevance testing (2025-11-10 - verified generic suggestions suppressed)
 - [ ] Suggestions: targeted + minimal, non-conflicting (in place; extend coverage)
 
+**AI Functionality Test Plan Remaining Work**:
+- [ ] Fix AI fabricating check-in data (T-4.1) - AI claims check-ins exist when there are none
+- [ ] Fix AI referencing non-existent conversation history (T-2.3) - AI mentions "you mentioned in recent conversation" when no history exists
+- [ ] Fix response-prompt mismatches (T-9.3, T-12.2) - Responses should match prompts (e.g., "Tell me a short story" should actually tell a story)
+- [ ] Improve missing context fallback responses (T-2.1) - Should be more supportive and explicit
+- [ ] Fix code fragment extraction (T-11.1) - Python code blocks (```python) still appearing in command responses
+- [ ] Address response truncation (10 tests) - Many responses cutting off at 200/300 chars
+- [ ] Add integration tests with conversation manager
+- [ ] Add concurrent request handling tests
+- [ ] Add memory usage monitoring tests
+- [ ] Add timeout handling tests with actual timeouts
+
 **Success Criteria**:
-- [ ] Users can ask for common operations in natural language with minimal friction
-- [ ] Prompts always offer actionable next steps
-- [ ] No regressions (full suite remains green)
+- [x] Users can ask for common operations in natural language (partially - natural language detection fixed)
+- [ ] Prompts always offer actionable next steps (in progress)
+- [x] No regressions (full suite remains green - verified)
 
 **Notes**:
 - Tests by area are acceptable to iterate faster; full suite before shipping changes.
@@ -65,43 +80,40 @@
 - Focus on capabilities that align with MHM's communication-first, AI-led experience
 - Consider both user-installable app features and potential server bot features
 
-### **Account Management System Improvements** **PLANNING**
+### **Account Management System Improvements** **MOSTLY COMPLETE**
 
-**Status**: **PLANNING**
-**Priority**: High
-**Effort**: Medium
-**Date**: 2025-11-13
+**Status**: **MOSTLY COMPLETE**  
+**Priority**: High  
+**Effort**: Medium  
+**Date**: 2025-11-13  
+**Last Updated**: 2025-11-20
 
 **Objective**: Complete account linking functionality and enhance account creation with proper feature configuration and user preferences.
 
-**Scope**:
-- [x] **Fix Account Linking**: Get confirmation code sending working properly (COMPLETED 2025-11-13)
-  - [x] Confirmation codes now sent via email (not Discord) for security when linking accounts
-  - [ ] Test end-to-end account linking flow
-  - [ ] Handle edge cases (user already linked, invalid codes, expired codes)
-- [x] **Fix Account Creation Feature Enablement**: Account creation currently sets incorrect feature enablement values (COMPLETED 2025-11-14)
-  - [x] Review how features are enabled/disabled in account.json
-  - [x] Ensure account creation sets proper feature flags (task_management, checkins, automated_messages)
-  - [x] Align with existing user account structure
-  - [x] Updated `create_new_user` to handle `messages_enabled` flag properly
-- [x] **Enhance Account Creation Flow**: Add more user input during account creation (COMPLETED 2025-11-14 for Discord)
-  - [x] Add feature selection (which features to enable: tasks, checkins, automated messages) - Discord flow complete
-  - [x] Add timezone selection/configuration - Discord flow complete
-  - [ ] Add profile information collection (name, preferences, etc.) - Future enhancement
-  - [x] Consider multi-step flow or modal with multiple fields - Discord flow uses modal + view pattern
+**Completed**:
+- [x] **Fix Account Linking**: Confirmation code sending working (COMPLETED 2025-11-13)
+  - [x] Confirmation codes sent via email (not Discord) for security
+- [x] **Fix Account Creation Feature Enablement**: Feature flags now set correctly (COMPLETED 2025-11-14)
+  - [x] Account creation sets proper feature flags (task_management, checkins, automated_messages)
+- [x] **Enhance Account Creation Flow**: Discord flow enhanced (COMPLETED 2025-11-14)
+  - [x] Feature selection (tasks, checkins, automated messages)
+  - [x] Timezone selection/configuration
+  - [x] Multi-step flow with modal + view pattern
+
+**Remaining Work**:
+- [ ] Test end-to-end account linking flow
+- [ ] Handle edge cases (user already linked, invalid codes, expired codes)
+- [ ] Add profile information collection during account creation (name, preferences, etc.) - Future enhancement
 
 **Success Criteria**:
-- [ ] Account linking works end-to-end with confirmation codes sent via appropriate channel
-- [x] Account creation sets correct feature enablement flags (COMPLETED 2025-11-14)
-- [x] New users can configure their preferences during account creation (COMPLETED 2025-11-14 for Discord)
-- [x] Account creation flow is intuitive and doesn't overwhelm new users (COMPLETED 2025-11-14 for Discord)
+- [x] Account creation sets correct feature enablement flags (COMPLETED)
+- [x] New users can configure preferences during account creation (COMPLETED for Discord)
+- [x] Account creation flow is intuitive (COMPLETED)
+- [ ] Account linking works end-to-end with edge case handling (in progress)
 
 **Notes**:
-- Account creation via Discord now supports feature selection and timezone configuration (2025-11-14)
-- Account creation via UI already had feature selection - Discord flow now matches this experience
-- Account linking is partially implemented but confirmation code sending needs fixing
-- Future: Consider adding profile information collection during account creation (name, preferences, etc.)
-- Consider making account creation a guided flow vs. single-step process
+- Core functionality complete; remaining work is testing and edge case handling
+- Future: Consider adding profile information collection during account creation
 ### **Mood-Aware Support Calibration** **PLANNING**
 
 **Status**: **PLANNING**
@@ -128,62 +140,36 @@
 - Capture findings in TODO task updates and tag future implementation tickets once guidelines are approved.
 - Validate prototypes against mobile UX constraints (concise, quick replies).
 
-### **2025-09-16 - High Complexity Function Refactoring - Phase 2** [IN PROGRESS] **IN PROGRESS**
+### **2025-09-16 - High Complexity Function Refactoring - Phase 2** **IN PROGRESS**
 
-**Status**: [IN PROGRESS] **IN PROGRESS**  
+**Status**: **IN PROGRESS**  
 **Priority**: High  
 **Effort**: Large  
-**Dependencies**: Audit completion (completed)
+**Last Updated**: 2025-11-20
 
 **Objective**: Continue refactoring high complexity functions identified in audit to improve maintainability and reduce technical debt.
 
-**Background**: Latest audit identified 1856 high complexity functions (>50 nodes) that need attention for better maintainability. Phase 1 successfully refactored `get_user_data_summary` function, reducing complexity from 800 to 15 helper functions.
+**Background**: Latest audit identified 1856 high complexity functions (>50 nodes). Phase 1 successfully refactored `get_user_data_summary` (800 → 15 helper functions).
 
-**Results**: Audit completed with comprehensive analysis:
-- **Total Functions**: 2566 functions analyzed
-- **High Complexity**: 1856 functions (>50 nodes) identified
-- **Documentation Coverage**: 99.5% coverage achieved
-- **System Status**: Healthy and ready for development
+**Completed** (documented in changelog 2025-09-27):
+- [x] **Step 1: Priority Function Analysis** (COMPLETED)
+  - Exported top-50 most complex functions, categorized by module, identified patterns, created refactoring plan
+- [x] **get_personalization_data Refactoring** (COMPLETED 2025-09-27, documented in changelog)
+  - Reduced complexity from 727 to 6 focused helper functions using `_main_function__helper_name` pattern
+  - All tests pass, functionality preserved
+- [x] **Step 3: Testing and Validation** (COMPLETED)
+  - Comprehensive tests added, full test suite passes, refactoring patterns documented
 
-**Implementation Plan**:
-
-#### **Step 1: Priority Function Analysis** [CHECKMARK] **COMPLETED**
-- [x] **Export Top Priority Functions**
-  - [x] Export top-50 most complex functions from audit details
-  - [x] Categorize functions by module and complexity level
-  - [x] Identify patterns in high-complexity functions (long methods, deep nesting, etc.)
-- [x] **Target Selection**
-  - [x] Focus on core system functions first (scheduler, communication, user management)
-  - [x] Identify functions with highest impact on system stability
-  - [x] Create refactoring plan with acceptance criteria for each function
-
-#### **Step 2: Refactoring Strategy Implementation** [IN PROGRESS] **IN PROGRESS**
-- [x] **Next Priority Targets**
-  - [x] `ui/widgets/user_profile_settings_widget.py::get_personalization_data` (complexity: 727) [CHECKMARK] **COMPLETED**
-  - [ ] `ui/ui_app_qt.py::validate_configuration` (complexity: 692) [WARNING] **NEXT TARGET**
+**Remaining Work**:
+- [ ] **Step 2: Refactoring Strategy Implementation** (IN PROGRESS)
+  - [ ] `ui/ui_app_qt.py::validate_configuration` (complexity: 692) - NEXT TARGET
   - [ ] Additional high-priority functions from audit analysis
-- [x] **Refactoring Approach**
-  - [x] Extract helper functions to reduce complexity
-  - [x] Break down large methods into smaller, focused functions
-  - [x] Reduce conditional nesting and improve readability
-  - [x] Apply `_main_function__helper_name` naming convention consistently
-
-#### **Step 3: Testing and Validation** [CHECKMARK] **COMPLETED**
-- [x] **Comprehensive Testing**
-  - [x] Add comprehensive tests for refactored functions
-  - [x] Ensure refactoring doesn't break existing functionality
-  - [x] Run full test suite after each refactoring
-- [x] **Progress Monitoring**
-  - [x] Track complexity reduction metrics
-  - [x] Validate improvements through testing and audit results
-  - [x] Document refactoring patterns and best practices
-
-**Completed Work**:
-- **get_personalization_data Refactoring**: Successfully reduced complexity from 727 to 6 focused helper functions
-- **Helper Function Implementation**: Created 6 helper functions using `_main_function__helper_name` pattern
-- **Test Validation**: All tests pass, functionality preserved
-- **Legacy Code Cleanup**: Fixed legacy message function calls in tests
-- **Test Improvements**: Fixed failing scheduler test and suppressed expected warnings
+  - [x] Refactoring approach established (extract helpers, reduce nesting, apply naming convention)
+- [ ] **Priority Targets from Analysis**:
+  - [ ] Add coverage for profile and analytics command handlers before refactoring (13 of top 20 complexity hotspots, currently untested)
+  - [ ] Build targeted UI harnesses for `ui/ui_app_qt.py` to cover validation, signal registration, system health checks (27% coverage gap)
+  - [ ] Expand behavior tests around `interaction_manager.handle_message` to exercise multi-channel fallback logic, then break into composable units
+  - [ ] Schedule follow-up complexity scans after each refactor to track reductions
 
 **Success Criteria**:
 - [x] Significant reduction in high complexity functions (get_personalization_data completed)
@@ -192,117 +178,36 @@
 - [x] Clear documentation of refactoring patterns
 - [ ] Measurable improvement in audit metrics (ongoing)
 
-**Risk Assessment**:
-- **High Impact**: Affects multiple modules and function signatures
-- **Mitigation**: Incremental refactoring with testing after each function
-- **Rollback**: Maintain backward compatibility throughout implementation
-
 ---
 
-### **2025-09-11 - Test Coverage Expansion Phase 3** [CHECKMARK] **COMPLETED**
 
-**Status**: **COMPLETED**  
-**Priority**: Medium  
-**Effort**: Medium  
-**Dependencies**: Test Coverage Expansion Phase 2 (completed)
+### **Message Deduplication Advanced Features**
 
-**Objective**: Continue test coverage expansion with focus on simpler, more reliable test approaches and address high complexity functions identified in audit.
-
-**Background**: Phase 2 of test coverage expansion has been completed successfully with meaningful improvements to Core Service and Core Message Management. The focus on test quality over quantity has proven successful, with all 1,228 tests passing consistently.
-
-**Results**: Successfully completed all 5 priority targets with comprehensive test coverage improvements:
-- **Core Logger**: 68% -> 75% coverage with 35 tests covering logging behavior, rotation, and error handling
-- **Core Error Handling**: 69% -> 65% coverage with 78 tests covering error scenarios and recovery mechanisms
-- **Core Config**: 70% -> 79% coverage with 35 tests covering configuration loading and validation
-- **Command Parser**: 40% -> 68% coverage with 47 tests covering NLP and entity extraction
-- **Email Bot**: 37% -> 91% coverage (far exceeded target with existing comprehensive tests)
-
-**Implementation Plan**:
-
-#### **Step 3.1: Test Coverage with Simpler Approaches** [CHECKMARK] **COMPLETED**
-- [x] **Core Logger Coverage** - 68% -> 75% coverage achieved
-  - [x] Test logging behavior, rotation, and log level management
-  - [x] Test error handling in logging system and log file management
-  - [x] Test logging performance and configuration
-- [x] **Core Error Handling Coverage** - 69% -> 65% coverage achieved
-  - [x] Test error scenarios, recovery mechanisms, and error logging
-  - [x] Test error handling performance and edge cases
-- [x] **Core Config Coverage** - 70% -> 79% coverage achieved
-  - [x] Test configuration loading, validation, and environment variables
-  - [x] Test configuration error handling and performance
-- [x] **Command Parser Coverage** - 40% -> 68% coverage achieved
-  - [x] Test natural language processing, entity extraction, and command recognition
-  - [x] Test edge cases and error handling
-- [x] **Email Bot Coverage** - 37% -> 91% coverage achieved (far exceeded target)
-  - [x] Existing comprehensive tests already provided excellent coverage
-
-#### **Step 3.2: Code Complexity Reduction** [WARNING] **PLANNED**
-- [ ] **High Complexity Function Refactoring**
-  - [ ] Prioritize refactoring of 1,856 high complexity functions (>50 nodes)
-  - [ ] Focus on core system functions first (scheduler, communication, user management)
-  - [ ] Extract helper functions to reduce complexity
-  - [ ] Break down large methods into smaller, focused functions
-  - [ ] Reduce conditional nesting and improve readability
-- [ ] **Helper Function Naming Convention**
-  - [ ] Apply `_main_function__helper_name` pattern consistently
-  - [ ] Improve traceability and searchability across the project
-  - [ ] Ensure clear ownership and better debugging capabilities
-
-#### **Step 3.3: Test Quality Standards** [WARNING] **PLANNED**
-- [ ] **Test Strategy Documentation**
-  - [ ] Document successful test approaches vs. problematic ones
-  - [ ] Create guidelines for avoiding complex mocking that causes hanging
-  - [ ] Establish patterns for reliable test implementation
-  - [ ] Share lessons learned about test stability over coverage numbers
-- [ ] **Test Maintenance**
-  - [ ] Regular review of test suite health
-  - [ ] Monitor for test hanging or function behavior issues
-  - [ ] Maintain focus on working tests over complex coverage
-
-**Success Criteria**:
-- [ ] Core User Data Manager and Core File Operations tests implemented with simpler approaches
-- [ ] Significant reduction in high complexity functions through refactoring
-- [ ] All tests continue to pass consistently (1,228+ tests)
-- [ ] Test suite remains stable and reliable
-- [ ] Clear documentation of successful test patterns
-
-**Estimated Timeline**: 2-3 weeks for Phase 3 implementation
-
----
-
-### **2025-09-10 - Message Deduplication Advanced Features (Future)** [IN PROGRESS] **IN PROGRESS**
-
-**Status**: [IN PROGRESS] **IN PROGRESS**  
+**Status**: **IN PROGRESS**  
 **Priority**: Low  
 **Effort**: Large  
-**Dependencies**: Message deduplication system (completed)  
-**Started**: 2025-11-11
+**Started**: 2025-11-11  
+**Last Updated**: 2025-11-20
 
 **Objective**: Implement advanced analytics, insights, and intelligent scheduling features for the message deduplication system.
 
-**Background**: The core message deduplication system is complete and operational. These advanced features would enhance the system with analytics, user preference learning, and intelligent message selection capabilities.
+**Completed** (documented in changelog 2025-11-11):
+- [x] **Message frequency analytics foundation**: MessageAnalytics class with frequency tracking, delivery success rate analysis, message summary generation (7 tests passing)
 
-**Progress**: Basic message frequency analytics foundation implemented (2025-11-11):
-- [OK] Created `MessageAnalytics` class in `core/message_analytics.py`
-- [OK] Implemented `get_message_frequency()` - tracks frequency by category and time period
-- [OK] Implemented `get_delivery_success_rate()` - analyzes delivery success rates
-- [OK] Implemented `get_message_summary()` - comprehensive summary combining frequency and delivery data
-- [OK] Added comprehensive behavior tests (7 tests, all passing)
+**Remaining Work**:
 
-**Implementation Plan**:
-
-#### **Step 5.1: Analytics and Insights** [IN PROGRESS] **IN PROGRESS**
-- [x] **Message frequency analytics** [CHECKMARK] **COMPLETED** (2025-11-11)
+#### **Step 5.1: Analytics and Insights** [IN PROGRESS]
+- [x] **Message frequency analytics** [COMPLETED] (2025-11-11)
   - [x] Track message send frequency by category and time period
   - [x] Generate reports on message delivery success rates
   - [ ] Analyze user engagement patterns over time
   - [ ] Create visualizations for message analytics
-- [ ] **User engagement tracking** [WARNING] **LONG-TERM/FUTURE** - Requires multiple users for meaningful data
+- [ ] **User engagement tracking** [LONG-TERM/FUTURE] - Requires multiple users for meaningful data
   - [ ] Monitor user response rates to different message types
   - [ ] Track user interaction patterns with messages
   - [ ] Analyze user engagement trends and preferences
   - [ ] Generate user engagement reports
-- [ ] **Message effectiveness metrics** [WARNING] **LONG-TERM/FUTURE** - Requires multiple users and response data for meaningful analysis
+- [ ] **Message effectiveness metrics** [LONG-TERM/FUTURE] - Requires multiple users and response data for meaningful analysis
   - [ ] Measure message effectiveness based on user responses
   - [ ] Track which messages generate the most positive responses
   - [ ] Analyze message timing effectiveness
@@ -313,7 +218,7 @@
   - [ ] Context-aware message suggestions
   - [ ] Learning algorithms for message optimization
 
-#### **Step 5.2: Advanced Scheduling** [WARNING] **PLANNED**
+#### **Step 5.2: Advanced Scheduling** [PLANNED]
 - [ ] **Intelligent message spacing**
   - [ ] Dynamic spacing based on user engagement patterns
   - [ ] Adaptive timing based on user response history
@@ -335,55 +240,36 @@
   - [ ] Automated optimization based on test results
   - [ ] Continuous improvement through testing
 
-**Success Criteria**:
-- [x] Basic message frequency analytics implemented ([OK] completed 2025-11-11)
-- [ ] Advanced analytics provide actionable insights
-- [ ] User engagement tracking improves message targeting
-- [ ] Smart recommendations increase user satisfaction
-- [ ] Intelligent scheduling optimizes message timing
-- [ ] A/B testing framework enables continuous improvement
-
-**Risk Assessment**:
-- **Low Impact**: These are enhancement features, not core functionality
-- **Mitigation**: Implement incrementally with thorough testing
-- **Rollback**: Features can be disabled without affecting core system
+**Note**: Many features marked LONG-TERM/FUTURE as they require multiple users for meaningful data/analysis
 
 ---
 
-### **2025-09-07 - Test Standardization Burn-in** [IN PROGRESS] **ACTIVE**
+### **2025-09-07 - Test Standardization Burn-in** **MOSTLY COMPLETE**
 
-**Status**: [IN PROGRESS] **ACTIVE**  
+**Status**: **MOSTLY COMPLETE**  
 **Priority**: High  
-**Effort**: Small
+**Effort**: Small  
+**Last Updated**: 2025-11-20
 
 **Objective**: Maintain stability by validating order independence and removing test-only aids over time.
 
-**Actions**:
-- [x] Tooling for burn-in validation runs [CHECKMARK] **COMPLETED** (2025-11-11)
-  - [x] Added `--no-shim` option to disable `ENABLE_TEST_DATA_SHIM` for validation
-  - [x] Added `--random-order` option for truly random test order (not fixed seed)
-  - [x] Added `--burnin-mode` option that combines both for easy validation runs
-- [x] Fixed order-dependent test failures [CHECKMARK] **COMPLETED** (2025-11-11)
-  - [x] Fixed test_checkin_message_queued_on_discord_disconnect (added check-in setup and channel config)
-  - [x] Fixed test_update_priority_and_title_by_name (changed title to avoid parser confusion)
-  - [x] Fixed test_feature_enablement_real_behavior (updated to match design - task_settings preserved)
-  - [x] Fixed test_integration_scenarios_real_behavior (updated to match design)
-  - [x] Fixed test_create_account_sets_up_default_tags_when_tasks_enabled (fixed empty tags check)
-  - [x] Fixed test_user_lifecycle (allow corrupted file backups)
-  - [x] Fixed test_setup_default_task_tags_new_user_real_behavior (updated for new save_user_data signature)
-  - [x] All tests now pass with `--burnin-mode` (2,809 passed, 1 skipped)
-- [ ] Nightly run with `--burnin-mode` (or `--no-shim --random-order`); track regressions
-- [x] Sweep and resolve Discord/aiohttp deprecations and unraisable warnings [CHECKMARK] **COMPLETED**
-  - [x] External library deprecation warnings suppressed (Discord, audioop)
-  - [x] aiohttp session cleanup warnings suppressed
-  - [x] Unraisable exception warnings suppressed
+**Completed**:
+- [x] Tooling for burn-in validation runs (COMPLETED 2025-11-11)
+  - [x] `--no-shim`, `--random-order`, `--burnin-mode` options added
+- [x] Fixed order-dependent test failures (COMPLETED 2025-11-11)
+  - [x] All 7 identified tests fixed
+  - [x] All tests pass with `--burnin-mode` (2,809 passed, 1 skipped)
+- [x] Sweep and resolve Discord/aiohttp deprecations (COMPLETED)
   - [x] Warning count reduced to external-only (4 Discord library warnings expected)
+
+**Remaining Work**:
+- [ ] Nightly run with `--burnin-mode`; track regressions
 - [ ] After 2 weeks green with `--burnin-mode`, gate or remove remaining test-only diagnostics
 
 **Success Criteria**:
-- [x] Tooling in place for burn-in validation runs ([OK] completed)
-- [ ] No failures under `--burnin-mode` runs for 2 consecutive weeks
-- [x] CI warning count reduced to external-only ([OK] 4 external Discord warnings expected)
+- [x] Tooling in place (COMPLETED)
+- [ ] No failures under `--burnin-mode` runs for 2 consecutive weeks (ongoing monitoring)
+- [x] CI warning count reduced to external-only (COMPLETED)
 
 ---
 
@@ -400,20 +286,12 @@
 
 **Implementation Plan**:
 
-#### **Phase 1: Foundation Improvements (High Impact, Low-Medium Effort)** [IN PROGRESS] **IN PROGRESS**
+#### **Phase 1: Foundation Improvements (High Impact, Low-Medium Effort)** **PARTIALLY COMPLETE**
 
-**1. Recurring Tasks System** [CHECKMARK] **COMPLETED**
-- **Status**: [CHECKMARK] **COMPLETED**
-- **Why it matters**: Many tasks are repetitive (daily medication, weekly cleaning, monthly bills) but currently require manual recreation
-- **Implementation**:
-  - [x] Add `recurrence_pattern` field to tasks (daily, weekly, monthly, custom)
-  - [x] Add `recurrence_interval` (every X days/weeks/months)
-  - [x] Add `next_due_date` calculation based on completion
-  - [x] Auto-create next instance when task is completed
-  - [x] Support for "repeat after completion" vs "repeat on schedule"
-  - [x] Update task creation and completion logic
-  - [x] Add recurring task UI components
-  - [x] Test recurring task functionality
+**1. Recurring Tasks System** **COMPLETED**
+- **Status**: **COMPLETED**
+- **Note**: Recurring tasks functionality implemented (recurrence_pattern, recurrence_interval, next_due_date, auto-creation, UI components)
+- Testing required
 
 **2. Task Templates & Quick Actions** [WARNING] **PLANNED**
 - **Why it matters**: Reduces friction for common task creation patterns
@@ -583,179 +461,21 @@
 
 ---
 
-### **2025-08-22 - User Context & Preferences Integration Investigation** [OK] **INVESTIGATION COMPLETE**
 
-**Status**: [OK] **INVESTIGATION COMPLETE**  
+
+### **Phase 1: Enhanced Task & Check-in Systems** **PARTIALLY COMPLETE**
+
+**Status**: **PARTIALLY COMPLETE**  
 **Priority**: High  
-**Effort**: Medium  
-**Dependencies**: None  
-**Completed**: 2025-11-09
+**Last Updated**: 2025-11-20
 
-**Objective**: Investigate and improve the integration of `user/user_context.py` and `user/user_preferences.py` modules across the system.
+**Completed** (documented in changelog):
+- [x] **Enhanced Task Reminder System** (COMPLETED - documented in changelog)
+  - Priority-based weighting, due date proximity weighting, critical priority level, no due date option
+- [x] **Semi-Random Check-in Questions** (COMPLETED - documented in changelog)
+  - Weighted selection, question variety, category balancing
 
-**Background**: User observed that these modules may not be used as extensively or in all the ways they were intended to be.
-
-**Investigation Plan**:
-- [x] Audit current usage of `user/user_context.py` across all modules
-- [x] Audit current usage of `user/user_preferences.py` across all modules
-- [x] Identify gaps between intended functionality and actual usage
-- [x] Document integration patterns and missing connections
-- [ ] Propose improvements for better integration (findings documented below)
-
-**Investigation Findings**:
-
-**UserContext Usage**:
-- **Primary Usage**: `get_user_id()` and `get_internal_username()` used in:
-  - `core/scheduler.py` (1 usage)
-  - `core/schedule_management.py` (4 usages)
-  - `user/context_manager.py` (2 usages)
-- **UI Integration**: `load_user_data()` used in `ui/ui_app_qt.py` (2 places) - convenience wrapper around `get_user_data()`
-- **Pattern**: Most code uses `UserContext()` as a singleton to get current user ID, but doesn't leverage the full context management features
-
-**UserPreferences Usage**:
-- **Critical Finding**: `UserPreferences` class exists and is functional but **never actually used** anywhere in the codebase
-- **Status Update (2025-11-11)**: The unused initialization from `UserContext.set_user_id()` has been removed (per changelog)
-- **Current State**: Class is available but unused; codebase accesses preferences directly via `get_user_data()` and `update_user_preferences()`
-- **Gap**: The class has full functionality (load, save, set, get preferences) but is completely unused - could be useful for preference management workflows
-
-**Integration Gaps**:
-1. **UserPreferences Unused**: `UserPreferences` class exists and is functional but never accessed or used anywhere in the codebase (initialization from UserContext was removed)
-2. **Direct Data Access**: Most code bypasses `UserContext` and calls `get_user_data()` directly instead of using context methods
-3. **Limited Context Usage**: `UserContext` is primarily used as a singleton to get user ID, not for full context management
-4. **Redundant Wrappers**: `UserContext.load_user_data()` and `save_user_data()` are thin wrappers around `get_user_data()` and `save_user_data()`
-
-**Success Criteria**:
-- [x] Complete understanding of current integration state (documented above)
-- [x] Identified gaps and improvement opportunities (UserPreferences unused, limited context usage)
-- [ ] Action plan for enhancing integration (recommendations below)
-
-**Recommendations**:
-1. [OK] **UserPreferences Initialization Removed**: The unused initialization from `UserContext` has been removed (completed)
-2. **UserPreferences Usage**: Class remains available but unused. Could be useful for:
-   - Workflows that need to make multiple preference changes (avoids multiple `update_user_preferences()` calls)
-   - Code that needs to track preference state changes
-   - Future preference management UI features
-   - **Status**: Low priority - current direct access pattern works well for single operations
-3. **Simplify UserContext**: Consider if `UserContext` should be simplified to just provide user ID/username, or if it should be more fully utilized
-4. **Consolidate Access Patterns**: Standardize on either direct `get_user_data()` calls or `UserContext` methods, not both
-5. [OK] **Documentation Updated**: Comment in `user/user_preferences.py` updated to reflect current state (completed 2025-11-11)
-
----
-
-### **2025-08-22 - Bot Module Naming & Clarity Refactoring** [OK] **INVESTIGATION COMPLETE**
-
-**Status**: [OK] **INVESTIGATION COMPLETE**  
-**Priority**: High  
-**Effort**: Medium  
-**Dependencies**: None  
-**Completed**: 2025-11-09
-
-**Objective**: Improve clarity and separation of purposes for communication modules.
-
-**Target Modules**:
-- `communication/core/channel_orchestrator.py` (CommunicationManager)
-- `communication/message_processing/conversation_flow_manager.py` (ConversationManager)
-- `communication/message_processing/command_parser.py` (EnhancedCommandParser)
-- `communication/command_handlers/interaction_handlers.py` (InteractionHandler implementations)
-- `communication/message_processing/interaction_manager.py` (InteractionManager)
-- `communication/message_processing/message_router.py` (MessageRouter)
-
-**Investigation Plan**:
-- [x] Analyze current module purposes and responsibilities
-- [x] Identify overlapping functionality and unclear boundaries
-- [x] Document current naming conventions and their clarity
-- [x] Propose improved naming and separation strategies
-- [ ] Create refactoring plan if needed (findings documented below)
-
-**Investigation Findings**:
-
-**Module Purposes**:
-1. **CommunicationManager** (`channel_orchestrator.py`): Manages all communication channels (Discord, Email), handles channel lifecycle, message sending, retries, monitoring. **Purpose**: Channel orchestration and coordination.
-
-2. **ConversationManager** (`conversation_flow_manager.py`): Handles multi-turn conversation flows (like check-ins), manages user state during flows. **Purpose**: Multi-turn conversation state management.
-
-3. **EnhancedCommandParser** (`command_parser.py`): Parses user messages to extract intents and entities. Combines rule-based and AI parsing. **Purpose**: Message parsing and intent extraction.
-
-4. **InteractionManager** (`interaction_manager.py`): Main integration layer - coordinates parsing, routing to handlers, AI chatbot integration. **Purpose**: Main coordinator for user interactions.
-
-5. **MessageRouter** (`message_router.py`): Routes messages to appropriate handlers based on message type (slash command, bang command, conversational, etc.). **Purpose**: Message type detection and routing.
-
-6. **InteractionHandlers** (`interaction_handlers.py`): Contains handlers for different interaction types (TaskManagementHandler, CheckinHandler, ProfileHandler, etc.). **Purpose**: Specific interaction type handling.
-
-**Overlapping Functionality & Unclear Boundaries**:
-1. **Routing Overlap**: Both `InteractionManager` and `MessageRouter` handle message routing:
-   - `MessageRouter` routes based on message type (slash, bang, conversational)
-   - `InteractionManager` coordinates parsing and routing to handlers
-   - **Issue**: Unclear which one is the primary router
-
-2. **Interaction Coordination**: Both `ConversationManager` and `InteractionManager` handle interactions:
-   - `ConversationManager` handles multi-turn flows (check-ins)
-   - `InteractionManager` coordinates all interactions
-   - **Issue**: Boundary between flow management and general interaction management is unclear
-
-3. **Naming Inconsistency**: Mix of "Manager", "Router", "Parser", "Handler":
-   - `CommunicationManager` - orchestrates channels
-   - `ConversationManager` - manages flows
-   - `InteractionManager` - coordinates interactions
-   - `MessageRouter` - routes messages
-   - `EnhancedCommandParser` - parses commands
-   - **Issue**: "Manager" is overused and doesn't clearly indicate hierarchy
-
-**Naming Clarity Issues**:
-1. **"Manager" Overuse**: Three different "Manager" classes with different purposes
-2. **"Interaction" Ambiguity**: Both `InteractionManager` and `InteractionHandler` use "interaction" but at different levels
-3. **"Conversation" vs "Interaction"**: Unclear distinction between conversation flows and interactions
-
-**Recommendations**:
-1. **Clarify Routing Hierarchy**: 
-   - `MessageRouter` should be the primary message type detector
-   - `InteractionManager` should coordinate parsing and handler selection
-   - Consider renaming `MessageRouter` to `MessageTypeDetector` or `MessageClassifier`
-
-2. **Distinguish Flow Management**:
-   - `ConversationManager` handles multi-turn flows (stateful)
-   - `InteractionManager` handles single-turn interactions (stateless)
-   - Consider renaming `ConversationManager` to `FlowManager` or `ConversationFlowManager`
-
-3. **Standardize Naming**:
-   - Use "Orchestrator" for high-level coordination (CommunicationManager -> CommunicationOrchestrator)
-   - Use "Manager" for mid-level coordination (InteractionManager is appropriate)
-   - Use "Handler" for specific type handlers (already correct)
-   - Use "Parser" for parsing (already correct)
-
-4. **Consider Consolidation**:
-   - Evaluate if `MessageRouter` and `InteractionManager` can be merged
-   - Evaluate if `ConversationManager` should be part of `InteractionManager`
-
-**Success Criteria**:
-- [x] Clear understanding of each module's purpose (documented above)
-- [x] Identified naming and organization improvements (routing overlap, naming inconsistency)
-- [ ] Action plan for refactoring if beneficial (recommendations above, implementation pending)
-
----
-
-### **Phase 1: Enhanced Task & Check-in Systems** [IN PROGRESS] **IN PROGRESS**
-
-**Goal**: Improve task reminder system and check-in functionality to align with project vision  
-**Status**: Implementation Phase  
-**Estimated Duration**: 1-2 weeks
-
-**Checklist**:
-- [x] **Enhanced Task Reminder System** (High Impact, Medium Effort) [CHECKMARK] **COMPLETED**
-  - [x] Add priority-based reminder frequency (high priority = more likely to be selected for reminders)
-  - [x] Implement due date proximity weighting (closer to due = more likely to be selected for reminders)
-  - [x] Add "critical" priority level and "no due date" option for tasks
-  - [ ] Add recurring task support with flexible scheduling
-  - [x] Improve semi-randomness to consider task urgency
-  - [x] Test priority and due date weighting algorithms
-  - [ ] Validate recurring task scheduling patterns
-- [x] **Semi-Random Check-in Questions** (High Impact, Low-Medium Effort) [CHECKMARK] **COMPLETED**
-  - [x] Implement random question selection from available pool
-  - [x] Add weighted selection based on recent questions asked
-  - [x] Ensure variety while maintaining relevance
-  - [x] Add question categories (mood, energy, tasks, general well-being)
-  - [x] Test question selection randomness and variety
-  - [x] Validate question category coverage
+**Remaining Work**:
 - [ ] **Check-in Response Analysis** (High Impact, Medium Effort)
   - [ ] Implement pattern analysis of responses over time
   - [ ] Add progress tracking for mood trends
@@ -837,265 +557,177 @@
 
 ### **UI Migration Plan**
 
-**Status**: Foundation Complete, Dialog Testing in Progress  
-**Goal**: Complete PySide6/Qt migration with comprehensive testing
+**Status**: Foundation, Dialogs, and Widgets Complete; Testing Remaining  
+**Last Updated**: 2025-11-20
 
-#### **Foundation** [CHECKMARK] **COMPLETE**
-- [x] PySide6/Qt migration - Main app launches successfully
-- [x] File reorganization - Modular structure implemented
-- [x] Naming conventions - Consistent naming established
-- [x] Widget refactoring - Widgets created and integrated
-- [x] User data migration - All data access routed through new handlers
-- [x] Signal-based updates - Implemented and working
-- [x] 100% function documentation coverage - All 1349 functions documented
+**Completed** (documented in changelogs):
+- [x] **Foundation**: PySide6/Qt migration, file reorganization, naming conventions, widget refactoring, user data migration, signal-based updates, 100% function documentation
+- [x] **Dialog Implementation**: All 7 dialogs complete (Category Management, Channel Management, Check-in Management, User Profile, Account Creator, Task Management, Schedule Editor)
+- [x] **Widget Implementation**: All 6 widgets complete (TagWidget, Task Settings, Category Selection, Channel Selection, Check-in Settings, User Profile Settings)
+- [x] **Main UI Application**: 21 behavior tests complete
 
-#### **Dialog Implementation** [CHECKMARK] **COMPLETE**
-- [x] Category Management Dialog - Complete with validation fixes
-- [x] Channel Management Dialog - Complete, functionally ready
-- [x] Check-in Management Dialog - Complete with comprehensive validation
-- [x] User Profile Dialog - Fully functional with all personalization fields
-- [x] Account Creator Dialog - Feature-based creation with validation
-- [x] Task Management Dialog - Complete with unified TagWidget integration
-- [x] Schedule Editor Dialog - Ready for testing
-
-#### **Widget Implementation** [CHECKMARK] **COMPLETE**
-- [x] TagWidget - Unified widget for both management and selection modes
-- [x] Task Settings Widget - Complete with TagWidget integration
-- [x] Category Selection Widget - Implemented
-- [x] Channel Selection Widget - Implemented
-- [x] Check-in Settings Widget - Implemented
-- [x] User Profile Settings Widget - Implemented
-
-#### **Testing & Validation** [WARNING] **IN PROGRESS**
-- [x] Main UI Application - 21 behavior tests complete
-- [ ] Individual Dialog Testing - 8 dialogs need testing
-- [ ] Widget Testing - 8 widgets need testing
-- [ ] Integration Testing - Cross-dialog communication
-- [ ] Performance Optimization - UI responsiveness monitoring
+**Remaining Work**:
+- [ ] **Testing & Validation**
+  - [ ] Individual Dialog Testing - 8 dialogs need testing
+  - [ ] Widget Testing - 8 widgets need testing
+  - [ ] Integration Testing - Cross-dialog communication
+  - [ ] Performance Optimization - UI responsiveness monitoring
   - [ ] Windows path compatibility tests around messages defaults and config path creation
   - [ ] Expand preferences save/load tests to cover Pydantic normalization and legacy flag handling (full vs partial updates)
   - [ ] Add tests for read-path normalization (`normalize_on_read=True`) at critical read sites (schedules, account/preferences)
-
-#### **UI Quality Improvements** [WARNING] **PLANNED**
-- [ ] Fix Dialog Integration (main window updates after dialog changes)
-- [ ] Add Data Validation across all forms
-- [ ] Improve Error Handling with clear, user-friendly messages
-- [ ] Monitor and optimize UI responsiveness for common operations
+- [ ] **UI Quality Improvements**
+  - [ ] Fix Dialog Integration (main window updates after dialog changes)
+  - [ ] Add Data Validation across all forms
+  - [ ] Improve Error Handling with clear, user-friendly messages
+  - [ ] Monitor and optimize UI responsiveness for common operations
 
 ---
 
 ### **Legacy Code Removal Plan**
 
-**Status**: Legacy Channel Removal Complete, General Legacy Monitoring Active (extended for preferences flags)  
-**Goal**: Safely remove all legacy/compatibility code
+**Status**: Legacy Channel Removal Complete, General Legacy Monitoring Active  
+**Last Updated**: 2025-11-20
 
-#### **Legacy Channel Code Removal** [CHECKMARK] **COMPLETE** (2025-08-03)
-- [x] Communication Manager Legacy Channel Properties - Removed `self.channels` property and `_legacy_channels` attribute
-- [x] LegacyChannelWrapper Class - Removed entire 156+ line legacy wrapper class
-- [x] Legacy Channel Access Methods - Removed `_create_legacy_channel_access` method
-- [x] Modern Interface Migration - Updated all methods to use `self._channels_dict` directly
-- [x] Test Updates - Updated tests to use modern interface patterns
-- [x] Audit Verification - Created and ran audit scripts to verify complete removal
-- [x] Application Testing - Confirmed application loads successfully after removal
+**Completed**:
+- [x] **Legacy Channel Code Removal** (COMPLETED 2025-08-03, documented in changelog)
+  - Removed LegacyChannelWrapper, legacy channel properties, modern interface migration complete
+- [x] **Legacy Code Marking** (COMPLETED)
+  - All legacy code marked with warnings and removal plans
 
-#### **Legacy Code Marking** [CHECKMARK] **COMPLETE**
-- [x] Communication Manager Legacy Wrappers - Marked with warnings and removal plans
-- [x] Account Creator Dialog Compatibility - 5 unused methods marked
-- [x] User Profile Settings Widget Fallbacks - 5 legacy blocks marked
-- [x] User Context Legacy Format - Format conversion marked
-- [x] Test Utilities Backward Compatibility - Legacy path marked
-- [x] UI App Legacy Communication Manager - Legacy handling marked
-
-#### **Monitoring Phase** [WARNING] **ACTIVE**
-- [ ] Monitor app logs for LEGACY warnings (preferences nested 'enabled' flags) for 2 weeks
-
-#### **Removal Phase** [WARNING] **PLANNED**
-- [ ] Execute removals listed in TODO.md and update tests accordingly
-
-##### **Targeted Removals (High-Priority)**
-- [ ] Account Creator Dialog compatibility methods (by 2025-08-15)
-- [ ] User Profile Settings Widget legacy fallbacks (by 2025-08-15)
-- [ ] Discord Bot legacy methods (by 2025-08-15)
+**Active Work**:
+- [ ] **Monitoring Phase**: Monitor app logs for LEGACY warnings (preferences nested 'enabled' flags) for 2 weeks
+- [ ] **Removal Phase**: Execute removals listed in TODO.md and update tests accordingly
+  - Account Creator Dialog compatibility methods
+  - User Profile Settings Widget legacy fallbacks
+  - Discord Bot legacy methods
 
 ---
 
 ### **Testing Strategy Plan**
 
-**Status**: Core Modules Complete, UI Layer in Progress  
-**Goal**: Comprehensive test coverage across all modules
+**Status**: Core, Communication, and Supporting Modules Complete; UI Layer and Integration Testing Remaining  
+**Last Updated**: 2025-11-20
 
-#### **Core Module Testing** [CHECKMARK] **COMPLETE** (8/12 modules)
-- [x] Response Tracking - 25 behavior tests
-- [x] Service Utilities - 22 behavior tests
-- [x] Validation - 50+ behavior tests
-- [x] Schedule Management - 25 behavior tests
-- [x] Task Management - 20 behavior tests
-- [x] Scheduler - 15 behavior tests
-- [x] Service - 20 behavior tests
-- [x] File Operations - 15 behavior tests
+**Completed** (documented in changelogs):
+- [x] **Core Module Testing**: 8 modules (Response Tracking, Service Utilities, Validation, Schedule Management, Task Management, Scheduler, Service, File Operations) - 192+ behavior tests
+- [x] **Bot/Communication Testing**: 6 modules (Conversation Manager, User Context Manager, Discord Bot, AI Chatbot, Account Management, User Management) - 111 behavior tests
+- [x] **Supporting Module Testing**: 5 modules (Error Handling, Config, Auto Cleanup, Check-in Analytics, Logger) - 62 behavior tests
+- [x] **UI Layer Testing**: Main UI Application (21 tests), Individual Dialogs (12 tests), Widgets (14 tests)
 
-#### **Bot/Communication Testing** [CHECKMARK] **COMPLETE** (6/8 modules)
-- [x] Conversation Manager - 20 behavior tests
-- [x] User Context Manager - 20 behavior tests
-- [x] Discord Bot - 32 behavior tests
-- [x] AI Chatbot - 23 behavior tests
-- [x] Account Management - 6 behavior tests
-- [x] User Management - 10 behavior tests
+**Remaining Work**:
+- [ ] **UI Layer Testing**
+  - [ ] Expand coverage for remaining UI modules
+  - [ ] Individual Dialog Testing (comprehensive behavior tests)
+  - [ ] TagWidget validation in both modes
+  - [ ] Simple Widget Testing - 7 failures in basic widget tests (constructor parameter issues)
+  - [ ] Expand Testing Framework for under-tested modules
+- [ ] **Integration Testing**
+  - [ ] Cross-module workflows
+  - [ ] End-to-end user scenarios
+  - [ ] Performance testing
 
-#### **UI Layer Testing** [CHECKMARK] **COMPLETE** (3/8 modules)
-- [x] Main UI Application - 21 behavior tests
-- [x] Individual Dialog Testing - 12 dialog behavior tests
-- [x] Widget Testing - 14 widget behavior tests (using centralized test utilities)
-- [ ] Simple Widget Testing - 7 failures in basic widget tests (constructor parameter issues)
+---
 
-#### **Supporting Module Testing** [CHECKMARK] **COMPLETE** (5/5 modules)
-- [x] Error Handling - 10 behavior tests
-- [x] Config - 5 behavior tests
-- [x] Auto Cleanup - 16 behavior tests
-- [x] Check-in Analytics - 16 behavior tests
-- [x] Logger Module - 15 behavior tests
+### **UI Component Testing Strategy Plan**
 
-#### **Outstanding Testing Tasks** [WARNING] **ACTIVE**
-- [ ] UI Layer Testing (expand coverage for remaining UI modules)
-- [ ] Individual Dialog Testing (comprehensive behavior tests)
-- [ ] TagWidget validation in both modes
-- [ ] Expand Testing Framework for under-tested modules
+**Status**: **IN PROGRESS**  
+**Priority**: High  
+**Effort**: Medium  
+**Last Updated**: 2025-11-20
 
-#### **Integration Testing** [WARNING] **PLANNED**
-- [ ] Cross-module workflows
-- [ ] End-to-end user scenarios
-- [ ] Performance testing
+**Objective**: Comprehensive strategy for testing UI components with proper isolation, preventing hanging tests, and ensuring all UI functionality works correctly.
+
+**Critical Testing Challenges**:
+- UI windows hanging (tests create real Qt windows that don't close properly)
+- Tests affecting each other (UI state persists between tests)
+- Creating real Windows tasks (UI tests accidentally trigger system operations)
+- Test logging isolation (UI tests interfere with logging systems)
+- Tests affecting real system data (UI tests modify production data)
+
+**Prevention Strategies**:
+- Headless Mode: Use `QApplication.setAttribute(Qt.AA_ShareOpenGLContexts, False)` for headless testing
+- Proper Cleanup: Always close dialogs and clean up Qt objects
+- Mock External Systems: Never create real Windows tasks or system resources
+- Test Data Isolation: Use `tests/data/` directory only
+- Logging Isolation: Use test-specific log files
+
+**Implementation Phases**:
+
+#### **Phase 1: Core UI Components (Priority 1)**
+Target modules with <50% coverage:
+- [ ] `ui/ui_app_qt.py` (27.6%) - Main application bootstrap
+- [ ] `ui/dialogs/task_crud_dialog.py` (11.2%) - Task CRUD operations
+- [ ] `ui/generate_ui_files.py` (0.0%) - UI file generation
+
+#### **Phase 2: Dialog Components (Priority 2)**
+Target modules with 50-70% coverage:
+- [ ] `ui/dialogs/account_creator_dialog.py` (48.1%)
+- [ ] `ui/dialogs/checkin_management_dialog.py` (49.0%)
+- [ ] `ui/dialogs/task_management_dialog.py` (51.1%)
+- [ ] `ui/dialogs/category_management_dialog.py` (51.5%)
+
+#### **Phase 3: Widget Components (Priority 3)**
+Target modules with 70-90% coverage:
+- [ ] `ui/widgets/task_settings_widget.py` (50.6%)
+- [ ] `ui/widgets/channel_selection_widget.py` (57.0%)
+- [ ] `ui/widgets/checkin_settings_widget.py` (59.1%)
+- [ ] `ui/widgets/category_selection_widget.py` (68.3%)
+
+**Test Categories**:
+- [ ] Button Functionality Testing (click actions, state changes, event handling, keyboard shortcuts)
+- [ ] Input Validation Testing (text, numeric, date/time, file, dropdown/combo)
+- [ ] Dialog Workflow Testing (open/close, save/cancel, validation, navigation, modal behavior)
+- [ ] Widget Interaction Testing (combinations, data binding, event propagation, state management)
+- [ ] Error Handling Testing (error states, validation errors, network errors, system errors)
+
+**Success Criteria**:
+- [ ] All UI components have comprehensive test coverage
+- [ ] No hanging tests or UI windows
+- [ ] No interference with real system data
+- [ ] All button clicks, inputs, and workflows tested
+- [ ] Error handling and recovery tested
+
+**Note**: See `development_docs/UI_COMPONENT_TESTING_STRATEGY.md` for detailed test patterns and implementation examples (archived reference).
 
 ---
 
 ### **Channel Interaction Implementation Plan**
 
-**Status**: Core Framework Complete, Discord Enhancement Complete, Email Integration Complete  
-**Goal**: Comprehensive user interactions through communication channels
+**Status**: Email Integration Complete, Cross-Channel Sync Remaining  
+**Last Updated**: 2025-11-20
 
-#### **Secondary Channel Implementation** [IN PROGRESS] **IN PROGRESS**
-- [x] Email Integration - Full email-based interaction system [CHECKMARK] **COMPLETED** (2025-11-11)
-  - [x] Email message body extraction from incoming emails (plain text and HTML support)
-  - [x] Email polling loop (checks every 30 seconds, tracks processed emails)
-  - [x] Email-to-user mapping integration (using get_user_id_by_identifier)
-  - [x] Message routing to InteractionManager for processing
-  - [x] Email response sending with proper subject lines
+**Completed**:
+- [x] Email Integration - Full email-based interaction system (COMPLETED 2025-11-11, documented in changelog)
+  - Email message body extraction, polling loop, user mapping, message routing, response sending
+
+**Remaining Work**:
 - [ ] Cross-Channel Sync - Synchronize data across supported channels
-  Note: Telegram integration has been removed from scope.
+  - Note: Telegram integration has been removed from scope
 
 ---
 
-### **Test Performance Optimization Plan**
 
-**Status**: [CHECKMARK] **COMPLETED**  
-**Goal**: Reduce test execution time and improve development efficiency
 
-#### **Performance Analysis** [CHECKMARK] **COMPLETE**
-- [x] Unit Tests - ~1.5 seconds (fast)
-- [x] Integration Tests - ~2.6 seconds (fast)
-- [x] Behavior Tests - ~4.4 minutes (MAJOR BOTTLENECK)
-
-#### **Performance Bottlenecks Identified** [CHECKMARK] **COMPLETE**
-- [x] File System Operations - Each test creates/tears down user data directories
-- [x] Test User Creation Overhead - Complex user data structures and validation
-- [x] Mock Setup Overhead - Extensive mocking in behavior tests
-- [x] AI Chatbot Tests - AI response simulation and cache operations
-- [x] Discord Bot Tests - Async operations and threading
-
-#### **Optimization Strategies** [CHECKMARK] **COMPLETED**
-- [x] Parallel Test Execution - Install pytest-xdist for parallel execution [CHECKMARK] **COMPLETED**
-  - [x] Added pytest-xdist>=3.5.0 to requirements.txt
-  - [x] Enabled parallel execution by default in run_tests.py (with --no-parallel option to disable)
-  - [x] Set default workers to 2 for safety (some tests may have race conditions with more workers)
-  - [x] Validated parallel execution works with 2 workers (599 tests passed in 7.62s vs 8.75s sequential)
-  - [ ] Fix test isolation issues for tests that fail with more workers (e.g., test_update_user_index_success with 6 workers)
-- [x] Test Data Caching - Cache common test user data [CHECKMARK] **COMPLETED**
-  - [x] Added caching mechanism to TestUserFactory to avoid recreating identical user data structures
-  - [x] Implemented cache key generation based on user configuration (user_id, enable_checkins, enable_tasks)
-  - [x] Added session-scoped fixture to clear cache at end of test session
-  - [x] Updated create_basic_user__with_test_dir to use cached data structures
-  - [x] Fixed caching bug: Changed from `.copy()` to `copy.deepcopy()` to ensure proper test isolation (nested dictionaries were being shared)
-  - [x] Extended caching to all fixed-configuration user creation methods: minimal, full, discord, email, health, task, complex_checkins, disability, limited_data, inconsistent
-  - [x] Fixed limited_data user preferred_name handling to preserve empty string (not generated name)
-- [x] Optimized Test User Creation - Create minimal user data for tests [CHECKMARK] **COMPLETED**
-  - [x] Added create_minimal_user() method for tests that only need basic structure
-  - [x] Minimal user creation skips categories, schedules, and messages for faster setup
-  - [x] Documented when to use minimal vs basic user creation
-- [x] Selective Test Execution - Mark slow tests with @pytest.mark.slow [CHECKMARK] **COMPLETED** (75 slow tests already marked)
-- [ ] Mock Optimization - Reduce mock setup overhead
-- [x] File System Optimization - Use temporary directories more efficiently [CHECKMARK] **COMPLETED**
-  - [x] Added session-scoped fixture to create base tmp directory once at session start
-  - [x] Optimized test_path_factory to reuse session-scoped base directory
-  - [x] Optimized TestDataManager.setup_test_environment to batch directory creation
-  - [x] Reduced redundant directory creation operations
-
-#### **Implementation Phases** [CHECKMARK] **COMPLETED**
-- [x] Phase 1: Quick Wins - Enable parallel execution, add test selection [CHECKMARK] **COMPLETED**
-  - [x] Added pytest-xdist>=3.5.0 to requirements.txt
-  - [x] Enabled parallel execution by default in run_tests.py
-  - [x] Set default workers to 2 for safety (some tests have race conditions with more workers)
-  - [x] Added --no-parallel option to disable parallel execution when needed
-  - [x] Added --workers option to specify worker count or 'auto' for optimal count
-  - [x] Updated help text and examples to reflect parallel-by-default behavior
-  - [x] Validated parallel execution works (599 tests passed in 7.62s vs 8.75s sequential - ~13% faster)
-  - [ ] Add `--durations-all` usage in CI to track slow tests; consider pytest profiling plugins (optional enhancement)
-- [x] Phase 2: Infrastructure - Implement caching, optimize file operations [CHECKMARK] **COMPLETED**
-  - [x] Implemented test data caching for common user configurations
-  - [x] Added minimal user creation option for faster test setup
-  - [x] Added session-scoped fixture to clear cache at end of test session
-  - [x] Optimized user data structure creation to reuse cached templates
-  - [x] Optimized file system operations (base tmp directory created once, batch directory creation)
-  - [ ] Validate performance improvements with test runs (pending)
-- [ ] Phase 3: Advanced - Separate test suites, implement result caching
-  - [ ] Consider separating test suites for faster feedback (unit vs integration vs behavior)
-  - [ ] Implement pytest result caching for faster re-runs of unchanged tests
-  - [ ] Add test result persistence for CI/CD optimization
-
----
-
-### **Task Management System Implementation**
-
-#### **Phase 2: Advanced Features (PLANNED)**
-- [x] **Individual Task Reminders**: Custom reminder times for individual tasks [CHECKMARK] **COMPLETED**
-- [ ] **Recurring Tasks**: Support for daily, weekly, monthly, and custom recurring patterns
-- [ ] **Priority Escalation**: Automatic priority increase for overdue tasks
-- [ ] **AI Chatbot Integration**: Full integration with AI chatbot for task management
-
-#### **Task Management UI Improvements (PLANNED)**
-- [ ] **Recurring Tasks**: Set tasks to reoccur at set frequencies, or sometime after last completion
-- [ ] **Smart Reminder Randomization**: Randomize reminder timing based on priority and proximity to due date
-
-#### **Phase 3: Communication Channel Integration (PLANNED)**
-- [ ] **Discord Integration**: Full Discord bot integration for task management
-- [ ] **Email Integration**: Email-based task management
-- [ ] **Cross-Channel Sync**: Synchronize tasks across supported communication channels
-
-#### **Phase 4: AI Enhancement (PLANNED)**
-- [ ] **Smart Task Suggestions**: AI-powered task suggestions based on user patterns
-- [ ] **Natural Language Processing**: Create and manage tasks using natural language
-- [ ] **Intelligent Reminders**: AI-determined optimal reminder timing
-- [ ] **Task Analytics**: AI-powered insights into task completion patterns
+**Note**: The following sections (Phase 2-4) are duplicates of items already tracked in "Comprehensive Task System Improvements" above. Individual Task Reminders is completed (custom reminder times implemented in scheduler.py and task_management.py). Recurring Tasks is completed (documented in Phase 1 above). All other items are tracked in the Comprehensive Task System Improvements plan.
 
 ---
 
 ### **Dynamic Check-in Questions Plan** [WARNING] **PARTIALLY COMPLETE**
 
-**Status**: [WARNING] **PARTIALLY COMPLETE**  
+**Status**: **PARTIALLY COMPLETE**  
 **Priority**: Medium  
 **Effort**: Medium  
-**Date**: 2025-11-10
+**Date**: 2025-11-10  
+**Last Updated**: 2025-11-20
 
 **Goal**: Implement fully dynamic custom check-in questions (UI + data + validation).
 
-**Current State**:
-- [OK] **Data model exists**: Questions defined in `resources/default_checkin/questions.json` with types, validation, categories
-- [OK] **Validation rules implemented**: `DynamicCheckinManager` validates all question types (scale_1_5, yes_no, number, optional_text)
-- [OK] **Persist/Load enabled state**: User preferences store which questions are enabled/disabled
-- [OK] **Integration into check-in flow**: `ConversationManager` uses dynamic questions with weighted selection
-- [OK] **UI for enabling/disabling**: `CheckinSettingsWidget` has checkboxes for all predefined questions
-- [X] **Custom questions not implemented**: `add_new_question()` method only shows placeholder message
-- [X] **No ordering functionality**: Questions use weighted selection but no user-defined order
-- [X] **No presets**: No preset question sets available
+**Completed**:
+- [x] Data model exists (questions.json with types, validation, categories)
+- [x] Validation rules implemented (DynamicCheckinManager validates all question types)
+- [x] Persist/Load enabled state (user preferences store enabled/disabled state)
+- [x] Integration into check-in flow (ConversationManager uses dynamic questions with weighted selection)
+- [x] UI for enabling/disabling (CheckinSettingsWidget has checkboxes for all predefined questions)
 
 **What's Missing**:
 - [ ] **Custom question creation**: Allow users to add their own questions (text, type, validation)
@@ -1114,7 +746,7 @@
 ### **How to Update This Plan**
 1. **Add new plans** with clear goals and checklist format
 2. **Update progress** by checking off completed items
-3. **Move completed plans** to the "Completed Plans" section
+3. **Remove fully completed plans** - document them in CHANGELOG files instead
 4. **Keep reference information** current and useful
 5. **Remove outdated information** to maintain relevance
 
@@ -1187,69 +819,53 @@
 
 ## [DETAILED] **Detailed Legacy Code Inventory**
 
-### **1. Schedule Management Legacy Keys** [WARNING] **HIGH PRIORITY**
+### **1. Schedule Management Legacy Keys** **COMPLETED**
 **Location**: `core/schedule_management.py`  
-**Issue**: Support for legacy `'start'`/`'end'` keys alongside canonical `'start_time'`/`'end_time'`  
-**Legacy Code Found**:
-- `get_schedule_time_periods()` - Lines 70-75: Legacy key support
-- `migrate_legacy_schedule_keys()` - Lines 573-614: Migration function  
-**Timeline**: Complete by 2025-08-01
+**Status**: Legacy `'start'`/`'end'` key support removed - code now only uses canonical `'start_time'`/`'end_time'` keys
+**Note**: `migrate_legacy_schedule_keys()` function no longer exists (file is 569 lines, not 573+). Legacy support appears to have been removed.
 
-### **2. Schedule Management Legacy Format** [WARNING] **HIGH PRIORITY**
+### **2. Schedule Management Legacy Format** **COMPLETED**
 **Location**: `core/schedule_management.py`  
-**Issue**: Support for legacy format without periods wrapper  
-**Legacy Code Found**:
-- `get_schedule_time_periods()` - Lines 52-58: Legacy format handling
-- `set_schedule_periods()` - Lines 475-491: Legacy format migration  
-**Timeline**: Complete by 2025-08-01
+**Status**: Legacy format without periods wrapper removed - all data now uses periods wrapper format
+**Note**: Line 488 explicitly states "All data now uses periods wrapper format - no legacy migration needed"
 
 ### **3. User Data Access Legacy Wrappers** [WARNING] **MEDIUM PRIORITY**
 **Location**: `core/user_data_handlers.py`  
 **Issue**: Legacy wrapper functions for backward compatibility  
 **Timeline**: Complete when no legacy warnings appear for 1 week
 
-### **4. Account Creator Dialog Compatibility Methods** [WARNING] **LOW PRIORITY**
+### **4. Account Creator Dialog Compatibility Methods** **VERIFY STATUS**
 **Location**: `ui/dialogs/account_creator_dialog.py`  
-**Issue**: Methods marked as "kept for compatibility but no longer needed"  
-**Legacy Code Found**: Lines 326-347: Multiple compatibility methods  
-**Timeline**: Complete by 2025-08-15
+**Status**: Lines 326-347 show normal methods (keyPressEvent, username property) - no compatibility methods found
+**Note**: Line numbers may be outdated. Need to verify if compatibility methods still exist elsewhere in file.
 
-### **5. User Profile Settings Widget Legacy Fallbacks** [WARNING] **LOW PRIORITY**
+### **5. User Profile Settings Widget Legacy Fallbacks** **VERIFY STATUS**
 **Location**: `ui/widgets/user_profile_settings_widget.py`  
-**Issue**: Legacy fallback code for data loading  
-**Legacy Code Found**: Lines 395, 402, 426, 450, 462: Legacy fallback comments  
-**Timeline**: Complete by 2025-08-15
+**Status**: Lines 395, 402, 426, 450, 462 show modern code - no legacy fallback comments found
+**Note**: Line numbers may be outdated. Need to verify if legacy fallbacks still exist elsewhere in file.
 
-### **6. Discord Bot Legacy Methods** [WARNING] **LOW PRIORITY**
+### **6. Discord Bot Legacy Methods** **VERIFY STATUS**
 **Location**: `communication/communication_channels/discord/bot.py`  
-**Issue**: Legacy methods for backward compatibility  
-**Legacy Code Found**: Lines 518-564: Legacy start/stop methods  
-**Timeline**: Complete by 2025-08-15
+**Status**: Lines 518-564 show `initialize()` method, not legacy start/stop methods
+**Note**: File appears to have been refactored. Need to verify if legacy methods still exist elsewhere in file.
 
-### **7. Communication Manager Legacy Wrappers** [WARNING] **HIGH PRIORITY**
+### **7. Communication Manager Legacy Wrappers** **COMPLETED**
 **Location**: `communication/core/channel_orchestrator.py`  
-**Issue**: LegacyChannelWrapper and legacy channel access  
-**Legacy Code Found**:
-- `LegacyChannelWrapper` class (Lines 1064-1216): Complete legacy wrapper
-- `_create_legacy_channel_access()` method (Lines 390-398): Creates legacy wrappers
-- `channels` property (Lines 410-420): Returns legacy wrappers when available  
-**Timeline**: Complete after 1 week of monitoring
+**Status**: LegacyChannelWrapper and legacy channel access removed (COMPLETED 2025-08-03, documented in changelog)
+**Note**: This was completed as part of Legacy Channel Code Removal plan
 
-### **8. User Context Legacy Format Conversion** [CHECKMARK] **COMPLETED**
+### **8. User Context Legacy Format Conversion** **COMPLETED**
 **Location**: `user/user_context.py`  
-**Status**: Legacy format conversion/extraction code has been removed  
-**Completed**: Legacy code removal confirmed - all code now uses modern formats directly
-**Notes**: Comments in code confirm "no legacy conversion needed" and "no legacy extraction needed"
+**Status**: Legacy format conversion/extraction code has been removed - all code now uses modern formats directly
 
 ### **9. Test Utilities Backward Compatibility** [WARNING] **LOW PRIORITY**
 **Location**: `tests/test_utilities.py`  
 **Issue**: Multiple backward compatibility paths for test data directories  
 **Timeline**: Complete after 1 week of monitoring
 
-### **10. UI App Legacy Communication Manager** [WARNING] **LOW PRIORITY**
+### **10. UI App Legacy Communication Manager** **VERIFY STATUS**
 **Location**: `ui/ui_app_qt.py`  
-**Issue**: Legacy communication manager instance handling  
-**Legacy Code Found**: Legacy communication manager shutdown (Line 1496)  
-**Timeline**: Complete after 1 week of monitoring
+**Status**: Line 1496 shows `_send_test_message__get_selected_category()`, not legacy communication manager shutdown
+**Note**: Line number is outdated. Need to search file for any remaining legacy communication manager handling code.
 
 ---

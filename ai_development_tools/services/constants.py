@@ -28,6 +28,8 @@ DEFAULT_DOCS: Tuple[str, ...] = (
     'core/ERROR_HANDLING_GUIDE.md',
     'logs/LOGGING_GUIDE.md',
     'tests/TESTING_GUIDE.md',
+    'tests/AI_FUNCTIONALITY_TEST_GUIDE.md',
+    'tests/MANUAL_DISCORD_TEST_GUIDE.md',
     'communication/COMMUNICATION_GUIDE.md',
     'communication/communication_channels/discord/DISCORD_GUIDE.md',
     'scripts/SCRIPTS_GUIDE.md',

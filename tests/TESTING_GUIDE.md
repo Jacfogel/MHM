@@ -310,7 +310,8 @@ At a minimum, perform these flows before releases:
 3. Discord integration  
    - Verify the bot connects to the correct server and channels.  
    - Send commands and confirm expected responses and logging.  
-   - Validate error handling when Discord is unavailable or misconfigured.
+   - Validate error handling when Discord is unavailable or misconfigured.  
+   - For detailed Discord-specific manual testing procedures, see `tests/MANUAL_DISCORD_TEST_GUIDE.md`.
 
 4. Email integration (if enabled)  
    - Verify outbound emails are sent to the correct addresses.  
@@ -452,7 +453,8 @@ Some tests focus on specific communication channels or automation flows.
 - AI and service tests  
   - Use markers like `ai`, `behavior` as appropriate.  
   - Where possible, stub or mock external AI APIs while still validating integration behavior.  
-  - Ensure error handling paths are covered for timeouts, bad responses, or configuration errors.
+  - Ensure error handling paths are covered for timeouts, bad responses, or configuration errors.  
+  - For AI functionality test execution details, see `tests/AI_FUNCTIONALITY_TEST_GUIDE.md`.
 
 Channel-specific automation patterns and examples may also be described in `AI_TESTING_GUIDE.md` for faster reference.
 

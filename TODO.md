@@ -28,6 +28,9 @@ When adding new tasks, follow this format:
 - **TODO.md is for TODOs only** - completed tasks should be documented in CHANGELOG files and removed from TODO.md
 
 
+**Note**: Phase 1: Enhanced Task & Check-in Systems is tracked in PLANS.md. 
+**Note**: Mood-Aware Support Calibration items (Safety Net Response Library, Task Breakdown Prompt Experiments, Context-Aware Reminder Content Mapping, Mood Re-evaluation Cadence Guidelines) are tracked in PLANS.md under "Mood-Aware Support Calibration" plan.
+
 **Nightly No-Shim Validation Runs**
 - *What it means*: Run the full suite with `ENABLE_TEST_DATA_SHIM=0` nightly to validate underlying stability.
 - *Why it helps*: Ensures we're not masking issues behind the test-only shim and maintains long-term robustness.
@@ -61,29 +64,6 @@ When adding new tasks, follow this format:
   - Review all direct calls to `error_handler.handle_error()` (found in `core/error_handling.py` and test files)
   - Determine if these should use `@handle_errors` decorator or other centralized error handling patterns
   - Update direct calls to use preferred error handling approach where appropriate
-
-**Phase 1: Enhanced Task & Check-in Systems** ?? **In Progress**
-- *What it means*: Implement priority-based task reminders, semi-random check-ins, and response analysis to align with project vision
-- *Why it helps*: Provides immediate improvements to core functionality that directly supports user's executive functioning needs
-- *Estimated effort*: Large (1-2 weeks)
-- *Subtasks*:
-  - [ ] **Enhanced Task Reminder System** (follow-ups)
-    - [ ] Add recurring task support with flexible scheduling
-    - [ ] Validate recurring task scheduling patterns
-  - [ ] **Check-in Response Analysis**
-    - [ ] Implement pattern analysis of responses over time
-    - [ ] Add progress tracking for mood trends
-    - [ ] Create response categorization and sentiment analysis
-    - [ ] Generate insights for AI context enhancement
-    - [ ] Test pattern analysis accuracy
-    - [ ] Validate progress tracking metrics
-  - [ ] **Enhanced Context-Aware Conversations**
-    - [ ] Expand user context with check-in history
-    - [ ] Add conversation history analysis
-    - [ ] Implement preference learning from interactions
-    - [ ] Create more sophisticated personalization algorithms
-    - [ ] Test context enhancement effectiveness
-    - [ ] Validate personalization improvements
 
 **Pydantic Schema Adoption Follow-ups**
 - *What it means*: We added tolerant Pydantic models. Expand usage safely across other save/load paths.
@@ -151,37 +131,6 @@ When adding new tasks, follow this format:
   - [OK] T-14.1, T-16.2: Fabricated check-in details/statistics - PREVENTION ADDED
   - [OK] T-13.3: System prompt instructions leaked - CLEANING ENHANCED
 
-
-**Investigate and Fix Discord Button UI Issue**
-- *What it means*: Investigate why Discord buttons are not showing up in check-in prompts (Cancel Check-in, Skip Question, More) and task reminders (Complete Task, Remind Me Later, More) despite the 2025-11-15 improvement that replaced text instructions with interactive buttons
-- *Why it helps*: Restores the improved UX with native Discord interactions that was intended in the recent improvement
-- *Estimated effort*: Small/Medium
-- *Related to*: 2025-11-15 Discord Button UI Improvements (marked as COMPLETED but buttons not appearing)
-
-
-**Design Safety Net Response Library**
-- *What it means*: Draft and validate a library of "safety net" phrases that feel grounding when things are overwhelming, including branching prompts (listen/problem-solve/other) that match the user's preferred tone.
-- *Why it helps*: Ensures the assistant consistently signals it "gets it," even when the user is unsure what support they need, aligning reminders with the emotional safety net vision.
-- *Estimated effort*: Medium
-- *Getting started*: Collect existing comforting phrases, prototype a few tone variants, and run with recent conversation logs to verify fit.
-
-**Task Breakdown Prompt Experiments**
-- *What it means*: Prototype both checklist-style subtasks and conversational follow-ups for stuck tasks, then capture which approach keeps users engaged on mobile.
-- *Why it helps*: Provides context-aware nudges that unblock stalled tasks, matching the user's request for format experimentation.
-- *Estimated effort*: Small/Medium
-- *Acceptance criteria*: Document example prompts, note when to surface each format, and gather feedback from at least one real or simulated session.
-
-**Context-Aware Reminder Content Mapping**
-- *What it means*: Map task reminder content to user context (energy, mood, task age) so the system can choose the most relevant substance instead of generic nudges.
-- *Why it helps*: Addresses the user's need for "it depends" reminders that feel situationally aware rather than repetitive.
-- *Estimated effort*: Medium
-- *Next steps*: Audit available context signals, define decision rules, and outline example reminder variants for contrasting scenarios.
-
-**Mood Re-evaluation Cadence Guidelines**
-- *What it means*: Specify triggers and guardrails for when the assistant should gently re-check mood/energy (e.g., disengagement signals, user-provided updates) without over-prompting.
-- *Why it helps*: Balances proactive support with respect for the user's space, clarifying "when it should ask again" from the user's feedback.
-- *Estimated effort*: Medium
-- *Definition of done*: Draft cadence rules, edge-case handling, and handoff to implementation/testing once validated.
 
 ## Medium Priority
 

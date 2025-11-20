@@ -493,6 +493,11 @@ class MHMManagerUI(QMainWindow):
         
         IMPORTANT: This will NEVER return True if the service is stopped.
         Channels cannot run without the service, so we check service status first.
+        
+        Checks for:
+        1. Initialization messages ("Discord bot initialized successfully" or "Discord connection status changed to: connected")
+        2. Recent activity (messages received/sent, "Discord healthy" status)
+        3. Falls back to assuming running if service is running and Discord is configured
         """
         try:
             # First check if service is running - channels can't run without the service
@@ -507,7 +512,7 @@ class MHMManagerUI(QMainWindow):
             
             # Check logs: if service is running, look for initialization message
             # and check if there's a shutdown message after it
-            # Also verify the service PID matches to detect restarts
+            # Also check for recent activity as evidence Discord is running
             try:
                 discord_log_file = Path(__file__).parent.parent / 'logs' / 'discord.log'
                 if discord_log_file.exists():
@@ -517,6 +522,16 @@ class MHMManagerUI(QMainWindow):
                     # Find the most recent initialization message
                     last_init_time = None
                     last_shutdown_time = None
+                    last_activity_time = None
+                    
+                    # Check for recent activity indicators (messages, health checks)
+                    activity_indicators = [
+                        'DISCORD_MESSAGE_RECEIVED',
+                        'DISCORD_MESSAGE_PROCESS',
+                        'Discord message handled successfully',
+                        'Discord channel message sent',
+                        'Discord healthy'
+                    ]
                     
                     for line in reversed(lines):
                         # Look for initialization messages
@@ -536,6 +551,21 @@ class MHMManagerUI(QMainWindow):
                                     last_shutdown_time = datetime.strptime(timestamp_match.group(1), '%Y-%m-%d %H:%M:%S')
                                 except ValueError:
                                     pass
+                        
+                        # Look for recent activity (more reliable indicator than just initialization)
+                        if any(indicator in line for indicator in activity_indicators):
+                            timestamp_match = re.search(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})', line)
+                            if timestamp_match and last_activity_time is None:
+                                try:
+                                    last_activity_time = datetime.strptime(timestamp_match.group(1), '%Y-%m-%d %H:%M:%S')
+                                except ValueError:
+                                    pass
+                    
+                    # If we found recent activity (within last 5 minutes), Discord is definitely running
+                    if last_activity_time:
+                        time_since_activity = (datetime.now() - last_activity_time).total_seconds()
+                        if time_since_activity < 300:  # Within last 5 minutes
+                            return True
                     
                     # If we found an initialization, check if shutdown happened after it
                     if last_init_time:
@@ -569,16 +599,23 @@ class MHMManagerUI(QMainWindow):
                                     except ValueError:
                                         pass
                     else:
-                        # No initialization found - channel never started or logs are empty
-                        # If service is running but no init message, channel likely failed to start
-                        return False
+                        # No initialization found - but if we have recent activity, Discord is running
+                        if last_activity_time:
+                            time_since_activity = (datetime.now() - last_activity_time).total_seconds()
+                            if time_since_activity < 3600:  # Within last hour
+                                return True
+                        # No initialization and no recent activity - channel likely not running
+                        # But fall through to fallback logic below
+                        pass
             except Exception as e:
                 logger.debug(f"Error checking Discord logs: {e}")
                 # Fallback: if service is running and Discord is configured, assume it's running
                 # This handles cases where logs are unavailable
                 return True
             
-            return False
+            # Fallback: if service is running and Discord is configured, assume it's running
+            # This handles cases where logs don't have the expected messages but Discord is working
+            return True
         except Exception as e:
             logger.debug(f"Error checking Discord status: {e}")
             return False
