@@ -39,6 +39,52 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-20 - Error Handling Coverage and Quality Improvements **COMPLETED**
+- **Feature**: Expanded error handling coverage across communication and core modules by adding `@handle_errors` decorators to 30+ functions and removing redundant try/except blocks, improving overall system robustness and error logging consistency.
+- **Technical Changes**:
+  - **Discord UI Modules** (19 functions):
+    - **checkin_view.py**: Added `@handle_errors` to 3 button callbacks (`cancel_checkin_button`, `skip_question_button`, `more_button`) with appropriate operation descriptions and component context
+    - **task_reminder_view.py**: Added `@handle_errors` to 3 button callbacks (`complete_task_button`, `remind_later_button`, `more_button`) with appropriate operation descriptions and component context
+    - **account_flow_handler.py**: Added `@handle_errors` to 9 callbacks and handlers:
+      - `FeatureSelectionView.on_timeout` method
+      - `TaskFeatureSelect.callback`, `CheckinFeatureSelect.callback`, `MessageFeatureSelect.callback`, `TimezoneSelect.callback` methods
+      - `CreateAccountButton.callback` method
+      - `CreateAccountModal.on_submit`, `LinkAccountModal.on_submit`, `ConfirmLinkModal.on_submit` methods
+      - `start_account_creation_flow`, `start_account_linking_flow` functions
+    - All decorators use `context={"component": "discord"}` for proper error categorization and logging
+    - Decorators properly support async functions (Discord button callbacks and modal handlers are async)
+  - **Email Bot** (1 function):
+    - **email/bot.py**: Added `@handle_errors` to `receive_messages` method
+  - **Conversation Flow Manager** (6 functions):
+    - **conversation_flow_manager.py**: Added `@handle_errors` to helper functions:
+      - `_load_user_states`, `_save_user_states` (state persistence) - removed redundant try/except blocks
+      - `expire_checkin_flow_due_to_unrelated_outbound` (flow expiration) - removed redundant try/except block
+      - `_handle_task_reminder_followup`, `_parse_reminder_periods_from_text` (task reminder handling) - removed redundant outer try/except from `_parse_reminder_periods_from_text`
+      - `start_task_reminder_followup` (flow initiation)
+  - **Interaction Manager** (3 functions):
+    - **interaction_manager.py**: Replaced try/except blocks with `@handle_errors` decorators:
+      - `_handle_structured_command` (command processing) - removed redundant try/except
+      - `_handle_contextual_chat` (AI chat fallback) - removed redundant try/except
+      - `_enhance_response_with_ai` (response enhancement) - removed redundant try/except
+  - **Code Quality Improvements**:
+    - **welcome_manager.py**: Removed redundant try/except blocks from `_load_welcome_tracking` and `_save_welcome_tracking` (decorators handle errors)
+    - **backup_manager.py**: Removed redundant try/except blocks from `ensure_backup_directory` and `create_backup` (decorators handle errors)
+- **Impact**: Improved system robustness by protecting user interaction entry points and core operations with centralized error handling. Errors are now consistently logged and handled across Discord interactions, email processing, conversation flows, and message routing. All 3101 tests pass with no regressions.
+- **Files Affected**: 
+  - `communication/communication_channels/discord/checkin_view.py`
+  - `communication/communication_channels/discord/task_reminder_view.py`
+  - `communication/communication_channels/discord/account_flow_handler.py`
+  - `communication/communication_channels/email/bot.py`
+  - `communication/message_processing/conversation_flow_manager.py`
+  - `communication/message_processing/interaction_manager.py`
+  - `communication/core/welcome_manager.py`
+  - `core/backup_manager.py`
+    - `CreateAccountModal.on_submit`, `LinkAccountModal.on_submit`, `ConfirmLinkModal.on_submit` methods
+  - All decorators use `context={"component": "discord"}` for proper error categorization and logging
+  - Decorators properly support async functions (Discord button callbacks and modal handlers are async)
+- **Impact**: Improved system robustness by protecting Discord user interaction entry points with centralized error handling. Errors in Discord button clicks, modal submissions, and view timeouts are now consistently logged and handled. All 3101 tests pass with no regressions.
+- **Files Affected**: `communication/communication_channels/discord/checkin_view.py`, `communication/communication_channels/discord/task_reminder_view.py`, `communication/communication_channels/discord/account_flow_handler.py`
+
 ### 2025-11-20 - Test Infrastructure Robustness Improvements and Flaky Test Fixes **COMPLETED**
 - **Feature**: Improved test reliability by fixing flaky tests, enhancing log rotation, and making user index operations more robust for parallel test execution. All 3101 tests now pass consistently.
 - **Technical Changes**:

@@ -138,6 +138,7 @@ class EmailBot(BaseChannel):
             server.login(EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD)
             server.sendmail(EMAIL_SMTP_USERNAME, recipient, msg.as_string())
 
+    @handle_errors("receiving email messages", default_return=[])
     async def receive_messages(self) -> List[Dict[str, Any]]:
         """Receive messages from email"""
         if not self.is_ready():
@@ -151,14 +152,10 @@ class EmailBot(BaseChannel):
         except RuntimeError:
             loop = asyncio.get_event_loop()
         
-        try:
-            messages = await loop.run_in_executor(None, self._receive_emails_sync)
-            if len(messages) > 0:
-                logger.info(f"Received {len(messages)} new email(s)")
-            return messages
-        except Exception as e:
-            logger.error(f"Exception in receive_messages executor: {type(e).__name__} - {e}", exc_info=True)
-            return []
+        messages = await loop.run_in_executor(None, self._receive_emails_sync)
+        if len(messages) > 0:
+            logger.info(f"Received {len(messages)} new email(s)")
+        return messages
 
     @handle_errors("receiving emails synchronously", default_return=[])
     def _receive_emails_sync(self) -> List[Dict[str, Any]]:

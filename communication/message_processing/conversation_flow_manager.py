@@ -85,63 +85,52 @@ class ConversationManager:
         self._state_file = str(Path(BASE_DATA_DIR) / "conversation_states.json")
         self._load_user_states()
 
+    @handle_errors("loading user states from disk", default_return=None)
     def _load_user_states(self) -> None:
         """Load user states from disk with comprehensive logging"""
-        try:
-            if os.path.exists(self._state_file):
-                with open(self._state_file, 'r', encoding='utf-8') as f:
-                    self.user_states = json.load(f)
-                logger.info(f"FLOW_STATE_LOAD: Loaded {len(self.user_states)} user states from disk | File: {self._state_file}")
-                for user_id, state in self.user_states.items():
-                    logger.info(f"FLOW_STATE_LOAD: User {user_id} | flow={state.get('flow')}, state={state.get('state')}, question_index={state.get('current_question_index')}, questions={len(state.get('question_order', []))}")
-            else:
-                logger.debug(f"FLOW_STATE_LOAD: No existing conversation states file found at {self._state_file}")
-        except Exception as e:
-            logger.error(f"FLOW_STATE_LOAD_ERROR: Failed to load user states from {self._state_file}: {e}", exc_info=True)
+        if os.path.exists(self._state_file):
+            with open(self._state_file, 'r', encoding='utf-8') as f:
+                self.user_states = json.load(f)
+            logger.info(f"FLOW_STATE_LOAD: Loaded {len(self.user_states)} user states from disk | File: {self._state_file}")
+            for user_id, state in self.user_states.items():
+                logger.info(f"FLOW_STATE_LOAD: User {user_id} | flow={state.get('flow')}, state={state.get('state')}, question_index={state.get('current_question_index')}, questions={len(state.get('question_order', []))}")
+        else:
+            logger.debug(f"FLOW_STATE_LOAD: No existing conversation states file found at {self._state_file}")
             self.user_states = {}
 
+    @handle_errors("saving user states to disk", default_return=None)
     def _save_user_states(self) -> None:
         """Save user states to disk with comprehensive logging and error handling"""
-        try:
-            # Ensure data directory exists
-            os.makedirs(os.path.dirname(self._state_file), exist_ok=True)
-            
-            with open(self._state_file, 'w', encoding='utf-8') as f:
-                json.dump(self.user_states, f, indent=2)
-            logger.debug(f"FLOW_STATE_SAVE: Saved {len(self.user_states)} user states to disk | File: {self._state_file}")
-            for user_id, state in self.user_states.items():
-                logger.debug(f"FLOW_STATE_SAVE: User {user_id} | flow={state.get('flow')}, state={state.get('state')}, question_index={state.get('current_question_index')}")
-        except PermissionError as e:
-            logger.error(f"FLOW_STATE_SAVE_ERROR: Permission denied saving to {self._state_file}: {e}", exc_info=True)
-        except IOError as e:
-            logger.error(f"FLOW_STATE_SAVE_ERROR: IO error saving to {self._state_file}: {e}", exc_info=True)
-        except Exception as e:
-            logger.error(f"FLOW_STATE_SAVE_ERROR: Unexpected error saving user states: {e}", exc_info=True)
+        # Ensure data directory exists
+        os.makedirs(os.path.dirname(self._state_file), exist_ok=True)
+        
+        with open(self._state_file, 'w', encoding='utf-8') as f:
+            json.dump(self.user_states, f, indent=2)
+        logger.debug(f"FLOW_STATE_SAVE: Saved {len(self.user_states)} user states to disk | File: {self._state_file}")
+        for user_id, state in self.user_states.items():
+            logger.debug(f"FLOW_STATE_SAVE: User {user_id} | flow={state.get('flow')}, state={state.get('state')}, question_index={state.get('current_question_index')}")
 
+    @handle_errors("expiring check-in flow due to unrelated outbound", default_return=None)
     def expire_checkin_flow_due_to_unrelated_outbound(self, user_id: str) -> None:
         """Expire an active check-in flow when an unrelated outbound message is sent.
         Safe no-op if no flow or different flow is active.
         """
-        try:
-            user_state = self.user_states.get(user_id)
-            if user_state and user_state.get("flow") == FLOW_CHECKIN:
-                # Log details before expiration
-                question_index = user_state.get('current_question_index', 0)
-                total_questions = len(user_state.get('question_order', []))
-                logger.info(f"FLOW_STATE_EXPIRE: Expiring active check-in flow for user {user_id} due to unrelated outbound message | Progress: {question_index}/{total_questions} questions")
-                
-                # End the flow silently
-                self.user_states.pop(user_id, None)
-                self._save_user_states()
-                logger.info(f"FLOW_STATE_EXPIRE: Successfully expired and saved state for user {user_id}")
+        user_state = self.user_states.get(user_id)
+        if user_state and user_state.get("flow") == FLOW_CHECKIN:
+            # Log details before expiration
+            question_index = user_state.get('current_question_index', 0)
+            total_questions = len(user_state.get('question_order', []))
+            logger.info(f"FLOW_STATE_EXPIRE: Expiring active check-in flow for user {user_id} due to unrelated outbound message | Progress: {question_index}/{total_questions} questions")
+            
+            # End the flow silently
+            self.user_states.pop(user_id, None)
+            self._save_user_states()
+            logger.info(f"FLOW_STATE_EXPIRE: Successfully expired and saved state for user {user_id}")
+        else:
+            if not user_state:
+                logger.debug(f"FLOW_STATE_EXPIRE: No flow state found for user {user_id}, nothing to expire")
             else:
-                if not user_state:
-                    logger.debug(f"FLOW_STATE_EXPIRE: No flow state found for user {user_id}, nothing to expire")
-                else:
-                    logger.debug(f"FLOW_STATE_EXPIRE: User {user_id} has flow={user_state.get('flow')}, not check-in, skipping expiration")
-        except Exception as e:
-            # Don't let this affect outbound sending
-            logger.error(f"FLOW_STATE_EXPIRE_ERROR: Could not expire check-in flow for user {user_id}: {e}", exc_info=True)
+                logger.debug(f"FLOW_STATE_EXPIRE: User {user_id} has flow={user_state.get('flow')}, not check-in, skipping expiration")
 
     @handle_errors("handling inbound message", default_return=("I'm having trouble processing your message right now. Please try again in a moment.", True))
     def handle_inbound_message(self, user_id: str, message_text: str) -> tuple[str, bool]:
@@ -766,6 +755,7 @@ class ConversationManager:
             # Fallback to simple random selection
             return random.sample(enabled_keys, min(len(enabled_keys), 6))
 
+    @handle_errors("handling task reminder follow-up", default_return=("I'm having trouble with the reminder setup. Please try again.", True))
     def _handle_task_reminder_followup(self, user_id: str, user_state: dict, message_text: str) -> tuple[str, bool]:
         """
         Handle user's response to reminder period question after task creation.
@@ -897,6 +887,7 @@ class ConversationManager:
                     False
                 )
 
+    @handle_errors("parsing reminder periods from text", default_return=[])
     def _parse_reminder_periods_from_text(self, user_id: str, task_id: str, text: str) -> list:
         """
         Parse reminder periods from natural language text.
@@ -908,130 +899,125 @@ class ConversationManager:
         
         Returns list of reminder period dicts with date, start_time, end_time.
         """
-        try:
-            import re
-            from datetime import datetime, timedelta
-            from tasks.task_management import get_task_by_id
-            
-            text_lower = text.lower().strip()
-            reminder_periods = []
-            
-            # Get task to find due date/time
-            task = get_task_by_id(user_id, task_id)
-            if not task or not task.get('due_date'):
-                logger.debug(f"Task {task_id} has no due_date, cannot parse reminder periods")
-                return []
-            
-            due_date_str = task.get('due_date')
-            due_time_str = task.get('due_time')
-            if not due_time_str or due_time_str.strip() == '':
-                due_time_str = '09:00'  # Default to 9 AM if no time specified
-            
-            try:
-                # Parse due date and time
-                due_datetime = datetime.strptime(f"{due_date_str} {due_time_str}", '%Y-%m-%d %H:%M')
-                logger.debug(f"Parsed due datetime for task {task_id}: {due_datetime}")
-            except ValueError as e:
-                # Try without time
-                try:
-                    due_datetime = datetime.strptime(due_date_str, '%Y-%m-%d')
-                    due_datetime = due_datetime.replace(hour=9, minute=0)  # Default to 9 AM
-                    logger.debug(f"Parsed due date only for task {task_id}: {due_datetime}")
-                except ValueError as e2:
-                    logger.warning(f"Could not parse due date/time for task {task_id}: {due_date_str} {due_time_str}, error: {e2}")
-                    return []
-            
-            # Parse time ranges from text
-            # Pattern: "X to Y [unit] before" or "X [unit] to [an] Y [unit] before"
-            # Handle "an hour" = 60 minutes (do this before parsing)
-            original_text = text_lower
-            text_lower = text_lower.replace('an hour', '60 minutes').replace('a hour', '60 minutes')
-            
-            logger.debug(f"Parsing reminder periods from text '{text}' (lowercase: '{text_lower}') for task {task_id} with due_datetime {due_datetime}")
-            
-            patterns = [
-                # Minutes - handle "X minutes to Y minutes before" or "X to Y minutes before"
-                (r'(\d+)\s*minutes?\s*(?:to|-)\s*(\d+)\s*minutes?\s*before', 'minutes'),
-                (r'(\d+)\s*(?:to|-)\s*(\d+)\s*minutes?\s*before', 'minutes'),
-                (r'(\d+)\s*minutes?\s*before', 'minutes'),  # Single value
-                (r'(\d+)\s*min\s*before', 'minutes'),
-                # Hours
-                (r'(\d+)\s*hours?\s*(?:to|-)\s*(\d+)\s*hours?\s*before', 'hours'),
-                (r'(\d+)\s*(?:to|-)\s*(\d+)\s*hours?\s*before', 'hours'),
-                (r'(\d+)\s*hours?\s*before', 'hours'),  # Single value
-                (r'(\d+)\s*hrs?\s*before', 'hours'),
-                # Days
-                (r'(\d+)\s*days?\s*(?:to|-)\s*(\d+)\s*days?\s*before', 'days'),
-                (r'(\d+)\s*(?:to|-)\s*(\d+)\s*days?\s*before', 'days'),
-                (r'(\d+)\s*days?\s*before', 'days'),  # Single value
-            ]
-            
-            for pattern, unit in patterns:
-                match = re.search(pattern, text_lower)
-                if match:
-                    logger.debug(f"Pattern '{pattern}' matched text '{text_lower}' with groups: {match.groups()}")
-                    try:
-                        start_val = int(match.group(1))
-                        # Check if pattern has a second group (for ranges like "3 to 5")
-                        if len(match.groups()) >= 2 and match.group(2):
-                            end_val = int(match.group(2))
-                        else:
-                            end_val = start_val  # Single value, use same for start and end
-                        
-                        logger.debug(f"Parsed values: start_val={start_val}, end_val={end_val}, unit={unit}")
-                        
-                        # Calculate reminder times
-                        if unit == 'minutes':
-                            start_delta = timedelta(minutes=end_val)  # End time = earlier (more minutes before)
-                            end_delta = timedelta(minutes=start_val)  # Start time = later (fewer minutes before)
-                        elif unit == 'hours':
-                            start_delta = timedelta(hours=end_val)
-                            end_delta = timedelta(hours=start_val)
-                        elif unit == 'days':
-                            start_delta = timedelta(days=end_val)
-                            end_delta = timedelta(days=start_val)
-                        else:
-                            logger.debug(f"Unknown unit '{unit}', skipping")
-                            continue
-                        
-                        # Calculate reminder datetime range
-                        reminder_start = due_datetime - start_delta
-                        reminder_end = due_datetime - end_delta
-                        
-                        logger.debug(f"Calculated reminder times: start={reminder_start}, end={reminder_end}")
-                        
-                        # Ensure reminder is in the future
-                        now = datetime.now()
-                        if reminder_end < now:
-                            logger.debug(f"Reminder time {reminder_end} is in the past (now={now}), skipping")
-                            continue
-                        
-                        # Create reminder period
-                        reminder_date = reminder_start.strftime('%Y-%m-%d')
-                        start_time = reminder_start.strftime('%H:%M')
-                        end_time = reminder_end.strftime('%H:%M')
-                        
-                        reminder_periods.append({
-                            'date': reminder_date,
-                            'start_time': start_time,
-                            'end_time': end_time
-                        })
-                        
-                        logger.info(f"Parsed reminder period for task {task_id}: {reminder_date} {start_time}-{end_time}")
-                        break  # Only parse first match
-                    except (ValueError, IndexError, AttributeError, TypeError) as e:
-                        logger.warning(f"Error parsing reminder pattern '{pattern}' for text '{text_lower}': {e}", exc_info=True)
-                        continue  # Try next pattern
-            
-            logger.debug(f"Final reminder_periods for task {task_id}: {reminder_periods}")
-            
-            return reminder_periods
-        except Exception as e:
-            logger.error(f"Exception in _parse_reminder_periods_from_text for task {task_id}, text '{text}': {e}", exc_info=True)
-            import traceback
-            traceback.print_exc()
+        import re
+        from datetime import datetime, timedelta
+        from tasks.task_management import get_task_by_id
+        
+        text_lower = text.lower().strip()
+        reminder_periods = []
+        
+        # Get task to find due date/time
+        task = get_task_by_id(user_id, task_id)
+        if not task or not task.get('due_date'):
+            logger.debug(f"Task {task_id} has no due_date, cannot parse reminder periods")
             return []
+        
+        due_date_str = task.get('due_date')
+        due_time_str = task.get('due_time')
+        if not due_time_str or due_time_str.strip() == '':
+            due_time_str = '09:00'  # Default to 9 AM if no time specified
+        
+        try:
+            # Parse due date and time
+            due_datetime = datetime.strptime(f"{due_date_str} {due_time_str}", '%Y-%m-%d %H:%M')
+            logger.debug(f"Parsed due datetime for task {task_id}: {due_datetime}")
+        except ValueError as e:
+            # Try without time
+            try:
+                due_datetime = datetime.strptime(due_date_str, '%Y-%m-%d')
+                due_datetime = due_datetime.replace(hour=9, minute=0)  # Default to 9 AM
+                logger.debug(f"Parsed due date only for task {task_id}: {due_datetime}")
+            except ValueError as e2:
+                logger.warning(f"Could not parse due date/time for task {task_id}: {due_date_str} {due_time_str}, error: {e2}")
+                return []
+        
+        # Parse time ranges from text
+        # Pattern: "X to Y [unit] before" or "X [unit] to [an] Y [unit] before"
+        # Handle "an hour" = 60 minutes (do this before parsing)
+        original_text = text_lower
+        text_lower = text_lower.replace('an hour', '60 minutes').replace('a hour', '60 minutes')
+        
+        logger.debug(f"Parsing reminder periods from text '{text}' (lowercase: '{text_lower}') for task {task_id} with due_datetime {due_datetime}")
+        
+        patterns = [
+            # Minutes - handle "X minutes to Y minutes before" or "X to Y minutes before"
+            (r'(\d+)\s*minutes?\s*(?:to|-)\s*(\d+)\s*minutes?\s*before', 'minutes'),
+            (r'(\d+)\s*(?:to|-)\s*(\d+)\s*minutes?\s*before', 'minutes'),
+            (r'(\d+)\s*minutes?\s*before', 'minutes'),  # Single value
+            (r'(\d+)\s*min\s*before', 'minutes'),
+            # Hours
+            (r'(\d+)\s*hours?\s*(?:to|-)\s*(\d+)\s*hours?\s*before', 'hours'),
+            (r'(\d+)\s*(?:to|-)\s*(\d+)\s*hours?\s*before', 'hours'),
+            (r'(\d+)\s*hours?\s*before', 'hours'),  # Single value
+            (r'(\d+)\s*hrs?\s*before', 'hours'),
+            # Days
+            (r'(\d+)\s*days?\s*(?:to|-)\s*(\d+)\s*days?\s*before', 'days'),
+            (r'(\d+)\s*(?:to|-)\s*(\d+)\s*days?\s*before', 'days'),
+            (r'(\d+)\s*days?\s*before', 'days'),  # Single value
+        ]
+        
+        for pattern, unit in patterns:
+            match = re.search(pattern, text_lower)
+            if match:
+                logger.debug(f"Pattern '{pattern}' matched text '{text_lower}' with groups: {match.groups()}")
+                try:
+                    start_val = int(match.group(1))
+                    # Check if pattern has a second group (for ranges like "3 to 5")
+                    if len(match.groups()) >= 2 and match.group(2):
+                        end_val = int(match.group(2))
+                    else:
+                        end_val = start_val  # Single value, use same for start and end
+                    
+                    logger.debug(f"Parsed values: start_val={start_val}, end_val={end_val}, unit={unit}")
+                    
+                    # Calculate reminder times
+                    if unit == 'minutes':
+                        start_delta = timedelta(minutes=end_val)  # End time = earlier (more minutes before)
+                        end_delta = timedelta(minutes=start_val)  # Start time = later (fewer minutes before)
+                    elif unit == 'hours':
+                        start_delta = timedelta(hours=end_val)
+                        end_delta = timedelta(hours=start_val)
+                    elif unit == 'days':
+                        start_delta = timedelta(days=end_val)
+                        end_delta = timedelta(days=start_val)
+                    else:
+                        logger.debug(f"Unknown unit '{unit}', skipping")
+                        continue
+                    
+                    # Calculate reminder datetime range
+                    reminder_start = due_datetime - start_delta
+                    reminder_end = due_datetime - end_delta
+                    
+                    logger.debug(f"Calculated reminder times: start={reminder_start}, end={reminder_end}")
+                    
+                    # Ensure reminder is in the future
+                    now = datetime.now()
+                    if reminder_end < now:
+                        logger.debug(f"Reminder time {reminder_end} is in the past (now={now}), skipping")
+                        continue
+                    
+                    # Create reminder period
+                    reminder_date = reminder_start.strftime('%Y-%m-%d')
+                    start_time = reminder_start.strftime('%H:%M')
+                    end_time = reminder_end.strftime('%H:%M')
+                    
+                    reminder_periods.append({
+                        'date': reminder_date,
+                        'start_time': start_time,
+                        'end_time': end_time
+                    })
+                    
+                    logger.info(f"Parsed reminder period for task {task_id}: {reminder_date} {start_time}-{end_time}")
+                    break  # Only parse first match
+                except (ValueError, IndexError, AttributeError, TypeError) as e:
+                    logger.warning(f"Error parsing reminder pattern '{pattern}' for text '{text_lower}': {e}", exc_info=True)
+                    continue  # Try next pattern
+        
+        logger.debug(f"Final reminder_periods for task {task_id}: {reminder_periods}")
+        
+        return reminder_periods
 
+    @handle_errors("starting task reminder follow-up flow", default_return=None)
     def start_task_reminder_followup(self, user_id: str, task_id: str) -> None:
         """
         Start a task reminder follow-up flow.

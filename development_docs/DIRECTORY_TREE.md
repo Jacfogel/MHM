@@ -184,13 +184,10 @@ C:.
 |       CHANGELOG_DETAIL.md
 |       DIRECTORY_TREE.md
 |       FUNCTION_REGISTRY_DETAIL.md
-|       HIGH_COMPLEXITY_FUNCTIONS_ANALYSIS.md
 |       LEGACY_REFERENCE_REPORT.md
 |       MODULE_DEPENDENCIES_DETAIL.md
 |       PLANS.md
-|       TASK_SYSTEM_AUDIT.md
 |       TEST_COVERAGE_EXPANSION_PLAN.md
-|       UI_COMPONENT_TESTING_STRATEGY.md
 |       UNUSED_IMPORTS_REPORT.md
 |       
 +---logs
@@ -303,11 +300,11 @@ C:.
     (Python cache files)
 +---tests
 |   |   .coverage
-|   |   AI_FUNCTIONALITY_TEST_PLAN.md
+|   |   AI_FUNCTIONALITY_TEST_GUIDE.md
 |   |   conftest.py
 |   |   debug_file_paths.py
 |   |   flaky_test_report.md
-|   |   MANUAL_DISCORD_REMINDER_FOLLOWUP_TESTS.md
+|   |   MANUAL_DISCORD_TEST_GUIDE.md
 |   |   TESTING_GUIDE.md
 |   |   test_error_handling_improvements.py
 |   |   test_isolation.py

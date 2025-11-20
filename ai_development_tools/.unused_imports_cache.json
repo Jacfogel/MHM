@@ -153,7 +153,7 @@
     "issues": []
   },
   "ai_development_tools/services/constants.py": {
-    "mtime": 1763460820.0196948,
+    "mtime": 1763623710.1743925,
     "issues": []
   },
   "ai_development_tools/services/operations.py": {
@@ -494,7 +494,7 @@
     "issues": []
   },
   "core/user_data_manager.py": {
-    "mtime": 1763368614.6029544,
+    "mtime": 1763634488.6485937,
     "issues": [
       {
         "type": "warning",
@@ -956,7 +956,7 @@
     "issues": []
   },
   "tests/behavior/test_discord_bot_behavior.py": {
-    "mtime": 1763548196.9954069,
+    "mtime": 1763631474.7559245,
     "issues": []
   },
   "tests/behavior/test_discord_checkin_retry_behavior.py": {
@@ -1276,7 +1276,7 @@
     ]
   },
   "tests/behavior/test_service_behavior.py": {
-    "mtime": 1763548196.9954069,
+    "mtime": 1763628179.5448866,
     "issues": []
   },
   "tests/behavior/test_service_utilities_behavior.py": {
@@ -1421,7 +1421,7 @@
     ]
   },
   "tests/conftest.py": {
-    "mtime": 1763548497.5555675,
+    "mtime": 1763627577.2714872,
     "issues": []
   },
   "tests/core/test_file_auditor.py": {
@@ -1553,7 +1553,7 @@
     ]
   },
   "tests/integration/test_account_lifecycle.py": {
-    "mtime": 1763428178.1849363,
+    "mtime": 1763636580.6264884,
     "issues": []
   },
   "tests/integration/test_account_management.py": {
@@ -1771,7 +1771,7 @@
     "issues": []
   },
   "tests/test_utilities.py": {
-    "mtime": 1763377940.1494558,
+    "mtime": 1763632523.261014,
     "issues": [
       {
         "type": "warning",
@@ -4265,7 +4265,7 @@
     "issues": []
   },
   "ui/ui_app_qt.py": {
-    "mtime": 1763451282.5884614,
+    "mtime": 1763619063.1345756,
     "issues": []
   },
   "ui/widgets/__init__.py": {

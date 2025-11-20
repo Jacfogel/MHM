@@ -48,14 +48,9 @@ class BackupManager:
         Returns:
             bool: True if successful, False if failed
         """
-        """Ensure backup directory exists."""
-        try:
-            os.makedirs(self.backup_dir, exist_ok=True)
-            logger.debug(f"Backup directory ensured: {self.backup_dir}")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to create backup directory: {e}")
-            return False
+        os.makedirs(self.backup_dir, exist_ok=True)
+        logger.debug(f"Backup directory ensured: {self.backup_dir}")
+        return True
     
     @handle_errors("setting up backup parameters", default_return=("", ""))
     def _create_backup__setup_backup(self, backup_name: Optional[str]) -> Tuple[str, str]:
@@ -142,24 +137,19 @@ class BackupManager:
         # Setup backup parameters
         backup_name, backup_path = self._create_backup__setup_backup(backup_name)
         
-        try:
-            # Create the backup zip file
-            self._create_backup__create_zip_file(backup_path, backup_name, include_users, include_config, include_logs)
-            
-            # Verify backup file was actually created before proceeding
-            if not os.path.exists(backup_path):
-                logger.error(f"Backup file was not created at {backup_path}")
-                return None
-            
-            # Clean up old backups (only after verifying new backup exists)
-            self._create_backup__cleanup_old_backups()
-            
-            logger.info(f"Backup created successfully: {backup_path}")
-            return backup_path
-            
-        except Exception as e:
-            logger.error(f"Failed to create backup: {e}")
+        # Create the backup zip file
+        self._create_backup__create_zip_file(backup_path, backup_name, include_users, include_config, include_logs)
+        
+        # Verify backup file was actually created before proceeding
+        if not os.path.exists(backup_path):
+            logger.error(f"Backup file was not created at {backup_path}")
             return None
+        
+        # Clean up old backups (only after verifying new backup exists)
+        self._create_backup__cleanup_old_backups()
+        
+        logger.info(f"Backup created successfully: {backup_path}")
+        return backup_path
     
     @handle_errors("backing up user data")
     def _backup_user_data(self, zipf: zipfile.ZipFile) -> None:

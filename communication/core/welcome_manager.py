@@ -24,25 +24,17 @@ def _load_welcome_tracking() -> Dict[str, Dict[str, Any]]:
     if not WELCOME_TRACKING_FILE.exists():
         return {}
     
-    try:
-        with open(WELCOME_TRACKING_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception as e:
-        logger.warning(f"Error loading welcome tracking data: {e}")
-        return {}
+    with open(WELCOME_TRACKING_FILE, 'r', encoding='utf-8') as f:
+        return json.load(f)
 
 
 @handle_errors("saving welcome tracking data", default_return=False)
 def _save_welcome_tracking(tracking_data: Dict[str, Dict[str, Any]]) -> bool:
     """Save the welcome tracking data."""
-    try:
-        WELCOME_TRACKING_FILE.parent.mkdir(parents=True, exist_ok=True)
-        with open(WELCOME_TRACKING_FILE, 'w', encoding='utf-8') as f:
-            json.dump(tracking_data, f, indent=2)
-        return True
-    except Exception as e:
-        logger.error(f"Error saving welcome tracking data: {e}")
-        return False
+    WELCOME_TRACKING_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(WELCOME_TRACKING_FILE, 'w', encoding='utf-8') as f:
+        json.dump(tracking_data, f, indent=2)
+    return True
 
 
 @handle_errors("checking if user has been welcomed", default_return=False)

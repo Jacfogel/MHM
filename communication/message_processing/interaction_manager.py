@@ -377,6 +377,9 @@ class InteractionManager:
             logger.error(f"Error getting command definitions: {e}")
             return []
     
+    @handle_errors("handling structured command", default_return=InteractionResponse(
+        "I encountered an error while processing your request. Please try again or ask for help.", True
+    ))
     def _handle_structured_command(self, user_id: str, parsing_result: ParsingResult, channel_type: str) -> InteractionResponse:
         """Handle a structured command using interaction handlers"""
         parsed_command = parsing_result.parsed_command
@@ -399,44 +402,36 @@ class InteractionManager:
             )
         
         # Handle the command
-        try:
-            response = handler.handle(user_id, parsed_command)
-            
-            # Enhance response with AI if enabled
-            if self.enable_ai_enhancement and self.ai_chatbot.is_ai_available():
-                response = self._enhance_response_with_ai(user_id, response, parsed_command)
-            
-            # Add suggestions only when helpful; suppress for targeted prompts like update_task
-            if (
-                not response.completed
-                and intent not in ['start_checkin', 'update_task']
-                and (response.suggestions is None)
-            ):
-                response.suggestions = self.command_parser.get_suggestions(parsed_command.original_message)
-            
-            return response
-            
-        except Exception as e:
-            logger.error(f"Error handling command {intent} for user {user_id}: {e}")
-            return InteractionResponse(
-                f"I encountered an error while processing your request. Please try again or ask for help.",
-                True
-            )
+        response = handler.handle(user_id, parsed_command)
+        
+        # Enhance response with AI if enabled
+        if self.enable_ai_enhancement and self.ai_chatbot.is_ai_available():
+            response = self._enhance_response_with_ai(user_id, response, parsed_command)
+        
+        # Add suggestions only when helpful; suppress for targeted prompts like update_task
+        if (
+            not response.completed
+            and intent not in ['start_checkin', 'update_task']
+            and (response.suggestions is None)
+        ):
+            response.suggestions = self.command_parser.get_suggestions(parsed_command.original_message)
+        
+        return response
     
+    @handle_errors("handling contextual chat", default_return=InteractionResponse(
+        "I'm having trouble processing your message right now. Please try again.", True
+    ))
     def _handle_contextual_chat(self, user_id: str, message: str, channel_type: str) -> InteractionResponse:
         """Handle contextual chat using AI chatbot with mixed intent support"""
-        try:
-            # Generate a single AI response that can handle both conversational and actionable content
-            ai_chatbot = get_ai_chatbot()
-            response = ai_chatbot.generate_response(message, user_id=user_id, mode="chat")
-            return InteractionResponse(response, True)
-            
-        except Exception as e:
-            logger.error(f"Error in contextual chat: {e}")
-            return InteractionResponse("I'm having trouble processing your message right now. Please try again.", True)
+        # Generate a single AI response that can handle both conversational and actionable content
+        ai_chatbot = get_ai_chatbot()
+        response = ai_chatbot.generate_response(message, user_id=user_id, mode="chat")
+        return InteractionResponse(response, True)
     
+    @handle_errors("enhancing response with AI")
     def _enhance_response_with_ai(self, user_id: str, response: InteractionResponse, parsed_command: ParsedCommand) -> InteractionResponse:
         """Enhance a structured response with AI contextual information"""
+        # If enhancement fails, return original response (handled by inner try/except and function always returns response)
         try:
             # Only enhance certain types of responses
             if not self.enable_ai_enhancement:
