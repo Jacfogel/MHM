@@ -163,7 +163,7 @@ def load_completed_tasks(user_id: str) -> List[Dict[str, Any]]:
         logger.error(f"Error loading completed tasks for user {user_id}: {e}")
         return []
 
-@handle_errors("saving completed tasks")
+@handle_errors("saving completed tasks", default_return=False)
 def save_completed_tasks(user_id: str, tasks: List[Dict[str, Any]]) -> bool:
     """Save completed tasks for a user."""
     try:
@@ -299,88 +299,83 @@ def create_task(user_id: str, title: str, description: str = "", due_date: str =
         logger.error(f"Error creating task for user {user_id}: {e}")
         return None
 
-@handle_errors("updating task")
+@handle_errors("updating task", default_return=False)
 def update_task(user_id: str, task_id: str, updates: Dict[str, Any]) -> bool:
     """Update an existing task."""
-    try:
-        if not user_id or not task_id:
-            logger.error("User ID and task ID are required for task update")
-            return False
-        
-        # Load existing tasks
-        tasks = load_active_tasks(user_id)
-        
-        # Find and update the task
-        for task in tasks:
-            if task.get('task_id') == task_id:
-                # Track what fields are being updated
-                updated_fields = []
-                allowed_fields = ['title', 'description', 'due_date', 'due_time', 
-                                'reminder_periods', 'priority', 'tags', 'quick_reminders',
-                                'recurrence_pattern', 'recurrence_interval', 'repeat_after_completion', 'next_due_date']
+    if not user_id or not task_id:
+        logger.error("User ID and task ID are required for task update")
+        return False
+    
+    # Load existing tasks
+    tasks = load_active_tasks(user_id)
+    
+    # Find and update the task
+    for task in tasks:
+        if task.get('task_id') == task_id:
+            # Track what fields are being updated
+            updated_fields = []
+            allowed_fields = ['title', 'description', 'due_date', 'due_time', 
+                            'reminder_periods', 'priority', 'tags', 'quick_reminders',
+                            'recurrence_pattern', 'recurrence_interval', 'repeat_after_completion', 'next_due_date']
+            
+            # Validate updates before applying
+            for field, value in updates.items():
+                if field not in allowed_fields:
+                    logger.warning(f"Attempted to update disallowed field '{field}' for task {task_id}")
+                    continue
                 
-                # Validate updates before applying
-                for field, value in updates.items():
-                    if field not in allowed_fields:
-                        logger.warning(f"Attempted to update disallowed field '{field}' for task {task_id}")
+                # Validate field-specific values
+                if field == 'priority':
+                    valid_priorities = ["low", "medium", "high", "urgent", "critical"]
+                    if value and value.lower() not in valid_priorities:
+                        logger.warning(f"Invalid priority value '{value}' for task {task_id}, skipping update")
                         continue
-                    
-                    # Validate field-specific values
-                    if field == 'priority':
-                        valid_priorities = ["low", "medium", "high", "urgent", "critical"]
-                        if value and value.lower() not in valid_priorities:
-                            logger.warning(f"Invalid priority value '{value}' for task {task_id}, skipping update")
-                            continue
-                    
-                    if field == 'due_date' and value:
+                
+                if field == 'due_date' and value:
+                    try:
+                        datetime.strptime(value, '%Y-%m-%d')
+                    except ValueError:
+                        logger.warning(f"Invalid due_date format '{value}' for task {task_id}, expected YYYY-MM-DD")
+                        # Don't skip, but log warning
+                
+                if field == 'title' and (not value or not isinstance(value, str) or not value.strip()):
+                    logger.warning(f"Invalid title update for task {task_id}, skipping")
+                    continue
+                
+                # Apply update
+                old_value = task.get(field, 'None')
+                task[field] = value
+                updated_fields.append(f"{field}: {old_value} -> {value}")
+            
+            # Add last updated timestamp
+            task['last_updated'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            
+            # Save updated tasks
+            if save_active_tasks(user_id, tasks):
+                logger.info(f"Updated task {task_id} for user {user_id} | Fields: {', '.join(updated_fields)}")
+                
+                # Handle reminder updates
+                if 'reminder_periods' in updates:
+                    # Clean up existing reminders
+                    cleanup_task_reminders(user_id, task_id)
+                    # Schedule new reminders (don't fail update if scheduling fails)
+                    new_reminder_periods = updates['reminder_periods']
+                    if new_reminder_periods:
                         try:
-                            datetime.strptime(value, '%Y-%m-%d')
-                        except ValueError:
-                            logger.warning(f"Invalid due_date format '{value}' for task {task_id}, expected YYYY-MM-DD")
-                            # Don't skip, but log warning
-                    
-                    if field == 'title' and (not value or not isinstance(value, str) or not value.strip()):
-                        logger.warning(f"Invalid title update for task {task_id}, skipping")
-                        continue
-                    
-                    # Apply update
-                    old_value = task.get(field, 'None')
-                    task[field] = value
-                    updated_fields.append(f"{field}: {old_value} -> {value}")
+                            schedule_task_reminders(user_id, task_id, new_reminder_periods)
+                        except Exception as schedule_error:
+                            # Log but don't fail the update - task is already saved with reminder_periods
+                            logger.warning(f"Failed to schedule reminders for task {task_id}, but task was updated: {schedule_error}")
                 
-                # Add last updated timestamp
-                task['last_updated'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                
-                # Save updated tasks
-                if save_active_tasks(user_id, tasks):
-                    logger.info(f"Updated task {task_id} for user {user_id} | Fields: {', '.join(updated_fields)}")
-                    
-                    # Handle reminder updates
-                    if 'reminder_periods' in updates:
-                        # Clean up existing reminders
-                        cleanup_task_reminders(user_id, task_id)
-                        # Schedule new reminders (don't fail update if scheduling fails)
-                        new_reminder_periods = updates['reminder_periods']
-                        if new_reminder_periods:
-                            try:
-                                schedule_task_reminders(user_id, task_id, new_reminder_periods)
-                            except Exception as schedule_error:
-                                # Log but don't fail the update - task is already saved with reminder_periods
-                                logger.warning(f"Failed to schedule reminders for task {task_id}, but task was updated: {schedule_error}")
-                    
-                    return True
-                else:
-                    logger.error(f"Failed to save updated task for user {user_id}")
-                    return False
-        
-        logger.warning(f"Task {task_id} not found for user {user_id}")
-        return False
-        
-    except Exception as e:
-        logger.error(f"Error updating task {task_id} for user {user_id}: {e}")
-        return False
+                return True
+            else:
+                logger.error(f"Failed to save updated task for user {user_id}")
+                return False
+    
+    logger.warning(f"Task {task_id} not found for user {user_id}")
+    return False
 
-@handle_errors("completing task")
+@handle_errors("completing task", default_return=False)
 def complete_task(user_id: str, task_id: str, completion_data: Optional[Dict[str, Any]] = None) -> bool:
     """Mark a task as completed."""
     try:
@@ -631,7 +626,7 @@ def are_tasks_enabled(user_id: str) -> bool:
         logger.error(f"Error checking task status for user {user_id}: {e}")
         return False
 
-@handle_errors("scheduling task-specific reminders")
+@handle_errors("scheduling task-specific reminders", default_return=False)
 def schedule_task_reminders(user_id: str, task_id: str, reminder_periods: List[Dict[str, Any]]) -> bool:
     """Schedule reminders for a specific task based on its reminder periods."""
     try:

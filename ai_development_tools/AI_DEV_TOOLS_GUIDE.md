@@ -117,6 +117,17 @@ The audit includes comprehensive error handling coverage analysis that:
 - Tracks error handling patterns and coverage metrics in audit summaries
 - Helps maintain robust error handling standards across the codebase
 
+**Phase 1 and Phase 2 Auditing:**
+The error handling coverage tool now includes specialized analysis for the Error Handling Quality Improvement Plan:
+- **Phase 1 Analysis**: Identifies functions with basic try-except blocks that should use `@handle_errors` decorator
+  - Categorizes candidates by priority (high/medium/low) based on entry points and operation types
+  - Tracks total candidates and priority distribution
+  - Results appear in `AI_STATUS.md`, `AI_PRIORITIES.md`, and `consolidated_report.txt`
+- **Phase 2 Analysis**: Audits generic exception raises (ValueError, Exception, KeyError, TypeError) that should be replaced with specific `MHMError` subclasses
+  - Identifies exception types and counts for categorization
+  - Provides guidance on appropriate `MHMError` subclass replacements
+  - Results integrated into all audit reports for actionable prioritization
+
 ## 9. Documentation Signals
 The audit now includes documentation synchronization monitoring:
 - **Path Drift Detection**: Identifies broken file path references in documentation

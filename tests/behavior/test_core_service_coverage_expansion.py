@@ -1387,15 +1387,16 @@ class TestCoreServiceCoverageExpansion:
         cleanup_error = Exception("Cleanup failed")
         
         with patch('core.service.logger') as mock_logger, \
-             patch('core.service.os.remove', side_effect=cleanup_error):
+             patch('core.service.os.remove', side_effect=cleanup_error), \
+             patch('core.error_handling.error_handler.handle_error') as mock_handle_error:
             
             service._check_reschedule_requests__handle_processing_error(request_file, filename, error)
             
             # Should log the original error
             mock_logger.error.assert_called_with(f"Error processing reschedule request {filename}: {error}")
             
-            # Should log cleanup failure
-            mock_logger.warning.assert_called_with(f"Could not remove problematic request file {filename}: {cleanup_error}")
+            # Error handler should be called for cleanup failure (decorator handles it)
+            assert mock_handle_error.called
 
     @pytest.mark.behavior
     def test_check_test_message_requests_handle_processing_error_successful_cleanup(self, service):
@@ -1425,15 +1426,16 @@ class TestCoreServiceCoverageExpansion:
         cleanup_error = Exception("Cleanup failed")
         
         with patch('core.service.logger') as mock_logger, \
-             patch('core.service.os.remove', side_effect=cleanup_error):
+             patch('core.service.os.remove', side_effect=cleanup_error), \
+             patch('core.error_handling.error_handler.handle_error') as mock_handle_error:
             
             service._check_test_message_requests__handle_processing_error(request_file, filename, error)
             
             # Should log the original error
             mock_logger.error.assert_called_with(f"Error processing test message request {filename}: {error}")
             
-            # Should log cleanup failure
-            mock_logger.warning.assert_called_with(f"Could not remove problematic request file {filename}: {cleanup_error}")
+            # Error handler should be called for cleanup failure (decorator handles it)
+            assert mock_handle_error.called
 
     @pytest.mark.behavior
     def test_check_reschedule_requests_validate_request_data_old_timestamp(self, service):

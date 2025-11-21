@@ -13,7 +13,7 @@ from core.user_data_handlers import get_user_data
 
 from core.service_utilities import create_reschedule_request
 from user.user_context import UserContext
-from core.error_handling import handle_errors
+from core.error_handling import handle_errors, ValidationError, DataError
 
 logger = get_component_logger('scheduler')
 schedule_logger = get_component_logger('main')
@@ -256,7 +256,7 @@ def add_schedule_period(category, period_name, start_time, end_time, scheduler_m
     # Validate that period name doesn't already exist
     if period_name in current_periods:
         logger.warning(f"Period '{period_name}' already exists in category '{category}' for user {user_id}")
-        raise ValueError(f"A period named '{period_name}' already exists in this category. Please choose a different name.")
+        raise ValidationError(f"A period named '{period_name}' already exists in this category. Please choose a different name.", details={'period_name': period_name, 'category': category, 'user_id': user_id})
     
     # Add the new period
     current_periods[period_name] = {
@@ -402,7 +402,7 @@ def get_period_data__validate_and_format_time(time_str):
 
         return f"{hour:02}:{minute}"
 
-    raise ValueError(f"Invalid time format: {time_str}")
+    raise ValidationError(f"Invalid time format: {time_str}", details={'time_str': time_str})
 
 
 @handle_errors("converting 24-hour time to 12-hour display format")
@@ -433,7 +433,7 @@ def get_period_data__time_24h_to_12h_display(time_24h):
             
     except (ValueError, AttributeError) as e:
         logger.error(f"Error converting 24-hour time '{time_24h}' to 12-hour: {e}")
-        raise ValueError(f"Invalid 24-hour time format: {time_24h}")
+        raise ValidationError(f"Invalid 24-hour time format: {time_24h}", details={'time_24h': time_24h})
 
 
 @handle_errors("converting 12-hour display format to 24-hour time")
@@ -459,7 +459,7 @@ def get_period_data__time_12h_display_to_24h(hour_12, minute, is_pm):
         
     except (ValueError, TypeError) as e:
         logger.error(f"Error converting 12-hour time to 24-hour: hour={hour_12}, minute={minute}, is_pm={is_pm}, error={e}")
-        raise ValueError(f"Invalid 12-hour time parameters: hour={hour_12}, minute={minute}, is_pm={is_pm}")
+        raise ValidationError(f"Invalid 12-hour time parameters: hour={hour_12}, minute={minute}, is_pm={is_pm}", details={'hour_12': hour_12, 'minute': minute, 'is_pm': is_pm})
 
 @handle_errors("getting current day names", default_return=[])
 def get_current_day_names():

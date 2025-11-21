@@ -37,7 +37,7 @@ from core.user_data_handlers import get_user_data
 # Expose get_user_data at module level so tests
 # that patch core.service.get_user_data continue to work.
 
-from core.error_handling import handle_errors
+from core.error_handling import handle_errors, FileOperationError
 
 class InitializationError(Exception):
     """Custom exception for initialization errors."""
@@ -142,7 +142,7 @@ class MHMService:
                 with open(LOG_MAIN_FILE, 'a', encoding='utf-8') as _f:
                     _f.write('')
             except Exception:
-                raise Exception("Log file missing")
+                raise FileOperationError("Log file missing", details={'log_file': LOG_MAIN_FILE})
 
     @handle_errors("reading recent log content", default_return="")
     def _check_and_fix_logging__read_recent_log_content(self):
@@ -686,15 +686,13 @@ class MHMService:
         except Exception as cleanup_error:
             logger.warning(f"Could not remove request file {filename}: {cleanup_error}")
 
+    @handle_errors("cleaning up problematic test message request file", user_friendly=False, default_return=None)
     def _check_test_message_requests__handle_processing_error(self, request_file, filename, error):
         """Handle errors during request processing."""
         logger.error(f"Error processing test message request {filename}: {error}")
         # Try to remove the problematic file
-        try:
-            os.remove(request_file)
-            logger.debug(f"Removed problematic request file: {filename}")
-        except Exception as cleanup_error:
-            logger.warning(f"Could not remove problematic request file {filename}: {cleanup_error}")
+        os.remove(request_file)
+        logger.debug(f"Removed problematic request file: {filename}")
 
     def check_test_message_requests(self):
         """Check for and process test message request files from admin panel"""
@@ -944,15 +942,13 @@ class MHMService:
         except Exception as cleanup_error:
             logger.warning(f"Could not remove request file {filename}: {cleanup_error}")
 
+    @handle_errors("cleaning up problematic reschedule request file", user_friendly=False, default_return=None)
     def _check_reschedule_requests__handle_processing_error(self, request_file, filename, error):
         """Handle errors during request processing."""
         logger.error(f"Error processing reschedule request {filename}: {error}")
         # Try to remove the problematic file
-        try:
-            os.remove(request_file)
-            logger.debug(f"Removed problematic request file: {filename}")
-        except Exception as cleanup_error:
-            logger.warning(f"Could not remove problematic request file {filename}: {cleanup_error}")
+        os.remove(request_file)
+        logger.debug(f"Removed problematic request file: {filename}")
 
     def check_reschedule_requests(self):
         """Check for and process reschedule request files from UI"""

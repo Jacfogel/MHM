@@ -410,6 +410,16 @@ class AIToolsService:
 
                 data = None
 
+        # If JSON parsing from stdout failed, try reading from the file
+        if data is None:
+            try:
+                json_file = self.project_root / 'ai_development_tools' / 'error_handling_details.json'
+                if json_file.exists():
+                    with open(json_file, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+            except (OSError, json.JSONDecodeError):
+                data = None
+
         if data is not None:
 
             result['data'] = data
@@ -2241,7 +2251,23 @@ class AIToolsService:
 
                 'recommendations': data.get('recommendations', []),
 
-                'worst_modules': data.get('worst_modules', [])
+                'worst_modules': data.get('worst_modules', []),
+
+                # Phase 1: Candidates for decorator replacement
+
+                'phase1_candidates': data.get('phase1_candidates', []),
+
+                'phase1_total': data.get('phase1_total', 0),
+
+                'phase1_by_priority': data.get('phase1_by_priority', {}),
+
+                # Phase 2: Generic exception raises
+
+                'phase2_exceptions': data.get('phase2_exceptions', []),
+
+                'phase2_total': data.get('phase2_total', 0),
+
+                'phase2_by_type': data.get('phase2_by_type', {})
 
             }
 
@@ -3245,6 +3271,50 @@ class AIToolsService:
 
                 lines.append(f"- **@handle_errors Usage**: {decorated} functions already use the decorator")
 
+            # Phase 1: Candidates for decorator replacement
+
+            phase1_total = error_metrics.get('phase1_total', 0)
+
+            if phase1_total > 0:
+
+                phase1_by_priority = error_metrics.get('phase1_by_priority', {})
+
+                priority_counts = []
+
+                if phase1_by_priority.get('high', 0) > 0:
+
+                    priority_counts.append(f"{phase1_by_priority['high']} high")
+
+                if phase1_by_priority.get('medium', 0) > 0:
+
+                    priority_counts.append(f"{phase1_by_priority['medium']} medium")
+
+                if phase1_by_priority.get('low', 0) > 0:
+
+                    priority_counts.append(f"{phase1_by_priority['low']} low")
+
+                priority_text = ', '.join(priority_counts) if priority_counts else '0'
+
+                lines.append(f"- **Phase 1 Candidates**: {phase1_total} functions need decorator replacement ({priority_text} priority)")
+
+            # Phase 2: Generic exception raises
+
+            phase2_total = error_metrics.get('phase2_total', 0)
+
+            if phase2_total > 0:
+
+                phase2_by_type = error_metrics.get('phase2_by_type', {})
+
+                type_counts = [f"{count} {exc_type}" for exc_type, count in sorted(phase2_by_type.items(), key=lambda x: x[1], reverse=True)[:3]]
+
+                type_text = ', '.join(type_counts) if type_counts else '0'
+
+                if len(phase2_by_type) > 3:
+
+                    type_text += f", ... +{len(phase2_by_type) - 3} more"
+
+                lines.append(f"- **Phase 2 Exceptions**: {phase2_total} generic exception raises need categorization ({type_text})")
+
             if worst_error_modules:
 
                 module_descriptions = []
@@ -3285,11 +3355,47 @@ class AIToolsService:
                         error_data = cached_data['results']['error_handling_coverage']
                         if 'data' in error_data:
                             error_metrics = error_data['data']
+                        else:
+                            # Try reading from the file if 'data' key is missing
+                            try:
+                                json_file = self.project_root / 'ai_development_tools' / 'error_handling_details.json'
+                                if json_file.exists():
+                                    with open(json_file, 'r', encoding='utf-8') as f:
+                                        error_metrics = json.load(f)
+                                else:
+                                    error_metrics = None
+                            except (OSError, json.JSONDecodeError):
+                                error_metrics = None
+                        
+                        if error_metrics:
                             coverage = error_metrics.get('error_handling_coverage', 'Unknown')
                             if coverage != 'Unknown':
                                 lines.append(f"- **Error Handling Coverage**: {coverage:.1f}%")
                                 lines.append(f"- **Functions with Error Handling**: {error_metrics.get('functions_with_error_handling', 'Unknown')}")
                                 lines.append(f"- **Functions Missing Error Handling**: {error_metrics.get('functions_missing_error_handling', 'Unknown')}")
+                                
+                                # Add Phase 1 and Phase 2 if available
+                                phase1_total = error_metrics.get('phase1_total', 0)
+                                if phase1_total > 0:
+                                    phase1_by_priority = error_metrics.get('phase1_by_priority', {})
+                                    priority_counts = []
+                                    if phase1_by_priority.get('high', 0) > 0:
+                                        priority_counts.append(f"{phase1_by_priority['high']} high")
+                                    if phase1_by_priority.get('medium', 0) > 0:
+                                        priority_counts.append(f"{phase1_by_priority['medium']} medium")
+                                    if phase1_by_priority.get('low', 0) > 0:
+                                        priority_counts.append(f"{phase1_by_priority['low']} low")
+                                    priority_text = ', '.join(priority_counts) if priority_counts else '0'
+                                    lines.append(f"- **Phase 1 Candidates**: {phase1_total} functions need decorator replacement ({priority_text} priority)")
+                                
+                                phase2_total = error_metrics.get('phase2_total', 0)
+                                if phase2_total > 0:
+                                    phase2_by_type = error_metrics.get('phase2_by_type', {})
+                                    type_counts = [f"{count} {exc_type}" for exc_type, count in sorted(phase2_by_type.items(), key=lambda x: x[1], reverse=True)[:3]]
+                                    type_text = ', '.join(type_counts) if type_counts else '0'
+                                    if len(phase2_by_type) > 3:
+                                        type_text += f", ... +{len(phase2_by_type) - 3} more"
+                                    lines.append(f"- **Phase 2 Exceptions**: {phase2_total} generic exception raises need categorization ({type_text})")
                             else:
                                 lines.append("- **Error Handling**: Run `python ai_development_tools/ai_tools_runner.py audit --fast` for detailed metrics")
                         else:
@@ -3753,7 +3859,59 @@ class AIToolsService:
                 bullets=doc_bullets
             )
 
-        if missing_error_handlers and missing_error_handlers > 0:
+        # Phase 1: Decorator replacement candidates
+        phase1_total = to_int(error_metrics.get('phase1_total', 0))
+        phase1_by_priority = error_metrics.get('phase1_by_priority', {}) or {}
+        phase1_high = to_int(phase1_by_priority.get('high', 0))
+        
+        if phase1_total and phase1_total > 0:
+            phase1_bullets: List[str] = []
+            if phase1_high and phase1_high > 0:
+                phase1_bullets.append(
+                    f"Start with {phase1_high} high-priority candidates (entry points and critical operations)."
+                )
+            phase1_medium = to_int(phase1_by_priority.get('medium', 0))
+            if phase1_medium and phase1_medium > 0:
+                phase1_bullets.append(
+                    f"Then process {phase1_medium} medium-priority functions."
+                )
+            phase1_bullets.append(
+                "Apply `@handle_errors` decorator to replace basic try-except blocks."
+            )
+            add_priority(
+                order=3,
+                title="Phase 1: Replace basic try-except with decorators",
+                reason=f"{phase1_total} functions have try-except blocks that should use `@handle_errors` decorator.",
+                bullets=phase1_bullets
+            )
+        
+        # Phase 2: Generic exception categorization
+        phase2_total = to_int(error_metrics.get('phase2_total', 0))
+        phase2_by_type = error_metrics.get('phase2_by_type', {}) or {}
+        
+        if phase2_total and phase2_total > 0:
+            phase2_bullets: List[str] = []
+            top_exceptions = sorted(phase2_by_type.items(), key=lambda x: x[1], reverse=True)[:3]
+            if top_exceptions:
+                exc_details = [f"{count} {exc_type}" for exc_type, count in top_exceptions]
+                phase2_bullets.append(
+                    f"Most common: {self._format_list_for_display(exc_details, limit=3)}"
+                )
+            phase2_bullets.append(
+                "Replace generic exceptions (ValueError, Exception, KeyError, TypeError) with specific MHMError subclasses."
+            )
+            phase2_bullets.append(
+                "See `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` for categorization rules."
+            )
+            add_priority(
+                order=4,
+                title="Phase 2: Categorize generic exceptions",
+                reason=f"{phase2_total} generic exception raises need categorization into MHMError subclasses.",
+                bullets=phase2_bullets
+            )
+        
+        # General error handling priority (if no Phase 1/2 but still missing handlers)
+        if missing_error_handlers and missing_error_handlers > 0 and not (phase1_total or phase2_total):
             module_samples: List[str] = []
             for module in worst_error_modules[:3]:
                 module_name = module.get('module', 'Unknown')
@@ -3780,6 +3938,13 @@ class AIToolsService:
                 bullets=error_bullets
             )
 
+        # Adjust order numbers based on whether Phase 1/2 priorities exist
+        coverage_order = 4
+        legacy_order = 5
+        if phase1_total or phase2_total:
+            coverage_order = 5
+            legacy_order = 6
+        
         if low_coverage_modules:
             coverage_highlights = [
                 f"{module.get('module', 'module')} ({percent_text(module.get('coverage'), 1)}, {module.get('missed')} lines missing)"
@@ -3790,7 +3955,7 @@ class AIToolsService:
                 "Add scenario tests before the next full audit to lift module coverage above 80%."
             ]
             add_priority(
-                order=4,
+                order=coverage_order,
                 title="Raise coverage for low-performing modules",
                 reason=f"{len(low_coverage_modules)} key modules remain below the 80% target.",
                 bullets=coverage_bullets
@@ -3806,7 +3971,7 @@ class AIToolsService:
                 "Use `python ai_development_tools/ai_tools_runner.py legacy --apply` to replace deprecated helpers."
             )
             add_priority(
-                order=5,
+                order=legacy_order,
                 title="Retire remaining legacy references",
                 reason=f"{legacy_files} files still depend on legacy compatibility markers.",
                 bullets=legacy_bullets
@@ -4105,6 +4270,50 @@ class AIToolsService:
             if none:
 
                 lines.append(f"- **Critical Items**: {none} functions have no error handling")
+
+            # Phase 1: Decorator replacement candidates
+
+            phase1_total = error_metrics.get('phase1_total', 0)
+
+            if phase1_total > 0:
+
+                phase1_by_priority = error_metrics.get('phase1_by_priority', {})
+
+                priority_breakdown = []
+
+                if phase1_by_priority.get('high', 0) > 0:
+
+                    priority_breakdown.append(f"{phase1_by_priority['high']} high")
+
+                if phase1_by_priority.get('medium', 0) > 0:
+
+                    priority_breakdown.append(f"{phase1_by_priority['medium']} medium")
+
+                if phase1_by_priority.get('low', 0) > 0:
+
+                    priority_breakdown.append(f"{phase1_by_priority['low']} low")
+
+                priority_text = ', '.join(priority_breakdown) if priority_breakdown else '0'
+
+                lines.append(f"- **Phase 1 Candidates**: {phase1_total} functions need `@handle_errors` decorator ({priority_text} priority)")
+
+            # Phase 2: Generic exception categorization
+
+            phase2_total = error_metrics.get('phase2_total', 0)
+
+            if phase2_total > 0:
+
+                phase2_by_type = error_metrics.get('phase2_by_type', {})
+
+                type_breakdown = [f"{count} {exc_type}" for exc_type, count in sorted(phase2_by_type.items(), key=lambda x: x[1], reverse=True)[:5]]
+
+                type_text = ', '.join(type_breakdown) if type_breakdown else '0'
+
+                if len(phase2_by_type) > 5:
+
+                    type_text += f", ... +{len(phase2_by_type) - 5} more"
+
+                lines.append(f"- **Phase 2 Exceptions**: {phase2_total} generic exception raises need categorization ({type_text})")
 
             if error_recommendations:
 

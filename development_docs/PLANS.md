@@ -12,44 +12,57 @@
 
 ## [ACTIVE] **Current Active Plans**
 
-### **Error Handling Quality Improvement Plan** **PLANNING**
+### **Error Handling Quality Improvement Plan** **IN PROGRESS**
 
-**Status**: **PLANNING**  
+**Status**: **IN PROGRESS**  
 **Priority**: Medium  
 **Effort**: Medium  
 **Date**: 2025-11-20  
-**Last Updated**: 2025-11-20
+**Last Updated**: 2025-11-21
 
 **Objective**: Improve error handling quality beyond 100% coverage by replacing basic try-except blocks with `@handle_errors` decorators, improving error categorization, enhancing error messages, and expanding recovery strategies. This will improve system robustness, consistency, and maintainability.
 
 **Current Status**: 
 - [x] **100% coverage achieved** (1,471 of 1,471 functions protected or appropriately excluded)
-- [x] 1,375 functions using `@handle_errors` decorator (excellent quality)
-- [x] 88 functions with basic try-except blocks (candidates for improvement)
+- [x] 1,383 functions using `@handle_errors` decorator (excellent quality)
+- [x] 88 functions with basic try-except blocks identified and prioritized (26 high, 38 medium, 24 low priority)
 - [x] Function-level exclusion logic implemented in `error_handling_coverage.py`
 - [x] Exclusion comments added to 44 appropriate functions
+- [x] **Phase 1 and Phase 2 auditing tooling completed** - Enhanced `error_handling_coverage.py` to identify and prioritize Phase 1 candidates and audit Phase 2 generic exceptions
+- [x] **Integration with AI tools completed** - Phase 1 and Phase 2 metrics now appear in `AI_STATUS.md`, `AI_PRIORITIES.md`, and `consolidated_report.txt`
+- [x] **Documentation updated** - Phase 1 and Phase 2 functionality documented in error handling guides
 
 **Phase 1: Replace Basic Try-Except Blocks with Decorators** (Priority: High)
-- [ ] Identify and catalog all 88 basic try-except blocks
-- [ ] Prioritize candidates based on:
+- [x] Identify and catalog all 88 basic try-except blocks
+- [x] Prioritize candidates based on:
   - Entry points (user-facing operations, file I/O, network calls)
   - Functions that don't need custom recovery logic
   - Functions that would benefit from automatic retry/recovery
-- [ ] Replace high-priority candidates (start with 10-15 functions as proof of concept)
-- [ ] Verify replacements maintain existing behavior and improve error logging
-- [ ] Continue replacing remaining candidates in batches
-- [ ] Update tests to verify decorator behavior where needed
+- [x] **Tooling enhancement**: Automated identification and prioritization integrated into `error_handling_coverage.py`
+- [x] **Integration**: Results appear in audit reports for tracking progress
+- [ ] **Next Steps**: Replace high-priority candidates (start with 26 high-priority functions)
+  - Focus on entry points in `core/service.py`, `communication/communication_channels/discord/bot.py`, `communication/core/channel_orchestrator.py`
+  - Prioritize network operations, file I/O, and user data operations
+  - Verify replacements maintain existing behavior and improve error logging
+  - Update tests to verify decorator behavior where needed
+- [ ] Continue replacing remaining candidates in batches (38 medium, 24 low priority)
 
 **Phase 2: Improve Error Categorization** (Priority: Medium)
-- [ ] Audit exception raising patterns across codebase
-- [ ] Replace generic `Exception` raises with specific `MHMError` subclasses:
-  - `DataError` for data validation/processing issues
-  - `FileOperationError` for file system problems
-  - `CommunicationError` for network/Discord/email issues
-  - `ConfigurationError` for configuration problems
-  - `ValidationError` for user input validation
-  - `AIError` for AI-related failures
-  - `SchedulerError` for scheduling issues
+- [x] Audit exception raising patterns across codebase
+- [x] **Tooling enhancement**: Automated detection of generic exception raises (ValueError, Exception, KeyError, TypeError) integrated into `error_handling_coverage.py`
+- [x] **Integration**: Results appear in audit reports with exception type breakdown
+- [ ] **Next Steps**: Replace generic exception raises with specific `MHMError` subclasses:
+  - **Current status**: 1 generic exception identified (1 ValueError)
+  - Start with the identified ValueError and replace with appropriate `MHMError` subclass
+  - Continue auditing and replacing as new generic exceptions are found
+  - Use categorization rules from `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`:
+    - `DataError` for data validation/processing issues
+    - `FileOperationError` for file system problems
+    - `CommunicationError` for network/Discord/email issues
+    - `ConfigurationError` for configuration problems
+    - `ValidationError` for user input validation
+    - `AIError` for AI-related failures
+    - `SchedulerError` for scheduling issues
 - [ ] Update error handling to route specific exception types to appropriate recovery strategies
 - [ ] Add tests to verify proper exception categorization
 
@@ -104,13 +117,45 @@
 - [ ] All tests pass after changes
 - [ ] Error handling quality distribution shows improvement (more "excellent", fewer "basic")
 
+**Progress Summary**:
+- **Tooling Complete**: Phase 1 and Phase 2 auditing fully integrated into `error_handling_coverage.py` and AI tools
+- **Current Metrics**: 88 Phase 1 candidates (26 high, 38 medium, 24 low), 1 Phase 2 exception (1 ValueError)
+- **Next Priority**: Replace 26 high-priority Phase 1 candidates, then address the 1 Phase 2 exception
+- **Tracking**: Progress visible in `AI_STATUS.md`, `AI_PRIORITIES.md`, and `consolidated_report.txt` after each audit
+
+**Detailed Next Steps**:
+
+**Immediate (Phase 1 - High Priority)**:
+1. Review the 26 high-priority Phase 1 candidates from `error_handling_phase1_candidates.json` or audit reports
+2. Start with entry points in critical modules:
+   - `core/service.py` - Service entry points and background tasks
+   - `communication/communication_channels/discord/bot.py` - Discord bot operations
+   - `communication/core/channel_orchestrator.py` - Channel management
+3. For each function:
+   - Apply `@handle_errors` decorator with appropriate `operation` name
+   - Set `default_return` based on function return type
+   - Remove redundant inner try-except blocks
+   - Verify tests still pass
+   - Check error logs for improved error reporting
+4. Process in batches of 5-10 functions, running full test suite after each batch
+
+**Immediate (Phase 2)**:
+1. Locate the 1 identified ValueError in the codebase (check audit reports)
+2. Determine appropriate `MHMError` subclass based on context:
+   - User input validation → `ValidationError`
+   - Data processing → `DataError`
+   - Configuration → `ConfigurationError`
+3. Replace the generic exception with the specific subclass
+4. Update any error handling that catches this exception
+5. Add test to verify proper exception type
+
 **Notes**:
 - Coverage is already at 100%, so this plan focuses on quality improvements
-- Start with Phase 1 (replacing try-except blocks) as it provides the most immediate value
-- Phases 2-6 can be done incrementally and don't need to be completed in strict order
+- Phase 1 and Phase 2 tooling is complete - now focus on actual replacements
 - Use `error_handling_coverage.py` to track progress and measure quality improvements
 - Keep changes small and well-tested - verify behavior after each batch of replacements
 - Reference `core/ERROR_HANDLING_GUIDE.md` and `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` for patterns and best practices
+- Monitor `AI_PRIORITIES.md` for updated priority counts as replacements are made
 
 ### **AI Chatbot Actionability Sprint** **IN PROGRESS**
 

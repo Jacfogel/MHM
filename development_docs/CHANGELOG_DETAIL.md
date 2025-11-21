@@ -39,6 +39,27 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-21 - Error Handling Quality Improvement Plan: Phase 1 & 2 Tooling Integration **COMPLETED**
+- **Feature**: Enhanced error handling coverage analysis tooling to support Phase 1 (decorator replacement) and Phase 2 (exception categorization) auditing, integrated results into AI development tools, and updated documentation. This enables systematic tracking and prioritization of error handling quality improvements beyond basic coverage metrics.
+- **Technical Changes**:
+  - **Enhanced `error_handling_coverage.py`**:
+    - Added Phase 1 analysis: Identifies functions with basic try-except blocks that should use `@handle_errors` decorator, categorizes by priority (high/medium/low) based on entry points and operation types
+    - Added Phase 2 analysis: Audits generic exception raises (ValueError, Exception, KeyError, TypeError) that should be replaced with specific `MHMError` subclasses
+    - Results include total counts, priority distributions, and exception type breakdowns
+  - **Integrated into AI Tools** (`ai_development_tools/services/operations.py`):
+    - Updated `run_error_handling_coverage()` to read from `error_handling_details.json` file when stdout parsing fails
+    - Enhanced `_extract_error_handling_metrics()` to extract Phase 1 and Phase 2 data
+    - Updated `_generate_ai_status_document()` to display Phase 1 and Phase 2 metrics in Error Handling section
+    - Updated `_generate_ai_priorities_document()` to include Phase 1 and Phase 2 as actionable priorities with guidance
+    - Updated `_generate_consolidated_report()` to include Phase 1 and Phase 2 in Error Handling Analysis section
+    - Enhanced cached data loading fallback to read from file and include Phase 1/2 metrics
+  - **Documentation Updates**:
+    - `ai_development_tools/AI_DEV_TOOLS_GUIDE.md`: Added Phase 1 and Phase 2 auditing details to Error Handling Coverage Analysis section
+    - `core/ERROR_HANDLING_GUIDE.md`: Added Phase 1 and Phase 2 analysis documentation to Testing Error Handling section
+    - `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`: Added Phase 1 and Phase 2 auditing details with reference to PLANS.md
+    - `development_docs/PLANS.md`: Updated Error Handling Quality Improvement Plan with progress, marked tooling complete, added detailed next steps for Phase 1 (26 high-priority candidates) and Phase 2 (1 generic exception)
+- **Impact**: Provides actionable metrics for systematic error handling quality improvements. Phase 1 and Phase 2 data now appear in all audit reports (`AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.txt`), enabling progress tracking. Current status: 88 Phase 1 candidates (26 high, 38 medium, 24 low priority), 1 Phase 2 exception (1 ValueError) identified and ready for replacement.
+
 ### 2025-11-20 - Error Handling Coverage Expansion to 100% **COMPLETED**
 - **Feature**: Achieved 100% error handling coverage (1,471 of 1,471 functions) by systematically adding `@handle_errors` decorators, implementing function-level exclusion logic in `error_handling_coverage.py`, and adding exclusion comments to appropriate infrastructure methods. Fixed test failures caused by redundant try/except blocks in Pydantic validators and resolved a bug in schedule period management return values.
 - **Technical Changes**:

@@ -132,59 +132,49 @@ class DiscordCommandRegistry(CommandRegistry):
         super().__init__()
         self.bot = bot
     
-    @handle_errors("registering with Discord platform")
+    @handle_errors("registering with Discord platform", default_return=False)
     def register_with_platform(self, command_def: CommandDefinition) -> bool:
         """Register command with Discord"""
         if not self.bot:
             logger.warning("Discord bot not available for command registration")
             return False
         
-        try:
-            # Create Discord command callback
-            async def discord_command_callback(interaction, *args, **kwargs):
-                try:
-                    # Call the original handler
-                    result = await command_def.handler(interaction, *args, **kwargs)
-                    return result
-                except Exception as e:
-                    logger.error(f"Error in Discord command '{command_def.name}': {e}")
-                    await interaction.response.send_message("An error occurred while processing your command.")
-            
-            # Register as Discord slash command
-            from discord import app_commands
-            app_cmd = app_commands.Command(
-                name=command_def.name,
-                description=command_def.description,
-                callback=discord_command_callback
-            )
-            self.bot.tree.add_command(app_cmd)
-            
-            logger.debug(f"Registered Discord command '{command_def.name}'")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Failed to register Discord command '{command_def.name}': {e}")
-            return False
+        # Create Discord command callback
+        async def discord_command_callback(interaction, *args, **kwargs):
+            try:
+                # Call the original handler
+                result = await command_def.handler(interaction, *args, **kwargs)
+                return result
+            except Exception as e:
+                logger.error(f"Error in Discord command '{command_def.name}': {e}")
+                await interaction.response.send_message("An error occurred while processing your command.")
+        
+        # Register as Discord slash command
+        from discord import app_commands
+        app_cmd = app_commands.Command(
+            name=command_def.name,
+            description=command_def.description,
+            callback=discord_command_callback
+        )
+        self.bot.tree.add_command(app_cmd)
+        
+        logger.debug(f"Registered Discord command '{command_def.name}'")
+        return True
     
-    @handle_errors("unregistering from Discord platform")
+    @handle_errors("unregistering from Discord platform", default_return=False)
     def unregister_from_platform(self, command_name: str) -> bool:
         """Unregister command from Discord"""
         if not self.bot:
             return False
         
-        try:
-            # Remove from Discord command tree
-            command = self.bot.tree.get_command(command_name)
-            if command:
-                self.bot.tree.remove_command(command_name)
-                logger.debug(f"Unregistered Discord command '{command_name}'")
-                return True
-            
-            return False
-            
-        except Exception as e:
-            logger.error(f"Failed to unregister Discord command '{command_name}': {e}")
-            return False
+        # Remove from Discord command tree
+        command = self.bot.tree.get_command(command_name)
+        if command:
+            self.bot.tree.remove_command(command_name)
+            logger.debug(f"Unregistered Discord command '{command_name}'")
+            return True
+        
+        return False
 
 class EmailCommandRegistry(CommandRegistry):
     """Email-specific command registry"""

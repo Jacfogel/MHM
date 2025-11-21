@@ -739,17 +739,13 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
             logger.error(f"Error extracting intent from text: {e}")
             return None
     
-    @handle_errors("checking if intent is valid")
+    @handle_errors("checking if intent is valid", default_return=False)
     def _is_valid_intent(self, intent: str) -> bool:
         """Check if intent is supported by any handler"""
-        try:
-            for handler in self.interaction_handlers.values():
-                if handler.can_handle(intent):
-                    return True
-            return False
-        except Exception as e:
-            logger.error(f"Error checking if intent is valid: {e}")
-            return False
+        for handler in self.interaction_handlers.values():
+            if handler.can_handle(intent):
+                return True
+        return False
 
     @handle_errors("trying AI command parsing")
     def _try_ai_command_parsing(self, user_id: str, message: str, channel_type: str) -> Optional[InteractionResponse]:
@@ -841,12 +837,5 @@ def get_interaction_manager() -> InteractionManager:
 ))
 def handle_user_message(user_id: str, message: str, channel_type: str = "discord") -> InteractionResponse:
     """Convenience function to handle a user message"""
-    try:
-        manager = get_interaction_manager()
-        return manager.handle_message(user_id, message, channel_type)
-    except Exception as e:
-        logger.error(f"Error handling user message: {e}")
-        return InteractionResponse(
-            "I'm having trouble processing your request right now. Please try again in a moment.",
-            True
-        ) 
+    manager = get_interaction_manager()
+    return manager.handle_message(user_id, message, channel_type) 

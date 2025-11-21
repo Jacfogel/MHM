@@ -48,6 +48,31 @@ Central exception hierarchy:
 
 Where practical, modules should raise one of these types instead of bare `Exception`. Some modules (for example `service_utilities.py`) still expose local exceptions such as `InvalidTimeFormatError`; these are acceptable where strongly tied to a single domain, but new shared exceptions should prefer the `MHMError` tree.
 
+**Exception Categorization Decision Tree:**
+- **User input validation issues** → `ValidationError`
+  - Invalid format, missing required fields, type mismatches in user-provided data
+  - Example: Invalid time format, invalid categories, duplicate period names
+  
+- **Data processing/validation issues** → `DataError` or `FileOperationError`
+  - Data integrity problems, file operations, data structure issues
+  - Example: Corrupted data, invalid data format in processing
+  
+- **Configuration problems** → `ConfigurationError`
+  - Missing or invalid configuration values, config file issues
+  - Example: Missing API key, invalid config setting
+  
+- **Network/communication issues** → `CommunicationError`
+  - Discord, email, or other communication channel failures
+  - Example: Connection timeout, API rate limiting
+  
+- **AI-related failures** → `AIError`
+  - LM Studio API errors, prompt processing failures, AI model issues
+  - Example: Model unavailable, prompt generation failed
+  
+- **Scheduling issues** → `SchedulerError`
+  - Task scheduling, period management failures
+  - Example: Schedule conflict, invalid schedule data
+
 ### 2.2. Recovery strategies
 
 The `ErrorHandler` maintains a list of `ErrorRecoveryStrategy` instances to automatically recover from common problems:
@@ -241,6 +266,10 @@ Error handling is tested in multiple ways:
 - **Coverage tooling**  
   - `error_handling_coverage.py` analyzes which error paths have test coverage.  
   - Can be integrated into automated workflows via `ai_development_tools/ai_tools_runner.py` commands to generate reports.
+  - **Phase 1 and Phase 2 Analysis**: The tool now includes specialized auditing for quality improvements:
+    - **Phase 1**: Identifies functions with basic try-except blocks that should use `@handle_errors` decorator, prioritized by entry points and operation types
+    - **Phase 2**: Audits generic exception raises (ValueError, Exception, KeyError, TypeError) that should be replaced with specific `MHMError` subclasses
+    - Results are integrated into `AI_STATUS.md`, `AI_PRIORITIES.md`, and `consolidated_report.txt` for tracking progress on the Error Handling Quality Improvement Plan
 
 Guidelines when adding or changing error handling:
 

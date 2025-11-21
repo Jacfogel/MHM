@@ -19,7 +19,7 @@ except Exception:
 
 # Add logging support for schema validation
 from core.logger import get_component_logger
-from core.error_handling import handle_errors
+from core.error_handling import handle_errors, ValidationError
 logger = get_component_logger('main')
 
 
@@ -207,7 +207,7 @@ class PreferencesModel(BaseModel):
             
             if invalid_categories:
                 logger.error(f"Invalid categories provided: {invalid_categories}. Allowed categories: {allowed_categories}")
-                raise ValueError(f"Invalid categories: {invalid_categories}. Allowed categories: {allowed_categories}")
+                raise ValidationError(f"Invalid categories: {invalid_categories}. Allowed categories: {allowed_categories}", details={'invalid_categories': invalid_categories, 'allowed_categories': allowed_categories})
             
             logger.debug(f"Categories validation passed: {v}")
             return v
@@ -227,7 +227,7 @@ class PreferencesModel(BaseModel):
             invalid_categories = [c for c in v if c not in default_categories]
             
             if invalid_categories:
-                raise ValueError(f"Invalid categories: {invalid_categories}. Allowed categories: {default_categories}")
+                raise ValidationError(f"Invalid categories: {invalid_categories}. Allowed categories: {default_categories}", details={'invalid_categories': invalid_categories, 'allowed_categories': default_categories})
             
             return v
 

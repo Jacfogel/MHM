@@ -328,74 +328,66 @@ class DiscordBot(BaseChannel):
             logger.debug(f"Error closing session {type(session).__name__}: {e}")
             return False
 
+    @handle_errors("cleaning up event loop safely", user_friendly=False, default_return=False)
     async def _cleanup_event_loop_safely(self, loop: asyncio.AbstractEventLoop) -> bool:
         """Safely clean up event loop with proper task cancellation and error handling"""
         if not loop or loop.is_closed():
             return True
         
-        try:
-            # Get all tasks in this specific loop
-            tasks = [task for task in asyncio.all_tasks(loop) if not task.done()]
-            
-            if not tasks:
-                logger.debug("No pending tasks to cancel")
-                return True
-            
-            logger.info(f"Cancelling {len(tasks)} pending tasks")
-            
-            # Cancel all tasks
-            for task in tasks:
-                if not task.done():
-                    task.cancel()
-            
-            # Wait for tasks to be cancelled with timeout
-            try:
-                await asyncio.wait_for(
-                    asyncio.gather(*tasks, return_exceptions=True),
-                    timeout=5.0
-                )
-                logger.info("All tasks cancelled successfully")
-            except asyncio.TimeoutError:
-                logger.warning("Task cancellation timed out, some tasks may still be running")
-            
-            # Close the loop if it's not already closed
-            if not loop.is_closed():
-                loop.close()
-                logger.info("Event loop closed successfully")
-            
+        # Get all tasks in this specific loop
+        tasks = [task for task in asyncio.all_tasks(loop) if not task.done()]
+        
+        if not tasks:
+            logger.debug("No pending tasks to cancel")
             return True
-            
-        except Exception as e:
-            logger.error(f"Error during event loop cleanup: {e}")
-            return False
+        
+        logger.info(f"Cancelling {len(tasks)} pending tasks")
+        
+        # Cancel all tasks
+        for task in tasks:
+            if not task.done():
+                task.cancel()
+        
+        # Wait for tasks to be cancelled with timeout
+        try:
+            await asyncio.wait_for(
+                asyncio.gather(*tasks, return_exceptions=True),
+                timeout=5.0
+            )
+            logger.info("All tasks cancelled successfully")
+        except asyncio.TimeoutError:
+            logger.warning("Task cancellation timed out, some tasks may still be running")
+        
+        # Close the loop if it's not already closed
+        if not loop.is_closed():
+            loop.close()
+            logger.info("Event loop closed successfully")
+        
+        return True
 
+    @handle_errors("cleaning up aiohttp sessions", user_friendly=False, default_return=False)
     async def _cleanup_aiohttp_sessions(self) -> bool:
         """Clean up any remaining aiohttp sessions to prevent warnings"""
-        try:
-            # Get current event loop
-            loop = asyncio.get_running_loop()
-            
-            # Find and close any aiohttp sessions
-            import gc
-            import aiohttp
-            
-            # Force garbage collection to find any orphaned sessions
-            gc.collect()
-            
-            # Look for aiohttp ClientSession objects in memory
-            for obj in gc.get_objects():
-                if isinstance(obj, aiohttp.ClientSession) and not obj.closed:
-                    try:
-                        await obj.close()
-                        logger.debug("Closed orphaned aiohttp session")
-                    except Exception as e:
-                        logger.debug(f"Error closing aiohttp session: {e}")
-            
-            return True
-            
-        except Exception as e:
-            logger.debug(f"Error during aiohttp session cleanup: {e}")
-            return False
+        # Get current event loop
+        loop = asyncio.get_running_loop()
+        
+        # Find and close any aiohttp sessions
+        import gc
+        import aiohttp
+        
+        # Force garbage collection to find any orphaned sessions
+        gc.collect()
+        
+        # Look for aiohttp ClientSession objects in memory
+        for obj in gc.get_objects():
+            if isinstance(obj, aiohttp.ClientSession) and not obj.closed:
+                try:
+                    await obj.close()
+                    logger.debug("Closed orphaned aiohttp session")
+                except Exception as e:
+                    logger.debug(f"Error closing aiohttp session: {e}")
+        
+        return True
 
     @handle_errors("getting detailed connection status", default_return={})
     def _get_detailed_connection_status(self) -> Dict[str, Any]:
@@ -1389,65 +1381,56 @@ class DiscordBot(BaseChannel):
         logger.error(f"Timeout waiting for Discord message send to {recipient}")
         return False
 
+    @handle_errors("validating Discord user accessibility", user_friendly=False, default_return=False)
     async def _validate_discord_user_accessibility(self, user_id: str) -> bool:
         """Validate if a Discord user ID is still accessible"""
-        try:
-            user_id_int = int(user_id)
-            user = self.bot.get_user(user_id_int)
-            if not user:
-                try:
-                    user = await self.bot.fetch_user(user_id_int)
-                    return True
-                except discord.NotFound:
-                    logger.warning(f"Discord user {user_id} not found (404)")
-                    return False
-                except discord.Forbidden:
-                    logger.warning(f"Bot forbidden from accessing Discord user {user_id} (403)")
-                    return False
-            return True
-        except (ValueError, TypeError):
-            return False
+        user_id_int = int(user_id)
+        user = self.bot.get_user(user_id_int)
+        if not user:
+            try:
+                user = await self.bot.fetch_user(user_id_int)
+                return True
+            except discord.NotFound:
+                logger.warning(f"Discord user {user_id} not found (404)")
+                return False
+            except discord.Forbidden:
+                logger.warning(f"Bot forbidden from accessing Discord user {user_id} (403)")
+                return False
+        return True
 
+    @handle_errors("sending message to Discord channel", user_friendly=False, default_return=False)
     async def _send_to_channel(self, channel, message: str, rich_data: Dict[str, Any] = None, suggestions: List[str] = None) -> bool:
         """Send message directly to a Discord channel (for regular message responses)"""
-        try:
-            rich_data = rich_data or {}
-            suggestions = suggestions or []
-            
-            # Create Discord embed if rich data is provided
-            embed = None
-            if rich_data:
-                embed = self._create_discord_embed(message, rich_data)
-            
-            # Create view with buttons if suggestions are provided
-            view = None
-            if suggestions:
-                view = self._create_action_row(suggestions)
-            
-            # Send to the channel
-            if embed and view:
-                await channel.send(embed=embed, view=view)
-            elif embed:
-                await channel.send(embed=embed)
-            elif view:
-                await channel.send(message, view=view)
-            else:
-                await channel.send(message)
-            
-            logger.info(f"Message sent to Discord channel {channel.id}")
-            discord_logger.info("Discord channel message sent", 
-                              channel_id=str(channel.id), 
-                              message_length=len(message),
-                              has_embed=bool(embed),
-                              has_components=bool(view))
-            return True
-            
-        except Exception as e:
-            logger.error(f"Error sending message to Discord channel {channel.id}: {e}")
-            discord_logger.error("Discord channel message send failed", 
-                               channel_id=str(channel.id),
-                               error=str(e))
-            return False
+        rich_data = rich_data or {}
+        suggestions = suggestions or []
+        
+        # Create Discord embed if rich data is provided
+        embed = None
+        if rich_data:
+            embed = self._create_discord_embed(message, rich_data)
+        
+        # Create view with buttons if suggestions are provided
+        view = None
+        if suggestions:
+            view = self._create_action_row(suggestions)
+        
+        # Send to the channel
+        if embed and view:
+            await channel.send(embed=embed, view=view)
+        elif embed:
+            await channel.send(embed=embed)
+        elif view:
+            await channel.send(message, view=view)
+        else:
+            await channel.send(message)
+        
+        logger.info(f"Message sent to Discord channel {channel.id}")
+        discord_logger.info("Discord channel message sent", 
+                          channel_id=str(channel.id), 
+                          message_length=len(message),
+                          has_embed=bool(embed),
+                          has_components=bool(view))
+        return True
 
     @handle_errors("sending Discord message internally", default_return=False)
     async def _send_message_internal(self, recipient: str, message: str, rich_data: Dict[str, Any] = None, suggestions: List[str] = None, custom_view = None) -> bool:

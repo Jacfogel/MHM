@@ -14,7 +14,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from collections import defaultdict
 import re
 
@@ -48,7 +48,15 @@ class ErrorHandlingAnalyzer:
             'error_patterns': {},
             'missing_error_handling': [],
             'error_handling_quality': {},
-            'recommendations': []
+            'recommendations': [],
+            # Phase 1: Functions with try-except but no decorator
+            'phase1_candidates': [],
+            'phase1_total': 0,
+            'phase1_by_priority': {'high': 0, 'medium': 0, 'low': 0},
+            # Phase 2: Generic exception raises
+            'phase2_exceptions': [],
+            'phase2_total': 0,
+            'phase2_by_type': {}
         }
         
         # Error handling patterns to look for
@@ -79,6 +87,23 @@ class ErrorHandlingAnalyzer:
             'user_operations': ['create', 'update', 'delete', 'authenticate'],
             'ai_operations': ['generate', 'process', 'analyze', 'classify']
         }
+        
+        # Phase 1: Keywords for determining operation type and priority
+        self.phase1_keywords = {
+            'file_io': ['open', 'read', 'write', 'save', 'load', 'os.remove', 'shutil.move'],
+            'network': ['send', 'receive', 'connect', 'request', 'http', 'api', 'discord', 'email'],
+            'user_data': ['user_data', 'profile', 'account', 'preferences', 'task', 'schedule', 'checkin'],
+            'ai': ['generate', 'process', 'analyze', 'classify', 'chatbot', 'lm_studio'],
+            'entry_point': ['main', 'run', 'start', 'handle', 'on_']
+        }
+        
+        # Phase 2: Generic exceptions to audit
+        self.generic_exceptions = {
+            'Exception': 'MHMError',
+            'ValueError': 'ValidationError or DataError',
+            'KeyError': 'DataError or ConfigurationError',
+            'TypeError': 'ValidationError or DataError'
+        }
 
     def analyze_file(self, file_path: Path) -> Dict[str, Any]:
         """Analyze error handling in a single Python file."""
@@ -92,8 +117,43 @@ class ErrorHandlingAnalyzer:
                 'functions': [],
                 'classes': [],
                 'error_patterns_found': set(),
-                'missing_error_handling': []
+                'missing_error_handling': [],
+                'phase2_exceptions': []  # Phase 2: Generic exception raises in this file
             }
+            
+            # Phase 2: Find generic exception raises using visitor pattern
+            class RaiseVisitor(ast.NodeVisitor):
+                def __init__(self, analyzer, content, file_path):
+                    self.analyzer = analyzer
+                    self.content = content
+                    self.file_path = file_path
+                    self.current_function = None
+                    self.exceptions = []
+                
+                def visit_FunctionDef(self, node):
+                    old_func = self.current_function
+                    self.current_function = node
+                    self.generic_visit(node)
+                    self.current_function = old_func
+                
+                def visit_AsyncFunctionDef(self, node):
+                    old_func = self.current_function
+                    self.current_function = node
+                    self.generic_visit(node)
+                    self.current_function = old_func
+                
+                def visit_Raise(self, node):
+                    exc_info = self.analyzer._analyze_raise_statement(node, self.content, self.file_path)
+                    if exc_info:
+                        # Add function context if we found it
+                        if self.current_function:
+                            exc_info['function_name'] = self.current_function.name
+                            exc_info['function_line'] = self.current_function.lineno
+                        self.exceptions.append(exc_info)
+            
+            visitor = RaiseVisitor(self, content, file_path)
+            visitor.visit(tree)
+            file_results['phase2_exceptions'] = visitor.exceptions
             
             # Analyze AST nodes
             for node in ast.walk(tree):
@@ -196,6 +256,95 @@ class ErrorHandlingAnalyzer:
         
         return False
 
+    def _analyze_raise_statement(self, raise_node: ast.Raise, content: str, file_path: Path) -> Optional[Dict[str, Any]]:
+        """Phase 2: Analyze a raise statement for generic exceptions."""
+        if not raise_node.exc:
+            return None
+        
+        # Get exception type
+        exc_type_name = None
+        
+        if isinstance(raise_node.exc, ast.Call):
+            if isinstance(raise_node.exc.func, ast.Name):
+                exc_type_name = raise_node.exc.func.id
+            elif isinstance(raise_node.exc.func, ast.Attribute):
+                exc_type_name = raise_node.exc.func.attr
+        elif isinstance(raise_node.exc, ast.Name):
+            exc_type_name = raise_node.exc.id
+        
+        # Only track generic exceptions
+        if exc_type_name not in self.generic_exceptions:
+            return None
+        
+        # Get line number and context
+        lines = content.split('\n')
+        line_num = raise_node.lineno
+        line_content = lines[line_num - 1] if line_num <= len(lines) else ""
+        
+        # Function context will be set by the visitor pattern
+        func_name = None
+        func_line = None
+        
+        # Get context lines around the raise
+        context_start = max(0, line_num - 3)
+        context_end = min(len(lines), line_num + 2)
+        context = '\n'.join(lines[context_start:context_end])
+        
+        # Determine suggested replacement
+        suggested_replacement = self._suggest_exception_replacement(
+            exc_type_name, str(file_path), func_name, line_content
+        )
+        
+        return {
+            'file_path': str(file_path.relative_to(self.project_root)),
+            'line_number': line_num,
+            'exception_type': exc_type_name,
+            'suggested_replacement': suggested_replacement,
+            'function_name': func_name,
+            'function_line': func_line,
+            'line_content': line_content.strip(),
+            'context': context
+        }
+    
+    def _suggest_exception_replacement(self, exc_type: str, file_path: str, func_name: str, line_content: str) -> str:
+        """Suggest appropriate MHMError replacement for generic exception."""
+        file_lower = file_path.lower()
+        func_lower = (func_name or '').lower()
+        line_lower = line_content.lower()
+        
+        if exc_type == 'ValueError':
+            # Check if it's user input validation
+            if any(kw in line_lower for kw in ['invalid', 'missing', 'required', 'format', 'user']):
+                return 'ValidationError'
+            else:
+                return 'DataError'
+        elif exc_type == 'KeyError':
+            # Check if it's config access
+            if any(kw in line_lower or kw in file_lower for kw in ['config', 'setting', 'option']):
+                return 'ConfigurationError'
+            else:
+                return 'DataError'
+        elif exc_type == 'TypeError':
+            # Check if it's user input type issue
+            if any(kw in line_lower for kw in ['invalid', 'expected', 'user', 'input']):
+                return 'ValidationError'
+            else:
+                return 'DataError'
+        elif exc_type == 'Exception':
+            # Try to determine from context
+            if any(kw in file_lower for kw in ['file', 'read', 'write', 'save', 'load']):
+                return 'FileOperationError'
+            elif any(kw in file_lower for kw in ['network', 'http', 'api', 'discord', 'email']):
+                return 'CommunicationError'
+            elif any(kw in file_lower for kw in ['config', 'setting']):
+                return 'ConfigurationError'
+            elif any(kw in file_lower for kw in ['schedule', 'task', 'reminder']):
+                return 'SchedulerError'
+            else:
+                return 'MHMError'
+        
+        return self.generic_exceptions.get(exc_type, 'MHMError')
+
     def _analyze_function(self, func_node: ast.FunctionDef, content: str, file_path: str = None) -> Dict[str, Any]:
         """Analyze error handling in a function."""
         func_name = func_node.name
@@ -263,13 +412,18 @@ class ErrorHandlingAnalyzer:
                     analysis['has_error_handling'] = True
         
         # Determine error handling quality
-        if analysis['has_decorators']:
+        # Phase 1: Check if this is a candidate (try-except without decorator)
+        if analysis['has_try_except'] and not analysis['has_decorators']:
+            analysis['is_phase1_candidate'] = True
+            analysis['error_handling_quality'] = 'basic'
+        elif analysis['has_decorators']:
+            analysis['is_phase1_candidate'] = False
             analysis['error_handling_quality'] = 'excellent'
         elif analysis['has_try_except'] and len(analysis['error_patterns']) > 1:
+            analysis['is_phase1_candidate'] = False
             analysis['error_handling_quality'] = 'good'
-        elif analysis['has_try_except']:
-            analysis['error_handling_quality'] = 'basic'
         else:
+            analysis['is_phase1_candidate'] = False
             analysis['error_handling_quality'] = 'none'
             analysis['missing_error_handling'] = True
         
@@ -341,6 +495,53 @@ class ErrorHandlingAnalyzer:
             return True
         
         return False
+    
+    def _determine_operation_type(self, func_name: str, file_path: str) -> str:
+        """Phase 1: Determine operation type from function name and file path."""
+        func_lower = func_name.lower()
+        file_lower = file_path.lower()
+        combined = f"{func_lower} {file_lower}"
+        
+        for op_type, keywords in self.phase1_keywords.items():
+            if op_type == 'entry_point':
+                continue
+            if any(keyword in combined for keyword in keywords):
+                return op_type
+        
+        return "general"
+    
+    def _is_entry_point(self, func_name: str, file_path: str) -> bool:
+        """Phase 1: Check if function is an entry point."""
+        func_lower = func_name.lower()
+        
+        # Check function name
+        if any(keyword in func_lower for keyword in self.phase1_keywords['entry_point']):
+            return True
+        
+        # Check file path for common entry point files
+        file_lower = file_path.lower()
+        entry_point_files = ['main.py', 'run_', 'start', 'handler', 'bot.py', 'service.py']
+        if any(epf in file_lower for epf in entry_point_files):
+            return True
+        
+        return False
+    
+    def _determine_phase1_priority(self, operation_type: str, is_entry_point: bool) -> str:
+        """Phase 1: Determine priority for candidate."""
+        priority_score = 0
+        
+        if is_entry_point:
+            priority_score += 3
+        
+        if operation_type in ['file_io', 'network', 'user_data', 'ai']:
+            priority_score += 2
+        
+        if priority_score >= 4:
+            return "high"
+        elif priority_score >= 2:
+            return "medium"
+        else:
+            return "low"
 
     def _get_module_name(self, file_path: str) -> str:
         """Extract module name from file path with more context."""
@@ -423,6 +624,13 @@ class ErrorHandlingAnalyzer:
         missing_error_handling = []
         error_handling_quality = defaultdict(int)
         
+        # Phase 1: Track candidates (try-except without decorator)
+        phase1_candidates = []
+        
+        # Phase 2: Track generic exception raises
+        phase2_exceptions = []
+        phase2_by_type = defaultdict(int)
+        
         # Module-level analysis
         module_stats = defaultdict(lambda: {
             'total_functions': 0,
@@ -477,6 +685,29 @@ class ErrorHandlingAnalyzer:
                 # Count error patterns
                 for pattern in func['error_patterns']:
                     error_patterns_count[pattern] += 1
+                
+                # Phase 1: Track candidates (try-except without decorator)
+                if func.get('is_phase1_candidate', False):
+                    # Determine operation type and priority
+                    operation_type = self._determine_operation_type(func['name'], file_result['file_path'])
+                    is_entry_point = self._is_entry_point(func['name'], file_result['file_path'])
+                    priority = self._determine_phase1_priority(operation_type, is_entry_point)
+                    
+                    phase1_candidates.append({
+                        'file_path': file_result['file_path'],
+                        'function_name': func['name'],
+                        'line_start': func['line_start'],
+                        'line_end': func['line_end'],
+                        'is_async': func.get('is_async', False),
+                        'operation_type': operation_type,
+                        'is_entry_point': is_entry_point,
+                        'priority': priority
+                    })
+            
+            # Phase 2: Collect generic exception raises
+            for exc in file_result.get('phase2_exceptions', []):
+                phase2_exceptions.append(exc)
+                phase2_by_type[exc['exception_type']] += 1
             
             # Count file-level patterns
             for pattern in file_result['error_patterns_found']:
@@ -498,6 +729,12 @@ class ErrorHandlingAnalyzer:
         worst_modules.sort(key=lambda x: x['coverage'])
         top_5_worst = worst_modules[:5]
         
+        # Phase 1: Sort candidates by priority
+        phase1_candidates.sort(key=lambda x: {'high': 3, 'medium': 2, 'low': 1}.get(x['priority'], 0), reverse=True)
+        phase1_by_priority = defaultdict(int)
+        for candidate in phase1_candidates:
+            phase1_by_priority[candidate['priority']] += 1
+        
         # Update results
         self.results.update({
             'total_functions': total_functions,
@@ -509,7 +746,15 @@ class ErrorHandlingAnalyzer:
             'error_patterns': dict(error_patterns_count),
             'missing_error_handling': missing_error_handling,
             'error_handling_quality': dict(error_handling_quality),
-            'worst_modules': top_5_worst
+            'worst_modules': top_5_worst,
+            # Phase 1 results
+            'phase1_candidates': phase1_candidates,
+            'phase1_total': len(phase1_candidates),
+            'phase1_by_priority': dict(phase1_by_priority),
+            # Phase 2 results
+            'phase2_exceptions': phase2_exceptions,
+            'phase2_total': len(phase2_exceptions),
+            'phase2_by_type': dict(phase2_by_type)
         })
 
     def _generate_recommendations(self):
@@ -559,6 +804,43 @@ class ErrorHandlingAnalyzer:
         logger.info("Error Patterns Found:")
         for pattern, count in self.results['error_patterns'].items():
             logger.info(f"  {pattern}: {count}")
+        
+        # Phase 1: Candidates for decorator replacement
+        logger.info("")
+        logger.info("=" * 80)
+        logger.info("PHASE 1: CANDIDATES FOR DECORATOR REPLACEMENT")
+        logger.info("=" * 80)
+        logger.info(f"Total Phase 1 Candidates: {self.results['phase1_total']}")
+        logger.info("By Priority:")
+        for priority, count in self.results['phase1_by_priority'].items():
+            logger.info(f"  {priority.title()}: {count}")
+        
+        if self.results['phase1_candidates']:
+            logger.info("High-Priority Candidates (first 10):")
+            high_priority = [c for c in self.results['phase1_candidates'] if c['priority'] == 'high']
+            for candidate in high_priority[:10]:
+                logger.info(f"  {candidate['file_path']}:{candidate['function_name']} (line {candidate['line_start']}) - {candidate['operation_type']}")
+            if len(high_priority) > 10:
+                logger.info(f"  ... and {len(high_priority) - 10} more high-priority candidates")
+        
+        # Phase 2: Generic exception raises
+        logger.info("")
+        logger.info("=" * 80)
+        logger.info("PHASE 2: GENERIC EXCEPTION RAISES")
+        logger.info("=" * 80)
+        logger.info(f"Total Generic Exception Raises: {self.results['phase2_total']}")
+        logger.info("By Exception Type:")
+        for exc_type, count in self.results['phase2_by_type'].items():
+            logger.info(f"  {exc_type}: {count}")
+        
+        if self.results['phase2_exceptions']:
+            logger.info("Generic Exception Raises (first 10):")
+            for exc in self.results['phase2_exceptions'][:10]:
+                logger.info(f"  {exc['file_path']}:{exc['line_number']} - {exc['exception_type']} → {exc['suggested_replacement']}")
+                if exc['function_name']:
+                    logger.info(f"    Function: {exc['function_name']} (line {exc['function_line']})")
+            if len(self.results['phase2_exceptions']) > 10:
+                logger.info(f"  ... and {len(self.results['phase2_exceptions']) - 10} more")
         
         if self.results['missing_error_handling']:
             logger.warning(f"Functions Missing Error Handling ({len(self.results['missing_error_handling'])}):")

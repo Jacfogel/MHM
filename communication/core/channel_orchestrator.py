@@ -1117,23 +1117,25 @@ class CommunicationManager:
             # Expire active check-in flows ONLY for non-scheduled messages to avoid user confusion
             # Scheduled messages (motivational, health, etc.) are expected and shouldn't cancel active check-ins
             # Only cancel check-in flows when we're responding to user input with unrelated content
-            try:
-                # Determine if this is a scheduled message or a response to user input
-                is_scheduled_message = category in ['motivational', 'health', 'checkin', 'task_reminders']
-                
-                if not is_scheduled_message:
-                    # This is a response to user input - expire any active check-in flow
-                    from communication.message_processing.conversation_flow_manager import conversation_manager
-                    conversation_manager.expire_checkin_flow_due_to_unrelated_outbound(user_id)
-                    logger.debug(f"Expired check-in flow for user {user_id} due to unrelated response message")
-                else:
-                    logger.debug(f"Skipping check-in flow expiration for scheduled {category} message to user {user_id}")
-            except Exception as _e:
-                logger.debug(f"Check-in flow expiration check failed for user {user_id}: {_e}")
+            self._expire_checkin_flow_if_needed(user_id, category)
             
             # Message sending completion already logged above with full details
         else:
             logger.debug(f"No message sent for user {user_id}, category {category} - preserving any active check-in flow")
+
+    @handle_errors("expiring check-in flow if needed", user_friendly=False, default_return=None)
+    def _expire_checkin_flow_if_needed(self, user_id: str, category: str):
+        """Expire check-in flow if this is a non-scheduled message."""
+        # Determine if this is a scheduled message or a response to user input
+        is_scheduled_message = category in ['motivational', 'health', 'checkin', 'task_reminders']
+        
+        if not is_scheduled_message:
+            # This is a response to user input - expire any active check-in flow
+            from communication.message_processing.conversation_flow_manager import conversation_manager
+            conversation_manager.expire_checkin_flow_due_to_unrelated_outbound(user_id)
+            logger.debug(f"Expired check-in flow for user {user_id} due to unrelated response message")
+        else:
+            logger.debug(f"Skipping check-in flow expiration for scheduled {category} message to user {user_id}")
 
     @handle_errors("getting recipient for service", default_return=None)
     def _get_recipient_for_service(self, user_id: str, messaging_service: str, preferences: dict) -> Optional[str]:

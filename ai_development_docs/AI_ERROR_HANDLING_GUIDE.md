@@ -38,6 +38,12 @@ Constraints:
 - Keep recovery strategies idempotent and side-effect safe.  
 - Do not add new global error handlers or decorators; extend `core/error_handling.py` instead.
 
+**Exception Categorization Rules for AI:**
+- Replace `ValueError` with `ValidationError` for user input validation, or `DataError` for data processing
+- Replace `KeyError` with `ConfigurationError` for config access, or `DataError` for data structure access
+- Replace `TypeError` with `ValidationError` for user input type issues, or `DataError` for internal type issues
+- Replace generic `Exception` with specific subclass based on context (file operations → `FileOperationError`, network → `CommunicationError`, etc.)
+
 ---
 
 ## 3. Usage Patterns
@@ -131,6 +137,11 @@ AI routing:
   - Use helpers in `tests/test_utilities.py` to assert on logs/metrics where appropriate.  
 
 - Use `error_handling_coverage.py` and related tooling when measuring coverage or generating reports.  
+- **Phase 1 and Phase 2 Auditing**: The coverage tool now provides specialized analysis for quality improvements:
+  - **Phase 1**: Identifies functions with basic try-except blocks that should use `@handle_errors` decorator, with priority categorization (high/medium/low)
+  - **Phase 2**: Audits generic exception raises that should be replaced with specific `MHMError` subclasses
+  - Results appear in audit reports (`AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.txt`) for tracking progress
+  - See `development_docs/PLANS.md` for the Error Handling Quality Improvement Plan details
 
 Do not design new error mechanisms that are hard or impossible to test.
 

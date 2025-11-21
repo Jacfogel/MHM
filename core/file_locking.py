@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Optional, Callable, Any
 from contextlib import contextmanager
 from core.logger import get_component_logger
+from core.error_handling import handle_errors
 
 logger = get_component_logger(__name__)
 
@@ -236,6 +237,7 @@ def safe_json_read(file_path: str, default: Optional[dict] = None) -> dict:
         return default
 
 
+@handle_errors("writing JSON file with locking", user_friendly=False, default_return=False)
 def safe_json_write(file_path: str, data: dict, indent: int = 2) -> bool:
     """
     Safely write JSON file with file locking and atomic write.
@@ -255,43 +257,35 @@ def safe_json_write(file_path: str, data: dict, indent: int = 2) -> bool:
     import tempfile
     import shutil
     
+    file_path_obj = Path(file_path)
+    file_path_obj.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Use atomic write: write to temp file, then rename
+    temp_file = None
     try:
-        file_path_obj = Path(file_path)
-        file_path_obj.parent.mkdir(parents=True, exist_ok=True)
+        # Create temp file in same directory (required for atomic rename on Windows)
+        temp_fd, temp_file = tempfile.mkstemp(
+            dir=file_path_obj.parent,
+            prefix='.tmp_',
+            suffix='.json'
+        )
         
-        # Use atomic write: write to temp file, then rename
-        temp_file = None
-        try:
-            # Create temp file in same directory (required for atomic rename on Windows)
-            temp_fd, temp_file = tempfile.mkstemp(
-                dir=file_path_obj.parent,
-                prefix='.tmp_',
-                suffix='.json'
-            )
+        # Write JSON to temp file
+        with os.fdopen(temp_fd, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=indent, ensure_ascii=False)
+        
+        # Acquire lock and perform atomic rename
+        with file_lock(file_path, timeout=10.0):
+            # Rename temp file to target (atomic on Windows)
+            shutil.move(temp_file, file_path)
+            temp_file = None  # Prevent cleanup
             
-            # Write JSON to temp file
-            with os.fdopen(temp_fd, 'w', encoding='utf-8') as f:
-                json.dump(data, f, indent=indent, ensure_ascii=False)
-            
-            # Acquire lock and perform atomic rename
-            with file_lock(file_path, timeout=10.0):
-                # Rename temp file to target (atomic on Windows)
-                shutil.move(temp_file, file_path)
-                temp_file = None  # Prevent cleanup
-                
-            return True
-            
-        except Exception as e:
-            logger.error(f"Error writing JSON file {file_path}: {e}")
-            # Clean up temp file if it exists
-            if temp_file and os.path.exists(temp_file):
-                try:
-                    os.remove(temp_file)
-                except OSError:
-                    pass
-            return False
-            
-    except Exception as e:
-        logger.error(f"Error in safe_json_write for {file_path}: {e}")
-        return False
+        return True
+    finally:
+        # Clean up temp file if it exists (only if move failed)
+        if temp_file and os.path.exists(temp_file):
+            try:
+                os.remove(temp_file)
+            except OSError:
+                pass
 

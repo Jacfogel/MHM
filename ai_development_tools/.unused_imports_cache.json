@@ -113,7 +113,7 @@
     ]
   },
   "ai_development_tools/error_handling_coverage.py": {
-    "mtime": 1762466977.6350617,
+    "mtime": 1763722858.4245224,
     "issues": []
   },
   "ai_development_tools/file_rotation.py": {
@@ -157,7 +157,7 @@
     "issues": []
   },
   "ai_development_tools/services/operations.py": {
-    "mtime": 1763260321.3909588,
+    "mtime": 1763723854.4529264,
     "issues": []
   },
   "ai_development_tools/services/standard_exclusions.py": {
@@ -195,11 +195,11 @@
     "issues": []
   },
   "ai_development_tools/version_sync.py": {
-    "mtime": 1762656733.944802,
+    "mtime": 1763720071.7805746,
     "issues": []
   },
   "communication/__init__.py": {
-    "mtime": 1762411575.2587717,
+    "mtime": 1763711309.4744065,
     "issues": []
   },
   "communication/command_handlers/__init__.py": {
@@ -219,7 +219,7 @@
     "issues": []
   },
   "communication/command_handlers/interaction_handlers.py": {
-    "mtime": 1763455930.0660825,
+    "mtime": 1763720071.77907,
     "issues": []
   },
   "communication/command_handlers/profile_handler.py": {
@@ -247,7 +247,7 @@
     "issues": []
   },
   "communication/communication_channels/base/command_registry.py": {
-    "mtime": 1760377270.9745393,
+    "mtime": 1763721564.3542426,
     "issues": []
   },
   "communication/communication_channels/base/message_formatter.py": {
@@ -263,7 +263,7 @@
     "issues": []
   },
   "communication/communication_channels/discord/bot.py": {
-    "mtime": 1763258235.7693212,
+    "mtime": 1763721103.5705447,
     "issues": []
   },
   "communication/communication_channels/discord/event_handler.py": {
@@ -275,7 +275,7 @@
     "issues": []
   },
   "communication/core/__init__.py": {
-    "mtime": 1762411575.2587717,
+    "mtime": 1763711309.4744065,
     "issues": []
   },
   "communication/core/channel_monitor.py": {
@@ -283,7 +283,7 @@
     "issues": []
   },
   "communication/core/channel_orchestrator.py": {
-    "mtime": 1763258235.764135,
+    "mtime": 1763720071.7845993,
     "issues": [
       {
         "type": "warning",
@@ -348,7 +348,7 @@
     "issues": []
   },
   "communication/message_processing/interaction_manager.py": {
-    "mtime": 1763676478.9982474,
+    "mtime": 1763721103.5731695,
     "issues": []
   },
   "communication/message_processing/message_router.py": {
@@ -356,7 +356,7 @@
     "issues": []
   },
   "core/__init__.py": {
-    "mtime": 1762426121.5523925,
+    "mtime": 1763711309.4766698,
     "issues": []
   },
   "core/auto_cleanup.py": {
@@ -376,7 +376,7 @@
     "issues": []
   },
   "core/error_handling.py": {
-    "mtime": 1763375392.710685,
+    "mtime": 1763715698.9548423,
     "issues": []
   },
   "core/file_auditor.py": {
@@ -388,11 +388,11 @@
     "issues": []
   },
   "core/headless_service.py": {
-    "mtime": 1762656733.9505596,
+    "mtime": 1763711309.4807005,
     "issues": []
   },
   "core/logger.py": {
-    "mtime": 1763375392.710685,
+    "mtime": 1763715698.9548423,
     "issues": []
   },
   "core/message_analytics.py": {
@@ -448,8 +448,22 @@
     "issues": []
   },
   "core/schedule_management.py": {
-    "mtime": 1762902420.8972733,
-    "issues": []
+    "mtime": 1763720071.785601,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "core.schedule_management",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 73,
+        "path": "core\\schedule_management.py",
+        "symbol": "unused-import",
+        "message": "Unused DataError imported from core.error_handling",
+        "message-id": "W0611"
+      }
+    ]
   },
   "core/schedule_utilities.py": {
     "mtime": 1760774424.7047906,
@@ -474,11 +488,11 @@
     ]
   },
   "core/schemas.py": {
-    "mtime": 1763706885.2352717,
+    "mtime": 1763720071.785601,
     "issues": []
   },
   "core/service.py": {
-    "mtime": 1763258235.764135,
+    "mtime": 1763720071.7845993,
     "issues": []
   },
   "core/service_utilities.py": {
@@ -528,7 +542,7 @@
     "issues": []
   },
   "tasks/task_management.py": {
-    "mtime": 1763027952.2245982,
+    "mtime": 1763722026.480147,
     "issues": []
   },
   "tests/ai/ai_response_validator.py": {
@@ -944,7 +958,7 @@
     "issues": []
   },
   "tests/behavior/test_core_service_coverage_expansion.py": {
-    "mtime": 1762656733.9730477,
+    "mtime": 1763720071.785601,
     "issues": []
   },
   "tests/behavior/test_discord_advanced_automation.py": {
@@ -1233,7 +1247,7 @@
     ]
   },
   "tests/behavior/test_schedule_management_behavior.py": {
-    "mtime": 1763538796.6758528,
+    "mtime": 1763713984.003456,
     "issues": []
   },
   "tests/behavior/test_schedule_suggestions.py": {
@@ -4265,7 +4279,7 @@
     "issues": []
   },
   "ui/ui_app_qt.py": {
-    "mtime": 1763619063.1345756,
+    "mtime": 1763715698.9593632,
     "issues": []
   },
   "ui/widgets/__init__.py": {
@@ -4273,11 +4287,11 @@
     "issues": []
   },
   "ui/widgets/category_selection_widget.py": {
-    "mtime": 1761081898.8579617,
+    "mtime": 1763714408.1838312,
     "issues": []
   },
   "ui/widgets/channel_selection_widget.py": {
-    "mtime": 1761128659.4761703,
+    "mtime": 1763714408.1838312,
     "issues": []
   },
   "ui/widgets/checkin_settings_widget.py": {
@@ -4285,7 +4299,7 @@
     "issues": []
   },
   "ui/widgets/dynamic_list_container.py": {
-    "mtime": 1759726926.28001,
+    "mtime": 1763714408.1838312,
     "issues": []
   },
   "ui/widgets/dynamic_list_field.py": {
@@ -4313,7 +4327,7 @@
     "issues": []
   },
   "user/context_manager.py": {
-    "mtime": 1760377270.9685063,
+    "mtime": 1763714408.1838312,
     "issues": []
   },
   "user/user_context.py": {
@@ -4321,11 +4335,11 @@
     "issues": []
   },
   "user/user_preferences.py": {
-    "mtime": 1762849825.3494096,
+    "mtime": 1763714408.1838312,
     "issues": []
   },
   "communication/command_handlers/account_handler.py": {
-    "mtime": 1763156885.3382342,
+    "mtime": 1763710538.4067607,
     "issues": [
       {
         "type": "warning",
@@ -4343,7 +4357,7 @@
     ]
   },
   "communication/communication_channels/discord/account_flow_handler.py": {
-    "mtime": 1763675882.4768362,
+    "mtime": 1763711309.4722912,
     "issues": [
       {
         "type": "warning",
@@ -4462,7 +4476,7 @@
     ]
   },
   "communication/communication_channels/discord/welcome_handler.py": {
-    "mtime": 1763706885.2340508,
+    "mtime": 1763711309.4722912,
     "issues": [
       {
         "type": "warning",
@@ -4511,7 +4525,7 @@
     ]
   },
   "core/file_locking.py": {
-    "mtime": 1762929039.131799,
+    "mtime": 1763721103.569689,
     "issues": [
       {
         "type": "warning",
@@ -5064,11 +5078,11 @@
     ]
   },
   "communication/communication_channels/discord/checkin_view.py": {
-    "mtime": 1763675852.5862985,
+    "mtime": 1763711309.4722912,
     "issues": []
   },
   "communication/communication_channels/discord/task_reminder_view.py": {
-    "mtime": 1763675852.5862985,
+    "mtime": 1763711309.4722912,
     "issues": []
   },
   "tests/unit/test_prompt_manager.py": {
@@ -5280,5 +5294,9 @@
         "message-id": "W0611"
       }
     ]
+  },
+  "tests/unit/test_error_categorization.py": {
+    "mtime": 1763720071.785601,
+    "issues": []
   }
 }

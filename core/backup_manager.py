@@ -603,56 +603,48 @@ def create_automatic_backup(operation_name: str = "automatic") -> Optional[str]:
     return backup_manager.create_backup(backup_name)
 
 @handle_errors("validating user index", default_return=False)
+@handle_errors("validating user index", default_return=False)
 def _validate_system_state__validate_user_index() -> bool:
     """Validate the user index file and corresponding user directories."""
     user_index_path = Path(core.config.BASE_DATA_DIR) / "user_index.json"
     if not user_index_path.exists():
         return True  # Missing index is not an error, just means no users yet
     
-    try:
-        with open(user_index_path, 'r') as f:
-            user_index = json.load(f)
-        
-        # Validate user index structure
-        if not isinstance(user_index, dict):
-            logger.error("User index is not a dictionary")
-            return False
-        
-        # Check if UUID values in index have corresponding directories
-        # Index now uses flat lookups: username/email/discord/phone → UUID
-        # Extract unique UUIDs from the index values
-        user_ids = set()
-        for key, value in user_index.items():
-            # Skip metadata keys
-            if key in ['last_updated']:
-                continue
-            # Check if value looks like a UUID (flat lookup mapping)
-            if isinstance(value, str) and len(value) > 20:
-                user_ids.add(value)
-        
-        # Verify each user ID has a directory
-        user_info_path = Path(core.config.USER_INFO_DIR_PATH)
-        for user_id in user_ids:
-            user_dir = user_info_path / user_id
-            if not user_dir.exists():
-                logger.warning(f"User directory missing for indexed user: {user_id}")
-        
-        return True
-        
-    except Exception as e:
-        logger.error(f"Failed to validate user index: {e}")
+    with open(user_index_path, 'r') as f:
+        user_index = json.load(f)
+    
+    # Validate user index structure
+    if not isinstance(user_index, dict):
+        logger.error("User index is not a dictionary")
         return False
+    
+    # Check if UUID values in index have corresponding directories
+    # Index now uses flat lookups: username/email/discord/phone → UUID
+    # Extract unique UUIDs from the index values
+    user_ids = set()
+    for key, value in user_index.items():
+        # Skip metadata keys
+        if key in ['last_updated']:
+            continue
+        # Check if value looks like a UUID (flat lookup mapping)
+        if isinstance(value, str) and len(value) > 20:
+            user_ids.add(value)
+    
+    # Verify each user ID has a directory
+    user_info_path = Path(core.config.USER_INFO_DIR_PATH)
+    for user_id in user_ids:
+        user_dir = user_info_path / user_id
+        if not user_dir.exists():
+            logger.warning(f"User directory missing for indexed user: {user_id}")
+    
+    return True
 
 @handle_errors("ensuring user data directory exists", default_return=False)
 def _validate_system_state__ensure_user_data_directory() -> bool:
     """Ensure the user data directory exists, creating it if necessary."""
     if not os.path.exists(core.config.USER_INFO_DIR_PATH):
-        try:
-            os.makedirs(core.config.USER_INFO_DIR_PATH, exist_ok=True)
-            logger.warning("User data directory was missing; created during validation")
-        except Exception as e:
-            logger.error(f"User data directory does not exist and cannot be created: {e}")
-            return False
+        os.makedirs(core.config.USER_INFO_DIR_PATH, exist_ok=True)
+        logger.warning("User data directory was missing; created during validation")
     
     return True
 
