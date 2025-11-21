@@ -66,6 +66,7 @@ def apply_test_context_formatter_to_all_loggers():
     if count > 0:
         print(f"DEBUG: Applied PytestContextLogFormatter to {count} handlers", file=sys.stderr)
 
+# ERROR_HANDLING_EXCLUDE
 # NOTE: No @handle_errors decorator here - this function is called by error handler
 # and logging setup, so decorating it would create infinite loops
 def _get_log_paths_for_environment():
@@ -347,6 +348,7 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
     Supports both time-based and size-based rotation.
     """
     
+    # ERROR_HANDLING_EXCLUDE: Logger infrastructure constructor
     def __init__(self, filename, backup_dir, maxBytes=0, backupCount=0, encoding=None, delay=False, when='midnight', interval=1):
         # Ensure log file directory exists BEFORE calling super().__init__() which tries to open the file
         log_file_dir = os.path.dirname(filename)
@@ -610,7 +612,8 @@ class HeartbeatWarningFilter(logging.Filter):
         self.last_summary_time = 0
         self.suppression_start_time = 0
         self.is_suppressing = False
-        
+    
+    # ERROR_HANDLING_EXCLUDE: Logger filter method (infrastructure)
     def filter(self, record):
         # Check if this is a Discord heartbeat warning
         if (record.name == 'discord.gateway' and 
@@ -658,10 +661,12 @@ class ExcludeLoggerNamesFilter(logging.Filter):
     Filter to exclude records for specific logger name prefixes.
     Example use: prevent Discord-related logs from going to app.log.
     """
+    # ERROR_HANDLING_EXCLUDE: Logger filter constructor (infrastructure)
     def __init__(self, excluded_prefixes: list[str]):
         super().__init__()
         self.excluded_prefixes = excluded_prefixes or []
 
+    # ERROR_HANDLING_EXCLUDE: Logger filter method (infrastructure)
     def filter(self, record: logging.LogRecord) -> bool:
         name = record.name or ""
         for prefix in self.excluded_prefixes:
@@ -740,9 +745,11 @@ def get_component_logger(component_name: str) -> ComponentLogger:
         else:
             # Default for tests: no-op logger for clean test output
             class _DummyLogger:
+                # ERROR_HANDLING_EXCLUDE: Dummy logger constructor (test infrastructure)
                 def __init__(self, name: str):
                     self.name = name
             class DummyComponentLogger:
+                # ERROR_HANDLING_EXCLUDE: Dummy logger constructor (test infrastructure)
                 def __init__(self, name: str):
                     self.component_name = name
                     self.logger = _DummyLogger(f"mhm.{name}")

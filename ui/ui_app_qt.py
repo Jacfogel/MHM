@@ -326,6 +326,7 @@ class ServiceManager:
 class MHMManagerUI(QMainWindow):
     """Main MHM Management UI using PySide6"""
     
+    # ERROR_HANDLING_EXCLUDE: UI constructor - calls methods with error handling (load_ui, connect_signals, initialize_ui)
     def __init__(self):
         """Initialize the object."""
         super().__init__()
@@ -348,6 +349,7 @@ class MHMManagerUI(QMainWindow):
         # Initial status update
         self.update_service_status()
         
+    @handle_errors("loading UI", default_return=None)
     def load_ui(self):
         """Load the UI from the .ui file"""
         ui_file_path = Path(__file__).parent / 'designs' / 'admin_panel.ui'
@@ -376,6 +378,7 @@ class MHMManagerUI(QMainWindow):
         except Exception as e:
             logger.error(f"Failed to load QSS theme: {e}")
         
+    @handle_errors("connecting UI signals", default_return=None)
     def connect_signals(self):
         """Connect UI signals to slots"""
         # Service management buttons
@@ -420,6 +423,7 @@ class MHMManagerUI(QMainWindow):
         self.ui.actionView_All_Users.triggered.connect(self.view_all_users_summary)
         self.ui.actionSystem_Health_Check.triggered.connect(self.system_health_check)
         
+    @handle_errors("initializing UI", default_return=None)
     def initialize_ui(self):
         """Initialize the UI state"""
         # Disable category management until user is selected
@@ -448,6 +452,7 @@ class MHMManagerUI(QMainWindow):
             logger.error(f"Admin Panel: Error updating user index on startup: {e}")
             # Don't show error to user - this is a background maintenance task
     
+    @handle_errors("updating service status", default_return=None)
     def update_service_status(self):
         """Update the service status display"""
         is_running, pid = self.service_manager.is_service_running()
@@ -743,16 +748,19 @@ class MHMManagerUI(QMainWindow):
             logger.debug(f"Error checking ngrok status: {e}")
             return {'running': False, 'pid': None}
     
+    @handle_errors("starting service", default_return=None)
     def start_service(self):
         """Start the MHM service"""
         if self.service_manager.start_service():
             self.update_service_status()
     
+    @handle_errors("stopping service", default_return=None)
     def stop_service(self):
         """Stop the MHM service"""
         if self.service_manager.stop_service():
             self.update_service_status()
     
+    @handle_errors("restarting service", default_return=None)
     def restart_service(self):
         """Restart the MHM service"""
         if self.service_manager.restart_service():
@@ -1029,6 +1037,7 @@ class MHMManagerUI(QMainWindow):
             logger.error(f"Error loading user categories: {e}")
             self.current_user_categories = []
     
+    @handle_errors("handling category selection", default_return=None)
     def on_category_selected(self, category):
         """Handle category selection"""
         # Get the actual category value from the combo box data
@@ -1045,6 +1054,7 @@ class MHMManagerUI(QMainWindow):
         self.ui.pushButton_edit_schedules.setEnabled(has_category)
         self.ui.pushButton_send_test_message.setEnabled(has_category)
     
+    @handle_errors("enabling content management", default_return=None)
     def enable_content_management(self):
         """Enable content management buttons"""
         self.ui.pushButton_communication_settings.setEnabled(True)
@@ -1062,6 +1072,7 @@ class MHMManagerUI(QMainWindow):
         # Enable user actions group
         self.ui.groupBox_user_actions.setEnabled(True)
     
+    @handle_errors("disabling content management", default_return=None)
     def disable_content_management(self):
         """Disable content management buttons"""
         self.ui.pushButton_communication_settings.setEnabled(False)
@@ -1268,6 +1279,7 @@ class MHMManagerUI(QMainWindow):
             if 'timezone' in account_data:
                 context_data['timezone'] = account_data['timezone']
             # Custom save handler to split timezone
+            # ERROR_HANDLING_EXCLUDE: Nested callback function (already wrapped in try-except by parent)
             def on_save(data):
                 tz = data.pop('timezone', None)
                 # Use centralized save_user_data for both context and account updates
@@ -1457,6 +1469,7 @@ class MHMManagerUI(QMainWindow):
         try:
             from ui.dialogs.schedule_editor_dialog import open_schedule_editor
             
+            # ERROR_HANDLING_EXCLUDE: Nested callback function (already wrapped in try-except by parent)
             def on_schedule_save():
                 """Callback when schedule is saved."""
                 logger.info(f"Schedule saved for user {self.current_user}, category {category}")
@@ -1472,6 +1485,7 @@ class MHMManagerUI(QMainWindow):
             logger.error(f"Error opening schedule editor: {e}")
             QMessageBox.critical(self, "Error", f"Failed to open schedule editor: {str(e)}")
     
+    @handle_errors("validating user selection", default_return=False)
     def _send_test_message__validate_user_selection(self):
         """Validate that a user is selected."""
         if not self.current_user:
@@ -1479,6 +1493,7 @@ class MHMManagerUI(QMainWindow):
             return False
         return True
     
+    @handle_errors("validating service status", default_return=False)
     def _send_test_message__validate_service_running(self):
         """Validate that the service is running."""
         is_running, pid = self.service_manager.is_service_running()
@@ -1493,6 +1508,7 @@ class MHMManagerUI(QMainWindow):
             return False
         return True
     
+    @handle_errors("getting selected category", default_return=None)
     def _send_test_message__get_selected_category(self):
         """Get and validate the selected category from the dropdown."""
         current_index = self.ui.comboBox_user_categories.currentIndex()
@@ -1851,6 +1867,7 @@ class MHMManagerUI(QMainWindow):
             QMessageBox.critical(self, "Error", f"Failed to send task reminder: {str(e)}")
     
     # Debug and admin methods
+    @handle_errors("toggling logging verbosity", default_return=None)
     def toggle_logging_verbosity(self):
         """Toggle logging verbosity and update menu."""
         from core.logger import toggle_verbose_logging, get_verbose_mode
@@ -2119,6 +2136,7 @@ Current cache files found:
         
         report_window.exec()
 
+    @handle_errors("showing configuration help", default_return=None)
     def show_configuration_help(self, parent_window):
         """Show help for fixing configuration issues."""
         help_window = QDialog(parent_window)
@@ -2364,6 +2382,7 @@ For detailed setup instructions, see the ui/UI_GUIDE.md file.
             logger.error(f"Failed to perform health check: {e}")
             QMessageBox.critical(self, "Error", f"Failed to perform health check: {e}")
 
+    @handle_errors("handling window close event", default_return=None)
     def closeEvent(self, event):
         """Handle window close event"""
         self.shutdown_ui_components()

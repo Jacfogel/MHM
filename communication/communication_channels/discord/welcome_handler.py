@@ -78,11 +78,13 @@ def get_welcome_message_view(discord_user_id: str) -> 'discord.ui.View':
     import discord
     
     class WelcomeView(discord.ui.View):
+        # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
         def __init__(self, discord_user_id: str):
             super().__init__(timeout=None)  # No timeout - buttons persist
             self.discord_user_id = discord_user_id
         
         @discord.ui.button(label="Create a New Account", style=discord.ButtonStyle.primary, custom_id=f"welcome_create_{discord_user_id}")
+        @handle_errors("handling create account button click", default_return=None)
         async def create_account_button(self, interaction: discord.Interaction, button: discord.ui.Button):
             """Handle Create Account button click"""
             # Start account creation flow (will handle interaction response internally)
@@ -91,6 +93,7 @@ def get_welcome_message_view(discord_user_id: str) -> 'discord.ui.View':
             await start_account_creation_flow(interaction, self.discord_user_id, discord_username)
         
         @discord.ui.button(label="Link to Existing Account", style=discord.ButtonStyle.secondary, custom_id=f"welcome_link_{discord_user_id}")
+        @handle_errors("handling link account button click", default_return=None)
         async def link_account_button(self, interaction: discord.Interaction, button: discord.ui.Button):
             """Handle Link Account button click"""
             # Start account linking flow (will handle interaction response internally)

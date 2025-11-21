@@ -1,253 +1,286 @@
 # AI Testing Guide
 
 > **File**: `ai_development_docs/AI_TESTING_GUIDE.md`  
-> **Purpose**: Fast reference for testing commands, patterns, and routing  
-> **Style**: Minimal, pattern-focused  
+> **Pair**: `tests/TESTING_GUIDE.md`  
+> **Audience**: AI collaborators and tools  
+> **Purpose**: Routing & constraints  
+> **Style**: Minimal, routing-first  
 
-For more detailed guidance, examples, and rationale for any topic in this file, use the matching sections in `tests/TESTING_GUIDE.md`.
+> For detailed behavior, examples, and rationale, use matching sections in `tests/TESTING_GUIDE.md`.  
+> Keep this file’s H2 headings in lockstep with `tests/TESTING_GUIDE.md` when making changes.
 
+---
 
-## Quick Reference
+## 1. Purpose and Scope
 
-Use this section to decide how to run tests or where to look next.
+Use this file whenever you:
 
-- Run all tests (parallel by default):  
-  - `python run_tests.py`
-- Run by type:  
-  - Unit: `python run_tests.py --mode unit`  
-  - Integration: `python run_tests.py --mode integration`
-- Disable parallel execution:  
-  - `python run_tests.py --no-parallel`
-- Run with coverage:  
-  - `python run_tests.py --coverage`
-- Run a specific test with pytest:  
-  - `pytest tests/unit/test_example.py`  
-  - `pytest tests/unit/test_example.py::TestExample::test_case`
+- Plan to modify or add tests.
+- Need to decide which tests to run for a change.
+- Must keep tests safe (no real user data, no real Windows tasks).
 
-Core safety and quality rules:
+This guide is **not** a tutorial. It tells you:
 
-- Use helpers in `tests/test_utilities.py` for fixtures, fake data, and shared assertions.  
-- Keep all test data and artefacts inside `tests/` (for example, `tests/data/`) and clean up generated files.  
-- Prefer deterministic tests with clear names (for example, `test_feature_behavior_expected`); log gaps via TODOs or issues.  
-- Always mock scheduler integrations to prevent real Windows scheduled tasks (for example, patch `set_wake_timer` and related methods).  
-- Use `@pytest.mark.no_parallel` for tests that modify real files, share resources, or require exclusive access.
+- Where tests live.
+- Which commands to run.
+- Which other docs to consult.
+- What safety rules must never be broken.
 
+For full explanations, use the matching sections in `tests/TESTING_GUIDE.md`.
 
-## 1. Testing Philosophy and Priorities
+---
 
-- Favor behavior and integration tests when adding coverage.  
-- Verify side effects (messages, files, logs), not just return values.  
-- Protect critical paths (scheduling, delivery, AI interactions, user data).  
-- Aim for parallel-safe tests; use `no_parallel` only when necessary.
+## 2. Test Layout and Types
 
+Test locations (must not change without updating this file and `tests/TESTING_GUIDE.md`):
 
-## 2. Test Layout and Discovery
+- `tests/unit/` — pure logic, isolated from external systems.
+- `tests/integration/` — interactions between modules and services.
+- `tests/behavior/` — end-to-end flows approximating real usage.
+- `tests/ui/` — Qt dialogs, widgets, and UI workflows.
+- `tests/conftest.py` — fixtures, hooks, and global configuration.
 
-Pytest configuration is defined in `pytest.ini` and `tests/conftest.py`.
+Rules:
 
-Key points:
+- Tests belong under `tests/`, **never** under `scripts/` or arbitrary directories.
+- Prefer integration/behavior tests for real flows; unit tests support them, not replace them.
 
-- Pytest is configured to discover tests under the `tests/` directory.  
-- The `scripts/` directory is explicitly excluded from test discovery (for example, via `norecursedirs` or `--ignore=scripts` in `pytest.ini`).  
-- New tests should be added under `tests/` and not under `scripts/`.
+When adding a test:
 
-Test behavior is also controlled using pytest markers defined in `pytest.ini`. MHM uses 18 streamlined markers aligned with component structure.
+- Pure logic → `tests/unit/`.
+- Multi-module or service flows → `tests/integration/` or `tests/behavior/`.
+- UI dialogs or widgets → `tests/ui/`.
 
-**Required markers (every test needs exactly one):**
-- `unit`, `integration`, `behavior`, `ui`
+For detailed definitions and examples, see section 2. "Test Layout and Types" in `tests/TESTING_GUIDE.md`.
 
-**Feature markers (indicate what functionality is tested):**
-- `tasks`, `scheduler`, `checkins`, `messages`, `analytics`, `user_management`, `communication`, `ai`
+---
 
-**Speed markers:**
-- `slow` (>1 second), `fast` (<100ms, optional)
+## 3. Fixtures, Utilities, and Safety
 
-**Resource markers:**
-- `asyncio`, `no_parallel`
+Critical invariants:
 
-**Quality markers:**
-- `critical`, `regression`, `smoke`
+- All test writes must stay under `tests/data/` or fixtures’ temporary directories.
+- Tests must never:
+  - Touch real user directories (for example, `%APPDATA%`, `Documents`, home directories).
+  - Write to production data paths.
+  - Create or modify real Windows scheduled tasks.
 
-**Usage:**
-- Every test must have one category marker (`unit`, `integration`, `behavior`, or `ui`)
-- Add feature markers to indicate what functionality is tested
-- Use `slow` for tests >1 second (excluded from fast runs)
-- Use `no_parallel` only when tests cannot be made parallel-safe
-- Multiple markers can be combined: `@pytest.mark.unit @pytest.mark.tasks @pytest.mark.critical`
+Use existing helpers:
 
-For detailed marker usage guidelines and examples, see section 10.2 in `tests/TESTING_GUIDE.md`.
+- Fixtures in `tests/conftest.py` for:
+  - Temporary directories and fake data.
+  - Path redirection for user data and config.
+  - Logging configuration for tests.
+- Helper functions in `tests/test_utilities.py` (or equivalent) for:
+  - Creating test users, messages, schedules.
+  - Common assertions on logs and outputs.
+- Isolation helpers (for example, `tests/test_isolation.py`) for:
+  - Any test that might interact with system-like APIs or Task Scheduler.
 
-## 3. Test Types and Structure
+Scheduler rules:
 
-Layout:
+- Always mock scheduler integrations that would create or modify tasks (for example, `scheduler_manager.set_wake_timer` and related calls).
+- Never call `schtasks` or similar system commands directly from tests.
 
-- `tests/unit/` - unit tests for individual modules.  
-- `tests/integration/` - integration tests for features and flows.  
-- `tests/behavior/` - end-to-end behavior tests.  
-- `tests/ui/` - Qt UI tests.  
-- `tests/conftest.py` - shared fixtures, hooks, and configuration.
+If you need new helpers or fixtures, define them in the shared locations above rather than scattering them across test files.
 
-Placement:
+---
 
-- Pure logic -> `unit`.  
-- Cross-module flows -> `integration` or `behavior`.  
-- Dialogs and widgets -> `ui`.
+## 4. Running Automated Tests
 
+Preferred commands (via `run_tests.py`):
 
-## 4. Test Utilities and Infrastructure
+- Run all tests (parallel by default, if configured):
 
-Key points:
+  ```bash
+  python run_tests.py
+  ```
 
-- Shared fixtures and hooks: `tests/conftest.py`.  
-- Helpers for fixtures, fake data, and shared assertions: `tests/test_utilities.py`.  
-- For Windows Task Scheduler and system-call isolation, use helpers in `tests/test_isolation.py` (for example, `IsolationManager` and related functions).  
-- Use test data and temp paths under `tests/data/`; tests must not leave artefacts outside `tests/`.  
-- On Windows, tests must not create real scheduled tasks:
-  - Always mock scheduler integrations (for example, `scheduler_manager.set_wake_timer`).  
-  - Never call `schtasks` or similar commands directly from tests.
+- Run only unit tests:
 
-For logging patterns referenced from tests, see `AI_LOGGING_GUIDE.md` and `logs/LOGGING_GUIDE.md`.
+  ```bash
+  python run_tests.py --mode unit
+  ```
 
-## 5. File System Safety and Isolation
+- Run only integration tests:
 
-The tests must not corrupt real user data or create uncontrolled artefacts.
+  ```bash
+  python run_tests.py --mode integration
+  ```
 
-Key rules:
+- Disable parallel execution:
 
-- All test writes go into `tests/data/` or subdirectories created under it.  
-- Paths for user data and configuration are redirected to test-specific directories via `tests/conftest.py`.  
-- Tests should not read from or write to real user directories (for example, directories under `%APPDATA%`, `Documents`, or production data paths).
+  ```bash
+  python run_tests.py --no-parallel
+  ```
 
-### 5.1. Windows Task Prevention (critical)
+- Run with coverage:
 
-On Windows, tests must never create or modify real scheduled tasks:
+  ```bash
+  python run_tests.py --coverage
+  ```
 
-- Always mock scheduler integrations that would create or update Task Scheduler entries (for example, patch `scheduler_manager.set_wake_timer` and related methods).  
-- Never call `schtasks` or similar Task Scheduler commands directly from tests.  
-- If Task Scheduler becomes polluted during development, use the dedicated cleanup mechanisms (for example, `scripts/cleanup_windows_tasks.py` and associated PowerShell commands).
-
-For advanced isolation during tests that might trigger scheduler or other system calls, use `tests/test_isolation.py` (for example, wrap code in `IsolationManager`).
-
-
-## 6. Running Tests
-
-Preferred approach (safe defaults):
-
-- Use `run_tests.py` for most tasks:
-  - `python run_tests.py` (parallel, all tests)  
-  - `python run_tests.py --mode unit`  
-  - `python run_tests.py --mode integration`  
-  - `python run_tests.py --coverage`  
-  - `python run_tests.py --no-parallel` when debugging or working with shared resources.
-
-For focused or ad-hoc runs:
+When focusing on a small subset:
 
 - Use pytest directly:
-  - `pytest tests/unit/test_example.py`  
-  - `pytest -m "integration and not slow"`
 
+  ```bash
+  pytest tests/unit/test_example.py
+  pytest tests/unit/test_example.py::TestExample::test_case
+  pytest -m "integration and not slow"
+  ```
 
-## 7. Parallel Execution
+If you add or change command-line options, update `run_tests.py`, `pytest.ini`, and section 4 of `tests/TESTING_GUIDE.md`.
 
-Minimal rules:
+---
 
-- `run_tests.py` enables pytest-xdist parallel execution by default (for example, `-n auto` or `-n <workers>`).  
-- Use `--no-parallel` when debugging flaky tests or working on tests that touch shared resources.
+## 5. Parallel Execution and Coverage
 
-When failures appear only in parallel runs:
+Parallel execution:
 
-- Suspect shared files, global state, or external services that cannot handle concurrency.  
-- Re-run the same tests with `--no-parallel` to confirm.
+- Expected default: tests run in parallel using `pytest-xdist` (for example, `-n auto`).
+- Use `--no-parallel` for:
+  - Debugging flaky tests.
+  - Tests that touch shared resources and cannot be isolated easily.
 
-`@pytest.mark.no_parallel`:
+`no_parallel` marker:
 
-- Use `@pytest.mark.no_parallel` on tests that cannot be made parallel-safe, especially those that modify real files, share resources, or require exclusive access.  
-- Keep `no_parallel` usage minimal and document the reason in comments.
+- Use `@pytest.mark.no_parallel` **only** when:
+  - Tests depend on shared external resources that cannot be isolated.
+  - Refactoring for parallel safety is not feasible.
+- Document the reason in a comment in the test file.
 
+Coverage:
 
-## 8. Coverage and Reporting
+- Enable via:
 
-- Use `python run_tests.py --coverage` to collect coverage.  
-- Treat coverage as a guide; emphasize behavior and critical-path coverage over hitting a percentage.  
-- For CI integration or thresholds, consult the coverage configuration used by the project.
+  ```bash
+  python run_tests.py --coverage
+  ```
 
+- Treat coverage as guidance:
+  - Focus on critical paths (scheduling, delivery, error handling, AI behavior).
+  - Do not chase 100% coverage at the cost of clarity.
 
-## 9. Manual Testing Procedures
+For rationale and examples, see sections 5.1–5.3 in `tests/TESTING_GUIDE.md`.
 
-When to rely on manual testing:
+---
 
-- Before releases and important deployments.  
-- After major UI, scheduling, or integration changes.  
-- For UX-heavy features or flows that are hard to automate.
+## 6. Writing and Extending Tests
 
-Core flows:
+Placement rules:
 
-- Application startup and shutdown.  
-- Discord integration on a real test server.  
-- Email integration (if configured).  
-- Scheduling and reminders (creating, sending, cancelling).  
-- UI workflows: opening dialogs, editing messages and schedules, error handling.
+- Use the correct directory (`unit`, `integration`, `behavior`, `ui`) based on behavior.
+- Choose clear file and test names that describe what is being verified.
 
+Marker standards (must stay aligned with `pytest.ini` and section 6 in `tests/TESTING_GUIDE.md`):
 
-## 10. Writing and Extending Tests
+- Every test must have **exactly one** category marker:
+  - `unit`, `integration`, `behavior`, or `ui`.
+- Add feature markers as needed, for example:
+  - `tasks`, `scheduler`, `checkins`, `messages`, `analytics`,
+    `user_management`, `communication`, `ai`.
+- Use:
+  - `slow` for long-running tests.
+  - `fast` (optional) for very quick tests.
+  - `asyncio` for async tests.
+  - `no_parallel` when absolutely necessary (see section 5).
+  - `critical`, `regression`, `smoke` for quality tiers.
 
-Placement:
+Examples (pattern only; do not copy literally):
 
-- Put new tests in the appropriate directory (`unit`, `integration`, `behavior`, `ui`).  
-- **Required**: Every test must have exactly one category marker (`unit`, `integration`, `behavior`, or `ui`).  
-- **Recommended**: Add feature markers (`tasks`, `scheduler`, `communication`, etc.) to indicate what functionality is tested.  
-- **Optional**: Add speed (`slow`), resource (`asyncio`, `no_parallel`), or quality (`critical`, `regression`, `smoke`) markers as appropriate.  
-- Use `@pytest.mark.no_parallel` only when tests cannot be made parallel-safe (use sparingly).
+```python
+import pytest
 
-Quality rules:
+@pytest.mark.unit
+@pytest.mark.tasks
+def test_create_task_valid_payload():
+    ...
 
-- Prefer deterministic tests with clear naming (for example, `test_feature_behavior_expected`).  
-- Use fixtures in `tests/conftest.py` and helpers in `tests/test_utilities.py` instead of custom one-off setups.  
-- When you see gaps you cannot fill immediately, suggest adding TODOs or issues.
+@pytest.mark.integration
+@pytest.mark.communication
+@pytest.mark.slow
+@pytest.mark.no_parallel
+def test_discord_delivery_flow():
+    ...
+```
 
+If you add or rename markers:
 
-## 11. Debugging and Troubleshooting
+- Update `pytest.ini`.
+- Update this section and the equivalent part of `tests/TESTING_GUIDE.md`.
 
-When tests fail:
+Use fixtures and helpers:
 
-- Suggest checking logs (for example, `test_run.log`, `test_consolidated.log`).  
-- Re-run failing tests with:
-  - `pytest -vv`  
-  - `python run_tests.py --no-parallel` to isolate concurrency issues.
+- Prefer fixtures from `tests/conftest.py`.
+- Prefer helpers from `tests/test_utilities.py` and isolation tools from `tests/test_isolation.py`.
 
-If a failure occurs only in parallel runs:
+---
 
-- Investigate shared file usage, global state, or external service limits.
+## 7. Debugging and Troubleshooting
 
-For error-handling and logging patterns that surface in test failures, see `AI_ERROR_HANDLING_GUIDE.md` and `AI_LOGGING_GUIDE.md`.
+On any test failure:
 
+1. Re-run the failing test with high verbosity:
 
-## 12. Automation and Channel-Specific Tests
+   ```bash
+   pytest -vv path/to/test_file.py::test_name
+   ```
 
-AI view:
+2. Check logs:
+   - Test run logs (for example, `test_run.log`, `test_consolidated.log`).
+   - Component logs under `logs/` if enabled.
 
-- Discord tests:
-  - Use markers such as `external`, `communication`, or any Discord-specific markers in `pytest.ini`.  
-  - Prefer test or sandbox servers.
+3. If it fails only in parallel runs:
+   - Re-run with:
 
-- Email tests:
-  - Use test accounts and sandbox environments; avoid real recipients.
+     ```bash
+     python run_tests.py --no-parallel
+     ```
 
-- AI and service tests:
-  - Use `ai`, `service`, or `behavior` markers as appropriate.  
-  - Prefer stubs/mocks for external AI calls while still validating integration paths.
+   - Investigate:
+     - Shared files or directories.
+     - Global state or singletons.
+     - External services.
 
-- AI functionality tests:
-  - Test plan: `tests/AI_FUNCTIONALITY_TEST_PLAN.md`.  
-  - Runner: `tests/ai/run_ai_functionality_tests.py`.  
-  - Consolidated results: typically under `tests/ai/results/ai_functionality_test_results_latest.md`.
+Routing to other AI docs:
 
+- See Section 2 (“Architecture Overview”) and section 3 (“Usage Patterns”) in `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` for required error-handling constraints and routing.
+- See Section 2 (“Logging Architecture”) and section 3 (“Log Levels and When to Use Them”) in `ai_development_docs/AI_LOGGING_GUIDE.md` for required logging behavior when writing or testing code.
 
-## 13. Maintenance and Roadmap
+Refer to section 7 of `tests/TESTING_GUIDE.md` for detailed troubleshooting guidance.
 
-High-level AI guidance:
+---
 
-- Expand coverage around critical and fragile areas.  
-- Reduce `flaky`, `known_issue`, and `manual` tests by improving automation.  
-- Keep tests parallel-safe where possible and use `no_parallel` only when necessary.  
-- Align testing improvements with `AI_DEVELOPMENT_WORKFLOW.md` and `PROJECT_VISION.md`.
+## 8. Manual and Channel-Specific Testing Overview
+
+Automated tests do not cover everything. Some changes require manual or channel-specific testing.
+
+When manual testing is required (examples, not exhaustive):
+
+- Changes to scheduling rules or reminder behavior.
+- Significant UI changes (dialogs, flows, validation).
+- Changes to Discord or email behavior.
+- Changes to AI conversation flows or prompts.
+
+Routing:
+
+- For general manual testing flows (startup, shutdown, scheduling, UI, email):
+  - Use `tests/MANUAL_TESTING_GUIDE.md`, especially:
+    - Section 2. "Core Manual Flows".
+    - Section 3. "UI Manual Testing".
+    - Section 4. "Scheduling & Reminder Manual Tests".
+- For Discord-specific manual testing of task reminder flows:
+  - Use `tests/MANUAL_DISCORD_TEST_GUIDE.md`, especially:
+    - Section 1. "Prerequisites".
+    - Section 2. "Task Reminder Follow-up Flow Testing".
+    - Section 7. "Quick Test Checklist".
+- For AI conversation and functionality testing:
+  - Use `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`, especially:
+    - Section 1. "Quick Start".
+    - Section 2. "Test Suite Structure".
+    - Section 6. "Test Features".
+    - Section 7. "Test Categories".
+
+This AI file should not duplicate those manuals. It only tells you **which** manual to use and **when**.
+

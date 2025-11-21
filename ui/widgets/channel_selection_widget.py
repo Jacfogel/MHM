@@ -9,6 +9,7 @@ from core.error_handling import handle_errors
 logger = get_component_logger('ui')
 
 class ChannelSelectionWidget(QWidget):
+    # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets up UI
     def __init__(self, parent=None):
         """
         Initialize the ChannelSelectionWidget.
@@ -118,6 +119,7 @@ class ChannelSelectionWidget(QWidget):
                 if utc_idx >= 0:
                     self.ui.comboBox_timezone.setCurrentIndex(utc_idx)
 
+    # ERROR_HANDLING_EXCLUDE: Simple setter method that only updates UI elements
     def set_contact_info(self, email=None, discord_id=None, timezone=None):
         if email is not None:
             self.ui.lineEdit_email.setText(email)

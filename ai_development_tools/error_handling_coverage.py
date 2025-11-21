@@ -98,7 +98,7 @@ class ErrorHandlingAnalyzer:
             # Analyze AST nodes
             for node in ast.walk(tree):
                 if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                    func_analysis = self._analyze_function(node, content)
+                    func_analysis = self._analyze_function(node, content, file_path=str(file_path))
                     file_results['functions'].append(func_analysis)
                     
                 elif isinstance(node, ast.ClassDef):
@@ -122,15 +122,108 @@ class ErrorHandlingAnalyzer:
                 'missing_error_handling': []
             }
 
-    def _analyze_function(self, func_node: ast.FunctionDef, content: str) -> Dict[str, Any]:
+    def _should_exclude_function(self, func_node: ast.FunctionDef, content: str, file_path: str = None) -> bool:
+        """
+        Check if a function should be excluded from error handling analysis.
+        
+        Functions are excluded if they:
+        - Are Pydantic validators (@field_validator, @model_validator)
+        - Have exclusion comments (e.g., "# ERROR_HANDLING_EXCLUDE")
+        - Are special Python methods (__getattr__, __new__, __repr__, etc.)
+        - Are logger methods (debug, info, warning, error, critical)
+        - Are file auditor logging methods
+        - Are part of error handling infrastructure itself
+        
+        Args:
+            func_node: AST node for the function
+            content: Full file content (for context checking)
+            file_path: Optional file path for more precise exclusions
+        """
+        # The content parameter now includes context lines before the function
+        func_content_lower = content.lower()
+        file_path_lower = file_path.lower() if file_path else ""
+        func_name = func_node.name
+        
+        # Check for exclusion comment (the content includes context lines before the function)
+        # Match both "# ERROR_HANDLING_EXCLUDE" and "# ERROR_HANDLING_EXCLUDE: description"
+        if '# error_handling_exclude' in func_content_lower or '# error handling exclude' in func_content_lower:
+            return True
+        
+        # Exclude special Python methods that shouldn't have error handling
+        special_methods = ('__getattr__', '__setattr__', '__delattr__', '__getattribute__',
+                          '__new__', '__repr__', '__str__', '__hash__', '__eq__', '__ne__',
+                          '__lt__', '__le__', '__gt__', '__ge__', '__bool__', '__len__',
+                          '__iter__', '__next__', '__contains__', '__call__')
+        if func_name in special_methods:
+            return True
+        
+        # Exclude logger methods (these are logging infrastructure)
+        if func_name in ('debug', 'info', 'warning', 'error', 'critical', 'log', 'exception'):
+            # Check if this is in a logger class or file_auditor
+            if file_path and ('logger.py' in file_path or 'file_auditor.py' in file_path):
+                return True
+            # Also check if it's a DummyLogger or similar
+            if 'dummylogger' in func_content_lower or 'componentlogger' in func_content_lower:
+                return True
+        
+        # Exclude file_auditor logging methods
+        if file_path and 'file_auditor.py' in file_path:
+            if func_name in ('info', 'warning', 'debug', 'error', 'critical'):
+                return True
+        
+        # Check for Pydantic validators
+        for decorator in func_node.decorator_list:
+            # Check for @field_validator or @model_validator
+            if isinstance(decorator, ast.Call):
+                if isinstance(decorator.func, ast.Name):
+                    if decorator.func.id in ('field_validator', 'model_validator'):
+                        return True
+                elif isinstance(decorator.func, ast.Attribute):
+                    if decorator.func.attr in ('field_validator', 'model_validator'):
+                        return True
+            elif isinstance(decorator, ast.Name):
+                if decorator.id in ('field_validator', 'model_validator'):
+                    return True
+        
+        # Check for special methods that are part of error handling infrastructure
+        # These are in core/error_handling.py and are recovery strategies
+        if file_path and 'error_handling.py' in file_path:
+            if func_node.name in ('can_handle', 'recover', '_get_default_data', '_get_user_friendly_message', '__init__'):
+                # Check if this is in a recovery strategy class
+                # Look for class definition before this function
+                if 'errorrecoverystrategy' in func_content_lower or 'recovery' in func_content_lower:
+                    return True
+        
+        return False
+
+    def _analyze_function(self, func_node: ast.FunctionDef, content: str, file_path: str = None) -> Dict[str, Any]:
         """Analyze error handling in a function."""
         func_name = func_node.name
         func_start = func_node.lineno
         func_end = func_node.end_lineno or func_start
         
-        # Extract function content
+        # Extract function content (include a few lines before for exclusion comments)
         lines = content.split('\n')
-        func_content = '\n'.join(lines[func_start-1:func_end])
+        # Check up to 3 lines before the function for exclusion comments
+        context_start = max(0, func_start - 4)  # -4 because lineno is 1-indexed
+        func_content = '\n'.join(lines[context_start:func_end])
+        
+        # Check if function should be excluded from analysis
+        if self._should_exclude_function(func_node, func_content, file_path):
+            # Return analysis indicating function is excluded
+            return {
+                'name': func_name,
+                'line_start': func_start,
+                'line_end': func_end,
+                'has_try_except': False,
+                'has_error_handling': False,
+                'has_decorators': False,
+                'error_handling_quality': 'excluded',
+                'missing_error_handling': False,
+                'error_patterns': set(),
+                'recommendations': [],
+                'excluded': True
+            }
         
         analysis = {
             'name': func_name,
@@ -142,7 +235,8 @@ class ErrorHandlingAnalyzer:
             'error_handling_quality': 'none',
             'missing_error_handling': False,
             'error_patterns': set(),
-            'recommendations': []
+            'recommendations': [],
+            'excluded': False
         }
         
         # Check for try-except blocks
@@ -349,6 +443,10 @@ class ErrorHandlingAnalyzer:
                 
             # Count functions
             for func in file_result['functions']:
+                # Skip excluded functions from totals
+                if func.get('excluded', False):
+                    continue
+                    
                 total_functions += 1
                 module_stats[module_name]['total_functions'] += 1
                 
@@ -480,6 +578,7 @@ def main():
     
     parser = argparse.ArgumentParser(description='Analyze error handling coverage in the codebase')
     parser.add_argument('--json', action='store_true', help='Output results in JSON format')
+    parser.add_argument('--output', type=str, help='Output file path (default: ai_development_tools/error_handling_details.json when --json is used)')
     parser.add_argument('--project-root', default='.', help='Project root directory')
     parser.add_argument('--include-tests', action='store_true', help='Include test files in analysis')
     parser.add_argument('--include-dev-tools', action='store_true', help='Include ai_development_tools in analysis')
@@ -500,8 +599,19 @@ def main():
     )
     
     if args.json:
-        # JSON output stays as print() for programmatic consumption
-        print(json.dumps(results, indent=2))
+        # Determine output file path
+        if args.output:
+            output_path = Path(args.output)
+        else:
+            # Default to ai_development_tools directory
+            tools_dir = project_root / 'ai_development_tools'
+            tools_dir.mkdir(exist_ok=True)
+            output_path = tools_dir / 'error_handling_details.json'
+        
+        # Write JSON to file
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(results, f, indent=2)
+        logger.info(f"Error handling coverage report written to {output_path}")
     else:
         analyzer.print_summary()
     

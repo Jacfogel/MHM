@@ -1,9 +1,14 @@
 # AI Architecture - Quick Reference
 
 > **File**: `ai_development_docs/AI_ARCHITECTURE.md`  
-> **Purpose**: Route AI tools to the right modules and human docs with minimal context use.  
-> For more detailed guidance, examples, and rationale for any topic in this file, use the
-> matching sections in `ARCHITECTURE.md`.
+> **Pair**: `ARCHITECTURE.md`  
+> **Audience**: AI collaborators and tools  
+> **Purpose**: Routing & constraints for architecture changes  
+> **Style**: Minimal, routing-first  
+
+> For detailed behavior, examples, and rationale, use matching sections in `ARCHITECTURE.md`.  
+> Keep this file’s H2 headings in lockstep with `ARCHITECTURE.md` when making changes.
+
 
 Use this file as a router. Decide what you are changing, then jump to the right modules and
 sections in `ARCHITECTURE.md` and other detailed guides.
@@ -105,8 +110,7 @@ Preserve these patterns when generating or editing code:
   - Per-user instances: `data/users/{user_id}/messages/`.
 
 - Legacy and migration  
-  - Use explicit legacy branches and the logging pattern from section 7.
-    Legacy Compatibility Logging Standard in `logs/LOGGING_GUIDE.md`.
+  - Use explicit legacy branches and the logging pattern from section 7. "Legacy Compatibility Logging Standard" in `logs/LOGGING_GUIDE.md`.
 
 If you need full rationale or examples, see section 3. Data Handling Patterns in `ARCHITECTURE.md`.
 
@@ -181,4 +185,4 @@ Reference material:
 - Keep `ai_*` docs in sync with their human counterparts at the H2 level (use the documentation
   sync checker).  
 - For any non-trivial refactor, read the relevant section in `ARCHITECTURE.md` before editing
-  code. For overall workflow, see section 2. Standards and Templates in `DEVELOPMENT_WORKFLOW.md`.
+  code. For overall documentation workflow, see section 2. "Standards and Templates" in `DOCUMENTATION_GUIDE.md`.

@@ -149,29 +149,61 @@ Every documentation file (`.md`) must start with a metadata block so it can be l
 Required format:
 
 ```markdown
+# File Name
+
 > **File**: `relative/path/from/project/root`
 > **Audience**: [Target audience]
 > **Purpose**: [What this document is for]
 > **Style**: [Tone and depth]
-> **Pair**: `<PAIRED_DOC_PATH>`  # Omit or leave blank if the doc has no AI/human pair
+> **Pair**: `<PAIRED_DOC_PATH>`  # Only for human/AI doc pairs
+> **Parent**: `<PARENT_DOC_PATH>`  # Only for subordinate docs
 ```
 
 Notes:
 - `File` must always match the relative path from the project root (for example, `logs/LOGGING_GUIDE.md`).
 - `Pair` must be present for all docs that participate in a doc pair (for example, `ai_development_docs/AI_LOGGING_GUIDE.md`).
-- The pairing line should be followed by a short sentence stating that changes must be considered in the context of both docs.
+  - The `Pair` line should be followed by a short sentence stating that changes must be considered in the context of both docs.
+- `Parent` is used when a doc is subordinate to a higher-level doc (for example, manual guides under a primary testing guide).
+  - It does not imply H2 lockstep like Pair.
+  - It exists purely to guide routing, standards, and terminology.
+For docs that are neither paired nor subordinate, omit both `Pair` and `Parent`.
 
-Example:
+Examples:
+
+Paired doc (human-side):
 
 ```markdown
-# Documentation Guide
+# File Name
 
-> **File**: `DOCUMENTATION_GUIDE.md`
-> **Audience**: Developers and contributors
-> **Purpose**: Organize, author, and maintain project documentation
-> **Style**: Comprehensive reference with actionable guidance
-> **Pair**: `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`
-> This document is paired with `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`, and any potential changes must be considered within the context of both docs.
+> **File**: `logs/LOGGING_GUIDE.md`
+> **Audience**: Developers and maintainers
+> **Purpose**: Explain how logging works and how to use it safely
+> **Style**: Detailed, explanatory
+> **Pair**: `ai_development_docs/AI_LOGGING_GUIDE.md`
+> This document is paired with `ai_development_docs/AI_LOGGING_GUIDE.md` and any changes must be considered in the context of both docs.
+```
+
+AI-side paired doc:
+```markdown
+> **File**: `ai_development_docs/AI_LOGGING_GUIDE.md`
+> **Pair**: `logs/LOGGING_GUIDE.md`
+> **Audience**: AI collaborators and tools
+> **Purpose**: Routing and constraints for logging usage
+> **Style**: Minimal, routing-first
+> For detailed behavior, examples, and rationale, use the matching sections in `logs/LOGGING_GUIDE.md`.
+> Keep this file’s H2 headings in lockstep with `logs/LOGGING_GUIDE.md` when making changes.
+```
+
+Subordinate (parented) doc:
+# File Name
+
+```markdown
+> **File**: `tests/MANUAL_TESTING_GUIDE.md`
+> **Audience**: Developers and AI assistants performing manual testing
+> **Purpose**: Canonical manual testing flows and checklists
+> **Style**: Checklist-first, concise but detailed
+> **Parent**: `tests/TESTING_GUIDE.md`
+> This document is subordinate to `tests/TESTING_GUIDE.md` and must remain consistent with its standards and terminology.
 ```
 
 ### 2.2. Metadata for `.mdc` rule files

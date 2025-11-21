@@ -164,6 +164,7 @@ class ScheduleEditorDialog(QDialog):
                 item.widget().setParent(None)
         
         # Sort widgets: ALL periods at bottom, others by creation order (newest at end, before ALL)
+        # ERROR_HANDLING_EXCLUDE: Simple nested helper function for sorting
         def sort_key(widget):
             period_name = widget.get_period_name()
             if period_name.upper() == "ALL":
@@ -430,6 +431,7 @@ class ScheduleEditorDialog(QDialog):
             raise
 
 
+@handle_errors("opening schedule editor", default_return=None)
 def open_schedule_editor(parent, user_id: str, category: str, on_save: Optional[Callable] = None):
     """Open the schedule editor dialog."""
     dialog = ScheduleEditorDialog(parent, user_id, category, on_save)

@@ -85,6 +85,7 @@ def get_schedule_time_periods(user_id, category):
             }
             sorted_periods[period_name]['start_time_obj'] = start_time_obj
         # Sort by start_time, but put "ALL" period at the end
+        # ERROR_HANDLING_EXCLUDE: Simple nested helper function for sorting
         def sort_key(item):
             period_name, period_data = item
             if period_name.upper() == "ALL":
@@ -295,8 +296,11 @@ def edit_schedule_period(category, period_name, new_start_time, new_end_time, sc
         current_periods[period_name]['end_time'] = new_end_time
         
         # Save using the consistent set_schedule_periods function
-        set_schedule_periods(user_id, category, current_periods)
-        logger.info(f"Edited period {period_name} in category {category} for user {user_id}.")
+        success = set_schedule_periods(user_id, category, current_periods)
+        if success:
+            logger.info(f"Edited period {period_name} in category {category} for user {user_id}.")
+        else:
+            logger.error(f"Failed to save edited period {period_name} in category {category} for user {user_id}.")
     else:
         logger.warning(f"Period {period_name} not found in category {category} for user {user_id}.")
 
@@ -514,6 +518,7 @@ def set_schedule_periods(user_id, category, periods_dict):
     from core.user_data_handlers import update_user_schedules
     update_user_schedules(user_id, schedules_data)
     clear_schedule_periods_cache(user_id, category)
+    return True
 
 @handle_errors("getting schedule days", default_return=["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"])
 def get_schedule_days(user_id, category):

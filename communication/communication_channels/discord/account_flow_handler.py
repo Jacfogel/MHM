@@ -21,6 +21,7 @@ _account_handler = AccountManagementHandler()
 class FeatureSelectionView(discord.ui.View):
     """View for selecting account features during creation."""
     
+    # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
     def __init__(self, username: str, discord_user_id: str, timeout: float = 300.0):
         super().__init__(timeout=timeout)
         self.username = username
@@ -52,6 +53,7 @@ class FeatureSelectionView(discord.ui.View):
 class TaskFeatureSelect(discord.ui.Select):
     """Select menu for task management feature."""
     
+    # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
     def __init__(self, parent_view: FeatureSelectionView):
         options = [
             discord.SelectOption(label="Enable Task Management", value="true", description="Create and manage tasks", default=True),
@@ -74,6 +76,7 @@ class TaskFeatureSelect(discord.ui.Select):
 class CheckinFeatureSelect(discord.ui.Select):
     """Select menu for check-in feature."""
     
+    # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
     def __init__(self, parent_view: FeatureSelectionView):
         options = [
             discord.SelectOption(label="Enable Check-ins", value="true", description="Receive regular check-in prompts", default=True),
@@ -96,6 +99,7 @@ class CheckinFeatureSelect(discord.ui.Select):
 class MessageFeatureSelect(discord.ui.Select):
     """Select menu for automated messages feature."""
     
+    # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
     def __init__(self, parent_view: FeatureSelectionView):
         options = [
             discord.SelectOption(label="Enable Automated Messages", value="true", description="Receive scheduled motivational messages"),
@@ -118,6 +122,7 @@ class MessageFeatureSelect(discord.ui.Select):
 class TimezoneSelect(discord.ui.Select):
     """Select menu for timezone selection."""
     
+    # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
     def __init__(self, parent_view: FeatureSelectionView):
         # Get common timezones
         from core.user_management import TIMEZONE_OPTIONS
@@ -142,6 +147,7 @@ class TimezoneSelect(discord.ui.Select):
 class CreateAccountButton(discord.ui.Button):
     """Button to finalize account creation."""
     
+    # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
     def __init__(self, parent_view: FeatureSelectionView):
         super().__init__(
             label="Create Account",

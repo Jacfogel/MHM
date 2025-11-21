@@ -115,6 +115,7 @@ class UserProfileDialog(QDialog):
     @handle_errors("creating custom field list")
     def create_custom_field_list(self, parent_layout, predefined_values, existing_values, label_text):
         """Creates a multi-column list with preset items (checkbox + label) and custom fields (checkbox + entry + delete)."""
+        # ERROR_HANDLING_EXCLUDE: Simple nested helper function for string formatting
         def title_case(s):
             """
             Convert snake_case or lowercase to Title Case.

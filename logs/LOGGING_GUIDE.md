@@ -290,7 +290,7 @@ Use `DEBUG` for detailed diagnostics; remove or tone down once issues are resolv
 
 ### 9.5. Align logging with error handling
 
-Most error paths should flow through the centralized error handling decorators and helpers (see section 3. Usage Patterns and section 4. Error Categories and Severity in `core/ERROR_HANDLING_GUIDE.md`).
+Most error paths should flow through the centralized error handling system; for category guidance, see section 4. "Error Categories and Severity" in `core/ERROR_HANDLING_GUIDE.md`.
 
 ### 9.6. Respect test settings
 

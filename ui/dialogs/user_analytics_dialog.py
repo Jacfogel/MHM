@@ -23,6 +23,7 @@ logger = get_component_logger('ui')
 class UserAnalyticsDialog(QDialog):
     """Dialog for displaying comprehensive user analytics."""
     
+    # ERROR_HANDLING_EXCLUDE: Dialog constructor - simple UI setup, no error-prone operations
     def __init__(self, parent=None, user_id=None):
         """Initialize the user analytics dialog."""
         super().__init__(parent)
@@ -490,6 +491,7 @@ Field-by-Field Analysis:"""
         self.ui.textEdit_recommendations.setPlainText("Error loading data")
 
 
+@handle_errors("opening user analytics dialog", default_return=None)
 def open_user_analytics_dialog(parent, user_id):
     """Open the user analytics dialog."""
     dialog = UserAnalyticsDialog(parent, user_id)

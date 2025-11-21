@@ -333,6 +333,7 @@ class AccountCreatorDialog(QDialog):
             self._username = username_edit.text().strip().lower()
     
     @property
+    @handle_errors("getting username from field", default_return="")
     def username(self) -> str:
         """Get username from field if not set, ensuring we always have the latest value."""
         username_edit = self.ui.lineEdit_username
@@ -341,6 +342,7 @@ class AccountCreatorDialog(QDialog):
         return self._username
     
     @username.setter
+    # ERROR_HANDLING_EXCLUDE: Simple property setter
     def username(self, value: str):
         """Set username value."""
         self._username = value
@@ -416,6 +418,7 @@ class AccountCreatorDialog(QDialog):
         if tz:
             self.personalization_data['timezone'] = tz
         
+        # ERROR_HANDLING_EXCLUDE: Nested callback function (already wrapped in try-except by parent)
         def on_personalization_save(data):
             # Store the personalization data temporarily, and store timezone separately
             tz = data.pop('timezone', None)

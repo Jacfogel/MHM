@@ -24,6 +24,7 @@ class DiscordWebhookHandler(BaseHTTPRequestHandler):
     
     bot_instance = None  # Will be set by WebhookServer
     
+    @handle_errors("logging webhook message", default_return=None)
     def log_message(self, format, *args):
         """Override to use our logger instead of stderr"""
         logger.debug(f"Webhook {format % args}")
@@ -154,6 +155,7 @@ class DiscordWebhookHandler(BaseHTTPRequestHandler):
             self.send_response(500)
             self.end_headers()
     
+    @handle_errors("handling GET request", default_return=None)
     def do_GET(self):
         """Handle GET requests (health check)"""
         self.send_response(200)
@@ -161,6 +163,7 @@ class DiscordWebhookHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(b'Discord Webhook Server - OK')
     
+    @handle_errors("handling OPTIONS request", default_return=None)
     def do_OPTIONS(self):
         """Handle OPTIONS requests (CORS preflight)"""
         self.send_response(200)
@@ -173,6 +176,7 @@ class DiscordWebhookHandler(BaseHTTPRequestHandler):
 class WebhookServer:
     """HTTP server for receiving Discord webhook events"""
     
+    @handle_errors("initializing webhook server", default_return=None)
     def __init__(self, port: int = 8080, bot_instance=None):
         """
         Initialize webhook server.

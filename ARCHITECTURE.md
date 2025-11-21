@@ -4,14 +4,16 @@
 > **Audience**: Human developers building or maintaining the platform  
 > **Purpose**: Explain system design, module responsibilities, and data flow  
 > **Style**: Technical, detailed, reference-oriented  
+> **Pair**: `ai_development_docs/AI_ARCHITECTURE.md`
+> This document is paired with `ai_development_docs/AI_ARCHITECTURE.md` and any changes must consider both docs.
 > **Last Updated**: 2025-11-19
 
 See `README.md` for navigation and project overview.  
-See section 2. Configuration and .env in `DEVELOPMENT_WORKFLOW.md` for environment setup.  
+See section 2. "Virtual Environment Best Practices" in `DEVELOPMENT_WORKFLOW.md` and section 1. "Quick Start (Recommended)" in `HOW_TO_RUN.md` for environment setup and running the app.
 For supporting details on logging, testing, and error handling, see:
 
 - Section 2. Logging Architecture in `logs/LOGGING_GUIDE.md`  
-- Section 2. Test Layout and Discovery in `tests/TESTING_GUIDE.md`  
+- Section 2. "Test Layout and Types" in `tests/TESTING_GUIDE.md`  
 - Section 2. Architecture Overview in `core/ERROR_HANDLING_GUIDE.md`  
 
 ---
@@ -22,7 +24,7 @@ This section describes the top-level directories. It should match the actual pro
 
 - `ai/`  
   AI integration modules, including optional LM Studio integration and local helpers for
-  context building or summarization. See section 1. Overview in `ai/AI_SYSTEM_GUIDE.md`
+  context building or summarization. See the "Overview" section in `SYSTEM_AI_GUIDE.md`
   if present.
 
 - `ai_development_docs/`  
@@ -70,7 +72,7 @@ This section describes the top-level directories. It should match the actual pro
 - `tests/`  
   Unit, integration, behavior, and UI tests plus fixtures. Test-only data lives under
   `tests/data/`. Logs from test runs may be collected under `tests/logs/`. See section 2.
-  Test Layout and Discovery and section 3. Test Types and Structure in `tests/TESTING_GUIDE.md`.
+  section 2. "Test Layout and Types" and section 3. "Fixtures, Utilities, and Safety" in `tests/TESTING_GUIDE.md`.
 
 - `ui/`  
   PySide6 admin application:
@@ -134,8 +136,8 @@ Important rules:
    Describe what they are for, how they are written, and which module owns them.
 
 For more validation and schema details, see the relevant models and helpers in
-`core/user_data_validation.py` and the sections on data validation in section 4.
-Test Utilities and Infrastructure in `tests/TESTING_GUIDE.md`.
+For more validation and schema details, see the relevant models and helpers in
+`core/user_data_validation.py` and section 3. "Fixtures, Utilities, and Safety" in `tests/TESTING_GUIDE.md`.
 
 ### 2.1. User Data Flow Diagram
 
@@ -244,15 +246,15 @@ Data handling in MHM is designed around safety and clarity.
 
 - Legacy compatibility and migration  
   - When you need to support an old on-disk format, add a clearly marked legacy path.  
-  - Use the legacy compatibility logging pattern described in section 7.
-    Legacy Compatibility Logging Standard in `logs/LOGGING_GUIDE.md`.
+  - Use the legacy compatibility logging pattern described in section 7. "Legacy Compatibility Logging Standard" in `logs/LOGGING_GUIDE.md`.
 
 When adding new data or changing existing structures:
 
 1. Decide whether the data is per-user or global.  
 2. Decide whether it belongs under `data/users/` or `resources/`. Only use `user/` for
    instance-level configuration that truly applies to the whole installation.  
-3. Add validation logic and tests (see section 10. Writing and Extending Tests in
+3. Add validation logic and tests (see section 6. "Writing and Extending Tests" in
+   `tests/TESTING_GUIDE.md`).  
    `tests/TESTING_GUIDE.md`).  
 4. Document the new files here and in any relevant guides.
 
@@ -314,7 +316,6 @@ listing of every file.
 
 When making changes, prefer updating one layer at a time and keep clear boundaries between
 core logic, UI, and channels. For test strategy around these modules, see section 3.
-Test Types and Structure in `tests/TESTING_GUIDE.md`.
 
 ---
 
@@ -361,8 +362,7 @@ The goal is that when you see a dialog in the UI, you can easily find:
 3. The implementation that attaches behavior.
 
 If you add new dialogs or widgets, follow the same pattern. Only update this section if you
-introduce a new convention. For UI testing and manual QA, see section 9. Manual Testing
-Procedures in `tests/TESTING_GUIDE.md`.
+introduce a new convention. For UI testing and manual QA, see section 8. "Manual and Channel-Specific Testing Overview" in `tests/TESTING_GUIDE.md`.
 
 ---
 
@@ -408,4 +408,4 @@ differences between Discord, email, and the UI.
 - Learn by small steps.  
   The architecture is built to support safe, incremental changes. Make one change at a time,
   observe its impact, and use logging and tests to confirm behavior. For overall development
-  process, see section 2. Standards and Templates in `DEVELOPMENT_WORKFLOW.md`.
+  process, see section 2. "Standards and Templates" in `DOCUMENTATION_GUIDE.md`.

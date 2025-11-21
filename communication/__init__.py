@@ -36,6 +36,7 @@ from .core.retry_manager import RetryManager, QueuedMessage
 # Core exceptions (low usage)
 from .core.channel_orchestrator import BotInitializationError, MessageSendError
 # Core channel monitor (low usage, lazy import due to circular dependencies)
+# ERROR_HANDLING_EXCLUDE: Special Python method for dynamic attribute access
 def __getattr__(name: str):
     """Lazy import handler for items with circular dependencies.
     

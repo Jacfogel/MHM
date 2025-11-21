@@ -136,7 +136,7 @@ pip install -r requirements.txt
 **A**: Check for Python processes: `Get-Process python | Where-Object {$_.CommandLine -like "*service.py*"}`
 
 **Q: Where are my logs stored?**
-**A**: Logs are stored in the `logs/` directory. The main application log is `logs/app.log`, with component-specific logs like `logs/discord.log`, `logs/ai.log`, `logs/errors.log`, etc. See `logs/LOGGING_GUIDE.md` for details.
+**A**: Logs are stored in the `logs/` directory. The main application log is `logs/app.log`, with component-specific logs like `logs/discord.log`, `logs/ai.log`, `logs/errors.log`, etc. See section 4. "Component Log Files and Layout" in `logs/LOGGING_GUIDE.md` for details.
 
 **Q: Why do I see two Python processes when running the app on Windows?**
 **A**: This is normal Windows behavior. Windows launches both your script and the underlying interpreter. The process running your actual code is the one that matters; the system Python is a harmless artifact.

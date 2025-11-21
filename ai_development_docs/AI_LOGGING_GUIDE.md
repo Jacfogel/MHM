@@ -156,7 +156,7 @@ High-level rules:
 - Always use component loggers (via `get_component_logger`) in new code.  
 - Log structured context (key-value pairs) instead of concatenated strings where useful.  
 - Never log secrets, tokens, or PHI/PII.  
-- Make log messages line up with error categories from `core/ERROR_HANDLING_GUIDE.md`.  
+- Make log messages line up with error categories from section 4. "Error Categories and Severity" in `core/ERROR_HANDLING_GUIDE.md`.  
 - Respect testing flags (`MHM_TESTING`, `TEST_VERBOSE_LOGS`) and don’t force real log paths during tests.  
 
 Cross-doc routing:

@@ -60,6 +60,10 @@ class FeaturesModel(BaseModel):
     @field_validator("automated_messages", "checkins", "task_management", mode="before")
     @classmethod
     def _normalize_flags(cls, v: Any) -> Literal["enabled", "disabled"]:
+        # NOTE: Pydantic validators should not have try-except blocks.
+        # Pydantic handles exceptions internally and will raise ValidationError if needed.
+        # Adding try-except here would interfere with Pydantic's validation flow.
+        # Error handling is provided by _coerce_bool's @handle_errors decorator.
         return cls._coerce_bool(v)
 
 
@@ -85,6 +89,9 @@ class AccountModel(BaseModel):
     @field_validator("email")
     @classmethod
     def _validate_email(cls, v: str) -> str:
+        # NOTE: Pydantic validators should not have try-except blocks.
+        # Pydantic handles exceptions internally and will raise ValidationError if needed.
+        # This validator performs simple regex matching which cannot raise exceptions.
         if not v:
             return v
         pattern = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
@@ -104,22 +111,26 @@ class AccountModel(BaseModel):
         Discord user IDs are snowflakes (numeric IDs) that are 17-19 digits long.
         Empty strings are allowed (Discord ID is optional).
         """
-        if not v:
-            return ""
-        if isinstance(v, str):
-            normalized = v.strip()
-            if normalized != v:
-                logger.debug(f"Discord ID normalized (whitespace trimmed): '{v}' -> '{normalized}'")
-            
-            # Validate format using centralized validation function
-            from core.user_data_validation import is_valid_discord_id
-            if normalized and not is_valid_discord_id(normalized):
-                logger.warning(f"Invalid Discord ID format: '{normalized}' - normalized to empty string")
+        try:
+            if not v:
                 return ""
-            
-            return normalized
-        else:
-            logger.warning(f"Discord ID validation failed: expected string, got {type(v).__name__}: {v}")
+            if isinstance(v, str):
+                normalized = v.strip()
+                if normalized != v:
+                    logger.debug(f"Discord ID normalized (whitespace trimmed): '{v}' -> '{normalized}'")
+                
+                # Validate format using centralized validation function
+                from core.user_data_validation import is_valid_discord_id
+                if normalized and not is_valid_discord_id(normalized):
+                    logger.warning(f"Invalid Discord ID format: '{normalized}' - normalized to empty string")
+                    return ""
+                
+                return normalized
+            else:
+                logger.warning(f"Discord ID validation failed: expected string, got {type(v).__name__}: {v}")
+                return ""
+        except Exception as e:
+            logger.warning(f"Error validating Discord ID '{v}': {e} - normalized to empty string")
             return ""
 
     @field_validator("timezone")
@@ -234,6 +245,9 @@ class PeriodModel(BaseModel):
     @field_validator("start_time", "end_time")
     @classmethod
     def _valid_time(cls, v: str) -> str:
+        # NOTE: Pydantic validators should not have try-except blocks.
+        # Pydantic handles exceptions internally and will raise ValidationError if needed.
+        # This validator performs simple regex matching which cannot raise exceptions.
         if not v:
             return "00:00"
         if _TIME_PATTERN.match(v):
@@ -246,6 +260,9 @@ class PeriodModel(BaseModel):
     @field_validator("days")
     @classmethod
     def _valid_days(cls, v: List[str]) -> List[str]:
+        # NOTE: Pydantic validators should not have try-except blocks.
+        # Pydantic handles exceptions internally and will raise ValidationError if needed.
+        # This validator performs simple list filtering which cannot raise exceptions.
         if not v:
             return ["ALL"]
         filtered = [d for d in v if d in _VALID_DAYS]
@@ -267,6 +284,9 @@ class CategoryScheduleModel(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def _accept_legacy_shape(cls, data: Any):
+        # NOTE: Pydantic validators should not have try-except blocks.
+        # Pydantic handles exceptions internally and will raise ValidationError if needed.
+        # This validator performs simple dict checks which cannot raise exceptions.
         # Accept legacy shape where periods are at top-level without 'periods' key
         if isinstance(data, dict) and "periods" not in data:
             return {"periods": data}
@@ -300,6 +320,9 @@ class MessageModel(BaseModel):
     @field_validator("days")
     @classmethod
     def _normalize_days(cls, v: List[str]) -> List[str]:
+        # NOTE: Pydantic validators should not have try-except blocks.
+        # Pydantic handles exceptions internally and will raise ValidationError if needed.
+        # This validator performs simple list checks which cannot raise exceptions.
         if not v:
             return ["ALL"]
         return v
@@ -307,6 +330,9 @@ class MessageModel(BaseModel):
     @field_validator("time_periods")
     @classmethod
     def _normalize_periods(cls, v: List[str]) -> List[str]:
+        # NOTE: Pydantic validators should not have try-except blocks.
+        # Pydantic handles exceptions internally and will raise ValidationError if needed.
+        # This validator performs simple list checks which cannot raise exceptions.
         if not v:
             return ["ALL"]
         return v

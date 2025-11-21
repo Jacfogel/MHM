@@ -27,6 +27,7 @@ logger = context_logger
 class UserContextManager:
     """Manages rich user context for AI conversations."""
     
+    # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
     def __init__(self):
         """
         Initialize the UserContextManager.

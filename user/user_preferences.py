@@ -41,6 +41,7 @@ class UserPreferences:
         # Both changes saved automatically
     """
     
+    # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
     def __init__(self, user_id):
         """
         Initialize UserPreferences for a specific user.

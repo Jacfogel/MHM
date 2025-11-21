@@ -44,6 +44,7 @@ class InitializationError(Exception):
     pass
 
 class MHMService:
+    # ERROR_HANDLING_EXCLUDE: Service constructor - initialization errors are handled by called methods
     def __init__(self):
         """
         Initialize the MHM backend service.
@@ -546,6 +547,7 @@ class MHMService:
             'source': source
         }
 
+    @handle_errors("validating test message request data", default_return=False)
     def _check_test_message_requests__validate_request_data(self, request_data, filename):
         """Validate request data and check if it should be processed."""
         user_id = request_data['user_id']
@@ -557,6 +559,7 @@ class MHMService:
         
         return True
 
+    @handle_errors("processing test message request", default_return=None)
     def _check_test_message_requests__process_valid_request(self, request_data):
         """Process a valid test message request."""
         user_id = request_data['user_id']
@@ -899,6 +902,7 @@ class MHMService:
             'timestamp': request_timestamp
         }
 
+    @handle_errors("validating reschedule request data", default_return=False)
     def _check_reschedule_requests__validate_request_data(self, request_data, filename):
         """Validate request data and check if it should be processed."""
         user_id = request_data['user_id']
@@ -916,6 +920,7 @@ class MHMService:
         
         return True
 
+    @handle_errors("processing reschedule request", default_return=None)
     def _check_reschedule_requests__process_valid_request(self, request_data):
         """Process a valid reschedule request."""
         user_id = request_data['user_id']

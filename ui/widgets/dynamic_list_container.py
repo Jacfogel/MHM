@@ -284,6 +284,7 @@ class DynamicListContainer(QWidget):
             logger.error(f"Error handling preset toggle in dynamic list container: {e}")
             raise
 
+    # ERROR_HANDLING_EXCLUDE: Simple post-initialization method
     def __post_init__(self):
         """Post-initialization setup."""
         self.installEventFilter(self)

@@ -7,7 +7,7 @@
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_EXPANSION_PLAN.md](development_docs/TEST_COVERAGE_EXPANSION_PLAN.md) for testing strategy**
-## ?? How to Add New TODOs
+## How to Add New TODOs
 
 When adding new tasks, follow this format:
 
@@ -23,7 +23,7 @@ When adding new tasks, follow this format:
 - Group tasks by priority (High/Medium/Low sections)
 - Use clear, action-oriented titles
 - Include estimated effort to help with planning
-- Add status indicators (?? **IN PROGRESS**) when relevant
+- Add status indicators (**IN PROGRESS**) when relevant
 - Don't include priority field since tasks are already grouped by priority
 - **TODO.md is for TODOs only** - completed tasks should be documented in CHANGELOG files and removed from TODO.md
 
@@ -41,29 +41,6 @@ When adding new tasks, follow this format:
 - *Why it helps*: Ensures test suite health and prevents warnings from masking real issues
 - *Estimated effort*: Small
 
-
-**Continue Error Handling Quality Improvements** (Optional)
-- *What it means*: Continue improving error handling quality by replacing basic try-except blocks with @handle_errors decorator and adding error handling to remaining functions where appropriate
-- *Why it helps*: Improves system robustness and reliability by protecting more functions against errors
-- *Estimated effort*: Medium
-- *Current Status*: [OK] **94.25% coverage achieved** (1,392 of 1,477 functions protected, 1,280 with @handle_errors decorator) - **93%+ target achieved on 2025-11-10**
-- *Remaining Work* (Optional):
-  - [ ] **Continue Expanding Beyond 94.25%** (if desired):
-    - [ ] Add error handling to remaining 85 functions where appropriate
-    - [ ] Note: Many remaining functions are constructors (`__init__`), Pydantic validators (cannot use decorator), logger methods (already in error handling system), or `__getattr__` methods
-    - [ ] Focus on UI modules and utility functions that would benefit from error handling
-  - [ ] **Replace Basic Try-Except Blocks**
-    - [ ] Replace remaining 103 basic try-except blocks with @handle_errors decorator
-    - [ ] Improve error handling quality from basic to excellent
-
-**Investigate and Update Direct Uses of error_handler.handle_error**
-- *What it means*: Investigate and probably update any direct use of `error_handler.handle_error(e, context, "operation")` throughout the codebase
-- *Why it helps*: Ensures consistent error handling patterns and may identify opportunities to use centralized error handling decorators or helpers instead
-- *Estimated effort*: Small/Medium
-- *Areas to investigate*:
-  - Review all direct calls to `error_handler.handle_error()` (found in `core/error_handling.py` and test files)
-  - Determine if these should use `@handle_errors` decorator or other centralized error handling patterns
-  - Update direct calls to use preferred error handling approach where appropriate
 
 **Pydantic Schema Adoption Follow-ups**
 - *What it means*: We added tolerant Pydantic models. Expand usage safely across other save/load paths.

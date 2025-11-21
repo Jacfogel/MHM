@@ -14,6 +14,7 @@ from .retry_manager import RetryManager, QueuedMessage
 # Note: CommunicationManager has circular dependencies, so it's imported lazily
 
 # Lazy import for ChannelFactory and ChannelMonitor to avoid circular dependencies
+# ERROR_HANDLING_EXCLUDE: Special Python method for dynamic attribute access
 def __getattr__(name: str):
     """Lazy import handler for items with circular dependencies.
     

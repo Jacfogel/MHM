@@ -17,6 +17,7 @@ dialog_logger = logger
 class TaskCrudDialog(QDialog):
     """Dialog for full CRUD operations on tasks."""
     
+    # ERROR_HANDLING_EXCLUDE: Dialog constructor - calls methods with error handling (setup_ui, setup_connections)
     def __init__(self, parent=None, user_id=None):
         """Initialize the task CRUD dialog."""
         super().__init__(parent)
@@ -32,6 +33,7 @@ class TaskCrudDialog(QDialog):
         self.setup_connections()
         self.load_data()
     
+    @handle_errors("setting up task CRUD UI", default_return=None)
     def setup_ui(self):
         """Setup the UI components."""
         # Setup table headers for active tasks
@@ -66,6 +68,7 @@ class TaskCrudDialog(QDialog):
                 header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)  # Category
                 header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)  # Completed
     
+    @handle_errors("setting up task CRUD connections", default_return=None)
     def setup_connections(self):
         """Setup signal connections."""
         # Active tasks buttons
@@ -196,6 +199,7 @@ class TaskCrudDialog(QDialog):
         except Exception as e:
             logger.error(f"Error updating statistics: {e}")
     
+    @handle_errors("getting selected task ID", default_return=None)
     def get_selected_task_id(self, table):
         """Get the task ID of the selected row in the given table."""
         current_row = table.currentRow()

@@ -305,6 +305,7 @@ C:.
 |   |   debug_file_paths.py
 |   |   flaky_test_report.md
 |   |   MANUAL_DISCORD_TEST_GUIDE.md
+|   |   MANUAL_TESTING_GUIDE.md
 |   |   TESTING_GUIDE.md
 |   |   test_error_handling_improvements.py
 |   |   test_isolation.py

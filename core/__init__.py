@@ -306,6 +306,7 @@ from .user_management import (
 # Scheduler exports - lazy import due to circular dependencies (medium usage)
 # Note: SchedulerManager and add_schedule_period have circular dependencies
 # Use lazy import pattern for these items
+# ERROR_HANDLING_EXCLUDE: Special Python method for dynamic attribute access
 def __getattr__(name: str):
     """Lazy import handler for items with circular dependencies"""
     if name == 'SchedulerManager':

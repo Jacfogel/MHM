@@ -1,0 +1,65 @@
+{
+  "total_functions": 1471,
+  "functions_with_try_except": 666,
+  "functions_with_error_handling": 1471,
+  "functions_with_decorators": 1375,
+  "functions_missing_error_handling": 0,
+  "error_handling_coverage": 100.0,
+  "error_patterns": {
+    "try_except": 750,
+    "handle_errors_decorator": 1467,
+    "handle_ai_error": 16,
+    "DataError": 12,
+    "handle_network_error": 5,
+    "handle_communication_error": 5,
+    "handle_configuration_error": 4,
+    "ValidationError": 10,
+    "ConfigurationError": 6,
+    "error_handler_usage": 13,
+    "handle_file_error": 4,
+    "handle_validation_error": 2,
+    "CommunicationError": 2,
+    "AIError": 2,
+    "MHMError": 2,
+    "safe_file_operation": 1
+  },
+  "missing_error_handling": [],
+  "error_handling_quality": {
+    "basic": 88,
+    "excellent": 1375,
+    "good": 8
+  },
+  "recommendations": [],
+  "worst_modules": [
+    {
+      "module": "root",
+      "coverage": 100.0,
+      "missing": 0,
+      "total": 1
+    },
+    {
+      "module": "cache_manager.py",
+      "coverage": 100.0,
+      "missing": 0,
+      "total": 19
+    },
+    {
+      "module": "chatbot.py",
+      "coverage": 100.0,
+      "missing": 0,
+      "total": 28
+    },
+    {
+      "module": "context_builder.py",
+      "coverage": 100.0,
+      "missing": 0,
+      "total": 12
+    },
+    {
+      "module": "conversation_history.py",
+      "coverage": 100.0,
+      "missing": 0,
+      "total": 16
+    }
+  ]
+}

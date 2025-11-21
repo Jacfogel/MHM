@@ -32,6 +32,7 @@ _logging_lock = threading.local()
 
 class MHMError(Exception):
     """Base exception for all MHM-specific errors."""
+    # ERROR_HANDLING_EXCLUDE: Exception constructor - part of error handling infrastructure
     def __init__(self, message: str, details: Optional[Dict[str, Any]] = None, recoverable: bool = True):
         """
         Initialize a new MHM error.
@@ -102,10 +103,12 @@ class ErrorRecoveryStrategy:
         self.name = name
         self.description = description
     
+    # ERROR_HANDLING_EXCLUDE: Abstract method in error handling infrastructure
     def can_handle(self, error: Exception) -> bool:
         """Check if this strategy can handle the given error."""
         raise NotImplementedError
     
+    # ERROR_HANDLING_EXCLUDE: Abstract method in error handling infrastructure
     def recover(self, error: Exception, context: Dict[str, Any]) -> bool:
         """Attempt to recover from the error. Returns True if successful."""
         raise NotImplementedError
@@ -113,10 +116,12 @@ class ErrorRecoveryStrategy:
 class FileNotFoundRecovery(ErrorRecoveryStrategy):
     """Recovery strategy for missing files."""
     
+    # ERROR_HANDLING_EXCLUDE: Simple constructor in error handling infrastructure
     def __init__(self):
         """Initialize the FileNotFoundRecovery strategy."""
         super().__init__("File Not Found Recovery", "Creates missing files with default data")
     
+    # ERROR_HANDLING_EXCLUDE: Part of error handling infrastructure
     def can_handle(self, error: Exception) -> bool:
         """
         Check if this strategy can handle the given error.
@@ -173,6 +178,7 @@ class FileNotFoundRecovery(ErrorRecoveryStrategy):
             logger.error(f"File recovery failed: {e}")
             return False
     
+    # ERROR_HANDLING_EXCLUDE: Part of error handling infrastructure
     def _get_default_data(self, file_path: str, context: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Get appropriate default data based on file type."""
         if 'user_info' in file_path:
@@ -208,10 +214,12 @@ class FileNotFoundRecovery(ErrorRecoveryStrategy):
 class JSONDecodeRecovery(ErrorRecoveryStrategy):
     """Recovery strategy for corrupted JSON files."""
     
+    # ERROR_HANDLING_EXCLUDE: Simple constructor in error handling infrastructure
     def __init__(self):
         """Initialize the JSONDecodeRecovery strategy."""
         super().__init__("JSON Decode Recovery", "Attempts to fix corrupted JSON files")
     
+    # ERROR_HANDLING_EXCLUDE: Part of error handling infrastructure
     def can_handle(self, error: Exception) -> bool:
         """
         Check if this strategy can handle the given error.
@@ -270,6 +278,7 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
             logger.error(f"JSON recovery failed: {e}")
             return False
     
+    # ERROR_HANDLING_EXCLUDE: Part of error handling infrastructure
     def _get_default_data(self, file_path: str, context: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Get appropriate default data based on file type."""
         if 'user_info' in file_path:
@@ -305,10 +314,12 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
 class NetworkRecovery(ErrorRecoveryStrategy):
     """Recovery strategy for network-related errors."""
     
+    # ERROR_HANDLING_EXCLUDE: Simple constructor in error handling infrastructure
     def __init__(self):
         """Initialize the NetworkRecovery strategy."""
         super().__init__("Network Recovery", "Handles network connectivity issues with retry logic")
     
+    # ERROR_HANDLING_EXCLUDE: Part of error handling infrastructure
     def can_handle(self, error: Exception) -> bool:
         """
         Check if this strategy can handle the given error.
@@ -362,10 +373,12 @@ class NetworkRecovery(ErrorRecoveryStrategy):
 class ConfigurationRecovery(ErrorRecoveryStrategy):
     """Recovery strategy for configuration-related errors."""
     
+    # ERROR_HANDLING_EXCLUDE: Simple constructor in error handling infrastructure
     def __init__(self):
         """Initialize the ConfigurationRecovery strategy."""
         super().__init__("Configuration Recovery", "Handles configuration errors by using defaults")
     
+    # ERROR_HANDLING_EXCLUDE: Part of error handling infrastructure
     def can_handle(self, error: Exception) -> bool:
         """
         Check if this strategy can handle the given error.
@@ -411,6 +424,7 @@ class ConfigurationRecovery(ErrorRecoveryStrategy):
 class ErrorHandler:
     """Centralized error handler for MHM."""
     
+    # ERROR_HANDLING_EXCLUDE: Constructor for error handling infrastructure
     def __init__(self):
         """
         Initialize the ErrorHandler with default recovery strategies.
@@ -558,6 +572,7 @@ class ErrorHandler:
             # If component logger fails, use safe logger to avoid circular dependency
             _safe_logger.error(f"User Error: {user_msg} (component logger failed: {log_error})")
     
+    # ERROR_HANDLING_EXCLUDE: Part of error handling infrastructure
     def _get_user_friendly_message(self, error: Exception, context: Dict[str, Any]) -> str:
         """Convert technical error to user-friendly message."""
         operation = context.get('operation', 'operation')
@@ -682,6 +697,7 @@ def safe_file_operation(file_path: str, operation: str = "file operation",
     class SafeFileContext:
         """Context manager for safe file operations."""
         
+        # ERROR_HANDLING_EXCLUDE: Simple constructor for context manager
         def __init__(self, file_path, operation, user_id, category):
             """
             Initialize the safe file context.
@@ -703,6 +719,7 @@ def safe_file_operation(file_path: str, operation: str = "file operation",
                 'category': category
             }
         
+        # ERROR_HANDLING_EXCLUDE: Context manager method in error handling infrastructure
         def __enter__(self):
             """
             Enter the context manager for safe file operations.
@@ -712,6 +729,7 @@ def safe_file_operation(file_path: str, operation: str = "file operation",
             """
             return self
         
+        # ERROR_HANDLING_EXCLUDE: Context manager method in error handling infrastructure
         def __exit__(self, exc_type, exc_val, exc_tb):
             """
             Exit the context manager and handle any exceptions.

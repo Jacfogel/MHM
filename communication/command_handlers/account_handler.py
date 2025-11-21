@@ -384,6 +384,8 @@ import time
 _pending_link_operations: Dict[str, Dict[str, Any]] = {}
 
 
+@handle_errors("generating confirmation code", default_return="000000")
+@handle_errors("generating confirmation code", default_return="000000")
 def _generate_confirmation_code() -> str:
     """Generate a 6-digit confirmation code"""
     return ''.join(secrets.choice(string.digits) for _ in range(6))

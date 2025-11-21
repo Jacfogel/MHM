@@ -24,6 +24,7 @@ def get_checkin_view(user_id: str) -> Optional['discord.ui.View']:
         discord.ui.View with buttons for check-in actions
     """
     class CheckinView(discord.ui.View):
+        # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
         def __init__(self, user_id: str):
             super().__init__(timeout=None)  # No timeout - buttons persist
             self.user_id = user_id

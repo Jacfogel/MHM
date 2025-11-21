@@ -300,8 +300,8 @@ class TestScheduleManagementBehavior:
             result = set_schedule_periods(user_id, category, new_periods)
         
         # Assert - Verify update was called with complete data structure
-        # Note: set_schedule_periods doesn't return anything (None)
-        assert result is None, "Function should return None (no return statement)"
+        # Note: set_schedule_periods returns True on success (for error handling verification)
+        assert result is True, "Function should return True on success"
         mock_update.assert_called()
         
         # Verify the saved data contains all periods
@@ -574,12 +574,12 @@ class TestScheduleManagementBehavior:
             with patch('core.user_data_handlers.update_user_schedules'):
                 # Test with empty periods
                 result = set_schedule_periods(user_id, category, {})
-                assert result is None, "Empty periods should be handled"
+                assert result is True, "Empty periods should be handled and return True on success"
                 
                 # Test with non-string period names (should be converted)
                 result = set_schedule_periods(user_id, category, {123: {"start_time": "08:00", "end_time": "12:00"}})
-                assert result is None, "Non-string period names should be converted"
+                assert result is True, "Non-string period names should be converted and return True on success"
                 
                 # Test with missing period data fields
                 result = set_schedule_periods(user_id, category, {"Test": {}})
-                assert result is None, "Missing period data should use defaults" 
+                assert result is True, "Missing period data should use defaults and return True on success" 

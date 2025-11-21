@@ -92,6 +92,43 @@ When suggesting new docs or edits:
 - Follow the patterns in "Standards and Templates" in `DOCUMENTATION_GUIDE.md`.  
 - Keep AI docs short and routing-focused; avoid re-explaining detailed content from the paired docs.
 
+### 2.2. Parent metadata (subordinate docs)
+
+Some docs are not part of a human/AI pair but are still subordinate to a higher-level document.  
+These use a `Parent` field in their metadata to guide AI behavior.
+
+Example:
+
+```markdown
+> **File**: `tests/MANUAL_TESTING_GUIDE.md`
+> **Audience**: Developers and AI assistants performing manual testing
+> **Purpose**: Canonical manual testing flows and checklists
+> **Style**: Checklist-first, concise but detailed
+> **Parent**: `tests/TESTING_GUIDE.md`
+> This document is subordinate to `tests/TESTING_GUIDE.md` and must remain consistent with its standards and terminology.
+```
+
+Rules for AI:
+
+Do not treat `Parent` like `Pair`:
+- No H2 lockstep requirement.
+- No need to mirror section structure.
+
+Before modifying a subordinate doc:
+- Read the parent doc first.
+- Use the parent to resolve terminology, standards, and safety constraints.
+
+If a change alters behavior or expectations defined in the parent:
+- Update both the parent doc and the subordinate doc, or
+- Clearly flag the divergence.
+
+Typical examples:
+- `tests/MANUAL_TESTING_GUIDE.md`
+  - `Parent`: `tests/TESTING_GUIDE.md`
+- `tests/MANUAL_DISCORD_TEST_GUIDE.md`
+  - `Parent`: `tests/MANUAL_TESTING_GUIDE.md`
+- `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`
+  - `Parent`: `tests/MANUAL_TESTING_GUIDE.md`
 
 ## 3. Documentation Synchronization Checklist
 

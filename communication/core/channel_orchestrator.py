@@ -1279,6 +1279,7 @@ class CommunicationManager:
                     except RuntimeError:
                         # No running event loop - view will be created lazily in Discord thread
                         # Pass a factory function instead
+                        @handle_errors("creating check-in view", default_return=None)
                         def create_view():
                             return get_checkin_view(user_id)
                         custom_view = create_view
@@ -1589,6 +1590,7 @@ class CommunicationManager:
                 except RuntimeError:
                     # No running event loop - view will be created lazily in Discord thread
                     # Pass a factory function instead
+                    @handle_errors("creating task reminder view", default_return=None)
                     def create_view():
                         return get_task_reminder_view(user_id, task_id, task_title)
                     custom_view = create_view

@@ -12,6 +12,106 @@
 
 ## [ACTIVE] **Current Active Plans**
 
+### **Error Handling Quality Improvement Plan** **PLANNING**
+
+**Status**: **PLANNING**  
+**Priority**: Medium  
+**Effort**: Medium  
+**Date**: 2025-11-20  
+**Last Updated**: 2025-11-20
+
+**Objective**: Improve error handling quality beyond 100% coverage by replacing basic try-except blocks with `@handle_errors` decorators, improving error categorization, enhancing error messages, and expanding recovery strategies. This will improve system robustness, consistency, and maintainability.
+
+**Current Status**: 
+- [x] **100% coverage achieved** (1,471 of 1,471 functions protected or appropriately excluded)
+- [x] 1,375 functions using `@handle_errors` decorator (excellent quality)
+- [x] 88 functions with basic try-except blocks (candidates for improvement)
+- [x] Function-level exclusion logic implemented in `error_handling_coverage.py`
+- [x] Exclusion comments added to 44 appropriate functions
+
+**Phase 1: Replace Basic Try-Except Blocks with Decorators** (Priority: High)
+- [ ] Identify and catalog all 88 basic try-except blocks
+- [ ] Prioritize candidates based on:
+  - Entry points (user-facing operations, file I/O, network calls)
+  - Functions that don't need custom recovery logic
+  - Functions that would benefit from automatic retry/recovery
+- [ ] Replace high-priority candidates (start with 10-15 functions as proof of concept)
+- [ ] Verify replacements maintain existing behavior and improve error logging
+- [ ] Continue replacing remaining candidates in batches
+- [ ] Update tests to verify decorator behavior where needed
+
+**Phase 2: Improve Error Categorization** (Priority: Medium)
+- [ ] Audit exception raising patterns across codebase
+- [ ] Replace generic `Exception` raises with specific `MHMError` subclasses:
+  - `DataError` for data validation/processing issues
+  - `FileOperationError` for file system problems
+  - `CommunicationError` for network/Discord/email issues
+  - `ConfigurationError` for configuration problems
+  - `ValidationError` for user input validation
+  - `AIError` for AI-related failures
+  - `SchedulerError` for scheduling issues
+- [ ] Update error handling to route specific exception types to appropriate recovery strategies
+- [ ] Add tests to verify proper exception categorization
+
+**Phase 3: Enhance Error Messages** (Priority: Medium, Ongoing)
+- [ ] Review user-facing error messages for clarity and actionability
+- [ ] Ensure user messages are:
+  - Short, clear, and non-technical
+  - Focused on what the user can do
+  - Free of stack traces, internal names, or sensitive data
+- [ ] Review log messages for completeness:
+  - Include component, operation, and relevant context (IDs, file paths)
+  - Never include secrets (tokens, passwords)
+  - Include exception details and stack traces in logs
+- [ ] Create guidelines document for error message patterns
+- [ ] Audit and improve error messages in batches
+
+**Phase 4: Expand Recovery Strategies** (Priority: Low)
+- [ ] Identify common error patterns that could benefit from automatic recovery
+- [ ] Evaluate adding recovery strategies for:
+  - Temporary file locks (retry with backoff)
+  - Rate limiting (Discord/email API throttling)
+  - Database connection issues (if database is added)
+  - Network timeouts (extend existing NetworkRecovery)
+- [ ] Implement new recovery strategies following existing patterns:
+  - Keep strategies idempotent and side-effect safe
+  - Test recovery behavior thoroughly
+  - Document recovery behavior in error handling guide
+- [ ] Integrate new strategies into `ErrorHandler`
+
+**Phase 5: Improve Context Information** (Priority: Low, Ongoing)
+- [ ] Audit error handling context payloads for completeness
+- [ ] Ensure context includes:
+  - User IDs in user operations
+  - File paths in file operations
+  - Descriptive, stable operation names
+  - Component information for log routing
+- [ ] Standardize context payload structure across modules
+- [ ] Update error handling guide with context best practices
+
+**Phase 6: Investigate Direct error_handler.handle_error Calls** (Priority: Low)
+- [ ] Review all direct calls to `error_handler.handle_error()` (found in `core/error_handling.py` and test files)
+- [ ] Determine if these should use `@handle_errors` decorator or other centralized patterns
+- [ ] Update direct calls to use preferred error handling approach where appropriate
+- [ ] Document when direct calls are appropriate vs. decorators
+
+**Success Criteria**:
+- [ ] At least 50% of basic try-except blocks replaced with decorators (44+ functions)
+- [ ] All new exception raises use appropriate `MHMError` subclasses
+- [ ] Error messages reviewed and improved in high-traffic modules
+- [ ] At least 2 new recovery strategies added (if applicable)
+- [ ] Context information standardized across modules
+- [ ] All tests pass after changes
+- [ ] Error handling quality distribution shows improvement (more "excellent", fewer "basic")
+
+**Notes**:
+- Coverage is already at 100%, so this plan focuses on quality improvements
+- Start with Phase 1 (replacing try-except blocks) as it provides the most immediate value
+- Phases 2-6 can be done incrementally and don't need to be completed in strict order
+- Use `error_handling_coverage.py` to track progress and measure quality improvements
+- Keep changes small and well-tested - verify behavior after each batch of replacements
+- Reference `core/ERROR_HANDLING_GUIDE.md` and `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` for patterns and best practices
+
 ### **AI Chatbot Actionability Sprint** **IN PROGRESS**
 
 **Status**: **IN PROGRESS**  

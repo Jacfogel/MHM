@@ -16,6 +16,7 @@ CATEGORY_KEYS = [
 ]
 
 class CategorySelectionWidget(QWidget):
+    # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets up UI
     def __init__(self, parent=None):
         """Initialize the object."""
         super().__init__(parent)

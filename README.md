@@ -3,6 +3,7 @@
 > **File**: `README.md`
 > **Audience**: Human developer (beginner-friendly)
 > **Purpose**: High-level overview, navigation, and quick start
+> **Style**: Beginner-friendly overview and navigation
 
 MHM is a personal mental health assistant designed first for a single user and their real life.
 It sends scheduled motivational and health reminders, helps with basic mood/health tracking, and keeps
