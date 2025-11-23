@@ -88,7 +88,7 @@ Key environment flags (refer to config and human logging guide for full list):
 - `LOGS_DIR`, `LOG_BACKUP_DIR`, `LOG_ARCHIVE_DIR` – directories for active, backup, and archived logs.  
 - `LOG_MAIN_FILE`, `LOG_ERRORS_FILE`, `LOG_AI_FILE`, etc. – per-component file paths.  
 - `MHM_TESTING` – switches logging into test mode (for example, `tests/logs`).  
-- `TEST_VERBOSE_LOGS` – when `1`, enables detailed component logs during tests.
+- `TEST_VERBOSE_LOGS` – controls test logging verbosity: `0` (quiet, component WARNING/test WARNING), `1` (medium, component WARNING/test INFO - focuses on test execution without component chatter), `2` (verbose, component DEBUG/test DEBUG).
 
 Do not introduce new logging environment variables without updating:
 

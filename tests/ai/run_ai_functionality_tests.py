@@ -113,8 +113,14 @@ def setup_consolidated_ai_test_logging():
                 logger_obj.addHandler(component_handler)
                 logger_obj.propagate = False
             else:
-                # Test execution loggers use DEBUG if verbose, WARNING otherwise
-                level = logging.DEBUG if os.getenv("TEST_VERBOSE_LOGS", "0") == "1" else logging.WARNING
+                # Test execution loggers: 0=WARNING, 1=INFO, 2=DEBUG
+                verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
+                if verbose_logs == "2":
+                    level = logging.DEBUG
+                elif verbose_logs == "1":
+                    level = logging.INFO
+                else:
+                    level = logging.WARNING
                 logger_obj.setLevel(level)
                 logger_obj.addHandler(test_handler)
                 logger_obj.propagate = True

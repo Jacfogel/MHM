@@ -479,6 +479,24 @@ class TestUserFactory:
             # Use helper function to create files
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
             
+            # CRITICAL: For Discord users, we need to update the index with all mappings (username + Discord ID)
+            # Use the full update_user_index function which reads account.json and adds all identifier mappings
+            from core.user_data_manager import update_user_index
+            import time
+            max_retries = 5
+            retry_delay = 0.1
+            for attempt in range(max_retries):
+                success = update_user_index(actual_user_id)
+                if success:
+                    # Verify the Discord ID mapping was added
+                    from core.user_management import get_user_id_by_identifier
+                    time.sleep(0.1)  # Small delay to ensure index file is written
+                    found_user_id = get_user_id_by_identifier(f"discord:{discord_user_id}")
+                    if found_user_id == actual_user_id:
+                        break
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+            
             # Verify user creation with proper configuration patching
             return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
@@ -2361,6 +2379,9 @@ class TestUserFactory:
     @staticmethod
     def create_basic_user__verify_creation(user_id: str, actual_user_id: str, test_data_dir: str) -> bool:
         """Helper function to verify user creation with proper configuration patching"""
+        # CRITICAL: Update user index FIRST so get_user_id_by_identifier can find the user
+        TestUserFactory.create_basic_user__update_index(test_data_dir, user_id, actual_user_id)
+        
         # CRITICAL FIX: Patch the configuration to use the test data directory
         # This ensures that system functions can find the created users
         from unittest.mock import patch

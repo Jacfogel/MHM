@@ -214,7 +214,13 @@ class ComponentLogger:
                 self.logger.addHandler(consolidated_handler)
                 
                 # Set appropriate log level
-                level = logging.DEBUG if os.getenv("TEST_VERBOSE_LOGS", "0") == "1" else logging.WARNING
+                # TEST_VERBOSE_LOGS: 0=WARNING, 1=WARNING (quiet - focus on test execution), 2=DEBUG
+                # Level 1 keeps component loggers quiet to avoid excessive logging during tests
+                verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
+                if verbose_logs == "2":
+                    level = logging.DEBUG
+                else:
+                    level = logging.WARNING  # Levels 0 and 1: Only warnings and errors from components
                 self.logger.setLevel(level)
                 self.logger.propagate = False
                 
@@ -267,9 +273,10 @@ class ComponentLogger:
         # Also add a dedicated errors handler so ERROR/CRITICAL messages go to errors log
         try:
             errors_formatter = formatter
-            # In test verbose mode, route errors to tests/logs as well to avoid writing to real logs
+            # In test verbose mode (level 1 or 2), route errors to tests/logs as well to avoid writing to real logs
             errors_log_path = log_paths['errors_file']
-            if os.getenv('MHM_TESTING') == '1' and os.getenv('TEST_VERBOSE_LOGS') == '1':
+            verbose_logs = os.getenv('TEST_VERBOSE_LOGS', '0')
+            if os.getenv('MHM_TESTING') == '1' and verbose_logs in ('1', '2'):
                 # Use configurable test logs directory
                 tests_logs_dir = log_paths['base_dir'] or os.getenv('TEST_LOGS_DIR', str(Path('tests') / 'logs'))
                 try:
@@ -278,7 +285,7 @@ class ComponentLogger:
                 except Exception:
                     pass
             errors_backup_dir = log_paths['backup_dir']
-            if os.getenv('MHM_TESTING') == '1' and os.getenv('TEST_VERBOSE_LOGS') == '1':
+            if os.getenv('MHM_TESTING') == '1' and verbose_logs in ('1', '2'):
                 # Use configurable test logs directory
                 tests_logs_dir = log_paths['base_dir'] or os.getenv('TEST_LOGS_DIR', str(Path('tests') / 'logs'))
                 errors_backup_dir = str(Path(tests_logs_dir) / 'backups')
@@ -733,8 +740,10 @@ def get_component_logger(component_name: str) -> ComponentLogger:
         component_name = 'main'
     
     # Testing mode: optionally enable verbose per-component logs under tests/logs
+    # TEST_VERBOSE_LOGS: 0=disabled, 1=INFO level, 2=DEBUG level
     if os.getenv('MHM_TESTING') == '1':
-        if os.getenv('TEST_VERBOSE_LOGS') == '1':
+        verbose_logs = os.getenv('TEST_VERBOSE_LOGS', '0')
+        if verbose_logs in ('1', '2'):
             try:
                 # Use configurable test logs directory
                 tests_logs_dir = os.getenv('LOGS_DIR') or os.getenv('TEST_LOGS_DIR', str(Path('tests') / 'logs'))

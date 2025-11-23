@@ -389,3 +389,6 @@ For related topics:
 
 - Development workflow and emergency procedures  
   - See section 6. "Emergency Procedures" in `DEVELOPMENT_WORKFLOW.md`.
+
+- AI system behavior and LM Studio fallbacks  
+  - See `SYSTEM_AI_GUIDE.md`.

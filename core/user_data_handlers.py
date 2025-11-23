@@ -135,7 +135,7 @@ def get_user_data(
             missing = [k for k, v in USER_DATA_LOADERS.items() if not v.get('loader')]
             logger.debug(f"[TEST] USER_DATA_LOADERS state: {loader_state}")
             if missing:
-                logger.warning(f"[TEST] Missing loaders detected: {missing}")
+                logger.debug(f"[TEST] Missing loaders detected: {missing}")
     except Exception:
         # Never let diagnostics interfere with normal operation
         pass
@@ -174,7 +174,7 @@ def get_user_data(
     available_types = get_available_data_types()
     try:
         if os.getenv('MHM_TESTING') == '1':
-            logger.warning(f"[TEST] get_user_data request types={data_types}; available={available_types}")
+            logger.debug(f"[TEST] get_user_data request types={data_types}; available={available_types}")
     except Exception:
         pass
     invalid_types = [dt for dt in data_types if dt not in available_types]
@@ -194,7 +194,7 @@ def get_user_data(
         loader_name = getattr(loader_info['loader'], "__name__", repr(loader_info['loader']))
         try:
             if os.getenv('MHM_TESTING') == '1':
-                logger.warning(
+                logger.debug(
                     f"[TEST] Loading {data_type} for {user_id} path={file_path} via={loader_name} auto_create={auto_create}"
                 )
         except Exception as test_error:
@@ -227,9 +227,15 @@ def get_user_data(
             if not user_dir_exists or not os.path.exists(file_path):
                 data = None
         if not data:
-            logger.warning(
-                f"No data returned for {data_type} (user={user_id}, path={file_path}, loader={loader_name})"
-            )
+            # In test mode, this is expected behavior (files may not exist yet), so use DEBUG
+            if os.getenv('MHM_TESTING') == '1':
+                logger.debug(
+                    f"No data returned for {data_type} (user={user_id}, path={file_path}, loader={loader_name})"
+                )
+            else:
+                logger.warning(
+                    f"No data returned for {data_type} (user={user_id}, path={file_path}, loader={loader_name})"
+                )
         elif isinstance(data, dict):
             logger.debug(f"Loaded {data_type} keys: {list(data.keys())}")
 

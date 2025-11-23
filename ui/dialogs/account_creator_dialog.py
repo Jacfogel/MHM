@@ -801,8 +801,40 @@ class AccountCreatorDialog(QDialog):
             from core.file_operations import create_user_files
             create_user_files(user_id, account_data['categories'], user_preferences)
             
+            # CRITICAL: Ensure files are fully written before proceeding
+            # This prevents race conditions in parallel test execution
+            import time
+            from core.user_data_handlers import get_user_data
+            from pathlib import Path
+            from core.config import get_user_data_dir
+            
+            # Wait for account.json to be readable with retries (up to 500ms total)
+            account_file = Path(get_user_data_dir(user_id)) / 'account.json'
+            preferences_file = Path(get_user_data_dir(user_id)) / 'preferences.json'
+            max_wait_attempts = 10
+            wait_delay = 0.05  # 50ms between attempts
+            for attempt in range(max_wait_attempts):
+                try:
+                    if account_file.exists() and preferences_file.exists():
+                        # Try to read both files to ensure they're fully written
+                        test_account = get_user_data(user_id, 'account')
+                        test_prefs = get_user_data(user_id, 'preferences')
+                        if (test_account and test_account.get('account', {}).get('internal_username') and
+                            test_prefs and test_prefs.get('preferences')):
+                            break
+                except Exception:
+                    pass  # Files might not be ready yet
+                
+                if attempt < max_wait_attempts - 1:
+                    time.sleep(wait_delay)
+            
             # Set up additional components
             self._validate_and_accept__setup_task_tags(user_id, account_data)
+            
+            # CRITICAL: Small delay after setting up tags to ensure preferences are saved before index update
+            # This prevents race conditions where update_user_index might read stale preferences
+            time.sleep(0.1)  # 100ms delay
+            
             self._validate_and_accept__update_user_index(user_id)
             self._validate_and_accept__schedule_new_user(user_id)
             
@@ -913,7 +945,72 @@ class AccountCreatorDialog(QDialog):
         """Update user index for the new user."""
         try:
             from core.user_data_manager import update_user_index
-            update_user_index(user_id)
+            from core.user_management import get_user_id_by_identifier
+            from core.user_data_handlers import get_user_data
+            import time
+            
+            # Retry up to 5 times with delays to handle race conditions
+            max_retries = 5
+            retry_delay = 0.1  # 100ms between attempts
+            
+            for attempt in range(max_retries):
+                try:
+                    # First, ensure account.json is readable
+                    test_data = get_user_data(user_id, 'account')
+                    if not test_data or not test_data.get('account', {}).get('internal_username'):
+                        # Account not ready yet, wait and retry
+                        if attempt < max_retries - 1:
+                            time.sleep(retry_delay)
+                            continue
+                        else:
+                            logger.warning(f"Account data not ready for user {user_id} after {max_retries} attempts")
+                            return
+                    
+                    # Update the index
+                    success = update_user_index(user_id)
+                    if not success:
+                        if attempt < max_retries - 1:
+                            time.sleep(retry_delay)
+                            continue
+                        else:
+                            logger.warning(f"Failed to update user index for user {user_id} after {max_retries} attempts")
+                            return
+                    
+                    # Verify the update succeeded by checking if we can find the user by identifier
+                    internal_username = test_data.get('account', {}).get('internal_username')
+                    if internal_username:
+                        # Small delay to ensure index file is written and flushed
+                        time.sleep(0.2)  # Increased from 0.1s to 0.2s for better reliability
+                        # Try to find the user by internal_username with retries
+                        found_user_id = None
+                        for verify_attempt in range(3):
+                            found_user_id = get_user_id_by_identifier(internal_username)
+                            if found_user_id == user_id:
+                                # Success! Index is updated correctly
+                                # One more small delay to ensure file is fully readable by other processes
+                                time.sleep(0.1)
+                                break
+                            elif verify_attempt < 2:
+                                time.sleep(0.1)
+                        
+                        if found_user_id == user_id:
+                            # Success! Index is updated correctly
+                            break
+                        elif attempt < max_retries - 1:
+                            # Index not updated yet, retry
+                            time.sleep(retry_delay)
+                            continue
+                        else:
+                            logger.warning(f"User index not updated correctly for user {user_id} (internal_username: {internal_username}) after {max_retries} attempts")
+                    else:
+                        # No internal_username, can't verify
+                        break
+                except Exception as retry_error:
+                    if attempt < max_retries - 1:
+                        time.sleep(retry_delay * (attempt + 1))  # Increasing delay
+                        continue
+                    else:
+                        logger.warning(f"Error updating user index for user {user_id} after {max_retries} attempts: {retry_error}")
         except Exception as e:
             logger.warning(f"Failed to update user index for new user {user_id}: {e}")
     

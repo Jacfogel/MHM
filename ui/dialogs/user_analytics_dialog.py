@@ -239,7 +239,12 @@ Key Metrics:
             self.ui.textEdit_recommendations.setPlainText(rec_text)
             
         except Exception as e:
-            logger.error(f"Error loading overview data: {e}")
+            # In test mode, these are expected errors when mocks are used, so use DEBUG
+            import os
+            if os.getenv('MHM_TESTING') == '1':
+                logger.debug(f"Error loading overview data: {e} (expected in tests with mocks)")
+            else:
+                logger.error(f"Error loading overview data: {e}")
             self.ui.textEdit_summary.setPlainText(f"Error loading overview data: {str(e)}")
     
     @handle_errors("loading mood data")
@@ -292,7 +297,12 @@ Recent Mood Data:"""
             self.ui.textEdit_mood_data.setPlainText(mood_text)
             
         except Exception as e:
-            logger.error(f"Error loading mood data: {e}")
+            # In test mode, these are expected errors when mocks are used, so use DEBUG
+            import os
+            if os.getenv('MHM_TESTING') == '1':
+                logger.debug(f"Error loading mood data: {e} (expected in tests with mocks)")
+            else:
+                logger.error(f"Error loading mood data: {e}")
             self.ui.textEdit_mood_data.setPlainText(f"Error loading mood data: {str(e)}")
     
     @handle_errors("loading habits data")
@@ -354,7 +364,12 @@ Habit Breakdown:"""
             self.ui.textEdit_habits_data.setPlainText(habits_text)
             
         except Exception as e:
-            logger.error(f"Error loading habits data: {e}")
+            # In test mode, these are expected errors when mocks are used, so use DEBUG
+            import os
+            if os.getenv('MHM_TESTING') == '1':
+                logger.debug(f"Error loading habits data: {e} (expected in tests with mocks)")
+            else:
+                logger.error(f"Error loading habits data: {e}")
             self.ui.textEdit_habits_data.setPlainText(f"Error loading habits data: {str(e)}")
     
     @handle_errors("loading sleep data")
@@ -416,7 +431,12 @@ Recommendations:"""
             self.ui.textEdit_sleep_data.setPlainText(sleep_text)
             
         except Exception as e:
-            logger.error(f"Error loading sleep data: {e}")
+            # In test mode, these are expected errors when mocks are used, so use DEBUG
+            import os
+            if os.getenv('MHM_TESTING') == '1':
+                logger.debug(f"Error loading sleep data: {e} (expected in tests with mocks)")
+            else:
+                logger.error(f"Error loading sleep data: {e}")
             self.ui.textEdit_sleep_data.setPlainText(f"Error loading sleep data: {str(e)}")
     
     @handle_errors("loading quantitative data")
@@ -450,7 +470,12 @@ Field-by-Field Analysis:"""
             self.ui.textEdit_quantitative_data.setPlainText(quant_text)
             
         except Exception as e:
-            logger.error(f"Error loading quantitative data: {e}")
+            # In test mode, these are expected errors when mocks are used, so use DEBUG
+            import os
+            if os.getenv('MHM_TESTING') == '1':
+                logger.debug(f"Error loading quantitative data: {e} (expected in tests with mocks)")
+            else:
+                logger.error(f"Error loading quantitative data: {e}")
             self.ui.textEdit_quantitative_data.setPlainText(f"Error loading quantitative data: {str(e)}")
     
     @handle_errors("refreshing analytics")

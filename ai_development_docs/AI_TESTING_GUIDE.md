@@ -284,3 +284,4 @@ Routing:
 
 This AI file should not duplicate those manuals. It only tells you **which** manual to use and **when**.
 
+For high-level AI subsystem behavior that these tests validate, see `SYSTEM_AI_GUIDE.md`.

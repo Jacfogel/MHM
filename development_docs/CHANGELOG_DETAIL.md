@@ -39,6 +39,30 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-23 - Test Suite Stability Fixes and Logging Improvements **COMPLETED**
+- **Feature**: Fixed test suite failures related to user index updates, worker log cleanup, and test isolation issues. Improved test logging configuration and resolved race conditions in parallel test execution. All 3,309 tests now pass consistently.
+- **Technical Changes**:
+  1. **Worker Log Cleanup Fixes** (`tests/conftest.py`):
+     - Added retry logic with exponential backoff (5 attempts: 0.1s, 0.2s, 0.4s, 0.8s, 1.6s) for Windows file locking during worker log cleanup
+     - Added 500ms delay before cleanup to allow workers to close file handles
+     - Downgraded cleanup failure warnings to DEBUG level (non-critical, files cleaned up on next run)
+  2. **User Index Update Enhancements** (`ui/dialogs/account_creator_dialog.py`):
+     - Enhanced `_validate_and_accept__update_user_index` with improved verification logic
+     - Added retry loop (3 attempts) to verify Discord ID mapping was added to index
+     - Increased delay from 0.1s to 0.2s before verification to ensure index file is written and flushed
+     - Added final 0.1s delay after successful verification to ensure file is readable by other processes
+  3. **Discord User Index Mapping** (`tests/test_utilities.py`):
+     - Fixed `create_discord_user__with_test_dir` to call `update_user_index` which properly adds all identifier mappings (username + Discord ID)
+     - Added verification loop to ensure Discord ID mapping is in index before returning
+  4. **Test Isolation Fix** (`tests/behavior/test_user_management_coverage_expansion.py`):
+     - Fixed `test_register_data_loader_real_behavior` to use unique loader names (UUID-based) instead of shared "test_type" name
+     - Prevents race conditions in parallel execution where tests interfere with each other
+  5. **Test Race Condition Fix** (`tests/ui/test_account_creation_ui.py`):
+     - Added retry logic to `test_create_account_saves_custom_tags_when_provided` to handle user index lookup race conditions
+     - Retries up to 5 times with 100ms delays before asserting user ID is found
+- **Impact**: Test suite now passes consistently (0 failures, 1 skipped). Fixed Windows file locking issues during parallel test execution, resolved user index update race conditions, and improved test isolation. All tests complete in ~3-4 minutes reliably.
+- **Files Affected**: `tests/conftest.py`, `ui/dialogs/account_creator_dialog.py`, `tests/test_utilities.py`, `tests/behavior/test_user_management_coverage_expansion.py`, `tests/ui/test_account_creation_ui.py`
+
 ### 2025-11-23 - Test Coverage Expansion and Test Suite Optimization **COMPLETED**
 - **Feature**: Expanded test coverage for 8 low-coverage modules, optimized test performance with module-scoped fixtures, fixed race conditions, and improved test maintainability with helper functions. All 3,309 tests pass (0 failures, 1 skipped).
 - **Technical Changes**:

@@ -1628,7 +1628,15 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
         
         # Assert: Custom tags should be saved
-        user_id = get_user_id_by_identifier('test-custom-tags-user')
+        # Retry lookup to handle race conditions in parallel test execution
+        import time
+        user_id = None
+        for attempt in range(5):
+            user_id = get_user_id_by_identifier('test-custom-tags-user')
+            if user_id is not None:
+                break
+            if attempt < 4:
+                time.sleep(0.1)  # 100ms delay between attempts
         assert user_id is not None, "User ID should be found"
         
         preferences_data = get_user_data(user_id, 'preferences')

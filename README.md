@@ -203,7 +203,7 @@ MHM can integrate with a local AI model via LM Studio:
   in `.env` / `.env.example` and read by `core/config.py`.
 - If LM Studio is not installed or the model is not available, MHM still works
   as a scheduler/reminder system.
-- For more detail, see the AI sections in `ARCHITECTURE.md` and the `ai/` package.
+- For more detail, see the AI sections in `ARCHITECTURE.md`, the `ai/` package, and `SYSTEM_AI_GUIDE.md`.
 
 
 ## 7. Project Structure

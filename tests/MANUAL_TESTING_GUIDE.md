@@ -233,7 +233,11 @@ Run AI behavior tests when you change:
 
 Automated AI-oriented tests are described in:
 
-- `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`
+   - `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`.
+
+For a system-level description of the AI behavior covered by AI functionality tests, see `SYSTEM_AI_GUIDE.md`.
+
+This manual guide is part of the testing surface.
 
 Use that guide to:
 

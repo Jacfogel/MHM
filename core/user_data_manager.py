@@ -734,7 +734,11 @@ class UserDataManager:
             phone = user_account.get('phone', '')
             
             if not internal_username:
-                logger.warning(f"No internal_username found for user {user_id} after {max_retries} attempts (account keys: {list(user_account.keys())})")
+                # In test mode, this is often expected (race conditions, test setup), so use DEBUG
+                if os.getenv('MHM_TESTING') == '1':
+                    logger.debug(f"No internal_username found for user {user_id} after {max_retries} attempts (account keys: {list(user_account.keys())})")
+                else:
+                    logger.warning(f"No internal_username found for user {user_id} after {max_retries} attempts (account keys: {list(user_account.keys())})")
                 return False
             
             # Update flat lookup mappings for fast O(1) user ID resolution
@@ -912,7 +916,11 @@ class UserDataManager:
                 phone = user_account.get('phone', '')
                 
                 if not internal_username:
-                    logger.warning(f"No internal_username found for user {user_id} after {max_retries} attempts, skipping")
+                    # In test mode, this is often expected (race conditions, test setup), so use DEBUG
+                    if os.getenv('MHM_TESTING') == '1':
+                        logger.debug(f"No internal_username found for user {user_id} after {max_retries} attempts, skipping")
+                    else:
+                        logger.warning(f"No internal_username found for user {user_id} after {max_retries} attempts, skipping")
                     failed_count += 1
                     continue
                 

@@ -549,6 +549,8 @@ For AI conversation behavior, routing, and functionality tests, use:
   - Section 6. "Test Features".
   - Section 7. "Test Categories".
 
+For a system-level view of the AI behavior these tests exercise, see `SYSTEM_AI_GUIDE.md`.
+
 Run these tests when:
 
 - Changing AI interaction flows.

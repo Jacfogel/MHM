@@ -99,7 +99,10 @@ def setup_logging_isolation():
 setup_logging_isolation()
 
 # Set environment variable to indicate we're running tests
-# TEST_VERBOSE_LOGS defaults to '0' (quiet) - set to '1' for verbose DEBUG-level logging
+# TEST_VERBOSE_LOGS levels:
+#   '0' (quiet/default): Component loggers INFO, Test loggers WARNING
+#   '1' (medium): Component loggers INFO, Test loggers INFO  
+#   '2' (verbose): Component loggers DEBUG, Test loggers DEBUG
 os.environ['MHM_TESTING'] = '1'
 os.environ['TEST_VERBOSE_LOGS'] = os.environ.get('TEST_VERBOSE_LOGS', '0')
 # Disable core app log rotation during tests to avoid Windows file-in-use issues
@@ -413,9 +416,16 @@ def setup_test_logging():
     
     # Configure test logger
     test_logger = logging.getLogger("mhm_tests")
-    # Respect TEST_VERBOSE_LOGS: DEBUG if verbose, WARNING otherwise (to suppress PASSED messages)
+    # Respect TEST_VERBOSE_LOGS: 
+    #   0 = WARNING (failures/warnings/skips only), 1 = INFO (test execution details), 2 = DEBUG (everything)
+    # All levels log failures, warnings, and skips - the difference is in infrastructure logging
     verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
-    test_logger_level = logging.DEBUG if verbose_logs == "1" else logging.WARNING
+    if verbose_logs == "2":
+        test_logger_level = logging.DEBUG
+    elif verbose_logs == "1":
+        test_logger_level = logging.INFO
+    else:
+        test_logger_level = logging.WARNING  # Level 0: Only failures, warnings, skips
     test_logger.setLevel(test_logger_level)
     
     # Clear any existing handlers
@@ -446,12 +456,14 @@ def setup_test_logging():
     
     # Also set up a handler for any "mhm" loggers to go to test logs
     mhm_logger = logging.getLogger("mhm")
-    # Keep component loggers quieter by default; individual tests can opt-in
-    # to more verbose logging via TEST_VERBOSE_LOGS=1
-    if os.getenv("TEST_VERBOSE_LOGS", "0") == "1":
+    # Keep component loggers quiet at levels 0 and 1 to avoid excessive logging
+    # Level 1 focuses on test execution details, not component infrastructure chatter
+    # 0 = WARNING, 1 = WARNING (quiet), 2 = DEBUG
+    verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
+    if verbose_logs == "2":
         mhm_logger.setLevel(logging.DEBUG)
     else:
-        mhm_logger.setLevel(logging.WARNING)
+        mhm_logger.setLevel(logging.WARNING)  # Levels 0 and 1: Only warnings and errors
     mhm_logger.handlers.clear()
     mhm_logger.addHandler(file_handler)
     mhm_logger.propagate = False
@@ -469,10 +481,11 @@ test_logger, test_log_file = setup_test_logging()
 class SessionLogRotationManager:
     """Manages session-based log rotation that rotates ALL logs together if any exceed size limits."""
     
-    def __init__(self, max_size_mb=5):  # 5MB for consolidated log rotation (matches core config)
+    def __init__(self, max_size_mb=2):  # 2MB for test logs (lower than production 5MB for more frequent rotation)
         self.max_size_bytes = max_size_mb * 1024 * 1024
         self.log_files = []
         self.rotation_needed = False
+        self.last_rotation_check = None
         
     def register_log_file(self, file_path):
         """Register a log file for session-based rotation monitoring.
@@ -487,7 +500,22 @@ class SessionLogRotationManager:
                 self.log_files.append(abs_path)
     
     def check_rotation_needed(self):
-        """Check if any log file exceeds the size limit."""
+        """Check if any log file exceeds the size limit or if time-based rotation is needed."""
+        from datetime import datetime, timedelta
+        
+        # Check time-based rotation (daily rotation for test logs)
+        now = datetime.now()
+        if self.last_rotation_check is None:
+            self.last_rotation_check = now
+            # Don't rotate on first check - just initialize the timestamp
+            # Check size-based rotation instead
+        # Rotate if it's been more than 24 hours since last rotation
+        elif (now - self.last_rotation_check) > timedelta(hours=24):
+            self.rotation_needed = True
+            test_logger.info(f"Time-based rotation needed (last rotation: {self.last_rotation_check})")
+            return True
+        
+        # Check size-based rotation (only if time-based didn't trigger)
         for log_file in self.log_files:
             try:
                 if os.path.exists(log_file):
@@ -532,8 +560,22 @@ class SessionLogRotationManager:
             header_text = f"# Log rotated at {timestamp}\n"
         
         # Use 'w' mode for rotation (creates new file)
-        with open(log_file, 'w', encoding='utf-8') as f:
-            f.write(header_text)
+        # Add retry logic to handle file locking
+        import time
+        max_retries = 3
+        retry_delay = 0.1
+        
+        for attempt in range(max_retries):
+            try:
+                with open(log_file, 'w', encoding='utf-8') as f:
+                    f.write(header_text)
+                break  # Success
+            except (OSError, PermissionError) as e:
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+                    continue
+                # Last attempt failed - log warning but don't raise
+                test_logger.warning(f"Failed to write header to {log_file} after {max_retries} attempts: {e}")
     
     def rotate_all_logs(self, rotation_context="session"):
         """Rotate all registered log files together to maintain continuity.
@@ -562,28 +604,53 @@ class SessionLogRotationManager:
                     backup_file = backup_dir / backup_filename
                     
                     # Handle Windows file locking by copying instead of moving
-                    try:
-                        # Try to move first (faster)
-                        shutil.move(log_file, backup_file)
-                        test_logger.info(f"Rotated {log_file} to {backup_file}")
-                    except (OSError, PermissionError) as move_error:
-                        # If move fails due to file locking, copy and truncate
-                        test_logger.warning(f"Move failed for {log_file} due to file locking, using copy method: {move_error}")
-                        shutil.copy2(log_file, backup_file)
-                        test_logger.info(f"Copied {log_file} to {backup_file}")
-                        
-                        # Truncate the original file and write formatted header
-                        self._write_log_header(log_file, timestamp_display)
-                        test_logger.info(f"Truncated {log_file} after copy")
-                        continue
+                    # Add retry logic with timeout to prevent hanging
+                    import time
+                    max_retries = 3
+                    retry_delay = 0.1
+                    rotation_success = False
                     
-                    # Create new log file with formatted header (only if move succeeded)
-                    self._write_log_header(log_file, timestamp_display)
+                    for attempt in range(max_retries):
+                        try:
+                            # Try to move first (faster)
+                            shutil.move(log_file, backup_file)
+                            test_logger.info(f"Rotated {log_file} to {backup_file}")
+                            rotation_success = True
+                            break
+                        except (OSError, PermissionError) as move_error:
+                            if attempt < max_retries - 1:
+                                time.sleep(retry_delay)
+                                continue
+                            # If move fails after retries, try copy method
+                            try:
+                                test_logger.warning(f"Move failed for {log_file} due to file locking, using copy method: {move_error}")
+                                shutil.copy2(log_file, backup_file)
+                                test_logger.info(f"Copied {log_file} to {backup_file}")
+                                rotation_success = True
+                            except (OSError, PermissionError) as copy_error:
+                                test_logger.warning(f"Copy also failed for {log_file}: {copy_error} - skipping rotation for this file")
+                                continue
+                    
+                    if rotation_success:
+                        # Truncate the original file and write formatted header
+                        # Add retry for header writing too
+                        for attempt in range(max_retries):
+                            try:
+                                self._write_log_header(log_file, timestamp_display)
+                                if attempt > 0:
+                                    test_logger.info(f"Truncated {log_file} after copy")
+                                break
+                            except (OSError, PermissionError) as header_error:
+                                if attempt < max_retries - 1:
+                                    time.sleep(retry_delay)
+                                    continue
+                                test_logger.warning(f"Failed to write header to {log_file}: {header_error}")
                         
             except (OSError, FileNotFoundError) as e:
                 test_logger.warning(f"Failed to rotate {log_file}: {e}")
         
         self.rotation_needed = False
+        self.last_rotation_check = datetime.now()
         test_logger.info(f"{rotation_context.capitalize()} log rotation completed")
 
 # Helper function for writing log headers
@@ -729,18 +796,35 @@ def setup_consolidated_test_logging():
     
     consolidated_log_file.parent.mkdir(exist_ok=True)
 
+    # Register both log files with session rotation manager BEFORE checking rotation
+    session_rotation_manager.register_log_file(str(consolidated_log_file))
+    session_rotation_manager.register_log_file(str(test_run_log_file))
+    
+    # Check for rotation BEFORE writing headers (rotation will create backups and write headers to new files)
+    rotation_happened = False
+    if session_rotation_manager.check_rotation_needed():
+        session_rotation_manager.rotate_all_logs(rotation_context="session start")
+        rotation_happened = True
+        test_logger.info("Performed automatic log rotation at session start")
+    
     # Ensure test_run.log exists so rotation manager can write headers to it
     if not test_run_log_file.exists():
         test_run_log_file.touch()
 
-    # Write headers FIRST before any logging starts
+    # Write headers only if rotation didn't happen (rotation already wrote headers)
+    # or if files are empty/new
     from datetime import datetime
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-    # Write headers to both log files using the shared helper function
-    # (header function already skips workers, but we call it anyway for consistency)
-    _write_test_log_header(str(test_run_log_file), timestamp)
-    _write_test_log_header(str(consolidated_log_file), timestamp)
+    
+    if not rotation_happened:
+        # Check if files are empty or don't exist - only write headers if needed
+        write_header_run = not test_run_log_file.exists() or test_run_log_file.stat().st_size == 0
+        write_header_consolidated = not consolidated_log_file.exists() or consolidated_log_file.stat().st_size == 0
+        
+        if write_header_run:
+            _write_test_log_header(str(test_run_log_file), timestamp)
+        if write_header_consolidated:
+            _write_test_log_header(str(consolidated_log_file), timestamp)
 
     # In parallel mode, update environment variables to use per-worker consolidated log
     # This prevents file locking issues - all component logs go to the per-worker consolidated file
@@ -778,6 +862,13 @@ def setup_consolidated_test_logging():
 
     # Create handler for component logs (no test context)
     component_handler = logging.FileHandler(str(consolidated_log_file), mode='a', encoding='utf-8')
+    # CRITICAL: Set handler level to WARNING for levels 0 and 1 to prevent excessive logging
+    # Only level 2 (DEBUG) will log everything from components
+    verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
+    if verbose_logs == "2":
+        component_handler.setLevel(logging.DEBUG)
+    else:
+        component_handler.setLevel(logging.WARNING)  # Levels 0 and 1: Only warnings and errors
     component_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
                                            datefmt='%Y-%m-%d %H:%M:%S')
     component_handler.setFormatter(component_formatter)
@@ -863,15 +954,23 @@ def setup_consolidated_test_logging():
                 continue
             
             if logger_name.startswith("mhm."):
-                # Component loggers: use DEBUG only if verbose mode is enabled, otherwise INFO
-                # This prevents excessive logging during normal test runs
+                # Component loggers: Keep quiet at levels 0 and 1 to avoid excessive logging
+                #   0 = WARNING (quiet), 1 = WARNING (quiet - focus on test execution, not component chatter), 2 = DEBUG (verbose)
                 verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
-                level = logging.DEBUG if verbose_logs == "1" else logging.INFO
+                if verbose_logs == "2":
+                    level = logging.DEBUG
+                else:
+                    level = logging.WARNING  # Levels 0 and 1: Only warnings and errors from components
             else:
-                # Test execution loggers: reduce verbosity to reduce log noise
-                # Only log INFO and above by default (skip DEBUG messages)
+                # Test execution loggers:
+                #   0 = WARNING (failures/warnings/skips only), 1 = INFO (test execution details), 2 = DEBUG (everything)
                 verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
-                level = logging.INFO if verbose_logs == "1" else logging.WARNING
+                if verbose_logs == "2":
+                    level = logging.DEBUG
+                elif verbose_logs == "1":
+                    level = logging.INFO
+                else:
+                    level = logging.WARNING  # Level 0: Only failures, warnings, skips
             
             # Ensure level is a valid integer before setting
             if level is None or not isinstance(level, int):
@@ -897,7 +996,12 @@ def setup_consolidated_test_logging():
                 # Special handling for mhm_tests logger: ensure it respects verbose setting
                 if logger_name == "mhm_tests":
                     verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
-                    test_level = logging.DEBUG if verbose_logs == "1" else logging.WARNING
+                    if verbose_logs == "2":
+                        test_level = logging.DEBUG
+                    elif verbose_logs == "1":
+                        test_level = logging.INFO
+                    else:
+                        test_level = logging.WARNING  # Level 0: Only failures, warnings, skips
                     logger_obj.setLevel(test_level)
                     # Also update handler level
                     for handler in logger_obj.handlers:
@@ -913,12 +1017,20 @@ def setup_consolidated_test_logging():
     if not isinstance(root_logger.level, int) or root_logger.level == logging.NOTSET:
         root_logger.setLevel(logging.WARNING)  # Set a safe default level
     
-    # Register both log files with session rotation manager
-    session_rotation_manager.register_log_file(str(consolidated_log_file))
-    session_rotation_manager.register_log_file(str(test_run_log_file))
-    if session_rotation_manager.check_rotation_needed():
-        session_rotation_manager.rotate_all_logs(rotation_context="session start")
-        test_logger.info("Performed automatic log rotation at session start")
+    # CRITICAL: Configure root logger to catch unnamed log entries (empty string logger name)
+    # Unnamed entries with test context should go to test_run.log, not test_consolidated.log
+    # Clear any existing handlers on root logger first
+    for handler in root_logger.handlers[:]:
+        try:
+            handler.close()
+        except Exception:
+            pass
+        root_logger.removeHandler(handler)
+    # Add test handler to root logger to catch unnamed logs (they should have test context)
+    root_logger.addHandler(test_handler)
+    root_logger.propagate = False  # Prevent double logging
+    
+    # Note: Log files are already registered and rotation checked above, before headers are written
     
     # Clean up any individual log files that were created before consolidated mode was enabled
     _cleanup_individual_log_files()
@@ -952,7 +1064,7 @@ def _cleanup_test_log_files():
                     # If file only contains rotation message or is empty, remove it
                     if (content.startswith("# Log rotated at") and len(content.split('\n')) <= 2) or len(content) == 0:
                         log_file.unlink()
-                        test_logger.info(f"Removed old component log file: {log_file.name}")
+                        # Don't log cleanup operations - focus on test results
             except Exception:
                 continue
                 
@@ -963,7 +1075,7 @@ def _cleanup_test_log_files():
                 try:
                     if backup_file.stat().st_mtime < time.time() - 86400:  # 1 day
                         backup_file.unlink()
-                        test_logger.info(f"Removed old backup file: {backup_file.name}")
+                        # Don't log cleanup operations - focus on test results
                 except Exception:
                     continue
                     
@@ -1080,8 +1192,7 @@ def prune_test_artifacts_before_and_after_session():
             patterns=["*.log", "*.log.*", "*.gz"],
             older_than_days=log_retention_days,
         )
-        if removed:
-            test_logger.info(f"Pruned {removed} old test log files from {logs_dir}")
+        # Don't log cleanup operations - focus on test results
 
     if test_backups_dir.exists():
         removed = _prune_old_files(
@@ -1089,8 +1200,7 @@ def prune_test_artifacts_before_and_after_session():
             patterns=["*.zip"],
             older_than_days=backup_retention_days,
         )
-        if removed:
-            test_logger.info(f"Pruned {removed} old test backup files from {test_backups_dir}")
+        # Don't log cleanup operations - focus on test results
 
     # Clean up excessive test log files to prevent accumulation
     _cleanup_test_log_files()
@@ -1103,7 +1213,7 @@ def prune_test_artifacts_before_and_after_session():
         if conversation_states_file.exists():
             try:
                 conversation_states_file.unlink(missing_ok=True)
-                test_logger.info("Pre-run: Removed conversation_states.json")
+                # Don't log cleanup operations - focus on test results
             except Exception:
                 pass
         
@@ -1115,7 +1225,7 @@ def prune_test_artifacts_before_and_after_session():
             stray_path = Path(stray)
             if stray_path.exists():
                 shutil.rmtree(stray_path, ignore_errors=True)
-                test_logger.info(f"Removed stray directory: {stray_path}")
+                # Don't log cleanup operations - focus on test results
         tmp_dir = data_dir / "tmp"
         if tmp_dir.exists():
             for child in tmp_dir.iterdir():
@@ -1127,7 +1237,7 @@ def prune_test_artifacts_before_and_after_session():
                             child.unlink(missing_ok=True)
                     except Exception:
                         pass
-            test_logger.info(f"Cleared children of {tmp_dir}")
+            # Don't log cleanup operations - they're not interesting for test results
     except Exception:
         pass
 
@@ -1140,8 +1250,7 @@ def prune_test_artifacts_before_and_after_session():
             patterns=["*.log", "*.log.*", "*.gz"],
             older_than_days=log_retention_days,
         )
-        if removed:
-            test_logger.info(f"Post-run prune removed {removed} old test log files from {logs_dir}")
+        # Don't log cleanup operations - focus on test results (removed logging to prevent hangs)
 
     if test_backups_dir.exists():
         removed = _prune_old_files(
@@ -1149,8 +1258,7 @@ def prune_test_artifacts_before_and_after_session():
             patterns=["*.zip"],
             older_than_days=backup_retention_days,
         )
-        if removed:
-            test_logger.info(f"Post-run prune removed {removed} old test backup files from {test_backups_dir}")
+        # Don't log cleanup operations - focus on test results (removed logging to prevent hangs)
 
     # Session-end purge: flags, tmp children, and pytest-of-* directories
     try:
@@ -1163,7 +1271,7 @@ def prune_test_artifacts_before_and_after_session():
                 try:
                     if item.is_dir() and item.name.startswith("pytest-of-"):
                         shutil.rmtree(item, ignore_errors=True)
-                        test_logger.info(f"Removed pytest directory: {item}")
+                        # Don't log cleanup operations - focus on test results
                 except Exception:
                     pass
         
@@ -1178,7 +1286,7 @@ def prune_test_artifacts_before_and_after_session():
                         child.unlink(missing_ok=True)
                 except Exception:
                     pass
-            test_logger.info(f"Cleared children of {flags_dir}")
+            # Don't log cleanup operations - focus on test results (failures, warnings, skips)
         
         # Clear tmp directory
         tmp_dir = data_dir / "tmp"
@@ -1191,7 +1299,7 @@ def prune_test_artifacts_before_and_after_session():
                         child.unlink(missing_ok=True)
                 except Exception:
                     pass
-            test_logger.info(f"Cleared children of {tmp_dir}")
+            # Don't log cleanup operations - they're not interesting for test results
         
         # Clear requests directory
         requests_dir = data_dir / "requests"
@@ -1204,14 +1312,14 @@ def prune_test_artifacts_before_and_after_session():
                         child.unlink(missing_ok=True)
                 except Exception:
                     pass
-            test_logger.info(f"Cleared children of {requests_dir}")
+            # Don't log cleanup operations - focus on test results (failures, warnings, skips)
         
         # Clean up conversation_states.json
         conversation_states_file = data_dir / "conversation_states.json"
         if conversation_states_file.exists():
             try:
                 conversation_states_file.unlink(missing_ok=True)
-                test_logger.info(f"Removed conversation_states.json")
+                # Don't log cleanup operations - focus on test results
             except Exception:
                 pass
     except Exception:
@@ -2701,8 +2809,8 @@ def pytest_sessionstart(session):
     """Log test session start."""
     # Only log from main process to avoid duplicate messages in parallel mode
     if not os.environ.get('PYTEST_XDIST_WORKER'):
-        test_logger.info(f"Starting test session with {len(session.items)} tests")
-        test_logger.info(f"Test log file: {test_log_file}")
+        test_logger.debug(f"Starting test session with {len(session.items)} tests")
+        test_logger.debug(f"Test log file: {test_log_file}")
 
 def _consolidate_worker_logs():
     """Consolidate per-worker log files into main log files at the end of parallel test runs.
@@ -2719,6 +2827,11 @@ def _consolidate_worker_logs():
         logs_dir = Path(project_root) / "tests" / "logs"
         if not logs_dir.exists():
             return
+        
+        # CRITICAL: Small delay to allow worker processes to close their file handles
+        # This prevents file locking issues during consolidation
+        import time
+        time.sleep(0.5)  # 500ms delay to allow workers to close files
         
         # Find all worker log files
         worker_test_run_logs = sorted(logs_dir.glob("test_run_gw*.log"))
@@ -2743,14 +2856,46 @@ def _consolidate_worker_logs():
                         worker_id = worker_log.stem.replace("test_run_", "")
                         main_file.write(f"\n# --- Worker {worker_id} ---\n")
                         try:
-                            with open(worker_log, 'r', encoding='utf-8') as worker_file:
-                                content = worker_file.read()
-                                if content.strip():
-                                    main_file.write(content)
-                                    if not content.endswith('\n'):
-                                        main_file.write('\n')
+                            # Retry mechanism to handle file locking issues
+                            # Workers might still have file handles open
+                            import time
+                            max_retries = 5
+                            retry_delay = 0.2  # 200ms between retries
+                            content = None
+                            
+                            for attempt in range(max_retries):
+                                try:
+                                    # Read in chunks to avoid memory issues with huge files
+                                    # Limit to 50MB per worker log to prevent hanging
+                                    max_size = 50 * 1024 * 1024  # 50MB
+                                    file_size = worker_log.stat().st_size
+                                    if file_size > max_size:
+                                        test_logger.warning(f"Worker log {worker_log.name} is {file_size / (1024*1024):.1f}MB, truncating to last 50MB")
+                                        # Read only the last 50MB
+                                        with open(worker_log, 'rb') as f:
+                                            f.seek(-max_size, 2)  # Seek to 50MB from end
+                                            content = f.read().decode('utf-8', errors='replace')
+                                    else:
+                                        with open(worker_log, 'r', encoding='utf-8') as worker_file:
+                                            content = worker_file.read()
+                                    break  # Success, exit retry loop
+                                except (IOError, PermissionError, OSError) as e:
+                                    if attempt < max_retries - 1:
+                                        time.sleep(retry_delay)
+                                        continue
+                                    else:
+                                        # Last attempt failed, log warning and skip this file
+                                        test_logger.warning(f"Failed to read worker log {worker_log.name} after {max_retries} attempts: {e}")
+                                        content = f"# Error: Could not read {worker_log.name} - file may be locked\n"
+                                        break
+                            
+                            if content.strip():
+                                main_file.write(content)
+                                if not content.endswith('\n'):
+                                    main_file.write('\n')
                         except Exception as e:
                             main_file.write(f"# Error reading {worker_log.name}: {e}\n")
+                            test_logger.warning(f"Error reading worker log {worker_log.name}: {e}")
                         main_file.write(f"\n# --- End Worker {worker_id} ---\n\n")
                 
                 test_logger.info(f"Consolidated {len(worker_test_run_logs)} worker test_run logs into {main_test_run_log.name}")
@@ -2770,32 +2915,114 @@ def _consolidate_worker_logs():
                         worker_id = worker_log.stem.replace("test_consolidated_", "")
                         main_file.write(f"\n# --- Worker {worker_id} ---\n")
                         try:
-                            with open(worker_log, 'r', encoding='utf-8') as worker_file:
-                                content = worker_file.read()
-                                if content.strip():
-                                    main_file.write(content)
-                                    if not content.endswith('\n'):
-                                        main_file.write('\n')
+                            # Retry mechanism to handle file locking issues
+                            # Workers might still have file handles open
+                            import time
+                            max_retries = 5
+                            retry_delay = 0.2  # 200ms between retries
+                            content = None
+                            
+                            for attempt in range(max_retries):
+                                try:
+                                    # Read in chunks to avoid memory issues with huge files
+                                    # Limit to 10MB per worker log to prevent hanging (reduced from 50MB)
+                                    max_size = 10 * 1024 * 1024  # 10MB
+                                    file_size = worker_log.stat().st_size
+                                    if file_size > max_size:
+                                        test_logger.warning(f"Worker log {worker_log.name} is {file_size / (1024*1024):.1f}MB, truncating to last 10MB")
+                                        # Read only the last 10MB in chunks to avoid memory issues
+                                        with open(worker_log, 'rb') as f:
+                                            f.seek(-max_size, 2)  # Seek to 10MB from end
+                                            # Read in 1MB chunks to avoid loading entire file into memory
+                                            chunk_size = 1024 * 1024  # 1MB chunks
+                                            content_parts = []
+                                            while True:
+                                                chunk = f.read(chunk_size)
+                                                if not chunk:
+                                                    break
+                                                content_parts.append(chunk.decode('utf-8', errors='replace'))
+                                            content = ''.join(content_parts)
+                                    else:
+                                        # For smaller files, read in chunks too to be consistent
+                                        chunk_size = 1024 * 1024  # 1MB chunks
+                                        content_parts = []
+                                        with open(worker_log, 'r', encoding='utf-8') as worker_file:
+                                            while True:
+                                                chunk = worker_file.read(chunk_size)
+                                                if not chunk:
+                                                    break
+                                                content_parts.append(chunk)
+                                        content = ''.join(content_parts)
+                                    break  # Success, exit retry loop
+                                except (IOError, PermissionError, OSError) as e:
+                                    if attempt < max_retries - 1:
+                                        time.sleep(retry_delay)
+                                        continue
+                                    else:
+                                        # Last attempt failed, log warning and skip this file
+                                        test_logger.warning(f"Failed to read worker log {worker_log.name} after {max_retries} attempts: {e}")
+                                        content = f"# Error: Could not read {worker_log.name} - file may be locked\n"
+                                        break
+                            
+                            if content.strip():
+                                main_file.write(content)
+                                if not content.endswith('\n'):
+                                    main_file.write('\n')
                         except Exception as e:
                             main_file.write(f"# Error reading {worker_log.name}: {e}\n")
+                            test_logger.warning(f"Error reading worker log {worker_log.name}: {e}")
                         main_file.write(f"\n# --- End Worker {worker_id} ---\n\n")
                 
                 test_logger.info(f"Consolidated {len(worker_consolidated_logs)} worker consolidated logs into {main_consolidated_log.name}")
+                
+                # CRITICAL: Register main consolidated log for rotation AFTER consolidation
+                # (consolidation can make the file huge, so we need to check rotation after)
+                session_rotation_manager.register_log_file(str(main_consolidated_log))
             except Exception as e:
                 test_logger.warning(f"Error consolidating consolidated logs: {e}")
         
         # Clean up worker log files after consolidation
+        # CRITICAL: Add delay before cleanup to allow workers to close file handles
+        # Windows file locking can prevent immediate deletion
+        import time
+        time.sleep(0.5)  # 500ms delay to allow workers to close file handles
+        
         all_worker_logs = worker_test_run_logs + worker_consolidated_logs
         cleaned_count = 0
+        failed_logs = []
+        
         for worker_log in all_worker_logs:
-            try:
-                worker_log.unlink()
-                cleaned_count += 1
-            except Exception as e:
-                test_logger.warning(f"Error removing worker log {worker_log.name}: {e}")
+            # Retry deletion with exponential backoff for Windows file locking
+            max_retries = 5
+            retry_delay = 0.1  # Start with 100ms
+            deleted = False
+            
+            for attempt in range(max_retries):
+                try:
+                    worker_log.unlink()
+                    cleaned_count += 1
+                    deleted = True
+                    break
+                except (OSError, PermissionError) as e:
+                    # Windows file locking error - retry with delay
+                    if attempt < max_retries - 1:
+                        time.sleep(retry_delay)
+                        retry_delay *= 2  # Exponential backoff: 0.1s, 0.2s, 0.4s, 0.8s, 1.6s
+                    else:
+                        # Last attempt failed - log but don't fail
+                        failed_logs.append(worker_log.name)
+                        test_logger.debug(f"Could not remove worker log {worker_log.name} after {max_retries} attempts: {e}")
+                except Exception as e:
+                    # Other errors - don't retry
+                    failed_logs.append(worker_log.name)
+                    test_logger.debug(f"Error removing worker log {worker_log.name}: {e}")
+                    break
         
         if cleaned_count > 0:
-            test_logger.info(f"Cleaned up {cleaned_count} worker log files after consolidation")
+            test_logger.debug(f"Cleaned up {cleaned_count} worker log files after consolidation")
+        if failed_logs:
+            # Only log warning if some files failed (not critical - they'll be cleaned up next run)
+            test_logger.debug(f"Could not clean up {len(failed_logs)} worker log files (locked by workers): {', '.join(failed_logs[:5])}{'...' if len(failed_logs) > 5 else ''}")
         
         test_logger.info("Worker log consolidation completed")
         
@@ -2809,13 +3036,39 @@ def pytest_sessionfinish(session, exitstatus):
     if hasattr(session, 'testscollected'):
         test_logger.info(f"Tests collected: {session.testscollected}")
     
-    # Check for log rotation at session end (before consolidating worker logs)
-    if session_rotation_manager.check_rotation_needed():
-        session_rotation_manager.rotate_all_logs(rotation_context="session end")
-        test_logger.info("Performed automatic log rotation at session end")
+    # Consolidate worker logs FIRST (this can make main log files huge)
+    # Only in main process (not in workers)
+    if not os.environ.get('PYTEST_XDIST_WORKER'):
+        _consolidate_worker_logs()
     
-    # Consolidate worker logs at the end of the session (only in main process)
-    _consolidate_worker_logs()
+    # Check for log rotation AFTER consolidation (consolidation can make files huge)
+    # CRITICAL: Only rotate if files are actually large, and use non-blocking approach
+    # Log rotation can hang if files are locked by logging handlers
+    # Use a timeout to prevent hanging
+    if not os.environ.get('PYTEST_XDIST_WORKER'):
+        if session_rotation_manager.check_rotation_needed():
+            # Use threading timeout to prevent hanging on Windows
+            import threading
+            rotation_complete = threading.Event()
+            rotation_error = [None]
+            
+            def do_rotation():
+                try:
+                    session_rotation_manager.rotate_all_logs(rotation_context="session end")
+                    test_logger.debug("Performed automatic log rotation at session end")
+                except Exception as e:
+                    rotation_error[0] = e
+                finally:
+                    rotation_complete.set()
+            
+            rotation_thread = threading.Thread(target=do_rotation, daemon=True)
+            rotation_thread.start()
+            
+            # Wait up to 10 seconds for rotation to complete
+            if not rotation_complete.wait(timeout=10.0):
+                test_logger.warning("Log rotation timed out after 10 seconds, skipping")
+            elif rotation_error[0]:
+                test_logger.warning(f"Error during log rotation: {rotation_error[0]}")
 
 def pytest_runtest_logreport(report):
     """Log individual test results."""
@@ -2823,9 +3076,11 @@ def pytest_runtest_logreport(report):
         # Only log PASSED tests when verbose mode is enabled (to reduce log noise)
         verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
         if report.passed:
-            if verbose_logs == "1":
+            # Only log passed tests at DEBUG level (level 2) to avoid I/O overhead
+            # Level 1 and 0: don't log passed tests - focus on failures, warnings, and skips
+            if verbose_logs == "2":
                 test_logger.debug(f"PASSED: {report.nodeid}")
-            # Otherwise, don't log passed tests - they're not interesting
+            # Don't log passed tests at other levels - they're not interesting
         elif report.failed:
             # Always log failures - these are important
             test_logger.error(f"FAILED: {report.nodeid}")
@@ -2841,15 +3096,34 @@ def cleanup_communication_manager():
     yield
     
     # Clean up CommunicationManager singleton to prevent access violations
-    try:
-        from communication.core.channel_orchestrator import CommunicationManager
-        if CommunicationManager._instance is not None:
-            test_logger.info("Cleaning up CommunicationManager singleton...")
-            CommunicationManager._instance.stop_all()
-            CommunicationManager._instance = None
-            test_logger.info("CommunicationManager cleanup completed")
-    except Exception as e:
-        test_logger.warning(f"Error during CommunicationManager cleanup: {e}")
+    # CRITICAL: Add timeout to prevent hanging during cleanup
+    import threading
+    import time
+    
+    cleanup_complete = threading.Event()
+    cleanup_error = [None]
+    
+    def do_cleanup():
+        try:
+            from communication.core.channel_orchestrator import CommunicationManager
+            if CommunicationManager._instance is not None:
+                test_logger.debug("Cleaning up CommunicationManager singleton...")
+                CommunicationManager._instance.stop_all()
+                CommunicationManager._instance = None
+                test_logger.debug("CommunicationManager cleanup completed")
+        except Exception as e:
+            cleanup_error[0] = e
+        finally:
+            cleanup_complete.set()
+    
+    cleanup_thread = threading.Thread(target=do_cleanup, daemon=True)
+    cleanup_thread.start()
+    
+    # Wait up to 5 seconds for cleanup to complete
+    if not cleanup_complete.wait(timeout=5.0):
+        test_logger.warning("CommunicationManager cleanup timed out after 5 seconds")
+    elif cleanup_error[0]:
+        test_logger.warning(f"Error during CommunicationManager cleanup: {cleanup_error[0]}")
 
 @pytest.fixture(autouse=True)
 def cleanup_conversation_manager():

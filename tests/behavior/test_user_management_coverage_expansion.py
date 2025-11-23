@@ -69,14 +69,16 @@ class TestUserManagementCoverageExpansion:
     
     def test_register_data_loader_real_behavior(self):
         """Test data loader registration with real behavior."""
-        # Arrange
+        # Arrange - use unique name to avoid conflicts with other tests in parallel execution
+        import uuid
+        unique_type = f"test_type_{uuid.uuid4().hex[:8]}"
         def test_loader(user_id, auto_create=True):
             return {"test": "data"}
 
         # Act/Assert within cleanup to avoid leaking custom loader
         try:
             register_data_loader(
-                "test_type",
+                unique_type,
                 test_loader,
                 "test_file",
                 ["field1", "field2"],
@@ -86,8 +88,8 @@ class TestUserManagementCoverageExpansion:
 
             # Assert
             import core.user_management as um
-            assert "test_type" in um.USER_DATA_LOADERS, "Should register new data type"
-            loader_info = um.USER_DATA_LOADERS["test_type"]
+            assert unique_type in um.USER_DATA_LOADERS, "Should register new data type"
+            loader_info = um.USER_DATA_LOADERS[unique_type]
             assert loader_info["loader"] == test_loader, "Should store loader function"
             assert loader_info["file_type"] == "test_file", "Should store file type"
             assert loader_info["default_fields"] == ["field1", "field2"], "Should store default fields"
@@ -96,7 +98,7 @@ class TestUserManagementCoverageExpansion:
         finally:
             try:
                 import core.user_management as um
-                um.USER_DATA_LOADERS.pop("test_type", None)
+                um.USER_DATA_LOADERS.pop(unique_type, None)
             except Exception:
                 pass
 

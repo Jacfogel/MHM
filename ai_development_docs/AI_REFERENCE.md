@@ -62,4 +62,5 @@
 
 ## 5. Further Reading
 - `../DOCUMENTATION_GUIDE.md`, `../ARCHITECTURE.md`, `../DEVELOPMENT_WORKFLOW.md` for deeper background.
+- `SYSTEM_AI_GUIDE.md` for AI subsystem architecture, modes, and runtime behavior.
 - `AI_LOGGING_GUIDE.md`, `AI_TESTING_GUIDE.md`, `AI_ERROR_HANDLING_GUIDE.md` for focused playbooks.

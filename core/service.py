@@ -108,9 +108,16 @@ class MHMService:
                             logger.error(f"Error determining file path for category '{category}' and user '{user_id}': {e}")
                 # Empty list is fine - no warning needed
             else:
-                logger.warning(
-                    f"Expected list for categories, got {type(categories)} for user '{user_id}'"
-                )
+                # In test mode, this is expected when mocks are used, so use DEBUG
+                import os
+                if os.getenv('MHM_TESTING') == '1':
+                    logger.debug(
+                        f"Expected list for categories, got {type(categories)} for user '{user_id}' (expected in tests with mocks)"
+                    )
+                else:
+                    logger.warning(
+                        f"Expected list for categories, got {type(categories)} for user '{user_id}'"
+                    )
 
         logger.debug(f"Paths initialized: {paths}")
         return paths

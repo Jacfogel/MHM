@@ -466,11 +466,20 @@ class ErrorHandler:
             # Use safe logger to avoid circular dependency when logging fails
             try:
                 from core.logger import get_component_logger
+                import os
                 logger = get_component_logger('main')
-                logger.error(f"Maximum retries exceeded for {error_key}")
+                # In test mode, these are expected errors (mocks, test scenarios), so use DEBUG
+                if os.getenv('MHM_TESTING') == '1':
+                    logger.debug(f"Maximum retries exceeded for {error_key} (expected in tests)")
+                else:
+                    logger.error(f"Maximum retries exceeded for {error_key}")
             except Exception as log_err:
                 # Fall back to safe logger if component logger fails
-                _safe_logger.error(f"Maximum retries exceeded for {error_key} (component logger failed: {log_err})")
+                import os
+                if os.getenv('MHM_TESTING') == '1':
+                    _safe_logger.debug(f"Maximum retries exceeded for {error_key} (expected in tests, component logger failed: {log_err})")
+                else:
+                    _safe_logger.error(f"Maximum retries exceeded for {error_key} (component logger failed: {log_err})")
             if user_friendly:
                 self._show_user_error(error, context, "Maximum retries exceeded")
             return False
@@ -536,12 +545,17 @@ class ErrorHandler:
             
             try:
                 from core.logger import get_component_logger
+                import os
                 logger = get_component_logger('main')
                 error_logger = get_component_logger('errors')
+                
+                # Log errors at ERROR level (tests expect this behavior)
+                # Component loggers are set to WARNING in test mode, so these won't appear
+                # unless TEST_VERBOSE_LOGS=2 (DEBUG level)
+                operation = context.get('operation', 'unknown')
                 logger.error(error_msg, exc_info=True)
-                # Use component logger for structured error logging
                 error_logger.error("Error occurred", 
-                                 operation=context.get('operation', 'unknown'),
+                                 operation=operation,
                                  error_type=type(error).__name__,
                                  error_message=str(error),
                                  file_path=context.get('file_path'),

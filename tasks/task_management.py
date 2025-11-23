@@ -749,8 +749,21 @@ def setup_default_task_tags(user_id: str) -> bool:
         # Default tags to set up
         default_tags = ["work", "personal", "health"]
         
-        preferences_result = get_user_data(user_id, 'preferences')
-        preferences_data = preferences_result.get('preferences', {}) if preferences_result else {}
+        # CRITICAL: Retry reading preferences to handle race conditions where file might not be fully written
+        import time
+        preferences_data = {}
+        max_retries = 5
+        for attempt in range(max_retries):
+            preferences_result = get_user_data(user_id, 'preferences')
+            preferences_data = preferences_result.get('preferences', {}) if preferences_result else {}
+            # Ensure we have a valid preferences dict with at least channel field before proceeding
+            if preferences_data and isinstance(preferences_data, dict):
+                # Check if channel exists (indicates file was fully written)
+                if 'channel' in preferences_data or attempt == max_retries - 1:
+                    break
+            if attempt < max_retries - 1:
+                time.sleep(0.1)  # 100ms delay between retries
+        
         task_settings = preferences_data.get('task_settings', {})
         existing_tags = task_settings.get('tags', [])
         
@@ -759,8 +772,10 @@ def setup_default_task_tags(user_id: str) -> bool:
             task_settings['tags'] = default_tags
             preferences_data['task_settings'] = task_settings
             
-            # Fix: save_user_data expects a dict of data types, not individual type
-            if save_user_data(user_id, {'preferences': preferences_data}):
+            # CRITICAL: Ensure we preserve all existing preferences fields (channel, categories, etc.)
+            # save_user_data returns a dict of {data_type: success_bool}
+            result = save_user_data(user_id, {'preferences': preferences_data})
+            if result.get('preferences', False):
                 logger.info(f"Set up default task tags for user {user_id}: {default_tags}")
                 return True
             else:
