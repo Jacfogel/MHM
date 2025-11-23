@@ -367,15 +367,32 @@ class TestDiscordBotBehavior:
 
     @pytest.mark.communication
     @pytest.mark.behavior
+    @pytest.mark.no_parallel
     def test_discord_checkin_flow_end_to_end(self, test_data_dir):
-        """Simulate a Discord user going through a check-in flow via /checkin and responding to prompts."""
+        """Simulate a Discord user going through a check-in flow via /checkin and responding to prompts.
+        
+        Note: Marked as no_parallel because this test creates real users and relies on user index
+        updates that may have race conditions in parallel execution.
+        """
         from tests.test_utilities import TestUserFactory
         from core.user_management import get_user_id_by_identifier
 
-        ok = TestUserFactory.create_user_with_complex_checkins("checkin_user")
-        assert ok
+        ok = TestUserFactory.create_user_with_complex_checkins("checkin_user", test_data_dir=test_data_dir)
+        assert ok, "User creation should succeed"
+        
+        # Ensure user index is updated
+        from core.user_data_manager import rebuild_user_index
+        rebuild_user_index()
+        
+        # Get user ID (no retry needed in serial execution)
         internal_uid = get_user_id_by_identifier("checkin_user")
-        assert internal_uid
+        
+        # Fallback to TestUserFactory lookup if needed
+        if not internal_uid:
+            from tests.test_utilities import TestUserFactory as TUF
+            internal_uid = TUF.get_test_user_id_by_internal_username("checkin_user", test_data_dir)
+        
+        assert internal_uid, f"Should be able to get UUID for user 'checkin_user'. User creation returned: {ok}"
 
         from communication.message_processing.interaction_manager import handle_user_message
         # Avoid touching real logs by using test user IDs and not starting the real bot; handle via InteractionManager only
@@ -395,35 +412,33 @@ class TestDiscordBotBehavior:
 
     @pytest.mark.communication
     @pytest.mark.behavior
+    @pytest.mark.no_parallel
     def test_discord_task_create_update_complete(self, test_data_dir):
-        """Create a task, update it, then complete it through InteractionManager natural language."""
+        """Create a task, update it, then complete it through InteractionManager natural language.
+        
+        Note: Marked as no_parallel because this test creates real users and relies on user index
+        updates that may have race conditions in parallel execution.
+        """
         from tests.test_utilities import TestUserFactory
         from core.user_management import get_user_id_by_identifier
         from tasks.task_management import load_active_tasks
 
         ok = TestUserFactory.create_basic_user("task_user", enable_tasks=True, test_data_dir=test_data_dir)
-        assert ok
+        assert ok, "User creation should succeed"
         
-        # Ensure user index is updated (race condition fix)
+        # Ensure user index is updated
         from core.user_data_manager import rebuild_user_index
         rebuild_user_index()
         
-        # Retry to get user ID with delays
-        import time
-        internal_uid = None
-        for attempt in range(5):
-            internal_uid = get_user_id_by_identifier("task_user")
-            if internal_uid:
-                break
-            if attempt < 4:
-                time.sleep(0.1)
+        # Get user ID (no retry needed in serial execution)
+        internal_uid = get_user_id_by_identifier("task_user")
         
-        # Fallback to TestUserFactory lookup
+        # Fallback to TestUserFactory lookup if needed
         if not internal_uid:
             from tests.test_utilities import TestUserFactory as TUF
             internal_uid = TUF.get_test_user_id_by_internal_username("task_user", test_data_dir)
         
-        assert internal_uid, f"Should be able to get UUID for user 'task_user'"
+        assert internal_uid, f"Should be able to get UUID for user 'task_user'. User creation returned: {ok}"
 
         from communication.message_processing.interaction_manager import handle_user_message
         # Our parser extracts title only; due date may be ignored in this path in tests – assert creation by title

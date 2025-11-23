@@ -49,6 +49,7 @@ if sys.platform == 'win32':
         
         start_time = time.time()
         lock_acquired = False
+        file_handle = None  # Initialize early to avoid UnboundLocalError in finally block
         
         try:
             # Try to acquire lock by creating lock file
@@ -85,7 +86,6 @@ if sys.platform == 'win32':
                     continue
             
             # Open the actual file for reading/writing
-            file_handle = None
             try:
                 # Open file in binary read-write mode
                 file_handle = open(lock_file_path, 'r+b')

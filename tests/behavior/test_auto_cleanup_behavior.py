@@ -237,6 +237,19 @@ class TestAutoCleanupFileDiscoveryBehavior:
     @pytest.mark.regression
     def test_find_pycache_dirs_real_behavior(self, temp_test_dir):
         """REAL BEHAVIOR TEST: Test finding __pycache__ directories."""
+        # Verify directories exist before searching (race condition fix)
+        root_pycache = temp_test_dir / "__pycache__"
+        subdir_pycache = temp_test_dir / "subdir" / "__pycache__"
+        
+        # Ensure both directories exist (may have been cleaned up by parallel tests)
+        root_pycache.mkdir(exist_ok=True)
+        if not (root_pycache / "test.pyc").exists():
+            (root_pycache / "test.pyc").write_text("test")
+        
+        subdir_pycache.mkdir(parents=True, exist_ok=True)
+        if not (subdir_pycache / "subtest.pyc").exists():
+            (subdir_pycache / "subtest.pyc").write_text("subtest")
+        
         # ✅ VERIFY REAL BEHAVIOR: Find all __pycache__ directories
         pycache_dirs = find_pycache_dirs(temp_test_dir)
         

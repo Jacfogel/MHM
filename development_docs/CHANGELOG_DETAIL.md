@@ -39,6 +39,37 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-23 - Test Coverage Expansion and Test Suite Optimization **COMPLETED**
+- **Feature**: Expanded test coverage for 8 low-coverage modules, optimized test performance with module-scoped fixtures, fixed race conditions, and improved test maintainability with helper functions. All 3,309 tests pass (0 failures, 1 skipped).
+- **Technical Changes**:
+  1. **New Test Files Created** (8 files, ~200+ new tests):
+     - `tests/unit/test_checkin_view.py`: 10 tests for Discord check-in view creation and button handlers (17% → improved coverage)
+     - `tests/unit/test_file_locking.py`: 15 tests for file locking, safe JSON operations, and concurrent access (54% → improved coverage)
+     - `tests/unit/test_email_bot_body_extraction.py`: 20 tests for email body extraction from various formats (54% → improved coverage)
+     - `tests/unit/test_user_data_handlers.py`: 25 tests for convenience functions and validation logic (63% → improved coverage)
+     - `tests/unit/test_command_parser_helpers.py`: 21 tests for command parser helper methods (66% → improved coverage)
+     - `tests/unit/test_ai_chatbot_helpers.py`: 29 tests for AI chatbot helper methods (57% → improved coverage)
+     - `tests/unit/test_channel_orchestrator.py`: Tests for channel orchestrator helper methods (58% → improved coverage)
+     - `tests/unit/test_interaction_handlers_helpers.py`: Tests for interaction handler helpers (57% → improved coverage)
+  2. **Test Performance Optimizations**:
+     - **Module-scoped fixtures**: Converted `setup_method` to module-scoped fixtures in `test_email_bot_body_extraction.py` (EmailBot) and `test_command_parser_helpers.py` (EnhancedCommandParser) - reduces initialization overhead from per-test to per-module
+     - **Helper functions**: Added `find_button_by_label()` and `mock_interaction_factory` fixture in `test_checkin_view.py` to reduce code duplication
+     - **Data extraction helper**: Added `extract_nested_data()` helper in `test_user_data_handlers.py` to simplify nested data access patterns
+  3. **Bug Fixes**:
+     - **`core/file_locking.py`**: Fixed `UnboundLocalError` in `file_lock` context manager by initializing `file_handle = None` before try block
+     - **`core/user_data_manager.py`**: Fixed `update_message_references` to check user directory existence before calling `get_user_info_for_data_manager` (prevents auto-creation of non-existent users)
+  4. **Race Condition Fixes**:
+     - **`test_auto_cleanup_behavior.py`**: Added directory verification and recreation before searching for `__pycache__` directories to handle parallel test cleanup
+     - **`test_discord_bot_behavior.py`**: Applied `@pytest.mark.no_parallel` to `test_discord_checkin_flow_end_to_end` and `test_discord_task_create_update_complete` - simpler and more reliable than retry logic (removed ~50 lines of retry code per test)
+     - **`test_account_creation_ui.py`**: Added `@pytest.mark.no_parallel` to `test_create_account_creates_user_files` to prevent race conditions
+  5. **Test Refactoring**:
+     - Removed `pytest.skip` statements from `test_checkin_view.py` - tests now handle `None` returns gracefully
+     - Updated Discord button callback mocks to use correct signature (only `interaction` parameter, not `interaction` and `button`)
+- **Impact**: Significantly expanded test coverage for low-coverage modules, improved test suite performance through fixture optimization, fixed 3 bugs (file locking, user data manager, test race conditions), and improved test maintainability. All tests pass reliably with cleaner, more efficient code. Test suite runs in ~3.8 minutes (228s total: 149s parallel + 79s serial).
+- **Files Affected**:
+  - New: `tests/unit/test_checkin_view.py`, `test_file_locking.py`, `test_email_bot_body_extraction.py`, `test_user_data_handlers.py`, `test_command_parser_helpers.py`, `test_ai_chatbot_helpers.py`, `test_channel_orchestrator.py`, `test_interaction_handlers_helpers.py`
+  - Modified: `core/file_locking.py`, `core/user_data_manager.py`, `tests/behavior/test_auto_cleanup_behavior.py`, `tests/behavior/test_discord_bot_behavior.py`, `tests/ui/test_account_creation_ui.py`, `tests/unit/test_user_management.py`
+
 ### 2025-11-21 - Error Handling Quality Improvement Plan: Phase 1 & 2 Tooling Integration **COMPLETED**
 - **Feature**: Enhanced error handling coverage analysis tooling to support Phase 1 (decorator replacement) and Phase 2 (exception categorization) auditing, integrated results into AI development tools, and updated documentation. This enables systematic tracking and prioritization of error handling quality improvements beyond basic coverage metrics.
 - **Technical Changes**:

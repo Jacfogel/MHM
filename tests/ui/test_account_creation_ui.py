@@ -1315,6 +1315,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
+    @pytest.mark.no_parallel
     def test_create_account_creates_user_files(self, dialog, test_data_dir):
         """Test that create_account actually creates user files on disk."""
         from core.user_data_handlers import get_user_data

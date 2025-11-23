@@ -57,6 +57,12 @@ class UserDataManager:
             logger.error("Empty user_id provided")
             return False
         
+        # Check if user directory exists (prevents auto-creation by get_user_info_for_data_manager)
+        user_dir = get_user_data_dir(user_id)
+        if not os.path.exists(user_dir):
+            logger.error(f"User {user_id} not found: user directory does not exist")
+            return False
+        
         # Load user profile
         # Retry in case of race conditions with file writes in parallel execution
         import time
