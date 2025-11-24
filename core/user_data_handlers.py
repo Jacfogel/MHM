@@ -1281,7 +1281,9 @@ def update_user_preferences(user_id: str, updates: Dict[str, Any], *, auto_creat
             if preferences_data is None:
                 logger.warning(f"Could not load or create preferences for user {user_id}")
             else:
-                old_categories = set(preferences_data.get("categories", []))
+                # get_user_data returns {"preferences": {...}}, so we need to access the nested dict
+                prefs_dict = preferences_data.get("preferences", {}) if isinstance(preferences_data, dict) else {}
+                old_categories = set(prefs_dict.get("categories", []) if isinstance(prefs_dict, dict) else [])
                 new_categories = set(updates["categories"])
                 added_categories = new_categories - old_categories
 

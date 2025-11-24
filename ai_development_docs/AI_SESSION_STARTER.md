@@ -1,148 +1,116 @@
-# AI Session Starter - Essential Context for New Sessions
-
+# AI Session Starter
 
 > **File**: `ai_development_docs/AI_SESSION_STARTER.md`
-> **Purpose**: Essential context for AI assistants starting new chat sessions  
-> **Audience**: AI Assistant (Cursor, Codex, etc.)  
-> **Status**: **ACTIVE** - Always include this in new sessions  
-> **Version**: --scope - AI Collaboration System Active
-> **Last Updated**: 2025-09-27
-> **Style**: Concise, essential-only, scannable
+> **Audience**: AI collaborators working on the MHM codebase and docs
+> **Purpose**: Provide a compact starting point for where to look and what rules to follow in a new session
+> **Style**: Minimal, routing-focused, no deep explanations
 
-## 1. USER PROFILE (CRITICAL)
-- **Beginner programmer** with ADHD/depression
-- **Windows 11** environment, PowerShell syntax required
-- **Personal project** - building mental health assistant for own use
-- **Values learning and efficiency** over being right
-- **Prefers correction** over inefficient approaches
+> For detailed explanations, rationale, and examples, use:
+> - `README.md` (project overview)
+> - `HOW_TO_RUN.md` (run modes and environment details)
+> - The paired human docs referenced below for deep behavior and history
 
-## 2. CRITICAL RULES (Always Apply)
+## 1. Starting a Session
 
-### 2.1. **Safety First**
-- **Test**: `python run_headless_service.py start` must work after changes (for AI collaborators - launches service directly)
-- **Backup**: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
-- **Incremental**: Make small, tested changes
-- **Document**: Update `CHANGELOG_DETAIL.md` and `AI_CHANGELOG.md`
+When you attach to MHM, do this first:
 
-### 2.2. **Audit-First Protocol (CRITICAL)**
-**BEFORE** creating any documentation or comprehensive analysis:
-1. **ALWAYS** run `python ai_development_tools/ai_tools_runner.py audit` first
-2. **ALWAYS** show audit results to user with statistics
-3. **NEVER** create documentation from partial information
-4. **ALWAYS** ask for user approval before proceeding
+1. **Identify the user’s focus**  
+   - Read the latest user message carefully.  
+   - If they mention a specific file or doc, open that file first.
 
-### 2.3. **PowerShell Syntax (CRITICAL)**
-- **ALWAYS check exit codes**: `$LASTEXITCODE` after commands
-- **Use PowerShell syntax**: `;` for chaining, `-and`/`-or` for logic
-- **Never assume success**: Check both exit codes and error patterns
+2. **Locate the relevant AI guide**  
+   - For development work, start with `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`, especially:
+     - Section 1 "Safety First"
+     - Section 3 "Standard Development Cycle"
+   - For documentation changes, use `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`, especially:
+     - Section 3 "Documentation Synchronization Checklist"
+     - Section 5 "Generated Documentation Standards"
+   - For tooling or reports, use `ai_development_tools/AI_DEV_TOOLS_GUIDE.md` as the primary reference.
 
-### 2.4. **Paired Document Maintenance (CRITICAL)**
-**When updating any human-facing document, check if corresponding AI-facing document needs updates:**
-- **DEVELOPMENT_WORKFLOW.md** <-> **AI_DEVELOPMENT_WORKFLOW.md**
-- **ARCHITECTURE.md** <-> **AI_ARCHITECTURE.md**
-- **DOCUMENTATION_GUIDE.md** <-> **AI_DOCUMENTATION_GUIDE.md**
-- **CHANGELOG_DETAIL.md** <-> **AI_CHANGELOG.md**
-- **logs/LOGGING_GUIDE.md** <-> **AI_LOGGING_GUIDE.md**
-- **tests/TESTING_GUIDE.md** <-> **AI_TESTING_GUIDE.md**
-- **core/ERROR_HANDLING_GUIDE.md** <-> **AI_ERROR_HANDLING_GUIDE.md**
+3. **Stay within scope**  
+   - Use only the files present in the current workspace (for example, those the user has uploaded or explicitly referenced).  
+   - If a needed file or report is missing, ask the user to provide it instead of guessing its contents.
 
-## 3. PROJECT OVERVIEW
+4. **Confirm expectations**  
+   - If the task is ambiguous (for example, "fix this" without context), ask 1–2 pointed clarification questions.  
+   - Once the scope is clear, follow the relevant AI guide(s) from step 2.
 
-### 3.1. **What We're Building**
-Personal mental health assistant that helps manage executive functioning deficits and health needs, staying connected to life priorities and goals, providing motivation and hope for the future.
+## 2. Core AI References
 
-### 3.2. **Architecture Vision**
-- **Communication-First Design**: All user interactions through channels (Discord, email, etc.)
-- **AI-Powered Interface**: Users interact primarily through AI chatbot with optional menus
-- **No Required User UI**: Admin interface exists for management, but users never need separate UI
-- **Channel-Agnostic Architecture**: Features work across all communication channels
+Use these AI docs as your primary routing table; they, in turn, point to detailed human docs:
 
-### 3.3. **Key Files (Don't Break These)**
-- `run_headless_service.py` - Main entry point for AI collaborators
-- `run_mhm.py` - UI entry point (for human users)
-- `core/service.py` - Background service
-- `ui/ui_app_qt.py` - Admin interface (admin only)
-- `core/config.py` - Configuration
-- `core/user_data_handlers.py`, `core/user_data_validation.py` - User data management
-- `communication/` - Communication channel implementations
-- `data/users/` - User data
+- **Development workflow** – `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`  
+  - Section 1 "Safety First" – constraints and guardrails.  
+  - Section 3 "Standard Development Cycle" – step-by-step development loop.
 
-## 4. CURRENT SYSTEM STATUS
+- **Architecture** – `ai_development_docs/AI_ARCHITECTURE.md`  
+  - For where modules live, key services, and high-level boundaries.
 
-### 4.1. **Quick Status Check**
-- **Check `AI_CHANGELOG.md`** for recent changes and activity
-- **Check `../TODO.md`** for current priorities and tasks
-- **Run `python ai_development_tools/ai_tools_runner.py status`** for comprehensive status
+- **Logging** – `ai_development_docs/AI_LOGGING_GUIDE.md`  
+  - For where logs live and how to extend logging safely.
 
-## 5. QUICK COMMANDS
+- **Testing** – `ai_development_docs/AI_TESTING_GUIDE.md`  
+  - Section 4 "Test Layout and Discovery" – where tests live and how to add new ones.
 
-### 5.1. **Essential Commands**
-```powershell
-# Test system (AI collaborators)
-python run_headless_service.py start
-python run_headless_service.py info
+- **Error handling** – `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`  
+  - For how to use `MHMError` and structure error handling.
 
-# Get system status
-python ai_development_tools/ai_tools_runner.py status
+- **Development tooling** – `ai_development_tools/AI_DEV_TOOLS_GUIDE.md`  
+  - Section 1 "Main Entry Point" – `ai_tools_runner.py` commands.  
+  - Section 2 "Fast Mode vs Full Mode" – when to use `audit` vs `audit --full`.  
+  - Section 3 "Generated Outputs" – where reports and status files live.
 
-# Run full audit
-python ai_development_tools/ai_tools_runner.py audit
+- **Legacy removal** – `ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md`  
+  - Quick reference for using `legacy_reference_cleanup.py` and the `legacy` command.  
+  - Tightly coupled with `AI_DEV_TOOLS_GUIDE.md` and the legacy reports described there.
 
-# Create backup
-Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse
-```
+## 3. Safe Change Rules
 
-### 5.2. **Development Workflow**
-1. **Test Current**: `python run_headless_service.py start`
-2. **Create Backup**: PowerShell backup command
-3. **Make Small Changes**: Incremental approach
-4. **Test After**: `python run_headless_service.py start`
-5. **Update CHANGELOGs**: Document changes fully in `../development_docs/CHANGELOG_DETAIL.md` and concisely `AI_CHANGELOG.md`
+Follow these high-level rules whenever you propose or describe changes:
 
-## 6. COMMUNICATION GUIDELINES
+1. **Respect existing patterns**  
+   - Match existing styles in logging, testing, error handling, and configuration.  
+   - Prefer extending existing docs, tests, and modules over inventing new top-level structures.
 
-### 6.1. **Response Style**
-- **Simple explanations** - focus on one concept at a time
-- **Step-by-step instructions** - break complex tasks into steps
-- **Explain WHY** - always explain why changes are needed
-- **Be patient and encouraging** - acknowledge progress and successes
-- **Question assumptions** - suggest better alternatives when appropriate
+2. **Keep AI vs human docs aligned**  
+   - For paired docs, H2 headings must match as a set (see section 3 "Documentation Synchronization Checklist" in `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`).  
+   - AI docs summarize and route; human docs contain detailed explanations.
 
-### 6.2. **When User Suggests Something**
-- Question their goals and reasoning
-- Suggest better alternatives if you see them
-- Educate about relevant concepts they might not know
-- Point out potential problems or inefficiencies
-- Ask clarifying questions when unsure
+3. **Avoid partial or speculative edits**  
+   - Do not describe or "fix" modules you cannot see.  
+   - If a function or behavior is unclear, ask for the relevant file or an example before rewriting it.
 
-## 7. For More Detailed Information
+4. **Tie changes to tests and tools**  
+   - When you propose code changes, also point to where tests should be added or updated (see `ai_development_docs/AI_TESTING_GUIDE.md`).  
+   - Where appropriate, suggest re-running:
+     - `python ai_development_tools/ai_tools_runner.py audit`  
+     - `python ai_development_tools/ai_tools_runner.py status`  
+     - `python ai_development_tools/ai_tools_runner.py legacy` (for legacy-related work).
 
-### 7.1. **When You Need More Context**
-- **`AI_REFERENCE.md`** - Complete troubleshooting and system understanding
-- **`development_docs/CHANGELOG_DETAIL.md`** - Complete change history
-- **`../TODO.md`** - Full task list and priorities
+## 4. Typical Tasks and Where to Look
 
-### 7.2. **When You Need Technical Details**
-- **`../ARCHITECTURE.md`** - System architecture and design
-- **`../DEVELOPMENT_WORKFLOW.md`** - Detailed development practices
-- **`ai_development_tools/AI_DEV_TOOLS_GUIDE.md`** - Complete tool usage and configuration
+Use this as a routing table for common request types.
 
-### 7.3. **AI-Specific Quick References**
-- **`AI_DEVELOPMENT_WORKFLOW.md`** - AI-optimized development patterns
-- **`AI_ARCHITECTURE.md`** - AI-optimized architectural patterns
-- **`AI_DOCUMENTATION_GUIDE.md`** - AI-optimized documentation navigation
-- **`AI_LOGGING_GUIDE.md`** - Fast logging patterns and troubleshooting
-- **`AI_TESTING_GUIDE.md`** - Fast testing patterns and procedures
-- **`AI_ERROR_HANDLING_GUIDE.md`** - Fast error handling patterns and recovery
-- **`AI_LEGACY_REMOVAL_GUIDE.md`** - Fast legacy code removal patterns (search-and-close approach)
+### 4.1. "Help me edit documentation"
+
+- Start with `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`, sections:
+  - 3 "Documentation Synchronization Checklist"  
+  - 4 "Maintenance Guidelines"  
+- Then open the relevant human doc (for example, `DOCUMENTATION_GUIDE.md`, `LOGGING_GUIDE.md`, `TESTING_GUIDE.md`).  
+- Keep AI docs short; push detailed narrative into the human docs.
+
+### 4.2. "Help me refactor or clean up code"
+
+- Start with `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`, especially section 1 "Safety First" and section 3 "Standard Development Cycle".  
+- Use `ai_development_tools/AI_DEV_TOOLS_GUIDE.md` for commands to run audits and checks.  
+- For legacy-related refactors, also use `ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md` and the legacy tools described there.
+
+### 4.3. "Help me understand the system"
+
+- Use `ai_development_docs/AI_ARCHITECTURE.md` as the primary overview.  
+- Use `README.md` and `HOW_TO_RUN.md` for a human-readable overview of goals and run modes.  
+- For channel-specific behavior (Discord, email, etc.), look for channel guides under `communication/communication_channels/`.
 
 ---
 
-**Remember**: You're here to help build an awesome mental health assistant. Optimize for learning and efficiency, not perfection!
-
-**Next Steps**: 
-1. Understand the current task or request
-2. Run appropriate audit if needed
-3. Work incrementally with testing
-4. Keep the user informed and involved
-
+This file is intentionally compact. For any deep explanation, examples, or historical context, always route to the human-facing documentation first, using the AI guides above to locate the right section.

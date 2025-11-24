@@ -1095,9 +1095,15 @@ logger.info(f"Registered {len(USER_DATA_LOADERS)} data loaders in centralized re
 def get_user_categories(user_id: str) -> List[str]:
     """Get user's message categories using centralized system."""
     from core.user_data_handlers import get_user_data
-    user_data = get_user_data(user_id, 'preferences', fields='categories')
+    user_data = get_user_data(user_id, 'preferences')
+    # Extract categories from the preferences structure
     if isinstance(user_data, dict):
-        return list(user_data.keys())
+        preferences = user_data.get('preferences', {})
+        if isinstance(preferences, dict):
+            categories = preferences.get('categories', [])
+            if isinstance(categories, list):
+                return categories
+    # Fallback: if user_data is already a list (legacy format)
     elif isinstance(user_data, list):
         return user_data
     return []

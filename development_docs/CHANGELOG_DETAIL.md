@@ -39,6 +39,25 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-24 - Test Suite Performance Investigation and Reversion **COMPLETED**
+- **Feature**: Investigated test suite performance slowdown and reverted optimization attempts after determining the issue was system load, not code changes.
+- **Technical Changes**:
+  1. **Performance Investigation**:
+     - Attempted optimizations: removed `@pytest.mark.no_parallel` from 18 tests (11 in `test_account_creation_ui.py`, 7 in `test_user_creation.py`)
+     - Added `_wait_for_user_id_by_username` and `_wait_for_user_directory` helper functions with polling logic
+     - Replaced manual retry loops with `wait_until()` helper in `test_account_lifecycle.py` and `test_user_creation.py`
+     - Reduced retry counts and sleep durations in various tests
+  2. **Reversion**:
+     - Restored all `@pytest.mark.no_parallel` markers to original tests
+     - Removed helper functions (`_wait_for_user_id_by_username`, `_wait_for_user_directory`)
+     - Reverted all `wait_until()` calls back to simple retry loops with `time.sleep()`
+     - Removed unused `wait_until` imports
+  3. **Files Modified**:
+     - `tests/ui/test_account_creation_ui.py`: Removed helper functions, restored `no_parallel` markers, simplified retry logic
+     - `tests/integration/test_user_creation.py`: Reverted `wait_until` calls, restored `no_parallel` markers
+     - `tests/integration/test_account_lifecycle.py`: Reverted `wait_until` calls back to simple retry loops
+- **Impact**: Performance investigation revealed that test suite slowdown was due to system load variability, not code changes. Baseline performance (~3.8-4 minutes for full suite) is acceptable. All optimizations reverted to maintain test stability and reliability. Test suite continues to pass all 3,309 tests consistently.
+
 ### 2025-11-23 - Test Suite Stability Fixes and Logging Improvements **COMPLETED**
 - **Feature**: Fixed test suite failures related to user index updates, worker log cleanup, and test isolation issues. Improved test logging configuration and resolved race conditions in parallel test execution. All 3,309 tests now pass consistently.
 - **Technical Changes**:

@@ -197,21 +197,30 @@ class UserDataManager:
             Path(self.backup_dir).mkdir(parents=True, exist_ok=True)
             
             with zipfile.ZipFile(backup_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                # Track files already added to prevent duplicates
+                added_files = set()
+                
                 # Backup user directory (profile, preferences, schedules, etc.)
                 user_dir = Path(get_user_data_dir(user_id))
                 if user_dir.exists():
                     for file_path in user_dir.rglob('*'):
                         if file_path.is_file():
                             arcname = os.path.relpath(str(file_path), BASE_DATA_DIR)
-                            zipf.write(str(file_path), arcname)
+                            # Only add if not already in zip (prevents duplicate warnings)
+                            if arcname not in added_files:
+                                zipf.write(str(file_path), arcname)
+                                added_files.add(arcname)
                 
-                # Backup message files if requested
+                # Backup message files if requested (only if not already included in user directory)
                 if include_messages:
                     message_files = self.get_user_message_files(user_id)
                     for category, file_path in message_files.items():
                         if os.path.exists(file_path):
                             arcname = os.path.relpath(file_path, BASE_DATA_DIR)
-                            zipf.write(file_path, arcname)
+                            # Only add if not already in zip (prevents duplicate warnings)
+                            if arcname not in added_files:
+                                zipf.write(file_path, arcname)
+                                added_files.add(arcname)
                 
                 # Add metadata
                 metadata = {

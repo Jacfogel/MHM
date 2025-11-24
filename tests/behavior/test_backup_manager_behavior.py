@@ -592,8 +592,13 @@ class TestBackupManagerBehavior:
         # Just verify the function runs without error
         assert isinstance(is_valid, bool)
     
+    @pytest.mark.no_parallel
     def test_perform_safe_operation_real_behavior(self):
-        """Test safe operation with backup and rollback."""
+        """Test safe operation with backup and rollback.
+        
+        Note: Marked as no_parallel because backup operations can interfere with each other
+        when run in parallel, causing race conditions with backup file creation and system state validation.
+        """
         # Define a test operation
         def test_operation():
             # Create a test file under tmp to avoid leaving artifacts at tests/data root

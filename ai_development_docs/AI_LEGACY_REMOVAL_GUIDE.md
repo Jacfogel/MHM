@@ -1,80 +1,135 @@
-# AI Legacy Code Removal Guide - Quick Reference
-
+# AI Legacy Code Removal Guide
 
 > **File**: `ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md`
-> **Purpose**: Fast patterns for safely removing legacy code using search-and-close approach  
-> **For context**: See `.cursor/rules/quality-standards.mdc` and `.cursor/rules/critical.mdc` for legacy code standards
+> **Audience**: AI collaborators and developers cleaning up deprecated code paths
+> **Purpose**: Routing and constraints for using the legacy cleanup tools and safely removing legacy code
+> **Style**: Minimal, reference-only, tool-focused
+
+> For detailed explanations, rationale, and examples, see:
+> - Section 3.5 "Automated tools" in `DOCUMENTATION_GUIDE.md`
+> - Section 3 "Generated Outputs" and section 4 "Key Scripts" in `ai_development_docs/AI_DEV_TOOLS_GUIDE.md`
 
 ## Quick Reference
 
-**Process:** `--find` → Update → `--verify` → Remove → Test
+**Goal:** Use the legacy cleanup tools to identify and safely remove deprecated code, config, and documentation without breaking production behavior.
 
-**Commands:**
+**Core commands:**
+
 ```powershell
+# Targeted search for a single item
 python ai_development_tools/legacy_reference_cleanup.py --find "LegacyItemName"
+
+# Verify readiness for removal
 python ai_development_tools/legacy_reference_cleanup.py --verify "LegacyItemName"
+
+# Run the integrated legacy scan via the tool runner
 python ai_development_tools/ai_tools_runner.py legacy
 ```
 
+For the full audit workflow that also produces `development_docs/LEGACY_REFERENCE_REPORT.md`, use `ai_development_tools/AI_DEV_TOOLS_GUIDE.md`, especially section 2 "Fast Mode vs Full Mode" and section 3 "Generated Outputs".
+
 ## 1. Standards
 
-**Adding Legacy Code:**
-- Mark with `# LEGACY COMPATIBILITY:` header
-- Log usage when accessed
-- Document removal plan
-- Add detection patterns to `legacy_reference_cleanup.py`
+Use this guide only after you understand the general documentation and development rules:
 
-**Removing Legacy Code:**
-- Use search-and-close (not time windows)
-- Verify all references updated before removal
-- Run full test suite after removal
-- Update changelogs
+- Documentation and pairing rules: see section 3 "Documentation Synchronization Checklist" in `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`.
+- Development workflow and safety: see section 1 "Safety First" and section 3 "Standard Development Cycle" in `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`.
+
+**When adding legacy code (temporary compatibility only):**
+
+- Mark code with a clear `# LEGACY COMPATIBILITY:` header.
+- Log usage when the legacy path is exercised.
+- Add, or update, a removal plan in the relevant docs or changelog.
+- Add specific detection patterns to `legacy_reference_cleanup.py` (no broad patterns like `"legacy"`).
+
+**When preparing to remove legacy code:**
+
+- Use search-and-close, not time-based assumptions:
+  - Prove there are no remaining active references in code or config.
+- Do not remove legacy code until:
+  - Tests are updated or removed as appropriate.
+  - Documentation and config are aligned.
+  - The system starts and passes the agreed test suite.
 
 ## 2. Process
 
-**1. Find:** `--find "legacy_item"` (checks imports, usage, tests, docs, config)
+Use the legacy cleanup tool as a structured workflow rather than ad hoc search.
 
-**2. Update:**
-- **Active code/config** (HIGH): Replace with modern equivalent
-- **Tests** (HIGH): Update or remove if testing legacy
-- **Docs** (MEDIUM): Update for clarity (archive can stay)
-- **Archive** (LOW): Leave as-is
+1. **Find** – map out references
 
-**3. Verify:** `--verify "legacy_item"` (must show "READY", zero active code/config refs)
+   ```powershell
+   python ai_development_tools/legacy_reference_cleanup.py --find "LegacyItemName"
+   ```
 
-**4. Remove & Test:**
-- Remove code and `LEGACY COMPATIBILITY` markers
-- Update changelogs
-- Run full test suite
-- Verify service starts
+   - Scans Python and Markdown files.
+   - Categorizes references (active code, tests, documentation, config, archive).
+   - For behavior details, see the `LegacyReferenceCleanup.find_all_references` / `scan_for_legacy_references` flow in `ai_development_tools/legacy_reference_cleanup.py`.
+
+2. **Update** – fix all high-impact references
+
+   - **Active code / config (HIGH)**: replace with the modern path or configuration.
+   - **Tests (HIGH)**: update tests to target the new behavior or delete tests that exclusively cover legacy paths.
+   - **Documentation (MEDIUM)**: update to describe the new behavior; archive references can remain for history.
+   - **Archive (LOW)**: usually keep as-is unless causing confusion.
+
+3. **Verify** – confirm the system is ready
+
+   ```powershell
+   python ai_development_tools/legacy_reference_cleanup.py --verify "LegacyItemName"
+   ```
+
+   - Confirms there are no remaining active code/config references.
+   - Summarizes documentation and archive references for clarity.
+   - Produces recommendations and a readiness flag.
+
+4. **Remove & Test** – only after verification is clean
+
+   - Remove the legacy code and `LEGACY COMPATIBILITY` markers.
+   - Run the standard test suite (see section 4 "Test Layout and Discovery" in `ai_development_docs/AI_TESTING_GUIDE.md`).
+   - Start the service and confirm normal behavior.
+   - Update changelogs or relevant docs to record the removal.
 
 ## 3. Checklist
 
-Before removal:
-- [ ] `--find` shows no active code/config references
-- [ ] Tests updated or removed
-- [ ] `--verify` shows "READY"
-- [ ] Full test suite passes
-- [ ] Service starts without errors
+Use this as a quick, pre-removal gate.
+
+Before you delete a legacy item:
+
+- [ ] `--find` shows no active code or config references.
+- [ ] Tests referencing the item are updated or removed.
+- [ ] `--verify` reports the item as ready for removal.
+- [ ] The standard test suite passes after your changes.
+- [ ] The service starts and runs without errors.
+- [ ] Relevant documentation and changelogs mention the removal where appropriate.
 
 ## 4. Tools
 
-**legacy_reference_cleanup.py:**
-- `--find <ITEM>`: Find all references
-- `--verify <ITEM>`: Check readiness with recommendations
-- `--scan`: Scan for all legacy patterns
-- `--clean`: Clean up (use `--dry-run` first)
+These tools underlie this guide. For detailed behavior and additional commands, see `ai_development_tools/AI_DEV_TOOLS_GUIDE.md` (section 1 "Main Entry Point", section 3 "Generated Outputs", and section 4 "Key Scripts").
 
-**ai_tools_runner.py:** `legacy` (part of `audit --full`)
+- `ai_development_tools/legacy_reference_cleanup.py`:
+  - `--scan`: scan for all legacy patterns.
+  - `--find <ITEM>`: search for references to a specific legacy item.
+  - `--verify <ITEM>`: verify removal readiness and summarize references.
+  - `--clean`: clean up legacy references (always use `--dry-run` first).
+
+- `ai_development_tools/ai_tools_runner.py`:
+  - `legacy`: integrated legacy scan, and in some modes, report regeneration.
+  - `audit` / `audit --full`: broader audits that also generate `development_docs/LEGACY_REFERENCE_REPORT.md` and related outputs.
 
 ## 5. Best Practices
 
-1. One item at a time
-2. Test after each update
-3. Use the tools (don't manual search)
-4. Verify thoroughly before removal
-5. Document removal in changelogs
+- Work on **one legacy item at a time**.
+- Run `--find` and `--verify` before touching code, then again after updates.
+- Prefer using the provided tools instead of manual search; they are tuned to MHM’s legacy patterns.
+- When in doubt, keep archive references and historical docs; prioritize removing active code and config paths.
+- Document removals in the changelog or relevant docs so future audits know what changed.
 
 ## 6. Success Criteria
 
-Ready when: `--verify` shows "READY", zero active code/config refs, tests passing, service runs
+A legacy item is considered fully removed when:
+
+- `--verify` shows the item as ready for removal.
+- There are zero active code/config references in the report.
+- Tests and config no longer mention the legacy path (except where deliberately archived).
+- The service starts and passes the agreed test suite.
+- Documentation and changelog entries reflect the new, non-legacy behavior.

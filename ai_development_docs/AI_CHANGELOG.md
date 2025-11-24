@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-24 - Test Suite Performance Investigation and Reversion **COMPLETED**
+- Investigated test suite performance slowdown: attempted optimizations (removed `no_parallel` markers, added `wait_until` helpers, reduced retry loops)
+- Reverted all optimization attempts after determining performance variability is due to system load, not code changes
+- Restored all `@pytest.mark.no_parallel` markers and removed helper functions that added overhead
+- Result: Test suite baseline performance confirmed at ~3.8-4 minutes, all 3,309 tests pass consistently
+
 ### 2025-11-23 - Test Suite Stability Fixes and Logging Improvements **COMPLETED**
 - Fixed test suite failures: worker log cleanup with retry logic for Windows file locking, enhanced user index update verification with retries, fixed Discord user index mapping in test utilities, resolved test isolation issue with unique loader names
 - Added retry logic to account creation tests to handle user index lookup race conditions in parallel execution

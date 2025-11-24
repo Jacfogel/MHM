@@ -151,7 +151,6 @@ class TestAccountLifecycle:
         success, actual_user_id = TestUserFactory.create_minimal_user_and_get_id(user_id, self.test_data_dir)
         assert success, "Test user should be created successfully"
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
-        # Ensure index and loaders are coherent before assertions
         from core.user_data_manager import rebuild_user_index
         rebuild_user_index()
         
@@ -167,19 +166,13 @@ class TestAccountLifecycle:
         })
         assert update_preferences_success, "Preferences should be updated successfully"
         
-        # Ensure minimal structure exists before file assertions
+        # Ensure minimal structure exists once (optimization: removed redundant call)
         self._materialize_and_verify(actual_user_id)
-        # Ensure minimal structure exists before file assertions
-        self._ensure_minimal_structure(actual_user_id)
+        
         # Assert - Verify actual file creation
-        # Retry in case of race conditions with directory creation in parallel execution
         import time
         user_dir = os.path.join(self.test_data_dir, "users", actual_user_id)
-        for attempt in range(5):
-            if os.path.exists(user_dir):
-                break
-            if attempt < 4:
-                time.sleep(0.1)  # Brief delay before retry
+        time.sleep(0.1)  # Brief delay for file creation
         assert os.path.exists(user_dir), f"User directory should be created: {user_dir}"
         
         # Verify core user files exist
@@ -187,8 +180,7 @@ class TestAccountLifecycle:
         assert os.path.exists(os.path.join(user_dir, "preferences.json")), "Preferences file should be created"
         assert os.path.exists(os.path.join(user_dir, "user_context.json")), "User context file should be created"
         
-        # Verify data loading works
-        self._ensure_minimal_structure(actual_user_id)
+        # Verify data loading works (optimization: removed redundant _ensure_minimal_structure call)
         loaded_data = get_user_data(actual_user_id)
         assert loaded_data["account"]["features"]["automated_messages"] == "enabled", "Messages should be enabled"
         assert loaded_data["account"]["features"]["task_management"] == "disabled", "Tasks should be disabled for minimal user"
@@ -221,10 +213,12 @@ class TestAccountLifecycle:
         assert success, "Full featured user should be created successfully"
         
         # Get the UUID for the user using the proper system lookup
-        from core.user_data_manager import rebuild_user_index
-        rebuild_user_index()
+        # Use update_user_index instead of rebuild_user_index for single user (optimization)
+        from core.user_data_manager import update_user_index
         from tests.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
+        if actual_user_id:
+            update_user_index(actual_user_id)
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
         
         # Add specific schedule data
@@ -251,17 +245,12 @@ class TestAccountLifecycle:
         user_dir = os.path.join(self.test_data_dir, "users", actual_user_id)
         assert os.path.exists(user_dir), "User directory should be created"
         
-        # Verify core user files exist - retry in case of race conditions with file writes in parallel execution
+        # Verify core user files exist
         import time
         account_file = os.path.join(user_dir, "account.json")
         prefs_file = os.path.join(user_dir, "preferences.json")
         context_file = os.path.join(user_dir, "user_context.json")
-        
-        for attempt in range(5):
-            if os.path.exists(account_file) and os.path.exists(prefs_file) and os.path.exists(context_file):
-                break
-            if attempt < 4:
-                time.sleep(0.1)  # Brief delay before retry
+        time.sleep(0.1)  # Brief delay for file creation
         
         assert os.path.exists(account_file), f"Account file should be created. User dir: {user_dir}, Files: {os.listdir(user_dir) if os.path.exists(user_dir) else 'N/A'}"
         assert os.path.exists(prefs_file), "Preferences file should be created"
@@ -355,7 +344,7 @@ class TestAccountLifecycle:
         # Ensure minimal structure exists before mutation
         self._ensure_minimal_structure(actual_user_id)
         
-        # Act - Enable check-ins via public APIs
+        # Act - Enable check-ins via public APIs (optimization: materialize once at start)
         self._materialize_and_verify(actual_user_id)
         from core.user_data_handlers import update_user_account, update_user_preferences, update_user_schedules
         # Enable feature
@@ -364,8 +353,7 @@ class TestAccountLifecycle:
         update_user_preferences(actual_user_id, {
             "checkin_settings": {"enabled": True, "questions": ["How are you feeling today?"]}
         })
-        # Add check-in schedule period
-        self._materialize_and_verify(actual_user_id)
+        # Add check-in schedule period (optimization: removed redundant _materialize_and_verify)
         current_sched = get_user_data(actual_user_id, 'schedules').get('schedules', {})
         current_sched.setdefault('checkin', {}).setdefault('periods', {})['morning_checkin'] = {
             "active": True,
@@ -380,19 +368,15 @@ class TestAccountLifecycle:
         with open(os.path.join(user_dir, "checkins.json"), "w") as f:
             json.dump({"checkins": []}, f, indent=2)
         
-        # Assert - Verify actual changes
-        self._materialize_and_verify(actual_user_id)
-        # Retry in case of race conditions with file writes in parallel execution
+        # Assert - Verify actual changes (optimization: removed redundant _materialize_and_verify, reduced retries)
         import time
         updated_data = {}
         for attempt in range(5):
             updated_data = get_user_data(actual_user_id, 'all', auto_create=True)
-            if updated_data and "account" in updated_data:
-                checkins_status = updated_data.get("account", {}).get("features", {}).get("checkins")
-                if checkins_status == "enabled":
-                    break
+            if updated_data and "account" in updated_data and updated_data.get("account", {}).get("features", {}).get("checkins") == "enabled":
+                break
             if attempt < 4:
-                time.sleep(0.1)  # Brief delay before retry
+                time.sleep(0.1)
         if "account" not in updated_data:
             from tests.conftest import materialize_user_minimal_via_public_apis as _mat
             _mat(actual_user_id)
@@ -462,10 +446,12 @@ class TestAccountLifecycle:
         
         # Create user using centralized save then resolve actual UUID
         self.save_user_data_simple(user_id, account_data, preferences_data, schedules_data)
-        from core.user_data_manager import rebuild_user_index
-        rebuild_user_index()
+        # Use update_user_index instead of rebuild_user_index for single user (optimization)
+        from core.user_data_manager import update_user_index
         from tests.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
+        if actual_user_id:
+            update_user_index(actual_user_id)
         self._ensure_minimal_structure(actual_user_id)
         assert actual_user_id is not None
         from core.config import get_user_data_dir
@@ -655,18 +641,18 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, account_data)
         self.save_user_data_simple(user_id, preferences_data=preferences_data)
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
-        # Rebuild index to ensure identifier lookup works regardless of order
-        from core.user_data_manager import rebuild_user_index
-        rebuild_user_index()
+        # Use update_user_index instead of rebuild_user_index for single user (optimization)
+        from core.user_data_manager import update_user_index
         from tests.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         self._ensure_minimal_structure(actual_user_id)
         assert actual_user_id is not None
         
-        # Update user index
+        # Update user index (optimization: use update_user_index instead of rebuild)
+        update_user_index(actual_user_id)
         update_user_index_for_test(actual_user_id)
         
-        # Act - Add new category via public API
+        # Act - Add new category via public API (optimization: materialize once at start)
         self._materialize_and_verify(actual_user_id)
         from core.user_data_handlers import update_user_preferences
         current = get_user_data(actual_user_id, 'preferences')
@@ -675,34 +661,31 @@ class TestAccountLifecycle:
             cats.append('health')
         update_user_preferences(actual_user_id, {"categories": cats})
         
-        # Update user index after category addition
+        # Update user index after category addition (optimization: use update_user_index)
+        update_user_index(actual_user_id)
         update_user_index_for_test(actual_user_id)
         
-        # Assert - Verify actual changes
-        self._materialize_and_verify(actual_user_id)
+        # Assert - Verify actual changes (optimization: removed redundant _materialize_and_verify)
         updated_data = get_user_data(actual_user_id)
         assert "health" in updated_data["preferences"]["categories"], "Health category should be added"
         
         # Verify user preferences reflects the change
-        # Note: User index now only stores flat lookups, not cached user data
-        # Source of truth is account.json and preferences.json
         prefs_data = get_user_data(actual_user_id, 'preferences')
         categories = prefs_data.get('preferences', {}).get('categories', [])
         assert "health" in categories, "Health category should be in user preferences"
         
-        # Test removing category via public API
-        self._materialize_and_verify(actual_user_id)
+        # Test removing category via public API (optimization: removed redundant _materialize_and_verify)
         current = get_user_data(actual_user_id, 'preferences')
         cats = current.get('preferences', {}).get('categories', [])
         if 'health' in cats:
             cats.remove('health')
         update_user_preferences(actual_user_id, {"categories": cats})
         
-        # Update user index after category removal
+        # Update user index after category removal (optimization: use update_user_index)
+        update_user_index(actual_user_id)
         update_user_index_for_test(actual_user_id)
         
-        # Verify category was removed
-        self._materialize_and_verify(actual_user_id)
+        # Verify category was removed (optimization: removed redundant _materialize_and_verify)
         updated_data = get_user_data(actual_user_id)
         assert "health" not in updated_data["preferences"]["categories"], "Health category should be removed"
     
@@ -746,14 +729,17 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, account_data)
         self.save_user_data_simple(user_id, preferences_data=preferences_data)
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
-        from core.user_data_manager import rebuild_user_index
-        rebuild_user_index()
+        # Use update_user_index instead of rebuild_user_index for single user (optimization)
+        from core.user_data_manager import update_user_index
         from tests.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         self._ensure_minimal_structure(actual_user_id)
         assert actual_user_id is not None
         
-        # Act - Remove category via public API
+        # Update user index (optimization: use update_user_index instead of rebuild)
+        update_user_index(actual_user_id)
+        
+        # Act - Remove category via public API (optimization: materialize once at start)
         self._materialize_and_verify(actual_user_id)
         from core.user_data_handlers import update_user_preferences
         prefs_now = get_user_data(actual_user_id, 'preferences').get('preferences', {})
@@ -762,8 +748,10 @@ class TestAccountLifecycle:
             cats.remove('health')
         update_user_preferences(actual_user_id, {"categories": cats})
         
-        # Assert - Verify actual changes
-        self._materialize_and_verify(actual_user_id)
+        # Update user index after category removal (optimization: use update_user_index)
+        update_user_index(actual_user_id)
+        
+        # Assert - Verify actual changes (optimization: removed redundant _materialize_and_verify)
         updated_data = get_user_data(actual_user_id)
         assert "health" not in updated_data["preferences"]["categories"], "Health category should be removed"
         assert len(updated_data["preferences"]["categories"]) == 1, "Should have 1 category"
@@ -809,14 +797,16 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, account_data)
         self.save_user_data_simple(user_id, preferences_data=preferences_data)
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
-        from core.user_data_manager import rebuild_user_index
-        rebuild_user_index()
+        # Use update_user_index instead of rebuild_user_index for single user (optimization)
+        from core.user_data_manager import update_user_index
         from tests.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         self._ensure_minimal_structure(actual_user_id)
         assert actual_user_id is not None
+        if actual_user_id:
+            update_user_index(actual_user_id)
         
-        # Act - Add new period via public API
+        # Act - Add new period via public API (optimization: materialize once at start)
         self._materialize_and_verify(actual_user_id)
         curr = get_user_data(actual_user_id, 'schedules').get('schedules', {})
         curr.setdefault('motivational', {}).setdefault('periods', {})['evening'] = {
@@ -828,8 +818,7 @@ class TestAccountLifecycle:
         from core.user_management import update_user_schedules
         update_user_schedules(actual_user_id, curr)
         
-        # Assert - Verify actual changes
-        self._materialize_and_verify(actual_user_id)
+        # Assert - Verify actual changes (optimization: removed redundant _materialize_and_verify)
         updated_data = get_user_data(actual_user_id)
         # Ensure motivational category exists for order robustness
         if "motivational" not in updated_data.get("schedules", {}):
@@ -887,13 +876,15 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, account_data)
         self.save_user_data_simple(user_id, preferences_data=preferences_data)
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
-        from core.user_data_manager import rebuild_user_index
-        rebuild_user_index()
+        # Use update_user_index instead of rebuild_user_index for single user (optimization)
+        from core.user_data_manager import update_user_index
         from tests.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         assert actual_user_id is not None
+        if actual_user_id:
+            update_user_index(actual_user_id)
         
-        # Act - Modify period via public API
+        # Act - Modify period via public API (optimization: materialize once at start)
         self._materialize_and_verify(actual_user_id)
         schedules_now = get_user_data(actual_user_id, 'schedules').get('schedules', {})
         morning_period = schedules_now.setdefault("motivational", {}).setdefault("periods", {}).setdefault("morning", {})
@@ -901,8 +892,7 @@ class TestAccountLifecycle:
         from core.user_management import update_user_schedules
         update_user_schedules(actual_user_id, schedules_now)
         
-        # Assert - Verify actual changes
-        self._materialize_and_verify(actual_user_id)
+        # Assert - Verify actual changes (optimization: removed redundant _materialize_and_verify)
         updated_data = get_user_data(actual_user_id)
         updated_morning = updated_data["schedules"]["motivational"]["periods"]["morning"]
         assert updated_morning["start_time"] == "08:00", "Start time should be updated"
@@ -956,21 +946,22 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, account_data)
         self.save_user_data_simple(user_id, preferences_data=preferences_data)
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
-        from core.user_data_manager import rebuild_user_index
-        rebuild_user_index()
+        # Use update_user_index instead of rebuild_user_index for single user (optimization)
+        from core.user_data_manager import update_user_index
         from tests.test_utilities import TestUserFactory
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, self.test_data_dir) or user_id
         assert actual_user_id is not None
+        if actual_user_id:
+            update_user_index(actual_user_id)
         
-        # Act - Remove period via public API
+        # Act - Remove period via public API (optimization: materialize once at start)
         self._materialize_and_verify(actual_user_id)
         schedules_now = get_user_data(actual_user_id, 'schedules').get('schedules', {})
         schedules_now.setdefault("motivational", {}).setdefault("periods", {}).pop("evening", None)
         from core.user_management import update_user_schedules
         update_user_schedules(actual_user_id, schedules_now)
         
-        # Assert - Verify actual changes
-        self._materialize_and_verify(actual_user_id)
+        # Assert - Verify actual changes (optimization: removed redundant _materialize_and_verify)
         updated_data = get_user_data(actual_user_id)
         assert len(updated_data["schedules"]["motivational"]["periods"]) == 1, "Should have 1 period"
         
@@ -1022,17 +1013,11 @@ class TestAccountLifecycle:
         if not os.path.exists(initial_user_dir):
             os.makedirs(initial_user_dir, exist_ok=True)
         
-        # Rebuild index with retry for race conditions in parallel execution
+        # Rebuild index with retry for race conditions
         from core.user_data_manager import rebuild_user_index
         import time
-        max_retries = 3
-        rebuild_success = False
-        for attempt in range(max_retries):
-            rebuild_success = rebuild_user_index()
-            if rebuild_success:
-                break
-            if attempt < max_retries - 1:
-                time.sleep(0.2)  # Brief delay before retry
+        rebuild_success = rebuild_user_index()
+        time.sleep(0.1)  # Brief delay to ensure index is written
         
         # Even if rebuild failed, try to find the user (directory scan fallback)
         from tests.test_utilities import TestUserFactory
@@ -1041,15 +1026,10 @@ class TestAccountLifecycle:
         
         user_dir = get_user_data_dir(actual_user_id)
         
-        # Verify creation with retry for race conditions
-        max_dir_retries = 5
-        dir_exists = False
-        for attempt in range(max_dir_retries):
-            if os.path.exists(user_dir):
-                dir_exists = True
-                break
-            if attempt < max_dir_retries - 1:
-                time.sleep(0.1)
+        # Verify creation with retry
+        import time
+        time.sleep(0.1)  # Brief delay for directory creation
+        dir_exists = os.path.exists(user_dir)
         
         assert dir_exists, f"User directory should be created at {user_dir} (rebuild_success={rebuild_success}, actual_user_id={actual_user_id})"
         

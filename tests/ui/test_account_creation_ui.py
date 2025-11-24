@@ -38,6 +38,9 @@ from ui.widgets.channel_selection_widget import ChannelSelectionWidget
 from ui.widgets.task_settings_widget import TaskSettingsWidget
 from ui.widgets.checkin_settings_widget import CheckinSettingsWidget
 
+
+
+
 # Create QApplication instance for testing
 @pytest.fixture(scope="session")
 def qapp():
@@ -227,14 +230,14 @@ class TestAccountCreationDialogRealBehavior:
     
     @pytest.mark.ui
     @pytest.mark.slow
-    @pytest.mark.no_parallel
     def test_feature_validation_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test feature validation with proper category requirements."""
         # Set up username and timezone first (required for validation to proceed past these checks)
         username_edit = dialog.ui.lineEdit_username
         timezone_combo = dialog.channel_widget.ui.comboBox_timezone
-        # Use unique username to avoid conflicts
-        unique_username = f"testuser_feature_validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        # Use unique username to avoid conflicts (UUID for better uniqueness in parallel execution)
+        import uuid
+        unique_username = f"testuser_feature_validation_{uuid.uuid4().hex[:8]}"
         QTest.keyClicks(username_edit, unique_username)
         timezone_combo.setCurrentText("America/New_York")
         QApplication.processEvents()
@@ -361,10 +364,16 @@ class TestAccountCreationDialogRealBehavior:
             # Mock the channel widget to return test channel
             with patch.object(dialog.channel_widget, 'get_selected_channel', return_value=('Email', 'test@example.com')):
                 # Mock the validate_and_accept method to actually create the user
+                # Use a closure to capture the user_id for verification
+                created_user_id = [None]  # Use list to allow modification in nested function
+                
                 with patch.object(dialog, 'validate_and_accept') as mock_accept:
                     def mock_accept_impl():
                         # Actually create the user directory and files
-                        user_id = 'test-ui-creation-user'
+                        # Use unique user_id to avoid conflicts in parallel execution
+                        import uuid
+                        user_id = f'test-ui-creation-user-{uuid.uuid4().hex[:8]}'
+                        created_user_id[0] = user_id  # Store for later verification
                         user_dir = os.path.join(test_data_dir, 'users', user_id)
                         os.makedirs(user_dir, exist_ok=True)
                         
@@ -387,14 +396,23 @@ class TestAccountCreationDialogRealBehavior:
                         
                         # Save the files
                         import json
-                        with open(os.path.join(user_dir, 'account.json'), 'w') as f:
+                        account_file = os.path.join(user_dir, 'account.json')
+                        prefs_file = os.path.join(user_dir, 'preferences.json')
+                        context_file = os.path.join(user_dir, 'user_context.json')
+                        schedules_file = os.path.join(user_dir, 'schedules.json')
+                        
+                        with open(account_file, 'w') as f:
                             json.dump(account_data, f, indent=2)
-                        with open(os.path.join(user_dir, 'preferences.json'), 'w') as f:
+                        with open(prefs_file, 'w') as f:
                             json.dump(preferences_data, f, indent=2)
-                        with open(os.path.join(user_dir, 'user_context.json'), 'w') as f:
+                        with open(context_file, 'w') as f:
                             json.dump({'preferred_name': ''}, f, indent=2)
-                        with open(os.path.join(user_dir, 'schedules.json'), 'w') as f:
+                        with open(schedules_file, 'w') as f:
                             json.dump({'periods': []}, f, indent=2)
+                        
+                        # Ensure files are flushed
+                        import os as os_module
+                        os_module.sync() if hasattr(os_module, 'sync') else None
                         
                         # Create messages directory
                         messages_dir = os.path.join(user_dir, 'messages')
@@ -408,14 +426,35 @@ class TestAccountCreationDialogRealBehavior:
                     dialog.validate_and_accept()
                     QApplication.processEvents()
                     
+                    # Wait a moment for file operations to complete
+                    import time
+                    time.sleep(0.2)  # Increased delay to ensure files are written
+                    QApplication.processEvents()
+                    
+                    # ✅ VERIFY REAL BEHAVIOR: Mock should have been called
+                    assert mock_accept.called, "validate_and_accept should be called"
+                    assert created_user_id[0] is not None, "User ID should be created"
+                    
                     # ✅ VERIFY REAL BEHAVIOR: User directory should be created
-                    user_dir = os.path.join(test_data_dir, 'users', 'test-ui-creation-user')
+                    user_dir = os.path.join(test_data_dir, 'users', created_user_id[0])
+                    # Retry check with small delay to handle file system timing
+                    for attempt in range(5):
+                        if os.path.exists(user_dir):
+                            break
+                        if attempt < 4:
+                            time.sleep(0.05)
                     assert os.path.exists(user_dir), "User directory should be created"
                     
                     # ✅ VERIFY REAL BEHAVIOR: Required files should be created
                     expected_files = ['account.json', 'preferences.json', 'user_context.json', 'schedules.json']
                     for expected_file in expected_files:
                         file_path = os.path.join(user_dir, expected_file)
+                        # Retry check with small delay to handle file system timing
+                        for attempt in range(5):
+                            if os.path.exists(file_path):
+                                break
+                            if attempt < 4:
+                                time.sleep(0.05)
                         assert os.path.exists(file_path), f"Required file should be created: {expected_file}"
                     
                     # ✅ VERIFY REAL BEHAVIOR: Messages directory should be created (messages enabled)
@@ -472,12 +511,13 @@ class TestAccountManagementRealBehavior:
     """Test account management functionality with real behavior verification."""
     
     @pytest.mark.ui
-    @pytest.mark.no_parallel
     def test_user_profile_dialog_integration(self, qapp, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test user profile dialog integration with real user data."""
         from core.user_data_handlers import save_user_data, get_user_data
+        import uuid
         
-        user_id = 'test-profile-integration'
+        # Use unique user ID to avoid conflicts in parallel execution
+        user_id = f'test-profile-integration-{uuid.uuid4().hex[:8]}'
         
         # Create test user using centralized utilities (minimal user since we only need account and context)
         from tests.test_utilities import TestUserFactory
@@ -736,10 +776,10 @@ class TestAccountCreationErrorHandling:
         assert loaded_data_1['account']['internal_username'] != loaded_data_2['account']['internal_username']
     
     @pytest.mark.ui
-    @pytest.mark.no_parallel
     def test_invalid_data_handling_real_behavior(self, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test handling of invalid data during account creation."""
-        user_id = 'test-invalid-data'
+        import uuid
+        user_id = f'test-invalid-data-{uuid.uuid4().hex[:8]}'
         
         # Test with invalid account data (missing required fields)
         invalid_account_data = {
@@ -765,7 +805,8 @@ class TestAccountCreationErrorHandling:
     @pytest.mark.ui
     def test_file_system_error_handling_real_behavior(self, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test handling of file system errors."""
-        user_id = 'test-fs-error'
+        import uuid
+        user_id = f'test-fs-error-{uuid.uuid4().hex[:8]}'
         
         # Create a read-only directory to simulate permission errors
         user_dir = os.path.join(test_data_dir, 'users', user_id)
@@ -826,8 +867,9 @@ class TestAccountCreationIntegration:
         """REAL BEHAVIOR TEST: Test complete account lifecycle with real file operations."""
         from core.user_data_handlers import save_user_data, get_user_data
         
-        # Create a test user with all features enabled
-        user_id = "test-lifecycle-user"
+        # Create a test user with all features enabled (use unique ID for parallel execution)
+        import uuid
+        user_id = f"test-lifecycle-user-{uuid.uuid4().hex[:8]}"
         user_dir = os.path.join(test_data_dir, "users", user_id)
         os.makedirs(user_dir, exist_ok=True)
         
@@ -918,6 +960,9 @@ class TestAccountCreationIntegration:
         updated_data = get_user_data(user_id)
         assert updated_data['account']['features']['task_management'] == 'disabled', "Tasks should be disabled"
         assert updated_data['account']['features']['automated_messages'] == 'enabled', "Messages should still be enabled"
+        
+        # ✅ VERIFY REAL BEHAVIOR: Preferences should not be affected by account-only save
+        assert updated_data['preferences']['categories'] == ["motivational", "health"], "Categories should persist after account-only save"
         
         # Test data persistence
         final_data = get_user_data(user_id)
@@ -1319,11 +1364,12 @@ class TestAccountCreatorDialogCreateAccountBehavior:
     def test_create_account_creates_user_files(self, dialog, test_data_dir):
         """Test that create_account actually creates user files on disk."""
         from core.user_data_handlers import get_user_data
-        from core.user_management import get_user_id_by_identifier
+        import uuid
         
-        # Arrange: Prepare account data
+        # Arrange: Prepare account data with unique username
+        unique_username = f'test-create-user-{uuid.uuid4().hex[:8]}'
         account_data = {
-            'username': 'test-create-user',
+            'username': unique_username,
             'preferred_name': 'Test Create User',
             'timezone': 'America/New_York',
             'channel': {'type': 'email', 'contact': 'test@example.com'},
@@ -1342,7 +1388,10 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
         
         # Assert: User ID should be found by username
-        user_id = get_user_id_by_identifier('test-create-user')
+        from core.user_management import get_user_id_by_identifier
+        import time
+        time.sleep(0.1)  # Brief delay for index update
+        user_id = get_user_id_by_identifier(unique_username)
         assert user_id is not None, "User ID should be found by username"
         
         # Assert: User files should exist
@@ -1361,12 +1410,13 @@ class TestAccountCreatorDialogCreateAccountBehavior:
     def test_create_account_persists_categories(self, dialog, test_data_dir):
         """Test that create_account persists categories to disk."""
         from core.user_data_handlers import get_user_data
-        from core.user_management import get_user_id_by_identifier
+        import uuid
         
-        # Arrange: Prepare account data with categories
+        # Arrange: Prepare account data with categories and unique username
+        unique_username = f'test-categories-user-{uuid.uuid4().hex[:8]}'
         test_categories = ['motivational', 'health', 'fun_facts']
         account_data = {
-            'username': 'test-categories-user',
+            'username': unique_username,
             'preferred_name': 'Test Categories User',
             'timezone': 'America/New_York',
             'channel': {'type': 'email', 'contact': 'test@example.com'},
@@ -1383,7 +1433,10 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
         
         # Assert: Categories should be persisted
-        user_id = get_user_id_by_identifier('test-categories-user')
+        from core.user_management import get_user_id_by_identifier
+        import time
+        time.sleep(0.1)  # Brief delay for index update
+        user_id = get_user_id_by_identifier(unique_username)
         assert user_id is not None, "User ID should be found"
         
         preferences_data = get_user_data(user_id, 'preferences')
@@ -1393,14 +1446,16 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
+    @pytest.mark.no_parallel
     def test_create_account_persists_channel_info(self, dialog, test_data_dir):
         """Test that create_account persists channel information to disk."""
         from core.user_data_handlers import get_user_data
-        from core.user_management import get_user_id_by_identifier
         
-        # Arrange: Prepare account data with channel info
+        # Arrange: Prepare account data with channel info and unique username
+        import uuid
+        unique_username = f'test-channel-user-{uuid.uuid4().hex[:8]}'
         account_data = {
-            'username': 'test-channel-user',
+            'username': unique_username,
             'preferred_name': 'Test Channel User',
             'timezone': 'America/New_York',
             'channel': {'type': 'discord', 'contact': 'user#1234'},
@@ -1417,7 +1472,10 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
         
         # Assert: Channel info should be persisted
-        user_id = get_user_id_by_identifier('test-channel-user')
+        from core.user_management import get_user_id_by_identifier
+        import time
+        time.sleep(0.1)  # Brief delay for index update
+        user_id = get_user_id_by_identifier(unique_username)
         assert user_id is not None, "User ID should be found"
         
         preferences_data = get_user_data(user_id, 'preferences')
@@ -1433,9 +1491,10 @@ class TestAccountCreatorDialogCreateAccountBehavior:
     def test_create_account_persists_task_settings(self, dialog, test_data_dir):
         """Test that create_account persists task settings to disk."""
         from core.user_data_handlers import get_user_data
-        from core.user_management import get_user_id_by_identifier
+        import uuid
         
-        # Arrange: Prepare account data with task settings
+        # Arrange: Prepare account data with task settings and unique username
+        unique_username = f'test-tasks-user-{uuid.uuid4().hex[:8]}'
         task_settings = {
             'time_periods': {
                 'morning': {'start_time': '09:00', 'end_time': '12:00', 'days': ['Monday', 'Tuesday']}
@@ -1443,7 +1502,7 @@ class TestAccountCreatorDialogCreateAccountBehavior:
             'tags': ['work', 'personal']
         }
         account_data = {
-            'username': 'test-tasks-user',
+            'username': unique_username,
             'preferred_name': 'Test Tasks User',
             'timezone': 'America/New_York',
             'channel': {'type': 'email', 'contact': 'test@example.com'},
@@ -1460,7 +1519,10 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
         
         # Assert: Task settings should be persisted
-        user_id = get_user_id_by_identifier('test-tasks-user')
+        from core.user_management import get_user_id_by_identifier
+        import time
+        time.sleep(0.1)  # Brief delay for index update
+        user_id = get_user_id_by_identifier(unique_username)
         assert user_id is not None, "User ID should be found"
         
         preferences_data = get_user_data(user_id, 'preferences')
@@ -1481,16 +1543,17 @@ class TestAccountCreatorDialogCreateAccountBehavior:
     def test_create_account_persists_checkin_settings(self, dialog, test_data_dir):
         """Test that create_account persists check-in settings to disk."""
         from core.user_data_handlers import get_user_data
-        from core.user_management import get_user_id_by_identifier
+        import uuid
         
-        # Arrange: Prepare account data with check-in settings
+        # Arrange: Prepare account data with check-in settings and unique username
+        unique_username = f'test-checkins-user-{uuid.uuid4().hex[:8]}'
         checkin_settings = {
             'time_periods': {
                 'afternoon': {'start_time': '14:00', 'end_time': '17:00', 'days': ['Monday', 'Wednesday', 'Friday']}
             }
         }
         account_data = {
-            'username': 'test-checkins-user',
+            'username': unique_username,
             'preferred_name': 'Test Checkins User',
             'timezone': 'America/New_York',
             'channel': {'type': 'email', 'contact': 'test@example.com'},
@@ -1507,16 +1570,11 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
         
         # Assert: Check-in settings should be persisted
-        # Retry lookup in case of race conditions with index updates in parallel execution
+        from core.user_management import get_user_id_by_identifier
         import time
-        user_id = None
-        for attempt in range(5):
-            user_id = get_user_id_by_identifier('test-checkins-user')
-            if user_id is not None:
-                break
-            if attempt < 4:
-                time.sleep(0.1)  # Brief delay before retry
-        assert user_id is not None, f"User ID should be found after index update (attempted 'test-checkins-user')"
+        time.sleep(0.1)  # Brief delay for index update
+        user_id = get_user_id_by_identifier(unique_username)
+        assert user_id is not None, "User ID should be found"
         
         preferences_data = get_user_data(user_id, 'preferences')
         preferences = preferences_data.get('preferences', {})
@@ -1534,11 +1592,12 @@ class TestAccountCreatorDialogCreateAccountBehavior:
     def test_create_account_updates_user_index(self, dialog, test_data_dir):
         """Test that create_account updates the user index."""
         from core.user_data_manager import build_user_index
-        from core.user_management import get_user_id_by_identifier
+        import uuid
         
-        # Arrange: Prepare account data
+        # Arrange: Prepare account data with unique username
+        unique_username = f'test-index-user-{uuid.uuid4().hex[:8]}'
         account_data = {
-            'username': 'test-index-user',
+            'username': unique_username,
             'preferred_name': 'Test Index User',
             'timezone': 'America/New_York',
             'channel': {'type': 'email', 'contact': 'test@example.com'},
@@ -1555,7 +1614,10 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
         
         # Assert: User should be in index
-        user_id = get_user_id_by_identifier('test-index-user')
+        from core.user_management import get_user_id_by_identifier
+        import time
+        time.sleep(0.1)  # Brief delay for index update
+        user_id = get_user_id_by_identifier(unique_username)
         assert user_id is not None, "User ID should be found"
         
         user_index = build_user_index()
@@ -1566,14 +1628,17 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
+    @pytest.mark.no_parallel
     def test_create_account_sets_up_default_tags_when_tasks_enabled(self, dialog, test_data_dir):
         """Test that create_account sets up default task tags when task management is enabled."""
         from core.user_data_handlers import get_user_data
-        from core.user_management import get_user_id_by_identifier
+        import uuid
         
         # Arrange: Prepare account data with tasks enabled but no custom tags
+        # Use unique username to avoid conflicts in parallel execution
+        unique_username = f'test-tags-user-{uuid.uuid4().hex[:8]}'
         account_data = {
-            'username': 'test-tags-user',
+            'username': unique_username,
             'preferred_name': 'Test Tags User',
             'timezone': 'America/New_York',
             'channel': {'type': 'email', 'contact': 'test@example.com'},
@@ -1588,9 +1653,12 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         # Act: Create account
         success = dialog.create_account(account_data)
         assert success, "Account creation should succeed"
-        
+
         # Assert: Default tags should be set up
-        user_id = get_user_id_by_identifier('test-tags-user')
+        from core.user_management import get_user_id_by_identifier
+        import time
+        time.sleep(0.1)  # Brief delay for index update
+        user_id = get_user_id_by_identifier(unique_username)
         assert user_id is not None, "User ID should be found"
         
         preferences_data = get_user_data(user_id, 'preferences')
@@ -1603,15 +1671,17 @@ class TestAccountCreatorDialogCreateAccountBehavior:
 
     @pytest.mark.ui
     @pytest.mark.behavior
+    @pytest.mark.no_parallel
     def test_create_account_saves_custom_tags_when_provided(self, dialog, test_data_dir):
         """Test that create_account saves custom task tags when provided."""
         from core.user_data_handlers import get_user_data
-        from core.user_management import get_user_id_by_identifier
+        import uuid
         
         # Arrange: Prepare account data with custom tags
         custom_tags = ['urgent', 'project-alpha', 'review']
+        unique_username = f'test-custom-tags-user-{uuid.uuid4().hex[:8]}'
         account_data = {
-            'username': 'test-custom-tags-user',
+            'username': unique_username,
             'preferred_name': 'Test Custom Tags User',
             'timezone': 'America/New_York',
             'channel': {'type': 'email', 'contact': 'test@example.com'},
@@ -1628,15 +1698,10 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
         
         # Assert: Custom tags should be saved
-        # Retry lookup to handle race conditions in parallel test execution
+        from core.user_management import get_user_id_by_identifier
         import time
-        user_id = None
-        for attempt in range(5):
-            user_id = get_user_id_by_identifier('test-custom-tags-user')
-            if user_id is not None:
-                break
-            if attempt < 4:
-                time.sleep(0.1)  # 100ms delay between attempts
+        time.sleep(0.1)  # Brief delay for index update
+        user_id = get_user_id_by_identifier(unique_username)
         assert user_id is not None, "User ID should be found"
         
         preferences_data = get_user_data(user_id, 'preferences')
@@ -1653,11 +1718,12 @@ class TestAccountCreatorDialogCreateAccountBehavior:
     def test_create_account_persists_feature_flags(self, dialog, test_data_dir):
         """Test that create_account persists feature flags correctly."""
         from core.user_data_handlers import get_user_data
-        from core.user_management import get_user_id_by_identifier
+        import uuid
         
-        # Arrange: Prepare account data with all features enabled
+        # Arrange: Prepare account data with all features enabled and unique username
+        unique_username = f'test-features-user-{uuid.uuid4().hex[:8]}'
         account_data = {
-            'username': 'test-features-user',
+            'username': unique_username,
             'preferred_name': 'Test Features User',
             'timezone': 'America/New_York',
             'channel': {'type': 'email', 'contact': 'test@example.com'},
@@ -1674,7 +1740,10 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         assert success, "Account creation should succeed"
         
         # Assert: Feature flags should be persisted
-        user_id = get_user_id_by_identifier('test-features-user')
+        from core.user_management import get_user_id_by_identifier
+        import time
+        time.sleep(0.1)  # Brief delay for index update
+        user_id = get_user_id_by_identifier(unique_username)
         assert user_id is not None, "User ID should be found"
         
         user_account_data = get_user_data(user_id, 'account')

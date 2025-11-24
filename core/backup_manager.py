@@ -238,12 +238,25 @@ class BackupManager:
         """Recursively add a directory to the zip file."""
         directory_path = Path(directory)
         zip_path_base = Path(zip_path)
+        # Track added files to prevent duplicates (handles symlinks and multiple calls)
+        added_files = set()
         for root, dirs, files in os.walk(directory):
             root_path = Path(root)
             for file in files:
                 file_path = root_path / file
                 arc_path = zip_path_base / file_path.relative_to(directory_path)
-                zipf.write(str(file_path), str(arc_path))
+                arc_path_str = str(arc_path)
+                # Only add if not already in zip (prevents duplicate warnings)
+                if arc_path_str not in added_files:
+                    try:
+                        zipf.write(str(file_path), arc_path_str)
+                        added_files.add(arc_path_str)
+                    except zipfile.BadZipFile:
+                        # Skip if zip is in a bad state
+                        logger.warning(f"Skipping file {file_path} due to zip error")
+                    except Exception as e:
+                        # Log but continue for other errors
+                        logger.debug(f"Error adding {file_path} to zip: {e}")
     
     @handle_errors("cleaning up old backups")
     def _cleanup_old_backups(self) -> None:

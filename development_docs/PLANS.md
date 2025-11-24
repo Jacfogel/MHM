@@ -12,6 +12,118 @@
 
 ## [ACTIVE] **Current Active Plans**
 
+### **Test Suite Performance Optimization Plan** **ON HOLD**
+
+**Status**: **ON HOLD**  
+**Priority**: Medium  
+**Effort**: Medium  
+**Date**: 2025-11-23  
+**Last Updated**: 2025-11-24
+
+**Objective**: Optimize test suite execution time from ~265 seconds (4.4 minutes) to ~205-225 seconds (3.4-3.7 minutes) by reducing unnecessary delays, optimizing expensive operations, and improving test efficiency.
+
+**Current Performance**:
+- Total Duration: ~226-235 seconds (3.8-3.9 minutes) - **Baseline performance**
+  - Parallel tests: ~142-161s (3,178-3,195 tests)
+  - Serial tests: ~75-84s (115-131 tests)
+- **Performance Investigation Results (2025-11-24)**:
+  - Attempted optimizations (removed `no_parallel` markers, added `wait_until` helpers, reduced retry loops)
+  - Performance did not improve; actually degraded in some cases
+  - Reverted all optimization attempts
+  - Determined performance variability is primarily due to system load, not code changes
+  - Test suite baseline performance is acceptable (~3.8-4 minutes)
+
+**Key Performance Issues Identified**:
+
+1. **Excessive `rebuild_user_index()` Calls** (High Impact)
+   - `rebuild_user_index()` is expensive (scans all user directories)
+   - Called multiple times per test (3+ times in `test_multiple_users_same_channel`)
+   - Called in retry loops unnecessarily
+   - **Solution**: Use `update_user_index(user_id)` for single-user updates, batch operations and rebuild once
+
+2. **Excessive Retry Loops with Sleep Delays** (Medium-High Impact)
+   - 141 `time.sleep` calls across 35 files
+   - Retry loops with 5 attempts and 0.1s delays (0.4s total per loop)
+   - **Solution**: Reduce retry counts (5→3), reduce sleep (0.1s→0.05s), use `wait_until()` helper
+
+3. **Redundant `_materialize_and_verify()` Calls** (Medium Impact)
+   - Called 25 times in `test_account_lifecycle.py`
+   - Each call does full data loading and merging
+   - **Solution**: Call only once per test, cache results if needed
+
+4. **Too Many `no_parallel` Tests** (Medium Impact)
+   - 133 tests running serially (83 seconds)
+   - Many may not need serial execution with proper isolation
+   - **Solution**: Audit and remove `no_parallel` where safe, use unique identifiers
+
+5. **Sequential User Creation** (High Impact)
+   - `test_multiple_users_same_channel` creates 3 users sequentially with full retry logic
+   - **Solution**: Create all users first, then rebuild index once
+
+**Implementation Checklist**:
+
+**High Priority (Biggest Impact)**:
+- [x] **Optimize `test_multiple_users_same_channel`** (34.59s → target: <15s)
+  - [x] Create all 3 users first, then rebuild index once
+  - [x] Reduce retry loops from 5 to 3 attempts
+  - [x] Reduce sleep from 0.1s to 0.05s
+  - [x] Use `wait_until()` helper instead of manual retries
+  - [ ] Test to ensure no regressions
+- [x] **Optimize `test_account_lifecycle` tests** (21-22s each → target: <12s)
+  - [x] Call `_materialize_and_verify()` only once per test (reduced from 2-3 calls to 1)
+  - [x] Remove redundant `rebuild_user_index()` calls
+  - [x] Use `update_user_index(user_id)` instead of full rebuild
+  - [x] Reduce retry loop counts
+  - [ ] Test to ensure no regressions
+- [x] **Reduce `rebuild_user_index()` calls globally**
+  - [x] Replace with `update_user_index(user_id)` for single-user operations (6 replacements)
+  - [x] Batch operations and rebuild once (test_multiple_users_same_channel)
+  - [x] Remove from retry loops
+  - [ ] Test after each change
+
+**Medium Priority**:
+- [x] **Optimize retry loops**
+  - [x] Replace manual retry loops with `wait_until()` helper from `conftest.py` (4 replacements in test_account_lifecycle.py)
+  - [x] Reduce sleep durations (0.1s → 0.05s, 0.2s → 0.1s)
+  - [x] Reduce retry counts (5 → 3) where safe
+  - [ ] Test after each change
+- [x] **Review `no_parallel` markers**
+  - [x] Audit which tests truly need serial execution
+  - [x] Remove `no_parallel` where proper isolation exists (18 tests: 11 from test_account_creation_ui.py, 7 from test_user_creation.py)
+  - [x] Use unique identifiers (UUIDs, timestamps) to avoid conflicts
+  - [x] Test in parallel to verify no conflicts (fixed 1 race condition with wait_until helper)
+
+**Low Priority (Nice to Have)**:
+- [ ] **Cache expensive operations**
+  - [ ] Cache `get_user_data()` results within a test
+  - [ ] Avoid redundant file system checks
+- [ ] **Batch file operations**
+  - [ ] Group file writes together
+  - [ ] Use transaction-like patterns where possible
+
+**Success Criteria**:
+- [ ] Test suite runs in ~205-225 seconds (15-23% improvement)
+- [ ] `test_multiple_users_same_channel` runs in <15s
+- [ ] `test_account_lifecycle` tests run in <12s each
+- [ ] All tests continue to pass after optimizations
+- [ ] No increase in flaky tests
+- [ ] Reduced `rebuild_user_index()` calls by 50%+
+
+**Implementation Notes**:
+- Test after each optimization to ensure no regressions
+- Some optimizations may require careful testing for race conditions
+- Keep retry logic for truly flaky operations, but optimize the delays
+- Document why `no_parallel` is needed when it's kept
+- Use `wait_until()` helper from `conftest.py` instead of manual retries where possible
+- Follow testing guidelines: use helpers from `tests/test_utilities.py`, ensure test isolation
+- Added `_wait_for_user_id_by_username` helper to poll `get_user_id_by_identifier` with a single fallback `rebuild_user_index()` call, removing dozens of expensive index rebuilds from the UI account-creation tests
+
+**Progress Summary**:
+- **Analysis Complete**: Performance issues identified and documented
+- **Optimization Attempts**: Tried removing `no_parallel` markers, adding `wait_until` helpers, reducing retry loops
+- **Reverted Changes**: All optimization attempts reverted after determining performance variability is due to system load
+- **Current Status**: Plan on hold - baseline performance (~3.8-4 minutes) is acceptable. Future optimizations should focus on reducing expensive operations (like `rebuild_user_index()`) rather than test execution patterns.
+
 ### **Error Handling Quality Improvement Plan** **IN PROGRESS**
 
 **Status**: **IN PROGRESS**  

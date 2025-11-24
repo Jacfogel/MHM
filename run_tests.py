@@ -14,6 +14,8 @@ import xml.etree.ElementTree as ET
 import threading
 import queue
 import re
+import logging
+from pathlib import Path
 from typing import Dict, Optional, Tuple
 
 # Simple ANSI color codes for terminal output (works in modern PowerShell)
@@ -250,6 +252,30 @@ def run_command(cmd, description, progress_interval: int = 30, capture_output: b
             'failures': ''
         }
 
+def setup_test_logger():
+    """Set up logger for test duration logging."""
+    logger = logging.getLogger("mhm_tests.run_tests")
+    logger.setLevel(logging.INFO)
+    
+    # Only add handler if one doesn't exist
+    if not logger.handlers:
+        # Ensure tests/logs directory exists
+        log_dir = Path("tests/logs")
+        log_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Add file handler for test_run.log
+        log_file = log_dir / "test_run.log"
+        file_handler = logging.FileHandler(log_file, mode='a', encoding='utf-8')
+        file_handler.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+        
+        # Prevent propagation to root logger
+        logger.propagate = False
+    
+    return logger
+
 def print_combined_summary(parallel_results: Optional[Dict], no_parallel_results: Optional[Dict], description: str):
     """
     Print a combined summary of test results from both parallel and serial runs.
@@ -308,6 +334,9 @@ def print_combined_summary(parallel_results: Optional[Dict], no_parallel_results
     print(f"  Deselected:   {combined['deselected']}")
     print(f"  Warnings:     {combined['warnings']}")
     
+    # Set up logger for duration logging
+    test_logger = setup_test_logger()
+    
     # Show breakdown if we ran tests in two phases (parallel + serial)
     if no_parallel_results and isinstance(no_parallel_results, dict):
         print(f"\nBreakdown:")
@@ -326,9 +355,21 @@ def print_combined_summary(parallel_results: Optional[Dict], no_parallel_results
         print(f"  Serial Tests:      {s_passed} passed, {s_failed} failed, {s_skipped} skipped, {s_deselected} deselected, {s_warnings} warnings ({no_parallel_duration}s)")
         
         print(f"\nTotal Duration: {total_duration}s")
+        
+        # Log durations and test counts to test log file
+        p_total = p_passed + p_failed + p_skipped
+        s_total = s_passed + s_failed + s_skipped
+        total_tests = p_total + s_total
+        test_logger.info(f"TEST SUITE DURATION - Parallel: {parallel_duration:.2f}s, Serial: {no_parallel_duration:.2f}s, Total: {total_duration:.2f}s")
+        test_logger.info(f"TEST SUITE COUNTS - Parallel: {p_total} tests ({p_passed} passed, {p_failed} failed, {p_skipped} skipped), Serial: {s_total} tests ({s_passed} passed, {s_failed} failed, {s_skipped} skipped), Total: {total_tests} tests ({combined['passed']} passed, {combined['failed']} failed, {combined['skipped']} skipped)")
     elif parallel_duration > 0:
         # Single run (--no-parallel was used)
         print(f"\nDuration: {parallel_duration}s")
+        
+        # Log duration and test counts to test log file
+        p_total = parallel_res.get('passed', 0) + parallel_res.get('failed', 0) + parallel_res.get('skipped', 0)
+        test_logger.info(f"TEST SUITE DURATION - Total: {parallel_duration:.2f}s (single run mode)")
+        test_logger.info(f"TEST SUITE COUNTS - Total: {p_total} tests ({parallel_res.get('passed', 0)} passed, {parallel_res.get('failed', 0)} failed, {parallel_res.get('skipped', 0)} skipped)")
     
     # Show failures details
     if all_failures:
