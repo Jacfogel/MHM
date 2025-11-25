@@ -16,7 +16,7 @@ This file is a lightweight summary of recent changes for AI collaborators. It pr
 1. Add a new entry at the top summarising the change in 2-4 bullets.
 2. Keep the title short: "YYYY-MM-DD - Brief Title **COMPLETED**".
 3. Reference affected areas only when essential for decision-making.
-4. Move older entries to ai_development_tools\archive\AI_CHANGELOG_ARCHIVE.md to stay within 10-15 total.
+4. Move older entries to development_tools\archive\AI_CHANGELOG_ARCHIVE.md to stay within 10-15 total.
 
 Template:
 ```markdown
@@ -35,6 +35,13 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+
+### 2025-11-25 - AI Dev Tools Tiering + Docs Sync **COMPLETED**
+- `services/tool_metadata.py` now drives tool metadata *and* command grouping; every module carries tier/portability headers and CLI help pulls from the same source.
+- Renamed `ai_development_tools/` ➜ `development_tools/`, split the docs into AI (`AI_DEVELOPMENT_TOOLS_GUIDE.md`) vs human (`DEVELOPMENT_TOOLS_GUIDE.md`), and aligned all references/imports.
+- Updated all remaining `ai_development_tools/` path references in `.cursor/rules/` files and `.gitignore`; preserved historical references in changelogs.
+- Aligned paired documentation files with standards: added proper metadata blocks, ensured identical H2 headings, verified all content preserved in human guide.
+- Added portability + naming/directory roadmap items to `AI_DEV_TOOLS_IMPROVEMENT_PLAN.md` so longer-term work is explicitly tracked.
 
 ### 2025-11-24 - Test Suite Performance Investigation and Reversion **COMPLETED**
 - Investigated test suite performance slowdown: attempted optimizations (removed `no_parallel` markers, added `wait_until` helpers, reduced retry loops)

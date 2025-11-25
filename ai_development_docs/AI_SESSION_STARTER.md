@@ -25,7 +25,7 @@ When you attach to MHM, do this first:
    - For documentation changes, use `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`, especially:
      - Section 3 "Documentation Synchronization Checklist"
      - Section 5 "Generated Documentation Standards"
-   - For tooling or reports, use `ai_development_tools/AI_DEV_TOOLS_GUIDE.md` as the primary reference.
+   - For tooling or reports, use `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` as the primary reference.
 
 3. **Stay within scope**  
    - Use only the files present in the current workspace (for example, those the user has uploaded or explicitly referenced).  
@@ -55,14 +55,14 @@ Use these AI docs as your primary routing table; they, in turn, point to detaile
 - **Error handling** – `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`  
   - For how to use `MHMError` and structure error handling.
 
-- **Development tooling** – `ai_development_tools/AI_DEV_TOOLS_GUIDE.md`  
+- **Development tooling** – `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`  
   - Section 1 "Main Entry Point" – `ai_tools_runner.py` commands.  
   - Section 2 "Fast Mode vs Full Mode" – when to use `audit` vs `audit --full`.  
   - Section 3 "Generated Outputs" – where reports and status files live.
 
 - **Legacy removal** – `ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md`  
   - Quick reference for using `legacy_reference_cleanup.py` and the `legacy` command.  
-  - Tightly coupled with `AI_DEV_TOOLS_GUIDE.md` and the legacy reports described there.
+  - Tightly coupled with `AI_DEVELOPMENT_TOOLS_GUIDE.md` and the legacy reports described there.
 
 ## 3. Safe Change Rules
 
@@ -83,9 +83,9 @@ Follow these high-level rules whenever you propose or describe changes:
 4. **Tie changes to tests and tools**  
    - When you propose code changes, also point to where tests should be added or updated (see `ai_development_docs/AI_TESTING_GUIDE.md`).  
    - Where appropriate, suggest re-running:
-     - `python ai_development_tools/ai_tools_runner.py audit`  
-     - `python ai_development_tools/ai_tools_runner.py status`  
-     - `python ai_development_tools/ai_tools_runner.py legacy` (for legacy-related work).
+     - `python development_tools/ai_tools_runner.py audit`  
+     - `python development_tools/ai_tools_runner.py status`  
+     - `python development_tools/ai_tools_runner.py legacy` (for legacy-related work).
 
 ## 4. Typical Tasks and Where to Look
 
@@ -102,7 +102,7 @@ Use this as a routing table for common request types.
 ### 4.2. "Help me refactor or clean up code"
 
 - Start with `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`, especially section 1 "Safety First" and section 3 "Standard Development Cycle".  
-- Use `ai_development_tools/AI_DEV_TOOLS_GUIDE.md` for commands to run audits and checks.  
+- Use `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` for commands to run audits and checks.  
 - For legacy-related refactors, also use `ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md` and the legacy tools described there.
 
 ### 4.3. "Help me understand the system"

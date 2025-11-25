@@ -31,10 +31,10 @@ This section describes the top-level directories. It should match the actual pro
   AI-focused documentation used by tools such as Cursor. These files are kept in sync at the
   H2 level with their human counterparts (for example `tests/TESTING_GUIDE.md`).
 
-- `ai_development_tools/`  
+- `development_tools/`  
   AI tools runner and commands (for example `doc-sync`, `config`, `coverage`). These automate
   documentation checks, configuration reports, and similar meta-tasks. See section 2. Commands
-  and Usage in `ai_development_tools/AI_DEV_TOOLS_GUIDE.md`.
+  and Usage in `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`.
 
 - `communication/`  
   Channel orchestration and message flows. This is where Discord, email, and any future channels

@@ -19,7 +19,7 @@ Design and execute a safe, incremental refactor while honouring project safety r
 
 ### Validate
 1. Run `python run_tests.py`.
-2. Optionally refresh metrics with `python -m ai_development_tools.ai_tools_runner audit`.
+2. Optionally refresh metrics with `python -m development_tools.ai_tools_runner audit`.
 3. Sync paired docs and confirm TODO/changelog updates.
 
 ## Response Template

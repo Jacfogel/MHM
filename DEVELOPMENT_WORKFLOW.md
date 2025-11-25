@@ -177,7 +177,7 @@ Key groups of settings in `.env`:
   - `MHM_TESTING`, `TEST_DATA_DIR`, `TEST_LOGS_DIR`.  
   - File auditing flags (`FILE_AUDIT_*`).
 
-For configuration validation and a summary of active settings, use the AI dev tools `config` command (see `ai_development_tools/AI_DEV_TOOLS_GUIDE.md`), which wraps the helpers in `config.py` such as `validate_all_configuration()` and `print_configuration_report()`.
+For configuration validation and a summary of active settings, use the AI dev tools `config` command (see `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`), which wraps the helpers in `config.py` such as `validate_all_configuration()` and `print_configuration_report()`.
 
 ## 3. Development Process
 

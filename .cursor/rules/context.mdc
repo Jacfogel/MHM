@@ -20,7 +20,7 @@ file: ".cursor/rules/context.mdc"
 - Manage tasks: keep active items only in `TODO.md` (grouped by priority); multi-step plans belong in `development_docs/PLANS.md`.
 
 ## Quick Reference
-- Status snapshots: `ai_development_tools/AI_STATUS.md`, `ai_development_tools/AI_PRIORITIES.md`, `ai_development_tools/consolidated_report.txt`.
+- Status snapshots: `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.txt`.
 - Testing guidance: `ai_development_docs/AI_TESTING_GUIDE.md`, `tests/TESTING_GUIDE.md`.
 - Error handling & logging: `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`, `AI_LOGGING_GUIDE.md`.
 - Scripts live in `scripts/` (testing, migration, utilities); update changelog when adding significant tools.

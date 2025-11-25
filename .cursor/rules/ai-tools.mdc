@@ -1,18 +1,18 @@
 ---
 description: "AI development tooling guidance"
-globs: ai_development_tools/**
+globs: development_tools/**
 alwaysApply: false
 file: ".cursor/rules/ai-tools.mdc"
 ---
 # AI Development Tools - Quick Guide
 
 ## Status vs Audits
-- `python ai_development_tools/ai_tools_runner.py status`: read-only snapshot; relies on the most recent audit output.
-- `python ai_development_tools/ai_tools_runner.py audit`: regenerates metrics (function discovery, docs analysis, decision support) and rewrites AI_STATUS / AI_PRIORITIES / consolidated_report. Skips coverage and unused-import checks.
-- `python ai_development_tools/ai_tools_runner.py audit --full`: full pipeline including coverage, legacy scan, unused-import report, validation, and version sync.
+- `python development_tools/ai_tools_runner.py status`: read-only snapshot; relies on the most recent audit output.
+- `python development_tools/ai_tools_runner.py audit`: regenerates metrics (function discovery, docs analysis, decision support) and rewrites AI_STATUS / AI_PRIORITIES / consolidated_report. Skips coverage and unused-import checks.
+- `python development_tools/ai_tools_runner.py audit --full`: full pipeline including coverage, legacy scan, unused-import report, validation, and version sync.
 
 ## Documentation Workflows
-- Run `python ai_development_tools/ai_tools_runner.py docs` (or `/docs`) to regenerate the function registry, module dependencies, directory tree, and doc-sync summary.
+- Run `python development_tools/ai_tools_runner.py docs` (or `/docs`) to regenerate the function registry, module dependencies, directory tree, and doc-sync summary.
 - Legacy and unused-import reports only refresh during `audit --full`.
 
 ## Choosing the Right Tool

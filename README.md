@@ -31,7 +31,7 @@ Use this section as your main entry point into the docs.
 - Development workflow: `DEVELOPMENT_WORKFLOW.md`
 - Architecture overview: `ARCHITECTURE.md`
 - Documentation standards and sync rules: `DOCUMENTATION_GUIDE.md`
-- AI development tools (CLI and commands): `ai_development_tools/AI_DEV_TOOLS_GUIDE.md`
+- Development tools (CLI and commands): `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`
 - Testing strategy and commands: `tests/TESTING_GUIDE.md`
 - Logging: `logs/LOGGING_GUIDE.md`
 - Error handling: `core/ERROR_HANDLING_GUIDE.md`
@@ -142,12 +142,13 @@ Key documentation files:
 - `core/ERROR_HANDLING_GUIDE.md` – Error handling patterns and recovery rules
 - `tests/TESTING_GUIDE.md` – Testing strategy and structure
 - `development_docs/PLANS.md` – Medium/long-term plans and experiments
-- `ai_development_tools/AI_DEV_TOOLS_GUIDE.md` – AI tooling and audit commands
+- `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` – AI tooling and audit commands
 - `TODO.md` – Practical current priorities and rough task list
 
 AI-facing docs (for tools like Cursor and ChatGPT):
 
 - `ai_development_docs/AI_SESSION_STARTER.md`
+- `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`
 - `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`
 - `ai_development_docs/AI_ARCHITECTURE.md`
 - `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`
@@ -214,7 +215,7 @@ A simplified view of the repository (names may evolve; see `ARCHITECTURE.md` for
 MHM/
 - ai/                      # AI assistant components
 - ai_development_docs/     # AI-focused documentation
-- ai_development_tools/    # Audit, coverage, and doc tools
+- development_tools/    # Audit, coverage, and doc tools
 - communication/           # Channels and orchestration
 - core/                    # Core service logic and helpers
 - data/                    # User data (gitignored)
@@ -315,8 +316,7 @@ You should see `(.venv)` at the start of your shell prompt when it is active.
    python -m core.config
    ```
 
-   or use the `config` command via the AI tools runner (see
-   `ai_development_tools/AI_DEV_TOOLS_GUIDE.md`).
+   or use the `config` command via the AI tools runner (see `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`).
 
 3. Check that required directories (for example `data/`, `logs/`) exist. They
    are usually created automatically; if they were deleted, config validation

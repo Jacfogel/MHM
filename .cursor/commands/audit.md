@@ -8,13 +8,13 @@ Refresh code health metrics without running coverage or heavy hygiene checks.
 ## Steps
 1. Execute the fast audit:
    ```powershell
-   python -m ai_development_tools.ai_tools_runner audit
+   python -m development_tools.ai_tools_runner audit
    if ($LASTEXITCODE -ne 0) { Write-Host "Audit failed" -ForegroundColor Red; exit 1 }
    ```
 2. Review updated artifacts:
-   - `ai_development_tools/AI_STATUS.md`
-   - `ai_development_tools/AI_PRIORITIES.md`
-   - `ai_development_tools/consolidated_report.txt`
+   - `development_tools/AI_STATUS.md`
+   - `development_tools/AI_PRIORITIES.md`
+   - `development_tools/consolidated_report.txt`
 3. Check documentation sync status (paired docs, path drift, ASCII compliance, heading numbering) in the audit output.
 4. Share key metrics with the user (totals, warnings, documentation coverage) and confirm whether they want to proceed with follow-up work.
 5. Capture highlights and blockers; link to source docs for detail.

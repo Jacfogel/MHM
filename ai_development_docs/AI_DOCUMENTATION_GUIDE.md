@@ -156,7 +156,7 @@ Treat these as synchronized pairs:
 
 - Before editing a paired doc, check if it has a counterpart and open both.  
 - Prefer updating the detailed doc first, then adjust the AI doc to match.  
-- After edits, run `python ai_development_tools/ai_tools_runner.py doc-sync` if available and fix any mismatches.
+- After edits, run `python development_tools/ai_tools_runner.py doc-sync` if available and fix any mismatches.
 
 
 ## 4. Maintenance Guidelines
@@ -175,19 +175,19 @@ AI view of generated docs.
 - Generated files must clearly state they are generated and name the tool responsible.  
 - Do not recommend editing generated files directly.  
 - If content is wrong or stale, advise:
-  - Updating the generator (for example, scripts in `ai_development_tools/`), then  
+  - Updating the generator (for example, scripts in `development_tools/`), then  
   - Regenerating the file.
 
-For generator usage and tooling details, see `ai_development_tools/AI_DEV_TOOLS_GUIDE.md`.
+For generator usage and tooling details, see `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`.
 
 
 For documentation automation (sync checks, reports, analysis), call:
 
 ```bash
-python ai_development_tools/ai_tools_runner.py <command>
+python development_tools/ai_tools_runner.py <command>
 ```
 
-and rely on `ai_development_tools/AI_DEV_TOOLS_GUIDE.md` for command descriptions and options.
+and rely on `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` for command descriptions and options.
 
 Typical documentation-related commands to suggest (without redefining them here):
 
@@ -204,7 +204,7 @@ Typical documentation-related commands to suggest (without redefining them here)
 If this file is not enough:
 
 - `DOCUMENTATION_GUIDE.md` for detailed rules and rationale.  
-- `ai_development_tools/AI_DEV_TOOLS_GUIDE.md` for documentation-related tools and reports.  
+- `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` for documentation-related tools and reports.  
 - `AI_SESSION_STARTER.md` for session-wide constraints and priorities.  
 - `AI_REFERENCE.md` for routing and escalation patterns.  
 - `AI_CHANGELOG.md` for recent changes that may affect documentation.

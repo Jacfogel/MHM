@@ -58,7 +58,7 @@ Top-level routing only; do not duplicate full descriptions here.
 - `resources/` – shared templates and assets (`resources/default_messages/` for message templates).  
 - `ai/` – AI integration (LM Studio and helpers).  
 - `ai_development_docs/` – AI-focused documentation for routing and constraints.  
-- `ai_development_tools/` – tools runner and commands such as `doc-sync`, `config`, `coverage`.  
+- `development_tools/` – tools runner and commands such as `doc-sync`, `config`, `coverage`.  
 - `development_docs/` – human references (changelog, dependencies, plans).  
 - `tasks/` – reminder and task definitions.  
 - `tests/` – tests, fixtures, `tests/data/`, `tests/logs/`. See section 2. Test Layout and Discovery

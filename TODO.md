@@ -112,7 +112,7 @@ When adding new tasks, follow this format:
 ## Medium Priority
 
 **Integrate Documentation Utility Scripts into AI Tools Runner**
-- *What it means*: Integrate `scripts/number_documentation_headings.py` and possibly other useful utility scripts (e.g., path validation, reference checking) into `ai_development_tools/ai_tools_runner.py` or `ai_development_tools/documentation_sync_checker.py` as subcommands
+- *What it means*: Integrate `scripts/number_documentation_headings.py` and possibly other useful utility scripts (e.g., path validation, reference checking) into `development_tools/ai_tools_runner.py` or `development_tools/documentation_sync_checker.py` as subcommands
 - *Why it helps*: Makes documentation maintenance tools more discoverable and easier to use through the centralized tool runner; enables batch operations and integration with audit workflows
 - *Estimated effort*: Medium
 - *Subtasks*:
@@ -175,18 +175,18 @@ When adding new tasks, follow this format:
   - Configuration documentation
 
 **Standardize Backup, Rotation, Archive, and Cleanup Approaches**
-- *What it means*: Review data, log and file backup, rotation, archive, cleanup approaches throughout the codebase and standardize them (including tests and ai_development_tools)
+- *What it means*: Review data, log and file backup, rotation, archive, cleanup approaches throughout the codebase and standardize them (including tests and development_tools)
 - *Why it helps*: Ensures consistent behavior, reduces code duplication, and makes maintenance easier
 - *Estimated effort*: Medium
 - *Areas to review*:
-  - Log rotation and cleanup (core/logger.py, ai_development_tools)
+  - Log rotation and cleanup (core/logger.py, development_tools)
   - Backup creation and management (core/backup_manager.py, tests)
-  - File archiving (auto_cleanup.py, ai_development_tools)
+  - File archiving (auto_cleanup.py, development_tools)
   - Test data cleanup (tests/test_utilities.py, test fixtures)
   - Temporary file cleanup patterns
 
 **Reorganize AI Development Tools Subdirectory**
-- *What it means*: Reorganize ai_development_tools subdirectory, including a review of the files within to determine whether any of them are no longer active or useful
+- *What it means*: Reorganize development_tools subdirectory, including a review of the files within to determine whether any of them are no longer active or useful
 - *Why it helps*: Improves organization, reduces confusion, and makes the tools easier to navigate and maintain
 - *Estimated effort*: Medium
 - *Areas to review*:

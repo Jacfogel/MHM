@@ -15,6 +15,7 @@ C:.
 |   coverage.ini
 |   DEVELOPMENT_WORKFLOW.md
 |   DOCUMENTATION_GUIDE.md
+|   error_handling_details.json
 |   HOW_TO_RUN.md
 |   PROJECT_VISION.md
 |   pyproject.toml
@@ -84,42 +85,6 @@ C:.
 |       AI_SESSION_STARTER.md
 |       AI_TESTING_GUIDE.md
 |       
-+---ai_development_tools
-|   |   .unused_imports_cache.json
-|   |   ai_audit_detailed_results.json
-|   |   AI_DEV_TOOLS_GUIDE.md
-|   |   AI_PRIORITIES.md
-|   |   AI_STATUS.md
-|   |   ai_tools_runner.py
-|   |   analyze_documentation.py
-|   |   audit_function_registry.py
-|   |   audit_module_dependencies.py
-|   |   audit_package_exports.py
-|   |   auto_document_functions.py
-|   |   config.py
-|   |   config_validation_results.json
-|   |   config_validator.py
-|   |   consolidated_report.txt
-|   |   coverage.json
-|   |   decision_support.py
-|   |   documentation_sync_checker.py
-|   |   error_handling_coverage.py
-|   |   file_rotation.py
-|   |   function_discovery.py
-|   |   generate_function_registry.py
-|   |   generate_module_dependencies.py
-|   |   legacy_reference_cleanup.py
-|   |   quick_status.py
-|   |   regenerate_coverage_metrics.py
-|   |   system_signals.py
-|   |   tool_guide.py
-|   |   unused_imports_checker.py
-|   |   validate_ai_work.py
-|   |   version_sync.py
-|   |   __init__.py
-|   |   
-|   +---archive
-    (archived files)
 +---archive
     (archived files)
 +---communication
@@ -190,6 +155,47 @@ C:.
 |       TEST_COVERAGE_EXPANSION_PLAN.md
 |       UNUSED_IMPORTS_REPORT.md
 |       
++---development_tools
+|   |   .unused_imports_cache.json
+|   |   ai_audit_detailed_results.json
+|   |   AI_DEVELOPMENT_TOOLS_GUIDE.md
+|   |   AI_DEV_TOOLS_IMPROVEMENT_PLAN.md
+|   |   AI_PRIORITIES.md
+|   |   AI_STATUS.md
+|   |   ai_tools_runner.py
+|   |   analyze_documentation.py
+|   |   audit_function_registry.py
+|   |   audit_module_dependencies.py
+|   |   audit_package_exports.py
+|   |   auto_document_functions.py
+|   |   config.py
+|   |   config_validation_results.json
+|   |   config_validator.py
+|   |   consolidated_report.txt
+|   |   coverage.json
+|   |   decision_support.py
+|   |   DEVELOPMENT_TOOLS_GUIDE.md
+|   |   documentation_sync_checker.py
+|   |   error_handling_coverage.py
+|   |   error_handling_details.json
+|   |   error_handling_phase1_candidates.json
+|   |   error_handling_phase2_audit.json
+|   |   file_rotation.py
+|   |   function_discovery.py
+|   |   generate_function_registry.py
+|   |   generate_module_dependencies.py
+|   |   legacy_reference_cleanup.py
+|   |   quick_status.py
+|   |   regenerate_coverage_metrics.py
+|   |   system_signals.py
+|   |   tool_guide.py
+|   |   unused_imports_checker.py
+|   |   validate_ai_work.py
+|   |   version_sync.py
+|   |   __init__.py
+|   |   
+|   +---archive
+    (archived files)
 +---logs
 |   |   ai.log
 |   |   ai_dev_tools.log
@@ -232,7 +238,10 @@ C:.
 |   |   demo_dynamic_checkin.py
 |   |   find_tests_missing_category_markers.py
 |   |   flaky_detector.py
+|   |   generate_phase1_candidates.py
+|   |   generate_phase2_audit.py
 |   |   number_documentation_headings.py
+|   |   replace_try_except_with_decorator.py
 |   |   SCRIPTS_GUIDE.md
 |   |   script_test_network_connectivity.py
 |   |   
@@ -268,27 +277,25 @@ C:.
 |   |           script_test_lm_studio.py
 |   |           script_test_new_modules.py
 |   |           
-|   +---utilities
-|   |   |   add_checkin_schedules.py
-|   |   |   add_documentation_addresses.py
-|   |   |   check_checkin_schedules.py
-|   |   |   cleanup_duplicate_messages.py
-|   |   |   cleanup_test_users.py
-|   |   |   fix_user_schedules.py
-|   |   |   rebuild_index.py
-|   |   |   regenerate_ui.ps1
-|   |   |   restore_custom_periods.py
-|   |   |   user_data_cli.py
-|   |   |   
-|   |   +---cleanup
-|   |   |       cleanup_backups.py
-|   |   |       cleanup_data_test_users.py
-|   |   |       cleanup_real_test_users.py
-|   |   |       cleanup_test_data.py
-|   |   |       cleanup_user_message_files.py
-|   |   |       
-|   |   \---__pycache__
-    (Python cache files)
+|   \---utilities
+|       |   add_checkin_schedules.py
+|       |   add_documentation_addresses.py
+|       |   check_checkin_schedules.py
+|       |   cleanup_duplicate_messages.py
+|       |   cleanup_test_users.py
+|       |   fix_user_schedules.py
+|       |   rebuild_index.py
+|       |   regenerate_ui.ps1
+|       |   restore_custom_periods.py
+|       |   user_data_cli.py
+|       |   
+|       \---cleanup
+|               cleanup_backups.py
+|               cleanup_data_test_users.py
+|               cleanup_real_test_users.py
+|               cleanup_test_data.py
+|               cleanup_user_message_files.py
+|               
 +---styles
 |       admin_theme.qss
 |       
@@ -300,12 +307,12 @@ C:.
     (Python cache files)
 +---tests
 |   |   .coverage
-|   |   AI_FUNCTIONALITY_TEST_GUIDE.md
 |   |   conftest.py
 |   |   debug_file_paths.py
 |   |   flaky_test_report.md
 |   |   MANUAL_DISCORD_TEST_GUIDE.md
 |   |   MANUAL_TESTING_GUIDE.md
+|   |   SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md
 |   |   TESTING_GUIDE.md
 |   |   test_error_handling_improvements.py
 |   |   test_isolation.py

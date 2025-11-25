@@ -796,7 +796,7 @@ def get_component_logger(component_name: str) -> ComponentLogger:
             'backup': log_paths['backup_file'],
             'checkin_dynamic': log_paths['checkin_dynamic_file'],
             # AI development tools (separate from core system logs)
-            'ai_development_tools': log_paths['ai_dev_tools_file'],
+            'development_tools': log_paths['ai_dev_tools_file'],
             'ai_dev_tools': log_paths['ai_dev_tools_file'],
             # File rotation operations should go to file_ops.log
             'file_rotation': log_paths['file_ops_file']

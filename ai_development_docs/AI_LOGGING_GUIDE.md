@@ -33,7 +33,7 @@ Where to look:
 
 Common component names (mapped in `core/logger.py`):
 
-- `main`, `errors`, `ai`, `discord`, `email`, `communication_manager`, `scheduler`, `ui`, `file_ops`, `user_activity`, plus a few specialized ones (for example `backup`, `checkin_dynamic`, `ai_development_tools`).  
+- `main`, `errors`, `ai`, `discord`, `email`, `communication_manager`, `scheduler`, `ui`, `file_ops`, `user_activity`, plus a few specialized ones (for example `backup`, `checkin_dynamic`, `development_tools`).  
 
 When in doubt, check the current `log_file_map` in `core/logger.py` rather than inventing new names.
 

@@ -1,0 +1,530 @@
+{
+  "total_exceptions": 52,
+  "by_type": {
+    "ValueError": 41,
+    "Exception": 10,
+    "KeyError": 1
+  },
+  "exceptions": [
+    {
+      "file_path": "development_tools\\regenerate_coverage_metrics.py",
+      "line_number": 105,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(error_msg)",
+      "context": "                    if logger:\n                        logger.error(error_msg)\n                    raise ValueError(error_msg)\n                cov_args.extend(['--cov', module.strip()])\n            "
+    },
+    {
+      "file_path": "development_tools\\regenerate_coverage_metrics.py",
+      "line_number": 116,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(error_msg)",
+      "context": "                        if logger:\n                            logger.error(error_msg)\n                        raise ValueError(error_msg)\n            \n            cmd = ["
+    },
+    {
+      "file_path": "core\\schedule_management.py",
+      "line_number": 405,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(f\"Invalid time format: {time_str}\")",
+      "context": "        return f\"{hour:02}:{minute}\"\n\n    raise ValueError(f\"Invalid time format: {time_str}\")\n\n"
+    },
+    {
+      "file_path": "core\\schedule_management.py",
+      "line_number": 259,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(f\"A period named '{period_name}' already exists in this category. Please choose a different name.\")",
+      "context": "    if period_name in current_periods:\n        logger.warning(f\"Period '{period_name}' already exists in category '{category}' for user {user_id}\")\n        raise ValueError(f\"A period named '{period_name}' already exists in this category. Please choose a different name.\")\n    \n    # Add the new period"
+    },
+    {
+      "file_path": "core\\schedule_management.py",
+      "line_number": 436,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(f\"Invalid 24-hour time format: {time_24h}\")",
+      "context": "    except (ValueError, AttributeError) as e:\n        logger.error(f\"Error converting 24-hour time '{time_24h}' to 12-hour: {e}\")\n        raise ValueError(f\"Invalid 24-hour time format: {time_24h}\")\n\n"
+    },
+    {
+      "file_path": "core\\schedule_management.py",
+      "line_number": 462,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(f\"Invalid 12-hour time parameters: hour={hour_12}, minute={minute}, is_pm={is_pm}\")",
+      "context": "    except (ValueError, TypeError) as e:\n        logger.error(f\"Error converting 12-hour time to 24-hour: hour={hour_12}, minute={minute}, is_pm={is_pm}, error={e}\")\n        raise ValueError(f\"Invalid 12-hour time parameters: hour={hour_12}, minute={minute}, is_pm={is_pm}\")\n\n@handle_errors(\"getting current day names\", default_return=[])"
+    },
+    {
+      "file_path": "core\\schemas.py",
+      "line_number": 210,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(f\"Invalid categories: {invalid_categories}. Allowed categories: {allowed_categories}\")",
+      "context": "            if invalid_categories:\n                logger.error(f\"Invalid categories provided: {invalid_categories}. Allowed categories: {allowed_categories}\")\n                raise ValueError(f\"Invalid categories: {invalid_categories}. Allowed categories: {allowed_categories}\")\n            \n            logger.debug(f\"Categories validation passed: {v}\")"
+    },
+    {
+      "file_path": "core\\schemas.py",
+      "line_number": 230,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(f\"Invalid categories: {invalid_categories}. Allowed categories: {default_categories}\")",
+      "context": "            \n            if invalid_categories:\n                raise ValueError(f\"Invalid categories: {invalid_categories}. Allowed categories: {default_categories}\")\n            \n            return v"
+    },
+    {
+      "file_path": "core\\service.py",
+      "line_number": 145,
+      "exception_type": "Exception",
+      "suggested_replacement": "FileOperationError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise Exception(\"Log file missing\")",
+      "context": "                    _f.write('')\n            except Exception:\n                raise Exception(\"Log file missing\")\n\n    @handle_errors(\"reading recent log content\", default_return=\"\")"
+    },
+    {
+      "file_path": "tests\\test_error_handling_improvements.py",
+      "line_number": 433,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Invalid input\")",
+      "context": "        def test_function(valid_input: str) -> str:\n            if not valid_input or not isinstance(valid_input, str):\n                raise ValueError(\"Invalid input\")\n            return f\"Processed: {valid_input}\"\n        "
+    },
+    {
+      "file_path": "tests\\test_error_handling_improvements.py",
+      "line_number": 456,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Invalid input\")",
+      "context": "        def test_function_with_context(input_data: str) -> str:\n            if not input_data or not isinstance(input_data, str):\n                raise ValueError(\"Invalid input\")\n            return f\"Processed: {input_data}\"\n        "
+    },
+    {
+      "file_path": "tests\\test_error_handling_improvements.py",
+      "line_number": 473,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Invalid input\")",
+      "context": "        def test_function_user_friendly(input_data: str) -> str:\n            if not input_data or not isinstance(input_data, str):\n                raise ValueError(\"Invalid input\")\n            return f\"Processed: {input_data}\"\n        "
+    },
+    {
+      "file_path": "tests\\test_error_handling_improvements.py",
+      "line_number": 522,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Invalid input\")",
+      "context": "        def test_function_logging(input_data: str) -> str:\n            if not input_data or not isinstance(input_data, str):\n                raise ValueError(\"Invalid input\")\n            return f\"Processed: {input_data}\"\n        "
+    },
+    {
+      "file_path": "tests\\test_error_handling_improvements.py",
+      "line_number": 540,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Invalid input\")",
+      "context": "        def test_function_performance(input_data: str) -> str:\n            if not input_data or not isinstance(input_data, str):\n                raise ValueError(\"Invalid input\")\n            return f\"Processed: {input_data}\"\n        "
+    },
+    {
+      "file_path": "tests\\test_utilities.py",
+      "line_number": 75,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"test_data_dir parameter is required - use modern test approach\")",
+      "context": "            # test_data_dir is now required - all tests should use the modern approach\n            if not test_data_dir:\n                raise ValueError(\"test_data_dir parameter is required - use modern test approach\")\n            return TestUserFactory.create_basic_user__with_test_dir(user_id, enable_checkins, enable_tasks, test_data_dir)\n            "
+    },
+    {
+      "file_path": "tests\\test_utilities.py",
+      "line_number": 365,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"test_data_dir parameter is required\")",
+      "context": "        try:\n            if not test_data_dir:\n                raise ValueError(\"test_data_dir parameter is required\")\n            \n            # Create minimal user data - only essential fields"
+    },
+    {
+      "file_path": "tests\\test_utilities.py",
+      "line_number": 411,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"test_data_dir parameter is required - use modern test approach\")",
+      "context": "            # test_data_dir is now required - all tests should use the modern approach\n            if not test_data_dir:\n                raise ValueError(\"test_data_dir parameter is required - use modern test approach\")\n            return TestUserFactory.create_discord_user__with_test_dir(user_id, discord_user_id, test_data_dir)\n            "
+    },
+    {
+      "file_path": "tests\\behavior\\test_backup_manager_behavior.py",
+      "line_number": 625,
+      "exception_type": "Exception",
+      "suggested_replacement": "MHMError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise Exception(\"Operation failed\")",
+      "context": "        # Define a failing operation\n        def failing_operation():\n            raise Exception(\"Operation failed\")\n        \n        # Perform safe operation"
+    },
+    {
+      "file_path": "tests\\behavior\\test_communication_factory_coverage_expansion.py",
+      "line_number": 236,
+      "exception_type": "Exception",
+      "suggested_replacement": "MHMError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise Exception(\"Channel creation error\")",
+      "context": "        class ErrorChannel(BaseChannel):\n            def __init__(self, config):\n                raise Exception(\"Channel creation error\")\n            \n            @property"
+    },
+    {
+      "file_path": "tests\\behavior\\test_error_handling_coverage_expansion_phase3_final.py",
+      "line_number": 159,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"test error\")",
+      "context": "        @handle_errors()\n        def test_function():\n            raise ValueError(\"test error\")\n        \n        result = test_function()"
+    },
+    {
+      "file_path": "tests\\behavior\\test_error_handling_coverage_expansion_phase3_final.py",
+      "line_number": 168,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"test error\")",
+      "context": "        @handle_errors(default_return=\"custom\")\n        def test_function():\n            raise ValueError(\"test error\")\n        \n        result = test_function()"
+    },
+    {
+      "file_path": "tests\\behavior\\test_error_handling_coverage_expansion_phase3_final.py",
+      "line_number": 227,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"test error\")",
+      "context": "        @handle_errors(user_friendly=False)\n        def test_function():\n            raise ValueError(\"test error\")\n        \n        result = test_function()"
+    },
+    {
+      "file_path": "tests\\behavior\\test_error_handling_coverage_expansion_phase3_final.py",
+      "line_number": 236,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"test error\")",
+      "context": "        @handle_errors(operation=\"custom operation\")\n        def test_function():\n            raise ValueError(\"test error\")\n        \n        result = test_function()"
+    },
+    {
+      "file_path": "tests\\behavior\\test_error_handling_coverage_expansion_phase3_final.py",
+      "line_number": 254,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"unrecoverable error\")",
+      "context": "        @handle_errors()\n        def test_function():\n            raise ValueError(\"unrecoverable error\")\n        \n        result = test_function()"
+    },
+    {
+      "file_path": "tests\\behavior\\test_error_handling_coverage_expansion_phase3_final.py",
+      "line_number": 295,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"test error\")",
+      "context": "        )\n        def test_function():\n            raise ValueError(\"test error\")\n        \n        result = test_function()"
+    },
+    {
+      "file_path": "tests\\behavior\\test_error_handling_coverage_expansion_phase3_final.py",
+      "line_number": 197,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"inner error\")",
+      "context": "            @handle_errors()\n            def inner_function():\n                raise ValueError(\"inner error\")\n            return inner_function()\n        "
+    },
+    {
+      "file_path": "tests\\behavior\\test_error_handling_coverage_expansion_phase3_final.py",
+      "line_number": 217,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"test error\")",
+      "context": "        def test_function(arg1, arg2):\n            if arg1 == \"error\":\n                raise ValueError(\"test error\")\n            return f\"{arg1}-{arg2}\"\n        "
+    },
+    {
+      "file_path": "tests\\behavior\\test_webhook_handler_behavior.py",
+      "line_number": 681,
+      "exception_type": "Exception",
+      "suggested_replacement": "MHMError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise Exception(\"Scheduling error\")",
+      "context": "        # The string path patches the builtin module, patch.object patches the already-imported module\n        def raise_exception(*args, **kwargs):\n            raise Exception(\"Scheduling error\")\n        \n        with patch('asyncio.run_coroutine_threadsafe', side_effect=raise_exception), \\"
+    },
+    {
+      "file_path": "tests\\behavior\\test_webhook_server_behavior.py",
+      "line_number": 404,
+      "exception_type": "Exception",
+      "suggested_replacement": "MHMError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise Exception(\"Test error\")",
+      "context": "        # Make rfile.read raise an exception\n        def raise_error(*args, **kwargs):\n            raise Exception(\"Test error\")\n        handler.rfile.read = raise_error\n        "
+    },
+    {
+      "file_path": "tests\\behavior\\test_webhook_server_behavior.py",
+      "line_number": 638,
+      "exception_type": "Exception",
+      "suggested_replacement": "MHMError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise Exception(\"Verification error\")",
+      "context": "                pass\n            def verify(self, *args, **kwargs):\n                raise Exception(\"Verification error\")\n        \n        mock_signing.VerifyKey = MockVerifyKey"
+    },
+    {
+      "file_path": "tests\\communication\\test_retry_manager.py",
+      "line_number": 292,
+      "exception_type": "Exception",
+      "suggested_replacement": "MHMError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise Exception(\"Test error\")",
+      "context": "                    def side_effect():\n                        retry_manager._retry_running = False\n                        raise Exception(\"Test error\")\n                    \n                    mock_process.side_effect = side_effect"
+    },
+    {
+      "file_path": "tests\\communication\\test_retry_manager.py",
+      "line_number": 342,
+      "exception_type": "Exception",
+      "suggested_replacement": "MHMError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise Exception(\"Test error\")",
+      "context": "                        call_count += 1\n                        if call_count == 1:\n                            raise Exception(\"Test error\")\n                        else:\n                            retry_manager._retry_running = False"
+    },
+    {
+      "file_path": "tests\\unit\\test_discord_event_handler.py",
+      "line_number": 257,
+      "exception_type": "Exception",
+      "suggested_replacement": "CommunicationError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise Exception(\"Handler error\")",
+      "context": "        # Arrange\n        async def failing_handler(bot):\n            raise Exception(\"Handler error\")\n        \n        event_handler.add_ready_handler(failing_handler)"
+    },
+    {
+      "file_path": "tests\\unit\\test_error_handling.py",
+      "line_number": 109,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Test error\")",
+      "context": "        @handle_errors(\"test operation\")\n        def test_function():\n            raise ValueError(\"Test error\")\n        \n        result = test_function()"
+    },
+    {
+      "file_path": "tests\\unit\\test_error_handling.py",
+      "line_number": 120,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Test error\")",
+      "context": "        @handle_errors(\"test operation\", default_return=\"fallback\")\n        def test_function():\n            raise ValueError(\"Test error\")\n        \n        result = test_function()"
+    },
+    {
+      "file_path": "tests\\unit\\test_error_handling.py",
+      "line_number": 169,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Test error\")",
+      "context": "        @handle_errors(\"test operation\")\n        def test_function():\n            raise ValueError(\"Test error\")\n        \n        result = test_function()"
+    },
+    {
+      "file_path": "tests\\unit\\test_error_handling.py",
+      "line_number": 180,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Test error\")",
+      "context": "        @handle_errors(\"test operation\", default_return=\"fallback\")\n        def test_function():\n            raise ValueError(\"Test error\")\n        \n        result = test_function()"
+    },
+    {
+      "file_path": "tests\\unit\\test_error_handling.py",
+      "line_number": 575,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Original error\")",
+      "context": "        @handle_errors(\"inner operation\")\n        def inner_function():\n            raise ValueError(\"Original error\")\n        \n        result = outer_function()"
+    },
+    {
+      "file_path": "tests\\unit\\test_error_handling.py",
+      "line_number": 617,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Test error\")",
+      "context": "        @handle_errors(\"async test operation\", default_return=\"default\")\n        async def async_function():\n            raise ValueError(\"Test error\")\n        \n        result = await async_function()"
+    },
+    {
+      "file_path": "tests\\unit\\test_error_handling.py",
+      "line_number": 628,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Test error\")",
+      "context": "        @handle_errors(\"async test operation\", default_return=42)\n        async def async_function():\n            raise ValueError(\"Test error\")\n        \n        result = await async_function()"
+    },
+    {
+      "file_path": "tests\\unit\\test_error_handling.py",
+      "line_number": 134,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Test error\")",
+      "context": "            @handle_errors(\"test operation\")\n            def test_function():\n                raise ValueError(\"Test error\")\n            \n            test_function()"
+    },
+    {
+      "file_path": "tests\\unit\\test_error_handling.py",
+      "line_number": 205,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Test error\")",
+      "context": "            @handle_errors(\"test operation\")\n            def test_function():\n                raise ValueError(\"Test error\")\n            \n            test_function()"
+    },
+    {
+      "file_path": "tests\\unit\\test_error_handling.py",
+      "line_number": 285,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Inner error\")",
+      "context": "            @handle_errors(\"inner operation\")\n            def inner_function():\n                raise ValueError(\"Inner error\")\n            \n            result = outer_function()"
+    },
+    {
+      "file_path": "tests\\unit\\test_error_handling.py",
+      "line_number": 335,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Data corruption occurred\")",
+      "context": "                with open(test_file, 'w') as f:\n                    f.write('{invalid json}')\n                raise ValueError(\"Data corruption occurred\")\n            \n            # \u2705 VERIFY REAL BEHAVIOR: Check corruption and recovery"
+    },
+    {
+      "file_path": "tests\\unit\\test_error_handling.py",
+      "line_number": 422,
+      "exception_type": "Exception",
+      "suggested_replacement": "MHMError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise Exception(\"Cleanup needed\")",
+      "context": "                \n                # Simulate an error\n                raise Exception(\"Cleanup needed\")\n            \n            # \u2705 VERIFY REAL BEHAVIOR: Check cleanup mechanism"
+    },
+    {
+      "file_path": "tests\\unit\\test_error_handling.py",
+      "line_number": 487,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Value error\")",
+      "context": "            \n            if exception_type == \"value\":\n                raise ValueError(\"Value error\")\n            elif exception_type == \"file\":\n                raise FileNotFoundError(\"File error\")"
+    },
+    {
+      "file_path": "tests\\unit\\test_error_handling.py",
+      "line_number": 533,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Error triggered\")",
+      "context": "        def test_function(arg1, arg2, kwarg1=None):\n            if arg1 == \"error\":\n                raise ValueError(\"Error triggered\")\n            return f\"{arg1}-{arg2}-{kwarg1}\"\n        "
+    },
+    {
+      "file_path": "tests\\unit\\test_error_handling.py",
+      "line_number": 551,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Error triggered\")",
+      "context": "        def test_function(arg1, arg2, kwarg1=None):\n            if arg1 == \"error\":\n                raise ValueError(\"Error triggered\")\n            return f\"{arg1}-{arg2}-{kwarg1}\"\n        "
+    },
+    {
+      "file_path": "tests\\unit\\test_error_handling.py",
+      "line_number": 591,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Test error\")",
+      "context": "            @handle_errors(\"test operation\")\n            def test_function():\n                raise ValueError(\"Test error\")\n            \n            # Should not raise exception even if logger fails"
+    },
+    {
+      "file_path": "tests\\unit\\test_error_handling.py",
+      "line_number": 491,
+      "exception_type": "KeyError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise KeyError(\"Key error\")",
+      "context": "                raise FileNotFoundError(\"File error\")\n            elif exception_type == \"key\":\n                raise KeyError(\"Key error\")\n            else:\n                return \"success\""
+    },
+    {
+      "file_path": "tests\\unit\\test_error_handling.py",
+      "line_number": 447,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(f\"Invalid JSON in {file_path}: {e}\")",
+      "context": "                            json.load(f)\n                    except json.JSONDecodeError as e:\n                        raise ValueError(f\"Invalid JSON in {file_path}: {e}\")\n                \n                return \"all_files_valid\""
+    },
+    {
+      "file_path": "ui\\dialogs\\admin_panel.py",
+      "line_number": 85,
+      "exception_type": "ValueError",
+      "suggested_replacement": "DataError",
+      "function_name": null,
+      "function_line": null,
+      "line_content": "raise ValueError(\"Admin data must be a dictionary\")",
+      "context": "            if not isinstance(data, dict):\n                logger.warning(f\"Admin data must be dict, got {type(data)}\")\n                raise ValueError(\"Admin data must be a dictionary\")\n            \n            # TODO: Implement actual data setting"
+    }
+  ]
+}

@@ -7,7 +7,7 @@
 
 > For detailed explanations, rationale, and examples, see:
 > - Section 3.5 "Automated tools" in `DOCUMENTATION_GUIDE.md`
-> - Section 3 "Generated Outputs" and section 4 "Key Scripts" in `ai_development_docs/AI_DEV_TOOLS_GUIDE.md`
+> - Section 3 "Generated Outputs" and section 4 "Key Scripts" in `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`
 
 ## Quick Reference
 
@@ -17,16 +17,16 @@
 
 ```powershell
 # Targeted search for a single item
-python ai_development_tools/legacy_reference_cleanup.py --find "LegacyItemName"
+python development_tools/legacy_reference_cleanup.py --find "LegacyItemName"
 
 # Verify readiness for removal
-python ai_development_tools/legacy_reference_cleanup.py --verify "LegacyItemName"
+python development_tools/legacy_reference_cleanup.py --verify "LegacyItemName"
 
 # Run the integrated legacy scan via the tool runner
-python ai_development_tools/ai_tools_runner.py legacy
+python development_tools/ai_tools_runner.py legacy
 ```
 
-For the full audit workflow that also produces `development_docs/LEGACY_REFERENCE_REPORT.md`, use `ai_development_tools/AI_DEV_TOOLS_GUIDE.md`, especially section 2 "Fast Mode vs Full Mode" and section 3 "Generated Outputs".
+For the full audit workflow that also produces `development_docs/LEGACY_REFERENCE_REPORT.md`, use `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, especially section 2 "Fast Mode vs Full Mode" and section 3 "Generated Outputs".
 
 ## 1. Standards
 
@@ -58,12 +58,12 @@ Use the legacy cleanup tool as a structured workflow rather than ad hoc search.
 1. **Find** – map out references
 
    ```powershell
-   python ai_development_tools/legacy_reference_cleanup.py --find "LegacyItemName"
+   python development_tools/legacy_reference_cleanup.py --find "LegacyItemName"
    ```
 
    - Scans Python and Markdown files.
    - Categorizes references (active code, tests, documentation, config, archive).
-   - For behavior details, see the `LegacyReferenceCleanup.find_all_references` / `scan_for_legacy_references` flow in `ai_development_tools/legacy_reference_cleanup.py`.
+   - For behavior details, see the `LegacyReferenceCleanup.find_all_references` / `scan_for_legacy_references` flow in `development_tools/legacy_reference_cleanup.py`.
 
 2. **Update** – fix all high-impact references
 
@@ -75,7 +75,7 @@ Use the legacy cleanup tool as a structured workflow rather than ad hoc search.
 3. **Verify** – confirm the system is ready
 
    ```powershell
-   python ai_development_tools/legacy_reference_cleanup.py --verify "LegacyItemName"
+   python development_tools/legacy_reference_cleanup.py --verify "LegacyItemName"
    ```
 
    - Confirms there are no remaining active code/config references.
@@ -104,15 +104,15 @@ Before you delete a legacy item:
 
 ## 4. Tools
 
-These tools underlie this guide. For detailed behavior and additional commands, see `ai_development_tools/AI_DEV_TOOLS_GUIDE.md` (section 1 "Main Entry Point", section 3 "Generated Outputs", and section 4 "Key Scripts").
+These tools underlie this guide. For detailed behavior and additional commands, see `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` (section 1 "Main Entry Point", section 3 "Generated Outputs", and section 4 "Key Scripts").
 
-- `ai_development_tools/legacy_reference_cleanup.py`:
+- `development_tools/legacy_reference_cleanup.py`:
   - `--scan`: scan for all legacy patterns.
   - `--find <ITEM>`: search for references to a specific legacy item.
   - `--verify <ITEM>`: verify removal readiness and summarize references.
   - `--clean`: clean up legacy references (always use `--dry-run` first).
 
-- `ai_development_tools/ai_tools_runner.py`:
+- `development_tools/ai_tools_runner.py`:
   - `legacy`: integrated legacy scan, and in some modes, report regeneration.
   - `audit` / `audit --full`: broader audits that also generate `development_docs/LEGACY_REFERENCE_REPORT.md` and related outputs.
 

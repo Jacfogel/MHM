@@ -21,7 +21,7 @@ file: ".cursor/rules/critical.mdc"
 - Keep the Python virtual environment active; do not install dependencies globally (`venv\Scripts\activate`, `pip install -r requirements.txt`).
 - Validate runtime health after changes with `python run_headless_service.py start` when functionality is affected.
 - Work in small, tested increments; take a backup before risky edits when practical (for example `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`).
-- Follow the audit-first protocol: run `python ai_development_tools/ai_tools_runner.py audit` (or `--full` when required) before producing documentation or broad assessments.
+- Follow the audit-first protocol: run `python development_tools/ai_tools_runner.py audit` (or `--full` when required) before producing documentation or broad assessments.
 - Confirm with the user before launching documentation or broad analysis work as part of the audit-first protocol.
 - Keep paired documentation in sync (human and AI guides, changelog pairs) whenever any member of a pair changes.
 - Legacy code is allowed only when strictly necessary, clearly labelled `LEGACY COMPATIBILITY`, logged on use, and paired with a removal plan.

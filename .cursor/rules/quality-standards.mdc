@@ -23,7 +23,7 @@ file: ".cursor/rules/quality-standards.mdc"
 ## Legacy Code Handling
 - Mark compatibility code with a `LEGACY COMPATIBILITY` header and explanatory comment.
 - Log usage of legacy paths to aid future cleanup.
-- Document a removal plan (conditions and steps) and add detection patterns to `ai_development_tools/legacy_reference_cleanup.py` when introducing new legacy code.
+- Document a removal plan (conditions and steps) and add detection patterns to `development_tools/legacy_reference_cleanup.py` when introducing new legacy code.
 - **Removal Process**: Use search-and-close approach (verify all references updated before removal) rather than fixed time windows. See `ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md` for AI collaborator guidance.
 
 ## Error Handling

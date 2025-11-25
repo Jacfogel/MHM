@@ -148,7 +148,7 @@ archive/
 .coverage
 coverage.json
 coverage_html/
-ai_development_tools/logs/
+development_tools/logs/
 
 # IDE files
 .vscode/

@@ -265,7 +265,7 @@ Error handling is tested in multiple ways:
 
 - **Coverage tooling**  
   - `error_handling_coverage.py` analyzes which error paths have test coverage.  
-  - Can be integrated into automated workflows via `ai_development_tools/ai_tools_runner.py` commands to generate reports.
+  - Can be integrated into automated workflows via `development_tools/ai_tools_runner.py` commands to generate reports.
   - **Phase 1 and Phase 2 Analysis**: The tool now includes specialized auditing for quality improvements:
     - **Phase 1**: Identifies functions with basic try-except blocks that should use `@handle_errors` decorator, prioritized by entry points and operation types
     - **Phase 2**: Audits generic exception raises (ValueError, Exception, KeyError, TypeError) that should be replaced with specific `MHMError` subclasses

@@ -16,7 +16,7 @@ ui = ["PySide6"]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["core*", "communication*", "ui*", "tasks*", "ai*", "tests*", "ai_development_tools*", "scripts*", "user*"]
+include = ["core*", "communication*", "ui*", "tasks*", "ai*", "tests*", "development_tools*", "scripts*", "user*"]
 exclude = ["logs*", "resources*", "archive*", "development_docs*", "ai_development_docs*", "styles*", "tests/logs*", "tests/data*"]
 
 [tool.setuptools.package-data]
