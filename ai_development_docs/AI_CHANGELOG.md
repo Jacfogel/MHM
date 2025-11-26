@@ -36,6 +36,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-26 - Check-in Flow Expiry Reliability Improvements **COMPLETED**
+- Extended check-in inactivity timeout to 2 hours to reduce unintended expirations during longer gaps.
+- Reload conversation state before expiring on outbound messages and report success so unrelated outbound messages reliably clear lingering check-ins.
+- Keeps `conversation_states.json` clean and reduces confusion from lingering check-in prompts.
+
 ### 2025-11-26 - AI Dev Tools Phase 3: Core Analysis Tools Hardening **COMPLETED**
 - Completed Phase 3 of AI Development Tools Improvement Plan: added 55+ comprehensive tests for all five core analysis tools using synthetic fixture project
 - Created `tests/fixtures/development_tools_demo/` with demo modules, legacy patterns, and paired documentation for isolated testing
