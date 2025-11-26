@@ -868,6 +868,7 @@ class AccountCreatorDialog(QDialog):
             'phone': phone,
             'email': email,
             'discord_user_id': discord_user_id,
+            'discord_username': contact_info.get('discord_username', ''),
             'timezone': account_data['timezone'],
             'channel': account_data['channel'],
             'categories': account_data['categories'],

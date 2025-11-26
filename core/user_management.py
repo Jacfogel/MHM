@@ -231,6 +231,7 @@ def _get_user_data__load_account(user_id: str, auto_create: bool = True) -> Opti
             "phone": "",
             "email": "",
             "discord_user_id": "",
+            "discord_username": "",
             "created_at": current_time_str,
             "updated_at": current_time_str,
             "features": {

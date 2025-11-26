@@ -11381,3 +11381,20 @@ Complete the function consolidation and cleanup by removing additional unnecessa
 - **Consistent API**: All code now uses `get_user_data()` and `save_user_data()` directly
 - **Reduced Complexity**: Eliminated redundant function layers
 - **Better Maintainability**: Single source of truth for user data access
+
+### 2025-12-05 - Discord Username Stored in Account Files
+
+#### Objective
+Ensure Discord usernames are persisted alongside Discord IDs in `account.json` for easier reference and display across the app.
+
+#### Changes Made
+- **`core/schemas.py`**: Added `discord_username` field to the tolerant `AccountModel` with normalization for whitespace and length.
+- **`core/user_management.py`**: Included the new field in default `account.json` creation to keep auto-generated files aligned.
+- **`core/file_operations.py`**: Wrote `discord_username` when creating initial user files using preferences data.
+- **`ui/dialogs/account_creator_dialog.py`**: Propagated optional Discord usernames from the account creation dialog into user preferences.
+- **`communication/communication_channels/discord/webhook_handler.py`**: Captured the latest Discord username from authorization webhooks and saved it to `account.json` when the user already has an account.
+- **`TODO.md`**: Removed the completed follow-up task for storing Discord usernames.
+
+#### Impact
+- **User Identity Clarity**: Discord usernames now persist with IDs, improving display and debugging.
+- **Data Consistency**: Default account creation and webhook flows keep username information in sync with account files.

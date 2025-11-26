@@ -317,11 +317,6 @@ When adding new tasks, follow this format:
 - *Why it helps*: Reduces confusion and improves the reliability of AI-assisted development
 - *Estimated effort*: Medium
 
-**Add Discord Username to account.json**
-- *What it means*: Store Discord username in account.json alongside discord_user_id for easier reference and display
-- *Why it helps*: Makes it easier to identify users, display usernames in UI, and reference users by their Discord username
-- *Estimated effort*: Small
-
 **Review Communication Module Architecture**
 - *What it means*: Review all modules in `communication/` directory to ensure they follow channel-agnostic architecture principles
 - *Why it helps*: Ensures consistency, reduces duplication, and makes it easier to add new communication channels
