@@ -39,6 +39,12 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-26 - Schedule Saves Now Use Pydantic Normalization
+- **Feature**: Added tolerant Pydantic validation to `_save_user_data__save_schedules` so direct schedule writes (e.g., legacy
+  migrations and default category creation) normalize data before saving. Validation warnings are logged while still persisting
+  the cleaned payload. Updated `TODO.md` to mark the schedules save-path validation follow-up as completed.
+- **Impact**: Ensures schedules written outside the centralized save pipeline stay consistent with schema expectations and
+  reduces the chance of malformed periods leaking onto disk.
 ### 2025-11-26 - Pathlib cleanup for Discord diagnostic **COMPLETED**
 - **Feature**: Converted `scripts/debug/discord_connectivity_diagnostic.py` to use `pathlib.Path` for project root detection and diagnostics output paths, ensuring directory creation via `Path.mkdir()` and removing the last `os.path.join` usage in active non-test code.
 - **Impact**: Restores the pathlib migration to active status by aligning the Discord connectivity diagnostic with cross-platform path handling and removes the outdated Pathlib migration entry from `TODO.md` now that non-test usages are resolved.

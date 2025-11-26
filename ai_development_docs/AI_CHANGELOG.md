@@ -1019,3 +1019,7 @@ Guidelines:
 - Rebuilt `get_user_suggestions` so AI-surfaced prompts reflect real user data: due or overdue tasks, recent check-ins (including mood follow-ups), and category-driven schedules.
 - Added analytics suggestions only when enough check-in history exists and kept suggestions capped with deduplication for clarity.
 - Cleaned up `TODO.md` by removing the completed personalized suggestions task.
+
+### 2025-12-07 - Schedule Saves Normalize Through Schemas **COMPLETED**
+- Wired `_save_user_data__save_schedules` through the tolerant schedules schema so even direct writes (legacy migrations, default category creation) get normalized before hitting disk.
+- Log a warning when validation reports issues while still persisting the cleaned data, and checked off the corresponding follow-up in `TODO.md`.

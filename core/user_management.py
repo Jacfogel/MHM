@@ -535,10 +535,20 @@ def _save_user_data__save_schedules(user_id: str, schedules_data: Dict[str, Any]
     if not user_id:
         logger.error("_save_user_data__save_schedules called with None user_id")
         return False
-    
+
     ensure_user_directory(user_id)
     schedules_file = get_user_file_path(user_id, 'schedules')
-    
+
+    # Normalize using tolerant Pydantic schema to keep on-disk data consistent
+    from core.schemas import validate_schedules_dict
+
+    normalized, errors = validate_schedules_dict(schedules_data)
+    if errors:
+        logger.warning(
+            "Schedules validation reported %s issue(s); saving normalized data", len(errors)
+        )
+    schedules_data = normalized or {}
+
     save_json_data(schedules_data, schedules_file)
     
     logger.debug(f"Schedules data saved for user {user_id}")
