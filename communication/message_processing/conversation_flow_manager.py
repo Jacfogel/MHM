@@ -146,9 +146,8 @@ class ConversationManager:
             try:
                 self.user_states.pop(uid, None)
                 logger.info(
-                    "FLOW_STATE_EXPIRE: Removed stale check-in flow due to inactivity | user=%s | threshold_minutes=%s",
-                    uid,
-                    CHECKIN_INACTIVITY_MINUTES,
+                    f"FLOW_STATE_EXPIRE: Removed stale check-in flow due to inactivity | user={uid} | "
+                    f"threshold_minutes={CHECKIN_INACTIVITY_MINUTES}"
                 )
             except Exception:
                 continue

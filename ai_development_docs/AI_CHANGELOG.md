@@ -36,6 +36,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-26 - Schedule Period Edit Cache Race Condition Fix **COMPLETED**
+- Fixed race condition in `edit_schedule_period` that caused test failures in parallel execution by adding cache clearing before reading periods.
+- Added cache clearing in test after edit operation to ensure fresh data is read.
+- All tests now pass consistently (3458 passed, 0 failed, 1 skipped).
+
 ### 2025-11-26 - Check-in Flow Expiry Reliability Improvements **COMPLETED**
 - Extended check-in inactivity timeout to 2 hours to reduce unintended expirations during longer gaps.
 - Reload conversation state before expiring on outbound messages and report success so unrelated outbound messages reliably clear lingering check-ins.

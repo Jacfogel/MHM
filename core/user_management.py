@@ -545,7 +545,7 @@ def _save_user_data__save_schedules(user_id: str, schedules_data: Dict[str, Any]
     normalized, errors = validate_schedules_dict(schedules_data)
     if errors:
         logger.warning(
-            "Schedules validation reported %s issue(s); saving normalized data", len(errors)
+            f"Schedules validation reported {len(errors)} issue(s); saving normalized data"
         )
     schedules_data = normalized or {}
 

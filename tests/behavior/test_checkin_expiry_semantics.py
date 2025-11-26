@@ -1,7 +1,11 @@
 import os
 from datetime import datetime, timedelta
 
-from communication.message_processing.conversation_flow_manager import conversation_manager, FLOW_CHECKIN
+from communication.message_processing.conversation_flow_manager import (
+    conversation_manager,
+    FLOW_CHECKIN,
+    CHECKIN_INACTIVITY_MINUTES,
+)
 from tests.test_utilities import setup_test_data_environment, cleanup_test_data_environment, create_test_user
 
 
@@ -31,8 +35,9 @@ class TestCheckinExpirySemantics:
         }
         state = conversation_manager.user_states[user_id]
 
-        # Backdate last_activity by 46 minutes to trigger expiry
-        past = (datetime.now() - timedelta(minutes=46)).strftime('%Y-%m-%d %H:%M:%S')
+        # Backdate last_activity beyond the configured inactivity window to trigger expiry
+        idle_minutes = CHECKIN_INACTIVITY_MINUTES + 1
+        past = (datetime.now() - timedelta(minutes=idle_minutes)).strftime('%Y-%m-%d %H:%M:%S')
         state['last_activity'] = past
 
         # Any inbound message should now cause expiry

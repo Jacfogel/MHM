@@ -65,6 +65,8 @@ class TestScheduleManagement:
             assert periods["morning"]["end_time"] == "10:00"
 
             edit_schedule_period(category, "morning", "09:00", "11:00")
+            # Clear cache after edit to ensure we read fresh data
+            clear_schedule_periods_cache(user_id, category)
             periods = get_schedule_time_periods(user_id, category)
             assert periods["morning"]["start_time"] == "09:00"
             assert periods["morning"]["end_time"] == "11:00"

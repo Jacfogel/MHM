@@ -240,6 +240,7 @@ class TestOrphanedReminderCleanup:
     @pytest.mark.integration
     @pytest.mark.scheduler
     @pytest.mark.tasks
+    @pytest.mark.no_parallel
     @patch('core.service.get_scheduler_manager')
     @patch('core.scheduler.SchedulerManager.set_wake_timer')
     def test_cleanup_handles_multiple_users(self, mock_wake_timer, mock_get_scheduler, test_data_dir):
@@ -271,6 +272,9 @@ class TestOrphanedReminderCleanup:
         scheduler = get_scheduler_manager()
         assert scheduler is not None, "Scheduler should be available"
         
+        # Store initial job count for cleanup
+        initial_jobs = list(schedule.jobs)
+        
         schedule.every().day.at("09:00").do(
             scheduler.handle_task_reminder,
             user_id=user1_id,
@@ -281,6 +285,11 @@ class TestOrphanedReminderCleanup:
             user_id=user2_id,
             task_id=task2_id
         )
+        
+        # Verify task2 exists before cleanup
+        task2 = get_task_by_id(user2_id, task2_id)
+        assert task2 is not None, "Task2 should exist before cleanup"
+        assert not task2.get('completed', False), "Task2 should not be completed"
         
         # Act - Run cleanup (now uses real cleanup method)
         scheduler.cleanup_orphaned_task_reminders()
@@ -308,4 +317,18 @@ class TestOrphanedReminderCleanup:
             for job in reminder_jobs
         )
         assert found_task2_job, "Reminder for active task2 should be preserved"
+        
+        # Cleanup: Remove jobs we added
+        jobs_to_remove = []
+        for job in schedule.jobs:
+            if hasattr(job.job_func, 'keywords'):
+                kwargs = job.job_func.keywords
+                if (kwargs.get('user_id') in (user1_id, user2_id) and 
+                    kwargs.get('task_id') in (task1_id, task2_id)):
+                    jobs_to_remove.append(job)
+        for job in jobs_to_remove:
+            try:
+                schedule.jobs.remove(job)
+            except ValueError:
+                pass  # Already removed
 

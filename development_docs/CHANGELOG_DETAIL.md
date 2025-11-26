@@ -39,7 +39,13 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
-<<<<<<< Updated upstream
+### 2025-11-26 - Schedule Period Edit Cache Race Condition Fix **COMPLETED**
+- **Feature**: Fixed race condition in `edit_schedule_period` that caused test failures in parallel execution. Added cache clearing at the start of `edit_schedule_period` (matching the pattern in `add_schedule_period`) to ensure fresh data is read before editing. Also added cache clearing in the test after the edit operation to ensure the test reads fresh data.
+- **Technical Changes**:
+  1. **`core/schedule_management.py`**: Added cache clearing at the start of `edit_schedule_period` function to avoid stale reads under randomized/parallel tests, matching the pattern used in `add_schedule_period`.
+  2. **`tests/unit/test_schedule_management.py`**: Added cache clearing after the edit operation in `test_schedule_period_lifecycle` to ensure the test reads fresh data after the edit.
+- **Impact**: Resolves intermittent test failures in parallel execution where the "morning" period would disappear after editing due to stale cache reads. All tests now pass consistently (3458 passed, 0 failed, 1 skipped).
+
 ### 2025-11-26 - Check-in Expiry Reliability Updates
 - **Feature**: Extended `CHECKIN_INACTIVITY_MINUTES` to 120 minutes so longer pauses between answers don't unexpectedly expire ongoing check-ins.
 - **Fix**: Reload conversation state from disk before expiring check-ins triggered by unrelated outbound messages and return a success flag to confirm expirations, preventing stale in-memory state from blocking expirations.

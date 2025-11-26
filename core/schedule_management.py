@@ -282,6 +282,11 @@ def add_schedule_period(category, period_name, start_time, end_time, scheduler_m
 
 @handle_errors("editing schedule period")
 def edit_schedule_period(category, period_name, new_start_time, new_end_time, scheduler_manager=None):
+    # Clear cache to avoid stale reads under randomized/parallel tests
+    try:
+        clear_schedule_periods_cache(UserContext().get_user_id(), category)
+    except Exception:
+        pass
     user_id = UserContext().get_user_id()
     if not user_id:
         logger.error("User ID is not set in UserContext (edit_schedule_period).")

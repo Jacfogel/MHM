@@ -880,8 +880,6 @@ def _save_user_data__check_cross_file_invariants(
                                 _save_user_data__normalize_data('account', merged_account)
                                 merged_data['account'] = merged_account
                             merged_data['account']['features'] = feats
-                            # Mark account as needing save
-                            valid_types.append('account')
                 
                 # Ensure schedules exist for all categories
                 try:

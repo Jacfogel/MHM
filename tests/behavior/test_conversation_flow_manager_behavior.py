@@ -344,6 +344,7 @@ class TestConversationFlowManagerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     @patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled')
     @patch('communication.message_processing.conversation_flow_manager.get_user_data')
     def test_conversation_manager_expire_checkin_flow(self, mock_get_user_data, mock_is_enabled, test_data_dir):
@@ -369,6 +370,9 @@ class TestConversationFlowManagerBehavior:
         # Start check-in
         manager.start_checkin(user_id)
         assert user_id in manager.user_states, "Should have active check-in"
+        
+        # Ensure state is saved to disk before expire (which reloads from disk)
+        manager._save_user_states()
 
         # Expire check-in flow
         expired = manager.expire_checkin_flow_due_to_unrelated_outbound(user_id)
