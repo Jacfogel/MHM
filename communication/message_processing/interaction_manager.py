@@ -584,57 +584,112 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
     
     def get_user_suggestions(self, user_id: str, context: str = "") -> list:
         """Get personalized suggestions for the user"""
+        from datetime import datetime
+
         suggestions = []
-        
+
+        def add_suggestion(text: str) -> None:
+            """Add a suggestion if it is unique and space remains."""
+            if text and text not in suggestions and len(suggestions) < 5:
+                suggestions.append(text)
+
         # Get task-related suggestions if user has tasks
         try:
             from tasks.task_management import load_active_tasks
-            tasks = load_active_tasks(user_id)
+
+            tasks = load_active_tasks(user_id) or []
+            now = datetime.now()
+
+            def parse_due(task: dict) -> datetime | None:
+                due_date = task.get("due_date")
+                due_time = task.get("due_time")
+                if not due_date:
+                    return None
+                try:
+                    if due_time:
+                        return datetime.strptime(f"{due_date} {due_time}", "%Y-%m-%d %H:%M")
+                    return datetime.strptime(due_date, "%Y-%m-%d")
+                except Exception:
+                    return None
+
             if tasks:
-                suggestions.append("Show me my tasks")
-                if len(tasks) > 0:
-                    suggestions.append(f"Complete task 1")
-        
+                dated_tasks = [(task, parse_due(task)) for task in tasks]
+                dated_tasks.sort(key=lambda item: item[1] or datetime.max)
+                top_task, due_at = dated_tasks[0]
+                title = top_task.get("title") or "your top task"
+
+                if due_at:
+                    if due_at.date() < now.date():
+                        add_suggestion(f"Catch up on \"{title}\" (was due {due_at.strftime('%b %d')})")
+                    elif due_at.date() == now.date():
+                        add_suggestion(f"Finish \"{title}\" due today")
+                    else:
+                        add_suggestion(f"Plan for \"{title}\" due {due_at.strftime('%b %d')}")
+                else:
+                    add_suggestion(f"Work on \"{title}\" from your task list")
+
+                if len(tasks) > 1:
+                    add_suggestion("Show my tasks")
+            else:
+                add_suggestion("Add a new task for today")
+
         except Exception:
-            pass
-        
+            add_suggestion("Show my tasks")
+
         # Get check-in suggestions
         try:
-            from core.response_tracking import is_user_checkins_enabled
+            from core.response_tracking import get_recent_checkins, is_user_checkins_enabled
+
             if is_user_checkins_enabled(user_id):
-                suggestions.append("Start a check-in")
-                suggestions.append("Show my check-in history")
+                recent_checkins = get_recent_checkins(user_id, limit=3) or []
+                if recent_checkins:
+                    latest = recent_checkins[0]
+                    timestamp_str = latest.get("timestamp")
+                    try:
+                        timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S") if timestamp_str else None
+                    except Exception:
+                        timestamp = None
+
+                    if timestamp and (datetime.now().date() - timestamp.date()).days >= 2:
+                        add_suggestion("Log a quick check-in for today")
+                    else:
+                        add_suggestion("Review your recent check-ins")
+
+                    mood = latest.get("mood")
+                    if mood:
+                        add_suggestion(f"See your mood trend after feeling {mood.lower()}")
+                else:
+                    add_suggestion("Start your first check-in")
         except Exception:
-            pass
-        
+            add_suggestion("Start a check-in")
+
         # Get schedule suggestions
         try:
             from core.user_management import get_user_categories
+
             categories = get_user_categories(user_id)
             if categories:
-                suggestions.append("Show my schedule")
-                suggestions.append("Schedule status")
+                add_suggestion(f"Review your {categories[0]} schedule")
+                if len(categories) > 1:
+                    add_suggestion("Schedule status")
         except Exception:
-            pass
-        
+            add_suggestion("Show my schedule")
+
         # Get analytics suggestions
         try:
             from core.response_tracking import get_recent_checkins
+
             checkins = get_recent_checkins(user_id, limit=5)
-            if checkins:
-                suggestions.append("Show my analytics")
-                suggestions.append("Mood trends")
+            if checkins and len(checkins) >= 3:
+                add_suggestion("View mood trends from this week")
         except Exception:
-            pass
-        
-        # Add general suggestions
-        suggestions.extend([
-            "Create a task to call mom tomorrow",
-            "Show my profile",
-            "Help with tasks"
-        ])
-        
-        return suggestions[:5]  # Limit to 5 suggestions
+            add_suggestion("Show my analytics")
+
+        # Add general suggestions if space remains
+        add_suggestion("Show my profile")
+        add_suggestion("Help with tasks")
+
+        return suggestions
 
     @handle_errors("checking if AI response is command")
     def _is_ai_command_response(self, ai_response: str) -> bool:

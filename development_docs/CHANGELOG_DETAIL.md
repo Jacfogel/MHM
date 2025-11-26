@@ -11435,3 +11435,16 @@ Ensure Discord usernames are persisted alongside Discord IDs in `account.json` f
 #### Impact
 - **User Identity Clarity**: Discord usernames now persist with IDs, improving display and debugging.
 - **Data Consistency**: Default account creation and webhook flows keep username information in sync with account files.
+
+### 2025-12-06 - Personalized User Suggestions Refresh
+
+#### Objective
+Provide users with context-aware prompts that reflect their current tasks, check-ins, and schedules instead of generic canned suggestions.
+
+#### Changes Made
+- **`communication/message_processing/interaction_manager.py`**: Reworked `get_user_suggestions` to surface task-specific prompts (due today/overdue/coming up), context-aware check-in nudges (first-time, overdue, or recent mood follow-up), schedule reminders driven by user categories, and analytics prompts once enough check-ins exist.
+- **`TODO.md`**: Removed the completed personalized user suggestions task after shipping the updated behavior.
+
+#### Impact
+- **More Relevant Guidance**: Suggestions now adapt to each user's data, encouraging action on pressing tasks and timely check-ins.
+- **Cleaner Backlog**: TODO list reflects remaining work after completing the personalization follow-up.
