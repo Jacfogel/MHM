@@ -11406,6 +11406,19 @@ Complete the function consolidation and cleanup by removing additional unnecessa
 - **Reduced Complexity**: Eliminated redundant function layers
 - **Better Maintainability**: Single source of truth for user data access
 
+### 2025-11-26 - Command Reference Documentation Sync **COMPLETED**
+
+#### Objective
+Document the current Discord/chat command set and remove the completed follow-up from the TODO list so onboarding references stay accurate.
+
+#### Changes Made
+- **`HOW_TO_RUN.md`**: Added a command reference table covering slash commands, bang commands, mapped text equivalents, and notes for check-in flows.
+- **`TODO.md`**: Removed the finished follow-up item for documenting the command list in `HOW_TO_RUN.md`.
+
+#### Impact
+- **Onboarding Clarity**: New users can see all supported commands in one place with consistent descriptions.
+- **TODO Hygiene**: Channel-agnostic command follow-ups now only track outstanding work.
+
 ### 2025-12-05 - Discord Username Stored in Account Files
 
 #### Objective

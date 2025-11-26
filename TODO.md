@@ -60,7 +60,6 @@ When adding new tasks, follow this format:
   - [ ] Add behavior tests for dynamic Discord app commands (registration, sync, callback wiring)
   - [ ] Add behavior tests for classic dynamic commands (skip `help`, ensure mapping works)
   - [ ] Verify unknown `/` and `!` prefixes fall back to parser and contextual chat
-  - [ ] Document command list in HOW_TO_RUN.md
   - [ ] Ensure user-facing help uses in-app "commands"/slash-commands (no dev-doc references)
 
 **Check-in Flow Behavior & Stability**
