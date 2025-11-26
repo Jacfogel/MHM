@@ -993,6 +993,10 @@ Guidelines:
 - Parsed doc-sync and legacy cleanup outputs in the service layer so summaries surface counts and hotspot files automatically.
 - Corrected stale documentation links and reran doc-sync until it passed cleanly.
 
+### 2025-11-26 - Command Reference Documentation Sync **COMPLETED**
+- Added a Discord/chat command reference table to `HOW_TO_RUN.md`, covering slash commands, bang commands, mapped text triggers, and check-in flow notes.
+- Cleaned up `TODO.md` by removing the completed documentation follow-up for the channel-agnostic command registry.
+
 ### 2025-12-05 - Discord Username Persistence **COMPLETED**
 - Added `discord_username` to the tolerant `AccountModel` schema and default account generation so AI tools see consistent user identifiers.
 - Propagated optional Discord usernames from account creation preferences into persisted account files.

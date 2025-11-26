@@ -71,11 +71,35 @@ python core/service.py  # run service only (no UI)
 python ui/ui_app_qt.py     # admin panel only (PySide6/Qt)
 ```
 
-## 3. Alternative Launch Methods
+## 3. Command Reference (Discord and Chat)
+
+These commands work as Discord slash commands (`/command`), bang commands (`!command`), or plain text phrases. The mapped text shows what the assistant understands if you prefer to type the words instead of the slash command.
+
+| Command | Slash / Bang | Mapped text (what the assistant hears) | What it does |
+| --- | --- | --- | --- |
+| Start | `/start`, `!start` | `start` | Sends the welcome/setup message. |
+| Tasks | `/tasks`, `!tasks` | `show my tasks` | Lists your current tasks. |
+| Profile | `/profile`, `!profile` | `show profile` | Shows your saved profile details. |
+| Schedule | `/schedule`, `!schedule` | `show schedule` | Shows your saved schedules. |
+| Messages | `/messages`, `!messages` | `show messages` | Shows your saved messages. |
+| Analytics | `/analytics`, `!analytics` | `show analytics` | Shows wellness analytics and insights. |
+| Status | `/status`, `!status` | `status` | Shows system/user status. |
+| Help | `/help`, `!help` | `help` | Shows help and examples. |
+| Check-in | `/checkin`, `!checkin` | `start checkin` | Starts a check-in flow. |
+| Restart check-in | `/restart`, `!restart` | `restart checkin` | Restarts an in-progress check-in. |
+| Clear flows | `/clear`, `!clear` | `clear flows` | Clears stuck conversation flows. |
+| Cancel | `/cancel`, `!cancel` | `/cancel` | Cancels the current flow immediately. |
+
+**Notes**
+- Slash and bang commands are equivalent; use whichever is more convenient.
+- If you forget the exact command, typing the mapped text (for example, “show my tasks”) works the same way.
+- Check-in related commands (`/checkin`, `/restart`, `/clear`, `/cancel`) operate on the conversation flow system.
+
+## 4. Alternative Launch Methods
 
 You can also run individual components directly if needed:
 
-## 4. Important Notes
+## 5. Important Notes
 
 - **Always activate your virtual environment** before running the app
 - **Never install dependencies globally** - this can cause conflicts
@@ -83,7 +107,7 @@ You can also run individual components directly if needed:
 - **To deactivate the virtual environment**, simply type `deactivate`
 - **Windows Python Processes**: On Windows, you may see two Python processes when running the app. One is your actual code, while the system Python is a harmless Windows artifact.
 
-## 5. Troubleshooting
+## 6. Troubleshooting
 
 ### 5.1. "Command not found" errors
 Make sure your virtual environment is activated. You should see `(.venv)` at the beginning of your command prompt.
@@ -141,7 +165,7 @@ pip install -r requirements.txt
 **Q: Why do I see two Python processes when running the app on Windows?**
 **A**: This is normal Windows behavior. Windows launches both your script and the underlying interpreter. The process running your actual code is the one that matters; the system Python is a harmless artifact.
 
-## 6. Next Steps
+## 7. Next Steps
 - **Project Overview**: See [README.md](README.md) for features and architecture
 - **Development Workflow**: See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe practices
 - **Architecture**: See [ARCHITECTURE.md](ARCHITECTURE.md) for system design
