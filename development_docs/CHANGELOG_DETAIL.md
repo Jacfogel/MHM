@@ -39,6 +39,13 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-07 - Schedule Saves Now Use Pydantic Normalization
+- **Feature**: Added tolerant Pydantic validation to `_save_user_data__save_schedules` so direct schedule writes (e.g., legacy
+  migrations and default category creation) normalize data before saving. Validation warnings are logged while still persisting
+  the cleaned payload. Updated `TODO.md` to mark the schedules save-path validation follow-up as completed.
+- **Impact**: Ensures schedules written outside the centralized save pipeline stay consistent with schema expectations and
+  reduces the chance of malformed periods leaking onto disk.
+
 ### 2025-11-26 - AI Dev Tools Phase 3: Core Analysis Tools Hardening **COMPLETED**
 - **Feature**: Completed Phase 3 of the AI Development Tools Improvement Plan, adding comprehensive test coverage for all five core analysis tools using a synthetic fixture project.
 - **Technical Changes**:
