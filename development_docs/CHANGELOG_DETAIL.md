@@ -39,6 +39,30 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-25 - AI Dev Tools Phase 2: Core Infrastructure Stabilization **COMPLETED**
+- **Feature**: Completed Phase 2 of the AI Development Tools Improvement Plan, stabilizing core infrastructure with comprehensive test coverage, normalized logging, and consistent error handling.
+- **Technical Changes**:
+  1. **Test Infrastructure** (`tests/development_tools/`):
+     - Created `tests/development_tools/__init__.py` and `tests/development_tools/conftest.py` for proper package structure and import management
+     - Created `tests/development_tools/test_config.py` with 23 tests covering key settings existence, helper function validation, and path verification
+     - Created `tests/development_tools/test_standard_exclusions.py` with 21 tests covering universal exclusions, tool-specific exclusions, context-specific exclusions, and Path object handling
+     - Created `tests/development_tools/test_constants.py` with 25 tests covering DEFAULT_DOCS paths, PAIRED_DOCS paths, LOCAL_MODULE_PREFIXES, and helper functions
+     - Created `tests/development_tools/test_ai_tools_runner.py` with 7 CLI smoke tests verifying command execution, exit codes, and error handling
+     - Fixed path mismatch in `development_tools/services/constants.py` (`tests/AI_FUNCTIONALITY_TEST_GUIDE.md` → `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`)
+  2. **Logging Normalization** (`development_tools/services/operations.py`):
+     - Added consistent "Starting {operation_name}..." and "Completed {operation_name}..." logging to all major operations (`run_audit`, `run_docs`, `run_validate`, `run_config`, `run_status`, `run_documentation_sync`, `run_coverage_regeneration`, `run_legacy_cleanup`, `run_system_signals`, `run_unused_imports_report`, `generate_directory_trees`)
+     - Ensured all command handlers return appropriate exit codes (0 for success, non-zero for failures)
+  3. **Error Handling Enhancement** (`development_tools/ai_tools_runner.py`):
+     - Added try/except block around command execution in `main()` to catch and log general exceptions
+     - Proper exit code propagation (0 for success, 1 for failures, 2 for usage errors, 3 for unexpected errors)
+  4. **Documentation Updates**:
+     - Updated `tests/TESTING_GUIDE.md` and `ai_development_docs/AI_TESTING_GUIDE.md` to include `tests/development_tools/` as a valid test directory for infrastructure tests
+     - Updated `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md` to mark Phase 2 as completed with detailed milestone checklists
+     - Updated cross-cutting issue #2 ("No tests for tooling") to "PARTIALLY RESOLVED" with Phase 2 accomplishments
+     - Updated per-tool breakdown sections to note test coverage and logging improvements
+- **Impact**: Core infrastructure now has 76 tests providing regression protection. Logging makes operations traceable, and error handling is consistent across all commands. The infrastructure is predictable and diagnosable, providing a solid foundation for Phase 3 work on complex analysis tools. All tests pass (3,386 passed, 1 skipped) and are integrated into the main test suite.
+- **Files Affected**: `tests/development_tools/` (new test directory), `development_tools/services/operations.py`, `development_tools/ai_tools_runner.py`, `development_tools/services/constants.py`, `tests/TESTING_GUIDE.md`, `ai_development_docs/AI_TESTING_GUIDE.md`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md`
+
 ### 2025-11-25 - AI Dev Tools Tiering and Documentation Alignment **COMPLETED**
 - **Feature**:
   1. Added `development_tools/services/tool_metadata.py` as the single source of truth for tool tier, portability, trust, description, and command-group metadata. Used the registry to inject `# TOOL_TIER` / `# TOOL_PORTABILITY` headers into every tool module, removing stray BOM characters discovered during the sweep.

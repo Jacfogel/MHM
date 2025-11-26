@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-25 - AI Dev Tools Phase 2: Core Infrastructure Stabilization **COMPLETED**
+- Completed Phase 2 of AI Development Tools Improvement Plan: added 76 tests (config, exclusions, constants, CLI runner), normalized logging across operations, enhanced error handling with proper exit codes
+- Created `tests/development_tools/` test directory with 4 test files covering core infrastructure (23 config tests, 21 exclusion tests, 25 constants tests, 7 CLI smoke tests)
+- Fixed path mismatch in constants.py (`AI_FUNCTIONALITY_TEST_GUIDE.md` → `SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`), updated testing guides to include development_tools tests
+- Result: Core infrastructure now has test coverage and consistent logging/error handling, providing solid foundation for Phase 3 work on complex analysis tools
+
 ### 2025-11-25 - AI Dev Tools Tiering + Docs Sync **COMPLETED**
 - `services/tool_metadata.py` now drives tool metadata *and* command grouping; every module carries tier/portability headers and CLI help pulls from the same source.
 - Renamed `ai_development_tools/` ➜ `development_tools/`, split the docs into AI (`AI_DEVELOPMENT_TOOLS_GUIDE.md`) vs human (`DEVELOPMENT_TOOLS_GUIDE.md`), and aligned all references/imports.

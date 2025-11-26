@@ -94,7 +94,7 @@ Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier, tr
 - Use shared infrastructure: `standard_exclusions.py`, `constants.py`, `config.py`
 - Never hardcode project paths; derive them from configuration helpers
 - Keep tools isolated from MHM business logic
-- Store tests under `tests/ai_tools/` (with fixtures in `tests/fixtures/ai_tools_demo/`)
+- Store tests under `tests/development_tools/` (with fixtures in `tests/fixtures/development_tools_demo/`)
 - Preserve the directory structure (`development_tools/`, `ai_development_docs/`, `development_docs/`, `archive/`, `logs/`) to ease eventual extraction
 - Treat experimental tools cautiously (dry-run first, log outcomes)
 - Keep this guide paired with the human document; update both whenever commands, tiers, or workflows change

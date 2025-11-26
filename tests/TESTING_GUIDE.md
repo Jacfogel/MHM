@@ -46,7 +46,8 @@ tests/
 |-- unit/                                # Unit tests by module (core logic)
 |-- integration/                         # Integration tests by feature
 |-- behavior/                            # Real behavior tests by system
-`-- ui/                                  # UI-specific tests
+|-- ui/                                  # UI-specific tests
+|-- development_tools/                   # Infrastructure tests for development tools
 ```
 
 ### 2.1. Discovery rules
@@ -93,6 +94,16 @@ Tests are organized by real-world features and workflows to encourage integratio
 - Verify signals/slots, validation behavior, and critical UI flows.
 - Avoid brittle pixel-perfect assertions; focus on behavior.
 
+**Development tools tests (`tests/development_tools/`)**
+
+- Test development tools and infrastructure components.
+- Include sanity tests for configuration, exclusions, constants, and CLI runners.
+- Use both unit tests (for isolated components) and integration tests (for CLI smoke tests).
+- Examples:
+  - Configuration validation.
+  - File exclusion patterns.
+  - CLI command execution.
+
 ### 2.3. Where to put new tests
 
 When adding a new test:
@@ -100,6 +111,7 @@ When adding a new test:
 - If it exercises **pure logic** in one module, put it in `tests/unit/`.
 - If it involves **multiple modules** or services, use `tests/integration/` or `tests/behavior/` depending on scope.
 - If it tests **dialogs, widgets, or UI flows**, put it in `tests/ui/`.
+- If it tests **development tools** (configuration, CLI runners, tooling), put it in `tests/development_tools/`.
 
 If you are unsure, err toward **integration or behavior tests**. Isolated unit tests are useful, but they should support a real-behavior-first strategy instead of replacing it.
 

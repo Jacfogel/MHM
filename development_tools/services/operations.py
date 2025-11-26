@@ -615,6 +615,9 @@ class AIToolsService:
 
         """Run the full audit workflow with concise summary"""
 
+        operation_name = "audit (fast)" if fast else "audit (full)"
+        logger.info(f"Starting {operation_name}...")
+
         if fast:
 
             logger.info("Running FAST audit (core only)...")
@@ -688,7 +691,7 @@ class AIToolsService:
 
             logger.info("=" * 50)
 
-            logger.info("Audit completed successfully!")
+            logger.info(f"Completed {operation_name} successfully!")
 
             logger.info(f"* AI Status: {ai_status_file}")
 
@@ -704,7 +707,7 @@ class AIToolsService:
 
         else:
 
-            logger.error("Audit failed!")
+            logger.error(f"Completed {operation_name} with errors!")
 
             return False
 
@@ -985,6 +988,8 @@ class AIToolsService:
 
         """Update all documentation (OPTIONAL - not essential for audit)"""
 
+        logger.info("Starting documentation update...")
+
         logger.info("Updating documentation...")
 
         logger.info("=" * 50)
@@ -1073,17 +1078,19 @@ class AIToolsService:
 
         if success:
 
-            logger.info("Documentation generation completed successfully!")
+            logger.info("Completed documentation update successfully!")
 
         else:
 
-            logger.warning("Documentation generation completed with issues.")
+            logger.warning("Completed documentation update with issues.")
 
         return success
 
     def run_validate(self):
 
         """Validate AI-generated work (simple command)"""
+
+        logger.info("Starting validation...")
 
         logger.info("Validating AI work...")
 
@@ -1112,6 +1119,8 @@ class AIToolsService:
     def run_config(self):
 
         """Check configuration consistency (simple command)"""
+
+        logger.info("Starting configuration check...")
 
         logger.info("Checking configuration...")
 
@@ -1323,6 +1332,8 @@ class AIToolsService:
 
         """Get current system status - quick check that updates status files"""
 
+        logger.info("Starting status check...")
+
         logger.info("Getting system status...")
 
         logger.info("=" * 50)
@@ -1386,6 +1397,8 @@ class AIToolsService:
             consolidated_file = create_output_file("development_tools/consolidated_report.txt", consolidated_report)
             logger.info(f"Consolidated Report: {consolidated_file}")
 
+            logger.info("Completed status check successfully!")
+
             return True
 
         if result.get('output'):
@@ -1394,7 +1407,7 @@ class AIToolsService:
 
         if result.get('error'):
 
-            logger.error(f"Status check failed: {result['error']}")
+            logger.error(f"Completed status check with errors: {result['error']}")
 
         return False
 
@@ -1402,19 +1415,25 @@ class AIToolsService:
 
         """Run documentation synchronization checks"""
 
+        logger.info("Starting documentation sync check...")
+
         logger.info("Running documentation synchronization checks...")
 
         if self._run_doc_sync_check('--check'):
 
-            logger.info("Documentation sync check completed!")
+            logger.info("Completed documentation sync check successfully!")
 
             return True
+
+        logger.error("Completed documentation sync check with errors!")
 
         return False
 
     def run_coverage_regeneration(self):
 
         """Regenerate test coverage metrics"""
+
+        logger.info("Starting coverage regeneration...")
 
         logger.info("Regenerating test coverage metrics...")
 
@@ -1437,6 +1456,8 @@ class AIToolsService:
 
             self.coverage_results = result
 
+            logger.info("Completed coverage regeneration successfully!")
+            
             logger.info("Coverage metrics regenerated and plan updated!")
             
             # Report test results if available
@@ -1549,18 +1570,23 @@ class AIToolsService:
 
         """Run legacy reference cleanup"""
 
+        logger.info("Starting legacy cleanup...")
+
         logger.info("Running legacy reference cleanup...")
 
         if self._run_legacy_cleanup_scan('--scan'):
 
-            logger.info("Legacy reference scan completed!")
+            logger.info("Completed legacy cleanup successfully!")
 
             return True
+
+        logger.error("Completed legacy cleanup with errors!")
 
         return False
 
     def run_system_signals(self):
         """Run system signals generator"""
+        logger.info("Starting system signals generation...")
         logger.info("Generating system signals...")
         
         result = self.run_script('system_signals', '--json')
@@ -1571,22 +1597,24 @@ class AIToolsService:
                 try:
                     import json
                     self.system_signals = json.loads(output)
-                    logger.info("System signals generated successfully!")
+                    logger.info("Completed system signals generation successfully!")
                     return True
                 except json.JSONDecodeError:
-                    logger.error("Failed to parse system signals JSON output")
+                    logger.error("Completed system signals generation with errors: Failed to parse JSON output")
                     return False
             else:
-                logger.warning("No output from system signals tool")
+                logger.warning("Completed system signals generation with warnings: No output from tool")
                 return False
         else:
             if result.get('error'):
-                logger.error(f"System signals failed: {result['error']}")
+                logger.error(f"Completed system signals generation with errors: {result['error']}")
             return False
 
     def run_unused_imports_report(self):
 
         """Run unused imports checker and generate report"""
+
+        logger.info("Starting unused imports check...")
 
         logger.info("Running unused imports checker...")
 
@@ -1626,7 +1654,7 @@ class AIToolsService:
 
         except subprocess.TimeoutExpired:
 
-            logger.error("Unused imports checker timed out after 10 minutes")
+            logger.error("Completed unused imports check with errors: Timed out after 10 minutes")
 
             return False
 
@@ -1634,7 +1662,7 @@ class AIToolsService:
 
             logger.info(result['output'])
 
-            logger.info("Unused imports scan completed!")
+            logger.info("Completed unused imports check successfully!")
 
             report_path = self.project_root / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
 
@@ -1646,7 +1674,7 @@ class AIToolsService:
 
         else:
 
-            logger.error(f"Error: {result.get('error', 'Unknown error')}")
+            logger.error(f"Completed unused imports check with errors: {result.get('error', 'Unknown error')}")
 
             return False
 

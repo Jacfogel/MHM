@@ -91,10 +91,15 @@ def main(argv=None) -> int:
         _print_available_commands()
         return 2
 
-    service = AIToolsService()
-    command = commands[command_name]
-    exit_code = command.handler(service, parsed.args)
-    return exit_code
+    try:
+        service = AIToolsService()
+        command = commands[command_name]
+        exit_code = command.handler(service, parsed.args)
+        return exit_code
+    except Exception as e:
+        logger.error(f"Error executing command '{command_name}': {e}", exc_info=True)
+        print(f"Error executing command '{command_name}': {e}")
+        return 1
 
 
 if __name__ == '__main__':

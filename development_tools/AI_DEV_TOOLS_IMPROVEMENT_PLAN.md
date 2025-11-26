@@ -53,15 +53,17 @@ This section categorizes each tool into “Core,” “Supporting,” or “Expe
 ### `config.py`
 - Centralizes scan roots, thresholds, audit modes.
 - Widely used across tools.
-- Needs validation tests but otherwise solid.
+- ✅ **HAS VALIDATION TESTS (Phase 2)**: 23 tests in `tests/development_tools/test_config.py` verify key settings and helper functions.
 
 ### `standard_exclusions.py`
 - Good design: all tools call `should_exclude_file`.
 - Patterns may need tuning but concept is sound.
+- ✅ **HAS VALIDATION TESTS (Phase 2)**: 21 tests in `tests/development_tools/test_standard_exclusions.py` verify exclusion patterns work correctly.
 
 ### `constants.py`
 - Holds doc pairing metadata and predefined doc lists.
 - Needs regular updates to avoid drift.
+- ✅ **HAS VALIDATION TESTS (Phase 2)**: 25 tests in `tests/development_tools/test_constants.py` verify paths exist and helper functions work correctly.
 
 ### `common.py`
 - Provides consistent CLI patterns and file operations.
@@ -82,12 +84,14 @@ This section categorizes each tool into “Core,” “Supporting,” or “Expe
 ### `ai_tools_runner.py`
 - Central dispatcher with command registry.
 - Good entry point; ties the system together.
-- Needs clearer classification of safe vs heavy vs dangerous commands.
+- ✅ **HAS CLI SMOKE TESTS (Phase 2)**: 7 tests in `tests/development_tools/test_ai_tools_runner.py` verify command execution and exit codes.
+- ✅ **HAS ENHANCED ERROR HANDLING (Phase 2)**: Try/except blocks with proper logging and exit code propagation.
 
 ### `operations.py`
 - Implements core logic for each command.
-- Has risk of becoming a “god module.”
+- Has risk of becoming a "god module."
 - Should eventually be split by domain (audit, docs, legacy, coverage).
+- ✅ **HAS NORMALIZED LOGGING (Phase 2)**: Consistent "Starting..." and "Completed..." logging added to all major operations.
 
 **Overall:** Strong concept; risks long-term sprawl without structure.
 
@@ -207,9 +211,11 @@ This section categorizes each tool into “Core,” “Supporting,” or “Expe
 - ✅ Documentation guides updated with tier information and trust levels
 - ✅ Directory renamed from `ai_development_tools/` to `development_tools/` for clarity
 
-### **2. No tests for tooling**
-- Given the AST parsing, file rewriting, and doc generation, this is risky.
-- Even simple regression tests would dramatically increase trustworthiness.
+### **2. ~~No tests for tooling~~** **PARTIALLY RESOLVED (2025-11-25)**
+- ✅ Basic sanity tests added for core infrastructure (`config.py`, `standard_exclusions.py`, `constants.py`)
+- ✅ CLI smoke tests added for `ai_tools_runner.py`
+- ✅ Logging and error handling normalized in `operations.py` and `ai_tools_runner.py`
+- ⚠️ Tests for complex analysis tools (AST parsing, doc generation) still needed (Phase 3)
 
 ### **3. Risky write operations**
 - Tools like legacy cleanup, auto-documentation, coverage regeneration write real files.
@@ -306,40 +312,55 @@ This does not fix code, but it stops you from accidentally trusting the wrong to
 
 ---
 
-### Phase 2 – Stabilize Core Infrastructure (Tier 1 Infra)
+### Phase 2 – Stabilize Core Infrastructure (Tier 1 Infra) **COMPLETED (2025-11-25)**
 
 **Goal:** Make the backbone (runner + infra) solid enough that everything else can lean on it.
 
-#### Milestone M2.1 – Sanity Tests for Config and Exclusions
+**Status:** All milestones completed. Core infrastructure now has test coverage and consistent logging/error handling.
 
-- Add basic tests for:
-  - `config.py`:
-    - Key settings exist.
-    - Paths used in tests/fixtures are valid.
-  - `standard_exclusions.py`:
-    - A handful of representative paths must be excluded.
-    - A handful of representative paths must be included.
-  - `constants.py`:
-    - All listed `File`/`Pair` paths in tests are valid.
+#### Milestone M2.1 – Sanity Tests for Config and Exclusions **COMPLETED**
 
-#### Milestone M2.2 – CLI Smoke Tests for Runner
+- ✅ Created `tests/development_tools/test_config.py` with 23 tests covering:
+  - Key settings existence (PROJECT_ROOT, SCAN_DIRECTORIES, AI_COLLABORATION, FUNCTION_DISCOVERY, VALIDATION, AUDIT, OUTPUT, etc.)
+  - Helper functions return expected types and structures
+  - Path validation for project root and scan directories
+- ✅ Created `tests/development_tools/test_standard_exclusions.py` with 21 tests covering:
+  - Universal exclusion patterns (__pycache__, venv, .git, .pyc files, tests/data, scripts)
+  - Representative paths that should be included (core, communication, ui files)
+  - Tool-specific exclusions (coverage, analysis, documentation)
+  - Context-specific exclusions (production, development, testing)
+  - Path object handling (both string and Path objects)
+- ✅ Created `tests/development_tools/test_constants.py` with 25 tests covering:
+  - All DEFAULT_DOCS paths exist (with graceful handling for optional files)
+  - All PAIRED_DOCS paths exist (both human and AI sides)
+  - LOCAL_MODULE_PREFIXES contains expected modules
+  - Helper functions (`is_local_module()`, `is_standard_library_module()`) work correctly
+- ✅ Fixed path mismatch in constants.py (`tests/AI_FUNCTIONALITY_TEST_GUIDE.md` → `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`)
 
-- Add simple tests that invoke:
-  - `ai_tools_runner.py status`
-  - `ai_tools_runner.py config`
-  - A no-op / “help” call.
-- Assert:
-  - Exit code is 0 for supported commands.
-  - Unknown commands produce clear, non-zero errors.
+#### Milestone M2.2 – CLI Smoke Tests for Runner **COMPLETED**
 
-#### Milestone M2.3 – Normalize Logging and Error Handling
+- ✅ Created `tests/development_tools/test_ai_tools_runner.py` with 7 CLI smoke tests:
+  - `status` command exits with code 0
+  - `config` command exits with code 0
+  - `help` command exits with code 0 and shows help
+  - No command exits with code 1 and shows help
+  - Unknown command exits with code 2 and shows error
+  - Runner script exists and is executable
+- ✅ All tests marked with appropriate markers (`@pytest.mark.integration`, `@pytest.mark.smoke`)
+- ✅ Tests integrated into main test suite (run via `run_tests.py`)
 
-- In `operations.py` and core tools:
-  - Log start/end of major operations.
-  - Use consistent error patterns (`MHMError` or an equivalent).
-  - Ensure each command returns a sensible exit code.
+#### Milestone M2.3 – Normalize Logging and Error Handling **COMPLETED**
 
-Result: the infrastructure becomes predictable and diagnosable.
+- ✅ Added consistent logging to major operations in `operations.py`:
+  - "Starting {operation_name}..." at operation start
+  - "Completed {operation_name} successfully!" or "Completed {operation_name} with errors!" at completion
+  - Applied to: `run_audit()`, `run_docs()`, `run_validate()`, `run_config()`, `run_status()`, `run_documentation_sync()`, `run_coverage_regeneration()`, `run_legacy_cleanup()`, `run_system_signals()`, `run_unused_imports_report()`
+- ✅ Enhanced error handling in `ai_tools_runner.py`:
+  - Added try/except around command execution to catch and log exceptions
+  - Proper exit code propagation (0 for success, 1 for failures, 2 for usage errors)
+- ✅ All command handlers return sensible exit codes consistently
+
+**Result:** The infrastructure is now predictable and diagnosable. Tests provide regression protection, and logging makes operations traceable.
 
 ---
 
@@ -356,7 +377,7 @@ Focus on the most important tools in the pipeline:
 
 #### Milestone M3.1 – Create Synthetic Fixture Project
 
-- Under `tests/fixtures/ai_tools_demo/`, create a tiny project with:
+- Under `tests/fixtures/development_tools_demo/`, create a tiny project with:
   - A couple of modules importing each other.
   - Simple functions, handlers, and test functions.
   - Human/AI doc pairs with deliberate good and bad H2/metadata cases.
@@ -545,10 +566,11 @@ Portable today: `services/common.py`, `system_signals.py`, and `file_rotation.py
 
 **Progress Summary:**
 - ✅ **Phase 1 COMPLETED (2025-11-25)**: Tiering system fully implemented, documentation split and aligned, all path references updated
-- 🔄 **Phase 2-7**: Defined and ready for implementation
+- ✅ **Phase 2 COMPLETED (2025-11-25)**: Core infrastructure stabilized with test coverage (76 tests), consistent logging, and normalized error handling
+- 🔄 **Phase 3-7**: Defined and ready for implementation
 
 This roadmap is intentionally incremental. You do **not** need to implement every milestone at once.  
-Phase 1 (tiering + visibility) is complete. Next focus on Phase 2/3 for the most important tools, then expand as time and energy allow.
+Phases 1-2 (tiering + core infrastructure) are complete. Next focus on Phase 3 (harden core analysis tools) for the most important tools, then expand as time and energy allow.
 
 ---
 

@@ -136,7 +136,7 @@ Keep this table synchronized with `services/tool_metadata.py` and update both wh
   - This guide and the AI guide (paired H2 requirements)
   - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md` if scope or gaps change
 - Maintain directory integrity (`development_tools/`, `ai_development_docs/`, `development_docs/`, `archive/`, `logs/`) so automation can locate artifacts; keep generated reports under the paths enumerated in `services/constants.py`.
-- Use the shared test locations: `tests/ai_tools/` for suites and `tests/fixtures/ai_tools_demo/` for synthetic inputs.
+- Use the shared test locations: `tests/development_tools/` for suites and `tests/fixtures/development_tools_demo/` for synthetic inputs.
 - Context-specific behavior:
   - `config.py` defines production / development / testing contexts; commands must honor the active context.
   - Never hardcode project paths—always resolve via `services/common.py` helpers.
@@ -148,8 +148,8 @@ Keep this table synchronized with `services/tool_metadata.py` and update both wh
 development_tools/
 ai_development_docs/
 development_docs/
-tests/ai_tools/
-tests/fixtures/ai_tools_demo/
+tests/development_tools/
+tests/fixtures/development_tools_demo/
 archive/
 logs/
 ```

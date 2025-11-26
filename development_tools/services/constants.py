@@ -32,7 +32,7 @@ DEFAULT_DOCS: Tuple[str, ...] = (
     'logs/LOGGING_GUIDE.md',
     'tests/TESTING_GUIDE.md',
     'tests/MANUAL_TESTING_GUIDE.md',
-    'tests/AI_FUNCTIONALITY_TEST_GUIDE.md',
+    'tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md',
     'tests/MANUAL_DISCORD_TEST_GUIDE.md',
     'communication/COMMUNICATION_GUIDE.md',
     'communication/communication_channels/discord/DISCORD_GUIDE.md',
