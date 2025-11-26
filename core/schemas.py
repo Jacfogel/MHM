@@ -79,6 +79,7 @@ class AccountModel(BaseModel):
     phone: str = ""
     email: str = ""
     discord_user_id: str = ""
+    discord_username: str = ""
     timezone: str = ""
 
     created_at: str = ""
@@ -132,6 +133,25 @@ class AccountModel(BaseModel):
         except Exception as e:
             logger.warning(f"Error validating Discord ID '{v}': {e} - normalized to empty string")
             return ""
+
+    @field_validator("discord_username")
+    @classmethod
+    def _normalize_discord_username(cls, v: str) -> str:
+        """Normalize Discord username while tolerating empty or legacy values."""
+        if not v or not isinstance(v, str):
+            return ""
+
+        normalized = v.strip()
+        if normalized != v:
+            logger.debug(f"Discord username normalized (trimmed): '{v}' -> '{normalized}'")
+
+        # Discord usernames can contain discriminator formats (legacy) or @handles; accept as-is
+        # but bound the length to keep files tidy.
+        if len(normalized) > 100:
+            logger.warning("Discord username too long; truncating to 100 characters")
+            return normalized[:100]
+
+        return normalized
 
     @field_validator("timezone")
     @classmethod

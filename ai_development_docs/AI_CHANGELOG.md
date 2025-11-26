@@ -986,3 +986,9 @@ Guidelines:
 - Unified AI status, priorities, and consolidated report on the canonical audit metrics and quick-status JSON feed.
 - Parsed doc-sync and legacy cleanup outputs in the service layer so summaries surface counts and hotspot files automatically.
 - Corrected stale documentation links and reran doc-sync until it passed cleanly.
+
+### 2025-12-05 - Discord Username Persistence **COMPLETED**
+- Added `discord_username` to the tolerant `AccountModel` schema and default account generation so AI tools see consistent user identifiers.
+- Propagated optional Discord usernames from account creation preferences into persisted account files.
+- Updated Discord authorization webhook handling to write the latest username to `account.json` when the user already exists.
+- Removed the corresponding TODO entry now that the capability ships.

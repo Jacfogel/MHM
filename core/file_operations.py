@@ -408,6 +408,7 @@ def _create_user_files__account_file(user_id, user_prefs, categories, tasks_enab
         phone = user_prefs.get('phone', "")
         email = user_prefs.get('email', "")
         discord_user_id = user_prefs.get('discord_user_id', "")
+        discord_username = user_prefs.get('discord_username', "")
         timezone = user_prefs.get('timezone', "")
         
         # Determine chat_id based on channel type
@@ -427,6 +428,7 @@ def _create_user_files__account_file(user_id, user_prefs, categories, tasks_enab
             "phone": phone,
             "email": email,
             "discord_user_id": discord_user_id,
+            "discord_username": discord_username,
             "timezone": timezone,
             "created_at": current_time,
             "updated_at": current_time,

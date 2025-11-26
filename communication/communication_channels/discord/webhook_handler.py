@@ -121,6 +121,15 @@ def handle_application_authorized(event_data: Dict[str, Any], bot_instance=None)
         
         if internal_user_id:
             logger.debug(f"User {discord_user_id} already has MHM account: {internal_user_id}, but not yet welcomed - sending welcome message")
+
+            # Store the latest Discord username for reference in account.json
+            if discord_username:
+                try:
+                    from core.user_data_handlers import update_user_account
+
+                    update_user_account(internal_user_id, {"discord_username": discord_username})
+                except Exception as update_err:
+                    logger.debug(f"Could not update discord_username for {internal_user_id}: {update_err}")
         
         # Send welcome DM
         if bot_instance and hasattr(bot_instance, 'bot') and bot_instance.bot:
