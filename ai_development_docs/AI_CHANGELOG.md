@@ -36,6 +36,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-26 - Pathlib cleanup for Discord diagnostic **COMPLETED**
+- Discord connectivity diagnostic now uses `pathlib.Path` for project root detection and output file creation, ensuring directories are created via `Path.mkdir()` instead of `os.makedirs`.
+- Removed the stale Pathlib migration TODO entry after confirming non-test `os.path.join` usages are cleared.
+
 ### 2025-11-26 - AI Dev Tools Phase 3: Core Analysis Tools Hardening **COMPLETED**
 - Completed Phase 3 of AI Development Tools Improvement Plan: added 55+ comprehensive tests for all five core analysis tools using synthetic fixture project
 - Created `tests/fixtures/development_tools_demo/` with demo modules, legacy patterns, and paired documentation for isolated testing
