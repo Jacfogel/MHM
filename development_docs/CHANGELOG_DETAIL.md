@@ -39,6 +39,19 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-26 - Check-in Expiry Reliability Updates
+- **Feature**: Extended `CHECKIN_INACTIVITY_MINUTES` to 120 minutes so longer pauses between answers don't unexpectedly expire ongoing check-ins.
+- **Fix**: Reload conversation state from disk before expiring check-ins triggered by unrelated outbound messages and return a success flag to confirm expirations, preventing stale in-memory state from blocking expirations.
+- **Testing**: `python -m pytest tests/behavior/test_conversation_flow_manager_behavior.py::TestConversationFlowManagerBehavior::test_conversation_manager_expire_checkin_flow`
+
+### 2025-11-26 - Check-in Flow Idle Expiration Hardening **COMPLETED**
+- **Feature**: Added automatic cleanup for stale check-in flows that have been idle longer than the 45-minute inactivity window.
+  - Introduced `CHECKIN_INACTIVITY_MINUTES` constant for shared expiry configuration.
+  - ConversationManager now prunes expired check-in states on startup and before starting new check-ins to avoid blocking users with old sessions.
+  - In-flight check-ins continue to honor the inactivity window with the shared threshold.
+- **Impact**: Prevents stale check-ins from persisting across restarts, keeps `conversation_states.json` clean, and avoids confusing users with lingering sessions.
+- **Documentation**: Updated TODO.md to mark the inactivity-expiration follow-up as completed with new behavior noted.
+- **Testing**: `python -m pytest tests/behavior/test_conversation_flow_manager_behavior.py::TestConversationFlowManagerBehavior::test_conversation_manager_expire_checkin_flow`
 ### 2025-11-26 - Schedule Saves Now Use Pydantic Normalization
 - **Feature**: Added tolerant Pydantic validation to `_save_user_data__save_schedules` so direct schedule writes (e.g., legacy
   migrations and default category creation) normalize data before saving. Validation warnings are logged while still persisting

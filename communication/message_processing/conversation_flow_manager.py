@@ -19,6 +19,7 @@ Usage:
 import os
 import json
 from pathlib import Path
+from datetime import datetime, timedelta
 from ai.chatbot import get_ai_chatbot
 from core.logger import get_component_logger
 from core.user_data_handlers import get_user_data
@@ -56,6 +57,9 @@ CHECKIN_STRESS = 113
 CHECKIN_REFLECTION = 114
 CHECKIN_COMPLETE = 200
 
+# Idle expiry threshold for check-in flows (2 hours)
+CHECKIN_INACTIVITY_MINUTES = 120
+
 # Question mapping for dynamic flow
 QUESTION_STATES = {
     'mood': CHECKIN_MOOD,
@@ -84,6 +88,7 @@ class ConversationManager:
         from core.config import BASE_DATA_DIR
         self._state_file = str(Path(BASE_DATA_DIR) / "conversation_states.json")
         self._load_user_states()
+        self._expire_inactive_checkins()
 
     @handle_errors("loading user states from disk", default_return=None)
     def _load_user_states(self) -> None:
@@ -103,34 +108,79 @@ class ConversationManager:
         """Save user states to disk with comprehensive logging and error handling"""
         # Ensure data directory exists
         os.makedirs(os.path.dirname(self._state_file), exist_ok=True)
-        
+
         with open(self._state_file, 'w', encoding='utf-8') as f:
             json.dump(self.user_states, f, indent=2)
         logger.debug(f"FLOW_STATE_SAVE: Saved {len(self.user_states)} user states to disk | File: {self._state_file}")
         for user_id, state in self.user_states.items():
             logger.debug(f"FLOW_STATE_SAVE: User {user_id} | flow={state.get('flow')}, state={state.get('state')}, question_index={state.get('current_question_index')}")
 
-    @handle_errors("expiring check-in flow due to unrelated outbound", default_return=None)
-    def expire_checkin_flow_due_to_unrelated_outbound(self, user_id: str) -> None:
+    @handle_errors("expiring inactive check-in states", default_return=None)
+    def _expire_inactive_checkins(self, user_id: str | None = None) -> None:
+        """Remove stale check-in flows that have been idle beyond the allowed window."""
+        expired_users = []
+        now = datetime.now()
+        for uid, state in list(self.user_states.items()):
+            if user_id and uid != user_id:
+                continue
+
+            if state.get("flow") != FLOW_CHECKIN:
+                continue
+
+            last_ts = state.get("last_activity")
+            if not last_ts:
+                continue
+
+            try:
+                last_dt = datetime.strptime(last_ts, '%Y-%m-%d %H:%M:%S')
+            except Exception:
+                continue
+
+            if now - last_dt > timedelta(minutes=CHECKIN_INACTIVITY_MINUTES):
+                expired_users.append(uid)
+
+        if not expired_users:
+            return
+
+        for uid in expired_users:
+            try:
+                self.user_states.pop(uid, None)
+                logger.info(
+                    "FLOW_STATE_EXPIRE: Removed stale check-in flow due to inactivity | user=%s | threshold_minutes=%s",
+                    uid,
+                    CHECKIN_INACTIVITY_MINUTES,
+                )
+            except Exception:
+                continue
+
+        self._save_user_states()
+
+    @handle_errors("expiring check-in flow due to unrelated outbound", default_return=False)
+    def expire_checkin_flow_due_to_unrelated_outbound(self, user_id: str) -> bool:
         """Expire an active check-in flow when an unrelated outbound message is sent.
         Safe no-op if no flow or different flow is active.
         """
+        # Reload state from disk to avoid stale in-memory state preventing expiration
+        self._load_user_states()
+
         user_state = self.user_states.get(user_id)
         if user_state and user_state.get("flow") == FLOW_CHECKIN:
             # Log details before expiration
             question_index = user_state.get('current_question_index', 0)
             total_questions = len(user_state.get('question_order', []))
             logger.info(f"FLOW_STATE_EXPIRE: Expiring active check-in flow for user {user_id} due to unrelated outbound message | Progress: {question_index}/{total_questions} questions")
-            
+
             # End the flow silently
             self.user_states.pop(user_id, None)
             self._save_user_states()
             logger.info(f"FLOW_STATE_EXPIRE: Successfully expired and saved state for user {user_id}")
+            return True
         else:
             if not user_state:
                 logger.debug(f"FLOW_STATE_EXPIRE: No flow state found for user {user_id}, nothing to expire")
             else:
                 logger.debug(f"FLOW_STATE_EXPIRE: User {user_id} has flow={user_state.get('flow')}, not check-in, skipping expiration")
+        return False
 
     @handle_errors("handling inbound message", default_return=("I'm having trouble processing your message right now. Please try again in a moment.", True))
     def handle_inbound_message(self, user_id: str, message_text: str) -> tuple[str, bool]:
@@ -208,7 +258,10 @@ class ConversationManager:
                 "Check-ins are not enabled for your account. Please contact an administrator to enable check-ins.",
                 True
             )
-        
+
+        # Clear stale check-ins before checking for active flows
+        self._expire_inactive_checkins(user_id)
+
         # Check if user already has an active checkin flow
         existing_state = self.user_states.get(user_id)
         if existing_state and existing_state.get("flow") == FLOW_CHECKIN:
@@ -418,14 +471,12 @@ class ConversationManager:
         """
         Enhanced check-in flow with dynamic questions and better validation
         """
-        from datetime import datetime, timedelta
-
         # Idle expiry: 45 minutes since last activity
         try:
             last_ts = user_state.get('last_activity')
             if last_ts:
                 last_dt = datetime.strptime(last_ts, '%Y-%m-%d %H:%M:%S')
-                if datetime.now() - last_dt > timedelta(minutes=45):
+                if datetime.now() - last_dt > timedelta(minutes=CHECKIN_INACTIVITY_MINUTES):
                     # Expire flow due to inactivity
                     self.user_states.pop(user_id, None)
                     self._save_user_states()

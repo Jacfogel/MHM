@@ -36,6 +36,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-26 - Check-in Flow Expiry Reliability Improvements **COMPLETED**
+- Extended check-in inactivity timeout to 2 hours to reduce unintended expirations during longer gaps.
+- Reload conversation state before expiring on outbound messages and report success so unrelated outbound messages reliably clear lingering check-ins.
+- Keeps `conversation_states.json` clean and reduces confusion from lingering check-in prompts.
 ### 2025-11-26 - Pathlib cleanup for Discord diagnostic **COMPLETED**
 - Discord connectivity diagnostic now uses `pathlib.Path` for project root detection and output file creation, ensuring directories are created via `Path.mkdir()` instead of `os.makedirs`.
 - Removed the stale Pathlib migration TODO entry after confirming non-test `os.path.join` usages are cleared.

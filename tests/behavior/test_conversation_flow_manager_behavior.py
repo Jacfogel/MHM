@@ -369,10 +369,11 @@ class TestConversationFlowManagerBehavior:
         # Start check-in
         manager.start_checkin(user_id)
         assert user_id in manager.user_states, "Should have active check-in"
-        
+
         # Expire check-in flow
-        manager.expire_checkin_flow_due_to_unrelated_outbound(user_id)
-        
+        expired = manager.expire_checkin_flow_due_to_unrelated_outbound(user_id)
+        assert expired is True, "Expire call should report success when a flow exists"
+
         # Verify flow expired
         assert user_id not in manager.user_states, "Should remove user state after expiration"
     
@@ -385,8 +386,9 @@ class TestConversationFlowManagerBehavior:
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         # Expire check-in flow when no active flow
-        manager.expire_checkin_flow_due_to_unrelated_outbound(user_id)
-        
+        expired = manager.expire_checkin_flow_due_to_unrelated_outbound(user_id)
+        assert expired is False, "Expire call should be a no-op when no flow is active"
+
         # Should not raise error and should be safe no-op
         assert user_id not in manager.user_states, "Should not have user state"
     
