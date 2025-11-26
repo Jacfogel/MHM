@@ -39,6 +39,10 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-26 - Pathlib cleanup for Discord diagnostic **COMPLETED**
+- **Feature**: Converted `scripts/debug/discord_connectivity_diagnostic.py` to use `pathlib.Path` for project root detection and diagnostics output paths, ensuring directory creation via `Path.mkdir()` and removing the last `os.path.join` usage in active non-test code.
+- **Impact**: Restores the pathlib migration to active status by aligning the Discord connectivity diagnostic with cross-platform path handling and removes the outdated Pathlib migration entry from `TODO.md` now that non-test usages are resolved.
+
 ### 2025-11-26 - AI Dev Tools Phase 3: Core Analysis Tools Hardening **COMPLETED**
 - **Feature**: Completed Phase 3 of the AI Development Tools Improvement Plan, adding comprehensive test coverage for all five core analysis tools using a synthetic fixture project.
 - **Technical Changes**:

@@ -195,24 +195,6 @@ When adding new tasks, follow this format:
   - Archive or remove tools that are no longer needed
   - Ensure all active tools are properly documented
 
-**Pathlib Migration Completion**
-- *What it means*: Finish converting remaining path joins to `pathlib.Path` where appropriate.
-- *Why it helps*: Cross-platform safety and readability.
-- *Estimated effort*: Medium
-- *Current Status*: [WARNING] **ROLLED BACK** - Previous migration attempt was rolled back due to test issues:
-  - Test `test_run_service_loop_shutdown_file_detection_real_behavior` was causing resource exhaustion and hanging
-  - Path mocking in tests needs to be handled more carefully to prevent infinite loops
-  - Need to ensure proper mocking of `pathlib.Path` operations in service loop tests
-  - **Note**: Remote pathlib code changes (13 modules, 60+ conversions) are being merged, but status remains ROLLED BACK until test issues are resolved
-- *Next Attempt*:
-  - [ ] Sweep `core/` for remaining `os.path.join` not covered by helpers
-  - [ ] Convert `os.path.*` operations to `pathlib.Path` equivalents
-  - [ ] Fix test mocking to properly handle `pathlib.Path` objects (use `MagicMock(spec=Path)` instead of direct attribute assignment)
-  - [ ] Ensure service loop tests have proper safeguards to prevent infinite loops
-  - [ ] Test incrementally with small groups of tests to catch issues early
-  - [ ] Confirm all UI-related file paths still work as expected under tests
-
-
 ### User Experience Improvements
 
 
