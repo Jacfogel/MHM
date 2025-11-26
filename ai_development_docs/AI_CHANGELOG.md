@@ -998,3 +998,8 @@ Guidelines:
 - Propagated optional Discord usernames from account creation preferences into persisted account files.
 - Updated Discord authorization webhook handling to write the latest username to `account.json` when the user already exists.
 - Removed the corresponding TODO entry now that the capability ships.
+
+### 2025-12-06 - Personalized User Suggestions Refresh **COMPLETED**
+- Rebuilt `get_user_suggestions` so AI-surfaced prompts reflect real user data: due or overdue tasks, recent check-ins (including mood follow-ups), and category-driven schedules.
+- Added analytics suggestions only when enough check-in history exists and kept suggestions capped with deduplication for clarity.
+- Cleaned up `TODO.md` by removing the completed personalized suggestions task.

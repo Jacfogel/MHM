@@ -196,17 +196,6 @@ When adding new tasks, follow this format:
   - Archive or remove tools that are no longer needed
   - Ensure all active tools are properly documented
 
-**Personalized User Suggestions Implementation** - Review and implement proper personalized suggestions
-- *What it means*: Review the current `get_user_suggestions()` function and implement proper personalized suggestion functionality
-- *Why it helps*: Provides users with meaningful, personalized suggestions based on their data and preferences
-- *Estimated effort*: Medium
-- *Requirements*:
-  - Analyze user data patterns and preferences
-  - Implement suggestion algorithms based on user context
-  - Add suggestion categories (tasks, health, motivation, etc.)
-  - Test suggestion relevance and personalization
-
-
 **Pathlib Migration Completion**
 - *What it means*: Finish converting remaining path joins to `pathlib.Path` where appropriate.
 - *Why it helps*: Cross-platform safety and readability.
