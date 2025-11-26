@@ -1070,9 +1070,19 @@ def save_user_data(
     merged_data = updated_merged_data
     
     # Update valid_types_to_process if invariants added new types (e.g., account when only preferences was updated)
+    # Only add types that were intentionally modified by invariants, not types that were only read
+    # The invariants check may add 'account' to merged_data when it wasn't originally being updated,
+    # but it should NOT add 'preferences' or other types that were only read for checking invariants
     for dt in merged_data:
         if dt not in valid_types_to_process:
-            valid_types_to_process.append(dt)
+            # Only add account if it was added by invariants (when preferences had categories but account.features.automated_messages was disabled)
+            # Do NOT add preferences or other types that were only read for invariant checking
+            if dt == 'account' and 'account' not in data_updates:
+                # Account was added by invariants to enable automated_messages feature
+                valid_types_to_process.append(dt)
+            # For all other types, only add if they were in the original data_updates
+            elif dt in data_updates:
+                valid_types_to_process.append(dt)
     # Re-sort after adding new types
     valid_types_to_process.sort(key=lambda dt: (
         _DATA_TYPE_PROCESSING_ORDER.index(dt) if dt in _DATA_TYPE_PROCESSING_ORDER 

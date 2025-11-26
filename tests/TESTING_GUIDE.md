@@ -98,7 +98,8 @@ Tests are organized by real-world features and workflows to encourage integratio
 
 - Test development tools and infrastructure components.
 - Include sanity tests for configuration, exclusions, constants, and CLI runners.
-- Use both unit tests (for isolated components) and integration tests (for CLI smoke tests).
+- Integration coverage relies on **mocked CLI smoke tests** (no subprocesses) so the suite stays fast while still exercising `ai_tools_runner` routing.
+- Error-scenario tests simulate `PermissionError`/`OSError` via monkeypatching instead of modifying real filesystem ACLs—keeps results identical on Windows and Linux.
 - **Core analysis tools** have comprehensive test coverage (55+ tests):
   - `documentation_sync_checker.py` — 12 tests for doc pairing validation
   - `generate_function_registry.py` — 12 tests for function extraction and registry generation

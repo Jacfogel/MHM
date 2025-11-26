@@ -1,27 +1,27 @@
 {
-  "total_functions": 1472,
-  "functions_with_try_except": 658,
-  "functions_with_error_handling": 1471,
+  "total_functions": 1474,
+  "functions_with_try_except": 659,
+  "functions_with_error_handling": 1472,
   "functions_with_decorators": 1383,
-  "functions_missing_error_handling": 1,
-  "error_handling_coverage": 99.93206521739131,
+  "functions_missing_error_handling": 2,
+  "error_handling_coverage": 99.86431478968792,
   "error_patterns": {
-    "try_except": 742,
+    "try_except": 743,
     "handle_errors_decorator": 1476,
     "handle_ai_error": 16,
     "DataError": 13,
-    "handle_communication_error": 5,
     "handle_network_error": 5,
+    "handle_communication_error": 5,
     "handle_configuration_error": 4,
     "ValidationError": 16,
     "ConfigurationError": 6,
     "error_handler_usage": 13,
     "handle_file_error": 4,
     "handle_validation_error": 2,
-    "CommunicationError": 2,
-    "safe_file_operation": 1,
     "MHMError": 2,
-    "AIError": 2
+    "CommunicationError": 2,
+    "AIError": 2,
+    "safe_file_operation": 1
   },
   "missing_error_handling": [
     {
@@ -29,17 +29,23 @@
       "function": "handle_message_sending",
       "line": 1064,
       "quality": "none"
+    },
+    {
+      "file": "communication\\message_processing\\interaction_manager.py",
+      "function": "add_suggestion",
+      "line": 591,
+      "quality": "none"
     }
   ],
   "error_handling_quality": {
-    "basic": 88,
+    "basic": 89,
     "excellent": 1383,
-    "none": 1
+    "none": 2
   },
   "recommendations": [
-    "Add error handling to 1 functions",
+    "Add error handling to 2 functions",
     "Replace basic try-except with @handle_errors decorator where appropriate",
-    "Priority: Add error handling to 1 critical functions"
+    "Priority: Add error handling to 2 critical functions"
   ],
   "phase1_candidates": [
     {
@@ -185,8 +191,8 @@
     {
       "file_path": "communication\\communication_channels\\discord\\webhook_handler.py",
       "function_name": "_send_welcome_dm",
-      "line_start": 139,
-      "line_end": 167,
+      "line_start": 148,
+      "line_end": 176,
       "is_async": false,
       "operation_type": "network",
       "is_entry_point": true,
@@ -466,7 +472,7 @@
       "file_path": "communication\\message_processing\\interaction_manager.py",
       "function_name": "get_user_suggestions",
       "line_start": 585,
-      "line_end": 637,
+      "line_end": 692,
       "is_async": false,
       "operation_type": "ai",
       "is_entry_point": false,
@@ -475,8 +481,18 @@
     {
       "file_path": "communication\\message_processing\\interaction_manager.py",
       "function_name": "_augment_suggestions",
-      "line_start": 794,
-      "line_end": 818,
+      "line_start": 849,
+      "line_end": 873,
+      "is_async": false,
+      "operation_type": "ai",
+      "is_entry_point": false,
+      "priority": "medium"
+    },
+    {
+      "file_path": "communication\\message_processing\\interaction_manager.py",
+      "function_name": "parse_due",
+      "line_start": 603,
+      "line_end": 613,
       "is_async": false,
       "operation_type": "ai",
       "is_entry_point": false,
@@ -535,8 +551,8 @@
     {
       "file_path": "core\\user_management.py",
       "function_name": "_load_presets_json",
-      "line_start": 1181,
-      "line_end": 1198,
+      "line_start": 1182,
+      "line_end": 1199,
       "is_async": false,
       "operation_type": "file_io",
       "is_entry_point": false,
@@ -885,8 +901,8 @@
     {
       "file_path": "core\\user_management.py",
       "function_name": "get_timezone_options",
-      "line_start": 1207,
-      "line_end": 1214,
+      "line_start": 1208,
+      "line_end": 1215,
       "is_async": false,
       "operation_type": "general",
       "is_entry_point": false,
@@ -923,10 +939,10 @@
       "priority": "low"
     }
   ],
-  "phase1_total": 88,
+  "phase1_total": 89,
   "phase1_by_priority": {
     "high": 26,
-    "medium": 38,
+    "medium": 39,
     "low": 24
   },
   "phase2_exceptions": [
@@ -946,6 +962,12 @@
     "ValueError": 1
   },
   "worst_modules": [
+    {
+      "module": "message_processing/interaction_manager.py",
+      "coverage": 95.45454545454545,
+      "missing": 1,
+      "total": 22
+    },
     {
       "module": "core/channel_orchestrator.py",
       "coverage": 98.07692307692307,
@@ -969,12 +991,6 @@
       "coverage": 100.0,
       "missing": 0,
       "total": 28
-    },
-    {
-      "module": "context_builder.py",
-      "coverage": 100.0,
-      "missing": 0,
-      "total": 12
     }
   ]
 }

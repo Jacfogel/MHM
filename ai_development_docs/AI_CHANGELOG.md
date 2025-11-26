@@ -40,9 +40,15 @@ Guidelines:
 - Extended check-in inactivity timeout to 2 hours to reduce unintended expirations during longer gaps.
 - Reload conversation state before expiring on outbound messages and report success so unrelated outbound messages reliably clear lingering check-ins.
 - Keeps `conversation_states.json` clean and reduces confusion from lingering check-in prompts.
+
 ### 2025-11-26 - Pathlib cleanup for Discord diagnostic **COMPLETED**
 - Discord connectivity diagnostic now uses `pathlib.Path` for project root detection and output file creation, ensuring directories are created via `Path.mkdir()` instead of `os.makedirs`.
 - Removed the stale Pathlib migration TODO entry after confirming non-test `os.path.join` usages are cleared.
+
+### 2025-11-26 - Dev Tools Test Stabilization **COMPLETED**
+- Reverted the heavy subprocess-based integration suite back to the fast mock-driven command-routing smoke tests so `ai_tools_runner` coverage stays while keeping runtime tight.
+- Reworked the new error-scenario tests to simulate permission failures via monkeypatches (no more Windows-only skips) and dropped the brittle “missing dependency” import path.
+- Result: development_tools subset runs in ~13 s with 149/149 tests passing, full `python run_tests.py` back to ~4 min with only the pre-existing skip.
 
 ### 2025-11-26 - AI Dev Tools Phase 3: Core Analysis Tools Hardening **COMPLETED**
 - Completed Phase 3 of AI Development Tools Improvement Plan: added 55+ comprehensive tests for all five core analysis tools using synthetic fixture project

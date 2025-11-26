@@ -32,7 +32,7 @@
     "issues": []
   },
   "development_tools/ai_tools_runner.py": {
-    "mtime": 1764068752.6654549,
+    "mtime": 1764136781.8316572,
     "issues": []
   },
   "development_tools/analyze_documentation.py": {
@@ -133,7 +133,7 @@
     "issues": []
   },
   "development_tools/legacy_reference_cleanup.py": {
-    "mtime": 1764068753.8371775,
+    "mtime": 1764142823.4043508,
     "issues": []
   },
   "development_tools/quick_status.py": {
@@ -153,11 +153,11 @@
     "issues": []
   },
   "development_tools/services/constants.py": {
-    "mtime": 1764070023.069259,
+    "mtime": 1764136781.8399718,
     "issues": []
   },
   "development_tools/services/operations.py": {
-    "mtime": 1764068757.5483809,
+    "mtime": 1764136781.8434117,
     "issues": []
   },
   "development_tools/services/standard_exclusions.py": {
@@ -362,7 +362,7 @@
     "issues": []
   },
   "communication/message_processing/interaction_manager.py": {
-    "mtime": 1763721103.5731695,
+    "mtime": 1764144925.0131495,
     "issues": []
   },
   "communication/message_processing/message_router.py": {
@@ -398,7 +398,7 @@
     "issues": []
   },
   "core/file_operations.py": {
-    "mtime": 1762948385.105381,
+    "mtime": 1764136781.6308434,
     "issues": []
   },
   "core/headless_service.py": {
@@ -502,7 +502,7 @@
     ]
   },
   "core/schemas.py": {
-    "mtime": 1763720071.785601,
+    "mtime": 1764136781.6318448,
     "issues": []
   },
   "core/service.py": {
@@ -518,7 +518,7 @@
     "issues": []
   },
   "core/user_data_handlers.py": {
-    "mtime": 1763932920.0969298,
+    "mtime": 1764146405.9123597,
     "issues": []
   },
   "core/user_data_manager.py": {
@@ -544,7 +544,7 @@
     "issues": []
   },
   "core/user_management.py": {
-    "mtime": 1763972533.8756485,
+    "mtime": 1764136781.6338475,
     "issues": []
   },
   "run_headless_service.py": {
@@ -4067,7 +4067,7 @@
     ]
   },
   "tests/unit/test_no_prints_policy.py": {
-    "mtime": 1763551776.6150703,
+    "mtime": 1764140495.3367364,
     "issues": []
   },
   "tests/unit/test_recurring_tasks.py": {
@@ -4389,7 +4389,7 @@
     ]
   },
   "communication/communication_channels/discord/webhook_handler.py": {
-    "mtime": 1763418922.8813043,
+    "mtime": 1764136781.6288388,
     "issues": [
       {
         "type": "warning",
@@ -5524,6 +5524,299 @@
   },
   "development_tools/services/tool_metadata.py": {
     "mtime": 1764070278.397154,
+    "issues": []
+  },
+  "tests/development_tools/__init__.py": {
+    "mtime": 1764136781.8474302,
+    "issues": []
+  },
+  "tests/development_tools/conftest.py": {
+    "mtime": 1764138139.507782,
+    "issues": []
+  },
+  "tests/development_tools/test_ai_tools_runner.py": {
+    "mtime": 1764136781.8517902,
+    "issues": []
+  },
+  "tests/development_tools/test_config.py": {
+    "mtime": 1764136781.8530738,
+    "issues": []
+  },
+  "tests/development_tools/test_constants.py": {
+    "mtime": 1764136781.8554614,
+    "issues": []
+  },
+  "tests/development_tools/test_documentation_sync_checker.py": {
+    "mtime": 1764138139.511287,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.test_documentation_sync_checker",
+        "obj": "",
+        "line": 9,
+        "column": 0,
+        "endLine": 9,
+        "endColumn": 10,
+        "path": "tests\\development_tools\\test_documentation_sync_checker.py",
+        "symbol": "unused-import",
+        "message": "Unused import sys",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.test_documentation_sync_checker",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 24,
+        "path": "tests\\development_tools\\test_documentation_sync_checker.py",
+        "symbol": "unused-import",
+        "message": "Unused Path imported from pathlib",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/development_tools/test_error_scenarios.py": {
+    "mtime": 1764147196.9839902,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.test_error_scenarios",
+        "obj": "",
+        "line": 9,
+        "column": 0,
+        "endLine": 9,
+        "endColumn": 15,
+        "path": "tests\\development_tools\\test_error_scenarios.py",
+        "symbol": "unused-import",
+        "message": "Unused import tempfile",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.test_error_scenarios",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 53,
+        "path": "tests\\development_tools\\test_error_scenarios.py",
+        "symbol": "unused-import",
+        "message": "Unused mock_open imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.test_error_scenarios",
+        "obj": "",
+        "line": 18,
+        "column": 0,
+        "endLine": 18,
+        "endColumn": 93,
+        "path": "tests\\development_tools\\test_error_scenarios.py",
+        "symbol": "unused-import",
+        "message": "Unused demo_project_root imported from tests.development_tools.conftest",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/development_tools/test_generate_function_registry.py": {
+    "mtime": 1764141197.9085598,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.test_generate_function_registry",
+        "obj": "",
+        "line": 8,
+        "column": 0,
+        "endLine": 8,
+        "endColumn": 10,
+        "path": "tests\\development_tools\\test_generate_function_registry.py",
+        "symbol": "unused-import",
+        "message": "Unused import sys",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.test_generate_function_registry",
+        "obj": "",
+        "line": 9,
+        "column": 0,
+        "endLine": 9,
+        "endColumn": 24,
+        "path": "tests\\development_tools\\test_generate_function_registry.py",
+        "symbol": "unused-import",
+        "message": "Unused Path imported from pathlib",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/development_tools/test_generate_module_dependencies.py": {
+    "mtime": 1764139471.5123932,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.test_generate_module_dependencies",
+        "obj": "",
+        "line": 8,
+        "column": 0,
+        "endLine": 8,
+        "endColumn": 10,
+        "path": "tests\\development_tools\\test_generate_module_dependencies.py",
+        "symbol": "unused-import",
+        "message": "Unused import sys",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.test_generate_module_dependencies",
+        "obj": "",
+        "line": 9,
+        "column": 0,
+        "endLine": 9,
+        "endColumn": 24,
+        "path": "tests\\development_tools\\test_generate_module_dependencies.py",
+        "symbol": "unused-import",
+        "message": "Unused Path imported from pathlib",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/development_tools/test_integration_workflows.py": {
+    "mtime": 1764147196.9839902,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.test_integration_workflows",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 15,
+        "path": "tests\\development_tools\\test_integration_workflows.py",
+        "symbol": "unused-import",
+        "message": "Unused import tempfile",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.test_integration_workflows",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 13,
+        "path": "tests\\development_tools\\test_integration_workflows.py",
+        "symbol": "unused-import",
+        "message": "Unused import shutil",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.test_integration_workflows",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 42,
+        "path": "tests\\development_tools\\test_integration_workflows.py",
+        "symbol": "unused-import",
+        "message": "Unused patch imported from unittest.mock",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.test_integration_workflows",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 42,
+        "path": "tests\\development_tools\\test_integration_workflows.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/development_tools/test_legacy_reference_cleanup.py": {
+    "mtime": 1764142823.4043508,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.test_legacy_reference_cleanup",
+        "obj": "",
+        "line": 8,
+        "column": 0,
+        "endLine": 8,
+        "endColumn": 10,
+        "path": "tests\\development_tools\\test_legacy_reference_cleanup.py",
+        "symbol": "unused-import",
+        "message": "Unused import sys",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.test_legacy_reference_cleanup",
+        "obj": "",
+        "line": 9,
+        "column": 0,
+        "endLine": 9,
+        "endColumn": 24,
+        "path": "tests\\development_tools\\test_legacy_reference_cleanup.py",
+        "symbol": "unused-import",
+        "message": "Unused Path imported from pathlib",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/development_tools/test_regenerate_coverage_metrics.py": {
+    "mtime": 1764138139.511287,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.test_regenerate_coverage_metrics",
+        "obj": "",
+        "line": 8,
+        "column": 0,
+        "endLine": 8,
+        "endColumn": 10,
+        "path": "tests\\development_tools\\test_regenerate_coverage_metrics.py",
+        "symbol": "unused-import",
+        "message": "Unused import sys",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.test_regenerate_coverage_metrics",
+        "obj": "",
+        "line": 10,
+        "column": 0,
+        "endLine": 10,
+        "endColumn": 24,
+        "path": "tests\\development_tools\\test_regenerate_coverage_metrics.py",
+        "symbol": "unused-import",
+        "message": "Unused Path imported from pathlib",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.test_regenerate_coverage_metrics",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 48,
+        "path": "tests\\development_tools\\test_regenerate_coverage_metrics.py",
+        "symbol": "unused-import",
+        "message": "Unused MagicMock imported from unittest.mock",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "tests/development_tools/test_standard_exclusions.py": {
+    "mtime": 1764136781.856965,
     "issues": []
   }
 }

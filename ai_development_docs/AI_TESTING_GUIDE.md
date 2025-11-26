@@ -52,6 +52,8 @@ When adding a test:
 - Multi-module or service flows → `tests/integration/` or `tests/behavior/`.
 - UI dialogs or widgets → `tests/ui/`.
 - Development tools or infrastructure → `tests/development_tools/`.
+  - CLI routing tests stay lightweight by mocking `AIToolsService` (no subprocesses).
+  - Permission/error scenarios are simulated via monkeypatching so results are identical on Windows/Linux.
 
 **Note:** Core analysis tools (`documentation_sync_checker.py`, `generate_function_registry.py`, `generate_module_dependencies.py`, `legacy_reference_cleanup.py`, `regenerate_coverage_metrics.py`) have comprehensive test coverage (55+ tests) using a synthetic fixture project at `tests/fixtures/development_tools_demo/`.
 

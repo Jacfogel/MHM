@@ -222,7 +222,7 @@ This section categorizes each tool into “Core,” “Supporting,” or “Expe
   - `legacy_reference_cleanup.py` (10 tests)
   - `regenerate_coverage_metrics.py` (10 tests)
 - ✅ Synthetic fixture project created at `tests/fixtures/development_tools_demo/` for isolated testing
-- ✅ Total test coverage: 130+ tests across all development tools
+- ✅ Total test coverage: 132 tests across all development tools
 
 ### **3. Risky write operations**
 - Tools like legacy cleanup, auto-documentation, coverage regeneration write real files.
@@ -488,6 +488,14 @@ Decide:
 
 You do not need full test coverage here immediately; priority is clarity and reduced accidental use.
 
+#### Milestone M4.3 – Test Coverage Metrics for Development Tools
+
+- Add coverage metrics tracking for the development tools themselves
+- Generate coverage reports specifically for `development_tools/` directory
+- Integrate into `audit --full` workflow
+- Track coverage trends over time
+- **Note**: Valuable for Phase 5+ but can be added in Phase 4 if time permits
+
 ---
 
 ### Phase 5 – UX and Documentation Alignment
@@ -588,8 +596,8 @@ Portable today: `services/common.py`, `system_signals.py`, and `file_rotation.py
 
 **Progress Summary:**
 - ✅ **Phase 1 COMPLETED (2025-11-25)**: Tiering system fully implemented, documentation split and aligned, all path references updated
-- ✅ **Phase 2 COMPLETED (2025-11-25)**: Core infrastructure stabilized with test coverage (76 tests), consistent logging, and normalized error handling
-- ✅ **Phase 3 COMPLETED (2025-11-26)**: Core analysis tools hardened with comprehensive test coverage (55+ tests), synthetic fixture project created, all five tools now trustworthy
+- ✅ **Phase 2 COMPLETED (2025-11-25)**: Core infrastructure stabilized with test coverage (77 tests), consistent logging, and normalized error handling
+- ✅ **Phase 3 COMPLETED (2025-11-26)**: Core analysis tools hardened with comprehensive test coverage (55 tests), synthetic fixture project created, all five tools now trustworthy
 - 🔄 **Phase 4-7**: Defined and ready for implementation
 
 This roadmap is intentionally incremental. You do **not** need to implement every milestone at once.  
