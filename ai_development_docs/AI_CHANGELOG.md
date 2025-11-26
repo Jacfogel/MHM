@@ -40,6 +40,9 @@ Guidelines:
 - Extended check-in inactivity timeout to 2 hours to reduce unintended expirations during longer gaps.
 - Reload conversation state before expiring on outbound messages and report success so unrelated outbound messages reliably clear lingering check-ins.
 - Keeps `conversation_states.json` clean and reduces confusion from lingering check-in prompts.
+### 2025-11-26 - Pathlib cleanup for Discord diagnostic **COMPLETED**
+- Discord connectivity diagnostic now uses `pathlib.Path` for project root detection and output file creation, ensuring directories are created via `Path.mkdir()` instead of `os.makedirs`.
+- Removed the stale Pathlib migration TODO entry after confirming non-test `os.path.join` usages are cleared.
 
 ### 2025-11-26 - AI Dev Tools Phase 3: Core Analysis Tools Hardening **COMPLETED**
 - Completed Phase 3 of AI Development Tools Improvement Plan: added 55+ comprehensive tests for all five core analysis tools using synthetic fixture project
@@ -1020,3 +1023,7 @@ Guidelines:
 - Rebuilt `get_user_suggestions` so AI-surfaced prompts reflect real user data: due or overdue tasks, recent check-ins (including mood follow-ups), and category-driven schedules.
 - Added analytics suggestions only when enough check-in history exists and kept suggestions capped with deduplication for clarity.
 - Cleaned up `TODO.md` by removing the completed personalized suggestions task.
+
+### 2025-12-07 - Schedule Saves Normalize Through Schemas **COMPLETED**
+- Wired `_save_user_data__save_schedules` through the tolerant schedules schema so even direct writes (legacy migrations, default category creation) get normalized before hitting disk.
+- Log a warning when validation reports issues while still persisting the cleaned data, and checked off the corresponding follow-up in `TODO.md`.
