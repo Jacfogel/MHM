@@ -7,17 +7,17 @@ including DNS resolution, network connectivity, and Discord-specific status.
 """
 
 import sys
-import os
 import time
 import socket
 import asyncio
 import json
 from datetime import datetime
 from typing import Dict, Any, List
+from pathlib import Path
 
 # Add project root to path
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.insert(0, project_root)
+project_root = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(project_root))
 
 from core.logger import get_component_logger
 from communication.communication_channels.discord.bot import DiscordBot, DiscordConnectionStatus
@@ -351,12 +351,12 @@ def main():
         diagnostic.print_results()
         
         # Save results to file
-        diagnostics_dir = os.path.join(os.path.dirname(__file__), 'diagnostics')
-        os.makedirs(diagnostics_dir, exist_ok=True)
-        output_file = os.path.join(diagnostics_dir, f"discord_diagnostic_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+        diagnostics_dir = Path(__file__).resolve().parent / 'diagnostics'
+        diagnostics_dir.mkdir(parents=True, exist_ok=True)
+        output_file = diagnostics_dir / f"discord_diagnostic_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         with open(output_file, 'w') as f:
             json.dump(results, f, indent=2, default=str)
-        
+
         print(f"Detailed results saved to: {output_file}")
         
         # Return appropriate exit code
