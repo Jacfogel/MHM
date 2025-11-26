@@ -211,11 +211,18 @@ This section categorizes each tool into “Core,” “Supporting,” or “Expe
 - ✅ Documentation guides updated with tier information and trust levels
 - ✅ Directory renamed from `ai_development_tools/` to `development_tools/` for clarity
 
-### **2. ~~No tests for tooling~~** **PARTIALLY RESOLVED (2025-11-25)**
+### **2. ~~No tests for tooling~~** **RESOLVED (2025-11-26)**
 - ✅ Basic sanity tests added for core infrastructure (`config.py`, `standard_exclusions.py`, `constants.py`)
 - ✅ CLI smoke tests added for `ai_tools_runner.py`
 - ✅ Logging and error handling normalized in `operations.py` and `ai_tools_runner.py`
-- ⚠️ Tests for complex analysis tools (AST parsing, doc generation) still needed (Phase 3)
+- ✅ Comprehensive tests added for all five core analysis tools (Phase 3):
+  - `documentation_sync_checker.py` (12 tests)
+  - `generate_function_registry.py` (12 tests)
+  - `generate_module_dependencies.py` (11 tests)
+  - `legacy_reference_cleanup.py` (10 tests)
+  - `regenerate_coverage_metrics.py` (10 tests)
+- ✅ Synthetic fixture project created at `tests/fixtures/development_tools_demo/` for isolated testing
+- ✅ Total test coverage: 130+ tests across all development tools
 
 ### **3. Risky write operations**
 - Tools like legacy cleanup, auto-documentation, coverage regeneration write real files.
@@ -364,69 +371,84 @@ This does not fix code, but it stops you from accidentally trusting the wrong to
 
 ---
 
-### Phase 3 – Harden the Core Analysis Tools (Tier 1+)
+### Phase 3 – Harden the Core Analysis Tools (Tier 1+) **COMPLETED (2025-11-26)**
 
-Focus on the most important tools in the pipeline:
+**Goal:** Add comprehensive test coverage for the five core analysis tools to make them trustworthy and provide regression protection.
 
-- `documentation_sync_checker.py`
-- `generate_function_registry.py`
-- `generate_module_dependencies.py`
-- `legacy_reference_cleanup.py`
-- `regenerate_coverage_metrics.py`
-- (optionally) `error_handling_coverage.py`
+**Status:** All milestones completed. Core analysis tools now have robust test coverage using a synthetic fixture project.
 
-#### Milestone M3.1 – Create Synthetic Fixture Project
+#### Milestone M3.1 – Create Synthetic Fixture Project **COMPLETED**
 
-- Under `tests/fixtures/development_tools_demo/`, create a tiny project with:
-  - A couple of modules importing each other.
-  - Simple functions, handlers, and test functions.
-  - Human/AI doc pairs with deliberate good and bad H2/metadata cases.
-  - A known “legacy” import string.
-  - A minimal test suite for coverage runs.
+- ✅ Created `tests/fixtures/development_tools_demo/` with:
+  - `demo_module.py` and `demo_module2.py` with functions, classes, and imports
+  - `demo_tests.py` for coverage runs
+  - `legacy_code.py` with known legacy patterns and markers
+  - `docs/` directory with paired documentation (synced, mismatched, standalone cases)
+  - `README.md` documenting the fixture structure
+- ✅ Fixture provides controlled environment for testing without affecting main codebase
 
-This fixture is the sandbox for all tool tests.
+#### Milestone M3.2 – Tests for `documentation_sync_checker.py` **COMPLETED**
 
-#### Milestone M3.2 – Tests for `documentation_sync_checker.py`
+- ✅ Created `tests/development_tools/test_documentation_sync_checker.py` with 12 tests:
+  - Perfectly synced docs return no errors
+  - Mismatched H2 headings are flagged
+  - Missing files are detected
+  - Path drift validation
+  - ASCII compliance checks
+  - Heading numbering validation
+  - Full integration test
+- ✅ Tests verify doc-sync's pass/fail signals are reliable
 
-- On the fixture:
-  - Case: perfectly synced docs → no errors.
-  - Case: mismatched H2 headings → flagged.
-  - Case: incorrect `File`/`Pair` metadata → flagged.
-- Outcome: you can trust doc-sync’s pass/fail signals.
+#### Milestone M3.3 – Tests for `generate_function_registry.py` **COMPLETED**
 
-#### Milestone M3.3 – Tests for `generate_function_registry.py`
+- ✅ Created `tests/development_tools/test_generate_function_registry.py` with 12 tests:
+  - Function and class extraction from files
+  - Handler and test function detection
+  - File scanning with exclusions
+  - Content generation and categorization
+  - File writing operations
+- ✅ Tests verify registry generation accuracy and categorization
 
-- On the fixture:
-  - Run generator on a known set of functions.
-  - Assert specific functions appear in FUNCTION_REGISTRY_DETAIL.
-  - Assert categories (handlers/tests/etc.) are classified as intended.
+#### Milestone M3.4 – Tests for `generate_module_dependencies.py` **COMPLETED**
 
-#### Milestone M3.4 – Tests for `generate_module_dependencies.py`
+- ✅ Created `tests/development_tools/test_generate_module_dependencies.py` with 11 tests:
+  - Import extraction (standard library, third-party, local)
+  - Reverse dependency finding
+  - Content generation structure
+  - Manual enhancement preservation
+  - Dependency change analysis
+  - Module purpose inference
+- ✅ Tests verify dependency graph accuracy
 
-- On the fixture:
-  - Hand-write the expected small dependency graph.
-  - Run generator.
-  - Assert the generated dependencies match your expectations for that graph.
+#### Milestone M3.5 – Safe Legacy Cleanup Tests **COMPLETED**
 
-#### Milestone M3.5 – Safe Legacy Cleanup Tests
+- ✅ Created `tests/development_tools/test_legacy_reference_cleanup.py` with 10 tests:
+  - Legacy marker scanning
+  - Preserve file handling
+  - Reference finding for specific items
+  - Removal readiness verification
+  - Dry-run and actual cleanup operations
+  - Report generation
+  - File exclusion handling
+  - Replacement mappings
+- ✅ Fixed `should_skip_file` to use relative paths for proper exclusion checking
+- ✅ Added class definition pattern to `find_all_references` for complete detection
+- ✅ Tests verify safe cleanup operations with proper isolation
 
-- On the fixture:
-  - Introduce a known “legacy token” in code and docs.
-  - Validate:
-    - `--find` discovers the right locations.
-    - `--verify` behaves as expected (ready/not ready).
-    - `--clean --dry-run` reports planned actions but does not modify files.
+#### Milestone M3.6 – Coverage Regeneration Tests **COMPLETED**
 
-#### Milestone M3.6 – Coverage Regeneration Tests
+- ✅ Created `tests/development_tools/test_regenerate_coverage_metrics.py` with 10 tests:
+  - Coverage output parsing
+  - Overall coverage extraction
+  - Module categorization by coverage
+  - Coverage summary generation
+  - Pytest execution integration
+  - Coverage path configuration
+  - Shard cleanup
+  - Coverage plan updates
+- ✅ Tests verify coverage regeneration accuracy and artifact handling
 
-- On the fixture:
-  - Run `regenerate_coverage_metrics.py` in a temp directory.
-  - Assert:
-    - `coverage.json` exists and has expected shape.
-    - HTML coverage folder exists.
-    - Running twice archives old results in `archive/coverage_artifacts/<timestamp>/` or equivalent.
-
-Result: the “big five” tools become reasonably trustworthy.
+**Result:** All five core analysis tools now have comprehensive test coverage (55+ tests total). Tests use shared fixtures in `tests/development_tools/conftest.py` and the synthetic fixture project for isolation. The tools are now reasonably trustworthy with regression protection.
 
 ---
 
@@ -567,10 +589,11 @@ Portable today: `services/common.py`, `system_signals.py`, and `file_rotation.py
 **Progress Summary:**
 - ✅ **Phase 1 COMPLETED (2025-11-25)**: Tiering system fully implemented, documentation split and aligned, all path references updated
 - ✅ **Phase 2 COMPLETED (2025-11-25)**: Core infrastructure stabilized with test coverage (76 tests), consistent logging, and normalized error handling
-- 🔄 **Phase 3-7**: Defined and ready for implementation
+- ✅ **Phase 3 COMPLETED (2025-11-26)**: Core analysis tools hardened with comprehensive test coverage (55+ tests), synthetic fixture project created, all five tools now trustworthy
+- 🔄 **Phase 4-7**: Defined and ready for implementation
 
 This roadmap is intentionally incremental. You do **not** need to implement every milestone at once.  
-Phases 1-2 (tiering + core infrastructure) are complete. Next focus on Phase 3 (harden core analysis tools) for the most important tools, then expand as time and energy allow.
+Phases 1-3 (tiering + core infrastructure + core analysis tools) are complete. Next focus on Phase 4 (clarify supporting vs experimental tools) or Phase 5 (UX and documentation alignment), then expand as time and energy allow.
 
 ---
 

@@ -38,7 +38,7 @@ Test locations (must not change without updating this file and `tests/TESTING_GU
 - `tests/integration/` — interactions between modules and services.
 - `tests/behavior/` — end-to-end flows approximating real usage.
 - `tests/ui/` — Qt dialogs, widgets, and UI workflows.
-- `tests/development_tools/` — infrastructure tests for development tools (config, CLI, exclusions).
+- `tests/development_tools/` — infrastructure tests for development tools (config, CLI, exclusions, core analysis tools).
 - `tests/conftest.py` — fixtures, hooks, and global configuration.
 
 Rules:
@@ -52,6 +52,8 @@ When adding a test:
 - Multi-module or service flows → `tests/integration/` or `tests/behavior/`.
 - UI dialogs or widgets → `tests/ui/`.
 - Development tools or infrastructure → `tests/development_tools/`.
+
+**Note:** Core analysis tools (`documentation_sync_checker.py`, `generate_function_registry.py`, `generate_module_dependencies.py`, `legacy_reference_cleanup.py`, `regenerate_coverage_metrics.py`) have comprehensive test coverage (55+ tests) using a synthetic fixture project at `tests/fixtures/development_tools_demo/`.
 
 For detailed definitions and examples, see section 2. "Test Layout and Types" in `tests/TESTING_GUIDE.md`.
 

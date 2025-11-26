@@ -99,10 +99,19 @@ Tests are organized by real-world features and workflows to encourage integratio
 - Test development tools and infrastructure components.
 - Include sanity tests for configuration, exclusions, constants, and CLI runners.
 - Use both unit tests (for isolated components) and integration tests (for CLI smoke tests).
+- **Core analysis tools** have comprehensive test coverage (55+ tests):
+  - `documentation_sync_checker.py` — 12 tests for doc pairing validation
+  - `generate_function_registry.py` — 12 tests for function extraction and registry generation
+  - `generate_module_dependencies.py` — 11 tests for dependency graph generation
+  - `legacy_reference_cleanup.py` — 10 tests for legacy pattern detection and cleanup
+  - `regenerate_coverage_metrics.py` — 10 tests for coverage regeneration and reporting
+- Tests use a synthetic fixture project at `tests/fixtures/development_tools_demo/` for isolated testing.
 - Examples:
   - Configuration validation.
   - File exclusion patterns.
   - CLI command execution.
+  - AST parsing and code analysis.
+  - Documentation synchronization checks.
 
 ### 2.3. Where to put new tests
 

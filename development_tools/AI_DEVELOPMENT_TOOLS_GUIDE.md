@@ -80,9 +80,13 @@ Each module declares:
 
 The authoritative table lives in `services/tool_metadata.py`. Use this guide to pick the right group quickly:
 
-- **Documentation & structure**: `documentation_sync_checker.py`, `generate_function_registry.py`, `generate_module_dependencies.py`, `analyze_documentation.py`
-- **Quality, validation, coverage**: `regenerate_coverage_metrics.py`, `validate_ai_work.py`, `unused_imports_checker.py`, `error_handling_coverage.py`
-- **Legacy, versioning, signals**: `legacy_reference_cleanup.py`, `system_signals.py`, `quick_status.py`, `version_sync.py` (experimental)
+- **Documentation & structure**: `documentation_sync_checker.py` ✅, `generate_function_registry.py` ✅, `generate_module_dependencies.py` ✅, `analyze_documentation.py`
+
+✅ = Has comprehensive test coverage (Phase 3)
+- **Quality, validation, coverage**: `regenerate_coverage_metrics.py` ✅, `validate_ai_work.py`, `unused_imports_checker.py`, `error_handling_coverage.py`
+- **Legacy, versioning, signals**: `legacy_reference_cleanup.py` ✅, `system_signals.py`, `quick_status.py`, `version_sync.py` (experimental)
+
+✅ = Has comprehensive test coverage (Phase 3)
 - **Decision & utilities**: `decision_support.py`, `function_discovery.py`, `auto_document_functions.py` (experimental), `config_validator.py`, `file_rotation.py`, `audit_*` helpers, `tool_guide.py`
 
 Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier, trust, and portability matrix.
@@ -95,6 +99,7 @@ Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier, tr
 - Never hardcode project paths; derive them from configuration helpers
 - Keep tools isolated from MHM business logic
 - Store tests under `tests/development_tools/` (with fixtures in `tests/fixtures/development_tools_demo/`)
+- **Phase 3 Complete (2025-11-26)**: Core analysis tools now have comprehensive test coverage (55+ tests) using the synthetic fixture project
 - Preserve the directory structure (`development_tools/`, `ai_development_docs/`, `development_docs/`, `archive/`, `logs/`) to ease eventual extraction
 - Treat experimental tools cautiously (dry-run first, log outcomes)
 - Keep this guide paired with the human document; update both whenever commands, tiers, or workflows change

@@ -102,11 +102,11 @@ Ensure directories listed in `development_tools/services/constants.py` remain ac
 | services/standard_exclusions.py | core | stable | mhm-specific | Canonical exclusion patterns consumed by all scanners. |
 | services/constants.py | core | stable | mhm-specific | Doc pairing metadata, directory maps, and shared enumerations. |
 | services/common.py | core | stable | portable | IO helpers plus CLI utilities (command grouping, runners). |
-| documentation_sync_checker.py | core | stable | mhm-specific | Validates doc pairing (human vs AI) and detects drift. |
-| generate_function_registry.py | core | stable | mhm-specific | Builds the authoritative function registry via AST parsing. |
-| generate_module_dependencies.py | core | stable | mhm-specific | Produces module dependency graphs and enhancement zones. |
-| legacy_reference_cleanup.py | core | stable | mhm-specific | Finds/validates LEGACY COMPATIBILITY usage before cleanup. |
-| regenerate_coverage_metrics.py | core | stable | mhm-specific | Rebuilds coverage artifacts, JSON, and HTML reports. |
+| documentation_sync_checker.py | core | stable | mhm-specific | Validates doc pairing (human vs AI) and detects drift. ✅ **HAS TESTS (Phase 3)**: 12 tests in `tests/development_tools/test_documentation_sync_checker.py` |
+| generate_function_registry.py | core | stable | mhm-specific | Builds the authoritative function registry via AST parsing. ✅ **HAS TESTS (Phase 3)**: 12 tests in `tests/development_tools/test_generate_function_registry.py` |
+| generate_module_dependencies.py | core | stable | mhm-specific | Produces module dependency graphs and enhancement zones. ✅ **HAS TESTS (Phase 3)**: 11 tests in `tests/development_tools/test_generate_module_dependencies.py` |
+| legacy_reference_cleanup.py | core | stable | mhm-specific | Finds/validates LEGACY COMPATIBILITY usage before cleanup. ✅ **HAS TESTS (Phase 3)**: 10 tests in `tests/development_tools/test_legacy_reference_cleanup.py` |
+| regenerate_coverage_metrics.py | core | stable | mhm-specific | Rebuilds coverage artifacts, JSON, and HTML reports. ✅ **HAS TESTS (Phase 3)**: 10 tests in `tests/development_tools/test_regenerate_coverage_metrics.py` |
 | error_handling_coverage.py | core | stable | mhm-specific | Audits decorator usage and exception handling depth. |
 | function_discovery.py | core | stable | mhm-specific | AST discovery utility supporting registries and audits. |
 | analyze_documentation.py | supporting | partial | mhm-specific | Secondary doc analysis that focuses on corruption/overlap. |
@@ -137,6 +137,7 @@ Keep this table synchronized with `services/tool_metadata.py` and update both wh
   - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md` if scope or gaps change
 - Maintain directory integrity (`development_tools/`, `ai_development_docs/`, `development_docs/`, `archive/`, `logs/`) so automation can locate artifacts; keep generated reports under the paths enumerated in `services/constants.py`.
 - Use the shared test locations: `tests/development_tools/` for suites and `tests/fixtures/development_tools_demo/` for synthetic inputs.
+- **Phase 3 Complete (2025-11-26)**: All five core analysis tools have comprehensive test coverage (55+ tests total). The synthetic fixture project provides isolated testing environment for all tool tests.
 - Context-specific behavior:
   - `config.py` defines production / development / testing contexts; commands must honor the active context.
   - Never hardcode project paths—always resolve via `services/common.py` helpers.

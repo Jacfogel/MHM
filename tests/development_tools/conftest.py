@@ -1,10 +1,111 @@
 """Pytest configuration for development_tools tests."""
 
 import sys
+import shutil
+import tempfile
+import importlib.util
 from pathlib import Path
+import pytest
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
+
+
+def load_development_tools_module(module_name: str):
+    """
+    Load a development_tools module using importlib.
+    
+    This helper ensures parent packages are loaded first to handle
+    relative imports correctly.
+    
+    Args:
+        module_name: Name like 'documentation_sync_checker' (without .py)
+    
+    Returns:
+        The loaded module
+    """
+    # Load parent packages first
+    dt_init = project_root / "development_tools" / "__init__.py"
+    if dt_init.exists() and "development_tools" not in sys.modules:
+        dt_spec = importlib.util.spec_from_file_location("development_tools", dt_init)
+        dt_module = importlib.util.module_from_spec(dt_spec)
+        sys.modules["development_tools"] = dt_module
+        dt_spec.loader.exec_module(dt_module)
+    
+    # Load services package if needed
+    services_init = project_root / "development_tools" / "services" / "__init__.py"
+    if services_init.exists() and "development_tools.services" not in sys.modules:
+        services_spec = importlib.util.spec_from_file_location("development_tools.services", services_init)
+        services_module = importlib.util.module_from_spec(services_spec)
+        sys.modules["development_tools.services"] = services_module
+        services_spec.loader.exec_module(services_module)
+    
+    # Load required service modules that tools depend on
+    service_modules = ["standard_exclusions", "constants", "common"]
+    for svc_name in service_modules:
+        svc_path = project_root / "development_tools" / "services" / f"{svc_name}.py"
+        full_name = f"development_tools.services.{svc_name}"
+        if svc_path.exists() and full_name not in sys.modules:
+            svc_spec = importlib.util.spec_from_file_location(full_name, svc_path)
+            svc_module = importlib.util.module_from_spec(svc_spec)
+            sys.modules[full_name] = svc_module
+            svc_spec.loader.exec_module(svc_module)
+    
+    # Load config if needed
+    config_path = project_root / "development_tools" / "config.py"
+    if config_path.exists() and "development_tools.config" not in sys.modules:
+        config_spec = importlib.util.spec_from_file_location("development_tools.config", config_path)
+        config_module = importlib.util.module_from_spec(config_spec)
+        sys.modules["development_tools.config"] = config_module
+        config_spec.loader.exec_module(config_module)
+    
+    # Now load the requested module
+    module_path = project_root / "development_tools" / f"{module_name}.py"
+    full_module_name = f"development_tools.{module_name}"
+    spec = importlib.util.spec_from_file_location(full_module_name, module_path)
+    module = importlib.util.module_from_spec(spec)
+    module.__package__ = "development_tools"
+    sys.modules[full_module_name] = module
+    spec.loader.exec_module(module)
+    
+    return module
+
+
+@pytest.fixture
+def demo_project_root():
+    """Return the path to the synthetic fixture project."""
+    fixture_path = Path(__file__).parent.parent / "fixtures" / "development_tools_demo"
+    return fixture_path.resolve()
+
+
+@pytest.fixture
+def temp_output_dir():
+    """Create a temporary directory for generated files."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        yield Path(tmpdir)
+
+
+@pytest.fixture
+def temp_project_copy(demo_project_root):
+    """Create a temporary copy of the demo project for destructive tests."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        copy_path = Path(tmpdir) / "demo_project"
+        shutil.copytree(demo_project_root, copy_path)
+        yield copy_path
+
+
+@pytest.fixture
+def temp_docs_dir():
+    """Create a temporary directory for test documentation pairs."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        yield Path(tmpdir)
+
+
+@pytest.fixture
+def temp_coverage_dir():
+    """Create a temporary directory for coverage artifacts."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        yield Path(tmpdir)
 

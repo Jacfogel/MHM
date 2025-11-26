@@ -37,6 +37,9 @@ def test_no_print_calls_in_tests():
                 normalized_file_path = path.replace('\\', '/')
                 if '/tests/ai/' in normalized_path or normalized_path.endswith('tests/ai') or normalized_file_path.startswith(f'{normalized_root}/tests/ai/'):
                     continue
+                # Skip fixture files (they're test data, not test code)
+                if '/tests/fixtures/' in normalized_path or normalized_path.endswith('tests/fixtures') or normalized_file_path.startswith(f'{normalized_root}/tests/fixtures/'):
+                    continue
                 # Heuristic: flag print( usages
                 if 'print(' in text:
                     violations.append(path)

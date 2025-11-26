@@ -148,19 +148,31 @@ class LegacyReferenceCleanup:
     
     def should_skip_file(self, file_path: Path) -> bool:
         """Check if a file should be skipped from scanning."""
-        file_str = str(file_path)
+        # Get relative path from project root for exclusion checking
+        try:
+            rel_path = file_path.relative_to(self.project_root)
+            rel_path_str = str(rel_path).replace('\\', '/')
+        except ValueError:
+            # File is outside project root, use absolute path
+            rel_path_str = str(file_path).replace('\\', '/')
         
-        # Skip certain directories
+        # Skip certain directories (check relative path, not absolute)
         # Import constants from services
         from development_tools.services.standard_exclusions import STANDARD_EXCLUSION_PATTERNS
         skip_dirs = [pattern.rstrip('/') for pattern in STANDARD_EXCLUSION_PATTERNS if not pattern.startswith('*')]
         for skip_dir in skip_dirs:
-            if skip_dir in file_str:
-                return True
+            # Check if the pattern matches the relative path
+            # Use path segments to avoid false matches (e.g., "tests" matching "test_something")
+            path_parts = rel_path_str.split('/')
+            skip_parts = skip_dir.split('/')
+            # Check if skip pattern matches at the start of the path
+            if len(path_parts) >= len(skip_parts):
+                if path_parts[:len(skip_parts)] == skip_parts:
+                    return True
         
         # Skip preserved files
         for preserve_pattern in self.preserve_files:
-            if preserve_pattern in file_str:
+            if preserve_pattern in rel_path_str:
                 return True
         
         # Skip certain file extensions
@@ -332,6 +344,9 @@ class LegacyReferenceCleanup:
             # Direct imports
             rf'from\s+[\w.]+?\s+import\s+{re.escape(item_name)}\b',
             rf'import\s+{re.escape(item_name)}\b',
+            # Class and function definitions
+            rf'\bclass\s+{re.escape(item_name)}\b',
+            rf'\bdef\s+{re.escape(item_name)}\s*\(',
             # Usage patterns
             rf'\b{re.escape(item_name)}\s*\(',
             rf'\b{re.escape(item_name)}\s*\.',
