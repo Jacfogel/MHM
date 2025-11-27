@@ -4,11 +4,11 @@
 > **Audience**: Developers and AI assistants performing manual Discord testing  
 > **Purpose**: Manual testing procedures for Discord bot task reminder flows  
 > **Style**: Step-by-step, checklist-focused, actionable  
-> **Parent**: `tests/MANUAL_TESTING_GUIDE.md`  
-> This document is subordinate to `tests/MANUAL_TESTING_GUIDE.md` and should be kept consistent with its standards and terminology.
+> **Parent**: [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md)  
+> This document is subordinate to [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md) and should be kept consistent with its standards and terminology.
 
 This guide focuses on **Discord-specific manual flows**, especially task reminder creation and follow-up.  
-The high-level context and when to run these tests are described in section 6 of `tests/MANUAL_TESTING_GUIDE.md`.
+The high-level context and when to run these tests are described in section 6 of [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md).
 
 ---
 
@@ -196,5 +196,5 @@ After testing, report:
 
 ---
 
-**Note**: This guide focuses on task reminder follow-up flow. For general Discord integration testing, see the "Discord integration" section in `tests/TESTING_GUIDE.md` (section 9.2).
+**Note**: This guide focuses on task reminder follow-up flow. For general Discord integration testing, see the "Discord integration" section in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) (section 9.2).
 

@@ -454,9 +454,54 @@ class AIToolsService:
         return result
 
     def run_documentation_sync_checker(self) -> Dict:
-        """Run documentation_sync_checker with structured JSON handling."""
+        """Run documentation_sync_checker with structured data handling."""
+        try:
+            # Import and call the checker directly to get structured data
+            from ..documentation_sync_checker import DocumentationSyncChecker
+            
+            checker = DocumentationSyncChecker()
+            results = checker.run_checks()
+            
+            # Convert results to the expected format
+            summary = results.get('summary', {})
+            data = {
+                'status': summary.get('status', 'UNKNOWN'),
+                'total_issues': summary.get('total_issues', 0),
+                'paired_doc_issues': summary.get('paired_doc_issues', 0),
+                'path_drift_issues': summary.get('path_drift_issues', 0),
+                'ascii_compliance_issues': summary.get('ascii_compliance_issues', 0),
+                'heading_numbering_issues': summary.get('heading_numbering_issues', 0),
+                'path_drift_files': list(results.get('path_drift', {}).keys()),
+                # Store detailed issues for each category
+                'paired_docs': results.get('paired_docs', {}),
+                'path_drift': results.get('path_drift', {}),
+                'ascii_compliance': results.get('ascii_compliance', {}),
+                'heading_numbering': results.get('heading_numbering', {})
+            }
+            
+            # Generate text output for compatibility
+            import io
+            import sys
+            output_buffer = io.StringIO()
+            original_stdout = sys.stdout
+            sys.stdout = output_buffer
+            try:
+                checker.print_report(results)
+                output = output_buffer.getvalue()
+            finally:
+                sys.stdout = original_stdout
+            
+            return {
+                'success': True,
+                'output': output,
+                'error': '',
+                'returncode': 0,
+                'data': data
+            }
+        except Exception as e:
+            logger.error(f"Error running documentation sync checker: {e}")
+            # Fallback to subprocess method
         result = self.run_script("documentation_sync_checker", "--check")
-        
         output = result.get('output', '')
         data = None
         
@@ -474,7 +519,7 @@ class AIToolsService:
             result['error'] = ''
         else:
             result['success'] = False
-            result['error'] = 'Failed to parse documentation sync output'
+            result['error'] = f'Failed to parse documentation sync output: {e}'
         
         return result
 
@@ -2508,8 +2553,7 @@ class AIToolsService:
 
                     summary['path_drift_issues'] = value
 
-                path_section = True
-
+                # Don't set path_section here - wait for "Top files with most issues:"
                 continue
 
             if line.startswith('ASCII Compliance Issues:'):
@@ -2520,12 +2564,29 @@ class AIToolsService:
 
                     summary['ascii_issues'] = value
 
+                # Stop path_section if it was active
+                path_section = False
+                continue
+
+            if line.startswith('Heading Numbering Issues:'):
+
+                # Stop path_section if it was active
+                path_section = False
                 continue
 
             if line.startswith('Top files with most issues:'):
 
                 path_section = True
 
+                continue
+
+            # Stop path_section when we encounter a new section header
+            # Section headers are typically all caps or start with specific keywords
+            if (line.isupper() and ('ISSUES' in line or 'COMPLIANCE' in line or 'DOCUMENTATION' in line)) or \
+               line.startswith('HEADING NUMBERING') or \
+               line.startswith('ASCII COMPLIANCE') or \
+               line.startswith('PAIRED DOCUMENTATION'):
+                path_section = False
                 continue
 
             if path_section:
@@ -2543,6 +2604,11 @@ class AIToolsService:
                 else:
 
                     file_part = cleaned
+
+                # Skip if it looks like a section header (all caps, contains ISSUES, etc.)
+                if file_part and file_part.isupper() and ('ISSUES' in file_part or 'COMPLIANCE' in file_part):
+                    path_section = False
+                    continue
 
                 if file_part and file_part not in summary['path_drift_files']:
 
@@ -3815,6 +3881,8 @@ class AIToolsService:
 
         path_drift_count = to_int(doc_sync_summary.get('path_drift_issues')) if doc_sync_summary else None
         path_drift_files = doc_sync_summary.get('path_drift_files') if doc_sync_summary else []
+        # Filter out section headers that were incorrectly parsed as file names
+        path_drift_files = [f for f in path_drift_files if not (f.isupper() and ('ISSUES' in f or 'COMPLIANCE' in f or 'DOCUMENTATION' in f or 'NUMBERING' in f))]
         paired_doc_issues = to_int(doc_sync_summary.get('paired_doc_issues')) if doc_sync_summary else None
         ascii_issues = to_int(doc_sync_summary.get('ascii_issues')) if doc_sync_summary else None
 

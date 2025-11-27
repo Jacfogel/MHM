@@ -4,17 +4,17 @@
 > **Audience**: Human developers building or maintaining the platform  
 > **Purpose**: Explain system design, module responsibilities, and data flow  
 > **Style**: Technical, detailed, reference-oriented  
-> **Pair**: `ai_development_docs/AI_ARCHITECTURE.md`
-> This document is paired with `ai_development_docs/AI_ARCHITECTURE.md` and any changes must consider both docs.
+> **Pair**: [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md)
+> This document is paired with [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md) and any changes must consider both docs.
 > **Last Updated**: 2025-11-19
 
-See `README.md` for navigation and project overview.  
-See section 2. "Virtual Environment Best Practices" in `DEVELOPMENT_WORKFLOW.md` and section 1. "Quick Start (Recommended)" in `HOW_TO_RUN.md` for environment setup and running the app.
+See [README.md](README.md) for navigation and project overview.  
+See section 2. "Virtual Environment Best Practices" in [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) and section 1. "Quick Start (Recommended)" in [HOW_TO_RUN.md](HOW_TO_RUN.md) for environment setup and running the app.
 For supporting details on logging, testing, and error handling, see:
 
-- Section 2. Logging Architecture in `logs/LOGGING_GUIDE.md`  
-- Section 2. "Test Layout and Types" in `tests/TESTING_GUIDE.md`  
-- Section 2. Architecture Overview in `core/ERROR_HANDLING_GUIDE.md`  
+- Section 2. Logging Architecture in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)  
+- Section 2. "Test Layout and Types" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)  
+- Section 2. Architecture Overview in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md)  
 
 ---
 
@@ -24,7 +24,7 @@ This section describes the top-level directories. It should match the actual pro
 
 - `ai/`  
   AI integration modules, including optional LM Studio integration and local helpers for
-  context building or summarization. See the "Overview" section in `SYSTEM_AI_GUIDE.md`
+  context building or summarization. See the "Overview" section in [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md)
   if present.
 
 - `ai_development_docs/`  
@@ -34,13 +34,13 @@ This section describes the top-level directories. It should match the actual pro
 - `development_tools/`  
   AI tools runner and commands (for example `doc-sync`, `config`, `coverage`). These automate
   documentation checks, configuration reports, and similar meta-tasks. See section 2. Commands
-  and Usage in `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`.
+  and Usage in [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md).
 
 - `communication/`  
   Channel orchestration and message flows. This is where Discord, email, and any future channels
   are wired into the core service. Channel adapters should stay thin and delegate business logic
   to `core/` and `tasks/`. See section 2. Channel Layers and Boundaries in
-  `communication/COMMUNICATION_GUIDE.md`.
+  [COMMUNICATION_GUIDE.md](communication/COMMUNICATION_GUIDE.md).
 
 - `core/`  
   Core business logic and services. Includes configuration loading, logging setup, error handling,
@@ -52,10 +52,10 @@ This section describes the top-level directories. It should match the actual pro
 
 - `development_docs/`  
   Human-focused development documentation such as detailed changelog history and longer-term
-  plans. See section 1. Overview in `development_docs/CHANGELOG_DETAIL.md` for change history.
+  plans. See section 1. Overview in [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) for change history.
 
 - `logs/`  
-  Application and component logs. See section 2. Logging Architecture in `logs/LOGGING_GUIDE.md`
+  Application and component logs. See section 2. Logging Architecture in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)
   for the detailed logging scheme.
 
 - `resources/`  
@@ -72,7 +72,7 @@ This section describes the top-level directories. It should match the actual pro
 - `tests/`  
   Unit, integration, behavior, and UI tests plus fixtures. Test-only data lives under
   `tests/data/`. Logs from test runs may be collected under `tests/logs/`. See section 2.
-  section 2. "Test Layout and Types" and section 3. "Fixtures, Utilities, and Safety" in `tests/TESTING_GUIDE.md`.
+  section 2. "Test Layout and Types" and section 3. "Fixtures, Utilities, and Safety" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 
 - `ui/`  
   PySide6 admin application:
@@ -87,7 +87,7 @@ This section describes the top-level directories. It should match the actual pro
   must be documented explicitly.
 
 If you add or remove top-level directories, update this section and the matching section in
-`ai_development_docs/AI_ARCHITECTURE.md`.
+[AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md).
 
 ---
 
@@ -136,8 +136,7 @@ Important rules:
    Describe what they are for, how they are written, and which module owns them.
 
 For more validation and schema details, see the relevant models and helpers in
-For more validation and schema details, see the relevant models and helpers in
-`core/user_data_validation.py` and section 3. "Fixtures, Utilities, and Safety" in `tests/TESTING_GUIDE.md`.
+`core/user_data_validation.py` and section 3. "Fixtures, Utilities, and Safety" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 
 ### 2.1. User Data Flow Diagram
 
@@ -246,7 +245,7 @@ Data handling in MHM is designed around safety and clarity.
 
 - Legacy compatibility and migration  
   - When you need to support an old on-disk format, add a clearly marked legacy path.  
-  - Use the legacy compatibility logging pattern described in section 7. "Legacy Compatibility Logging Standard" in `logs/LOGGING_GUIDE.md`.
+  - Use the legacy compatibility logging pattern described in section 7. "Legacy Compatibility Logging Standard" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
 
 When adding new data or changing existing structures:
 
@@ -254,8 +253,7 @@ When adding new data or changing existing structures:
 2. Decide whether it belongs under `data/users/` or `resources/`. Only use `user/` for
    instance-level configuration that truly applies to the whole installation.  
 3. Add validation logic and tests (see section 6. "Writing and Extending Tests" in
-   `tests/TESTING_GUIDE.md`).  
-   `tests/TESTING_GUIDE.md`).  
+   [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)).  
 4. Document the new files here and in any relevant guides.
 
 ---
@@ -281,18 +279,18 @@ listing of every file.
   Central configuration loader. Reads environment variables (typically from `.env` via
   `python-dotenv`), validates them, and exposes configuration to the rest of the system.
   For configuration details and validation patterns, see section 5. Configuration
-  (Environment Variables) in `logs/LOGGING_GUIDE.md`.
+  (Environment Variables) in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
 
 - `core/logger.py`  
   Central logging setup. Provides component loggers and attaches handlers to the
   appropriate log files under `logs/`. For log levels, file layout, and rotation rules,
   see section 2. Logging Architecture and section 4. Component Log Files and Layout in
-  `logs/LOGGING_GUIDE.md`.
+  [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
 
 - `core/error_handling.py`  
   Shared error handling logic and decorators. Connects error handling to logging and, where
   applicable, to basic metrics. For the broader design and patterns, see section 2.
-  Architecture Overview in `core/ERROR_HANDLING_GUIDE.md`.
+  Architecture Overview in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
 
 - `core/user_data_handlers.py` and `core/user_data_validation.py`  
   Read and write user data in a safe and consistent way, with validation and optional
@@ -303,7 +301,7 @@ listing of every file.
   Implement and coordinate channels such as Discord and email. Channel modules should
   focus on translating service events into channel-specific calls and delegating shared
   logic to `core/` and `tasks/`. See section 1. Core Principle in
-  `communication/COMMUNICATION_GUIDE.md`.
+  [COMMUNICATION_GUIDE.md](communication/COMMUNICATION_GUIDE.md).
 
 - `tasks/` modules  
   Define recurring tasks and reminder logic. These modules are wired into the scheduler
@@ -362,7 +360,7 @@ The goal is that when you see a dialog in the UI, you can easily find:
 3. The implementation that attaches behavior.
 
 If you add new dialogs or widgets, follow the same pattern. Only update this section if you
-introduce a new convention. For UI testing and manual QA, see section 8. "Manual and Channel-Specific Testing Overview" in `tests/TESTING_GUIDE.md`.
+introduce a new convention. For UI testing and manual QA, see section 8. "Manual and Channel-Specific Testing Overview" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 
 ---
 
@@ -381,7 +379,7 @@ When implementing new features or channels:
 1. Put shared behavior in `core/` or `tasks/` when possible.  
 2. Keep `communication/` modules focused on translating events and payloads, not business rules.  
 3. Use the patterns and examples in section 2. Channel Layers and Boundaries in
-   `communication/COMMUNICATION_GUIDE.md`.  
+   [COMMUNICATION_GUIDE.md](communication/COMMUNICATION_GUIDE.md).  
 
 This separation keeps features reusable across channels and reduces the risk of subtle behavior
 differences between Discord, email, and the UI.
@@ -397,15 +395,15 @@ differences between Discord, email, and the UI.
 
 - Keep docs and code in sync.  
   Whenever you add or remove major modules, update this file and the matching
-  `ai_development_docs/AI_ARCHITECTURE.md`. Use the documentation sync checker to enforce H2
+  [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md). Use the documentation sync checker to enforce H2
   alignment between paired docs.
 
 - Use established logging and error handling patterns.  
   Prefer `core/logger.py` and `core/error_handling.py` plus the guidance in section 2.
-  Logging Architecture in `logs/LOGGING_GUIDE.md` and section 2. Architecture Overview in
-  `core/ERROR_HANDLING_GUIDE.md` instead of ad-hoc prints or try/except blocks.
+  Logging Architecture in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) and section 2. Architecture Overview in
+  [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) instead of ad-hoc prints or try/except blocks.
 
 - Learn by small steps.  
   The architecture is built to support safe, incremental changes. Make one change at a time,
   observe its impact, and use logging and tests to confirm behavior. For overall development
-  process, see section 2. "Standards and Templates" in `DOCUMENTATION_GUIDE.md`.
+  process, see section 2. "Standards and Templates" in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md).

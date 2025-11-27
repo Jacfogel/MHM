@@ -95,7 +95,7 @@
     "issues": []
   },
   "development_tools/documentation_sync_checker.py": {
-    "mtime": 1764068753.3493476,
+    "mtime": 1764200328.7883961,
     "issues": [
       {
         "type": "warning",
@@ -157,7 +157,7 @@
     "issues": []
   },
   "development_tools/services/operations.py": {
-    "mtime": 1764136781.8434117,
+    "mtime": 1764198127.274645,
     "issues": []
   },
   "development_tools/services/standard_exclusions.py": {
@@ -358,7 +358,7 @@
     "issues": []
   },
   "communication/message_processing/conversation_flow_manager.py": {
-    "mtime": 1763676340.8328664,
+    "mtime": 1764153236.50142,
     "issues": []
   },
   "communication/message_processing/interaction_manager.py": {
@@ -462,7 +462,7 @@
     "issues": []
   },
   "core/schedule_management.py": {
-    "mtime": 1763720071.785601,
+    "mtime": 1764155375.677103,
     "issues": [
       {
         "type": "warning",
@@ -518,7 +518,7 @@
     "issues": []
   },
   "core/user_data_handlers.py": {
-    "mtime": 1764146405.9123597,
+    "mtime": 1764152145.9119446,
     "issues": []
   },
   "core/user_data_manager.py": {
@@ -544,7 +544,7 @@
     "issues": []
   },
   "core/user_management.py": {
-    "mtime": 1764136781.6338475,
+    "mtime": 1764153236.50142,
     "issues": []
   },
   "run_headless_service.py": {
@@ -752,7 +752,7 @@
     "issues": []
   },
   "tests/behavior/test_checkin_expiry_semantics.py": {
-    "mtime": 1763538912.1173983,
+    "mtime": 1764153236.50142,
     "issues": [
       {
         "type": "warning",
@@ -898,7 +898,7 @@
     "issues": []
   },
   "tests/behavior/test_conversation_flow_manager_behavior.py": {
-    "mtime": 1763454454.6406195,
+    "mtime": 1764154300.159333,
     "issues": [
       {
         "type": "warning",
@@ -4107,7 +4107,7 @@
     ]
   },
   "tests/unit/test_schedule_management.py": {
-    "mtime": 1763538036.1992462,
+    "mtime": 1764155375.677103,
     "issues": []
   },
   "tests/unit/test_service_utilities_network.py": {
@@ -4746,7 +4746,7 @@
     ]
   },
   "tests/integration/test_orphaned_reminder_cleanup.py": {
-    "mtime": 1763537025.239107,
+    "mtime": 1764154300.159333,
     "issues": []
   },
   "tests/integration/test_task_cleanup_real.py": {
@@ -5531,7 +5531,7 @@
     "issues": []
   },
   "tests/development_tools/conftest.py": {
-    "mtime": 1764138139.507782,
+    "mtime": 1764148379.8586683,
     "issues": []
   },
   "tests/development_tools/test_ai_tools_runner.py": {
@@ -5578,45 +5578,32 @@
     ]
   },
   "tests/development_tools/test_error_scenarios.py": {
-    "mtime": 1764147196.9839902,
+    "mtime": 1764150704.1705976,
     "issues": [
       {
         "type": "warning",
         "module": "development_tools.test_error_scenarios",
         "obj": "",
-        "line": 9,
+        "line": 10,
         "column": 0,
-        "endLine": 9,
-        "endColumn": 15,
+        "endLine": 10,
+        "endColumn": 13,
         "path": "tests\\development_tools\\test_error_scenarios.py",
         "symbol": "unused-import",
-        "message": "Unused import tempfile",
+        "message": "Unused import shutil",
         "message-id": "W0611"
       },
       {
         "type": "warning",
         "module": "development_tools.test_error_scenarios",
         "obj": "",
-        "line": 14,
+        "line": 11,
         "column": 0,
-        "endLine": 14,
-        "endColumn": 53,
+        "endLine": 11,
+        "endColumn": 11,
         "path": "tests\\development_tools\\test_error_scenarios.py",
         "symbol": "unused-import",
-        "message": "Unused mock_open imported from unittest.mock",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "development_tools.test_error_scenarios",
-        "obj": "",
-        "line": 18,
-        "column": 0,
-        "endLine": 18,
-        "endColumn": 93,
-        "path": "tests\\development_tools\\test_error_scenarios.py",
-        "symbol": "unused-import",
-        "message": "Unused demo_project_root imported from tests.development_tools.conftest",
+        "message": "Unused import stat",
         "message-id": "W0611"
       }
     ]
@@ -5684,61 +5671,8 @@
     ]
   },
   "tests/development_tools/test_integration_workflows.py": {
-    "mtime": 1764147196.9839902,
-    "issues": [
-      {
-        "type": "warning",
-        "module": "development_tools.test_integration_workflows",
-        "obj": "",
-        "line": 11,
-        "column": 0,
-        "endLine": 11,
-        "endColumn": 15,
-        "path": "tests\\development_tools\\test_integration_workflows.py",
-        "symbol": "unused-import",
-        "message": "Unused import tempfile",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "development_tools.test_integration_workflows",
-        "obj": "",
-        "line": 12,
-        "column": 0,
-        "endLine": 12,
-        "endColumn": 13,
-        "path": "tests\\development_tools\\test_integration_workflows.py",
-        "symbol": "unused-import",
-        "message": "Unused import shutil",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "development_tools.test_integration_workflows",
-        "obj": "",
-        "line": 14,
-        "column": 0,
-        "endLine": 14,
-        "endColumn": 42,
-        "path": "tests\\development_tools\\test_integration_workflows.py",
-        "symbol": "unused-import",
-        "message": "Unused patch imported from unittest.mock",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "development_tools.test_integration_workflows",
-        "obj": "",
-        "line": 14,
-        "column": 0,
-        "endLine": 14,
-        "endColumn": 42,
-        "path": "tests\\development_tools\\test_integration_workflows.py",
-        "symbol": "unused-import",
-        "message": "Unused MagicMock imported from unittest.mock",
-        "message-id": "W0611"
-      }
-    ]
+    "mtime": 1764150704.1705976,
+    "issues": []
   },
   "tests/development_tools/test_legacy_reference_cleanup.py": {
     "mtime": 1764142823.4043508,

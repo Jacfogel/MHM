@@ -1,6 +1,6 @@
 # Numbered Documentation
 
-> **File**: `docs/numbered_doc.md`
+> **File**: `tests/fixtures/development_tools_demo/docs/numbered_doc.md`
 
 ## 1. First Section
 

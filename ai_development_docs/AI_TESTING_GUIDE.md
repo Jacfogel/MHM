@@ -1,13 +1,13 @@
 # AI Testing Guide
 
 > **File**: `ai_development_docs/AI_TESTING_GUIDE.md`  
-> **Pair**: `tests/TESTING_GUIDE.md`  
+> **Pair**: [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)  
 > **Audience**: AI collaborators and tools  
 > **Purpose**: Routing & constraints  
 > **Style**: Minimal, routing-first  
 
-> For detailed behavior, examples, and rationale, use matching sections in `tests/TESTING_GUIDE.md`.  
-> Keep this file’s H2 headings in lockstep with `tests/TESTING_GUIDE.md` when making changes.
+> For detailed behavior, examples, and rationale, use matching sections in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).  
+> Keep this file's H2 headings in lockstep with [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) when making changes.
 
 ---
 
@@ -26,20 +26,20 @@ This guide is **not** a tutorial. It tells you:
 - Which other docs to consult.
 - What safety rules must never be broken.
 
-For full explanations, use the matching sections in `tests/TESTING_GUIDE.md`.
+For full explanations, use the matching sections in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 
 ---
 
 ## 2. Test Layout and Types
 
-Test locations (must not change without updating this file and `tests/TESTING_GUIDE.md`):
+Test locations (must not change without updating this file and [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)):
 
-- `tests/unit/` — pure logic, isolated from external systems.
-- `tests/integration/` — interactions between modules and services.
-- `tests/behavior/` — end-to-end flows approximating real usage.
-- `tests/ui/` — Qt dialogs, widgets, and UI workflows.
-- `tests/development_tools/` — infrastructure tests for development tools (config, CLI, exclusions, core analysis tools).
-- `tests/conftest.py` — fixtures, hooks, and global configuration.
+- `tests/unit/` - pure logic, isolated from external systems.
+- `tests/integration/` - interactions between modules and services.
+- `tests/behavior/` - end-to-end flows approximating real usage.
+- `tests/ui/` - Qt dialogs, widgets, and UI workflows.
+- `tests/development_tools/` - infrastructure tests for development tools (config, CLI, exclusions, core analysis tools).
+- `tests/conftest.py` - fixtures, hooks, and global configuration.
 
 Rules:
 
@@ -48,16 +48,16 @@ Rules:
 
 When adding a test:
 
-- Pure logic → `tests/unit/`.
-- Multi-module or service flows → `tests/integration/` or `tests/behavior/`.
-- UI dialogs or widgets → `tests/ui/`.
-- Development tools or infrastructure → `tests/development_tools/`.
+- Pure logic -> `tests/unit/`.
+- Multi-module or service flows -> `tests/integration/` or `tests/behavior/`.
+- UI dialogs or widgets -> `tests/ui/`.
+- Development tools or infrastructure -> `tests/development_tools/`.
   - CLI routing tests stay lightweight by mocking `AIToolsService` (no subprocesses).
   - Permission/error scenarios are simulated via monkeypatching so results are identical on Windows/Linux.
 
-**Note:** Core analysis tools (`documentation_sync_checker.py`, `generate_function_registry.py`, `generate_module_dependencies.py`, `legacy_reference_cleanup.py`, `regenerate_coverage_metrics.py`) have comprehensive test coverage (55+ tests) using a synthetic fixture project at `tests/fixtures/development_tools_demo/`.
+**Note:** Core analysis tools (`development_tools/documentation_sync_checker.py`, `development_tools/generate_function_registry.py`, `development_tools/generate_module_dependencies.py`, `development_tools/legacy_reference_cleanup.py`, `development_tools/regenerate_coverage_metrics.py`) have comprehensive test coverage (55+ tests) using a synthetic fixture project at `tests/fixtures/development_tools_demo/`.
 
-For detailed definitions and examples, see section 2. "Test Layout and Types" in `tests/TESTING_GUIDE.md`.
+For detailed definitions and examples, see section 2. "Test Layout and Types" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 
 ---
 
@@ -65,7 +65,7 @@ For detailed definitions and examples, see section 2. "Test Layout and Types" in
 
 Critical invariants:
 
-- All test writes must stay under `tests/data/` or fixtures’ temporary directories.
+- All test writes must stay under `tests/data/` or fixtures' temporary directories.
 - Tests must never:
   - Touch real user directories (for example, `%APPDATA%`, `Documents`, home directories).
   - Write to production data paths.
@@ -136,7 +136,7 @@ When focusing on a small subset:
   pytest -m "integration and not slow"
   ```
 
-If you add or change command-line options, update `run_tests.py`, `pytest.ini`, and section 4 of `tests/TESTING_GUIDE.md`.
+If you add or change command-line options, update `run_tests.py`, `pytest.ini`, and section 4 of [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 
 ---
 
@@ -168,7 +168,7 @@ Coverage:
   - Focus on critical paths (scheduling, delivery, error handling, AI behavior).
   - Do not chase 100% coverage at the cost of clarity.
 
-For rationale and examples, see sections 5.1–5.3 in `tests/TESTING_GUIDE.md`.
+For rationale and examples, see sections 5.1-5.3 in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 
 ---
 
@@ -179,7 +179,7 @@ Placement rules:
 - Use the correct directory (`unit`, `integration`, `behavior`, `ui`) based on behavior.
 - Choose clear file and test names that describe what is being verified.
 
-Marker standards (must stay aligned with `pytest.ini` and section 6 in `tests/TESTING_GUIDE.md`):
+Marker standards (must stay aligned with `pytest.ini` and section 6 in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)):
 
 - Every test must have **exactly one** category marker:
   - `unit`, `integration`, `behavior`, or `ui`.
@@ -214,7 +214,7 @@ def test_discord_delivery_flow():
 If you add or rename markers:
 
 - Update `pytest.ini`.
-- Update this section and the equivalent part of `tests/TESTING_GUIDE.md`.
+- Update this section and the equivalent part of [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 
 Use fixtures and helpers:
 
@@ -251,10 +251,10 @@ On any test failure:
 
 Routing to other AI docs:
 
-- See Section 2 (“Architecture Overview”) and section 3 (“Usage Patterns”) in `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` for required error-handling constraints and routing.
-- See Section 2 (“Logging Architecture”) and section 3 (“Log Levels and When to Use Them”) in `ai_development_docs/AI_LOGGING_GUIDE.md` for required logging behavior when writing or testing code.
+- See Section 2 ("Architecture Overview") and section 3 ("Usage Patterns") in [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) for required error-handling constraints and routing.
+- See Section 2 ("Logging Architecture") and section 3 ("Log Levels and When to Use Them") in [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md) for required logging behavior when writing or testing code.
 
-Refer to section 7 of `tests/TESTING_GUIDE.md` for detailed troubleshooting guidance.
+Refer to section 7 of [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) for detailed troubleshooting guidance.
 
 ---
 
@@ -272,17 +272,17 @@ When manual testing is required (examples, not exhaustive):
 Routing:
 
 - For general manual testing flows (startup, shutdown, scheduling, UI, email):
-  - Use `tests/MANUAL_TESTING_GUIDE.md`, especially:
+  - Use [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md), especially:
     - Section 2. "Core Manual Flows".
     - Section 3. "UI Manual Testing".
     - Section 4. "Scheduling & Reminder Manual Tests".
 - For Discord-specific manual testing of task reminder flows:
-  - Use `tests/MANUAL_DISCORD_TEST_GUIDE.md`, especially:
+  - Use [MANUAL_DISCORD_TEST_GUIDE.md](tests/MANUAL_DISCORD_TEST_GUIDE.md), especially:
     - Section 1. "Prerequisites".
     - Section 2. "Task Reminder Follow-up Flow Testing".
     - Section 7. "Quick Test Checklist".
 - For AI conversation and functionality testing:
-  - Use `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`, especially:
+  - Use [SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md](tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md), especially:
     - Section 1. "Quick Start".
     - Section 2. "Test Suite Structure".
     - Section 6. "Test Features".
@@ -290,4 +290,4 @@ Routing:
 
 This AI file should not duplicate those manuals. It only tells you **which** manual to use and **when**.
 
-For high-level AI subsystem behavior that these tests validate, see `SYSTEM_AI_GUIDE.md`.
+For high-level AI subsystem behavior that these tests validate, see [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md).

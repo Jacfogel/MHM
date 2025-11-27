@@ -33,14 +33,14 @@ from core.logger import get_component_logger
 try:
     from .services.standard_exclusions import should_exclude_file
     from .services.constants import (
-        ALTERNATIVE_DIRECTORIES, COMMAND_PATTERNS, COMMON_CLASS_NAMES, COMMON_CODE_PATTERNS,
+        COMMAND_PATTERNS, COMMON_CLASS_NAMES, COMMON_CODE_PATTERNS,
         COMMON_FUNCTION_NAMES, COMMON_VARIABLE_NAMES, DEFAULT_DOCS, IGNORED_PATH_PATTERNS,
         PAIRED_DOCS, STANDARD_LIBRARY_MODULES, TEMPLATE_PATTERNS, THIRD_PARTY_LIBRARIES
     )
 except ImportError:
     from development_tools.services.standard_exclusions import should_exclude_file
     from development_tools.services.constants import (
-        ALTERNATIVE_DIRECTORIES, COMMAND_PATTERNS, COMMON_CLASS_NAMES, COMMON_CODE_PATTERNS,
+        COMMAND_PATTERNS, COMMON_CLASS_NAMES, COMMON_CODE_PATTERNS,
         COMMON_FUNCTION_NAMES, COMMON_VARIABLE_NAMES, DEFAULT_DOCS, IGNORED_PATH_PATTERNS,
         PAIRED_DOCS, STANDARD_LIBRARY_MODULES, TEMPLATE_PATTERNS, THIRD_PARTY_LIBRARIES
     )
@@ -131,25 +131,46 @@ class DocumentationSyncChecker:
                     if in_code_block:
                         continue
                     
+                    # Check if this line is in an example context
+                    if self._is_in_example_context(line, lines, line_num):
+                        continue
+                    
                     # Extract paths from this line
                     for pattern in self.path_patterns:
                         matches = re.findall(pattern, line)
                         for match in matches:
                             if isinstance(match, tuple):
                                 # Handle regex groups (e.g., markdown links [text](url))
-                                for idx, group in enumerate(match):
-                                    if group and not group.startswith(('http', '#')):
-                                        # For markdown links, only process the URL part (second group)
-                                        # Skip the link text (first group) as it's often not a file path
-                                        if idx == 0 and len(match) > 1:
-                                            # This is link text, skip unless it looks like a file path
-                                            if not (group.endswith(('.py', '.md')) or '/' in group or '\\' in group):
-                                                continue
-                                        # Additional context filtering
-                                        if not self._is_likely_code_snippet(group, line):
-                                            # Skip section headers and common markdown link text
-                                            if not self._is_section_header_or_link_text(group, line):
-                                                doc_paths[str(md_file.relative_to(self.project_root))].append(group)
+                                # For markdown links, check if URL part has valid path
+                                if len(match) >= 2:
+                                    link_text = match[0] if match[0] else ''
+                                    url_part = match[1] if match[1] else ''
+                                    
+                                    # Skip if URL part is a valid file reference (has full path or exists)
+                                    if url_part and not url_part.startswith(('http', '#')):
+                                        # Check if URL part is a valid file reference
+                                        source_dir = md_file.parent
+                                        if self._is_valid_file_reference(url_part, source_dir):
+                                            # URL part is valid, skip link text even if it looks like a file path
+                                            # Only process the URL part
+                                            if not self._is_likely_code_snippet(url_part, line):
+                                                if not self._is_section_header_or_link_text(url_part, line):
+                                                    doc_paths[str(md_file.relative_to(self.project_root))].append(url_part)
+                                            continue
+                                    
+                                    # URL part not valid or not a file path, process link text if it looks like a file path
+                                    if link_text and not link_text.startswith(('http', '#')):
+                                        if link_text.endswith(('.py', '.md')) or '/' in link_text or '\\' in link_text:
+                                            if not self._is_likely_code_snippet(link_text, line):
+                                                if not self._is_section_header_or_link_text(link_text, line):
+                                                    doc_paths[str(md_file.relative_to(self.project_root))].append(link_text)
+                                else:
+                                    # Single group match, process normally
+                                    for idx, group in enumerate(match):
+                                        if group and not group.startswith(('http', '#')):
+                                            if not self._is_likely_code_snippet(group, line):
+                                                if not self._is_section_header_or_link_text(group, line):
+                                                    doc_paths[str(md_file.relative_to(self.project_root))].append(group)
                             else:
                                 if match and not match.startswith(('http', '#')):
                                     # Additional context filtering
@@ -268,7 +289,7 @@ class DocumentationSyncChecker:
         self.ignored_paths = set(IGNORED_PATH_PATTERNS)
         self.command_patterns = set(COMMAND_PATTERNS)
         self.template_patterns = set(TEMPLATE_PATTERNS)
-        self.alternative_dirs = ALTERNATIVE_DIRECTORIES
+        # Note: ALTERNATIVE_DIRECTORIES removed - we now require full paths to avoid ambiguity
     
     def _should_skip_path(self, path: str, doc_file: str) -> bool:
         """Enhanced path filtering to reduce false positives."""
@@ -419,6 +440,67 @@ class DocumentationSyncChecker:
         
         return False
     
+    def _is_in_example_context(self, line: str, lines: List[str], line_num: int) -> bool:
+        """
+        Check if a line is in an example context based on documentation standards.
+        
+        Examples must be marked using one of these standards:
+        1. Example markers: [OK], [AVOID], [GOOD], [BAD], [EXAMPLE] at start of section
+        2. Example headings: "Examples:", "Example Usage:", "Example Code:" headings
+        3. Code blocks: Automatically excluded (handled separately)
+        4. Archive references: Lines containing "archive" or "archived" (for archived file references)
+        
+        This method implements the example marking standards defined in DOCUMENTATION_GUIDE.md section 2.6.
+        """
+        line_stripped = line.strip()
+        line_lower = line.lower()
+        
+        # Standard 4: Check if line contains "archive" or "archived" (for archived file references)
+        if 'archive' in line_lower or 'archived' in line_lower:
+            return True
+        
+        # Standard 1: Check for example markers at the start of the line
+        # These are the official markers per documentation standards
+        example_markers = [
+            r'^\[OK\]', r'^\[AVOID\]', r'^\[GOOD\]', r'^\[BAD\]', r'^\[EXAMPLE\]',
+        ]
+        for marker in example_markers:
+            if re.match(marker, line_stripped, re.IGNORECASE):
+                return True
+        
+        # Standard 1 (continued): Check previous lines (up to 5 lines back) for example markers
+        # This catches cases where [AVOID] or [OK] is on a previous line (per standard)
+        for i in range(max(0, line_num - 5), line_num):
+            prev_line = lines[i].strip()
+            prev_line_lower = prev_line.lower()
+            # Check for archive references in previous lines too
+            if 'archive' in prev_line_lower or 'archived' in prev_line_lower:
+                if line_num - i <= 3:  # Within 3 lines of archive reference
+                    return True
+            for marker in example_markers:
+                if re.match(marker, prev_line, re.IGNORECASE):
+                    # If we found a marker, check if current line is part of the example
+                    # (list item, continuation, or within same section)
+                    if line_stripped.startswith(('-', '*', '1.', '2.', '3.', '  ')) or \
+                       line_num - i <= 3:  # Within 3 lines of the marker
+                        return True
+        
+        # Standard 2: Check if we're in an "Examples" section by looking backwards for section headers
+        # Look back up to 20 lines for section headers (per standard)
+        for i in range(max(0, line_num - 20), line_num):
+            prev_line = lines[i].strip()
+            # Check for "Examples:" or "Example Usage:" or "Example Code:" headings (per standard)
+            if re.match(r'^#+\s+(Examples?|Example\s+Usage|Example\s+Code)', prev_line, re.IGNORECASE):
+                return True
+            # Check for bold "Examples:" or "Example Usage:" text
+            if re.match(r'^\*\*(Examples?|Example\s+Usage)\*\*', prev_line, re.IGNORECASE):
+                return True
+        
+        # Note: Code blocks are handled separately in scan_documentation_paths() by checking in_code_block
+        # This is Standard 3 and doesn't need to be checked here
+        
+        return False
+    
     def _is_valid_file_reference(self, path: str, source_dir: Path) -> bool:
         """Check if a file reference is valid."""
         # Skip obvious glob patterns
@@ -449,7 +531,8 @@ class DocumentationSyncChecker:
             if mdc_file.exists():
                 return True  # Valid reference to .mdc file, not a missing .md file
         
-        # Check relative paths
+        # Check relative paths (both ../ paths and same-directory paths)
+        # First check if it's a relative path starting with ../
         if path.startswith('../'):
             relative_path = source_dir / path
             if relative_path.exists():
@@ -461,20 +544,18 @@ class DocumentationSyncChecker:
                 mdc_relative = source_dir / mdc_path
                 if mdc_relative.exists():
                     return True
-        
-        # Try common alternative locations using centralized constants
-        alternative_paths = [f"{dir}/{path}" for dir in self.alternative_dirs]
-        
-        for alt_path in alternative_paths:
-            alt_file = self.project_root / alt_path
-            if alt_file.exists():
+        else:
+            # For paths without ../, check relative to source file's directory
+            # This handles same-directory references (e.g., config.py in development_tools/)
+            relative_path = source_dir / path
+            if relative_path.exists():
                 return True
             
-            # Also check for .mdc variant in alternative paths
+            # Also check for .mdc variant
             if path.endswith('.md'):
-                mdc_path = alt_path[:-2] + 'c'  # Replace .md with .mdc
-                mdc_alt_file = self.project_root / mdc_path
-                if mdc_alt_file.exists():
+                mdc_path = path[:-2] + 'c'
+                mdc_relative = source_dir / mdc_path
+                if mdc_relative.exists():
                     return True
         
         return False

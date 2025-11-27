@@ -1,12 +1,12 @@
 # AI Development Workflow Guide
 
 > **File**: `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`  
-> **Pair**: `DEVELOPMENT_WORKFLOW.md`
+> **Pair**: [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md)
 > **Audience**: AI collaborators and tools
 > **Purpose**: Route AI assistance to the right docs and safe workflows
 > **Style**: Minimal, routing-first
-> For detailed behavior and rationale, use the matching sections in `DEVELOPMENT_WORKFLOW.md`.
-> Keep this file's H2 headings in lockstep with `DEVELOPMENT_WORKFLOW.md` whenever you change the structure.
+> For detailed behavior and rationale, use the matching sections in [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md).
+> Keep this file's H2 headings in lockstep with [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) whenever you change the structure.
 
 
 ---
@@ -17,20 +17,20 @@
   - Route AI tools to the right human docs, sections, and commands.
   - Enforce safe patterns for making and testing changes.
 - Always prefer:
-  - Human workflow doc: `DEVELOPMENT_WORKFLOW.md` (full detail).
+  - Human workflow doc: [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) (full detail).
   - This AI doc: high-level routing and constraints.
 - When you need more detail, jump to:
   - Running the app and environment commands:
   - Testing:
-    - `ai_development_docs/AI_TESTING_GUIDE.md` (routing for which tests to run and which commands to use).
+    - [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) (routing for which tests to run and which commands to use).
   - Logging:
-    - `ai_development_docs/AI_LOGGING_GUIDE.md` (routing for logging patterns and component log usage).
+    - [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md) (routing for logging patterns and component log usage).
   - Error handling:
-    - `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` (routing for error categories and handling patterns).
+    - [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) (routing for error categories and handling patterns).
   - Documentation:
-    - `ai_development_docs/AI_DOCUMENTATION_GUIDE.md` (routing for documentation categories and sync rules).
+    - [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md) (routing for documentation categories and sync rules).
   - Architecture and responsibilities:
-    - `ai_development_docs/AI_ARCHITECTURE.md` (routing for key modules, responsibilities, and patterns).
+    - [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md) (routing for key modules, responsibilities, and patterns).
 - Data and configuration rules:
   - Use `core.user_data_handlers.get_user_data()` and related helpers for user data access; do not invent new direct file-access wrappers.
   - Use `.env` and `core/config.py` for configuration; do not add ad hoc `os.getenv` calls outside the established patterns.
@@ -46,7 +46,7 @@
   - Prefer small, reversible changes instead of broad refactors.
   - Do not invent new entry points; use the ones documented in:
 - For crashes, confusing errors, or suspected configuration issues, route to:
-- For the full safety checklist, see section 1. "Safety First" in `DEVELOPMENT_WORKFLOW.md`.
+- For the full safety checklist, see section 1. "Safety First" in [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md).
 
 ---
 
@@ -54,15 +54,15 @@
 
 - Assume a standard virtual environment named `.venv` in the project root.
 - When the user asks how to create or activate the environment, point them to:
-  - `HOW_TO_RUN.md`, section 1. "Quick Start (Recommended)" for setup and activation commands.
-  - `HOW_TO_RUN.md`, section 5. "Troubleshooting" if activation fails or Python is not on PATH.
+  - [HOW_TO_RUN.md](HOW_TO_RUN.md), section 1. "Quick Start (Recommended)" for setup and activation commands.
+  - [HOW_TO_RUN.md](HOW_TO_RUN.md), section 5. "Troubleshooting" if activation fails or Python is not on PATH.
 - Do not invent alternative virtual environment layouts (different names or locations) unless the user explicitly tells you they are using something else.
 - If imports fail or dependencies look broken:
   - Suggest reinstalling dependencies inside the active `.venv` with `pip install -r requirements.txt`.
-  - Then route the user back to `HOW_TO_RUN.md`, section 5. "Troubleshooting" and `README.md`, section 10. "Troubleshooting" for deeper diagnostics.
+  - Then route the user back to [HOW_TO_RUN.md](HOW_TO_RUN.md), section 5. "Troubleshooting" and [README.md](README.md), section 10. "Troubleshooting" for deeper diagnostics.
 ## 3. Development Process
 
-Use the same high‑level loop as the human development workflow, but keep answers short and routing‑focused:
+Use the same high-level loop as the human development workflow, but keep answers short and routing-focused:
 
 - Plan the change.
 - Implement in small, reviewable slices.
@@ -73,9 +73,9 @@ When planning:
 
 - Ask which parts of the system are affected (UI, core, bots, tests, docs).
 - Route yourself or the user to:
-  - `AI_ARCHITECTURE.md` for where new logic should live and how components interact.
-  - `AI_TESTING_GUIDE.md` for where tests should go and which kinds of tests to add.
-  - `AI_DOCUMENTATION_GUIDE.md` for which docs must be updated and how to keep pairs in sync.
+  - [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md) for where new logic should live and how components interact.
+  - [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) for where tests should go and which kinds of tests to add.
+  - [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md) for which docs must be updated and how to keep pairs in sync.
 
 When implementing:
 
@@ -83,23 +83,23 @@ When implementing:
 - Use existing helpers and patterns:
   - Data access: functions in `core/user_data_handlers.py`.
   - Configuration: `core/config.py` and `.env` values, not ad hoc `os.getenv` calls.
-  - Logging: patterns described in `AI_LOGGING_GUIDE.md`.
-  - Error handling: patterns described in `AI_ERROR_HANDLING_GUIDE.md`.
+  - Logging: patterns described in [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md).
+  - Error handling: patterns described in [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md).
 - Preserve existing comments and structure unless a human doc explicitly says to remove or replace something.
 - Do not invent new global patterns for logging, configuration, or data access; reuse the existing ones.
 
 When documenting:
 
-- Decide which docs to update using `AI_DOCUMENTATION_GUIDE.md`.
-- Keep H2 headings aligned across doc pairs as described in `DOCUMENTATION_GUIDE.md`, section 3. "Documentation Synchronization Checklist".
+- Decide which docs to update using [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md).
+- Keep H2 headings aligned across doc pairs as described in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md), section 3. "Documentation Synchronization Checklist".
 ## 4. Testing Strategy
 
 - Always propose tests when suggesting code changes.
 - For where and how to write tests, route to:
-  - `ai_development_docs/AI_TESTING_GUIDE.md` for routing and quick commands.
+  - [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) for routing and quick commands.
 - Default commands you may recommend:
   - Targeted module or test-file runs only if they match patterns described in the human testing guide.
-- For deeper AI-specific testing patterns, route the tool to `ai_development_docs/AI_TESTING_GUIDE.md` instead of re-explaining them here.
+- For deeper AI-specific testing patterns, route the tool to [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) instead of re-explaining them here.
 
 ---
 
@@ -109,26 +109,26 @@ Use these patterns for frequent change types. Keep responses concise and route t
 
 **New feature**
 
-- Clarify the user‑visible behavior and which channels or components are involved.
-- Propose small, incremental changes rather than a large, all‑at‑once implementation.
-- Recommend tests to add or update, using `AI_TESTING_GUIDE.md` to choose scope and commands.
-- Identify which docs should be updated (for example, `README.md`, `HOW_TO_RUN.md`, or a guide) using `AI_DOCUMENTATION_GUIDE.md`.
+- Clarify the user-visible behavior and which channels or components are involved.
+- Propose small, incremental changes rather than a large, all-at-once implementation.
+- Recommend tests to add or update, using [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) to choose scope and commands.
+- Identify which docs should be updated (for example, `README.md`, `HOW_TO_RUN.md`, or a guide) using [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md).
 
 **Bug fix**
 
 - Ask how the bug reproduces and whether there are relevant logs.
-- Suggest checking component logs using patterns from `AI_LOGGING_GUIDE.md`.
+- Suggest checking component logs using patterns from [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md).
 - Recommend the smallest change that clearly fixes the issue.
-- Ensure tests cover the bug going forward, guided by `AI_TESTING_GUIDE.md`.
+- Ensure tests cover the bug going forward, guided by [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md).
 
 **Refactor**
 
 - Keep behavior the same while improving structure or clarity.
-- Use `AI_ARCHITECTURE.md` to confirm that responsibilities are in the right modules.
-- Encourage running the relevant tests (see `AI_TESTING_GUIDE.md`) after each significant step.
+- Use [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md) to confirm that responsibilities are in the right modules.
+- Encourage running the relevant tests (see [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)) after each significant step.
 - Remind the user to update or confirm docs where behavior, naming, or public interfaces have changed.
 
-When the user asks high‑level questions like:
+When the user asks high-level questions like:
 
 - "How do I run the app or service?"
 - "Where should this new logic live?"
@@ -138,11 +138,12 @@ When the user asks high‑level questions like:
 
 answer briefly and route to the appropriate AI doc:
 
-- Running and environment: `AI_DEVELOPMENT_WORKFLOW.md` (this doc) plus `HOW_TO_RUN.md` for commands.
-- Placement and responsibilities: `AI_ARCHITECTURE.md`.
-- Logging: `AI_LOGGING_GUIDE.md`.
-- Error handling: `AI_ERROR_HANDLING_GUIDE.md`.
-- Documentation: `AI_DOCUMENTATION_GUIDE.md`.
+- Running and environment: [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) (this doc) plus [HOW_TO_RUN.md](HOW_TO_RUN.md) for commands.
+- Placement and responsibilities: [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md).
+- Logging: [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md).
+- Error handling: [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md).
+- Documentation: [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md).
+
 ## 6. Emergency Procedures
 
 When things look broken or confusing:
@@ -151,17 +152,17 @@ When things look broken or confusing:
 - For unexpected tracebacks, crashes, or repeated errors:
 - For failing or flaky tests:
 - For documentation that appears inconsistent with behavior:
-- For the full emergency checklist, see section 6. "Emergency Procedures" in `DEVELOPMENT_WORKFLOW.md`.
+- For the full emergency checklist, see section 6. "Emergency Procedures" in [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md).
 
 ---
 
 ## 7. Learning Resources
 
 - Beginners should be pointed to:
-  - `DEVELOPMENT_WORKFLOW.md`, section 7. "Learning Resources".
+  - [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md), section 7. "Learning Resources".
 - For deeper understanding of structure and data flow:
 - For learning about testing, logging, and error handling:
-  - `ai_development_docs/AI_TESTING_GUIDE.md`, `ai_development_docs/AI_LOGGING_GUIDE.md`, and `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` for routing.
+  - [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md), and [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) for routing.
 
 Keep guidance brief and always route to the human docs for long explanations.
 
@@ -176,15 +177,15 @@ Keep guidance brief and always route to the human docs for long explanations.
   - Invent new file layouts, entry points, or global patterns that are not already documented.
   - Duplicate large sections of human docs inside AI docs; instead, point back to the correct section.
 
-For a fuller list of tips and examples, see section 8. "Success Tips" in `DEVELOPMENT_WORKFLOW.md`.
+For a fuller list of tips and examples, see section 8. "Success Tips" in [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md).
 
 ---
 
 ## 9. Git Workflow (PowerShell-Safe)
 
-- Git guidance should be aligned with section 9. "Git Workflow (PowerShell-Safe)" in `DEVELOPMENT_WORKFLOW.md`.
+- Git guidance should be aligned with section 9. "Git Workflow (PowerShell-Safe)" in [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md).
 - High-level rules for AI assistance:
   - Do not suggest complex branching strategies unless the user asks; default to simple `main`-based workflows.
   - Prefer commands that are safe in PowerShell on Windows.
   - Encourage small, frequent commits with clear messages summarizing the change.
-- When users need more detailed Git instructions, always route them back to `DEVELOPMENT_WORKFLOW.md`, section 9, instead of inventing new workflows here.
+- When users need more detailed Git instructions, always route them back to [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md), section 9, instead of inventing new workflows here.

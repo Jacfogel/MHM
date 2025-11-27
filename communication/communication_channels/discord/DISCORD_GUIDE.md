@@ -7,9 +7,9 @@
 
 This guide describes how the Discord channel is wired into the MHM communication layer: bot lifecycle, event handling, UI views, webhook-based onboarding, configuration, and how it interacts with the channel-agnostic message-processing core.
 
-For overall communication architecture, see section 2. “Architecture Layers” in `communication/COMMUNICATION_GUIDE.md`.  
-For system-wide architecture, see section 2. “High-Level Architecture” in `ARCHITECTURE.md`.  
-For error-handling and logging patterns, see section 2. “Architecture Overview” in `core/ERROR_HANDLING_GUIDE.md` and section 2. “Logging Architecture” in `logs/LOGGING_GUIDE.md`.
+For overall communication architecture, see section 2. “Architecture Layers” in [COMMUNICATION_GUIDE.md](communication/COMMUNICATION_GUIDE.md).  
+For system-wide architecture, see section 2. “High-Level Architecture” in [ARCHITECTURE.md](ARCHITECTURE.md).  
+For error-handling and logging patterns, see section 2. “Architecture Overview” in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) and section 2. “Logging Architecture” in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
 
 ---
 
@@ -30,23 +30,23 @@ This document focuses on implementation details and integration points, *not* en
 The Discord implementation is split into clear responsibilities:
 
 - **Bot and API client**
-  - `bot.py` – Creates and configures the Discord client/bot instance.  
-  - `api_client.py` – Lower-level wrapper for REST calls to Discord where needed.
+  - `communication/communication_channels/discord/bot.py` – Creates and configures the Discord client/bot instance.  
+  - `communication/communication_channels/discord/api_client.py` – Lower-level wrapper for REST calls to Discord where needed.
 
 - **Event wiring**
-  - `event_handler.py` – `DiscordEventHandler` wires Discord events (`on_ready`, `on_message`, etc.) to the channel-agnostic pipeline and any custom handlers. :contentReference[oaicite:6]{index=6}  
+  - `communication/communication_channels/discord/event_handler.py` – `DiscordEventHandler` wires Discord events (`on_ready`, `on_message`, etc.) to the channel-agnostic pipeline and any custom handlers. :contentReference[oaicite:6]{index=6}  
 
 - **Views (UI adapters)**
-  - `checkin_view.py` – Builds `discord.ui.View` for check-in buttons (cancel, skip, more info). :contentReference[oaicite:7]{index=7}  
-  - `task_reminder_view.py` – Builds `discord.ui.View` for task reminder buttons (complete, remind later, more info). :contentReference[oaicite:8]{index=8}  
+  - `communication/communication_channels/discord/checkin_view.py` – Builds `discord.ui.View` for check-in buttons (cancel, skip, more info). :contentReference[oaicite:7]{index=7}  
+  - `communication/communication_channels/discord/task_reminder_view.py` – Builds `discord.ui.View` for task reminder buttons (complete, remind later, more info). :contentReference[oaicite:8]{index=8}  
 
 - **Onboarding and account flow**
-  - `welcome_handler.py` – Composes and sends welcome DMs, tracks welcomed users.  
-  - `account_flow_handler.py` – Handles account-related flows specific to Discord.
+  - `communication/communication_channels/discord/welcome_handler.py` – Composes and sends welcome DMs, tracks welcomed users.  
+  - `communication/communication_channels/discord/account_flow_handler.py` – Handles account-related flows specific to Discord.
 
 - **Webhook-based onboarding**
-  - `webhook_server.py` – HTTP server receiving Discord webhook events (e.g., app authorization).  
-  - `webhook_handler.py` – Parses and routes webhook events (e.g., `APPLICATION_AUTHORIZED`).
+  - `communication/communication_channels/discord/webhook_server.py` – HTTP server receiving Discord webhook events (e.g., app authorization).  
+  - `communication/communication_channels/discord/webhook_handler.py` – Parses and routes webhook events (e.g., `APPLICATION_AUTHORIZED`).
 
 All of these modules ultimately route user actions into the **channel-agnostic interaction manager** in `communication/message_processing/interaction_manager.py`, which returns response objects that the Discord layer renders.
 
@@ -80,7 +80,7 @@ The Discord event handler also tracks:
 - `on_disconnect` – Logs disconnects and runs any registered cleanup. :contentReference[oaicite:11]{index=11}  
 - `on_error` – Logs Discord-level errors; inner exceptions should still be managed via the shared error-handling system. :contentReference[oaicite:12]{index=12}  
 
-When modifying shutdown behavior, follow the patterns in section 2. “Architecture Overview” and section 3. “Usage Patterns” in `core/ERROR_HANDLING_GUIDE.md`.
+When modifying shutdown behavior, follow the patterns in section 2. “Architecture Overview” and section 3. “Usage Patterns” in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
 
 ---
 
@@ -143,7 +143,7 @@ When a user authorizes the MHM Discord app (via the OAuth2 “Add to Server” /
 
 ### 5.1. Webhook Server
 
-`webhook_server.py` implements a small HTTP server to receive Discord webhook events:
+`communication/communication_channels/discord/webhook_server.py` implements a small HTTP server to receive Discord webhook events:
 
 - Runs on `DISCORD_WEBHOOK_PORT` (see section 7).  
 - Uses `DiscordWebhookHandler` (a `BaseHTTPRequestHandler` subclass) to:
@@ -219,7 +219,7 @@ Where slash commands or prefixed commands are implemented:
 Any changes to command behavior should be reflected in:
 
 - The core interaction handlers.  
-- Relevant tests in `tests/TESTING_GUIDE.md` (sections 2 and 6).  
+- Relevant tests in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) (sections 2 and 6).  
 - This section if the mapping strategy changes.
 
 ---
@@ -274,7 +274,7 @@ Use log levels consistently:
 - `error` for failed operations that impact a specific user or event.  
 - `debug` for diagnostic details.
 
-See section 2. “Logging Architecture” and section 4. “Component Log Files and Layout” in `logs/LOGGING_GUIDE.md` for detailed behavior.
+See section 2. “Logging Architecture” and section 4. “Component Log Files and Layout” in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) for detailed behavior.
 
 ### 8.2. Error Handling
 
@@ -299,8 +299,8 @@ When modifying the Discord channel:
 
 - **Manual tests**
   - Use the manual testing guides for channel-specific flows:
-    - Section 8. “Manual and Channel-Specific Testing Overview” in `tests/TESTING_GUIDE.md`.  
-    - `tests/MANUAL_TESTING_GUIDE.md` and related Discord-specific sections.
+    - Section 8. “Manual and Channel-Specific Testing Overview” in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).  
+    - [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md) and related Discord-specific sections.
 
 - **Webhook onboarding**
   - Manually verify that:

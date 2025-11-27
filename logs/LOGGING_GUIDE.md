@@ -4,7 +4,7 @@
 > **Audience**: Developers and maintainers  
 > **Purpose**: Describe logging architecture, behavior, and maintenance tasks for MHM  
 > **Style**: Technical, example-driven, detailed  
-> **Pair**: `ai_development_docs/AI_LOGGING_GUIDE.md`  
+> **Pair**: [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md)  
 
 This document describes how logging works in MHM and how to use it safely when developing or debugging.
 
@@ -291,7 +291,7 @@ Use `DEBUG` for detailed diagnostics; remove or tone down once issues are resolv
 
 ### 9.5. Align logging with error handling
 
-Most error paths should flow through the centralized error handling system; for category guidance, see section 4. "Error Categories and Severity" in `core/ERROR_HANDLING_GUIDE.md`.
+Most error paths should flow through the centralized error handling system; for category guidance, see section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
 
 ### 9.6. Respect test settings
 

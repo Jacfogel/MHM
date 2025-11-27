@@ -4,11 +4,11 @@
 > **Audience**: Developers and AI assistants working on MHM AI functionality  
 > **Purpose**: Quick reference for running and understanding AI functionality tests  
 > **Style**: Technical, concise, actionable  
-> **Parent**: `tests/MANUAL_TESTING_GUIDE.md`  
-> This document is subordinate to `tests/MANUAL_TESTING_GUIDE.md` and should be kept consistent with its standards and terminology.
+> **Parent**: [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md)  
+> This document is subordinate to [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md) and should be kept consistent with its standards and terminology.
 
 This guide describes how to run and interpret the **AI functionality tests**.  
-Use it when you change AI-related behavior (prompts, context, routing, or integrations) or when manual AI behavior testing (see section 7 of `tests/MANUAL_TESTING_GUIDE.md`) indicates regressions.
+Use it when you change AI-related behavior (prompts, context, routing, or integrations) or when manual AI behavior testing (see section 7 of [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md)) indicates regressions.
 
 ---
 
@@ -20,7 +20,7 @@ Use it when you change AI-related behavior (prompts, context, routing, or integr
 python tests\ai\run_ai_functionality_tests.py
 ```
 
-**Test Results Location**: `tests/ai/results/ai_functionality_test_results_latest.md`
+**Test Results Location**: [ai_functionality_test_results_latest.md](tests/ai/results/ai_functionality_test_results_latest.md)
 
 ## 2. Test Suite Structure
 
@@ -98,4 +98,4 @@ The test suite covers 16 categories:
 
 ---
 
-**Note**: For detailed test plan information and historical test results, see the archived `tests/AI_FUNCTIONALITY_TEST_PLAN.md` (archived 2025-11-20). Active work items are tracked in `development_docs/PLANS.md` under "AI Chatbot Actionability Sprint".
+**Note**: For detailed test plan information and historical test results, see the archived `tests/AI_FUNCTIONALITY_TEST_PLAN.md` (archived 2025-11-20, file no longer exists). Active work items are tracked in `development_docs/PLANS.md` under "AI Chatbot Actionability Sprint".

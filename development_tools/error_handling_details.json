@@ -1,27 +1,27 @@
 {
-  "total_functions": 1474,
-  "functions_with_try_except": 659,
-  "functions_with_error_handling": 1472,
-  "functions_with_decorators": 1383,
+  "total_functions": 1475,
+  "functions_with_try_except": 661,
+  "functions_with_error_handling": 1473,
+  "functions_with_decorators": 1384,
   "functions_missing_error_handling": 2,
-  "error_handling_coverage": 99.86431478968792,
+  "error_handling_coverage": 99.86440677966102,
   "error_patterns": {
-    "try_except": 743,
-    "handle_errors_decorator": 1476,
+    "try_except": 745,
+    "handle_errors_decorator": 1477,
     "handle_ai_error": 16,
     "DataError": 13,
-    "handle_network_error": 5,
     "handle_communication_error": 5,
+    "handle_network_error": 5,
     "handle_configuration_error": 4,
     "ValidationError": 16,
     "ConfigurationError": 6,
     "error_handler_usage": 13,
     "handle_file_error": 4,
     "handle_validation_error": 2,
-    "MHMError": 2,
-    "CommunicationError": 2,
+    "safe_file_operation": 1,
     "AIError": 2,
-    "safe_file_operation": 1
+    "CommunicationError": 2,
+    "MHMError": 2
   },
   "missing_error_handling": [
     {
@@ -39,7 +39,7 @@
   ],
   "error_handling_quality": {
     "basic": 89,
-    "excellent": 1383,
+    "excellent": 1384,
     "none": 2
   },
   "recommendations": [
@@ -551,8 +551,8 @@
     {
       "file_path": "core\\user_management.py",
       "function_name": "_load_presets_json",
-      "line_start": 1182,
-      "line_end": 1199,
+      "line_start": 1192,
+      "line_end": 1209,
       "is_async": false,
       "operation_type": "file_io",
       "is_entry_point": false,
@@ -901,8 +901,8 @@
     {
       "file_path": "core\\user_management.py",
       "function_name": "get_timezone_options",
-      "line_start": 1208,
-      "line_end": 1215,
+      "line_start": 1218,
+      "line_end": 1225,
       "is_async": false,
       "operation_type": "general",
       "is_entry_point": false,

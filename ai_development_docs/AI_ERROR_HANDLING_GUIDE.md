@@ -1,13 +1,13 @@
 # AI Error Handling Guide
 
 > **File**: `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`  
-> **Pair**: `core/ERROR_HANDLING_GUIDE.md`  
+> **Pair**: [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md)  
 > **Audience**: AI collaborators and tools  
 > **Purpose**: Routing & constraints for error handling  
 > **Style**: Minimal, routing-first  
 
-> For detailed behavior, examples, and rationale, use matching sections in `core/ERROR_HANDLING_GUIDE.md`.  
-> Keep this file’s H2 headings in lockstep with `core/ERROR_HANDLING_GUIDE.md` when making changes.
+> For detailed behavior, examples, and rationale, use matching sections in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).  
+> Keep this file's H2 headings in lockstep with [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) when making changes.
 
 ---
 
@@ -19,13 +19,13 @@ Use the centralized error handling system instead of ad-hoc patterns:
 - Ensure every non-trivial failure path is **logged** and, where possible, **categorized** using the `MHMError` hierarchy.
 - Keep **user-facing messages** short and safe; keep **logs** detailed.
 
-When changing error handling, keep behavior consistent with section 1. "Purpose and Design Principles" in `core/ERROR_HANDLING_GUIDE.md`.
+When changing error handling, keep behavior consistent with section 1. "Purpose and Design Principles" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
 
 ---
 
 ## 2. Architecture Overview
 
-Key components (see section 2. "Architecture Overview" in `core/ERROR_HANDLING_GUIDE.md`):
+Key components (see section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md)):
 
 - **Exception hierarchy**: `MHMError` and its subclasses (`DataError`, `FileOperationError`, `ConfigurationError`, `CommunicationError`, `SchedulerError`, `UserInterfaceError`, `AIError`, `ValidationError`, `RecoveryError`).  
 - **Recovery strategies**: `FileNotFoundRecovery`, `JSONDecodeRecovery`, `NetworkRecovery`, `ConfigurationRecovery`.  
@@ -42,13 +42,13 @@ Constraints:
 - Replace `ValueError` with `ValidationError` for user input validation, or `DataError` for data processing
 - Replace `KeyError` with `ConfigurationError` for config access, or `DataError` for data structure access
 - Replace `TypeError` with `ValidationError` for user input type issues, or `DataError` for internal type issues
-- Replace generic `Exception` with specific subclass based on context (file operations → `FileOperationError`, network → `CommunicationError`, etc.)
+- Replace generic `Exception` with specific subclass based on context (file operations -> `FileOperationError`, network -> `CommunicationError`, etc.)
 
 ---
 
 ## 3. Usage Patterns
 
-When editing or generating code, apply these patterns (see section 3. "Usage Patterns" in `core/ERROR_HANDLING_GUIDE.md`):
+When editing or generating code, apply these patterns (see section 3. "Usage Patterns" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md)):
 
 - Wrap entry points with `@handle_errors`:
   - Scheduler jobs and long-running loops.  
@@ -72,7 +72,7 @@ Never:
 
 ## 4. Error Categories and Severity
 
-Follow the categories in section 4. "Error Categories and Severity" in `core/ERROR_HANDLING_GUIDE.md`:
+Follow the categories in section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md):
 
 - Validation / user input errors.  
 - Recoverable operational errors.  
@@ -90,7 +90,7 @@ Routing rules for AI:
 
 ## 5. Error Message Guidelines
 
-Use section 5. "Error Message Guidelines" in `core/ERROR_HANDLING_GUIDE.md` as the source of truth.
+Use section 5. "Error Message Guidelines" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) as the source of truth.
 
 Key constraints:
 
@@ -108,13 +108,13 @@ Do not embed stack traces or raw exceptions into user-visible strings.
 
 ## 6. Configuration and Integration
 
-Error handling must integrate cleanly with logging and configuration (see section 6. "Configuration and Integration" in `core/ERROR_HANDLING_GUIDE.md` and section 2. "Logging Architecture" in `logs/LOGGING_GUIDE.md`).
+Error handling must integrate cleanly with logging and configuration (see section 6. "Configuration and Integration" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) and section 2. "Logging Architecture" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)).
 
 Routing rules:
 
 - Do not create new environment variables for error behavior without:
   - Updating `core/config.py`, and  
-  - Documenting them in section 6 of `core/ERROR_HANDLING_GUIDE.md`.  
+  - Documenting them in section 6 of [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).  
 
 - Respect `MHM_TESTING` when deciding whether to surface or suppress errors in tests.  
 
@@ -127,7 +127,7 @@ Logging constraints:
 
 ## 7. Testing Error Handling
 
-For test coverage of error handling (see section 7. "Testing Error Handling" in `core/ERROR_HANDLING_GUIDE.md` and sections 1 and 3 of `tests/TESTING_GUIDE.md`).
+For test coverage of error handling (see section 7. "Testing Error Handling" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) and sections 1 and 3 of [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)).
 
 AI routing:
 
@@ -140,8 +140,8 @@ AI routing:
 - **Phase 1 and Phase 2 Auditing**: The coverage tool now provides specialized analysis for quality improvements:
   - **Phase 1**: Identifies functions with basic try-except blocks that should use `@handle_errors` decorator, with priority categorization (high/medium/low)
   - **Phase 2**: Audits generic exception raises that should be replaced with specific `MHMError` subclasses
-  - Results appear in audit reports (`AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.txt`) for tracking progress
-  - See `development_docs/PLANS.md` for the Error Handling Quality Improvement Plan details
+  - Results appear in audit reports ([AI_STATUS.md](development_tools/AI_STATUS.md), [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md), `development_tools/consolidated_report.txt`) for tracking progress
+  - See [PLANS.md](development_docs/PLANS.md) for the Error Handling Quality Improvement Plan details
 
 Do not design new error mechanisms that are hard or impossible to test.
 
@@ -149,7 +149,7 @@ Do not design new error mechanisms that are hard or impossible to test.
 
 ## 8. Monitoring and Debugging
 
-For debugging guidance, rely on section 8. "Monitoring and Debugging" in `core/ERROR_HANDLING_GUIDE.md` and section 8. "Monitoring and Debugging" in `logs/LOGGING_GUIDE.md`.
+For debugging guidance, rely on section 8. "Monitoring and Debugging" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) and section 8. "Monitoring and Debugging" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
 
 AI rules:
 
@@ -167,7 +167,7 @@ Avoid adding one-off debug prints; use structured logging and the existing log f
 
 ## 9. Legacy and Migration
 
-Follow section 9. "Legacy and Migration" in `core/ERROR_HANDLING_GUIDE.md`.
+Follow section 9. "Legacy and Migration" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
 
 Migration rules:
 
@@ -186,7 +186,7 @@ Do **not** add new tutorial-style examples here; use examples only when needed f
 
 If you need concrete patterns:
 
-- Use the minimal examples in section 10. "Examples" in `core/ERROR_HANDLING_GUIDE.md`.
+- Use the minimal examples in section 10. "Examples" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
 - Prefer reusing those examples verbatim rather than inventing new variations.
 
 ---
@@ -195,8 +195,8 @@ If you need concrete patterns:
 
 For related AI-facing routing docs:
 
-- Logging: `ai_development_docs/AI_LOGGING_GUIDE.md`: section 2 & section 4.  
-- Testing: `ai_development_docs/AI_TESTING_GUIDE.md`: section 7 for debugging, section 3 for fixtures/safety.  
-- Development workflow: `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`.
+- Logging: [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md): section 2 & section 4.  
+- Testing: [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md): section 7 for debugging, section 3 for fixtures/safety.  
+- Development workflow: [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md).
 
-For detailed explanations, always route back to `core/ERROR_HANDLING_GUIDE.md` instead of repeating content here.
+For detailed explanations, always route back to [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) instead of repeating content here.

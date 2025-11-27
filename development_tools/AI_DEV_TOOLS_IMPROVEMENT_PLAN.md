@@ -14,9 +14,9 @@ It is intended to guide decisions on tool maintenance, triage, and future enhanc
 
 The `development_tools` directory represents an ambitious and generally well‑structured attempt at creating an internal “analysis and audit platform” for the MHM project. The architecture includes:
 
-- A unified dispatcher (`ai_tools_runner.py`)
-- Configurable behavior (`config.py`)
-- Centralized exclusions (`standard_exclusions.py`)
+- A unified dispatcher (`development_tools/ai_tools_runner.py`)
+- Configurable behavior (`development_tools/config.py`)
+- Centralized exclusions (`development_tools/services/standard_exclusions.py`)
 - Documentation-aware analysis tools
 - Code-aware discovery, dependency analysis, and coverage generation
 - Legacy cleanup tooling
@@ -35,7 +35,7 @@ The `development_tools` directory represents an ambitious and generally well‑s
 - Some tools are incomplete or experimental.
 - There are no tests for the tools themselves.
 - Write operations are high‑risk without strong safeguards.
-- ~~No formal "tiering"~~ **RESOLVED (2025-11-25)**: Tiering system implemented via `services/tool_metadata.py` with tier markers in all tool modules and CLI help grouping.
+- ~~No formal "tiering"~~ **RESOLVED (2025-11-25)**: Tiering system implemented via `development_tools/services/tool_metadata.py` with tier markers in all tool modules and CLI help grouping.
 
 **Summary:**  
 Good bones, uneven execution. High potential, but needs consolidation, testing, and prioritization.
@@ -50,44 +50,44 @@ This section categorizes each tool into “Core,” “Supporting,” or “Expe
 
 ## 2.1 Core Infrastructure (Strong, Foundational)
 
-### `config.py`
+### `development_tools/config.py`
 - Centralizes scan roots, thresholds, audit modes.
 - Widely used across tools.
 - ✅ **HAS VALIDATION TESTS (Phase 2)**: 23 tests in `tests/development_tools/test_config.py` verify key settings and helper functions.
 
-### `standard_exclusions.py`
+### `development_tools/services/standard_exclusions.py`
 - Good design: all tools call `should_exclude_file`.
 - Patterns may need tuning but concept is sound.
 - ✅ **HAS VALIDATION TESTS (Phase 2)**: 21 tests in `tests/development_tools/test_standard_exclusions.py` verify exclusion patterns work correctly.
 
-### `constants.py`
+### `development_tools/services/constants.py`
 - Holds doc pairing metadata and predefined doc lists.
 - Needs regular updates to avoid drift.
 - ✅ **HAS VALIDATION TESTS (Phase 2)**: 25 tests in `tests/development_tools/test_constants.py` verify paths exist and helper functions work correctly.
 
-### `common.py`
+### `development_tools/services/common.py`
 - Provides consistent CLI patterns and file operations.
 - Some tools bypass it; future tools should not.
 
-### `services/tool_metadata.py` **NEW (2025-11-25)**
+### `development_tools/services/tool_metadata.py` **NEW (2025-11-25)**
 - Single source of truth for tool tier, portability, trust level, description, and command metadata.
 - Drives CLI help grouping and documentation generation.
 - All tools reference this registry for authoritative classification.
 - Eliminates duplication and ensures consistency across CLI, docs, and code.
 
-**Overall:** These modules form a reliable backbone and should be maintained carefully. The addition of `tool_metadata.py` provides the foundation for explicit tiering and consistent tool classification.
+**Overall:** These modules form a reliable backbone and should be maintained carefully. The addition of `development_tools/services/tool_metadata.py` provides the foundation for explicit tiering and consistent tool classification.
 
 ---
 
 ## 2.2 Runner and Operations Layer
 
-### `ai_tools_runner.py`
+### `development_tools/ai_tools_runner.py`
 - Central dispatcher with command registry.
 - Good entry point; ties the system together.
 - ✅ **HAS CLI SMOKE TESTS (Phase 2)**: 7 tests in `tests/development_tools/test_ai_tools_runner.py` verify command execution and exit codes.
 - ✅ **HAS ENHANCED ERROR HANDLING (Phase 2)**: Try/except blocks with proper logging and exit code propagation.
 
-### `operations.py`
+### `development_tools/services/operations.py`
 - Implements core logic for each command.
 - Has risk of becoming a "god module."
 - Should eventually be split by domain (audit, docs, legacy, coverage).
@@ -99,22 +99,22 @@ This section categorizes each tool into “Core,” “Supporting,” or “Expe
 
 ## 2.3 Documentation & Structure Tools (High Value, Complex)
 
-### `documentation_sync_checker.py`
+### `development_tools/documentation_sync_checker.py`
 - Validates human/AI doc pairing (H2 headings, metadata).
-- Important for MHM’s strict documentation system.
+- Important for MHM's strict documentation system.
 - Some fragility around edge cases.
 
-### `generate_function_registry.py`
+### `development_tools/generate_function_registry.py`
 - Extracts full project function registry.
 - High complexity; AST-based scanning.
 - Very valuable but fragile without tests.
 
-### `generate_module_dependencies.py`
+### `development_tools/generate_module_dependencies.py`
 - Computes dependency graph across modules.
 - Preserves manual enhancement blocks.
 - Large and sophisticated; needs validation.
 
-### `analyze_documentation.py`
+### `development_tools/analyze_documentation.py`
 - Detects incomplete or corrupted docs.
 - Good complement to doc-sync; some overlap.
 
@@ -124,20 +124,20 @@ This section categorizes each tool into “Core,” “Supporting,” or “Expe
 
 ## 2.4 Quality, Coverage & Validation Tools (High Value, Uneven)
 
-### `regenerate_coverage_metrics.py`
+### `development_tools/regenerate_coverage_metrics.py`
 - Full coverage regeneration with HTML output.
 - Handles artifact rotation and aggregation.
 - High-risk without tests; complex flows.
 
-### `validate_ai_work.py`
+### `development_tools/validate_ai_work.py`
 - Lightweight structural validator.
 - Useful but incomplete; not authoritative.
 
-### `unused_imports_checker.py`
+### `development_tools/unused_imports_checker.py`
 - AST-based unused import detector.
 - Potentially noisy; requires tuning.
 
-### `error_handling_coverage.py`
+### `development_tools/error_handling_coverage.py`
 - Analyzes exception patterns, decorator usage, custom errors.
 - Strong concept that aligns with ERROR_HANDLING_GUIDE.
 - Static analysis limitations exist.
@@ -148,19 +148,19 @@ This section categorizes each tool into “Core,” “Supporting,” or “Expe
 
 ## 2.5 Legacy, Versioning, Signals (Mixed Quality)
 
-### `legacy_reference_cleanup.py`
+### `development_tools/legacy_reference_cleanup.py`
 - Supports find/verify/scan/clean (with dry-run).
 - Very useful but high-risk; must rely heavily on dry-run.
 
-### `version_sync.py`
+### `development_tools/version_sync.py`
 - Attempts to synchronize versioning across files.
 - Often fragile; underdeveloped; easy to break.
 
-### `system_signals.py`
+### `development_tools/system_signals.py`
 - Minimal; hooks for OS/system health.
 - Used lightly.
 
-### `quick_status.py`
+### `development_tools/quick_status.py`
 - Fast snapshot for AI tools.
 - Only reliable if audits are fresh.
 
@@ -170,31 +170,31 @@ This section categorizes each tool into “Core,” “Supporting,” or “Expe
 
 ## 2.6 Decision Support & Misc Utilities (Variable Quality)
 
-### `decision_support.py`
+### `development_tools/decision_support.py`
 - Aggregates outputs into priorities and complexity insights.
 - Advisory only; not deterministic.
 
-### `function_discovery.py`
+### `development_tools/function_discovery.py`
 - Parses function signatures, handlers, tests.
 - Forms basis for several other tools.
 
-### `auto_document_functions.py`
+### `development_tools/auto_document_functions.py`
 - Generates docstrings automatically.
 - High-risk; should be treated as experimental.
 
-### `config_validator.py`
+### `development_tools/config_validator.py`
 - Checks config usage across tools.
 - Helps detect drift; incomplete but useful.
 
-### `file_rotation.py`
-- Simple timestamp-based rotation and “latest” pointer.
+### `development_tools/file_rotation.py`
+- Simple timestamp-based rotation and "latest" pointer.
 - Solid utility.
 
-### `audit_function_registry.py`, `audit_module_dependencies.py`, `audit_package_exports.py`
+### `development_tools/audit_function_registry.py`, `development_tools/audit_module_dependencies.py`, `development_tools/audit_package_exports.py`
 - Validate the outputs of code-to-doc generators.
 - High value when paired with solid registry/dependency generators.
 
-### `tool_guide.py`
+### `development_tools/tool_guide.py`
 - Generates help text.
 - Safe and stable.
 
@@ -206,21 +206,21 @@ This section categorizes each tool into “Core,” “Supporting,” or “Expe
 
 ### **1. ~~No clear tiering (core vs supporting vs experimental)~~** **RESOLVED (2025-11-25)**
 - ✅ Tier markers added to all tool modules (`# TOOL_TIER` and `# TOOL_PORTABILITY` headers)
-- ✅ `services/tool_metadata.py` created as single source of truth for tier, portability, trust, and command metadata
+- ✅ `development_tools/services/tool_metadata.py` created as single source of truth for tier, portability, trust, and command metadata
 - ✅ CLI help output groups commands by tier (Core, Supporting, Experimental) with warnings
 - ✅ Documentation guides updated with tier information and trust levels
 - ✅ Directory renamed from `ai_development_tools/` to `development_tools/` for clarity
 
 ### **2. ~~No tests for tooling~~** **RESOLVED (2025-11-26)**
-- ✅ Basic sanity tests added for core infrastructure (`config.py`, `standard_exclusions.py`, `constants.py`)
-- ✅ CLI smoke tests added for `ai_tools_runner.py`
-- ✅ Logging and error handling normalized in `operations.py` and `ai_tools_runner.py`
+- ✅ Basic sanity tests added for core infrastructure (`development_tools/config.py`, `development_tools/services/standard_exclusions.py`, `development_tools/services/constants.py`)
+- ✅ CLI smoke tests added for `development_tools/ai_tools_runner.py`
+- ✅ Logging and error handling normalized in `development_tools/services/operations.py` and `development_tools/ai_tools_runner.py`
 - ✅ Comprehensive tests added for all five core analysis tools (Phase 3):
-  - `documentation_sync_checker.py` (12 tests)
-  - `generate_function_registry.py` (12 tests)
-  - `generate_module_dependencies.py` (11 tests)
-  - `legacy_reference_cleanup.py` (10 tests)
-  - `regenerate_coverage_metrics.py` (10 tests)
+  - `development_tools/documentation_sync_checker.py` (12 tests)
+  - `development_tools/generate_function_registry.py` (12 tests)
+  - `development_tools/generate_module_dependencies.py` (11 tests)
+  - `development_tools/legacy_reference_cleanup.py` (10 tests)
+  - `development_tools/regenerate_coverage_metrics.py` (10 tests)
 - ✅ Synthetic fixture project created at `tests/fixtures/development_tools_demo/` for isolated testing
 - ✅ Total test coverage: 132 tests across all development tools
 
@@ -242,26 +242,26 @@ This section categorizes each tool into “Core,” “Supporting,” or “Expe
 
 ## 4. AI Development Tools – Implementation Roadmap
 
-> **File**: `development_tools/AI_DEV_TOOLS_ROADMAP.md`
-> **Audience**: Project maintainers and developers
-> **Purpose**: Provide a practical, phased roadmap with milestones to stabilize, test, and rationalize the AI development tools.
+> **File**: `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md` (this file)  
+> **Audience**: Project maintainers and developers  
+> **Purpose**: Provide a practical, phased roadmap with milestones to stabilize, test, and rationalize the AI development tools.  
 > **Style**: Direct, technical, and concise.
 
 This roadmap assumes the following tiering for the AI development tools:
 
 - **Tier 1 – Core**
-  - `ai_tools_runner.py`, `operations.py`, `config.py`, `standard_exclusions.py`, `constants.py`, `common.py`
-  - `documentation_sync_checker.py`, `generate_function_registry.py`, `generate_module_dependencies.py`
-  - `legacy_reference_cleanup.py`, `regenerate_coverage_metrics.py`
-  - `error_handling_coverage.py`, `function_discovery.py`
+  - `development_tools/ai_tools_runner.py`, `development_tools/services/operations.py`, `development_tools/config.py`, `development_tools/services/standard_exclusions.py`, `development_tools/services/constants.py`, `development_tools/services/common.py`
+  - `development_tools/documentation_sync_checker.py`, `development_tools/generate_function_registry.py`, `development_tools/generate_module_dependencies.py`
+  - `development_tools/legacy_reference_cleanup.py`, `development_tools/regenerate_coverage_metrics.py`
+  - `development_tools/error_handling_coverage.py`, `development_tools/function_discovery.py`
 
 - **Tier 2 – Supporting**
-  - `analyze_documentation.py`, `audit_function_registry.py`, `audit_module_dependencies.py`, `audit_package_exports.py`
-  - `config_validator.py`, `validate_ai_work.py`, `unused_imports_checker.py`, `quick_status.py`, `system_signals.py`
-  - `decision_support.py`, `file_rotation.py`, `tool_guide.py`
+  - `development_tools/analyze_documentation.py`, `development_tools/audit_function_registry.py`, `development_tools/audit_module_dependencies.py`, `development_tools/audit_package_exports.py`
+  - `development_tools/config_validator.py`, `development_tools/validate_ai_work.py`, `development_tools/unused_imports_checker.py`, `development_tools/quick_status.py`, `development_tools/system_signals.py`
+  - `development_tools/decision_support.py`, `development_tools/file_rotation.py`, `development_tools/tool_guide.py`
 
 - **Tier 3 – Experimental**
-  - `version_sync.py`, `auto_document_functions.py`
+  - `development_tools/version_sync.py`, `development_tools/auto_document_functions.py`
 
 ---
 
@@ -273,7 +273,7 @@ This roadmap assumes the following tiering for the AI development tools:
 
 #### Milestone M1.1 – Add Tier Markers **COMPLETED**
 
-- ✅ Created `services/tool_metadata.py` as authoritative registry for all tool metadata (tier, portability, trust, description, command name)
+- ✅ Created `development_tools/services/tool_metadata.py` as authoritative registry for all tool metadata (tier, portability, trust, description, command name)
 - ✅ Added `# TOOL_TIER: core | supporting | experimental` headers to all tool modules
 - ✅ Added `# TOOL_PORTABILITY: portable | mhm-specific` headers to all tool modules
 - ✅ Removed BOM characters discovered during header injection sweep
@@ -281,10 +281,10 @@ This roadmap assumes the following tiering for the AI development tools:
 
 #### Milestone M1.2 – Reflect Tiering in Help Output **COMPLETED**
 
-- ✅ Updated `services/common.py` to build command groupings from `tool_metadata.py` (single source of truth)
-- ✅ Updated `ai_tools_runner.py` to display commands grouped by tier in help output
-- ✅ Updated `services/operations.py` to use tier-based grouping for help display
-- ✅ Enhanced `tool_guide.py` to print tier overview sourced from `tool_metadata.py`
+- ✅ Updated `development_tools/services/common.py` to build command groupings from `development_tools/services/tool_metadata.py` (single source of truth)
+- ✅ Updated `development_tools/ai_tools_runner.py` to display commands grouped by tier in help output
+- ✅ Updated `development_tools/services/operations.py` to use tier-based grouping for help display
+- ✅ Enhanced `development_tools/tool_guide.py` to print tier overview sourced from `development_tools/services/tool_metadata.py`
 - ✅ Help output now groups commands under **Core**, **Supporting**, and **Experimental** headings with explicit warnings
 
 #### Milestone M1.3 – Document "Partial / Experimental" Tools **COMPLETED**
@@ -293,9 +293,9 @@ This roadmap assumes the following tiering for the AI development tools:
   - `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` (AI-facing, routing-focused)
   - `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` (human-facing, detailed catalog)
 - ✅ Both guides include complete tool catalog with tier, trust level, portability, and notes
-- ✅ Explicitly flagged partial/incomplete tools (e.g. `validate_ai_work.py`)
-- ✅ Explicitly flagged advisory-only tools (e.g. `decision_support.py`)
-- ✅ Explicitly flagged experimental/fragile tools (e.g. `version_sync.py`, `auto_document_functions.py`)
+- ✅ Explicitly flagged partial/incomplete tools (e.g. `development_tools/validate_ai_work.py`)
+- ✅ Explicitly flagged advisory-only tools (e.g. `development_tools/decision_support.py`)
+- ✅ Explicitly flagged experimental/fragile tools (e.g. `development_tools/version_sync.py`, `development_tools/auto_document_functions.py`)
 - ✅ Aligned both guides with documentation standards (metadata blocks, identical H2 headings)
 - ✅ Updated all path references from `ai_development_tools/` to `development_tools/` throughout codebase
 - ✅ Added guides to `DEFAULT_DOCS`, `PAIRED_DOCS`, directory tree, README, and other doc listings
@@ -305,17 +305,17 @@ This does not fix code, but it stops you from accidentally trusting the wrong to
 **Reference list for documentation and CLI alignment**
 
 - Partial / advisory (Supporting tier):
-  - `analyze_documentation.py` — overlap/corruption detection with known edge cases.
-  - `audit_function_registry.py` — validates registry output but depends on fixture freshness.
-  - `audit_module_dependencies.py` / `audit_package_exports.py` — verification helpers that still lack regression tests.
-  - `config_validator.py` — drift detector that needs broader coverage.
-  - `validate_ai_work.py` — structural heuristics only; do not treat as authoritative.
-  - `unused_imports_checker.py` — noisy on generated files; review manually.
-  - `quick_status.py` / `system_signals.py` — cached views that require a recent audit.
-  - `decision_support.py` — advisory scoring, not a blocker.
+  - `development_tools/analyze_documentation.py` — overlap/corruption detection with known edge cases.
+  - `development_tools/audit_function_registry.py` — validates registry output but depends on fixture freshness.
+  - `development_tools/audit_module_dependencies.py` / `development_tools/audit_package_exports.py` — verification helpers that still lack regression tests.
+  - `development_tools/config_validator.py` — drift detector that needs broader coverage.
+  - `development_tools/validate_ai_work.py` — structural heuristics only; do not treat as authoritative.
+  - `development_tools/unused_imports_checker.py` — noisy on generated files; review manually.
+  - `development_tools/quick_status.py` / `development_tools/system_signals.py` — cached views that require a recent audit.
+  - `development_tools/decision_support.py` — advisory scoring, not a blocker.
 - Experimental (prototype tier):
-  - `version_sync.py` — fragile heuristic updates; run only with backup/approval.
-  - `auto_document_functions.py` — generates docstrings automatically; high-risk edits.
+  - `development_tools/version_sync.py` — fragile heuristic updates; run only with backup/approval.
+  - `development_tools/auto_document_functions.py` — generates docstrings automatically; high-risk edits.
 
 ---
 
@@ -342,7 +342,7 @@ This does not fix code, but it stops you from accidentally trusting the wrong to
   - All PAIRED_DOCS paths exist (both human and AI sides)
   - LOCAL_MODULE_PREFIXES contains expected modules
   - Helper functions (`is_local_module()`, `is_standard_library_module()`) work correctly
-- ✅ Fixed path mismatch in constants.py (`tests/AI_FUNCTIONALITY_TEST_GUIDE.md` → `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`)
+- ✅ Fixed path mismatch in constants.py (`tests/AI_FUNCTIONALITY_TEST_GUIDE.md` → `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`) (archived reference - file no longer exists)
 
 #### Milestone M2.2 – CLI Smoke Tests for Runner **COMPLETED**
 
@@ -358,7 +358,7 @@ This does not fix code, but it stops you from accidentally trusting the wrong to
 
 #### Milestone M2.3 – Normalize Logging and Error Handling **COMPLETED**
 
-- ✅ Added consistent logging to major operations in `operations.py`:
+- ✅ Added consistent logging to major operations in `development_tools/services/operations.py`:
   - "Starting {operation_name}..." at operation start
   - "Completed {operation_name} successfully!" or "Completed {operation_name} with errors!" at completion
   - Applied to: `run_audit()`, `run_docs()`, `run_validate()`, `run_config()`, `run_status()`, `run_documentation_sync()`, `run_coverage_regeneration()`, `run_legacy_cleanup()`, `run_system_signals()`, `run_unused_imports_report()`
@@ -380,14 +380,14 @@ This does not fix code, but it stops you from accidentally trusting the wrong to
 #### Milestone M3.1 – Create Synthetic Fixture Project **COMPLETED**
 
 - ✅ Created `tests/fixtures/development_tools_demo/` with:
-  - `demo_module.py` and `demo_module2.py` with functions, classes, and imports
-  - `demo_tests.py` for coverage runs
-  - `legacy_code.py` with known legacy patterns and markers
+  - `tests/fixtures/development_tools_demo/demo_module.py` and `tests/fixtures/development_tools_demo/demo_module2.py` with functions, classes, and imports
+  - `tests/fixtures/development_tools_demo/demo_tests.py` for coverage runs
+  - `tests/fixtures/development_tools_demo/legacy_code.py` with known legacy patterns and markers
   - `docs/` directory with paired documentation (synced, mismatched, standalone cases)
   - `README.md` documenting the fixture structure
 - ✅ Fixture provides controlled environment for testing without affecting main codebase
 
-#### Milestone M3.2 – Tests for `documentation_sync_checker.py` **COMPLETED**
+#### Milestone M3.2 – Tests for `development_tools/documentation_sync_checker.py` **COMPLETED**
 
 - ✅ Created `tests/development_tools/test_documentation_sync_checker.py` with 12 tests:
   - Perfectly synced docs return no errors
@@ -399,7 +399,7 @@ This does not fix code, but it stops you from accidentally trusting the wrong to
   - Full integration test
 - ✅ Tests verify doc-sync's pass/fail signals are reliable
 
-#### Milestone M3.3 – Tests for `generate_function_registry.py` **COMPLETED**
+#### Milestone M3.3 – Tests for `development_tools/generate_function_registry.py` **COMPLETED**
 
 - ✅ Created `tests/development_tools/test_generate_function_registry.py` with 12 tests:
   - Function and class extraction from files
@@ -409,7 +409,7 @@ This does not fix code, but it stops you from accidentally trusting the wrong to
   - File writing operations
 - ✅ Tests verify registry generation accuracy and categorization
 
-#### Milestone M3.4 – Tests for `generate_module_dependencies.py` **COMPLETED**
+#### Milestone M3.4 – Tests for `development_tools/generate_module_dependencies.py` **COMPLETED**
 
 - ✅ Created `tests/development_tools/test_generate_module_dependencies.py` with 11 tests:
   - Import extraction (standard library, third-party, local)
@@ -422,7 +422,7 @@ This does not fix code, but it stops you from accidentally trusting the wrong to
 
 #### Milestone M3.5 – Safe Legacy Cleanup Tests **COMPLETED**
 
-- ✅ Created `tests/development_tools/test_legacy_reference_cleanup.py` with 10 tests:
+- ✅ Created `tests/development_tools/test_legacy_reference_cleanup.py` with 10 tests (for `development_tools/legacy_reference_cleanup.py`):
   - Legacy marker scanning
   - Preserve file handling
   - Reference finding for specific items
@@ -437,7 +437,7 @@ This does not fix code, but it stops you from accidentally trusting the wrong to
 
 #### Milestone M3.6 – Coverage Regeneration Tests **COMPLETED**
 
-- ✅ Created `tests/development_tools/test_regenerate_coverage_metrics.py` with 10 tests:
+- ✅ Created `tests/development_tools/test_regenerate_coverage_metrics.py` with 10 tests (for `development_tools/regenerate_coverage_metrics.py`):
   - Coverage output parsing
   - Overall coverage extraction
   - Module categorization by coverage
@@ -460,26 +460,26 @@ This does not fix code, but it stops you from accidentally trusting the wrong to
 
 - Create `development_tools/experimental/`.
 - Move:
-  - `version_sync.py`
-  - `auto_document_functions.py`
+  - `development_tools/version_sync.py`
+  - `development_tools/auto_document_functions.py`
 - Update runner/help so they are clearly marked or only reachable via explicit flags.
 
 #### Milestone M4.2 – Decide Fate of Each Tier-2 Tool
 
 For each of:
 
-- `analyze_documentation.py`
-- `audit_function_registry.py`
-- `audit_module_dependencies.py`
-- `audit_package_exports.py`
-- `config_validator.py`
-- `validate_ai_work.py`
-- `unused_imports_checker.py`
-- `quick_status.py`
-- `system_signals.py`
-- `decision_support.py`
-- `file_rotation.py`
-- `tool_guide.py`
+- `development_tools/analyze_documentation.py`
+- `development_tools/audit_function_registry.py`
+- `development_tools/audit_module_dependencies.py`
+- `development_tools/audit_package_exports.py`
+- `development_tools/config_validator.py`
+- `development_tools/validate_ai_work.py`
+- `development_tools/unused_imports_checker.py`
+- `development_tools/quick_status.py`
+- `development_tools/system_signals.py`
+- `development_tools/decision_support.py`
+- `development_tools/file_rotation.py`
+- `development_tools/tool_guide.py`
 
 Decide:
 - **Promote to Tier 1:** worth robust tests and core support, or
@@ -514,15 +514,15 @@ You do not need full test coverage here immediately; priority is clarity and red
 - ✅ Aligned guides with documentation standards (metadata, H2 headings)
 - ✅ Verified all content preserved and enhanced in human guide
 
-#### Milestone M5.2 – Standard Audit Recipe in `AI_DEVELOPMENT_WORKFLOW.md`
+#### Milestone M5.2 – Standard Audit Recipe in `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`
 
 Add a short section describing when to run:
 
-- `ai_tools_runner.py audit` (day-to-day checks).
-- `ai_tools_runner.py audit --full` (pre-merge / pre-release checks).
-- `ai_tools_runner.py doc-sync` and `ai_tools_runner.py docs` (doc work).
+- `development_tools/ai_tools_runner.py audit` (day-to-day checks).
+- `development_tools/ai_tools_runner.py audit --full` (pre-merge / pre-release checks).
+- `development_tools/ai_tools_runner.py doc-sync` and `development_tools/ai_tools_runner.py docs` (doc work).
 
-#### Milestone M5.3 – Update `AI_SESSION_STARTER.md`
+#### Milestone M5.3 – Update `ai_development_docs/AI_SESSION_STARTER.md`
 
 - When the user’s task touches dev tools, route:
   - First to `AI_DEVELOPMENT_TOOLS_GUIDE.md`.
@@ -539,33 +539,33 @@ Result: the dev tools ecosystem becomes something you and future collaborators c
 **Status:** Roadmap defined and integrated into improvement plan. Per-tool portability checklist created for future work.
 
 #### Core Tool Checklist
-- `ai_tools_runner.py` — expose command registry + config paths via CLI arguments so it can point at any project root.
-- `services/operations.py` — split command implementations from MHM-specific behaviors (Discord, account files) so a thin adapter can be swapped in.
-- `config.py` — move default paths (docs, logs, data) into an external config file that can be overridden per environment.
-- `services/standard_exclusions.py` — read exclusions from config/constants rather than hardcoding MHM directories.
-- `services/constants.py` — relocate paired-doc metadata into a data file so non-MHM repos can supply their own doc lists.
-- `documentation_sync_checker.py` — parameterize the doc root(s) and metadata schema instead of assuming the MHM structure.
-- `generate_function_registry.py` / `function_discovery.py` — make scan roots and filters configurable; rely on passed-in include/exclude patterns.
-- `generate_module_dependencies.py` — let callers provide module prefixes to treat as “local” vs “external”.
-- `legacy_reference_cleanup.py` — treat LEGACY tokens and log locations as inputs so other projects can define their own markers.
-- `regenerate_coverage_metrics.py` — accept pytest command, coverage config, and artifact directories as arguments.
-- `error_handling_coverage.py` — read decorator names and exception base classes from config, not MHM-specific modules.
+- `development_tools/ai_tools_runner.py` — expose command registry + config paths via CLI arguments so it can point at any project root.
+- `development_tools/services/operations.py` — split command implementations from MHM-specific behaviors (Discord, account files) so a thin adapter can be swapped in.
+- `development_tools/config.py` — move default paths (docs, logs, data) into an external config file that can be overridden per environment.
+- `development_tools/services/standard_exclusions.py` — read exclusions from config/constants rather than hardcoding MHM directories.
+- `development_tools/services/constants.py` — relocate paired-doc metadata into a data file so non-MHM repos can supply their own doc lists.
+- `development_tools/documentation_sync_checker.py` — parameterize the doc root(s) and metadata schema instead of assuming the MHM structure.
+- `development_tools/generate_function_registry.py` / `development_tools/function_discovery.py` — make scan roots and filters configurable; rely on passed-in include/exclude patterns.
+- `development_tools/generate_module_dependencies.py` — let callers provide module prefixes to treat as "local" vs "external".
+- `development_tools/legacy_reference_cleanup.py` — treat LEGACY tokens and log locations as inputs so other projects can define their own markers.
+- `development_tools/regenerate_coverage_metrics.py` — accept pytest command, coverage config, and artifact directories as arguments.
+- `development_tools/error_handling_coverage.py` — read decorator names and exception base classes from config, not MHM-specific modules.
 
 #### Supporting Tool Checklist
-- `analyze_documentation.py` — parameterize the heading/metadata schema and let callers provide ignore rules.
-- `audit_function_registry.py`, `audit_module_dependencies.py`, `audit_package_exports.py` — feed in the “expected” registries via config so tests are reusable elsewhere.
-- `config_validator.py` — detect settings dynamically based on config schema rather than enumerating MHM-specific keys.
-- `validate_ai_work.py` — read rule sets from YAML so new projects can define their validation heuristics.
-- `unused_imports_checker.py` — allow custom ignore patterns and type stub locations.
-- `quick_status.py`, `system_signals.py`, `decision_support.py` — provide plugin hooks so data sources (Discord, schedulers, etc.) can be swapped out.
-- `tool_guide.py` — render guidance based on `services/tool_metadata.py` so another repo can simply override the metadata file.
-- `file_rotation.py` — already portable; confirm it stays dependency-free.
+- `development_tools/analyze_documentation.py` — parameterize the heading/metadata schema and let callers provide ignore rules.
+- `development_tools/audit_function_registry.py`, `development_tools/audit_module_dependencies.py`, `development_tools/audit_package_exports.py` — feed in the "expected" registries via config so tests are reusable elsewhere.
+- `development_tools/config_validator.py` — detect settings dynamically based on config schema rather than enumerating MHM-specific keys.
+- `development_tools/validate_ai_work.py` — read rule sets from YAML so new projects can define their validation heuristics.
+- `development_tools/unused_imports_checker.py` — allow custom ignore patterns and type stub locations.
+- `development_tools/quick_status.py`, `development_tools/system_signals.py`, `development_tools/decision_support.py` — provide plugin hooks so data sources (Discord, schedulers, etc.) can be swapped out.
+- `development_tools/tool_guide.py` — render guidance based on `development_tools/services/tool_metadata.py` so another repo can simply override the metadata file.
+- `development_tools/file_rotation.py` — already portable; confirm it stays dependency-free.
 
 #### Experimental Tool Checklist
-- `version_sync.py` — read version files + patterns from config; avoid hardcoded MHM file list.
-- `auto_document_functions.py` — ensure template paths, doc targets, and formatting rules are injectable.
+- `development_tools/version_sync.py` — read version files + patterns from config; avoid hardcoded MHM file list.
+- `development_tools/auto_document_functions.py` — ensure template paths, doc targets, and formatting rules are injectable.
 
-Portable today: `services/common.py`, `system_signals.py`, and `file_rotation.py`—no action needed beyond keeping dependencies minimal.
+Portable today: `development_tools/services/common.py`, `development_tools/system_signals.py`, and `development_tools/file_rotation.py`—no action needed beyond keeping dependencies minimal.
 
 ---
 
@@ -577,7 +577,7 @@ Portable today: `services/common.py`, `system_signals.py`, and `file_rotation.py
 
 #### Milestone M7.1 – Establish Naming Conventions
 - Adopt verb-based prefixes (`audit_*`, `generate_*`, `cleanup_*`, `report_*`) or domain-based prefixes (`docs_*`, `coverage_*`, `legacy_*`).
-- Update `services/tool_metadata.py` with the agreed convention so new contributors can follow it.
+- Update `development_tools/services/tool_metadata.py` with the agreed convention so new contributors can follow it.
 
 #### Milestone M7.2 – Reorganize Directory Layout
 - Proposed structure:  

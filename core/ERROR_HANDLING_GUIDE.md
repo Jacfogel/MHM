@@ -4,8 +4,8 @@
 > **Audience**: Developers and AI assistants working on MHM  
 > **Purpose**: Centralized error handling patterns, categories, and integration rules  
 > **Style**: Technical, comprehensive, actionable  
-> **Pair**: `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`  
-> This document is paired with `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` and any changes must consider both docs.
+> **Pair**: [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md)  
+> This document is paired with [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) and any changes must consider both docs.
 
 ---
 
@@ -243,7 +243,7 @@ The error handler should be the primary place that final log messages and struct
 Error handling integrates with:
 
 - **Logging configuration**  
-  - See section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in `logs/LOGGING_GUIDE.md` for how errors flow into `logs/errors.log` and component logs.
+  - See section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) for how errors flow into `logs/errors.log` and component logs.
 
 - **Environment flags**  
   - Test mode (`MHM_TESTING`) can change how aggressively errors are surfaced during tests versus production, and is evaluated inside logging utilities wrapped with `@handle_errors`.
@@ -269,7 +269,7 @@ Error handling is tested in multiple ways:
   - **Phase 1 and Phase 2 Analysis**: The tool now includes specialized auditing for quality improvements:
     - **Phase 1**: Identifies functions with basic try-except blocks that should use `@handle_errors` decorator, prioritized by entry points and operation types
     - **Phase 2**: Audits generic exception raises (ValueError, Exception, KeyError, TypeError) that should be replaced with specific `MHMError` subclasses
-    - Results are integrated into `AI_STATUS.md`, `AI_PRIORITIES.md`, and `consolidated_report.txt` for tracking progress on the Error Handling Quality Improvement Plan
+    - Results are integrated into [AI_STATUS.md](development_tools/AI_STATUS.md), [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md), and `development_tools/consolidated_report.txt` for tracking progress on the Error Handling Quality Improvement Plan
 
 Guidelines when adding or changing error handling:
 
@@ -282,7 +282,7 @@ For broader testing patterns, see:
 - Section 1. "Testing Philosophy and Priorities" and  
 - Section 3. "Test Types and Structure"  
 
-in `tests/TESTING_GUIDE.md`.
+in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 
 ---
 
@@ -329,7 +329,7 @@ Migration guidelines:
   - Add `@handle_errors` at the top of the stack where control enters that flow.  
 - Consolidate repeated error handling logic into the shared error handler and helper functions.
 
-Legacy compatibility should follow the logging patterns described in section 5. "Error Message Guidelines" and section 8. "Monitoring and Debugging" in `logs/LOGGING_GUIDE.md` when retaining old entry points or behaviors.
+Legacy compatibility should follow the logging patterns described in section 5. "Error Message Guidelines" and section 8. "Monitoring and Debugging" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) when retaining old entry points or behaviors.
 
 ---
 
@@ -382,13 +382,13 @@ These examples are intentionally simple; real code should use the shared helpers
 For related topics:
 
 - Logging implementation guidance  
-  - See section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in `logs/LOGGING_GUIDE.md`.
+  - See section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
 
 - Testing patterns and expectations  
-  - See section 1. "Testing Philosophy and Priorities" and section 3. "Test Types and Structure" in `tests/TESTING_GUIDE.md`.
+  - See section 1. "Testing Philosophy and Priorities" and section 3. "Test Types and Structure" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 
 - Development workflow and emergency procedures  
-  - See section 6. "Emergency Procedures" in `DEVELOPMENT_WORKFLOW.md`.
+  - See section 6. "Emergency Procedures" in [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md).
 
 - AI system behavior and LM Studio fallbacks  
-  - See `SYSTEM_AI_GUIDE.md`.
+  - See [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md).

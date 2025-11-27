@@ -36,6 +36,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-26 - Documentation Quality Improvements and Path-to-Link Conversion **COMPLETED**
+- Fixed non-ASCII characters (em dashes, checkmarks, arrows) across multiple documentation files, added files to ASCII compliance check list.
+- Fixed 60+ ambiguous short path references to use full paths across all documentation files for consistency and accuracy.
+- Fixed heading numbering issues (missing H3 numbers) in `HOW_TO_RUN.md`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`.
+- Fixed missing file references (e.g., `SYSTEM_AI_GUIDE.md` -> `ai/SYSTEM_AI_GUIDE.md`) and updated conditional file references.
+- Improved documentation sync checker: direct import integration for structured output, example/archive filtering, improved markdown link handling, removed `ALTERNATIVE_DIRECTORIES`, fixed parser to prevent false "Hotspots" entries, fixed indentation error.
+- Created `scripts/utilities/convert_paths_to_links.py` to automatically convert file paths in backticks to clickable markdown links, applied to 20+ documentation files.
+- Updated relative path references in AI docs to full paths for better consistency.
+- Result: Documentation is ASCII-compliant, all paths are accurate and consistent, heading numbering is correct, sync checker provides detailed structured output, and all file references are clickable links for improved navigation.
+
 ### 2025-11-26 - Schedule Period Edit Cache Race Condition Fix **COMPLETED**
 - Fixed race condition in `edit_schedule_period` that caused test failures in parallel execution by adding cache clearing before reading periods.
 - Added cache clearing in test after edit operation to ensure fresh data is read.
@@ -52,8 +62,8 @@ Guidelines:
 
 ### 2025-11-26 - Dev Tools Test Stabilization **COMPLETED**
 - Reverted the heavy subprocess-based integration suite back to the fast mock-driven command-routing smoke tests so `ai_tools_runner` coverage stays while keeping runtime tight.
-- Reworked the new error-scenario tests to simulate permission failures via monkeypatches (no more Windows-only skips) and dropped the brittle “missing dependency” import path.
-- Result: development_tools subset runs in ~13 s with 149/149 tests passing, full `python run_tests.py` back to ~4 min with only the pre-existing skip.
+- Reworked the new error-scenario tests to simulate permission failures via monkeypatches (no more Windows-only skips) and dropped the brittle "missing dependency" import path.
+- Result: development_tools subset runs in ~13 s with 149/149 tests passing, full `python run_tests.py` back to ~4 min with only the pre-existing skip.
 
 ### 2025-11-26 - AI Dev Tools Phase 3: Core Analysis Tools Hardening **COMPLETED**
 - Completed Phase 3 of AI Development Tools Improvement Plan: added 55+ comprehensive tests for all five core analysis tools using synthetic fixture project
@@ -66,12 +76,12 @@ Guidelines:
 ### 2025-11-25 - AI Dev Tools Phase 2: Core Infrastructure Stabilization **COMPLETED**
 - Completed Phase 2 of AI Development Tools Improvement Plan: added 76 tests (config, exclusions, constants, CLI runner), normalized logging across operations, enhanced error handling with proper exit codes
 - Created `tests/development_tools/` test directory with 4 test files covering core infrastructure (23 config tests, 21 exclusion tests, 25 constants tests, 7 CLI smoke tests)
-- Fixed path mismatch in constants.py (`AI_FUNCTIONALITY_TEST_GUIDE.md` → `SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`), updated testing guides to include development_tools tests
+- Fixed path mismatch in constants.py (`AI_FUNCTIONALITY_TEST_GUIDE.md` -> `SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`), updated testing guides to include development_tools tests
 - Result: Core infrastructure now has test coverage and consistent logging/error handling, providing solid foundation for Phase 3 work on complex analysis tools
 
 ### 2025-11-25 - AI Dev Tools Tiering + Docs Sync **COMPLETED**
 - `services/tool_metadata.py` now drives tool metadata *and* command grouping; every module carries tier/portability headers and CLI help pulls from the same source.
-- Renamed `ai_development_tools/` ➜ `development_tools/`, split the docs into AI (`AI_DEVELOPMENT_TOOLS_GUIDE.md`) vs human (`DEVELOPMENT_TOOLS_GUIDE.md`), and aligned all references/imports.
+- Renamed `ai_development_tools/` -> `development_tools/`, split the docs into AI (`AI_DEVELOPMENT_TOOLS_GUIDE.md`) vs human (`DEVELOPMENT_TOOLS_GUIDE.md`), and aligned all references/imports.
 - Updated all remaining `ai_development_tools/` path references in `.cursor/rules/` files and `.gitignore`; preserved historical references in changelogs.
 - Aligned paired documentation files with standards: added proper metadata blocks, ensured identical H2 headings, verified all content preserved in human guide.
 - Added portability + naming/directory roadmap items to `AI_DEV_TOOLS_IMPROVEMENT_PLAN.md` so longer-term work is explicitly tracked.

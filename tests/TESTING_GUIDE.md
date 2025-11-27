@@ -4,8 +4,8 @@
 > **Audience**: Developers and AI assistants working on MHM  
 > **Purpose**: Comprehensive testing framework focused on real behavior, integration scenarios, and side-effect verification  
 > **Style**: Technical, comprehensive, actionable  
-> **Pair**: `ai_development_docs/AI_TESTING_GUIDE.md`  
-> This document is paired with `ai_development_docs/AI_TESTING_GUIDE.md` and any changes must consider both docs.
+> **Pair**: [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)  
+> This document is paired with [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) and any changes must consider both docs.
 
 ---
 
@@ -30,7 +30,7 @@ Use this guide whenever you:
 - Touch any integration (Discord, email, future channels).
 - Need to understand how tests should behave in CI or local runs.
 
-The paired AI doc (`ai_development_docs/AI_TESTING_GUIDE.md`) provides a routing-first, constraint-focused view for AI tools and automated assistance. This human-facing guide is the canonical source for detailed behavior, rationale, and examples.
+The paired AI doc ([AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)) provides a routing-first, constraint-focused view for AI tools and automated assistance. This human-facing guide is the canonical source for detailed behavior, rationale, and examples.
 
 ---
 
@@ -101,11 +101,11 @@ Tests are organized by real-world features and workflows to encourage integratio
 - Integration coverage relies on **mocked CLI smoke tests** (no subprocesses) so the suite stays fast while still exercising `ai_tools_runner` routing.
 - Error-scenario tests simulate `PermissionError`/`OSError` via monkeypatching instead of modifying real filesystem ACLs—keeps results identical on Windows and Linux.
 - **Core analysis tools** have comprehensive test coverage (55+ tests):
-  - `documentation_sync_checker.py` — 12 tests for doc pairing validation
-  - `generate_function_registry.py` — 12 tests for function extraction and registry generation
-  - `generate_module_dependencies.py` — 11 tests for dependency graph generation
-  - `legacy_reference_cleanup.py` — 10 tests for legacy pattern detection and cleanup
-  - `regenerate_coverage_metrics.py` — 10 tests for coverage regeneration and reporting
+  - `development_tools/documentation_sync_checker.py` — 12 tests for doc pairing validation
+  - `development_tools/generate_function_registry.py` — 12 tests for function extraction and registry generation
+  - `development_tools/generate_module_dependencies.py` — 11 tests for dependency graph generation
+  - `development_tools/legacy_reference_cleanup.py` — 10 tests for legacy pattern detection and cleanup
+  - `development_tools/regenerate_coverage_metrics.py` — 10 tests for coverage regeneration and reporting
 - Tests use a synthetic fixture project at `tests/fixtures/development_tools_demo/` for isolated testing.
 - Examples:
   - Configuration validation.
@@ -188,11 +188,11 @@ Typical patterns:
 - Do not call `schtasks` or similar Windows commands directly from tests.
 - Use isolation utilities (for example, an `IsolationManager` or similar helper in `tests/test_isolation.py`) for tests that interact with system-like APIs.
 
-If the Windows Task Scheduler becomes polluted during development (for example, from manual experiments), use the dedicated cleanup scripts under `scripts/` and follow the instructions in `SCRIPTS_GUIDE.md` and `ERROR_HANDLING_GUIDE.md` where applicable.
+If the Windows Task Scheduler becomes polluted during development (for example, from manual experiments), use the dedicated cleanup scripts under `scripts/` (see `scripts/SCRIPTS_GUIDE.md` for details, especially `scripts/cleanup_windows_tasks.py`).
 
 ### 3.5. Logging in tests
 
-Tests should integrate cleanly with the logging system described in `logs/LOGGING_GUIDE.md` (see section 2. "Logging Architecture" in that guide).
+Tests should integrate cleanly with the logging system described in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) (see section 2. "Logging Architecture" in that guide).
 
 Patterns:
 
@@ -504,8 +504,8 @@ Then:
 
 For error handling and logging details:
 
-- See section 2. “Architecture Overview” and section 4. “Error Categories and Severity” in `core/ERROR_HANDLING_GUIDE.md`.
-- See `logs/LOGGING_GUIDE.md` (especially section 2. "Logging Architecture" and section 4. "Component Log Files and Layout").
+- See section 2. “Architecture Overview” and section 4. “Error Categories and Severity” in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
+- See [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) (especially section 2. "Logging Architecture" and section 4. "Component Log Files and Layout").
 
 Align tests with those patterns:
 
@@ -534,7 +534,7 @@ Manual testing is especially important when:
 
 The canonical manual testing checklists live in:
 
-- `tests/MANUAL_TESTING_GUIDE.md`
+- [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md)
 
 That guide provides:
 
@@ -550,7 +550,7 @@ That guide provides:
 
 For Discord-specific manual flows—especially task reminder follow-up flows—use:
 
-- `tests/MANUAL_DISCORD_TEST_GUIDE.md`
+- [MANUAL_DISCORD_TEST_GUIDE.md](tests/MANUAL_DISCORD_TEST_GUIDE.md)
   - Section 1. "Prerequisites".
   - Section 2. "Task Reminder Follow-up Flow Testing".
   - Section 7. "Quick Test Checklist".
@@ -565,13 +565,13 @@ Run these tests when:
 
 For AI conversation behavior, routing, and functionality tests, use:
 
-- `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`
+- [SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md](tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md)
   - Section 1. "Quick Start".
   - Section 2. "Test Suite Structure".
   - Section 6. "Test Features".
   - Section 7. "Test Categories".
 
-For a system-level view of the AI behavior these tests exercise, see `SYSTEM_AI_GUIDE.md`.
+For a system-level view of the AI behavior these tests exercise, see [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md).
 
 Run these tests when:
 
@@ -581,7 +581,7 @@ Run these tests when:
 
 ### 8.5. Relationship to this guide
 
-This guide (`tests/TESTING_GUIDE.md`) defines **how testing works overall** and how automated tests are structured and executed.
+This guide ([TESTING_GUIDE.md](tests/TESTING_GUIDE.md)) defines **how testing works overall** and how automated tests are structured and executed.
 
 The manual guides:
 

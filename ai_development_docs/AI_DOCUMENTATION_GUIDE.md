@@ -1,34 +1,34 @@
 # AI Documentation Guide
 
 > **File**: `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`
-> **Pair**: `DOCUMENTATION_GUIDE.md`
+> **Pair**: [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md)
 > **Audience**: AI collaborators and tools
 > **Purpose**: Fast routing across docs for AI collaborators
 > **Style**: Minimal, routing-first
-> For detailed behavior and rationale, use the matching sections in `DOCUMENTATION_GUIDE.md`.
-> Keep this file's H2 headings in lockstep with `DOCUMENTATION_GUIDE.md` whenever you change the structure.
+> For detailed behavior and rationale, use the matching sections in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md).
+> Keep this file's H2 headings in lockstep with [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) whenever you change the structure.
 
 ## Quick Reference
 
 Use this to decide which doc to open or reference.
 
-- Project overview and philosophy: `../README.md`
-- Environment setup and run commands: `../HOW_TO_RUN.md` (Quick Start, Troubleshooting)
-- Development workflow and safe changes: `AI_DEVELOPMENT_WORKFLOW.md`
+- Project overview and philosophy: [README.md](README.md)
+- Environment setup and run commands: [HOW_TO_RUN.md](HOW_TO_RUN.md) (Quick Start, Troubleshooting)
+- Development workflow and safe changes: [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)
 - Logging, testing, and error handling:
-  - Logging: `AI_LOGGING_GUIDE.md`
-  - Testing: `AI_TESTING_GUIDE.md`
-  - Error handling: `AI_ERROR_HANDLING_GUIDE.md`
+  - Logging: [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md)
+  - Testing: [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)
+  - Error handling: [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md)
 - Documentation system and sync rules:
-  - This doc: `AI_DOCUMENTATION_GUIDE.md` (routing rules and doc classes)
-  - Detailed behavior: `../DOCUMENTATION_GUIDE.md`, section 1. "Documentation Categories" and section 3. "Documentation Synchronization Checklist"
+  - This doc: [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md) (routing rules and doc classes)
+  - Detailed behavior: [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md), section 1. "Documentation Categories" and section 3. "Documentation Synchronization Checklist"
 - AI collaboration and navigation helpers:
-  - Session constraints and guardrails: `AI_SESSION_STARTER.md`
-  - AI navigation and patterns: `AI_REFERENCE.md`
+  - Session constraints and guardrails: [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md)
+  - AI navigation and patterns: [AI_REFERENCE.md](ai_development_docs/AI_REFERENCE.md)
 
 - Cross-referencing standards (AI view):
   - From AI docs, prefer AI_* docs first. Only reference detailed human docs directly when you need to send a human to specific deep explanations.
-  - From human docs, prefer human docs first. For full rules, see section 3. "Documentation Synchronization Checklist" in `DOCUMENTATION_GUIDE.md`.
+  - From human docs, prefer human docs first. For full rules, see section 3. "Documentation Synchronization Checklist" in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md).
 
 ## 1. Documentation Categories
 
@@ -42,10 +42,10 @@ Use detailed docs when:
 - You are telling a human how to understand or extend the system.
 
 Key examples:  
-`../README.md`, `../HOW_TO_RUN.md`, `../DEVELOPMENT_WORKFLOW.md`,  
-`../ARCHITECTURE.md`, `../logs/LOGGING_GUIDE.md`,  
-`../tests/TESTING_GUIDE.md`, `../core/ERROR_HANDLING_GUIDE.md`,  
-`../DOCUMENTATION_GUIDE.md`.
+[README.md](README.md), [HOW_TO_RUN.md](HOW_TO_RUN.md), [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md),  
+[ARCHITECTURE.md](ARCHITECTURE.md), [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md),  
+[TESTING_GUIDE.md](tests/TESTING_GUIDE.md), [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md),  
+[DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md).
 
 ### 1.2. AI-facing documents
 
@@ -55,10 +55,10 @@ Use AI docs when:
 - You are deciding which doc or module to inspect next.
 
 Key examples:  
-`AI_SESSION_STARTER.md`, `AI_REFERENCE.md`,  
-`AI_DEVELOPMENT_WORKFLOW.md`, `AI_ARCHITECTURE.md`,  
-`AI_LOGGING_GUIDE.md`, `AI_TESTING_GUIDE.md`, `AI_ERROR_HANDLING_GUIDE.md`,  
-`AI_DOCUMENTATION_GUIDE.md`.
+[AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md), [AI_REFERENCE.md](ai_development_docs/AI_REFERENCE.md),  
+[AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md), [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md),  
+[AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md), [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md),  
+[AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md).
 
 ### 1.3. Generated and analytical docs
 
@@ -85,14 +85,41 @@ Minimal standards AI must respect.
 - H3 headings: Parent section number + sub-number (e.g., `### 2.1. Subsection`, `### 2.2. Another`)
 - Standard format: Trailing period and space required (e.g., `## 2. Title` not `## 2 Title`)
 - Exceptions: Changelogs, plans, TODO.md excluded (own structure)
-- Special cases: Q&A and Step headings → bold text, not numbered
+- Special cases: Q&A and Step headings -> bold text, not numbered
 
 When suggesting new docs or edits:
 
-- Follow the patterns in "Standards and Templates" in `DOCUMENTATION_GUIDE.md`.  
+- Follow the patterns in "Standards and Templates" in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md).  
 - Keep AI docs short and routing-focused; avoid re-explaining detailed content from the paired docs.
 
-### 2.2. Parent metadata (subordinate docs)
+### 2.2. Example marking standards
+
+**Mark examples clearly** so path drift checker skips them:
+- Use `[OK]`, `[AVOID]`, `[GOOD]`, `[BAD]`, `[EXAMPLE]` markers at start of example sections
+- Use "Examples:" or "Example Usage:" headings for example sections
+- Code blocks (between ` ``` `) are automatically excluded
+- Place markers within 5 lines of path references they mark
+
+**Why:** Examples often show intentional "bad" examples (short paths, non-existent files) that should not be flagged as path drift.
+
+### 2.3. File path reference standards
+
+**Primary rule: Use full paths from project root for all file references.**
+
+**Format:**
+- **Full paths (preferred)**: `development_tools/config.py`, `core/service.py`
+- **Short names (acceptable only when directory is 100% obvious)**: In [AI_DEV_TOOLS_IMPROVEMENT_PLAN.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md), `development_tools/config.py` should still be used (full paths preferred)
+- **Relative paths (use sparingly)**: `../README.md` (from `ai_development_docs/`), `AI_LOGGING_GUIDE.md` (same directory)
+
+**Best practices:**
+- Always prefer full paths when referencing files outside current directory
+- Verify paths exist using file search tools before referencing
+- Use backticks for file references: `` `core/service.py` ``
+- Cross-reference other docs using specific section numbers when pointing to particular behavior or rules (e.g., "See section 2.6 in `DOCUMENTATION_GUIDE.md`")
+
+**Path drift checker:** Validates that referenced files exist. May flag short names if directory cannot be inferred from context.
+
+### 2.4. Parent metadata (subordinate docs)
 
 Some docs are not part of a human/AI pair but are still subordinate to a higher-level document.  
 These use a `Parent` field in their metadata to guide AI behavior.
@@ -132,19 +159,19 @@ Typical examples:
 
 ## 3. Documentation Synchronization Checklist
 
-AI summary of the sync rules. Full detail is in `DOCUMENTATION_GUIDE.md`.
+AI summary of the sync rules. Full detail is in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md).
 
 ### 3.1. Paired documentation files
 
 Treat these as synchronized pairs:
 
-- `DEVELOPMENT_WORKFLOW.md` <-> `AI_DEVELOPMENT_WORKFLOW.md`  
-- `ARCHITECTURE.md` <-> `AI_ARCHITECTURE.md`  
-- `DOCUMENTATION_GUIDE.md` <-> `AI_DOCUMENTATION_GUIDE.md`  
-- `development_docs/CHANGELOG_DETAIL.md` <-> `AI_CHANGELOG.md`  
-- `logs/LOGGING_GUIDE.md` <-> `AI_LOGGING_GUIDE.md`  
-- `tests/TESTING_GUIDE.md` <-> `AI_TESTING_GUIDE.md`  
-- `core/ERROR_HANDLING_GUIDE.md` <-> `AI_ERROR_HANDLING_GUIDE.md`
+- [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) <-> `AI_DEVELOPMENT_WORKFLOW.md`  
+- [ARCHITECTURE.md](ARCHITECTURE.md) <-> `AI_ARCHITECTURE.md`  
+- [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) <-> `AI_DOCUMENTATION_GUIDE.md`  
+- [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) <-> `AI_CHANGELOG.md`  
+- [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) <-> `AI_LOGGING_GUIDE.md`  
+- [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) <-> `AI_TESTING_GUIDE.md`  
+- [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) <-> `AI_ERROR_HANDLING_GUIDE.md`
 
 ### 3.2. Hard rules
 
@@ -178,7 +205,7 @@ AI view of generated docs.
   - Updating the generator (for example, scripts in `development_tools/`), then  
   - Regenerating the file.
 
-For generator usage and tooling details, see `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`.
+For generator usage and tooling details, see [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md).
 
 
 For documentation automation (sync checks, reports, analysis), call:
@@ -187,7 +214,7 @@ For documentation automation (sync checks, reports, analysis), call:
 python development_tools/ai_tools_runner.py <command>
 ```
 
-and rely on `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` for command descriptions and options.
+and rely on [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) for command descriptions and options.
 
 Typical documentation-related commands to suggest (without redefining them here):
 
@@ -203,8 +230,8 @@ Typical documentation-related commands to suggest (without redefining them here)
 
 If this file is not enough:
 
-- `DOCUMENTATION_GUIDE.md` for detailed rules and rationale.  
-- `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` for documentation-related tools and reports.  
-- `AI_SESSION_STARTER.md` for session-wide constraints and priorities.  
-- `AI_REFERENCE.md` for routing and escalation patterns.  
-- `AI_CHANGELOG.md` for recent changes that may affect documentation.
+- [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) for detailed rules and rationale.  
+- [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) for documentation-related tools and reports.  
+- [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md) for session-wide constraints and priorities.  
+- [AI_REFERENCE.md](ai_development_docs/AI_REFERENCE.md) for routing and escalation patterns.  
+- [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) for recent changes that may affect documentation.

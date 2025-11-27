@@ -1,7 +1,7 @@
 # AI Documentation
 
-> **File**: `docs/ai_doc.md`
-> **Pair**: `docs/human_doc.md`
+> **File**: `tests/fixtures/development_tools_demo/docs/ai_doc.md`
+> **Pair**: `tests/fixtures/development_tools_demo/docs/human_doc.md`
 
 ## 1. Introduction
 

@@ -17,17 +17,17 @@ This project provides:
 
 ## 2. Structure
 
-- `demo_module.py` - Main demo module with functions and classes
-- `demo_module2.py` - Second module that imports from demo_module
-- `demo_tests.py` - Test file for coverage runs
-- `legacy_code.py` - Contains legacy patterns
+- `tests/fixtures/development_tools_demo/demo_module.py` - Main demo module with functions and classes
+- `tests/fixtures/development_tools_demo/demo_module2.py` - Second module that imports from demo_module
+- `tests/fixtures/development_tools_demo/demo_tests.py` - Test file for coverage runs
+- `tests/fixtures/development_tools_demo/legacy_code.py` - Contains legacy patterns
 - `docs/` - Documentation files for testing doc sync
 
 ## 3. Expected Test Outcomes
 
-- Function registry should find all functions in demo_module.py
+- Function registry should find all functions in `tests/fixtures/development_tools_demo/demo_module.py`
 - Module dependencies should detect imports between modules
 - Documentation sync should detect mismatched H2 headings
 - Legacy cleanup should find legacy markers and patterns
-- Coverage should generate metrics for demo_tests.py
+- Coverage should generate metrics for `tests/fixtures/development_tools_demo/demo_tests.py`
 

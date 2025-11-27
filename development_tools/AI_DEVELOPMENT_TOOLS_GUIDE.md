@@ -49,12 +49,12 @@ Most commonly used commands:
 
 ## 3. Audit Modes and Outputs
 
-### Fast mode — `audit`
+### 3.1. Fast mode - `audit`
 - Documentation and legacy signals
 - Validation summaries and quick metrics
 - System signals + cached data
 
-### Full mode — `audit --full`
+### 3.2. Full mode - `audit --full`
 - Full pytest + coverage regeneration
 - Unused import detection
 - Dependency + registry regeneration
@@ -62,7 +62,7 @@ Most commonly used commands:
 
 Outputs land in predictable locations:
 - AI-facing: `AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.txt`, `ai_audit_detailed_results.json`
-- Human-facing: `FUNCTION_REGISTRY_DETAIL.md`, `MODULE_DEPENDENCIES_DETAIL.md`, `LEGACY_REFERENCE_REPORT.md`, `UNUSED_IMPORTS_REPORT.md`
+- Human-facing: `development_docs/FUNCTION_REGISTRY_DETAIL.md`, `development_docs/MODULE_DEPENDENCIES_DETAIL.md`, `development_docs/LEGACY_REFERENCE_REPORT.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`
 - Coverage artifacts: `coverage.json`, `coverage_html/`, `archive/coverage_artifacts/<timestamp>/`
 
 The `status` command surfaces cached summaries; rerun `audit` if the cache is stale.
@@ -80,13 +80,13 @@ Each module declares:
 
 The authoritative table lives in `services/tool_metadata.py`. Use this guide to pick the right group quickly:
 
-- **Documentation & structure**: `documentation_sync_checker.py` ✅, `generate_function_registry.py` ✅, `generate_module_dependencies.py` ✅, `analyze_documentation.py`
+- **Documentation & structure**: `documentation_sync_checker.py` [OK], `generate_function_registry.py` [OK], `generate_module_dependencies.py` [OK], `analyze_documentation.py`
 
-✅ = Has comprehensive test coverage (Phase 3)
-- **Quality, validation, coverage**: `regenerate_coverage_metrics.py` ✅, `validate_ai_work.py`, `unused_imports_checker.py`, `error_handling_coverage.py`
-- **Legacy, versioning, signals**: `legacy_reference_cleanup.py` ✅, `system_signals.py`, `quick_status.py`, `version_sync.py` (experimental)
+[OK] = Has comprehensive test coverage (Phase 3)
+- **Quality, validation, coverage**: `regenerate_coverage_metrics.py` [OK], `validate_ai_work.py`, `unused_imports_checker.py`, `error_handling_coverage.py`
+- **Legacy, versioning, signals**: `legacy_reference_cleanup.py` [OK], `system_signals.py`, `quick_status.py`, `version_sync.py` (experimental)
 
-✅ = Has comprehensive test coverage (Phase 3)
+[OK] = Has comprehensive test coverage (Phase 3)
 - **Decision & utilities**: `decision_support.py`, `function_discovery.py`, `auto_document_functions.py` (experimental), `config_validator.py`, `file_rotation.py`, `audit_*` helpers, `tool_guide.py`
 
 Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier, trust, and portability matrix.
@@ -95,7 +95,7 @@ Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier, tr
 
 ## 5. Operating Standards and Maintenance
 
-- Use shared infrastructure: `standard_exclusions.py`, `constants.py`, `config.py`
+- Use shared infrastructure: `standard_exclusions.py`, `development_tools/services/constants.py`, `config.py`
 - Never hardcode project paths; derive them from configuration helpers
 - Keep tools isolated from MHM business logic
 - Store tests under `tests/development_tools/` (with fixtures in `tests/fixtures/development_tools_demo/`)

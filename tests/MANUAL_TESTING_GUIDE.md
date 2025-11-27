@@ -4,8 +4,8 @@
 > **Audience**: Developers and AI assistants performing manual testing  
 > **Purpose**: Canonical manual testing flows and checklists across channels and features  
 > **Style**: Checklist-first, concise but detailed  
-> **Parent**: `tests/TESTING_GUIDE.md`  
-> This document is subordinate to `tests/TESTING_GUIDE.md` and should be kept consistent with its standards and terminology.
+> **Parent**: [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)  
+> This document is subordinate to [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) and should be kept consistent with its standards and terminology.
 
 ---
 
@@ -28,8 +28,8 @@ Use this guide:
 
 For the overall testing framework (layout, markers, automation, coverage), use:
 
-- `tests/TESTING_GUIDE.md` (automation-focused).
-- `ai_development_docs/AI_TESTING_GUIDE.md` (AI routing and constraints).
+- [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) (automation-focused).
+- [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) (AI routing and constraints).
 
 ---
 
@@ -182,7 +182,7 @@ Checklist:
 
 ## 6. Discord Manual Tests
 
-This section is a hub for Discord manual testing. The canonical, detailed task-reminder flow lives in `tests/MANUAL_DISCORD_TEST_GUIDE.md`.
+This section is a hub for Discord manual testing. The canonical, detailed task-reminder flow lives in [MANUAL_DISCORD_TEST_GUIDE.md](tests/MANUAL_DISCORD_TEST_GUIDE.md).
 
 ### 6.1. When to run Discord manual tests
 
@@ -203,7 +203,7 @@ High-level checks (before deep-dives):
 
 ### 6.3. Detailed task-reminder flow
 
-For the full, step-by-step scenario coverage, use `tests/MANUAL_DISCORD_TEST_GUIDE.md`:
+For the full, step-by-step scenario coverage, use [MANUAL_DISCORD_TEST_GUIDE.md](tests/MANUAL_DISCORD_TEST_GUIDE.md):
 
 - Section 1. "Prerequisites".
 - Section 2. "Task Reminder Follow-up Flow Testing".
@@ -212,7 +212,7 @@ For the full, step-by-step scenario coverage, use `tests/MANUAL_DISCORD_TEST_GUI
 - Section 5. "Known Issues to Watch For".
 - Section 7. "Quick Test Checklist".
 
-Treat `tests/MANUAL_DISCORD_TEST_GUIDE.md` as the authoritative source for detailed Discord reminder flows.
+Treat [MANUAL_DISCORD_TEST_GUIDE.md](tests/MANUAL_DISCORD_TEST_GUIDE.md) as the authoritative source for detailed Discord reminder flows.
 
 ---
 
@@ -233,9 +233,9 @@ Run AI behavior tests when you change:
 
 Automated AI-oriented tests are described in:
 
-   - `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`.
+   - [SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md](tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md).
 
-For a system-level description of the AI behavior covered by AI functionality tests, see `SYSTEM_AI_GUIDE.md`.
+For a system-level description of the AI behavior covered by AI functionality tests, see [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md).
 
 This manual guide is part of the testing surface.
 
@@ -297,10 +297,10 @@ Examples of triggers:
 
 When in doubt:
 
-1. Check section 1 of `tests/TESTING_GUIDE.md` to understand the testing philosophy.
+1. Check section 1 of [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) to understand the testing philosophy.
 2. Decide which parts of this manual guide apply to your change.
 3. Run at least the relevant subsets of sections 2–7 here, plus any detailed steps in subordinate guides:
-   - `tests/MANUAL_DISCORD_TEST_GUIDE.md`.
-   - `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`.
+   - [MANUAL_DISCORD_TEST_GUIDE.md](tests/MANUAL_DISCORD_TEST_GUIDE.md).
+   - [SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md](tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md).
 
 This manual guide is part of the testing surface. Any significant behavior change must remain compatible with the flows and expectations described here, or this guide must be updated alongside the code.

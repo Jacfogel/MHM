@@ -109,25 +109,25 @@ You can also run individual components directly if needed:
 
 ## 6. Troubleshooting
 
-### 5.1. "Command not found" errors
+### 6.1. "Command not found" errors
 Make sure your virtual environment is activated. You should see `(.venv)` at the beginning of your command prompt.
 
-### 5.2. Import errors
+### 6.2. Import errors
 Try reinstalling dependencies in your virtual environment:
 ```powershell
 pip install -r requirements.txt
 ```
 
-### 5.3. Environment variable issues
+### 6.3. Environment variable issues
 Ensure your `.env` file (if used) is correctly configured and that you restarted the app after changes.
 
-### 5.4. Python version problems
+### 6.4. Python version problems
 MHM expects a reasonably recent Python 3 version (for example 3.11). If you see syntax errors on valid code, check your Python version:
 ```powershell
 python --version
 ```
 
-### 5.5. Virtual environment not activating
+### 6.5. Virtual environment not activating
 If `.\.venv\Scripts\Activate.ps1` fails:
 - Make sure `.venv` exists in the project root
 - Check your PowerShell execution policy:
@@ -160,7 +160,7 @@ pip install -r requirements.txt
 **A**: Check for Python processes: `Get-Process python | Where-Object {$_.CommandLine -like "*service.py*"}`
 
 **Q: Where are my logs stored?**
-**A**: Logs are stored in the `logs/` directory. The main application log is `logs/app.log`, with component-specific logs like `logs/discord.log`, `logs/ai.log`, `logs/errors.log`, etc. See section 4. "Component Log Files and Layout" in `logs/LOGGING_GUIDE.md` for details.
+**A**: Logs are stored in the `logs/` directory. The main application log is `logs/app.log`, with component-specific logs like `logs/discord.log`, `logs/ai.log`, `logs/errors.log`, etc. See section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) for details.
 
 **Q: Why do I see two Python processes when running the app on Windows?**
 **A**: This is normal Windows behavior. Windows launches both your script and the underlying interpreter. The process running your actual code is the one that matters; the system Python is a harmless artifact.

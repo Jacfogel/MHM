@@ -7,6 +7,7 @@
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_EXPANSION_PLAN.md](development_docs/TEST_COVERAGE_EXPANSION_PLAN.md) for testing strategy**
+
 ## How to Add New TODOs
 
 When adding new tasks, follow this format:
@@ -69,7 +70,7 @@ When adding new tasks, follow this format:
 - *Subtasks*:
   - [ ] Monitor logs for legacy compatibility warnings related to check-ins (`start_checkin`, `FLOW_CHECKIN`, `get_recent_checkins`, `store_checkin_response`)
   - [ ] Verify Discord behavior: after a check-in prompt goes out, send a motivational or task reminder and confirm the flow expires
-  - [x] Consider inactivity-based expiration (30-60 minutes) in addition to outbound-triggered expiry (optional) — Added auto-expiration of stale check-ins after 45 minutes and prune on startup/new starts
+  - [x] Consider inactivity-based expiration (30-60 minutes) in addition to outbound-triggered expiry (optional) - Added auto-expiration of stale check-ins after 45 minutes and prune on startup/new starts
   - [ ] Add behavior test for flow expiration after unrelated outbound message
   - [ ] **Test fixes with real Discord check-in flow and verify flow state persistence** - Restart service and test that check-in flows persist through scheduled message checks
   - [ ] **Monitor logs for MESSAGE_SELECTION debug info** - Understand why sometimes no messages match (review matching_periods, current_days, and message filtering)
@@ -110,15 +111,18 @@ When adding new tasks, follow this format:
 
 ## Medium Priority
 
-**Integrate Documentation Utility Scripts into AI Tools Runner**
-- *What it means*: Integrate `scripts/number_documentation_headings.py` and possibly other useful utility scripts (e.g., path validation, reference checking) into `development_tools/ai_tools_runner.py` or `development_tools/documentation_sync_checker.py` as subcommands
-- *Why it helps*: Makes documentation maintenance tools more discoverable and easier to use through the centralized tool runner; enables batch operations and integration with audit workflows
+**Integrate Documentation Utility Scripts into Development Tools**
+- *What it means*: Integrate documentation maintenance scripts (`scripts/utilities/add_documentation_addresses.py`, `scripts/fix_non_ascii_chars.py`, `scripts/verify_ascii_fix.py`, `scripts/number_documentation_headings.py`, `scripts/utilities/convert_paths_to_links.py`) into `development_tools/documentation_sync_checker.py` or a new documentation fixer module. Add subcommands to `development_tools/ai_tools_runner.py` for batch operations and integration with audit workflows.
+- *Why it helps*: Makes documentation maintenance tools discoverable through the centralized tool runner; enables batch operations, validation/fix workflows, and integration with `doc-sync` checks. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.
 - *Estimated effort*: Medium
 - *Subtasks*:
-  - [ ] Add `number-headings` or `fix-numbering` subcommand to `ai_tools_runner.py`
-  - [ ] Support batch operations (e.g., `number-headings --all` to process all default docs)
-  - [ ] Consider integrating into `doc-sync` workflow or as a separate validation/fix step
-  - [ ] Evaluate other utility scripts in `scripts/` that could benefit from integration
+  - [ ] Integrate `scripts/utilities/add_documentation_addresses.py` functionality into `development_tools/documentation_sync_checker.py` or new fixer module
+  - [ ] Integrate `fix_non_ascii_chars.py` and `verify_ascii_fix.py` functionality (ASCII compliance checking/fixing)
+  - [ ] Integrate `number_documentation_headings.py` functionality (heading numbering validation/fixing)
+  - [ ] Integrate `scripts/utilities/convert_paths_to_links.py` functionality (path-to-link conversion)
+  - [ ] Add `fix-docs` or `doc-fix` subcommand to `development_tools/ai_tools_runner.py` with options for: `--add-addresses`, `--fix-ascii`, `--number-headings`, `--convert-links`, `--all`
+  - [ ] Support batch operations (e.g., `doc-fix --all` to process all default docs)
+  - [ ] Consider integrating fix operations into `doc-sync` workflow as optional `--fix` flag
   - [ ] Update documentation to reflect new command structure
 
 **Update Inter-Documentation References to Include Section Numbers**
@@ -158,6 +162,19 @@ When adding new tasks, follow this format:
   - Exclude the checker's own file from legacy pattern matching
   - Improve pattern matching to avoid matching the checker's own code
 
+**Create Example Marking Standards Checker**
+- *What it means*: Create a validation checker to ensure examples in documentation follow the example marking standards (section 2.6 in `DOCUMENTATION_GUIDE.md`). The checker should validate that examples containing file paths are properly marked with `[OK]`, `[AVOID]`, `[GOOD]`, `[BAD]`, `[EXAMPLE]` markers or are under "Examples:" headings.
+- *Why it helps*: Ensures examples are consistently marked, making the path drift checker more accurate and reducing false positives. Helps maintain documentation quality by catching unmarked examples that should be marked.
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Add example marking validation to `development_tools/documentation_sync_checker.py` or create new validation module (already using full path)
+  - [ ] Check for file path references in examples that lack proper markers
+  - [ ] Validate that example sections use standard markers (`[OK]`, `[AVOID]`, `[GOOD]`, `[BAD]`, `[EXAMPLE]`)
+  - [ ] Validate that example headings follow standard format ("Examples:", "Example Usage:", "Example Code:")
+  - [ ] Report unmarked examples that contain file paths
+  - [ ] Consider integrating into `doc-sync` workflow as a validation step
+  - [ ] Update documentation to reflect the new validation capability
+
 
 **Systematic Documentation Review and Update**
 - *What it means*: Systematically review and update documentation to ensure information is current and accurate across all documentation files
@@ -180,9 +197,63 @@ When adding new tasks, follow this format:
 - *Areas to review*:
   - Log rotation and cleanup (core/logger.py, development_tools)
   - Backup creation and management (core/backup_manager.py, tests)
-  - File archiving (auto_cleanup.py, development_tools)
+  - File archiving (core/auto_cleanup.py, development_tools)
   - Test data cleanup (tests/test_utilities.py, test fixtures)
   - Temporary file cleanup patterns
+
+**Integrate Unused Imports Cleanup into Unused Imports Checker**
+- *What it means*: Integrate `scripts/cleanup_unused_imports.py` functionality into `development_tools/unused_imports_checker.py`. Add categorization and cleanup recommendations to the existing unused imports analysis.
+- *Why it helps*: Provides actionable recommendations for unused imports (missing error handling, missing logging, safe to remove, etc.) alongside detection. Enables automated cleanup workflows. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Integrate categorization logic from `cleanup_unused_imports.py` into `unused_imports_checker.py`
+  - [ ] Add category-based reporting (missing error handling, missing logging, type hints, utilities, safe to remove)
+  - [ ] Add cleanup recommendation generation to unused imports report
+  - [ ] Consider adding `--categorize` flag to existing unused imports checker command
+  - [ ] Update documentation to reflect enhanced reporting capabilities
+
+**Integrate Test Marker Scripts into Coverage/Test Analysis Tools**
+- *What it means*: Integrate test marker scripts (`scripts/find_tests_missing_category_markers.py`, `scripts/add_category_markers.py`, `scripts/analyze_test_markers.py`) into `development_tools/regenerate_coverage_metrics.py` or a new test analysis module. Add subcommands for test marker validation and fixing.
+- *Why it helps*: Centralizes test analysis tools; enables validation of test categorization during coverage runs; provides automated marker addition. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Integrate test marker analysis functionality into coverage tools or new test analysis module
+  - [ ] Add `test-markers` subcommand to `development_tools/ai_tools_runner.py` with options: `--check`, `--analyze`, `--fix`
+  - [ ] Support batch operations for adding missing markers based on directory structure
+  - [ ] Consider integrating marker validation into coverage regeneration workflow
+  - [ ] Update documentation to reflect new test marker commands
+
+**Integrate Error Handling Candidate Generators into Error Handling Coverage**
+- *What it means*: Integrate `scripts/generate_phase1_candidates.py` and `scripts/generate_phase2_audit.py` functionality into `development_tools/error_handling_coverage.py`. Add subcommands for generating candidate lists and audit reports.
+- *Why it helps*: Centralizes error handling analysis tools; enables generation of candidate lists and audit reports as part of error handling coverage analysis. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Integrate Phase 1 candidate generation (functions with basic try-except blocks) into `error_handling_coverage.py`
+  - [ ] Integrate Phase 2 audit generation (generic exception raises) into `error_handling_coverage.py`
+  - [ ] Add `error-handling-candidates` subcommand to `development_tools/ai_tools_runner.py` with options: `--phase1`, `--phase2`, `--both`
+  - [ ] Update documentation to reflect new error handling candidate commands
+
+**Create Project Cleanup Module**
+- *What it means*: Create a new cleanup module in `development_tools/` that integrates `scripts/cleanup_project.py` functionality. Add subcommand to `development_tools/ai_tools_runner.py` for project cleanup operations.
+- *Why it helps*: Provides centralized cleanup operations (cache files, temporary directories, test artifacts) through the development tools runner. Enables safe cleanup with dry-run support. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Create new cleanup module (e.g., `development_tools/cleanup.py` (to be created) or `development_tools/project_cleanup.py` (to be created)) - module to be created
+  - [ ] Integrate cleanup operations from `scripts/cleanup_project.py` (cache, pytest cache, coverage files, test temp dirs, etc.)
+  - [ ] Add `cleanup` subcommand to `development_tools/ai_tools_runner.py` with options: `--cache`, `--test-data`, `--coverage`, `--all`, `--dry-run`
+  - [ ] Maintain safety features (dry-run mode, selective cleanup options)
+  - [ ] Update documentation to reflect new cleanup command
+
+**Integrate Documentation Overlap Analysis into Analyze Documentation**
+- *What it means*: Integrate `scripts/testing/analyze_documentation_overlap.py` functionality into `development_tools/analyze_documentation.py`. Add overlap detection and consolidation recommendations to existing documentation analysis.
+- *Why it helps*: Enhances documentation analysis with overlap detection; provides consolidation recommendations to reduce redundancy. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.
+- *Estimated effort*: Small
+- *Subtasks*:
+  - [ ] Integrate overlap analysis logic from `scripts/testing/analyze_documentation_overlap.py` into `development_tools/analyze_documentation.py`
+  - [ ] Add overlap detection to existing documentation analysis output
+  - [ ] Add consolidation recommendations to analysis reports
+  - [ ] Consider adding `--overlap` flag to existing `docs` command
+  - [ ] Update documentation to reflect enhanced analysis capabilities
 
 **Reorganize AI Development Tools Subdirectory**
 - *What it means*: Reorganize development_tools subdirectory, including a review of the files within to determine whether any of them are no longer active or useful

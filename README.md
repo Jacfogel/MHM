@@ -26,18 +26,18 @@ The system consists of:
 
 Use this section as your main entry point into the docs.
 
-- Project vision and goals: `PROJECT_VISION.md`
-- How to run and troubleshoot: `HOW_TO_RUN.md`
-- Development workflow: `DEVELOPMENT_WORKFLOW.md`
-- Architecture overview: `ARCHITECTURE.md`
-- Documentation standards and sync rules: `DOCUMENTATION_GUIDE.md`
-- Development tools (CLI and commands): `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`
-- Testing strategy and commands: `tests/TESTING_GUIDE.md`
-- Logging: `logs/LOGGING_GUIDE.md`
-- Error handling: `core/ERROR_HANDLING_GUIDE.md`
-- Current plans and priorities: `development_docs/PLANS.md` and `TODO.md`
-- Change history (short): `ai_development_docs/AI_CHANGELOG.md`
-- Change history (detailed): `development_docs/CHANGELOG_DETAIL.md`
+- Project vision and goals: [PROJECT_VISION.md](PROJECT_VISION.md)
+- How to run and troubleshoot: [HOW_TO_RUN.md](HOW_TO_RUN.md)
+- Development workflow: [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md)
+- Architecture overview: [ARCHITECTURE.md](ARCHITECTURE.md)
+- Documentation standards and sync rules: [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md)
+- Development tools (CLI and commands): [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)
+- Testing strategy and commands: [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)
+- Logging: [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)
+- Error handling: [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md)
+- Current plans and priorities: [PLANS.md](development_docs/PLANS.md) and [TODO.md](TODO.md)
+- Change history (short): [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)
+- Change history (detailed): [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md)
 
 
 ## 2. Features
@@ -55,7 +55,7 @@ Use this section as your main entry point into the docs.
 ## 3. Quick Start
 
 This is the very short version. For step-by-step instructions and troubleshooting,
-see `HOW_TO_RUN.md`.
+see [HOW_TO_RUN.md](HOW_TO_RUN.md).
 
 1. Clone the repo
 
@@ -90,7 +90,7 @@ see `HOW_TO_RUN.md`.
 
    - Copy `.env.example` to `.env`
    - Fill in required values (Discord token, paths, LM Studio, etc.)
-   - See `HOW_TO_RUN.md` and comments in `core/config.py` for details
+   - See [HOW_TO_RUN.md](HOW_TO_RUN.md) and comments in `core/config.py` for details
 
 5. Launch the application
 
@@ -125,7 +125,7 @@ python run_headless_service.py reschedule <user_id> <category> # Reschedule mess
 
 These commands use the same underlying backend (`core/service.py`) as the UI.
 
-If any of these steps fail, go to `HOW_TO_RUN.md` and the troubleshooting section
+If any of these steps fail, go to [HOW_TO_RUN.md](HOW_TO_RUN.md) and the troubleshooting section
 in this README.
 
 
@@ -134,29 +134,29 @@ in this README.
 Key documentation files:
 
 - `README.md` – This file; overview and navigation
-- `HOW_TO_RUN.md` – Environment setup, configuration, and run commands
-- `ARCHITECTURE.md` – System structure, key modules, and data flows
-- `DEVELOPMENT_WORKFLOW.md` – How to make safe, incremental changes
-- `DOCUMENTATION_GUIDE.md` – Documentation standards and sync rules
-- `logs/LOGGING_GUIDE.md` – Logging architecture and patterns
-- `core/ERROR_HANDLING_GUIDE.md` – Error handling patterns and recovery rules
-- `tests/TESTING_GUIDE.md` – Testing strategy and structure
-- `development_docs/PLANS.md` – Medium/long-term plans and experiments
-- `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` – AI tooling and audit commands
-- `TODO.md` – Practical current priorities and rough task list
+- [HOW_TO_RUN.md](HOW_TO_RUN.md) – Environment setup, configuration, and run commands
+- [ARCHITECTURE.md](ARCHITECTURE.md) – System structure, key modules, and data flows
+- [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) – How to make safe, incremental changes
+- [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) – Documentation standards and sync rules
+- [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) – Logging architecture and patterns
+- [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) – Error handling patterns and recovery rules
+- [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) – Testing strategy and structure
+- [PLANS.md](development_docs/PLANS.md) – Medium/long-term plans and experiments
+- [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) – AI tooling and audit commands
+- [TODO.md](TODO.md) – Practical current priorities and rough task list
 
 AI-facing docs (for tools like Cursor and ChatGPT):
 
-- `ai_development_docs/AI_SESSION_STARTER.md`
-- `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`
-- `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`
-- `ai_development_docs/AI_ARCHITECTURE.md`
-- `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`
-- `ai_development_docs/AI_TESTING_GUIDE.md`
-- `ai_development_docs/AI_LOGGING_GUIDE.md`
-- `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`
-- `ai_development_docs/AI_REFERENCE.md`
-- `ai_development_docs/AI_CHANGELOG.md`
+- [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md)
+- [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)
+- [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)
+- [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md)
+- [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md)
+- [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)
+- [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md)
+- [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md)
+- [AI_REFERENCE.md](ai_development_docs/AI_REFERENCE.md)
+- [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)
 
 Configuration-related files:
 
@@ -166,12 +166,12 @@ Configuration-related files:
 - `requirements.txt` – Python dependencies
 
 For how documentation is kept in sync (especially human/AI pairs), see
-`DOCUMENTATION_GUIDE.md` and `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`.
+[DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) and [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md).
 
 
 ## 5. Architecture
 
-High-level architecture (details in `ARCHITECTURE.md`):
+High-level architecture (details in [ARCHITECTURE.md](ARCHITECTURE.md)):
 
 - The background service is implemented under `core/` (for example `core/service.py`
   and related modules). It is responsible for scheduling, sending reminders,
@@ -204,12 +204,12 @@ MHM can integrate with a local AI model via LM Studio:
   in `.env` / `.env.example` and read by `core/config.py`.
 - If LM Studio is not installed or the model is not available, MHM still works
   as a scheduler/reminder system.
-- For more detail, see the AI sections in `ARCHITECTURE.md`, the `ai/` package, and `SYSTEM_AI_GUIDE.md`.
+- For more detail, see the AI sections in [ARCHITECTURE.md](ARCHITECTURE.md), the `ai/` package, and [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md).
 
 
 ## 7. Project Structure
 
-A simplified view of the repository (names may evolve; see `ARCHITECTURE.md` for details):
+A simplified view of the repository (names may evolve; see [ARCHITECTURE.md](ARCHITECTURE.md) for details):
 
 ```text
 MHM/
@@ -231,8 +231,8 @@ MHM/
 - run_headless_service.py  # Headless service entry (AI collaborators)
 ```
 
-For deeper explanations of each area and how they connect, see `ARCHITECTURE.md`
-and `ai_development_docs/AI_ARCHITECTURE.md`.
+For deeper explanations of each area and how they connect, see [ARCHITECTURE.md](ARCHITECTURE.md)
+and [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md).
 
 
 ## 8. License and privacy
@@ -250,7 +250,7 @@ This project is deliberately structured to support a beginner developer who is
 learning as they go, with heavy AI assistance.
 
 - Safety first – assume real data and a real machine. Prefer small, reversible
-  changes and keep backups (see `ai_development_docs/AI_SESSION_STARTER.md` for
+  changes and keep backups (see [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md) for
   backup commands and safety rules).
 - Learning-focused – many improvements are an excuse to learn a concept
   (logging, error handling, scheduling, testing, UI). When in doubt, slow down
@@ -265,15 +265,15 @@ learning as they go, with heavy AI assistance.
 
 For current priorities and a history of what has been done recently, see:
 
-- `TODO.md`
-- `ai_development_docs/AI_CHANGELOG.md`
-- `development_docs/CHANGELOG_DETAIL.md`
+- [TODO.md](TODO.md)
+- [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)
+- [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md)
 
 
 ## 10. Troubleshooting
 
 This section collects a few common issues and practical fixes. For more detail,
-see `HOW_TO_RUN.md` and the logging/error-handling docs.
+see [HOW_TO_RUN.md](HOW_TO_RUN.md) and the logging/error-handling docs.
 
 ### 10.1. Virtual environment or Python not recognized
 
@@ -316,7 +316,7 @@ You should see `(.venv)` at the start of your shell prompt when it is active.
    python -m core.config
    ```
 
-   or use the `config` command via the AI tools runner (see `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`).
+   or use the `config` command via the AI tools runner (see [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)).
 
 3. Check that required directories (for example `data/`, `logs/`) exist. They
    are usually created automatically; if they were deleted, config validation
@@ -353,16 +353,16 @@ If you see warnings about slash command syncing:
 
 If you are stuck:
 
-- Development workflow – see `DEVELOPMENT_WORKFLOW.md`.
-- Architecture – see `ARCHITECTURE.md`.
-- Current issues and priorities – see `TODO.md`.
-- Recent changes – see `ai_development_docs/AI_CHANGELOG.md` and
-  `development_docs/CHANGELOG_DETAIL.md`.
+- Development workflow – see [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md).
+- Architecture – see [ARCHITECTURE.md](ARCHITECTURE.md).
+- Current issues and priorities – see [TODO.md](TODO.md).
+- Recent changes – see [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) and
+  [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md).
 
 If you are using an AI assistant (Cursor, ChatGPT, etc.), point it at:
 
-- `ai_development_docs/AI_SESSION_STARTER.md`
-- `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`
-- `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`
+- [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md)
+- [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)
+- [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md)
 
 before asking it to make non-trivial changes.

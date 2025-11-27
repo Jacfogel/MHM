@@ -44,7 +44,7 @@
 2. **Excessive Retry Loops with Sleep Delays** (Medium-High Impact)
    - 141 `time.sleep` calls across 35 files
    - Retry loops with 5 attempts and 0.1s delays (0.4s total per loop)
-   - **Solution**: Reduce retry counts (5→3), reduce sleep (0.1s→0.05s), use `wait_until()` helper
+   - **Solution**: Reduce retry counts (5->3), reduce sleep (0.1s->0.05s), use `wait_until()` helper
 
 3. **Redundant `_materialize_and_verify()` Calls** (Medium Impact)
    - Called 25 times in `test_account_lifecycle.py`
@@ -63,13 +63,13 @@
 **Implementation Checklist**:
 
 **High Priority (Biggest Impact)**:
-- [x] **Optimize `test_multiple_users_same_channel`** (34.59s → target: <15s)
+- [x] **Optimize `test_multiple_users_same_channel`** (34.59s -> target: <15s)
   - [x] Create all 3 users first, then rebuild index once
   - [x] Reduce retry loops from 5 to 3 attempts
   - [x] Reduce sleep from 0.1s to 0.05s
   - [x] Use `wait_until()` helper instead of manual retries
   - [ ] Test to ensure no regressions
-- [x] **Optimize `test_account_lifecycle` tests** (21-22s each → target: <12s)
+- [x] **Optimize `test_account_lifecycle` tests** (21-22s each -> target: <12s)
   - [x] Call `_materialize_and_verify()` only once per test (reduced from 2-3 calls to 1)
   - [x] Remove redundant `rebuild_user_index()` calls
   - [x] Use `update_user_index(user_id)` instead of full rebuild
@@ -83,9 +83,9 @@
 
 **Medium Priority**:
 - [x] **Optimize retry loops**
-  - [x] Replace manual retry loops with `wait_until()` helper from `conftest.py` (4 replacements in test_account_lifecycle.py)
-  - [x] Reduce sleep durations (0.1s → 0.05s, 0.2s → 0.1s)
-  - [x] Reduce retry counts (5 → 3) where safe
+  - [x] Replace manual retry loops with `wait_until()` helper from `tests/conftest.py` (4 replacements in test_account_lifecycle.py)
+  - [x] Reduce sleep durations (0.1s -> 0.05s, 0.2s -> 0.1s)
+  - [x] Reduce retry counts (5 -> 3) where safe
   - [ ] Test after each change
 - [x] **Review `no_parallel` markers**
   - [x] Audit which tests truly need serial execution
@@ -114,7 +114,7 @@
 - Some optimizations may require careful testing for race conditions
 - Keep retry logic for truly flaky operations, but optimize the delays
 - Document why `no_parallel` is needed when it's kept
-- Use `wait_until()` helper from `conftest.py` instead of manual retries where possible
+- Use `wait_until()` helper from `tests/conftest.py` instead of manual retries where possible
 - Follow testing guidelines: use helpers from `tests/test_utilities.py`, ensure test isolation
 - Added `_wait_for_user_id_by_username` helper to poll `get_user_id_by_identifier` with a single fallback `rebuild_user_index()` call, removing dozens of expensive index rebuilds from the UI account-creation tests
 
@@ -141,7 +141,7 @@
 - [x] Function-level exclusion logic implemented in `error_handling_coverage.py`
 - [x] Exclusion comments added to 44 appropriate functions
 - [x] **Phase 1 and Phase 2 auditing tooling completed** - Enhanced `error_handling_coverage.py` to identify and prioritize Phase 1 candidates and audit Phase 2 generic exceptions
-- [x] **Integration with AI tools completed** - Phase 1 and Phase 2 metrics now appear in `AI_STATUS.md`, `AI_PRIORITIES.md`, and `consolidated_report.txt`
+- [x] **Integration with AI tools completed** - Phase 1 and Phase 2 metrics now appear in `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, and `development_tools/consolidated_report.txt`
 - [x] **Documentation updated** - Phase 1 and Phase 2 functionality documented in error handling guides
 
 **Phase 1: Replace Basic Try-Except Blocks with Decorators** (Priority: High)
@@ -233,7 +233,7 @@
 - **Tooling Complete**: Phase 1 and Phase 2 auditing fully integrated into `error_handling_coverage.py` and AI tools
 - **Current Metrics**: 88 Phase 1 candidates (26 high, 38 medium, 24 low), 1 Phase 2 exception (1 ValueError)
 - **Next Priority**: Replace 26 high-priority Phase 1 candidates, then address the 1 Phase 2 exception
-- **Tracking**: Progress visible in `AI_STATUS.md`, `AI_PRIORITIES.md`, and `consolidated_report.txt` after each audit
+- **Tracking**: Progress visible in `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, and `development_tools/consolidated_report.txt` after each audit
 
 **Detailed Next Steps**:
 
@@ -254,9 +254,9 @@
 **Immediate (Phase 2)**:
 1. Locate the 1 identified ValueError in the codebase (check audit reports)
 2. Determine appropriate `MHMError` subclass based on context:
-   - User input validation → `ValidationError`
-   - Data processing → `DataError`
-   - Configuration → `ConfigurationError`
+   - User input validation -> `ValidationError`
+   - Data processing -> `DataError`
+   - Configuration -> `ConfigurationError`
 3. Replace the generic exception with the specific subclass
 4. Update any error handling that catches this exception
 5. Add test to verify proper exception type
@@ -267,7 +267,7 @@
 - Use `error_handling_coverage.py` to track progress and measure quality improvements
 - Keep changes small and well-tested - verify behavior after each batch of replacements
 - Reference `core/ERROR_HANDLING_GUIDE.md` and `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` for patterns and best practices
-- Monitor `AI_PRIORITIES.md` for updated priority counts as replacements are made
+- Monitor `development_tools/AI_PRIORITIES.md` for updated priority counts as replacements are made
 
 ### **AI Chatbot Actionability Sprint** **IN PROGRESS**
 
@@ -406,7 +406,7 @@
 
 **Objective**: Continue refactoring high complexity functions identified in audit to improve maintainability and reduce technical debt.
 
-**Background**: Latest audit identified 1856 high complexity functions (>50 nodes). Phase 1 successfully refactored `get_user_data_summary` (800 → 15 helper functions).
+**Background**: Latest audit identified 1856 high complexity functions (>50 nodes). Phase 1 successfully refactored `get_user_data_summary` (800 -> 15 helper functions).
 
 **Completed** (documented in changelog 2025-09-27):
 - [x] **Step 1: Priority Function Analysis** (COMPLETED)
@@ -763,7 +763,7 @@
 - [OK] **Mood data included in context**: AI chatbot includes mood and energy data from check-ins in context (`ai/chatbot.py`, `ai/context_builder.py`)
 - [OK] **Mood trend analysis**: Context builder analyzes mood trends (improving/declining/stable)
 - [OK] **Emotional intelligence in system prompt**: System prompt includes emotional intelligence instructions
-- [OK] **Mood-aware completion messages**: Check-in completion messages adapt based on mood/energy (`conversation_flow_manager.py`)
+- [OK] **Mood-aware completion messages**: Check-in completion messages adapt based on mood/energy (`communication/message_processing/conversation_flow_manager.py`)
 - [X] **Prompt modification based on mood**: Prompts are NOT dynamically modified based on mood/energy - mood data is only included in context
 - [X] **Tone adaptation algorithms**: No explicit tone adaptation based on detected mood
 - [X] **Emotional response templates**: No mood-specific response templates
@@ -944,7 +944,7 @@ Target modules with 70-90% coverage:
 - [ ] All button clicks, inputs, and workflows tested
 - [ ] Error handling and recovery tested
 
-**Note**: See `development_docs/UI_COMPONENT_TESTING_STRATEGY.md` for detailed test patterns and implementation examples (archived reference).
+**Note**: See `development_docs/UI_COMPONENT_TESTING_STRATEGY.md` for detailed test patterns and implementation examples (archived reference - file no longer exists).
 
 ---
 

@@ -39,6 +39,51 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-26 - Documentation Quality Improvements and Path-to-Link Conversion **COMPLETED**
+- **Feature**: Comprehensive documentation cleanup including non-ASCII character fixes, path drift resolution, heading numbering corrections, missing file reference fixes, documentation sync checker improvements, and automated path-to-link conversion.
+- **Technical Changes**:
+  1. **Non-ASCII Character Fixes**:
+     - Fixed em dashes (replaced with hyphens (-)) in `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`
+     - Fixed checkmark emojis (replaced with `[OK]` markers) in multiple files
+     - Fixed arrow characters (replaced with `->`) in changelog files
+     - Added `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` and `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` to ASCII compliance check list
+  2. **Path Drift Fixes** (60+ ambiguous short paths corrected):
+     - Updated short path references to full paths across multiple documentation files
+     - Fixed references in `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md`, `communication/communication_channels/discord/DISCORD_GUIDE.md`, `ARCHITECTURE.md`, `README.md`, `DEVELOPMENT_WORKFLOW.md`, `DOCUMENTATION_GUIDE.md`, `tests/TESTING_GUIDE.md`, `tests/MANUAL_TESTING_GUIDE.md`, `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`, `development_docs/PLANS.md`
+     - Updated references to use full paths (e.g., `config.py` -> `development_tools/config.py`, `bot.py` -> `communication/communication_channels/discord/bot.py`)
+  3. **Heading Numbering Fixes**:
+     - Fixed missing H3 numbers in `HOW_TO_RUN.md` (section 6 renumbered from 5.x to 6.x)
+     - Fixed missing H3 numbers in `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` (added 3.1, 3.2)
+     - Fixed missing H3 numbers in `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` (added 2.1, 2.2, 4.1, 4.2)
+  4. **Missing File Reference Fixes**:
+     - Fixed `SYSTEM_AI_GUIDE.md` -> `ai/SYSTEM_AI_GUIDE.md` in multiple files
+     - Updated conditional file references (e.g., `HIGH_COMPLEXITY_FUNCTIONS_ANALYSIS.md` marked as archived/conditional)
+  5. **Documentation Sync Checker Improvements** (`development_tools/documentation_sync_checker.py`):
+     - **Direct import integration**: Modified `run_documentation_sync_checker()` in `development_tools/services/operations.py` to import and call `DocumentationSyncChecker` directly instead of running as subprocess, capturing full structured output with detailed issues
+     - **Example filtering**: Added `_is_in_example_context()` method to detect and skip path references within example sections (marked with `[OK]`, `[AVOID]`, `[GOOD]`, `[BAD]`, `[EXAMPLE]` or "Examples:" headings)
+     - **Archive filtering**: Added filter to ignore paths on lines containing "archive" or "archived"
+     - **Markdown link handling**: Improved `scan_documentation_paths()` to correctly handle markdown links `[text](url)` by prioritizing URL part for validation, preventing false positives when link text is a short name but URL is correct full path
+     - **Removed `ALTERNATIVE_DIRECTORIES`**: Removed the `ALTERNATIVE_DIRECTORIES` mechanism entirely from `documentation_sync_checker.py` and `development_tools/services/constants.py` to reduce ambiguity
+     - **Relative path validation**: Enhanced `_is_valid_file_reference()` to check relative paths for all paths (not just those starting with `../`), reducing reliance on directory guessing
+     - **Output improvements**: Fixed parser in `operations.py` to correctly parse documentation sync output and prevent "Heading Numbering Issues" from appearing in "Hotspots" when count is zero
+     - **Indentation fix**: Fixed indentation error on line 522 in `development_tools/services/operations.py`
+  6. **Path-to-Link Conversion Script** (`scripts/utilities/convert_paths_to_links.py`):
+     - New script that converts file paths in backticks (e.g., `` `tests/TESTING_GUIDE.md` ``) to markdown links (e.g., `[TESTING_GUIDE.md](tests/TESTING_GUIDE.md)`)
+     - Uses only filename as link text for cleaner presentation
+     - Skips paths in code blocks, example contexts, metadata lines (`> **File**:`), and self-references
+     - Validates that target files exist before conversion
+     - Only processes `.md` file references
+     - Applied to 20+ documentation files across the project
+  7. **Path Reference Improvements**:
+     - Updated relative references in `AI_DEVELOPMENT_WORKFLOW.md` to full paths for files outside `ai_development_docs/`
+     - Updated relative references in `AI_DOCUMENTATION_GUIDE.md` and `AI_REFERENCE.md` to full paths
+     - Fixed incorrectly converted examples (reverted to backticks where appropriate)
+     - Fixed missed conversions that should have been links
+  8. **Documentation Updates**:
+     - Added development tools guides to paired documentation list in `DOCUMENTATION_GUIDE.md`
+     - Standardized example marking in `DOCUMENTATION_GUIDE.md` to follow example marking standards
+- **Impact**: Documentation is now fully ASCII-compliant, all path references are accurate and use consistent full paths, heading numbering is consistent, and the documentation sync checker provides more accurate and detailed results. All file references are now clickable markdown links for improved navigation. The path-to-link conversion script can be reused for future documentation updates.
+
 ### 2025-11-26 - Schedule Period Edit Cache Race Condition Fix **COMPLETED**
 - **Feature**: Fixed race condition in `edit_schedule_period` that caused test failures in parallel execution. Added cache clearing at the start of `edit_schedule_period` (matching the pattern in `add_schedule_period`) to ensure fresh data is read before editing. Also added cache clearing in the test after the edit operation to ensure the test reads fresh data.
 - **Technical Changes**:
@@ -72,8 +117,8 @@ When adding new changes, follow this format:
 ### 2025-11-26 - Development Tools Test Stabilization
 - **Feature**: Simplified the new development-tools integration and error scenario suites to keep total runtime and skip counts in line with historical baselines while still exercising the intended behavior.
 - **Technical Changes**:
-  1. `tests/development_tools/test_integration_workflows.py` now reuses the original lightweight command‑routing smoke tests (purely mocked `AIToolsService` calls) instead of spawning real subprocess workflows. This preserves coverage of the CLI dispatcher without adding two minutes to every run.
-  2. `tests/development_tools/test_error_scenarios.py` replaces OS‑level permission manipulations with deterministic monkeypatched `PermissionError` simulations, ensuring the suite runs identically on Windows and Linux. The import-heavy “missing dependency” check was removed to avoid pulling in half the toolchain just to assert a failure.
+  1. `tests/development_tools/test_integration_workflows.py` now reuses the original lightweight command-routing smoke tests (purely mocked `AIToolsService` calls) instead of spawning real subprocess workflows. This preserves coverage of the CLI dispatcher without adding two minutes to every run.
+  2. `tests/development_tools/test_error_scenarios.py` replaces OS-level permission manipulations with deterministic monkeypatched `PermissionError` simulations, ensuring the suite runs identically on Windows and Linux. The import-heavy "missing dependency" check was removed to avoid pulling in half the toolchain just to assert a failure.
   3. Updated the same error-scenario file to load `AIToolsService` via the shared `load_development_tools_module()` helper so relative imports are resolved consistently across platforms.
 - **Impact**: Restored the development-tools subset to 149 tests / 0 skips and brought the full `python run_tests.py` execution time back to ~4 minutes on Windows while still covering the intended behavior. No documentation changes were required.
 
@@ -102,7 +147,7 @@ When adding new changes, follow this format:
      - Enhanced `_patch_should_exclude_file()` helper to ensure patching works correctly in both module attribute and `sys.modules`
 - **Documentation Updates**:
   - Updated `AI_DEV_TOOLS_IMPROVEMENT_PLAN.md` to mark Phase 3 as COMPLETED with detailed milestone status
-  - Updated `DEVELOPMENT_TOOLS_GUIDE.md` to add test coverage indicators (✅ HAS TESTS) for all 5 core analysis tools
+  - Updated `DEVELOPMENT_TOOLS_GUIDE.md` to add test coverage indicators ([OK] HAS TESTS) for all 5 core analysis tools
   - Updated `AI_DEVELOPMENT_TOOLS_GUIDE.md` to reflect Phase 3 completion and test coverage
   - Updated `TESTING_GUIDE.md` to document comprehensive test coverage for development tools
   - Updated `AI_TESTING_GUIDE.md` to mention core analysis tools test coverage
@@ -117,7 +162,7 @@ When adding new changes, follow this format:
      - Created `tests/development_tools/test_standard_exclusions.py` with 21 tests covering universal exclusions, tool-specific exclusions, context-specific exclusions, and Path object handling
      - Created `tests/development_tools/test_constants.py` with 25 tests covering DEFAULT_DOCS paths, PAIRED_DOCS paths, LOCAL_MODULE_PREFIXES, and helper functions
      - Created `tests/development_tools/test_ai_tools_runner.py` with 7 CLI smoke tests verifying command execution, exit codes, and error handling
-     - Fixed path mismatch in `development_tools/services/constants.py` (`tests/AI_FUNCTIONALITY_TEST_GUIDE.md` → `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`)
+     - Fixed path mismatch in `development_tools/services/constants.py` (`tests/AI_FUNCTIONALITY_TEST_GUIDE.md` -> `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`)
   2. **Logging Normalization** (`development_tools/services/operations.py`):
      - Added consistent "Starting {operation_name}..." and "Completed {operation_name}..." logging to all major operations (`run_audit`, `run_docs`, `run_validate`, `run_config`, `run_status`, `run_documentation_sync`, `run_coverage_regeneration`, `run_legacy_cleanup`, `run_system_signals`, `run_unused_imports_report`, `generate_directory_trees`)
      - Ensured all command handlers return appropriate exit codes (0 for success, non-zero for failures)
@@ -136,7 +181,7 @@ When adding new changes, follow this format:
 - **Feature**:
   1. Added `development_tools/services/tool_metadata.py` as the single source of truth for tool tier, portability, trust, description, and command-group metadata. Used the registry to inject `# TOOL_TIER` / `# TOOL_PORTABILITY` headers into every tool module, removing stray BOM characters discovered during the sweep.
   2. Refreshed CLI help output: updated `development_tools/services/common.py`, `development_tools/ai_tools_runner.py`, and `development_tools/services/operations.py` so the `help` command groups entries under Core, Supporting, and Experimental headings with explicit warnings for risky commands. Expanded `tool_guide.py` to print a tier overview sourced from the new registry.
-  3. Renamed `ai_development_tools/` ➜ `development_tools/` (plus every import, script, and doc reference) so the package name matches its purpose. Deleted the one-off helper scripts (`scripts/update_tool_headers_tmp.py`, `scripts/remove_bom_tmp.py`) after the migration.
+  3. Renamed `ai_development_tools/` -> `development_tools/` (plus every import, script, and doc reference) so the package name matches its purpose. Deleted the one-off helper scripts (`scripts/update_tool_headers_tmp.py`, `scripts/remove_bom_tmp.py`) after the migration.
   4. Split the documentation pair: the AI-facing quick reference is now `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` (routing only) and the detailed human catalog lives in the new `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`. Added the pair to `DEFAULT_DOCS`, `PAIRED_DOCS`, the directory tree, README, and other doc listings.
   5. Extended `AI_DEV_TOOLS_IMPROVEMENT_PLAN.md` with a comprehensive portability roadmap (per tool) and a naming/directory strategy so future work is explicitly tracked.
   6. **Path reference cleanup**: Systematically updated all remaining `ai_development_tools/` references throughout the codebase to `development_tools/` in active documentation and configuration files. Updated `.cursor/rules/` files (ai-tools.mdc, critical.mdc, core-guidelines.mdc, context.mdc, quality-standards.mdc) and `.gitignore` to use the new directory name. Preserved historical references in changelogs and archives as requested.
@@ -190,14 +235,14 @@ When adding new changes, follow this format:
 - **Feature**: Expanded test coverage for 8 low-coverage modules, optimized test performance with module-scoped fixtures, fixed race conditions, and improved test maintainability with helper functions. All 3,309 tests pass (0 failures, 1 skipped).
 - **Technical Changes**:
   1. **New Test Files Created** (8 files, ~200+ new tests):
-     - `tests/unit/test_checkin_view.py`: 10 tests for Discord check-in view creation and button handlers (17% → improved coverage)
-     - `tests/unit/test_file_locking.py`: 15 tests for file locking, safe JSON operations, and concurrent access (54% → improved coverage)
-     - `tests/unit/test_email_bot_body_extraction.py`: 20 tests for email body extraction from various formats (54% → improved coverage)
-     - `tests/unit/test_user_data_handlers.py`: 25 tests for convenience functions and validation logic (63% → improved coverage)
-     - `tests/unit/test_command_parser_helpers.py`: 21 tests for command parser helper methods (66% → improved coverage)
-     - `tests/unit/test_ai_chatbot_helpers.py`: 29 tests for AI chatbot helper methods (57% → improved coverage)
-     - `tests/unit/test_channel_orchestrator.py`: Tests for channel orchestrator helper methods (58% → improved coverage)
-     - `tests/unit/test_interaction_handlers_helpers.py`: Tests for interaction handler helpers (57% → improved coverage)
+     - `tests/unit/test_checkin_view.py`: 10 tests for Discord check-in view creation and button handlers (17% -> improved coverage)
+     - `tests/unit/test_file_locking.py`: 15 tests for file locking, safe JSON operations, and concurrent access (54% -> improved coverage)
+     - `tests/unit/test_email_bot_body_extraction.py`: 20 tests for email body extraction from various formats (54% -> improved coverage)
+     - `tests/unit/test_user_data_handlers.py`: 25 tests for convenience functions and validation logic (63% -> improved coverage)
+     - `tests/unit/test_command_parser_helpers.py`: 21 tests for command parser helper methods (66% -> improved coverage)
+     - `tests/unit/test_ai_chatbot_helpers.py`: 29 tests for AI chatbot helper methods (57% -> improved coverage)
+     - `tests/unit/test_channel_orchestrator.py`: Tests for channel orchestrator helper methods (58% -> improved coverage)
+     - `tests/unit/test_interaction_handlers_helpers.py`: Tests for interaction handler helpers (57% -> improved coverage)
   2. **Test Performance Optimizations**:
      - **Module-scoped fixtures**: Converted `setup_method` to module-scoped fixtures in `test_email_bot_body_extraction.py` (EmailBot) and `test_command_parser_helpers.py` (EnhancedCommandParser) - reduces initialization overhead from per-test to per-module
      - **Helper functions**: Added `find_button_by_label()` and `mock_interaction_factory` fixture in `test_checkin_view.py` to reduce code duplication
@@ -287,8 +332,8 @@ When adding new changes, follow this format:
 - **Technical Changes**:
   - **Test Log Rotation**: Enhanced `SessionLogRotationManager` in `tests/conftest.py` to rotate logs at both session start and session end (in `pytest_sessionfinish` hook), preventing unbounded log file growth. Rotation occurs at session boundaries only, not during test execution.
   - **User Index Robustness**: Made `rebuild_user_index()` and `update_user_index()` in `core/user_data_manager.py` more resilient to race conditions:
-    - Increased retry attempts (3→5 for `update_user_index`, 3 for `rebuild_full_index`)
-    - Increased retry delays (0.1s→0.2s) for better reliability in parallel execution
+    - Increased retry attempts (3->5 for `update_user_index`, 3 for `rebuild_full_index`)
+    - Increased retry delays (0.1s->0.2s) for better reliability in parallel execution
     - Added retry logic for file write operations (3 attempts with 0.15s delay)
     - Made `rebuild_full_index` accept partial success (returns `True` if at least some users are indexed)
     - Improved error logging with diagnostic information
@@ -314,7 +359,7 @@ When adding new changes, follow this format:
 ### 2025-01-27 - Pytest Markers Analysis and Standardization **COMPLETED**
 - **Feature**: Completed comprehensive pytest markers analysis and standardization, reducing marker count from 40 to 18 (55% reduction) and ensuring 100% test file coverage. Streamlined marker set aligned with actual filtering needs, component structure, and practical value. Removed 22 redundant/unused markers, migrated ~275+ test instances to consolidated markers, and applied markers systematically to all 162 test files. Updated documentation with comprehensive marker usage guidelines in `tests/TESTING_GUIDE.md` and `ai_development_docs/AI_TESTING_GUIDE.md`. Fixed test policy violations by replacing all `print()` statements with logging in `test_account_management.py` and `test_utilities_demo.py`, and removed retired `pytest.mark.debug` marker.
 - **Technical Changes**:
-  - **Marker Consolidation**: Removed unused markers (`chat_interactions`, `memory`, `flaky`, `known_issue`, `wip`, `todo`, `skip_ci`, `manual`, `debug`), consolidated redundant markers (`discord` → `communication`, `channels` → `communication`, `reminders` → `tasks`, `schedules` → `scheduler`, `performance` → `slow`, `service` → `behavior`/`ui`, `bug` → `regression`, `error_handling` → `critical`, `edge_cases` → `regression`), and removed generic markers (`external`, `network`, `config`)
+  - **Marker Consolidation**: Removed unused markers (`chat_interactions`, `memory`, `flaky`, `known_issue`, `wip`, `todo`, `skip_ci`, `manual`, `debug`), consolidated redundant markers (`discord` -> `communication`, `channels` -> `communication`, `reminders` -> `tasks`, `schedules` -> `scheduler`, `performance` -> `slow`, `service` -> `behavior`/`ui`, `bug` -> `regression`, `error_handling` -> `critical`, `edge_cases` -> `regression`), and removed generic markers (`external`, `network`, `config`)
   - **Marker Application**: Applied category markers (`unit`, `integration`, `behavior`, `ui`) to all 162 test files, added feature markers (`tasks`, `scheduler`, `checkins`, `messages`, `analytics`, `user_management`, `communication`, `ai`) where appropriate, and applied speed/quality/resource markers (`slow`, `fast`, `asyncio`, `no_parallel`, `critical`, `regression`, `smoke`, `file_io`) systematically
   - **Documentation**: Added comprehensive marker usage guidelines with decision tree, examples, and filtering patterns to `tests/TESTING_GUIDE.md` section 10.2, updated `ai_development_docs/AI_TESTING_GUIDE.md` with concise marker reference, and removed all retired marker references from code, comments, docstrings, and documentation
   - **Test Fixes**: Replaced 69 `print()` statements with logging calls using `logging.getLogger("mhm_tests")` in `tests/integration/test_account_management.py` (35 instances) and `tests/behavior/test_utilities_demo.py` (34 instances), removed `pytestmark = pytest.mark.debug` from `test_account_management.py`, and updated `test_no_prints_policy.py` to exclude itself from print() detection
@@ -326,8 +371,8 @@ When adding new changes, follow this format:
 - **Technical Changes**:
   - Enhanced `scripts/number_documentation_headings.py`:
     - Added `has_standard_numbering_format()` to detect missing trailing periods
-    - Added `strip_content_number()` to prevent double numbering (e.g., "1. Core" → "Core")
-    - Enhanced out-of-order numbering logic to fix sequentially (e.g., 7, 10, 8 → 7, 8, 9)
+    - Added `strip_content_number()` to prevent double numbering (e.g., "1. Core" -> "Core")
+    - Enhanced out-of-order numbering logic to fix sequentially (e.g., 7, 10, 8 -> 7, 8, 9)
     - Added emoji removal from Quick Reference headings even when not numbering
     - Added conversion of Q&A and Step headings to bold text instead of numbering
     - Fixed H3 numbering to use corrected parent H2 numbers when parent is out of order

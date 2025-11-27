@@ -48,7 +48,7 @@ Execute AI functionality tests (manual review tests) that validate AI response q
    - Include corrected grading for any tests (e.g., "T-12.2: PASS → FAIL")
    - Specifically note prompt-response mismatches found (automated validation struggles with these)
    - Note what validation improvements are needed
-   - Update `tests/AI_FUNCTIONALITY_TEST_PLAN.md` with status changes if needed
+   - Update `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md` with status changes if needed
 
 ## Test Details
 - **Test Type**: Manual review tests (AI reviews responses automatically, human review may be needed for complex issues)
@@ -99,7 +99,7 @@ Execute AI functionality tests (manual review tests) that validate AI response q
 - System improvements identified
 
 ## Additional Guidance
-- See `tests/AI_FUNCTIONALITY_TEST_PLAN.md` for complete test plan and coverage
+- See `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md` for complete test plan and coverage
 - See `tests/ai/ai_response_validator.py` for validation rules and patterns
 - Deterministic tests moved to `tests/unit/test_ai_deterministic.py` (run via pytest)
 

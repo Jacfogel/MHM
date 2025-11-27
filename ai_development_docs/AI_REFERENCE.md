@@ -9,7 +9,7 @@
 
 ### 1.1. Documentation appears incomplete
 1. Run `python development_tools/ai_tools_runner.py audit` to refresh metrics.
-2. Review `development_tools/AI_STATUS.md` and `AI_PRIORITIES.md` to highlight specific gaps.
+2. Review [AI_STATUS.md](development_tools/AI_STATUS.md) and [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md) to highlight specific gaps.
 3. Draft a remediation plan and confirm next steps with the user before editing docs.
 
 ### 1.2. Code change introduced failures
@@ -61,6 +61,6 @@
 - Work is logged in both changelog tracks with clear follow-up actions.
 
 ## 5. Further Reading
-- `../DOCUMENTATION_GUIDE.md`, `../ARCHITECTURE.md`, `../DEVELOPMENT_WORKFLOW.md` for deeper background.
-- `SYSTEM_AI_GUIDE.md` for AI subsystem architecture, modes, and runtime behavior.
-- `AI_LOGGING_GUIDE.md`, `AI_TESTING_GUIDE.md`, `AI_ERROR_HANDLING_GUIDE.md` for focused playbooks.
+- [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md), [ARCHITECTURE.md](ARCHITECTURE.md), [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for deeper background.
+- [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md) for AI subsystem architecture, modes, and runtime behavior.
+- [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md), [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) for focused playbooks.

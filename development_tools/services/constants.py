@@ -257,6 +257,10 @@ ASCII_COMPLIANCE_FILES: Tuple[str, ...] = (
     'ARCHITECTURE.md',
     'DOCUMENTATION_GUIDE.md',
     
+    # Development tools guides (important for AI collaboration)
+    'development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md',
+    'development_tools/DEVELOPMENT_TOOLS_GUIDE.md',
+    
     # Development docs (important for AI collaboration)
     'development_docs/CHANGELOG_DETAIL.md',
     'development_docs/PLANS.md',
@@ -284,15 +288,6 @@ VERSION_SYNC_DIRECTORIES: Dict[str, str] = {
     'ai': 'ai/'
 }
 
-# Common alternative directory paths for file resolution
-ALTERNATIVE_DIRECTORIES: Tuple[str, ...] = (
-    'ai_development_docs', 'development_docs', 'development_tools',
-    'core', 'communication', 'ui', 'tests', 'tests/behavior', 'tests/unit',
-    'tests/integration', 'tests/ui', 'logs', 'scripts',
-    'communication/communication_channels', 'communication/command_handlers',
-    'communication/core', 'communication/message_processing'
-)
-
 def is_standard_library_module(module_name: str) -> bool:
     """Return True if *module_name* belongs to the Python standard library."""
     if not module_name:
@@ -315,7 +310,6 @@ def is_local_module(module_name: str) -> bool:
     return base in LOCAL_MODULE_PREFIXES
 
 __all__ = [
-    'ALTERNATIVE_DIRECTORIES',
     'ASCII_COMPLIANCE_FILES',
     'COMMAND_PATTERNS',
     'COMMON_CLASS_NAMES',

@@ -4,8 +4,8 @@
 > **Audience**: Human developer (beginner programmer)  
 > **Purpose**: Safe development practices and day-to-day procedures  
 > **Style**: Comprehensive, step-by-step, practical
-> **Pair**: `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`
-> This document is paired with `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`, and any potential changes must be considered within the context of both docs.
+> **Pair**: [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)
+> This document is paired with [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md), and any potential changes must be considered within the context of both docs.
 
 
 ## Quick Reference
@@ -13,19 +13,19 @@
 This section summarizes the most common tasks and where to look for detail.
 
 - Project overview and navigation  
-  - See section 3. "Quick Start" in `README.md`.
+  - See section 3. "Quick Start" in [README.md](README.md).
 
 - Environment setup and running the app  
-  - See section 1. "Quick Start (Recommended)" in `HOW_TO_RUN.md` for environment setup and first-run commands.
+  - See section 1. "Quick Start (Recommended)" in [HOW_TO_RUN.md](HOW_TO_RUN.md) for environment setup and first-run commands.
 
 - Running tests  
-  - See section 1. "Testing Philosophy and Priorities" and section 2. "Test Layout and Discovery" in `tests/TESTING_GUIDE.md`.
+  - See section 1. "Testing Philosophy and Priorities" and section 2. "Test Layout and Discovery" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 
 - Updating documentation  
-  - See section 1. "Documentation Categories" in `DOCUMENTATION_GUIDE.md`.
+  - See section 1. "Documentation Categories" in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md).
 
 - Architecture and data flow  
-  - See section 4. "Key Modules and Responsibilities" in `ARCHITECTURE.md`.
+  - See section 4. "Key Modules and Responsibilities" in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 - If you are unsure what to do next  
   - Start with "Development Process" below, then consult the relevant guide for testing, docs, or logging.
@@ -82,11 +82,11 @@ When in doubt: activate the virtual environment, make a backup, then follow the 
    - Avoid reintroducing removed wrapper functions or deep, brittle imports.
 
 6. **Document meaningful changes**  
-   - Describe each meaningful change in `development_docs/CHANGELOG_DETAIL.md`.  
-   - Ensure the summarized change appears in `ai_development_docs/AI_CHANGELOG.md`.
+   - Describe each meaningful change in [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md).  
+   - Ensure the summarized change appears in [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md).
 
 7. **Use the Audit-First Protocol for docs**  
-   - Before editing documentation, consult section 3. "Documentation Synchronization Checklist" in `DOCUMENTATION_GUIDE.md` so Audit-First instructions remain effective.
+   - Before editing documentation, consult section 3. "Documentation Synchronization Checklist" in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) so Audit-First instructions remain effective.
 
 8. **Ask for help early**  
    - When something feels risky or confusing, stop, collect a short description and errors, and ask for help instead of guessing.
@@ -138,7 +138,7 @@ deactivate
 ### 2.3. Troubleshooting
 
 - **"python: command not found" or wrong version**  
-  - Confirm Python is installed and on PATH; see section 5. "Troubleshooting" in `HOW_TO_RUN.md` if setup fails.
+  - Confirm Python is installed and on PATH; see section 5. "Troubleshooting" in [HOW_TO_RUN.md](HOW_TO_RUN.md) if setup fails.
 
 - **Import errors after pulling recent changes**  
   - Run `pip install -r requirements.txt --force-reinstall` inside `(.venv)`.
@@ -151,11 +151,11 @@ deactivate
 
 ### 2.4. Configuration and .env
 
-MHM uses environment variables (loaded via `python-dotenv` in `config.py`) to control paths, logging, channels, and AI behavior.
+MHM uses environment variables (loaded via `python-dotenv` in `core/config.py`) to control paths, logging, channels, and AI behavior.
 
 - The `.env` file in the project root is the primary place to configure the app for local development.  
 - A `.env.example` file provides a safe template; copy it to `.env` and fill in values for your machine (tokens, credentials, and any overrides).  
-- Defaults are defined in `config.py`, but values in `.env` take precedence at runtime.
+- Defaults are defined in `core/config.py`, but values in `.env` take precedence at runtime.
 
 Key groups of settings in `.env`:
 
@@ -177,7 +177,9 @@ Key groups of settings in `.env`:
   - `MHM_TESTING`, `TEST_DATA_DIR`, `TEST_LOGS_DIR`.  
   - File auditing flags (`FILE_AUDIT_*`).
 
-For configuration validation and a summary of active settings, use the AI dev tools `config` command (see `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`), which wraps the helpers in `config.py` such as `validate_all_configuration()` and `print_configuration_report()`.
+For configuration validation and a summary of active settings:
+- Use `validate_all_configuration()` and `print_configuration_report()` from `core/config.py` directly in code
+- Use the AI dev tools `config` command (see [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)) to validate that development tools are using configuration consistently
 
 ## 3. Development Process
 
@@ -195,19 +197,19 @@ Use this as your default loop for any change: features, bug fixes, or refactors.
 - Work in **small, testable increments**.  
 - Keep functions focused; avoid reintroducing thin wrappers that just call other functions.  
 - Use consistent imports and the official helpers (for example, `get_user_data()` from `core.user_data_handlers`).  
-- Maintain the existing patterns for logging, error handling, and configuration (see section 2. "Logging Architecture" in `logs/LOGGING_GUIDE.md` and section 2. "Architecture Overview" in `core/ERROR_HANDLING_GUIDE.md`).
+- Maintain the existing patterns for logging, error handling, and configuration (see section 2. "Logging Architecture" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) and section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md)).
 
 ### 3.3. Step 3: Test
 
 - Start with targeted tests that cover the change directly.  
 - Expand outward: unit -> integration -> behavior -> UI flows.  
-- Use `python run_tests.py` for broad runs, and see section 6. "Running Tests" and section 7. "Parallel Execution" in `tests/TESTING_GUIDE.md` for details and parallel-safe practices.  
-- For features that depend on Discord or email, perform minimal manual verification as described in section 9. "Manual Testing Procedures" in `tests/TESTING_GUIDE.md`.
+- Use `python run_tests.py` for broad runs, and see section 6. "Running Tests" and section 7. "Parallel Execution" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) for details and parallel-safe practices.  
+- For features that depend on Discord or email, perform minimal manual verification as described in section 9. "Manual Testing Procedures" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 
 ### 3.4. Step 4: Document
 
-- Update `development_docs/CHANGELOG_DETAIL.md` with a clear description of what changed and why.  
-- Ensure `ai_development_docs/AI_CHANGELOG.md` contains a concise summary referencing the same change.  
+- Update [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) with a clear description of what changed and why.  
+- Ensure [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) contains a concise summary referencing the same change.  
 - Update any impacted docs (for example, section 1. "Quick Start (Recommended)" in `HOW_TO_RUN.md`, section 3. "Quick Start" in `README.md`, or specialized guides).
 - If you introduce new patterns for testing, logging, or error handling, update the relevant guide pair (human + AI).
 
@@ -225,7 +227,7 @@ Use this as your default loop for any change: features, bug fixes, or refactors.
 - Test after every meaningful change, even if small.  
 - Start with unit-level checks, then expand to integration and behavior tests.  
 - Confirm UI workflows and communication channels still behave correctly for affected features.  
-- For details and commands, see "Quick Reference" and section 6. "Running Tests" in `tests/TESTING_GUIDE.md`.
+- For details and commands, see "Quick Reference" and section 6. "Running Tests" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 
 ### 4.2. Test Categories
 
@@ -234,7 +236,7 @@ Use this as your default loop for any change: features, bug fixes, or refactors.
 - **Behavior tests** - Exercise realistic end-to-end flows (for example, a check-in through Discord).  
 - **UI tests** - Focus on PySide6 dialogs, widgets, and signal/slot behavior.
 
-For AI-optimized testing instructions and patterns, see the matching sections in `ai_development_docs/AI_TESTING_GUIDE.md`.
+For AI-optimized testing instructions and patterns, see the matching sections in [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md).
 
 
 ## 5. Common Tasks
@@ -290,7 +292,7 @@ For AI-optimized testing instructions and patterns, see the matching sections in
 
 ## 7. Learning Resources
 
-- `README.md` and project-specific guides in `development_docs/`.  
+- [README.md](README.md) and project-specific guides in `development_docs/`.  
 - `.cursor/rules/` and `ai_development_docs/` for AI-focused instructions and constraints.  
 - Official Python resources and tutorials (for syntax and standard library questions).  
 - Existing tests and modules as concrete examples of project patterns.  

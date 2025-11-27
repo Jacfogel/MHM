@@ -237,6 +237,7 @@ C:.
 |   |   cleanup_windows_tasks.py
 |   |   demo_dynamic_checkin.py
 |   |   find_tests_missing_category_markers.py
+|   |   fix_non_ascii_chars.py
 |   |   flaky_detector.py
 |   |   generate_phase1_candidates.py
 |   |   generate_phase2_audit.py
@@ -244,6 +245,7 @@ C:.
 |   |   replace_try_except_with_decorator.py
 |   |   SCRIPTS_GUIDE.md
 |   |   script_test_network_connectivity.py
+|   |   verify_ascii_fix.py
 |   |   
 |   +---debug
 |   |   |   debug_category_dialog.py
@@ -348,6 +350,7 @@ C:.
 |   |   |       
 |   |   \---__pycache__
     (Python cache files)
++---tests_tmp_dummy
 +---ui
 |   |   generate_ui_files.py
 |   |   ui_app_qt.py
