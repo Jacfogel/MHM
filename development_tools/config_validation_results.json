@@ -1,6 +1,6 @@
 {
   "generated_by": "config_validator.py - Configuration Validation Tool",
-  "last_generated": "2025-11-26 17:43:12",
+  "last_generated": "2025-11-27 05:14:20",
   "source": "python development_tools/config_validator.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "validation_results": {
@@ -38,13 +38,6 @@
         "issues": []
       },
       "audit_package_exports.py": {
-        "imports_config": true,
-        "uses_config_functions": false,
-        "hardcoded_values": [],
-        "config_functions_used": [],
-        "issues": []
-      },
-      "auto_document_functions.py": {
         "imports_config": true,
         "uses_config_functions": false,
         "hardcoded_values": [],
@@ -146,7 +139,7 @@
         "hardcoded_values": [],
         "config_functions_used": [],
         "issues": [
-          "Error analyzing file: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte"
+          "Does not import config module"
         ]
       },
       "unused_imports_checker.py": {
@@ -166,13 +159,6 @@
         "issues": [
           "Does not import config module"
         ]
-      },
-      "version_sync.py": {
-        "imports_config": true,
-        "uses_config_functions": false,
-        "hardcoded_values": [],
-        "config_functions_used": [],
-        "issues": []
       },
       "__init__.py": {
         "imports_config": true,
@@ -219,15 +205,15 @@
       "Update system_signals.py to import config module",
       "Fix issues in system_signals.py: Does not import config module",
       "Update tool_guide.py to import config module",
-      "Fix issues in tool_guide.py: Error analyzing file: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte",
+      "Fix issues in tool_guide.py: Does not import config module",
       "Update unused_imports_checker.py to import config module",
       "Fix issues in unused_imports_checker.py: Does not import config module",
       "Update validate_ai_work.py to import config module",
       "Fix issues in validate_ai_work.py: Does not import config module"
     ],
     "summary": {
-      "tools_using_config": 11,
-      "total_tools": 22,
+      "tools_using_config": 9,
+      "total_tools": 20,
       "config_valid": true,
       "config_complete": true,
       "total_recommendations": 22

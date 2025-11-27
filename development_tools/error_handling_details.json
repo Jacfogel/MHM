@@ -18,9 +18,9 @@
     "error_handler_usage": 13,
     "handle_file_error": 4,
     "handle_validation_error": 2,
+    "CommunicationError": 2,
     "safe_file_operation": 1,
     "AIError": 2,
-    "CommunicationError": 2,
     "MHMError": 2
   },
   "missing_error_handling": [

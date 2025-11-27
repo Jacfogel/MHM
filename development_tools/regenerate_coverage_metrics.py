@@ -43,6 +43,11 @@ class CoverageMetricsRegenerator:
         self.coverage_data_file: Path = self.project_root / ".coverage"
         self.coverage_html_dir: Path = self.project_root / "htmlcov"
         self.coverage_logs_dir: Path = self.project_root / "development_tools" / "logs" / "coverage_regeneration"
+        self.dev_tools_coverage_config_path: Path = self.project_root / "development_tools" / "coverage_dev_tools.ini"
+        # Dev tools specific coverage paths
+        self.dev_tools_coverage_data_file: Path = self.project_root / "development_tools" / ".coverage_dev_tools"
+        self.dev_tools_coverage_json: Path = self.project_root / "development_tools" / "coverage_dev_tools.json"
+        self.dev_tools_coverage_html_dir: Path = self.project_root / "development_tools" / "coverage_html_dev_tools"
         self.pytest_stdout_log: Optional[Path] = None
         self.pytest_stderr_log: Optional[Path] = None
         self.archived_directories: List[Dict[str, str]] = []
@@ -278,6 +283,131 @@ class CoverageMetricsRegenerator:
             else:
                 print(f"Error running coverage analysis: {e}")
             return {}
+
+    def run_dev_tools_coverage(self) -> Dict[str, Dict[str, any]]:
+        """Run pytest coverage analysis specifically for development_tools directory."""
+        if logger:
+            logger.info("Running pytest coverage analysis for development_tools...")
+        
+        try:
+            coverage_output = self.dev_tools_coverage_json
+            coverage_output.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Coverage only for development_tools directory
+            # Note: coverage_output path is relative to project_root, so we need to make it absolute
+            coverage_output_abs = coverage_output.resolve()
+            dev_cov_config = self.dev_tools_coverage_config_path if self.dev_tools_coverage_config_path.exists() else self.coverage_config_path
+            cmd = [
+                sys.executable, '-m', 'pytest',
+                '--cov=development_tools',
+                '--cov-report=term-missing',
+                f'--cov-report=json:{coverage_output_abs}',
+                f'--cov-config={dev_cov_config}',
+                '--tb=line',
+                '-q',
+                '--maxfail=5',
+                'tests/development_tools/'
+            ]
+            
+            if logger:
+                logger.info(f"Running dev tools coverage command: {' '.join(cmd[:5])} ...")
+            
+            env = os.environ.copy()
+            env['COVERAGE_FILE'] = str(self.dev_tools_coverage_data_file)
+            if dev_cov_config and dev_cov_config.exists():
+                env['COVERAGE_RCFILE'] = str(dev_cov_config)
+            
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                cwd=self.project_root,
+                env=env
+            )
+            
+            # Log stderr if there are errors
+            if result.returncode != 0:
+                if logger:
+                    logger.warning(f"Dev tools coverage pytest exited with code {result.returncode}")
+                    if result.stderr:
+                        logger.warning(f"Pytest stderr: {result.stderr[:500]}")
+            
+            # Parse coverage results
+            coverage_data = self.parse_coverage_output(result.stdout)
+            if not coverage_data and coverage_output.exists():
+                coverage_data = self._load_coverage_json(coverage_output)
+            
+            overall_coverage = self.extract_overall_coverage(result.stdout)
+            if not overall_coverage.get('overall_coverage') and coverage_output.exists():
+                overall_coverage = self._extract_overall_from_json(coverage_output)
+            
+            # If still no coverage data, check if the file was created
+            if not overall_coverage.get('overall_coverage') and not coverage_output.exists():
+                if logger:
+                    logger.warning(f"Coverage JSON file not created at {coverage_output}")
+                    logger.info(f"Pytest return code: {result.returncode}")
+                    if result.stdout:
+                        # Look for coverage summary in stdout
+                        if 'TOTAL' in result.stdout:
+                            logger.info("Coverage data found in stdout but JSON not created")
+                        logger.debug(f"Pytest stdout (last 500 chars): {result.stdout[-500:]}")
+                    if result.stderr:
+                        logger.warning(f"Pytest stderr: {result.stderr[:500]}")
+            
+            # Generate HTML report for dev tools
+            if coverage_output.exists():
+                self._generate_dev_tools_html_report()
+            
+            if logger:
+                if overall_coverage.get('overall_coverage'):
+                    logger.info(f"Dev tools coverage: {overall_coverage.get('overall_coverage', 0):.1f}%")
+                else:
+                    logger.warning("Dev tools coverage data not available")
+            
+            return {
+                'modules': coverage_data,
+                'overall': overall_coverage,
+                'coverage_collected': bool(coverage_data) or coverage_output.exists(),
+                'output_file': str(coverage_output),
+                'html_dir': str(self.dev_tools_coverage_html_dir)
+            }
+            
+        except Exception as e:
+            if logger:
+                logger.error(f"Error running dev tools coverage analysis: {e}")
+            else:
+                print(f"Error running dev tools coverage analysis: {e}")
+            return {}
+
+    def _generate_dev_tools_html_report(self) -> None:
+        """Generate HTML coverage report for development tools."""
+        env = os.environ.copy()
+        env['COVERAGE_FILE'] = str(self.dev_tools_coverage_data_file)
+        rcfile = self.dev_tools_coverage_config_path if self.dev_tools_coverage_config_path.exists() else self.coverage_config_path
+        if rcfile and rcfile.exists():
+            env['COVERAGE_RCFILE'] = str(rcfile)
+        
+        # Remove existing HTML directory
+        if self.dev_tools_coverage_html_dir.exists():
+            shutil.rmtree(self.dev_tools_coverage_html_dir)
+        self.dev_tools_coverage_html_dir.mkdir(parents=True, exist_ok=True)
+        
+        coverage_cmd = [sys.executable, '-m', 'coverage']
+        html_args = coverage_cmd + ['html', '-d', str(self.dev_tools_coverage_html_dir)]
+        html_result = subprocess.run(
+            html_args,
+            capture_output=True,
+            text=True,
+            cwd=self.project_root,
+            env=env
+        )
+        
+        if html_result.returncode == 0:
+            if logger:
+                logger.info(f"Dev tools HTML coverage report generated: {self.dev_tools_coverage_html_dir}")
+        else:
+            if logger:
+                logger.warning(f"Dev tools HTML report generation failed: {html_result.stderr}")
 
     def _parse_pytest_test_results(self, stdout: str) -> Dict[str, Any]:
         """Parse pytest output to extract test results, failures, and random seed."""

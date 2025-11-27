@@ -121,8 +121,8 @@ Ensure directories listed in `development_tools/services/constants.py` remain ac
 | decision_support.py | supporting | advisory | mhm-specific | Aggregates metrics into improvement priorities. |
 | file_rotation.py | supporting | stable | portable | Timestamped rotation utility used by coverage generation. |
 | tool_guide.py | supporting | stable | mhm-specific | Provides contextual guidance and tier overviews for assistants. |
-| version_sync.py | experimental | experimental | mhm-specific | Attempts cross-file version synchronization (fragile). |
-| auto_document_functions.py | experimental | experimental | mhm-specific | Auto-generates docstrings; high-risk and currently prototype. |
+| experimental/version_sync.py | experimental | experimental | mhm-specific | Attempts cross-file version synchronization (fragile). |
+| experimental/auto_document_functions.py | experimental | experimental | mhm-specific | Auto-generates docstrings; high-risk and currently prototype. |
 
 Keep this table synchronized with `services/tool_metadata.py` and update both when tiers, trust levels, or portability change.
 
@@ -142,7 +142,7 @@ Keep this table synchronized with `services/tool_metadata.py` and update both wh
   - `config.py` defines production / development / testing contexts; commands must honor the active context.
   - Never hardcode project paths - always resolve via `services/common.py` helpers.
 - Run `python development_tools/ai_tools_runner.py doc-sync` after documentation edits to ensure heading parity and ASCII compliance.
-- Treat experimental tools (`version_sync.py`, `auto_document_functions.py`, etc.) as opt-in: dry-run first, capture logs, and record findings in [TODO.md](TODO.md) or the improvement plan.
+- Treat experimental tools (`experimental/version_sync.py`, `experimental/auto_document_functions.py`, etc.) as opt-in: dry-run first, capture logs, and record findings in [TODO.md](TODO.md) or the improvement plan.
 - Keep file organization portable (mirroring `development_tools/`, `ai_development_docs/`, `development_docs/`, `archive/`, `logs/`) to support eventual extraction of the suite. The baseline structure should remain:
 
 ```

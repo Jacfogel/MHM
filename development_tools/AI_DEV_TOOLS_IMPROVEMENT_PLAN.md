@@ -152,7 +152,7 @@ This section categorizes each tool into “Core,” “Supporting,” or “Expe
 - Supports find/verify/scan/clean (with dry-run).
 - Very useful but high-risk; must rely heavily on dry-run.
 
-### `development_tools/version_sync.py`
+### `development_tools/experimental/version_sync.py`
 - Attempts to synchronize versioning across files.
 - Often fragile; underdeveloped; easy to break.
 
@@ -178,7 +178,7 @@ This section categorizes each tool into “Core,” “Supporting,” or “Expe
 - Parses function signatures, handlers, tests.
 - Forms basis for several other tools.
 
-### `development_tools/auto_document_functions.py`
+### `development_tools/experimental/auto_document_functions.py`
 - Generates docstrings automatically.
 - High-risk; should be treated as experimental.
 
@@ -211,7 +211,7 @@ This section categorizes each tool into “Core,” “Supporting,” or “Expe
 - ✅ Documentation guides updated with tier information and trust levels
 - ✅ Directory renamed from `ai_development_tools/` to `development_tools/` for clarity
 
-### **2. ~~No tests for tooling~~** **RESOLVED (2025-11-26)**
+### **2. ~~No tests for tooling~~** **RESOLVED (2025-11-27)**
 - ✅ Basic sanity tests added for core infrastructure (`development_tools/config.py`, `development_tools/services/standard_exclusions.py`, `development_tools/services/constants.py`)
 - ✅ CLI smoke tests added for `development_tools/ai_tools_runner.py`
 - ✅ Logging and error handling normalized in `development_tools/services/operations.py` and `development_tools/ai_tools_runner.py`
@@ -221,8 +221,12 @@ This section categorizes each tool into “Core,” “Supporting,” or “Expe
   - `development_tools/generate_module_dependencies.py` (11 tests)
   - `development_tools/legacy_reference_cleanup.py` (10 tests)
   - `development_tools/regenerate_coverage_metrics.py` (10 tests)
+- ✅ Regression tests added for supporting tools (Phase 4 follow-up, 2025-11-27):
+  - `development_tools/quick_status.py` (2 tests)
+  - `development_tools/system_signals.py` (2 tests)
+  - `development_tools/file_rotation.py` (2 tests)
 - ✅ Synthetic fixture project created at `tests/fixtures/development_tools_demo/` for isolated testing
-- ✅ Total test coverage: 132 tests across all development tools
+- ✅ Total test coverage: 138+ tests across all development tools
 
 ### **3. Risky write operations**
 - Tools like legacy cleanup, auto-documentation, coverage regeneration write real files.
@@ -261,7 +265,7 @@ This roadmap assumes the following tiering for the AI development tools:
   - `development_tools/decision_support.py`, `development_tools/file_rotation.py`, `development_tools/tool_guide.py`
 
 - **Tier 3 – Experimental**
-  - `development_tools/version_sync.py`, `development_tools/auto_document_functions.py`
+  - `development_tools/experimental/version_sync.py`, `development_tools/experimental/auto_document_functions.py`
 
 ---
 
@@ -295,7 +299,7 @@ This roadmap assumes the following tiering for the AI development tools:
 - ✅ Both guides include complete tool catalog with tier, trust level, portability, and notes
 - ✅ Explicitly flagged partial/incomplete tools (e.g. `development_tools/validate_ai_work.py`)
 - ✅ Explicitly flagged advisory-only tools (e.g. `development_tools/decision_support.py`)
-- ✅ Explicitly flagged experimental/fragile tools (e.g. `development_tools/version_sync.py`, `development_tools/auto_document_functions.py`)
+- ✅ Explicitly flagged experimental/fragile tools (e.g. `development_tools/experimental/version_sync.py`, `development_tools/experimental/auto_document_functions.py`)
 - ✅ Aligned both guides with documentation standards (metadata blocks, identical H2 headings)
 - ✅ Updated all path references from `ai_development_tools/` to `development_tools/` throughout codebase
 - ✅ Added guides to `DEFAULT_DOCS`, `PAIRED_DOCS`, directory tree, README, and other doc listings
@@ -314,8 +318,8 @@ This does not fix code, but it stops you from accidentally trusting the wrong to
   - `development_tools/quick_status.py` / `development_tools/system_signals.py` — cached views that require a recent audit.
   - `development_tools/decision_support.py` — advisory scoring, not a blocker.
 - Experimental (prototype tier):
-  - `development_tools/version_sync.py` — fragile heuristic updates; run only with backup/approval.
-  - `development_tools/auto_document_functions.py` — generates docstrings automatically; high-risk edits.
+  - `development_tools/experimental/version_sync.py` — fragile heuristic updates; run only with backup/approval.
+  - `development_tools/experimental/auto_document_functions.py` — generates docstrings automatically; high-risk edits.
 
 ---
 
@@ -452,49 +456,139 @@ This does not fix code, but it stops you from accidentally trusting the wrong to
 
 ---
 
-### Phase 4 – Clarify Supporting vs Experimental Tools
+### Phase 4 – Clarify Supporting vs Experimental Tools **COMPLETED (2025-11-27)**
 
 **Goal:** Reduce cognitive noise and avoid accidental reliance on fragile scripts.
 
-### Milestone M4.1 – Move Experimental Tools
+**Status:** All milestones completed. Experimental tools moved, Tier-2 tools analyzed and documented, dev tools coverage tracking added, supporting tools regression tests created.
 
-- Create `development_tools/experimental/`.
-- Move:
-  - `development_tools/version_sync.py`
-  - `development_tools/auto_document_functions.py`
-- Update runner/help so they are clearly marked or only reachable via explicit flags.
+### Milestone M4.1 – Move Experimental Tools **COMPLETED (2025-11-27)**
 
-#### Milestone M4.2 – Decide Fate of Each Tier-2 Tool
+- ✅ Created `development_tools/experimental/` directory with `__init__.py`
+- ✅ Moved experimental tools:
+  - `development_tools/version_sync.py` → `development_tools/experimental/version_sync.py`
+  - `development_tools/auto_document_functions.py` → `development_tools/experimental/auto_document_functions.py`
+- ✅ Updated all imports and references in `operations.py`, `tool_metadata.py`, and documentation
+- ✅ Fixed import path in `version_sync.py` for `documentation_sync_checker` (changed from `.` to `..`)
+- ✅ CLI help output correctly reflects experimental status with warnings
 
-For each of:
+#### Milestone M4.2 – Decide Fate of Each Tier-2 Tool **COMPLETED (2025-11-27)**
 
-- `development_tools/analyze_documentation.py`
-- `development_tools/audit_function_registry.py`
-- `development_tools/audit_module_dependencies.py`
-- `development_tools/audit_package_exports.py`
-- `development_tools/config_validator.py`
-- `development_tools/validate_ai_work.py`
-- `development_tools/unused_imports_checker.py`
-- `development_tools/quick_status.py`
-- `development_tools/system_signals.py`
-- `development_tools/decision_support.py`
-- `development_tools/file_rotation.py`
-- `development_tools/tool_guide.py`
+**Decision**: All 12 Tier-2 tools will remain in the Supporting tier. None are being promoted to Tier 1 or deprecated at this time, but several require explicit follow-up.
 
-Decide:
-- **Promote to Tier 1:** worth robust tests and core support, or
-- **Keep as Tier 2:** useful but non-critical, or
-- **Deprecate / Freeze:** rarely used or more confusing than helpful.
+##### Analysis methodology
+- Reviewed usage paths in `operations.py`, CLI commands, and documentation to confirm each tool’s role.
+- Checked for existing tests under `tests/development_tools/` (none exist for Tier-2 tools today).
+- Evaluated operational value (critical vs. advisory) and maintenance burden/fragility.
 
-You do not need full test coverage here immediately; priority is clarity and reduced accidental use.
+##### Tool-by-tool findings
+- **`analyze_documentation.py`** – *Trust: partial*  
+  Usage: runs during full audit as corruption detector; overlaps doc-sync but focuses on duplicates.  
+  Coverage: none.  
+  Recommendation: **Keep Tier 2**; enhance over time instead of promoting.
 
-#### Milestone M4.3 – Test Coverage Metrics for Development Tools
+- **`audit_function_registry.py`** – *Trust: partial*  
+  Usage: validates `generate_function_registry.py` output after docs generation; results cached in audit.  
+  Coverage: none.  
+  Recommendation: **Keep Tier 2**; valuable for regressions but depends on fixture freshness.
 
-- Add coverage metrics tracking for the development tools themselves
-- Generate coverage reports specifically for `development_tools/` directory
-- Integrate into `audit --full` workflow
-- Track coverage trends over time
-- **Note**: Valuable for Phase 5+ but can be added in Phase 4 if time permits
+- **`audit_module_dependencies.py`** – *Trust: partial*  
+  Usage: verifies `MODULE_DEPENDENCIES_DETAIL.md`, but was not wired into the audit workflow.  
+  Coverage: none.  
+  Recommendation: **Keep Tier 2** and **run automatically after doc-sync** (done in this phase).
+
+- **`audit_package_exports.py`** – *Trust: partial*  
+  Usage: rarely invoked; checks declared exports.  
+  Coverage: none.  
+  Recommendation: **Keep Tier 2**, but monitor usage and deprecate if unused for two audit cycles.
+
+- **`config_validator.py`** – *Trust: partial*  
+  Usage: runs in both fast/full audits to detect config drift.  
+  Coverage: none.  
+  Recommendation: **Keep Tier 2**; invest in broader rule coverage.
+
+- **`validate_ai_work.py`** – *Trust: partial/advisory*  
+  Usage: invoked during audits for structural linting; advisory only.  
+  Coverage: none.  
+  Recommendation: **Keep Tier 2**; clarify advisory nature in docs (already done).
+
+- **`unused_imports_checker.py`** – *Trust: partial*  
+  Usage: part of full audit; AST-based and noisy on generated files.  
+  Coverage: none.  
+  Recommendation: **Keep Tier 2**; continue tuning exclusions.
+
+- **`quick_status.py`** – *Trust: advisory*  
+  Usage: powers `status` command and audit snapshots; heavily used.  
+  Coverage: ✅ Regression tests added (2025-11-27) - 2 tests in `test_supporting_tools.py`.  
+  Recommendation: **Keep Tier 2**; tests now exist, Tier 1 promotion possible if desired.
+
+- **`system_signals.py`** – *Trust: advisory*  
+  Usage: runs every audit to collect OS/process health; portable.  
+  Coverage: ✅ Regression tests added (2025-11-27) - 2 tests in `test_supporting_tools.py`.  
+  Recommendation: **Keep Tier 2**; tests now exist, Tier 1 promotion possible if desired.
+
+- **`decision_support.py`** – *Trust: advisory*  
+  Usage: aggregates metrics for priorities/watch lists.  
+  Coverage: none.  
+  Recommendation: **Keep Tier 2**; advisory by design.
+
+- **`file_rotation.py`** – *Trust: stable*  
+  Usage: used by coverage regeneration for artifact rotation.  
+  Coverage: ✅ Regression tests added (2025-11-27) - 2 tests in `test_supporting_tools.py`.  
+  Recommendation: **Keep Tier 2** but flag as stable/portable; tests now exist, promotion possible if desired.
+
+- **`tool_guide.py`** – *Trust: stable*  
+  Usage: generates CLI help groupings.  
+  Coverage: none.  
+  Recommendation: **Keep Tier 2**; no further action needed beyond encoding fix completed in M4.3.
+
+##### Summary & follow-up
+- All Supporting tools remain Tier 2; regression tests now exist for `quick_status`, `system_signals`, and `file_rotation` (completed 2025-11-27), making future Tier 1 promotion feasible if desired.
+- **Integration gap resolved**: `audit_module_dependencies.py` now runs inside the full audit workflow, so dependency docs drift surfaces in reports.
+- **Monitoring**: `audit_package_exports.py` stays in Tier 2 but will be reviewed after two audit cycles; deprecate if still unused.
+- **Trust levels**: Reviewed `tool_metadata.py`; current trust designations already match the analysis (no updates required).
+
+**Next steps tracking (Phase 4 follow-through):**
+1. Document the recommendations in-plan – ✅ (this section replaces the standalone file).  
+2. Update `tool_metadata.py` if trust levels need changes – ✅ Reviewed; no changes required.  
+3. Add tests for the three high-value utilities (`quick_status`, `system_signals`, `file_rotation`) – ✅ Completed (2025-11-27); see `tests/development_tools/test_supporting_tools.py` for 6 new regression tests covering:
+   - Missing file detection and recent activity tracking (`quick_status`)
+   - Missing directory reporting and recent activity listing (`system_signals`)
+   - Archive version limiting and file rotation with `create_output_file` (`file_rotation`)
+   - All tests passing; fixes applied for timestamp collisions, environment variable handling, and path normalization
+4. Integrate `audit_module_dependencies.py` into the audit workflow – ✅ Hooked into `_run_contributing_tools` and quick audit parsing.  
+5. Monitor `audit_package_exports.py`; if unused over the next two audit passes, schedule a deprecation review – 🔄 In progress (tracked in this phase summary).
+
+#### Milestone M4.3 – Test Coverage Metrics for Development Tools **COMPLETED (2025-11-27)**
+
+- ✅ Added coverage metrics tracking for the development tools themselves
+- ✅ Generate coverage reports specifically for `development_tools/` directory:
+  - JSON report: `development_tools/coverage_dev_tools.json`
+  - HTML report: `development_tools/coverage_html_dev_tools/`
+  - Coverage data file: `development_tools/.coverage_dev_tools`
+- ✅ Integrated into `audit --full` workflow in `operations.py`
+- ✅ Added `run_dev_tools_coverage()` method to `CoverageMetricsRegenerator` class
+- ✅ Coverage runs automatically during full audit and reports percentage
+
+**Implementation details**:
+- New method `run_dev_tools_coverage()` in `regenerate_coverage_metrics.py` runs pytest with `--cov=development_tools` on `tests/development_tools/`
+- Integrated into `run_audit(full=True)` workflow - runs after main coverage regeneration
+- Results logged and stored for consolidated reporting
+- HTML report generated separately for easy viewing
+- Dedicated coverage config file `development_tools/coverage_dev_tools.ini` created to avoid conflicts with main project coverage
+- Coverage results integrated into `AI_STATUS.md`, `AI_PRIORITIES.md`, and `consolidated_report.txt` with detailed metrics and recommendations
+- Fixed encoding issue in `tool_guide.py` (converted from UTF-16 to UTF-8) to eliminate coverage warnings
+
+**Additional fixes applied during Phase 4:**
+- Fixed missing `_load_coverage_json` method in `operations.py` that was causing status command failures
+- Enhanced dev tools coverage reporting with module-level insights and recommendations
+- Fixed double percentage sign display issue in coverage reports
+- Fixed encoding issue in `tool_guide.py` (converted from UTF-16 to UTF-8) to eliminate coverage warnings
+
+**Additional fixes applied during Phase 4:**
+- Fixed missing `_load_coverage_json` method in `operations.py` that was causing status command failures
+- Enhanced dev tools coverage reporting with module-level insights and recommendations
+- Fixed double percentage sign display issue in coverage reports
 
 ---
 
@@ -562,8 +656,8 @@ Result: the dev tools ecosystem becomes something you and future collaborators c
 - `development_tools/file_rotation.py` — already portable; confirm it stays dependency-free.
 
 #### Experimental Tool Checklist
-- `development_tools/version_sync.py` — read version files + patterns from config; avoid hardcoded MHM file list.
-- `development_tools/auto_document_functions.py` — ensure template paths, doc targets, and formatting rules are injectable.
+- `development_tools/experimental/version_sync.py` — read version files + patterns from config; avoid hardcoded MHM file list.
+- `development_tools/experimental/auto_document_functions.py` — ensure template paths, doc targets, and formatting rules are injectable.
 
 Portable today: `development_tools/services/common.py`, `development_tools/system_signals.py`, and `development_tools/file_rotation.py`—no action needed beyond keeping dependencies minimal.
 
@@ -598,7 +692,8 @@ Portable today: `development_tools/services/common.py`, `development_tools/syste
 - ✅ **Phase 1 COMPLETED (2025-11-25)**: Tiering system fully implemented, documentation split and aligned, all path references updated
 - ✅ **Phase 2 COMPLETED (2025-11-25)**: Core infrastructure stabilized with test coverage (77 tests), consistent logging, and normalized error handling
 - ✅ **Phase 3 COMPLETED (2025-11-26)**: Core analysis tools hardened with comprehensive test coverage (55 tests), synthetic fixture project created, all five tools now trustworthy
-- 🔄 **Phase 4-7**: Defined and ready for implementation
+- ✅ **Phase 4 COMPLETED (2025-11-27)**: Experimental tools moved to dedicated directory, Tier-2 tools reviewed and documented, dev tools coverage tracking added, supporting tools regression tests created (6 tests for `quick_status`, `system_signals`, `file_rotation`)
+- 🔄 **Phase 5-7**: Defined and ready for implementation
 
 This roadmap is intentionally incremental. You do **not** need to implement every milestone at once.  
 Phases 1-3 (tiering + core infrastructure + core analysis tools) are complete. Next focus on Phase 4 (clarify supporting vs experimental tools) or Phase 5 (UX and documentation alignment), then expand as time and energy allow.

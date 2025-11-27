@@ -95,7 +95,7 @@
     "issues": []
   },
   "development_tools/documentation_sync_checker.py": {
-    "mtime": 1764200328.7883961,
+    "mtime": 1764205472.2638834,
     "issues": [
       {
         "type": "warning",
@@ -117,7 +117,7 @@
     "issues": []
   },
   "development_tools/file_rotation.py": {
-    "mtime": 1764068753.5610428,
+    "mtime": 1764240921.2038696,
     "issues": []
   },
   "development_tools/function_discovery.py": {
@@ -141,7 +141,7 @@
     "issues": []
   },
   "development_tools/regenerate_coverage_metrics.py": {
-    "mtime": 1764068753.982528,
+    "mtime": 1764233631.1141145,
     "issues": []
   },
   "development_tools/services/__init__.py": {
@@ -153,11 +153,11 @@
     "issues": []
   },
   "development_tools/services/constants.py": {
-    "mtime": 1764136781.8399718,
+    "mtime": 1764204745.4857485,
     "issues": []
   },
   "development_tools/services/operations.py": {
-    "mtime": 1764198127.274645,
+    "mtime": 1764240326.512045,
     "issues": []
   },
   "development_tools/services/standard_exclusions.py": {
@@ -165,26 +165,12 @@
     "issues": []
   },
   "development_tools/system_signals.py": {
-    "mtime": 1764068754.040323,
+    "mtime": 1764240326.5125453,
     "issues": []
   },
   "development_tools/tool_guide.py": {
-    "mtime": 1764070023.069259,
-    "issues": [
-      {
-        "type": "error",
-        "module": "development_tools.tool_guide",
-        "obj": "",
-        "line": 1,
-        "column": 0,
-        "endLine": null,
-        "endColumn": null,
-        "path": "development_tools\\tool_guide.py",
-        "symbol": "syntax-error",
-        "message": "Parsing failed: 'invalid or missing encoding declaration for 'C:\\\\Users\\\\Julie\\\\projects\\\\MHM\\\\MHM\\\\development_tools\\\\tool_guide.py''",
-        "message-id": "E0001"
-      }
-    ]
+    "mtime": 1764235793.9513476,
+    "issues": []
   },
   "development_tools/unused_imports_checker.py": {
     "mtime": 1764068754.0848932,
@@ -5523,7 +5509,7 @@
     ]
   },
   "development_tools/services/tool_metadata.py": {
-    "mtime": 1764070278.397154,
+    "mtime": 1764230888.0230289,
     "issues": []
   },
   "tests/development_tools/__init__.py": {
@@ -5751,6 +5737,22 @@
   },
   "tests/development_tools/test_standard_exclusions.py": {
     "mtime": 1764136781.856965,
+    "issues": []
+  },
+  "development_tools/experimental/__init__.py": {
+    "mtime": 1764230888.0235286,
+    "issues": []
+  },
+  "development_tools/experimental/auto_document_functions.py": {
+    "mtime": 1764230888.0235286,
+    "issues": []
+  },
+  "development_tools/experimental/version_sync.py": {
+    "mtime": 1764232539.4053028,
+    "issues": []
+  },
+  "tests/development_tools/test_supporting_tools.py": {
+    "mtime": 1764240921.2043824,
     "issues": []
   }
 }

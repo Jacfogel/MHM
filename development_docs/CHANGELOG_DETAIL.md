@@ -39,6 +39,52 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-27 - Phase 4 Development Tools: Experimental Tools Organization, Tier-2 Analysis, Coverage Tracking, and Supporting Tools Tests **COMPLETED**
+- **Feature**: Completed all milestones of Phase 4 of the AI Development Tools Improvement Plan: moved experimental tools to dedicated directory, analyzed and documented Tier-2 tool recommendations, added development tools coverage tracking, and created regression tests for supporting tools.
+- **Technical Changes**:
+  1. **Milestone M4.1 - Move Experimental Tools**:
+     - Created `development_tools/experimental/` directory with `__init__.py`
+     - Moved `development_tools/version_sync.py` → `development_tools/experimental/version_sync.py`
+     - Moved `development_tools/auto_document_functions.py` → `development_tools/experimental/auto_document_functions.py`
+     - Updated all imports and references in `operations.py`, `tool_metadata.py`, and documentation
+     - Fixed import path in `version_sync.py` for `documentation_sync_checker` (changed from `.` to `..`)
+     - CLI help output correctly reflects experimental status with warnings
+  2. **Milestone M4.2 - Tier-2 Tool Analysis**:
+     - Analyzed all 12 Tier-2 tools (usage frequency, test coverage, value, maintenance burden)
+     - Documented recommendations: all tools remain Tier 2, with explicit follow-up tasks identified
+     - Integrated `audit_module_dependencies.py` into full audit workflow
+     - Updated `tool_metadata.py` with reviewed trust levels (no changes needed)
+  3. **Milestone M4.3 - Development Tools Coverage Tracking**:
+     - Added `run_dev_tools_coverage()` method to `regenerate_coverage_metrics.py`
+     - Created dedicated coverage config `development_tools/coverage_dev_tools.ini`
+     - Integrated dev tools coverage into `audit --full` workflow
+     - Coverage results integrated into `AI_STATUS.md`, `AI_PRIORITIES.md`, and `consolidated_report.txt` with detailed metrics
+     - Fixed encoding issue in `tool_guide.py` (converted from UTF-16 to UTF-8)
+     - Fixed missing `_load_coverage_json` method in `operations.py`
+     - Enhanced coverage reporting with module-level insights and recommendations
+  4. **Phase 4 Follow-up - Supporting Tools Regression Tests** (`tests/development_tools/test_supporting_tools.py`):
+     - Added 6 regression tests covering missing file detection, recent activity tracking, missing directory reporting, archive version limiting, and file rotation functionality
+     - Tests use proper mocking and patching to isolate functionality
+  5. **File Rotation Fixes** (`development_tools/file_rotation.py`):
+     - Fixed timestamp collision issue by adding rotation counter to ensure unique filenames when rotations happen in the same second
+     - Fixed archive directory creation by ensuring `base_dir` is created with `parents=True`
+     - Improved `list_archives` pattern matching to accurately filter archived files
+     - Fixed `create_output_file` to pass correct `base_dir` to `FileRotator`
+  3. **Quick Status Fixes** (`development_tools/quick_status.py`):
+     - Normalized paths to use forward slashes for consistency across OS
+     - Fixed exclusion logic patching in tests to properly mock `should_exclude_file`
+  4. **System Signals Fixes** (`development_tools/system_signals.py`):
+     - Fixed syntax error (incorrect `except` block indentation)
+     - Normalized paths to use forward slashes for consistency
+     - Fixed `should_exclude_file` call to use string paths instead of Path objects
+  5. **Test Environment Fixes**:
+     - Updated tests to unset `DISABLE_LOG_ROTATION` environment variable for file rotation tests
+     - Fixed patching of exclusion lists (`ALL_GENERATED_FILES`, `STANDARD_EXCLUSION_PATTERNS`) in quick_status tests
+- **Impact**: Phase 4 of the AI Development Tools Improvement Plan is complete. Experimental tools are now clearly separated, Tier-2 tools have documented recommendations, development tools coverage is tracked and reported, and supporting tools have regression tests. Development tools coverage increased from 23.7% to 30.3% (6.6 percentage point improvement), with the three target files now having 58-74% coverage individually. All 6 supporting tools regression tests pass, providing regression protection for these utilities.
+- **Files Modified**: `development_tools/file_rotation.py`, `development_tools/quick_status.py`, `development_tools/system_signals.py`, `development_tools/regenerate_coverage_metrics.py`, `development_tools/services/operations.py`, `development_tools/services/tool_metadata.py`, `development_tools/experimental/version_sync.py`, `development_tools/experimental/auto_document_functions.py`, `development_tools/tool_guide.py`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`
+- **Files Created**: `development_tools/experimental/` (directory), `development_tools/experimental/version_sync.py`, `development_tools/experimental/auto_document_functions.py`, `development_tools/experimental/__init__.py`, `development_tools/coverage_dev_tools.ini`, `tests/development_tools/test_supporting_tools.py`
+- **Testing**: All 6 new regression tests pass. Full test suite: 3464 passed, 0 failed, 1 skipped.
+
 ### 2025-11-26 - Documentation Quality Improvements and Path-to-Link Conversion **COMPLETED**
 - **Feature**: Comprehensive documentation cleanup including non-ASCII character fixes, path drift resolution, heading numbering corrections, missing file reference fixes, documentation sync checker improvements, and automated path-to-link conversion.
 - **Technical Changes**:

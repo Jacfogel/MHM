@@ -123,20 +123,22 @@ class SystemSignalsGenerator:
                 dir_path = self.project_root / dir_name
                 if dir_path.exists():
                     for file_path in dir_path.rglob('*'):
-                        if file_path.is_file() and not should_exclude_file(file_path, context='recent_changes'):
-                            try:
-                                mtime = file_path.stat().st_mtime
-                                mtime_dt = datetime.fromtimestamp(mtime)
-                                rel_path = file_path.relative_to(self.project_root)
-                                
-                                # Store file with timestamp for sorting
-                                all_files_with_times.append((str(rel_path), mtime_dt))
-                                
-                                # Check if within recent threshold
-                                if mtime_dt >= recent_threshold:
-                                    recent_files.append(str(rel_path))
-                            except (OSError, ValueError):
-                                continue
+                        if file_path.is_file():
+                            rel_path = file_path.relative_to(self.project_root)
+                            rel_path_str = str(rel_path).replace('\\', '/')
+                            if not should_exclude_file(rel_path_str, context='recent_changes'):
+                                try:
+                                    mtime = file_path.stat().st_mtime
+                                    mtime_dt = datetime.fromtimestamp(mtime)
+                                    
+                                    # Store file with timestamp for sorting
+                                    all_files_with_times.append((rel_path_str, mtime_dt))
+                                    
+                                    # Check if within recent threshold
+                                    if mtime_dt >= recent_threshold:
+                                        recent_files.append(rel_path_str)
+                                except (OSError, ValueError):
+                                    continue
             
             # If no files within threshold, show 15 most recent files with timestamps
             if not recent_files and all_files_with_times:

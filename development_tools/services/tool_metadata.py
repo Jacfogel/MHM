@@ -232,7 +232,7 @@ _TOOLS: Dict[str, ToolInfo] = {
     ),
     "version_sync": ToolInfo(
         name="version_sync",
-        path="development_tools/version_sync.py",
+        path="development_tools/experimental/version_sync.py",
         tier="experimental",
         portability="mhm-specific",
         trust="experimental",
@@ -240,7 +240,7 @@ _TOOLS: Dict[str, ToolInfo] = {
     ),
     "auto_document_functions": ToolInfo(
         name="auto_document_functions",
-        path="development_tools/auto_document_functions.py",
+        path="development_tools/experimental/auto_document_functions.py",
         tier="experimental",
         portability="mhm-specific",
         trust="experimental",

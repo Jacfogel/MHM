@@ -17,14 +17,14 @@ from datetime import datetime, timedelta
 
 # Handle both direct execution and module import
 try:
-    from . import config
+    from .. import config
 except ImportError:
     # When run directly as a script, add parent directory to path
-    sys.path.insert(0, str(Path(__file__).parent))
+    sys.path.insert(0, str(Path(__file__).parent.parent))
     import config
 
 # Add project root to path for core module imports
-project_root = Path(__file__).parent.parent
+project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
@@ -207,8 +207,8 @@ def get_key_directories():
 def validate_referenced_paths():
     """Validate that all referenced paths in documentation exist."""
     try:
-        # Import the documentation sync checker
-        from .documentation_sync_checker import DocumentationSyncChecker
+        # Import the documentation sync checker from parent directory
+        from ..documentation_sync_checker import DocumentationSyncChecker
 
         checker = DocumentationSyncChecker()
         results = checker.run_checks()
@@ -735,30 +735,30 @@ if __name__ == "__main__":
         else:
             # Usage messages go to stdout for user visibility
             print("Usage:")
-            print("  python development_tools/version_sync.py show                    # Show AI doc versions")
-            print("  python development_tools/version_sync.py show docs               # Show all doc versions")
-            print("  python development_tools/version_sync.py show core               # Show core system versions")
-            print("  python development_tools/version_sync.py status                  # Show AI doc status")
-            print("  python development_tools/version_sync.py status docs             # Show all doc status")
-            print("  python development_tools/version_sync.py sync                    # Sync AI docs (smart dates)")
-            print("  python development_tools/version_sync.py sync --scope=docs       # Sync all documentation")
-            print("  python development_tools/version_sync.py sync --scope=core       # Sync core system files")
-            print("  python development_tools/version_sync.py sync 1.1.0              # Sync to specific version")
-            print("  python development_tools/version_sync.py sync --force            # Force update all dates")
-            print("  python development_tools/version_sync.py trim                     # Trim AI_CHANGELOG entries (30 days, max 15)")
-            print("  python development_tools/version_sync.py trim --days=60 --max=20 # Custom trim settings")
-            print("  python development_tools/version_sync.py check                   # Check if changelog exceeds entry limit")
-            print("  python development_tools/version_sync.py check --max=20          # Check with custom limit")
-            print("  python development_tools/version_sync.py validate                 # Validate all referenced paths exist")
-            print("  python development_tools/version_sync.py sync-todo                # Sync TODO.md with AI_CHANGELOG.md")
+            print("  python development_tools/experimental/version_sync.py show                    # Show AI doc versions")
+            print("  python development_tools/experimental/version_sync.py show docs               # Show all doc versions")
+            print("  python development_tools/experimental/version_sync.py show core               # Show core system versions")
+            print("  python development_tools/experimental/version_sync.py status                  # Show AI doc status")
+            print("  python development_tools/experimental/version_sync.py status docs             # Show all doc status")
+            print("  python development_tools/experimental/version_sync.py sync                    # Sync AI docs (smart dates)")
+            print("  python development_tools/experimental/version_sync.py sync --scope=docs       # Sync all documentation")
+            print("  python development_tools/experimental/version_sync.py sync --scope=core       # Sync core system files")
+            print("  python development_tools/experimental/version_sync.py sync 1.1.0              # Sync to specific version")
+            print("  python development_tools/experimental/version_sync.py sync --force            # Force update all dates")
+            print("  python development_tools/experimental/version_sync.py trim                     # Trim AI_CHANGELOG entries (30 days, max 15)")
+            print("  python development_tools/experimental/version_sync.py trim --days=60 --max=20 # Custom trim settings")
+            print("  python development_tools/experimental/version_sync.py check                   # Check if changelog exceeds entry limit")
+            print("  python development_tools/experimental/version_sync.py check --max=20          # Check with custom limit")
+            print("  python development_tools/experimental/version_sync.py validate                 # Validate all referenced paths exist")
+            print("  python development_tools/experimental/version_sync.py sync-todo                # Sync TODO.md with AI_CHANGELOG.md")
     else:
         # Default: show current versions
         show_current_versions()
         # Usage messages go to stdout for user visibility
         print()
         print("To synchronize versions, run:")
-        print("   python development_tools/version_sync.py sync")
-        print("   python development_tools/version_sync.py status")
+        print("   python development_tools/experimental/version_sync.py sync")
+        print("   python development_tools/experimental/version_sync.py status")
         print()
         print("Available scopes:")
         print("   ai_docs     - AI documentation and cursor rules (default)")

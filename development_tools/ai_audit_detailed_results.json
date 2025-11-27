@@ -1,9 +1,9 @@
 {
   "generated_by": "ai_tools_runner.py - AI Development Tools Runner",
-  "last_generated": "2025-11-27 00:55:53",
+  "last_generated": "2025-11-27 05:10:26",
   "source": "python development_tools/ai_tools_runner.py audit",
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2025-11-27T00:55:53.184962",
+  "timestamp": "2025-11-27T05:10:26.184514",
   "successful": [
     "function_discovery",
     "decision_support",
@@ -2549,7 +2549,16 @@
       "success": true,
       "output": "\n================================================================================\nMODULE DEPENDENCIES AUDIT REPORT\n================================================================================\n\n[STATS] OVERALL STATISTICS:\n   Files scanned: 104\n   Total imports found: 1426\n   Dependencies documented: 324\n   Standard library imports: 412\n   Third-party imports: 216\n   Local imports: 798\n\n[ENHANCEMENT] Manual Enhancement Status:\n   Modules with manual enhancements: 104\n   Documented modules not in codebase: 220\n\n[DIR] BREAKDOWN BY DIRECTORY:\n   ai/: 7 files, 69 imports, 35 local deps\n   communication/: 37 files, 494 imports, 287 local deps\n   core/: 26 files, 477 imports, 249 local deps\n   tasks/: 2 files, 16 imports, 10 local deps\n   ui/: 28 files, 348 imports, 201 local deps\n   user/: 4 files, 22 imports, 16 local deps\n\n================================================================================\nENHANCED MODULE ANALYSIS REPORT\n================================================================================\n\n#### `ai/__init__.py`\n- **Complexity**: LOW\n- **Dependencies**: 0\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ai/cache_manager.py`\n- **Complexity**: LOW\n- **Dependencies**: 3\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ai/chatbot.py`\n- **Complexity**: HIGH\n- **Dependencies**: 19\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Consider breaking down into smaller modules, Review core dependency usage, Verify if this module is still needed\n\n#### `ai/context_builder.py`\n- **Complexity**: LOW\n- **Dependencies**: 5\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ai/conversation_history.py`\n- **Complexity**: LOW\n- **Dependencies**: 2\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ai/lm_studio_manager.py`\n- **Complexity**: LOW\n- **Dependencies**: 3\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ai/prompt_manager.py`\n- **Complexity**: LOW\n- **Dependencies**: 3\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/__init__.py`\n- **Complexity**: LOW\n- **Dependencies**: 5\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/command_handlers/__init__.py`\n- **Complexity**: LOW\n- **Dependencies**: 0\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/command_handlers/account_handler.py`\n- **Complexity**: MEDIUM\n- **Dependencies**: 11\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/command_handlers/analytics_handler.py`\n- **Complexity**: HIGH\n- **Dependencies**: 33\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Consider breaking down into smaller modules, Review core dependency usage, Verify if this module is still needed\n\n#### `communication/command_handlers/base_handler.py`\n- **Complexity**: LOW\n- **Dependencies**: 4\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/command_handlers/checkin_handler.py`\n- **Complexity**: LOW\n- **Dependencies**: 6\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/command_handlers/interaction_handlers.py`\n- **Complexity**: HIGH\n- **Dependencies**: 34\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Consider breaking down into smaller modules, Review core dependency usage, Verify if this module is still needed\n\n#### `communication/command_handlers/profile_handler.py`\n- **Complexity**: LOW\n- **Dependencies**: 7\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/command_handlers/schedule_handler.py`\n- **Complexity**: MEDIUM\n- **Dependencies**: 11\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/command_handlers/shared_types.py`\n- **Complexity**: LOW\n- **Dependencies**: 0\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/command_handlers/task_handler.py`\n- **Complexity**: LOW\n- **Dependencies**: 5\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/communication_channels/__init__.py`\n- **Complexity**: LOW\n- **Dependencies**: 0\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/communication_channels/base/base_channel.py`\n- **Complexity**: LOW\n- **Dependencies**: 2\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/communication_channels/base/command_registry.py`\n- **Complexity**: LOW\n- **Dependencies**: 2\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/communication_channels/base/message_formatter.py`\n- **Complexity**: LOW\n- **Dependencies**: 2\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/communication_channels/base/rich_formatter.py`\n- **Complexity**: LOW\n- **Dependencies**: 2\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/communication_channels/discord/account_flow_handler.py`\n- **Complexity**: LOW\n- **Dependencies**: 5\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/communication_channels/discord/api_client.py`\n- **Complexity**: LOW\n- **Dependencies**: 2\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/communication_channels/discord/bot.py`\n- **Complexity**: HIGH\n- **Dependencies**: 19\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Consider breaking down into smaller modules, Verify if this module is still needed\n\n#### `communication/communication_channels/discord/checkin_view.py`\n- **Complexity**: LOW\n- **Dependencies**: 6\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/communication_channels/discord/event_handler.py`\n- **Complexity**: LOW\n- **Dependencies**: 6\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/communication_channels/discord/task_reminder_view.py`\n- **Complexity**: LOW\n- **Dependencies**: 4\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/communication_channels/discord/webhook_handler.py`\n- **Complexity**: LOW\n- **Dependencies**: 8\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/communication_channels/discord/webhook_server.py`\n- **Complexity**: LOW\n- **Dependencies**: 4\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/communication_channels/discord/welcome_handler.py`\n- **Complexity**: LOW\n- **Dependencies**: 5\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/communication_channels/email/bot.py`\n- **Complexity**: LOW\n- **Dependencies**: 4\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/core/__init__.py`\n- **Complexity**: LOW\n- **Dependencies**: 0\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/core/channel_monitor.py`\n- **Complexity**: LOW\n- **Dependencies**: 3\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/core/channel_orchestrator.py`\n- **Complexity**: HIGH\n- **Dependencies**: 32\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Consider breaking down into smaller modules, Review core dependency usage, Verify if this module is still needed\n\n#### `communication/core/factory.py`\n- **Complexity**: LOW\n- **Dependencies**: 5\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/core/retry_manager.py`\n- **Complexity**: LOW\n- **Dependencies**: 2\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/core/welcome_manager.py`\n- **Complexity**: LOW\n- **Dependencies**: 3\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/message_processing/__init__.py`\n- **Complexity**: LOW\n- **Dependencies**: 0\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/message_processing/command_parser.py`\n- **Complexity**: LOW\n- **Dependencies**: 7\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `communication/message_processing/conversation_flow_manager.py`\n- **Complexity**: HIGH\n- **Dependencies**: 26\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Consider breaking down into smaller modules, Verify if this module is still needed\n\n#### `communication/message_processing/interaction_manager.py`\n- **Complexity**: HIGH\n- **Dependencies**: 20\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Consider breaking down into smaller modules, Verify if this module is still needed\n\n#### `communication/message_processing/message_router.py`\n- **Complexity**: LOW\n- **Dependencies**: 2\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/__init__.py`\n- **Complexity**: LOW\n- **Dependencies**: 0\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/auto_cleanup.py`\n- **Complexity**: LOW\n- **Dependencies**: 6\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/backup_manager.py`\n- **Complexity**: LOW\n- **Dependencies**: 5\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/checkin_analytics.py`\n- **Complexity**: LOW\n- **Dependencies**: 4\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/checkin_dynamic_manager.py`\n- **Complexity**: LOW\n- **Dependencies**: 3\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/config.py`\n- **Complexity**: LOW\n- **Dependencies**: 2\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/error_handling.py`\n- **Complexity**: HIGH\n- **Dependencies**: 20\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Consider breaking down into smaller modules, Review core dependency usage, Verify if this module is still needed\n\n#### `core/file_auditor.py`\n- **Complexity**: LOW\n- **Dependencies**: 2\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/file_locking.py`\n- **Complexity**: LOW\n- **Dependencies**: 2\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/file_operations.py`\n- **Complexity**: LOW\n- **Dependencies**: 6\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/headless_service.py`\n- **Complexity**: LOW\n- **Dependencies**: 3\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/logger.py`\n- **Complexity**: LOW\n- **Dependencies**: 5\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/message_analytics.py`\n- **Complexity**: LOW\n- **Dependencies**: 3\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/message_management.py`\n- **Complexity**: LOW\n- **Dependencies**: 8\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/response_tracking.py`\n- **Complexity**: LOW\n- **Dependencies**: 4\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/schedule_management.py`\n- **Complexity**: LOW\n- **Dependencies**: 8\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/schedule_utilities.py`\n- **Complexity**: LOW\n- **Dependencies**: 2\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/scheduler.py`\n- **Complexity**: HIGH\n- **Dependencies**: 27\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Consider breaking down into smaller modules, Review core dependency usage, Verify if this module is still needed\n\n#### `core/schemas.py`\n- **Complexity**: LOW\n- **Dependencies**: 4\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/service.py`\n- **Complexity**: HIGH\n- **Dependencies**: 22\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Consider breaking down into smaller modules, Review core dependency usage, Verify if this module is still needed\n\n#### `core/service_utilities.py`\n- **Complexity**: LOW\n- **Dependencies**: 5\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/ui_management.py`\n- **Complexity**: LOW\n- **Dependencies**: 5\n- **Used by**: 0 modules\n- **Key Insights**: User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/user_data_handlers.py`\n- **Complexity**: HIGH\n- **Dependencies**: 35\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Consider breaking down into smaller modules, Review core dependency usage, Verify if this module is still needed\n\n#### `core/user_data_manager.py`\n- **Complexity**: HIGH\n- **Dependencies**: 17\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Consider breaking down into smaller modules, Review core dependency usage, Verify if this module is still needed\n\n#### `core/user_data_validation.py`\n- **Complexity**: MEDIUM\n- **Dependencies**: 10\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `core/user_management.py`\n- **Complexity**: HIGH\n- **Dependencies**: 41\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Consider breaking down into smaller modules, Review core dependency usage, Verify if this module is still needed\n\n#### `tasks/__init__.py`\n- **Complexity**: LOW\n- **Dependencies**: 0\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `tasks/task_management.py`\n- **Complexity**: MEDIUM\n- **Dependencies**: 10\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/__init__.py`\n- **Complexity**: LOW\n- **Dependencies**: 0\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/dialogs/__init__.py`\n- **Complexity**: LOW\n- **Dependencies**: 0\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/dialogs/account_creator_dialog.py`\n- **Complexity**: HIGH\n- **Dependencies**: 22\n- **Used by**: 0 modules\n- **Key Insights**: User interface dependencies, Not imported by other modules\n- **Recommendations**: Consider breaking down into smaller modules, Review core dependency usage, Verify if this module is still needed\n\n#### `ui/dialogs/admin_panel.py`\n- **Complexity**: LOW\n- **Dependencies**: 2\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/dialogs/category_management_dialog.py`\n- **Complexity**: LOW\n- **Dependencies**: 7\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/dialogs/channel_management_dialog.py`\n- **Complexity**: LOW\n- **Dependencies**: 6\n- **Used by**: 0 modules\n- **Key Insights**: User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/dialogs/checkin_management_dialog.py`\n- **Complexity**: LOW\n- **Dependencies**: 8\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/dialogs/message_editor_dialog.py`\n- **Complexity**: LOW\n- **Dependencies**: 4\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/dialogs/process_watcher_dialog.py`\n- **Complexity**: LOW\n- **Dependencies**: 3\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/dialogs/schedule_editor_dialog.py`\n- **Complexity**: LOW\n- **Dependencies**: 8\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/dialogs/task_completion_dialog.py`\n- **Complexity**: LOW\n- **Dependencies**: 3\n- **Used by**: 0 modules\n- **Key Insights**: User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/dialogs/task_crud_dialog.py`\n- **Complexity**: MEDIUM\n- **Dependencies**: 13\n- **Used by**: 0 modules\n- **Key Insights**: User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/dialogs/task_edit_dialog.py`\n- **Complexity**: LOW\n- **Dependencies**: 5\n- **Used by**: 0 modules\n- **Key Insights**: User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/dialogs/task_management_dialog.py`\n- **Complexity**: MEDIUM\n- **Dependencies**: 9\n- **Used by**: 0 modules\n- **Key Insights**: User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/dialogs/user_analytics_dialog.py`\n- **Complexity**: LOW\n- **Dependencies**: 6\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/dialogs/user_profile_dialog.py`\n- **Complexity**: LOW\n- **Dependencies**: 8\n- **Used by**: 0 modules\n- **Key Insights**: User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/generate_ui_files.py`\n- **Complexity**: LOW\n- **Dependencies**: 1\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/ui_app_qt.py`\n- **Complexity**: HIGH\n- **Dependencies**: 42\n- **Used by**: 0 modules\n- **Key Insights**: User interface dependencies, Not imported by other modules\n- **Recommendations**: Consider breaking down into smaller modules, Review core dependency usage, Verify if this module is still needed\n\n#### `ui/widgets/__init__.py`\n- **Complexity**: LOW\n- **Dependencies**: 0\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/widgets/category_selection_widget.py`\n- **Complexity**: LOW\n- **Dependencies**: 4\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/widgets/channel_selection_widget.py`\n- **Complexity**: LOW\n- **Dependencies**: 4\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/widgets/checkin_settings_widget.py`\n- **Complexity**: MEDIUM\n- **Dependencies**: 9\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/widgets/dynamic_list_container.py`\n- **Complexity**: MEDIUM\n- **Dependencies**: 10\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/widgets/dynamic_list_field.py`\n- **Complexity**: LOW\n- **Dependencies**: 6\n- **Used by**: 0 modules\n- **Key Insights**: User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/widgets/period_row_widget.py`\n- **Complexity**: LOW\n- **Dependencies**: 4\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/widgets/tag_widget.py`\n- **Complexity**: LOW\n- **Dependencies**: 5\n- **Used by**: 0 modules\n- **Key Insights**: User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/widgets/task_settings_widget.py`\n- **Complexity**: LOW\n- **Dependencies**: 8\n- **Used by**: 0 modules\n- **Key Insights**: User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `ui/widgets/user_profile_settings_widget.py`\n- **Complexity**: LOW\n- **Dependencies**: 4\n- **Used by**: 0 modules\n- **Key Insights**: User interface dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `user/__init__.py`\n- **Complexity**: LOW\n- **Dependencies**: 0\n- **Used by**: 0 modules\n- **Key Insights**: Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `user/context_manager.py`\n- **Complexity**: LOW\n- **Dependencies**: 7\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `user/user_context.py`\n- **Complexity**: LOW\n- **Dependencies**: 5\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n\n#### `user/user_preferences.py`\n- **Complexity**: LOW\n- **Dependencies**: 4\n- **Used by**: 0 modules\n- **Key Insights**: Heavy core system dependencies, Not imported by other modules\n- **Recommendations**: Verify if this module is still needed\n",
       "error": "",
-      "returncode": 0
+      "returncode": 0,
+      "data": {
+        "files_scanned": 104,
+        "total_imports": 1426,
+        "documented_dependencies": 324,
+        "standard_library": 412,
+        "third_party": 216,
+        "local_imports": 798
+      },
+      "issues_found": false
     },
     "analyze_documentation": {
       "success": true,
@@ -2623,10 +2632,10 @@
           "error_handler_usage": 13,
           "handle_file_error": 4,
           "handle_validation_error": 2,
-          "safe_file_operation": 1,
-          "MHMError": 2,
           "CommunicationError": 2,
-          "AIError": 2
+          "safe_file_operation": 1,
+          "AIError": 2,
+          "MHMError": 2
         },
         "missing_error_handling": [
           {
@@ -3603,132 +3612,39 @@
     },
     "documentation_sync_checker": {
       "success": true,
-      "output": "\nSUMMARY:\n   Status: FAIL\n   Total Issues: 7\n   Paired Doc Issues: 0\n   Path Drift Issues: 1\n   ASCII Compliance Issues: 2\n   Heading Numbering Issues: 0\n\nPATH DRIFT ISSUES:\n   Total files with issues: 1\n   Total issues found: 2\n   Top files with most issues:\n     TODO.md: 2 issues\n\nASCII COMPLIANCE ISSUES:\n   Total files with non-ASCII characters: 2\n   Total issues found: 5\n   Files with non-ASCII characters:\n     ai_development_docs/AI_CHANGELOG.md: 1 issues\n       - Non-ASCII character '' (U+2192) at positions: [2104]\n     development_docs/CHANGELOG_DETAIL.md: 4 issues\n       - Non-ASCII character '' (U+2014) at positions: [2589]\n       - Non-ASCII character '' (U+2705) at positions: [2750]\n       - Non-ASCII character '' (U+279C) at positions: [2831]\n       ... and 1 more issues\n\nFound 7 documentation synchronization issues.\n   Consider running with --fix to attempt automatic fixes.\n",
+      "output": "\nSUMMARY:\n   Status: FAIL\n   Total Issues: 9\n   Paired Doc Issues: 0\n   Path Drift Issues: 2\n   ASCII Compliance Issues: 0\n   Heading Numbering Issues: 0\n\nPATH DRIFT ISSUES:\n   Total files with issues: 2\n   Total issues found: 9\n   Top files with most issues:\n     development_tools\\AI_DEV_TOOLS_IMPROVEMENT_PLAN.md: 7 issues\n     TODO.md: 2 issues\n\nFound 9 documentation synchronization issues.\n   Consider running with --fix to attempt automatic fixes.\n",
       "error": "",
       "returncode": 0,
       "data": {
         "status": "FAIL",
-        "total_issues": 7,
+        "total_issues": 9,
         "paired_doc_issues": 0,
-        "path_drift_issues": 1,
-        "ascii_compliance_issues": 2,
+        "path_drift_issues": 2,
+        "ascii_compliance_issues": 0,
         "heading_numbering_issues": 0,
         "path_drift_files": [
-          "TODO.md"
+          "TODO.md",
+          "development_tools\\AI_DEV_TOOLS_IMPROVEMENT_PLAN.md"
         ],
         "paired_docs": {},
         "path_drift": {
           "TODO.md": [
             "Missing file: development_tools/cleanup.py",
             "Missing file: development_tools/project_cleanup.py"
-          ]
-        },
-        "ascii_compliance": {
-          "ai_development_docs/AI_CHANGELOG.md": [
-            "Non-ASCII character '\u2192' (U+2192) at positions: [2104]"
           ],
-          "development_docs/CHANGELOG_DETAIL.md": [
-            "Non-ASCII character '\u2014' (U+2014) at positions: [2589]",
-            "Non-ASCII character '\u2705' (U+2705) at positions: [2750]",
-            "Non-ASCII character '\u279c' (U+279C) at positions: [2831]",
-            "Non-ASCII character '\u2192' (U+2192) at positions: [3597, 3639, 4104]"
+          "development_tools\\AI_DEV_TOOLS_IMPROVEMENT_PLAN.md": [
+            "Missing file: development_tools/version_sync.py",
+            "Missing file: development_tools/auto_document_functions.py",
+            "Missing file: operations.py",
+            "Missing file: MODULE_DEPENDENCIES_DETAIL.md",
+            "Missing file: tool_metadata.py",
+            "Missing file: tool_metadata.py",
+            "Missing file: operations.py"
           ]
         },
+        "ascii_compliance": {},
         "heading_numbering": {}
       }
-    },
-    "legacy_reference_cleanup": {
-      "success": true,
-      "data": {
-        "files_with_issues": 12,
-        "legacy_markers": 2,
-        "report_path": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_docs\\LEGACY_REFERENCE_REPORT.md"
-      },
-      "timestamp": "2025-11-27T00:56:20.098560"
-    },
-    "validate_ai_work": {
-      "success": true,
-      "data": {
-        "success": true,
-        "output": "",
-        "error": "",
-        "returncode": 0
-      },
-      "timestamp": "2025-11-27T00:56:20.098560"
-    },
-    "system_signals": {
-      "success": true,
-      "data": {
-        "timestamp": "2025-11-27T00:56:18.230484",
-        "system_health": {
-          "overall_status": "OK",
-          "core_files": {
-            "run_mhm.py": "OK",
-            "run_headless_service.py": "OK",
-            "run_tests.py": "OK",
-            "core/service.py": "OK",
-            "core/config.py": "OK",
-            "core/logger.py": "OK",
-            "requirements.txt": "OK",
-            "pyproject.toml": "OK"
-          },
-          "key_directories": {
-            ".": "OK",
-            "ai": "OK",
-            "communication": "OK",
-            "core": "OK",
-            "tasks": "OK",
-            "ui": "OK",
-            "user": "OK",
-            "tests": "OK"
-          },
-          "last_audit": "2025-11-27T00:55:53.201547",
-          "warnings": [],
-          "errors": []
-        },
-        "recent_activity": {
-          "recent_changes": [
-            ".cursor\\commands\\ai-functionality-tests.md",
-            "ARCHITECTURE.md",
-            "DEVELOPMENT_WORKFLOW.md",
-            "DOCUMENTATION_GUIDE.md",
-            "HOW_TO_RUN.md",
-            "README.md",
-            "TODO.md",
-            "ai\\SYSTEM_AI_GUIDE.md",
-            "ai_development_docs\\AI_ARCHITECTURE.md",
-            "ai_development_docs\\AI_CHANGELOG.md",
-            "ai_development_docs\\AI_DEVELOPMENT_WORKFLOW.md",
-            "ai_development_docs\\AI_DOCUMENTATION_GUIDE.md",
-            "ai_development_docs\\AI_ERROR_HANDLING_GUIDE.md",
-            "ai_development_docs\\AI_LEGACY_REMOVAL_GUIDE.md",
-            "ai_development_docs\\AI_LOGGING_GUIDE.md"
-          ],
-          "git_status": "Modified",
-          "last_commit": null,
-          "uncommitted_changes": true
-        },
-        "critical_alerts": [],
-        "performance_indicators": {
-          "log_file_sizes": {
-            "ai.log": "0.0MB",
-            "ai_dev_tools.log": "0.1MB",
-            "app.log": "0.0MB",
-            "communication_manager.log": "0.0MB",
-            "discord.log": "0.0MB",
-            "email.log": "0.0MB",
-            "errors.log": "0.0MB",
-            "file_ops.log": "0.0MB",
-            "message.log": "0.0MB",
-            "scheduler.log": "0.0MB",
-            "ui.log": "0.0MB",
-            "user_activity.log": "0.0MB"
-          },
-          "cache_status": "Unknown",
-          "memory_usage": "Unknown"
-        }
-      },
-      "timestamp": "2025-11-27T00:56:20.098560"
     }
   }
 }

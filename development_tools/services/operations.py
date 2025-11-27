@@ -80,7 +80,7 @@ SCRIPT_REGISTRY = {
 
     'validate_ai_work': 'validate_ai_work.py',
 
-    'version_sync': 'version_sync.py',
+    'version_sync': 'experimental/version_sync.py',
 
     'system_signals': 'system_signals.py'
 
@@ -110,6 +110,8 @@ class AIToolsService:
         self.docs_sync_results = None
 
         self.system_signals = None
+        self.dev_tools_coverage_results = None
+        self.module_dependency_summary = None
 
         self.exclusion_config = {
 
@@ -314,6 +316,38 @@ class AIToolsService:
                 result['success'] = True
 
                 result['error'] = ''
+
+        return result
+
+    def run_audit_module_dependencies(self) -> Dict:
+
+        """Run audit_module_dependencies and capture dependency drift summary."""
+
+        result = self.run_script("audit_module_dependencies")
+
+        output = result.get('output', '')
+
+        summary = self._parse_module_dependency_report(output)
+
+        if summary:
+
+            result['data'] = summary
+
+            issues = summary.get('missing_dependencies', 0)
+
+            issues = issues or len(summary.get('missing_sections') or [])
+
+            result['issues_found'] = bool(issues)
+
+            # preserve success flag if script executed; default to True when stdout parsed
+
+            if 'success' not in result:
+
+                result['success'] = True
+
+            self.module_dependency_summary = summary
+
+            self.results_cache['audit_module_dependencies'] = summary
 
         return result
 
@@ -903,6 +937,18 @@ class AIToolsService:
         except Exception as exc:
             logger.error(f"  - Documentation analysis failed: {exc}")
         try:
+            logger.info("  - Running module dependency audit...")
+            dep_result = self.run_audit_module_dependencies()
+            summary = dep_result.get('data') if isinstance(dep_result, dict) else None
+            if summary:
+                missing = summary.get('missing_dependencies') or 0
+                if missing:
+                    logger.warning(f"  - Module dependency audit found {missing} undocumented references")
+                else:
+                    logger.info("  - Module dependency audit completed (no undocumented dependencies detected)")
+        except Exception as exc:
+            logger.error(f"  - Module dependency audit failed: {exc}")
+        try:
             logger.info("  - Running configuration validation...")
             self.run_script('config_validator')
         except Exception as exc:
@@ -915,6 +961,18 @@ class AIToolsService:
                 logger.warning("  - Coverage regeneration completed with issues")
         except Exception as exc:
             logger.error(f"  - Coverage regeneration failed: {exc}")
+        try:
+            logger.info("  - Running development tools coverage analysis...")
+            dev_tools_coverage = self.run_dev_tools_coverage()
+            if dev_tools_coverage.get('coverage_collected'):
+                overall = dev_tools_coverage.get('overall', {})
+                coverage_pct = overall.get('overall_coverage', 0)
+                logger.info(f"  - Dev tools coverage: {coverage_pct:.1f}%")
+                logger.info(f"  - Dev tools coverage report: {dev_tools_coverage.get('html_dir', 'N/A')}")
+            else:
+                logger.warning("  - Dev tools coverage data not collected")
+        except Exception as exc:
+            logger.error(f"  - Dev tools coverage analysis failed: {exc}")
         try:
             logger.info("  - Running version sync...")
             result = self.run_version_sync(scope='all')
@@ -952,7 +1010,7 @@ class AIToolsService:
     def _validate_referenced_paths(self) -> None:
         """Validate that all referenced paths in documentation exist."""
         try:
-            from ..version_sync import validate_referenced_paths  # type: ignore
+            from ..experimental.version_sync import validate_referenced_paths  # type: ignore
             result = validate_referenced_paths()
             status = result.get('status') if isinstance(result, dict) else None
             message = result.get('message') if isinstance(result, dict) else None
@@ -1013,7 +1071,7 @@ class AIToolsService:
     def _sync_todo_with_changelog(self) -> None:
         """Sync TODO.md with AI_CHANGELOG.md to move completed entries."""
         try:
-            from ..version_sync import sync_todo_with_changelog  # type: ignore
+            from ..experimental.version_sync import sync_todo_with_changelog  # type: ignore
             result = sync_todo_with_changelog()
             status = result.get('status') if isinstance(result, dict) else None
             if status == 'ok':
@@ -1257,6 +1315,10 @@ class AIToolsService:
 
                 result = self.run_audit_function_registry()
 
+            elif script_name == 'audit_module_dependencies':
+
+                result = self.run_audit_module_dependencies()
+
             elif script_name == 'error_handling_coverage':
 
                 result = self.run_error_handling_coverage()
@@ -1372,6 +1434,28 @@ class AIToolsService:
             logger.error(f"Version sync failed: {result['error']}")
 
             return False
+
+    def run_dev_tools_coverage(self) -> Dict:
+        """Run coverage analysis specifically for development_tools directory."""
+        logger.info("Starting development tools coverage analysis...")
+        
+        try:
+            from ..regenerate_coverage_metrics import CoverageMetricsRegenerator
+            
+            regenerator = CoverageMetricsRegenerator()
+            result = regenerator.run_dev_tools_coverage()
+            
+            # Store results for consolidated report
+            if not hasattr(self, 'dev_tools_coverage_results'):
+                self.dev_tools_coverage_results = {}
+            self.dev_tools_coverage_results = result
+            
+            logger.info("Completed development tools coverage analysis!")
+            return result
+            
+        except Exception as exc:
+            logger.error(f"Development tools coverage analysis failed: {exc}")
+            return {'coverage_collected': False, 'error': str(exc)}
 
     def run_status(self):
 
@@ -1952,6 +2036,14 @@ class AIToolsService:
         elif 'error_handling_coverage' in script_name:
 
             self._extract_error_handling_metrics(result)
+
+        elif 'audit_module_dependencies' in script_name:
+
+            data = result.get('data')
+
+            if data:
+
+                self.module_dependency_summary = data
 
     def _extract_function_metrics(self, result: Dict[str, Any]):
 
@@ -2862,6 +2954,173 @@ class AIToolsService:
 
         }
 
+    def _load_dev_tools_coverage(self) -> None:
+        """Load dev tools coverage from JSON file if it exists."""
+        coverage_path = self.project_root / "development_tools" / "coverage_dev_tools.json"
+        
+        if not coverage_path.exists():
+            return
+        
+        try:
+            with coverage_path.open('r', encoding='utf-8') as handle:
+                coverage_data = json.load(handle)
+        except (OSError, json.JSONDecodeError):
+            return
+        
+        files = coverage_data.get('files')
+        if not isinstance(files, dict) or not files:
+            return
+        
+        total_statements = 0
+        total_missed = 0
+        
+        for path, info in files.items():
+            summary = info.get('summary') or {}
+            statements = summary.get('num_statements') or 0
+            missed = summary.get('missing_lines') or 0
+            total_statements += statements
+            total_missed += missed
+        
+        if total_statements == 0:
+            overall_coverage = 0.0
+        else:
+            overall_coverage = round((total_statements - total_missed) / total_statements * 100, 1)
+        
+        module_data = self._load_coverage_json(coverage_path)
+        self.dev_tools_coverage_results = {
+            'overall': {
+                'overall_coverage': overall_coverage,
+                'total_statements': total_statements,
+                'total_missed': total_missed
+            },
+            'modules': module_data,
+            'coverage_collected': True,
+            'output_file': str(coverage_path),
+            'html_dir': str(self.project_root / "development_tools" / "coverage_html_dev_tools")
+        }
+
+    def _parse_module_dependency_report(self, output: str) -> Optional[Dict[str, Any]]:
+        """Extract summary statistics from audit_module_dependencies output."""
+        if not output:
+            return None
+
+        summary: Dict[str, Any] = {}
+        patterns = {
+            'files_scanned': r"Files scanned:\s+(\d+)",
+            'total_imports': r"Total imports found:\s+(\d+)",
+            'documented_dependencies': r"Dependencies documented:\s+(\d+)",
+            'standard_library': r"Standard library imports:\s+(\d+)",
+            'third_party': r"Third-party imports:\s+(\d+)",
+            'local_imports': r"Local imports:\s+(\d+)",
+            'missing_dependencies': r"Total missing dependencies:\s+(\d+)",
+        }
+
+        for key, pattern in patterns.items():
+            match = re.search(pattern, output)
+            if match:
+                try:
+                    summary[key] = int(match.group(1))
+                except ValueError:
+                    summary[key] = None
+
+        missing_files = re.findall(r"\[FILE\]\s+([^:]+):", output)
+        missing_sections = re.findall(r"\[DIR\]\s+(.+?) - ENTIRE FILE MISSING", output)
+
+        if not summary and not missing_files and not missing_sections:
+            return None
+
+        if missing_files:
+            summary['missing_files'] = [item.strip() for item in missing_files[:5]]
+        if missing_sections:
+            summary['missing_sections'] = [item.strip() for item in missing_sections[:5]]
+
+        return summary
+
+    def _load_coverage_json(self, json_path: Path) -> Dict[str, Dict[str, Any]]:
+        """Load module metrics from coverage JSON output."""
+        try:
+            with json_path.open('r', encoding='utf-8') as json_file:
+                data = json.load(json_file)
+        except (OSError, json.JSONDecodeError):
+            return {}
+        
+        files = data.get('files', {})
+        coverage_data: Dict[str, Dict[str, Any]] = {}
+        
+        for module_name, file_data in files.items():
+            summary = file_data.get('summary', {})
+            statements = int(summary.get('num_statements', 0))
+            covered = int(summary.get('covered_lines', statements - summary.get('missing_lines', 0)))
+            missed = int(summary.get('missing_lines', statements - covered))
+            percent = summary.get('percent_covered')
+            if isinstance(percent, float):
+                percent_value = int(round(percent))
+            else:
+                try:
+                    percent_value = int(percent)
+                except (TypeError, ValueError):
+                    percent_value = 0
+            
+            missing_lines = file_data.get('missing_lines', [])
+            missing_line_strings = [str(line) for line in missing_lines]
+            
+            coverage_data[module_name] = {
+                'statements': statements,
+                'missed': missed,
+                'coverage': percent_value,
+                'missing_lines': missing_line_strings,
+                'covered': covered
+            }
+        
+        return coverage_data
+
+    def _get_dev_tools_coverage_insights(self) -> Optional[Dict[str, Any]]:
+        """Return summarized dev tools coverage insights."""
+        results = getattr(self, 'dev_tools_coverage_results', None)
+        if not results:
+            return None
+        modules = results.get('modules')
+        if (not modules) and results.get('output_file'):
+            try:
+                modules = self._load_coverage_json(Path(results['output_file']))
+            except Exception:
+                modules = {}
+        if not isinstance(modules, dict):
+            modules = {}
+        overall = results.get('overall') or {}
+        overall_pct = overall.get('overall_coverage') or overall.get('coverage')
+        total_statements = overall.get('total_statements')
+        total_missed = overall.get('total_missed')
+        if (total_statements is None or total_missed is None) and modules:
+            total_statements = sum((data.get('statements') or 0) for data in modules.values())
+            total_missed = sum((data.get('missed') or 0) for data in modules.values())
+        covered = None
+        if total_statements is not None and total_missed is not None:
+            covered = max(total_statements - total_missed, 0)
+        low_modules: List[Dict[str, Any]] = []
+        if modules:
+            sorted_modules = sorted(modules.items(), key=lambda kv: kv[1].get('coverage', 101))
+            for name, data in sorted_modules:
+                coverage_value = data.get('coverage')
+                if coverage_value is None:
+                    continue
+                low_modules.append({
+                    'path': name,
+                    'coverage': coverage_value,
+                    'missed': data.get('missed'),
+                    'statements': data.get('statements')
+                })
+                if len(low_modules) == 3:
+                    break
+        return {
+            'overall_pct': overall_pct,
+            'statements': total_statements,
+            'covered': covered,
+            'html': results.get('html_dir'),
+            'low_modules': low_modules,
+            'module_count': len(modules),
+        }
+
     def _get_canonical_metrics(self) -> Dict[str, Any]:
 
         """Provide consistent totals across downstream documents."""
@@ -3099,6 +3358,10 @@ class AIToolsService:
         worst_error_modules = error_metrics.get('worst_modules') or []
 
         coverage_summary = self._load_coverage_summary()
+        
+        # Load dev tools coverage if not already loaded
+        if not hasattr(self, 'dev_tools_coverage_results') or not self.dev_tools_coverage_results:
+            self._load_dev_tools_coverage()
 
         doc_sync_summary = self.docs_sync_summary or {}
 
@@ -3329,6 +3592,26 @@ class AIToolsService:
         else:
 
             lines.append("- Run `python development_tools/ai_tools_runner.py doc-sync` for drift details")
+
+        dependency_summary = self.module_dependency_summary or self.results_cache.get('audit_module_dependencies')
+
+        if dependency_summary:
+
+            missing_deps = dependency_summary.get('missing_dependencies')
+
+            if missing_deps:
+
+                lines.append(f"- **Dependency Docs**: {missing_deps} undocumented references detected")
+
+                missing_files = dependency_summary.get('missing_files') or dependency_summary.get('missing_sections') or []
+
+                if missing_files:
+
+                    lines.append(f"  Top files: {self._format_list_for_display(missing_files, limit=3)}")
+
+            else:
+
+                lines.append("- **Dependency Docs**: CLEAN (no undocumented dependencies)")
 
         doc_artifacts = analyze_docs.get('artifacts') if isinstance(analyze_docs, dict) else None
 
@@ -3597,6 +3880,8 @@ class AIToolsService:
 
         lines.append("## Test Coverage")
 
+        dev_tools_insights = self._get_dev_tools_coverage_insights()
+
         if coverage_summary:
 
             overall = coverage_summary['overall']
@@ -3633,7 +3918,7 @@ class AIToolsService:
 
             if worst_files:
 
-                formatted = [
+                descriptions = [
 
                     f"{item['path']} ({percent_text(item.get('coverage'), 1)})"
 
@@ -3641,7 +3926,26 @@ class AIToolsService:
 
                 ]
 
-                lines.append(f"- **Files Needing Tests**: {', '.join(formatted)}")
+                lines.append(f"- **Files Needing Tests**: {', '.join(descriptions)}")
+            
+            if dev_tools_insights and dev_tools_insights.get('overall_pct') is not None:
+                dev_pct = dev_tools_insights['overall_pct']
+                dev_statements = dev_tools_insights.get('statements')
+                dev_covered = dev_tools_insights.get('covered')
+                summary_line = f"- **Development Tools Coverage**: {percent_text(dev_pct, 1)}"
+                if dev_statements is not None and dev_covered is not None:
+                    summary_line += f" ({dev_covered} of {dev_statements} statements)"
+                lines.append(summary_line)
+                html_dir = dev_tools_insights.get('html')
+                if html_dir:
+                    lines.append(f"- **Dev Tools Report**: {html_dir}")
+                low_modules = dev_tools_insights.get('low_modules') or []
+                if low_modules:
+                    dev_descriptions = [
+                        f"{Path(item['path']).name} ({percent_text(item.get('coverage'), 1)}, missing {item.get('missed')} lines)"
+                        for item in low_modules
+                    ]
+                    lines.append(f"- **Lowest Dev Tool Modules**: {', '.join(dev_descriptions)}")
 
         else:
 
@@ -3863,6 +4167,11 @@ class AIToolsService:
         doc_sync_summary = self.docs_sync_summary or {}
         legacy_summary = self.legacy_cleanup_summary or {}
         coverage_summary = self._load_coverage_summary()
+        
+        # Load dev tools coverage if not already loaded
+        if not hasattr(self, 'dev_tools_coverage_results') or not self.dev_tools_coverage_results:
+            self._load_dev_tools_coverage()
+        
         analyze_docs_result = self.results_cache.get('analyze_documentation', {}) or {}
         analyze_data = analyze_docs_result.get('data') if isinstance(analyze_docs_result, dict) else {}
         if not isinstance(analyze_data, dict):
@@ -3902,6 +4211,12 @@ class AIToolsService:
                     low_coverage_modules.append(module)
             low_coverage_modules = low_coverage_modules[:3]
             worst_coverage_files = coverage_summary.get('worst_files') or []
+        
+        # Get dev tools coverage if available
+        dev_tools_coverage_overall = None
+        if hasattr(self, 'dev_tools_coverage_results') and self.dev_tools_coverage_results:
+            dev_tools_coverage_overall = self.dev_tools_coverage_results.get('overall', {})
+        dev_tools_insights = self._get_dev_tools_coverage_insights()
 
         analyze_artifacts = analyze_data.get('artifacts') or []
         analyze_duplicates = analyze_data.get('duplicates') or []
@@ -4039,10 +4354,14 @@ class AIToolsService:
 
         # Adjust order numbers based on whether Phase 1/2 priorities exist
         coverage_order = 4
-        legacy_order = 5
+        dev_coverage_order = coverage_order + 1
+        dependency_order = dev_coverage_order + 1
+        legacy_order = dependency_order + 1
         if phase1_total or phase2_total:
             coverage_order = 5
-            legacy_order = 6
+            dev_coverage_order = coverage_order + 1
+            dependency_order = dev_coverage_order + 1
+            legacy_order = dependency_order + 1
         
         if low_coverage_modules:
             coverage_highlights = [
@@ -4058,6 +4377,55 @@ class AIToolsService:
                 title="Raise coverage for low-performing modules",
                 reason=f"{len(low_coverage_modules)} key modules remain below the 80% target.",
                 bullets=coverage_bullets
+            )
+
+        if dev_tools_insights and dev_tools_insights.get('overall_pct') is not None:
+            dev_pct = dev_tools_insights['overall_pct']
+            low_dev_modules = dev_tools_insights.get('low_modules') or []
+            if dev_pct < 60 or low_dev_modules:
+                dev_bullets: List[str] = []
+                if low_dev_modules:
+                    highlights = [
+                        f"{Path(item['path']).name} ({percent_text(item.get('coverage'), 1)})"
+                        for item in low_dev_modules
+                    ]
+                    dev_bullets.append(f"Focus on: {self._format_list_for_display(highlights, limit=3)}")
+                if dev_tools_insights.get('html'):
+                    dev_bullets.append(f"Review HTML report at {dev_tools_insights['html']}")
+                dev_bullets.append("Strengthen tests in `tests/development_tools/` for fragile helpers.")
+                add_priority(
+                    order=dev_coverage_order,
+                    title="Raise development tools coverage",
+                    reason=f"Development tools coverage is {percent_text(dev_pct, 1)} (target 60%+).",
+                    bullets=dev_bullets
+                )
+
+        dependency_summary = self.module_dependency_summary or self.results_cache.get('audit_module_dependencies')
+
+        if dependency_summary and dependency_summary.get('missing_dependencies'):
+
+            missing = dependency_summary['missing_dependencies']
+
+            dep_bullets = []
+
+            files = dependency_summary.get('missing_files') or dependency_summary.get('missing_sections') or []
+
+            if files:
+
+                dep_bullets.append(f"Affected files: {self._format_list_for_display(files, limit=3)}")
+
+            dep_bullets.append("Regenerate dependencies via `python development_tools/ai_tools_runner.py docs` and rerun the audit.")
+
+            add_priority(
+
+                order=dependency_order,
+
+                title="Refresh dependency documentation",
+
+                reason=f"{missing} module dependencies are undocumented.",
+
+                bullets=dep_bullets
+
             )
 
         if legacy_files and legacy_files > 0:
@@ -4120,6 +4488,25 @@ class AIToolsService:
                 f"Overall test coverage is {percent_text(coverage_overall.get('coverage'), 1)} "
                 f"({coverage_overall.get('covered')} / {coverage_overall.get('statements')} statements)."
             )
+        if dev_tools_insights and dev_tools_insights.get('overall_pct') is not None:
+            dev_pct = dev_tools_insights['overall_pct']
+            detail = f"Development tools coverage is {percent_text(dev_pct, 1)} (target 60%+)."
+            low_modules = dev_tools_insights.get('low_modules') or []
+            if low_modules:
+                focus = [
+                    f"{Path(item['path']).name} ({percent_text(item.get('coverage'), 1)})"
+                    for item in low_modules
+                ]
+                detail += f" Focus on {self._format_list_for_display(focus, limit=2)}."
+            watch_list.append(detail)
+        dependency_summary = self.module_dependency_summary or self.results_cache.get('audit_module_dependencies')
+        if dependency_summary and dependency_summary.get('missing_dependencies'):
+            missing = dependency_summary['missing_dependencies']
+            files = dependency_summary.get('missing_files') or dependency_summary.get('missing_sections') or []
+            detail = f"Dependency docs missing {missing} reference(s); regenerate MODULE_DEPENDENCIES detail."
+            if files:
+                detail += f" Hotspots: {self._format_list_for_display(files, limit=2)}."
+            watch_list.append(detail)
         if worst_coverage_files:
             file_focus = [
                 f"{item['path']} ({percent_text(item.get('coverage'), 1)})"
@@ -4215,6 +4602,10 @@ class AIToolsService:
         worst_error_modules = error_metrics.get('worst_modules') or []
 
         coverage_summary = self._load_coverage_summary()
+        
+        # Load dev tools coverage if not already loaded
+        if not hasattr(self, 'dev_tools_coverage_results') or not self.dev_tools_coverage_results:
+            self._load_dev_tools_coverage()
 
         legacy_summary = self.legacy_cleanup_summary or {}
 
@@ -4244,11 +4635,20 @@ class AIToolsService:
 
             lines.append(f"- Error handling coverage {percent_text(error_cov, 1)}; {missing_error_handlers or 0} functions need protection")
 
+        dev_tools_insights = self._get_dev_tools_coverage_insights()
+
         if coverage_summary:
 
             overall_cov = coverage_summary['overall'].get('coverage')
 
             lines.append(f"- Test coverage {percent_text(overall_cov, 1)} across {coverage_summary['overall'].get('statements', 0)} statements")
+            
+            if dev_tools_insights and dev_tools_insights.get('overall_pct') is not None:
+                dev_pct = dev_tools_insights['overall_pct']
+                summary_line = f"- Development tools coverage {percent_text(dev_pct, 1)}"
+                if dev_tools_insights.get('covered') is not None and dev_tools_insights.get('statements') is not None:
+                    summary_line += f" ({dev_tools_insights['covered']} of {dev_tools_insights['statements']} statements)"
+                lines.append(summary_line)
 
         elif hasattr(self, 'coverage_results') and self.coverage_results:
 
@@ -4335,6 +4735,22 @@ class AIToolsService:
         else:
 
             lines.append("- Run doc-sync to capture current documentation drift data")
+
+        dependency_summary = self.module_dependency_summary or self.results_cache.get('audit_module_dependencies')
+
+        if dependency_summary:
+
+            missing = dependency_summary.get('missing_dependencies')
+
+            line = f"- **Dependency Docs**: {missing or 0} undocumented references"
+
+            lines.append(line)
+
+            dep_files = dependency_summary.get('missing_files') or dependency_summary.get('missing_sections') or []
+
+            if dep_files and (missing or 0):
+
+                lines.append(f"  - Hotspots: {self._format_list_for_display(dep_files, limit=5)}")
 
         if doc_artifacts:
 
@@ -4464,7 +4880,7 @@ class AIToolsService:
 
                 module_descriptions = [
 
-                    f"{m['module']} ({percent_text(m.get('coverage'), 1)})"
+                    f"{m['module']} ({percent_text(m.get('coverage'), 1)}, missing {m.get('missed')} lines)"
 
                     for m in module_gaps[:5]
 
@@ -4486,11 +4902,28 @@ class AIToolsService:
 
                 lines.append(f"- **Files Missing Tests**: {', '.join(file_descriptions)}")
 
+            if dev_tools_insights and dev_tools_insights.get('overall_pct') is not None:
+                dev_pct = dev_tools_insights['overall_pct']
+                dev_line = f"- **Development Tools Coverage**: {percent_text(dev_pct, 1)}"
+                if dev_tools_insights.get('covered') is not None and dev_tools_insights.get('statements') is not None:
+                    dev_line += f" ({dev_tools_insights['covered']} of {dev_tools_insights['statements']} statements)"
+                lines.append(dev_line)
+                low_modules = dev_tools_insights.get('low_modules') or []
+                if low_modules:
+                    dev_descriptions = [
+                        f"{Path(item['path']).name} ({percent_text(item.get('coverage'), 1)}, missing {item.get('missed')} lines)"
+                        for item in low_modules
+                    ]
+                    lines.append(f"- **Lowest Dev Tool Modules**: {', '.join(dev_descriptions)}")
+                if dev_tools_insights.get('html'):
+                    lines.append(f"- **Dev Tools Report**: {dev_tools_insights['html']}")
+
             generated = overall.get('generated')
 
             if generated:
 
                 lines.append(f"- **Report Timestamp**: {generated}")
+            
 
         elif hasattr(self, 'coverage_results') and self.coverage_results:
 

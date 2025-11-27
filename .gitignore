@@ -148,7 +148,16 @@ archive/
 .coverage
 coverage.json
 coverage_html/
+.coverage_dev_tools
+development_tools/.coverage_dev_tools
+development_tools/coverage_dev_tools.json
+development_tools/coverage_html_dev_tools/
 development_tools/logs/
+
+# Development tools cache and result files
+development_tools/.unused_imports_cache.json
+development_tools/config_validation_results.json
+development_tools/error_handling_details.json
 
 # IDE files
 .vscode/

@@ -23,11 +23,12 @@ class FileRotator:
     def __init__(self, base_dir: str = "development_tools"):
         self.base_dir = Path(base_dir)
         self.archive_dir = self.base_dir / "archive"
-        self.archive_dir.mkdir(exist_ok=True)
+        self.archive_dir.mkdir(parents=True, exist_ok=True)
         
         # Use MHM's existing rotation settings
         self.max_versions = 7  # Same as log rotation (7 days)
         self.rotation_suffix = "%Y-%m-%d_%H%M%S"  # Timestamp format
+        self._rotation_counter = 0  # Counter to ensure unique filenames
     
     def rotate_file(self, file_path: str, max_versions: int = None) -> str:
         """
@@ -55,11 +56,18 @@ class FileRotator:
             return str(file_path)
         
         # Create timestamp for this rotation (using MHM format)
+        # Add counter to ensure uniqueness even if rotations happen in the same second
         timestamp = datetime.now().strftime(self.rotation_suffix)
-        
-        # Move existing file to archive with timestamp
-        archive_name = f"{file_path.stem}_{timestamp}{file_path.suffix}"
+        self._rotation_counter += 1
+        archive_name = f"{file_path.stem}_{timestamp}_{self._rotation_counter:04d}{file_path.suffix}"
         archive_path = self.archive_dir / archive_name
+        
+        # If file already exists (shouldn't happen with counter, but be safe), append counter
+        counter = 1
+        while archive_path.exists():
+            archive_name = f"{file_path.stem}_{timestamp}_{self._rotation_counter:04d}_{counter}{file_path.suffix}"
+            archive_path = self.archive_dir / archive_name
+            counter += 1
         
         shutil.move(str(file_path), str(archive_path))
         
@@ -77,14 +85,21 @@ class FileRotator:
         pattern = f"{base_name}_*"
         existing_files = list(self.archive_dir.glob(pattern))
         
-        if len(existing_files) > max_versions:
+        # Filter to ensure we only get files that match the expected pattern
+        filtered_files = [f for f in existing_files if f.name.startswith(f"{base_name}_")]
+        
+        if len(filtered_files) > max_versions:
             # Sort by modification time (oldest first)
-            existing_files.sort(key=lambda x: x.stat().st_mtime)
+            filtered_files.sort(key=lambda x: x.stat().st_mtime)
             
             # Remove oldest files beyond the limit
-            files_to_remove = existing_files[:-max_versions]
+            files_to_remove = filtered_files[:-max_versions]
             for file_path in files_to_remove:
-                file_path.unlink()
+                try:
+                    file_path.unlink()
+                except (OSError, FileNotFoundError):
+                    # File may have been removed already, ignore
+                    pass
     
     def get_latest_archive(self, base_name: str) -> Optional[Path]:
         """Get the most recent archived version of a file."""
@@ -99,13 +114,19 @@ class FileRotator:
     
     def list_archives(self, base_name: str) -> list:
         """List all archived versions of a file."""
+        # Match files that start with base_name followed by underscore and timestamp
+        # Pattern should match: base_name_YYYY-MM-DD_HHMMSS.ext
         pattern = f"{base_name}_*"
         existing_files = list(self.archive_dir.glob(pattern))
         
-        # Sort by modification time (newest first)
-        existing_files.sort(key=lambda x: x.stat().st_mtime, reverse=True)
+        # Filter to ensure we only get files that match the expected pattern
+        # (base_name followed by underscore, not just any file starting with base_name)
+        filtered_files = [f for f in existing_files if f.name.startswith(f"{base_name}_")]
         
-        return existing_files
+        # Sort by modification time (newest first)
+        filtered_files.sort(key=lambda x: x.stat().st_mtime, reverse=True)
+        
+        return filtered_files
 
 
 def create_output_file(file_path: str, content: str, rotate: bool = True, max_versions: int = None) -> str:
@@ -128,7 +149,8 @@ def create_output_file(file_path: str, content: str, rotate: bool = True, max_ve
     
     # Rotate if requested and file exists
     if rotate and file_path.exists():
-        rotator = FileRotator()
+        # Use the file's parent directory as base_dir for rotation
+        rotator = FileRotator(base_dir=str(file_path.parent))
         file_path = Path(rotator.rotate_file(str(file_path), max_versions))
     
     # Write content to file
