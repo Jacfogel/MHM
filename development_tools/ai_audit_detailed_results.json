@@ -1,9 +1,9 @@
 {
   "generated_by": "ai_tools_runner.py - AI Development Tools Runner",
-  "last_generated": "2025-11-28 03:17:30",
+  "last_generated": "2025-11-28 04:42:22",
   "source": "python development_tools/ai_tools_runner.py audit",
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2025-11-28T03:17:30.682264",
+  "timestamp": "2025-11-28T04:42:22.712840",
   "successful": [
     "function_discovery",
     "decision_support",
@@ -42,7 +42,7 @@
           "undocumented": 5
         }
       },
-      "timestamp": "2025-11-28T03:23:16.444661"
+      "timestamp": "2025-11-28T04:50:15.230447"
     },
     "audit_function_registry": {
       "success": true,
@@ -1886,12 +1886,12 @@
           "handle_network_error": 5,
           "handle_validation_error": 2,
           "handle_ai_error": 16,
-          "AIError": 2,
           "MHMError": 2,
           "CommunicationError": 2,
+          "FileOperationError": 10,
           "DataError": 13,
           "safe_file_operation": 1,
-          "FileOperationError": 10
+          "AIError": 2
         },
         "missing_error_handling": [
           {
@@ -2868,7 +2868,7 @@
     },
     "documentation_sync_checker": {
       "success": true,
-      "output": "\nSUMMARY:\n   Status: FAIL\n   Total Issues: 16\n   Paired Doc Issues: 1\n   Path Drift Issues: 2\n   ASCII Compliance Issues: 1\n   Heading Numbering Issues: 0\n\nPAIRED DOCUMENTATION ISSUES:\n   content_sync:\n     - ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md has sections missing in DEVELOPMENT_WORKFLOW.md: {'10. Standard Audit Recipe'}\n\nPATH DRIFT ISSUES:\n   Total files with issues: 2\n   Total issues found: 14\n   Top files with most issues:\n     development_tools\\AI_DEV_TOOLS_IMPROVEMENT_PLAN.md: 12 issues\n     TODO.md: 2 issues\n\nASCII COMPLIANCE ISSUES:\n   Total files with non-ASCII characters: 1\n   Total issues found: 1\n   Files with non-ASCII characters:\n     development_docs/CHANGELOG_DETAIL.md: 1 issues\n       - Non-ASCII character '' (U+2192) at positions: [5951, 6062]\n\nFound 16 documentation synchronization issues.\n   Consider running with --fix to attempt automatic fixes.\n",
+      "output": "\nSUMMARY:\n   Status: FAIL\n   Total Issues: 16\n   Paired Doc Issues: 1\n   Path Drift Issues: 2\n   ASCII Compliance Issues: 1\n   Heading Numbering Issues: 0\n\nPAIRED DOCUMENTATION ISSUES:\n   content_sync:\n     - ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md has sections missing in DEVELOPMENT_WORKFLOW.md: {'10. Standard Audit Recipe'}\n\nPATH DRIFT ISSUES:\n   Total files with issues: 2\n   Total issues found: 14\n   Top files with most issues:\n     development_tools\\AI_DEV_TOOLS_IMPROVEMENT_PLAN.md: 12 issues\n     TODO.md: 2 issues\n\nASCII COMPLIANCE ISSUES:\n   Total files with non-ASCII characters: 1\n   Total issues found: 1\n   Files with non-ASCII characters:\n     development_docs/CHANGELOG_DETAIL.md: 1 issues\n       - Non-ASCII character '' (U+2192) at positions: [2976, 10020, 10131]\n\nFound 16 documentation synchronization issues.\n   Consider running with --fix to attempt automatic fixes.\n",
       "error": "",
       "returncode": 0,
       "data": {
@@ -2909,16 +2909,35 @@
         },
         "ascii_compliance": {
           "development_docs/CHANGELOG_DETAIL.md": [
-            "Non-ASCII character '\u2192' (U+2192) at positions: [5951, 6062]"
+            "Non-ASCII character '\u2192' (U+2192) at positions: [2976, 10020, 10131]"
           ]
         },
         "heading_numbering": {}
       }
     },
+    "legacy_reference_cleanup": {
+      "success": true,
+      "data": {
+        "files_with_issues": 8,
+        "legacy_markers": 2,
+        "report_path": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_docs\\LEGACY_REFERENCE_REPORT.md"
+      },
+      "timestamp": "2025-11-28T04:50:15.230447"
+    },
+    "validate_ai_work": {
+      "success": true,
+      "data": {
+        "success": true,
+        "output": "Validation Type: documentation\n\nDocumentation File: README.md\nFile Exists: True\nCoverage: 100.0%\n\nOVERALL ASSESSMENT:\nGOOD - Documentation covers most items\n",
+        "error": "",
+        "returncode": 0
+      },
+      "timestamp": "2025-11-28T04:50:15.230447"
+    },
     "system_signals": {
       "success": true,
       "data": {
-        "timestamp": "2025-11-28T03:42:51.377224",
+        "timestamp": "2025-11-28T05:30:07.218700",
         "system_health": {
           "overall_status": "OK",
           "core_files": {
@@ -2941,27 +2960,27 @@
             "user": "OK",
             "tests": "OK"
           },
-          "last_audit": "2025-11-28T03:23:16.451989",
+          "last_audit": "2025-11-28T05:18:35.712528",
           "warnings": [],
           "errors": []
         },
         "recent_activity": {
           "recent_changes": [
-            ".coverage",
             "ai_development_docs/AI_CHANGELOG.md",
-            "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-            "ai_development_docs/AI_SESSION_STARTER.md",
             "coverage.json",
-            "data/conversation_states.json",
-            "data/user_index.json",
-            "data/users/72a13563-5934-42e8-bc55-f0c851a899cc/messages/sent_messages.json",
-            "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/messages/sent_messages.json",
             "development_docs/CHANGELOG_DETAIL.md",
             "development_docs/TEST_COVERAGE_EXPANSION_PLAN.md",
             "development_docs/UNUSED_IMPORTS_REPORT.md",
-            "development_tools/.coverage_dev_tools.DESKTOP-6UH6TPA.17692.XooouaRx",
-            "development_tools/.coverage_dev_tools.DESKTOP-6UH6TPA.17692.XtGuwJtx",
-            "development_tools/.coverage_dev_tools.DESKTOP-6UH6TPA.18316.XNaZsJDx"
+            "development_tools/.coverage_dev_tools",
+            "development_tools/.unused_imports_cache.json",
+            "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+            "development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
+            "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+            "development_tools/ai_tools_runner.py",
+            "development_tools/config.py",
+            "development_tools/config_validation_results.json",
+            "development_tools/coverage_dev_tools.json",
+            "development_tools/coverage_html/class_index.html"
           ],
           "git_status": "Modified",
           "last_commit": null,
@@ -2971,8 +2990,8 @@
         "performance_indicators": {
           "log_file_sizes": {
             "ai.log": "0.0MB",
-            "ai_dev_tools.log": "3.3MB",
-            "app.log": "0.6MB",
+            "ai_dev_tools.log": "3.4MB",
+            "app.log": "0.7MB",
             "communication_manager.log": "0.2MB",
             "discord.log": "0.0MB",
             "email.log": "0.0MB",
@@ -2987,26 +3006,7 @@
           "memory_usage": "Unknown"
         }
       },
-      "timestamp": "2025-11-28T03:43:00.222019"
-    },
-    "legacy_reference_cleanup": {
-      "success": true,
-      "data": {
-        "files_with_issues": 8,
-        "legacy_markers": 2,
-        "report_path": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_docs\\LEGACY_REFERENCE_REPORT.md"
-      },
-      "timestamp": "2025-11-28T03:23:16.444661"
-    },
-    "validate_ai_work": {
-      "success": true,
-      "data": {
-        "success": true,
-        "output": "Validation Type: documentation\n\nDocumentation File: README.md\nFile Exists: True\nCoverage: 100.0%\n\nOVERALL ASSESSMENT:\nGOOD - Documentation covers most items\n",
-        "error": "",
-        "returncode": 0
-      },
-      "timestamp": "2025-11-28T03:23:16.444661"
+      "timestamp": "2025-11-28T05:30:16.006618"
     }
   }
 }

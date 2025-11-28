@@ -1021,7 +1021,12 @@ class AIToolsService:
             else:
                 logger.warning("  - Dev tools coverage data not collected")
         except Exception as exc:
-            logger.error(f"  - Dev tools coverage analysis failed: {exc}")
+            logger.error(f"  - Development tools coverage failed: {exc}")
+        try:
+            logger.info("  - Running system signals generator...")
+            self.run_system_signals()
+        except Exception as exc:
+            logger.error(f"  - System signals failed: {exc}")
         try:
             logger.info("  - Running version sync...")
             result = self.run_version_sync(scope='all')
@@ -3345,6 +3350,27 @@ class AIToolsService:
         if audit_totals is None or not isinstance(audit_totals, dict):
             audit_totals = {}
         documented = audit_totals.get('functions_documented', 0)
+        
+        # If documented is 0, try loading from cache file (structure might be different)
+        if documented == 0:
+            try:
+                import json
+                results_file = self.project_root / "development_tools" / "ai_audit_detailed_results.json"
+                if results_file.exists():
+                    with open(results_file, 'r', encoding='utf-8') as f:
+                        cached_data = json.load(f)
+                    
+                    # Try to get documented count from audit_function_registry
+                    if 'results' in cached_data and 'audit_function_registry' in cached_data['results']:
+                        afr_data = cached_data['results']['audit_function_registry']
+                        if 'data' in afr_data:
+                            afr_data_dict = afr_data['data']
+                            if 'totals' in afr_data_dict:
+                                cached_totals = afr_data_dict['totals']
+                                if isinstance(cached_totals, dict):
+                                    documented = cached_totals.get('functions_documented', 0)
+            except Exception as e:
+                logger.debug(f"Failed to load documented count from cache: {e}")
         
         # ALWAYS recalculate documentation coverage using actual total functions
         # Never trust the registry's coverage calculation - it uses wrong denominator

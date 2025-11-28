@@ -17,7 +17,7 @@ class TestCommandRouting:
     def test_audit_command_success(self, monkeypatch):
         mock_service = MagicMock()
         mock_service.run_audit.return_value = True
-        monkeypatch.setattr(runner, "AIToolsService", lambda: mock_service)
+        monkeypatch.setattr(runner, "AIToolsService", lambda project_root=None, config_path=None: mock_service)
 
         assert runner.main(["audit"]) == 0
         mock_service.run_audit.assert_called_once_with(fast=True)
@@ -26,7 +26,7 @@ class TestCommandRouting:
     def test_audit_command_failure(self, monkeypatch):
         mock_service = MagicMock()
         mock_service.run_audit.return_value = False
-        monkeypatch.setattr(runner, "AIToolsService", lambda: mock_service)
+        monkeypatch.setattr(runner, "AIToolsService", lambda project_root=None, config_path=None: mock_service)
 
         assert runner.main(["audit"]) == 1
 
@@ -34,7 +34,7 @@ class TestCommandRouting:
     def test_docs_command_invokes_service(self, monkeypatch):
         mock_service = MagicMock()
         mock_service.run_docs.return_value = True
-        monkeypatch.setattr(runner, "AIToolsService", lambda: mock_service)
+        monkeypatch.setattr(runner, "AIToolsService", lambda project_root=None, config_path=None: mock_service)
 
         assert runner.main(["docs"]) == 0
         mock_service.run_docs.assert_called_once_with()

@@ -39,8 +39,8 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
-### 2025-11-28 - Phase 6 Development Tools: Portability Implementation **COMPLETED**
-- **Feature**: Completed Phase 6 of the AI Development Tools Improvement Plan, making all 11 core tools portable via external configuration. Tools can now be used in other projects with minimal setup.
+### 2025-11-28 - Phase 6 Development Tools: Core Tool Portability Implementation **COMPLETED**
+- **Feature**: Completed the Core Tool Checklist of Phase 6 of the AI Development Tools Improvement Plan, making all 11 core tools portable via external configuration. Tools can now be used in other projects with minimal setup. Supporting Tool Checklist and Experimental Tool Checklist remain pending for future work.
 - **Technical Changes**:
   1. **External Configuration System**:
      - Created `development_tools_config.json` in project root with all MHM-specific settings

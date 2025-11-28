@@ -636,11 +636,11 @@ Result: the dev tools ecosystem becomes something you and future collaborators c
 
 ---
 
-### Phase 6 - Portability Roadmap **COMPLETED (2025-11-28)**
+### Phase 6 - Portability Roadmap **IN PROGRESS (2025-11-28)**
 
 **Goal:** Track every mhm-specific dependency and define concrete work needed to make tools portable.
 
-**Status:** All core tool portability work completed. Tools now support external configuration via `development_tools_config.json` and can be used in other projects with minimal setup.
+**Status:** Core Tool Checklist completed (2025-11-28). All 11 core tools now support external configuration via `development_tools_config.json` and can be used in other projects with minimal setup. Supporting Tool Checklist and Experimental Tool Checklist remain pending.
 
 #### Core Tool Checklist **COMPLETED**
 - [OK] `development_tools/ai_tools_runner.py` - Added `--project-root` and `--config-path` CLI arguments for portability. Changed `TOOL_PORTABILITY` marker to `portable`.
@@ -711,7 +711,7 @@ Portable today: `development_tools/services/common.py`, `development_tools/syste
 - [OK] **Phase 3 COMPLETED (2025-11-26)**: Core analysis tools hardened with comprehensive test coverage (55 tests), synthetic fixture project created, all five tools now trustworthy
 - [OK] **Phase 4 COMPLETED (2025-11-27)**: Experimental tools moved to dedicated directory, Tier-2 tools reviewed and documented, dev tools coverage tracking added, supporting tools regression tests created (6 tests for `quick_status`, `system_signals`, `file_rotation`)
 - [OK] **Phase 5 COMPLETED (2025-11-27)**: Standard audit recipe added to workflow guide, session starter updated with dev tools routing, all documentation alignment milestones complete
-- [OK] **Phase 6 COMPLETED (2025-11-28)**: All 11 core tools made portable via external configuration (`development_tools_config.json`). Tools can now be used in other projects with minimal setup. All core tools changed from `mhm-specific` to `portable` portability markers.
+- [IN PROGRESS] **Phase 6 IN PROGRESS (2025-11-28)**: Core Tool Checklist completed - all 11 core tools made portable via external configuration (`development_tools_config.json`). Supporting Tool Checklist and Experimental Tool Checklist remain pending. All core tools changed from `mhm-specific` to `portable` portability markers.
 - [IN PROGRESS] **Phase 7**: Defined and ready for implementation
 
 This roadmap is intentionally incremental. You do **not** need to implement every milestone at once.  
