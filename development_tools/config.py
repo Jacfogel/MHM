@@ -1,31 +1,94 @@
 # TOOL_TIER: core
-# TOOL_PORTABILITY: mhm-specific
+# TOOL_PORTABILITY: portable
 
 # AI Tools Configuration
 """
 Configuration settings for AI collaboration tools.
 Optimized for AI assistants to get concise, actionable information about the codebase.
+
+NOTE: This module contains MHM-specific default values. For other projects, override these
+via development_tools_config.json in the project root. All getter functions check external
+config first, then fall back to these defaults.
 """
 
 from pathlib import Path
+import json
+import os
+from typing import Optional, Dict, Any
+
+# External config cache (loaded from file if provided)
+_external_config: Optional[Dict[str, Any]] = None
+_config_file_path: Optional[Path] = None
+
+def load_external_config(config_path: Optional[str] = None) -> bool:
+    """
+    Load configuration from an external JSON file.
+    
+    Args:
+        config_path: Path to config file (JSON format). If None, looks for 
+                     'development_tools_config.json' in project root.
+    
+    Returns:
+        True if config was loaded successfully, False otherwise.
+    """
+    global _external_config, _config_file_path
+    
+    if config_path:
+        config_file = Path(config_path).resolve()
+    else:
+        # Try to find config in project root first
+        project_root = _get_default_project_root()
+        config_file = project_root / 'development_tools_config.json'
+    
+    if not config_file.exists():
+        _external_config = None
+        _config_file_path = None
+        return False
+    
+    try:
+        with open(config_file, 'r', encoding='utf-8') as f:
+            _external_config = json.load(f)
+        _config_file_path = config_file
+        return True
+    except Exception as e:
+        # Log error but don't fail - fall back to defaults
+        _external_config = None
+        _config_file_path = None
+        return False
+
+def _get_external_value(key: str, default: Any) -> Any:
+    """Get value from external config if available, otherwise return default."""
+    if _external_config is None:
+        return default
+    # Support nested keys like "paths.project_root"
+    keys = key.split('.')
+    value = _external_config
+    for k in keys:
+        if isinstance(value, dict) and k in value:
+            value = value[k]
+        else:
+            return default
+    return value
+
+def get_external_value(key: str, default: Any) -> Any:
+    """Public API to get value from external config."""
+    return _get_external_value(key, default)
+
+def _get_default_project_root() -> Path:
+    """Get default project root based on current working directory."""
+    if os.path.basename(os.getcwd()) == 'development_tools':
+        return Path("..")
+    else:
+        return Path(".")
 
 # Project-specific settings
 # Handle both direct execution and runner execution
-import os
-if os.path.basename(os.getcwd()) == 'development_tools':
-    PROJECT_ROOT = ".."  # Running from development_tools directory
-else:
-    PROJECT_ROOT = "."   # Running from project root via runner
-SCAN_DIRECTORIES = [
-    'core',
-    'communication', 
-    'ui',
-    'user',
-    'tasks',
-    'tests',
-    'ai'                     # AI chatbot and context building
-    # Note: 'scripts' and 'development_tools' excluded per standard_exclusions.py
-]
+# NOTE: Hardcoded defaults are minimal/generic. Projects should provide development_tools_config.json
+# for complete configuration. These defaults are fallbacks only.
+_DEFAULT_PROJECT_ROOT = _get_default_project_root()
+PROJECT_ROOT = str(_DEFAULT_PROJECT_ROOT)
+# Generic default scan directories (should be overridden via config file)
+SCAN_DIRECTORIES = []  # Empty by default - requires config file
 
 # AI Collaboration Optimization
 AI_COLLABORATION = {
@@ -64,6 +127,27 @@ VALIDATION = {
     'duplicate_function_warning': True,        # Warn about duplicate function names
     'missing_docstring_warning': True,        # Warn about functions without docstrings
     'critical_issues_first': True,            # Show critical issues before minor ones
+}
+
+# Error handling settings (for error_handling_coverage.py)
+# NOTE: Defaults are generic. Projects should provide error_handling section in config file.
+ERROR_HANDLING = {
+    'decorator_names': ['@handle_errors', 'handle_errors', 'error_handler'],
+    'exception_base_classes': ['BaseError', 'DataError', 'ConfigurationError', 'CommunicationError', 'ValidationError', 'AIError'],
+    'error_handler_functions': ['handle_file_error', 'handle_network_error', 'handle_communication_error', 'handle_configuration_error', 'handle_validation_error', 'handle_ai_error', 'safe_file_operation'],
+    'generic_exceptions': {
+        'Exception': 'BaseError',
+        'ValueError': 'ValidationError or DataError',
+        'KeyError': 'DataError or ConfigurationError',
+        'TypeError': 'ValidationError or DataError'
+    },
+    'critical_function_keywords': {
+        'file_operations': ['open', 'read', 'write', 'save', 'load'],
+        'network_operations': ['send', 'receive', 'connect', 'request'],
+        'data_operations': ['parse', 'serialize', 'deserialize', 'validate'],
+        'user_operations': ['create', 'update', 'delete', 'authenticate'],
+        'ai_operations': ['generate', 'process', 'analyze', 'classify']
+    }
 }
 
 # Audit settings
@@ -106,102 +190,38 @@ FILE_PATTERNS = {
 }
 
 # Quick audit settings optimized for AI
+# NOTE: Paths are relative to project root. Projects should provide config file.
 QUICK_AUDIT = {
     'run_function_audit': True,
     'run_dependency_audit': True,
     'run_documentation_audit': True,
     'run_validation': True,
     'save_results': True,
-    'results_file': 'development_tools/ai_audit_detailed_results.json',
-    'issues_file': 'development_tools/critical_issues.txt',
-    'audit_scripts': [
-        'function_discovery.py',
-        'decision_support.py',
-        'audit_function_registry.py',
-        'audit_module_dependencies.py',
-        'analyze_documentation.py',
-        'error_handling_coverage.py',
-        'documentation_sync_checker.py'
-    ],
+    'results_file': 'development_tools/ai_audit_detailed_results.json',  # Generic path - override via config
+    'issues_file': 'development_tools/critical_issues.txt',  # Generic path - override via config
+    'audit_scripts': [],  # Empty by default - requires config file
     'concise_output': True,
     'prioritize_issues': True
 }
 
 # Version sync settings
+# NOTE: Projects should provide config file. All paths are relative to project root.
 VERSION_SYNC = {
-    'ai_docs': [
-        "ai_development_docs/AI_ARCHITECTURE.md",
-        "ai_development_docs/AI_CHANGELOG.md",
-        "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-        "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
-        "ai_development_docs/AI_REFERENCE.md",
-        "ai_development_docs/AI_SESSION_STARTER.md",
-        "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md"
-    ],
-    'generated_ai_docs': [
-        "ai_development_docs/AI_FUNCTION_REGISTRY.md",
-        "ai_development_docs/AI_MODULE_DEPENDENCIES.md"
-    ],
-    'docs': [
-        "README.md",
-        "development_docs/CHANGELOG_DETAIL.md",
-        "TODO.md",
-        "DEVELOPMENT_WORKFLOW.md",
-        "DOCUMENTATION_GUIDE.md",
-        "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
-        "PROJECT_VISION.md",
-        "development_docs/PLANS.md",
-        "ARCHITECTURE.md",
-        "HOW_TO_RUN.md"
-    ],
-    'generated_docs': [
-        "development_docs/FUNCTION_REGISTRY_DETAIL.md",
-        "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
-        "development_docs/DIRECTORY_TREE.md",
-        "development_docs/LEGACY_REFERENCE_REPORT.md"
-    ],
-    'core': [
-        "run_mhm.py",
-        "core/service.py",
-        "core/config.py",
-        "requirements.txt",
-        ".gitignore"
-    ],
-    'cursor_rules': [
-        ".cursor/rules/*.mdc"
-    ],
-    'cursor_commands': [
-        ".cursor/commands/README.md"
-    ],
-    'communication_docs': [
-        "communication/communication_channels/discord/DISCORD_GUIDE.md"
-    ],
-    'core_docs': [
-        "core/ERROR_HANDLING_GUIDE.md"
-    ],
-    'logs_docs': [
-        "logs/LOGGING_GUIDE.md"
-    ],
-    'scripts_docs': [
-        "scripts/SCRIPTS_GUIDE.md"
-    ],
-    'tests_docs': [
-        "tests/TESTING_GUIDE.md"
-    ],
-    'core_system_files': [
-        "run_mhm.py",
-        "core/service.py",
-        "core/config.py"
-    ],
-    'documentation_patterns': [
-        "*.md"
-    ],
-    'exclude_patterns': [
-        "*.pyc",
-        "__pycache__",
-        ".git",
-        ".venv"
-    ]
+    'ai_docs': [],  # Empty by default - requires config file
+    'generated_ai_docs': [],  # Empty by default - requires config file
+    'docs': [],  # Empty by default - requires config file
+    'generated_docs': [],  # Empty by default - requires config file
+    'core': [],  # Empty by default - requires config file
+    'cursor_rules': [".cursor/rules/*.mdc"],  # Generic pattern
+    'cursor_commands': [".cursor/commands/README.md"],  # Generic pattern
+    'communication_docs': [],  # Empty by default - requires config file
+    'core_docs': [],  # Empty by default - requires config file
+    'logs_docs': [],  # Empty by default - requires config file
+    'scripts_docs': [],  # Empty by default - requires config file
+    'tests_docs': [],  # Empty by default - requires config file
+    'core_system_files': [],  # Empty by default - requires config file
+    'documentation_patterns': ["*.md"],  # Generic pattern
+    'exclude_patterns': ["*.pyc", "__pycache__", ".git", ".venv"]  # Generic patterns
 }
 
 # Workflow configuration
@@ -245,53 +265,182 @@ AI_VALIDATION = {
 
 # Helper functions
 def get_project_root():
-    """Get the project root directory."""
+    """Get the project root directory (from external config if available, otherwise default)."""
+    external_root = _get_external_value('paths.project_root', None)
+    if external_root:
+        return Path(external_root)
+    # Fall back to default logic
+    if _external_config is None:
+        # Use default detection
+        if os.path.basename(os.getcwd()) == 'development_tools':
+            return Path("..")
+        else:
+            return Path(".")
     return Path(PROJECT_ROOT)
 
 def get_scan_directories():
-    """Get the directories to scan for analysis."""
-    return SCAN_DIRECTORIES
+    """
+    Get the directories to scan for analysis (from external config if available, otherwise default).
+    
+    NOTE: Default is empty list. Projects must provide scan_directories in config file.
+    """
+    external_dirs = _get_external_value('paths.scan_directories', None)
+    if external_dirs:
+        return external_dirs
+    return SCAN_DIRECTORIES  # Empty by default - requires config file
 
 def get_function_discovery_config():
-    """Get function discovery configuration."""
+    """Get function discovery configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('function_discovery', None)
+    if external_config:
+        result = FUNCTION_DISCOVERY.copy()
+        result.update(external_config)
+        return result
     return FUNCTION_DISCOVERY
 
 def get_validation_config():
-    """Get validation configuration."""
+    """Get validation configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('validation', None)
+    if external_config:
+        result = VALIDATION.copy()
+        result.update(external_config)
+        return result
     return VALIDATION
 
+def get_error_handling_config():
+    """Get error handling configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('error_handling', None)
+    if external_config:
+        result = ERROR_HANDLING.copy()
+        # Deep merge for nested dicts
+        if 'generic_exceptions' in external_config and 'generic_exceptions' in result:
+            result['generic_exceptions'].update(external_config.get('generic_exceptions', {}))
+        if 'critical_function_keywords' in external_config and 'critical_function_keywords' in result:
+            result['critical_function_keywords'].update(external_config.get('critical_function_keywords', {}))
+        # Update other keys
+        for key, value in external_config.items():
+            if key not in ('generic_exceptions', 'critical_function_keywords'):
+                result[key] = value
+        return result
+    return ERROR_HANDLING
+
 def get_audit_config():
-    """Get audit configuration."""
+    """Get audit configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('audit', None)
+    if external_config:
+        result = AUDIT.copy()
+        result.update(external_config)
+        return result
     return AUDIT
 
 def get_output_config():
-    """Get output formatting configuration."""
+    """Get output formatting configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('output', None)
+    if external_config:
+        result = OUTPUT.copy()
+        result.update(external_config)
+        return result
     return OUTPUT
 
 def get_workflow_config():
-    """Get workflow configuration."""
+    """Get workflow configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('workflow', None)
+    if external_config:
+        result = WORKFLOW.copy()
+        result.update(external_config)
+        return result
     return WORKFLOW
 
 def get_documentation_config():
-    """Get documentation configuration."""
+    """Get documentation configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('documentation', None)
+    if external_config:
+        result = DOCUMENTATION.copy()
+        result.update(external_config)
+        return result
     return DOCUMENTATION
 
 def get_auto_document_config():
-    """Get auto-documentation configuration."""
+    """Get auto-documentation configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('auto_document', None)
+    if external_config:
+        result = AUTO_DOCUMENT.copy()
+        result.update(external_config)
+        return result
     return AUTO_DOCUMENT
 
 def get_ai_validation_config():
-    """Get AI validation configuration."""
+    """Get AI validation configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('ai_validation', None)
+    if external_config:
+        result = AI_VALIDATION.copy()
+        result.update(external_config)
+        return result
     return AI_VALIDATION
 
 def get_ai_collaboration_config():
-    """Get AI collaboration optimization configuration."""
+    """Get AI collaboration optimization configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('ai_collaboration', None)
+    if external_config:
+        result = AI_COLLABORATION.copy()
+        result.update(external_config)
+        return result
     return AI_COLLABORATION
 
+def get_version_sync_config():
+    """Get version sync configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('version_sync', None)
+    if external_config:
+        # Merge external config with defaults (external takes precedence)
+        result = VERSION_SYNC.copy()
+        result.update(external_config)
+        return result
+    return VERSION_SYNC
+
 def get_quick_audit_config():
-    """Get quick audit configuration."""
+    """Get quick audit configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('quick_audit', None)
+    if external_config:
+        # Merge external config with defaults (external takes precedence)
+        result = QUICK_AUDIT.copy()
+        result.update(external_config)
+        return result
     return QUICK_AUDIT
 
-def get_version_sync_config():
-    """Get version sync configuration."""
-    return VERSION_SYNC 
+def get_paths_config():
+    """
+    Get paths configuration (docs, logs, data directories).
+    Returns dict with keys: docs_dir, logs_dir, data_dir, ai_docs_dir, development_docs_dir
+    
+    NOTE: Defaults are generic. Projects should provide config file for proper paths.
+    """
+    paths = {
+        'docs_dir': _get_external_value('paths.docs_dir', 'docs'),  # Generic default
+        'logs_dir': _get_external_value('paths.logs_dir', 'logs'),
+        'data_dir': _get_external_value('paths.data_dir', 'data'),
+        'ai_docs_dir': _get_external_value('paths.ai_docs_dir', 'docs/ai'),  # Generic default
+        'development_docs_dir': _get_external_value('paths.development_docs_dir', 'docs'),  # Generic default
+    }
+    return paths
+
+def get_exclusions_config():
+    """
+    Get exclusions configuration from external config.
+    Returns dict with exclusion patterns organized by category.
+    
+    NOTE: Returns empty dict if no external config. standard_exclusions.py will use
+    its internal defaults as fallback.
+    """
+    exclusions = _get_external_value('exclusions', {})
+    return exclusions if isinstance(exclusions, dict) else {}
+
+def get_constants_config():
+    """
+    Get constants configuration from external config.
+    Returns dict with project-specific constants (default_docs, paired_docs, etc.).
+    
+    NOTE: Returns empty dict if no external config. constants.py will use
+    its internal defaults as fallback.
+    """
+    constants = _get_external_value('constants', {})
+    return constants if isinstance(constants, dict) else {} 

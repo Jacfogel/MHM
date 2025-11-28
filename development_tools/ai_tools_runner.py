@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # TOOL_TIER: core
-# TOOL_PORTABILITY: mhm-specific
+# TOOL_PORTABILITY: portable
 
 """Command-line interface for AI development tools."""
 
@@ -45,6 +45,18 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument('command', nargs='?', help='Command to execute')
     parser.add_argument('args', nargs=argparse.REMAINDER, help='Arguments passed to the command')
+    parser.add_argument(
+        '--project-root',
+        type=str,
+        default=None,
+        help='Project root directory (default: auto-detect from script location)'
+    )
+    parser.add_argument(
+        '--config-path',
+        type=str,
+        default=None,
+        help='Path to config file (default: use built-in config)'
+    )
     return parser
 
 
@@ -71,16 +83,30 @@ def _print_available_commands() -> None:
 
 
 def main(argv=None) -> int:
-    parser = _build_parser()
-    parsed = parser.parse_args(argv)
+    # Parse known args first to extract global flags
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument('--project-root', type=str, default=None)
+    parser.add_argument('--config-path', type=str, default=None)
+    parser.add_argument('command', nargs='?')
+    
+    # Use parse_known_args to separate global args from command args
+    if argv is None:
+        argv = sys.argv[1:]
+    
+    known_args, remaining_args = parser.parse_known_args(argv)
+    
+    project_root = known_args.project_root
+    config_path = known_args.config_path
+    command_name = known_args.command
 
-    if not parsed.command:
-        parser.print_help()
+    if not command_name:
+        # Build full parser for help output
+        full_parser = _build_parser()
+        full_parser.print_help()
         print()
         _print_available_commands()
         return 1
 
-    command_name = parsed.command
     commands = COMMAND_REGISTRY
 
     if command_name not in commands:
@@ -92,9 +118,9 @@ def main(argv=None) -> int:
         return 2
 
     try:
-        service = AIToolsService()
+        service = AIToolsService(project_root=project_root, config_path=config_path)
         command = commands[command_name]
-        exit_code = command.handler(service, parsed.args)
+        exit_code = command.handler(service, remaining_args)
         return exit_code
     except Exception as e:
         logger.error(f"Error executing command '{command_name}': {e}", exc_info=True)

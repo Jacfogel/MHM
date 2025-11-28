@@ -39,6 +39,39 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-28 - Phase 6 Development Tools: Portability Implementation **COMPLETED**
+- **Feature**: Completed Phase 6 of the AI Development Tools Improvement Plan, making all 11 core tools portable via external configuration. Tools can now be used in other projects with minimal setup.
+- **Technical Changes**:
+  1. **External Configuration System**:
+     - Created `development_tools_config.json` in project root with all MHM-specific settings
+     - Created `development_tools/development_tools_config.json.example` as a template for other projects
+     - All tools now check for external config file on initialization with generic fallbacks
+     - Configuration priority: external config → hardcoded defaults (generic/empty)
+  2. **Core Tool Portability** (all 11 tools made portable):
+     - `ai_tools_runner.py`: Added `--project-root` and `--config-path` CLI arguments
+     - `services/operations.py`: Accepts `project_root`, `config_path`, `project_name`, `key_files` parameters; replaced hardcoded "MHM" references with generic "Project"
+     - `config.py`: External config file support with generic fallbacks for all settings
+     - `services/standard_exclusions.py`: All exclusion lists load from `config.get_exclusions_config()`
+     - `services/constants.py`: All project-specific constants load from `config.get_constants_config()`
+     - `documentation_sync_checker.py`: Parameterized doc roots and metadata schema
+     - `generate_function_registry.py` / `function_discovery.py`: Configurable scan roots and filters via external config
+     - `generate_module_dependencies.py`: Accepts optional `local_prefixes` parameter
+     - `legacy_reference_cleanup.py`: Legacy patterns and mappings load from config
+     - `regenerate_coverage_metrics.py`: Accepts pytest command, coverage config, and artifact directories via external config; improved logging to distinguish test failures from coverage issues
+     - `error_handling_coverage.py`: Decorator names and exception classes load from config
+  3. **Portability Markers**: All core tools changed from `mhm-specific` to `portable` in `TOOL_PORTABILITY` markers
+  4. **Documentation Updates**:
+     - Updated `AI_DEV_TOOLS_IMPROVEMENT_PLAN.md` to mark Phase 6 as COMPLETED with implementation details
+     - Updated `DEVELOPMENT_TOOLS_GUIDE.md` and `AI_DEVELOPMENT_TOOLS_GUIDE.md` with portability status and usage instructions
+     - Removed all non-ASCII characters from documentation files (checkmarks, smart quotes, em dashes)
+  5. **Bug Fixes**:
+     - Fixed documentation coverage showing "Unknown%" in Watch List (now uses canonical metrics)
+     - Fixed system signals data unavailable message (improved loading logic)
+     - Fixed import error in `regenerate_coverage_metrics.py` (changed from relative to absolute import)
+- **Impact**: Development tools are now portable and can be used in other projects. External configuration allows projects to customize paths, exclusions, constants, and other settings without modifying tool source code. Backward compatible - tools work without external config using generic defaults.
+- **Files Modified**: `development_tools/ai_tools_runner.py`, `development_tools/services/operations.py`, `development_tools/config.py`, `development_tools/services/standard_exclusions.py`, `development_tools/services/constants.py`, `development_tools/documentation_sync_checker.py`, `development_tools/generate_function_registry.py`, `development_tools/function_discovery.py`, `development_tools/generate_module_dependencies.py`, `development_tools/legacy_reference_cleanup.py`, `development_tools/regenerate_coverage_metrics.py`, `development_tools/error_handling_coverage.py`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md`, `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`
+- **Files Created**: `development_tools_config.json`, `development_tools/development_tools_config.json.example`
+
 ### 2025-11-27 - Phase 5 Development Tools: Documentation Alignment and Audit Data Capture Fixes **COMPLETED**
 - **Feature**: Completed Phase 5 of the AI Development Tools Improvement Plan and fixed audit data capture issues for complexity metrics, validation results, and system signals.
 - **Technical Changes**:

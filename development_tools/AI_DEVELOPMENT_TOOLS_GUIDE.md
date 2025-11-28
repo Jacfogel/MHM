@@ -27,23 +27,33 @@ Treat this file as the routing layer for AI collaborators; avoid duplicating hum
 
 ```powershell
 python development_tools/ai_tools_runner.py <command>
+python development_tools/ai_tools_runner.py --project-root <path> <command>
+python development_tools/ai_tools_runner.py --config-path <path> <command>
 python development_tools/ai_tools_runner.py help
 ```
 
-Most commonly used commands:
-- `audit` / `audit --full`
-- `status`
-- `docs`
-- `doc-sync`
-- `legacy`
-- `coverage`
-- `unused-imports`
-- `config`
+**Global Options**:
+- `--project-root <path>` - Override project root directory
+- `--config-path <path>` - Override config file path (default: `development_tools_config.json` in project root)
+
+**Most commonly used commands**:
+- `audit` / `audit --full` - Fast or comprehensive audit
+- `status` - Quick system status (uses cached audit data)
+- `docs` - Regenerate documentation artifacts
+- `doc-sync` - Check documentation synchronization
+- `legacy` - Scan for legacy references
+- `coverage` - Regenerate coverage metrics
+- `unused-imports` - Detect unused imports
+- `config` - Check configuration consistency
+
+**Additional commands**: `quick-audit`, `system-signals`, `validate`, `decision-support`, `workflow`, `trees`, `version-sync` (experimental)
 
 `ai_tools_runner.py` is the single dispatcher. All commands must:
-- Respect shared configuration (`config.py`)
+- Respect shared configuration (`config.py` with external config file support)
 - Honor `services/standard_exclusions.py`
 - Avoid importing application modules directly
+
+**Configuration**: External config file `development_tools_config.json` (in project root) can override paths, project settings, audit behavior, and other configuration. See `development_tools/development_tools_config.json.example` for structure.
 
 ---
 
@@ -106,6 +116,7 @@ Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier, tr
 - Store tests under `tests/development_tools/` (with fixtures in `tests/fixtures/development_tools_demo/`)
 - **Phase 3 Complete (2025-11-26)**: Core analysis tools now have comprehensive test coverage (55+ tests) using the synthetic fixture project
 - **Phase 4 Follow-up (2025-11-27)**: Supporting tools `quick_status.py`, `system_signals.py`, and `file_rotation.py` now have targeted regression tests in `tests/development_tools/test_supporting_tools.py`
+- **Phase 6 Complete (2025-11-28)**: All core tools are now portable via external configuration (`development_tools_config.json`). Tools can be used in other projects with minimal setup.
 - Preserve the directory structure (`development_tools/`, `ai_development_docs/`, `development_docs/`, `archive/`, `logs/`) to ease eventual extraction
 - Treat experimental tools cautiously (dry-run first, log outcomes)
 - Keep this guide paired with the human document; update both whenever commands, tiers, or workflows change

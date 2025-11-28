@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 # TOOL_TIER: core
-# TOOL_PORTABILITY: mhm-specific
+# TOOL_PORTABILITY: portable
 
 """
-Standard Exclusion Patterns for MHM Development Tools
+Standard Exclusion Patterns for Development Tools
 
 This module provides standardized exclusion patterns that can be reused
 across all development tools to ensure consistent file filtering.
+
+Exclusion patterns are loaded from external config file (development_tools_config.json)
+if available, otherwise fall back to generic defaults. This makes the module portable
+across different projects.
 
 Usage:
     from development_tools.services.standard_exclusions import get_exclusions
@@ -17,10 +21,25 @@ Usage:
     exclusions = get_exclusions('documentation')
 """
 
-from typing import Tuple, Dict
+from typing import Tuple, Dict, List
 
-# Universal exclusions - should be excluded from almost everything
-UNIVERSAL_EXCLUSIONS = [
+# Import config to load external exclusions
+try:
+    from .. import config
+except ImportError:
+    # Fallback for when run as standalone script
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+    from development_tools import config
+
+# Load external config on module import (if not already loaded)
+if config._external_config is None:
+    config.load_external_config()
+
+# Default universal exclusions (generic patterns - should work for most projects)
+# These are fallbacks if external config doesn't provide exclusions
+_DEFAULT_UNIVERSAL_EXCLUSIONS = [
     # Python cache and compiled files
     '__pycache__',
     '*.pyc',
@@ -57,11 +76,6 @@ UNIVERSAL_EXCLUSIONS = [
     'backup*',
     'backups',
     
-    # Scripts directory (not part of main codebase)
-    'scripts',
-    'scripts/*',
-    'scripts/**/*',
-    
     # Test artifacts
     '.pytest_cache',
     'tests/__pycache__',
@@ -77,58 +91,38 @@ UNIVERSAL_EXCLUSIONS = [
     '*/pyscript*',
     '*/shibokensupport/*',
     '*/signature_bootstrap.py',
-    
-    # Entry points (should be excluded everywhere)
-    'run_mhm.py',
-    '*/run_mhm.py',
-    'run_tests.py',
-    '*/run_tests.py',
 ]
 
-# Tool-specific exclusions (minimal - only truly tool-specific patterns)
-TOOL_EXCLUSIONS = {
-    # Most exclusions are now handled by UNIVERSAL_EXCLUSIONS and CONTEXT_EXCLUSIONS
-    # Only keep truly tool-specific exclusions here
-}
+def _load_universal_exclusions() -> List[str]:
+    """Load universal exclusions from config or return defaults."""
+    exclusions_config = config.get_exclusions_config()
+    if exclusions_config and 'universal_exclusions' in exclusions_config:
+        return exclusions_config['universal_exclusions']
+    return _DEFAULT_UNIVERSAL_EXCLUSIONS.copy()
 
-# Context-specific exclusions
-CONTEXT_EXCLUSIONS = {
-    'recent_changes': [
-        # Exclude generated files from recent changes
-        'development_tools/AI_PRIORITIES.md',
-        'development_tools/AI_STATUS.md',
-        'development_tools/consolidated_report.txt',
-        'development_tools/ai_audit_detailed_results.json',
-        'ai_development_docs/AI_MODULE_DEPENDENCIES.md',
-        'ai_development_docs/AI_FUNCTION_REGISTRY.md',
-        'development_docs/DIRECTORY_TREE.md',
-        'development_docs/FUNCTION_REGISTRY_DETAIL.md',
-        'development_docs/LEGACY_REFERENCE_REPORT.md',
-        'development_docs/MODULE_DEPENDENCIES_DETAIL.md',
-        'ui/generated/*',
-        '*/ui/generated/*',
-        # Windows path variants
-        'development_tools\\AI_PRIORITIES.md',
-        'development_tools\\AI_STATUS.md',
-        'development_tools\\consolidated_report.txt',
-        'development_tools\\ai_audit_detailed_results.json',
-        'ai_development_docs\\AI_MODULE_DEPENDENCIES.md',
-        'ai_development_docs\\AI_FUNCTION_REGISTRY.md',
-        'development_docs\\DIRECTORY_TREE.md',
-        'development_docs\\FUNCTION_REGISTRY_DETAIL.md',
-        'development_docs\\LEGACY_REFERENCE_REPORT.md',
-        'development_docs\\MODULE_DEPENDENCIES_DETAIL.md',
-        'ui\\generated\\*',
-        '*\\ui\\generated\\*',
-    ],
+# Universal exclusions - loaded from config or defaults
+UNIVERSAL_EXCLUSIONS = _load_universal_exclusions()
+
+# Default tool-specific exclusions (empty by default - projects can override via config)
+_DEFAULT_TOOL_EXCLUSIONS = {}
+
+def _load_tool_exclusions() -> Dict[str, List[str]]:
+    """Load tool-specific exclusions from config or return defaults."""
+    exclusions_config = config.get_exclusions_config()
+    if exclusions_config and 'tool_exclusions' in exclusions_config:
+        return exclusions_config['tool_exclusions']
+    return _DEFAULT_TOOL_EXCLUSIONS.copy()
+
+# Tool-specific exclusions - loaded from config or defaults
+TOOL_EXCLUSIONS = _load_tool_exclusions()
+
+# Default context-specific exclusions (generic patterns)
+_DEFAULT_CONTEXT_EXCLUSIONS = {
+    'recent_changes': [],
     'production': [
-        # Production should exclude development files
+        # Production should exclude development files (generic patterns)
         'development_tools/*',
         '*/development_tools/*',
-        'ai_development_docs/*',
-        '*/ai_development_docs/*',
-        'development_docs/*',
-        '*/development_docs/*',
         'tests/*',
         '*/tests/*',
         '*/test_*',
@@ -137,7 +131,6 @@ CONTEXT_EXCLUSIONS = {
         'archive/*',
         '*/archive/*',
     ],
-    
     'development': [
         # Development can include most files but exclude sensitive data
         '*/data/*',
@@ -145,7 +138,6 @@ CONTEXT_EXCLUSIONS = {
         '*/backup*',
         '*/backups/*',
     ],
-    
     'testing': [
         # Testing should exclude generated files and data
         '*/generated/*',
@@ -156,6 +148,19 @@ CONTEXT_EXCLUSIONS = {
         '*/backups/*',
     ]
 }
+
+def _load_context_exclusions() -> Dict[str, List[str]]:
+    """Load context-specific exclusions from config or return defaults."""
+    exclusions_config = config.get_exclusions_config()
+    if exclusions_config and 'context_exclusions' in exclusions_config:
+        # Merge with defaults to ensure all contexts exist
+        result = _DEFAULT_CONTEXT_EXCLUSIONS.copy()
+        result.update(exclusions_config['context_exclusions'])
+        return result
+    return _DEFAULT_CONTEXT_EXCLUSIONS.copy()
+
+# Context-specific exclusions - loaded from config or defaults
+CONTEXT_EXCLUSIONS = _load_context_exclusions()
 
 def get_exclusions(tool_type: str = None, context: str = 'development') -> list:
     """
@@ -229,74 +234,83 @@ def get_file_operations_exclusions() -> list:
 # GENERATED FILES & EXCLUSIONS
 # =============================================================================
 
-# Generated AI status files (always excluded from recent changes)
-GENERATED_AI_FILES: Tuple[str, ...] = (
-    'development_tools/AI_PRIORITIES.md',
-    'development_tools/AI_STATUS.md', 
-    'development_tools/consolidated_report.txt',
-    'development_tools/ai_audit_detailed_results.json',
-)
+def _load_generated_ai_files() -> Tuple[str, ...]:
+    """Load generated AI files list from config or return defaults."""
+    exclusions_config = config.get_exclusions_config()
+    if exclusions_config and 'generated_ai_files' in exclusions_config:
+        return tuple(exclusions_config['generated_ai_files'])
+    # Default: empty (projects should define their own)
+    return ()
 
-# Generated documentation files (excluded from most tools)
-GENERATED_DOC_FILES: Tuple[str, ...] = (
-    'development_docs/UNUSED_IMPORTS_REPORT.md',
-    'development_docs/TEST_COVERAGE_EXPANSION_PLAN.md',
-    'development_docs/MODULE_DEPENDENCIES_DETAIL.md',
-    'development_docs/LEGACY_REFERENCE_REPORT.md',
-    'development_docs/FUNCTION_REGISTRY_DETAIL.md',
-    'development_docs/DIRECTORY_TREE.md',
-    'development_docs/CHANGELOG_DETAIL.md',
-    'ai_development_docs/AI_MODULE_DEPENDENCIES.md',
-    'ai_development_docs/AI_FUNCTION_REGISTRY.md'
-)
+def _load_generated_doc_files() -> Tuple[str, ...]:
+    """Load generated doc files list from config or return defaults."""
+    exclusions_config = config.get_exclusions_config()
+    if exclusions_config and 'generated_doc_files' in exclusions_config:
+        return tuple(exclusions_config['generated_doc_files'])
+    # Default: empty (projects should define their own)
+    return ()
+
+# Generated AI status files (loaded from config)
+GENERATED_AI_FILES: Tuple[str, ...] = _load_generated_ai_files()
+
+# Generated documentation files (loaded from config)
+GENERATED_DOC_FILES: Tuple[str, ...] = _load_generated_doc_files()
 
 # All generated files (combination of AI and doc files)
 ALL_GENERATED_FILES: Tuple[str, ...] = GENERATED_AI_FILES + GENERATED_DOC_FILES
 
+def _load_standard_exclusion_patterns() -> Tuple[str, ...]:
+    """Load standard exclusion patterns from config or return defaults."""
+    exclusions_config = config.get_exclusions_config()
+    if exclusions_config and 'standard_exclusion_patterns' in exclusions_config:
+        return tuple(exclusions_config['standard_exclusion_patterns'])
+    # Default generic patterns
+    return (
+        'logs/',
+        'data/',
+        'resources/',
+        'coverage_html/',
+        '__pycache__/',
+        '.pytest_cache/',
+        'venv/',
+        '.venv/',
+        'htmlcov/',
+        'archive/',
+        'ui/generated/',
+        '*.log',
+        '.coverage',
+        'coverage.xml',
+        '*.html'
+    )
+
 # Standard exclusion patterns (used by multiple tools)
-STANDARD_EXCLUSION_PATTERNS: Tuple[str, ...] = (
-    'logs/',
-    'data/',
-    'resources/',
-    'coverage_html/',
-    '__pycache__/',
-    '.pytest_cache/',
-    'venv/',
-    '.venv/',
-    'htmlcov/',
-    'scripts/',
-    'archive/',
-    'ui/generated/',
-    '*.log',
-    '.coverage',
-    'coverage.xml',
-    '*.html'
-)
+STANDARD_EXCLUSION_PATTERNS: Tuple[str, ...] = _load_standard_exclusion_patterns()
 
 # =============================================================================
 # TOOL-SPECIFIC EXCLUSIONS
 # =============================================================================
 
+def _load_unused_imports_init_files() -> Tuple[str, ...]:
+    """Load unused imports init files from config or return defaults."""
+    exclusions_config = config.get_exclusions_config()
+    if exclusions_config and 'unused_imports_init_files' in exclusions_config:
+        return tuple(exclusions_config['unused_imports_init_files'])
+    # Default: empty (projects should define their own)
+    return ()
+
+def _load_legacy_preserve_files() -> Tuple[str, ...]:
+    """Load legacy preserve files from config or return defaults."""
+    exclusions_config = config.get_exclusions_config()
+    if exclusions_config and 'legacy_preserve_files' in exclusions_config:
+        return tuple(exclusions_config['legacy_preserve_files'])
+    # Default: empty (projects should define their own)
+    return ()
+
 # Unused imports checker specific files
-UNUSED_IMPORTS_INIT_FILES: Tuple[str, ...] = (
-    'development_tools/__init__.py',
-    'development_tools/services/__init__.py',
-)
+UNUSED_IMPORTS_INIT_FILES: Tuple[str, ...] = _load_unused_imports_init_files()
 
 # Legacy cleanup preserve files
-LEGACY_PRESERVE_FILES: Tuple[str, ...] = (
-    'CHANGELOG_DETAIL.md',
-    'AI_CHANGELOG.md',
-    'archive/',
-    'development_docs/',
-    'ai_development_docs/',
-    'logs/',
-    'TODO.md',
-    'PLANS.md',
-    'FUNCTION_REGISTRY',
-    'MODULE_DEPENDENCIES',
-    'LEGACY_REFERENCE_REPORT.md',
-)
+LEGACY_PRESERVE_FILES: Tuple[str, ...] = _load_legacy_preserve_files()
 
 # Documentation sync checker placeholders
 DOC_SYNC_PLACEHOLDERS: Dict[str, str] = {

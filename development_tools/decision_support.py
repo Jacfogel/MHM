@@ -20,78 +20,24 @@ if str(project_root) not in sys.path:
 # Handle both relative and absolute imports
 try:
     from . import config
-    from .services.standard_exclusions import should_exclude_file
+    from .function_discovery import scan_all_functions, categorize_functions
 except ImportError:
-    import config
-    from development_tools.services.standard_exclusions import should_exclude_file
+    from development_tools import config
+    from development_tools.function_discovery import scan_all_functions, categorize_functions
 
 from core.logger import get_component_logger
 
+# Ensure external config is loaded
+config.load_external_config()
+
 logger = get_component_logger("development_tools")
 
-PROJECT_ROOT = Path(config.PROJECT_ROOT)
-SCAN_DIRECTORIES = config.SCAN_DIRECTORIES
-MODERATE_COMPLEXITY = config.FUNCTION_DISCOVERY['moderate_complexity_threshold']
-HIGH_COMPLEXITY = config.FUNCTION_DISCOVERY['high_complexity_threshold']
-CRITICAL_COMPLEXITY = config.FUNCTION_DISCOVERY['critical_complexity_threshold']
-HANDLER_KEYWORDS = config.FUNCTION_DISCOVERY['handler_keywords']
-
-
-def extract_functions(file_path: str):
-    functions = []
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        tree = ast.parse(content)
-        for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
-                name = node.name
-                args = [arg.arg for arg in node.args.args]
-                docstring = ast.get_docstring(node) or ""
-                complexity = len(list(ast.walk(node)))
-                is_handler = any(k in name.lower() for k in HANDLER_KEYWORDS)
-                functions.append({
-                    'name': name,
-                    'args': args,
-                    'docstring': docstring,
-                    'complexity': complexity,
-                    'is_handler': is_handler,
-                    'file': file_path
-                })
-    except Exception as e:
-        logger.error(f"Error parsing {file_path}: {e}")
-    return functions
-
-
-def scan_all_functions(include_tests: bool = False, include_dev_tools: bool = False):
-    all_functions = []
-    
-    # Determine context based on configuration
-    if include_tests and include_dev_tools:
-        context = 'development'  # Include everything
-    elif include_tests or include_dev_tools:
-        context = 'development'  # More permissive
-    else:
-        context = 'production'   # Exclude tests and dev tools
-    
-    # Use all directories and let context-based exclusions handle filtering
-    scan_dirs = list(SCAN_DIRECTORIES) + ['tests', 'development_tools']
-    
-    for scan_dir in scan_dirs:
-        dir_path = PROJECT_ROOT / scan_dir
-        if not dir_path.exists():
-            continue
-        for py_file in dir_path.rglob('*.py'):
-            # Use context-based exclusions
-            if not should_exclude_file(str(py_file), 'analysis', context):
-                all_functions.extend(extract_functions(str(py_file)))
-    
-    for py_file in PROJECT_ROOT.glob('*.py'):
-        # Use context-based exclusions
-        if not should_exclude_file(str(py_file), 'analysis', context):
-            all_functions.extend(extract_functions(str(py_file)))
-    
-    return all_functions
+# Load config values using the new configurable functions
+FUNCTION_DISCOVERY_CONFIG = config.get_function_discovery_config()
+MODERATE_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get('moderate_complexity_threshold', 50)
+HIGH_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get('high_complexity_threshold', 100)
+CRITICAL_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get('critical_complexity_threshold', 200)
+HANDLER_KEYWORDS = FUNCTION_DISCOVERY_CONFIG.get('handler_keywords', ['handle', 'process', 'validate'])
 
 
 def find_complexity_functions(functions):

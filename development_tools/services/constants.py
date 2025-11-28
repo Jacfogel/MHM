@@ -1,74 +1,71 @@
 # TOOL_TIER: core
-# TOOL_PORTABILITY: mhm-specific
+# TOOL_PORTABILITY: portable
 
-"""Shared constant data and helpers for AI development tools."""
+"""
+Shared constant data and helpers for AI development tools.
+
+Constants are loaded from external config file (development_tools_config.json)
+if available, otherwise fall back to generic defaults. This makes the module portable
+across different projects.
+"""
 from __future__ import annotations
 
 import re
 import sys
 from typing import Dict, Tuple
 
-DEFAULT_DOCS: Tuple[str, ...] = (
+# Import config to load external constants
+try:
+    from .. import config
+except ImportError:
+    # Fallback for when run as standalone script
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+    from development_tools import config
+
+# Load external config on module import (if not already loaded)
+if config._external_config is None:
+    config.load_external_config()
+
+# Default constants (generic fallbacks if config doesn't provide them)
+_DEFAULT_DEFAULT_DOCS: Tuple[str, ...] = (
     'README.md',
-    'HOW_TO_RUN.md',
-    'DOCUMENTATION_GUIDE.md',
-    'DEVELOPMENT_WORKFLOW.md',
-    'ARCHITECTURE.md',
     'TODO.md',
-    'PROJECT_VISION.md',
-    'development_docs/CHANGELOG_DETAIL.md',
-    'development_docs/PLANS.md',
-    'ai_development_docs/AI_SESSION_STARTER.md',
-    'ai_development_docs/AI_ARCHITECTURE.md',
-    'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
-    'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
-    'ai_development_docs/AI_CHANGELOG.md',
-    'ai_development_docs/AI_REFERENCE.md',
-    'ai_development_docs/AI_LOGGING_GUIDE.md',
-    'ai_development_docs/AI_TESTING_GUIDE.md',
-    'ai_development_docs/AI_ERROR_HANDLING_GUIDE.md',
-    'ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md',
-    'core/ERROR_HANDLING_GUIDE.md',
-    'logs/LOGGING_GUIDE.md',
-    'tests/TESTING_GUIDE.md',
-    'tests/MANUAL_TESTING_GUIDE.md',
-    'tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md',
-    'tests/MANUAL_DISCORD_TEST_GUIDE.md',
-    'communication/COMMUNICATION_GUIDE.md',
-    'communication/communication_channels/discord/DISCORD_GUIDE.md',
-    'scripts/SCRIPTS_GUIDE.md',
-    'ui/UI_GUIDE.md',
-    'ai/SYSTEM_AI_GUIDE.md',
-    'development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md',
-    'development_tools/DEVELOPMENT_TOOLS_GUIDE.md',
-
 )
 
-PAIRED_DOCS: Dict[str, str] = {
-    'DEVELOPMENT_WORKFLOW.md': 'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
-    'ARCHITECTURE.md': 'ai_development_docs/AI_ARCHITECTURE.md',
-    'DOCUMENTATION_GUIDE.md': 'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
-    'development_docs/CHANGELOG_DETAIL.md': 'ai_development_docs/AI_CHANGELOG.md',
-    'logs/LOGGING_GUIDE.md': 'ai_development_docs/AI_LOGGING_GUIDE.md',
-    'tests/TESTING_GUIDE.md': 'ai_development_docs/AI_TESTING_GUIDE.md',
-    'core/ERROR_HANDLING_GUIDE.md': 'ai_development_docs/AI_ERROR_HANDLING_GUIDE.md',
-    'development_tools/DEVELOPMENT_TOOLS_GUIDE.md': 'development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md',
-}
+_DEFAULT_PAIRED_DOCS: Dict[str, str] = {}
 
-LOCAL_MODULE_PREFIXES: Tuple[str, ...] = (
-    'ai',
-    'development_tools',
-    'bot',
-    'communication',
+_DEFAULT_LOCAL_MODULE_PREFIXES: Tuple[str, ...] = (
     'core',
-    'data',
-    'scripts',
-    'services',
-    'tasks',
     'tests',
-    'ui',
-    'user',
 )
+
+def _load_default_docs() -> Tuple[str, ...]:
+    """Load default docs list from config or return defaults."""
+    constants_config = config.get_constants_config()
+    if constants_config and 'default_docs' in constants_config:
+        return tuple(constants_config['default_docs'])
+    return _DEFAULT_DEFAULT_DOCS
+
+def _load_paired_docs() -> Dict[str, str]:
+    """Load paired docs mapping from config or return defaults."""
+    constants_config = config.get_constants_config()
+    if constants_config and 'paired_docs' in constants_config:
+        return dict(constants_config['paired_docs'])
+    return _DEFAULT_PAIRED_DOCS.copy()
+
+def _load_local_module_prefixes() -> Tuple[str, ...]:
+    """Load local module prefixes from config or return defaults."""
+    constants_config = config.get_constants_config()
+    if constants_config and 'local_module_prefixes' in constants_config:
+        return tuple(constants_config['local_module_prefixes'])
+    return _DEFAULT_LOCAL_MODULE_PREFIXES
+
+# Load constants from config or use defaults
+DEFAULT_DOCS: Tuple[str, ...] = _load_default_docs()
+PAIRED_DOCS: Dict[str, str] = _load_paired_docs()
+LOCAL_MODULE_PREFIXES: Tuple[str, ...] = _load_local_module_prefixes()
 
 STANDARD_LIBRARY_PREFIXES: Tuple[str, ...] = (
     'asyncio',
@@ -213,80 +210,53 @@ TEMPLATE_PATTERNS: Tuple[str, ...] = (
 # PROJECT STRUCTURE
 # =============================================================================
 
+def _load_project_directories() -> Tuple[str, ...]:
+    """Load project directories from config or return defaults."""
+    constants_config = config.get_constants_config()
+    if constants_config and 'project_directories' in constants_config:
+        return tuple(constants_config['project_directories'])
+    # Default: just root
+    return ('.',)
+
+def _load_core_modules() -> Tuple[str, ...]:
+    """Load core modules from config or return defaults."""
+    constants_config = config.get_constants_config()
+    if constants_config and 'core_modules' in constants_config:
+        return tuple(constants_config['core_modules'])
+    # Default: empty
+    return ()
+
 # Core project directories (used by multiple tools)
-PROJECT_DIRECTORIES: Tuple[str, ...] = (
-    '.',  # Root directory
-    'ai',
-    'communication', 
-    'core',
-    'tasks',
-    'ui',
-    'user',
-    'tests'
-)
+PROJECT_DIRECTORIES: Tuple[str, ...] = _load_project_directories()
 
 # Core modules for coverage and analysis (subset of PROJECT_DIRECTORIES)
-CORE_MODULES: Tuple[str, ...] = (
-    'core',
-    'communication', 
-    'ui',
-    'tasks',
-    'user',
-    'ai'
-)
+CORE_MODULES: Tuple[str, ...] = _load_core_modules()
 
 # =============================================================================
 # TOOL-SPECIFIC CONSTANTS
 # =============================================================================
 
+def _load_ascii_compliance_files() -> Tuple[str, ...]:
+    """Load ASCII compliance files list from config or return defaults."""
+    constants_config = config.get_constants_config()
+    if constants_config and 'ascii_compliance_files' in constants_config:
+        return tuple(constants_config['ascii_compliance_files'])
+    # Default: empty (projects should define their own)
+    return ()
+
 # Files to check for ASCII compliance (AI collaborator facing docs)
-ASCII_COMPLIANCE_FILES: Tuple[str, ...] = (
-    # AI development docs (most critical for AI collaboration)
-    'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
-    'ai_development_docs/AI_ARCHITECTURE.md',
-    'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
-    'ai_development_docs/AI_CHANGELOG.md',
-    'ai_development_docs/AI_ERROR_HANDLING_GUIDE.md',
-    'ai_development_docs/AI_LOGGING_GUIDE.md',
-    'ai_development_docs/AI_TESTING_GUIDE.md',
-    'ai_development_docs/AI_REFERENCE.md',
-    'ai_development_docs/AI_SESSION_STARTER.md',
-    
-    # Core development docs (important for AI collaboration)
-    'DEVELOPMENT_WORKFLOW.md',
-    'ARCHITECTURE.md',
-    'DOCUMENTATION_GUIDE.md',
-    
-    # Development tools guides (important for AI collaboration)
-    'development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md',
-    'development_tools/DEVELOPMENT_TOOLS_GUIDE.md',
-    
-    # Development docs (important for AI collaboration)
-    'development_docs/CHANGELOG_DETAIL.md',
-    'development_docs/PLANS.md',
-    
-    # Project management files (important for AI collaboration)
-    'TODO.md',
-)
+ASCII_COMPLIANCE_FILES: Tuple[str, ...] = _load_ascii_compliance_files()
+
+def _load_version_sync_directories() -> Dict[str, str]:
+    """Load version sync directories from config or return defaults."""
+    constants_config = config.get_constants_config()
+    if constants_config and 'version_sync_directories' in constants_config:
+        return dict(constants_config['version_sync_directories'])
+    # Default: empty (projects should define their own)
+    return {}
 
 # Version sync key directories
-VERSION_SYNC_DIRECTORIES: Dict[str, str] = {
-    'development_tools': 'development_tools/',
-    'ai_development_docs': 'ai_development_docs/',
-    'development_docs': 'development_docs/',
-    'core': 'core/',
-    'communication': 'communication/',
-    'ui': 'ui/',
-    'tests': 'tests/',
-    'logs': 'logs/',
-    'scripts': 'scripts/',
-    'data': 'data/',
-    'resources': 'resources/',
-    'styles': 'styles/',
-    'tasks': 'tasks/',
-    'user': 'user/',
-    'ai': 'ai/'
-}
+VERSION_SYNC_DIRECTORIES: Dict[str, str] = _load_version_sync_directories()
 
 def is_standard_library_module(module_name: str) -> bool:
     """Return True if *module_name* belongs to the Python standard library."""

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # TOOL_TIER: core
-# TOOL_PORTABILITY: mhm-specific
+# TOOL_PORTABILITY: portable
 
 """
 Error Handling Coverage Analysis Tool
@@ -29,12 +29,18 @@ if str(project_root) not in sys.path:
 # Handle both relative and absolute imports
 try:
     from .services.standard_exclusions import should_exclude_file
+    from . import config
 except ImportError:
     from development_tools.services.standard_exclusions import should_exclude_file
+    from development_tools import config
 
 from core.logger import get_component_logger
 
 logger = get_component_logger("development_tools")
+
+# Load external config on module import (if not already loaded)
+if config._external_config is None:
+    config.load_external_config()
 
 class ErrorHandlingAnalyzer:
     """Analyzes error handling patterns in Python code."""
@@ -62,36 +68,47 @@ class ErrorHandlingAnalyzer:
             'phase2_by_type': {}
         }
         
-        # Error handling patterns to look for
+        # Load error handling configuration from external config
+        error_config = config.get_error_handling_config()
+        
+        # Build error patterns from config
+        decorator_names = error_config.get('decorator_names', ['@handle_errors', 'handle_errors'])
+        exception_classes = error_config.get('exception_base_classes', ['BaseError', 'DataError'])
+        error_handler_functions = error_config.get('error_handler_functions', [])
+        
+        # Error handling patterns to look for (built from config)
         self.error_patterns = {
             'try_except': r'try\s*:',
-            'handle_errors_decorator': r'@handle_errors',
-            'error_handler_usage': r'error_handler\.',
-            'safe_file_operation': r'safe_file_operation',
-            'handle_file_error': r'handle_file_error',
-            'handle_network_error': r'handle_network_error',
-            'handle_communication_error': r'handle_communication_error',
-            'handle_configuration_error': r'handle_configuration_error',
-            'handle_validation_error': r'handle_validation_error',
-            'handle_ai_error': r'handle_ai_error',
-            'MHMError': r'MHMError',
-            'DataError': r'DataError',
-            'ConfigurationError': r'ConfigurationError',
-            'CommunicationError': r'CommunicationError',
-            'ValidationError': r'ValidationError',
-            'AIError': r'AIError'
         }
         
-        # Functions that should have error handling
-        self.critical_functions = {
+        # Add decorator patterns from config
+        for decorator in decorator_names:
+            if decorator.startswith('@'):
+                pattern_name = decorator.replace('@', '').replace('_', '_') + '_decorator'
+                self.error_patterns[pattern_name] = rf'{re.escape(decorator)}'
+            else:
+                pattern_name = decorator.replace('_', '_') + '_usage'
+                self.error_patterns[pattern_name] = rf'{re.escape(decorator)}\.'
+        
+        # Add error handler function patterns from config
+        for handler_func in error_handler_functions:
+            self.error_patterns[handler_func] = rf'{re.escape(handler_func)}'
+        
+        # Add exception class patterns from config
+        for exc_class in exception_classes:
+            self.error_patterns[exc_class] = rf'{exc_class}'
+        
+        # Functions that should have error handling (from config)
+        self.critical_functions = error_config.get('critical_function_keywords', {
             'file_operations': ['open', 'read', 'write', 'save', 'load'],
             'network_operations': ['send', 'receive', 'connect', 'request'],
             'data_operations': ['parse', 'serialize', 'deserialize', 'validate'],
             'user_operations': ['create', 'update', 'delete', 'authenticate'],
             'ai_operations': ['generate', 'process', 'analyze', 'classify']
-        }
+        })
         
         # Phase 1: Keywords for determining operation type and priority
+        # (These are more generic and can stay hardcoded, or be moved to config later)
         self.phase1_keywords = {
             'file_io': ['open', 'read', 'write', 'save', 'load', 'os.remove', 'shutil.move'],
             'network': ['send', 'receive', 'connect', 'request', 'http', 'api', 'discord', 'email'],
@@ -100,13 +117,16 @@ class ErrorHandlingAnalyzer:
             'entry_point': ['main', 'run', 'start', 'handle', 'on_']
         }
         
-        # Phase 2: Generic exceptions to audit
-        self.generic_exceptions = {
-            'Exception': 'MHMError',
+        # Phase 2: Generic exceptions to audit (from config)
+        # Get base exception from config for fallback
+        base_exception_default = exception_classes[0] if exception_classes else 'BaseError'
+        default_generic_exceptions = {
+            'Exception': base_exception_default,
             'ValueError': 'ValidationError or DataError',
             'KeyError': 'DataError or ConfigurationError',
             'TypeError': 'ValidationError or DataError'
         }
+        self.generic_exceptions = error_config.get('generic_exceptions', default_generic_exceptions)
 
     def analyze_file(self, file_path: Path) -> Dict[str, Any]:
         """Analyze error handling in a single Python file."""
@@ -310,43 +330,74 @@ class ErrorHandlingAnalyzer:
         }
     
     def _suggest_exception_replacement(self, exc_type: str, file_path: str, func_name: str, line_content: str) -> str:
-        """Suggest appropriate MHMError replacement for generic exception."""
+        """Suggest appropriate exception replacement for generic exception (using config)."""
         file_lower = file_path.lower()
         func_lower = (func_name or '').lower()
         line_lower = line_content.lower()
         
+        # Use generic_exceptions mapping from config first
+        if exc_type in self.generic_exceptions:
+            suggestion = self.generic_exceptions[exc_type]
+            # If it's a simple string (not "X or Y"), return it
+            if ' or ' not in suggestion:
+                return suggestion
+        
+        # Get exception base classes from config for fallback suggestions
+        error_config = config.get_error_handling_config()
+        exception_classes = error_config.get('exception_base_classes', ['BaseError', 'DataError'])
+        base_exception = exception_classes[0] if exception_classes else 'BaseError'
+        
+        # More specific heuristics (using config exception classes)
         if exc_type == 'ValueError':
             # Check if it's user input validation
             if any(kw in line_lower for kw in ['invalid', 'missing', 'required', 'format', 'user']):
-                return 'ValidationError'
+                # Look for ValidationError in config, fallback to first exception
+                validation_error = next((e for e in exception_classes if 'Validation' in e), base_exception)
+                return validation_error
             else:
-                return 'DataError'
+                # Look for DataError in config, fallback to first exception
+                data_error = next((e for e in exception_classes if 'Data' in e), base_exception)
+                return data_error
         elif exc_type == 'KeyError':
             # Check if it's config access
             if any(kw in line_lower or kw in file_lower for kw in ['config', 'setting', 'option']):
-                return 'ConfigurationError'
+                # Look for ConfigurationError in config, fallback to first exception
+                config_error = next((e for e in exception_classes if 'Configuration' in e), base_exception)
+                return config_error
             else:
-                return 'DataError'
+                # Look for DataError in config, fallback to first exception
+                data_error = next((e for e in exception_classes if 'Data' in e), base_exception)
+                return data_error
         elif exc_type == 'TypeError':
             # Check if it's user input type issue
             if any(kw in line_lower for kw in ['invalid', 'expected', 'user', 'input']):
-                return 'ValidationError'
+                # Look for ValidationError in config, fallback to first exception
+                validation_error = next((e for e in exception_classes if 'Validation' in e), base_exception)
+                return validation_error
             else:
-                return 'DataError'
+                # Look for DataError in config, fallback to first exception
+                data_error = next((e for e in exception_classes if 'Data' in e), base_exception)
+                return data_error
         elif exc_type == 'Exception':
             # Try to determine from context
             if any(kw in file_lower for kw in ['file', 'read', 'write', 'save', 'load']):
-                return 'FileOperationError'
+                # Look for FileOperationError or DataError in config
+                file_error = next((e for e in exception_classes if 'File' in e or 'Data' in e), base_exception)
+                return file_error
             elif any(kw in file_lower for kw in ['network', 'http', 'api', 'discord', 'email']):
-                return 'CommunicationError'
+                comm_error = next((e for e in exception_classes if 'Communication' in e), base_exception)
+                return comm_error
             elif any(kw in file_lower for kw in ['config', 'setting']):
-                return 'ConfigurationError'
+                config_error = next((e for e in exception_classes if 'Configuration' in e), base_exception)
+                return config_error
             elif any(kw in file_lower for kw in ['schedule', 'task', 'reminder']):
-                return 'SchedulerError'
+                # Look for SchedulerError or generic error
+                scheduler_error = next((e for e in exception_classes if 'Scheduler' in e or 'Task' in e), base_exception)
+                return scheduler_error
             else:
-                return 'MHMError'
+                return base_exception
         
-        return self.generic_exceptions.get(exc_type, 'MHMError')
+        return self.generic_exceptions.get(exc_type, base_exception)
 
     def _analyze_function(self, func_node: ast.FunctionDef, content: str, file_path: str = None) -> Dict[str, Any]:
         """Analyze error handling in a function."""
@@ -587,17 +638,41 @@ class ErrorHandlingAnalyzer:
             context = 'production'   # Exclude tests and dev tools
         
         # Find all Python files using context-based exclusions
+        # Use same scan directories as function_discovery for consistency
+        try:
+            from . import config
+        except ImportError:
+            from development_tools import config
+        
+        # Load external config if not already loaded
+        config.load_external_config()
+        
+        # Get scan directories from config (same as function_discovery)
+        scan_directories = config.get_scan_directories()
+        
+        # Add optional directories based on flags
+        if include_tests and 'tests' not in scan_directories:
+            scan_directories = list(scan_directories) + ['tests']
+        if include_dev_tools and 'development_tools' not in scan_directories:
+            scan_directories = list(scan_directories) + ['development_tools']
+        
         python_files = []
-        for root, dirs, files in os.walk(self.project_root):
-            # Skip certain directories
-            dirs[:] = [d for d in dirs if d not in ['__pycache__', '.git', 'node_modules', '.venv']]
-            
-            for file in files:
-                if file.endswith('.py'):
-                    file_path = Path(root) / file
-                    # Use context-based exclusions
-                    if not should_exclude_file(str(file_path), 'analysis', context):
-                        python_files.append(file_path)
+        
+        # Scan configured directories (same approach as function_discovery)
+        for scan_dir in scan_directories:
+            dir_path = self.project_root / scan_dir
+            if not dir_path.exists():
+                continue
+            for py_file in dir_path.rglob('*.py'):
+                # Use context-based exclusions
+                if not should_exclude_file(str(py_file), 'analysis', context):
+                    python_files.append(py_file)
+        
+        # Also scan root directory for .py files (entry points)
+        for py_file in self.project_root.glob('*.py'):
+            # Use context-based exclusions
+            if not should_exclude_file(str(py_file), 'analysis', context):
+                python_files.append(py_file)
         
         logger.info(f"Found {len(python_files)} Python files to analyze")
         
@@ -776,9 +851,14 @@ class ErrorHandlingAnalyzer:
         if self.results['error_handling_quality'].get('none', 0) > 0:
             recommendations.append("Replace basic try-except with @handle_errors decorator where appropriate")
         
-        # Pattern recommendations
-        if self.results['error_patterns'].get('try_except', 0) > self.results['error_patterns'].get('handle_errors_decorator', 0):
-            recommendations.append("Consider using @handle_errors decorator instead of manual try-except blocks")
+        # Pattern recommendations (use first decorator from config)
+        error_config = config.get_error_handling_config()
+        decorator_names = error_config.get('decorator_names', ['@handle_errors'])
+        primary_decorator = decorator_names[0] if decorator_names else '@handle_errors'
+        decorator_key = primary_decorator.replace('@', '').replace('_', '_') + '_decorator'
+        
+        if self.results['error_patterns'].get('try_except', 0) > self.results['error_patterns'].get(decorator_key, 0):
+            recommendations.append(f"Consider using {primary_decorator} decorator instead of manual try-except blocks")
         
         # Specific missing error handling
         critical_missing = [f for f in self.results['missing_error_handling'] if f['quality'] == 'none']

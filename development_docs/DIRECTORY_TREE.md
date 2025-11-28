@@ -6,6 +6,7 @@
 Folder PATH listing
 Volume serial number is 5EAC-07BC
 C:.
+|   .coverage_dev_tools
 |   .cursorignore
 |   .env
 |   .env.example
@@ -13,6 +14,7 @@ C:.
 |   .gitignore
 |   ARCHITECTURE.md
 |   coverage.ini
+|   development_tools_config.json
 |   DEVELOPMENT_WORKFLOW.md
 |   DOCUMENTATION_GUIDE.md
 |   error_handling_details.json
@@ -156,6 +158,7 @@ C:.
 |       UNUSED_IMPORTS_REPORT.md
 |       
 +---development_tools
+|   |   .coverage_dev_tools
 |   |   .unused_imports_cache.json
 |   |   ai_audit_detailed_results.json
 |   |   AI_DEVELOPMENT_TOOLS_GUIDE.md
@@ -167,13 +170,15 @@ C:.
 |   |   audit_function_registry.py
 |   |   audit_module_dependencies.py
 |   |   audit_package_exports.py
-|   |   auto_document_functions.py
 |   |   config.py
 |   |   config_validation_results.json
 |   |   config_validator.py
 |   |   consolidated_report.txt
 |   |   coverage.json
+|   |   coverage_dev_tools.ini
+|   |   coverage_dev_tools.json
 |   |   decision_support.py
+|   |   development_tools_config.json.example
 |   |   DEVELOPMENT_TOOLS_GUIDE.md
 |   |   documentation_sync_checker.py
 |   |   error_handling_coverage.py
@@ -191,7 +196,6 @@ C:.
 |   |   tool_guide.py
 |   |   unused_imports_checker.py
 |   |   validate_ai_work.py
-|   |   version_sync.py
 |   |   __init__.py
 |   |   
 |   +---archive
@@ -285,19 +289,22 @@ C:.
 |       |   check_checkin_schedules.py
 |       |   cleanup_duplicate_messages.py
 |       |   cleanup_test_users.py
+|       |   convert_paths_to_links.py
 |       |   fix_user_schedules.py
 |       |   rebuild_index.py
 |       |   regenerate_ui.ps1
 |       |   restore_custom_periods.py
 |       |   user_data_cli.py
 |       |   
-|       \---cleanup
-|               cleanup_backups.py
-|               cleanup_data_test_users.py
-|               cleanup_real_test_users.py
-|               cleanup_test_data.py
-|               cleanup_user_message_files.py
-|               
+|       +---cleanup
+|       |       cleanup_backups.py
+|       |       cleanup_data_test_users.py
+|       |       cleanup_real_test_users.py
+|       |       cleanup_test_data.py
+|       |       cleanup_user_message_files.py
+|       |       
+|       \---__pycache__
+    (Python cache files)
 +---styles
 |       admin_theme.qss
 |       
@@ -350,7 +357,6 @@ C:.
 |   |   |       
 |   |   \---__pycache__
     (Python cache files)
-+---tests_tmp_dummy
 +---ui
 |   |   generate_ui_files.py
 |   |   ui_app_qt.py

@@ -1,0 +1,634 @@
+{
+  "project": {
+    "name": "MHM",
+    "key_files": [
+      "run_mhm.py",
+      "core/service.py",
+      "core/config.py"
+    ]
+  },
+  "paths": {
+    "project_root": ".",
+    "scan_directories": [
+      "core",
+      "communication",
+      "ui",
+      "user",
+      "tasks",
+      "tests",
+      "ai"
+    ],
+    "docs_dir": "development_docs",
+    "logs_dir": "logs",
+    "data_dir": "data",
+    "ai_docs_dir": "ai_development_docs",
+    "development_docs_dir": "development_docs"
+  },
+  "version_sync": {
+    "ai_docs": [
+      "ai_development_docs/AI_ARCHITECTURE.md",
+      "ai_development_docs/AI_CHANGELOG.md",
+      "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+      "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+      "ai_development_docs/AI_REFERENCE.md",
+      "ai_development_docs/AI_SESSION_STARTER.md",
+      "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md"
+    ],
+    "generated_ai_docs": [
+      "ai_development_docs/AI_FUNCTION_REGISTRY.md",
+      "ai_development_docs/AI_MODULE_DEPENDENCIES.md"
+    ],
+    "docs": [
+      "README.md",
+      "development_docs/CHANGELOG_DETAIL.md",
+      "TODO.md",
+      "DEVELOPMENT_WORKFLOW.md",
+      "DOCUMENTATION_GUIDE.md",
+      "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+      "PROJECT_VISION.md",
+      "development_docs/PLANS.md",
+      "ARCHITECTURE.md",
+      "HOW_TO_RUN.md"
+    ],
+    "generated_docs": [
+      "development_docs/FUNCTION_REGISTRY_DETAIL.md",
+      "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
+      "development_docs/DIRECTORY_TREE.md",
+      "development_docs/LEGACY_REFERENCE_REPORT.md"
+    ],
+    "core": [
+      "run_mhm.py",
+      "core/service.py",
+      "core/config.py",
+      "requirements.txt",
+      ".gitignore"
+    ],
+    "cursor_rules": [
+      ".cursor/rules/*.mdc"
+    ],
+    "cursor_commands": [
+      ".cursor/commands/README.md"
+    ],
+    "communication_docs": [
+      "communication/communication_channels/discord/DISCORD_GUIDE.md"
+    ],
+    "core_docs": [
+      "core/ERROR_HANDLING_GUIDE.md"
+    ],
+    "logs_docs": [
+      "logs/LOGGING_GUIDE.md"
+    ],
+    "scripts_docs": [
+      "scripts/SCRIPTS_GUIDE.md"
+    ],
+    "tests_docs": [
+      "tests/TESTING_GUIDE.md"
+    ],
+    "core_system_files": [
+      "run_mhm.py",
+      "core/service.py",
+      "core/config.py"
+    ],
+    "documentation_patterns": [
+      "*.md"
+    ],
+    "exclude_patterns": [
+      "*.pyc",
+      "__pycache__",
+      ".git",
+      ".venv"
+    ]
+  },
+  "quick_audit": {
+    "run_function_audit": true,
+    "run_dependency_audit": true,
+    "run_documentation_audit": true,
+    "run_validation": true,
+    "save_results": true,
+    "results_file": "development_tools/ai_audit_detailed_results.json",
+    "issues_file": "development_tools/critical_issues.txt",
+    "audit_scripts": [
+      "function_discovery.py",
+      "decision_support.py",
+      "audit_function_registry.py",
+      "audit_module_dependencies.py",
+      "analyze_documentation.py",
+      "error_handling_coverage.py",
+      "documentation_sync_checker.py"
+    ],
+    "concise_output": true,
+    "prioritize_issues": true
+  },
+  "audit": {
+    "include_generated_files": false,
+    "include_test_files": true,
+    "include_legacy_files": false,
+    "max_output_lines": 20,
+    "save_detailed_results": true,
+    "generate_summary": true,
+    "highlight_issues": true
+  },
+  "ai_collaboration": {
+    "concise_output": true,
+    "detailed_files": true,
+    "actionable_insights": true,
+    "context_aware": true,
+    "priority_issues": true,
+    "integration_mode": true
+  },
+  "function_discovery": {
+    "moderate_complexity_threshold": 50,
+    "high_complexity_threshold": 100,
+    "critical_complexity_threshold": 200,
+    "min_docstring_length": 10,
+    "handler_keywords": [
+      "handle",
+      "process",
+      "validate",
+      "check",
+      "get",
+      "set",
+      "save",
+      "load",
+      "create",
+      "update",
+      "delete",
+      "manage",
+      "configure",
+      "setup"
+    ],
+    "test_keywords": [
+      "test_",
+      "test",
+      "check_",
+      "verify_",
+      "assert_"
+    ],
+    "critical_functions": [
+      "main",
+      "run",
+      "start",
+      "stop",
+      "init",
+      "setup",
+      "validate"
+    ]
+  },
+  "validation": {
+    "documentation_coverage_threshold": 80.0,
+    "moderate_complexity_warning": 50,
+    "high_complexity_warning": 100,
+    "critical_complexity_warning": 200,
+    "duplicate_function_warning": true,
+    "missing_docstring_warning": true,
+    "critical_issues_first": true
+  },
+  "error_handling": {
+    "decorator_names": [
+      "@handle_errors",
+      "handle_errors",
+      "error_handler"
+    ],
+    "exception_base_classes": [
+      "MHMError",
+      "DataError",
+      "ConfigurationError",
+      "CommunicationError",
+      "ValidationError",
+      "AIError",
+      "FileOperationError"
+    ],
+    "error_handler_functions": [
+      "handle_file_error",
+      "handle_network_error",
+      "handle_communication_error",
+      "handle_configuration_error",
+      "handle_validation_error",
+      "handle_ai_error",
+      "safe_file_operation"
+    ],
+    "generic_exceptions": {
+      "Exception": "MHMError",
+      "ValueError": "ValidationError or DataError",
+      "KeyError": "DataError or ConfigurationError",
+      "TypeError": "ValidationError or DataError"
+    },
+    "critical_function_keywords": {
+      "file_operations": ["open", "read", "write", "save", "load"],
+      "network_operations": ["send", "receive", "connect", "request"],
+      "data_operations": ["parse", "serialize", "deserialize", "validate"],
+      "user_operations": ["create", "update", "delete", "authenticate"],
+      "ai_operations": ["generate", "process", "analyze", "classify"]
+    }
+  },
+  "output": {
+    "use_emojis": false,
+    "show_progress": false,
+    "color_output": false,
+    "detailed_reports": false,
+    "concise_format": true,
+    "priority_indicators": true,
+    "action_items": true
+  },
+  "file_patterns": {
+    "python_files": "*.py",
+    "documentation_files": "*.md",
+    "ui_files": "*.ui",
+    "config_files": "*.json",
+    "exclude_patterns": [
+      "__pycache__",
+      ".git",
+      "venv",
+      "env",
+      "node_modules",
+      "*.pyc",
+      "*.pyo"
+    ]
+  },
+  "workflow": {
+    "audit_first": true,
+    "validate_results": true,
+    "require_user_approval": false,
+    "save_intermediate_results": true,
+    "generate_action_items": true,
+    "prioritize_by_impact": true
+  },
+  "documentation": {
+    "auto_generate": true,
+    "preserve_manual_content": true,
+    "update_frequency": "on_demand",
+    "coverage_target": 95.0,
+    "quality_threshold": 80.0
+  },
+  "auto_document": {
+    "enabled": true,
+    "template_generation": true,
+    "quality_check": true,
+    "suggest_improvements": true,
+    "preserve_manual_work": true
+  },
+  "ai_validation": {
+    "completeness_threshold": 90.0,
+    "accuracy_threshold": 85.0,
+    "consistency_threshold": 80.0,
+    "actionable_threshold": 75.0,
+    "critical_issues_weight": 3.0,
+    "warning_issues_weight": 1.5,
+    "info_issues_weight": 1.0
+  },
+  "status": {
+    "check_key_files": true,
+    "check_audit_results": true,
+    "generate_status_files": true,
+    "status_files": {
+      "ai_status": "development_tools/AI_STATUS.md",
+      "ai_priorities": "development_tools/AI_PRIORITIES.md",
+      "consolidated_report": "development_tools/consolidated_report.txt"
+    }
+  },
+  "coverage": {
+    "pytest_command": [
+      "python",
+      "-m",
+      "pytest"
+    ],
+    "pytest_base_args": [
+      "--cov-report=term-missing",
+      "--tb=line",
+      "-q",
+      "--maxfail=5"
+    ],
+    "test_directory": "tests/",
+    "coverage_config": "coverage.ini",
+    "artifact_directories": {
+      "html_output": "htmlcov",
+      "archive": "archive/coverage_artifacts",
+      "logs": "development_tools/logs/coverage_regeneration",
+      "dev_tools_html": "development_tools/coverage_html_dev_tools"
+    }
+  },
+  "legacy_cleanup": {
+    "legacy_patterns": {
+      "old_bot_directory": [
+        "bot/",
+        "from\\s+bot\\.",
+        "import\\s+bot\\."
+      ],
+      "old_import_paths": [
+        "from\\s+bot\\.communication",
+        "from\\s+bot\\.discord",
+        "from\\s+bot\\.email",
+        "import\\s+bot\\.communication",
+        "import\\s+bot\\.discord",
+        "import\\s+bot\\.email"
+      ],
+      "historical_references": [
+        "bot/communication",
+        "bot/discord",
+        "bot/email"
+      ],
+      "deprecated_functions": [
+        "LegacyChannelWrapper",
+        "_create_legacy_channel_access\\(",
+        "store_checkin_response\\("
+      ],
+      "legacy_compatibility_markers": [
+        "# LEGACY COMPATIBILITY:"
+      ]
+    },
+    "replacement_mappings": {
+      "bot/": "communication/",
+      "from bot.": "from communication.",
+      "import bot.": "import communication.",
+      "from bot.communication": "from communication.communication_channels",
+      "from bot.discord": "from communication.communication_channels.discord",
+      "from bot.email": "from communication.communication_channels.email",
+      "import bot.communication": "import communication.communication_channels",
+      "import bot.discord": "import communication.communication_channels.discord",
+      "import bot.email": "import communication.communication_channels.email",
+      "LegacyChannelWrapper": "direct channel access",
+      "_create_legacy_channel_access(": "direct channel access ("
+    },
+    "log_locations": [
+      "logs/",
+      "*.log"
+    ],
+    "skip_extensions": [
+      ".md",
+      ".txt",
+      ".json",
+      ".log"
+    ]
+  },
+  "exclusions": {
+    "universal_exclusions": [
+      "__pycache__",
+      "*.pyc",
+      "*.pyo",
+      "*.pyi",
+      "venv",
+      ".venv",
+      "env",
+      ".env",
+      "node_modules",
+      ".git",
+      ".gitignore",
+      ".gitattributes",
+      ".vscode",
+      ".idea",
+      "*.swp",
+      "*.swo",
+      "*~",
+      ".cursorignore",
+      ".DS_Store",
+      "Thumbs.db",
+      "desktop.ini",
+      "archive",
+      "backup*",
+      "backups",
+      "scripts",
+      "scripts/*",
+      "scripts/**/*",
+      ".pytest_cache",
+      "tests/__pycache__",
+      "tests/.pytest_cache",
+      "tests/logs/",
+      "tests/data/",
+      "tests/temp/",
+      "tests/fixtures/",
+      "*/generated/*",
+      "*/ui/generated/*",
+      "*/pyscript*",
+      "*/shibokensupport/*",
+      "*/signature_bootstrap.py",
+      "run_mhm.py",
+      "*/run_mhm.py",
+      "run_tests.py",
+      "*/run_tests.py"
+    ],
+    "tool_exclusions": {},
+    "context_exclusions": {
+      "recent_changes": [
+        "development_tools/AI_PRIORITIES.md",
+        "development_tools/AI_STATUS.md",
+        "development_tools/consolidated_report.txt",
+        "development_tools/ai_audit_detailed_results.json",
+        "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
+        "ai_development_docs/AI_FUNCTION_REGISTRY.md",
+        "development_docs/DIRECTORY_TREE.md",
+        "development_docs/FUNCTION_REGISTRY_DETAIL.md",
+        "development_docs/LEGACY_REFERENCE_REPORT.md",
+        "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
+        "ui/generated/*",
+        "*/ui/generated/*",
+        "development_tools\\AI_PRIORITIES.md",
+        "development_tools\\AI_STATUS.md",
+        "development_tools\\consolidated_report.txt",
+        "development_tools\\ai_audit_detailed_results.json",
+        "ai_development_docs\\AI_MODULE_DEPENDENCIES.md",
+        "ai_development_docs\\AI_FUNCTION_REGISTRY.md",
+        "development_docs\\DIRECTORY_TREE.md",
+        "development_docs\\FUNCTION_REGISTRY_DETAIL.md",
+        "development_docs\\LEGACY_REFERENCE_REPORT.md",
+        "development_docs\\MODULE_DEPENDENCIES_DETAIL.md",
+        "ui\\generated\\*",
+        "*\\ui\\generated\\*"
+      ],
+      "production": [
+        "development_tools/*",
+        "*/development_tools/*",
+        "ai_development_docs/*",
+        "*/ai_development_docs/*",
+        "development_docs/*",
+        "*/development_docs/*",
+        "tests/*",
+        "*/tests/*",
+        "*/test_*",
+        "scripts/*",
+        "*/scripts/*",
+        "archive/*",
+        "*/archive/*"
+      ],
+      "development": [
+        "*/data/*",
+        "*/logs/*",
+        "*/backup*",
+        "*/backups/*"
+      ],
+      "testing": [
+        "*/generated/*",
+        "*/ui/generated/*",
+        "*/data/*",
+        "*/logs/*",
+        "*/backup*",
+        "*/backups/*"
+      ]
+    },
+    "generated_ai_files": [
+      "development_tools/AI_PRIORITIES.md",
+      "development_tools/AI_STATUS.md",
+      "development_tools/consolidated_report.txt",
+      "development_tools/ai_audit_detailed_results.json"
+    ],
+    "generated_doc_files": [
+      "development_docs/UNUSED_IMPORTS_REPORT.md",
+      "development_docs/TEST_COVERAGE_EXPANSION_PLAN.md",
+      "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
+      "development_docs/LEGACY_REFERENCE_REPORT.md",
+      "development_docs/FUNCTION_REGISTRY_DETAIL.md",
+      "development_docs/DIRECTORY_TREE.md",
+      "development_docs/CHANGELOG_DETAIL.md",
+      "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
+      "ai_development_docs/AI_FUNCTION_REGISTRY.md"
+    ],
+    "standard_exclusion_patterns": [
+      "logs/",
+      "data/",
+      "resources/",
+      "coverage_html/",
+      "__pycache__/",
+      ".pytest_cache/",
+      "venv/",
+      ".venv/",
+      "htmlcov/",
+      "scripts/",
+      "archive/",
+      "ui/generated/",
+      "*.log",
+      ".coverage",
+      "coverage.xml",
+      "*.html"
+    ],
+    "legacy_preserve_files": [
+      "CHANGELOG_DETAIL.md",
+      "AI_CHANGELOG.md",
+      "archive/",
+      "development_docs/",
+      "ai_development_docs/",
+      "logs/",
+      "TODO.md",
+      "PLANS.md",
+      "FUNCTION_REGISTRY",
+      "MODULE_DEPENDENCIES",
+      "LEGACY_REFERENCE_REPORT.md"
+    ],
+    "unused_imports_init_files": [
+      "development_tools/__init__.py",
+      "development_tools/services/__init__.py"
+    ]
+  },
+  "constants": {
+    "default_docs": [
+      "README.md",
+      "HOW_TO_RUN.md",
+      "DOCUMENTATION_GUIDE.md",
+      "DEVELOPMENT_WORKFLOW.md",
+      "ARCHITECTURE.md",
+      "TODO.md",
+      "PROJECT_VISION.md",
+      "development_docs/CHANGELOG_DETAIL.md",
+      "development_docs/PLANS.md",
+      "ai_development_docs/AI_SESSION_STARTER.md",
+      "ai_development_docs/AI_ARCHITECTURE.md",
+      "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+      "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+      "ai_development_docs/AI_CHANGELOG.md",
+      "ai_development_docs/AI_REFERENCE.md",
+      "ai_development_docs/AI_LOGGING_GUIDE.md",
+      "ai_development_docs/AI_TESTING_GUIDE.md",
+      "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+      "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md",
+      "core/ERROR_HANDLING_GUIDE.md",
+      "logs/LOGGING_GUIDE.md",
+      "tests/TESTING_GUIDE.md",
+      "tests/MANUAL_TESTING_GUIDE.md",
+      "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
+      "tests/MANUAL_DISCORD_TEST_GUIDE.md",
+      "communication/COMMUNICATION_GUIDE.md",
+      "communication/communication_channels/discord/DISCORD_GUIDE.md",
+      "scripts/SCRIPTS_GUIDE.md",
+      "ui/UI_GUIDE.md",
+      "ai/SYSTEM_AI_GUIDE.md",
+      "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+      "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
+    ],
+    "paired_docs": {
+      "DEVELOPMENT_WORKFLOW.md": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+      "ARCHITECTURE.md": "ai_development_docs/AI_ARCHITECTURE.md",
+      "DOCUMENTATION_GUIDE.md": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+      "development_docs/CHANGELOG_DETAIL.md": "ai_development_docs/AI_CHANGELOG.md",
+      "logs/LOGGING_GUIDE.md": "ai_development_docs/AI_LOGGING_GUIDE.md",
+      "tests/TESTING_GUIDE.md": "ai_development_docs/AI_TESTING_GUIDE.md",
+      "core/ERROR_HANDLING_GUIDE.md": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+      "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md"
+    },
+    "local_module_prefixes": [
+      "ai",
+      "development_tools",
+      "bot",
+      "communication",
+      "core",
+      "data",
+      "scripts",
+      "services",
+      "tasks",
+      "tests",
+      "ui",
+      "user"
+    ],
+    "project_directories": [
+      ".",
+      "ai",
+      "communication",
+      "core",
+      "tasks",
+      "ui",
+      "user",
+      "tests"
+    ],
+    "core_modules": [
+      "core",
+      "communication",
+      "ui",
+      "tasks",
+      "user",
+      "ai"
+    ],
+    "ascii_compliance_files": [
+      "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+      "ai_development_docs/AI_ARCHITECTURE.md",
+      "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+      "ai_development_docs/AI_CHANGELOG.md",
+      "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+      "ai_development_docs/AI_LOGGING_GUIDE.md",
+      "ai_development_docs/AI_TESTING_GUIDE.md",
+      "ai_development_docs/AI_REFERENCE.md",
+      "ai_development_docs/AI_SESSION_STARTER.md",
+      "DEVELOPMENT_WORKFLOW.md",
+      "ARCHITECTURE.md",
+      "DOCUMENTATION_GUIDE.md",
+      "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+      "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+      "development_docs/CHANGELOG_DETAIL.md",
+      "development_docs/PLANS.md",
+      "TODO.md"
+    ],
+    "version_sync_directories": {
+      "development_tools": "development_tools/",
+      "ai_development_docs": "ai_development_docs/",
+      "development_docs": "development_docs/",
+      "core": "core/",
+      "communication": "communication/",
+      "ui": "ui/",
+      "tests": "tests/",
+      "logs": "logs/",
+      "scripts": "scripts/",
+      "data": "data/",
+      "resources": "resources/",
+      "styles": "styles/",
+      "tasks": "tasks/",
+      "user": "user/",
+      "ai": "ai/"
+    }
+  }
+}

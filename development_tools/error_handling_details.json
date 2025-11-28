@@ -6,22 +6,23 @@
   "functions_missing_error_handling": 2,
   "error_handling_coverage": 99.86440677966102,
   "error_patterns": {
-    "try_except": 745,
     "handle_errors_decorator": 1477,
-    "handle_ai_error": 16,
-    "DataError": 13,
-    "handle_network_error": 5,
-    "handle_communication_error": 5,
+    "try_except": 745,
     "handle_configuration_error": 4,
     "ValidationError": 16,
     "ConfigurationError": 6,
     "error_handler_usage": 13,
     "handle_file_error": 4,
+    "handle_communication_error": 5,
+    "handle_network_error": 5,
     "handle_validation_error": 2,
-    "CommunicationError": 2,
-    "safe_file_operation": 1,
+    "handle_ai_error": 16,
     "AIError": 2,
-    "MHMError": 2
+    "MHMError": 2,
+    "CommunicationError": 2,
+    "DataError": 13,
+    "safe_file_operation": 1,
+    "FileOperationError": 10
   },
   "missing_error_handling": [
     {
@@ -38,8 +39,8 @@
     }
   ],
   "error_handling_quality": {
-    "basic": 89,
     "excellent": 1384,
+    "basic": 89,
     "none": 2
   },
   "recommendations": [
@@ -49,12 +50,62 @@
   ],
   "phase1_candidates": [
     {
-      "file_path": "ai\\chatbot.py",
-      "function_name": "test_system_prompt_integration",
-      "line_start": 1180,
-      "line_end": 1202,
+      "file_path": "core\\file_locking.py",
+      "function_name": "safe_json_read",
+      "line_start": 211,
+      "line_end": 237,
       "is_async": false,
-      "operation_type": "ai",
+      "operation_type": "file_io",
+      "is_entry_point": true,
+      "priority": "high"
+    },
+    {
+      "file_path": "core\\service.py",
+      "function_name": "_check_test_message_requests__cleanup_request_file",
+      "line_start": 688,
+      "line_end": 694,
+      "is_async": false,
+      "operation_type": "network",
+      "is_entry_point": true,
+      "priority": "high"
+    },
+    {
+      "file_path": "core\\service.py",
+      "function_name": "check_test_message_requests",
+      "line_start": 704,
+      "line_end": 723,
+      "is_async": false,
+      "operation_type": "network",
+      "is_entry_point": true,
+      "priority": "high"
+    },
+    {
+      "file_path": "core\\service.py",
+      "function_name": "_cleanup_test_message_requests__remove_request_file",
+      "line_start": 855,
+      "line_end": 863,
+      "is_async": false,
+      "operation_type": "network",
+      "is_entry_point": true,
+      "priority": "high"
+    },
+    {
+      "file_path": "core\\service.py",
+      "function_name": "_check_reschedule_requests__cleanup_request_file",
+      "line_start": 944,
+      "line_end": 950,
+      "is_async": false,
+      "operation_type": "network",
+      "is_entry_point": true,
+      "priority": "high"
+    },
+    {
+      "file_path": "core\\service.py",
+      "function_name": "check_reschedule_requests",
+      "line_start": 960,
+      "line_end": 979,
+      "is_async": false,
+      "operation_type": "network",
       "is_entry_point": true,
       "priority": "high"
     },
@@ -103,6 +154,16 @@
       "function_name": "_handle_update_task__find_task_by_identifier",
       "line_start": 927,
       "line_end": 981,
+      "is_async": false,
+      "operation_type": "user_data",
+      "is_entry_point": true,
+      "priority": "high"
+    },
+    {
+      "file_path": "communication\\core\\channel_orchestrator.py",
+      "function_name": "_handle_scheduled_checkin",
+      "line_start": 1217,
+      "line_end": 1254,
       "is_async": false,
       "operation_type": "user_data",
       "is_entry_point": true,
@@ -199,76 +260,6 @@
       "priority": "high"
     },
     {
-      "file_path": "communication\\core\\channel_orchestrator.py",
-      "function_name": "_handle_scheduled_checkin",
-      "line_start": 1217,
-      "line_end": 1254,
-      "is_async": false,
-      "operation_type": "user_data",
-      "is_entry_point": true,
-      "priority": "high"
-    },
-    {
-      "file_path": "core\\file_locking.py",
-      "function_name": "safe_json_read",
-      "line_start": 211,
-      "line_end": 237,
-      "is_async": false,
-      "operation_type": "file_io",
-      "is_entry_point": true,
-      "priority": "high"
-    },
-    {
-      "file_path": "core\\service.py",
-      "function_name": "_check_test_message_requests__cleanup_request_file",
-      "line_start": 688,
-      "line_end": 694,
-      "is_async": false,
-      "operation_type": "network",
-      "is_entry_point": true,
-      "priority": "high"
-    },
-    {
-      "file_path": "core\\service.py",
-      "function_name": "check_test_message_requests",
-      "line_start": 704,
-      "line_end": 723,
-      "is_async": false,
-      "operation_type": "network",
-      "is_entry_point": true,
-      "priority": "high"
-    },
-    {
-      "file_path": "core\\service.py",
-      "function_name": "_cleanup_test_message_requests__remove_request_file",
-      "line_start": 855,
-      "line_end": 863,
-      "is_async": false,
-      "operation_type": "network",
-      "is_entry_point": true,
-      "priority": "high"
-    },
-    {
-      "file_path": "core\\service.py",
-      "function_name": "_check_reschedule_requests__cleanup_request_file",
-      "line_start": 944,
-      "line_end": 950,
-      "is_async": false,
-      "operation_type": "network",
-      "is_entry_point": true,
-      "priority": "high"
-    },
-    {
-      "file_path": "core\\service.py",
-      "function_name": "check_reschedule_requests",
-      "line_start": 960,
-      "line_end": 979,
-      "is_async": false,
-      "operation_type": "network",
-      "is_entry_point": true,
-      "priority": "high"
-    },
-    {
       "file_path": "ui\\ui_app_qt.py",
       "function_name": "run_full_scheduler",
       "line_start": 769,
@@ -309,13 +300,73 @@
       "priority": "high"
     },
     {
-      "file_path": "run_headless_service.py",
-      "function_name": "main",
-      "line_start": 12,
-      "line_end": 128,
+      "file_path": "ai\\chatbot.py",
+      "function_name": "test_system_prompt_integration",
+      "line_start": 1180,
+      "line_end": 1202,
+      "is_async": false,
+      "operation_type": "ai",
+      "is_entry_point": true,
+      "priority": "high"
+    },
+    {
+      "file_path": "core\\error_handling.py",
+      "function_name": "handle_errors",
+      "line_start": 619,
+      "line_end": 699,
       "is_async": false,
       "operation_type": "general",
       "is_entry_point": true,
+      "priority": "medium"
+    },
+    {
+      "file_path": "core\\error_handling.py",
+      "function_name": "handle_error",
+      "line_start": 443,
+      "line_end": 522,
+      "is_async": false,
+      "operation_type": "general",
+      "is_entry_point": true,
+      "priority": "medium"
+    },
+    {
+      "file_path": "core\\scheduler.py",
+      "function_name": "_select_task_for_reminder__calculate_due_date_weight",
+      "line_start": 1002,
+      "line_end": 1036,
+      "is_async": false,
+      "operation_type": "user_data",
+      "is_entry_point": false,
+      "priority": "medium"
+    },
+    {
+      "file_path": "core\\scheduler.py",
+      "function_name": "select_task_for_reminder",
+      "line_start": 1109,
+      "line_end": 1142,
+      "is_async": false,
+      "operation_type": "user_data",
+      "is_entry_point": false,
+      "priority": "medium"
+    },
+    {
+      "file_path": "core\\scheduler.py",
+      "function_name": "scheduler_loop",
+      "line_start": 51,
+      "line_end": 111,
+      "is_async": false,
+      "operation_type": "user_data",
+      "is_entry_point": false,
+      "priority": "medium"
+    },
+    {
+      "file_path": "core\\user_management.py",
+      "function_name": "_load_presets_json",
+      "line_start": 1192,
+      "line_end": 1209,
+      "is_async": false,
+      "operation_type": "file_io",
+      "is_entry_point": false,
       "priority": "medium"
     },
     {
@@ -346,16 +397,6 @@
       "is_async": false,
       "operation_type": "general",
       "is_entry_point": true,
-      "priority": "medium"
-    },
-    {
-      "file_path": "communication\\communication_channels\\base\\command_registry.py",
-      "function_name": "discord_command_callback",
-      "line_start": 143,
-      "line_end": 150,
-      "is_async": false,
-      "operation_type": "network",
-      "is_entry_point": false,
       "priority": "medium"
     },
     {
@@ -499,62 +540,12 @@
       "priority": "medium"
     },
     {
-      "file_path": "core\\error_handling.py",
-      "function_name": "handle_errors",
-      "line_start": 619,
-      "line_end": 699,
+      "file_path": "communication\\communication_channels\\base\\command_registry.py",
+      "function_name": "discord_command_callback",
+      "line_start": 143,
+      "line_end": 150,
       "is_async": false,
-      "operation_type": "general",
-      "is_entry_point": true,
-      "priority": "medium"
-    },
-    {
-      "file_path": "core\\error_handling.py",
-      "function_name": "handle_error",
-      "line_start": 443,
-      "line_end": 522,
-      "is_async": false,
-      "operation_type": "general",
-      "is_entry_point": true,
-      "priority": "medium"
-    },
-    {
-      "file_path": "core\\scheduler.py",
-      "function_name": "_select_task_for_reminder__calculate_due_date_weight",
-      "line_start": 1002,
-      "line_end": 1036,
-      "is_async": false,
-      "operation_type": "user_data",
-      "is_entry_point": false,
-      "priority": "medium"
-    },
-    {
-      "file_path": "core\\scheduler.py",
-      "function_name": "select_task_for_reminder",
-      "line_start": 1109,
-      "line_end": 1142,
-      "is_async": false,
-      "operation_type": "user_data",
-      "is_entry_point": false,
-      "priority": "medium"
-    },
-    {
-      "file_path": "core\\scheduler.py",
-      "function_name": "scheduler_loop",
-      "line_start": 51,
-      "line_end": 111,
-      "is_async": false,
-      "operation_type": "user_data",
-      "is_entry_point": false,
-      "priority": "medium"
-    },
-    {
-      "file_path": "core\\user_management.py",
-      "function_name": "_load_presets_json",
-      "line_start": 1192,
-      "line_end": 1209,
-      "is_async": false,
-      "operation_type": "file_io",
+      "operation_type": "network",
       "is_entry_point": false,
       "priority": "medium"
     },
@@ -699,104 +690,14 @@
       "priority": "medium"
     },
     {
-      "file_path": "ai\\conversation_history.py",
-      "function_name": "_cleanup_old_sessions",
-      "line_start": 384,
-      "line_end": 396,
+      "file_path": "run_headless_service.py",
+      "function_name": "main",
+      "line_start": 12,
+      "line_end": 128,
       "is_async": false,
       "operation_type": "general",
-      "is_entry_point": false,
-      "priority": "low"
-    },
-    {
-      "file_path": "communication\\core\\channel_monitor.py",
-      "function_name": "get_channel_health_status",
-      "line_start": 152,
-      "line_end": 181,
-      "is_async": false,
-      "operation_type": "general",
-      "is_entry_point": false,
-      "priority": "low"
-    },
-    {
-      "file_path": "communication\\core\\channel_orchestrator.py",
-      "function_name": "_initialize_channel_with_retry",
-      "line_start": 415,
-      "line_end": 459,
-      "is_async": false,
-      "operation_type": "general",
-      "is_entry_point": false,
-      "priority": "low"
-    },
-    {
-      "file_path": "communication\\core\\channel_orchestrator.py",
-      "function_name": "_initialize_channel_with_retry_sync",
-      "line_start": 604,
-      "line_end": 654,
-      "is_async": false,
-      "operation_type": "general",
-      "is_entry_point": false,
-      "priority": "low"
-    },
-    {
-      "file_path": "communication\\core\\channel_orchestrator.py",
-      "function_name": "_check_logging_health",
-      "line_start": 748,
-      "line_end": 773,
-      "is_async": false,
-      "operation_type": "general",
-      "is_entry_point": false,
-      "priority": "low"
-    },
-    {
-      "file_path": "communication\\core\\channel_orchestrator.py",
-      "function_name": "broadcast_message",
-      "line_start": 868,
-      "line_end": 895,
-      "is_async": false,
-      "operation_type": "general",
-      "is_entry_point": false,
-      "priority": "low"
-    },
-    {
-      "file_path": "communication\\core\\channel_orchestrator.py",
-      "function_name": "get_channel_status",
-      "line_start": 897,
-      "line_end": 906,
-      "is_async": false,
-      "operation_type": "general",
-      "is_entry_point": false,
-      "priority": "low"
-    },
-    {
-      "file_path": "communication\\core\\channel_orchestrator.py",
-      "function_name": "health_check_all",
-      "line_start": 917,
-      "line_end": 931,
-      "is_async": false,
-      "operation_type": "general",
-      "is_entry_point": false,
-      "priority": "low"
-    },
-    {
-      "file_path": "communication\\core\\channel_orchestrator.py",
-      "function_name": "_shutdown_all_async",
-      "line_start": 942,
-      "line_end": 952,
-      "is_async": false,
-      "operation_type": "general",
-      "is_entry_point": false,
-      "priority": "low"
-    },
-    {
-      "file_path": "communication\\core\\channel_orchestrator.py",
-      "function_name": "_shutdown_sync",
-      "line_start": 1002,
-      "line_end": 1041,
-      "is_async": false,
-      "operation_type": "general",
-      "is_entry_point": false,
-      "priority": "low"
+      "is_entry_point": true,
+      "priority": "medium"
     },
     {
       "file_path": "core\\backup_manager.py",
@@ -909,6 +810,96 @@
       "priority": "low"
     },
     {
+      "file_path": "communication\\core\\channel_monitor.py",
+      "function_name": "get_channel_health_status",
+      "line_start": 152,
+      "line_end": 181,
+      "is_async": false,
+      "operation_type": "general",
+      "is_entry_point": false,
+      "priority": "low"
+    },
+    {
+      "file_path": "communication\\core\\channel_orchestrator.py",
+      "function_name": "_initialize_channel_with_retry",
+      "line_start": 415,
+      "line_end": 459,
+      "is_async": false,
+      "operation_type": "general",
+      "is_entry_point": false,
+      "priority": "low"
+    },
+    {
+      "file_path": "communication\\core\\channel_orchestrator.py",
+      "function_name": "_initialize_channel_with_retry_sync",
+      "line_start": 604,
+      "line_end": 654,
+      "is_async": false,
+      "operation_type": "general",
+      "is_entry_point": false,
+      "priority": "low"
+    },
+    {
+      "file_path": "communication\\core\\channel_orchestrator.py",
+      "function_name": "_check_logging_health",
+      "line_start": 748,
+      "line_end": 773,
+      "is_async": false,
+      "operation_type": "general",
+      "is_entry_point": false,
+      "priority": "low"
+    },
+    {
+      "file_path": "communication\\core\\channel_orchestrator.py",
+      "function_name": "broadcast_message",
+      "line_start": 868,
+      "line_end": 895,
+      "is_async": false,
+      "operation_type": "general",
+      "is_entry_point": false,
+      "priority": "low"
+    },
+    {
+      "file_path": "communication\\core\\channel_orchestrator.py",
+      "function_name": "get_channel_status",
+      "line_start": 897,
+      "line_end": 906,
+      "is_async": false,
+      "operation_type": "general",
+      "is_entry_point": false,
+      "priority": "low"
+    },
+    {
+      "file_path": "communication\\core\\channel_orchestrator.py",
+      "function_name": "health_check_all",
+      "line_start": 917,
+      "line_end": 931,
+      "is_async": false,
+      "operation_type": "general",
+      "is_entry_point": false,
+      "priority": "low"
+    },
+    {
+      "file_path": "communication\\core\\channel_orchestrator.py",
+      "function_name": "_shutdown_all_async",
+      "line_start": 942,
+      "line_end": 952,
+      "is_async": false,
+      "operation_type": "general",
+      "is_entry_point": false,
+      "priority": "low"
+    },
+    {
+      "file_path": "communication\\core\\channel_orchestrator.py",
+      "function_name": "_shutdown_sync",
+      "line_start": 1002,
+      "line_end": 1041,
+      "is_async": false,
+      "operation_type": "general",
+      "is_entry_point": false,
+      "priority": "low"
+    },
+    {
       "file_path": "ui\\ui_app_qt.py",
       "function_name": "view_all_users_summary",
       "line_start": 2220,
@@ -933,6 +924,16 @@
       "function_name": "__init__",
       "line_start": 16,
       "line_end": 65,
+      "is_async": false,
+      "operation_type": "general",
+      "is_entry_point": false,
+      "priority": "low"
+    },
+    {
+      "file_path": "ai\\conversation_history.py",
+      "function_name": "_cleanup_old_sessions",
+      "line_start": 384,
+      "line_end": 396,
       "is_async": false,
       "operation_type": "general",
       "is_entry_point": false,
@@ -975,22 +976,22 @@
       "total": 52
     },
     {
-      "module": "root",
+      "module": "auto_cleanup.py",
       "coverage": 100.0,
       "missing": 0,
-      "total": 1
+      "total": 22
     },
     {
-      "module": "cache_manager.py",
-      "coverage": 100.0,
-      "missing": 0,
-      "total": 19
-    },
-    {
-      "module": "chatbot.py",
+      "module": "backup_manager.py",
       "coverage": 100.0,
       "missing": 0,
       "total": 28
+    },
+    {
+      "module": "checkin_analytics.py",
+      "coverage": 100.0,
+      "missing": 0,
+      "total": 26
     }
   ]
 }

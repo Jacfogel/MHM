@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # TOOL_TIER: core
-# TOOL_PORTABILITY: mhm-specific
+# TOOL_PORTABILITY: portable
 
 """
 Generate and update FUNCTION_REGISTRY.md automatically.
 Scans all .py files and creates comprehensive function documentation.
 Enhanced with automatic template generation for various function types.
+
+Configuration is loaded from external config file (development_tools_config.json)
+if available, making this tool portable across different projects.
 """
 
 import ast
@@ -249,7 +252,9 @@ def scan_all_python_files() -> Dict[str, Dict]:
     try:
         from . import config
     except ImportError:
-        import config
+        from development_tools import config
+    # Ensure external config is loaded
+    config.load_external_config()
     from development_tools.services.standard_exclusions import should_exclude_file
     project_root = config.get_project_root()
     results = {}
@@ -281,12 +286,19 @@ def scan_all_python_files() -> Dict[str, Dict]:
             }
     
     # Also scan root directory for .py files
+    # Get key files from config (entry points that should be included)
+    key_files = config.get_external_value('project.key_files', [])
+    key_file_names = [Path(f).name for f in key_files] if key_files else []
+    
+    # Always exclude generator scripts
+    exclude_generators = ['generate_function_registry.py', 'generate_module_dependencies.py']
+    
     for py_file in project_root.glob('*.py'):
-        if py_file.name in ['generate_function_registry.py', 'generate_module_dependencies.py']:
+        if py_file.name in exclude_generators:
             continue
-        # Include run_mhm.py and run_tests.py in registry even though they're in exclusions
+        # Include key files (entry points) in registry even though they might be in exclusions
         # They are important entry points and should be documented
-        if py_file.name in ['run_mhm.py', 'run_tests.py']:
+        if key_file_names and py_file.name in key_file_names:
             file_key = py_file.name
             functions = extract_functions_from_file(str(py_file))
             classes = extract_classes_from_file(str(py_file))

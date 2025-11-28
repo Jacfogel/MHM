@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
 # TOOL_TIER: core
-# TOOL_PORTABILITY: mhm-specific
+# TOOL_PORTABILITY: portable
 
 """
-Legacy Reference Cleanup for MHM
+Legacy Reference Cleanup Tool (Portable)
 
-This script identifies and helps clean up legacy references to:
-- Old bot/ directory (now communication/)
-- Outdated import paths
-- Historical references in changelogs and archives
-- Deprecated functions and classes
-- Legacy compatibility markers
+This script identifies and helps clean up legacy references. It is configurable
+via development_tools_config.json to work with any project's legacy patterns.
+
+Configuration is loaded from external config file (development_tools_config.json)
+if available, making this tool portable across different projects.
 
 Usage:
-    python ai_tools/legacy_reference_cleanup.py [--scan] [--clean] [--dry-run]
+    python development_tools/legacy_reference_cleanup.py [--scan] [--clean] [--dry-run]
 
 LEGACY CODE STANDARDS COMPLIANCE:
 This tool is part of the mandatory legacy code management system. When adding new
@@ -23,7 +22,7 @@ legacy patterns, follow these requirements:
 3. Test patterns to ensure they don't create false positives
 4. Document new patterns in this file's docstring
 5. Update the tool when new legacy code is identified
-6. See .cursor/rules/critical.mdc for complete legacy code standards
+6. Configure patterns via development_tools_config.json for portability
 """
 
 import re
@@ -40,66 +39,92 @@ if str(project_root) not in sys.path:
 
 from core.logger import get_component_logger
 
+# Handle both relative and absolute imports
+try:
+    from . import config
+except ImportError:
+    from development_tools import config
+
+# Load external config on module import (if not already loaded)
+if config._external_config is None:
+    config.load_external_config()
+
 logger = get_component_logger("development_tools")
 
 class LegacyReferenceCleanup:
-    """Identifies and cleans up legacy references in MHM."""
+    """Identifies and cleans up legacy references (portable across projects)."""
     
-    def __init__(self, project_root: str = "."):
+    def __init__(self, project_root: str = ".", legacy_tokens: Dict[str, List[str]] = None, 
+                 replacement_mappings: Dict[str, str] = None, log_locations: List[str] = None):
+        """
+        Initialize legacy reference cleanup.
+        
+        Args:
+            project_root: Root directory of the project
+            legacy_tokens: Optional dict of legacy pattern categories and their regex patterns.
+                          If None, loads from config or uses generic defaults.
+            replacement_mappings: Optional dict mapping old patterns to new patterns.
+                                  If None, loads from config or uses generic defaults.
+            log_locations: Optional list of log file/directory paths to scan.
+                          If None, loads from config or uses generic defaults.
+        """
         self.project_root = Path(project_root).resolve()
         
-        # Legacy patterns to identify - specific to old bot/ directory structure and deprecated functions
-        self.legacy_patterns = {
-            'old_bot_directory': [
-                r'bot/',
-                r'from\s+bot\.',
-                r'import\s+bot\.',
-            ],
-            'old_import_paths': [
-                r'from\s+bot\.communication',
-                r'from\s+bot\.discord', 
-                r'from\s+bot\.email',
-                r'import\s+bot\.communication',
-                r'import\s+bot\.discord',
-                r'import\s+bot\.email',
-            ],
-            'historical_references': [
-                r'bot/communication',
-                r'bot/discord',
-                r'bot/email',
-            ],
-            'deprecated_functions': [
-                r'LegacyChannelWrapper',
-                r'_create_legacy_channel_access\(',
-                r'store_checkin_response\(',
-            ],
-            'legacy_compatibility_markers': [
-                r'# LEGACY COMPATIBILITY:',
-            ]
-        }
+        # Load legacy configuration from external config
+        legacy_config = config.get_external_value('legacy_cleanup', {})
+        
+        # Legacy patterns to identify (from config or provided, with generic defaults)
+        if legacy_tokens is not None:
+            self.legacy_patterns = legacy_tokens
+        else:
+            # Load from config or use generic defaults
+            config_patterns = legacy_config.get('legacy_patterns', {})
+            if config_patterns:
+                # Convert string patterns to regex patterns (if they're strings)
+                self.legacy_patterns = {}
+                for category, patterns in config_patterns.items():
+                    self.legacy_patterns[category] = [p if isinstance(p, str) else str(p) for p in patterns]
+            else:
+                # Generic defaults (projects should provide their own via config)
+                self.legacy_patterns = {
+                    'legacy_compatibility_markers': [
+                        r'# LEGACY COMPATIBILITY:',
+                        r'# LEGACY:',
+                    ],
+                }
         
         # Files that should be preserved (historical context)
-        # Import constants from services
+        # Import constants from services (which loads from config)
         from development_tools.services.standard_exclusions import LEGACY_PRESERVE_FILES
         self.preserve_files = set(LEGACY_PRESERVE_FILES)
         
         # File extensions to skip entirely
-        self.skip_extensions = {'.md', '.txt', '.json', '.log'}
+        skip_exts = legacy_config.get('skip_extensions', ['.md', '.txt', '.json', '.log'])
+        self.skip_extensions = set(skip_exts) if isinstance(skip_exts, list) else skip_exts
         
-        # Replacement mappings - specific to old bot/ directory structure and deprecated functions
-        self.replacement_mappings = {
-            'bot/': 'communication/',
-            'from bot.': 'from communication.',
-            'import bot.': 'import communication.',
-            'from bot.communication': 'from communication.communication_channels',
-            'from bot.discord': 'from communication.communication_channels.discord',
-            'from bot.email': 'from communication.communication_channels.email',
-            'import bot.communication': 'import communication.communication_channels',
-            'import bot.discord': 'import communication.communication_channels.discord',
-            'import bot.email': 'import communication.communication_channels.email',
-            'LegacyChannelWrapper': 'direct channel access',
-            '_create_legacy_channel_access(': 'direct channel access (',
-        }
+        # Replacement mappings (from config or provided, with generic defaults)
+        if replacement_mappings is not None:
+            self.replacement_mappings = replacement_mappings
+        else:
+            # Load from config or use generic defaults
+            config_replacements = legacy_config.get('replacement_mappings', {})
+            if config_replacements:
+                self.replacement_mappings = config_replacements
+            else:
+                # Generic defaults (projects should provide their own via config)
+                self.replacement_mappings = {}
+        
+        # Log locations to scan (from config or provided, with generic defaults)
+        if log_locations is not None:
+            self.log_locations = log_locations
+        else:
+            # Load from config or use generic defaults
+            config_log_locations = legacy_config.get('log_locations', [])
+            if config_log_locations:
+                self.log_locations = config_log_locations
+            else:
+                # Generic defaults
+                self.log_locations = ['logs/', '*.log']
     
     def scan_for_legacy_references(self) -> Dict[str, List[Tuple[str, str, List[str]]]]:
         """Scan the codebase for legacy references."""

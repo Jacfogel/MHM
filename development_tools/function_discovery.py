@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # TOOL_TIER: core
-# TOOL_PORTABILITY: mhm-specific
+# TOOL_PORTABILITY: portable
 
 """
 function_discovery.py
 Enhanced function search and relationship mapping for AI-optimized development.
 Finds all functions, categorizes them (handler, utility, test, etc.), and shows relationships.
+
+Configuration is loaded from external config file (development_tools_config.json)
+if available, making this tool portable across different projects.
 """
 
 import ast
@@ -26,18 +29,36 @@ try:
     from . import config
     from .services.standard_exclusions import should_exclude_file
 except ImportError:
-    import config
+    from development_tools import config
     from development_tools.services.standard_exclusions import should_exclude_file
+
+# Ensure external config is loaded
+config.load_external_config()
 
 logger = get_component_logger("development_tools")
 
-PROJECT_ROOT = Path(config.PROJECT_ROOT)
-SCAN_DIRECTORIES = config.SCAN_DIRECTORIES
-HANDLER_KEYWORDS = config.FUNCTION_DISCOVERY['handler_keywords']
-TEST_KEYWORDS = config.FUNCTION_DISCOVERY['test_keywords']
-MODERATE_COMPLEXITY = config.FUNCTION_DISCOVERY['moderate_complexity_threshold']
-HIGH_COMPLEXITY = config.FUNCTION_DISCOVERY['high_complexity_threshold']
-CRITICAL_COMPLEXITY = config.FUNCTION_DISCOVERY['critical_complexity_threshold']
+# Load configuration from config module (which loads from external config if available)
+def _get_project_root() -> Path:
+    """Get project root from config."""
+    return Path(config.get_project_root())
+
+def _get_scan_directories() -> List[str]:
+    """Get scan directories from config."""
+    return config.get_scan_directories()
+
+def _get_function_discovery_config() -> Dict:
+    """Get function discovery config from config module."""
+    return config.get_function_discovery_config()
+
+# Load config values
+PROJECT_ROOT = _get_project_root()
+SCAN_DIRECTORIES = _get_scan_directories()
+FUNCTION_DISCOVERY_CONFIG = _get_function_discovery_config()
+HANDLER_KEYWORDS = FUNCTION_DISCOVERY_CONFIG.get('handler_keywords', ['handle', 'process', 'validate'])
+TEST_KEYWORDS = FUNCTION_DISCOVERY_CONFIG.get('test_keywords', ['test_', 'test'])
+MODERATE_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get('moderate_complexity_threshold', 50)
+HIGH_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get('high_complexity_threshold', 100)
+CRITICAL_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get('critical_complexity_threshold', 200)
 
 
 @handle_errors("checking if code is auto-generated", default_return=False)
@@ -239,9 +260,36 @@ def extract_functions(file_path: str) -> List[Dict]:
 
 
 @handle_errors("scanning all functions", default_return=[])
-def scan_all_functions(include_tests: bool = False, include_dev_tools: bool = False) -> List[Dict]:
-    """Scan all Python files in SCAN_DIRECTORIES and extract functions."""
+def scan_all_functions(include_tests: bool = False, include_dev_tools: bool = False, 
+                       scan_directories: List[str] = None, project_root: Path = None) -> List[Dict]:
+    """
+    Scan all Python files in scan directories and extract functions.
+    
+    Args:
+        include_tests: Whether to include test files
+        include_dev_tools: Whether to include development tools files
+        scan_directories: Optional list of directories to scan (overrides config)
+        project_root: Optional project root path (overrides config)
+    
+    Returns:
+        List of function dictionaries
+    """
     all_functions = []
+    
+    # Use provided project_root or config default
+    root = project_root if project_root else PROJECT_ROOT
+    
+    # Use provided scan_directories or config default
+    if scan_directories is None:
+        scan_dirs = list(SCAN_DIRECTORIES)
+    else:
+        scan_dirs = list(scan_directories)
+    
+    # Add optional directories based on flags
+    if include_tests and 'tests' not in scan_dirs:
+        scan_dirs.append('tests')
+    if include_dev_tools and 'development_tools' not in scan_dirs:
+        scan_dirs.append('development_tools')
     
     # Determine context based on configuration
     if include_tests and include_dev_tools:
@@ -251,11 +299,9 @@ def scan_all_functions(include_tests: bool = False, include_dev_tools: bool = Fa
     else:
         context = 'production'   # Exclude tests and dev tools
     
-    # Use all directories and let context-based exclusions handle filtering
-    scan_dirs = list(SCAN_DIRECTORIES) + ['tests', 'development_tools']
-    
+    # Scan configured directories
     for scan_dir in scan_dirs:
-        dir_path = PROJECT_ROOT / scan_dir
+        dir_path = root / scan_dir
         if not dir_path.exists():
             continue
         for py_file in dir_path.rglob('*.py'):
@@ -264,7 +310,7 @@ def scan_all_functions(include_tests: bool = False, include_dev_tools: bool = Fa
                 all_functions.extend(extract_functions(str(py_file)))
     
     # Also scan root directory
-    for py_file in PROJECT_ROOT.glob('*.py'):
+    for py_file in root.glob('*.py'):
         # Use context-based exclusions
         if not should_exclude_file(str(py_file), 'analysis', context):
             all_functions.extend(extract_functions(str(py_file)))
@@ -386,10 +432,12 @@ def validate_results(categories: Dict[str, List[Dict]]) -> bool:
 
 def main():
     import argparse
+    import json
     
     parser = argparse.ArgumentParser(description='Discover and categorize functions in the codebase')
     parser.add_argument('--include-tests', action='store_true', help='Include test files in analysis')
     parser.add_argument('--include-dev-tools', action='store_true', help='Include development_tools in analysis')
+    parser.add_argument('--json', action='store_true', help='Output results as JSON')
     args = parser.parse_args()
     
     logger.info("[SCAN] Scanning for all functions...")
@@ -404,8 +452,22 @@ def main():
     if not validate_results(categories):
         logger.warning("Results may be inflated. Check auto-generated code detection.")
     
-    print_summary(categories)
-    logger.info("Tip: Use this output to quickly find handlers, tests, complex, or undocumented functions.")
+    if args.json:
+        # Output JSON for programmatic use
+        metrics = {
+            'total_functions': len(all_functions),
+            'moderate_complexity': len(categories.get('moderate_complex', [])),
+            'high_complexity': len(categories.get('high_complex', [])),
+            'critical_complexity': len(categories.get('critical_complex', [])),
+            'undocumented': len(categories.get('undocumented', [])),
+            'handlers': len(categories.get('handlers', [])),
+            'tests': len(categories.get('tests', [])),
+            'utilities': len(categories.get('utilities', []))
+        }
+        print(json.dumps(metrics, indent=2))
+    else:
+        print_summary(categories)
+        logger.info("Tip: Use this output to quickly find handlers, tests, complex, or undocumented functions.")
 
 if __name__ == "__main__":
     main() 

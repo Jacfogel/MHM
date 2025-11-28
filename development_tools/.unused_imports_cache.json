@@ -32,7 +32,7 @@
     "issues": []
   },
   "development_tools/ai_tools_runner.py": {
-    "mtime": 1764136781.8316572,
+    "mtime": 1764318378.7224555,
     "issues": []
   },
   "development_tools/analyze_documentation.py": {
@@ -83,7 +83,7 @@
     "issues": []
   },
   "development_tools/config.py": {
-    "mtime": 1764071038.7748718,
+    "mtime": 1764318459.746372,
     "issues": []
   },
   "development_tools/config_validator.py": {
@@ -91,19 +91,46 @@
     "issues": []
   },
   "development_tools/decision_support.py": {
-    "mtime": 1764288721.1486459,
-    "issues": []
+    "mtime": 1764310279.7526822,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.decision_support",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 10,
+        "path": "development_tools\\decision_support.py",
+        "symbol": "unused-import",
+        "message": "Unused import ast",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.decision_support",
+        "obj": "",
+        "line": 23,
+        "column": 4,
+        "endLine": 23,
+        "endColumn": 76,
+        "path": "development_tools\\decision_support.py",
+        "symbol": "unused-import",
+        "message": "Unused categorize_functions imported from function_discovery",
+        "message-id": "W0611"
+      }
+    ]
   },
   "development_tools/documentation_sync_checker.py": {
-    "mtime": 1764205472.2638834,
+    "mtime": 1764307676.1952105,
     "issues": [
       {
         "type": "warning",
         "module": "development_tools.documentation_sync_checker",
         "obj": "",
-        "line": 35,
+        "line": 39,
         "column": 4,
-        "endLine": 39,
+        "endLine": 44,
         "endColumn": 5,
         "path": "development_tools\\documentation_sync_checker.py",
         "symbol": "unused-import",
@@ -113,27 +140,41 @@
     ]
   },
   "development_tools/error_handling_coverage.py": {
-    "mtime": 1764068753.4577441,
-    "issues": []
+    "mtime": 1764317179.0445006,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.error_handling_coverage",
+        "obj": "",
+        "line": 17,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 9,
+        "path": "development_tools\\error_handling_coverage.py",
+        "symbol": "unused-import",
+        "message": "Unused import os",
+        "message-id": "W0611"
+      }
+    ]
   },
   "development_tools/file_rotation.py": {
     "mtime": 1764240921.2038696,
     "issues": []
   },
   "development_tools/function_discovery.py": {
-    "mtime": 1764068753.6051848,
+    "mtime": 1764310279.7507439,
     "issues": []
   },
   "development_tools/generate_function_registry.py": {
-    "mtime": 1764068753.6810317,
+    "mtime": 1764307956.5364578,
     "issues": []
   },
   "development_tools/generate_module_dependencies.py": {
-    "mtime": 1764068753.7648692,
+    "mtime": 1764317364.0793147,
     "issues": []
   },
   "development_tools/legacy_reference_cleanup.py": {
-    "mtime": 1764142823.4043508,
+    "mtime": 1764317724.8055027,
     "issues": []
   },
   "development_tools/quick_status.py": {
@@ -141,7 +182,7 @@
     "issues": []
   },
   "development_tools/regenerate_coverage_metrics.py": {
-    "mtime": 1764233631.1141145,
+    "mtime": 1764319217.1835938,
     "issues": []
   },
   "development_tools/services/__init__.py": {
@@ -153,15 +194,15 @@
     "issues": []
   },
   "development_tools/services/constants.py": {
-    "mtime": 1764204745.4857485,
+    "mtime": 1764305982.5152888,
     "issues": []
   },
   "development_tools/services/operations.py": {
-    "mtime": 1764293234.5108297,
+    "mtime": 1764321372.4402735,
     "issues": []
   },
   "development_tools/services/standard_exclusions.py": {
-    "mtime": 1764068757.5684302,
+    "mtime": 1764305681.8111546,
     "issues": []
   },
   "development_tools/system_signals.py": {
@@ -5753,6 +5794,185 @@
   },
   "tests/development_tools/test_supporting_tools.py": {
     "mtime": 1764240921.2043824,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/__init__.py": {
+    "mtime": 1762165794.944414,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/ai_tools_runner.py": {
+    "mtime": 1764136781.8316572,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/analyze_documentation.py": {
+    "mtime": 1764062445.0465665,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/audit_function_registry.py": {
+    "mtime": 1764063050.9656024,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools_backup_20251127_210407.audit_function_registry",
+        "obj": "",
+        "line": 24,
+        "column": 4,
+        "endLine": 24,
+        "endColumn": 116,
+        "path": "development_tools_backup_20251127_210407\\audit_function_registry.py",
+        "symbol": "unused-import",
+        "message": "Unused summary_block imported from services.common",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools_backup_20251127_210407.audit_function_registry",
+        "obj": "",
+        "line": 24,
+        "column": 4,
+        "endLine": 24,
+        "endColumn": 116,
+        "path": "development_tools_backup_20251127_210407\\audit_function_registry.py",
+        "symbol": "unused-import",
+        "message": "Unused write_text imported from services.common",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "development_tools_backup_20251127_210407/audit_module_dependencies.py": {
+    "mtime": 1764068752.7237158,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/audit_package_exports.py": {
+    "mtime": 1764068752.833706,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/config.py": {
+    "mtime": 1764071038.7748718,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/config_validator.py": {
+    "mtime": 1764068753.173081,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/decision_support.py": {
+    "mtime": 1764288721.1486459,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/documentation_sync_checker.py": {
+    "mtime": 1764205472.2638834,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools_backup_20251127_210407.documentation_sync_checker",
+        "obj": "",
+        "line": 35,
+        "column": 4,
+        "endLine": 39,
+        "endColumn": 5,
+        "path": "development_tools_backup_20251127_210407\\documentation_sync_checker.py",
+        "symbol": "unused-import",
+        "message": "Unused DEFAULT_DOCS imported from services.constants",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "development_tools_backup_20251127_210407/error_handling_coverage.py": {
+    "mtime": 1764068753.4577441,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/experimental/__init__.py": {
+    "mtime": 1764230888.0235286,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/experimental/auto_document_functions.py": {
+    "mtime": 1764230888.0235286,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/experimental/version_sync.py": {
+    "mtime": 1764232539.4053028,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/file_rotation.py": {
+    "mtime": 1764240921.2038696,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/function_discovery.py": {
+    "mtime": 1764068753.6051848,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/generate_function_registry.py": {
+    "mtime": 1764068753.6810317,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/generate_module_dependencies.py": {
+    "mtime": 1764068753.7648692,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/legacy_reference_cleanup.py": {
+    "mtime": 1764142823.4043508,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/quick_status.py": {
+    "mtime": 1764068753.8926904,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/regenerate_coverage_metrics.py": {
+    "mtime": 1764233631.1141145,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/services/__init__.py": {
+    "mtime": 1762166030.6289499,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/services/common.py": {
+    "mtime": 1764070145.1042209,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/services/constants.py": {
+    "mtime": 1764204745.4857485,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/services/operations.py": {
+    "mtime": 1764293234.5108297,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/services/standard_exclusions.py": {
+    "mtime": 1764068757.5684302,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/services/tool_metadata.py": {
+    "mtime": 1764230888.0230289,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/system_signals.py": {
+    "mtime": 1764240326.5125453,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/tool_guide.py": {
+    "mtime": 1764235793.9513476,
+    "issues": []
+  },
+  "development_tools_backup_20251127_210407/unused_imports_checker.py": {
+    "mtime": 1764068754.0848932,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools_backup_20251127_210407.unused_imports_checker",
+        "obj": "",
+        "line": 27,
+        "column": 0,
+        "endLine": 27,
+        "endColumn": 29,
+        "path": "development_tools_backup_20251127_210407\\unused_imports_checker.py",
+        "symbol": "unused-import",
+        "message": "Unused partial imported from functools",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "development_tools_backup_20251127_210407/validate_ai_work.py": {
+    "mtime": 1764294121.1437385,
     "issues": []
   }
 }

@@ -1,6 +1,6 @@
 {
   "generated_by": "config_validator.py - Configuration Validation Tool",
-  "last_generated": "2025-11-27 19:59:11",
+  "last_generated": "2025-11-28 03:42:30",
   "source": "python development_tools/config_validator.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "validation_results": {
@@ -52,22 +52,18 @@
         "issues": []
       },
       "documentation_sync_checker.py": {
-        "imports_config": false,
+        "imports_config": true,
         "uses_config_functions": false,
         "hardcoded_values": [],
         "config_functions_used": [],
-        "issues": [
-          "Does not import config module"
-        ]
+        "issues": []
       },
       "error_handling_coverage.py": {
-        "imports_config": false,
+        "imports_config": true,
         "uses_config_functions": false,
         "hardcoded_values": [],
         "config_functions_used": [],
-        "issues": [
-          "Does not import config module"
-        ]
+        "issues": []
       },
       "file_rotation.py": {
         "imports_config": false,
@@ -100,13 +96,11 @@
         "issues": []
       },
       "legacy_reference_cleanup.py": {
-        "imports_config": false,
+        "imports_config": true,
         "uses_config_functions": false,
         "hardcoded_values": [],
         "config_functions_used": [],
-        "issues": [
-          "Does not import config module"
-        ]
+        "issues": []
       },
       "quick_status.py": {
         "imports_config": false,
@@ -169,15 +163,7 @@
       }
     },
     "config_validation": {
-      "scan_directories_exist": [
-        "core",
-        "communication",
-        "ui",
-        "user",
-        "tasks",
-        "tests",
-        "ai"
-      ],
+      "scan_directories_exist": [],
       "missing_directories": [],
       "config_structure_valid": true,
       "issues": []
@@ -192,14 +178,8 @@
       "Fix issues in ai_tools_runner.py: Does not import config module",
       "Update analyze_documentation.py to import config module",
       "Fix issues in analyze_documentation.py: Does not import config module",
-      "Update documentation_sync_checker.py to import config module",
-      "Fix issues in documentation_sync_checker.py: Does not import config module",
-      "Update error_handling_coverage.py to import config module",
-      "Fix issues in error_handling_coverage.py: Does not import config module",
       "Update file_rotation.py to import config module",
       "Fix issues in file_rotation.py: Does not import config module",
-      "Update legacy_reference_cleanup.py to import config module",
-      "Fix issues in legacy_reference_cleanup.py: Does not import config module",
       "Update quick_status.py to import config module",
       "Fix issues in quick_status.py: Does not import config module",
       "Update system_signals.py to import config module",
@@ -212,11 +192,11 @@
       "Fix issues in validate_ai_work.py: Does not import config module"
     ],
     "summary": {
-      "tools_using_config": 9,
+      "tools_using_config": 12,
       "total_tools": 20,
       "config_valid": true,
       "config_complete": true,
-      "total_recommendations": 22
+      "total_recommendations": 16
     }
   }
 }

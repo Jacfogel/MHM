@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 # TOOL_TIER: core
-# TOOL_PORTABILITY: mhm-specific
+# TOOL_PORTABILITY: portable
 
 """
-Test Coverage Metrics Regenerator for MHM
+Test Coverage Metrics Regenerator (Portable)
 
-This script regenerates test coverage metrics and updates the 
-TEST_COVERAGE_EXPANSION_PLAN.md with current data.
+This script regenerates test coverage metrics and updates coverage plans.
+It is configurable via development_tools_config.json to work with any project's
+test setup and coverage configuration.
 
 Usage:
-    python ai_tools/regenerate_coverage_metrics.py [--update-plan] [--output-file]
+    python development_tools/regenerate_coverage_metrics.py [--update-plan] [--output-file]
 """
 
 import argparse
@@ -31,23 +32,105 @@ if str(project_root) not in sys.path:
 
 from core.logger import get_component_logger
 
+# Import config module (absolute import for portability)
+try:
+    from development_tools import config
+except ImportError:
+    # Fallback for when run as script
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+    from development_tools import config
+
+# Load external config on module import (if not already loaded)
+if config._external_config is None:
+    config.load_external_config()
+
 logger = get_component_logger("development_tools")
 
 class CoverageMetricsRegenerator:
-    """Regenerates test coverage metrics for MHM."""
+    """Regenerates test coverage metrics (portable across projects)."""
     
-    def __init__(self, project_root: str = ".", parallel: bool = True, num_workers: Optional[str] = None):
+    def __init__(self, project_root: str = ".", parallel: bool = True, num_workers: Optional[str] = None,
+                 pytest_command: Optional[List[str]] = None, coverage_config: Optional[str] = None,
+                 artifact_directories: Optional[Dict[str, str]] = None):
+        """
+        Initialize coverage metrics regenerator.
+        
+        Args:
+            project_root: Root directory of the project
+            parallel: Whether to run tests in parallel (default: True)
+            num_workers: Number of parallel workers or "auto" (default: "auto")
+            pytest_command: Optional pytest command as list (e.g., ['python', '-m', 'pytest']).
+                           If None, loads from config or uses default.
+            coverage_config: Optional path to coverage config file (e.g., 'coverage.ini').
+                            If None, loads from config or uses default.
+            artifact_directories: Optional dict with keys: html_output, archive, logs, dev_tools_html.
+                                If None, loads from config or uses defaults.
+        """
         self.project_root = Path(project_root).resolve()
+        
+        # Load coverage configuration from external config
+        coverage_config_data = config.get_external_value('coverage', {})
+        
+        # Pytest command (from parameter, config, or default)
+        if pytest_command is not None:
+            self.pytest_command = pytest_command
+        else:
+            config_pytest = coverage_config_data.get('pytest_command', [])
+            if config_pytest:
+                self.pytest_command = config_pytest if isinstance(config_pytest, list) else [config_pytest]
+            else:
+                # Default: use sys.executable with pytest module
+                self.pytest_command = [sys.executable, '-m', 'pytest']
+        
+        # Pytest base arguments (from config or default)
+        self.pytest_base_args = coverage_config_data.get('pytest_base_args', [
+            '--cov-report=term-missing',
+            '--tb=line',
+            '-q',
+            '--maxfail=5'
+        ])
+        
+        # Test directory (from config or default)
+        self.test_directory = coverage_config_data.get('test_directory', 'tests/')
+        
+        # Coverage config path (from parameter, config, or default)
+        if coverage_config is not None:
+            self.coverage_config_path = self.project_root / coverage_config
+        else:
+            config_path = coverage_config_data.get('coverage_config', 'coverage.ini')
+            self.coverage_config_path = self.project_root / config_path
+        
+        # Artifact directories (from parameter, config, or defaults)
+        if artifact_directories is not None:
+            self.artifact_dirs = artifact_directories
+        else:
+            config_artifacts = coverage_config_data.get('artifact_directories', {})
+            if config_artifacts:
+                self.artifact_dirs = config_artifacts
+            else:
+                # Generic defaults
+                self.artifact_dirs = {
+                    'html_output': 'htmlcov',
+                    'archive': 'archive/coverage_artifacts',
+                    'logs': 'development_tools/logs/coverage_regeneration',
+                    'dev_tools_html': 'development_tools/coverage_html_dev_tools'
+                }
+        
+        # Set up paths from artifact directories
         self.coverage_plan_file = self.project_root / "development_docs" / "TEST_COVERAGE_EXPANSION_PLAN.md"
-        self.coverage_config_path = self.project_root / "coverage.ini"
         self.coverage_data_file: Path = self.project_root / ".coverage"
-        self.coverage_html_dir: Path = self.project_root / "htmlcov"
-        self.coverage_logs_dir: Path = self.project_root / "development_tools" / "logs" / "coverage_regeneration"
-        self.dev_tools_coverage_config_path: Path = self.project_root / "development_tools" / "coverage_dev_tools.ini"
+        self.coverage_html_dir: Path = self.project_root / self.artifact_dirs.get('html_output', 'htmlcov')
+        self.coverage_logs_dir: Path = self.project_root / self.artifact_dirs.get('logs', 'development_tools/logs/coverage_regeneration')
+        self.archive_root: Path = self.project_root / self.artifact_dirs.get('archive', 'archive/coverage_artifacts')
+        
         # Dev tools specific coverage paths
+        self.dev_tools_coverage_config_path: Path = self.project_root / "development_tools" / "coverage_dev_tools.ini"
         self.dev_tools_coverage_data_file: Path = self.project_root / "development_tools" / ".coverage_dev_tools"
         self.dev_tools_coverage_json: Path = self.project_root / "development_tools" / "coverage_dev_tools.json"
-        self.dev_tools_coverage_html_dir: Path = self.project_root / "development_tools" / "coverage_html_dev_tools"
+        self.dev_tools_coverage_html_dir: Path = self.project_root / self.artifact_dirs.get('dev_tools_html', 'development_tools/coverage_html_dev_tools')
+        
         self.pytest_stdout_log: Optional[Path] = None
         self.pytest_stderr_log: Optional[Path] = None
         self.archived_directories: List[Dict[str, str]] = []
@@ -64,27 +147,23 @@ class CoverageMetricsRegenerator:
         self.core_modules = list(CORE_MODULES)
         
     def _configure_coverage_paths(self) -> None:
-        """Load coverage configuration paths from coverage.ini."""
+        """Load coverage configuration paths from coverage.ini (if it exists and specifies paths)."""
         if not self.coverage_config_path.exists():
-            # Fall back to defaults
-            self.coverage_data_file = self.project_root / ".coverage"
-            self.coverage_html_dir = self.project_root / "htmlcov"
+            # Fall back to defaults (already set in __init__)
             return
         
-        config = configparser.ConfigParser()
-        config.read(self.coverage_config_path)
+        coverage_ini = configparser.ConfigParser()
+        coverage_ini.read(self.coverage_config_path)
         
-        data_file = config.get('run', 'data_file', fallback='').strip()
+        # Only override if coverage.ini explicitly specifies paths
+        data_file = coverage_ini.get('run', 'data_file', fallback='').strip()
         if data_file:
             self.coverage_data_file = (self.coverage_config_path.parent / data_file).resolve()
-        else:
-            self.coverage_data_file = self.project_root / ".coverage"
         
-        html_directory = config.get('html', 'directory', fallback='').strip()
+        html_directory = coverage_ini.get('html', 'directory', fallback='').strip()
         if html_directory:
+            # Override the default HTML directory if specified in coverage.ini
             self.coverage_html_dir = (self.coverage_config_path.parent / html_directory).resolve()
-        else:
-            self.coverage_html_dir = self.project_root / "htmlcov"
         
         # Ensure parent directories exist when we later write artefacts
         self.coverage_data_file.parent.mkdir(parents=True, exist_ok=True)
@@ -305,7 +384,8 @@ class CoverageMetricsRegenerator:
                 f'--cov-config={dev_cov_config}',
                 '--tb=line',
                 '-q',
-                '--maxfail=5',
+                '--maxfail=10',  # Allow more failures before stopping (some tests may be flaky)
+                '--continue-on-collection-errors',  # Continue even if collection fails
                 'tests/development_tools/'
             ]
             
@@ -325,14 +405,7 @@ class CoverageMetricsRegenerator:
                 env=env
             )
             
-            # Log stderr if there are errors
-            if result.returncode != 0:
-                if logger:
-                    logger.warning(f"Dev tools coverage pytest exited with code {result.returncode}")
-                    if result.stderr:
-                        logger.warning(f"Pytest stderr: {result.stderr[:500]}")
-            
-            # Parse coverage results
+            # Parse coverage results (even if pytest exited with non-zero code, coverage may still be available)
             coverage_data = self.parse_coverage_output(result.stdout)
             if not coverage_data and coverage_output.exists():
                 coverage_data = self._load_coverage_json(coverage_output)
@@ -340,6 +413,17 @@ class CoverageMetricsRegenerator:
             overall_coverage = self.extract_overall_coverage(result.stdout)
             if not overall_coverage.get('overall_coverage') and coverage_output.exists():
                 overall_coverage = self._extract_overall_from_json(coverage_output)
+            
+            # Log status after attempting to extract coverage
+            if result.returncode != 0:
+                if logger:
+                    # If we successfully extracted coverage, this is just test failures (not a coverage problem)
+                    if overall_coverage.get('overall_coverage') or coverage_data:
+                        logger.info(f"Dev tools coverage pytest completed with exit code {result.returncode} (some tests failed, but coverage data was successfully collected: {overall_coverage.get('overall_coverage', 'N/A')}%)")
+                    else:
+                        logger.warning(f"Dev tools coverage pytest exited with code {result.returncode} and no coverage data could be extracted")
+                        if result.stderr:
+                            logger.warning(f"Pytest stderr: {result.stderr[:500]}")
             
             # If still no coverage data, check if the file was created
             if not overall_coverage.get('overall_coverage') and not coverage_output.exists():
@@ -815,7 +899,7 @@ class CoverageMetricsRegenerator:
             self.project_root / "tests" / "coverage_html",
             self.project_root / "tests" / "htmlcov"
         ]
-        archive_root = self.project_root / "archive" / "coverage_artifacts"
+        archive_root = self.archive_root
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         
         for legacy_dir in legacy_dirs:

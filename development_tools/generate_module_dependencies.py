@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # TOOL_TIER: core
-# TOOL_PORTABILITY: mhm-specific
+# TOOL_PORTABILITY: portable
 
 """
 Generate and update MODULE_DEPENDENCIES_DETAIL.md automatically.
@@ -9,7 +9,7 @@ Scans all .py files and creates comprehensive module dependency documentation.
 
 import ast
 from pathlib import Path
-from typing import Dict, List, Any, Tuple
+from typing import Dict, List, Any, Tuple, Optional
 from datetime import datetime
 import sys
 from pathlib import Path
@@ -35,7 +35,7 @@ from core.logger import get_component_logger
 logger = get_component_logger("development_tools")
 
 
-def extract_imports_from_file(file_path: str) -> Dict[str, List[Dict]]:
+def extract_imports_from_file(file_path: str, local_prefixes: Optional[Tuple[str, ...]] = None) -> Dict[str, List[Dict]]:
     """Extract all imports from a Python file with detailed information."""
     imports = {
         'standard_library': [],
@@ -61,7 +61,7 @@ def extract_imports_from_file(file_path: str) -> Dict[str, List[Dict]]:
                     
                     if is_standard_library(module_name):
                         imports['standard_library'].append(import_info)
-                    elif is_local_import(module_name):
+                    elif is_local_import(module_name, local_prefixes):
                         imports['local'].append(import_info)
                     else:
                         imports['third_party'].append(import_info)
@@ -85,7 +85,7 @@ def extract_imports_from_file(file_path: str) -> Dict[str, List[Dict]]:
                     
                     if is_standard_library(module_name):
                         imports['standard_library'].append(import_info)
-                    elif is_local_import(module_name):
+                    elif is_local_import(module_name, local_prefixes):
                         imports['local'].append(import_info)
                     else:
                         imports['third_party'].append(import_info)
@@ -99,8 +99,25 @@ def is_standard_library(module_name: str) -> bool:
     """Check if a module is part of the Python standard library."""
     return _is_stdlib_module(module_name)
 
-def is_local_import(module_name: str) -> bool:
-    """Check if a module is a local import (part of our project)."""
+def is_local_import(module_name: str, local_prefixes: Tuple[str, ...] = None) -> bool:
+    """
+    Check if a module is a local import (part of our project).
+    
+    Args:
+        module_name: The module name to check
+        local_prefixes: Optional tuple of module prefixes to treat as local.
+                       If None, uses LOCAL_MODULE_PREFIXES from constants (loaded from config).
+    
+    Returns:
+        True if the module is local, False otherwise.
+    """
+    if local_prefixes is not None:
+        # Use provided prefixes
+        if not module_name:
+            return False
+        base = module_name.split('.', 1)[0]
+        return base in local_prefixes
+    # Use default from constants (which loads from config)
     return _is_local_module(module_name)
 
 def format_import_details(import_info: Dict) -> str:
@@ -123,7 +140,7 @@ def format_import_details(import_info: Dict) -> str:
         items_str = ', '.join(unique_items)
         return ensure_ascii(f"{module} ({items_str})")
 
-def scan_all_python_files() -> Dict[str, Dict]:
+def scan_all_python_files(local_prefixes: Optional[Tuple[str, ...]] = None) -> Dict[str, Dict]:
     """Scan all Python files in the project and extract import information."""
     # Handle both relative and absolute imports
     try:
@@ -147,7 +164,7 @@ def scan_all_python_files() -> Dict[str, Dict]:
             relative_path = py_file.relative_to(project_root)
             file_key = str(relative_path).replace('\\', '/')
             
-            imports = extract_imports_from_file(str(py_file))
+            imports = extract_imports_from_file(str(py_file), local_prefixes=local_prefixes)
             
             results[file_key] = {
                 'imports': imports,
@@ -159,7 +176,7 @@ def scan_all_python_files() -> Dict[str, Dict]:
         if py_file.name not in ['generate_function_registry.py', 'generate_module_dependencies.py']:
             file_key = py_file.name
             
-            imports = extract_imports_from_file(str(py_file))
+            imports = extract_imports_from_file(str(py_file), local_prefixes=local_prefixes)
             
             results[file_key] = {
                 'imports': imports,
@@ -1316,10 +1333,16 @@ def analyze_dependency_patterns(actual_imports: Dict[str, Dict]) -> Dict[str, An
     
     return patterns
 
-def update_module_dependencies():
-    """Update MODULE_DEPENDENCIES_DETAIL.md and AI_MODULE_DEPENDENCIES.md with hybrid approach."""
+def update_module_dependencies(local_prefixes: Optional[Tuple[str, ...]] = None):
+    """
+    Update MODULE_DEPENDENCIES_DETAIL.md and AI_MODULE_DEPENDENCIES.md with hybrid approach.
+    
+    Args:
+        local_prefixes: Optional tuple of module prefixes to treat as local.
+                       If None, uses LOCAL_MODULE_PREFIXES from constants (loaded from config).
+    """
     logger.info("[SCAN] Scanning all Python files for imports...")
-    actual_imports = scan_all_python_files()
+    actual_imports = scan_all_python_files(local_prefixes=local_prefixes)
     
     # Read existing content to preserve manual enhancements
     detail_path = Path(__file__).parent.parent / 'development_docs' / 'MODULE_DEPENDENCIES_DETAIL.md'

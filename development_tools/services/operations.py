@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # TOOL_TIER: core
-# TOOL_PORTABILITY: mhm-specific
+# TOOL_PORTABILITY: portable
 
 
 """
@@ -38,6 +38,7 @@ from typing import Any, Dict, List, Optional, Sequence, Callable
 from collections import OrderedDict, defaultdict
 
 from .. import config
+# Load external config if path was provided (will be set by AIToolsService)
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -93,17 +94,37 @@ class AIToolsService:
 
     """Comprehensive AI tools runner optimized for AI collaboration."""
 
-    def __init__(self):
+    def __init__(self, project_root: Optional[str] = None, config_path: Optional[str] = None, 
+                 project_name: Optional[str] = None, key_files: Optional[List[str]] = None):
 
-        self.project_root = Path(config.get_project_root()).resolve()
+        # Load external config if path provided, or try to auto-load from default location
+        if config_path:
+            config.load_external_config(config_path)
+        else:
+            # Try to auto-load from development_tools/development_tools_config.json
+            config.load_external_config()
+        
+        # Use provided project_root or fall back to config
+        if project_root:
+            self.project_root = Path(project_root).resolve()
+        else:
+            self.project_root = Path(config.get_project_root()).resolve()
+        
+        # Store config_path for reference
+        self.config_path = config_path
+        
+        # Project-specific configuration (for portability)
+        # Can be overridden by external config
+        self.project_name = project_name or config.get_external_value('project.name', "Project")
+        self.key_files = key_files or config.get_external_value('project.key_files', [])
 
-        self.workflow_config = config.get_workflow_config()
+        self.workflow_config = config.get_workflow_config() or {}
 
-        self.validation_config = config.get_ai_validation_config()
+        self.validation_config = config.get_ai_validation_config() or {}
 
-        self.ai_config = config.get_ai_collaboration_config()
+        self.ai_config = config.get_ai_collaboration_config() or {}
 
-        self.audit_config = config.get_quick_audit_config()
+        self.audit_config = config.get_quick_audit_config() or {}
 
         self.results_cache = {}
 
@@ -357,7 +378,7 @@ class AIToolsService:
 
         # Build command line arguments based on exclusion configuration
 
-        args = []
+        args = ["--json"]  # Always request JSON output for parsing
 
         if self.exclusion_config.get('include_tests', False):
 
@@ -368,6 +389,15 @@ class AIToolsService:
             args.append("--include-dev-tools")
 
         result = self.run_script("function_discovery", *args)
+
+        # Parse JSON output if available
+        if result.get('success') and result.get('output'):
+            try:
+                import json
+                json_data = json.loads(result['output'])
+                result['data'] = json_data
+            except (json.JSONDecodeError, ValueError) as e:
+                logger.warning(f"Failed to parse function_discovery JSON output: {e}")
 
         return result
 
@@ -1390,7 +1420,7 @@ class AIToolsService:
 
         # Save detailed results
 
-        if self.audit_config['save_results']:
+        if (self.audit_config or {}).get('save_results', False):
 
             self._save_audit_results(successful, failed, results)
 
@@ -2030,7 +2060,7 @@ class AIToolsService:
 
                 print(f"  {metric}: {value}")
 
-        print(f"\nDetailed results saved to: {self.audit_config['results_file']}")
+        print(f"\nDetailed results saved to: {(self.audit_config or {}).get('results_file', 'development_tools/ai_audit_detailed_results.json')}")
 
         if self.audit_config.get('prioritize_issues', False):
 
@@ -2210,33 +2240,64 @@ class AIToolsService:
 
         if isinstance(data, dict):
 
-            coverage = data.get('coverage')
-
-            if coverage is not None:
-
-                coverage_str = str(coverage).strip()
-
-                try:
-
-                    metrics['doc_coverage'] = f"{float(coverage_str.strip('%')):.2f}%"
-
-                except (TypeError, ValueError):
-
-                    metrics['doc_coverage'] = coverage_str if coverage_str.endswith('%') else f"{coverage_str}%"
-
+            # Get documented count from registry
             totals = data.get('totals') if isinstance(data.get('totals'), dict) else None
+            documented = totals.get('functions_documented', 0) if isinstance(totals, dict) else 0
+
+            # Get actual total functions from function_discovery (not registry's limited count)
+            fd_metrics = self.results_cache.get('function_discovery', {}) or {}
+            actual_total = fd_metrics.get('total_functions')
+            
+            # Recalculate coverage using actual total, not registry's limited count
+            if actual_total is not None and actual_total > 0 and documented > 0:
+                coverage_pct = (documented / actual_total) * 100
+                # Only use if reasonable (not > 100%)
+                if coverage_pct <= 100:
+                    metrics['doc_coverage'] = f"{coverage_pct:.2f}%"
+                else:
+                    # Invalid - skip the wrong coverage from registry
+                    metrics['doc_coverage'] = 'Unknown'
+            else:
+                # Fallback: try to use registry's coverage but validate it
+                coverage = data.get('coverage')
+                if coverage is not None:
+                    coverage_str = str(coverage).strip()
+                    try:
+                        coverage_val = float(coverage_str.strip('%'))
+                        # Skip obviously wrong values (> 100%)
+                        if coverage_val <= 100:
+                            metrics['doc_coverage'] = f"{coverage_val:.2f}%"
+                        else:
+                            metrics['doc_coverage'] = 'Unknown'
+                    except (TypeError, ValueError):
+                        # If it's already a string and reasonable, use it
+                        if coverage_str.endswith('%'):
+                            try:
+                                val = float(coverage_str.strip('%'))
+                                if val <= 100:
+                                    metrics['doc_coverage'] = coverage_str
+                                else:
+                                    metrics['doc_coverage'] = 'Unknown'
+                            except:
+                                metrics['doc_coverage'] = 'Unknown'
+                        else:
+                            metrics['doc_coverage'] = 'Unknown'
+                else:
+                    metrics['doc_coverage'] = 'Unknown'
 
             if isinstance(totals, dict):
 
                 metrics['totals'] = totals
 
-                total_functions = totals.get('functions_found')
+                # Don't use registry's functions_found - it's only counting registry entries, not all functions
+                # Store it for reference but don't use it for calculations
+                registry_functions_found = totals.get('functions_found')
+                if registry_functions_found is not None:
+                    metrics['registry_functions_found'] = registry_functions_found  # For reference only
 
-                if total_functions is not None:
-
-                    metrics['total_functions'] = total_functions
-
-                documented = totals.get('functions_documented')
+                # Use actual total from function_discovery
+                if actual_total is not None:
+                    metrics['total_functions'] = actual_total
 
                 if documented is not None:
 
@@ -3158,31 +3219,42 @@ class AIToolsService:
 
         """Provide consistent totals across downstream documents."""
 
-        fd_metrics = self.results_cache.get('function_discovery', {}) or {}
+        results_cache = self.results_cache or {}
+        fd_metrics = results_cache.get('function_discovery', {}) or {}
 
-        ds_metrics = self.results_cache.get('decision_support_metrics', {}) or {}
+        ds_metrics = results_cache.get('decision_support_metrics', {}) or {}
 
-        audit_data = self.results_cache.get('audit_function_registry', {}) or {}
+        audit_data = results_cache.get('audit_function_registry', {}) or {}
 
         audit_totals = audit_data.get('totals') if isinstance(audit_data, dict) else {}
+        if audit_totals is None or not isinstance(audit_totals, dict):
+            audit_totals = {}
 
+        # PRIORITY: Always use function_discovery first (most accurate)
+        # Don't use audit_function_registry's functions_found - it only counts registry entries, not all functions
         total_functions = None
 
-        if isinstance(audit_totals, dict):
-
-            total_functions = audit_totals.get('functions_found')
-
-        if total_functions is None and isinstance(audit_data, dict):
-
-            total_functions = audit_data.get('total_functions')
-
-        if total_functions is None:
-
+        # First priority: function_discovery (most accurate)
+        if fd_metrics:
             total_functions = fd_metrics.get('total_functions')
 
+        # Second priority: decision_support
         if total_functions is None:
-
             total_functions = ds_metrics.get('total_functions')
+
+        # Last resort: audit_function_registry (but only if it's reasonable)
+        if total_functions is None and isinstance(audit_data, dict):
+            audit_total = audit_data.get('total_functions')
+            if audit_total is not None and isinstance(audit_total, int) and audit_total > 100:
+                # Only use if it seems reasonable (not the 11 from registry scan)
+                total_functions = audit_total
+
+        # Final fallback: audit_totals (but validate it's reasonable)
+        if total_functions is None and isinstance(audit_totals, dict):
+            registry_total = audit_totals.get('functions_found')
+            if registry_total is not None and isinstance(registry_total, int) and registry_total > 100:
+                # Only use if reasonable (not the 11 from limited registry scan)
+                total_functions = registry_total
 
         moderate = fd_metrics.get('moderate_complexity')
 
@@ -3267,48 +3339,63 @@ class AIToolsService:
 
         doc_coverage = audit_data.get('doc_coverage') if isinstance(audit_data, dict) else None
 
-        if isinstance(doc_coverage, (int, float)):
+        # Recalculate documentation coverage using actual total functions
+        # The registry's functions_found only counts functions in the registry, not all functions
+        audit_totals = audit_data.get('totals') if isinstance(audit_data, dict) else {}
+        if audit_totals is None or not isinstance(audit_totals, dict):
+            audit_totals = {}
+        documented = audit_totals.get('functions_documented', 0)
+        
+        # ALWAYS recalculate documentation coverage using actual total functions
+        # Never trust the registry's coverage calculation - it uses wrong denominator
+        if total_functions is not None and isinstance(total_functions, (int, float)) and total_functions > 0:
+            if documented > 0:
+                coverage_pct = (documented / total_functions) * 100
+                # Only use if reasonable (0-100%)
+                if 0 <= coverage_pct <= 100:
+                    doc_coverage = f"{coverage_pct:.2f}%"
+                else:
+                    doc_coverage = 'Unknown'  # Invalid calculation
+            else:
+                doc_coverage = '0.00%'  # No documented functions
+        else:
+            # Can't calculate without total - mark as unknown
+            doc_coverage = 'Unknown'
 
-            doc_coverage = f"{float(doc_coverage):.2f}%"
-
-        elif doc_coverage is None:
-
-            # Try loading from cache
-            try:
-                import json
-                results_file = self.project_root / "development_tools" / "ai_audit_detailed_results.json"
-                if results_file.exists():
-                    with open(results_file, 'r', encoding='utf-8') as f:
-                        cached_data = json.load(f)
-                    if 'results' in cached_data and 'audit_function_registry' in cached_data['results']:
-                        func_reg_data = cached_data['results']['audit_function_registry']
-                        if 'data' in func_reg_data:
-                            cached_metrics = func_reg_data['data']
-                            cached_doc_coverage = cached_metrics.get('doc_coverage')
-                            if cached_doc_coverage is not None:
-                                if isinstance(cached_doc_coverage, (int, float)):
-                                    doc_coverage = f"{float(cached_doc_coverage):.2f}%"
+        # Validate any existing doc_coverage value and reject invalid ones
+        if isinstance(doc_coverage, str):
+            # Check for obviously wrong values
+            if '12690' in doc_coverage or 'Unknown' not in doc_coverage:
+                try:
+                    # Try to parse the percentage
+                    val_str = doc_coverage.strip('%').replace(',', '')
+                    if val_str.replace('.', '').isdigit():
+                        val = float(val_str)
+                        if val > 100:
+                            # Invalid - recalculate if we have the data
+                            if total_functions and documented:
+                                coverage_pct = (documented / total_functions) * 100
+                                if 0 <= coverage_pct <= 100:
+                                    doc_coverage = f"{coverage_pct:.2f}%"
                                 else:
-                                    doc_coverage = str(cached_doc_coverage)
-            except Exception as e:
-                logger.debug(f"Failed to load doc_coverage from cache: {e}")
-                pass
-            
-            if doc_coverage is None:
-                doc_coverage = 'Unknown'
-
+                                    doc_coverage = 'Unknown'
+                            else:
+                                doc_coverage = 'Unknown'
+                except (ValueError, TypeError):
+                    # Can't parse - might be valid string like "Unknown"
+                    if '12690' in doc_coverage:
+                        doc_coverage = 'Unknown'
+        
+        if doc_coverage is None or (isinstance(doc_coverage, str) and '12690' in doc_coverage):
+            doc_coverage = 'Unknown'
+        
+        # Return metrics dict with all values
         return {
-
             'total_functions': total_functions if total_functions is not None else 'Unknown',
-
             'moderate': moderate if moderate is not None else 'Unknown',
-
             'high': high if high is not None else 'Unknown',
-
             'critical': critical if critical is not None else 'Unknown',
-
             'doc_coverage': doc_coverage
-
         }
 
     def _extract_actionable_insights(self, output: str) -> str:
@@ -3481,34 +3568,57 @@ class AIToolsService:
             return self._format_percentage(value, decimals)
 
         metrics = self._get_canonical_metrics()
+        if not isinstance(metrics, dict):
+            metrics = {}
 
-        doc_metrics = self.results_cache.get('audit_function_registry', {}) or {}
+        results_cache = self.results_cache or {}
+        doc_metrics = results_cache.get('audit_function_registry', {}) or {}
 
-        error_metrics = self.results_cache.get('error_handling_coverage', {}) or {}
+        error_metrics = results_cache.get('error_handling_coverage', {}) or {}
 
-        function_metrics = self.results_cache.get('function_discovery', {}) or {}
+        function_metrics = results_cache.get('function_discovery', {}) or {}
 
-        analyze_docs = self.results_cache.get('analyze_documentation', {}) or {}
+        analyze_docs = results_cache.get('analyze_documentation', {}) or {}
 
-        doc_coverage = doc_metrics.get('doc_coverage', metrics['doc_coverage'])
+        doc_coverage = doc_metrics.get('doc_coverage', metrics.get('doc_coverage', 'Unknown'))
 
         missing_docs = doc_metrics.get('missing_docs') or doc_metrics.get('missing_items')
 
         missing_files = self._get_missing_doc_files(limit=4)
 
         error_coverage = error_metrics.get('error_handling_coverage')
-
-        missing_error_handlers = error_metrics.get('functions_missing_error_handling')
+        
+        # Recalculate error handling coverage using canonical function count for consistency
+        error_total = error_metrics.get('total_functions')
+        error_with_handling = error_metrics.get('functions_with_error_handling')
+        canonical_total = metrics.get('total_functions')
+        
+        if error_coverage is not None and canonical_total and error_total and error_with_handling:
+            # If error_handling used a different total, recalculate for consistency
+            if error_total != canonical_total:
+                recalc_coverage = (error_with_handling / canonical_total) * 100
+                if 0 <= recalc_coverage <= 100:
+                    error_coverage = recalc_coverage
+                    # Also update missing count
+                    missing_error_handlers = canonical_total - error_with_handling
+                else:
+                    missing_error_handlers = error_metrics.get('functions_missing_error_handling')
+            else:
+                missing_error_handlers = error_metrics.get('functions_missing_error_handling')
+        else:
+            missing_error_handlers = error_metrics.get('functions_missing_error_handling')
 
         worst_error_modules = error_metrics.get('worst_modules') or []
 
-        coverage_summary = self._load_coverage_summary()
+        coverage_summary = self._load_coverage_summary() or {}
         
         # Load dev tools coverage if not already loaded
         if not hasattr(self, 'dev_tools_coverage_results') or not self.dev_tools_coverage_results:
             self._load_dev_tools_coverage()
 
         doc_sync_summary = self.docs_sync_summary or {}
+        if not isinstance(doc_sync_summary, dict):
+            doc_sync_summary = {}
 
         legacy_summary = self.legacy_cleanup_summary or {}
 
@@ -3561,9 +3671,6 @@ class AIToolsService:
             except Exception as e:
                 logger.debug(f"Failed to load metrics from cache: {e}")
                 pass
-            moderate = metrics.get('moderate', 'Unknown')
-            high = metrics.get('high', 'Unknown')
-            critical = metrics.get('critical', 'Unknown')
         
         if total_functions == 'Unknown':
             lines.append("- **Total Functions**: Run `python development_tools/ai_tools_runner.py audit --fast` for detailed metrics")
@@ -3983,7 +4090,13 @@ class AIToolsService:
 
             lines.append(f"- **Undocumented Functions**: {', '.join(formatted)}")
 
-        if not (critical_examples or high_examples or undocumented_examples):
+        # Always display canonical metrics (even if we showed examples above)
+        # This ensures consistency with Snapshot section
+        if moderate != 'Unknown' and moderate is not None:
+            lines.append(f"- **Complexity Distribution**: Moderate: {moderate}, High: {high}, Critical: {critical}")
+            if total_functions != 'Unknown' and total_functions is not None:
+                lines.append(f"- **Total Functions**: {total_functions}")
+        elif not (critical_examples or high_examples or undocumented_examples):
             # Try to load cached complexity data
             moderate = 'Unknown'
             high = 'Unknown'
@@ -4052,6 +4165,21 @@ class AIToolsService:
                                         totals = afr_data['data']['totals']
                                         total_functions = totals.get('functions_found', 'Unknown')
                     
+                    # Update metrics if we found them in cache
+                    if moderate != 'Unknown' and moderate is not None:
+                        # Update metrics dict for consistency
+                        metrics['moderate'] = moderate
+                        metrics['high'] = high
+                        metrics['critical'] = critical
+                        if total_functions != 'Unknown' and total_functions is not None:
+                            metrics['total_functions'] = total_functions
+                    
+                    # Always use canonical metrics for display (re-read from metrics dict)
+                    moderate = metrics.get('moderate', 'Unknown')
+                    high = metrics.get('high', 'Unknown')
+                    critical = metrics.get('critical', 'Unknown')
+                    total_functions = metrics.get('total_functions', 'Unknown')
+                    
                     if moderate != 'Unknown' and moderate is not None:
                         lines.append(f"- **Complexity Distribution**: Moderate: {moderate}, High: {high}, Critical: {critical}")
                         if total_functions != 'Unknown' and total_functions is not None:
@@ -4070,9 +4198,9 @@ class AIToolsService:
 
         dev_tools_insights = self._get_dev_tools_coverage_insights()
 
-        if coverage_summary:
+        if coverage_summary and isinstance(coverage_summary, dict):
 
-            overall = coverage_summary['overall']
+            overall = coverage_summary.get('overall') or {}
 
             lines.append(
 
@@ -4088,7 +4216,7 @@ class AIToolsService:
 
                 lines.append(f"- **Report Timestamp**: {generated}")
 
-            module_gaps = coverage_summary['modules'][:3]
+            module_gaps = (coverage_summary.get('modules') or [])[:3]
 
             if module_gaps:
 
@@ -4102,7 +4230,7 @@ class AIToolsService:
 
                 lines.append(f"- **Lowest Modules**: {', '.join(descriptions)}")
 
-            worst_files = coverage_summary.get('worst_files') or []
+            worst_files = (coverage_summary or {}).get('worst_files') or []
 
             if worst_files:
 
@@ -4297,6 +4425,7 @@ class AIToolsService:
         else:
             # Try to load cached system signals if not available in memory
             signals_loaded = False
+            system_signals = None
             try:
                 import json
                 results_file = self.project_root / "development_tools" / "ai_audit_detailed_results.json"
@@ -4312,6 +4441,7 @@ class AIToolsService:
                             system_signals = signals_data
                         
                         if system_signals:
+                            signals_loaded = True
                             system_health = system_signals.get('system_health', {})
                             overall_status = system_health.get('overall_status')
                             if overall_status:
@@ -4420,15 +4550,37 @@ class AIToolsService:
         if not isinstance(analyze_data, dict):
             analyze_data = {}
 
-        doc_coverage_value = doc_metrics.get('doc_coverage')
-        if doc_coverage_value is None:
-            doc_coverage_value = metrics.get('doc_coverage')
+        # Get doc coverage from canonical metrics first (most accurate)
+        doc_coverage_value = metrics.get('doc_coverage')
+        if doc_coverage_value is None or doc_coverage_value == 'Unknown':
+            # Fallback to doc_metrics
+            doc_coverage_value = doc_metrics.get('doc_coverage')
 
         missing_docs_count = to_int(doc_metrics.get('missing_docs') or doc_metrics.get('missing_items'))
         missing_doc_files = doc_metrics.get('missing_files') or self._get_missing_doc_files(limit=5)
 
         error_coverage = error_metrics.get('error_handling_coverage')
-        missing_error_handlers = to_int(error_metrics.get('functions_missing_error_handling'))
+        
+        # Recalculate error handling coverage using canonical function count for consistency
+        error_total = error_metrics.get('total_functions')
+        error_with_handling = error_metrics.get('functions_with_error_handling')
+        canonical_total = metrics.get('total_functions')
+        
+        if error_coverage is not None and canonical_total and error_total and error_with_handling:
+            # If error_handling used a different total, recalculate for consistency
+            if error_total != canonical_total:
+                recalc_coverage = (error_with_handling / canonical_total) * 100
+                if 0 <= recalc_coverage <= 100:
+                    error_coverage = recalc_coverage
+                    # Also update missing count
+                    missing_error_handlers = canonical_total - error_with_handling
+                else:
+                    missing_error_handlers = to_int(error_metrics.get('functions_missing_error_handling'))
+            else:
+                missing_error_handlers = to_int(error_metrics.get('functions_missing_error_handling'))
+        else:
+            missing_error_handlers = to_int(error_metrics.get('functions_missing_error_handling'))
+        
         worst_error_modules = error_metrics.get('worst_modules') or []
 
         path_drift_count = to_int(doc_sync_summary.get('path_drift_issues')) if doc_sync_summary else None
@@ -4446,14 +4598,14 @@ class AIToolsService:
         coverage_overall = None
         worst_coverage_files: List[Dict[str, Any]] = []
         if coverage_summary:
-            coverage_overall = coverage_summary.get('overall')
-            module_entries = coverage_summary.get('modules') or []
+            coverage_overall = (coverage_summary or {}).get('overall')
+            module_entries = (coverage_summary or {}).get('modules') or []
             for module in module_entries:
                 coverage_value = to_float(module.get('coverage'))
                 if coverage_value is not None and coverage_value < 80:
                     low_coverage_modules.append(module)
             low_coverage_modules = low_coverage_modules[:3]
-            worst_coverage_files = coverage_summary.get('worst_files') or []
+            worst_coverage_files = (coverage_summary or {}).get('worst_files') or []
         
         # Get dev tools coverage if available
         dev_tools_coverage_overall = None
@@ -4571,7 +4723,7 @@ class AIToolsService:
                     f"Most common: {self._format_list_for_display(exc_details, limit=3)}"
                 )
             phase2_bullets.append(
-                "Replace generic exceptions (ValueError, Exception, KeyError, TypeError) with specific MHMError subclasses."
+                "Replace generic exceptions (ValueError, Exception, KeyError, TypeError) with specific project error classes."
             )
             phase2_bullets.append(
                 "See `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` for categorization rules."
@@ -4579,7 +4731,7 @@ class AIToolsService:
             add_priority(
                 order=4,
                 title="Phase 2: Categorize generic exceptions",
-                reason=f"{phase2_total} generic exception raises need categorization into MHMError subclasses.",
+                reason=f"{phase2_total} generic exception raises need categorization into project-specific error classes.",
                 bullets=phase2_bullets
             )
         
@@ -4946,11 +5098,51 @@ class AIToolsService:
 
         issues_file = self.audit_config.get('issues_file', 'development_tools/critical_issues.txt')
 
+        # Recalculate doc_coverage if Unknown (same logic as Documentation Findings section)
+        # Do this BEFORE Executive Summary so it's available for display
+        if doc_coverage == 'Unknown' or doc_coverage is None:
+            results_cache = self.results_cache or {}
+            audit_data = results_cache.get('audit_function_registry', {}) or {}
+            audit_totals = audit_data.get('totals') if isinstance(audit_data, dict) else {}
+            if audit_totals is None or not isinstance(audit_totals, dict):
+                audit_totals = {}
+            documented = audit_totals.get('functions_documented', 0)
+            total_funcs = metrics.get('total_functions')
+            if total_funcs and isinstance(total_funcs, (int, float)) and total_funcs > 0 and documented > 0:
+                coverage_pct = (documented / total_funcs) * 100
+                if 0 <= coverage_pct <= 100:
+                    doc_coverage = f"{coverage_pct:.2f}%"
+
         lines.append("## Executive Summary")
 
         lines.append(f"- Documentation coverage {percent_text(doc_coverage, 2)} with {missing_docs or 0} registry gaps")
 
         error_cov = error_metrics.get('error_handling_coverage')
+        
+        # Recalculate error handling coverage using canonical function count for consistency
+        # error_handling_coverage might use a different total (including tests/dev tools)
+        # but we want to show coverage against the same function set as other metrics
+        error_total = error_metrics.get('total_functions')
+        error_with_handling = error_metrics.get('functions_with_error_handling')
+        canonical_total = metrics.get('total_functions')
+        
+        if error_cov is not None and canonical_total and error_total and error_with_handling:
+            # If error_handling used a different total, recalculate for consistency
+            if error_total != canonical_total:
+                # Recalculate coverage using canonical total
+                recalc_coverage = (error_with_handling / canonical_total) * 100
+                if 0 <= recalc_coverage <= 100:
+                    error_cov = recalc_coverage
+                    # Also update missing count
+                    missing_error_handlers = canonical_total - error_with_handling
+                else:
+                    # If recalculation gives > 100%, it means error_with_handling includes functions from tests/dev tools
+                    # that aren't in canonical_total. In this case, we can't accurately recalculate.
+                    # Use the original value but note it might be based on a different function set.
+                    pass
+            elif error_total == canonical_total:
+                # Same total, use the original coverage value
+                missing_error_handlers = error_metrics.get('functions_missing_error_handling', 0)
 
         if error_cov is not None:
 
@@ -4960,9 +5152,10 @@ class AIToolsService:
 
         if coverage_summary:
 
-            overall_cov = coverage_summary['overall'].get('coverage')
+            overall = coverage_summary.get('overall') or {}
+            overall_cov = overall.get('coverage')
 
-            lines.append(f"- Test coverage {percent_text(overall_cov, 1)} across {coverage_summary['overall'].get('statements', 0)} statements")
+            lines.append(f"- Test coverage {percent_text(overall_cov, 1)} across {overall.get('statements', 0)} statements")
             
             if dev_tools_insights and dev_tools_insights.get('overall_pct') is not None:
                 dev_pct = dev_tools_insights['overall_pct']
@@ -5055,6 +5248,21 @@ class AIToolsService:
 
         lines.append("## Documentation Findings")
 
+        # Use canonical metrics for doc_coverage (same as AI_STATUS.md)
+        doc_coverage = metrics.get('doc_coverage', 'Unknown')
+        if doc_coverage == 'Unknown' or doc_coverage is None:
+            # Recalculate if we have the data
+            audit_data = results_cache.get('audit_function_registry', {}) or {}
+            audit_totals = audit_data.get('totals') if isinstance(audit_data, dict) else {}
+            if audit_totals is None or not isinstance(audit_totals, dict):
+                audit_totals = {}
+            documented = audit_totals.get('functions_documented', 0)
+            total_funcs = metrics.get('total_functions')
+            if total_funcs and isinstance(total_funcs, (int, float)) and total_funcs > 0 and documented > 0:
+                coverage_pct = (documented / total_funcs) * 100
+                if 0 <= coverage_pct <= 100:
+                    doc_coverage = f"{coverage_pct:.2f}%"
+        
         lines.append(f"- **Coverage**: {percent_text(doc_coverage, 2)}")
 
         if missing_docs:
@@ -5132,6 +5340,26 @@ class AIToolsService:
         lines.append("## Error Handling Analysis")
 
         if error_metrics:
+            # Use recalculated error_cov from Executive Summary section (already calculated above)
+            # If not recalculated, get from error_metrics
+            if 'error_cov' not in locals() or error_cov is None:
+                error_cov = error_metrics.get('error_handling_coverage')
+                # Recalculate if needed
+                error_total = error_metrics.get('total_functions')
+                error_with_handling = error_metrics.get('functions_with_error_handling')
+                canonical_total = metrics.get('total_functions')
+                if error_cov is not None and canonical_total and error_total and error_with_handling:
+                    if error_total != canonical_total:
+                        recalc_coverage = (error_with_handling / canonical_total) * 100
+                        if 0 <= recalc_coverage <= 100:
+                            error_cov = recalc_coverage
+                            missing_error_handlers = canonical_total - error_with_handling
+                        else:
+                            missing_error_handlers = error_metrics.get('functions_missing_error_handling', 0)
+                    else:
+                        missing_error_handlers = error_metrics.get('functions_missing_error_handling', 0)
+                else:
+                    missing_error_handlers = error_metrics.get('functions_missing_error_handling', 0)
 
             lines.append(f"- **Coverage**: {percent_text(error_cov, 1)}")
 
@@ -5233,13 +5461,13 @@ class AIToolsService:
 
         lines.append("## Testing & Coverage")
 
-        if coverage_summary:
+        if coverage_summary and isinstance(coverage_summary, dict):
 
-            overall = coverage_summary['overall']
+            overall = coverage_summary.get('overall') or {}
 
             lines.append(f"- **Overall Coverage**: {percent_text(overall.get('coverage'), 1)} ({overall.get('covered')} of {overall.get('statements')} statements)")
 
-            module_gaps = [m for m in coverage_summary['modules'] if m.get('coverage', 100) < 90]
+            module_gaps = [m for m in (coverage_summary.get('modules') or []) if m.get('coverage', 100) < 90]
 
             if module_gaps:
 
@@ -5253,7 +5481,7 @@ class AIToolsService:
 
                 lines.append(f"- **Modules Below Target**: {', '.join(module_descriptions)}")
 
-            worst_files = coverage_summary.get('worst_files') or []
+            worst_files = (coverage_summary or {}).get('worst_files') or []
 
             if worst_files:
 
@@ -5606,11 +5834,9 @@ class AIToolsService:
 
         status_lines.append("=" * 30)
 
-        # Check key files
+        # Check key files (configurable for portability)
 
-        key_files = ['run_mhm.py', 'core/service.py', 'core/config.py']
-
-        for file_path in key_files:
+        for file_path in self.key_files:
 
             if Path(file_path).exists():
 
@@ -5622,7 +5848,7 @@ class AIToolsService:
 
         # Check recent audit results
 
-        results_file_name = self.audit_config['results_file']
+        results_file_name = (self.audit_config or {}).get('results_file', 'development_tools/ai_audit_detailed_results.json')
 
         for prefix in ('ai_tools/', 'development_tools/'):
 
@@ -5748,7 +5974,7 @@ class AIToolsService:
 
         print("AI Development Tools Runner")
         print("=" * 50)
-        print("Comprehensive AI collaboration tools for the MHM project")
+        print(f"Comprehensive AI collaboration tools for the {self.project_name} project")
         print()
         print("USAGE:")
         print("  python development_tools/ai_tools_runner.py <command> [options]")

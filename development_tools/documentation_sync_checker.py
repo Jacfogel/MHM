@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # TOOL_TIER: core
-# TOOL_PORTABILITY: mhm-specific
+# TOOL_PORTABILITY: portable
 
 """
-Documentation Synchronization Checker for MHM
+Documentation Synchronization Checker
 
 This script helps identify and fix documentation synchronization issues:
 - Flags outdated documentation paths during refactors
@@ -11,15 +11,18 @@ This script helps identify and fix documentation synchronization issues:
 - Identifies path drift between code and documentation
 - Generates directory trees for documentation
 
+Configuration is loaded from external config file (development_tools_config.json)
+if available, making this tool portable across different projects.
+
 Usage:
-    python ai_tools/documentation_sync_checker.py [--check] [--fix] [--generate-trees]
+    python development_tools/documentation_sync_checker.py [--check] [--fix] [--generate-trees]
 """
 
 import re
 import argparse
 import sys
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Optional
 from collections import defaultdict
 
 # Add project root to path for core module imports
@@ -31,18 +34,22 @@ from core.logger import get_component_logger
 
 # Handle both relative and absolute imports
 try:
+    from . import config
     from .services.standard_exclusions import should_exclude_file
     from .services.constants import (
         COMMAND_PATTERNS, COMMON_CLASS_NAMES, COMMON_CODE_PATTERNS,
         COMMON_FUNCTION_NAMES, COMMON_VARIABLE_NAMES, DEFAULT_DOCS, IGNORED_PATH_PATTERNS,
-        PAIRED_DOCS, STANDARD_LIBRARY_MODULES, TEMPLATE_PATTERNS, THIRD_PARTY_LIBRARIES
+        PAIRED_DOCS, STANDARD_LIBRARY_MODULES, TEMPLATE_PATTERNS, THIRD_PARTY_LIBRARIES,
+        CORE_MODULES
     )
 except ImportError:
+    from development_tools import config
     from development_tools.services.standard_exclusions import should_exclude_file
     from development_tools.services.constants import (
         COMMAND_PATTERNS, COMMON_CLASS_NAMES, COMMON_CODE_PATTERNS,
         COMMON_FUNCTION_NAMES, COMMON_VARIABLE_NAMES, DEFAULT_DOCS, IGNORED_PATH_PATTERNS,
-        PAIRED_DOCS, STANDARD_LIBRARY_MODULES, TEMPLATE_PATTERNS, THIRD_PARTY_LIBRARIES
+        PAIRED_DOCS, STANDARD_LIBRARY_MODULES, TEMPLATE_PATTERNS, THIRD_PARTY_LIBRARIES,
+        CORE_MODULES
     )
 
 logger = get_component_logger("development_tools")
@@ -50,8 +57,20 @@ logger = get_component_logger("development_tools")
 class DocumentationSyncChecker:
     """Checks and maintains documentation synchronization."""
     
-    def __init__(self, project_root: str = "."):
-        self.project_root = Path(project_root).resolve()
+    def __init__(self, project_root: Optional[str] = None, config_path: Optional[str] = None):
+        # Load external config if provided
+        if config_path:
+            config.load_external_config(config_path)
+        else:
+            config.load_external_config()
+        
+        # Use provided project_root or get from config
+        if project_root:
+            self.project_root = Path(project_root).resolve()
+        else:
+            self.project_root = Path(config.get_project_root()).resolve()
+        
+        # Load paired docs from constants (which loads from config)
         self.paired_docs = dict(PAIRED_DOCS)
         
         # Common path patterns that might drift - improved precision
@@ -67,8 +86,18 @@ class DocumentationSyncChecker:
             r'import\s+([a-zA-Z_][a-zA-Z0-9_.]*)',
         ]
         
-        # Directories to scan for code references
-        self.code_dirs = ['core', 'communication', 'ui', 'tasks', 'user', 'ai']
+        # Directories to scan for code references - load from config
+        # Use CORE_MODULES from constants (which loads from config) or fall back to scan_directories
+        if CORE_MODULES:
+            self.code_dirs = list(CORE_MODULES)
+        else:
+            # Fall back to scan_directories from config
+            scan_dirs = config.get_scan_directories()
+            self.code_dirs = scan_dirs if scan_dirs else ['core']  # Generic default
+        
+        # Get paths config for output directories
+        paths_config = config.get_paths_config()
+        self.docs_dir = paths_config.get('development_docs_dir', 'development_docs')
         
     def scan_codebase_paths(self) -> Set[str]:
         """Scan codebase for all file paths and imports."""
@@ -602,9 +631,13 @@ class DocumentationSyncChecker:
         
         return False
     
-    def generate_directory_tree(self, output_file: str = "development_docs/DIRECTORY_TREE.md") -> str:
+    def generate_directory_tree(self, output_file: Optional[str] = None) -> str:
         """Generate a directory tree for documentation with placeholders for certain directories."""
         import subprocess
+        
+        # Use provided output_file or default from config
+        if output_file is None:
+            output_file = f"{self.docs_dir}/DIRECTORY_TREE.md"
         
         # Run tree command
         result = subprocess.run(['tree', '/F', '/A'], capture_output=True, text=True, shell=True)
@@ -659,7 +692,7 @@ class DocumentationSyncChecker:
         header = [
             "# Project Directory Tree",
             "",
-            "> **File**: `development_docs/DIRECTORY_TREE.md`",
+            f"> **File**: `{output_file}`",
             "> **Generated**: This file is auto-generated. Do not edit manually.",
             ""
         ]
