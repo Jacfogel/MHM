@@ -288,4 +288,7 @@ if __name__ == "__main__":
     result = validate_ai_work("documentation", 
                               doc_file="README.md", 
                               code_files=["core/config.py", "core/service.py"])
+    # Print to stdout so subprocess.run can capture it
+    print(result)
+    # Also log for debugging
     logger.info(result) 

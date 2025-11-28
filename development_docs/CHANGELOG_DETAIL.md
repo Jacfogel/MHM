@@ -39,6 +39,31 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-27 - Phase 5 Development Tools: Documentation Alignment and Audit Data Capture Fixes **COMPLETED**
+- **Feature**: Completed Phase 5 of the AI Development Tools Improvement Plan and fixed audit data capture issues for complexity metrics, validation results, and system signals.
+- **Technical Changes**:
+  1. **Phase 5 Milestone M5.2 - Standard Audit Recipe**:
+     - Added "## 10. Standard Audit Recipe" section to `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`
+     - Documented when to run `audit` (day-to-day), `audit --full` (pre-merge/pre-release), `doc-sync` and `docs` (doc work), and `status` (quick snapshot)
+     - Included reference to `AI_DEVELOPMENT_TOOLS_GUIDE.md` for detailed usage
+  2. **Phase 5 Milestone M5.3 - Session Starter Routing**:
+     - Updated `ai_development_docs/AI_SESSION_STARTER.md` with routing guidance for development tools tasks
+     - Added primary routing to `AI_DEVELOPMENT_TOOLS_GUIDE.md` when tasks touch dev tools
+     - Integrated development tooling section in "2. Quick Reference" with specific command routing
+  3. **Audit Data Capture Fixes**:
+     - **Complexity Metrics**: Fixed extraction from `decision_support.py` output, enhanced cache loading in `_get_canonical_metrics()` to parse `audit_function_registry` data, added complexity priority to `AI_PRIORITIES.md` when critical/high complexity functions exist
+     - **Validation Results**: Fixed `validate_ai_work.py` to print to stdout (was only logging), enhanced cache loading to handle nested JSON structures in both `_generate_ai_status_document()` and `_generate_consolidated_report()`
+     - **System Signals**: Ensured `_save_additional_tool_results()` is called after `run_system_signals()` in status command, enhanced cache loading to properly extract system health and activity data
+     - **Cache Loading**: Enhanced all three report generation methods (`_generate_ai_status_document`, `_generate_consolidated_report`, `_generate_ai_priorities_document`) to robustly load missing data from `ai_audit_detailed_results.json` when instance attributes are missing
+- **Files Modified**:
+  - `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md` - Added standard audit recipe section
+  - `ai_development_docs/AI_SESSION_STARTER.md` - Added dev tools routing guidance
+  - `development_tools/services/operations.py` - Fixed complexity extraction, validation loading, system signals saving, cache loading logic, added complexity priority generation
+  - `development_tools/decision_support.py` - Enhanced to output parseable metrics to stdout
+  - `development_tools/validate_ai_work.py` - Fixed to print results to stdout for subprocess capture
+  - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md` - Marked Phase 5 as completed
+- **Impact**: All audit data (complexity, validation, system signals) now correctly appears in generated reports (`AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.txt`). Phase 5 documentation alignment complete, making the tooling ecosystem more understandable and predictable for both humans and AI helpers. Complexity refactoring priority now appears in `AI_PRIORITIES.md` when needed.
+
 ### 2025-11-27 - Phase 4 Development Tools: Experimental Tools Organization, Tier-2 Analysis, Coverage Tracking, and Supporting Tools Tests **COMPLETED**
 - **Feature**: Completed all milestones of Phase 4 of the AI Development Tools Improvement Plan: moved experimental tools to dedicated directory, analyzed and documented Tier-2 tool recommendations, added development tools coverage tracking, and created regression tests for supporting tools.
 - **Technical Changes**:

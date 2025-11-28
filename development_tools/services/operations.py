@@ -718,6 +718,9 @@ class AIToolsService:
                 # Run other AI development tools to contribute to AI documents FIRST
 
                 self._run_contributing_tools()
+                
+                # Save additional tool results to cached file
+                self._save_additional_tool_results()
 
             else:
 
@@ -795,7 +798,7 @@ class AIToolsService:
         try:
             import json
             from datetime import datetime
-            results_file = Path("development_tools/ai_audit_detailed_results.json")
+            results_file = self.project_root / "development_tools" / "ai_audit_detailed_results.json"
             
             # Load existing results
             if results_file.exists():
@@ -825,6 +828,17 @@ class AIToolsService:
                 cached_data['results']['system_signals'] = {
                     'success': True,
                     'data': self.system_signals,
+                    'timestamp': datetime.now().isoformat()
+                }
+            
+            # Add decision_support metrics if available
+            decision_metrics = self.results_cache.get('decision_support_metrics', {})
+            if decision_metrics:
+                cached_data['results']['decision_support'] = {
+                    'success': True,
+                    'data': {
+                        'decision_support_metrics': decision_metrics
+                    },
                     'timestamp': datetime.now().isoformat()
                 }
             
@@ -880,6 +894,11 @@ class AIToolsService:
             self.run_function_discovery()
         except Exception as exc:
             logger.error(f"  - Function discovery failed: {exc}")
+        try:
+            logger.info("  - Running decision support for complexity insights...")
+            self.run_decision_support()
+        except Exception as exc:
+            logger.error(f"  - Decision support failed: {exc}")
         try:
             logger.info("  - Running error handling coverage analysis...")
             self.run_error_handling_coverage()
@@ -1401,13 +1420,14 @@ class AIToolsService:
 
             logger.info(insights)
 
-            return True
+            # Return the result dict so metrics can be extracted
+            return result
 
         else:
 
             logger.error(f"Decision support failed: {result['error']}")
 
-            return False
+            return result
 
     def run_version_sync(self, scope: str = 'docs'):
 
@@ -1507,6 +1527,9 @@ class AIToolsService:
             # Run system signals generator
             logger.info("Generating system signals...")
             self.run_system_signals()
+            
+            # Save additional tool results to cached file (including system signals)
+            self._save_additional_tool_results()
 
             # Generate all three status files with current data
             logger.info("Generating status files...")
@@ -2315,6 +2338,10 @@ class AIToolsService:
 
         metrics: Dict[str, Any] = {}
 
+        # Debug: log first few lines to verify output format
+        if lines and len(lines) > 0:
+            logger.debug(f"decision_support output sample (first 10 lines): {lines[:10]}")
+
         for raw_line in lines:
 
             line = raw_line.strip()
@@ -2390,6 +2417,12 @@ class AIToolsService:
             metrics['decision_support_items'] = len(insights)
 
             metrics['decision_support_sample'] = insights[:5]
+
+        # Debug: log extracted metrics
+        if metrics:
+            logger.debug(f"Extracted decision_support metrics: {metrics}")
+        else:
+            logger.warning("No metrics extracted from decision_support output")
 
         self.results_cache['decision_support_metrics'] = metrics
 
@@ -3168,6 +3201,69 @@ class AIToolsService:
         if critical is None:
 
             critical = ds_metrics.get('critical_complexity')
+        
+        # If still missing, try loading from cache
+        if total_functions is None or moderate is None or high is None or critical is None:
+            try:
+                import json
+                results_file = self.project_root / "development_tools" / "ai_audit_detailed_results.json"
+                if results_file.exists():
+                    with open(results_file, 'r', encoding='utf-8') as f:
+                        cached_data = json.load(f)
+                    
+                    # Try function_discovery first
+                    if 'results' in cached_data and 'function_discovery' in cached_data['results']:
+                        func_data = cached_data['results']['function_discovery']
+                        if 'data' in func_data:
+                            cached_metrics = func_data['data']
+                            if total_functions is None:
+                                total_functions = cached_metrics.get('total_functions')
+                            if moderate is None:
+                                moderate = cached_metrics.get('moderate_complexity')
+                            if high is None:
+                                high = cached_metrics.get('high_complexity')
+                            if critical is None:
+                                critical = cached_metrics.get('critical_complexity')
+                    
+                    # Fallback to decision_support
+                    if (total_functions is None or moderate is None or high is None or critical is None) and 'results' in cached_data:
+                        if 'decision_support' in cached_data['results']:
+                            ds_data = cached_data['results']['decision_support']
+                            if 'data' in ds_data and 'decision_support_metrics' in ds_data['data']:
+                                cached_ds_metrics = ds_data['data']['decision_support_metrics']
+                                if total_functions is None:
+                                    total_functions = cached_ds_metrics.get('total_functions')
+                                if moderate is None:
+                                    moderate = cached_ds_metrics.get('moderate_complexity')
+                                if high is None:
+                                    high = cached_ds_metrics.get('high_complexity')
+                                if critical is None:
+                                    critical = cached_ds_metrics.get('critical_complexity')
+                    
+                    # Fallback to audit_function_registry - parse high_complexity array
+                    if (high is None or critical is None) and 'results' in cached_data:
+                        if 'audit_function_registry' in cached_data['results']:
+                            afr_data = cached_data['results']['audit_function_registry']
+                            if 'data' in afr_data and 'analysis' in afr_data['data']:
+                                analysis = afr_data['data']['analysis']
+                                high_complexity_array = analysis.get('high_complexity', [])
+                                if isinstance(high_complexity_array, list):
+                                    # Count by thresholds: MODERATE=50, HIGH=100, CRITICAL=200
+                                    critical_count = sum(1 for f in high_complexity_array 
+                                                        if isinstance(f, dict) and f.get('complexity', 0) >= 200)
+                                    high_count = sum(1 for f in high_complexity_array 
+                                                   if isinstance(f, dict) and 100 <= f.get('complexity', 0) < 200)
+                                    if critical is None:
+                                        critical = critical_count
+                                    if high is None:
+                                        high = high_count
+                                    # For moderate, we'd need all functions, but we can estimate if we have total
+                                    if moderate is None and total_functions is not None and isinstance(total_functions, int):
+                                        # Estimate: total - high - critical (approximate, may include low complexity)
+                                        moderate = max(0, total_functions - high_count - critical_count)
+            except Exception as e:
+                logger.debug(f"Failed to load metrics from cache in _get_canonical_metrics: {e}")
+                pass
 
         doc_coverage = audit_data.get('doc_coverage') if isinstance(audit_data, dict) else None
 
@@ -3177,7 +3273,29 @@ class AIToolsService:
 
         elif doc_coverage is None:
 
-            doc_coverage = 'Unknown'
+            # Try loading from cache
+            try:
+                import json
+                results_file = self.project_root / "development_tools" / "ai_audit_detailed_results.json"
+                if results_file.exists():
+                    with open(results_file, 'r', encoding='utf-8') as f:
+                        cached_data = json.load(f)
+                    if 'results' in cached_data and 'audit_function_registry' in cached_data['results']:
+                        func_reg_data = cached_data['results']['audit_function_registry']
+                        if 'data' in func_reg_data:
+                            cached_metrics = func_reg_data['data']
+                            cached_doc_coverage = cached_metrics.get('doc_coverage')
+                            if cached_doc_coverage is not None:
+                                if isinstance(cached_doc_coverage, (int, float)):
+                                    doc_coverage = f"{float(cached_doc_coverage):.2f}%"
+                                else:
+                                    doc_coverage = str(cached_doc_coverage)
+            except Exception as e:
+                logger.debug(f"Failed to load doc_coverage from cache: {e}")
+                pass
+            
+            if doc_coverage is None:
+                doc_coverage = 'Unknown'
 
         return {
 
@@ -3220,6 +3338,33 @@ class AIToolsService:
     def _save_audit_results(self, successful: List, failed: List, results: Dict):
 
         """Save detailed audit results"""
+        
+        # Enhance results with extracted metrics from results_cache
+        enhanced_results = dict(results)
+        
+        # Add function_discovery metrics if available
+        if 'function_discovery' in self.results_cache:
+            func_metrics = self.results_cache['function_discovery']
+            if 'function_discovery' not in enhanced_results:
+                enhanced_results['function_discovery'] = {'success': True, 'data': func_metrics}
+            elif 'data' not in enhanced_results.get('function_discovery', {}):
+                enhanced_results['function_discovery']['data'] = func_metrics
+        
+        # Add decision_support metrics if available
+        if 'decision_support_metrics' in self.results_cache:
+            ds_metrics = self.results_cache['decision_support_metrics']
+            # Check if decision_support exists and is a dict with proper structure
+            decision_support_result = enhanced_results.get('decision_support')
+            if decision_support_result is None or not isinstance(decision_support_result, dict):
+                # Replace boolean or None with proper dict structure
+                enhanced_results['decision_support'] = {
+                    'success': True,
+                    'data': {'decision_support_metrics': ds_metrics}
+                }
+            elif 'data' not in decision_support_result:
+                decision_support_result['data'] = {'decision_support_metrics': ds_metrics}
+            elif 'decision_support_metrics' not in decision_support_result.get('data', {}):
+                decision_support_result['data']['decision_support_metrics'] = ds_metrics
 
         audit_data = {
 
@@ -3237,7 +3382,7 @@ class AIToolsService:
 
             'failed': failed,
 
-            'results': results
+            'results': enhanced_results
 
         }
 
@@ -3370,53 +3515,52 @@ class AIToolsService:
         lines.append("## Snapshot")
 
         # Try to load cached audit results if not available in memory
-        if not metrics or metrics.get('total_functions') == 'Unknown':
+        total_functions = metrics.get('total_functions', 'Unknown') if metrics else 'Unknown'
+        moderate = metrics.get('moderate', 'Unknown') if metrics else 'Unknown'
+        high = metrics.get('high', 'Unknown') if metrics else 'Unknown'
+        critical = metrics.get('critical', 'Unknown') if metrics else 'Unknown'
+        
+        # If metrics are Unknown, try loading from cache
+        if total_functions == 'Unknown' or moderate == 'Unknown':
             try:
                 import json
-                results_file = Path("development_tools/ai_audit_detailed_results.json")
+                results_file = self.project_root / "development_tools" / "ai_audit_detailed_results.json"
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
+                    
+                    # Try function_discovery first
                     if 'results' in cached_data and 'function_discovery' in cached_data['results']:
-                        # Extract metrics from cached function discovery results
                         func_data = cached_data['results']['function_discovery']
                         if 'data' in func_data:
                             cached_metrics = func_data['data']
-                            total_functions = cached_metrics.get('total_functions', 'Unknown')
-                            moderate = cached_metrics.get('moderate_complexity', 'Unknown')
-                            high = cached_metrics.get('high_complexity', 'Unknown')
-                            critical = cached_metrics.get('critical_complexity', 'Unknown')
-                        else:
-                            # Parse from text output
-                            output = func_data.get('output', '')
-                            if 'MODERATE COMPLEXITY' in output and 'HIGH COMPLEXITY' in output and 'CRITICAL COMPLEXITY' in output:
-                                # Extract from text output - these are the values we saw in the audit
-                                total_functions = 1446
-                                moderate = 143
-                                high = 130
-                                critical = 103
-                            else:
-                                total_functions = 'Unknown'
-                                moderate = 'Unknown'
-                                high = 'Unknown'
-                                critical = 'Unknown'
-                    else:
-                        total_functions = 'Unknown'
-                        moderate = 'Unknown'
-                        high = 'Unknown'
-                        critical = 'Unknown'
-                else:
-                    total_functions = 'Unknown'
-                    moderate = 'Unknown'
-                    high = 'Unknown'
-                    critical = 'Unknown'
-            except Exception:
-                total_functions = 'Unknown'
-                moderate = 'Unknown'
-                high = 'Unknown'
-                critical = 'Unknown'
-        else:
-            total_functions = metrics.get('total_functions', 'Unknown')
+                            if total_functions == 'Unknown':
+                                total_functions = cached_metrics.get('total_functions', 'Unknown')
+                            if moderate == 'Unknown':
+                                moderate = cached_metrics.get('moderate_complexity', 'Unknown')
+                            if high == 'Unknown':
+                                high = cached_metrics.get('high_complexity', 'Unknown')
+                            if critical == 'Unknown':
+                                critical = cached_metrics.get('critical_complexity', 'Unknown')
+                    
+                    # Fallback to decision_support if still Unknown
+                    if (total_functions == 'Unknown' or moderate == 'Unknown') and 'results' in cached_data:
+                        # Check if decision_support was run and metrics extracted
+                        if 'decision_support' in cached_data['results']:
+                            ds_data = cached_data['results']['decision_support']
+                            if 'data' in ds_data and 'decision_support_metrics' in ds_data['data']:
+                                ds_metrics = ds_data['data']['decision_support_metrics']
+                                if total_functions == 'Unknown':
+                                    total_functions = ds_metrics.get('total_functions', 'Unknown')
+                                if moderate == 'Unknown':
+                                    moderate = ds_metrics.get('moderate_complexity', 'Unknown')
+                                if high == 'Unknown':
+                                    high = ds_metrics.get('high_complexity', 'Unknown')
+                                if critical == 'Unknown':
+                                    critical = ds_metrics.get('critical_complexity', 'Unknown')
+            except Exception as e:
+                logger.debug(f"Failed to load metrics from cache: {e}")
+                pass
             moderate = metrics.get('moderate', 'Unknown')
             high = metrics.get('high', 'Unknown')
             critical = metrics.get('critical', 'Unknown')
@@ -3427,13 +3571,13 @@ class AIToolsService:
             lines.append(f"- **Total Functions**: {total_functions} (Moderate: {moderate}, High: {high}, Critical: {critical})")
 
         # Try to load documentation coverage from cached data
-        doc_coverage = 'Unknown'
+        doc_coverage = metrics.get('doc_coverage', 'Unknown')
         missing_docs = None
         missing_files = []
-        if not doc_coverage or doc_coverage == 'Unknown':
+        if doc_coverage == 'Unknown' or doc_coverage is None:
             try:
                 import json
-                results_file = Path("development_tools/ai_audit_detailed_results.json")
+                results_file = self.project_root / "development_tools" / "ai_audit_detailed_results.json"
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
@@ -3441,8 +3585,13 @@ class AIToolsService:
                         func_reg_data = cached_data['results']['audit_function_registry']
                         if 'data' in func_reg_data:
                             cached_metrics = func_reg_data['data']
-                            doc_coverage = cached_metrics.get('coverage', 'Unknown')
-                            missing_docs = cached_metrics.get('missing', 0)
+                            cached_doc_cov = cached_metrics.get('doc_coverage') or cached_metrics.get('coverage')
+                            if cached_doc_cov is not None:
+                                if isinstance(cached_doc_cov, (int, float)):
+                                    doc_coverage = f"{float(cached_doc_cov):.2f}%"
+                                else:
+                                    doc_coverage = str(cached_doc_cov)
+                            missing_docs = cached_metrics.get('missing') or cached_metrics.get('missing_docs') or cached_metrics.get('missing_items')
                             missing_files = []
                         else:
                             # Parse from text output
@@ -3452,7 +3601,8 @@ class AIToolsService:
                                 match = re.search(r'Documentation Coverage:\s*(\d+\.?\d*)%', output)
                                 if match:
                                     doc_coverage = match.group(1) + '%'
-            except Exception:
+            except Exception as e:
+                logger.debug(f"Failed to load doc_coverage from cache in status: {e}")
                 pass
 
         doc_line = f"- **Documentation Coverage**: {percent_text(doc_coverage, 2)}"
@@ -3835,12 +3985,17 @@ class AIToolsService:
 
         if not (critical_examples or high_examples or undocumented_examples):
             # Try to load cached complexity data
+            moderate = 'Unknown'
+            high = 'Unknown'
+            critical = 'Unknown'
+            total_functions = 'Unknown'
             try:
                 import json
-                results_file = Path("development_tools/ai_audit_detailed_results.json")
+                results_file = self.project_root / "development_tools" / "ai_audit_detailed_results.json"
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
+                    # Try function_discovery first
                     if 'results' in cached_data and 'function_discovery' in cached_data['results']:
                         func_data = cached_data['results']['function_discovery']
                         if 'data' in func_data:
@@ -3849,31 +4004,64 @@ class AIToolsService:
                             high = func_metrics.get('high_complexity', 'Unknown')
                             critical = func_metrics.get('critical_complexity', 'Unknown')
                             total_functions = func_metrics.get('total_functions', 'Unknown')
-                        else:
-                            # Parse from text output
-                            output = func_data.get('output', '')
-                            if 'MODERATE COMPLEXITY' in output and 'HIGH COMPLEXITY' in output and 'CRITICAL COMPLEXITY' in output:
-                                # Extract from text output - these are the values we saw in the audit
-                                total_functions = 1446
-                                moderate = 143
-                                high = 130
-                                critical = 103
-                            else:
-                                total_functions = 'Unknown'
-                                moderate = 'Unknown'
-                                high = 'Unknown'
-                                critical = 'Unknown'
-                        
-                        if moderate != 'Unknown':
-                            lines.append(f"- **Complexity Distribution**: Moderate: {moderate}, High: {high}, Critical: {critical}")
+                    # Fallback to decision_support metrics
+                    if moderate == 'Unknown' and 'results' in cached_data:
+                        # Check if decision_support was run and metrics were extracted
+                        if 'decision_support' in cached_data['results']:
+                            ds_data = cached_data['results']['decision_support']
+                            # The metrics might be in the results_cache or in the data
+                            if 'data' in ds_data:
+                                ds_metrics = ds_data['data'].get('decision_support_metrics', {})
+                                if ds_metrics:
+                                    moderate = ds_metrics.get('moderate_complexity', 'Unknown')
+                                    high = ds_metrics.get('high_complexity', 'Unknown')
+                                    critical = ds_metrics.get('critical_complexity', 'Unknown')
+                                    total_functions = ds_metrics.get('total_functions', 'Unknown')
+                        # Also check if decision_support_metrics is directly in results
+                        if moderate == 'Unknown' and 'decision_support_metrics' in cached_data.get('results', {}):
+                            ds_metrics = cached_data['results']['decision_support_metrics']
+                            if isinstance(ds_metrics, dict):
+                                moderate = ds_metrics.get('moderate_complexity', 'Unknown')
+                                high = ds_metrics.get('high_complexity', 'Unknown')
+                                critical = ds_metrics.get('critical_complexity', 'Unknown')
+                                total_functions = ds_metrics.get('total_functions', 'Unknown')
+                    
+                    # Fallback to audit_function_registry - parse high_complexity array
+                    if (high == 'Unknown' or critical == 'Unknown') and 'results' in cached_data:
+                        if 'audit_function_registry' in cached_data['results']:
+                            afr_data = cached_data['results']['audit_function_registry']
+                            if 'data' in afr_data and 'analysis' in afr_data['data']:
+                                analysis = afr_data['data']['analysis']
+                                high_complexity_array = analysis.get('high_complexity', [])
+                                if isinstance(high_complexity_array, list):
+                                    # Count by thresholds: MODERATE=50, HIGH=100, CRITICAL=200
+                                    critical_count = sum(1 for f in high_complexity_array 
+                                                        if isinstance(f, dict) and f.get('complexity', 0) >= 200)
+                                    high_count = sum(1 for f in high_complexity_array 
+                                                   if isinstance(f, dict) and 100 <= f.get('complexity', 0) < 200)
+                                    if critical == 'Unknown':
+                                        critical = critical_count
+                                    if high == 'Unknown':
+                                        high = high_count
+                                    # For moderate, we'd need all functions, but we can estimate if we have total
+                                    if moderate == 'Unknown' and total_functions != 'Unknown' and isinstance(total_functions, int):
+                                        # Estimate: total - high - critical (approximate, may include low complexity)
+                                        moderate = max(0, total_functions - high_count - critical_count)
+                                    # Also get total_functions from audit_function_registry if missing
+                                    if total_functions == 'Unknown' and 'totals' in afr_data['data']:
+                                        totals = afr_data['data']['totals']
+                                        total_functions = totals.get('functions_found', 'Unknown')
+                    
+                    if moderate != 'Unknown' and moderate is not None:
+                        lines.append(f"- **Complexity Distribution**: Moderate: {moderate}, High: {high}, Critical: {critical}")
+                        if total_functions != 'Unknown' and total_functions is not None:
                             lines.append(f"- **Total Functions**: {total_functions}")
-                        else:
-                            lines.append("- **Complexity Analysis**: Run `python development_tools/ai_tools_runner.py audit --fast` for detailed metrics")
                     else:
                         lines.append("- **Complexity Analysis**: Run `python development_tools/ai_tools_runner.py audit --fast` for detailed metrics")
                 else:
                     lines.append("- **Complexity Analysis**: Run `python development_tools/ai_tools_runner.py audit --fast` for detailed metrics")
-            except Exception:
+            except Exception as e:
+                logger.debug(f"Failed to load complexity from cache: {e}")
                 lines.append("- **Complexity Analysis**: Run `python development_tools/ai_tools_runner.py audit --fast` for detailed metrics")
 
         lines.append("")
@@ -4027,29 +4215,38 @@ class AIToolsService:
 
         else:
             # Try to load cached audit results if not available in memory
+            validation_loaded = False
             try:
                 import json
-                results_file = Path("development_tools/ai_audit_detailed_results.json")
+                results_file = self.project_root / "development_tools" / "ai_audit_detailed_results.json"
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
                     if 'results' in cached_data and 'validate_ai_work' in cached_data['results']:
                         validation_data = cached_data['results']['validate_ai_work']
+                        # Handle nested data structure: results.validate_ai_work.data.output
                         if 'data' in validation_data:
-                            validation_output = validation_data['data'].get('output', '')
+                            data = validation_data['data']
+                            # Check if data is a dict with 'output' key, or if it's the result dict itself
+                            if isinstance(data, dict):
+                                validation_output = data.get('output', '') or ''
+                                # If output is empty, check if there's a nested structure
+                                if not validation_output and 'data' in data:
+                                    validation_output = data['data'].get('output', '') or ''
                         else:
-                            validation_output = validation_data.get('output', '')
-                        if 'POOR' in validation_output:
-                            lines.append("- **AI Work Validation**: POOR - documentation or tests missing")
-                        elif 'GOOD' in validation_output:
-                            lines.append("- **AI Work Validation**: GOOD - keep current standards")
-                        else:
-                            lines.append("- **AI Work Validation**: NEEDS REVIEW - inspect consolidated report")
-                    else:
-                        lines.append("- Validation results unavailable (run `audit --fast` for latest validation)")
-                else:
-                    lines.append("- Validation results unavailable (run `audit --fast` for latest validation)")
-            except Exception:
+                            validation_output = validation_data.get('output', '') or ''
+                        if validation_output:
+                            if 'POOR' in validation_output:
+                                lines.append("- **AI Work Validation**: POOR - documentation or tests missing")
+                            elif 'GOOD' in validation_output:
+                                lines.append("- **AI Work Validation**: GOOD - keep current standards")
+                            else:
+                                lines.append("- **AI Work Validation**: NEEDS REVIEW - inspect consolidated report")
+                            validation_loaded = True
+            except Exception as e:
+                logger.debug(f"Failed to load validation from cache: {e}")
+            
+            if not validation_loaded:
                 lines.append("- Validation results unavailable (run `audit --fast` for latest validation)")
 
         lines.append("")
@@ -4098,8 +4295,54 @@ class AIToolsService:
                 lines.append(f"- **Critical Alerts**: {len(critical_alerts)} active alerts")
 
         else:
-
-            lines.append("- System signals data unavailable (run `system-signals` command)")
+            # Try to load cached system signals if not available in memory
+            signals_loaded = False
+            try:
+                import json
+                results_file = self.project_root / "development_tools" / "ai_audit_detailed_results.json"
+                if results_file.exists():
+                    with open(results_file, 'r', encoding='utf-8') as f:
+                        cached_data = json.load(f)
+                    if 'results' in cached_data and 'system_signals' in cached_data['results']:
+                        signals_data = cached_data['results']['system_signals']
+                        # Handle both 'data' wrapper and direct signals
+                        if 'data' in signals_data:
+                            system_signals = signals_data['data']
+                        else:
+                            system_signals = signals_data
+                        
+                        if system_signals:
+                            system_health = system_signals.get('system_health', {})
+                            overall_status = system_health.get('overall_status')
+                            if overall_status:
+                                lines.append(f"- **System Health**: {overall_status}")
+                            
+                            missing_core = [
+                                name for name, state in (system_health.get('core_files') or {}).items()
+                                if state != 'OK'
+                            ]
+                            if missing_core:
+                                lines.append(f"- **Core File Issues**: {self._format_list_for_display(missing_core, limit=3)}")
+                            
+                            recent_activity = system_signals.get('recent_activity', {})
+                            last_audit = recent_activity.get('last_audit')
+                            if last_audit:
+                                lines.append(f"- **Last Audit**: {last_audit}")
+                            
+                            recent_changes = recent_activity.get('recent_changes') or []
+                            if recent_changes:
+                                lines.append(f"- **Recent Changes**: {self._format_list_for_display(recent_changes, limit=3)}")
+                            
+                            critical_alerts = system_signals.get('critical_alerts', [])
+                            if critical_alerts:
+                                lines.append(f"- **Critical Alerts**: {len(critical_alerts)} active alerts")
+                            
+                            signals_loaded = True
+            except Exception as e:
+                logger.debug(f"Failed to load system signals from cache: {e}")
+            
+            if not signals_loaded:
+                lines.append("- System signals data unavailable (run `system-signals` command)")
 
         lines.append("")
 
@@ -4224,6 +4467,22 @@ class AIToolsService:
 
         critical_examples = function_metrics.get('critical_complexity_examples') or []
         high_examples = function_metrics.get('high_complexity_examples') or []
+        
+        # Get complexity metrics from canonical metrics or decision_support
+        moderate_complex = to_int(metrics.get('moderate'))
+        high_complex = to_int(metrics.get('high'))
+        critical_complex = to_int(metrics.get('critical'))
+        
+        # If not in metrics, try loading from decision_support_metrics
+        if moderate_complex is None or high_complex is None or critical_complex is None:
+            decision_metrics = self.results_cache.get('decision_support_metrics', {})
+            if decision_metrics:
+                if moderate_complex is None:
+                    moderate_complex = to_int(decision_metrics.get('moderate_complexity'))
+                if high_complex is None:
+                    high_complex = to_int(decision_metrics.get('high_complexity'))
+                if critical_complex is None:
+                    critical_complex = to_int(decision_metrics.get('critical_complexity'))
 
         priority_items: List[Dict[str, Any]] = []
 
@@ -4443,6 +4702,45 @@ class AIToolsService:
                 reason=f"{legacy_files} files still depend on legacy compatibility markers.",
                 bullets=legacy_bullets
             )
+        
+        # Add complexity refactoring priority if there are critical or high complexity functions
+        complexity_order = legacy_order + 1
+        if critical_complex and critical_complex > 0:
+            complexity_bullets: List[str] = []
+            if critical_examples:
+                example_names = [ex.get('name', 'unknown') for ex in critical_examples[:3]]
+                complexity_bullets.append(
+                    f"Start with critical functions: {self._format_list_for_display(example_names, limit=3)}"
+                )
+            if high_complex and high_complex > 0:
+                complexity_bullets.append(
+                    f"Then address {high_complex} high-complexity functions (100-199 nodes)."
+                )
+            complexity_bullets.append(
+                "Refactor to reduce cyclomatic complexity and improve maintainability."
+            )
+            add_priority(
+                order=complexity_order,
+                title="Refactor high-complexity functions",
+                reason=f"{critical_complex} critical-complexity functions (>199 nodes) need immediate attention.",
+                bullets=complexity_bullets
+            )
+        elif high_complex and high_complex > 0:
+            complexity_bullets: List[str] = []
+            if high_examples:
+                example_names = [ex.get('name', 'unknown') for ex in high_examples[:3]]
+                complexity_bullets.append(
+                    f"Focus on: {self._format_list_for_display(example_names, limit=3)}"
+                )
+            complexity_bullets.append(
+                "Refactor to reduce cyclomatic complexity and improve maintainability."
+            )
+            add_priority(
+                order=complexity_order,
+                title="Refactor high-complexity functions",
+                reason=f"{high_complex} high-complexity functions (100-199 nodes) should be simplified.",
+                bullets=complexity_bullets
+            )
 
         lines.append("## Immediate Focus (Ranked)")
         if priority_items:
@@ -4620,6 +4918,29 @@ class AIToolsService:
         if hasattr(self, 'validation_results') and self.validation_results:
 
             validation_output = self.validation_results.get('output', '') or ""
+        else:
+            # Try to load from cache
+            try:
+                import json
+                results_file = self.project_root / "development_tools" / "ai_audit_detailed_results.json"
+                if results_file.exists():
+                    with open(results_file, 'r', encoding='utf-8') as f:
+                        cached_data = json.load(f)
+                    if 'results' in cached_data and 'validate_ai_work' in cached_data['results']:
+                        validation_data = cached_data['results']['validate_ai_work']
+                        # Handle nested data structure: results.validate_ai_work.data.output
+                        if 'data' in validation_data:
+                            data = validation_data['data']
+                            # Check if data is a dict with 'output' key, or if it's the result dict itself
+                            if isinstance(data, dict):
+                                validation_output = data.get('output', '') or ''
+                                # If output is empty, check if there's a nested structure
+                                if not validation_output and 'data' in data:
+                                    validation_output = data['data'].get('output', '') or ''
+                        else:
+                            validation_output = validation_data.get('output', '') or ""
+            except Exception:
+                pass
 
         results_file = self.audit_config.get('results_file', 'development_tools/ai_audit_detailed_results.json')
 
@@ -4670,9 +4991,53 @@ class AIToolsService:
 
         lines.append("## Audit Metrics")
 
-        lines.append(f"- **Total Functions**: {metrics.get('total_functions', 'Unknown')}")
+        # Get complexity metrics, trying multiple sources
+        total_funcs = metrics.get('total_functions', 'Unknown')
+        moderate = metrics.get('moderate', 'Unknown')
+        high = metrics.get('high', 'Unknown')
+        critical = metrics.get('critical', 'Unknown')
+        
+        # If still Unknown, try loading from function_discovery or decision_support cache
+        if moderate == 'Unknown' or high == 'Unknown':
+            try:
+                import json
+                results_file = self.project_root / "development_tools" / "ai_audit_detailed_results.json"
+                if results_file.exists():
+                    with open(results_file, 'r', encoding='utf-8') as f:
+                        cached_data = json.load(f)
+                    # Try function_discovery first
+                    if 'results' in cached_data and 'function_discovery' in cached_data['results']:
+                        func_data = cached_data['results']['function_discovery']
+                        if 'data' in func_data:
+                            cached_metrics = func_data['data']
+                            if moderate == 'Unknown':
+                                moderate = cached_metrics.get('moderate_complexity', 'Unknown')
+                            if high == 'Unknown':
+                                high = cached_metrics.get('high_complexity', 'Unknown')
+                            if critical == 'Unknown':
+                                critical = cached_metrics.get('critical_complexity', 'Unknown')
+                            if total_funcs == 'Unknown':
+                                total_funcs = cached_metrics.get('total_functions', 'Unknown')
+                    # Fallback to decision_support
+                    if (moderate == 'Unknown' or high == 'Unknown') and 'results' in cached_data and 'decision_support' in cached_data['results']:
+                        ds_data = cached_data['results']['decision_support']
+                        if 'data' in ds_data and 'decision_support_metrics' in ds_data['data']:
+                            ds_metrics = ds_data['data']['decision_support_metrics']
+                            if moderate == 'Unknown':
+                                moderate = ds_metrics.get('moderate_complexity', 'Unknown')
+                            if high == 'Unknown':
+                                high = ds_metrics.get('high_complexity', 'Unknown')
+                            if critical == 'Unknown':
+                                critical = ds_metrics.get('critical_complexity', 'Unknown')
+                            if total_funcs == 'Unknown':
+                                total_funcs = ds_metrics.get('total_functions', 'Unknown')
+            except Exception as e:
+                logger.debug(f"Failed to load complexity from cache in consolidated report: {e}")
+                pass
 
-        lines.append(f"- **Complexity Distribution**: Moderate {metrics.get('moderate', 'Unknown')}, High {metrics.get('high', 'Unknown')}, Critical {metrics.get('critical', 'Unknown')}")
+        lines.append(f"- **Total Functions**: {total_funcs}")
+
+        lines.append(f"- **Complexity Distribution**: Moderate {moderate}, High {high}, Critical {critical}")
 
         if documented_functions is not None:
 
@@ -4936,6 +5301,40 @@ class AIToolsService:
         lines.append("")
 
         lines.append("## Complexity & Refactoring")
+        
+        # Try to load complexity from decision_support if function_discovery doesn't have it
+        if function_metrics.get('high_complexity') == 'Unknown' or function_metrics.get('high_complexity') is None:
+            if decision_metrics:
+                function_metrics['high_complexity'] = decision_metrics.get('high_complexity', 'Unknown')
+                function_metrics['critical_complexity'] = decision_metrics.get('critical_complexity', 'Unknown')
+                function_metrics['moderate_complexity'] = decision_metrics.get('moderate_complexity', 'Unknown')
+        
+        # If still unknown, try loading from cache
+        if function_metrics.get('high_complexity') == 'Unknown' or function_metrics.get('high_complexity') is None:
+            try:
+                import json
+                results_file = self.project_root / "development_tools" / "ai_audit_detailed_results.json"
+                if results_file.exists():
+                    with open(results_file, 'r', encoding='utf-8') as f:
+                        cached_data = json.load(f)
+                    # Try function_discovery first
+                    if 'results' in cached_data and 'function_discovery' in cached_data['results']:
+                        func_data = cached_data['results']['function_discovery']
+                        if 'data' in func_data:
+                            cached_metrics = func_data['data']
+                            function_metrics['high_complexity'] = cached_metrics.get('high_complexity', 'Unknown')
+                            function_metrics['critical_complexity'] = cached_metrics.get('critical_complexity', 'Unknown')
+                            function_metrics['moderate_complexity'] = cached_metrics.get('moderate_complexity', 'Unknown')
+                    # Fallback to decision_support
+                    if function_metrics.get('high_complexity') == 'Unknown' and 'results' in cached_data and 'decision_support' in cached_data['results']:
+                        ds_data = cached_data['results']['decision_support']
+                        if 'data' in ds_data and 'decision_support_metrics' in ds_data['data']:
+                            ds_metrics = ds_data['data']['decision_support_metrics']
+                            function_metrics['high_complexity'] = ds_metrics.get('high_complexity', 'Unknown')
+                            function_metrics['critical_complexity'] = ds_metrics.get('critical_complexity', 'Unknown')
+                            function_metrics['moderate_complexity'] = ds_metrics.get('moderate_complexity', 'Unknown')
+            except Exception:
+                pass
 
         lines.append(f"- **High Complexity Functions**: {function_metrics.get('high_complexity', 'Unknown')}")
 
@@ -5549,9 +5948,9 @@ def _decision_support_command(service: "AIToolsService", argv: Sequence[str]) ->
 
         return 0
 
-    success = service.run_decision_support()
+    result = service.run_decision_support()
 
-    return 0 if success else 1
+    return 0 if (isinstance(result, dict) and result.get('success', False)) or result else 1
 
 def _version_sync_command(service: "AIToolsService", argv: Sequence[str]) -> int:
 

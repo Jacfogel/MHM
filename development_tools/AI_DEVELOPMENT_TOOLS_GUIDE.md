@@ -51,6 +51,7 @@ Most commonly used commands:
 
 ### 3.1. Fast mode - `audit`
 - Documentation and legacy signals
+- Complexity metrics (moderate/high/critical function counts)
 - Validation summaries and quick metrics
 - System signals + cached data
 
@@ -59,6 +60,7 @@ Most commonly used commands:
 - Unused import detection
 - Dependency + registry regeneration
 - HTML coverage reports
+- All fast mode data plus comprehensive coverage analysis
 
 Outputs land in predictable locations:
 - AI-facing: `AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.txt`, `ai_audit_detailed_results.json`
@@ -66,7 +68,9 @@ Outputs land in predictable locations:
 - Coverage artifacts: `coverage.json`, `coverage_html/`, `archive/coverage_artifacts/<timestamp>/`
 - Dev tools coverage (audit --full): `development_tools/coverage_dev_tools.json`, `development_tools/coverage_html_dev_tools/`
 
-The `status` command surfaces cached summaries; rerun `audit` if the cache is stale.
+The `status` command surfaces cached summaries from `ai_audit_detailed_results.json` (complexity, validation, system signals); rerun `audit` if the cache is stale.
+
+**When to run each command**: See "Standard Audit Recipe" in `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md` for guidance on day-to-day checks, pre-merge checks, and documentation work.
 
 ---
 

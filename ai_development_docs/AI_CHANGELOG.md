@@ -36,6 +36,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-27 - Phase 5 Development Tools: Documentation Alignment and Audit Data Fixes **COMPLETED**
+- Completed Phase 5 of AI Development Tools Improvement Plan: added standard audit recipe to workflow guide, updated session starter with dev tools routing.
+- Fixed audit data capture: complexity metrics now extract correctly, validation results print to stdout, system signals save properly, all data loads from cache in status reports.
+- Added complexity refactoring priority to `AI_PRIORITIES.md` when critical/high complexity functions exist (329 critical, 389 high complexity functions now tracked).
+
 ### 2025-11-27 - Phase 4 Development Tools: Complete Implementation **COMPLETED**
 - Moved experimental tools (`version_sync.py`, `auto_document_functions.py`) to `development_tools/experimental/` directory with updated imports and CLI warnings.
 - Analyzed all 12 Tier-2 tools: documented recommendations (all remain Tier 2), integrated `audit_module_dependencies.py` into full audit workflow.

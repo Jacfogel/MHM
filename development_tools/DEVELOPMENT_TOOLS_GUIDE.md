@@ -64,6 +64,7 @@ Regardless of command:
 **Fast mode (`audit`)** collects:
 - Documentation drift metrics
 - Legacy reference summaries
+- Complexity metrics (function complexity distribution: moderate/high/critical counts)
 - Validation snapshots and quick system signals
 
 **Full mode (`audit --full`)** adds:
@@ -71,12 +72,17 @@ Regardless of command:
 - Unused import detection
 - Registry and dependency regeneration
 - Coverage HTML/JSON refresh plus archival
+- All fast mode data plus comprehensive coverage analysis
 
 Pipeline artifacts:
 - AI-facing: [AI_STATUS.md](development_tools/AI_STATUS.md), `AI_PRIORITIES.md`, `consolidated_report.txt`, `ai_audit_detailed_results.json`
+  - `ai_audit_detailed_results.json` caches complexity metrics, validation results, and system signals for `status` command
+  - `AI_PRIORITIES.md` includes complexity refactoring priority when critical/high complexity functions exist
 - Human-facing: [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md), [MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md), [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md), [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)
 - Coverage: `coverage.json`, `development_tools/coverage_html/`, `development_tools/archive/coverage_artifacts/<timestamp>/`
-- Cached snapshots: `status` depends on the latest successful `audit`; confirm timestamps before trusting.
+- Cached snapshots: `status` loads data from `ai_audit_detailed_results.json` (complexity, validation, system signals); confirm timestamps before trusting.
+
+**When to run each command**: See "Standard Audit Recipe" section in [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) for guidance on day-to-day checks (`audit`), pre-merge/pre-release checks (`audit --full`), and documentation work (`doc-sync`, `docs`).
 
 Ensure directories listed in `development_tools/services/constants.py` remain accurate so reports resolve predictably.
 

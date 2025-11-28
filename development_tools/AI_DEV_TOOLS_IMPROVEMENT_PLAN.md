@@ -592,9 +592,11 @@ This does not fix code, but it stops you from accidentally trusting the wrong to
 
 ---
 
-### Phase 5 – UX and Documentation Alignment
+### Phase 5 – UX and Documentation Alignment **COMPLETED (2025-11-27)**
 
 **Goal:** Make the tooling understandable and predictable for both humans and AI helpers.
+
+**Status:** All milestones completed. Documentation now includes standard audit recipes and routing guidance for development tools.
 
 #### Milestone M5.1 – Update `AI_DEVELOPMENT_TOOLS_GUIDE.md` **COMPLETED (2025-11-25)**
 
@@ -608,19 +610,27 @@ This does not fix code, but it stops you from accidentally trusting the wrong to
 - ✅ Aligned guides with documentation standards (metadata, H2 headings)
 - ✅ Verified all content preserved and enhanced in human guide
 
-#### Milestone M5.2 – Standard Audit Recipe in `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`
+#### Milestone M5.2 – Standard Audit Recipe in `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md` **COMPLETED (2025-11-27)**
 
-Add a short section describing when to run:
+- ✅ Added "## 10. Standard Audit Recipe" section to `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`
+- ✅ Describes when to run:
+  - `python development_tools/ai_tools_runner.py audit` (day-to-day checks)
+  - `python development_tools/ai_tools_runner.py audit --full` (pre-merge / pre-release checks)
+  - `python development_tools/ai_tools_runner.py doc-sync` and `python development_tools/ai_tools_runner.py docs` (doc work)
+  - `python development_tools/ai_tools_runner.py status` (quick status snapshot)
+- ✅ Includes reference to `AI_DEVELOPMENT_TOOLS_GUIDE.md` for detailed tool usage
 
-- `development_tools/ai_tools_runner.py audit` (day-to-day checks).
-- `development_tools/ai_tools_runner.py audit --full` (pre-merge / pre-release checks).
-- `development_tools/ai_tools_runner.py doc-sync` and `development_tools/ai_tools_runner.py docs` (doc work).
+#### Milestone M5.3 – Update `ai_development_docs/AI_SESSION_STARTER.md` **COMPLETED (2025-11-27)**
 
-#### Milestone M5.3 – Update `ai_development_docs/AI_SESSION_STARTER.md`
-
-- When the user’s task touches dev tools, route:
-  - First to `AI_DEVELOPMENT_TOOLS_GUIDE.md`.
-  - Then to the correct tools by tier and purpose.
+- ✅ Added routing guidance for development tools tasks
+- ✅ When user's task touches dev tools, routes:
+  - First to `AI_DEVELOPMENT_TOOLS_GUIDE.md` as primary reference
+  - Includes examples: audits, status checks, tool tiers, generated reports, commands
+- ✅ Added development tooling section in "2. Quick Reference" with specific routing to:
+  - Main entry point (`ai_tools_runner.py` commands)
+  - Fast mode vs full mode guidance
+  - Generated outputs location
+- ✅ Integrated with legacy removal guide routing
 
 Result: the dev tools ecosystem becomes something you and future collaborators can reason about and trust.
 
@@ -693,7 +703,8 @@ Portable today: `development_tools/services/common.py`, `development_tools/syste
 - ✅ **Phase 2 COMPLETED (2025-11-25)**: Core infrastructure stabilized with test coverage (77 tests), consistent logging, and normalized error handling
 - ✅ **Phase 3 COMPLETED (2025-11-26)**: Core analysis tools hardened with comprehensive test coverage (55 tests), synthetic fixture project created, all five tools now trustworthy
 - ✅ **Phase 4 COMPLETED (2025-11-27)**: Experimental tools moved to dedicated directory, Tier-2 tools reviewed and documented, dev tools coverage tracking added, supporting tools regression tests created (6 tests for `quick_status`, `system_signals`, `file_rotation`)
-- 🔄 **Phase 5-7**: Defined and ready for implementation
+- ✅ **Phase 5 COMPLETED (2025-11-27)**: Standard audit recipe added to workflow guide, session starter updated with dev tools routing, all documentation alignment milestones complete
+- 🔄 **Phase 6-7**: Defined and ready for implementation
 
 This roadmap is intentionally incremental. You do **not** need to implement every milestone at once.  
 Phases 1-3 (tiering + core infrastructure + core analysis tools) are complete. Next focus on Phase 4 (clarify supporting vs experimental tools) or Phase 5 (UX and documentation alignment), then expand as time and energy allow.

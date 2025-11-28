@@ -117,6 +117,15 @@ def print_dashboard(functions):
     moderate_complex, high_complex, critical_complex = find_complexity_functions(functions)
     undocumented_handlers = find_undocumented_handlers(functions)
     duplicates = find_duplicate_names(functions)
+    
+    # Output parseable metrics for extraction by operations.py
+    # Use print() to ensure output is captured by subprocess (print goes to stdout)
+    # These lines must appear in stdout for _extract_decision_insights to parse them
+    print(f"Total functions: {len(functions)}")
+    print(f"Moderate complexity: {len(moderate_complex)}")
+    print(f"High complexity: {len(high_complex)}")
+    print(f"Critical complexity: {len(critical_complex)}")
+    print(f"Undocumented functions: {len(undocumented_handlers)}")
 
     # Complexity analysis with differentiated levels
     total_complex = len(moderate_complex) + len(high_complex) + len(critical_complex)
