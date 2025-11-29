@@ -1060,6 +1060,10 @@ Guidelines:
 - Added a Discord/chat command reference table to `HOW_TO_RUN.md`, covering slash commands, bang commands, mapped text triggers, and check-in flow notes.
 - Cleaned up `TODO.md` by removing the completed documentation follow-up for the channel-agnostic command registry.
 
+### 2025-11-29 - User Profile Settings Widget Legacy Review **COMPLETED**
+- Confirmed `ui/widgets/user_profile_settings_widget.py` no longer carries legacy fallback branches; all personalization handlers use current dynamic container, date-of-birth, and loved-ones parsing flows.
+- Updated `development_docs/PLANS.md` to mark the widget legacy cleanup as complete and removed it from the active removal checklist.
+
 ### 2025-12-05 - Discord Username Persistence **COMPLETED**
 - Added `discord_username` to the tolerant `AccountModel` schema and default account generation so AI tools see consistent user identifiers.
 - Propagated optional Discord usernames from account creation preferences into persisted account files.

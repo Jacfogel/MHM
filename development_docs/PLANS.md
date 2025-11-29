@@ -855,7 +855,6 @@
 - [ ] **Monitoring Phase**: Monitor app logs for LEGACY warnings (preferences nested 'enabled' flags) for 2 weeks
 - [ ] **Removal Phase**: Execute removals listed in TODO.md and update tests accordingly
   - Account Creator Dialog compatibility methods
-  - User Profile Settings Widget legacy fallbacks
   - Discord Bot legacy methods
 
 ---
@@ -1096,10 +1095,10 @@ Target modules with 70-90% coverage:
 **Status**: Lines 326-347 show normal methods (keyPressEvent, username property) - no compatibility methods found
 **Note**: Line numbers may be outdated. Need to verify if compatibility methods still exist elsewhere in file.
 
-### **5. User Profile Settings Widget Legacy Fallbacks** **VERIFY STATUS**
-**Location**: `ui/widgets/user_profile_settings_widget.py`  
-**Status**: Lines 395, 402, 426, 450, 462 show modern code - no legacy fallback comments found
-**Note**: Line numbers may be outdated. Need to verify if legacy fallbacks still exist elsewhere in file.
+### **5. User Profile Settings Widget Legacy Fallbacks** **COMPLETED 2025-11-29**
+**Location**: `ui/widgets/user_profile_settings_widget.py`
+**Status**: Verified the entire file contains only modern data extraction and validation paths (dynamic containers, date-of-birth handling, loved ones parsing) with no legacy fallback branches or compatibility shims.
+**Note**: No further legacy work needed for this widget; future updates can focus on UX or validation improvements rather than compatibility cleanup.
 
 ### **6. Discord Bot Legacy Methods** **VERIFY STATUS**
 **Location**: `communication/communication_channels/discord/bot.py`  
