@@ -49,6 +49,7 @@ When adding new tasks, follow this format:
 - *Estimated effort*: Medium
 - *Subtasks*:
   - [x] Extend schema validation to schedules save paths not yet using helpers (confirm all call-sites)
+  - [x] Add unit tests for `validate_*_dict` helpers with edge-case payloads (extras, nulls, invalid times/days)
   - [ ] Add behavior tests for end-to-end save/load normalization
   - [ ] Add read-path normalization invocation to remaining reads that feed business logic (sweep `core/` and `communication/`)
 

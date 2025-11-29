@@ -39,9 +39,9 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
-### 2025-11-29 - Pydantic schema validation coverage **COMPLETED**
-- **Feature**: Added focused unit tests for `validate_account_dict`, `validate_preferences_dict`, `validate_schedules_dict`, and `validate_messages_file_dict` to cover edge cases like feature flag coercion, invalid categories, malformed schedule times/days, and mixed-quality message payloads.
-- **Impact**: Improves confidence that schema helpers safely normalize legacy inputs without raising, ensures bad rows are filtered while keeping valid data, and cleans up TODO list by removing the completed testing subtask.
+### 2025-11-29 - Schema Helper Edge-Case Regression Tests
+- **Feature**: Added focused unit coverage for schema validation helpers to ensure tolerant normalization of real-world payloads. New tests verify feature flag coercion when required fields are missing in `validate_account_dict`, invalid category handling passthrough in `validate_preferences_dict`, legacy schedule shapes and bad time/day values in `validate_schedules_dict`, and best-effort message list cleanup (invalid rows skipped, defaults applied) in `validate_messages_file_dict`.
+- **Impact**: Regression protection for the new Pydantic schemas: edge-case inputs now have explicit coverage, reducing risk of silently regressing normalization or error reporting behaviors relied on by save/load paths.
 
 ### 2025-11-28 - Phase 6 Development Tools: Core Tool Portability Implementation **COMPLETED**
 - **Feature**: Completed the Core Tool Checklist of Phase 6 of the AI Development Tools Improvement Plan, making all 11 core tools portable via external configuration. Tools can now be used in other projects with minimal setup. Supporting Tool Checklist and Experimental Tool Checklist remain pending for future work.
