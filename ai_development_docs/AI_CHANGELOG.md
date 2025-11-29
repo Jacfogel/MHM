@@ -36,6 +36,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-07 - Check-in Flow Expiration Behavior **COMPLETED**
+- Added a behavior test that verifies active check-in flows are expired when the communication manager sends a non-scheduled outbound message.
+- Ensures the orchestrator uses the current conversation manager instance and preserves test isolation by stubbing send/recipient paths.
+- Updated TODO to reflect the completed follow-up.
+
 ### 2025-12-05 - Static Logging Check Preflight **COMPLETED**
 - Recreated the static logging enforcement script and allowlists for logger usage.
 - `run_tests.py` now runs the check by default (can skip via `--skip-static-logging-check`) so logging style drift fails fast.

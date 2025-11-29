@@ -39,6 +39,11 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-07 - Check-in Flow Expiration Behavior Coverage
+- **Feature**: Added a behavior test to verify that active check-in flows expire when the communication orchestrator sends a non-scheduled outbound message. The test patches the orchestrator to use a test-specific `ConversationManager`, exercises a personalized send path, and confirms the persisted flow state is removed once the unrelated message is delivered. Updated `TODO.md` to mark the follow-up as completed.
+- **Impact**: Protects the intended coupling between outbound message handling and check-in flow cleanup, preventing users from getting stuck in stale flows after receiving other messages.
+- **Testing**: `python -m pytest tests/behavior/test_conversation_flow_manager_behavior.py::TestConversationFlowManagerBehavior::test_checkin_flow_expires_after_unrelated_outbound`
+
 ### 2025-12-05 - Static Logging Guard Restoration
 - **Feature**: Recreated `scripts/static_checks/check_channel_loggers.py` to enforce forbidden direct `logging` imports, disallow `logging.getLogger` outside allowlisted files, and flag multi-argument logger calls; exclusions cover tests/scripts/ai_tools/development_tools with explicit allowlists for core logger infrastructure.
 - **Feature**: Added a static logging preflight to `run_tests.py` (toggle via `--skip-static-logging-check`) so style violations fail before pytest runs; updated `TODO.md` to reflect the enforcement step being wired through the runner.

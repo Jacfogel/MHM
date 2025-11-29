@@ -22,6 +22,7 @@ from communication.message_processing.conversation_flow_manager import (
     CHECKIN_MOOD,
     CHECKIN_COMPLETE
 )
+from communication.core.channel_orchestrator import CommunicationManager
 from tests.test_utilities import TestUserFactory
 
 
@@ -395,6 +396,51 @@ class TestConversationFlowManagerBehavior:
 
         # Should not raise error and should be safe no-op
         assert user_id not in manager.user_states, "Should not have user state"
+
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    @patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled')
+    @patch('communication.message_processing.conversation_flow_manager.get_user_data')
+    @patch('communication.core.channel_orchestrator.get_user_data')
+    def test_checkin_flow_expires_after_unrelated_outbound(self, mock_channel_get_user_data, mock_conv_get_user_data, mock_is_enabled, test_data_dir, monkeypatch):
+        """Ensure outbound non-check-in messages expire active check-in flows."""
+        manager = ConversationManager()
+        user_id = "test_user_expire_after_outbound"
+        assert self._create_test_user(user_id, enable_checkins=True, test_data_dir=test_data_dir), "Failed to create test user"
+
+        # Mock check-ins enabled and provide minimal question set for dynamic flow
+        mock_is_enabled.return_value = True
+        mock_conv_get_user_data.return_value = {
+            'preferences': {
+                'checkin_settings': {
+                    'questions': {
+                        'mood': {'enabled': True, 'weight': 1.0}
+                    }
+                }
+            }
+        }
+
+        # Start a check-in flow and persist state to disk
+        start_message, completed = manager.start_checkin(user_id)
+        assert completed is False, "Flow should be active"
+        assert user_id in manager.user_states, "Active check-in state should be stored"
+        manager._save_user_states()
+
+        # Ensure the orchestrator uses this test-specific conversation manager instance
+        monkeypatch.setattr('communication.message_processing.conversation_flow_manager.conversation_manager', manager)
+
+        # Prepare communication manager dependencies to avoid real sends
+        comm_manager = CommunicationManager()
+        mock_channel_get_user_data.return_value = {'preferences': {'channel': {'type': 'discord'}}}
+        monkeypatch.setattr(comm_manager, '_get_recipient_for_service', lambda *_, **__: 'recipient')
+        monkeypatch.setattr(comm_manager, '_send_ai_generated_message', lambda *_, **__: (True, "test message"))
+        monkeypatch.setattr(comm_manager, '_send_predefined_message', lambda *_, **__: (True, "test message"))
+
+        # Send a non-scheduled message and verify the active check-in is expired
+        comm_manager.handle_message_sending(user_id, 'personalized')
+
+        assert user_id not in manager.user_states, "Check-in flow should expire after unrelated outbound message"
     
     @pytest.mark.behavior
     @pytest.mark.communication
