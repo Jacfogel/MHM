@@ -341,7 +341,7 @@ When adding new tasks, follow this format:
 - *Why it helps*: Prevents regressions of forbidden logging patterns.
 - *Estimated effort*: Small
 - *Subtasks*:
-  - [ ] Add CI job step to run `scripts/static_checks/check_channel_loggers.py`
+  - [x] Add CI job step to run `scripts/static_checks/check_channel_loggers.py` (enforced via `run_tests.py` preflight)
   - [ ] Ensure job runs before test steps and fails the pipeline on violations
   - [ ] Document the check in `logs/LOGGING_GUIDE.md` (contributor notes)
 

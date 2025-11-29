@@ -36,6 +36,9 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-05 - Static Logging Check Preflight **COMPLETED**
+- Recreated the static logging enforcement script and allowlists for logger usage.
+- `run_tests.py` now runs the check by default (can skip via `--skip-static-logging-check`) so logging style drift fails fast.
 ### 2025-11-29 - Coverage Stability for UI Tests **COMPLETED**
 - UI management tests now use `pytest.importorskip` so coverage runs skip cleanly when PySide6/Qt (libGL) dependencies are absent.
 - Removed the stale coverage failure investigation item from TODO after confirming the root cause was missing GUI libraries.

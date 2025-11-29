@@ -464,6 +464,27 @@ def print_test_mode_info():
     print("  python run_tests.py --burnin-mode     # Validation run (no shim, random order)")
     print("="*60)
 
+
+def run_static_logging_check() -> bool:
+    """Run the static logging enforcement script before executing tests."""
+    script_path = Path(__file__).parent / "scripts" / "static_checks" / "check_channel_loggers.py"
+    if not script_path.exists():
+        print(f"[STATIC CHECK] Missing script: {script_path}")
+        return False
+
+    result = subprocess.run([sys.executable, str(script_path)], capture_output=True, text=True)
+    if result.returncode != 0:
+        print("[STATIC CHECK] Logging style violations detected:")
+        if result.stdout:
+            print(result.stdout)
+        if result.stderr:
+            print(result.stderr)
+        return False
+
+    if result.stdout:
+        print(result.stdout.strip())
+    return True
+
 def main():
     """
     Main entry point for MHM test runner.
@@ -533,13 +554,23 @@ def main():
         action="store_true",
         help="Show detailed information about test modes"
     )
-    
+    parser.add_argument(
+        "--skip-static-logging-check",
+        action="store_true",
+        help="Skip the static logging enforcement preflight (not recommended)"
+    )
+
     args = parser.parse_args()
     
     # Show help modes if requested
     if args.help_modes:
         print_test_mode_info()
         return 0
+
+    if args.skip_static_logging_check:
+        print("[STATIC CHECK] Skipped by user request")
+    elif not run_static_logging_check():
+        return 1
     
     # Enforce safe defaults for Windows console
     os.environ.setdefault('PYTHONUTF8', '1')

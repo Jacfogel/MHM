@@ -39,6 +39,10 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-05 - Static Logging Guard Restoration
+- **Feature**: Recreated `scripts/static_checks/check_channel_loggers.py` to enforce forbidden direct `logging` imports, disallow `logging.getLogger` outside allowlisted files, and flag multi-argument logger calls; exclusions cover tests/scripts/ai_tools/development_tools with explicit allowlists for core logger infrastructure.
+- **Feature**: Added a static logging preflight to `run_tests.py` (toggle via `--skip-static-logging-check`) so style violations fail before pytest runs; updated `TODO.md` to reflect the enforcement step being wired through the runner.
+- **Impact**: Restores the static logging check expected by behavior tests and makes logging style drift visible in local and CI test runs.
 ### 2025-11-29 - Coverage Stability for UI Tests
 
 #### Objective
