@@ -1085,6 +1085,11 @@ Guidelines:
 - Updated Discord authorization webhook handling to write the latest username to `account.json` when the user already exists.
 - Removed the corresponding TODO entry now that the capability ships.
 
+### 2025-12-09 - Sent Message Reads Normalize Through Schemas **COMPLETED**
+- Normalized `get_recent_messages` with tolerant schema validation and restored categories after cleanup so filtering continues to work even when inputs are malformed.
+- Added a behavior test that writes a mixed-quality `sent_messages.json` to confirm invalid rows are dropped and defaults are applied.
+- Updated `TODO.md` to check off the behavior-test follow-up and record the normalized sent message read path.
+
 ### 2025-12-06 - Personalized User Suggestions Refresh **COMPLETED**
 - Rebuilt `get_user_suggestions` so AI-surfaced prompts reflect real user data: due or overdue tasks, recent check-ins (including mood follow-ups), and category-driven schedules.
 - Added analytics suggestions only when enough check-in history exists and kept suggestions capped with deduplication for clarity.

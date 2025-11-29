@@ -339,17 +339,38 @@ def get_recent_messages(user_id: str, category: Optional[str] = None, limit: int
     try:
         file_path = determine_file_path('sent_messages', user_id)
         data = load_json_data(file_path)
-        
+
         if not data:
             logger.debug(f"No sent messages found for user {user_id}")
             return []
-        
+
+        # Normalize/validate to drop malformed entries and apply defaults
+        normalized_data, errors = validate_messages_file_dict(data)
+        if errors:
+            logger.warning(
+                f"Validation issues in sent messages for user {user_id}: {'; '.join(errors)}"
+            )
+
+        # Preserve categories from the source data for filtering
+        source_messages = data.get("messages", [])
+        if isinstance(source_messages, list):
+            id_to_category = {
+                msg.get("message_id"): msg.get("category")
+                for msg in source_messages
+                if isinstance(msg, dict) and msg.get("message_id")
+            }
+            for message in normalized_data.get("messages", []):
+                if "category" not in message:
+                    category_value = id_to_category.get(message.get("message_id"))
+                    if category_value:
+                        message["category"] = category_value
+
         # Use new chronological structure - handle both old and new formats
-        if 'messages' in data:
-            messages = data['messages']
+        if 'messages' in normalized_data:
+            messages = normalized_data['messages']
         else:
             # Fallback for old format or empty structure
-            logger.debug(f"No 'messages' key found in data for user {user_id}, using empty list")
+            logger.debug(f"No 'messages' key found in normalized data for user {user_id}, using empty list")
             messages = []
         
         if not messages:
