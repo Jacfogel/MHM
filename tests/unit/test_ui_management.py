@@ -21,6 +21,10 @@ pytest.importorskip(
     "PySide6",
     reason="PySide6 (Qt) not available or missing system GUI dependencies",
 )
+pytest.importorskip(
+    "PySide6.QtWidgets",
+    reason="QtWidgets unavailable due to missing GUI system libraries",
+)
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 
 from core.ui_management import (
