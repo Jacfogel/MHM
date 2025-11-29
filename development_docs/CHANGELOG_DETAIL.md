@@ -11670,3 +11670,19 @@ Provide users with context-aware prompts that reflect their current tasks, check
 #### Impact
 - **More Relevant Guidance**: Suggestions now adapt to each user's data, encouraging action on pressing tasks and timely check-ins.
 - **Cleaner Backlog**: TODO list reflects remaining work after completing the personalization follow-up.
+
+### 2025-12-08 - Message Stats Now Normalize Through Schemas
+
+#### Objective
+Keep message statistics and user index generation resilient to malformed or legacy message files by running them through tolerant Pydantic schemas during reads.
+
+#### Changes Made
+- **`core/user_data_manager.py`**: Applied `validate_messages_file_dict` while counting messages for the user index and per-category summaries, logging validation issues and using normalized data for counts.
+- **`TODO.md`**: Recorded the completed normalization sweep for message count/read paths under the Pydantic schema follow-up plan.
+
+#### Impact
+- **Safer Metrics**: Message counts and summaries no longer trust raw JSON, preventing malformed files from skewing or breaking statistics.
+- **Backlog Accuracy**: TODO now notes the read-path normalization work completed for message stats.
+
+#### Testing
+- Not run (not requested).

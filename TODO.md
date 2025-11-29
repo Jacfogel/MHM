@@ -52,6 +52,7 @@ When adding new tasks, follow this format:
   - [x] Add unit tests for `validate_*_dict` helpers with edge-case payloads (extras, nulls, invalid times/days)
   - [ ] Add behavior tests for end-to-end save/load normalization
   - [ ] Add read-path normalization invocation to remaining reads that feed business logic (sweep `core/` and `communication/`)
+    - [x] Normalize message counts and stats in `core/user_data_manager.py` when reading message files
 
 **Channel-Agnostic Command Registry Follow-ups**
 - *What it means*: Finalize and monitor the new centralized command system and Discord integrations

@@ -1070,3 +1070,7 @@ Guidelines:
 ### 2025-12-07 - Schedule Saves Normalize Through Schemas **COMPLETED**
 - Wired `_save_user_data__save_schedules` through the tolerant schedules schema so even direct writes (legacy migrations, default category creation) get normalized before hitting disk.
 - Log a warning when validation reports issues while still persisting the cleaned data, and checked off the corresponding follow-up in `TODO.md`.
+
+### 2025-12-08 - Message Stats Validation During Reads **COMPLETED**
+- Normalized message data while building user indices and summaries so counts rely on tolerant schemas instead of raw JSON.
+- Logged validation warnings when message files contain extras or invalid fields, and documented the completed TODO subtask for read-path normalization of message stats.
