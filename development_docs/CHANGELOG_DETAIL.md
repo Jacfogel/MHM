@@ -11641,6 +11641,19 @@ Document the current Discord/chat command set and remove the completed follow-up
 - **Onboarding Clarity**: New users can see all supported commands in one place with consistent descriptions.
 - **TODO Hygiene**: Channel-agnostic command follow-ups now only track outstanding work.
 
+### 2025-11-29 - User Profile Settings Widget Legacy Review **COMPLETED**
+
+#### Objective
+Confirm whether any legacy fallback logic remains in the user profile settings widget and update the legacy cleanup plan accordingly.
+
+#### Changes Made
+- **`ui/widgets/user_profile_settings_widget.py`**: Reviewed the full file to verify it only uses modern data extraction and validation paths (dynamic list containers, date-of-birth handling, loved-ones parsing) with no compatibility shims.
+- **`development_docs/PLANS.md`**: Marked the user profile settings widget legacy cleanup item as completed and removed it from the active removal list now that no legacy fallbacks remain.
+
+#### Impact
+- **Accurate Legacy Tracking**: The legacy cleanup plan now reflects the verified state of the widget, preventing duplicate work.
+- **Focus on Future Improvements**: Follow-up efforts can target UX or validation enhancements instead of legacy compatibility.
+
 ### 2025-12-05 - Discord Username Stored in Account Files
 
 #### Objective
