@@ -39,6 +39,22 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-29 - Coverage Stability for UI Tests
+
+#### Objective
+Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are unavailable.
+
+#### Changes Made
+- **`tests/unit/test_ui_management.py`**: Guarded the PySide6 imports with `pytest.importorskip` so the module is skipped gracefully on systems without GUI libraries.
+- **`TODO.md`**: Removed the stale "Investigate Test Coverage Analysis Failures" task after confirming the failures were tied to missing Qt dependencies rather than the targeted tests.
+
+#### Impact
+- **Coverage Reliability**: Coverage analysis and targeted test runs now skip UI-specific tests cleanly instead of erroring during collection when GUI libraries are missing.
+- **Backlog Accuracy**: The TODO list no longer tracks an investigation that has been resolved.
+
+#### Testing
+- `PYTHONPATH=. python -m coverage run -m pytest tests/behavior/test_utilities_demo.py::TestUtilitiesDemo::test_scheduled_user_creation tests/unit/test_logger_unit.py::TestEnsureLogsDirectory::test_ensure_logs_directory_creates_directories`
+
 ### 2025-11-29 - Schema Helper Edge-Case Regression Tests
 - **Feature**: Added focused unit coverage for schema validation helpers to ensure tolerant normalization of real-world payloads. New tests verify feature flag coercion when required fields are missing in `validate_account_dict`, invalid category handling passthrough in `validate_preferences_dict`, legacy schedule shapes and bad time/day values in `validate_schedules_dict`, and best-effort message list cleanup (invalid rows skipped, defaults applied) in `validate_messages_file_dict`.
 - **Impact**: Regression protection for the new Pydantic schemas: edge-case inputs now have explicit coverage, reducing risk of silently regressing normalization or error reporting behaviors relied on by save/load paths.

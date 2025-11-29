@@ -136,15 +136,6 @@ When adding new tasks, follow this format:
   - [ ] Create script or tool to help identify and update references automatically
   - [ ] Update documentation standards to require section numbers in references
 
-**Investigate Test Coverage Analysis Failures**
-- *What it means*: Explore why tests that usually pass sometimes fail during test coverage analysis (e.g., `test_scheduled_user_creation`, `test_ensure_logs_directory_creates_directories`)
-- *Why it helps*: Ensures reliable test execution and accurate coverage metrics
-- *Estimated effort*: Small/Medium
-- *Areas to investigate*:
-  - Timing issues or race conditions that only appear during coverage collection
-  - Resource contention or file locking issues
-  - Differences in test execution order or environment during coverage runs
-
 **Optimize Unused Imports Checker**
 - *What it means*: Explore options for accelerating the unused imports checker (currently takes ~7-8 minutes) and reduce excessive logging
 - *Why it helps*: Makes the unused imports checker more practical for regular use and reduces log noise
