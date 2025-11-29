@@ -39,6 +39,11 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-05 - Static Logging Guard Restoration
+- **Feature**: Recreated `scripts/static_checks/check_channel_loggers.py` to enforce forbidden direct `logging` imports, disallow `logging.getLogger` outside allowlisted files, and flag multi-argument logger calls; exclusions cover tests/scripts/ai_tools/development_tools with explicit allowlists for core logger infrastructure.
+- **Feature**: Added a static logging preflight to `run_tests.py` (toggle via `--skip-static-logging-check`) so style violations fail before pytest runs; updated `TODO.md` to reflect the enforcement step being wired through the runner.
+- **Impact**: Restores the static logging check expected by behavior tests and makes logging style drift visible in local and CI test runs.
+
 ### 2025-11-29 - Schema Helper Edge-Case Regression Tests
 - **Feature**: Added focused unit coverage for schema validation helpers to ensure tolerant normalization of real-world payloads. New tests verify feature flag coercion when required fields are missing in `validate_account_dict`, invalid category handling passthrough in `validate_preferences_dict`, legacy schedule shapes and bad time/day values in `validate_schedules_dict`, and best-effort message list cleanup (invalid rows skipped, defaults applied) in `validate_messages_file_dict`.
 - **Impact**: Regression protection for the new Pydantic schemas: edge-case inputs now have explicit coverage, reducing risk of silently regressing normalization or error reporting behaviors relied on by save/load paths.

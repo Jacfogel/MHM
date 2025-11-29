@@ -36,6 +36,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-05 - Static Logging Check Preflight **COMPLETED**
+- Recreated the static logging enforcement script and allowlists for logger usage.
+- `run_tests.py` now runs the check by default (can skip via `--skip-static-logging-check`) so logging style drift fails fast.
+
 ### 2025-11-29 - Schema Helper Edge-Case Tests **COMPLETED**
 - Added regression tests for `validate_account_dict`, `validate_preferences_dict`, `validate_schedules_dict`, and `validate_messages_file_dict` to cover missing required fields, invalid categories, legacy schedule shapes with bad time/day values, and mixed-quality message payloads.
 - Strengthens confidence that Pydantic schema normalization stays tolerant while still reporting issues for downstream save/load paths.

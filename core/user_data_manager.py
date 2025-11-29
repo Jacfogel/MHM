@@ -1381,7 +1381,7 @@ def build_user_index() -> Dict[str, Any]:
 
                                 if errors:
                                     logger.warning(
-                                        "Validation issues in %s: %s", category_path, "; ".join(errors)
+                                        f"Validation issues in {category_path}: {'; '.join(errors)}"
                                     )
 
                                 message_count += len(normalized.get('messages', []))
@@ -1446,7 +1446,7 @@ def get_user_summary(user_id: str) -> Dict[str, Any]:
 
                         if errors:
                             logger.warning(
-                                "Validation issues in %s: %s", category_path, "; ".join(errors)
+                                f"Validation issues in {category_path}: {'; '.join(errors)}"
                             )
 
                         message_count = len(normalized.get('messages', []))

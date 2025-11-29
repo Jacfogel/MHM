@@ -126,9 +126,11 @@ desktop.ini
 
 # Project specific
 data/
-scripts/
 !scripts/debug/
 !scripts/debug/*.py
+!scripts/static_checks/
+!scripts/static_checks/*.py
+!scripts/static_checks/**
 app.log
 app.log.*
 *.log
