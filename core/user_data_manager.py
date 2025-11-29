@@ -19,6 +19,7 @@ from core.config import (
 from core.file_operations import load_json_data, save_json_data, get_user_file_path, get_user_data_dir
 from core.user_data_handlers import get_user_data
 from core.user_data_handlers import get_all_user_ids
+from core.schemas import validate_messages_file_dict
 from core.error_handling import handle_errors
 
 logger = get_component_logger('main')
@@ -1376,7 +1377,14 @@ def build_user_index() -> Dict[str, Any]:
                         try:
                             with open(category_path, 'r', encoding='utf-8') as f:
                                 data = json.load(f)
-                                message_count += len(data.get('messages', []))
+                                normalized, errors = validate_messages_file_dict(data)
+
+                                if errors:
+                                    logger.warning(
+                                        "Validation issues in %s: %s", category_path, "; ".join(errors)
+                                    )
+
+                                message_count += len(normalized.get('messages', []))
                         except Exception as e:
                             logger.warning(f"Error reading message file {category_path}: {e}")
                 
@@ -1434,7 +1442,14 @@ def get_user_summary(user_id: str) -> Dict[str, Any]:
                 try:
                     with open(category_path, 'r', encoding='utf-8') as f:
                         data = json.load(f)
-                        message_count = len(data.get('messages', []))
+                        normalized, errors = validate_messages_file_dict(data)
+
+                        if errors:
+                            logger.warning(
+                                "Validation issues in %s: %s", category_path, "; ".join(errors)
+                            )
+
+                        message_count = len(normalized.get('messages', []))
                         message_stats[category] = message_count
                         total_messages += message_count
                 except Exception as e:
