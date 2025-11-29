@@ -36,6 +36,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-29 - Pydantic schema validation coverage **COMPLETED**
+- Added unit tests for schema helper validators covering feature flag coercion, invalid preference categories, schedule normalization, and mixed-quality message payloads.
+- Confirms helpers normalize legacy inputs without crashing and filters bad message rows; removed the completed TODO subtask.
+
 ### 2025-11-28 - Phase 6 Development Tools: Core Tool Portability Implementation **COMPLETED**
 - Completed Core Tool Checklist of Phase 6: all 11 core tools now portable via external configuration (`development_tools_config.json`). Supporting and Experimental tool checklists remain pending.
 - Created external config system with example template: projects can customize paths, exclusions, constants, error handling patterns, and coverage settings without modifying tool source.
