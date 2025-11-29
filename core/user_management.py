@@ -251,6 +251,16 @@ def _get_user_data__load_account(user_id: str, auto_create: bool = True) -> Opti
                 account_data['timezone'] = 'UTC'
         except Exception:
             pass
+
+    if isinstance(account_data, dict):
+        normalized_account, errors = validate_account_dict(account_data)
+        if errors:
+            logger.warning(
+                "Validation issues in account data for user %s: %s",
+                user_id,
+                "; ".join(errors),
+            )
+        account_data = normalized_account or account_data
     
     # Cache the data
     _user_account_cache[cache_key] = (account_data, current_time)
@@ -347,13 +357,23 @@ def _get_user_data__load_preferences(user_id: str, auto_create: bool = True) -> 
         # Load from file
         ensure_user_directory(user_id)
         preferences_data = load_json_data(preferences_file)
-        
+
         # If load_json_data returned None (corrupted file) and auto_create is False, return None
         if preferences_data is None and not auto_create:
             return None
-        
+
         # Use empty dict as fallback only when auto_create is True
         preferences_data = preferences_data or {}
+
+    if isinstance(preferences_data, dict):
+        normalized_preferences, errors = validate_preferences_dict(preferences_data)
+        if errors:
+            logger.warning(
+                "Validation issues in preferences for user %s: %s",
+                user_id,
+                "; ".join(errors),
+            )
+        preferences_data = normalized_preferences or preferences_data
 
     # Cache the data
     _user_preferences_cache[cache_key] = (preferences_data, current_time)
@@ -527,6 +547,15 @@ def _get_user_data__load_schedules(user_id: str, auto_create: bool = True) -> Op
         if schedules_data is None and not auto_create:
             return None
         schedules_data = schedules_data or {}
+    if isinstance(schedules_data, dict):
+        normalized_schedules, errors = validate_schedules_dict(schedules_data)
+        if errors:
+            logger.warning(
+                "Validation issues in schedules for user %s: %s",
+                user_id,
+                "; ".join(errors),
+            )
+        schedules_data = normalized_schedules or schedules_data
     return schedules_data
 
 @handle_errors("saving user schedules data")
