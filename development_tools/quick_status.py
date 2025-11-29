@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # TOOL_TIER: supporting
-# TOOL_PORTABILITY: mhm-specific
 
 """
 Quick Status Tool - Concise, actionable information for AI collaboration
@@ -13,7 +12,7 @@ import sys
 import json
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent
@@ -27,9 +26,26 @@ logger = get_component_logger("development_tools")
 class QuickStatus:
     """Quick status checker for AI collaboration."""
     
-    def __init__(self):
-        self.project_root = Path(__file__).parent.parent
-        # Note: ai_config functionality removed for simplicity
+    def __init__(self, project_root: Optional[Path] = None, config_path: Optional[str] = None):
+        if project_root:
+            self.project_root = Path(project_root).resolve()
+        else:
+            self.project_root = Path(__file__).parent.parent
+        
+        # Load config if provided
+        try:
+            from . import config
+        except ImportError:
+            from development_tools import config
+        
+        self.config = config  # Store reference for reuse
+        
+        if config_path:
+            config.load_external_config(config_path)
+        else:
+            config.load_external_config()
+        
+        self.quick_status_config = config.get_quick_status_config()
     
     def get_quick_status(self) -> Dict:
         """Get quick status overview"""
@@ -51,14 +67,22 @@ class QuickStatus:
             'overall_status': 'OK'
         }
         
-        # Check core files
-        core_files = ['run_mhm.py', 'core/service.py', 'core/config.py', 'requirements.txt']
+        # Check core files - use config or project.key_files, fallback to generic defaults
+        core_files = self.quick_status_config.get('core_files', [])
+        if not core_files:
+            # Try to get from project.key_files in config
+            core_files = self.config.get_project_key_files(['requirements.txt'])
+        
         for file_path in core_files:
             full_path = self.project_root / file_path
             health['core_files'][file_path] = 'OK' if full_path.exists() else 'MISSING'
         
-        # Check key directories
-        key_dirs = ['core', 'ui', 'tests', 'development_tools']
+        # Check key directories - use config or paths.scan_directories, fallback to generic defaults
+        key_dirs = self.quick_status_config.get('key_directories', [])
+        if not key_dirs:
+            # Try to get from paths.scan_directories in config
+            key_dirs = self.config.get_scan_directories() or ['core', 'tests']
+        
         for dir_path in key_dirs:
             full_path = self.project_root / dir_path
             health['key_directories'][dir_path] = 'OK' if full_path.exists() else 'MISSING'

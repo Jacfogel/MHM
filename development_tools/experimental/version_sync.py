@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # TOOL_TIER: experimental
-# TOOL_PORTABILITY: mhm-specific
 
 """
 AI Documentation Version Synchronization Tool
@@ -764,5 +763,5 @@ if __name__ == "__main__":
         print("   ai_docs     - AI documentation and cursor rules (default)")
         print("   docs        - All documentation files (*.md, *.txt, *.mdc)")
         print("   generated   - Generated files (function registry, module dependencies, etc.)")
-        print("   core        - Core system files (run_mhm.py, core/service.py, etc.)")
+        print("   core        - Core system files (main entry points, core modules, etc.)")
         print("   all         - All files (use with caution)")

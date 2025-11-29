@@ -119,6 +119,16 @@ When suggesting new docs or edits:
 
 **Path drift checker:** Validates that referenced files exist. May flag short names if directory cannot be inferred from context.
 
+
+**Markdown link standard (AI view):**
+
+- When you create or edit links to `.md` docs, use only the filename as link text and keep the full path in the target.  
+  - Example: `[LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)`
+- Skip metadata lines (`> **File**:`), code fences, and inline examples – do **not** auto-convert those.
+- Avoid adding links when the target `.md` file does not exist.
+- Prefer this pattern whenever you reference other docs from AI_* files so links are easy for humans to read but still precise for tools.
+
+
 ### 2.4. Parent metadata (subordinate docs)
 
 Some docs are not part of a human/AI pair but are still subordinate to a higher-level document.  

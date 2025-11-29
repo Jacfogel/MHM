@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # TOOL_TIER: core
-# TOOL_PORTABILITY: portable
 
 """
 Legacy Reference Cleanup Tool (Portable)
@@ -643,7 +642,7 @@ class LegacyReferenceCleanup:
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="Clean up legacy references in MHM")
+    parser = argparse.ArgumentParser(description="Clean up legacy references in codebase")
     parser.add_argument('--scan', action='store_true', default=True,
                        help='Scan for legacy references (default: True)')
     parser.add_argument('--clean', action='store_true',

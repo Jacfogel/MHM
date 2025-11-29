@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 # TOOL_TIER: supporting
-# TOOL_PORTABILITY: portable
 
 """
 System Signals Tool
 
-Generates system health and status signals for the MHM project.
+Generates system health and status signals for the project.
 This tool can be run independently or as part of audit workflows.
+
+Configuration is loaded from external config file (development_tools_config.json)
+if available, making this tool portable across different projects.
 """
 
 import sys
 import json
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Dict, List, Optional, Any
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent
@@ -36,8 +38,26 @@ logger = get_component_logger("development_tools")
 class SystemSignalsGenerator:
     """Generate system health and status signals"""
     
-    def __init__(self):
-        self.project_root = Path(__file__).parent.parent
+    def __init__(self, project_root: Optional[Path] = None, config_path: Optional[str] = None):
+        if project_root:
+            self.project_root = Path(project_root).resolve()
+        else:
+            self.project_root = Path(__file__).parent.parent
+        
+        # Load config if provided
+        try:
+            from . import config
+        except ImportError:
+            from development_tools import config
+        
+        self.config = config  # Store reference for reuse
+        
+        if config_path:
+            config.load_external_config(config_path)
+        else:
+            config.load_external_config()
+        
+        self.system_signals_config = config.get_system_signals_config()
         
     def generate_system_signals(self) -> Dict[str, Any]:
         """Generate comprehensive system signals"""
@@ -61,12 +81,11 @@ class SystemSignalsGenerator:
             'errors': []
         }
         
-        # Check core files
-        core_files = [
-            'run_mhm.py', 'run_headless_service.py', 'run_tests.py',
-            'core/service.py', 'core/config.py', 'core/logger.py',
-            'requirements.txt', 'pyproject.toml'
-        ]
+        # Check core files - use config or project.key_files, fallback to generic defaults
+        core_files = self.system_signals_config.get('core_files', [])
+        if not core_files:
+            # Try to get from project.key_files in config
+            core_files = self.config.get_project_key_files(['requirements.txt', 'pyproject.toml'])
         
         for file_path in core_files:
             full_path = self.project_root / file_path
@@ -191,7 +210,10 @@ class SystemSignalsGenerator:
         alerts = []
         
         # Check for critical files
-        critical_files = ['core/service.py', 'core/config.py', 'run_mhm.py']
+        # Use core_files from config, or fallback to generic
+        critical_files = self.system_signals_config.get('core_files', [])
+        if not critical_files:
+            critical_files = self.config.get_project_key_files([])
         for file_path in critical_files:
             if not (self.project_root / file_path).exists():
                 alerts.append(f"CRITICAL: Missing {file_path}")
@@ -244,7 +266,7 @@ def main():
     """Main entry point"""
     import argparse
     
-    parser = argparse.ArgumentParser(description='Generate system signals for MHM project')
+    parser = argparse.ArgumentParser(description='Generate system signals for the project')
     parser.add_argument('--json', action='store_true', help='Output as JSON')
     parser.add_argument('--output', help='Output file path')
     

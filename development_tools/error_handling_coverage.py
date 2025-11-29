@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # TOOL_TIER: core
-# TOOL_PORTABILITY: portable
 
 """
 Error Handling Coverage Analysis Tool

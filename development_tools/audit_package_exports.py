@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # TOOL_TIER: supporting
-# TOOL_PORTABILITY: mhm-specific
 
 """
 Package Exports Audit Script
@@ -24,16 +23,29 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict, List, Optional, Set
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from development_tools.services.standard_exclusions import should_exclude_file
+try:
+    from . import config
+    from .services.standard_exclusions import should_exclude_file
+except ImportError:
+    from development_tools import config
+    from development_tools.services.standard_exclusions import should_exclude_file
 
 from core.logger import get_component_logger
+
+# Load external config on module import
+config.load_external_config()
+
+# Get configuration
+AUDIT_EXPORTS_CONFIG = config.get_audit_package_exports_config()
+EXPORT_PATTERNS = AUDIT_EXPORTS_CONFIG.get('export_patterns', [])
+EXPECTED_EXPORTS = AUDIT_EXPORTS_CONFIG.get('expected_exports', {})
 
 logger = get_component_logger("development_tools")
 

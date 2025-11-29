@@ -6,7 +6,6 @@
 Folder PATH listing
 Volume serial number is 5EAC-07BC
 C:.
-|   .coverage
 |   .coverage_dev_tools
 |   .cursorignore
 |   .env
@@ -202,8 +201,6 @@ C:.
 |   |   
 |   +---archive
     (archived files)
-+---htmlcov
-    (HTML coverage reports)
 +---logs
 |   |   ai.log
 |   |   ai_dev_tools.log

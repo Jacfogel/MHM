@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # TOOL_TIER: core
-# TOOL_PORTABILITY: portable
 
 """Shared helpers for AI development tooling."""
 from __future__ import annotations

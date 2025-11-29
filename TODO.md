@@ -126,6 +126,12 @@ When adding new tasks, follow this format:
   - [ ] Consider integrating fix operations into `doc-sync` workflow as optional `--fix` flag
   - [ ] Update documentation to reflect new command structure
 
+**Fix Missing Closing Markers in Generated AI_MODULE_DEPENDENCIES.md**
+- *What it means*: Fix the generator for `ai_development_docs/AI_MODULE_DEPENDENCIES.md` (generated file) to properly close markdown bold formatting. Line 170 is missing the closing `**` characters, breaking the markdown blockquote bold formatting. The line should end with `MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md)**` but instead ends without the closing markers.
+- *Why it helps*: Ensures generated documentation renders correctly in markdown processors and maintains proper formatting standards
+- *Estimated effort*: Small
+- *Note*: This is a generated file - fix must be made in the generator (likely `development_tools/generate_module_dependencies.py` or related module), not in the file itself
+
 **Update Inter-Documentation References to Include Section Numbers**
 - *What it means*: Update cross-references between documentation files to include section numbers and titles (e.g., "See section 3.2. Logging Architecture in LOGGING_GUIDE.md" instead of just "See LOGGING_GUIDE.md")
 - *Why it helps*: Makes references more precise and easier to navigate, especially with numbered headings now standardized; improves documentation usability

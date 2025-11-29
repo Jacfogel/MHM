@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # TOOL_TIER: supporting
-# TOOL_PORTABILITY: mhm-specific
 
 """
 Validation script for AI-generated work.
@@ -11,16 +10,32 @@ import ast
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
+
+# Optional yaml import
+try:
+    import yaml
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
+# Handle both relative and absolute imports
+try:
+    from . import config
+except ImportError:
+    from development_tools import config
+
 from core.logger import get_component_logger
 
 logger = get_component_logger("development_tools")
+
+# Load config at module level
+VALIDATE_AI_WORK_CONFIG = config.get_validate_ai_work_config()
 
 def validate_documentation_completeness(doc_file: str, code_files: List[str]) -> Dict:
     """Validate that documentation covers all relevant code."""
@@ -251,9 +266,10 @@ def generate_validation_report(validation_type: str, **kwargs) -> str:
     report.append("OVERALL ASSESSMENT:")
     
     if validation_type == "documentation":
-        if results['coverage'] >= 80:
+        completeness_threshold = VALIDATE_AI_WORK_CONFIG.get('completeness_threshold', 90.0)
+        if results['coverage'] >= completeness_threshold:
             report.append("GOOD - Documentation covers most items")
-        elif results['coverage'] >= 50:
+        elif results['coverage'] >= completeness_threshold * 0.5:
             report.append("FAIR - Documentation needs improvement")
         else:
             report.append("POOR - Documentation is incomplete")
@@ -272,8 +288,53 @@ def generate_validation_report(validation_type: str, **kwargs) -> str:
     
     return "\n".join(report)
 
-def validate_ai_work(work_type: str, **kwargs) -> str:
-    """Main validation function for AI work."""
+def validate_ai_work(work_type: str, project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs) -> str:
+    """
+    Main validation function for AI work.
+    
+    Args:
+        work_type: Type of validation to perform
+        project_root: Optional project root path (for config loading)
+        config_path: Optional path to config file (for config loading)
+        **kwargs: Additional arguments for validation
+    """
+    global VALIDATE_AI_WORK_CONFIG
+    
+    # Load config if project_root or config_path provided
+    if project_root or config_path:
+        if config_path:
+            config.load_external_config(config_path)
+        # Reload config (project_root is handled via config file)
+        VALIDATE_AI_WORK_CONFIG = config.get_validate_ai_work_config()
+        
+        # Load rule sets if configured
+        rule_set_paths = VALIDATE_AI_WORK_CONFIG.get('rule_set_paths', [])
+        rule_sets = VALIDATE_AI_WORK_CONFIG.get('rule_sets', {})
+        
+        # Load rule sets from files if paths provided
+        if rule_set_paths:
+            for rule_path in rule_set_paths:
+                rule_path_obj = Path(rule_path)
+                if not rule_path_obj.is_absolute() and project_root:
+                    rule_path_obj = Path(project_root) / rule_path_obj
+                
+                if rule_path_obj.exists():
+                    try:
+                        with open(rule_path_obj, 'r', encoding='utf-8') as f:
+                            if rule_path_obj.suffix in ('.yaml', '.yml'):
+                                if HAS_YAML:
+                                    loaded_rules = yaml.safe_load(f)
+                                else:
+                                    logger.warning(f"YAML support not available, skipping {rule_path}")
+                                    continue
+                            else:
+                                import json
+                                loaded_rules = json.load(f)
+                            if isinstance(loaded_rules, dict):
+                                rule_sets.update(loaded_rules)
+                    except Exception as e:
+                        logger.warning(f"Failed to load rule set from {rule_path}: {e}")
+    
     if work_type == "documentation":
         return generate_validation_report("documentation", **kwargs)
     elif work_type == "code_changes":
@@ -283,11 +344,16 @@ def validate_ai_work(work_type: str, **kwargs) -> str:
     else:
         return "Unknown validation type"
 
+def execute(project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs) -> str:
+    """Execute validation (for use by ai_tools_runner)."""
+    work_type = kwargs.get('work_type', 'documentation')
+    return validate_ai_work(work_type, project_root=project_root, config_path=config_path, **kwargs)
+
 if __name__ == "__main__":
     # Example usage
     result = validate_ai_work("documentation", 
                               doc_file="README.md", 
-                              code_files=["core/config.py", "core/service.py"])
+                              code_files=[])  # Provide project-specific code files
     # Print to stdout so subprocess.run can capture it
     print(result)
     # Also log for debugging

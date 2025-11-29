@@ -90,7 +90,6 @@ Each module declares:
 
 ```
 # TOOL_TIER: core | supporting | experimental
-# TOOL_PORTABILITY: portable | mhm-specific
 ```
 
 The authoritative table lives in `services/tool_metadata.py`. Use this guide to pick the right group quickly:
@@ -104,7 +103,7 @@ The authoritative table lives in `services/tool_metadata.py`. Use this guide to 
 [OK] = Has comprehensive test coverage (Phase 3)
 - **Decision & utilities**: `decision_support.py`, `function_discovery.py`, `experimental/auto_document_functions.py` (experimental), `config_validator.py`, `file_rotation.py`, `audit_*` helpers, `tool_guide.py`
 
-Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier, trust, and portability matrix.
+Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier and trust matrix.
 
 ---
 

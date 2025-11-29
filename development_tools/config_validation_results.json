@@ -1,6 +1,6 @@
 {
   "generated_by": "config_validator.py - Configuration Validation Tool",
-  "last_generated": "2025-11-28 05:30:27",
+  "last_generated": "2025-11-28 19:13:58",
   "source": "python development_tools/config_validator.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "validation_results": {
@@ -15,13 +15,11 @@
         ]
       },
       "analyze_documentation.py": {
-        "imports_config": false,
+        "imports_config": true,
         "uses_config_functions": false,
         "hardcoded_values": [],
         "config_functions_used": [],
-        "issues": [
-          "Does not import config module"
-        ]
+        "issues": []
       },
       "audit_function_registry.py": {
         "imports_config": true,
@@ -103,13 +101,11 @@
         "issues": []
       },
       "quick_status.py": {
-        "imports_config": false,
+        "imports_config": true,
         "uses_config_functions": false,
         "hardcoded_values": [],
         "config_functions_used": [],
-        "issues": [
-          "Does not import config module"
-        ]
+        "issues": []
       },
       "regenerate_coverage_metrics.py": {
         "imports_config": true,
@@ -119,13 +115,11 @@
         "issues": []
       },
       "system_signals.py": {
-        "imports_config": false,
+        "imports_config": true,
         "uses_config_functions": false,
         "hardcoded_values": [],
         "config_functions_used": [],
-        "issues": [
-          "Does not import config module"
-        ]
+        "issues": []
       },
       "tool_guide.py": {
         "imports_config": false,
@@ -137,22 +131,18 @@
         ]
       },
       "unused_imports_checker.py": {
-        "imports_config": false,
+        "imports_config": true,
         "uses_config_functions": false,
         "hardcoded_values": [],
         "config_functions_used": [],
-        "issues": [
-          "Does not import config module"
-        ]
+        "issues": []
       },
       "validate_ai_work.py": {
-        "imports_config": false,
+        "imports_config": true,
         "uses_config_functions": false,
         "hardcoded_values": [],
         "config_functions_used": [],
-        "issues": [
-          "Does not import config module"
-        ]
+        "issues": []
       },
       "__init__.py": {
         "imports_config": true,
@@ -163,7 +153,15 @@
       }
     },
     "config_validation": {
-      "scan_directories_exist": [],
+      "scan_directories_exist": [
+        "core",
+        "communication",
+        "ui",
+        "user",
+        "tasks",
+        "tests",
+        "ai"
+      ],
       "missing_directories": [],
       "config_structure_valid": true,
       "issues": []
@@ -176,27 +174,17 @@
     "recommendations": [
       "Update ai_tools_runner.py to import config module",
       "Fix issues in ai_tools_runner.py: Does not import config module",
-      "Update analyze_documentation.py to import config module",
-      "Fix issues in analyze_documentation.py: Does not import config module",
       "Update file_rotation.py to import config module",
       "Fix issues in file_rotation.py: Does not import config module",
-      "Update quick_status.py to import config module",
-      "Fix issues in quick_status.py: Does not import config module",
-      "Update system_signals.py to import config module",
-      "Fix issues in system_signals.py: Does not import config module",
       "Update tool_guide.py to import config module",
-      "Fix issues in tool_guide.py: Does not import config module",
-      "Update unused_imports_checker.py to import config module",
-      "Fix issues in unused_imports_checker.py: Does not import config module",
-      "Update validate_ai_work.py to import config module",
-      "Fix issues in validate_ai_work.py: Does not import config module"
+      "Fix issues in tool_guide.py: Does not import config module"
     ],
     "summary": {
-      "tools_using_config": 12,
+      "tools_using_config": 17,
       "total_tools": 20,
       "config_valid": true,
       "config_complete": true,
-      "total_recommendations": 16
+      "total_recommendations": 6
     }
   }
 }

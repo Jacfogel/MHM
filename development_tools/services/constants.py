@@ -1,5 +1,4 @@
 # TOOL_TIER: core
-# TOOL_PORTABILITY: portable
 
 """
 Shared constant data and helpers for AI development tools.

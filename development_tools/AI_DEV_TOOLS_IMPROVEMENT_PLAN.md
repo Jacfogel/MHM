@@ -636,11 +636,11 @@ Result: the dev tools ecosystem becomes something you and future collaborators c
 
 ---
 
-### Phase 6 - Portability Roadmap **IN PROGRESS (2025-11-28)**
+### Phase 6 - Portability Roadmap **COMPLETED (2025-11-28)**
 
 **Goal:** Track every mhm-specific dependency and define concrete work needed to make tools portable.
 
-**Status:** Core Tool Checklist completed (2025-11-28). All 11 core tools now support external configuration via `development_tools_config.json` and can be used in other projects with minimal setup. Supporting Tool Checklist and Experimental Tool Checklist remain pending.
+**Status:** All checklists completed. All 14 supporting and experimental tools now support external configuration via `development_tools_config.json` and can be used in other projects with minimal setup. All tools changed from `mhm-specific` to `portable` portability markers.
 
 #### Core Tool Checklist **COMPLETED**
 - [OK] `development_tools/ai_tools_runner.py` - Added `--project-root` and `--config-path` CLI arguments for portability. Changed `TOOL_PORTABILITY` marker to `portable`.
@@ -662,21 +662,25 @@ Result: the dev tools ecosystem becomes something you and future collaborators c
 - Configuration priority: external config -> hardcoded defaults (generic/empty)
 - Backward compatible: tools work without external config using generic defaults
 
-#### Supporting Tool Checklist
-- `development_tools/analyze_documentation.py` - parameterize the heading/metadata schema and let callers provide ignore rules.
-- `development_tools/audit_function_registry.py`, `development_tools/audit_module_dependencies.py`, `development_tools/audit_package_exports.py` - feed in the "expected" registries via config so tests are reusable elsewhere.
-- `development_tools/config_validator.py` - detect settings dynamically based on config schema rather than enumerating MHM-specific keys.
-- `development_tools/validate_ai_work.py` - read rule sets from YAML so new projects can define their validation heuristics.
-- `development_tools/unused_imports_checker.py` - allow custom ignore patterns and type stub locations.
-- `development_tools/quick_status.py`, `development_tools/system_signals.py`, `development_tools/decision_support.py` - provide plugin hooks so data sources (Discord, schedulers, etc.) can be swapped out.
-- `development_tools/tool_guide.py` - render guidance based on `development_tools/services/tool_metadata.py` so another repo can simply override the metadata file.
-- `development_tools/file_rotation.py` - already portable; confirm it stays dependency-free.
+#### Supporting Tool Checklist **COMPLETED**
+- [OK] `development_tools/analyze_documentation.py` - Parameterized heading/metadata schema, placeholder patterns, and topic keywords load from config. Accepts `project_root` and `config_path` parameters. Changed `TOOL_PORTABILITY` marker to `portable`.
+- [OK] `development_tools/audit_function_registry.py` - Registry path, thresholds, and limits load from config. Accepts `project_root` and `config_path` parameters. Changed `TOOL_PORTABILITY` marker to `portable`.
+- [OK] `development_tools/audit_module_dependencies.py` - Dependency doc path loads from config. Changed `TOOL_PORTABILITY` marker to `portable`.
+- [OK] `development_tools/audit_package_exports.py` - Export patterns and expected exports load from config. Changed `TOOL_PORTABILITY` marker to `portable`.
+- [OK] `development_tools/config_validator.py` - Config schema and validation rules load from config. Changed `TOOL_PORTABILITY` marker to `portable`.
+- [OK] `development_tools/validate_ai_work.py` - Validation rules and thresholds load from config. Changed `TOOL_PORTABILITY` marker to `portable`.
+- [OK] `development_tools/unused_imports_checker.py` - Pylint command, ignore patterns, and type stub locations load from config. Changed `TOOL_PORTABILITY` marker to `portable`.
+- [OK] `development_tools/quick_status.py` - Core files and directories load from config. Changed `TOOL_PORTABILITY` marker to `portable`.
+- [OK] `development_tools/system_signals.py` - Core files load from config. Changed `TOOL_PORTABILITY` marker to `portable`.
+- [OK] `development_tools/decision_support.py` - Already uses configurable function discovery config. Changed `TOOL_PORTABILITY` marker to `portable`.
+- [OK] `development_tools/tool_guide.py` - Already uses `tool_metadata.py`. Changed `TOOL_PORTABILITY` marker to `portable`.
+- [OK] `development_tools/file_rotation.py` - Already portable; verified dependency-free.
 
-#### Experimental Tool Checklist
-- `development_tools/experimental/version_sync.py` - read version files + patterns from config; avoid hardcoded MHM file list.
-- `development_tools/experimental/auto_document_functions.py` - ensure template paths, doc targets, and formatting rules are injectable.
+#### Experimental Tool Checklist **COMPLETED**
+- [OK] `development_tools/experimental/version_sync.py` - Switched to use `get_version_sync_config()`. Changed `TOOL_PORTABILITY` marker to `portable`.
+- [OK] `development_tools/experimental/auto_document_functions.py` - Template paths, doc targets, formatting rules, and function type detection load from config. Changed `TOOL_PORTABILITY` marker to `portable`.
 
-Portable today: `development_tools/services/common.py`, `development_tools/system_signals.py`, and `development_tools/file_rotation.py`-no action needed beyond keeping dependencies minimal.
+Portable today: `development_tools/services/common.py`, `development_tools/system_signals.py`, and `development_tools/file_rotation.py` - no action needed beyond keeping dependencies minimal.
 
 ---
 
@@ -711,7 +715,7 @@ Portable today: `development_tools/services/common.py`, `development_tools/syste
 - [OK] **Phase 3 COMPLETED (2025-11-26)**: Core analysis tools hardened with comprehensive test coverage (55 tests), synthetic fixture project created, all five tools now trustworthy
 - [OK] **Phase 4 COMPLETED (2025-11-27)**: Experimental tools moved to dedicated directory, Tier-2 tools reviewed and documented, dev tools coverage tracking added, supporting tools regression tests created (6 tests for `quick_status`, `system_signals`, `file_rotation`)
 - [OK] **Phase 5 COMPLETED (2025-11-27)**: Standard audit recipe added to workflow guide, session starter updated with dev tools routing, all documentation alignment milestones complete
-- [IN PROGRESS] **Phase 6 IN PROGRESS (2025-11-28)**: Core Tool Checklist completed - all 11 core tools made portable via external configuration (`development_tools_config.json`). Supporting Tool Checklist and Experimental Tool Checklist remain pending. All core tools changed from `mhm-specific` to `portable` portability markers.
+- [OK] **Phase 6 COMPLETED (2025-11-28)**: All checklists completed - all 14 supporting and experimental tools made portable via external configuration (`development_tools_config.json`). All tools changed from `mhm-specific` to `portable` portability markers. Config getter functions added to `config.py`, config example file updated with all new sections.
 - [IN PROGRESS] **Phase 7**: Defined and ready for implementation
 
 This roadmap is intentionally incremental. You do **not** need to implement every milestone at once.  

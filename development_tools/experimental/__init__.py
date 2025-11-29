@@ -1,5 +1,4 @@
 # TOOL_TIER: experimental
-# TOOL_PORTABILITY: mhm-specific
 
 """
 Experimental development tools.

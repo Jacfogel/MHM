@@ -1,5 +1,4 @@
 # TOOL_TIER: supporting
-# TOOL_PORTABILITY: mhm-specific
 
 #!/usr/bin/env python3
 """Audit script to verify FUNCTION_REGISTRY_DETAIL.md coverage."""
@@ -11,7 +10,7 @@ import ast
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Tuple, Set
+from typing import Dict, List, Optional, Tuple, Set
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent
@@ -26,21 +25,30 @@ except ImportError:
     import config
     from services.common import ProjectPaths, ensure_ascii, iter_python_sources, run_cli, summary_block, write_text
 
+# Load external config on module import
+config.load_external_config()
+
+# Get configuration
+AUDIT_REGISTRY_CONFIG = config.get_audit_function_registry_config()
+
 PATHS = ProjectPaths()
-REGISTRY_PATH = PATHS.dev_docs / "FUNCTION_REGISTRY_DETAIL.md"
+# Get registry path from config (default: development_docs/FUNCTION_REGISTRY_DETAIL.md)
+_registry_path_str = AUDIT_REGISTRY_CONFIG.get('registry_path', 'development_docs/FUNCTION_REGISTRY_DETAIL.md')
+REGISTRY_PATH = PATHS.root / _registry_path_str
 CURRENT_DIR = Path(__file__).parent
 
 FUNCTION_CFG = config.get_function_discovery_config()
 HANDLER_KEYWORDS = tuple(keyword.lower() for keyword in FUNCTION_CFG.get("handler_keywords", []))
 
-HIGH_COMPLEXITY_MIN = 50
-TOP_COMPLEXITY = 10
-TOP_UNDOCUMENTED = 5
-TOP_DUPLICATES = 5
-ERROR_SAMPLE_LIMIT = 5
-MAX_COMPLEXITY_JSON = 200
-MAX_UNDOCUMENTED_JSON = 200
-MAX_DUPLICATES_JSON = 200
+# Load thresholds and limits from config
+HIGH_COMPLEXITY_MIN = AUDIT_REGISTRY_CONFIG.get('high_complexity_min', 50)
+TOP_COMPLEXITY = AUDIT_REGISTRY_CONFIG.get('top_complexity', 10)
+TOP_UNDOCUMENTED = AUDIT_REGISTRY_CONFIG.get('top_undocumented', 5)
+TOP_DUPLICATES = AUDIT_REGISTRY_CONFIG.get('top_duplicates', 5)
+ERROR_SAMPLE_LIMIT = AUDIT_REGISTRY_CONFIG.get('error_sample_limit', 5)
+MAX_COMPLEXITY_JSON = AUDIT_REGISTRY_CONFIG.get('max_complexity_json', 200)
+MAX_UNDOCUMENTED_JSON = AUDIT_REGISTRY_CONFIG.get('max_undocumented_json', 200)
+MAX_DUPLICATES_JSON = AUDIT_REGISTRY_CONFIG.get('max_duplicates_json', 200)
 
 
 @dataclass(frozen=True)
@@ -535,7 +543,30 @@ def summarise_audit(
     return "\n".join(lines)
 
 
-def execute(args: argparse.Namespace):
+def execute(args: argparse.Namespace, project_root: Optional[Path] = None, config_path: Optional[str] = None):
+    """Execute audit with optional project_root and config_path."""
+    # Declare globals at the top
+    global PATHS, AUDIT_REGISTRY_CONFIG, REGISTRY_PATH, HIGH_COMPLEXITY_MIN, TOP_COMPLEXITY, TOP_UNDOCUMENTED, TOP_DUPLICATES, ERROR_SAMPLE_LIMIT, MAX_COMPLEXITY_JSON, MAX_UNDOCUMENTED_JSON, MAX_DUPLICATES_JSON
+    
+    # Use provided project_root or default
+    if project_root:
+        PATHS = ProjectPaths(root=project_root)
+    
+    # Load config if path provided
+    if config_path:
+        config.load_external_config(config_path)
+        # Reload config after loading external config
+        AUDIT_REGISTRY_CONFIG = config.get_audit_function_registry_config()
+        _registry_path_str = AUDIT_REGISTRY_CONFIG.get('registry_path', 'development_docs/FUNCTION_REGISTRY_DETAIL.md')
+        REGISTRY_PATH = PATHS.root / _registry_path_str
+        HIGH_COMPLEXITY_MIN = AUDIT_REGISTRY_CONFIG.get('high_complexity_min', 50)
+        TOP_COMPLEXITY = AUDIT_REGISTRY_CONFIG.get('top_complexity', 10)
+        TOP_UNDOCUMENTED = AUDIT_REGISTRY_CONFIG.get('top_undocumented', 5)
+        TOP_DUPLICATES = AUDIT_REGISTRY_CONFIG.get('top_duplicates', 5)
+        ERROR_SAMPLE_LIMIT = AUDIT_REGISTRY_CONFIG.get('error_sample_limit', 5)
+        MAX_COMPLEXITY_JSON = AUDIT_REGISTRY_CONFIG.get('max_complexity_json', 200)
+        MAX_UNDOCUMENTED_JSON = AUDIT_REGISTRY_CONFIG.get('max_undocumented_json', 200)
+        MAX_DUPLICATES_JSON = AUDIT_REGISTRY_CONFIG.get('max_duplicates_json', 200)
     errors: List[str] = []
     inventory = collect_project_inventory(errors)
     registry = parse_registry_document()

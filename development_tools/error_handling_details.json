@@ -17,12 +17,12 @@
     "handle_network_error": 5,
     "handle_validation_error": 2,
     "handle_ai_error": 16,
-    "MHMError": 2,
-    "CommunicationError": 2,
-    "FileOperationError": 10,
-    "DataError": 13,
     "safe_file_operation": 1,
-    "AIError": 2
+    "AIError": 2,
+    "FileOperationError": 10,
+    "CommunicationError": 2,
+    "DataError": 13,
+    "MHMError": 2
   },
   "missing_error_handling": [
     {

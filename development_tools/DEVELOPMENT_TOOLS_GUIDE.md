@@ -12,7 +12,7 @@
 ## 1. Purpose and Scope
 
 Use this guide when you need:
-- The authoritative human-readable catalog of tools, tiers, and portability
+- The authoritative human-readable catalog of tools and tiers
 - Rationale behind trust levels and roadmap priorities
 - Links to supporting plans such as [AI_DEV_TOOLS_IMPROVEMENT_PLAN.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md)
 
@@ -94,7 +94,7 @@ Regardless of command:
 2. Hardcoded defaults in `config.py` (generic/empty fallbacks for portability)
 3. Environment-specific detection (project root, scan directories, etc.)
 
-**Portability**: All core tools are now portable and can be used in other projects. Create a `development_tools_config.json` file in your project root (see `development_tools/development_tools_config.json.example` for a template) to customize paths, exclusions, constants, and other project-specific settings.
+**Portability**: All tools are portable and can be used in other projects. Create a `development_tools_config.json` file in your project root (see `development_tools/development_tools_config.json.example` for a template) to customize paths, exclusions, constants, and other project-specific settings.
 
 ---
 
@@ -139,37 +139,37 @@ Ensure directories listed in `development_tools/services/constants.py` remain ac
 
 ### 4.2. Detailed catalog
 
-| Tool | Tier | Trust | Portability | Notes |
-| --- | --- | --- | --- | --- |
-| ai_tools_runner.py | core | stable | portable | CLI dispatcher for every AI tooling command. Supports `--project-root` and `--config-path` for portability. |
-| services/operations.py | core | stable | portable | Implements command handlers and shared execution paths. Accepts project-specific config via external config file. |
-| config.py | core | stable | portable | Central configuration for audit contexts, paths, and workflow knobs. Loads from `development_tools_config.json` with generic fallbacks. |
-| services/standard_exclusions.py | core | stable | portable | Canonical exclusion patterns consumed by all scanners. Loads exclusions from external config. |
-| services/constants.py | core | stable | portable | Doc pairing metadata, directory maps, and shared enumerations. Loads constants from external config. |
-| services/common.py | core | stable | portable | IO helpers plus CLI utilities (command grouping, runners). |
-| documentation_sync_checker.py | core | stable | portable | Validates doc pairing (human vs AI) and detects drift. Parameterized doc roots and metadata schema. [OK] **HAS TESTS (Phase 3)**: 12 tests in `tests/development_tools/test_documentation_sync_checker.py` |
-| generate_function_registry.py | core | stable | portable | Builds the authoritative function registry via AST parsing. Configurable scan roots and filters via external config. [OK] **HAS TESTS (Phase 3)**: 12 tests in `tests/development_tools/test_generate_function_registry.py` |
-| generate_module_dependencies.py | core | stable | portable | Produces module dependency graphs and enhancement zones. Accepts custom module prefixes for portability. [OK] **HAS TESTS (Phase 3)**: 11 tests in `tests/development_tools/test_generate_module_dependencies.py` |
-| legacy_reference_cleanup.py | core | stable | portable | Finds/validates LEGACY COMPATIBILITY usage before cleanup. Legacy patterns and mappings load from external config. [OK] **HAS TESTS (Phase 3)**: 10 tests in `tests/development_tools/test_legacy_reference_cleanup.py` |
-| regenerate_coverage_metrics.py | core | stable | portable | Rebuilds coverage artifacts, JSON, and HTML reports. Accepts pytest command, coverage config, and artifact directories via external config. [OK] **HAS TESTS (Phase 3)**: 10 tests in `tests/development_tools/test_regenerate_coverage_metrics.py` |
-| error_handling_coverage.py | core | stable | portable | Audits decorator usage and exception handling depth. Decorator names and exception classes load from external config. |
-| function_discovery.py | core | stable | portable | AST discovery utility supporting registries and audits. Configurable scan roots and filters via external config. |
-| analyze_documentation.py | supporting | partial | mhm-specific | Secondary doc analysis that focuses on corruption/overlap. |
-| audit_function_registry.py | supporting | partial | mhm-specific | Validates generated function registry output. |
-| audit_module_dependencies.py | supporting | partial | mhm-specific | Cross-checks generated dependency graphs for accuracy. |
-| audit_package_exports.py | supporting | partial | mhm-specific | Confirms package export declarations match filesystem reality. |
-| config_validator.py | supporting | partial | mhm-specific | Detects configuration drift and missing values across tools. |
-| validate_ai_work.py | supporting | partial | mhm-specific | Lightweight structural validator; advisory results only. |
-| unused_imports_checker.py | supporting | partial | mhm-specific | AST-based unused import detector (tune noise thresholds). |
-| quick_status.py | supporting | advisory | mhm-specific | Cached status snapshot that depends on the latest audit run. |
-| system_signals.py | supporting | advisory | portable | Collects OS/process health signals for consolidated reports. |
-| decision_support.py | supporting | advisory | mhm-specific | Aggregates metrics into improvement priorities. |
-| file_rotation.py | supporting | stable | portable | Timestamped rotation utility used by coverage generation. |
-| tool_guide.py | supporting | stable | mhm-specific | Provides contextual guidance and tier overviews for assistants. |
-| experimental/version_sync.py | experimental | experimental | mhm-specific | Attempts cross-file version synchronization (fragile). |
-| experimental/auto_document_functions.py | experimental | experimental | mhm-specific | Auto-generates docstrings; high-risk and currently prototype. |
+| Tool | Tier | Trust | Notes |
+| --- | --- | --- | --- |
+| ai_tools_runner.py | core | stable | CLI dispatcher for every AI tooling command. Supports `--project-root` and `--config-path` for portability. |
+| services/operations.py | core | stable | Implements command handlers and shared execution paths. Accepts project-specific config via external config file. |
+| config.py | core | stable | Central configuration for audit contexts, paths, and workflow knobs. Loads from `development_tools_config.json` with generic fallbacks. |
+| services/standard_exclusions.py | core | stable | Canonical exclusion patterns consumed by all scanners. Loads exclusions from external config. |
+| services/constants.py | core | stable | Doc pairing metadata, directory maps, and shared enumerations. Loads constants from external config. |
+| services/common.py | core | stable | IO helpers plus CLI utilities (command grouping, runners). |
+| documentation_sync_checker.py | core | stable | Validates doc pairing (human vs AI) and detects drift. Parameterized doc roots and metadata schema. [OK] **HAS TESTS (Phase 3)**: 12 tests in `tests/development_tools/test_documentation_sync_checker.py` |
+| generate_function_registry.py | core | stable | Builds the authoritative function registry via AST parsing. Configurable scan roots and filters via external config. [OK] **HAS TESTS (Phase 3)**: 12 tests in `tests/development_tools/test_generate_function_registry.py` |
+| generate_module_dependencies.py | core | stable | Produces module dependency graphs and enhancement zones. Accepts custom module prefixes for portability. [OK] **HAS TESTS (Phase 3)**: 11 tests in `tests/development_tools/test_generate_module_dependencies.py` |
+| legacy_reference_cleanup.py | core | stable | Finds/validates LEGACY COMPATIBILITY usage before cleanup. Legacy patterns and mappings load from external config. [OK] **HAS TESTS (Phase 3)**: 10 tests in `tests/development_tools/test_legacy_reference_cleanup.py` |
+| regenerate_coverage_metrics.py | core | stable | Rebuilds coverage artifacts, JSON, and HTML reports. Accepts pytest command, coverage config, and artifact directories via external config. [OK] **HAS TESTS (Phase 3)**: 10 tests in `tests/development_tools/test_regenerate_coverage_metrics.py` |
+| error_handling_coverage.py | core | stable | Audits decorator usage and exception handling depth. Decorator names and exception classes load from external config. |
+| function_discovery.py | core | stable | AST discovery utility supporting registries and audits. Configurable scan roots and filters via external config. |
+| analyze_documentation.py | supporting | partial | Secondary doc analysis that focuses on corruption/overlap. |
+| audit_function_registry.py | supporting | partial | Validates generated function registry output. |
+| audit_module_dependencies.py | supporting | partial | Cross-checks generated dependency graphs for accuracy. |
+| audit_package_exports.py | supporting | partial | Confirms package export declarations match filesystem reality. |
+| config_validator.py | supporting | partial | Detects configuration drift and missing values across tools. |
+| validate_ai_work.py | supporting | partial | Lightweight structural validator; advisory results only. |
+| unused_imports_checker.py | supporting | partial | AST-based unused import detector (tune noise thresholds). |
+| quick_status.py | supporting | advisory | Cached status snapshot that depends on the latest audit run. |
+| system_signals.py | supporting | advisory | Collects OS/process health signals for consolidated reports. |
+| decision_support.py | supporting | advisory | Aggregates metrics into improvement priorities. |
+| file_rotation.py | supporting | stable | Timestamped rotation utility used by coverage generation. |
+| tool_guide.py | supporting | stable | Provides contextual guidance and tier overviews for assistants. |
+| experimental/version_sync.py | experimental | experimental | Attempts cross-file version synchronization (fragile). |
+| experimental/auto_document_functions.py | experimental | experimental | Auto-generates docstrings; high-risk and currently prototype. |
 
-Keep this table synchronized with `services/tool_metadata.py` and update both when tiers, trust levels, or portability change.
+Keep this table synchronized with `services/tool_metadata.py` and update both when tiers or trust levels change.
 
 ---
 

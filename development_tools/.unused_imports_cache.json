@@ -36,11 +36,11 @@
     "issues": []
   },
   "development_tools/analyze_documentation.py": {
-    "mtime": 1764062445.0465665,
+    "mtime": 1764376210.5369246,
     "issues": []
   },
   "development_tools/audit_function_registry.py": {
-    "mtime": 1764063050.9656024,
+    "mtime": 1764377294.708454,
     "issues": [
       {
         "type": "warning",
@@ -71,27 +71,55 @@
     ]
   },
   "development_tools/audit_module_dependencies.py": {
-    "mtime": 1764068752.7237158,
-    "issues": []
+    "mtime": 1764376210.5369246,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.audit_module_dependencies",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 39,
+        "path": "development_tools\\audit_module_dependencies.py",
+        "symbol": "unused-import",
+        "message": "Unused Optional imported from typing",
+        "message-id": "W0611"
+      }
+    ]
   },
   "development_tools/audit_package_exports.py": {
-    "mtime": 1764068752.833706,
-    "issues": []
+    "mtime": 1764376210.5409992,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.audit_package_exports",
+        "obj": "",
+        "line": 27,
+        "column": 0,
+        "endLine": 27,
+        "endColumn": 44,
+        "path": "development_tools\\audit_package_exports.py",
+        "symbol": "unused-import",
+        "message": "Unused Optional imported from typing",
+        "message-id": "W0611"
+      }
+    ]
   },
   "development_tools/auto_document_functions.py": {
     "mtime": 1764068752.9154713,
     "issues": []
   },
   "development_tools/config.py": {
-    "mtime": 1764318459.746372,
+    "mtime": 1764377125.2707207,
     "issues": []
   },
   "development_tools/config_validator.py": {
-    "mtime": 1764068753.173081,
+    "mtime": 1764376210.5409992,
     "issues": []
   },
   "development_tools/decision_support.py": {
-    "mtime": 1764310279.7526822,
+    "mtime": 1764376210.5442624,
     "issues": [
       {
         "type": "warning",
@@ -158,7 +186,7 @@
     ]
   },
   "development_tools/file_rotation.py": {
-    "mtime": 1764240921.2038696,
+    "mtime": 1764377125.2717247,
     "issues": []
   },
   "development_tools/function_discovery.py": {
@@ -166,19 +194,19 @@
     "issues": []
   },
   "development_tools/generate_function_registry.py": {
-    "mtime": 1764307956.5364578,
+    "mtime": 1764377115.7996666,
     "issues": []
   },
   "development_tools/generate_module_dependencies.py": {
-    "mtime": 1764317364.0793147,
+    "mtime": 1764377115.7996666,
     "issues": []
   },
   "development_tools/legacy_reference_cleanup.py": {
-    "mtime": 1764317724.8055027,
+    "mtime": 1764376807.6062136,
     "issues": []
   },
   "development_tools/quick_status.py": {
-    "mtime": 1764068753.8926904,
+    "mtime": 1764377115.7968552,
     "issues": []
   },
   "development_tools/regenerate_coverage_metrics.py": {
@@ -206,23 +234,23 @@
     "issues": []
   },
   "development_tools/system_signals.py": {
-    "mtime": 1764240326.5125453,
+    "mtime": 1764377125.2707207,
     "issues": []
   },
   "development_tools/tool_guide.py": {
-    "mtime": 1764235793.9513476,
+    "mtime": 1764376210.5442624,
     "issues": []
   },
   "development_tools/unused_imports_checker.py": {
-    "mtime": 1764068754.0848932,
+    "mtime": 1764378175.4824393,
     "issues": [
       {
         "type": "warning",
         "module": "development_tools.unused_imports_checker",
         "obj": "",
-        "line": 27,
+        "line": 30,
         "column": 0,
-        "endLine": 27,
+        "endLine": 30,
         "endColumn": 29,
         "path": "development_tools\\unused_imports_checker.py",
         "symbol": "unused-import",
@@ -232,7 +260,7 @@
     ]
   },
   "development_tools/validate_ai_work.py": {
-    "mtime": 1764294121.1437385,
+    "mtime": 1764378175.4824393,
     "issues": []
   },
   "development_tools/version_sync.py": {
@@ -5566,7 +5594,7 @@
     "issues": []
   },
   "tests/development_tools/test_config.py": {
-    "mtime": 1764136781.8530738,
+    "mtime": 1764328747.4231086,
     "issues": []
   },
   "tests/development_tools/test_constants.py": {
@@ -5698,7 +5726,7 @@
     ]
   },
   "tests/development_tools/test_integration_workflows.py": {
-    "mtime": 1764150704.1705976,
+    "mtime": 1764328747.4231086,
     "issues": []
   },
   "tests/development_tools/test_legacy_reference_cleanup.py": {
@@ -5785,11 +5813,11 @@
     "issues": []
   },
   "development_tools/experimental/auto_document_functions.py": {
-    "mtime": 1764230888.0235286,
+    "mtime": 1764378175.4824393,
     "issues": []
   },
   "development_tools/experimental/version_sync.py": {
-    "mtime": 1764232539.4053028,
+    "mtime": 1764377125.2707207,
     "issues": []
   },
   "tests/development_tools/test_supporting_tools.py": {

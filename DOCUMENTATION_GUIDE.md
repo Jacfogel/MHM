@@ -362,6 +362,21 @@ The path drift checker (`development_tools/documentation_sync_checker.py`) valid
 - `` `some_config.py` `` in a doc that discusses multiple directories
 - `` `bot.py` `` without context (could be Discord or email bot)
 
+
+**Markdown link standard (for .md references):**
+
+- Use only the filename as the link text, not the path.  
+  - **OK:** `[LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)`  
+  - **OK:** `[AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md)`
+- Keep the full project-root path in the link target so links remain unambiguous.
+- Only convert `.md` references when the target file actually exists in the repo.
+- Do **not** convert:
+  - `> **File**:` metadata lines
+  - Code fences or inline code examples
+  - Self-references to the current document unless you are linking to a specific section.
+- When editing docs with AI, prefer this pattern for cross-references so link text stays clean and consistent while targets remain precise.
+
+
 ### 2.8. Cross-referencing standards
 
 Use these rules whenever you link from one documentation file to another:

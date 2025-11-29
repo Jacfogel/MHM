@@ -1,10 +1,9 @@
 # TOOL_TIER: core
-# TOOL_PORTABILITY: mhm-specific
 
 """
 Central registry describing every AI development tool module.
 
-This keeps the tier/portability/trust metadata in one authoritative place so
+This keeps the tier/trust metadata in one authoritative place so
 the CLI help text, documentation, and enforcement scripts stay consistent.
 """
 
@@ -15,7 +14,6 @@ from dataclasses import dataclass
 from typing import Dict, Iterable, List, Literal
 
 Tier = Literal["core", "supporting", "experimental"]
-Portability = Literal["portable", "mhm-specific"]
 TrustLevel = Literal["stable", "partial", "advisory", "experimental"]
 
 
@@ -24,7 +22,6 @@ class ToolInfo:
     name: str
     path: str
     tier: Tier
-    portability: Portability
     trust: TrustLevel
     description: str
 
@@ -34,7 +31,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="ai_tools_runner",
         path="development_tools/ai_tools_runner.py",
         tier="core",
-        portability="mhm-specific",
         trust="stable",
         description="CLI entry point that dispatches every AI tooling command.",
     ),
@@ -42,7 +38,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="operations",
         path="development_tools/services/operations.py",
         tier="core",
-        portability="mhm-specific",
         trust="stable",
         description="Implements the heavy lifting for each runner command.",
     ),
@@ -50,7 +45,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="config",
         path="development_tools/config.py",
         tier="core",
-        portability="mhm-specific",
         trust="stable",
         description="Shared configuration for tool suites and execution contexts.",
     ),
@@ -58,7 +52,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="standard_exclusions",
         path="development_tools/services/standard_exclusions.py",
         tier="core",
-        portability="mhm-specific",
         trust="stable",
         description="Canonical exclusion list used by every scanner.",
     ),
@@ -66,7 +59,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="constants",
         path="development_tools/services/constants.py",
         tier="core",
-        portability="mhm-specific",
         trust="stable",
         description="Doc pairing metadata, directory maps, and shared constants.",
     ),
@@ -74,7 +66,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="common",
         path="development_tools/services/common.py",
         tier="core",
-        portability="portable",
         trust="stable",
         description="Shared file/io helpers used across tooling modules.",
     ),
@@ -82,7 +73,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="documentation_sync_checker",
         path="development_tools/documentation_sync_checker.py",
         tier="core",
-        portability="mhm-specific",
         trust="stable",
         description="Validates human/AI doc pairing and detects drift.",
     ),
@@ -90,7 +80,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="generate_function_registry",
         path="development_tools/generate_function_registry.py",
         tier="core",
-        portability="mhm-specific",
         trust="stable",
         description="Builds the authoritative function registry via AST parsing.",
     ),
@@ -98,7 +87,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="generate_module_dependencies",
         path="development_tools/generate_module_dependencies.py",
         tier="core",
-        portability="mhm-specific",
         trust="stable",
         description="Calculates inter-module dependencies and enhancement zones.",
     ),
@@ -106,7 +94,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="legacy_reference_cleanup",
         path="development_tools/legacy_reference_cleanup.py",
         tier="core",
-        portability="mhm-specific",
         trust="stable",
         description="Scans and optionally removes LEGACY COMPATIBILITY markers.",
     ),
@@ -114,7 +101,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="regenerate_coverage_metrics",
         path="development_tools/regenerate_coverage_metrics.py",
         tier="core",
-        portability="mhm-specific",
         trust="stable",
         description="Runs pytest coverage and manages coverage artifacts.",
     ),
@@ -122,7 +108,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="error_handling_coverage",
         path="development_tools/error_handling_coverage.py",
         tier="core",
-        portability="mhm-specific",
         trust="stable",
         description="Audits decorator usage and error handling adherence.",
     ),
@@ -130,7 +115,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="function_discovery",
         path="development_tools/function_discovery.py",
         tier="core",
-        portability="mhm-specific",
         trust="stable",
         description="AST discovery utility backing several other tools.",
     ),
@@ -138,7 +122,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="analyze_documentation",
         path="development_tools/analyze_documentation.py",
         tier="supporting",
-        portability="mhm-specific",
         trust="partial",
         description="Secondary doc analysis focused on corruption detection.",
     ),
@@ -146,7 +129,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="audit_function_registry",
         path="development_tools/audit_function_registry.py",
         tier="supporting",
-        portability="mhm-specific",
         trust="partial",
         description="Validates generated function registry output.",
     ),
@@ -154,7 +136,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="audit_module_dependencies",
         path="development_tools/audit_module_dependencies.py",
         tier="supporting",
-        portability="mhm-specific",
         trust="partial",
         description="Verifies generated dependency graphs for consistency.",
     ),
@@ -162,7 +143,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="audit_package_exports",
         path="development_tools/audit_package_exports.py",
         tier="supporting",
-        portability="mhm-specific",
         trust="partial",
         description="Checks declared exports align with package contents.",
     ),
@@ -170,7 +150,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="config_validator",
         path="development_tools/config_validator.py",
         tier="supporting",
-        portability="mhm-specific",
         trust="partial",
         description="Detects config drift and missing values across tools.",
     ),
@@ -178,7 +157,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="validate_ai_work",
         path="development_tools/validate_ai_work.py",
         tier="supporting",
-        portability="mhm-specific",
         trust="partial",
         description="Lightweight structural validator, advisory only.",
     ),
@@ -186,7 +164,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="unused_imports_checker",
         path="development_tools/unused_imports_checker.py",
         tier="supporting",
-        portability="mhm-specific",
         trust="partial",
         description="AST-based unused import detector (can be noisy).",
     ),
@@ -194,7 +171,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="quick_status",
         path="development_tools/quick_status.py",
         tier="supporting",
-        portability="mhm-specific",
         trust="advisory",
         description="Fast cached snapshot that depends on recent audits.",
     ),
@@ -202,7 +178,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="system_signals",
         path="development_tools/system_signals.py",
         tier="supporting",
-        portability="portable",
         trust="advisory",
         description="Collects OS/process health signals for reports.",
     ),
@@ -210,7 +185,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="decision_support",
         path="development_tools/decision_support.py",
         tier="supporting",
-        portability="mhm-specific",
         trust="advisory",
         description="Aggregates metrics into recommendations and priorities.",
     ),
@@ -218,7 +192,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="file_rotation",
         path="development_tools/file_rotation.py",
         tier="supporting",
-        portability="portable",
         trust="stable",
         description="Utility for timestamped file rotation/retention.",
     ),
@@ -226,7 +199,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="tool_guide",
         path="development_tools/tool_guide.py",
         tier="supporting",
-        portability="mhm-specific",
         trust="stable",
         description="Generates summarized help text for CLI commands.",
     ),
@@ -234,7 +206,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="version_sync",
         path="development_tools/experimental/version_sync.py",
         tier="experimental",
-        portability="mhm-specific",
         trust="experimental",
         description="Attempts cross-file version synchronization (fragile).",
     ),
@@ -242,7 +213,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         name="auto_document_functions",
         path="development_tools/experimental/auto_document_functions.py",
         tier="experimental",
-        portability="mhm-specific",
         trust="experimental",
         description="Auto-generates docstrings—high-risk, use with caution.",
     ),

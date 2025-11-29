@@ -630,5 +630,78 @@
       "user": "user/",
       "ai": "ai/"
     }
+  },
+  "documentation_analysis": {
+    "heading_patterns": ["## ", "### "],
+    "placeholder_patterns": ["TBD", "TODO", "to be filled", "\\[insert[^\\]]*\\]"],
+    "placeholder_flags": ["IGNORECASE"],
+    "topic_keywords": {
+      "Setup & Installation": ["install", "setup", "environment", "run"],
+      "Development Workflow": ["workflow", "develop", "commit", "merge", "refactor"],
+      "Testing": ["test", "pytest", "coverage", "suite"],
+      "Architecture": ["architecture", "module", "dependency", "structure"],
+      "Troubleshooting": ["error", "issue", "debug", "fail", "failure"],
+      "Code Quality": ["quality", "lint", "style", "pattern"],
+      "Project Structure": ["directory", "structure", "tree"]
+    },
+    "ignore_rules": []
+  },
+  "audit_function_registry": {
+    "registry_path": "development_docs/FUNCTION_REGISTRY_DETAIL.md",
+    "high_complexity_min": 50,
+    "top_complexity": 10,
+    "top_undocumented": 5,
+    "top_duplicates": 5,
+    "error_sample_limit": 5,
+    "max_complexity_json": 200,
+    "max_undocumented_json": 200,
+    "max_duplicates_json": 200
+  },
+  "audit_module_dependencies": {
+    "dependency_doc_path": "development_docs/MODULE_DEPENDENCIES_DETAIL.md"
+  },
+  "audit_package_exports": {
+    "export_patterns": [],
+    "expected_exports": {}
+  },
+  "config_validator": {
+    "config_schema": {},
+    "validation_rules": {}
+  },
+  "validate_ai_work": {
+    "completeness_threshold": 90.0,
+    "accuracy_threshold": 85.0,
+    "consistency_threshold": 80.0,
+    "actionable_threshold": 75.0,
+    "rule_sets": {},
+    "rule_set_paths": []
+  },
+  "unused_imports": {
+    "pylint_command": ["python", "-m", "pylint"],
+    "ignore_patterns": [],
+    "type_stub_locations": [],
+    "timeout_seconds": 30
+  },
+  "quick_status": {
+    "core_files": [],
+    "key_directories": [],
+    "data_source_plugins": {}
+  },
+  "system_signals": {
+    "core_files": [],
+    "data_source_plugins": {}
+  },
+  "auto_document_functions": {
+    "template_paths": {},
+    "doc_targets": {},
+    "formatting_rules": {},
+    "function_type_detection": {
+      "qt_translation": {"file_pattern": "ui/generated/", "name": "qtTrId"},
+      "ui_generated": {"file_pattern": "ui/generated/", "names": ["setupUi", "retranslateUi"]},
+      "test_function": {"name_patterns": ["test_", "test"]},
+      "special_method": {"name_pattern": "__.*__"},
+      "constructor": {"name": "__init__"},
+      "main_function": {"name": "main"}
+    }
   }
 }

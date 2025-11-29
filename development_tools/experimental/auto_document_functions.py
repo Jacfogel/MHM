@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 # TOOL_TIER: experimental
-# TOOL_PORTABILITY: mhm-specific
 
 """
-MHM Auto Document Functions - Automatically add docstrings to Python functions
+Auto Document Functions - Automatically add docstrings to Python functions
 
-This tool analyzes the MHM codebase and automatically generates appropriate docstrings
+This tool analyzes the codebase and automatically generates appropriate docstrings
 for functions that lack documentation. It uses the same template generation logic as
 the function registry generator to ensure consistency.
 
-Specifically designed for the MHM mental health assistant project, it understands
-the project's patterns for handlers, utilities, and core functionality.
+Configuration is loaded from external config file (development_tools_config.json)
+if available, making this tool portable across different projects.
 """
 
 import ast
 import sys
+import re
 from pathlib import Path
-from typing import List
+from typing import List, Optional, Dict
 from datetime import datetime
 
 # Add project root to path for core module imports
@@ -24,44 +24,90 @@ project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
+# Handle both relative and absolute imports
+try:
+    from .. import config
+except ImportError:
+    from development_tools import config
+
 from core.logger import get_component_logger
 
 logger = get_component_logger("development_tools")
 
-def detect_function_type(file_path: str, func_name: str, decorators: List[str], args: List[str]) -> str:
-    """Detect the type of function for template generation."""
+# Load config at module level
+AUTO_DOC_CONFIG = config.get_auto_document_functions_config()
+
+def detect_function_type(file_path: str, func_name: str, decorators: List[str], args: List[str], function_type_detection: Optional[Dict] = None) -> str:
+    """Detect the type of function for template generation using config rules."""
+    if function_type_detection is None:
+        function_type_detection = AUTO_DOC_CONFIG.get('function_type_detection', {})
+    
     file_lower = file_path.lower()
     func_lower = func_name.lower()
     
-    # Auto-generated Qt functions
-    if file_lower.startswith('ui/generated/') and func_name == 'qtTrId':
-        return 'qt_translation'
+    # Check config rules in order
+    # Qt translation
+    qt_translation = function_type_detection.get('qt_translation', {})
+    if qt_translation:
+        file_pattern = qt_translation.get('file_pattern', '')
+        name = qt_translation.get('name', '')
+        if file_pattern and file_lower.startswith(file_pattern.lower()) and func_name == name:
+            return 'qt_translation'
     
-    # Auto-generated UI setup functions
-    if file_lower.startswith('ui/generated/') and func_name in ['setupUi', 'retranslateUi']:
-        return 'ui_generated'
+    # UI generated
+    ui_generated = function_type_detection.get('ui_generated', {})
+    if ui_generated:
+        file_pattern = ui_generated.get('file_pattern', '')
+        names = ui_generated.get('names', [])
+        if file_pattern and file_lower.startswith(file_pattern.lower()) and func_name in names:
+            return 'ui_generated'
     
-    # Test functions
-    if func_lower.startswith('test_') or 'test' in func_lower:
-        return 'test_function'
+    # Test function
+    test_function = function_type_detection.get('test_function', {})
+    if test_function:
+        name_patterns = test_function.get('name_patterns', [])
+        for pattern in name_patterns:
+            if pattern in func_lower or func_lower.startswith(pattern):
+                return 'test_function'
     
-    # Special Python methods
-    if func_name.startswith('__') and func_name.endswith('__'):
-        return 'special_method'
+    # Special method
+    special_method = function_type_detection.get('special_method', {})
+    if special_method:
+        name_pattern = special_method.get('name_pattern', '')
+        if name_pattern:
+            if re.match(name_pattern, func_name):
+                return 'special_method'
     
-    # Constructor methods
-    if func_name == '__init__':
-        return 'constructor'
+    # Constructor
+    constructor = function_type_detection.get('constructor', {})
+    if constructor:
+        name = constructor.get('name', '')
+        if func_name == name:
+            return 'constructor'
     
-    # Main functions
-    if func_name == 'main':
-        return 'main_function'
+    # Main function
+    main_function = function_type_detection.get('main_function', {})
+    if main_function:
+        name = main_function.get('name', '')
+        if func_name == name:
+            return 'main_function'
     
     return 'regular_function'
 
-def generate_function_template(func_type: str, func_name: str, file_path: str, args: List[str]) -> str:
-    """Generate appropriate documentation template based on function type."""
+def generate_function_template(func_type: str, func_name: str, file_path: str, args: List[str], formatting_rules: Optional[Dict] = None) -> str:
+    """Generate appropriate documentation template based on function type using config."""
+    if formatting_rules is None:
+        formatting_rules = AUTO_DOC_CONFIG.get('formatting_rules', {})
     
+    # Check for custom template in formatting_rules
+    if func_type in formatting_rules:
+        template = formatting_rules[func_type]
+        # Simple template substitution
+        template = template.replace('{func_name}', func_name)
+        template = template.replace('{file_path}', file_path)
+        return template
+    
+    # Fallback to default templates
     if func_type == 'qt_translation':
         return '"""Auto-generated Qt translation function for internationalization support."""'
     
@@ -185,16 +231,25 @@ def add_docstring_to_function(file_path: str, func_name: str, line_number: int, 
         logger.error(f"Failed to add docstring to {func_name} in {file_path}: {e}")
         return False
 
-def scan_and_document_functions():
+def scan_and_document_functions(project_root_path: Optional[Path] = None):
     """Scan all Python files and add docstrings where missing."""
-    import config
-    project_root = config.get_project_root()
+    global AUTO_DOC_CONFIG
+    
+    if project_root_path:
+        project_root = project_root_path
+    else:
+        project_root = config.get_project_root()
+    
     results = {
         'files_processed': 0,
         'functions_documented': 0,
         'functions_skipped': 0,
         'errors': 0
     }
+    
+    # Get function type detection rules from config
+    function_type_detection = AUTO_DOC_CONFIG.get('function_type_detection', {})
+    formatting_rules = AUTO_DOC_CONFIG.get('formatting_rules', {})
     
     # Directories to scan from configuration
     scan_dirs = config.get_scan_directories()
@@ -233,12 +288,12 @@ def scan_and_document_functions():
                             results['functions_skipped'] += 1
                             continue
                         
-                        # Detect function type
-                        func_type = detect_function_type(file_key, node.name, decorators, args)
+                        # Detect function type using config
+                        func_type = detect_function_type(file_key, node.name, decorators, args, function_type_detection)
                         
                         # Only add templates for specific function types
                         if func_type in ['qt_translation', 'ui_generated', 'test_function', 'special_method', 'constructor', 'main_function']:
-                            docstring = generate_function_template(func_type, node.name, file_key, args)
+                            docstring = generate_function_template(func_type, node.name, file_key, args, formatting_rules)
                             
                             if add_docstring_to_function(str(py_file), node.name, node.lineno, docstring):
                                 results['functions_documented'] += 1
@@ -250,6 +305,27 @@ def scan_and_document_functions():
             except Exception as e:
                 logger.error(f"Failed to process {file_key}: {e}")
                 results['errors'] += 1
+    
+    return results
+
+def execute(project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs) -> Dict:
+    """Execute auto document functions (for use by ai_tools_runner)."""
+    global AUTO_DOC_CONFIG
+    
+    # Load config if project_root or config_path provided
+    if project_root or config_path:
+        if config_path:
+            config.load_external_config(config_path)
+        # Reload config (project_root is handled via config file)
+        AUTO_DOC_CONFIG = config.get_auto_document_functions_config()
+    
+    if project_root:
+        project_root_path = Path(project_root).resolve()
+    else:
+        project_root_path = config.get_project_root()
+    
+    # Process functions
+    results = scan_and_document_functions(project_root_path)
     
     return results
 

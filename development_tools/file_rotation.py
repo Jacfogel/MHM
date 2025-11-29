@@ -1,9 +1,8 @@
 # TOOL_TIER: supporting
-# TOOL_PORTABILITY: portable
 
 """
 File rotation utility for AI development tools.
-Uses the existing MHM log rotation infrastructure for consistency.
+Provides file rotation, backup, and archiving functionality.
 """
 
 import os
@@ -25,24 +24,23 @@ class FileRotator:
         self.archive_dir = self.base_dir / "archive"
         self.archive_dir.mkdir(parents=True, exist_ok=True)
         
-        # Use MHM's existing rotation settings
-        self.max_versions = 7  # Same as log rotation (7 days)
+        # Default rotation settings
+        self.max_versions = 7  # Default: keep 7 versions
         self.rotation_suffix = "%Y-%m-%d_%H%M%S"  # Timestamp format
         self._rotation_counter = 0  # Counter to ensure unique filenames
     
     def rotate_file(self, file_path: str, max_versions: int = None) -> str:
         """
         Rotate a file by backing up existing versions and creating a new one.
-        Uses MHM's existing rotation patterns for consistency.
         
         Args:
             file_path: Path to the file to rotate
-            max_versions: Maximum number of backup versions to keep (defaults to MHM setting)
+            max_versions: Maximum number of backup versions to keep (defaults to 7)
             
         Returns:
             Path to the new file (same as input)
         """
-        # Skip rotation if disabled (e.g., during tests) - same as MHM log rotation
+        # Skip rotation if disabled (e.g., during tests)
         if os.environ.get('DISABLE_LOG_ROTATION') == '1':
             return str(file_path)
             
@@ -55,7 +53,7 @@ class FileRotator:
         if not file_path.exists():
             return str(file_path)
         
-        # Create timestamp for this rotation (using MHM format)
+        # Create timestamp for this rotation
         # Add counter to ensure uniqueness even if rotations happen in the same second
         timestamp = datetime.now().strftime(self.rotation_suffix)
         self._rotation_counter += 1
@@ -71,7 +69,7 @@ class FileRotator:
         
         shutil.move(str(file_path), str(archive_path))
         
-        # Log the rotation (using MHM logger if available)
+        # Log the rotation
         if logger:
             logger.info(f"Rotated file {file_path} to {archive_path}")
         

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # TOOL_TIER: supporting
-# TOOL_PORTABILITY: mhm-specific
 
 """
 Audit script to verify MODULE_DEPENDENCIES_DETAIL.md completeness and accuracy.
@@ -11,7 +10,7 @@ import ast
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent
@@ -20,12 +19,14 @@ if str(project_root) not in sys.path:
 
 # Handle both relative and absolute imports
 try:
+    from . import config
     from .services.standard_exclusions import should_exclude_file
     from .services.constants import (
         is_local_module as _is_local_module,
         is_standard_library_module as _is_stdlib_module,
     )
 except ImportError:
+    from development_tools import config
     from development_tools.services.standard_exclusions import should_exclude_file
     from development_tools.services.constants import (
         is_local_module as _is_local_module,
@@ -33,6 +34,13 @@ except ImportError:
     )
 
 from core.logger import get_component_logger
+
+# Load external config on module import
+config.load_external_config()
+
+# Get configuration
+AUDIT_DEPS_CONFIG = config.get_audit_module_dependencies_config()
+DEPENDENCY_DOC_PATH = AUDIT_DEPS_CONFIG.get('dependency_doc_path', 'development_docs/MODULE_DEPENDENCIES_DETAIL.md')
 
 logger = get_component_logger("development_tools")
 
@@ -130,8 +138,9 @@ def scan_all_python_files() -> Dict[str, Dict]:
     return results
 
 def parse_module_dependencies() -> Dict[str, List[str]]:
-    """Parse the existing MODULE_DEPENDENCIES_DETAIL.md to extract documented dependencies."""
-    deps_path = Path(__file__).parent.parent / 'development_docs' / 'MODULE_DEPENDENCIES_DETAIL.md'
+    """Parse the existing dependency doc to extract documented dependencies."""
+    project_root = Path(__file__).parent.parent
+    deps_path = project_root / DEPENDENCY_DOC_PATH
     documented = {}
     
     try:
@@ -277,7 +286,8 @@ def identify_enhancement_needs(documented_deps: Dict[str, List[str]], actual_imp
     for file_path in documented_deps.keys():
         if file_path in actual_imports:
             # Check if it has manual enhancement markers
-            deps_path = Path(__file__).parent.parent / 'development_docs' / 'MODULE_DEPENDENCIES_DETAIL.md'
+            project_root = Path(__file__).parent.parent
+            deps_path = project_root / DEPENDENCY_DOC_PATH
             try:
                 with open(deps_path, 'r', encoding='utf-8') as f:
                     content = f.read()

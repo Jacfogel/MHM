@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # TOOL_TIER: supporting
-# TOOL_PORTABILITY: mhm-specific
 
 """
 Configuration Validator - Ensures all tools use configuration consistently
@@ -21,9 +20,18 @@ project_root = Path(__file__).parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-import config
+try:
+    from . import config
+except ImportError:
+    from development_tools import config
 
 from core.logger import get_component_logger
+
+# Load external config on module import
+config.load_external_config()
+
+# Get configuration
+CONFIG_VALIDATOR_CONFIG = config.get_config_validator_config()
 
 logger = get_component_logger("development_tools")
 

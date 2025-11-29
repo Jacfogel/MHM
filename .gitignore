@@ -126,6 +126,7 @@ desktop.ini
 
 # Project specific
 data/
+scripts/
 !scripts/debug/
 !scripts/debug/*.py
 !scripts/static_checks/

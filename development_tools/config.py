@@ -1,5 +1,4 @@
 # TOOL_TIER: core
-# TOOL_PORTABILITY: portable
 
 # AI Tools Configuration
 """
@@ -289,6 +288,17 @@ def get_scan_directories():
         return external_dirs
     return SCAN_DIRECTORIES  # Empty by default - requires config file
 
+def get_project_name(default: str = 'Project') -> str:
+    """Get project name from config (from external config if available, otherwise default)."""
+    return _get_external_value('project.name', default)
+
+def get_project_key_files(default: Optional[list] = None) -> list:
+    """Get project key files from config (from external config if available, otherwise default)."""
+    if default is None:
+        default = ['requirements.txt']
+    key_files = _get_external_value('project.key_files', default)
+    return key_files if isinstance(key_files, list) else default
+
 def get_function_discovery_config():
     """Get function discovery configuration (from external config if available, otherwise default)."""
     external_config = _get_external_value('function_discovery', None)
@@ -443,4 +453,227 @@ def get_constants_config():
     its internal defaults as fallback.
     """
     constants = _get_external_value('constants', {})
-    return constants if isinstance(constants, dict) else {} 
+    return constants if isinstance(constants, dict) else {}
+
+# Documentation analysis configuration
+# NOTE: Defaults are minimal. See development_tools_config.json.example for full examples.
+DOCUMENTATION_ANALYSIS = {
+    'heading_patterns': ['## ', '### '],  # Generic markdown patterns
+    'placeholder_patterns': [r'TBD', r'TODO'],  # Minimal generic patterns
+    'placeholder_flags': ['IGNORECASE'],
+    'topic_keywords': {},  # Empty - projects should define their own
+    'ignore_rules': [],
+}
+
+def get_documentation_analysis_config():
+    """Get documentation analysis configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('documentation_analysis', None)
+    if external_config:
+        result = DOCUMENTATION_ANALYSIS.copy()
+        # Deep merge for nested dicts
+        if 'topic_keywords' in external_config and 'topic_keywords' in result:
+            result['topic_keywords'].update(external_config.get('topic_keywords', {}))
+        # Update other keys
+        for key, value in external_config.items():
+            if key != 'topic_keywords':
+                result[key] = value
+        return result
+    return DOCUMENTATION_ANALYSIS
+
+# Audit function registry configuration
+# NOTE: Defaults are minimal. See development_tools_config.json.example for full examples.
+AUDIT_FUNCTION_REGISTRY = {
+    'registry_path': 'development_docs/FUNCTION_REGISTRY_DETAIL.md',  # Generic default path
+    'high_complexity_min': 50,  # Generic threshold
+    'top_complexity': 10,
+    'top_undocumented': 5,
+    'top_duplicates': 5,
+    'error_sample_limit': 5,
+    'max_complexity_json': 200,
+    'max_undocumented_json': 200,
+    'max_duplicates_json': 200,
+}
+
+def get_audit_function_registry_config():
+    """Get audit function registry configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('audit_function_registry', None)
+    if external_config:
+        result = AUDIT_FUNCTION_REGISTRY.copy()
+        result.update(external_config)
+        return result
+    return AUDIT_FUNCTION_REGISTRY
+
+# Audit module dependencies configuration
+AUDIT_MODULE_DEPENDENCIES = {
+    'dependency_doc_path': 'development_docs/MODULE_DEPENDENCIES_DETAIL.md',  # Generic default
+}
+
+def get_audit_module_dependencies_config():
+    """Get audit module dependencies configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('audit_module_dependencies', None)
+    if external_config:
+        result = AUDIT_MODULE_DEPENDENCIES.copy()
+        result.update(external_config)
+        return result
+    return AUDIT_MODULE_DEPENDENCIES
+
+# Audit package exports configuration
+AUDIT_PACKAGE_EXPORTS = {
+    'export_patterns': [],  # Patterns to identify exports
+    'expected_exports': {},  # Expected exports by module
+}
+
+def get_audit_package_exports_config():
+    """Get audit package exports configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('audit_package_exports', None)
+    if external_config:
+        result = AUDIT_PACKAGE_EXPORTS.copy()
+        # Deep merge for nested dicts
+        if 'expected_exports' in external_config and 'expected_exports' in result:
+            result['expected_exports'].update(external_config.get('expected_exports', {}))
+        # Update other keys
+        for key, value in external_config.items():
+            if key != 'expected_exports':
+                result[key] = value
+        return result
+    return AUDIT_PACKAGE_EXPORTS
+
+# Config validator configuration
+CONFIG_VALIDATOR = {
+    'config_schema': {},  # Expected config schema structure (empty = auto-detect)
+    'validation_rules': {},  # Custom validation rules
+}
+
+def get_config_validator_config():
+    """Get config validator configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('config_validator', None)
+    if external_config:
+        result = CONFIG_VALIDATOR.copy()
+        # Deep merge for nested dicts
+        if 'validation_rules' in external_config and 'validation_rules' in result:
+            result['validation_rules'].update(external_config.get('validation_rules', {}))
+        # Update other keys
+        for key, value in external_config.items():
+            if key != 'validation_rules':
+                result[key] = value
+        return result
+    return CONFIG_VALIDATOR
+
+# Validate AI work configuration
+# NOTE: Defaults are minimal. See development_tools_config.json.example for full examples.
+VALIDATE_AI_WORK = {
+    'completeness_threshold': 90.0,  # Generic thresholds
+    'accuracy_threshold': 85.0,
+    'consistency_threshold': 80.0,
+    'actionable_threshold': 75.0,
+    'rule_sets': {},  # Empty - projects should define their own
+    'rule_set_paths': [],
+}
+
+def get_validate_ai_work_config():
+    """Get validate AI work configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('validate_ai_work', None)
+    if external_config:
+        result = VALIDATE_AI_WORK.copy()
+        # Deep merge for nested dicts
+        if 'rule_sets' in external_config and 'rule_sets' in result:
+            result['rule_sets'].update(external_config.get('rule_sets', {}))
+        # Update other keys
+        for key, value in external_config.items():
+            if key not in ('rule_sets',):
+                result[key] = value
+        return result
+    return VALIDATE_AI_WORK
+
+# Unused imports checker configuration
+UNUSED_IMPORTS = {
+    'pylint_command': ['python', '-m', 'pylint'],  # Pylint command as list
+    'ignore_patterns': [],  # Patterns to ignore
+    'type_stub_locations': [],  # Locations for type stubs (.pyi files)
+    'timeout_seconds': 30,  # Timeout per file
+}
+
+def get_unused_imports_config():
+    """Get unused imports checker configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('unused_imports', None)
+    if external_config:
+        result = UNUSED_IMPORTS.copy()
+        result.update(external_config)
+        return result
+    return UNUSED_IMPORTS
+
+# Quick status configuration
+QUICK_STATUS = {
+    'core_files': [],  # Will use project.key_files if empty
+    'key_directories': [],  # Will use paths.scan_directories if empty
+    'data_source_plugins': {},  # Plugin hooks for data sources (Discord, schedulers, etc.)
+}
+
+def get_quick_status_config():
+    """Get quick status configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('quick_status', None)
+    if external_config:
+        result = QUICK_STATUS.copy()
+        # Deep merge for nested dicts
+        if 'data_source_plugins' in external_config and 'data_source_plugins' in result:
+            result['data_source_plugins'].update(external_config.get('data_source_plugins', {}))
+        # Update other keys
+        for key, value in external_config.items():
+            if key != 'data_source_plugins':
+                result[key] = value
+        return result
+    return QUICK_STATUS
+
+# System signals configuration
+SYSTEM_SIGNALS = {
+    'core_files': [],  # Will use project.key_files if empty
+    'data_source_plugins': {},  # Plugin hooks for data sources
+}
+
+def get_system_signals_config():
+    """Get system signals configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('system_signals', None)
+    if external_config:
+        result = SYSTEM_SIGNALS.copy()
+        # Deep merge for nested dicts
+        if 'data_source_plugins' in external_config and 'data_source_plugins' in result:
+            result['data_source_plugins'].update(external_config.get('data_source_plugins', {}))
+        # Update other keys
+        for key, value in external_config.items():
+            if key != 'data_source_plugins':
+                result[key] = value
+        return result
+    return SYSTEM_SIGNALS
+
+# Auto document functions configuration
+# NOTE: Defaults are minimal. See development_tools_config.json.example for full examples.
+AUTO_DOCUMENT_FUNCTIONS = {
+    'template_paths': {},  # Empty - projects should define their own
+    'doc_targets': {},  # Empty - projects should define their own
+    'formatting_rules': {},  # Empty - projects should define their own
+    'function_type_detection': {  # Minimal generic patterns
+        'test_function': {'name_patterns': ['test_']},
+        'special_method': {'name_pattern': '__.*__'},
+        'constructor': {'name': '__init__'},
+        'main_function': {'name': 'main'},
+    },
+}
+
+def get_auto_document_functions_config():
+    """Get auto document functions configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('auto_document_functions', None)
+    if external_config:
+        result = AUTO_DOCUMENT_FUNCTIONS.copy()
+        # Deep merge for nested dicts
+        for key in ['template_paths', 'doc_targets', 'formatting_rules', 'function_type_detection']:
+            if key in external_config and key in result:
+                if isinstance(result[key], dict):
+                    result[key].update(external_config.get(key, {}))
+                else:
+                    result[key] = external_config.get(key, result[key])
+        # Update other keys
+        for key, value in external_config.items():
+            if key not in ('template_paths', 'doc_targets', 'formatting_rules', 'function_type_detection'):
+                result[key] = value
+        return result
+    return AUTO_DOCUMENT_FUNCTIONS 

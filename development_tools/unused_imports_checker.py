@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # TOOL_TIER: supporting
-# TOOL_PORTABILITY: mhm-specific
 
 """
-Unused Imports Detection for MHM
+Unused Imports Detection
 
 This script identifies unused imports throughout the codebase using pylint.
 It categorizes findings and generates detailed reports for cleanup planning.
+
+Configuration is loaded from external config file (development_tools_config.json)
+if available, making this tool portable across different projects.
 
 Usage:
     python development_tools/unused_imports_checker.py [--output REPORT_PATH]
@@ -33,13 +35,18 @@ if str(project_root) not in sys.path:
 
 # Handle both relative and absolute imports
 try:
+    from . import config
     from .services.standard_exclusions import should_exclude_file
     from core.logger import get_component_logger
 except ImportError:
+    from development_tools import config
     from development_tools.services.standard_exclusions import should_exclude_file
     from core.logger import get_component_logger
 
 logger = get_component_logger("development_tools")
+
+# Load config at module level
+UNUSED_IMPORTS_CONFIG = config.get_unused_imports_config()
 
 
 def _process_file_worker(args: Tuple[Path, str]) -> Tuple[Path, Optional[List[Dict]]]:
@@ -84,8 +91,16 @@ def _process_file_worker(args: Tuple[Path, str]) -> Tuple[Path, Optional[List[Di
 class UnusedImportsChecker:
     """Detects and categorizes unused imports in Python files."""
     
-    def __init__(self, project_root: str = ".", max_workers: Optional[int] = None, use_cache: bool = True, verbose: bool = False):
+    def __init__(self, project_root: str = ".", max_workers: Optional[int] = None, use_cache: bool = True, verbose: bool = False, config_path: Optional[str] = None):
         self.project_root = Path(project_root).resolve()
+        
+        # Load config if config_path provided
+        global UNUSED_IMPORTS_CONFIG
+        if config_path:
+            config.load_external_config(config_path)
+            UNUSED_IMPORTS_CONFIG = config.get_unused_imports_config()
+        # Reload config to ensure it's up to date (project_root is handled via config file)
+        UNUSED_IMPORTS_CONFIG = config.get_unused_imports_config()
         
         # Parallelization settings
         self.max_workers = max_workers or min(multiprocessing.cpu_count(), 8)  # Cap at 8 to avoid overload
@@ -93,6 +108,12 @@ class UnusedImportsChecker:
         self.verbose = verbose
         self.cache_file = self.project_root / "development_tools" / ".unused_imports_cache.json"
         self.cache_data: Dict[str, Dict] = {}
+        
+        # Get config values
+        self.pylint_command = UNUSED_IMPORTS_CONFIG.get('pylint_command', [sys.executable, '-m', 'pylint'])
+        self.timeout_seconds = UNUSED_IMPORTS_CONFIG.get('timeout_seconds', 30)
+        self.ignore_patterns = UNUSED_IMPORTS_CONFIG.get('ignore_patterns', [])
+        self.type_stub_locations = UNUSED_IMPORTS_CONFIG.get('type_stub_locations', [])
         
         # Files to skip entirely
         # Import constants from services
@@ -261,8 +282,7 @@ class UnusedImportsChecker:
         
         try:
             # Run pylint with only unused-import enabled, JSON output
-            cmd = [
-                sys.executable, '-m', 'pylint',
+            cmd = self.pylint_command + [
                 '--disable=all',
                 '--enable=unused-import',
                 '--output-format=json',
@@ -273,7 +293,7 @@ class UnusedImportsChecker:
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=30,
+                timeout=self.timeout_seconds,
                 cwd=str(self.project_root)
             )
             
@@ -474,7 +494,7 @@ class UnusedImportsChecker:
             'load_default_messages', 'update_user_context', 'get_user_id_by_identifier',
             '_create_next_recurring_task_instance', 'determine_file_path', 'get_available_channels',
             'get_channel_class_mapping', 'validate_schedule_periods__validate_time_format',
-            'MHMError', 'DataError', 'FileOperationError'  # Add error handling imports
+            'ProjectError', 'DataError', 'FileOperationError'  # Add error handling imports (example - customize for your project)
         ]
         
         if import_name in production_mock_functions:
@@ -898,9 +918,36 @@ class UnusedImportsChecker:
             return 'CRITICAL'
 
 
+def execute(project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs) -> Dict:
+    """Execute unused imports check (for use by ai_tools_runner)."""
+    if project_root:
+        root_path = Path(project_root).resolve()
+    else:
+        root_path = Path(__file__).parent.parent
+    
+    checker = UnusedImportsChecker(str(root_path), config_path=config_path, verbose=kwargs.get('verbose', False))
+    results = checker.scan_codebase()
+    
+    # Generate report
+    report = checker.generate_report()
+    
+    # Write report if output path provided
+    output_path = kwargs.get('output', None)
+    if output_path:
+        output_file = root_path / output_path
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(report)
+    
+    return {
+        'results': results,
+        'report': report,
+        'stats': checker.stats
+    }
+
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description='Detect unused imports in MHM codebase')
+    parser = argparse.ArgumentParser(description='Detect unused imports in codebase')
     parser.add_argument('--output', default='development_docs/UNUSED_IMPORTS_REPORT.md',
                        help='Output report path')
     parser.add_argument('--json', action='store_true',

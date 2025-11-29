@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # TOOL_TIER: supporting
-# TOOL_PORTABILITY: mhm-specific
 
 """Analyze documentation overlap, duplicates, and placeholder content."""
 from __future__ import annotations
@@ -10,7 +9,7 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent
@@ -19,12 +18,42 @@ if str(project_root) not in sys.path:
 
 # Handle both relative and absolute imports
 try:
+    from . import config
     from .services.common import ProjectPaths, ensure_ascii, load_text, run_cli, summary_block
     from .services.constants import CORRUPTED_ARTIFACT_PATTERNS, DEFAULT_DOCS, PAIRED_DOCS
 except ImportError:
+    from development_tools import config
     from services.common import ProjectPaths, ensure_ascii, load_text, run_cli, summary_block
     from services.constants import CORRUPTED_ARTIFACT_PATTERNS, DEFAULT_DOCS, PAIRED_DOCS
 
+# Load external config on module import
+config.load_external_config()
+
+# Get configuration
+DOC_ANALYSIS_CONFIG = config.get_documentation_analysis_config()
+
+# Build placeholder patterns from config
+def _build_placeholder_patterns():
+    """Build placeholder regex patterns from config."""
+    patterns = []
+    placeholder_patterns = DOC_ANALYSIS_CONFIG.get('placeholder_patterns', [
+        r'TBD',
+        r'TODO',
+        r'to be filled',
+        r'\[insert[^\]]*\]',
+    ])
+    placeholder_flags = DOC_ANALYSIS_CONFIG.get('placeholder_flags', ['IGNORECASE'])
+    flags = 0
+    if 'IGNORECASE' in placeholder_flags:
+        flags |= re.IGNORECASE
+    
+    for pattern_str in placeholder_patterns:
+        patterns.append(re.compile(pattern_str, flags))
+    return tuple(patterns)
+
+PLACEHOLDER_PATTERNS = _build_placeholder_patterns()
+
+# Initialize PATHS (can be overridden in execute)
 PATHS = ProjectPaths()
 
 PLACEHOLDER_PATTERNS = (
@@ -35,20 +64,24 @@ PLACEHOLDER_PATTERNS = (
 )
 
 
-def extract_sections(content: str) -> Dict[str, str]:
+def extract_sections(content: str, heading_patterns: Optional[List[str]] = None) -> Dict[str, str]:
+    """Extract sections from content using configurable heading patterns."""
+    if heading_patterns is None:
+        heading_patterns = DOC_ANALYSIS_CONFIG.get('heading_patterns', ['## ', '### '])
+    
     sections: Dict[str, str] = {}
     current = 'Introduction'
     buffer: List[str] = []
     for line in content.splitlines():
-        if line.startswith('## '):
-            sections[current] = "\n".join(buffer).strip()
-            current = line[3:].strip()
-            buffer = []
-        elif line.startswith('### '):
-            sections[current] = "\n".join(buffer).strip()
-            current = line[4:].strip()
-            buffer = []
-        else:
+        matched = False
+        for pattern in heading_patterns:
+            if line.startswith(pattern):
+                sections[current] = "\n".join(buffer).strip()
+                current = line[len(pattern):].strip()
+                buffer = []
+                matched = True
+                break
+        if not matched:
             buffer.append(line)
     sections[current] = "\n".join(buffer).strip()
     return sections
@@ -65,17 +98,20 @@ def load_documents(paths: Sequence[str]) -> Tuple[Dict[str, str], List[str]]:
     return docs, missing
 
 
-def analyse_topics(docs: Dict[str, str]) -> Dict[str, List[str]]:
+def analyse_topics(docs: Dict[str, str], keyword_map: Optional[Dict[str, List[str]]] = None) -> Dict[str, List[str]]:
+    """Analyze topics in documents using configurable keyword map."""
+    if keyword_map is None:
+        keyword_map = DOC_ANALYSIS_CONFIG.get('topic_keywords', {
+            'Setup & Installation': ['install', 'setup', 'environment', 'run'],
+            'Development Workflow': ['workflow', 'develop', 'commit', 'merge', 'refactor'],
+            'Testing': ['test', 'pytest', 'coverage', 'suite'],
+            'Architecture': ['architecture', 'module', 'dependency', 'structure'],
+            'Troubleshooting': ['error', 'issue', 'debug', 'fail', 'failure'],
+            'Code Quality': ['quality', 'lint', 'style', 'pattern'],
+            'Project Structure': ['directory', 'structure', 'tree'],
+        })
+    
     topics = defaultdict(list)
-    keyword_map = {
-        'Setup & Installation': ['install', 'setup', 'environment', 'run'],
-        'Development Workflow': ['workflow', 'develop', 'commit', 'merge', 'refactor'],
-        'Testing': ['test', 'pytest', 'coverage', 'suite'],
-        'Architecture': ['architecture', 'module', 'dependency', 'structure'],
-        'Troubleshooting': ['error', 'issue', 'debug', 'fail', 'failure'],
-        'Code Quality': ['quality', 'lint', 'style', 'pattern'],
-        'Project Structure': ['directory', 'structure', 'tree'],
-    }
     for name, content in docs.items():
         lower = content.lower()
         for label, keywords in keyword_map.items():
@@ -189,7 +225,21 @@ def format_summary(
 
 
 
-def execute(args: argparse.Namespace):
+def execute(args: argparse.Namespace, project_root: Optional[Path] = None, config_path: Optional[str] = None):
+    """Execute documentation analysis with optional project_root and config_path."""
+    # Load config if path provided
+    if config_path:
+        config.load_external_config(config_path)
+        # Reload config after loading external config
+        global DOC_ANALYSIS_CONFIG, PLACEHOLDER_PATTERNS
+        DOC_ANALYSIS_CONFIG = config.get_documentation_analysis_config()
+        PLACEHOLDER_PATTERNS = _build_placeholder_patterns()
+    
+    # Use provided project_root or default
+    if project_root:
+        global PATHS
+        PATHS = ProjectPaths(root=project_root)
+    
     targets = args.files or DEFAULT_DOCS
     docs, missing = load_documents(targets)
     duplicates = detect_duplicates(docs)

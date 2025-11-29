@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # TOOL_TIER: supporting
-# TOOL_PORTABILITY: mhm-specific
 """
 AI Tools Guide - Comprehensive Tool Usage and Output Interpretation
 

@@ -63,6 +63,56 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 - **Feature**: Added focused unit coverage for schema validation helpers to ensure tolerant normalization of real-world payloads. New tests verify feature flag coercion when required fields are missing in `validate_account_dict`, invalid category handling passthrough in `validate_preferences_dict`, legacy schedule shapes and bad time/day values in `validate_schedules_dict`, and best-effort message list cleanup (invalid rows skipped, defaults applied) in `validate_messages_file_dict`.
 - **Impact**: Regression protection for the new Pydantic schemas: edge-case inputs now have explicit coverage, reducing risk of silently regressing normalization or error reporting behaviors relied on by save/load paths.
 
+### 2025-11-28 - Phase 6 Development Tools: Complete Portability Implementation **COMPLETED**
+- **Feature**: Completed Phase 6 of the AI Development Tools Improvement Plan, making all 14 supporting and experimental tools portable via external configuration. All tools now work across different projects with minimal setup. Fixed critical bugs discovered during testing.
+- **Technical Changes**:
+  1. **Supporting Tools Portability** (12 tools made portable):
+     - `analyze_documentation.py`: Parameterized heading patterns, placeholder patterns, topic keywords from config
+     - `audit_function_registry.py`: Registry path, thresholds, limits from config
+     - `audit_module_dependencies.py`: Dependency doc path from config
+     - `audit_package_exports.py`: Export patterns and expected exports from config
+     - `config_validator.py`: Config schema and validation rules from config
+     - `validate_ai_work.py`: Validation thresholds and rule sets from config (with YAML support)
+     - `unused_imports_checker.py`: Pylint command, ignore patterns, type stub locations from config
+     - `quick_status.py`: Core files and key directories from config (uses project.key_files fallback)
+     - `system_signals.py`: Core files from config (uses project.key_files fallback)
+     - `decision_support.py`: Already configurable, verified and updated portability marker
+     - `tool_guide.py`: Already uses tool_metadata.py, verified and updated portability marker
+     - `file_rotation.py`: Already portable, removed MHM-specific comments
+  2. **Experimental Tools Portability** (2 tools made portable):
+     - `experimental/version_sync.py`: Switched to `get_version_sync_config()`, accepts project_root/config_path
+     - `experimental/auto_document_functions.py`: Template paths, doc targets, formatting rules, function type detection from config
+  3. **Configuration Enhancements**:
+     - Added helper functions to `config.py`: `get_project_name()`, `get_project_key_files()`
+     - All tools now accept `project_root` and `config_path` parameters
+     - Updated `development_tools_config.json` with all new configuration sections
+     - Tools use consistent pattern: tool-specific config → project config → generic defaults
+  4. **Bug Fixes**:
+     - Fixed syntax error in `audit_function_registry.py`: moved `global PATHS` declaration to top of function
+     - Removed non-existent `config.set_project_root()` calls from 3 files (unused_imports_checker.py, validate_ai_work.py, auto_document_functions.py)
+     - Fixed missing `Optional` import in `quick_status.py`
+  5. **Code Quality**:
+     - Removed all hardcoded project-specific values (MHM, specific file paths) from tool code
+     - Made function type detection configurable in auto_document_functions.py
+     - Improved config loading pattern: store config reference in __init__ to avoid re-imports
+- **Documentation Updates**:
+  - Updated `AI_DEV_TOOLS_IMPROVEMENT_PLAN.md`: Marked Phase 6 as completed
+  - Updated `AI_DEVELOPMENT_TOOLS_GUIDE.md` and `DEVELOPMENT_TOOLS_GUIDE.md`: Removed `mhm-specific` tags
+  - All tools now marked as `portable` in TOOL_PORTABILITY markers
+  6. **Removed TOOL_PORTABILITY Marker System** (follow-up cleanup):
+     - Removed `# TOOL_PORTABILITY: portable` header comments from all 29 Python tool files
+     - Removed `Portability` type definition and `portability` field from `ToolInfo` dataclass in `tool_metadata.py`
+     - Removed all `portability="portable"` parameters from ToolInfo instances
+     - Removed "Portability" column from tool catalog tables in documentation
+     - Updated documentation references to remove portability marker mentions
+     - Rationale: All tools are portable by default via config, making the marker system redundant
+- **Testing**:
+   - Tested all 17 commands from DEVELOPMENT_TOOLS_GUIDE.md
+   - Verified all commands work correctly after changes
+   - Fixed status command failure (missing Optional import)
+   - Confirmed config values load correctly from development_tools_config.json
+- **Impact**: All development tools are now fully portable and can be used in other projects with minimal configuration. Tools maintain backward compatibility with generic defaults when no external config is provided. The TOOL_PORTABILITY marker system was removed as redundant since all tools are portable by default. Phase 6 of the improvement plan is complete.
+
 ### 2025-11-28 - Phase 6 Development Tools: Core Tool Portability Implementation **COMPLETED**
 - **Feature**: Completed the Core Tool Checklist of Phase 6 of the AI Development Tools Improvement Plan, making all 11 core tools portable via external configuration. Tools can now be used in other projects with minimal setup. Supporting Tool Checklist and Experimental Tool Checklist remain pending for future work.
 - **Technical Changes**:
