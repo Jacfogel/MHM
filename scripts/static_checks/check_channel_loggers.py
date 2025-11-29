@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import ast
 import sys
+import os
 from pathlib import Path
 from typing import Iterable
 
@@ -19,6 +20,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 LOG_METHODS = {"debug", "info", "warning", "error", "exception", "critical"}
 
 EXCLUDED_DIRS = {"tests", "scripts", "ai_tools", "development_tools"}
+IGNORED_DIR_NAMES = {".git", ".venv", "venv"}
 ALLOWED_LOGGING_IMPORT_PATHS = {
     Path("core/logger.py"),
     Path("core/error_handling.py"),
@@ -89,8 +91,21 @@ def check_file(path: Path) -> Iterable[str]:
     return issues
 
 
+def iter_python_files(root: Path) -> Iterable[Path]:
+    for dirpath, dirnames, filenames in os.walk(root):
+        rel_dir = Path(dirpath).relative_to(root)
+        dirnames[:] = [
+            name
+            for name in dirnames
+            if name not in IGNORED_DIR_NAMES and not is_excluded(rel_dir / name)
+        ]
+        for filename in filenames:
+            if filename.endswith(".py"):
+                yield Path(dirpath) / filename
+
+
 def main() -> int:
-    python_files = [p for p in REPO_ROOT.rglob("*.py") if p.is_file()]
+    python_files = [p for p in iter_python_files(REPO_ROOT) if p.is_file()]
     violations = []
 
     for file_path in sorted(python_files):
