@@ -36,6 +36,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-29 - Schema Helper Edge-Case Tests **COMPLETED**
+- Added regression tests for `validate_account_dict`, `validate_preferences_dict`, `validate_schedules_dict`, and `validate_messages_file_dict` to cover missing required fields, invalid categories, legacy schedule shapes with bad time/day values, and mixed-quality message payloads.
+- Strengthens confidence that Pydantic schema normalization stays tolerant while still reporting issues for downstream save/load paths.
+
 ### 2025-11-28 - Phase 6 Development Tools: Core Tool Portability Implementation **COMPLETED**
 - Completed Core Tool Checklist of Phase 6: all 11 core tools now portable via external configuration (`development_tools_config.json`). Supporting and Experimental tool checklists remain pending.
 - Created external config system with example template: projects can customize paths, exclusions, constants, error handling patterns, and coverage settings without modifying tool source.
