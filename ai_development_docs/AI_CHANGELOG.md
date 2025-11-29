@@ -39,6 +39,9 @@ Guidelines:
 ### 2025-12-05 - Static Logging Check Preflight **COMPLETED**
 - Recreated the static logging enforcement script and allowlists for logger usage.
 - `run_tests.py` now runs the check by default (can skip via `--skip-static-logging-check`) so logging style drift fails fast.
+### 2025-11-29 - Coverage Stability for UI Tests **COMPLETED**
+- UI management tests now use `pytest.importorskip` so coverage runs skip cleanly when PySide6/Qt (libGL) dependencies are absent.
+- Removed the stale coverage failure investigation item from TODO after confirming the root cause was missing GUI libraries.
 
 ### 2025-11-29 - Schema Helper Edge-Case Tests **COMPLETED**
 - Added regression tests for `validate_account_dict`, `validate_preferences_dict`, `validate_schedules_dict`, and `validate_messages_file_dict` to cover missing required fields, invalid categories, legacy schedule shapes with bad time/day values, and mixed-quality message payloads.
@@ -1059,6 +1062,10 @@ Guidelines:
 ### 2025-11-26 - Command Reference Documentation Sync **COMPLETED**
 - Added a Discord/chat command reference table to `HOW_TO_RUN.md`, covering slash commands, bang commands, mapped text triggers, and check-in flow notes.
 - Cleaned up `TODO.md` by removing the completed documentation follow-up for the channel-agnostic command registry.
+
+### 2025-11-29 - User Profile Settings Widget Legacy Review **COMPLETED**
+- Confirmed `ui/widgets/user_profile_settings_widget.py` no longer carries legacy fallback branches; all personalization handlers use current dynamic container, date-of-birth, and loved-ones parsing flows.
+- Updated `development_docs/PLANS.md` to mark the widget legacy cleanup as complete and removed it from the active removal checklist.
 
 ### 2025-12-05 - Discord Username Persistence **COMPLETED**
 - Added `discord_username` to the tolerant `AccountModel` schema and default account generation so AI tools see consistent user identifiers.

@@ -43,6 +43,21 @@ When adding new changes, follow this format:
 - **Feature**: Recreated `scripts/static_checks/check_channel_loggers.py` to enforce forbidden direct `logging` imports, disallow `logging.getLogger` outside allowlisted files, and flag multi-argument logger calls; exclusions cover tests/scripts/ai_tools/development_tools with explicit allowlists for core logger infrastructure.
 - **Feature**: Added a static logging preflight to `run_tests.py` (toggle via `--skip-static-logging-check`) so style violations fail before pytest runs; updated `TODO.md` to reflect the enforcement step being wired through the runner.
 - **Impact**: Restores the static logging check expected by behavior tests and makes logging style drift visible in local and CI test runs.
+### 2025-11-29 - Coverage Stability for UI Tests
+
+#### Objective
+Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are unavailable.
+
+#### Changes Made
+- **`tests/unit/test_ui_management.py`**: Guarded the PySide6 imports with `pytest.importorskip` so the module is skipped gracefully on systems without GUI libraries.
+- **`TODO.md`**: Removed the stale "Investigate Test Coverage Analysis Failures" task after confirming the failures were tied to missing Qt dependencies rather than the targeted tests.
+
+#### Impact
+- **Coverage Reliability**: Coverage analysis and targeted test runs now skip UI-specific tests cleanly instead of erroring during collection when GUI libraries are missing.
+- **Backlog Accuracy**: The TODO list no longer tracks an investigation that has been resolved.
+
+#### Testing
+- `PYTHONPATH=. python -m coverage run -m pytest tests/behavior/test_utilities_demo.py::TestUtilitiesDemo::test_scheduled_user_creation tests/unit/test_logger_unit.py::TestEnsureLogsDirectory::test_ensure_logs_directory_creates_directories`
 
 ### 2025-11-29 - Schema Helper Edge-Case Regression Tests
 - **Feature**: Added focused unit coverage for schema validation helpers to ensure tolerant normalization of real-world payloads. New tests verify feature flag coercion when required fields are missing in `validate_account_dict`, invalid category handling passthrough in `validate_preferences_dict`, legacy schedule shapes and bad time/day values in `validate_schedules_dict`, and best-effort message list cleanup (invalid rows skipped, defaults applied) in `validate_messages_file_dict`.
@@ -11645,6 +11660,19 @@ Document the current Discord/chat command set and remove the completed follow-up
 #### Impact
 - **Onboarding Clarity**: New users can see all supported commands in one place with consistent descriptions.
 - **TODO Hygiene**: Channel-agnostic command follow-ups now only track outstanding work.
+
+### 2025-11-29 - User Profile Settings Widget Legacy Review **COMPLETED**
+
+#### Objective
+Confirm whether any legacy fallback logic remains in the user profile settings widget and update the legacy cleanup plan accordingly.
+
+#### Changes Made
+- **`ui/widgets/user_profile_settings_widget.py`**: Reviewed the full file to verify it only uses modern data extraction and validation paths (dynamic list containers, date-of-birth handling, loved-ones parsing) with no compatibility shims.
+- **`development_docs/PLANS.md`**: Marked the user profile settings widget legacy cleanup item as completed and removed it from the active removal list now that no legacy fallbacks remain.
+
+#### Impact
+- **Accurate Legacy Tracking**: The legacy cleanup plan now reflects the verified state of the widget, preventing duplicate work.
+- **Focus on Future Improvements**: Follow-up efforts can target UX or validation enhancements instead of legacy compatibility.
 
 ### 2025-12-05 - Discord Username Stored in Account Files
 
