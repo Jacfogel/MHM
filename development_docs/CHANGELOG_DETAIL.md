@@ -11741,6 +11741,23 @@ Ensure Discord usernames are persisted alongside Discord IDs in `account.json` f
 - **User Identity Clarity**: Discord usernames now persist with IDs, improving display and debugging.
 - **Data Consistency**: Default account creation and webhook flows keep username information in sync with account files.
 
+### 2025-12-09 - Sent Message Reads Normalize Through Schemas
+
+#### Objective
+Normalize sent message retrieval so business logic and filters run against validated data instead of trusting raw JSON files.
+
+#### Changes Made
+- **`core/message_management.py`**: Applied `validate_messages_file_dict` when loading sent messages, logging validation warnings and preserving categories so filtering still works after normalization.
+- **`tests/behavior/test_message_behavior.py`**: Added a behavior test that writes a mixed-quality `sent_messages.json` file and asserts invalid rows are dropped while defaults (like days/time periods) are applied.
+- **`TODO.md`**: Checked off the behavior-test follow-up and documented the newly normalized sent message read path under the schema adoption plan.
+
+#### Impact
+- **Safer Sent Message Reads**: Malformed sent message rows no longer surface in user-facing history, reducing surprises from corrupted data.
+- **Backlog Accuracy**: TODO now reflects the completed normalization test and tracks which read paths have been covered.
+
+#### Testing
+- `python -m pytest tests/behavior/test_message_behavior.py -k "normalizes_invalid_entries"`
+
 ### 2025-12-06 - Personalized User Suggestions Refresh
 
 #### Objective

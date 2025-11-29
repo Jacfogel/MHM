@@ -50,8 +50,9 @@ When adding new tasks, follow this format:
 - *Subtasks*:
   - [x] Extend schema validation to schedules save paths not yet using helpers (confirm all call-sites)
   - [x] Add unit tests for `validate_*_dict` helpers with edge-case payloads (extras, nulls, invalid times/days)
-  - [ ] Add behavior tests for end-to-end save/load normalization
+  - [x] Add behavior tests for end-to-end save/load normalization
   - [ ] Add read-path normalization invocation to remaining reads that feed business logic (sweep `core/` and `communication/`)
+    - [x] Normalize sent message reads in `core/message_management.get_recent_messages`
     - [x] Normalize message counts and stats in `core/user_data_manager.py` when reading message files
 
 **Channel-Agnostic Command Registry Follow-ups**

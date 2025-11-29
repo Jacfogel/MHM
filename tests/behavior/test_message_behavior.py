@@ -496,9 +496,51 @@ class TestSentMessages:
         
         with patch('core.message_management.load_json_data', mock_load):
             result = get_recent_messages(user_id, category=category, limit=10)
-            
+
             assert result == []
             mock_load.assert_called_once()
+
+    @pytest.mark.messages
+    @pytest.mark.file_io
+    def test_get_recent_messages_normalizes_invalid_entries(self, test_data_dir):
+        """Sent message reads should normalize and drop invalid rows."""
+        user_id = "test-user-normalize"
+        category = "motivational"
+
+        # Create user directory structure and sent messages file under tests/data/users
+        user_dir = os.path.join(test_data_dir, 'users', user_id)
+        messages_dir = os.path.join(user_dir, 'messages')
+        os.makedirs(messages_dir, exist_ok=True)
+
+        sent_messages_file = os.path.join(messages_dir, 'sent_messages.json')
+        test_sent_messages = {
+            "messages": [
+                {
+                    "message_id": "msg-good",
+                    "message": "Valid message",
+                    "category": category,
+                    "timestamp": "2025-01-01T10:00:00Z",
+                    "days": [],
+                    "time_periods": []
+                },
+                {
+                    # Missing message_id should be dropped by normalization
+                    "message": "Bad entry",
+                    "category": category,
+                    "timestamp": "2025-01-02T10:00:00Z"
+                }
+            ]
+        }
+        with open(sent_messages_file, 'w', encoding='utf-8') as f:
+            json.dump(test_sent_messages, f)
+
+        with patch('core.message_management.determine_file_path', return_value=sent_messages_file):
+            messages = get_recent_messages(user_id, category=category, limit=10)
+
+        assert len(messages) == 1
+        assert messages[0]['message_id'] == 'msg-good'
+        assert messages[0]['days'] == ["ALL"]
+        assert messages[0]['time_periods'] == ["ALL"]
 
 
 @pytest.mark.behavior
