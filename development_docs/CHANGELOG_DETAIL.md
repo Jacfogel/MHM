@@ -48,6 +48,12 @@ When adding new changes, follow this format:
 - **Feature**: Recreated `scripts/static_checks/check_channel_loggers.py` to enforce forbidden direct `logging` imports, disallow `logging.getLogger` outside allowlisted files, and flag multi-argument logger calls; exclusions cover tests/scripts/ai_tools/development_tools with explicit allowlists for core logger infrastructure.
 - **Feature**: Added a static logging preflight to `run_tests.py` (toggle via `--skip-static-logging-check`) so style violations fail before pytest runs; updated `TODO.md` to reflect the enforcement step being wired through the runner.
 - **Impact**: Restores the static logging check expected by behavior tests and makes logging style drift visible in local and CI test runs.
+
+### 2025-11-29 - Normalize User Data Reads with Pydantic Schemas
+- **Feature**: Added read-path validation for accounts, preferences, and schedules in `core/user_management.py` so cached data is normalized via tolerant Pydantic schemas and validation issues surface in logs.
+- **Impact**: Ensures business logic consumes normalized user data even when legacy or malformed payloads are present, reducing downstream errors.
+- **Documentation**: Removed the completed Pydantic schema follow-up from `TODO.md` now that read-path normalization is in place.
+
 ### 2025-11-29 - Coverage Stability for UI Tests
 
 #### Objective

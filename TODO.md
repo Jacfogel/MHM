@@ -43,18 +43,6 @@ When adding new tasks, follow this format:
 - *Estimated effort*: Small
 
 
-**Pydantic Schema Adoption Follow-ups**
-- *What it means*: We added tolerant Pydantic models. Expand usage safely across other save/load paths.
-- *Why it helps*: Stronger validation and normalized data.
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [x] Extend schema validation to schedules save paths not yet using helpers (confirm all call-sites)
-  - [x] Add unit tests for `validate_*_dict` helpers with edge-case payloads (extras, nulls, invalid times/days)
-  - [x] Add behavior tests for end-to-end save/load normalization
-  - [ ] Add read-path normalization invocation to remaining reads that feed business logic (sweep `core/` and `communication/`)
-    - [x] Normalize sent message reads in `core/message_management.get_recent_messages`
-    - [x] Normalize message counts and stats in `core/user_data_manager.py` when reading message files
-
 **Channel-Agnostic Command Registry Follow-ups**
 - *What it means*: Finalize and monitor the new centralized command system and Discord integrations
 - *Why it helps*: Ensures consistent behavior across channels and prevents regressions
