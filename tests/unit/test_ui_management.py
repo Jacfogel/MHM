@@ -14,6 +14,13 @@ Coverage Areas:
 
 import pytest
 from unittest.mock import Mock, patch, MagicMock
+
+# Skip the module when Qt dependencies (e.g., libGL) are unavailable. This avoids
+# coverage runs failing during collection on environments without GUI support.
+pytest.importorskip(
+    "PySide6",
+    reason="PySide6 (Qt) not available or missing system GUI dependencies",
+)
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 
 from core.ui_management import (

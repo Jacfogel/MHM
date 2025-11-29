@@ -36,6 +36,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-29 - Coverage Stability for UI Tests **COMPLETED**
+- UI management tests now use `pytest.importorskip` so coverage runs skip cleanly when PySide6/Qt (libGL) dependencies are absent.
+- Removed the stale coverage failure investigation item from TODO after confirming the root cause was missing GUI libraries.
+
 ### 2025-11-29 - Schema Helper Edge-Case Tests **COMPLETED**
 - Added regression tests for `validate_account_dict`, `validate_preferences_dict`, `validate_schedules_dict`, and `validate_messages_file_dict` to cover missing required fields, invalid categories, legacy schedule shapes with bad time/day values, and mixed-quality message payloads.
 - Strengthens confidence that Pydantic schema normalization stays tolerant while still reporting issues for downstream save/load paths.
