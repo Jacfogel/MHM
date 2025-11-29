@@ -39,6 +39,13 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-29 - Critical Bug Fix: Missing Import and Schedules Cache
+- **Bug Fix**: Fixed `NameError: name 'validate_schedules_dict' is not defined` that was preventing user schedules from loading and blocking all message processing. Added missing import of `validate_schedules_dict` from `core.schemas` in `core/user_management.py` and removed redundant local import.
+- **Bug Fix**: Fixed "No data returned for schedules" warning by implementing consistent caching for schedules loader to match account and preferences loaders. Added `_user_schedules_cache` with cache check in `_get_user_data__load_schedules`, cache update after normalization, and cache update on save in `_save_user_data__save_schedules`. Updated `clear_user_caches()` to include schedules cache.
+- **Code Quality**: Fixed logging style violations by converting printf-style logger calls to f-strings in `_get_user_data__load_account`, `_get_user_data__load_preferences`, and `_get_user_data__load_schedules`.
+- **Impact**: Resolves critical issue that was blocking all message processing. Ensures consistent caching behavior across all user data loaders (account, preferences, schedules) and improves code quality with proper logging style.
+- **Files Modified**: `core/user_management.py`
+
 ### 2025-11-29 - Error Handling and Documentation Analysis Integration
 - **Feature**: Integrated error handling candidate generators (Phase 1 and Phase 2) from `scripts/generate_phase1_candidates.py` and `scripts/generate_phase2_audit.py` into `development_tools/error_handling_coverage.py`. Enhanced operation type and entry point detection to use function content for better accuracy. Integrated documentation overlap analysis from `scripts/testing/analyze_documentation_overlap.py` into `development_tools/analyze_documentation.py` with `--overlap` flag on audit command. Overlap analysis runs automatically during full audits and appears in consolidated reports.
 - **Impact**: Consolidates analysis tools, reduces redundancy, and makes error handling and documentation analysis part of the standard audit workflow. Provides actionable recommendations for error handling improvements and documentation consolidation.

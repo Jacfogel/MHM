@@ -16,6 +16,7 @@ from core.error_handling import handle_errors
 from core.schemas import (
     validate_account_dict,
     validate_preferences_dict,
+    validate_schedules_dict,
 )
 from pathlib import Path
 
@@ -256,9 +257,7 @@ def _get_user_data__load_account(user_id: str, auto_create: bool = True) -> Opti
         normalized_account, errors = validate_account_dict(account_data)
         if errors:
             logger.warning(
-                "Validation issues in account data for user %s: %s",
-                user_id,
-                "; ".join(errors),
+                f"Validation issues in account data for user {user_id}: {'; '.join(errors)}"
             )
         account_data = normalized_account or account_data
     
@@ -369,9 +368,7 @@ def _get_user_data__load_preferences(user_id: str, auto_create: bool = True) -> 
         normalized_preferences, errors = validate_preferences_dict(preferences_data)
         if errors:
             logger.warning(
-                "Validation issues in preferences for user %s: %s",
-                user_id,
-                "; ".join(errors),
+                f"Validation issues in preferences for user {user_id}: {'; '.join(errors)}"
             )
         preferences_data = normalized_preferences or preferences_data
 
@@ -523,6 +520,15 @@ def _get_user_data__load_schedules(user_id: str, auto_create: bool = True) -> Op
         logger.error("_get_user_data__load_schedules called with None user_id")
         return None
     
+    # Check cache first
+    current_time = time.time()
+    cache_key = f"schedules_{user_id}"
+    
+    if cache_key in _user_schedules_cache:
+        cached_data, cache_time = _user_schedules_cache[cache_key]
+        if current_time - cache_time < _cache_timeout:
+            return cached_data
+    
     user_dir = os.path.dirname(get_user_file_path(user_id, 'schedules'))
     user_dir_exists = os.path.exists(user_dir)
     schedules_file = get_user_file_path(user_id, 'schedules')
@@ -551,11 +557,13 @@ def _get_user_data__load_schedules(user_id: str, auto_create: bool = True) -> Op
         normalized_schedules, errors = validate_schedules_dict(schedules_data)
         if errors:
             logger.warning(
-                "Validation issues in schedules for user %s: %s",
-                user_id,
-                "; ".join(errors),
+                f"Validation issues in schedules for user {user_id}: {'; '.join(errors)}"
             )
         schedules_data = normalized_schedules or schedules_data
+    
+    # Cache the data
+    _user_schedules_cache[cache_key] = (schedules_data, current_time)
+    
     return schedules_data
 
 @handle_errors("saving user schedules data")
@@ -569,8 +577,6 @@ def _save_user_data__save_schedules(user_id: str, schedules_data: Dict[str, Any]
     schedules_file = get_user_file_path(user_id, 'schedules')
 
     # Normalize using tolerant Pydantic schema to keep on-disk data consistent
-    from core.schemas import validate_schedules_dict
-
     normalized, errors = validate_schedules_dict(schedules_data)
     if errors:
         logger.warning(
@@ -579,6 +585,10 @@ def _save_user_data__save_schedules(user_id: str, schedules_data: Dict[str, Any]
     schedules_data = normalized or {}
 
     save_json_data(schedules_data, schedules_file)
+    
+    # Update cache
+    cache_key = f"schedules_{user_id}"
+    _user_schedules_cache[cache_key] = (schedules_data, time.time())
     
     logger.debug(f"Schedules data saved for user {user_id}")
     return True
@@ -1007,13 +1017,14 @@ def _get_user_id_by_identifier__by_discord_user_id(discord_user_id: str) -> Opti
 @handle_errors("clearing user caches")
 def clear_user_caches(user_id: Optional[str] = None):
     """Clear user data caches."""
-    global _user_account_cache, _user_preferences_cache, _user_context_cache
+    global _user_account_cache, _user_preferences_cache, _user_context_cache, _user_schedules_cache
     
     if user_id:
         # Clear specific user's cache
         account_key = f"account_{user_id}"
         preferences_key = f"preferences_{user_id}"
         context_key = f"context_{user_id}"
+        schedules_key = f"schedules_{user_id}"
         
         if account_key in _user_account_cache:
             del _user_account_cache[account_key]
@@ -1021,6 +1032,8 @@ def clear_user_caches(user_id: Optional[str] = None):
             del _user_preferences_cache[preferences_key]
         if context_key in _user_context_cache:
             del _user_context_cache[context_key]
+        if schedules_key in _user_schedules_cache:
+            del _user_schedules_cache[schedules_key]
         
         logger.debug(f"Cleared cache for user {user_id}")
     else:
@@ -1028,6 +1041,7 @@ def clear_user_caches(user_id: Optional[str] = None):
         _user_account_cache.clear()
         _user_preferences_cache.clear()
         _user_context_cache.clear()
+        _user_schedules_cache.clear()
         logger.debug("Cleared all user caches")
 
 # ============================================================================

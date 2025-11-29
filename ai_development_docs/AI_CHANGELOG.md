@@ -36,6 +36,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-29 - Critical Bug Fix: Missing Import and Schedules Cache **COMPLETED**
+- Fixed `NameError: name 'validate_schedules_dict' is not defined` that blocked message processing by adding missing import in `core/user_management.py`.
+- Implemented schedules caching to match account/preferences loaders, fixing "No data returned for schedules" warning.
+- Fixed logging style violations (printf-style to f-strings) in user data loaders.
+
 ### 2025-11-29 - Error Handling and Documentation Analysis Integration **COMPLETED**
 - Integrated Phase 1/2 error handling candidate generators into `error_handling_coverage.py` with enhanced operation type and entry point detection.
 - Integrated documentation overlap analysis into `analyze_documentation.py` with `--overlap` flag on audit command (runs automatically in full audits).
