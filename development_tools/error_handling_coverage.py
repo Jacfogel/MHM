@@ -424,7 +424,8 @@ class ErrorHandlingAnalyzer:
                 'missing_error_handling': False,
                 'error_patterns': set(),
                 'recommendations': [],
-                'excluded': True
+                'excluded': True,
+                'func_content': func_content  # Store for consistency
             }
         
         analysis = {
@@ -438,7 +439,8 @@ class ErrorHandlingAnalyzer:
             'missing_error_handling': False,
             'error_patterns': set(),
             'recommendations': [],
-            'excluded': False
+            'excluded': False,
+            'func_content': func_content  # Store for Phase 1 analysis
         }
         
         # Check for try-except blocks
@@ -549,33 +551,61 @@ class ErrorHandlingAnalyzer:
         
         return False
     
-    def _determine_operation_type(self, func_name: str, file_path: str) -> str:
-        """Phase 1: Determine operation type from function name and file path."""
+    def _determine_operation_type(self, func_name: str, file_path: str, func_content: str = None) -> str:
+        """Phase 1: Determine operation type from function name, file path, and content."""
         func_lower = func_name.lower()
         file_lower = file_path.lower()
-        combined = f"{func_lower} {file_lower}"
+        content_lower = (func_content or "").lower()
+        combined = f"{func_lower} {file_lower} {content_lower}"
         
-        for op_type, keywords in self.phase1_keywords.items():
-            if op_type == 'entry_point':
-                continue
-            if any(keyword in combined for keyword in keywords):
-                return op_type
+        # Check for specific operation types (order matters - more specific first)
+        if any(kw in combined for kw in ['load', 'save', 'read', 'write', 'file', 'json', 'open(', 'close(']):
+            return 'file_io'
+        elif any(kw in combined for kw in ['send', 'receive', 'connect', 'request', 'discord', 'email', 'api', 'http']):
+            return 'network'
+        elif any(kw in combined for kw in ['user', 'account', 'profile', 'preference', 'task', 'schedule', 'checkin']):
+            return 'user_data'
+        elif any(kw in combined for kw in ['validate', 'check', 'verify', 'invalid', 'missing', 'required']):
+            return 'validation'
+        elif any(kw in combined for kw in ['schedule', 'task', 'reminder', 'scheduler']):
+            return 'scheduling'
+        elif any(kw in combined for kw in ['config', 'setting', 'option']):
+            return 'configuration'
+        elif any(kw in combined for kw in ['ui', 'dialog', 'widget', 'button', 'qt', 'pyqt']):
+            return 'ui'
+        elif any(kw in combined for kw in ['generate', 'process', 'analyze', 'classify', 'chatbot', 'lm_studio', 'ai']):
+            return 'ai'
         
         return "general"
     
-    def _is_entry_point(self, func_name: str, file_path: str) -> bool:
+    def _is_entry_point(self, func_name: str, file_path: str, func_content: str = None) -> bool:
         """Phase 1: Check if function is an entry point."""
         func_lower = func_name.lower()
+        file_lower = file_path.lower()
+        content_lower = (func_content or "").lower()
         
         # Check function name
-        if any(keyword in func_lower for keyword in self.phase1_keywords['entry_point']):
+        if any(keyword in func_lower for keyword in ['handle', 'on_', 'command', 'handler', 'main', 'run', 'start']):
             return True
         
-        # Check file path for common entry point files
-        file_lower = file_path.lower()
-        entry_point_files = ['main.py', 'run_', 'start', 'handler', 'bot.py', 'service.py']
-        if any(epf in file_lower for epf in entry_point_files):
+        # Check file path for common entry point locations
+        if 'command_handlers' in file_lower or 'communication_channels' in file_lower:
             return True
+        
+        # Check if it's a UI event handler
+        if 'ui' in file_lower and ('on_' in func_lower or 'clicked' in func_lower):
+            return True
+        
+        # Check content for entry point patterns
+        if content_lower:
+            if any(kw in content_lower for kw in ['@app.route', '@command', '@handler', 'command_handler', 'event_handler']):
+                return True
+        
+        # Protected/magic methods are usually not entry points
+        if func_name.startswith('_') and not func_name.startswith('__'):
+            return False
+        if func_name.startswith('__') and func_name.endswith('__'):
+            return False
         
         return False
     
@@ -765,9 +795,10 @@ class ErrorHandlingAnalyzer:
                 
                 # Phase 1: Track candidates (try-except without decorator)
                 if func.get('is_phase1_candidate', False):
-                    # Determine operation type and priority
-                    operation_type = self._determine_operation_type(func['name'], file_result['file_path'])
-                    is_entry_point = self._is_entry_point(func['name'], file_result['file_path'])
+                    # Determine operation type and priority (use function content if available)
+                    func_content = func.get('func_content', '')
+                    operation_type = self._determine_operation_type(func['name'], file_result['file_path'], func_content)
+                    is_entry_point = self._is_entry_point(func['name'], file_result['file_path'], func_content)
                     priority = self._determine_phase1_priority(operation_type, is_entry_point)
                     
                     phase1_candidates.append({

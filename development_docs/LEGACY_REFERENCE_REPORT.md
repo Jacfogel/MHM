@@ -1,13 +1,13 @@
 # Legacy Reference Cleanup Report
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
-> **Generated**: 2025-11-28 19:14:18
-**Total Files with Issues**: 3
-**Legacy Compatibility Markers Detected**: 21
+> **Generated**: 2025-11-29 05:44:07
+**Total Files with Issues**: 1
+**Legacy Compatibility Markers Detected**: 8
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
-- Legacy compatibility markers remain in 2 file(s) (3 total markers).
+- Legacy compatibility markers remain in 1 file(s) (2 total markers).
 
 ## Recommended Follow-Up
 1. Confirm whether legacy `enabled_fields` payloads are still produced; if not, plan removal and data migration.
@@ -15,55 +15,7 @@
 3. Track the cleanup effort and rerun `python development_tools/ai_tools_runner.py legacy --clean --dry-run` until this report returns zero issues.
 
 ## Deprecated Functions
-**Files Affected**: 2
-
-### tests\development_tools\test_legacy_reference_cleanup.py
-**Issues Found**: 9
-
-- **Line 89**: `LegacyChannelWrapper`
-  ```
-  assert 'LegacyChannelWrapper' in content, "LegacyChannelWrapper should exist in legacy_code.py"
-  ```
-
-- **Line 89**: `LegacyChannelWrapper`
-  ```
-  assert 'LegacyChannelWrapper' in content, "LegacyChannelWrapper should exist in legacy_code.py"
-  ```
-
-- **Line 94**: `LegacyChannelWrapper`
-  ```
-  # Find references to LegacyChannelWrapper
-  ```
-
-- **Line 96**: `LegacyChannelWrapper`
-  ```
-  references = checker.find_all_references('LegacyChannelWrapper')
-  ```
-
-- **Line 99**: `LegacyChannelWrapper`
-  ```
-  # It searches for patterns like 'class LegacyChannelWrapper', 'LegacyChannelWrapper(', etc.
-  ```
-
-- **Line 99**: `LegacyChannelWrapper`
-  ```
-  # It searches for patterns like 'class LegacyChannelWrapper', 'LegacyChannelWrapper(', etc.
-  ```
-
-- **Line 100**: `LegacyChannelWrapper`
-  ```
-  assert len(references) > 0, f"find_all_references should find LegacyChannelWrapper. Found: {references}"
-  ```
-
-- **Line 125**: `LegacyChannelWrapper`
-  ```
-  # Test with LegacyChannelWrapper which exists in legacy_code.py
-  ```
-
-- **Line 126**: `LegacyChannelWrapper`
-  ```
-  verification = checker.verify_removal_readiness('LegacyChannelWrapper')
-  ```
+**Files Affected**: 1
 
 ### tests\fixtures\development_tools_demo\legacy_code.py
 **Issues Found**: 2
@@ -90,15 +42,7 @@
   ```
 
 ## Legacy Compatibility Markers
-**Files Affected**: 2
-
-### development_tools\legacy_reference_cleanup.py
-**Issues Found**: 1
-
-- **Line 91**: `# LEGACY COMPATIBILITY:`
-  ```
-  r'# LEGACY COMPATIBILITY:',
-  ```
+**Files Affected**: 1
 
 ### tests\fixtures\development_tools_demo\legacy_code.py
 **Issues Found**: 2
@@ -114,25 +58,7 @@
   ```
 
 ## Old Bot Directory
-**Files Affected**: 2
-
-### tests\development_tools\test_legacy_reference_cleanup.py
-**Issues Found**: 3
-
-- **Line 229**: `bot/`
-  ```
-  ('bot/', 'communication/'),
-  ```
-
-- **Line 230**: `from bot.`
-  ```
-  ('from bot.', 'from communication.'),
-  ```
-
-- **Line 231**: `import bot.`
-  ```
-  ('import bot.', 'import communication.'),
-  ```
+**Files Affected**: 1
 
 ### tests\fixtures\development_tools_demo\legacy_code.py
 **Issues Found**: 2

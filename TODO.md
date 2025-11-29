@@ -115,12 +115,6 @@ When adding new tasks, follow this format:
   - [ ] Consider integrating fix operations into `doc-sync` workflow as optional `--fix` flag
   - [ ] Update documentation to reflect new command structure
 
-**Fix Missing Closing Markers in Generated AI_MODULE_DEPENDENCIES.md**
-- *What it means*: Fix the generator for `ai_development_docs/AI_MODULE_DEPENDENCIES.md` (generated file) to properly close markdown bold formatting. Line 170 is missing the closing `**` characters, breaking the markdown blockquote bold formatting. The line should end with `MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md)**` but instead ends without the closing markers.
-- *Why it helps*: Ensures generated documentation renders correctly in markdown processors and maintains proper formatting standards
-- *Estimated effort*: Small
-- *Note*: This is a generated file - fix must be made in the generator (likely `development_tools/generate_module_dependencies.py` or related module), not in the file itself
-
 **Update Inter-Documentation References to Include Section Numbers**
 - *What it means*: Update cross-references between documentation files to include section numbers and titles (e.g., "See section 3.2. Logging Architecture in LOGGING_GUIDE.md" instead of just "See LOGGING_GUIDE.md")
 - *Why it helps*: Makes references more precise and easier to navigate, especially with numbered headings now standardized; improves documentation usability
@@ -140,14 +134,6 @@ When adding new tasks, follow this format:
   - Caching of analysis results for unchanged files
   - Incremental scanning (only check modified files)
   - Reduce DEBUG-level logging that creates excessive log output
-
-**Fix Legacy Import Checker Self-Identification**
-- *What it means*: Improve legacy import checker so it doesn't positively identify itself as somewhere legacy imports are present
-- *Why it helps*: Reduces false positives and makes legacy cleanup reports more accurate
-- *Estimated effort*: Small
-- *Areas to investigate*:
-  - Exclude the checker's own file from legacy pattern matching
-  - Improve pattern matching to avoid matching the checker's own code
 
 **Create Example Marking Standards Checker**
 - *What it means*: Create a validation checker to ensure examples in documentation follow the example marking standards (section 2.6 in `DOCUMENTATION_GUIDE.md`). The checker should validate that examples containing file paths are properly marked with `[OK]`, `[AVOID]`, `[GOOD]`, `[BAD]`, `[EXAMPLE]` markers or are under "Examples:" headings.
@@ -210,15 +196,6 @@ When adding new tasks, follow this format:
   - [ ] Consider integrating marker validation into coverage regeneration workflow
   - [ ] Update documentation to reflect new test marker commands
 
-**Integrate Error Handling Candidate Generators into Error Handling Coverage**
-- *What it means*: Integrate `scripts/generate_phase1_candidates.py` and `scripts/generate_phase2_audit.py` functionality into `development_tools/error_handling_coverage.py`. Add subcommands for generating candidate lists and audit reports.
-- *Why it helps*: Centralizes error handling analysis tools; enables generation of candidate lists and audit reports as part of error handling coverage analysis. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Integrate Phase 1 candidate generation (functions with basic try-except blocks) into `error_handling_coverage.py`
-  - [ ] Integrate Phase 2 audit generation (generic exception raises) into `error_handling_coverage.py`
-  - [ ] Add `error-handling-candidates` subcommand to `development_tools/ai_tools_runner.py` with options: `--phase1`, `--phase2`, `--both`
-  - [ ] Update documentation to reflect new error handling candidate commands
 
 **Create Project Cleanup Module**
 - *What it means*: Create a new cleanup module in `development_tools/` that integrates `scripts/cleanup_project.py` functionality. Add subcommand to `development_tools/ai_tools_runner.py` for project cleanup operations.
@@ -231,16 +208,6 @@ When adding new tasks, follow this format:
   - [ ] Maintain safety features (dry-run mode, selective cleanup options)
   - [ ] Update documentation to reflect new cleanup command
 
-**Integrate Documentation Overlap Analysis into Analyze Documentation**
-- *What it means*: Integrate `scripts/testing/analyze_documentation_overlap.py` functionality into `development_tools/analyze_documentation.py`. Add overlap detection and consolidation recommendations to existing documentation analysis.
-- *Why it helps*: Enhances documentation analysis with overlap detection; provides consolidation recommendations to reduce redundancy. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.
-- *Estimated effort*: Small
-- *Subtasks*:
-  - [ ] Integrate overlap analysis logic from `scripts/testing/analyze_documentation_overlap.py` into `development_tools/analyze_documentation.py`
-  - [ ] Add overlap detection to existing documentation analysis output
-  - [ ] Add consolidation recommendations to analysis reports
-  - [ ] Consider adding `--overlap` flag to existing `docs` command
-  - [ ] Update documentation to reflect enhanced analysis capabilities
 
 **Reorganize AI Development Tools Subdirectory**
 - *What it means*: Reorganize development_tools subdirectory, including a review of the files within to determine whether any of them are no longer active or useful

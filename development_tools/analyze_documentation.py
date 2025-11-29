@@ -185,12 +185,84 @@ def document_profiles(docs: Dict[str, str]) -> List[str]:
     return lines
 
 
+def detect_section_overlaps(docs: Dict[str, str]) -> Dict[str, List[str]]:
+    """Detect sections that appear in multiple files (overlap detection)."""
+    section_files: Dict[str, List[str]] = defaultdict(list)
+    
+    for filename, content in docs.items():
+        sections = extract_sections(content)
+        for section_name in sections.keys():
+            section_files[section_name].append(filename)
+    
+    # Only return sections that appear in multiple files
+    overlaps = {section: files for section, files in section_files.items() if len(files) > 1}
+    return overlaps
+
+
+def analyze_file_purposes(docs: Dict[str, str]) -> Dict[str, Dict[str, object]]:
+    """Analyze the purpose and content of each documentation file."""
+    purposes = {}
+    
+    for filename, content in docs.items():
+        # Extract first few lines to understand purpose
+        lines = content.split('\n')[:20]
+        header_info = '\n'.join(lines)
+        
+        # Count sections
+        sections = extract_sections(content)
+        
+        # Estimate content length
+        content_length = len(content)
+        
+        purposes[filename] = {
+            'header_info': header_info[:200],  # Limit header preview
+            'section_count': len(sections),
+            'content_length': content_length,
+            'sections': list(sections.keys())[:10]  # Limit section list
+        }
+    
+    return purposes
+
+
+def generate_consolidation_recommendations(docs: Dict[str, str]) -> List[Dict[str, object]]:
+    """Generate recommendations for consolidating documentation files."""
+    recommendations = []
+    
+    # Group files by purpose keywords
+    setup_files = [f for f in docs.keys() if any(kw in f.lower() for kw in ['setup', 'run', 'install', 'how_to'])]
+    if len(setup_files) > 1:
+        recommendations.append({
+            'category': 'Setup/Installation',
+            'files': setup_files,
+            'suggestion': 'Consider consolidating into a single SETUP.md or HOW_TO_RUN.md'
+        })
+    
+    workflow_files = [f for f in docs.keys() if any(kw in f.lower() for kw in ['workflow', 'development', 'guideline'])]
+    if len(workflow_files) > 1:
+        recommendations.append({
+            'category': 'Development Workflow',
+            'files': workflow_files,
+            'suggestion': 'Consider consolidating into a single DEVELOPMENT_WORKFLOW.md'
+        })
+    
+    testing_files = [f for f in docs.keys() if 'test' in f.lower()]
+    if len(testing_files) > 1:
+        recommendations.append({
+            'category': 'Testing',
+            'files': testing_files,
+            'suggestion': 'Consider consolidating testing documentation'
+        })
+    
+    return recommendations
+
+
 def format_summary(
     docs: Dict[str, str],
     missing: List[str],
     duplicates: List[Dict[str, object]],
     placeholders: List[Dict[str, object]],
     artifacts: List[Dict[str, object]],
+    include_overlap: bool = False,
 ) -> str:
     blocks: List[str] = []
     blocks.append(summary_block('Files Analysed', [f"{len(docs)} files", *sorted(docs.keys())]))
@@ -221,6 +293,25 @@ def format_summary(
             for entry in artifacts
         ]
         blocks.append(summary_block('Corrupted Artifacts', artifact_lines))
+    
+    # Overlap analysis (if requested)
+    if include_overlap:
+        section_overlaps = detect_section_overlaps(docs)
+        if section_overlaps:
+            overlap_lines = []
+            for section, files in sorted(section_overlaps.items()):
+                overlap_lines.append(f"{section} appears in: {', '.join(sorted(files))}")
+            blocks.append(summary_block('Section Overlaps', overlap_lines))
+        
+        consolidation_recs = generate_consolidation_recommendations(docs)
+        if consolidation_recs:
+            rec_lines = []
+            for rec in consolidation_recs:
+                rec_lines.append(f"{rec['category']} ({len(rec['files'])} files):")
+                rec_lines.extend(f"  - {file}" for file in sorted(rec['files']))
+                rec_lines.append(f"  → {rec['suggestion']}")
+            blocks.append(summary_block('Consolidation Recommendations', rec_lines))
+    
     return "\n".join(blocks)
 
 
@@ -245,7 +336,11 @@ def execute(args: argparse.Namespace, project_root: Optional[Path] = None, confi
     duplicates = detect_duplicates(docs)
     placeholders = detect_placeholders(docs)
     artifacts = detect_corrupted_artifacts(docs)
-    summary = format_summary(docs, missing, duplicates, placeholders, artifacts)
+    
+    # Overlap analysis (if requested via --overlap flag)
+    include_overlap = getattr(args, 'overlap', False)
+    summary = format_summary(docs, missing, duplicates, placeholders, artifacts, include_overlap=include_overlap)
+    
     payload = {
         'documents': sorted(docs.keys()),
         'missing': sorted(missing),
@@ -253,6 +348,16 @@ def execute(args: argparse.Namespace, project_root: Optional[Path] = None, confi
         'placeholders': placeholders,
         'artifacts': artifacts,
     }
+    
+    # Add overlap data to payload if requested
+    if include_overlap:
+        section_overlaps = detect_section_overlaps(docs)
+        consolidation_recs = generate_consolidation_recommendations(docs)
+        file_purposes = analyze_file_purposes(docs)
+        payload['section_overlaps'] = section_overlaps
+        payload['consolidation_recommendations'] = consolidation_recs
+        payload['file_purposes'] = file_purposes
+    
     exit_code = 0
     if duplicates or placeholders or artifacts:
         exit_code = 1
@@ -260,14 +365,23 @@ def execute(args: argparse.Namespace, project_root: Optional[Path] = None, confi
 
 
 def main() -> int:
-    argument_spec = [(
-        ('--files',),
-        {
-            'nargs': '+',
-            'metavar': 'REL_PATH',
-            'help': 'Specific documentation files to analyze (relative to project root).',
-        },
-    )]
+    argument_spec = [
+        (
+            ('--files',),
+            {
+                'nargs': '+',
+                'metavar': 'REL_PATH',
+                'help': 'Specific documentation files to analyze (relative to project root).',
+            },
+        ),
+        (
+            ('--overlap',),
+            {
+                'action': 'store_true',
+                'help': 'Include overlap analysis (section overlaps and consolidation recommendations).',
+            },
+        ),
+    ]
     return run_cli(execute, description='Analyze documentation overlap and quality.', arguments=argument_spec)
 
 

@@ -5,8 +5,8 @@
 > **Audience**: AI collaborators and tools
 > **Purpose**: Fast routing across docs for AI collaborators
 > **Style**: Minimal, routing-first
-> For detailed behavior and rationale, use the matching sections in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md).
-> Keep this file's H2 headings in lockstep with [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) whenever you change the structure.
+> For detailed behavior and rationale, use the matching sections in DOCUMENTATION_GUIDE.md.
+> Keep this file's H2 headings in lockstep with DOCUMENTATION_GUIDE.md whenever you change the structure.
 
 ## Quick Reference
 
@@ -20,7 +20,7 @@ Use this to decide which doc to open or reference.
   - Testing: [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)
   - Error handling: [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md)
 - Documentation system and sync rules:
-  - This doc: [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md) (routing rules and doc classes)
+  - This doc: AI_DOCUMENTATION_GUIDE.md (routing rules and doc classes)
   - Detailed behavior: [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md), section 1. "Documentation Categories" and section 3. "Documentation Synchronization Checklist"
 - AI collaboration and navigation helpers:
   - Session constraints and guardrails: [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md)
@@ -58,7 +58,7 @@ Key examples:
 [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md), [AI_REFERENCE.md](ai_development_docs/AI_REFERENCE.md),  
 [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md), [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md),  
 [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md), [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md),  
-[AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md).
+AI_DOCUMENTATION_GUIDE.md.
 
 ### 1.3. Generated and analytical docs
 
@@ -118,16 +118,6 @@ When suggesting new docs or edits:
 - Cross-reference other docs using specific section numbers when pointing to particular behavior or rules (e.g., "See section 2.6 in `DOCUMENTATION_GUIDE.md`")
 
 **Path drift checker:** Validates that referenced files exist. May flag short names if directory cannot be inferred from context.
-
-
-**Markdown link standard (AI view):**
-
-- When you create or edit links to `.md` docs, use only the filename as link text and keep the full path in the target.  
-  - Example: `[LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)`
-- Skip metadata lines (`> **File**:`), code fences, and inline examples – do **not** auto-convert those.
-- Avoid adding links when the target `.md` file does not exist.
-- Prefer this pattern whenever you reference other docs from AI_* files so links are easy for humans to read but still precise for tools.
-
 
 ### 2.4. Parent metadata (subordinate docs)
 

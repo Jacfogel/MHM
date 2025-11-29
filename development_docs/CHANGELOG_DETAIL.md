@@ -39,6 +39,21 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-29 - Error Handling and Documentation Analysis Integration
+- **Feature**: Integrated error handling candidate generators (Phase 1 and Phase 2) from `scripts/generate_phase1_candidates.py` and `scripts/generate_phase2_audit.py` into `development_tools/error_handling_coverage.py`. Enhanced operation type and entry point detection to use function content for better accuracy. Integrated documentation overlap analysis from `scripts/testing/analyze_documentation_overlap.py` into `development_tools/analyze_documentation.py` with `--overlap` flag on audit command. Overlap analysis runs automatically during full audits and appears in consolidated reports.
+- **Impact**: Consolidates analysis tools, reduces redundancy, and makes error handling and documentation analysis part of the standard audit workflow. Provides actionable recommendations for error handling improvements and documentation consolidation.
+- **Technical Changes**: 
+  - Enhanced `error_handling_coverage.py` with Phase 1 candidate detection (operation type, entry point, priority) and Phase 2 exception categorization
+  - Added `detect_section_overlaps()`, `analyze_file_purposes()`, and `generate_consolidation_recommendations()` functions to `analyze_documentation.py`
+  - Updated `run_audit()` to accept `include_overlap` parameter and automatically enable it for full audits
+  - Modified report generation functions to extract and display overlap data in `consolidated_report.txt`, `AI_STATUS.md`, and `AI_PRIORITIES.md`
+  - Marked standalone scripts as deprecated with notes pointing to integrated functionality
+  - Fixed UnicodeDecodeError in `scripts/static_checks/check_channel_loggers.py` by adding explicit UTF-8 encoding
+  - Fixed test isolation issue in `tests/unit/test_schedule_management.py` by adding explicit cache clearing
+  - Fixed missing closing markers in `AI_MODULE_DEPENDENCIES.md` by regenerating the file
+  - Fixed legacy import checker self-identification issue in `development_tools/legacy_reference_cleanup.py`
+- **Files Modified**: `development_tools/error_handling_coverage.py`, `development_tools/analyze_documentation.py`, `development_tools/services/operations.py`, `scripts/generate_phase1_candidates.py`, `scripts/generate_phase2_audit.py`, `scripts/testing/analyze_documentation_overlap.py`, `scripts/static_checks/check_channel_loggers.py`, `tests/unit/test_schedule_management.py`, `development_tools/legacy_reference_cleanup.py`
+
 ### 2025-12-07 - Check-in Flow Expiration Behavior Coverage
 - **Feature**: Added a behavior test to verify that active check-in flows expire when the communication orchestrator sends a non-scheduled outbound message. The test patches the orchestrator to use a test-specific `ConversationManager`, exercises a personalized send path, and confirms the persisted flow state is removed once the unrelated message is delivered. Updated `TODO.md` to mark the follow-up as completed.
 - **Impact**: Protects the intended coupling between outbound message handling and check-in flow cleanup, preventing users from getting stuck in stale flows after receiving other messages.

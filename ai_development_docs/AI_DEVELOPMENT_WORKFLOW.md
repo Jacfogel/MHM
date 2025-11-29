@@ -5,8 +5,8 @@
 > **Audience**: AI collaborators and tools
 > **Purpose**: Route AI assistance to the right docs and safe workflows
 > **Style**: Minimal, routing-first
-> For detailed behavior and rationale, use the matching sections in [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md).
-> Keep this file's H2 headings in lockstep with [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) whenever you change the structure.
+> For detailed behavior and rationale, use the matching sections in DEVELOPMENT_WORKFLOW.md.
+> Keep this file's H2 headings in lockstep with DEVELOPMENT_WORKFLOW.md whenever you change the structure.
 
 
 ---
@@ -53,13 +53,14 @@
 ## 2. Virtual Environment Best Practices
 
 - Assume a standard virtual environment named `.venv` in the project root.
-- When the user asks how to create or activate the environment, point them to:
-  - [HOW_TO_RUN.md](HOW_TO_RUN.md), section 1. "Quick Start (Recommended)" for setup and activation commands.
-  - [HOW_TO_RUN.md](HOW_TO_RUN.md), section 5. "Troubleshooting" if activation fails or Python is not on PATH.
-- Do not invent alternative virtual environment layouts (different names or locations) unless the user explicitly tells you they are using something else.
+- When the user asks how to create or activate the environment, point them to [HOW_TO_RUN.md](HOW_TO_RUN.md), especially:
+  - section 1, "Quick Start (Recommended)" for setup and activation commands.
+  - troubleshooting sections if activation fails or Python is not on PATH.
+- Do not invent alternative virtual environment layouts (different folder names, global installs, etc.) unless the user explicitly tells you they are using something else.
 - If imports fail or dependencies look broken:
   - Suggest reinstalling dependencies inside the active `.venv` with `pip install -r requirements.txt`.
-  - Then route the user back to [HOW_TO_RUN.md](HOW_TO_RUN.md), section 5. "Troubleshooting" and [README.md](README.md), section 10. "Troubleshooting" for deeper diagnostics.
+  - Point them back to HOW_TO_RUN.md for deeper troubleshooting steps.
+
 ## 3. Development Process
 
 Use the same high-level loop as the human development workflow, but keep answers short and routing-focused:
@@ -138,7 +139,7 @@ When the user asks high-level questions like:
 
 answer briefly and route to the appropriate AI doc:
 
-- Running and environment: [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) (this doc) plus [HOW_TO_RUN.md](HOW_TO_RUN.md) for commands.
+- Running and environment: AI_DEVELOPMENT_WORKFLOW.md (this doc) plus [HOW_TO_RUN.md](HOW_TO_RUN.md) for commands.
 - Placement and responsibilities: [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md).
 - Logging: [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md).
 - Error handling: [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md).

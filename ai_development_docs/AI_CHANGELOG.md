@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-29 - Error Handling and Documentation Analysis Integration **COMPLETED**
+- Integrated Phase 1/2 error handling candidate generators into `error_handling_coverage.py` with enhanced operation type and entry point detection.
+- Integrated documentation overlap analysis into `analyze_documentation.py` with `--overlap` flag on audit command (runs automatically in full audits).
+- Fixed several bugs: UnicodeDecodeError in check_channel_loggers.py, test isolation in test_schedule_management.py, missing markers in AI_MODULE_DEPENDENCIES.md, and legacy checker self-identification.
+- Deprecated standalone scripts with migration notes pointing to integrated functionality.
+
 ### 2025-12-07 - Check-in Flow Expiration Behavior **COMPLETED**
 - Added a behavior test that verifies active check-in flows are expired when the communication manager sends a non-scheduled outbound message.
 - Ensures the orchestrator uses the current conversation manager instance and preserves test isolation by stubbing send/recipient paths.

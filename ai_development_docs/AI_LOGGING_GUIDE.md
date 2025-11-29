@@ -6,7 +6,7 @@
 > **Purpose**: Fast routing across logging-related docs for AI collaborators  
 > **Style**: Minimal, routing-first  
 
-> This AI document is paired with [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md). Keep this file's H2 headings in lockstep with [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) whenever you change the structure. For detailed guidance, examples, and rationale for any topic in this file, use the matching sections in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
+> This AI document is paired with LOGGING_GUIDE.md. Keep this file's H2 headings in lockstep with LOGGING_GUIDE.md whenever you change the structure. For detailed guidance, examples, and rationale for any topic in this file, use the matching sections in LOGGING_GUIDE.md.
 
 ---
 

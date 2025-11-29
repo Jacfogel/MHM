@@ -180,6 +180,11 @@ class LegacyReferenceCleanup:
             # File is outside project root, use absolute path
             rel_path_str = str(file_path).replace('\\', '/')
         
+        # Skip the checker's own file to avoid false positives
+        # The checker defines legacy patterns, so it will match its own pattern definitions
+        if 'legacy_reference_cleanup.py' in rel_path_str:
+            return True
+        
         # Skip certain directories (check relative path, not absolute)
         # Import constants from services
         from development_tools.services.standard_exclusions import STANDARD_EXCLUSION_PATTERNS

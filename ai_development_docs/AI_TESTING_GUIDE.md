@@ -6,8 +6,8 @@
 > **Purpose**: Routing & constraints  
 > **Style**: Minimal, routing-first  
 
-> For detailed behavior, examples, and rationale, use matching sections in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).  
-> Keep this file's H2 headings in lockstep with [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) when making changes.
+> For detailed behavior, examples, and rationale, use matching sections in TESTING_GUIDE.md.  
+> Keep this file's H2 headings in lockstep with TESTING_GUIDE.md when making changes.
 
 ---
 

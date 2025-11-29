@@ -6,8 +6,7 @@
 > **Purpose**: Step-by-step setup and launch instructions  
 > **Style**: Clear, beginner-friendly, troubleshooting-focused
 
-> **See [README.md](README.md) for complete navigation and project overview**
-- **[Troubleshooting](README.md#troubleshooting)** - Common issues and solutions
+> **See [README.md](README.md) for complete navigation and project overview.**
 
 ## 1. Quick Start (Recommended)
 

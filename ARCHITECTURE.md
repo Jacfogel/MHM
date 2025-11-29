@@ -298,10 +298,9 @@ listing of every file.
   in this file.
 
 - `communication/` modules  
-  Implement and coordinate channels such as Discord and email. Channel modules should
-  focus on translating service events into channel-specific calls and delegating shared
-  logic to `core/` and `tasks/`. See section 1. Core Principle in
-  [COMMUNICATION_GUIDE.md](communication/COMMUNICATION_GUIDE.md).
+  Implement and coordinate channels such as Discord and email. Channel modules
+  focus on translating service events into channel-specific calls and delegating
+  shared logic to `core/` and `tasks/`.
 
 - `tasks/` modules  
   Define recurring tasks and reminder logic. These modules are wired into the scheduler

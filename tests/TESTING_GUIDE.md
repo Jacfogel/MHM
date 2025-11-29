@@ -581,7 +581,7 @@ Run these tests when:
 
 ### 8.5. Relationship to this guide
 
-This guide ([TESTING_GUIDE.md](tests/TESTING_GUIDE.md)) defines **how testing works overall** and how automated tests are structured and executed.
+This guide (TESTING_GUIDE.md) defines **how testing works overall** and how automated tests are structured and executed.
 
 The manual guides:
 

@@ -6,8 +6,8 @@
 > **Style**: Minimal, reference-only, tool-focused
 
 > For detailed explanations, rationale, and examples, see:
-> - Section 3.5 "Automated tools" in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md)
-> - Section 3 "Generated Outputs" and section 4 "Key Scripts" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)
+> - Section 3.5 "Automated tools" in DOCUMENTATION_GUIDE.md
+> - Section 3 "Generated Outputs" and section 4 "Key Scripts" in AI_DEVELOPMENT_TOOLS_GUIDE.md
 
 ## Quick Reference
 

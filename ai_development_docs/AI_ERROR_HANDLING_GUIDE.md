@@ -6,8 +6,8 @@
 > **Purpose**: Routing & constraints for error handling  
 > **Style**: Minimal, routing-first  
 
-> For detailed behavior, examples, and rationale, use matching sections in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).  
-> Keep this file's H2 headings in lockstep with [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) when making changes.
+> For detailed behavior, examples, and rationale, use matching sections in ERROR_HANDLING_GUIDE.md.  
+> Keep this file's H2 headings in lockstep with ERROR_HANDLING_GUIDE.md when making changes.
 
 ---
 

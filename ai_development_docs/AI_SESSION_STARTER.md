@@ -6,8 +6,8 @@
 > **Style**: Minimal, routing-focused, no deep explanations
 
 > For detailed explanations, rationale, and examples, use:
-> - [README.md](README.md) (project overview)
-> - [HOW_TO_RUN.md](HOW_TO_RUN.md) (run modes and environment details)
+> - README.md (project overview)
+> - HOW_TO_RUN.md (run modes and environment details)
 > - The paired human docs referenced below for deep behavior and history
 
 ## 1. Starting a Session

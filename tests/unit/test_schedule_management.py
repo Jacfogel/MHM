@@ -60,6 +60,8 @@ class TestScheduleManagement:
             mock_ctx.get_internal_username.return_value = "tester"
 
             add_schedule_period(category, "morning", "08:00", "10:00")
+            # Clear cache after add to ensure we read fresh data (parallel test safety)
+            clear_schedule_periods_cache(user_id, category)
             periods = get_schedule_time_periods(user_id, category)
             assert periods["morning"]["start_time"] == "08:00"
             assert periods["morning"]["end_time"] == "10:00"

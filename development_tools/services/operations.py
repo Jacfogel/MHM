@@ -239,11 +239,14 @@ class AIToolsService:
 
             }
 
-    def run_analyze_documentation(self) -> Dict:
+    def run_analyze_documentation(self, include_overlap: bool = False) -> Dict:
 
         """Run analyze_documentation with structured JSON handling."""
 
-        result = self.run_script("analyze_documentation", "--json")
+        args = ["--json"]
+        if include_overlap:
+            args.append("--overlap")
+        result = self.run_script("analyze_documentation", *args)
 
         output = result.get('output', '')
 
@@ -719,7 +722,7 @@ class AIToolsService:
 
     # ===== SIMPLE COMMANDS (for users) =====
 
-    def run_audit(self, fast: bool = True):
+    def run_audit(self, fast: bool = True, include_overlap: bool = False):
 
         """Run the full audit workflow with concise summary"""
 
@@ -737,6 +740,12 @@ class AIToolsService:
             logger.info("Running comprehensive audit...")
 
             logger.info("=" * 50)
+            # Include overlap analysis in full audits by default
+            if not include_overlap:
+                include_overlap = True
+
+        # Store for use in _run_contributing_tools
+        self._include_overlap = include_overlap
 
         result = self.run_quick_audit()
 
@@ -980,8 +989,10 @@ class AIToolsService:
         except Exception as exc:
             logger.error(f"  - Quick status failed: {exc}")
         try:
-            logger.info("  - Running documentation analysis...")
-            self.run_analyze_documentation()
+            include_overlap = getattr(self, '_include_overlap', False)
+            overlap_msg = " (with overlap analysis)" if include_overlap else ""
+            logger.info(f"  - Running documentation analysis{overlap_msg}...")
+            self.run_analyze_documentation(include_overlap=include_overlap)
         except Exception as exc:
             logger.error(f"  - Documentation analysis failed: {exc}")
         try:
@@ -3604,6 +3615,15 @@ class AIToolsService:
         function_metrics = results_cache.get('function_discovery', {}) or {}
 
         analyze_docs = results_cache.get('analyze_documentation', {}) or {}
+        # analyze_documentation stores the payload directly, not wrapped in 'data'
+        if isinstance(analyze_docs, dict):
+            analyze_docs_data = analyze_docs
+        else:
+            analyze_docs_data = {}
+        
+        # Extract overlap analysis data
+        section_overlaps = analyze_docs_data.get('section_overlaps', {})
+        consolidation_recs = analyze_docs_data.get('consolidation_recommendations', [])
 
         doc_coverage = doc_metrics.get('doc_coverage', metrics.get('doc_coverage', 'Unknown'))
 
@@ -3866,12 +3886,26 @@ class AIToolsService:
                 status_label = "SYNCHRONIZED" if paired == 0 else "NEEDS ATTENTION"
 
                 lines.append(f"- **Paired Docs**: {status_label} ({paired} issues)")
-
-            if ascii_issues:
-
-                lines.append(f"- **ASCII Cleanup**: {ascii_issues} files contain non-ASCII characters")
-
+        
+        # Add overlap analysis summary (always show, even if no overlaps found)
+        lines.append("")
+        lines.append("## Documentation Overlap")
+        overlap_count = len(section_overlaps) if section_overlaps else 0
+        consolidation_count = len(consolidation_recs) if consolidation_recs else 0
+        
+        if overlap_count > 0 or consolidation_count > 0:
+            if section_overlaps:
+                lines.append(f"- **Section Overlaps**: {overlap_count} sections duplicated across files")
+            if consolidation_recs:
+                lines.append(f"- **Consolidation Opportunities**: {consolidation_count} file groups could be merged")
         else:
+            lines.append("- **Status**: No overlaps detected (analysis performed)")
+
+        if ascii_issues:
+
+            lines.append(f"- **ASCII Cleanup**: {ascii_issues} files contain non-ASCII characters")
+
+        if not doc_sync_summary_for_signals:
 
             lines.append("- Run `python development_tools/ai_tools_runner.py doc-sync` for drift details")
 
@@ -4571,9 +4605,15 @@ class AIToolsService:
             self._load_dev_tools_coverage()
         
         analyze_docs_result = self.results_cache.get('analyze_documentation', {}) or {}
-        analyze_data = analyze_docs_result.get('data') if isinstance(analyze_docs_result, dict) else {}
-        if not isinstance(analyze_data, dict):
+        # analyze_documentation stores the payload directly, not wrapped in 'data'
+        if isinstance(analyze_docs_result, dict):
+            analyze_data = analyze_docs_result
+        else:
             analyze_data = {}
+        
+        # Extract overlap analysis data
+        section_overlaps = analyze_data.get('section_overlaps', {})
+        consolidation_recs = analyze_data.get('consolidation_recommendations', [])
 
         # Get doc coverage from canonical metrics first (most accurate)
         doc_coverage_value = metrics.get('doc_coverage')
@@ -4953,6 +4993,21 @@ class AIToolsService:
                 lines.append(f"- {win}")
         else:
             lines.append("- No immediate quick wins identified. Re-run doc-sync after tackling focus items.")
+        
+        # Add overlap analysis information only if there are issues to prioritize
+        consolidation_count = len(consolidation_recs) if consolidation_recs else 0
+        overlap_count = len(section_overlaps) if section_overlaps else 0
+        
+        if consolidation_recs:
+            lines.append(f"- **Documentation Consolidation**: {consolidation_count} file groups could be consolidated to reduce redundancy")
+            for rec in consolidation_recs[:2]:  # Show top 2
+                category = rec.get('category', 'Unknown')
+                files = rec.get('files', [])
+                if files and len(files) > 1:
+                    lines.append(f"  - {category}: Consider merging {len(files)} files ({', '.join(files[:2])}{'...' if len(files) > 2 else ''})")
+        elif overlap_count > 0:
+            lines.append(f"- **Documentation Overlap Analysis**: {overlap_count} section overlaps detected (review for consolidation opportunities)")
+        
         lines.append("")
 
         watch_list: List[str] = []
@@ -5065,8 +5120,18 @@ class AIToolsService:
         doc_sync_summary = self.docs_sync_summary or {}
 
         analyze_docs = self.results_cache.get('analyze_documentation', {}) or {}
+        # analyze_documentation stores the payload directly, not wrapped in 'data'
+        if isinstance(analyze_docs, dict):
+            analyze_docs_data = analyze_docs
+        else:
+            analyze_docs_data = {}
 
-        doc_artifacts = analyze_docs.get('artifacts') if isinstance(analyze_docs, dict) else None
+        doc_artifacts = analyze_docs_data.get('artifacts') if isinstance(analyze_docs_data, dict) else None
+        
+        # Extract overlap analysis data
+        section_overlaps = analyze_docs_data.get('section_overlaps', {})
+        consolidation_recs = analyze_docs_data.get('consolidation_recommendations', [])
+        file_purposes = analyze_docs_data.get('file_purposes', {})
 
         error_metrics = self.results_cache.get('error_handling_coverage', {}) or {}
 
@@ -5299,6 +5364,32 @@ class AIToolsService:
         if missing_files:
 
             lines.append(f"- **Docs to Update**: {self._format_list_for_display(missing_files, limit=8)}")
+        
+        # Add overlap analysis section (always show, even if no overlaps found)
+        lines.append("")
+        lines.append("## Documentation Overlap Analysis")
+        overlap_count = len(section_overlaps) if section_overlaps else 0
+        consolidation_count = len(consolidation_recs) if consolidation_recs else 0
+        
+        if overlap_count > 0 or consolidation_count > 0:
+            if section_overlaps:
+                lines.append(f"- **Section Overlaps**: {overlap_count} sections appear in multiple files")
+                # Show top 5 overlaps
+                top_overlaps = sorted(section_overlaps.items(), key=lambda x: len(x[1]), reverse=True)[:5]
+                for section_name, files in top_overlaps:
+                    if len(files) > 1:
+                        lines.append(f"  - Section '{section_name}' appears in {len(files)} files: {', '.join(files[:3])}{'...' if len(files) > 3 else ''}")
+            if consolidation_recs:
+                lines.append(f"- **Consolidation Opportunities**: {consolidation_count} file groups identified for potential consolidation")
+                for rec in consolidation_recs[:3]:  # Show top 3 recommendations
+                    category = rec.get('category', 'Unknown')
+                    files = rec.get('files', [])
+                    suggestion = rec.get('suggestion', '')
+                    if files:
+                        lines.append(f"  - {category}: {len(files)} files ({', '.join(files[:2])}{'...' if len(files) > 2 else ''}) - {suggestion}")
+        else:
+            lines.append("- **Status**: No section overlaps or consolidation opportunities detected")
+            lines.append("- Overlap analysis was performed during this audit")
 
         if doc_sync_summary:
 
@@ -6061,6 +6152,8 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
 
     parser.add_argument('--include-all', action='store_true', help='Include tests and dev tools (equivalent to --include-tests --include-dev-tools).')
 
+    parser.add_argument('--overlap', action='store_true', help='Include overlap analysis in documentation analysis (section overlaps and consolidation recommendations).')
+
     if any(arg in ('-h', '--help') for arg in argv):
 
         _print_command_help(parser)
@@ -6085,7 +6178,7 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
 
     )
 
-    success = service.run_audit(fast=fast_mode)
+    success = service.run_audit(fast=fast_mode, include_overlap=ns.overlap)
 
     return 0 if success else 1
 

@@ -54,7 +54,7 @@ def check_file(path: Path) -> Iterable[str]:
     allow_logging_imports = rel_path in ALLOWED_LOGGING_IMPORT_PATHS
 
     try:
-        tree = ast.parse(path.read_text())
+        tree = ast.parse(path.read_text(encoding='utf-8'))
     except SyntaxError as exc:  # pragma: no cover - script should fail loudly
         return [format_issue(rel_path, exc.lineno or 0, f"Failed to parse file: {exc}")]
 
