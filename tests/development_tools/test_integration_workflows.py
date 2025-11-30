@@ -6,7 +6,7 @@ import pytest
 
 from tests.development_tools.conftest import load_development_tools_module
 
-load_development_tools_module("file_rotation")
+load_development_tools_module("shared.file_rotation")
 runner = load_development_tools_module("ai_tools_runner")
 
 
@@ -20,7 +20,7 @@ class TestCommandRouting:
         monkeypatch.setattr(runner, "AIToolsService", lambda project_root=None, config_path=None: mock_service)
 
         assert runner.main(["audit"]) == 0
-        mock_service.run_audit.assert_called_once_with(fast=True)
+        mock_service.run_audit.assert_called_once_with(fast=True, include_overlap=False)
 
     @pytest.mark.integration
     def test_audit_command_failure(self, monkeypatch):

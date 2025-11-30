@@ -688,24 +688,46 @@ Portable today: `development_tools/services/common.py`, `development_tools/syste
 
 **Goal:** Make the tool suite predictable by aligning names with actions and grouping related tools.
 
-**Status:** Strategy defined and documented. Naming conventions and directory restructuring approach outlined for future implementation.
+**Status:** M7.2 completed (directory reorganization). M7.1 in progress (naming conventions need to be applied to all files). M7.3 pending (tool gap analysis).
 
-#### Milestone M7.1 - Establish Naming Conventions
-- Adopt verb-based prefixes (`audit_*`, `generate_*`, `cleanup_*`, `report_*`) or domain-based prefixes (`docs_*`, `coverage_*`, `legacy_*`).
-- Update `development_tools/services/tool_metadata.py` with the agreed convention so new contributors can follow it.
+#### Milestone M7.1 - Establish Naming Conventions **IN PROGRESS**
+- [OK] Adopted hybrid naming approach:
+  - Verb-based prefixes for actions: `generate_*`, `audit_*`, `validate_*`, `regenerate_*`, `analyze_*`, `check_*`, `cleanup_*`
+  - Descriptive names for utilities: `function_discovery`, `decision_support`, `quick_status`, `system_signals`, `file_rotation`
+- [ ] Rename files that don't follow conventions:
+  - `documentation_sync_checker.py` → `check_documentation_sync.py` or `validate_documentation_sync.py`
+  - `unused_imports_checker.py` → `check_unused_imports.py` or `find_unused_imports.py`
+  - `config_validator.py` → `validate_config.py`
+  - `error_handling_coverage.py` → `analyze_error_handling.py` or `check_error_handling_coverage.py`
+  - `legacy_reference_cleanup.py` → `cleanup_legacy_references.py` or `remove_legacy_references.py`
+- [ ] Update all references after renaming (imports, SCRIPT_REGISTRY, tool_metadata.py, documentation)
+- [ ] Document naming conventions in `development_tools/shared/tool_metadata.py` or a separate guide
 
-#### Milestone M7.2 - Reorganize Directory Layout
-- Proposed structure:  
-  `development_tools/audit/` (audit/validate commands)  
-  `development_tools/docs/` (doc generators + analyzers)  
-  `development_tools/coverage/` (coverage + reporting)  
-  `development_tools/legacy/` (cleanup scanners)  
-  `development_tools/shared/` (config, constants, exclusions, metadata).
-- Introduce package `__init__.py` files to keep imports stable during the migration.
+#### Milestone M7.2 - Reorganize Directory Layout **COMPLETED (2025-11-30)**
+- [OK] Implemented domain-based directory structure with workflow patterns:
+  - `development_tools/functions/` - Function discovery, registry generation, audits
+  - `development_tools/imports/` - Import checking, module dependency analysis and audits (merged from `modules/`)
+  - `development_tools/error_handling/` - Error handling coverage analysis
+  - `development_tools/tests/` - Test coverage metrics
+  - `development_tools/docs/` - Documentation analysis and sync checking
+  - `development_tools/config/` - Configuration and validation (contains `config.py`, `config_validator.py`, and config files)
+  - `development_tools/legacy/` - Legacy cleanup (finder + fixer)
+  - `development_tools/ai_work/` - AI work validation
+  - `development_tools/reports/` - Overarching analysis tools (consolidated reports go to development_tools/ root)
+  - `development_tools/shared/` - Renamed from `services/` (shared infrastructure, utilities like `file_rotation.py`, `tool_guide.py`)
+- [OK] Created package `__init__.py` files in all new directories
+- [OK] Updated all imports and references throughout codebase
+- [OK] Moved all tools to their respective domain directories
+- [OK] Updated output file organization (domain-specific JSON files in their respective directories, consolidated reports in development_tools/ root)
+- [OK] Updated `SCRIPT_REGISTRY` in `operations.py` with new paths
+- [OK] Updated `tool_metadata.py` with all new paths
+- [OK] Updated documentation guides with new structure
+- [OK] Fixed all path calculations (`.parent.parent` → `.parent.parent.parent` for subdirectories)
 
-#### Milestone M7.3 - Tool Gap & Future Additions
-- Identify desired categories (e.g., test-data generators, AI prompt validators, environment health checks).
-- Record missing tools or planned improvements in `DEVELOPMENT_TOOLS_GUIDE.md` + the roadmap so future work is scoped before implementation.
+#### Milestone M7.3 - Tool Gap & Future Additions **IN PROGRESS**
+- [OK] Directory structure supports future additions (domain-based organization makes it clear where new tools belong)
+- [ ] Identify desired categories (e.g., test-data generators, AI prompt validators, environment health checks)
+- [ ] Record missing tools or planned improvements in `DEVELOPMENT_TOOLS_GUIDE.md` + the roadmap
 
 ---
 
@@ -716,7 +738,7 @@ Portable today: `development_tools/services/common.py`, `development_tools/syste
 - [OK] **Phase 4 COMPLETED (2025-11-27)**: Experimental tools moved to dedicated directory, Tier-2 tools reviewed and documented, dev tools coverage tracking added, supporting tools regression tests created (6 tests for `quick_status`, `system_signals`, `file_rotation`)
 - [OK] **Phase 5 COMPLETED (2025-11-27)**: Standard audit recipe added to workflow guide, session starter updated with dev tools routing, all documentation alignment milestones complete
 - [OK] **Phase 6 COMPLETED (2025-11-28)**: All checklists completed - all 14 supporting and experimental tools made portable via external configuration (`development_tools_config.json`). All tools changed from `mhm-specific` to `portable` portability markers. Config getter functions added to `config.py`, config example file updated with all new sections.
-- [IN PROGRESS] **Phase 7**: Defined and ready for implementation
+- [IN PROGRESS] **Phase 7**: M7.2 completed (directory reorganization done). M7.1 in progress (naming conventions need to be applied - several files still need renaming). M7.3 pending (tool gap analysis).
 
 This roadmap is intentionally incremental. You do **not** need to implement every milestone at once.  
 Phases 1-3 (tiering + core infrastructure + core analysis tools) are complete. Next focus on Phase 4 (clarify supporting vs experimental tools) or Phase 5 (UX and documentation alignment), then expand as time and energy allow.

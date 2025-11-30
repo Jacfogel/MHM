@@ -24,7 +24,7 @@ def system_signals_module():
 @pytest.fixture
 def file_rotation_module():
     """Load the file_rotation module with helpers from conftest."""
-    return load_development_tools_module("file_rotation")
+    return load_development_tools_module("shared.file_rotation")
 
 
 @pytest.mark.unit
@@ -76,18 +76,18 @@ def test_quick_status_recent_activity_tracks_recent_files(tmp_path, quick_status
         raising=False,
     )
     # Patch should_exclude_file in standard_exclusions (the actual source)
-    standard_exclusions_module = importlib.import_module("development_tools.services.standard_exclusions")
+    standard_exclusions_module = importlib.import_module("development_tools.shared.standard_exclusions")
     monkeypatch.setattr(standard_exclusions_module, "should_exclude_file", lambda *args, **kwargs: False, raising=False)
     
     # Also patch it in common (which re-exports it)
-    common_module = importlib.import_module("development_tools.services.common")
+    common_module = importlib.import_module("development_tools.shared.common")
     monkeypatch.setattr(common_module, "should_exclude_file", lambda *args, **kwargs: False, raising=False)
     
     # Patch the exclusion lists that might exclude the file
     monkeypatch.setattr(standard_exclusions_module, "ALL_GENERATED_FILES", set(), raising=False)
     monkeypatch.setattr(standard_exclusions_module, "STANDARD_EXCLUSION_PATTERNS", [], raising=False)
 
-    constants = importlib.import_module("development_tools.services.constants")
+    constants = importlib.import_module("development_tools.shared.constants")
     monkeypatch.setattr(constants, "PROJECT_DIRECTORIES", ["tracked"], raising=False)
 
     activity = qs._get_recent_activity()

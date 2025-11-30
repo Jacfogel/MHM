@@ -11,11 +11,23 @@ from pathlib import Path
 
 # Import using importlib to handle path issues
 project_root = Path(__file__).parent.parent.parent
-config_path = project_root / "development_tools" / "config.py"
+# Load config through the package system to get proper exports
+config_path = project_root / "development_tools" / "config" / "__init__.py"
+if not config_path.exists():
+    # Fallback to config.py if __init__.py doesn't exist
+    config_path = project_root / "development_tools" / "config" / "config.py"
 spec = importlib.util.spec_from_file_location("development_tools.config", config_path)
 config = importlib.util.module_from_spec(spec)
 sys.modules["development_tools.config"] = config
 spec.loader.exec_module(config)
+# Also ensure the actual config module is loaded
+if config_path.name == "__init__.py":
+    config_config_path = project_root / "development_tools" / "config" / "config.py"
+    if config_config_path.exists() and "development_tools.config.config" not in sys.modules:
+        config_config_spec = importlib.util.spec_from_file_location("development_tools.config.config", config_config_path)
+        config_config_module = importlib.util.module_from_spec(config_config_spec)
+        sys.modules["development_tools.config.config"] = config_config_module
+        config_config_spec.loader.exec_module(config_config_module)
 
 
 class TestConfigKeySettings:
@@ -44,7 +56,10 @@ class TestConfigKeySettings:
             # Check if external config file exists - if it does, it should have scan_directories
             import os
             project_root = config.get_project_root()
-            config_file = project_root / 'development_tools_config.json'
+            # Check both new location and old location for backward compatibility
+            config_file = project_root / 'development_tools' / 'config' / 'development_tools_config.json'
+            if not config_file.exists():
+                config_file = project_root / 'development_tools_config.json'
             if config_file.exists():
                 # Config file exists but scan_dirs is empty - this is a configuration issue
                 pytest.skip("External config file exists but scan_directories is empty (configuration issue)")
@@ -151,7 +166,10 @@ class TestConfigHelperFunctions:
             # Check if external config file exists - if it does, it should have scan_directories
             import os
             project_root = config.get_project_root()
-            config_file = project_root / 'development_tools_config.json'
+            # Check both new location and old location for backward compatibility
+            config_file = project_root / 'development_tools' / 'config' / 'development_tools_config.json'
+            if not config_file.exists():
+                config_file = project_root / 'development_tools_config.json'
             if config_file.exists():
                 # Config file exists but scan_dirs is empty - this is a configuration issue
                 pytest.skip("External config file exists but scan_directories is empty (configuration issue)")

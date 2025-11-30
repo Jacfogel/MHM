@@ -11,10 +11,10 @@ from pathlib import Path
 
 # Import using importlib to handle path issues
 project_root = Path(__file__).parent.parent.parent
-exclusions_path = project_root / "development_tools" / "services" / "standard_exclusions.py"
-spec = importlib.util.spec_from_file_location("development_tools.services.standard_exclusions", exclusions_path)
+exclusions_path = project_root / "development_tools" / "shared" / "standard_exclusions.py"
+spec = importlib.util.spec_from_file_location("development_tools.shared.standard_exclusions", exclusions_path)
 exclusions_module = importlib.util.module_from_spec(spec)
-sys.modules["development_tools.services.standard_exclusions"] = exclusions_module
+sys.modules["development_tools.shared.standard_exclusions"] = exclusions_module
 spec.loader.exec_module(exclusions_module)
 
 should_exclude_file = exclusions_module.should_exclude_file

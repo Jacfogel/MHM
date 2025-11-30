@@ -19,18 +19,18 @@ if str(ai_tools_path) not in sys.path:
 
 # Handle both relative and absolute imports
 try:
-    from .services.operations import (
+    from .shared.operations import (
         AIToolsService,
         COMMAND_REGISTRY,
     )
-    from .services.common import COMMAND_TIERS
+    from .shared.common import COMMAND_TIERS
 except ImportError:
     # Fallback for when run as script
-    from development_tools.services.operations import (
+    from development_tools.shared.operations import (
         AIToolsService,
         COMMAND_REGISTRY,
     )
-    from development_tools.services.common import COMMAND_TIERS
+    from development_tools.shared.common import COMMAND_TIERS
 
 from core.logger import get_component_logger
 

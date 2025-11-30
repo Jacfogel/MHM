@@ -139,12 +139,12 @@ class TestInvalidInputHandling:
         import sys
 
         project_root = Path(__file__).parent.parent.parent
-        exclusions_path = project_root / "development_tools" / "services" / "standard_exclusions.py"
+        exclusions_path = project_root / "development_tools" / "shared" / "standard_exclusions.py"
         spec = importlib.util.spec_from_file_location(
-            "development_tools.services.standard_exclusions", exclusions_path
+            "development_tools.shared.standard_exclusions", exclusions_path
         )
         exclusions_module = importlib.util.module_from_spec(spec)
-        sys.modules["development_tools.services.standard_exclusions"] = exclusions_module
+        sys.modules["development_tools.shared.standard_exclusions"] = exclusions_module
         spec.loader.exec_module(exclusions_module)
 
         should_exclude_file = exclusions_module.should_exclude_file
@@ -162,12 +162,12 @@ class TestInvalidInputHandling:
         import sys
 
         project_root = Path(__file__).parent.parent.parent
-        constants_path = project_root / "development_tools" / "services" / "constants.py"
+        constants_path = project_root / "development_tools" / "shared" / "constants.py"
         spec = importlib.util.spec_from_file_location(
-            "development_tools.services.constants", constants_path
+            "development_tools.shared.constants", constants_path
         )
         constants_module = importlib.util.module_from_spec(spec)
-        sys.modules["development_tools.services.constants"] = constants_module
+        sys.modules["development_tools.shared.constants"] = constants_module
         spec.loader.exec_module(constants_module)
 
         assert isinstance(constants_module.is_local_module(""), bool)
@@ -222,10 +222,13 @@ class TestNetworkAndExternalErrorHandling:
     @pytest.mark.unit
     def test_coverage_handles_pytest_failure(self, demo_project_root):
         """Coverage metrics should report pytest failures without crashing."""
+        import subprocess
         coverage = load_development_tools_module("regenerate_coverage_metrics")
         regenerator = coverage.CoverageMetricsRegenerator(str(demo_project_root))
 
-        with patch("development_tools.regenerate_coverage_metrics.subprocess.run") as mock_run:
+        # Patch subprocess.run globally - all modules import from the same subprocess module
+        # The module uses subprocess.run() which will use the patched version
+        with patch('subprocess.run') as mock_run:
             mock_run.return_value = MagicMock(returncode=1, stdout="", stderr="pytest failed")
 
             result = regenerator.run_coverage_analysis()

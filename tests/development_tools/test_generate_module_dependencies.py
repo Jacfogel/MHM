@@ -80,7 +80,7 @@ class TestDependencyAnalysis:
     def test_scan_all_python_files_collects_imports(self, demo_project_root, monkeypatch):
         """Test that all imports are collected from scan directories."""
         import development_tools.config as config_module
-        from development_tools.services import standard_exclusions
+        from development_tools.shared import standard_exclusions
         
         def mock_get_project_root():
             return demo_project_root
@@ -113,7 +113,7 @@ class TestDependencyAnalysis:
     def test_find_reverse_dependencies(self, demo_project_root, monkeypatch):
         """Test that reverse dependencies are found correctly."""
         import development_tools.config as config_module
-        from development_tools.services import standard_exclusions
+        from development_tools.shared import standard_exclusions
         
         def mock_get_project_root():
             return demo_project_root
@@ -165,7 +165,7 @@ class TestContentGeneration:
     def test_generate_module_dependencies_content_structure(self, demo_project_root, monkeypatch):
         """Test that generated content has expected structure."""
         import development_tools.config as config_module
-        from development_tools.services import standard_exclusions
+        from development_tools.shared import standard_exclusions
         
         def mock_get_project_root():
             return demo_project_root
@@ -195,7 +195,7 @@ class TestContentGeneration:
     def test_generate_module_dependencies_content_includes_modules(self, demo_project_root, monkeypatch):
         """Test that known modules appear in output."""
         import development_tools.config as config_module
-        from development_tools.services import standard_exclusions
+        from development_tools.shared import standard_exclusions
         
         def mock_get_project_root():
             return demo_project_root
@@ -315,7 +315,7 @@ class TestModulePurposeInference:
     def test_infer_module_purpose(self, demo_project_root, monkeypatch):
         """Test that module purpose inference works."""
         import development_tools.config as config_module
-        from development_tools.services import standard_exclusions
+        from development_tools.shared import standard_exclusions
         
         def mock_get_project_root():
             return demo_project_root

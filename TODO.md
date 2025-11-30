@@ -67,6 +67,17 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+**Fix Remaining Test Failure and Suppress Deprecation Warnings**
+- *What it means*: Fix `test_discord_user_creation` failure where `discord_user_id` is empty in account data, and suppress the 50 deprecation warnings about `__package__ != __spec__.parent` from relative imports in development_tools modules
+- *Why it helps*: Ensures all tests pass and reduces test output noise from expected warnings
+- *Estimated effort*: Small
+- *Current Status*: 1 test failure (discord_user_id not being saved correctly in account.json), 50 deprecation warnings from relative imports
+- *Subtasks*:
+  - [ ] Investigate why `discord_user_id` is empty in `test_discord_user_creation` - verify account.json creation in `_create_user_files_directly__account_data`
+  - [ ] Ensure `discord_user_id` is properly passed through user_data when creating Discord users
+  - [ ] Verify that `update_user_context` doesn't overwrite account data
+  - [ ] Add more specific warning filters in `pytest.ini` to suppress `__package__ != __spec__.parent` warnings from development_tools modules
+
 **AI Chatbot Actionability Sprint** - Plan and implement actionable AI responses
 - *What it means*: Improve AI chat quality and enable robust task/message/profile CRUD, with awareness of recent automated messages and targeted, non-conflicting suggestions.
 - *Why it helps*: Addresses the user's biggest friction and increases real utility.

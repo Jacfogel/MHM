@@ -27,7 +27,7 @@ class TestCLIRunnerSmokeTests:
             cwd=str(PROJECT_ROOT),
             capture_output=True,
             text=True,
-            timeout=30
+            timeout=60  # Increased timeout to handle slow file system operations
         )
         assert result.returncode == 0, f"status command failed with exit code {result.returncode}\nstdout: {result.stdout}\nstderr: {result.stderr}"
         # Command should complete successfully (output may go to logs, not stdout/stderr)

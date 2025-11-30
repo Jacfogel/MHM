@@ -39,6 +39,18 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-30 - Phase 7.2: Development Tools Directory Reorganization **COMPLETED**
+- **Feature**: Completed milestone M7.2 - Reorganized `development_tools/` directory structure using domain-based organization with workflow patterns. Implemented hybrid naming conventions (verb-based for actions, descriptive for utilities). Organized output files in their respective domain directories with consolidated reports in `development_tools/` root.
+- **Directory Structure**: Created domain-based directories: `functions/`, `imports/` (merged from `modules/`), `error_handling/`, `tests/`, `docs/`, `config/` (renamed from `validation/`), `legacy/`, `ai_work/`, `reports/`, `shared/` (renamed from `services/`). Removed `experimental/` directory by moving tools to appropriate categories.
+- **File Moves**: Moved `version_sync.py` to `docs/`, `auto_document_functions.py` to `functions/`, `config.py` and config files to `config/`, `file_rotation.py` and `tool_guide.py` to `shared/`, merged `modules/` into `imports/`.
+- **Path Fixes**: Corrected `Path(__file__).parent.parent` to `Path(__file__).parent.parent.parent` in multiple files (`system_signals.py`, `generate_function_registry.py`, `quick_status.py`, `config_validator.py`, `generate_module_dependencies.py`, `audit_module_dependencies.py`) to correctly resolve project root from subdirectories.
+- **Configuration**: Updated `development_tools_config.json` paths for results files, logs, and coverage outputs. Created `development_tools/config/__init__.py` to maintain import compatibility.
+- **Test Fixes**: Fixed test failures related to directory reorganization: updated `SCRIPT_REGISTRY`, `tool_metadata.py`, test imports, exclusion patterns, mock call expectations, and patch paths. Fixed `test_status_command_exits_zero` timeout by limiting file scanning in `quick_status.py`.
+- **Coverage**: Fixed coverage metrics accuracy (now showing 67.6% correctly) by ensuring JSON report regeneration and cache clearing after coverage runs.
+- **Impact**: Improved organization and maintainability of development tools. All tools now follow consistent domain-based structure. Test suite passes with 3475/3477 tests (1 remaining failure unrelated to reorganization, 50 deprecation warnings from relative imports).
+- **Files Modified**: Multiple files in `development_tools/`, `tests/development_tools/`, `pytest.ini`, `development_tools_config.json`
+- **Outstanding**: 1 test failure (`test_discord_user_creation` - discord_user_id not saved correctly), 50 deprecation warnings to suppress
+
 ### 2025-11-29 - Critical Bug Fix: Missing Import and Schedules Cache
 - **Bug Fix**: Fixed `NameError: name 'validate_schedules_dict' is not defined` that was preventing user schedules from loading and blocking all message processing. Added missing import of `validate_schedules_dict` from `core.schemas` in `core/user_management.py` and removed redundant local import.
 - **Bug Fix**: Fixed "No data returned for schedules" warning by implementing consistent caching for schedules loader to match account and preferences loaders. Added `_user_schedules_cache` with cache check in `_get_user_data__load_schedules`, cache update after normalization, and cache update on save in `_save_user_data__save_schedules`. Updated `clear_user_caches()` to include schedules cache.

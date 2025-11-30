@@ -16,7 +16,7 @@ Use this guide when you need:
 - Rationale behind trust levels and roadmap priorities
 - Links to supporting plans such as [AI_DEV_TOOLS_IMPROVEMENT_PLAN.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md)
 
-The machine-readable metadata lives in `development_tools/services/tool_metadata.py` and is surfaced to AI collaborators through the paired guide.
+The machine-readable metadata lives in `development_tools/shared/tool_metadata.py` and is surfaced to AI collaborators through the paired guide.
 
 ---
 
@@ -84,7 +84,7 @@ python development_tools/ai_tools_runner.py config
 
 Regardless of command:
 - Respect shared configuration from `config.py` (with external config file support via `development_tools_config.json`).
-- Honor universal exclusions defined in `services/standard_exclusions.py`.
+- Honor universal exclusions defined in `shared/standard_exclusions.py`.
 - Avoid importing business logic modules (operate via filesystem + configs only).
 - Route logging through the `development_tools` component logger.
 - Emit ASCII output to stay Windows-safe.
@@ -114,16 +114,17 @@ Regardless of command:
 - All fast mode data plus comprehensive coverage analysis
 
 Pipeline artifacts:
-- AI-facing: [AI_STATUS.md](development_tools/AI_STATUS.md), `AI_PRIORITIES.md`, `consolidated_report.txt`, `ai_audit_detailed_results.json`
-  - `ai_audit_detailed_results.json` caches complexity metrics, validation results, and system signals for `status` command
+- AI-facing (root): [AI_STATUS.md](development_tools/AI_STATUS.md), `AI_PRIORITIES.md`, `consolidated_report.txt`
+- Domain-specific JSON: `reports/ai_audit_detailed_results.json`, `error_handling/error_handling_details.json`, `tests/coverage_dev_tools.json`, `validation/config_validation_results.json`, `imports/.unused_imports_cache.json`
+  - `reports/ai_audit_detailed_results.json` caches complexity metrics, validation results, and system signals for `status` command
   - `AI_PRIORITIES.md` includes complexity refactoring priority when critical/high complexity functions exist
 - Human-facing: [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md), [MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md), [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md), [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)
-- Coverage: `coverage.json`, `development_tools/coverage_html/`, `development_tools/archive/coverage_artifacts/<timestamp>/`
-- Cached snapshots: `status` loads data from `ai_audit_detailed_results.json` (complexity, validation, system signals); confirm timestamps before trusting.
+- Coverage: `coverage.json` (project root), `tests/coverage_html/` (project root), `development_tools/reports/archive/coverage_artifacts/<timestamp>/`
+- Cached snapshots: `status` loads data from `reports/ai_audit_detailed_results.json` (complexity, validation, system signals); confirm timestamps before trusting.
 
 **When to run each command**: See "Standard Audit Recipe" section in [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) for guidance on day-to-day checks (`audit`), pre-merge/pre-release checks (`audit --full`), and documentation work (`doc-sync`, `docs`).
 
-Ensure directories listed in `development_tools/services/constants.py` remain accurate so reports resolve predictably.
+Ensure directories listed in `development_tools/shared/constants.py` remain accurate so reports resolve predictably.
 
 ---
 
@@ -142,11 +143,11 @@ Ensure directories listed in `development_tools/services/constants.py` remain ac
 | Tool | Tier | Trust | Notes |
 | --- | --- | --- | --- |
 | ai_tools_runner.py | core | stable | CLI dispatcher for every AI tooling command. Supports `--project-root` and `--config-path` for portability. |
-| services/operations.py | core | stable | Implements command handlers and shared execution paths. Accepts project-specific config via external config file. |
+| shared/operations.py | core | stable | Implements command handlers and shared execution paths. Accepts project-specific config via external config file. |
 | config.py | core | stable | Central configuration for audit contexts, paths, and workflow knobs. Loads from `development_tools_config.json` with generic fallbacks. |
-| services/standard_exclusions.py | core | stable | Canonical exclusion patterns consumed by all scanners. Loads exclusions from external config. |
-| services/constants.py | core | stable | Doc pairing metadata, directory maps, and shared enumerations. Loads constants from external config. |
-| services/common.py | core | stable | IO helpers plus CLI utilities (command grouping, runners). |
+| shared/standard_exclusions.py | core | stable | Canonical exclusion patterns consumed by all scanners. Loads exclusions from external config. |
+| shared/constants.py | core | stable | Doc pairing metadata, directory maps, and shared enumerations. Loads constants from external config. |
+| shared/common.py | core | stable | IO helpers plus CLI utilities (command grouping, runners). |
 | documentation_sync_checker.py | core | stable | Validates doc pairing (human vs AI) and detects drift. Parameterized doc roots and metadata schema. [OK] **HAS TESTS (Phase 3)**: 12 tests in `tests/development_tools/test_documentation_sync_checker.py` |
 | generate_function_registry.py | core | stable | Builds the authoritative function registry via AST parsing. Configurable scan roots and filters via external config. [OK] **HAS TESTS (Phase 3)**: 12 tests in `tests/development_tools/test_generate_function_registry.py` |
 | generate_module_dependencies.py | core | stable | Produces module dependency graphs and enhancement zones. Accepts custom module prefixes for portability. [OK] **HAS TESTS (Phase 3)**: 11 tests in `tests/development_tools/test_generate_module_dependencies.py` |
@@ -164,12 +165,12 @@ Ensure directories listed in `development_tools/services/constants.py` remain ac
 | quick_status.py | supporting | advisory | Cached status snapshot that depends on the latest audit run. |
 | system_signals.py | supporting | advisory | Collects OS/process health signals for consolidated reports. |
 | decision_support.py | supporting | advisory | Aggregates metrics into improvement priorities. |
-| file_rotation.py | supporting | stable | Timestamped rotation utility used by coverage generation. |
-| tool_guide.py | supporting | stable | Provides contextual guidance and tier overviews for assistants. |
-| experimental/version_sync.py | experimental | experimental | Attempts cross-file version synchronization (fragile). |
-| experimental/auto_document_functions.py | experimental | experimental | Auto-generates docstrings; high-risk and currently prototype. |
+| shared/file_rotation.py | supporting | stable | Timestamped rotation utility used by coverage generation. |
+| shared/tool_guide.py | supporting | stable | Provides contextual guidance and tier overviews for assistants. |
+| docs/version_sync.py | experimental | experimental | Attempts cross-file version synchronization (fragile). |
+| functions/auto_document_functions.py | experimental | experimental | Auto-generates docstrings; high-risk and currently prototype. |
 
-Keep this table synchronized with `services/tool_metadata.py` and update both when tiers or trust levels change.
+Keep this table synchronized with `shared/tool_metadata.py` and update both when tiers or trust levels change.
 
 ---
 
@@ -177,18 +178,18 @@ Keep this table synchronized with `services/tool_metadata.py` and update both wh
 
 - Follow the audit-first workflow (see [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)) before touching documentation or infrastructure
 - When adding or relocating tools, update:
-  - `services/tool_metadata.py`
+  - `shared/tool_metadata.py`
   - This guide and the AI guide (paired H2 requirements)
   - [AI_DEV_TOOLS_IMPROVEMENT_PLAN.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md) if scope or gaps change
-- Maintain directory integrity (`development_tools/`, `ai_development_docs/`, `development_docs/`, `archive/`, `logs/`) so automation can locate artifacts; keep generated reports under the paths enumerated in `services/constants.py`.
+- Maintain directory integrity (`development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) so automation can locate artifacts; keep generated reports under the paths enumerated in `shared/constants.py`.
 - Use the shared test locations: `tests/development_tools/` for suites and `tests/fixtures/development_tools_demo/` for synthetic inputs.
 - **Phase 3 Complete (2025-11-26)**: All five core analysis tools have comprehensive test coverage (55+ tests total). The synthetic fixture project provides isolated testing environment for all tool tests.
 - Context-specific behavior:
   - `config.py` defines production / development / testing contexts; commands must honor the active context.
-  - Never hardcode project paths - always resolve via `services/common.py` helpers.
+  - Never hardcode project paths - always resolve via `shared/common.py` helpers.
 - Run `python development_tools/ai_tools_runner.py doc-sync` after documentation edits to ensure heading parity and ASCII compliance.
-- Treat experimental tools (`experimental/version_sync.py`, `experimental/auto_document_functions.py`, etc.) as opt-in: dry-run first, capture logs, and record findings in [TODO.md](TODO.md) or the improvement plan.
-- Keep file organization portable (mirroring `development_tools/`, `ai_development_docs/`, `development_docs/`, `archive/`, `logs/`) to support eventual extraction of the suite. The baseline structure should remain:
+- Treat experimental tools (`docs/version_sync.py`, `functions/auto_document_functions.py`, etc.) as opt-in: dry-run first, capture logs, and record findings in [TODO.md](TODO.md) or the improvement plan.
+- Keep file organization portable (mirroring `development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) to support eventual extraction of the suite. The baseline structure should remain:
 
 ```
 development_tools/
@@ -196,11 +197,11 @@ ai_development_docs/
 development_docs/
 tests/development_tools/
 tests/fixtures/development_tools_demo/
-archive/
-logs/
+development_tools/reports/archive/
+development_tools/tests/logs/
 ```
 
-- Do not implement bespoke exclusion logic inside individual tools - always import from `services/standard_exclusions.py` so rules remain centralized.
+- Do not implement bespoke exclusion logic inside individual tools - always import from `shared/standard_exclusions.py` so rules remain centralized.
 - Treat the tooling as a self-contained subproject: track follow-up work in [AI_DEV_TOOLS_IMPROVEMENT_PLAN.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md), document shipped changes in both changelogs, and keep the AI + human guides synchronized.
 
 Keeping these standards ensures the tooling ecosystem remains predictable for both humans and AI collaborators.

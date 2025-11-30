@@ -72,6 +72,8 @@ class TestUserCreationScenarios:
     def test_discord_user_creation(self, test_data_dir, mock_config):
         """Test creating a Discord user with full features enabled."""
         import uuid
+        import os
+        import core.config
         user_id = f'test-discord-user-{uuid.uuid4().hex[:8]}'
         
         # Create test user using centralized utilities for consistent setup
@@ -79,36 +81,40 @@ class TestUserCreationScenarios:
         success = TestUserFactory.create_discord_user(user_id, discord_user_id='discord_user#1234', test_data_dir=test_data_dir)
         assert success, "Test user should be created successfully"
         
-        # Get the UUID for the user
-        from core.user_management import get_user_id_by_identifier
-        actual_user_id = get_user_id_by_identifier(user_id)
-        assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
-        
-        # Update user context with additional data
-        from core.user_management import update_user_context
-        update_success = update_user_context(actual_user_id, {
-            'preferred_name': 'Discord User',
-            'gender_identity': ['they/them'],
-            'custom_fields': {
-                'health_conditions': ['ADHD', 'Depression']
-            },
-            'interests': ['Gaming', 'Technology'],
-            'goals': ['Improve executive functioning', 'Stay organized']
-        })
-        assert update_success, "User context should be updated successfully"
-        
-        # Verify data can be loaded
-        # Retry in case of race conditions with file writes in parallel execution
-        import time
-        loaded_data = {}
-        for attempt in range(5):
-            loaded_data = get_user_data(actual_user_id, 'all')
-            if loaded_data and 'account' in loaded_data:
-                break
-            if attempt < 4:
-                time.sleep(0.1)  # Brief delay before retry
-        assert loaded_data and 'account' in loaded_data, f"Account data should be loaded for user {actual_user_id}"
-        assert loaded_data['account']['discord_user_id'] == 'discord_user#1234'
+        # Patch config to use test data directory for all subsequent calls
+        with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
+             patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, 'users')):
+            
+            # Get the UUID for the user
+            from core.user_management import get_user_id_by_identifier
+            actual_user_id = get_user_id_by_identifier(user_id)
+            assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
+            
+            # Update user context with additional data
+            from core.user_management import update_user_context
+            update_success = update_user_context(actual_user_id, {
+                'preferred_name': 'Discord User',
+                'gender_identity': ['they/them'],
+                'custom_fields': {
+                    'health_conditions': ['ADHD', 'Depression']
+                },
+                'interests': ['Gaming', 'Technology'],
+                'goals': ['Improve executive functioning', 'Stay organized']
+            })
+            assert update_success, "User context should be updated successfully"
+            
+            # Verify data can be loaded
+            # Retry in case of race conditions with file writes in parallel execution
+            import time
+            loaded_data = {}
+            for attempt in range(5):
+                loaded_data = get_user_data(actual_user_id, 'all')
+                if loaded_data and 'account' in loaded_data:
+                    break
+                if attempt < 4:
+                    time.sleep(0.1)  # Brief delay before retry
+            assert loaded_data and 'account' in loaded_data, f"Account data should be loaded for user {actual_user_id}"
+            assert loaded_data['account']['discord_user_id'] == 'discord_user#1234'
         assert loaded_data['preferences']['channel']['type'] == 'discord'
         assert 'motivational' in loaded_data['preferences']['categories']
         assert loaded_data['account']['features']['checkins'] == 'enabled'

@@ -35,7 +35,7 @@ def _patch_should_exclude_file(monkeypatch, mock_func):
         monkeypatch: pytest monkeypatch fixture
         mock_func: The mock function to use
     """
-    from development_tools.services import standard_exclusions
+    from development_tools.shared import standard_exclusions
     
     # Patch the source module - this will affect the import inside scan_all_python_files()
     # since the import happens at function call time, not module load time
@@ -44,7 +44,7 @@ def _patch_should_exclude_file(monkeypatch, mock_func):
     # Also ensure the module is in sys.modules so the import inside the function
     # will use the patched version from the cached module
     import sys
-    module_name = 'development_tools.services.standard_exclusions'
+    module_name = 'development_tools.shared.standard_exclusions'
     if module_name in sys.modules:
         # Ensure the patched function is what gets imported
         sys.modules[module_name].should_exclude_file = mock_func
@@ -160,7 +160,7 @@ class TestScanning:
         """
         # Mock config to point to our demo project
         import development_tools.config as config_module
-        from development_tools.services import standard_exclusions
+        from development_tools.shared import standard_exclusions
         
         def mock_get_project_root():
             return demo_project_root
@@ -196,7 +196,7 @@ class TestScanning:
         # This test verifies that the scanning respects exclusions
         # The actual exclusion logic is in standard_exclusions
         import development_tools.config as config_module
-        from development_tools.services import standard_exclusions
+        from development_tools.shared import standard_exclusions
         
         def mock_get_project_root():
             return demo_project_root
@@ -242,7 +242,7 @@ class TestContentGeneration:
         which can interfere with other tests running in parallel workers.
         """
         import development_tools.config as config_module
-        from development_tools.services import standard_exclusions
+        from development_tools.shared import standard_exclusions
         
         def mock_get_project_root():
             return demo_project_root
@@ -279,7 +279,7 @@ class TestContentGeneration:
         which can interfere with other tests running in parallel workers.
         """
         import development_tools.config as config_module
-        from development_tools.services import standard_exclusions
+        from development_tools.shared import standard_exclusions
         
         def mock_get_project_root():
             return demo_project_root
@@ -321,7 +321,7 @@ class TestContentGeneration:
         which can interfere with other tests running in parallel workers.
         """
         import development_tools.config as config_module
-        from development_tools.services import standard_exclusions
+        from development_tools.shared import standard_exclusions
         
         def mock_get_project_root():
             return demo_project_root
@@ -377,7 +377,7 @@ class TestFileGeneration:
         # This is an integration test that would actually write files
         # We'll mock the file writing to avoid side effects
         import development_tools.config as config_module
-        from development_tools.services import standard_exclusions
+        from development_tools.shared import standard_exclusions
         
         def mock_get_project_root():
             return demo_project_root

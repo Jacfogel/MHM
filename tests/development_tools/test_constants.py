@@ -11,10 +11,10 @@ from pathlib import Path
 
 # Import using importlib to handle path issues
 project_root = Path(__file__).parent.parent.parent
-constants_path = project_root / "development_tools" / "services" / "constants.py"
-spec = importlib.util.spec_from_file_location("development_tools.services.constants", constants_path)
+constants_path = project_root / "development_tools" / "shared" / "constants.py"
+spec = importlib.util.spec_from_file_location("development_tools.shared.constants", constants_path)
 constants = importlib.util.module_from_spec(spec)
-sys.modules["development_tools.services.constants"] = constants
+sys.modules["development_tools.shared.constants"] = constants
 spec.loader.exec_module(constants)
 
 

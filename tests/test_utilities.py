@@ -222,9 +222,10 @@ class TestUserFactory:
                 json.dump([], f, indent=2, ensure_ascii=False)
     
     @staticmethod
-    def create_basic_user__update_index(test_data_dir: str, user_id: str, actual_user_id: str):
+    def create_basic_user__update_index(test_data_dir: str, user_id: str, actual_user_id: str, discord_user_id: str = None, email: str = None):
         """Update user index to map internal_username to UUID.
         
+        Also adds mappings for Discord user ID and email if provided.
         Uses file locking to prevent race conditions in parallel test execution.
         """
         from core.file_locking import safe_json_read, safe_json_write
@@ -236,6 +237,14 @@ class TestUserFactory:
         
         # Add the new user to the index
         user_index[user_id] = actual_user_id
+        
+        # Add Discord user ID mapping if provided
+        if discord_user_id:
+            user_index[f"discord:{discord_user_id}"] = actual_user_id
+        
+        # Add email mapping if provided
+        if email:
+            user_index[f"email:{email}"] = actual_user_id
         
         # Save the updated index with file locking
         safe_json_write(user_index_file, user_index, indent=2)
@@ -270,8 +279,10 @@ class TestUserFactory:
         # Create message files
         TestUserFactory._create_user_files_directly__message_files(user_dir, categories)
         
-        # Update user index
-        TestUserFactory.create_basic_user__update_index(test_data_dir, user_id, actual_user_id)
+        # Update user index with all mappings (username, Discord ID, email)
+        discord_user_id = user_data.get('discord_user_id')
+        email = user_data.get('email')
+        TestUserFactory.create_basic_user__update_index(test_data_dir, user_id, actual_user_id, discord_user_id=discord_user_id, email=email)
         
         return actual_user_id
     
@@ -432,8 +443,14 @@ class TestUserFactory:
                 user_data = copy.deepcopy(cached_data)
                 user_data["internal_username"] = user_id
                 user_data["email"] = f"{user_id}@example.com"
+                # CRITICAL: Always set discord_user_id explicitly, don't rely on cached value
                 user_data["discord_user_id"] = discord_user_id
                 user_data["preferred_name"] = f"Discord User {user_id}"
+                # Ensure channel type is set correctly
+                if "channel" not in user_data:
+                    user_data["channel"] = {"type": "discord"}
+                else:
+                    user_data["channel"]["type"] = "discord"
             else:
                 # Create user data in the format expected by create_new_user
                 user_data = {
@@ -477,25 +494,8 @@ class TestUserFactory:
                 TestUserFactory._cache_user_data(cache_key, template_data)
             
             # Use helper function to create files
+            # This already updates the index with username, Discord ID, and email mappings
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
-            
-            # CRITICAL: For Discord users, we need to update the index with all mappings (username + Discord ID)
-            # Use the full update_user_index function which reads account.json and adds all identifier mappings
-            from core.user_data_manager import update_user_index
-            import time
-            max_retries = 5
-            retry_delay = 0.1
-            for attempt in range(max_retries):
-                success = update_user_index(actual_user_id)
-                if success:
-                    # Verify the Discord ID mapping was added
-                    from core.user_management import get_user_id_by_identifier
-                    time.sleep(0.1)  # Small delay to ensure index file is written
-                    found_user_id = get_user_id_by_identifier(f"discord:{discord_user_id}")
-                    if found_user_id == actual_user_id:
-                        break
-                if attempt < max_retries - 1:
-                    time.sleep(retry_delay)
             
             # Verify user creation with proper configuration patching
             return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)

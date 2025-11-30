@@ -13,7 +13,7 @@
 
 This guide provides a precise, machine-friendly map of the AI development tools:
 - Summarizes **what commands exist** and **when to run them**
-- Routes you to the authoritative metadata in `development_tools/services/tool_metadata.py`
+- Routes you to the authoritative metadata in `development_tools/shared/tool_metadata.py`
 - Delegates deeper explanations to the human guide and the AI workflow/docs references:
   - `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`
   - `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`
@@ -50,7 +50,7 @@ python development_tools/ai_tools_runner.py help
 
 `ai_tools_runner.py` is the single dispatcher. All commands must:
 - Respect shared configuration (`config.py` with external config file support)
-- Honor `services/standard_exclusions.py`
+- Honor `shared/standard_exclusions.py`
 - Avoid importing application modules directly
 
 **Configuration**: External config file `development_tools_config.json` (in project root) can override paths, project settings, audit behavior, and other configuration. See `development_tools/development_tools_config.json.example` for structure.
@@ -73,12 +73,13 @@ python development_tools/ai_tools_runner.py help
 - All fast mode data plus comprehensive coverage analysis
 
 Outputs land in predictable locations:
-- AI-facing: `AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.txt`, `ai_audit_detailed_results.json`
+- AI-facing (root): `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.txt`
+- Domain-specific JSON: `reports/ai_audit_detailed_results.json`, `error_handling/error_handling_details.json`, `tests/coverage_dev_tools.json`, `validation/config_validation_results.json`, `imports/.unused_imports_cache.json`
 - Human-facing: `development_docs/FUNCTION_REGISTRY_DETAIL.md`, `development_docs/MODULE_DEPENDENCIES_DETAIL.md`, `development_docs/LEGACY_REFERENCE_REPORT.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`
-- Coverage artifacts: `coverage.json`, `coverage_html/`, `archive/coverage_artifacts/<timestamp>/`
-- Dev tools coverage (audit --full): `development_tools/coverage_dev_tools.json`, `development_tools/coverage_html_dev_tools/`
+- Coverage artifacts: `coverage.json` (project root), `tests/coverage_html/` (project root), `development_tools/reports/archive/coverage_artifacts/<timestamp>/`
+- Dev tools coverage (audit --full): `tests/coverage_dev_tools.json` (HTML reports disabled)
 
-The `status` command surfaces cached summaries from `ai_audit_detailed_results.json` (complexity, validation, system signals); rerun `audit` if the cache is stale.
+The `status` command surfaces cached summaries from `reports/ai_audit_detailed_results.json` (complexity, validation, system signals); rerun `audit` if the cache is stale.
 
 **When to run each command**: See "Standard Audit Recipe" in `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md` for guidance on day-to-day checks, pre-merge checks, and documentation work.
 
@@ -92,16 +93,27 @@ Each module declares:
 # TOOL_TIER: core | supporting | experimental
 ```
 
-The authoritative table lives in `services/tool_metadata.py`. Use this guide to pick the right group quickly:
+The authoritative table lives in `shared/tool_metadata.py`. Use this guide to pick the right group quickly:
 
-- **Documentation & structure**: `documentation_sync_checker.py` [OK], `generate_function_registry.py` [OK], `generate_module_dependencies.py` [OK], `analyze_documentation.py`
+**Directory Structure** (domain-based organization):
+- `functions/` - Function discovery, registry generation, audits
+- `imports/` - Import checking, module dependency analysis and audits (merged from `modules/`)
+- `error_handling/` - Error handling coverage analysis
+- `tests/` - Test coverage metrics
+- `docs/` - Documentation analysis and sync checking
+- `config/` - Configuration validation
+- `legacy/` - Legacy cleanup
+- `ai_work/` - AI work validation
+- `reports/` - Overarching analysis (consolidated reports)
+- `shared/` - Shared infrastructure (config, constants, exclusions, metadata)
+
+**Tool Categories**:
+- **Documentation & structure**: `docs/documentation_sync_checker.py` [OK], `functions/generate_function_registry.py` [OK], `imports/generate_module_dependencies.py` [OK], `docs/analyze_documentation.py`
+- **Quality, validation, coverage**: `tests/regenerate_coverage_metrics.py` [OK], `ai_work/validate_ai_work.py`, `imports/unused_imports_checker.py`, `error_handling/error_handling_coverage.py`
+- **Legacy, versioning, signals**: `legacy/legacy_reference_cleanup.py` [OK], `reports/system_signals.py`, `reports/quick_status.py`, `docs/version_sync.py` (experimental)
+- **Decision & utilities**: `reports/decision_support.py`, `functions/function_discovery.py`, `functions/auto_document_functions.py` (experimental), `config/config_validator.py`, `shared/file_rotation.py`, `functions/audit_*` helpers, `shared/tool_guide.py`
 
 [OK] = Has comprehensive test coverage (Phase 3)
-- **Quality, validation, coverage**: `regenerate_coverage_metrics.py` [OK], `validate_ai_work.py`, `unused_imports_checker.py`, `error_handling_coverage.py`
-- **Legacy, versioning, signals**: `legacy_reference_cleanup.py` [OK], `system_signals.py`, `quick_status.py`, `experimental/version_sync.py` (experimental)
-
-[OK] = Has comprehensive test coverage (Phase 3)
-- **Decision & utilities**: `decision_support.py`, `function_discovery.py`, `experimental/auto_document_functions.py` (experimental), `config_validator.py`, `file_rotation.py`, `audit_*` helpers, `tool_guide.py`
 
 Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier and trust matrix.
 
@@ -109,13 +121,13 @@ Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier and
 
 ## 5. Operating Standards and Maintenance
 
-- Use shared infrastructure: `standard_exclusions.py`, `development_tools/services/constants.py`, `config.py`
+- Use shared infrastructure: `shared/standard_exclusions.py`, `shared/constants.py`, `config.py`
 - Never hardcode project paths; derive them from configuration helpers
 - Keep tools isolated from MHM business logic
 - Store tests under `tests/development_tools/` (with fixtures in `tests/fixtures/development_tools_demo/`)
 - **Phase 3 Complete (2025-11-26)**: Core analysis tools now have comprehensive test coverage (55+ tests) using the synthetic fixture project
-- **Phase 4 Follow-up (2025-11-27)**: Supporting tools `quick_status.py`, `system_signals.py`, and `file_rotation.py` now have targeted regression tests in `tests/development_tools/test_supporting_tools.py`
+- **Phase 4 Follow-up (2025-11-27)**: Supporting tools `reports/quick_status.py`, `reports/system_signals.py`, and `reports/file_rotation.py` now have targeted regression tests in `tests/development_tools/test_supporting_tools.py`
 - **Phase 6 Complete (2025-11-28)**: All core tools are now portable via external configuration (`development_tools_config.json`). Tools can be used in other projects with minimal setup.
-- Preserve the directory structure (`development_tools/`, `ai_development_docs/`, `development_docs/`, `archive/`, `logs/`) to ease eventual extraction
+- Preserve the directory structure (`development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) to ease eventual extraction
 - Treat experimental tools cautiously (dry-run first, log outcomes)
 - Keep this guide paired with the human document; update both whenever commands, tiers, or workflows change

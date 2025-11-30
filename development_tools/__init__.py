@@ -12,8 +12,8 @@ documentation generation, and code quality assessments.
 # Configuration module
 from . import config
 
-# Services utilities (re-exported from subpackage for convenience)
-from .services import (
+# Shared utilities (re-exported from subpackage for convenience)
+from .shared import (
     should_exclude_file,
     get_exclusions,
     is_local_module,
@@ -23,7 +23,7 @@ from .services import (
 __all__ = [
     # Configuration
     'config',
-    # Services (re-exported from services subpackage)
+    # Shared (re-exported from shared subpackage)
     'should_exclude_file',
     'get_exclusions',
     'is_local_module',

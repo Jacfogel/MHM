@@ -99,39 +99,45 @@ class TestCheckinView:
         """Test cancel check-in button handler with valid user."""
         from tests.test_utilities import TestUserFactory
         from core.user_management import get_user_id_by_identifier
+        from unittest.mock import patch
+        import core.config
+        import os
         
         # Create test user with Discord ID
         discord_user_id = "123456789"
         user_id = "test_cancel_user"
         TestUserFactory.create_discord_user(user_id, discord_user_id=discord_user_id, test_data_dir=test_data_dir)
         
-        internal_user_id = get_user_id_by_identifier(discord_user_id)
-        assert internal_user_id is not None, "User should be created"
-        
-        # Create view
-        view = get_checkin_view(internal_user_id)
-        
-        # If view is None, function handled error gracefully - skip button handler test
-        if view is None:
-            # Function returned None gracefully - acceptable behavior in test environment
-            assert True, "Function should handle Discord unavailability gracefully"
-            return
-        
-        # Create mock interaction
-        mock_interaction = mock_interaction_factory(discord_user_id=discord_user_id)
-        
-        # Find the cancel button
-        cancel_button = find_button_by_label(view, "Cancel Check-in")
-        assert cancel_button is not None, "Should find cancel button"
-        
-        # Call the button handler (Discord callbacks only take interaction)
-        await cancel_button.callback(mock_interaction)
-        
-        # Verify interaction was deferred
-        mock_interaction.response.defer.assert_called_once()
-        
-        # Verify followup was sent (either success or error message)
-        assert mock_interaction.followup.send.called, "Should send followup message"
+        # Patch config to use test data directory
+        with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
+             patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, 'users')):
+            internal_user_id = get_user_id_by_identifier(discord_user_id)
+            assert internal_user_id is not None, "User should be created"
+            
+            # Create view (also needs config patched)
+            view = get_checkin_view(internal_user_id)
+            
+            # If view is None, function handled error gracefully - skip button handler test
+            if view is None:
+                # Function returned None gracefully - acceptable behavior in test environment
+                assert True, "Function should handle Discord unavailability gracefully"
+                return
+            
+            # Create mock interaction
+            mock_interaction = mock_interaction_factory(discord_user_id=discord_user_id)
+            
+            # Find the cancel button
+            cancel_button = find_button_by_label(view, "Cancel Check-in")
+            assert cancel_button is not None, "Should find cancel button"
+            
+            # Call the button handler (Discord callbacks only take interaction)
+            await cancel_button.callback(mock_interaction)
+            
+            # Verify interaction was deferred
+            mock_interaction.response.defer.assert_called_once()
+            
+            # Verify followup was sent (either success or error message)
+            assert mock_interaction.followup.send.called, "Should send followup message"
 
     @pytest.mark.asyncio
     async def test_cancel_checkin_button_handler_with_invalid_user(self, test_data_dir, mock_interaction_factory):
@@ -169,39 +175,45 @@ class TestCheckinView:
         """Test skip question button handler with valid user."""
         from tests.test_utilities import TestUserFactory
         from core.user_management import get_user_id_by_identifier
+        from unittest.mock import patch
+        import core.config
+        import os
         
         # Create test user with Discord ID
         discord_user_id = "987654321"
         user_id = "test_skip_user"
         TestUserFactory.create_discord_user(user_id, discord_user_id=discord_user_id, test_data_dir=test_data_dir)
         
-        internal_user_id = get_user_id_by_identifier(discord_user_id)
-        assert internal_user_id is not None, "User should be created"
-        
-        # Create view
-        view = get_checkin_view(internal_user_id)
-        
-        # If view is None, function handled error gracefully - skip button handler test
-        if view is None:
-            # Function returned None gracefully - acceptable behavior in test environment
-            assert True, "Function should handle Discord unavailability gracefully"
-            return
-        
-        # Create mock interaction
-        mock_interaction = mock_interaction_factory(discord_user_id=discord_user_id)
-        
-        # Find the skip button
-        skip_button = find_button_by_label(view, "Skip Question")
-        assert skip_button is not None, "Should find skip button"
-        
-        # Call the button handler (Discord callbacks only take interaction)
-        await skip_button.callback(mock_interaction)
-        
-        # Verify interaction was deferred
-        mock_interaction.response.defer.assert_called_once()
-        
-        # Verify followup was sent
-        assert mock_interaction.followup.send.called, "Should send followup message"
+        # Patch config to use test data directory
+        with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
+             patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, 'users')):
+            internal_user_id = get_user_id_by_identifier(discord_user_id)
+            assert internal_user_id is not None, "User should be created"
+            
+            # Create view (also needs config patched)
+            view = get_checkin_view(internal_user_id)
+            
+            # If view is None, function handled error gracefully - skip button handler test
+            if view is None:
+                # Function returned None gracefully - acceptable behavior in test environment
+                assert True, "Function should handle Discord unavailability gracefully"
+                return
+            
+            # Create mock interaction
+            mock_interaction = mock_interaction_factory(discord_user_id=discord_user_id)
+            
+            # Find the skip button
+            skip_button = find_button_by_label(view, "Skip Question")
+            assert skip_button is not None, "Should find skip button"
+            
+            # Call the button handler (Discord callbacks only take interaction)
+            await skip_button.callback(mock_interaction)
+            
+            # Verify interaction was deferred
+            mock_interaction.response.defer.assert_called_once()
+            
+            # Verify followup was sent
+            assert mock_interaction.followup.send.called, "Should send followup message"
 
     @pytest.mark.asyncio
     async def test_more_button_handler_shows_help(self, test_data_dir, mock_interaction_factory):

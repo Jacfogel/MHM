@@ -173,7 +173,7 @@ class TestASCIICompliance:
             original_method = checker.check_ascii_compliance
             
             def check_single_file():
-                from development_tools.services.constants import ASCII_COMPLIANCE_FILES
+                from development_tools.shared.constants import ASCII_COMPLIANCE_FILES
                 issues = defaultdict(list)
                 try:
                     with open(ascii_doc, 'r', encoding='utf-8') as f:

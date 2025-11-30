@@ -34,19 +34,19 @@ def load_development_tools_module(module_name: str):
         sys.modules["development_tools"] = dt_module
         dt_spec.loader.exec_module(dt_module)
     
-    # Load services package if needed
-    services_init = project_root / "development_tools" / "services" / "__init__.py"
-    if services_init.exists() and "development_tools.services" not in sys.modules:
-        services_spec = importlib.util.spec_from_file_location("development_tools.services", services_init)
-        services_module = importlib.util.module_from_spec(services_spec)
-        sys.modules["development_tools.services"] = services_module
-        services_spec.loader.exec_module(services_module)
+    # Load shared package if needed
+    shared_init = project_root / "development_tools" / "shared" / "__init__.py"
+    if shared_init.exists() and "development_tools.shared" not in sys.modules:
+        shared_spec = importlib.util.spec_from_file_location("development_tools.shared", shared_init)
+        shared_module = importlib.util.module_from_spec(shared_spec)
+        sys.modules["development_tools.shared"] = shared_module
+        shared_spec.loader.exec_module(shared_module)
     
-    # Load required service modules that tools depend on
-    service_modules = ["standard_exclusions", "constants", "common"]
-    for svc_name in service_modules:
-        svc_path = project_root / "development_tools" / "services" / f"{svc_name}.py"
-        full_name = f"development_tools.services.{svc_name}"
+    # Load required shared modules that tools depend on
+    shared_modules = ["standard_exclusions", "constants", "common"]
+    for svc_name in shared_modules:
+        svc_path = project_root / "development_tools" / "shared" / f"{svc_name}.py"
+        full_name = f"development_tools.shared.{svc_name}"
         if svc_path.exists() and full_name not in sys.modules:
             svc_spec = importlib.util.spec_from_file_location(full_name, svc_path)
             svc_module = importlib.util.module_from_spec(svc_spec)
@@ -54,7 +54,7 @@ def load_development_tools_module(module_name: str):
             svc_spec.loader.exec_module(svc_module)
     
     # Load config if needed
-    config_path = project_root / "development_tools" / "config.py"
+    config_path = project_root / "development_tools" / "config" / "config.py"
     if config_path.exists() and "development_tools.config" not in sys.modules:
         config_spec = importlib.util.spec_from_file_location("development_tools.config", config_path)
         config_module = importlib.util.module_from_spec(config_spec)
@@ -62,8 +62,29 @@ def load_development_tools_module(module_name: str):
         config_spec.loader.exec_module(config_module)
     
     # Now load the requested module
-    module_path = project_root / "development_tools" / f"{module_name}.py"
-    full_module_name = f"development_tools.{module_name}"
+    # Handle dotted module names (e.g., "shared.file_rotation")
+    if "." in module_name:
+        parts = module_name.split(".")
+        module_path = project_root / "development_tools" / "/".join(parts[:-1]) / f"{parts[-1]}.py"
+        full_module_name = f"development_tools.{module_name}"
+    else:
+        # Try root first, then check subdirectories
+        module_path = project_root / "development_tools" / f"{module_name}.py"
+        
+        # Check common subdirectories if not found in root
+        if not module_path.exists():
+            subdirs = ["reports", "functions", "docs", "legacy", "ai_work", "tests", "imports", "error_handling", "config", "shared"]
+            for subdir in subdirs:
+                candidate = project_root / "development_tools" / subdir / f"{module_name}.py"
+                if candidate.exists():
+                    module_path = candidate
+                    full_module_name = f"development_tools.{subdir}.{module_name}"
+                    break
+            else:
+                full_module_name = f"development_tools.{module_name}"
+        else:
+            full_module_name = f"development_tools.{module_name}"
+    
     spec = importlib.util.spec_from_file_location(full_module_name, module_path)
     module = importlib.util.module_from_spec(spec)
     module.__package__ = "development_tools"
