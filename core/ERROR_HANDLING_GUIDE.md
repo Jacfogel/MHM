@@ -49,27 +49,27 @@ Central exception hierarchy:
 Where practical, modules should raise one of these types instead of bare `Exception`. Some modules (for example `service_utilities.py`) still expose local exceptions such as `InvalidTimeFormatError`; these are acceptable where strongly tied to a single domain, but new shared exceptions should prefer the `MHMError` tree.
 
 **Exception Categorization Decision Tree:**
-- **User input validation issues** → `ValidationError`
+- **User input validation issues** -> `ValidationError`
   - Invalid format, missing required fields, type mismatches in user-provided data
   - Example: Invalid time format, invalid categories, duplicate period names
   
-- **Data processing/validation issues** → `DataError` or `FileOperationError`
+- **Data processing/validation issues** -> `DataError` or `FileOperationError`
   - Data integrity problems, file operations, data structure issues
   - Example: Corrupted data, invalid data format in processing
   
-- **Configuration problems** → `ConfigurationError`
+- **Configuration problems** -> `ConfigurationError`
   - Missing or invalid configuration values, config file issues
   - Example: Missing API key, invalid config setting
   
-- **Network/communication issues** → `CommunicationError`
+- **Network/communication issues** -> `CommunicationError`
   - Discord, email, or other communication channel failures
   - Example: Connection timeout, API rate limiting
   
-- **AI-related failures** → `AIError`
+- **AI-related failures** -> `AIError`
   - LM Studio API errors, prompt processing failures, AI model issues
   - Example: Model unavailable, prompt generation failed
   
-- **Scheduling issues** → `SchedulerError`
+- **Scheduling issues** -> `SchedulerError`
   - Task scheduling, period management failures
   - Example: Schedule conflict, invalid schedule data
 
@@ -77,10 +77,10 @@ Where practical, modules should raise one of these types instead of bare `Except
 
 The `ErrorHandler` maintains a list of `ErrorRecoveryStrategy` instances to automatically recover from common problems:
 
-- `FileNotFoundRecovery` – creates missing files with default data when safe.  
-- `JSONDecodeRecovery` – backs up corrupted JSON to a timestamped `.corrupted_YYYYMMDD_HHMMSS` file and rewrites a default version.
-- `NetworkRecovery` – handles transient connectivity problems.  
-- `ConfigurationRecovery` – attempts to fall back to safe defaults when configuration is broken.
+- `FileNotFoundRecovery` - creates missing files with default data when safe.  
+- `JSONDecodeRecovery` - backs up corrupted JSON to a timestamped `.corrupted_YYYYMMDD_HHMMSS` file and rewrites a default version.
+- `NetworkRecovery` - handles transient connectivity problems.  
+- `ConfigurationRecovery` - attempts to fall back to safe defaults when configuration is broken.
 
 These strategies are applied inside `ErrorHandler.handle_error` before control is returned to the caller, and they should be kept **idempotent and side-effect safe** (for example, do not silently drop data).
 

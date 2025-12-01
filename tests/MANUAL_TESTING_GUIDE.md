@@ -11,7 +11,7 @@
 
 ## 1. Purpose and Scope
 
-Automated tests are the primary safety net for MHM, but they cannot cover every scenario—especially those involving UI, real integrations, and nuanced user experience.
+Automated tests are the primary safety net for MHM, but they cannot cover every scenario-especially those involving UI, real integrations, and nuanced user experience.
 
 This guide defines:
 
@@ -112,7 +112,7 @@ These flows cover the heart of MHM: schedule configuration and reminder behavior
 
 Checklist:
 
-- [ ] Create at least one schedule period (for example, “Morning”, “Afternoon”).
+- [ ] Create at least one schedule period (for example, "Morning", "Afternoon").
 - [ ] Verify:
   - [ ] Time ranges are correctly stored.
   - [ ] Overlapping or invalid ranges are handled according to design (either prevented or clearly warned).
@@ -299,7 +299,7 @@ When in doubt:
 
 1. Check section 1 of [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) to understand the testing philosophy.
 2. Decide which parts of this manual guide apply to your change.
-3. Run at least the relevant subsets of sections 2–7 here, plus any detailed steps in subordinate guides:
+3. Run at least the relevant subsets of sections 2-7 here, plus any detailed steps in subordinate guides:
    - [MANUAL_DISCORD_TEST_GUIDE.md](tests/MANUAL_DISCORD_TEST_GUIDE.md).
    - [SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md](tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md).
 

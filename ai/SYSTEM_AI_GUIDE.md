@@ -100,7 +100,7 @@ The AI subsystem distinguishes between two primary modes internally:
   - Structured responses used for parsing and integration with `EnhancedCommandParser`.
   - Caching is enabled when safe, and responses may be cleaned or parsed as JSON/structured output.
 
-`AIChatBotSingleton._detect_mode(user_prompt)` applies a combination of keyword heuristics and simple patterns (for example, phrases like “create a task”, “remind me to…”, “update my schedule”) to choose a mode when one is not explicitly provided.
+`AIChatBotSingleton._detect_mode(user_prompt)` applies a combination of keyword heuristics and simple patterns (for example, phrases like "create a task", "remind me to...", "update my schedule") to choose a mode when one is not explicitly provided.
 
 When you add new high-level capabilities, prefer:
 

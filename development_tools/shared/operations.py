@@ -82,6 +82,8 @@ SCRIPT_REGISTRY = {
 
     'fix_version_sync': 'docs/fix_version_sync.py',
 
+    'fix_documentation': 'docs/fix_documentation.py',
+
     'system_signals': 'reports/system_signals.py'
 
 }
@@ -1620,6 +1622,80 @@ class AIToolsService:
         logger.error("Completed documentation sync check with errors!")
 
         return False
+
+    def run_documentation_fix(self, fix_type: str = 'all', dry_run: bool = False) -> bool:
+
+        """Run documentation fix operations.
+
+        Args:
+            fix_type: Type of fix to apply ('add-addresses', 'fix-ascii', 'number-headings', 'convert-links', 'all')
+            dry_run: If True, show what would be changed without making changes
+
+        Returns:
+            True if successful, False otherwise
+        """
+
+        logger.info(f"Starting documentation fix (type: {fix_type}, dry_run: {dry_run})...")
+
+        try:
+
+            from development_tools.docs.fix_documentation import DocumentationFixer
+
+            fixer = DocumentationFixer(project_root=str(self.project_root))
+
+            results = {}
+
+            if fix_type in ('add-addresses', 'all'):
+
+                result = fixer.fix_add_addresses(dry_run=dry_run)
+
+                results['add_addresses'] = result
+
+                print(f"\nAdd Addresses: Updated {result['updated']}, Skipped {result['skipped']}, Errors {result['errors']}")
+
+            if fix_type in ('fix-ascii', 'all'):
+
+                result = fixer.fix_ascii(dry_run=dry_run)
+
+                results['fix_ascii'] = result
+
+                print(f"\nFix ASCII: Updated {result['files_updated']} files, Made {result['replacements_made']} replacements, Errors {result['errors']}")
+
+            if fix_type in ('number-headings', 'all'):
+
+                result = fixer.fix_number_headings(dry_run=dry_run)
+
+                results['number_headings'] = result
+
+                print(f"\nNumber Headings: Updated {result['files_updated']} files, Fixed {result['issues_fixed']} issues, Errors {result['errors']}")
+
+            if fix_type in ('convert-links', 'all'):
+
+                result = fixer.fix_convert_links(dry_run=dry_run)
+
+                results['convert_links'] = result
+
+                print(f"\nConvert Links: Updated {result['files_updated']} files, Made {result['changes_made']} changes, Errors {result['errors']}")
+
+            # Check for errors
+
+            total_errors = sum(r.get('errors', 0) for r in results.values())
+
+            if total_errors > 0:
+
+                logger.error(f"Documentation fix completed with {total_errors} error(s)")
+
+                return False
+
+            logger.info("Completed documentation fix successfully!")
+
+            return True
+
+        except Exception as e:
+
+            logger.error(f"Error running documentation fix: {e}", exc_info=True)
+
+            return False
 
     def run_coverage_regeneration(self):
 
@@ -5000,7 +5076,7 @@ class AIToolsService:
 
         quick_wins: List[str] = []
         if ascii_issues:
-            quick_wins.append(f"Normalize {ascii_issues} file(s) with non-ASCII characters via doc-sync.")
+            quick_wins.append(f"Normalize {ascii_issues} file(s) with non-ASCII characters via doc-fix.")
         if paired_doc_issues and not (path_drift_count and path_drift_count > 0):
             quick_wins.append(f"Resolve {paired_doc_issues} unpaired documentation sets flagged by doc-sync.")
         if analyze_artifacts:
@@ -6391,6 +6467,76 @@ def _doc_sync_command(service: "AIToolsService", argv: Sequence[str]) -> int:
 
     return 0 if success else 1
 
+def _doc_fix_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+
+    """Handle doc-fix command with options for different fix types."""
+
+    parser = argparse.ArgumentParser(description='Fix documentation issues')
+
+    parser.add_argument('--add-addresses', action='store_true', help='Add file addresses to documentation files')
+
+    parser.add_argument('--fix-ascii', action='store_true', help='Fix non-ASCII characters in documentation')
+
+    parser.add_argument('--number-headings', action='store_true', help='Number H2 and H3 headings in documentation')
+
+    parser.add_argument('--convert-links', action='store_true', help='Convert file paths to markdown links')
+
+    parser.add_argument('--all', action='store_true', help='Apply all fix operations')
+
+    parser.add_argument('--dry-run', action='store_true', help='Show what would be changed without making changes')
+
+    try:
+
+        args = parser.parse_args(argv)
+
+    except SystemExit:
+
+        return 2
+
+    # Determine fix type
+
+    fix_types = []
+
+    if args.add_addresses:
+
+        fix_types.append('add-addresses')
+
+    if args.fix_ascii:
+
+        fix_types.append('fix-ascii')
+
+    if args.number_headings:
+
+        fix_types.append('number-headings')
+
+    if args.convert_links:
+
+        fix_types.append('convert-links')
+
+    if args.all:
+
+        fix_type = 'all'
+
+    elif len(fix_types) == 1:
+
+        fix_type = fix_types[0]
+
+    elif len(fix_types) > 1:
+
+        print("Error: Can only specify one fix type at a time (or use --all)")
+
+        return 2
+
+    else:
+
+        # Default to all if nothing specified
+
+        fix_type = 'all'
+
+    success = service.run_documentation_fix(fix_type=fix_type, dry_run=args.dry_run)
+
+    return 0 if success else 1
+
 def _coverage_command(service: "AIToolsService", argv: Sequence[str]) -> int:
 
     if argv:
@@ -6492,6 +6638,8 @@ COMMAND_REGISTRY = OrderedDict([
     ('system-signals', CommandRegistration('system-signals', _system_signals_command, 'Generate system health and status signals.')),
 
     ('doc-sync', CommandRegistration('doc-sync', _doc_sync_command, 'Check documentation synchronisation.')),
+
+    ('doc-fix', CommandRegistration('doc-fix', _doc_fix_command, 'Fix documentation issues (addresses, ASCII, headings, links).')),
 
     ('coverage', CommandRegistration('coverage', _coverage_command, 'Regenerate coverage metrics.')),
 

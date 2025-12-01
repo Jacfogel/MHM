@@ -261,27 +261,27 @@ C:.
 |   |           script_test_lm_studio.py
 |   |           script_test_new_modules.py
 |   |           
-|   \---utilities
-|       |   add_checkin_schedules.py
-|       |   add_documentation_addresses.py
-|       |   check_checkin_schedules.py
-|       |   cleanup_duplicate_messages.py
-|       |   cleanup_test_users.py
-|       |   convert_paths_to_links.py
-|       |   fix_user_schedules.py
-|       |   rebuild_index.py
-|       |   regenerate_ui.ps1
-|       |   restore_custom_periods.py
-|       |   user_data_cli.py
-|       |   
-|       +---cleanup
-|       |       cleanup_backups.py
-|       |       cleanup_data_test_users.py
-|       |       cleanup_real_test_users.py
-|       |       cleanup_test_data.py
-|       |       cleanup_user_message_files.py
-|       |       
-|       \---__pycache__
+|   +---utilities
+|   |   |   add_checkin_schedules.py
+|   |   |   add_documentation_addresses.py
+|   |   |   check_checkin_schedules.py
+|   |   |   cleanup_duplicate_messages.py
+|   |   |   cleanup_test_users.py
+|   |   |   convert_paths_to_links.py
+|   |   |   fix_user_schedules.py
+|   |   |   rebuild_index.py
+|   |   |   regenerate_ui.ps1
+|   |   |   restore_custom_periods.py
+|   |   |   user_data_cli.py
+|   |   |   
+|   |   +---cleanup
+|   |   |       cleanup_backups.py
+|   |   |       cleanup_data_test_users.py
+|   |   |       cleanup_real_test_users.py
+|   |   |       cleanup_test_data.py
+|   |   |       cleanup_user_message_files.py
+|   |   |       
+|   |   \---__pycache__
     (Python cache files)
 +---styles
 |       admin_theme.qss

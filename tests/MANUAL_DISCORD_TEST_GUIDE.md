@@ -98,13 +98,13 @@ This section covers testing the reminder period follow-up flow that occurs after
 
 #### Test 9: Natural Language Variations
 Test different ways to express reminder times:
-- `30 minutes to an hour before` ✅
-- `30 min to 1 hour before` ✅
-- `3-5 hours before` ✅
-- `3 to 5 hours before` ✅
-- `1-2 days before` ✅
-- `1 day before` ✅
-- `2 hours before` ✅
+- `30 minutes to an hour before` [OK]
+- `30 min to 1 hour before` [OK]
+- `3-5 hours before` [OK]
+- `3 to 5 hours before` [OK]
+- `1-2 days before` [OK]
+- `1 day before` [OK]
+- `2 hours before` [OK]
 
 **Expected**: Common variations work, unparseable variations ask for clarification
 
@@ -152,7 +152,7 @@ After each test, verify the results:
 
 ## 4. Success Criteria
 
-✅ **All tests pass if**:
+[OK] **All tests pass if**:
 - Task creation always triggers reminder follow-up (when task has due date)
 - Natural language parsing works for common patterns
 - Reminder periods are saved to task
@@ -162,7 +162,7 @@ After each test, verify the results:
 
 ## 5. Known Issues to Watch For
 
-⚠️ **If you see these, note them**:
+[WARNING] **If you see these, note them**:
 - Reminder periods not saved to task
 - Flow doesn't complete after setting reminders
 - Flow state persists after completion
@@ -173,11 +173,11 @@ After each test, verify the results:
 ## 6. Reporting Results
 
 After testing, report:
-- ✅ Which tests passed
-- ❌ Which tests failed
-- 🐛 Any bugs found
-- 💡 Any improvements needed
-- 📝 Screenshots/logs of issues
+- [OK] Which tests passed
+- [FAIL] Which tests failed
+- [BUG] Any bugs found
+- [IDEA] Any improvements needed
+- [NOTE] Screenshots/logs of issues
 
 ## 7. Quick Test Checklist
 

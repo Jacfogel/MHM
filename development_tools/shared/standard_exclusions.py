@@ -167,17 +167,25 @@ _DEFAULT_CONTEXT_EXCLUSIONS = {
 }
 
 def _load_context_exclusions() -> Dict[str, List[str]]:
-    """Load context-specific exclusions from config or return defaults."""
+    """Load context-specific exclusions from config or return defaults.
+    
+    recent_changes will be built from generated files after they're loaded.
+    """
     exclusions_config = _get_exclusions_config_safe()
+    result = _DEFAULT_CONTEXT_EXCLUSIONS.copy()
+    
     if exclusions_config and 'context_exclusions' in exclusions_config:
-        # Merge with defaults to ensure all contexts exist
-        result = _DEFAULT_CONTEXT_EXCLUSIONS.copy()
-        result.update(exclusions_config['context_exclusions'])
-        return result
-    return _DEFAULT_CONTEXT_EXCLUSIONS.copy()
+        context_exclusions = exclusions_config['context_exclusions']
+        
+        # Update contexts (recent_changes will be built from generated files later)
+        for key, value in context_exclusions.items():
+            if key != 'recent_changes':
+                result[key] = value
+    
+    return result
 
-# Context-specific exclusions - start with defaults
-CONTEXT_EXCLUSIONS = _DEFAULT_CONTEXT_EXCLUSIONS.copy()
+# Context-specific exclusions - will be finalized after generated files are defined
+_CONTEXT_EXCLUSIONS_TEMP = _load_context_exclusions()
 
 def get_exclusions(tool_type: str = None, context: str = 'development') -> list:
     """
@@ -215,11 +223,19 @@ def should_exclude_file(file_path, tool_type: str = None, context: str = 'develo
         True if file should be excluded
     """
     import fnmatch
+    from pathlib import Path
+    
     exclusions = get_exclusions(tool_type, context)
     
     # Convert Path object to string if needed
     file_path_str = str(file_path)
     
+    # Check generated files patterns (ui/generated/*, etc.)
+    for pattern in GENERATED_FILE_PATTERNS:
+        if fnmatch.fnmatch(file_path_str, pattern) or fnmatch.fnmatch(file_path_str, f"*/{pattern}"):
+            return True
+    
+    # Check standard exclusions
     for pattern in exclusions:
         # Handle wildcard patterns with fnmatch
         if fnmatch.fnmatch(file_path_str, pattern) or pattern in file_path_str:
@@ -251,30 +267,46 @@ def get_file_operations_exclusions() -> list:
 # GENERATED FILES & EXCLUSIONS
 # =============================================================================
 
-def _load_generated_ai_files() -> Tuple[str, ...]:
-    """Load generated AI files list from config or return defaults."""
+def _load_generated_files() -> Tuple[str, ...]:
+    """Load generated files list from config or return defaults.
+    
+    Generated files can include both specific file paths and glob patterns.
+    Patterns (containing *) are handled via pattern matching, while exact paths
+    are handled via direct comparison.
+    """
     exclusions_config = _get_exclusions_config_safe()
-    if exclusions_config and 'generated_ai_files' in exclusions_config:
-        return tuple(exclusions_config['generated_ai_files'])
+    if exclusions_config and 'generated_files' in exclusions_config:
+        return tuple(exclusions_config['generated_files'])
     # Default: empty (projects should define their own)
     return ()
 
-def _load_generated_doc_files() -> Tuple[str, ...]:
-    """Load generated doc files list from config or return defaults."""
-    exclusions_config = _get_exclusions_config_safe()
-    if exclusions_config and 'generated_doc_files' in exclusions_config:
-        return tuple(exclusions_config['generated_doc_files'])
-    # Default: empty (projects should define their own)
-    return ()
+# All generated files (loaded from config)
+# Contains both specific file paths and glob patterns (e.g., "ui/generated/*")
+GENERATED_FILES: Tuple[str, ...] = _load_generated_files()
 
-# Generated AI status files (loaded from config)
-GENERATED_AI_FILES: Tuple[str, ...] = _load_generated_ai_files()
+# Separate generated files into exact paths and patterns for different use cases
+def _split_generated_files() -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+    """Split generated files into exact paths and patterns."""
+    exact_paths = []
+    patterns = []
+    for item in GENERATED_FILES:
+        if '*' in item or '?' in item or '[' in item:
+            patterns.append(item)
+        else:
+            exact_paths.append(item)
+    return tuple(exact_paths), tuple(patterns)
 
-# Generated documentation files (loaded from config)
-GENERATED_DOC_FILES: Tuple[str, ...] = _load_generated_doc_files()
+GENERATED_FILE_PATHS, GENERATED_FILE_PATTERNS = _split_generated_files()
 
-# All generated files (combination of AI and doc files)
-ALL_GENERATED_FILES: Tuple[str, ...] = GENERATED_AI_FILES + GENERATED_DOC_FILES
+# For backward compatibility: ALL_GENERATED_FILES contains only exact paths
+# (patterns are handled separately via should_exclude_file)
+ALL_GENERATED_FILES: Tuple[str, ...] = GENERATED_FILE_PATHS
+
+# Finalize context exclusions now that generated files are defined
+# Build recent_changes from generated files (always, regardless of config)
+# Include both exact paths and patterns
+_CONTEXT_EXCLUSIONS_TEMP['recent_changes'] = list(ALL_GENERATED_FILES) + list(GENERATED_FILE_PATTERNS)
+CONTEXT_EXCLUSIONS = _CONTEXT_EXCLUSIONS_TEMP
 
 def _load_standard_exclusion_patterns() -> Tuple[str, ...]:
     """Load standard exclusion patterns from config or return defaults."""

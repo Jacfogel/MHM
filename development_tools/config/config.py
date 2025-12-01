@@ -211,18 +211,13 @@ QUICK_AUDIT = {
 # NOTE: Projects should provide config file. All paths are relative to project root.
 VERSION_SYNC = {
     'ai_docs': [],  # Empty by default - requires config file
-    'generated_ai_docs': [],  # Empty by default - requires config file
     'docs': [],  # Empty by default - requires config file
-    'generated_docs': [],  # Empty by default - requires config file
-    'core': [],  # Empty by default - requires config file
     'cursor_rules': [".cursor/rules/*.mdc"],  # Generic pattern
-    'cursor_commands': [".cursor/commands/README.md"],  # Generic pattern
     'communication_docs': [],  # Empty by default - requires config file
     'core_docs': [],  # Empty by default - requires config file
     'logs_docs': [],  # Empty by default - requires config file
     'scripts_docs': [],  # Empty by default - requires config file
     'tests_docs': [],  # Empty by default - requires config file
-    'core_system_files': [],  # Empty by default - requires config file
     'documentation_patterns': ["*.md"],  # Generic pattern
     'exclude_patterns': ["*.pyc", "__pycache__", ".git", ".venv"]  # Generic patterns
 }
@@ -302,6 +297,19 @@ def get_project_key_files(default: Optional[list] = None) -> list:
         default = ['requirements.txt']
     key_files = _get_external_value('project.key_files', default)
     return key_files if isinstance(key_files, list) else default
+
+def get_project_core_system_files(default: Optional[list] = None) -> list:
+    """Get project core system files from config (from external config if available, otherwise default).
+    
+    Checks project.core_system_files first, then falls back to project.key_files if not found.
+    """
+    if default is None:
+        default = ['run_mhm.py', 'core/service.py', 'core/config.py', 'requirements.txt', '.gitignore']
+    core_files = _get_external_value('project.core_system_files', None)
+    # If core_system_files is empty or invalid, fall back to key_files
+    if not core_files or not isinstance(core_files, list) or len(core_files) == 0:
+        core_files = _get_external_value('project.key_files', default)
+    return core_files if isinstance(core_files, list) else default
 
 def get_analyze_functions_config():
     """Get analyze functions configuration (from external config if available, otherwise default)."""

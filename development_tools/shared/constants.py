@@ -249,12 +249,24 @@ CORE_MODULES: Tuple[str, ...] = _load_core_modules()
 # =============================================================================
 
 def _load_ascii_compliance_files() -> Tuple[str, ...]:
-    """Load ASCII compliance files list from config or return defaults."""
+    """Load ASCII compliance files list from config or return defaults.
+    
+    ASCII compliance files are now the same as default_docs. If config has a note
+    or is empty, use DEFAULT_DOCS as the source of truth.
+    """
     constants_config = _get_constants_config_safe()
     if constants_config and 'ascii_compliance_files' in constants_config:
-        return tuple(constants_config['ascii_compliance_files'])
-    # Default: empty (projects should define their own)
-    return ()
+        ascii_files = constants_config['ascii_compliance_files']
+        # Check if it's a note (single item that's a string containing "Note:")
+        if isinstance(ascii_files, list) and len(ascii_files) == 1:
+            if isinstance(ascii_files[0], str) and 'note' in ascii_files[0].lower():
+                # Use DEFAULT_DOCS
+                return _load_default_docs()
+        # If it's a real list, use it (for backward compatibility)
+        if isinstance(ascii_files, list) and ascii_files:
+            return tuple(ascii_files)
+    # Default: use DEFAULT_DOCS
+    return _load_default_docs()
 
 # Files to check for ASCII compliance (AI collaborator facing docs)
 ASCII_COMPLIANCE_FILES: Tuple[str, ...] = _load_ascii_compliance_files()

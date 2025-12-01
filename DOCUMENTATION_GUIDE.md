@@ -370,10 +370,14 @@ The path drift checker (`docs/analyze_documentation_sync.py`) validates that ref
   - **OK:** `[AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md)`
 - Keep the full project-root path in the link target so links remain unambiguous.
 - Only convert `.md` references when the target file actually exists in the repo.
+- **Metadata section link deduplication**: In metadata sections (H1 heading + lines starting with `>`), each unique file path is linked only once. Subsequent references to the same file in metadata remain as backticks (not converted to links) to avoid repetitive links. This keeps metadata headers clean and readable.
+  - Example: If `DOCUMENTATION_GUIDE.md` appears multiple times in the metadata block, only the first occurrence becomes a link; others remain as `` `DOCUMENTATION_GUIDE.md` ``
+- In body content, multiple links to the same file are allowed (intentional cross-references).
 - Do **not** convert:
   - `> **File**:` metadata lines
   - Code fences or inline code examples
   - Self-references to the current document unless you are linking to a specific section.
+  - Example contexts (marked with `[OK]`, `[AVOID]`, etc.)
 - When editing docs with AI, prefer this pattern for cross-references so link text stays clean and consistent while targets remain precise.
 
 

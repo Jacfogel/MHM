@@ -55,7 +55,7 @@ Use this guide only after you understand the general documentation and developme
 
 Use the legacy cleanup tool as a structured workflow rather than ad hoc search.
 
-1. **Find** – map out references
+1. **Find** - map out references
 
    ```powershell
    python legacy/fix_legacy_references.py --find "LegacyItemName"
@@ -65,14 +65,14 @@ Use the legacy cleanup tool as a structured workflow rather than ad hoc search.
    - Categorizes references (active code, tests, documentation, config, archive).
    - For behavior details, see the `LegacyReferenceCleanup.find_all_references` / `scan_for_legacy_references` flow in `legacy/fix_legacy_references.py`.
 
-2. **Update** – fix all high-impact references
+2. **Update** - fix all high-impact references
 
    - **Active code / config (HIGH)**: replace with the modern path or configuration.
    - **Tests (HIGH)**: update tests to target the new behavior or delete tests that exclusively cover legacy paths.
    - **Documentation (MEDIUM)**: update to describe the new behavior; archive references can remain for history.
    - **Archive (LOW)**: usually keep as-is unless causing confusion.
 
-3. **Verify** – confirm the system is ready
+3. **Verify** - confirm the system is ready
 
    ```powershell
    python legacy/fix_legacy_references.py --verify "LegacyItemName"
@@ -82,7 +82,7 @@ Use the legacy cleanup tool as a structured workflow rather than ad hoc search.
    - Summarizes documentation and archive references for clarity.
    - Produces recommendations and a readiness flag.
 
-4. **Remove & Test** – only after verification is clean
+4. **Remove & Test** - only after verification is clean
 
    - Remove the legacy code and `LEGACY COMPATIBILITY` markers.
    - Run the standard test suite (see section 4 "Test Layout and Discovery" in [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)).
@@ -120,7 +120,7 @@ These tools underlie this guide. For detailed behavior and additional commands, 
 
 - Work on **one legacy item at a time**.
 - Run `--find` and `--verify` before touching code, then again after updates.
-- Prefer using the provided tools instead of manual search; they are tuned to MHM’s legacy patterns.
+- Prefer using the provided tools instead of manual search; they are tuned to MHM's legacy patterns.
 - When in doubt, keep archive references and historical docs; prioritize removing active code and config paths.
 - Document removals in the changelog or relevant docs so future audits know what changed.
 

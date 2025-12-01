@@ -6,6 +6,13 @@
       "run_your_app.py",
       "core/service.py",
       "core/config.py"
+    ],
+    "core_system_files": [
+      "run_your_app.py",
+      "core/service.py",
+      "core/config.py",
+      "requirements.txt",
+      ".gitignore"
     ]
   },
   "paths": {
@@ -28,18 +35,13 @@
   "fix_version_sync": {
     "_comment": "Customize file lists for version synchronization",
     "ai_docs": [],
-    "generated_ai_docs": [],
     "docs": [],
-    "generated_docs": [],
-    "core": [],
     "cursor_rules": [],
-    "cursor_commands": [],
     "communication_docs": [],
     "core_docs": [],
     "logs_docs": [],
     "scripts_docs": [],
     "tests_docs": [],
-    "core_system_files": [],
     "documentation_patterns": ["*.md"],
     "exclude_patterns": ["*.pyc", "__pycache__", ".git", ".venv"]
   },
@@ -133,7 +135,6 @@
     ],
     "tool_exclusions": {},
     "context_exclusions": {
-      "recent_changes": [],
       "production": [
         "development_tools/*",
         "tests/*",
@@ -148,8 +149,18 @@
         "*/data/*"
       ]
     },
-    "generated_ai_files": [],
-    "generated_doc_files": [],
+    "generated_files": [
+      "development_tools/AI_PRIORITIES.md",
+      "development_tools/AI_STATUS.md",
+      "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
+      "ai_development_docs/AI_FUNCTION_REGISTRY.md",
+      "development_docs/UNUSED_IMPORTS_REPORT.md",
+      "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
+      "development_docs/LEGACY_REFERENCE_REPORT.md",
+      "development_docs/FUNCTION_REGISTRY_DETAIL.md",
+      "ui/generated/*",
+      "*/ui/generated/*"
+    ],
     "standard_exclusion_patterns": [
       "logs/",
       "data/",
@@ -353,10 +364,6 @@
     ],
     "core_modules": [
       "core"
-    ],
-    "ascii_compliance_files": [
-      "README.md",
-      "TODO.md"
     ],
     "fix_version_sync_directories": {
       "core": "core/",

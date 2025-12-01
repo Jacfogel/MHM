@@ -76,6 +76,13 @@ _TOOLS: Dict[str, ToolInfo] = {
         trust="stable",
         description="Validates human/AI doc pairing and detects drift.",
     ),
+    "fix_documentation": ToolInfo(
+        name="fix_documentation",
+        path="development_tools/docs/fix_documentation.py",
+        tier="core",
+        trust="stable",
+        description="Fixes common documentation issues (addresses, ASCII, headings, links).",
+    ),
     "generate_function_registry": ToolInfo(
         name="generate_function_registry",
         path="development_tools/functions/generate_function_registry.py",
@@ -236,6 +243,7 @@ COMMAND_GROUPS = OrderedDict(
                 "quick-audit",
                 "docs",
                 "doc-sync",
+                "doc-fix",
                 "config",
                 "coverage",
                 "legacy",

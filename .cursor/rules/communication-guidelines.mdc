@@ -3,6 +3,7 @@ description: "Communication channel integration guidance"
 globs: communication/**
 alwaysApply: false
 file: ".cursor/rules/communication-guidelines.mdc"
+file: ".cursor/rules/communication-guidelines.mdc"
 ---
 # Communication Module Guidance
 

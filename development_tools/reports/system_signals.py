@@ -110,7 +110,7 @@ class SystemSignalsGenerator:
                 health['warnings'].append(f"Missing key directory: {dir_name}")
         
         # Check for recent audit
-        audit_file = self.project_root / 'development_tools' / 'reports' / 'ai_audit_detailed_results.json'
+        audit_file = self.project_root / 'development_tools' / 'reports' / 'analysis_detailed_results.json'
         if audit_file.exists():
             try:
                 stat = audit_file.stat()

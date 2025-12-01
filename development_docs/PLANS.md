@@ -167,7 +167,7 @@
   - **Current status**: 1 generic exception identified (1 ValueError)
   - Start with the identified ValueError and replace with appropriate `MHMError` subclass
   - Continue auditing and replacing as new generic exceptions are found
-  - Use categorization rules from `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`:
+  - Use categorization rules from [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md):
     - `DataError` for data validation/processing issues
     - `FileOperationError` for file system problems
     - `CommunicationError` for network/Discord/email issues
@@ -266,7 +266,7 @@
 - Phase 1 and Phase 2 tooling is complete - now focus on actual replacements
 - Use `analyze_error_handling.py` to track progress and measure quality improvements
 - Keep changes small and well-tested - verify behavior after each batch of replacements
-- Reference `core/ERROR_HANDLING_GUIDE.md` and `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` for patterns and best practices
+- Reference [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) and [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) for patterns and best practices
 - Monitor `development_tools/AI_PRIORITIES.md` for updated priority counts as replacements are made
 
 ### **AI Chatbot Actionability Sprint** **IN PROGRESS**

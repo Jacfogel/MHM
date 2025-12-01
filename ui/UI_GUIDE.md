@@ -7,8 +7,8 @@
 
 This document is internal to the MHM project.
 
-See `README.md`, section 1 **"Navigation"** and section 7 **"Project Structure"** for documentation index and directory layout.  
-See `DEVELOPMENT_WORKFLOW.md`, section 1 **"Safety First"** and section 3 **"Development Process"** before changing UI code.
+See [README.md](README.md), section 1 **"Navigation"** and section 7 **"Project Structure"** for documentation index and directory layout.  
+See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md), section 1 **"Safety First"** and section 3 **"Development Process"** before changing UI code.
 
 ---
 
@@ -32,7 +32,7 @@ pyside6-uic ui/designs/{filename}.ui -o ui/generated/{filename}_pyqt.py
 - Always prefer `python ui/generate_ui_files.py`.  
 - The wrapper script:
   - Calls `pyside6-uic` under the hood
-  - Adds MHM-standard generated file headers (timestamps, source path, “do not edit” notes)
+  - Adds MHM-standard generated file headers (timestamps, source path, "do not edit" notes)
   - Is wrapped in `handle_errors("generating UI file", ...)` for consistent error handling
 
 If you ever use `pyside6-uic` directly (for debugging), **re-run** `python ui/generate_ui_files.py` afterward so headers stay consistent.
@@ -47,8 +47,8 @@ If you ever use `pyside6-uic` directly (for debugging), **re-run** `python ui/ge
 4. **Test**:
    - Verify basic layout and behavior in the PySide6 UI.
    - Confirm integration with service processes and communication channels, as described in:
-     - `DEVELOPMENT_WORKFLOW.md`, section 4 **"Testing Strategy"**  
-     - `tests/TESTING_GUIDE.md`, section 6 **"Running Tests"**
+     - [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md), section 4 **"Testing Strategy"**  
+     - [TESTING_GUIDE.md](tests/TESTING_GUIDE.md), section 6 **"Running Tests"**
 
 ---
 
@@ -58,31 +58,31 @@ All UI files are auto-generated from `.ui` files in `ui/designs/` and stored in 
 
 **Dialog Files (examples):**
 
-- `ui/generated/account_creator_dialog_pyqt.py` – Account creation dialog  
-- `ui/generated/admin_panel_pyqt.py` – Main admin panel interface  
-- `ui/generated/category_management_dialog_pyqt.py` – Category management dialog  
-- `ui/generated/channel_management_dialog_pyqt.py` – Channel management dialog  
-- `ui/generated/checkin_management_dialog_pyqt.py` – Check-in management dialog  
-- `ui/generated/message_editor_dialog_pyqt.py` – Message editing dialog (CRUD operations)  
-- `ui/generated/schedule_editor_dialog_pyqt.py` – Schedule editing dialog  
-- `ui/generated/task_completion_dialog_pyqt.py` – Task completion dialog  
-- `ui/generated/task_crud_dialog_pyqt.py` – Task CRUD operations dialog  
-- `ui/generated/task_edit_dialog_pyqt.py` – Task editing dialog  
-- `ui/generated/task_management_dialog_pyqt.py` – Task management dialog  
-- `ui/generated/user_analytics_dialog_pyqt.py` – User analytics dialog (wellness insights)  
-- `ui/generated/user_profile_management_dialog_pyqt.py` – User profile management dialog  
+- `ui/generated/account_creator_dialog_pyqt.py` - Account creation dialog  
+- `ui/generated/admin_panel_pyqt.py` - Main admin panel interface  
+- `ui/generated/category_management_dialog_pyqt.py` - Category management dialog  
+- `ui/generated/channel_management_dialog_pyqt.py` - Channel management dialog  
+- `ui/generated/checkin_management_dialog_pyqt.py` - Check-in management dialog  
+- `ui/generated/message_editor_dialog_pyqt.py` - Message editing dialog (CRUD operations)  
+- `ui/generated/schedule_editor_dialog_pyqt.py` - Schedule editing dialog  
+- `ui/generated/task_completion_dialog_pyqt.py` - Task completion dialog  
+- `ui/generated/task_crud_dialog_pyqt.py` - Task CRUD operations dialog  
+- `ui/generated/task_edit_dialog_pyqt.py` - Task editing dialog  
+- `ui/generated/task_management_dialog_pyqt.py` - Task management dialog  
+- `ui/generated/user_analytics_dialog_pyqt.py` - User analytics dialog (wellness insights)  
+- `ui/generated/user_profile_management_dialog_pyqt.py` - User profile management dialog  
 
 **Widget Files (examples):**
 
-- `ui/generated/category_selection_widget_pyqt.py` – Category selection widget  
-- `ui/generated/channel_selection_widget_pyqt.py` – Channel selection widget  
-- `ui/generated/checkin_element_template_pyqt.py` – Check-in element template  
-- `ui/generated/checkin_settings_widget_pyqt.py` – Check-in settings widget  
-- `ui/generated/dynamic_list_field_template_pyqt.py` – Dynamic list field template  
-- `ui/generated/period_row_template_pyqt.py` – Period row template  
-- `ui/generated/tag_widget_pyqt.py` – Tag widget  
-- `ui/generated/task_settings_widget_pyqt.py` – Task settings widget  
-- `ui/generated/user_profile_settings_widget_pyqt.py` – User profile settings widget  
+- `ui/generated/category_selection_widget_pyqt.py` - Category selection widget  
+- `ui/generated/channel_selection_widget_pyqt.py` - Channel selection widget  
+- `ui/generated/checkin_element_template_pyqt.py` - Check-in element template  
+- `ui/generated/checkin_settings_widget_pyqt.py` - Check-in settings widget  
+- `ui/generated/dynamic_list_field_template_pyqt.py` - Dynamic list field template  
+- `ui/generated/period_row_template_pyqt.py` - Period row template  
+- `ui/generated/tag_widget_pyqt.py` - Tag widget  
+- `ui/generated/task_settings_widget_pyqt.py` - Task settings widget  
+- `ui/generated/user_profile_settings_widget_pyqt.py` - User profile settings widget  
 
 > These lists are examples only. The authoritative list of generated UI files is whatever is currently in `ui/generated/`.
 
@@ -106,7 +106,7 @@ This will:
 - Add standard MHM headers, including:
   - Generation timestamp
   - Source `.ui` path and output path
-  - “Do not edit manually” warnings
+  - "Do not edit manually" warnings
 
 To generate **one specific** UI file:
 
@@ -140,21 +140,21 @@ If you do this (for example, when experimenting with `pyside6-uic` options):
 
 Core UI layout:
 
-- `ui/designs/` – Qt Designer `.ui` files (source of truth for layout)
-- `ui/generated/` – Auto-generated PySide6 UI classes (`*_pyqt.py`), created by `generate_ui_files.py`
-- `ui/dialogs/` – Dialog implementation classes that:
+- `ui/designs/` - Qt Designer `.ui` files (source of truth for layout)
+- `ui/generated/` - Auto-generated PySide6 UI classes (`*_pyqt.py`), created by `generate_ui_files.py`
+- `ui/dialogs/` - Dialog implementation classes that:
   - Subclass `QDialog` (or `QWidget`, etc.)
   - Own an instance of the generated `Ui_*` class
   - Wire up signals, slots, and business logic
-- `ui/widgets/` – Reusable widget implementations built on top of generated UI components
-- `ui/ui_app_qt.py` – Main Qt admin panel entry point:
+- `ui/widgets/` - Reusable widget implementations built on top of generated UI components
+- `ui/ui_app_qt.py` - Main Qt admin panel entry point:
   - Imports `Ui_ui_app_mainwindow` from `ui.generated.admin_panel_pyqt`
   - Manages service processes, configuration validation, and high-level UI workflows
 
 Where relevant, follow the error-handling and logging patterns described in:
 
-- `core/ERROR_HANDLING_GUIDE.md`, section 2 **"Architecture Overview"**  
-- `logs/LOGGING_GUIDE.md`, section 3 **"Component Loggers and Layout"**
+- [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md), section 2 **"Architecture Overview"**  
+- [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md), section 3 **"Component Loggers and Layout"**
 
 ---
 

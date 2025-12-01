@@ -11,9 +11,9 @@ everything on your local machine.
 
 Current channels:
 
-- Discord – primary production channel
-- Email – present in the code, still evolving
-- Telegram – present in code but currently disabled
+- Discord - primary production channel
+- Email - present in the code, still evolving
+- Telegram - present in code but currently disabled
 
 The system consists of:
 
@@ -133,17 +133,17 @@ in this README.
 
 Key documentation files:
 
-- `README.md` – This file; overview and navigation
-- [HOW_TO_RUN.md](HOW_TO_RUN.md) – Environment setup, configuration, and run commands
-- [ARCHITECTURE.md](ARCHITECTURE.md) – System structure, key modules, and data flows
-- [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) – How to make safe, incremental changes
-- [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) – Documentation standards and sync rules
-- [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) – Logging architecture and patterns
-- [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) – Error handling patterns and recovery rules
-- [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) – Testing strategy and structure
-- [PLANS.md](development_docs/PLANS.md) – Medium/long-term plans and experiments
-- [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) – AI tooling and audit commands
-- [TODO.md](TODO.md) – Practical current priorities and rough task list
+- `README.md` - This file; overview and navigation
+- [HOW_TO_RUN.md](HOW_TO_RUN.md) - Environment setup, configuration, and run commands
+- [ARCHITECTURE.md](ARCHITECTURE.md) - System structure, key modules, and data flows
+- [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) - How to make safe, incremental changes
+- [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) - Documentation standards and sync rules
+- [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) - Logging architecture and patterns
+- [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) - Error handling patterns and recovery rules
+- [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) - Testing strategy and structure
+- [PLANS.md](development_docs/PLANS.md) - Medium/long-term plans and experiments
+- [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) - AI tooling and audit commands
+- [TODO.md](TODO.md) - Practical current priorities and rough task list
 
 AI-facing docs (for tools like Cursor and ChatGPT):
 
@@ -160,10 +160,10 @@ AI-facing docs (for tools like Cursor and ChatGPT):
 
 Configuration-related files:
 
-- `.env.example` – Template; safe to commit and share
-- `.env` – Real credentials and secrets (local only; ignored by tools)
-- `core/config.py` – Central configuration loader and validation
-- `requirements.txt` – Python dependencies
+- `.env.example` - Template; safe to commit and share
+- `.env` - Real credentials and secrets (local only; ignored by tools)
+- `core/config.py` - Central configuration loader and validation
+- `requirements.txt` - Python dependencies
 
 For how documentation is kept in sync (especially human/AI pairs), see
 [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) and [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md).
@@ -249,17 +249,17 @@ This is a personal project focused on one person's mental health and daily life.
 This project is deliberately structured to support a beginner developer who is
 learning as they go, with heavy AI assistance.
 
-- Safety first – assume real data and a real machine. Prefer small, reversible
+- Safety first - assume real data and a real machine. Prefer small, reversible
   changes and keep backups (see [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md) for
   backup commands and safety rules).
-- Learning-focused – many improvements are an excuse to learn a concept
+- Learning-focused - many improvements are an excuse to learn a concept
   (logging, error handling, scheduling, testing, UI). When in doubt, slow down
   and understand what is happening instead of blindly copying code.
-- No rush – it is better to make one small, well-understood change per
+- No rush - it is better to make one small, well-understood change per
   session than a big refactor you cannot debug later.
-- Your control – you decide which improvements to tackle and in what order.
+- Your control - you decide which improvements to tackle and in what order.
   Anything that feels too risky can be deferred or skipped.
-- Recent progress – the project now has centralized logging, centralized
+- Recent progress - the project now has centralized logging, centralized
   error handling, clearer configuration, and better documentation. The goal is
   to keep that momentum without burning out.
 
@@ -337,7 +337,7 @@ You should see `(.venv)` at the start of your shell prompt when it is active.
    ```
 
 2. Verify the Discord bot token in `.env` (`DISCORD_BOT_TOKEN`).
-3. Check the bot’s role and permissions in your test server.
+3. Check the bot's role and permissions in your test server.
 4. Inspect `logs/discord.log` and `logs/errors.log` for error messages.
 
 ### 10.4. Discord slash command warnings
@@ -353,10 +353,10 @@ If you see warnings about slash command syncing:
 
 If you are stuck:
 
-- Development workflow – see [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md).
-- Architecture – see [ARCHITECTURE.md](ARCHITECTURE.md).
-- Current issues and priorities – see [TODO.md](TODO.md).
-- Recent changes – see [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) and
+- Development workflow - see [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md).
+- Architecture - see [ARCHITECTURE.md](ARCHITECTURE.md).
+- Current issues and priorities - see [TODO.md](TODO.md).
+- Recent changes - see [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) and
   [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md).
 
 If you are using an AI assistant (Cursor, ChatGPT, etc.), point it at:

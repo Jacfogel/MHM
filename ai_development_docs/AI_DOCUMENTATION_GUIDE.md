@@ -115,7 +115,19 @@ When suggesting new docs or edits:
 - Always prefer full paths when referencing files outside current directory
 - Verify paths exist using file search tools before referencing
 - Use backticks for file references: `` `core/service.py` ``
-- Cross-reference other docs using specific section numbers when pointing to particular behavior or rules (e.g., "See section 2.6 in `DOCUMENTATION_GUIDE.md`")
+
+**Markdown link standard (for .md references):**
+- Use only the filename as the link text, not the path.
+  - **OK:** `[LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)`
+  - **OK:** `[AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md)`
+- Keep the full project-root path in the link target so links remain unambiguous.
+- Only convert `.md` references when the target file actually exists in the repo.
+- **Metadata section link deduplication**: In metadata sections (H1 heading + lines starting with `>`), each unique file path is linked only once. Subsequent references to the same file in metadata remain as backticks (not converted to links) to avoid repetitive links.
+- Do **not** convert:
+  - `> **File**:` metadata lines
+  - Code fences or inline code examples
+  - Self-references to the current document
+  - Example contexts (marked with `[OK]`, `[AVOID]`, etc.)
 
 **Path drift checker:** Validates that referenced files exist. May flag short names if directory cannot be inferred from context.
 
@@ -153,9 +165,9 @@ Typical examples:
 - `tests/MANUAL_TESTING_GUIDE.md`
   - `Parent`: `tests/TESTING_GUIDE.md`
 - `tests/MANUAL_DISCORD_TEST_GUIDE.md`
-  - `Parent`: `tests/MANUAL_TESTING_GUIDE.md`
-- `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`
-  - `Parent`: `tests/MANUAL_TESTING_GUIDE.md`
+  - `Parent`: [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md)
+- [SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md](tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md)
+  - `Parent`: [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md)
 
 ## 3. Documentation Synchronization Checklist
 

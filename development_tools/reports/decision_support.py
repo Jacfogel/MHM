@@ -46,10 +46,17 @@ HANDLER_KEYWORDS = FUNCTION_DISCOVERY_CONFIG.get('handler_keywords', ['handle', 
 
 
 def find_complexity_functions(functions):
-    """Find functions by complexity level."""
-    moderate = [f for f in functions if f['complexity'] >= MODERATE_COMPLEXITY and f['complexity'] < HIGH_COMPLEXITY]
-    high = [f for f in functions if f['complexity'] >= HIGH_COMPLEXITY and f['complexity'] < CRITICAL_COMPLEXITY]
-    critical = [f for f in functions if f['complexity'] >= CRITICAL_COMPLEXITY]
+    """Find functions by complexity level.
+    
+    Excludes test functions from complexity counts.
+    Test functions are tracked separately and should not inflate complexity metrics.
+    """
+    # Filter out test functions - they should be tracked separately, not in complexity counts
+    non_test_functions = [f for f in functions if not f.get('is_test', False)]
+    
+    moderate = [f for f in non_test_functions if f['complexity'] >= MODERATE_COMPLEXITY and f['complexity'] < HIGH_COMPLEXITY]
+    high = [f for f in non_test_functions if f['complexity'] >= HIGH_COMPLEXITY and f['complexity'] < CRITICAL_COMPLEXITY]
+    critical = [f for f in non_test_functions if f['complexity'] >= CRITICAL_COMPLEXITY]
     return moderate, high, critical
 
 def find_undocumented_handlers(functions):

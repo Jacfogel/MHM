@@ -191,6 +191,11 @@ class LegacyReferenceCleanup:
         if 'fix_legacy_references.py' in rel_path_str:
             return True
         
+        # Skip generated files
+        from development_tools.shared.standard_exclusions import ALL_GENERATED_FILES
+        if rel_path_str in ALL_GENERATED_FILES:
+            return True
+        
         # Skip certain directories (check relative path, not absolute)
         # Import constants from services
         from development_tools.shared.standard_exclusions import STANDARD_EXCLUSION_PATTERNS
@@ -207,7 +212,21 @@ class LegacyReferenceCleanup:
         
         # Skip preserved files
         for preserve_pattern in self.preserve_files:
-            if preserve_pattern in rel_path_str:
+            # Handle directory patterns (archive/, logs/)
+            if preserve_pattern.endswith('/'):
+                # Match if pattern appears anywhere in path (archive/ or /archive/ or archive/something/)
+                if preserve_pattern in rel_path_str or f'/{preserve_pattern}' in rel_path_str:
+                    return True
+            # Handle .cursor/plans directory (no trailing slash in config)
+            elif preserve_pattern == '.cursor/plans':
+                if '.cursor/plans' in rel_path_str or '.cursor\\plans' in rel_path_str:
+                    return True
+            # Handle file name patterns (_PLAN - matches files with _PLAN in name)
+            elif preserve_pattern.startswith('_') or preserve_pattern.endswith('_'):
+                if preserve_pattern in file_path.name:
+                    return True
+            # Handle exact file matches (CHANGELOG_DETAIL.md, AI_CHANGELOG.md)
+            elif preserve_pattern in rel_path_str:
                 return True
         
         # Skip certain file extensions

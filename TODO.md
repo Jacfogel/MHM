@@ -37,12 +37,6 @@ When adding new tasks, follow this format:
 - *Why it helps*: Ensures we're not masking issues behind the test-only shim and maintains long-term robustness.
 - *Estimated effort*: Small
 
-**Monitor Test Warning Status**
-- *What it means*: Monitor test suite warnings to ensure they remain at expected levels (4 external library deprecation warnings expected: 3 Discord + 1 audioop, 1 RuntimeWarning from Discord bot test)
-- *Why it helps*: Ensures test suite health and prevents warnings from masking real issues
-- *Estimated effort*: Small
-
-
 **Channel-Agnostic Command Registry Follow-ups**
 - *What it means*: Finalize and monitor the new centralized command system and Discord integrations
 - *Why it helps*: Ensures consistent behavior across channels and prevents regressions
@@ -67,32 +61,10 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
-**Investigate Function Complexity Count Variance**
-- *What it means*: Function complexity results show inconsistent counts between different tools (e.g., `analyze_functions` shows Moderate: 153, High: 138, Critical: 128, while `decision_support` shows Moderate: 377, High: 390, Critical: 329). Both tools use the same thresholds (50, 100, 200) but produce different results.
-- *Why it helps*: Ensures consistent complexity reporting across all tools and prevents confusion from conflicting metrics
-- *Estimated effort*: Small/Medium
-- *Areas to investigate*:
-  - Compare how `analyze_functions.py` and `decision_support.py` calculate complexity
-  - Check if they're using different function discovery methods or filtering criteria
-  - Verify if they're scanning different file sets or applying different exclusions
-  - Determine which tool's results are more accurate and align the other tool to match
-
-**Fix Remaining Test Failure and Suppress Deprecation Warnings**
-- *What it means*: Fix `test_discord_user_creation` failure where `discord_user_id` is empty in account data, and suppress the 50 deprecation warnings about `__package__ != __spec__.parent` from relative imports in development_tools modules
-- *Why it helps*: Ensures all tests pass and reduces test output noise from expected warnings
-- *Estimated effort*: Small
-- *Current Status*: 1 test failure (discord_user_id not being saved correctly in account.json), 50 deprecation warnings from relative imports
-- *Subtasks*:
-  - [ ] Investigate why `discord_user_id` is empty in `test_discord_user_creation` - verify account.json creation in `_create_user_files_directly__account_data`
-  - [ ] Ensure `discord_user_id` is properly passed through user_data when creating Discord users
-  - [ ] Verify that `update_user_context` doesn't overwrite account data
-  - [ ] Add more specific warning filters in `pytest.ini` to suppress `__package__ != __spec__.parent` warnings from development_tools modules
-
 **AI Chatbot Actionability Sprint** - Plan and implement actionable AI responses
 - *What it means*: Improve AI chat quality and enable robust task/message/profile CRUD, with awareness of recent automated messages and targeted, non-conflicting suggestions.
 - *Why it helps*: Addresses the user's biggest friction and increases real utility.
 - *Estimated effort*: Large
-
 
 **Fix AI response quality issues identified in test results**
 - *What it means*: Address 10 issues identified in AI functionality test results: prompt-response mismatches (greetings not acknowledged, questions redirected), fabricated check-in data, incorrect facts, repetitive responses, code fragments in command responses, and system prompt leaks
@@ -121,20 +93,6 @@ When adding new tasks, follow this format:
 
 
 ## Medium Priority
-
-**Integrate Documentation Utility Scripts into Development Tools**
-- *What it means*: Integrate documentation maintenance scripts (`scripts/utilities/add_documentation_addresses.py`, `scripts/fix_non_ascii_chars.py`, `scripts/verify_ascii_fix.py`, `scripts/number_documentation_headings.py`, `scripts/utilities/convert_paths_to_links.py`) into `docs/analyze_documentation_sync.py` or a new documentation fixer module. Add subcommands to `development_tools/ai_tools_runner.py` for batch operations and integration with audit workflows.
-- *Why it helps*: Makes documentation maintenance tools discoverable through the centralized tool runner; enables batch operations, validation/fix workflows, and integration with `doc-sync` checks. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Integrate `scripts/utilities/add_documentation_addresses.py` functionality into `docs/analyze_documentation_sync.py` or new fixer module
-  - [ ] Integrate `fix_non_ascii_chars.py` and `verify_ascii_fix.py` functionality (ASCII compliance checking/fixing)
-  - [ ] Integrate `number_documentation_headings.py` functionality (heading numbering validation/fixing)
-  - [ ] Integrate `scripts/utilities/convert_paths_to_links.py` functionality (path-to-link conversion)
-  - [ ] Add `fix-docs` or `doc-fix` subcommand to `development_tools/ai_tools_runner.py` with options for: `--add-addresses`, `--fix-ascii`, `--number-headings`, `--convert-links`, `--all`
-  - [ ] Support batch operations (e.g., `doc-fix --all` to process all default docs)
-  - [ ] Consider integrating fix operations into `doc-sync` workflow as optional `--fix` flag
-  - [ ] Update documentation to reflect new command structure
 
 **Update Inter-Documentation References to Include Section Numbers**
 - *What it means*: Update cross-references between documentation files to include section numbers and titles (e.g., "See section 3.2. Logging Architecture in LOGGING_GUIDE.md" instead of just "See LOGGING_GUIDE.md")
@@ -326,7 +284,7 @@ When adding new tasks, follow this format:
 - *Subtasks*:
   - [x] Add CI job step to run `scripts/static_checks/check_channel_loggers.py` (enforced via `run_tests.py` preflight)
   - [ ] Ensure job runs before test steps and fails the pipeline on violations
-  - [ ] Document the check in `logs/LOGGING_GUIDE.md` (contributor notes)
+  - [ ] Document the check in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) (contributor notes)
 
 **Improve AI Terminal Interaction Reliability**
 - *What it means*: Investigate why AI assistants often misinterpret PowerShell output or make incorrect assumptions

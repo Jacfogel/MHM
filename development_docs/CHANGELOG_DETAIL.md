@@ -39,8 +39,19 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-01 - Development Tools Configuration Cleanup and Complexity Calculation Fix **COMPLETED**
+- **Feature**: Consolidated generated files configuration, cleaned up legacy preserve files list, fixed complexity calculation to exclude only test functions (not handlers), fixed ASCII fixer dry-run bug, and fixed system signals audit file path. Removed handler function exclusion from complexity counts as handler keyword detection was too broad and caught many complex business logic functions. Fixed `fix_documentation.py` to correctly report files that would be updated in dry-run mode. Fixed `system_signals.py` to look for correct audit file (`analysis_detailed_results.json` instead of `ai_audit_detailed_results.json`). Consolidated `generated_ai_files`, `generated_doc_files`, and `generated_files` into single `generated_files` list in config. Updated `legacy_preserve_files` to include `archive/`, `logs/`, `.cursor/plans`, and files with `_PLAN` in name, while removing unnecessary entries. Updated `ASCII_COMPLIANCE_FILES` to use `DEFAULT_DOCS` as source of truth. All changes ensure consistency across development tools and accurate reporting.
+- **Technical Changes**:
+  - `development_tools/config/development_tools_config.json`: Consolidated generated files into single list, updated legacy_preserve_files, unified ASCII_COMPLIANCE_FILES with DEFAULT_DOCS
+  - `development_tools/shared/standard_exclusions.py`: Refactored to derive GENERATED_FILE_PATHS and GENERATED_FILE_PATTERNS from single generated_files config list
+  - `development_tools/reports/decision_support.py`: Removed handler function exclusion from complexity counts (now only excludes test functions)
+  - `development_tools/docs/fix_documentation.py`: Fixed dry-run mode to correctly count files that would be updated
+  - `development_tools/reports/system_signals.py`: Fixed audit file path from `ai_audit_detailed_results.json` to `analysis_detailed_results.json`
+  - `development_tools/shared/operations.py`: Updated AI_PRIORITIES generation to use `doc-fix` instead of `doc-sync` for ASCII fixes
+- **Impact**: Complexity metrics now accurately reflect all non-test functions. Configuration is cleaner and more maintainable. ASCII fixer correctly reports what it would fix. System health checks now find audit data correctly.
+
 ### 2025-12-01 - Phase 7.1 Completion: Second Batch Renames and Development Tools Bug Fixes **COMPLETED**
-- **Feature**: Completed Phase 7.1 milestone M7.1 - second batch of file renames and all reference updates. Renamed 7 Python files and 2 JSON files: `ai_tools_runner.py` → `run_development_tools.py`, `function_discovery.py` → `analyze_functions.py`, `version_sync.py` → `fix_version_sync.py`, `auto_document_functions.py` → `generate_function_docstrings.py`, `generate_coverage_metrics.py` → `generate_test_coverage.py`, `consolidated_report.py` → `generate_consolidated_report.py`, `config_validation_results.json` → `analyze_config_results.json`, `ai_audit_detailed_results.json` → `analysis_detailed_results.json`. Created shorthand alias `run_dev_tools.py` for `run_development_tools.py`. Updated all references in SCRIPT_REGISTRY, tool_metadata.py, config files, test files, and documentation. Fixed multiple development tools issues: resolved ModuleNotFoundError in `generate_module_dependencies.py` by adding project root to sys.path when running as script. Fixed duplicate logging issues: removed duplicate directory tree generation messages in `operations.py` and `analyze_documentation_sync.py`, consolidated pytest command logging into single entry in `generate_test_coverage.py`. Fixed `.cursor/rules/*.mdc (not found)` issue in `fix_version_sync.py` by implementing glob pattern expansion for cursor_rules configuration.
+- **Feature**: Completed Phase 7.1 milestone M7.1 - second batch of file renames and all reference updates. Renamed 7 Python files and 2 JSON files: `ai_tools_runner.py` -> `run_development_tools.py`, `function_discovery.py` -> `analyze_functions.py`, `version_sync.py` -> `fix_version_sync.py`, `auto_document_functions.py` -> `generate_function_docstrings.py`, `generate_coverage_metrics.py` -> `generate_test_coverage.py`, `consolidated_report.py` -> `generate_consolidated_report.py`, `config_validation_results.json` -> `analyze_config_results.json`, `ai_audit_detailed_results.json` -> `analysis_detailed_results.json`. Created shorthand alias `run_dev_tools.py` for `run_development_tools.py`. Updated all references in SCRIPT_REGISTRY, tool_metadata.py, config files, test files, and documentation. Fixed multiple development tools issues: resolved ModuleNotFoundError in `generate_module_dependencies.py` by adding project root to sys.path when running as script. Fixed duplicate logging issues: removed duplicate directory tree generation messages in `operations.py` and `analyze_documentation_sync.py`, consolidated pytest command logging into single entry in `generate_test_coverage.py`. Fixed `.cursor/rules/*.mdc (not found)` issue in `fix_version_sync.py` by implementing glob pattern expansion for cursor_rules configuration.
 - **Technical Changes**: 
   - **File Renames**: Renamed 7 Python files and 2 JSON files following Phase 7.1 naming conventions. Created `run_dev_tools.py` shorthand alias.
   - **Reference Updates**: Updated all imports, SCRIPT_REGISTRY entries, tool_metadata.py entries, config file keys, test file references, and documentation paths throughout codebase.
@@ -49,7 +60,7 @@ When adding new changes, follow this format:
   - `development_tools/docs/analyze_documentation_sync.py`: Removed redundant print statement for directory tree generation
   - `development_tools/tests/generate_test_coverage.py`: Consolidated truncated and full pytest command logs into single entry
   - `development_tools/docs/fix_version_sync.py`: Added `glob` import and implemented pattern expansion for `CURSOR_RULES` in `sync_versions()`, `find_trackable_files()`, `show_current_versions()`, and `show_modification_status()` functions
-- **Documentation**: Updated `AI_DEV_TOOLS_IMPROVEMENT_PLAN.md` to mark M7.1 as COMPLETED (2025-12-01), added second batch of renames (ai_tools_runner → run_development_tools, function_discovery → analyze_functions, etc.), documented `run_dev_tools.py` shorthand alias creation. Verified `AI_DEVELOPMENT_TOOLS_GUIDE.md` and `DEVELOPMENT_TOOLS_GUIDE.md` already have correct references.
+- **Documentation**: Updated `AI_DEV_TOOLS_IMPROVEMENT_PLAN.md` to mark M7.1 as COMPLETED (2025-12-01), added second batch of renames (ai_tools_runner -> run_development_tools, function_discovery -> analyze_functions, etc.), documented `run_dev_tools.py` shorthand alias creation. Verified `AI_DEVELOPMENT_TOOLS_GUIDE.md` and `DEVELOPMENT_TOOLS_GUIDE.md` already have correct references.
 - **TODO**: Added task to investigate function complexity count variance between `analyze_functions` and `decision_support` tools (Moderate: 153 vs 377, High: 138 vs 390, Critical: 128 vs 329).
 - **Impact**: Phase 7.1 milestone M7.1 is now complete with all naming conventions applied consistently across the development tools suite. All tools follow the 3-prefix naming system (`analyze_*`, `generate_*`, `fix_*`) or descriptive utility names. Development tools now run without errors, logging is cleaner and more informative, version sync correctly handles glob patterns, and all references are updated and verified.
 
@@ -145,7 +156,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
      - Added helper functions to `config.py`: `get_project_name()`, `get_project_key_files()`
      - All tools now accept `project_root` and `config_path` parameters
      - Updated `development_tools_config.json` with all new configuration sections
-     - Tools use consistent pattern: tool-specific config → project config → generic defaults
+     - Tools use consistent pattern: tool-specific config -> project config -> generic defaults
   4. **Bug Fixes**:
      - Fixed syntax error in `audit_function_registry.py`: moved `global PATHS` declaration to top of function
      - Removed non-existent `config.set_project_root()` calls from 3 files (unused_imports_checker.py, validate_ai_work.py, auto_document_functions.py)
@@ -179,7 +190,7 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
      - Created `development_tools_config.json` in project root with all MHM-specific settings
      - Created `development_tools/development_tools_config.json.example` as a template for other projects
      - All tools now check for external config file on initialization with generic fallbacks
-     - Configuration priority: external config → hardcoded defaults (generic/empty)
+     - Configuration priority: external config -> hardcoded defaults (generic/empty)
   2. **Core Tool Portability** (all 11 tools made portable):
      - `ai_tools_runner.py`: Added `--project-root` and `--config-path` CLI arguments
      - `services/operations.py`: Accepts `project_root`, `config_path`, `project_name`, `key_files` parameters; replaced hardcoded "MHM" references with generic "Project"
@@ -235,8 +246,8 @@ Prevent coverage runs from failing when Qt system dependencies (e.g., libGL) are
 - **Technical Changes**:
   1. **Milestone M4.1 - Move Experimental Tools**:
      - Created `development_tools/experimental/` directory with `__init__.py`
-     - Moved `development_tools/version_sync.py` → `development_tools/experimental/version_sync.py`
-     - Moved `development_tools/auto_document_functions.py` → `development_tools/experimental/auto_document_functions.py`
+     - Moved `development_tools/version_sync.py` -> `development_tools/experimental/version_sync.py`
+     - Moved `development_tools/auto_document_functions.py` -> `development_tools/experimental/auto_document_functions.py`
      - Updated all imports and references in `operations.py`, `tool_metadata.py`, and documentation
      - Fixed import path in `version_sync.py` for `documentation_sync_checker` (changed from `.` to `..`)
      - CLI help output correctly reflects experimental status with warnings

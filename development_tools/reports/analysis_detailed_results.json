@@ -1,9 +1,9 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2025-12-01 03:41:10",
+  "last_generated": "2025-12-01 07:10:38",
   "source": "python development_tools/run_development_tools.py audit",
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2025-12-01T03:41:10.960967",
+  "timestamp": "2025-12-01T07:10:38.327156",
   "successful": [
     "analyze_functions",
     "decision_support",
@@ -36,13 +36,13 @@
       "data": {
         "decision_support_metrics": {
           "total_functions": 1490,
-          "moderate_complexity": 377,
-          "high_complexity": 390,
-          "critical_complexity": 329,
+          "moderate_complexity": 352,
+          "high_complexity": 376,
+          "critical_complexity": 321,
           "undocumented": 5
         }
       },
-      "timestamp": "2025-12-01T03:46:27.566025"
+      "timestamp": "2025-12-01T07:14:39.011073"
     },
     "analyze_function_registry": {
       "success": true,
@@ -3635,15 +3635,15 @@
     },
     "analyze_documentation_sync": {
       "success": true,
-      "output": "\nSUMMARY:\n   Status: FAIL\n   Total Issues: 224\n   Paired Doc Issues: 1\n   Path Drift Issues: 14\n   ASCII Compliance Issues: 1\n   Heading Numbering Issues: 0\n\nPAIRED DOCUMENTATION ISSUES:\n   content_sync:\n     - ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md has sections missing in DEVELOPMENT_WORKFLOW.md: {'10. Standard Audit Recipe'}\n\nPATH DRIFT ISSUES:\n   Total files with issues: 14\n   Total issues found: 222\n   Top files with most issues:\n     development_tools\\AI_DEV_TOOLS_IMPROVEMENT_PLAN.md: 123 issues\n     .cursor\\plans\\phase-7-naming-and-directory-reorganization-0001ba11.plan.md: 29 issues\n     .cursor\\plans\\phase-7-renaming-complete-deployment-aeb0a7e9.plan.md: 27 issues\n     TODO.md: 12 issues\n     development_tools\\DEVELOPMENT_TOOLS_GUIDE.md: 8 issues\n\nASCII COMPLIANCE ISSUES:\n   Total files with non-ASCII characters: 1\n   Total issues found: 1\n   Files with non-ASCII characters:\n     development_docs/CHANGELOG_DETAIL.md: 1 issues\n       - Non-ASCII character '' (U+2192) at positions: [14604, 14621, 17618, 24662, 24773]\n\nFound 224 documentation synchronization issues.\n   Consider running with --fix to attempt automatic fixes.\n",
+      "output": "\nSUMMARY:\n   Status: FAIL\n   Total Issues: 48\n   Paired Doc Issues: 1\n   Path Drift Issues: 10\n   ASCII Compliance Issues: 3\n   Heading Numbering Issues: 0\n   Missing Address Issues: 0\n   Unconverted Link Issues: 1\n\nPAIRED DOCUMENTATION ISSUES:\n   content_sync:\n     - ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md has sections missing in DEVELOPMENT_WORKFLOW.md: {'10. Standard Audit Recipe'}\n\nPATH DRIFT ISSUES:\n   Total files with issues: 10\n   Total issues found: 35\n   Top files with most issues:\n     TODO.md: 9 issues\n     development_tools\\DEVELOPMENT_TOOLS_GUIDE.md: 8 issues\n     ai_development_docs\\AI_TESTING_GUIDE.md: 4 issues\n     DOCUMENTATION_GUIDE.md: 3 issues\n     tests\\TESTING_GUIDE.md: 3 issues\n\nASCII COMPLIANCE ISSUES:\n   Total files with non-ASCII characters: 3\n   Total issues found: 11\n   Files with non-ASCII characters:\n     PROJECT_VISION.md: 3 issues\n       - Non-ASCII character '' (U+2705): 6 instance(s) found (manual review needed)\n       - Non-ASCII character '' (U+1F4CB): 9 instance(s) found (manual review needed)\n       - Non-ASCII character '' (U+1F504): 5 instance(s) found (manual review needed)\n     tests/MANUAL_DISCORD_TEST_GUIDE.md: 7 issues\n       - Non-ASCII character '' (U+26A0): 1 instance(s) found (manual review needed)\n       - Non-ASCII character '' (U+2705): 9 instance(s) found (manual review needed)\n       - Non-ASCII character '' (U+274C): 1 instance(s) found (manual review needed)\n       ... and 4 more issues\n     ai/SYSTEM_AI_GUIDE.md: 1 issues\n       - Non-ASCII character '' (U+2026): 1 instance(s) found (manual review needed)\n\nUNCONVERTED LINK ISSUES:\n   Total files with unconverted links: 1\n   Total issues found: 1\n   Files with unconverted links:\n     development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md: 1 issues\n       - Line 8: Path `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` should be converted to markdown link\n\nFound 48 documentation synchronization issues.\n   Consider running 'doc-fix' to attempt automatic fixes.\n",
       "error": "",
       "returncode": 0,
       "data": {
         "status": "FAIL",
-        "total_issues": 224,
+        "total_issues": 48,
         "paired_doc_issues": 1,
-        "path_drift_issues": 14,
-        "ascii_compliance_issues": 1,
+        "path_drift_issues": 10,
+        "ascii_compliance_issues": 3,
         "heading_numbering_issues": 0,
         "path_drift_files": [
           "DOCUMENTATION_GUIDE.md",
@@ -3653,13 +3653,9 @@
           "ai_development_docs\\AI_SESSION_STARTER.md",
           "ai_development_docs\\AI_TESTING_GUIDE.md",
           "core\\ERROR_HANDLING_GUIDE.md",
-          "development_docs\\MODULE_DEPENDENCIES_DETAIL.md",
           "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md",
-          "development_tools\\AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
           "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md",
-          "tests\\TESTING_GUIDE.md",
-          ".cursor\\plans\\phase-7-naming-and-directory-reorganization-0001ba11.plan.md",
-          ".cursor\\plans\\phase-7-renaming-complete-deployment-aeb0a7e9.plan.md"
+          "tests\\TESTING_GUIDE.md"
         ],
         "paired_docs": {
           "content_sync": [
@@ -3668,11 +3664,7 @@
         },
         "path_drift": {
           "DOCUMENTATION_GUIDE.md": [
-            "Missing file: development_tools/config.py",
-            "Missing file: development_tools/config.py",
-            "Missing file: development_tools/services/operations.py",
             "Missing file: docs/analyze_documentation_sync.py",
-            "Missing file: development_tools/ai_tools_runner.py",
             "Missing file: development_tools/ai_tools_runner.py",
             "Missing file: development_tools/services/operations.py"
           ],
@@ -3685,9 +3677,6 @@
             "Missing file: docs/analyze_documentation_sync.py",
             "Missing file: tests/generate_coverage_metrics.py",
             "Missing file: development_tools/ai_tools_runner.py",
-            "Missing file: development_tools/ai_tools_runner.py",
-            "Missing file: development_tools/cleanup.py",
-            "Missing file: development_tools/project_cleanup.py",
             "Missing file: development_tools/ai_tools_runner.py"
           ],
           "ai_development_docs\\AI_DOCUMENTATION_GUIDE.md": [
@@ -3710,136 +3699,8 @@
           "core\\ERROR_HANDLING_GUIDE.md": [
             "Missing file: development_tools/ai_tools_runner.py"
           ],
-          "development_docs\\MODULE_DEPENDENCIES_DETAIL.md": [
-            "Missing file: tests/development_tools/test_ai_tools_runner.py"
-          ],
           "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md": [
             "Missing file: config.py",
-            "Missing file: config.py"
-          ],
-          "development_tools\\AI_DEV_TOOLS_IMPROVEMENT_PLAN.md": [
-            "Missing file: development_tools/config.py",
-            "Missing file: development_tools/services/tool_metadata.py",
-            "Missing file: development_tools/config.py",
-            "Missing file: development_tools/services/constants.py",
-            "Missing file: development_tools/services/common.py",
-            "Missing file: development_tools/services/tool_metadata.py",
-            "Missing file: development_tools/services/tool_metadata.py",
-            "Missing file: development_tools/services/operations.py",
-            "Missing file: development_tools/documentation_sync_checker.py",
-            "Missing file: development_tools/generate_module_dependencies.py",
-            "Missing file: development_tools/analyze_documentation.py",
-            "Missing file: development_tools/legacy_reference_cleanup.py",
-            "Missing file: development_tools/system_signals.py",
-            "Missing file: development_tools/quick_status.py",
-            "Missing file: development_tools/file_rotation.py",
-            "Missing file: development_tools/audit_module_dependencies.py",
-            "Missing file: development_tools/tool_guide.py",
-            "Missing file: development_tools/services/tool_metadata.py",
-            "Missing file: development_tools/config.py",
-            "Missing file: development_tools/services/constants.py",
-            "Missing file: development_tools/ai_tools_runner.py",
-            "Missing file: development_tools/services/operations.py",
-            "Missing file: development_tools/ai_tools_runner.py",
-            "Missing file: development_tools/documentation_sync_checker.py",
-            "Missing file: development_tools/generate_module_dependencies.py",
-            "Missing file: development_tools/legacy_reference_cleanup.py",
-            "Missing file: development_tools/regenerate_coverage_metrics.py",
-            "Missing file: development_tools/quick_status.py",
-            "Missing file: development_tools/system_signals.py",
-            "Missing file: development_tools/file_rotation.py",
-            "Missing file: development_tools/ai_tools_runner.py",
-            "Missing file: development_tools/services/operations.py",
-            "Missing file: development_tools/config.py",
-            "Missing file: development_tools/services/constants.py",
-            "Missing file: development_tools/services/common.py",
-            "Missing file: development_tools/documentation_sync_checker.py",
-            "Missing file: development_tools/generate_module_dependencies.py",
-            "Missing file: development_tools/legacy_reference_cleanup.py",
-            "Missing file: development_tools/regenerate_coverage_metrics.py",
-            "Missing file: development_tools/analyze_documentation.py",
-            "Missing file: development_tools/audit_module_dependencies.py",
-            "Missing file: development_tools/quick_status.py",
-            "Missing file: development_tools/system_signals.py",
-            "Missing file: development_tools/file_rotation.py",
-            "Missing file: development_tools/tool_guide.py",
-            "Missing file: development_tools/experimental/version_sync.py",
-            "Missing file: development_tools/experimental/auto_document_functions.py",
-            "Missing file: development_tools/services/tool_metadata.py",
-            "Missing file: development_tools/services/common.py",
-            "Missing file: development_tools/services/tool_metadata.py",
-            "Missing file: development_tools/ai_tools_runner.py",
-            "Missing file: development_tools/services/operations.py",
-            "Missing file: development_tools/tool_guide.py",
-            "Missing file: development_tools/services/tool_metadata.py",
-            "Missing file: development_tools/experimental/version_sync.py",
-            "Missing file: development_tools/experimental/auto_document_functions.py",
-            "Missing file: development_tools/analyze_documentation.py",
-            "Missing file: development_tools/audit_module_dependencies.py",
-            "Missing file: development_tools/quick_status.py",
-            "Missing file: development_tools/system_signals.py",
-            "Missing file: development_tools/experimental/version_sync.py",
-            "Missing file: development_tools/experimental/auto_document_functions.py",
-            "Missing file: tests/development_tools/test_ai_tools_runner.py",
-            "Missing file: development_tools/services/operations.py",
-            "Missing file: ai_tools_runner.py",
-            "Missing file: development_tools/documentation_sync_checker.py",
-            "Missing file: development_tools/generate_module_dependencies.py",
-            "Missing file: development_tools/legacy_reference_cleanup.py",
-            "Missing file: development_tools/regenerate_coverage_metrics.py",
-            "Missing file: development_tools/version_sync.py",
-            "Missing file: development_tools/experimental/version_sync.py",
-            "Missing file: development_tools/auto_document_functions.py",
-            "Missing file: development_tools/experimental/auto_document_functions.py",
-            "Missing file: operations.py",
-            "Missing file: tool_metadata.py",
-            "Missing file: version_sync.py",
-            "Missing file: operations.py",
-            "Missing file: analyze_documentation.py",
-            "Missing file: audit_module_dependencies.py",
-            "Missing file: MODULE_DEPENDENCIES_DETAIL.md",
-            "Missing file: quick_status.py",
-            "Missing file: system_signals.py",
-            "Missing file: file_rotation.py",
-            "Missing file: tool_guide.py",
-            "Missing file: audit_module_dependencies.py",
-            "Missing file: tool_metadata.py",
-            "Missing file: tool_metadata.py",
-            "Missing file: operations.py",
-            "Missing file: regenerate_coverage_metrics.py",
-            "Missing file: tool_guide.py",
-            "Missing file: operations.py",
-            "Missing file: tool_guide.py",
-            "Missing file: operations.py",
-            "Missing file: ai_tools_runner.py",
-            "Missing file: development_tools/ai_tools_runner.py",
-            "Missing file: development_tools/services/operations.py",
-            "Missing file: development_tools/config.py",
-            "Missing file: development_tools/services/constants.py",
-            "Missing file: development_tools/documentation_sync_checker.py",
-            "Missing file: development_tools/generate_module_dependencies.py",
-            "Missing file: development_tools/legacy_reference_cleanup.py",
-            "Missing file: development_tools/regenerate_coverage_metrics.py",
-            "Missing file: development_tools/analyze_documentation.py",
-            "Missing file: development_tools/audit_module_dependencies.py",
-            "Missing file: development_tools/quick_status.py",
-            "Missing file: development_tools/system_signals.py",
-            "Missing file: development_tools/tool_guide.py",
-            "Missing file: tool_metadata.py",
-            "Missing file: development_tools/file_rotation.py",
-            "Missing file: development_tools/experimental/version_sync.py",
-            "Missing file: development_tools/experimental/auto_document_functions.py",
-            "Missing file: development_tools/services/common.py",
-            "Missing file: development_tools/system_signals.py",
-            "Missing file: development_tools/file_rotation.py",
-            "Missing file: docs/documentation_sync_checker.py",
-            "Missing file: legacy/legacy_reference_cleanup.py",
-            "Missing file: tests/regenerate_coverage_metrics.py",
-            "Missing file: config.py",
-            "Missing file: file_rotation.py",
-            "Missing file: tool_guide.py",
-            "Missing file: operations.py",
-            "Missing file: tool_metadata.py",
             "Missing file: config.py"
           ],
           "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md": [
@@ -3856,71 +3717,25 @@
             "Missing file: docs/analyze_documentation_sync.py",
             "Missing file: development_tools/generate_module_dependencies.py",
             "Missing file: legacy/fix_legacy_references.py"
-          ],
-          ".cursor\\plans\\phase-7-naming-and-directory-reorganization-0001ba11.plan.md": [
-            "Missing file: generate_module_dependencies.py",
-            "Missing file: audit_module_dependencies.py",
-            "Missing file: regenerate_coverage_metrics.py",
-            "Missing file: analyze_documentation.py",
-            "Missing file: documentation_sync_checker.py",
-            "Missing file: legacy_reference_cleanup.py",
-            "Missing file: quick_status.py",
-            "Missing file: system_signals.py",
-            "Missing file: ai_tools_runner.py",
-            "Missing file: config.py",
-            "Missing file: file_rotation.py",
-            "Missing file: tool_guide.py",
-            "Missing file: operations.py",
-            "Missing file: common.py",
-            "Missing file: constants.py",
-            "Missing file: tool_metadata.py",
-            "Missing file: AI_STATUS.md",
-            "Missing file: AI_PRIORITIES.md",
-            "Potentially outdated module: compatibility",
-            "Missing file: ai_tools_runner.py",
-            "Missing file: shared/operations.py",
-            "Missing file: shared/tool_metadata.py",
-            "Missing file: config.py",
-            "Missing file: tests/regenerate_coverage_metrics.py",
-            "Missing file: shared/operations.py",
-            "Missing file: development_tools/ai_tools_runner.py",
-            "Potentially outdated module: development_tools",
-            "Missing file: tool_metadata.py",
-            "Missing file: operations.py"
-          ],
-          ".cursor\\plans\\phase-7-renaming-complete-deployment-aeb0a7e9.plan.md": [
-            "Missing file: development_tools/docs/version_sync.py",
-            "Missing file: development_tools/functions/auto_document_functions.py",
-            "Missing file: development_tools/tests/generate_coverage_metrics.py",
-            "Missing file: development_tools/ai_tools_runner.py",
-            "Missing file: tests/development_tools/test_ai_tools_runner.py",
-            "Missing file: test_run_development_tools.py",
-            "Missing file: ai_tools_runner.py",
-            "Missing file: run_development_tools.py",
-            "Missing file: generate_coverage_metrics.py",
-            "Missing file: generate_test_coverage.py",
-            "Missing file: ai_tools_runner.py",
-            "Missing file: run_development_tools.py",
-            "Missing file: ai_tools_runner.py",
-            "Missing file: run_development_tools.py",
-            "Missing file: ai_tools_runner.py",
-            "Missing file: run_development_tools.py",
-            "Missing file: ai_tools_runner.py",
-            "Missing file: run_development_tools.py",
-            "Missing file: ai_tools_runner.py",
-            "Missing file: run_development_tools.py",
-            "Missing file: ai_tools_runner.py",
-            "Missing file: run_development_tools.py",
-            "Missing file: tool_metadata.py",
-            "Missing file: operations.py",
-            "Missing file: config.py",
-            "Missing file: analyze_config.py",
-            "Missing file: test_ai_tools_runner.py"
           ]
         },
         "ascii_compliance": {
-          "development_docs/CHANGELOG_DETAIL.md": [
-            "Non-ASCII character '\u2192' (U+2192) at positions: [14604, 14621, 17618, 24662, 24773]"
+          "PROJECT_VISION.md": [
+            "Non-ASCII character '\u2705' (U+2705): 6 instance(s) found (manual review needed)",
+            "Non-ASCII character '\ud83d\udccb' (U+1F4CB): 9 instance(s) found (manual review needed)",
+            "Non-ASCII character '\ud83d\udd04' (U+1F504): 5 instance(s) found (manual review needed)"
+          ],
+          "tests/MANUAL_DISCORD_TEST_GUIDE.md": [
+            "Non-ASCII character '\u26a0' (U+26A0): 1 instance(s) found (manual review needed)",
+            "Non-ASCII character '\u2705' (U+2705): 9 instance(s) found (manual review needed)",
+            "Non-ASCII character '\u274c' (U+274C): 1 instance(s) found (manual review needed)",
+            "Non-ASCII character '\ufe0f' (U+FE0F): 1 instance(s) found (manual review needed)",
+            "Non-ASCII character '\ud83d\udc1b' (U+1F41B): 1 instance(s) found (manual review needed)",
+            "Non-ASCII character '\ud83d\udca1' (U+1F4A1): 1 instance(s) found (manual review needed)",
+            "Non-ASCII character '\ud83d\udcdd' (U+1F4DD): 1 instance(s) found (manual review needed)"
+          ],
+          "ai/SYSTEM_AI_GUIDE.md": [
+            "Non-ASCII character '\u2026' (U+2026): 1 instance(s) found (manual review needed)"
           ]
         },
         "heading_numbering": {}
@@ -3929,9 +3744,9 @@
     "system_signals": {
       "success": true,
       "data": {
-        "timestamp": "2025-12-01T03:46:22.959457",
+        "timestamp": "2025-12-01T07:14:35.978189",
         "system_health": {
-          "overall_status": "ISSUES",
+          "overall_status": "OK",
           "core_files": {
             "run_mhm.py": "OK",
             "core/service.py": "OK",
@@ -3947,41 +3762,37 @@
             "user": "OK",
             "tests": "OK"
           },
-          "last_audit": null,
-          "warnings": [
-            "No recent audit data found"
-          ],
+          "last_audit": "2025-12-01T07:14:26.470548",
+          "warnings": [],
           "errors": []
         },
         "recent_activity": {
           "recent_changes": [
-            ".cursor/commands/audit.md",
-            ".cursor/commands/docs.md",
-            ".cursor/commands/full-audit.md",
-            ".cursor/commands/refactor.md",
-            ".cursor/commands/start.md",
-            ".cursor/commands/triage-issue.md",
+            ".cursor/plans/phase-7-naming-and-directory-reorganization-0001ba11.plan.md",
             ".cursor/plans/phase-7-renaming-complete-deployment-aeb0a7e9.plan.md",
+            ".cursor/rules/ai-tools.mdc",
+            ".cursor/rules/communication-guidelines.mdc",
+            ".cursor/rules/context.mdc",
+            ".cursor/rules/core-guidelines.mdc",
+            ".cursor/rules/critical.mdc",
+            ".cursor/rules/quality-standards.mdc",
+            ".cursor/rules/testing-guidelines.mdc",
+            ".cursor/rules/ui-guidelines.mdc",
             "DOCUMENTATION_GUIDE.md",
-            "TODO.md",
-            "ai_development_docs/AI_CHANGELOG.md",
-            "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-            "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
-            "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-            "ai_development_docs/AI_FUNCTION_REGISTRY.md",
-            "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md"
+            "HOW_TO_RUN.md",
+            "PROJECT_VISION.md",
+            "README.md",
+            "TODO.md"
           ],
           "git_status": "Modified",
           "last_commit": null,
           "uncommitted_changes": true
         },
-        "critical_alerts": [
-          "CRITICAL: Recent errors in logs/errors.log"
-        ],
+        "critical_alerts": [],
         "performance_indicators": {
           "log_file_sizes": {
             "ai.log": "0.0MB",
-            "ai_dev_tools.log": "0.3MB",
+            "ai_dev_tools.log": "0.4MB",
             "app.log": "0.2MB",
             "communication_manager.log": "0.1MB",
             "discord.log": "0.0MB",
@@ -3997,7 +3808,7 @@
           "memory_usage": "Unknown"
         }
       },
-      "timestamp": "2025-12-01T03:46:27.566025"
+      "timestamp": "2025-12-01T07:14:39.011073"
     },
     "fix_legacy_references": {
       "success": true,
@@ -4006,7 +3817,7 @@
         "legacy_markers": 1,
         "report_path": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_docs\\LEGACY_REFERENCE_REPORT.md"
       },
-      "timestamp": "2025-12-01T03:46:27.566025"
+      "timestamp": "2025-12-01T07:14:39.011073"
     },
     "analyze_ai_work": {
       "success": true,
@@ -4016,7 +3827,7 @@
         "error": "",
         "returncode": 0
       },
-      "timestamp": "2025-12-01T03:46:27.566025"
+      "timestamp": "2025-12-01T07:14:39.011073"
     }
   }
 }

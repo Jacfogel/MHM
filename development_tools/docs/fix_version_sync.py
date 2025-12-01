@@ -37,16 +37,26 @@ logger = get_component_logger("development_tools")
 # Configuration - File Categories from config
 VERSION_SYNC_CONFIG = config.get_fix_version_sync_config()
 AI_DOCS = VERSION_SYNC_CONFIG['ai_docs']
-GENERATED_AI_DOCS = VERSION_SYNC_CONFIG.get('generated_ai_docs', [])
-GENERATED_DOCS = VERSION_SYNC_CONFIG.get('generated_docs', [])
+
+# Use consolidated generated files from exclusions section
+from development_tools.shared.standard_exclusions import ALL_GENERATED_FILES
+# Extract .md files from ALL_GENERATED_FILES for generated docs
+# (exclude .txt, .json files which are also in the list)
+# AI docs: files in ai_development_docs/ or development_tools/ directories
+GENERATED_AI_DOCS = [f for f in ALL_GENERATED_FILES if f.endswith('.md') and ('ai_development_docs/' in f or 'development_tools/' in f)]
+# Doc files: files in development_docs/ directory (exclude ai_development_docs/)
+GENERATED_DOCS = [f for f in ALL_GENERATED_FILES if f.endswith('.md') and 'development_docs/' in f and 'ai_development_docs/' not in f]
+
 CURSOR_RULES = VERSION_SYNC_CONFIG['cursor_rules']
-CURSOR_COMMANDS = VERSION_SYNC_CONFIG.get('cursor_commands', [])
+# cursor_commands removed (file doesn't exist)
+CURSOR_COMMANDS = []
 COMMUNICATION_DOCS = VERSION_SYNC_CONFIG.get('communication_docs', [])
 CORE_DOCS = VERSION_SYNC_CONFIG.get('core_docs', [])
 LOGS_DOCS = VERSION_SYNC_CONFIG.get('logs_docs', [])
 SCRIPTS_DOCS = VERSION_SYNC_CONFIG.get('scripts_docs', [])
 TESTS_DOCS = VERSION_SYNC_CONFIG.get('tests_docs', [])
-CORE_SYSTEM_FILES = VERSION_SYNC_CONFIG['core_system_files']
+# Use consolidated core_system_files from project.core_system_files
+CORE_SYSTEM_FILES = config.get_project_core_system_files()
 DOCUMENTATION_PATTERNS = VERSION_SYNC_CONFIG['documentation_patterns']
 EXCLUDE_PATTERNS = VERSION_SYNC_CONFIG['exclude_patterns']
 

@@ -1,7 +1,7 @@
 # Legacy Reference Cleanup Report
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
-> **Generated**: 2025-12-01 03:41:16
+> **Generated**: 2025-12-01 07:10:44
 **Total Files with Issues**: 2
 **Legacy Compatibility Markers Detected**: 20
 

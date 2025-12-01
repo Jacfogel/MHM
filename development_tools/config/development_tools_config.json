@@ -5,6 +5,13 @@
       "run_mhm.py",
       "core/service.py",
       "core/config.py"
+    ],
+    "core_system_files": [
+      "run_mhm.py",
+      "core/service.py",
+      "core/config.py",
+      "requirements.txt",
+      ".gitignore"
     ]
   },
   "paths": {
@@ -34,10 +41,6 @@
       "ai_development_docs/AI_SESSION_STARTER.md",
       "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md"
     ],
-    "generated_ai_docs": [
-      "ai_development_docs/AI_FUNCTION_REGISTRY.md",
-      "ai_development_docs/AI_MODULE_DEPENDENCIES.md"
-    ],
     "docs": [
       "README.md",
       "development_docs/CHANGELOG_DETAIL.md",
@@ -50,24 +53,8 @@
       "ARCHITECTURE.md",
       "HOW_TO_RUN.md"
     ],
-    "generated_docs": [
-      "development_docs/FUNCTION_REGISTRY_DETAIL.md",
-      "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
-      "development_docs/DIRECTORY_TREE.md",
-      "development_docs/LEGACY_REFERENCE_REPORT.md"
-    ],
-    "core": [
-      "run_mhm.py",
-      "core/service.py",
-      "core/config.py",
-      "requirements.txt",
-      ".gitignore"
-    ],
     "cursor_rules": [
       ".cursor/rules/*.mdc"
-    ],
-    "cursor_commands": [
-      ".cursor/commands/README.md"
     ],
     "communication_docs": [
       "communication/communication_channels/discord/DISCORD_GUIDE.md"
@@ -83,11 +70,6 @@
     ],
     "tests_docs": [
       "tests/TESTING_GUIDE.md"
-    ],
-    "core_system_files": [
-      "run_mhm.py",
-      "core/service.py",
-      "core/config.py"
     ],
     "documentation_patterns": [
       "*.md"
@@ -408,32 +390,6 @@
     ],
     "tool_exclusions": {},
     "context_exclusions": {
-      "recent_changes": [
-        "development_tools/AI_PRIORITIES.md",
-        "development_tools/AI_STATUS.md",
-        "development_tools/consolidated_report.txt",
-        "development_tools/analysis_detailed_results.json",
-        "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
-        "ai_development_docs/AI_FUNCTION_REGISTRY.md",
-        "development_docs/DIRECTORY_TREE.md",
-        "development_docs/FUNCTION_REGISTRY_DETAIL.md",
-        "development_docs/LEGACY_REFERENCE_REPORT.md",
-        "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
-        "ui/generated/*",
-        "*/ui/generated/*",
-        "development_tools\\AI_PRIORITIES.md",
-        "development_tools\\AI_STATUS.md",
-        "development_tools\\consolidated_report.txt",
-        "development_tools\\analysis_detailed_results.json",
-        "ai_development_docs\\AI_MODULE_DEPENDENCIES.md",
-        "ai_development_docs\\AI_FUNCTION_REGISTRY.md",
-        "development_docs\\DIRECTORY_TREE.md",
-        "development_docs\\FUNCTION_REGISTRY_DETAIL.md",
-        "development_docs\\LEGACY_REFERENCE_REPORT.md",
-        "development_docs\\MODULE_DEPENDENCIES_DETAIL.md",
-        "ui\\generated\\*",
-        "*\\ui\\generated\\*"
-      ],
       "production": [
         "development_tools/*",
         "*/development_tools/*",
@@ -464,13 +420,13 @@
         "*/backups/*"
       ]
     },
-    "generated_ai_files": [
+    "generated_files": [
       "development_tools/AI_PRIORITIES.md",
       "development_tools/AI_STATUS.md",
       "development_tools/consolidated_report.txt",
-      "development_tools/reports/analysis_detailed_results.json"
-    ],
-    "generated_doc_files": [
+      "development_tools/reports/analysis_detailed_results.json",
+      "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
+      "ai_development_docs/AI_FUNCTION_REGISTRY.md",
       "development_docs/UNUSED_IMPORTS_REPORT.md",
       "development_docs/TEST_COVERAGE_EXPANSION_PLAN.md",
       "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
@@ -478,8 +434,8 @@
       "development_docs/FUNCTION_REGISTRY_DETAIL.md",
       "development_docs/DIRECTORY_TREE.md",
       "development_docs/CHANGELOG_DETAIL.md",
-      "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
-      "ai_development_docs/AI_FUNCTION_REGISTRY.md"
+      "ui/generated/*",
+      "*/ui/generated/*"
     ],
     "standard_exclusion_patterns": [
       "logs/",
@@ -503,14 +459,9 @@
       "CHANGELOG_DETAIL.md",
       "AI_CHANGELOG.md",
       "archive/",
-      "development_docs/",
-      "ai_development_docs/",
       "logs/",
-      "TODO.md",
-      "PLANS.md",
-      "FUNCTION_REGISTRY",
-      "MODULE_DEPENDENCIES",
-      "LEGACY_REFERENCE_REPORT.md"
+      ".cursor/plans",
+      "_PLAN"
     ],
     "unused_imports_init_files": [
       "development_tools/__init__.py",
@@ -593,25 +544,6 @@
       "tasks",
       "user",
       "ai"
-    ],
-    "ascii_compliance_files": [
-      "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-      "ai_development_docs/AI_ARCHITECTURE.md",
-      "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
-      "ai_development_docs/AI_CHANGELOG.md",
-      "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-      "ai_development_docs/AI_LOGGING_GUIDE.md",
-      "ai_development_docs/AI_TESTING_GUIDE.md",
-      "ai_development_docs/AI_REFERENCE.md",
-      "ai_development_docs/AI_SESSION_STARTER.md",
-      "DEVELOPMENT_WORKFLOW.md",
-      "ARCHITECTURE.md",
-      "DOCUMENTATION_GUIDE.md",
-      "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
-      "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
-      "development_docs/CHANGELOG_DETAIL.md",
-      "development_docs/PLANS.md",
-      "TODO.md"
     ],
     "fix_version_sync_directories": {
       "development_tools": "development_tools/",

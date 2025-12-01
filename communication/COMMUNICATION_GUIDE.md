@@ -1,4 +1,4 @@
-# Communication Module – Channel-Agnostic Architecture
+# Communication Module - Channel-Agnostic Architecture
 
 > **File**: `communication/COMMUNICATION_GUIDE.md`  
 > **Audience**: Developers and maintainers working on communication channels and message flow  
@@ -7,9 +7,9 @@
 
 This guide describes how messages flow through MHM independent of channel (Discord, email, future channels), how the communication modules are structured, and how to extend them without leaking channel-specific behavior into core logic.
 
-For the system-wide view, see section 2. “High-Level Architecture” in [ARCHITECTURE.md](ARCHITECTURE.md).  
-For Discord-specific details, see section 2. “Discord Channel Architecture” in [DISCORD_GUIDE.md](communication/communication_channels/discord/DISCORD_GUIDE.md).  
-For error handling and logging patterns, see section 2. “Architecture Overview” in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) and section 2. “Logging Architecture” in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
+For the system-wide view, see section 2. "High-Level Architecture" in [ARCHITECTURE.md](ARCHITECTURE.md).  
+For Discord-specific details, see section 2. "Discord Channel Architecture" in [DISCORD_GUIDE.md](communication/communication_channels/discord/DISCORD_GUIDE.md).  
+For error handling and logging patterns, see section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) and section 2. "Logging Architecture" in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
 
 ---
 
@@ -24,9 +24,9 @@ That means:
   - Converting channel-specific events/messages into channel-agnostic request objects.
   - Calling the shared message-processing pipeline.
   - Converting channel-agnostic responses back into channel-native primitives (messages, embeds, buttons, etc.).
-- All persistent state and “real work” (tasks, schedules, AI interaction, user state) lives in core modules.
+- All persistent state and "real work" (tasks, schedules, AI interaction, user state) lives in core modules.
 
-If you find yourself importing `discord`, email client libraries, or other channel SDKs into non-channel packages, that’s almost certainly a design mistake.
+If you find yourself importing `discord`, email client libraries, or other channel SDKs into non-channel packages, that's almost certainly a design mistake.
 
 ---
 
@@ -53,22 +53,22 @@ At a high level, every incoming message or event follows this shape:
    - Formats text, rich data (embeds), and interactive elements (buttons, views).  
    - Sends via the channel SDK.
 
-The communication module owns steps **2–4**; the channel SDK only appears at the edges.
+The communication module owns steps **2-4**; the channel SDK only appears at the edges.
 
 ### 2.2. Message Models
 
 Core flow is based on channel-agnostic models (names may evolve, but the pattern matters):
 
-- **Parsed command / intent models** – Output of natural language and command parsing; contains:
-  - The user’s internal ID.
+- **Parsed command / intent models** - Output of natural language and command parsing; contains:
+  - The user's internal ID.
   - The raw message text.
   - Parsed intent (verb, object, qualifiers).
   - Channel identifier (e.g., `"discord"`, `"email"`).
-- **Response models** – Objects returned by handlers that contain:
+- **Response models** - Objects returned by handlers that contain:
   - Primary message text.
   - Optional rich data payload (for embeds / structured data).
   - Optional interactive suggestions (buttons, follow-up options).
-  - Flags like “ephemeral” where supported.
+  - Flags like "ephemeral" where supported.
 
 Channel adapters must *only* work with these models, not raw business objects where possible.
 
@@ -89,7 +89,7 @@ Key modules (names may vary slightly, but responsibilities are stable):
   - Manages multi-step flows (check-ins, onboarding, etc.).  
   - Keeps minimal state needed between messages.
 
-See section 4. “Error Categories and Severity” in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) for how errors in these modules should be classified and handled.
+See section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) for how errors in these modules should be classified and handled.
 
 ### 2.4. Channel Base and Adapters (`communication/communication_channels/`)
 
@@ -105,7 +105,7 @@ The base layer defines contracts and utilities:
 Each channel then implements an adapter under `communication/communication_channels/{channel}/`, consistent with:
 
 - **Discord**:  
-  - Event wiring, bot lifecycle, and views are documented in section 2. “Discord Channel Architecture” in [DISCORD_GUIDE.md](communication/communication_channels/discord/DISCORD_GUIDE.md).
+  - Event wiring, bot lifecycle, and views are documented in section 2. "Discord Channel Architecture" in [DISCORD_GUIDE.md](communication/communication_channels/discord/DISCORD_GUIDE.md).
 
 - **Email** (if present):  
   - Outbound messaging and any inbound handling should follow the same adapter pattern.
@@ -121,7 +121,7 @@ Each channel then implements an adapter under `communication/communication_chann
   - Return a safe fallback message to the user, or  
   - Fail quietly while logging, if the event is optional.
 
-See section 2. “Architecture Overview” and section 3. “Usage Patterns” in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) for the canonical patterns.
+See section 2. "Architecture Overview" and section 3. "Usage Patterns" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) for the canonical patterns.
 
 ### 3.2. Logging
 
@@ -130,7 +130,7 @@ See section 2. “Architecture Overview” and section 3. “Usage Patterns” i
   - Core communication flow (e.g., `communication`).  
   - Channel-specific operations (e.g., `discord`, `email`).
 
-See section 2. “Logging Architecture” and section 4. “Component Log Files and Layout” in `logs/LOGGING_GUIDE.md` for the logging structure and file layout.
+See section 2. "Logging Architecture" and section 4. "Component Log Files and Layout" in `logs/LOGGING_GUIDE.md` for the logging structure and file layout.
 
 ### 3.3. Channel-Agnostic Message Handling
 
@@ -181,8 +181,8 @@ When modifying or extending the communication module:
 Follow this checklist when adding a new channel or significantly changing an existing one:
 
 1. **Understand the core flow**  
-   - Re-read section 2. “Architecture Layers” in this guide.  
-   - Re-read section 2. “High-Level Architecture” in [ARCHITECTURE.md](ARCHITECTURE.md).
+   - Re-read section 2. "Architecture Layers" in this guide.  
+   - Re-read section 2. "High-Level Architecture" in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 2. **Define the channel adapter surface**  
    - Decide how incoming events map to:
@@ -207,8 +207,8 @@ Follow this checklist when adding a new channel or significantly changing an exi
    - See [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) and [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) for patterns.
 
 5. **Add tests**  
-   - Unit tests for parsing and core interactions – see section 2. “Test Layout and Types” and section 6. “Writing and Extending Tests” in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).  
-   - Manual channel-specific tests – see section 8. “Manual and Channel-Specific Testing Overview” in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) and [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md).
+   - Unit tests for parsing and core interactions - see section 2. "Test Layout and Types" and section 6. "Writing and Extending Tests" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).  
+   - Manual channel-specific tests - see section 8. "Manual and Channel-Specific Testing Overview" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) and [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md).
 
 6. **Document the channel**  
    - Add or update `{CHANNEL}_GUIDE.md` under `communication/communication_channels/{channel}/`.  
@@ -221,15 +221,15 @@ Follow this checklist when adding a new channel or significantly changing an exi
 High-level structure (only communication-related parts):
 
 - `communication/`  
-  - `COMMUNICATION_GUIDE.md` – this document.  
+  - `COMMUNICATION_GUIDE.md` - this document.  
   - `message_processing/`  
-    - `command_parser.py` – natural language and command parsing.  
-    - `interaction_manager.py` – central message routing and response handling.  
-    - `communication/message_processing/conversation_flow_manager.py` – multi-step flow handling.  
+    - `command_parser.py` - natural language and command parsing.  
+    - `interaction_manager.py` - central message routing and response handling.  
+    - `communication/message_processing/conversation_flow_manager.py` - multi-step flow handling.  
   - `communication_channels/`  
-    - `base/` – shared channel abstractions and formatters.  
-    - `discord/` – Discord adapter modules (see [DISCORD_GUIDE.md](communication/communication_channels/discord/DISCORD_GUIDE.md)).  
-    - `email/` – Email adapter modules (if present).  
+    - `base/` - shared channel abstractions and formatters.  
+    - `discord/` - Discord adapter modules (see [DISCORD_GUIDE.md](communication/communication_channels/discord/DISCORD_GUIDE.md)).  
+    - `email/` - Email adapter modules (if present).  
 
 Use this layout as the template when adding new channels.
 
@@ -243,9 +243,9 @@ Use this layout as the template when adding new channels.
 
 - **Discord**  
   - Fully wired into the channel-agnostic pipeline via `event_handler`, the Discord bot, and view adapters for check-ins and task reminders.   
-  - Webhook-based onboarding is implemented on the Discord side; see section 5. “Webhook-Based Authorization and Welcome Flow” in [DISCORD_GUIDE.md](communication/communication_channels/discord/DISCORD_GUIDE.md).
+  - Webhook-based onboarding is implemented on the Discord side; see section 5. "Webhook-Based Authorization and Welcome Flow" in [DISCORD_GUIDE.md](communication/communication_channels/discord/DISCORD_GUIDE.md).
 
 - **Email and other channels**  
-  - May be partially implemented; ensure any changes align with the patterns in sections 2–5 above.
+  - May be partially implemented; ensure any changes align with the patterns in sections 2-5 above.
 
 When making structural changes to the communication module, keep this guide updated and ensure all cross-references (especially section numbers) remain valid.

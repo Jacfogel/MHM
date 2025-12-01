@@ -4,7 +4,7 @@
 > **Audience**: AI collaborators and automated tooling  
 > **Purpose**: Routing and constraints for all AI development tools used to analyze, audit, and maintain the MHM codebase  
 > **Style**: Minimal, reference-only (no deep explanations)  
-> **Pair**: `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`  
+> **Pair**: [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)  
 > This document is paired with `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`. Keep both H2 headings identical and consider changes in the context of the human counterpart.
 
 ---
@@ -15,9 +15,9 @@ This guide provides a precise, machine-friendly map of the AI development tools:
 - Summarizes **what commands exist** and **when to run them**
 - Routes you to the authoritative metadata in `development_tools/shared/tool_metadata.py`
 - Delegates deeper explanations to the human guide and the AI workflow/docs references:
-  - `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`
-  - `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`
-  - `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`
+  - [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)
+  - [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)
+  - [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md)
 
 Treat this file as the routing layer for AI collaborators; avoid duplicating human-facing narrative here.
 
@@ -42,6 +42,7 @@ python development_tools/run_development_tools.py help
 - `status` - Quick system status (uses cached audit data)
 - `docs` - Regenerate documentation artifacts
 - `doc-sync` - Check documentation synchronization
+- `doc-fix` - Fix documentation issues (addresses, ASCII, headings, links)
 - `legacy` - Scan for legacy references
 - `coverage` - Regenerate coverage metrics
 - `unused-imports` - Detect unused imports
@@ -82,7 +83,7 @@ Outputs land in predictable locations:
 
 The `status` command surfaces cached summaries from `reports/analysis_detailed_results.json` (complexity, validation, system signals); rerun `audit` if the cache is stale.
 
-**When to run each command**: See "Standard Audit Recipe" in `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md` for guidance on day-to-day checks, pre-merge checks, and documentation work.
+**When to run each command**: See "Standard Audit Recipe" in [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) for guidance on day-to-day checks, pre-merge checks, and documentation work.
 
 ---
 
@@ -109,7 +110,7 @@ The authoritative table lives in `shared/tool_metadata.py`. Use this guide to pi
 - `shared/` - Shared infrastructure (config, constants, exclusions, metadata)
 
 **Tool Categories**:
-- **Documentation & structure**: `docs/analyze_documentation_sync.py` [OK], `functions/generate_function_registry.py` [OK], `imports/generate_module_dependencies.py` [OK], `docs/analyze_documentation.py`
+- **Documentation & structure**: `docs/analyze_documentation_sync.py` [OK], `docs/fix_documentation.py` [OK], `functions/generate_function_registry.py` [OK], `imports/generate_module_dependencies.py` [OK], `docs/analyze_documentation.py`
 - **Quality, validation, coverage**: `tests/generate_test_coverage.py` [OK], `ai_work/analyze_ai_work.py`, `imports/analyze_unused_imports.py`, `error_handling/analyze_error_handling.py`
 - **Legacy, versioning, signals**: `legacy/fix_legacy_references.py` [OK], `reports/system_signals.py`, `reports/quick_status.py`, `docs/fix_version_sync.py` (experimental)
 - **Decision & utilities**: `reports/decision_support.py`, `functions/analyze_functions.py`, `functions/generate_function_docstrings.py` (experimental), `config/analyze_config.py`, `shared/file_rotation.py`, `functions/analyze_*` helpers, `shared/tool_guide.py`

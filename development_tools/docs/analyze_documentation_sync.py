@@ -278,6 +278,10 @@ class DocumentationSyncChecker:
         
         # Check if documented paths exist
         for doc_file, paths in doc_paths.items():
+            # Skip files that shouldn't be checked for path drift
+            if self._should_skip_path_drift_check(doc_file):
+                continue
+            
             # Get the directory of the source file for relative path resolution
             source_dir = self.project_root / doc_file
             if source_dir.is_file():
@@ -308,6 +312,34 @@ class DocumentationSyncChecker:
                         drift_issues[doc_file].append(f"Potentially outdated module: {path}")
                     
         return drift_issues
+    
+    def _should_skip_path_drift_check(self, doc_file: str) -> bool:
+        """Check if a file should be skipped from path drift checking.
+        
+        Skips:
+        - Files with "PLAN" in the name (historical context files)
+        - Files in .cursor/plans/ directory
+        - Files in archive directories
+        
+        Note: Example sections within files are excluded via _is_in_example_context(),
+        not by excluding entire files.
+        """
+        doc_file_lower = doc_file.lower()
+        doc_file_path = Path(doc_file)
+        
+        # Skip files with "PLAN" in the name (historical context)
+        if 'plan' in doc_file_lower:
+            return True
+        
+        # Skip .cursor/plans/ directory files
+        if '.cursor' in doc_file_path.parts and 'plans' in doc_file_path.parts:
+            return True
+        
+        # Skip archive directories
+        if 'archive' in doc_file_path.parts:
+            return True
+        
+        return False
     
     def _setup_enhanced_filters(self):
         """Setup enhanced filtering patterns to reduce false positives."""
@@ -481,8 +513,10 @@ class DocumentationSyncChecker:
         2. Example headings: "Examples:", "Example Usage:", "Example Code:" headings
         3. Code blocks: Automatically excluded (handled separately)
         4. Archive references: Lines containing "archive" or "archived" (for archived file references)
+        5. Example phrases: "for example", "for instance", "e.g.", etc.
         
         This method implements the example marking standards defined in DOCUMENTATION_GUIDE.md section 2.6.
+        Uses the same logic as fix_documentation.py for consistency.
         """
         line_stripped = line.strip()
         line_lower = line.lower()
@@ -490,6 +524,12 @@ class DocumentationSyncChecker:
         # Standard 4: Check if line contains "archive" or "archived" (for archived file references)
         if 'archive' in line_lower or 'archived' in line_lower:
             return True
+        
+        # Standard 5: Check for example phrases in the current line
+        example_phrases = ['for example', 'for instance', 'e.g.,', 'e.g.', 'example:', 'examples:']
+        for phrase in example_phrases:
+            if phrase in line_lower:
+                return True
         
         # Standard 1: Check for example markers at the start of the line
         # These are the official markers per documentation standards
@@ -500,7 +540,7 @@ class DocumentationSyncChecker:
             if re.match(marker, line_stripped, re.IGNORECASE):
                 return True
         
-        # Standard 1 (continued): Check previous lines (up to 5 lines back) for example markers
+        # Standard 1 & 5 (continued): Check previous lines (up to 5 lines back) for example markers and phrases
         # This catches cases where [AVOID] or [OK] is on a previous line (per standard)
         for i in range(max(0, line_num - 5), line_num):
             prev_line = lines[i].strip()
@@ -509,6 +549,12 @@ class DocumentationSyncChecker:
             if 'archive' in prev_line_lower or 'archived' in prev_line_lower:
                 if line_num - i <= 3:  # Within 3 lines of archive reference
                     return True
+            # Check for example phrases in previous lines
+            for phrase in example_phrases:
+                if phrase in prev_line_lower:
+                    if line_num - i <= 3:  # Within 3 lines of example phrase
+                        return True
+            # Check for example markers in previous lines
             for marker in example_markers:
                 if re.match(marker, prev_line, re.IGNORECASE):
                     # If we found a marker, check if current line is part of the example
@@ -532,6 +578,138 @@ class DocumentationSyncChecker:
         # This is Standard 3 and doesn't need to be checked here
         
         return False
+    
+    def _is_in_code_block(self, lines: List[str], line_num: int) -> bool:
+        """Check if a line is inside a code block."""
+        in_code = False
+        for i in range(line_num + 1):
+            if i < len(lines) and lines[i].strip().startswith('```'):
+                in_code = not in_code
+        return in_code
+    
+    def _is_already_link(self, line: str, path: str) -> bool:
+        """Check if the path is already in a markdown link."""
+        link_pattern = rf'\[[^\]]*\]\(({re.escape(path)})\)'
+        return bool(re.search(link_pattern, line))
+    
+    def _is_file_metadata_line(self, line: str) -> bool:
+        """Check if line is the specific 'File' metadata line."""
+        return bool(re.match(r'^\s*>\s*\*\*File\*\*', line))
+    
+    def _is_valid_file_path_for_link(self, path: str, source_file: Path) -> bool:
+        """Validate that a file path exists and is valid for link conversion."""
+        from development_tools.shared.constants import (
+            STANDARD_LIBRARY_MODULES, THIRD_PARTY_LIBRARIES,
+            COMMON_FUNCTION_NAMES, COMMON_CLASS_NAMES, COMMON_VARIABLE_NAMES,
+            COMMON_CODE_PATTERNS, IGNORED_PATH_PATTERNS,
+            COMMAND_PATTERNS, TEMPLATE_PATTERNS
+        )
+        
+        if path.startswith(('*', 'http', '#', 'mailto', 'python ', 'pip ', 'git ')):
+            return False
+        if '{' in path and '}' in path:
+            return False
+        if path in STANDARD_LIBRARY_MODULES or path in THIRD_PARTY_LIBRARIES:
+            return False
+        if path in COMMON_FUNCTION_NAMES or path in COMMON_CLASS_NAMES or path in COMMON_VARIABLE_NAMES:
+            return False
+        if path in COMMON_CODE_PATTERNS or path in IGNORED_PATH_PATTERNS:
+            return False
+        if any(path.startswith(cmd) for cmd in COMMAND_PATTERNS):
+            return False
+        if any(pattern in path for pattern in TEMPLATE_PATTERNS):
+            return False
+        if path.startswith('../') or path.startswith('./'):
+            return False
+        if '/' not in path and '\\' not in path:
+            if path.endswith('.md'):
+                file_path = self.project_root / path
+                if file_path.exists() and file_path.is_file():
+                    return True
+            return False
+        file_path = self.project_root / path
+        if file_path.exists() and file_path.is_file():
+            return True
+        if path.endswith('.md'):
+            mdc_path = path[:-2] + 'c'
+            mdc_file = self.project_root / mdc_path
+            if mdc_file.exists() and mdc_file.is_file():
+                return True
+        return False
+    
+    def _is_metadata_section(self, lines: List[str], line_num: int) -> bool:
+        """Check if a line is in the metadata section (H1 + lines starting with >)."""
+        current_line = lines[line_num].strip()
+        if current_line.startswith('#') or current_line.startswith('>'):
+            return True
+        h1_found = False
+        metadata_block_start = None
+        for i in range(line_num, -1, -1):
+            if i < len(lines):
+                line = lines[i].strip()
+                if line.startswith('#'):
+                    h1_found = True
+                    break
+                if line.startswith('>'):
+                    if metadata_block_start is None:
+                        metadata_block_start = i
+                elif line and metadata_block_start is not None:
+                    break
+        if h1_found:
+            for i in range(line_num + 1):
+                if i < len(lines):
+                    stripped = lines[i].strip()
+                    if stripped.startswith('>'):
+                        if i == line_num:
+                            return True
+                    elif stripped and not stripped.startswith('#') and not stripped.startswith('>'):
+                        if i < line_num:
+                            return False
+        if metadata_block_start is not None:
+            for i in range(metadata_block_start, line_num + 1):
+                if i < len(lines):
+                    stripped = lines[i].strip()
+                    if stripped and not stripped.startswith('>') and not stripped.startswith('#'):
+                        if i < line_num:
+                            return False
+                    if i == line_num and (stripped.startswith('>') or not stripped):
+                        return True
+        return False
+    
+    def _should_convert_path_to_link(self, path: str, line: str, line_num: int, lines: List[str], source_file: Path) -> bool:
+        """
+        Determine if a path should be converted to a link.
+        
+        Returns False if:
+        - Already in a markdown link
+        - In the specific 'File' metadata line (> **File**:)
+        - In code block (excluded for safety)
+        - In example context (e.g., "for example", "[OK]", etc.)
+        - Path matches the current document (don't link to self)
+        """
+        if self._is_already_link(line, path):
+            return False
+        if self._is_file_metadata_line(line):
+            return False
+        if self._is_in_code_block(lines, line_num):
+            return False
+        if self._is_in_example_context(line, lines, line_num):
+            return False
+        
+        # Don't convert links to the current document
+        source_name = source_file.name
+        if path == source_name:
+            return False
+        
+        # Also check if it's a full path that matches the current file
+        try:
+            source_relative = str(source_file.relative_to(self.project_root))
+            if path == source_relative:
+                return False
+        except ValueError:
+            pass
+        
+        return True
     
     def _is_valid_file_reference(self, path: str, source_dir: Path) -> bool:
         """Check if a file reference is valid."""
@@ -719,11 +897,56 @@ class DocumentationSyncChecker:
         return str(output_path)
     
     def check_ascii_compliance(self) -> Dict[str, List[str]]:
-        """Check for non-ASCII characters in documentation files."""
+        """Check for non-ASCII characters in documentation files.
+        
+        Reports ALL non-ASCII characters found. Characters that can be auto-fixed
+        are marked with their suggested replacement.
+        """
         ascii_issues = defaultdict(list)
         
         # Import constants from services.constants
         from development_tools.shared.constants import ASCII_COMPLIANCE_FILES
+        
+        # Known replacements (characters that can be auto-fixed)
+        KNOWN_REPLACEMENTS = {
+            '\u2018': "'",  # Left single quotation mark
+            '\u2019': "'",  # Right single quotation mark
+            '\u201A': "'",  # Single low-9 quotation mark
+            '\u201B': "'",  # Single high-reversed-9 quotation mark
+            '\u201C': '"',  # Left double quotation mark
+            '\u201D': '"',  # Right double quotation mark
+            '\u201E': '"',  # Double low-9 quotation mark
+            '\u201F': '"',  # Double high-reversed-9 quotation mark
+            '\u2011': '-',  # Non-breaking hyphen
+            '\u2013': '-',  # En dash
+            '\u2014': '-',  # Em dash
+            '\u2015': '--',  # Horizontal bar
+            '\u2192': '->',  # Right arrow
+            '\u2190': '<-',  # Left arrow
+            '\u2191': '^',  # Up arrow
+            '\u2193': 'v',  # Down arrow
+            '\u2026': '...',  # Horizontal ellipsis
+            # Common emojis (standard replacements for documentation)
+            '\u2705': '[OK]',  # Check mark button
+            '\u274C': '[FAIL]',  # Cross mark
+            '\u26A0': '[WARNING]',  # Warning sign
+            '\U0001F41B': '[BUG]',  # Bug emoji
+            '\U0001F4A1': '[IDEA]',  # Light bulb
+            '\U0001F4DD': '[NOTE]',  # Memo
+            '\u202F': ' ',  # Narrow no-break space
+            '\u00A0': ' ',  # Non-breaking space
+            '\u2009': ' ',  # Thin space
+            '\u2008': ' ',  # Punctuation space
+            '\u2007': ' ',  # Figure space
+            '\u2006': ' ',  # Six-per-em space
+            '\u2005': ' ',  # Four-per-em space
+            '\u2004': ' ',  # Three-per-em space
+            '\u2003': ' ',  # Em space
+            '\u2002': ' ',  # En space
+            '\u2001': ' ',  # Em quad
+            '\u2000': ' ',  # En quad
+        }
+        
         files_to_check = list(ASCII_COMPLIANCE_FILES)
         
         for file_path in files_to_check:
@@ -735,29 +958,25 @@ class DocumentationSyncChecker:
                 with open(full_path, 'r', encoding='utf-8') as f:
                     content = f.read()
                 
-                # Check for non-ASCII characters
-                non_ascii_chars = []
+                # Find ALL non-ASCII characters
+                non_ascii_chars = {}
                 for i, char in enumerate(content):
-                    if ord(char) > 127:  # Non-ASCII character
-                        non_ascii_chars.append({
-                            'char': char,
-                            'position': i,
-                            'codepoint': ord(char)
-                        })
+                    if ord(char) > 127:  # Non-ASCII
+                        if char not in non_ascii_chars:
+                            non_ascii_chars[char] = 0
+                        non_ascii_chars[char] += 1
                 
                 if non_ascii_chars:
-                    # Group by character type for better reporting
-                    char_types = {}
-                    for char_info in non_ascii_chars:
-                        char = char_info['char']
-                        if char not in char_types:
-                            char_types[char] = []
-                        char_types[char].append(char_info['position'])
-                    
-                    for char, positions in char_types.items():
-                        ascii_issues[file_path].append(
-                            f"Non-ASCII character '{char}' (U+{ord(char):04X}) at positions: {positions[:5]}{'...' if len(positions) > 5 else ''}"
-                        )
+                    # Report all non-ASCII characters
+                    for char, count in sorted(non_ascii_chars.items()):
+                        if char in KNOWN_REPLACEMENTS:
+                            ascii_issues[file_path].append(
+                                f"Non-ASCII character '{char}' (U+{ord(char):04X}): {count} instance(s) found (auto-fixable: '{KNOWN_REPLACEMENTS[char]}')"
+                            )
+                        else:
+                            ascii_issues[file_path].append(
+                                f"Non-ASCII character '{char}' (U+{ord(char):04X}): {count} instance(s) found (manual review needed)"
+                            )
                         
             except Exception as e:
                 ascii_issues[file_path].append(f"Error reading file: {e}")
@@ -1003,6 +1222,152 @@ class DocumentationSyncChecker:
         
         return numbering_issues
 
+    def check_missing_addresses(self) -> Dict[str, List[str]]:
+        """Check for documentation files missing file addresses.
+        
+        Excludes:
+        - Generated files
+        - .cursor/rules/*.mdc files (they have their own metadata format)
+        """
+        missing_addresses = defaultdict(list)
+        
+        # Find all documentation files (same logic as fix_add_addresses)
+        files_to_check = []
+        for ext in ['*.md', '*.mdc']:
+            files_to_check.extend(self.project_root.rglob(ext))
+        
+        ignore_dirs = {'venv', '.venv', '__pycache__', '.git', 'node_modules', '.pytest_cache', 'coverage_html', 'archive'}
+        from development_tools.shared.standard_exclusions import ALL_GENERATED_FILES
+        generated_files = set(ALL_GENERATED_FILES)
+        
+        for file_path in files_to_check:
+            parts = file_path.parts
+            if any(ignore in parts for ignore in ignore_dirs):
+                continue
+            try:
+                rel_path = file_path.relative_to(self.project_root)
+                rel_path_str = str(rel_path).replace('\\', '/')
+                if rel_path_str in generated_files:
+                    continue
+                
+                # Skip .cursor/rules/*.mdc files - they have their own metadata format
+                if '.cursor' in parts and 'rules' in parts and file_path.suffix == '.mdc':
+                    continue
+                
+                if 'tests' in rel_path.parts:
+                    tests_index = rel_path.parts.index('tests')
+                    if tests_index < len(rel_path.parts) - 2:
+                        continue
+            except ValueError:
+                continue
+            
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                has_address = bool(re.search(r'^>\s*\*\*File\*\*:\s*`', content[:2000], re.MULTILINE))
+                if not has_address:
+                    missing_addresses[str(rel_path)].append("Missing file address in header")
+            except Exception as e:
+                missing_addresses[str(rel_path)].append(f"Error reading file: {e}")
+        
+        return missing_addresses
+
+    def _is_generated_file(self, file_path: Path) -> bool:
+        """Check if a file is generated (should not be edited)."""
+        from development_tools.shared.standard_exclusions import ALL_GENERATED_FILES
+        # Check if file is in ALL_GENERATED_FILES list
+        try:
+            rel_path = str(file_path.relative_to(self.project_root)).replace('\\', '/')
+            if rel_path in ALL_GENERATED_FILES:
+                return True
+        except ValueError:
+            pass
+        
+        # Check if file has "Generated" marker in first few lines
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                first_lines = ''.join(f.readlines()[:10])
+                if '**Generated**' in first_lines or 'Generated:' in first_lines or 'Generated by:' in first_lines:
+                    return True
+        except Exception:
+            pass
+        
+        return False
+    
+    def check_unconverted_links(self) -> Dict[str, List[str]]:
+        """Check for file path references that should be converted to markdown links.
+        
+        Uses the same logic as the fixer to ensure consistency. Only reports
+        links that would actually be converted.
+        """
+        unconverted_links = defaultdict(list)
+        
+        from development_tools.shared.constants import DEFAULT_DOCS
+        
+        for file_path_str in DEFAULT_DOCS:
+            file_path = self.project_root / file_path_str
+            if not file_path.exists():
+                continue
+            
+            # Skip generated files
+            if self._is_generated_file(file_path):
+                continue
+            
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                lines = content.split('\n')
+                metadata_linked_files = set()  # Track metadata deduplication
+                
+                for line_num, line in enumerate(lines):
+                    is_metadata_section = self._is_metadata_section(lines, line_num)
+                    
+                    if self._is_in_code_block(lines, line_num):
+                        continue
+                    if self._is_in_example_context(line, lines, line_num):
+                        continue
+                    if self._is_file_metadata_line(line):
+                        continue
+                    
+                    # Find file paths in backticks
+                    pattern = r'`([a-zA-Z_][a-zA-Z0-9_/\\]*\.md)`'
+                    for match in re.finditer(pattern, line):
+                        path = match.group(1).replace('\\', '/')
+                        
+                        # Use same checks as fixer
+                        if self._is_already_link(line, path):
+                            continue
+                        if path == file_path.name:
+                            continue
+                        
+                        # Check if target is generated (don't suggest linking to generated files)
+                        target_path = self.project_root / path
+                        if target_path.exists() and self._is_generated_file(target_path):
+                            continue
+                        
+                        if not self._is_valid_file_path_for_link(path, file_path):
+                            continue
+                        
+                        # Check should_convert logic (same as fixer)
+                        if not self._should_convert_path_to_link(path, line, line_num, lines, file_path):
+                            continue
+                        
+                        # In metadata section, only report first occurrence (deduplication)
+                        if is_metadata_section:
+                            if path in metadata_linked_files:
+                                continue  # Skip duplicate in metadata
+                            metadata_linked_files.add(path)
+                        
+                        unconverted_links[file_path_str].append(
+                            f"Line {line_num + 1}: Path `{path}` should be converted to markdown link"
+                        )
+            except Exception as e:
+                unconverted_links[file_path_str].append(f"Error reading file: {e}")
+        
+        return unconverted_links
+
     def run_checks(self) -> Dict[str, any]:
         """Run all documentation synchronization checks."""
         if logger:
@@ -1013,6 +1378,8 @@ class DocumentationSyncChecker:
             'path_drift': self.check_path_drift(),
             'ascii_compliance': self.check_ascii_compliance(),
             'heading_numbering': self.check_heading_numbering(),
+            'missing_addresses': self.check_missing_addresses(),
+            'unconverted_links': self.check_unconverted_links(),
             'summary': {}
         }
         
@@ -1021,6 +1388,8 @@ class DocumentationSyncChecker:
         total_issues += sum(len(issues) for issues in results['path_drift'].values())
         total_issues += sum(len(issues) for issues in results['ascii_compliance'].values())
         total_issues += sum(len(issues) for issues in results['heading_numbering'].values())
+        total_issues += sum(len(issues) for issues in results['missing_addresses'].values())
+        total_issues += sum(len(issues) for issues in results['unconverted_links'].values())
         
         results['summary'] = {
             'total_issues': total_issues,
@@ -1028,6 +1397,8 @@ class DocumentationSyncChecker:
             'path_drift_issues': len(results['path_drift']),
             'ascii_compliance_issues': len(results['ascii_compliance']),
             'heading_numbering_issues': len(results['heading_numbering']),
+            'missing_address_issues': len(results['missing_addresses']),
+            'unconverted_link_issues': len(results['unconverted_links']),
             'status': 'PASS' if total_issues == 0 else 'FAIL'
         }
         
@@ -1049,6 +1420,8 @@ class DocumentationSyncChecker:
         print(f"   Path Drift Issues: {summary['path_drift_issues']}")
         print(f"   ASCII Compliance Issues: {summary['ascii_compliance_issues']}")
         print(f"   Heading Numbering Issues: {summary['heading_numbering_issues']}")
+        print(f"   Missing Address Issues: {summary['missing_address_issues']}")
+        print(f"   Unconverted Link Issues: {summary['unconverted_link_issues']}")
         
         # Paired Documentation Issues
         if results['paired_docs']:
@@ -1101,11 +1474,37 @@ class DocumentationSyncChecker:
                 if len(issues) > 5:
                     print(f"       ... and {len(issues) - 5} more issues")
         
+        # Missing Address Issues
+        if results['missing_addresses']:
+            print(f"\nMISSING ADDRESS ISSUES:")
+            print(f"   Total files missing addresses: {len(results['missing_addresses'])}")
+            print(f"   Total issues found: {sum(len(issues) for issues in results['missing_addresses'].values())}")
+            print(f"   Files missing addresses:")
+            for doc_file, issues in results['missing_addresses'].items():
+                print(f"     {doc_file}: {len(issues)} issues")
+                for issue in issues[:3]:
+                    clean_issue = issue.encode('ascii', 'ignore').decode('ascii')
+                    print(f"       - {clean_issue}")
+        
+        # Unconverted Link Issues
+        if results['unconverted_links']:
+            print(f"\nUNCONVERTED LINK ISSUES:")
+            print(f"   Total files with unconverted links: {len(results['unconverted_links'])}")
+            print(f"   Total issues found: {sum(len(issues) for issues in results['unconverted_links'].values())}")
+            print(f"   Files with unconverted links:")
+            for doc_file, issues in results['unconverted_links'].items():
+                print(f"     {doc_file}: {len(issues)} issues")
+                for issue in issues[:5]:
+                    clean_issue = issue.encode('ascii', 'ignore').decode('ascii')
+                    print(f"       - {clean_issue}")
+                if len(issues) > 5:
+                    print(f"       ... and {len(issues) - 5} more issues")
+        
         if summary['total_issues'] == 0:
             print(f"\nAll documentation synchronization checks passed!")
         else:
             print(f"\nFound {summary['total_issues']} documentation synchronization issues.")
-            print("   Consider running with --fix to attempt automatic fixes.")
+            print("   Consider running 'doc-fix' to attempt automatic fixes.")
 
 
 def main():

@@ -91,7 +91,7 @@ These commands work as Discord slash commands (`/command`), bang commands (`!com
 
 **Notes**
 - Slash and bang commands are equivalent; use whichever is more convenient.
-- If you forget the exact command, typing the mapped text (for example, “show my tasks”) works the same way.
+- If you forget the exact command, typing the mapped text (for example, "show my tasks") works the same way.
 - Check-in related commands (`/checkin`, `/restart`, `/clear`, `/cancel`) operate on the conversation flow system.
 
 ## 4. Alternative Launch Methods

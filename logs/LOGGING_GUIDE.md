@@ -201,7 +201,7 @@ If unset, `core/logger.py` derives sensible defaults under `LOGS_DIR`.
 - `MHM_TESTING`  
   Flag used to indicate tests are running. Logging behavior may adjust (for example, different destinations or verbosity).
 
-- `TEST_VERBOSE_LOGS` – Controls test logging verbosity: `0` (quiet, component WARNING/test WARNING), `1` (medium, component WARNING/test INFO - focuses on test execution without component chatter), `2` (verbose, component DEBUG/test DEBUG).  
+- `TEST_VERBOSE_LOGS` - Controls test logging verbosity: `0` (quiet, component WARNING/test WARNING), `1` (medium, component WARNING/test INFO - focuses on test execution without component chatter), `2` (verbose, component DEBUG/test DEBUG).  
   Controls test logging verbosity:  
   - `0` (default): Component loggers INFO, Test loggers WARNING (quiet)  
   - `1` (medium): Component loggers INFO, Test loggers INFO  
@@ -282,8 +282,8 @@ Prefer `core.logger.get_component_logger("scheduler")` (or equivalent) instead o
 
 ### 9.3. Log expected errors at appropriate levels
 
-- Validation failures that are handled → `INFO` or `WARNING`.
-- Unexpected exceptions → `ERROR` or `CRITICAL` (depending on impact), via the central error handling system.
+- Validation failures that are handled -> `INFO` or `WARNING`.
+- Unexpected exceptions -> `ERROR` or `CRITICAL` (depending on impact), via the central error handling system.
 
 ### 9.4. Keep DEBUG focused and temporary
 

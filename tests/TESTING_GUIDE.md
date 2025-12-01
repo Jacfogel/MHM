@@ -11,7 +11,7 @@
 
 ## 1. Purpose and Scope
 
-MHM’s test strategy is built around one core idea: **test real behavior, not just isolated functions**.
+MHM's test strategy is built around one core idea: **test real behavior, not just isolated functions**.
 
 This guide explains:
 
@@ -85,7 +85,7 @@ Tests are organized by real-world features and workflows to encourage integratio
 **Behavior tests (`tests/behavior/`)**
 
 - Exercise end-to-end flows as closely as practical.
-- Often follow “user-does-X, system-responds-with-Y” patterns.
+- Often follow "user-does-X, system-responds-with-Y" patterns.
 - Validate that side effects (messages sent, logs written, tasks scheduled) occur correctly.
 
 **UI tests (`tests/ui/`)**
@@ -99,13 +99,13 @@ Tests are organized by real-world features and workflows to encourage integratio
 - Test development tools and infrastructure components.
 - Include sanity tests for configuration, exclusions, constants, and CLI runners.
 - Integration coverage relies on **mocked CLI smoke tests** (no subprocesses) so the suite stays fast while still exercising `run_development_tools` routing.
-- Error-scenario tests simulate `PermissionError`/`OSError` via monkeypatching instead of modifying real filesystem ACLs—keeps results identical on Windows and Linux.
+- Error-scenario tests simulate `PermissionError`/`OSError` via monkeypatching instead of modifying real filesystem ACLs-keeps results identical on Windows and Linux.
 - **Core analysis tools** have comprehensive test coverage (55+ tests):
-  - `docs/analyze_documentation_sync.py` — 12 tests for doc pairing validation
-  - `development_tools/generate_function_registry.py` — 12 tests for function extraction and registry generation
-  - `development_tools/generate_module_dependencies.py` — 11 tests for dependency graph generation
-  - `legacy/fix_legacy_references.py` — 10 tests for legacy pattern detection and cleanup
-  - `development_tools/tests/generate_test_coverage.py` — 10 tests for coverage regeneration and reporting
+  - `docs/analyze_documentation_sync.py` - 12 tests for doc pairing validation
+  - `development_tools/generate_function_registry.py` - 12 tests for function extraction and registry generation
+  - `development_tools/generate_module_dependencies.py` - 11 tests for dependency graph generation
+  - `legacy/fix_legacy_references.py` - 10 tests for legacy pattern detection and cleanup
+  - `development_tools/tests/generate_test_coverage.py` - 10 tests for coverage regeneration and reporting
 - Tests use a synthetic fixture project at `tests/fixtures/development_tools_demo/` for isolated testing.
 - Examples:
   - Configuration validation.
@@ -262,7 +262,7 @@ Typical options:
 - `--workers N` (explicit worker count).
 - `--coverage` (enable coverage collection).
 
-Prefer `python run_tests.py` over calling pytest directly when you want “normal” local or CI runs.
+Prefer `python run_tests.py` over calling pytest directly when you want "normal" local or CI runs.
 
 ### 4.3. Using pytest directly
 
@@ -285,7 +285,7 @@ Direct pytest usage is useful when:
 - Running a subset of tests by markers.
 - Debugging marker behavior.
 
-If you add new markers or special options, ensure `pytest.ini` is updated accordingly and that those markers are documented in section 6 (“Writing and Extending Tests”) below.
+If you add new markers or special options, ensure `pytest.ini` is updated accordingly and that those markers are documented in section 6 ("Writing and Extending Tests") below.
 
 ---
 
@@ -450,7 +450,7 @@ Follow these guidelines:
 - Use helper functions from `tests/test_utilities.py` (or similar) for:
   - Constructing complex payloads (messages, schedules).
   - Common assertions on logs, errors, or outputs.
-  - Reusable patterns (for example, “create a user with default settings”).
+  - Reusable patterns (for example, "create a user with default settings").
 
 - Do not re-implement the same setup logic in multiple tests; extract it into a fixture or helper.
 
@@ -504,7 +504,7 @@ Then:
 
 For error handling and logging details:
 
-- See section 2. “Architecture Overview” and section 4. “Error Categories and Severity” in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
+- See section 2. "Architecture Overview" and section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
 - See [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) (especially section 2. "Logging Architecture" and section 4. "Component Log Files and Layout").
 
 Align tests with those patterns:
@@ -548,7 +548,7 @@ That guide provides:
 
 ### 8.3. Discord-specific manual testing
 
-For Discord-specific manual flows—especially task reminder follow-up flows—use:
+For Discord-specific manual flows-especially task reminder follow-up flows-use:
 
 - [MANUAL_DISCORD_TEST_GUIDE.md](tests/MANUAL_DISCORD_TEST_GUIDE.md)
   - Section 1. "Prerequisites".

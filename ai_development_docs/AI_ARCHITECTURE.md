@@ -5,7 +5,6 @@
 > **Audience**: AI collaborators and tools  
 > **Purpose**: Routing & constraints for architecture changes  
 > **Style**: Minimal, routing-first  
-
 > For detailed behavior, examples, and rationale, use matching sections in ARCHITECTURE.md.  
 > Keep this file's H2 headings in lockstep with ARCHITECTURE.md when making changes.
 

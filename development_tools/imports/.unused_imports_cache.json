@@ -6180,7 +6180,7 @@
     "issues": []
   },
   "development_tools/reports/decision_support.py": {
-    "mtime": 1764552333.0934627,
+    "mtime": 1764594600.2807035,
     "issues": [
       {
         "type": "warning",
@@ -6215,7 +6215,7 @@
     "issues": []
   },
   "development_tools/reports/system_signals.py": {
-    "mtime": 1764569003.5316756,
+    "mtime": 1764593999.3721218,
     "issues": []
   },
   "development_tools/shared/__init__.py": {
@@ -6227,19 +6227,19 @@
     "issues": []
   },
   "development_tools/shared/constants.py": {
-    "mtime": 1764552369.4153497,
+    "mtime": 1764592073.0923202,
     "issues": []
   },
   "development_tools/shared/operations.py": {
-    "mtime": 1764582005.3270254,
+    "mtime": 1764593755.925899,
     "issues": []
   },
   "development_tools/shared/standard_exclusions.py": {
-    "mtime": 1764552466.3441415,
+    "mtime": 1764592611.220368,
     "issues": []
   },
   "development_tools/shared/tool_metadata.py": {
-    "mtime": 1764551842.3239856,
+    "mtime": 1764584963.3957658,
     "issues": []
   },
   "development_tools/tests/__init__.py": {
@@ -6347,7 +6347,7 @@
     "issues": []
   },
   "development_tools/config/config.py": {
-    "mtime": 1764552037.010882,
+    "mtime": 1764592167.8575876,
     "issues": []
   },
   "development_tools/config/config_validator.py": {
@@ -6401,7 +6401,7 @@
     "issues": []
   },
   "development_tools/docs/analyze_documentation_sync.py": {
-    "mtime": 1764582005.337108,
+    "mtime": 1764589019.1347356,
     "issues": [
       {
         "type": "warning",
@@ -6419,7 +6419,7 @@
     ]
   },
   "development_tools/docs/fix_version_sync.py": {
-    "mtime": 1764582005.3431487,
+    "mtime": 1764592611.2213683,
     "issues": []
   },
   "development_tools/error_handling/analyze_error_handling.py": {
@@ -6534,7 +6534,7 @@
     ]
   },
   "development_tools/legacy/fix_legacy_references.py": {
-    "mtime": 1764569003.530648,
+    "mtime": 1764591478.2032683,
     "issues": []
   },
   "development_tools/reports/generate_consolidated_report.py": {
@@ -6556,5 +6556,153 @@
   "tests/development_tools/test_run_development_tools.py": {
     "mtime": 1764551842.3326516,
     "issues": []
+  },
+  "development_tools/docs/fix_documentation.py": {
+    "mtime": 1764594337.2341948,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.docs.fix_documentation",
+        "obj": "",
+        "line": 25,
+        "column": 0,
+        "endLine": 25,
+        "endColumn": 35,
+        "path": "development_tools\\docs\\fix_documentation.py",
+        "symbol": "unused-import",
+        "message": "Unused defaultdict imported from collections",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.docs.fix_documentation",
+        "obj": "",
+        "line": 37,
+        "column": 4,
+        "endLine": 43,
+        "endColumn": 5,
+        "path": "development_tools\\docs\\fix_documentation.py",
+        "symbol": "unused-import",
+        "message": "Unused STANDARD_LIBRARY_MODULES imported from shared.constants",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.docs.fix_documentation",
+        "obj": "",
+        "line": 37,
+        "column": 4,
+        "endLine": 43,
+        "endColumn": 5,
+        "path": "development_tools\\docs\\fix_documentation.py",
+        "symbol": "unused-import",
+        "message": "Unused THIRD_PARTY_LIBRARIES imported from shared.constants",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.docs.fix_documentation",
+        "obj": "",
+        "line": 37,
+        "column": 4,
+        "endLine": 43,
+        "endColumn": 5,
+        "path": "development_tools\\docs\\fix_documentation.py",
+        "symbol": "unused-import",
+        "message": "Unused COMMON_FUNCTION_NAMES imported from shared.constants",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.docs.fix_documentation",
+        "obj": "",
+        "line": 37,
+        "column": 4,
+        "endLine": 43,
+        "endColumn": 5,
+        "path": "development_tools\\docs\\fix_documentation.py",
+        "symbol": "unused-import",
+        "message": "Unused COMMON_CLASS_NAMES imported from shared.constants",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.docs.fix_documentation",
+        "obj": "",
+        "line": 37,
+        "column": 4,
+        "endLine": 43,
+        "endColumn": 5,
+        "path": "development_tools\\docs\\fix_documentation.py",
+        "symbol": "unused-import",
+        "message": "Unused COMMON_VARIABLE_NAMES imported from shared.constants",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.docs.fix_documentation",
+        "obj": "",
+        "line": 37,
+        "column": 4,
+        "endLine": 43,
+        "endColumn": 5,
+        "path": "development_tools\\docs\\fix_documentation.py",
+        "symbol": "unused-import",
+        "message": "Unused COMMON_CODE_PATTERNS imported from shared.constants",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.docs.fix_documentation",
+        "obj": "",
+        "line": 37,
+        "column": 4,
+        "endLine": 43,
+        "endColumn": 5,
+        "path": "development_tools\\docs\\fix_documentation.py",
+        "symbol": "unused-import",
+        "message": "Unused IGNORED_PATH_PATTERNS imported from shared.constants",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.docs.fix_documentation",
+        "obj": "",
+        "line": 37,
+        "column": 4,
+        "endLine": 43,
+        "endColumn": 5,
+        "path": "development_tools\\docs\\fix_documentation.py",
+        "symbol": "unused-import",
+        "message": "Unused COMMAND_PATTERNS imported from shared.constants",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.docs.fix_documentation",
+        "obj": "",
+        "line": 37,
+        "column": 4,
+        "endLine": 43,
+        "endColumn": 5,
+        "path": "development_tools\\docs\\fix_documentation.py",
+        "symbol": "unused-import",
+        "message": "Unused TEMPLATE_PATTERNS imported from shared.constants",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.docs.fix_documentation",
+        "obj": "",
+        "line": 44,
+        "column": 4,
+        "endLine": 44,
+        "endColumn": 85,
+        "path": "development_tools\\docs\\fix_documentation.py",
+        "symbol": "unused-import",
+        "message": "Unused should_exclude_file imported from shared.standard_exclusions",
+        "message-id": "W0611"
+      }
+    ]
   }
 }
