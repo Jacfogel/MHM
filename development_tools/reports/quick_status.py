@@ -37,9 +37,10 @@ class QuickStatus:
             self.project_root = Path(__file__).parent.parent.parent
         
         # Load config if provided
-        try:
+        # Check if we're running as part of a package to avoid __package__ != __spec__.parent warnings
+        if __name__ != '__main__' and __package__ and '.' in __package__:
             from . import config
-        except ImportError:
+        else:
             from development_tools import config
         
         self.config = config  # Store reference for reuse
@@ -110,7 +111,7 @@ class QuickStatus:
         
         # Check for recent audit results
         # File is in development_tools/reports/, not development_tools/reports/quick_status.py's parent
-        audit_file = self.project_root / 'development_tools' / 'reports' / 'ai_audit_detailed_results.json'
+        audit_file = self.project_root / 'development_tools' / 'reports' / 'analysis_detailed_results.json'
         if audit_file.exists():
             try:
                 with open(audit_file, 'r') as f:
@@ -120,7 +121,7 @@ class QuickStatus:
                     # Extract coverage info if available
                     if 'results' in audit_data:
                         for script_name, result in audit_data['results'].items():
-                            if script_name == 'audit_function_registry' and result.get('success'):
+                            if script_name == 'analyze_function_registry' and result.get('success'):
                                 # Try to extract coverage from output
                                 output = result.get('output', '')
                                 if 'coverage:' in output.lower():
@@ -199,10 +200,10 @@ class QuickStatus:
     def _get_recent_activity(self) -> Dict:
         """Get information about recent activity using shared utilities."""
         # Handle both relative and absolute imports
-        try:
+        # Check if we're running as part of a package to avoid __package__ != __spec__.parent warnings
+        if __name__ != '__main__' and __package__ and '.' in __package__:
             from ..shared.common import should_exclude_file
-        except ImportError:
-            # Running directly, use absolute imports
+        else:
             from development_tools.shared.common import should_exclude_file
         
         activity = {
@@ -212,7 +213,7 @@ class QuickStatus:
         
         # Check for recent audit
         # File is in development_tools/reports/, not development_tools/reports/quick_status.py's parent
-        audit_file = self.project_root / 'development_tools' / 'reports' / 'ai_audit_detailed_results.json'
+        audit_file = self.project_root / 'development_tools' / 'reports' / 'analysis_detailed_results.json'
         if audit_file.exists():
             try:
                 with open(audit_file, 'r') as f:
@@ -378,8 +379,8 @@ class QuickStatus:
         
         # Quick Recommendations
         print("[QUICK COMMANDS]")
-        print("  Status: python development_tools/ai_tools_runner.py status")
-        print("  Full audit: python development_tools/ai_tools_runner.py audit")
+        print("  Status: python development_tools/run_development_tools.py status")
+        print("  Full audit: python development_tools/run_development_tools.py audit")
         print("  Quick check: python development_tools/quick_status.py concise")
     
     def print_json_status(self):

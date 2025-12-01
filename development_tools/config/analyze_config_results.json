@@ -1,11 +1,20 @@
 {
-  "generated_by": "config_validator.py - Configuration Validation Tool",
-  "last_generated": "2025-11-30 05:05:31",
-  "source": "python development_tools/config_validator.py",
+  "generated_by": "analyze_config.py - Configuration Validation Tool",
+  "last_generated": "2025-12-01 03:45:41",
+  "source": "python development_tools/analyze_config.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "validation_results": {
     "tools_analysis": {
-      "ai_tools_runner.py": {
+      "run_development_tools.py": {
+        "imports_config": false,
+        "uses_config_functions": false,
+        "hardcoded_values": [],
+        "config_functions_used": [],
+        "issues": [
+          "Does not import config module"
+        ]
+      },
+      "run_dev_tools.py": {
         "imports_config": false,
         "uses_config_functions": false,
         "hardcoded_values": [],
@@ -42,15 +51,17 @@
       "recommendations": []
     },
     "recommendations": [
-      "Update ai_tools_runner.py to import config module",
-      "Fix issues in ai_tools_runner.py: Does not import config module"
+      "Update run_development_tools.py to import config module",
+      "Fix issues in run_development_tools.py: Does not import config module",
+      "Update run_dev_tools.py to import config module",
+      "Fix issues in run_dev_tools.py: Does not import config module"
     ],
     "summary": {
       "tools_using_config": 1,
-      "total_tools": 2,
+      "total_tools": 3,
       "config_valid": true,
       "config_complete": true,
-      "total_recommendations": 2
+      "total_recommendations": 4
     }
   }
 }

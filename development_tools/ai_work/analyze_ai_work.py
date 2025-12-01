@@ -20,7 +20,9 @@ except ImportError:
     HAS_YAML = False
 
 # Add project root to path for core module imports
-project_root = Path(__file__).parent.parent
+# Script is at: development_tools/ai_work/analyze_ai_work.py
+# So we need to go up 2 levels to get to project root
+project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
@@ -41,7 +43,7 @@ from core.logger import get_component_logger
 logger = get_component_logger("development_tools")
 
 # Load config at module level
-VALIDATE_AI_WORK_CONFIG = config.get_validate_ai_work_config()
+VALIDATE_AI_WORK_CONFIG = config.get_analyze_ai_work_config()
 
 def validate_documentation_completeness(doc_file: str, code_files: List[str]) -> Dict:
     """Validate that documentation covers all relevant code."""
@@ -294,7 +296,7 @@ def generate_validation_report(validation_type: str, **kwargs) -> str:
     
     return "\n".join(report)
 
-def validate_ai_work(work_type: str, project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs) -> str:
+def analyze_ai_work(work_type: str, project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs) -> str:
     """
     Main validation function for AI work.
     
@@ -311,7 +313,7 @@ def validate_ai_work(work_type: str, project_root: Optional[str] = None, config_
         if config_path:
             config.load_external_config(config_path)
         # Reload config (project_root is handled via config file)
-        VALIDATE_AI_WORK_CONFIG = config.get_validate_ai_work_config()
+        VALIDATE_AI_WORK_CONFIG = config.get_analyze_ai_work_config()
         
         # Load rule sets if configured
         rule_set_paths = VALIDATE_AI_WORK_CONFIG.get('rule_set_paths', [])
@@ -351,13 +353,13 @@ def validate_ai_work(work_type: str, project_root: Optional[str] = None, config_
         return "Unknown validation type"
 
 def execute(project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs) -> str:
-    """Execute validation (for use by ai_tools_runner)."""
+    """Execute validation (for use by run_development_tools)."""
     work_type = kwargs.get('work_type', 'documentation')
-    return validate_ai_work(work_type, project_root=project_root, config_path=config_path, **kwargs)
+    return analyze_ai_work(work_type, project_root=project_root, config_path=config_path, **kwargs)
 
 if __name__ == "__main__":
     # Example usage
-    result = validate_ai_work("documentation", 
+    result = analyze_ai_work("documentation", 
                               doc_file="README.md", 
                               code_files=[])  # Provide project-specific code files
     # Print to stdout so subprocess.run can capture it

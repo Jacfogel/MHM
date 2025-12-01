@@ -16,7 +16,7 @@ import json
 from datetime import datetime
 
 # Add project root to path for core module imports
-# Script is at: development_tools/config/config_validator.py
+# Script is at: development_tools/config/analyze_config.py
 # So we need to go up 2 levels to get to project root
 project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
@@ -33,7 +33,7 @@ from core.logger import get_component_logger
 config.load_external_config()
 
 # Get configuration
-CONFIG_VALIDATOR_CONFIG = config.get_config_validator_config()
+CONFIG_VALIDATOR_CONFIG = config.get_analyze_config_config()
 
 logger = get_component_logger("development_tools")
 
@@ -42,7 +42,7 @@ class ConfigValidator:
     
     def __init__(self):
         # Use the current config schema
-        # Script is at: development_tools/config/config_validator.py
+        # Script is at: development_tools/config/analyze_config.py
         # So we need to go up 2 levels to get to project root
         self.project_root = Path(__file__).parent.parent.parent
         self.ai_tools_dir = self.project_root / 'development_tools'
@@ -60,7 +60,7 @@ class ConfigValidator:
         
         tools = {}
         for py_file in self.ai_tools_dir.glob('*.py'):
-            if py_file.name == 'config.py' or py_file.name == 'config_validator.py':
+            if py_file.name == 'config.py' or py_file.name == 'analyze_config.py':
                 continue
                 
             tool_name = py_file.name
@@ -186,7 +186,7 @@ class ConfigValidator:
         }
         
         # Check FUNCTION_DISCOVERY
-        func_discovery = config.get_function_discovery_config()
+        func_discovery = config.get_analyze_functions_config()
         required_func_fields = [
             'moderate_complexity_threshold',
             'high_complexity_threshold',
@@ -367,13 +367,13 @@ def main():
     validator.print_validation_report(results)
     
     # Save results with proper headers
-    results_file = validator.ai_tools_dir / 'config' / 'config_validation_results.json'
+    results_file = validator.ai_tools_dir / 'config' / 'analyze_config_results.json'
     try:
         # Add generation headers to results
         results_with_headers = {
-            'generated_by': 'config_validator.py - Configuration Validation Tool',
+            'generated_by': 'analyze_config.py - Configuration Validation Tool',
             'last_generated': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'source': 'python development_tools/config_validator.py',
+            'source': 'python development_tools/analyze_config.py',
             'note': 'This file is auto-generated. Do not edit manually.',
             'validation_results': results
         }

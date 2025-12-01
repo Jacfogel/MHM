@@ -75,7 +75,7 @@ class TestConfigKeySettings:
             assert key in config.AI_COLLABORATION
 
     @pytest.mark.unit
-    def test_function_discovery_config_exists(self):
+    def test_analyze_functions_config_exists(self):
         """Test that FUNCTION_DISCOVERY config exists and has expected keys."""
         assert hasattr(config, 'FUNCTION_DISCOVERY')
         assert isinstance(config.FUNCTION_DISCOVERY, dict)
@@ -138,7 +138,7 @@ class TestConfigKeySettings:
         assert isinstance(config.QUICK_AUDIT, dict)
 
     @pytest.mark.unit
-    def test_version_sync_config_exists(self):
+    def test_fix_version_sync_config_exists(self):
         """Test that VERSION_SYNC config exists."""
         assert hasattr(config, 'VERSION_SYNC')
         assert isinstance(config.VERSION_SYNC, dict)
@@ -176,9 +176,9 @@ class TestConfigHelperFunctions:
             # If config file doesn't exist, empty list is expected (default behavior)
 
     @pytest.mark.unit
-    def test_get_function_discovery_config_returns_dict(self):
-        """Test that get_function_discovery_config() returns a dict."""
-        result = config.get_function_discovery_config()
+    def test_get_analyze_functions_config_returns_dict(self):
+        """Test that get_analyze_functions_config() returns a dict."""
+        result = config.get_analyze_functions_config()
         assert isinstance(result, dict)
         assert 'moderate_complexity_threshold' in result
 
@@ -240,9 +240,9 @@ class TestConfigHelperFunctions:
         assert isinstance(result, dict)
 
     @pytest.mark.unit
-    def test_get_version_sync_config_returns_dict(self):
-        """Test that get_version_sync_config() returns a dict."""
-        result = config.get_version_sync_config()
+    def test_get_fix_version_sync_config_returns_dict(self):
+        """Test that get_fix_version_sync_config() returns a dict."""
+        result = config.get_fix_version_sync_config()
         assert isinstance(result, dict)
 
 

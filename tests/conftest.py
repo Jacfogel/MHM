@@ -25,6 +25,11 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 from datetime import datetime
 
+# CRITICAL: Suppress __package__ != __spec__.parent warnings immediately after importing warnings
+# These warnings are emitted during module import, so they must be filtered before any other imports
+# Use simplefilter to catch all DeprecationWarnings, then add specific filters
+warnings.simplefilter("ignore", DeprecationWarning)
+warnings.filterwarnings("ignore", message=".*__package__.*", category=DeprecationWarning)
 
 def ensure_qt_runtime():
     """Ensure PySide6 can load in the current environment.
@@ -52,6 +57,10 @@ warnings.filterwarnings("ignore", message=".*audioop.*is deprecated.*", category
 warnings.filterwarnings("ignore", message=".*parameter 'timeout' of type 'float' is deprecated.*", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=pytest.PytestUnhandledThreadExceptionWarning)
 warnings.filterwarnings("ignore", category=pytest.PytestUnraisableExceptionWarning)
+
+# Additional __package__ warning filters (redundant but explicit for clarity)
+# The main filter is above, right after importing warnings
+warnings.filterwarnings("ignore", message=".*__package__.*", category=DeprecationWarning)
 
 # Suppress specific Discord library warnings more broadly
 warnings.filterwarnings("ignore", module="discord.player")
@@ -1474,14 +1483,24 @@ def materialize_user_minimal_via_public_apis(user_id: str) -> dict:
     if prefs_updates or not current_prefs:
         update_user_preferences(user_id, prefs_updates)
 
-    # Schedules: ensure motivational.morning exists; merge into existing
+    # Schedules: ensure schedules exist for all categories in preferences; merge into existing
     schedules_updates = current_schedules if isinstance(current_schedules, dict) else {}
-    schedules_updates.setdefault('motivational', {}).setdefault('periods', {}).setdefault('morning', {
-        'active': True,
-        'days': ['monday','tuesday','wednesday','thursday','friday'],
-        'start_time': '09:00',
-        'end_time': '12:00',
-    })
+    # Get categories from preferences (or default to motivational)
+    categories = current_prefs.get('categories', ['motivational'])
+    if not categories:
+        categories = ['motivational']
+    
+    # Ensure schedules exist for all categories
+    for category in categories:
+        schedules_updates.setdefault(category, {}).setdefault('periods', {})
+        # Add a default morning period if none exists
+        if 'morning' not in schedules_updates[category]['periods']:
+            schedules_updates[category]['periods']['morning'] = {
+                'active': True,
+                'days': ['monday','tuesday','wednesday','thursday','friday'],
+                'start_time': '09:00',
+                'end_time': '12:00',
+            }
     update_user_schedules(user_id, schedules_updates)
 
     # Ensure context exists

@@ -191,10 +191,16 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
             full_data = get_user_data(full_user_id, "all", auto_create=True)
         except Exception as e:
             logging.getLogger("mhm_tests").warning(f"Failed to update full user features: {e}")
-            # Try alternative approach
+            # Try alternative approach - ensure health category is preserved
             try:
                 from core.user_data_handlers import update_user_preferences
-                update_user_preferences(full_user_id, {"categories": ["motivational", "quotes"]})
+                # Get current categories to preserve health
+                current_prefs = get_user_data(full_user_id, "preferences", auto_create=True).get("preferences", {})
+                current_categories = current_prefs.get("categories", [])
+                # Ensure health is in categories if it was there before
+                if "health" not in current_categories:
+                    current_categories.append("health")
+                update_user_preferences(full_user_id, {"categories": current_categories})
                 full_data = get_user_data(full_user_id, "all", auto_create=True)
             except Exception:
                 pass
@@ -251,8 +257,16 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
         # Test enabling check-ins for basic user (serial execution ensures data is available)
         basic_data = get_user_data(basic_user_id, "all", auto_create=True)
         
+        # Ensure preferences exist
+        if "preferences" not in basic_data:
+            from core.user_data_handlers import update_user_preferences
+            update_user_preferences(basic_user_id, {})
+            basic_data = get_user_data(basic_user_id, "all", auto_create=True)
+        
         # Enable check-ins
         basic_data["account"]["features"]["checkins"] = "enabled"
+        if "checkin_settings" not in basic_data.get("preferences", {}):
+            basic_data.setdefault("preferences", {})["checkin_settings"] = {}
         basic_data["preferences"]["checkin_settings"] = {
             "enabled": True,
             "questions": ["How are you feeling today?"]
@@ -282,7 +296,13 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
         assert full_user_id is not None, "Should be able to get UUID for full user"
         
         # Test disabling tasks for full user (serial execution ensures data is available)
-        full_data = get_user_data(full_user_id, "all")
+        full_data = get_user_data(full_user_id, "all", auto_create=True)
+        
+        # Ensure preferences exist
+        if "preferences" not in full_data:
+            from core.user_data_handlers import update_user_preferences
+            update_user_preferences(full_user_id, {})
+            full_data = get_user_data(full_user_id, "all", auto_create=True)
         
         # Disable tasks
         full_data["account"]["features"]["task_management"] = "disabled"

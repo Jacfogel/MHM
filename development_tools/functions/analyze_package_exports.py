@@ -13,9 +13,9 @@ based on:
 5. Module-level public functions/classes
 
 Usage:
-    python development_tools/audit_package_exports.py
-    python development_tools/audit_package_exports.py --package core
-    python development_tools/audit_package_exports.py --package communication
+    python functions/analyze_package_exports.py.py
+    python functions/analyze_package_exports.py.py --package core
+    python functions/analyze_package_exports.py.py --package communication
 """
 
 import ast
@@ -26,7 +26,9 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set
 
 # Add project root to path
-project_root = Path(__file__).parent.parent
+# Script is at: development_tools/functions/analyze_package_exports.py
+# So we need to go up 2 levels to get to project root
+project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
@@ -43,7 +45,7 @@ from core.logger import get_component_logger
 config.load_external_config()
 
 # Get configuration
-AUDIT_EXPORTS_CONFIG = config.get_audit_package_exports_config()
+AUDIT_EXPORTS_CONFIG = config.get_analyze_package_exports_config()
 EXPORT_PATTERNS = AUDIT_EXPORTS_CONFIG.get('export_patterns', [])
 EXPECTED_EXPORTS = AUDIT_EXPORTS_CONFIG.get('expected_exports', {})
 

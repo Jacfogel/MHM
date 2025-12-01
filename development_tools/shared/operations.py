@@ -8,7 +8,7 @@ Core operations used by the AI development toolchain.
 
 This module contains the reusable service layer that powers the CLI in
 
-`ai_tools_runner.py`. Each public method exposes a discrete workflow that
+`run_development_tools.py`. Each public method exposes a discrete workflow that
 
 can be invoked programmatically or through a registered command.
 
@@ -52,35 +52,35 @@ SCRIPT_REGISTRY = {
 
     'analyze_documentation': 'docs/analyze_documentation.py',
 
-    'audit_function_registry': 'functions/audit_function_registry.py',
+    'analyze_function_registry': 'functions/analyze_function_registry.py',
 
-    'audit_module_dependencies': 'imports/audit_module_dependencies.py',
+    'analyze_module_dependencies': 'imports/analyze_module_dependencies.py',
 
-    'config_validator': 'config/config_validator.py',
+    'analyze_config': 'config/analyze_config.py',
 
     'decision_support': 'reports/decision_support.py',
 
-    'documentation_sync_checker': 'docs/documentation_sync_checker.py',
+    'analyze_documentation_sync': 'docs/analyze_documentation_sync.py',
 
-    'error_handling_coverage': 'error_handling/error_handling_coverage.py',
+    'analyze_error_handling': 'error_handling/analyze_error_handling.py',
 
-    'function_discovery': 'functions/function_discovery.py',
+    'analyze_functions': 'functions/analyze_functions.py',
 
     'generate_function_registry': 'functions/generate_function_registry.py',
 
     'generate_module_dependencies': 'imports/generate_module_dependencies.py',
 
-    'legacy_reference_cleanup': 'legacy/legacy_reference_cleanup.py',
+    'fix_legacy_references': 'legacy/fix_legacy_references.py',
 
     'quick_status': 'reports/quick_status.py',
 
-    'regenerate_coverage_metrics': 'tests/regenerate_coverage_metrics.py',
+    'generate_test_coverage': 'tests/generate_test_coverage.py',
 
-    'unused_imports_checker': 'imports/unused_imports_checker.py',
+    'analyze_unused_imports': 'imports/analyze_unused_imports.py',
 
-    'validate_ai_work': 'ai_work/validate_ai_work.py',
+    'analyze_ai_work': 'ai_work/analyze_ai_work.py',
 
-    'version_sync': 'docs/version_sync.py',
+    'fix_version_sync': 'docs/fix_version_sync.py',
 
     'system_signals': 'reports/system_signals.py'
 
@@ -288,11 +288,11 @@ class AIToolsService:
 
         return result
 
-    def run_audit_function_registry(self) -> Dict:
+    def run_analyze_function_registry(self) -> Dict:
 
-        """Run audit_function_registry with structured JSON handling."""
+        """Run analyze_function_registry with structured JSON handling."""
 
-        result = self.run_script("audit_function_registry", "--json")
+        result = self.run_script("analyze_function_registry", "--json")
 
         output = result.get('output', '')
 
@@ -342,11 +342,11 @@ class AIToolsService:
 
         return result
 
-    def run_audit_module_dependencies(self) -> Dict:
+    def run_analyze_module_dependencies(self) -> Dict:
 
-        """Run audit_module_dependencies and capture dependency drift summary."""
+        """Run analyze_module_dependencies and capture dependency drift summary."""
 
-        result = self.run_script("audit_module_dependencies")
+        result = self.run_script("analyze_module_dependencies")
 
         output = result.get('output', '')
 
@@ -370,13 +370,13 @@ class AIToolsService:
 
             self.module_dependency_summary = summary
 
-            self.results_cache['audit_module_dependencies'] = summary
+            self.results_cache['analyze_module_dependencies'] = summary
 
         return result
 
-    def run_function_discovery(self) -> Dict:
+    def run_analyze_functions(self) -> Dict:
 
-        """Run function_discovery with structured JSON handling."""
+        """Run analyze_functions with structured JSON handling."""
 
         # Build command line arguments based on exclusion configuration
 
@@ -390,7 +390,7 @@ class AIToolsService:
 
             args.append("--include-dev-tools")
 
-        result = self.run_script("function_discovery", *args)
+        result = self.run_script("analyze_functions", *args)
 
         # Parse JSON output if available
         if result.get('success') and result.get('output'):
@@ -399,7 +399,7 @@ class AIToolsService:
                 json_data = json.loads(result['output'])
                 result['data'] = json_data
             except (json.JSONDecodeError, ValueError) as e:
-                logger.warning(f"Failed to parse function_discovery JSON output: {e}")
+                logger.warning(f"Failed to parse analyze_functions JSON output: {e}")
 
         return result
 
@@ -423,9 +423,9 @@ class AIToolsService:
 
         return result
 
-    def run_error_handling_coverage(self) -> Dict:
+    def run_analyze_error_handling(self) -> Dict:
 
-        """Run error_handling_coverage with structured JSON handling."""
+        """Run analyze_error_handling with structured JSON handling."""
 
         # Build command line arguments based on exclusion configuration
 
@@ -439,7 +439,7 @@ class AIToolsService:
 
             args.append("--include-dev-tools")
 
-        result = self.run_script("error_handling_coverage", *args)
+        result = self.run_script("analyze_error_handling", *args)
 
         output = result.get('output', '')
 
@@ -495,7 +495,7 @@ class AIToolsService:
 
             # Check for issues in error handling coverage
 
-            coverage = data.get('error_handling_coverage', 0)
+            coverage = data.get('analyze_error_handling') or data.get('error_handling_coverage', 0)
 
             missing_count = data.get('functions_missing_error_handling', 0)
 
@@ -519,11 +519,11 @@ class AIToolsService:
 
         return result
 
-    def run_documentation_sync_checker(self) -> Dict:
-        """Run documentation_sync_checker with structured data handling."""
+    def run_analyze_documentation_sync(self) -> Dict:
+        """Run analyze_documentation_sync with structured data handling."""
         try:
             # Import and call the checker directly to get structured data
-            from ..docs.documentation_sync_checker import DocumentationSyncChecker
+            from ..docs.analyze_documentation_sync import DocumentationSyncChecker
             
             checker = DocumentationSyncChecker()
             results = checker.run_checks()
@@ -567,7 +567,7 @@ class AIToolsService:
         except Exception as e:
             logger.error(f"Error running documentation sync checker: {e}")
             # Fallback to subprocess method
-        result = self.run_script("documentation_sync_checker", "--check")
+        result = self.run_script("analyze_documentation_sync", "--check")
         output = result.get('output', '')
         data = None
         
@@ -622,13 +622,13 @@ class AIToolsService:
         
         return data
 
-    def run_unused_imports_checker(self) -> Dict:
+    def run_analyze_unused_imports(self) -> Dict:
 
-        """Run unused_imports_checker with structured JSON handling."""
+        """Run analyze_unused_imports with structured JSON handling."""
 
         # Use longer timeout for this script (10 minutes) as it runs pylint on many files
 
-        script_path = Path(__file__).resolve().parent.parent / 'imports' / 'unused_imports_checker.py'
+        script_path = Path(__file__).resolve().parent.parent / 'imports' / 'analyze_unused_imports.py'
 
         cmd = [sys.executable, str(script_path), '--json']
 
@@ -819,7 +819,7 @@ class AIToolsService:
 
             logger.info(f"* Consolidated Report: {consolidated_file}")
 
-            logger.info(f"* JSON Data: development_tools/reports/ai_audit_detailed_results.json")
+            logger.info(f"* JSON Data: development_tools/reports/analysis_detailed_results.json")
 
             logger.info("* Check development_tools/reports/archive/ for previous runs")
 
@@ -836,7 +836,7 @@ class AIToolsService:
         try:
             import json
             from datetime import datetime
-            results_file = self.project_root / "development_tools" / "reports" / "ai_audit_detailed_results.json"
+            results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
             
             # Load existing results
             if results_file.exists():
@@ -847,7 +847,7 @@ class AIToolsService:
             
             # Add legacy cleanup results if available
             if hasattr(self, 'legacy_cleanup_summary') and self.legacy_cleanup_summary:
-                cached_data['results']['legacy_reference_cleanup'] = {
+                cached_data['results']['fix_legacy_references'] = {
                     'success': True,
                     'data': self.legacy_cleanup_summary,
                     'timestamp': datetime.now().isoformat()
@@ -855,7 +855,7 @@ class AIToolsService:
             
             # Add validation results if available
             if hasattr(self, 'validation_results') and self.validation_results:
-                cached_data['results']['validate_ai_work'] = {
+                cached_data['results']['analyze_ai_work'] = {
                     'success': True,
                     'data': self.validation_results,
                     'timestamp': datetime.now().isoformat()
@@ -929,7 +929,7 @@ class AIToolsService:
             logger.error(f"  - Validation failed: {exc}")
         try:
             logger.info("  - Running function discovery for complexity metrics...")
-            self.run_function_discovery()
+            self.run_analyze_functions()
         except Exception as exc:
             logger.error(f"  - Function discovery failed: {exc}")
         try:
@@ -939,7 +939,7 @@ class AIToolsService:
             logger.error(f"  - Decision support failed: {exc}")
         try:
             logger.info("  - Running error handling coverage analysis...")
-            self.run_error_handling_coverage()
+            self.run_analyze_error_handling()
         except Exception as exc:
             logger.error(f"  - Error handling coverage failed: {exc}")
         try:
@@ -995,21 +995,11 @@ class AIToolsService:
             self.run_analyze_documentation(include_overlap=include_overlap)
         except Exception as exc:
             logger.error(f"  - Documentation analysis failed: {exc}")
-        try:
-            logger.info("  - Running module dependency audit...")
-            dep_result = self.run_audit_module_dependencies()
-            summary = dep_result.get('data') if isinstance(dep_result, dict) else None
-            if summary:
-                missing = summary.get('missing_dependencies') or 0
-                if missing:
-                    logger.warning(f"  - Module dependency audit found {missing} undocumented references")
-                else:
-                    logger.info("  - Module dependency audit completed (no undocumented dependencies detected)")
-        except Exception as exc:
-            logger.error(f"  - Module dependency audit failed: {exc}")
+        # Note: analyze_module_dependencies is already run in run_quick_audit() via audit_scripts,
+        # so we skip it here to avoid duplicate execution
         try:
             logger.info("  - Running configuration validation...")
-            self.run_script('config_validator')
+            self.run_script('analyze_config')
         except Exception as exc:
             logger.error(f"  - Configuration validation failed: {exc}")
         try:
@@ -1041,7 +1031,7 @@ class AIToolsService:
             logger.info("  - Running version sync...")
             result = self.run_version_sync(scope='all')
             if isinstance(result, dict) and result.get('success'):
-                self.version_sync_results = result
+                self.fix_version_sync_results = result
         except Exception as exc:
             logger.error(f"  - Version sync failed: {exc}")
         logger.info("  - Full audit tools completed (including coverage)")
@@ -1074,7 +1064,7 @@ class AIToolsService:
     def _validate_referenced_paths(self) -> None:
         """Validate that all referenced paths in documentation exist."""
         try:
-            from ..docs.version_sync import validate_referenced_paths  # type: ignore
+            from ..docs.fix_version_sync import validate_referenced_paths  # type: ignore
             result = validate_referenced_paths()
             status = result.get('status') if isinstance(result, dict) else None
             message = result.get('message') if isinstance(result, dict) else None
@@ -1119,7 +1109,7 @@ class AIToolsService:
     def _check_ascii_compliance(self) -> None:
         """Check for non-ASCII characters in documentation files."""
         try:
-            from ..docs.documentation_sync_checker import DocumentationSyncChecker  # type: ignore
+            from ..docs.analyze_documentation_sync import DocumentationSyncChecker  # type: ignore
             checker = DocumentationSyncChecker()
             results = checker.run_checks()
             ascii_issues = results.get('ascii_compliance', {}) if isinstance(results, dict) else {}
@@ -1135,7 +1125,7 @@ class AIToolsService:
     def _sync_todo_with_changelog(self) -> None:
         """Sync TODO.md with AI_CHANGELOG.md to move completed entries."""
         try:
-            from ..docs.version_sync import sync_todo_with_changelog  # type: ignore
+            from ..docs.fix_version_sync import sync_todo_with_changelog  # type: ignore
             result = sync_todo_with_changelog()
             status = result.get('status') if isinstance(result, dict) else None
             if status == 'ok':
@@ -1263,7 +1253,7 @@ class AIToolsService:
 
         logger.info("=" * 50)
 
-        result = self.run_script('validate_ai_work')
+        result = self.run_script('analyze_ai_work')
 
         if result['success']:
 
@@ -1293,7 +1283,7 @@ class AIToolsService:
 
         logger.info("=" * 50)
 
-        result = self.run_script('config_validator')
+        result = self.run_script('analyze_config')
 
         if result['success']:
 
@@ -1375,25 +1365,25 @@ class AIToolsService:
 
                 result = self.run_analyze_documentation()
 
-            elif script_name == 'audit_function_registry':
+            elif script_name == 'analyze_function_registry':
 
-                result = self.run_audit_function_registry()
+                result = self.run_analyze_function_registry()
 
-            elif script_name == 'audit_module_dependencies':
+            elif script_name == 'analyze_module_dependencies':
 
-                result = self.run_audit_module_dependencies()
+                result = self.run_analyze_module_dependencies()
 
-            elif script_name == 'error_handling_coverage':
+            elif script_name == 'analyze_error_handling':
 
-                result = self.run_error_handling_coverage()
+                result = self.run_analyze_error_handling()
 
-            elif script_name == 'documentation_sync_checker':
+            elif script_name == 'analyze_documentation_sync':
 
-                result = self.run_documentation_sync_checker()
+                result = self.run_analyze_documentation_sync()
 
-            elif script_name == 'function_discovery':
+            elif script_name == 'analyze_functions':
 
-                result = self.run_function_discovery()
+                result = self.run_analyze_functions()
 
             elif script_name == 'decision_support':
 
@@ -1482,13 +1472,13 @@ class AIToolsService:
 
         logger.info("=" * 50)
 
-        result = self.run_script('version_sync', 'sync', '--scope', scope)
+        result = self.run_script('fix_version_sync', 'sync', '--scope', scope)
 
         if result['success']:
 
             # Store results for consolidated report
 
-            self.version_sync_results = result
+            self.fix_version_sync_results = result
 
             logger.info("Version sync completed!")
 
@@ -1505,7 +1495,7 @@ class AIToolsService:
         logger.info("Starting development tools coverage analysis...")
         
         try:
-            from ..tests.regenerate_coverage_metrics import CoverageMetricsRegenerator
+            from ..tests.generate_test_coverage import CoverageMetricsRegenerator
             
             regenerator = CoverageMetricsRegenerator()
             result = regenerator.run_dev_tools_coverage()
@@ -1639,7 +1629,7 @@ class AIToolsService:
 
         logger.info("Regenerating test coverage metrics...")
 
-        result = self.run_script('regenerate_coverage_metrics', '--update-plan', timeout=900)
+        result = self.run_script('generate_test_coverage', '--update-plan', timeout=1800)  # 30 minute timeout for coverage
 
         # Parse test results from output
         output = result.get('output', '')
@@ -1855,7 +1845,7 @@ class AIToolsService:
 
         # Use longer timeout for this script (10 minutes) as it runs pylint on many files
 
-        script_path = Path(__file__).resolve().parent.parent / 'imports' / 'unused_imports_checker.py'
+        script_path = Path(__file__).resolve().parent.parent / 'imports' / 'analyze_unused_imports.py'
 
         cmd = [sys.executable, str(script_path)]
 
@@ -1919,14 +1909,12 @@ class AIToolsService:
 
         logger.info("Generating directory trees...")
 
-        result = self.run_script('documentation_sync_checker', '--generate-trees')
+        result = self.run_script('analyze_documentation_sync', '--generate-trees')
 
         if result['success']:
-
-            logger.info(result['output'])
-
+            # Don't log result['output'] as it contains duplicate messages
+            # The script already logs "Directory tree generated: {path}" internally
             logger.info("Directory tree generated!")
-
             logger.info("Check development_docs/DIRECTORY_TREE.md for project structure")
 
         return result['success']
@@ -1993,7 +1981,7 @@ class AIToolsService:
 
         logger.info("Validating work...")
 
-        result = self.run_script('validate_ai_work')
+        result = self.run_script('analyze_ai_work')
 
         if result['success']:
 
@@ -2113,7 +2101,7 @@ class AIToolsService:
 
                 print(f"  {metric}: {value}")
 
-        print(f"\nDetailed results saved to: {(self.audit_config or {}).get('results_file', 'development_tools/reports/ai_audit_detailed_results.json')}")
+        print(f"\nDetailed results saved to: {(self.audit_config or {}).get('results_file', 'development_tools/reports/analysis_detailed_results.json')}")
 
         if self.audit_config.get('prioritize_issues', False):
 
@@ -2127,11 +2115,11 @@ class AIToolsService:
 
             self.results_cache[script_name] = {}
 
-        if 'function_discovery' in script_name:
+        if 'analyze_functions' in script_name:
 
             self._extract_function_metrics(result)
 
-        elif 'audit_function_registry' in script_name:
+        elif 'analyze_function_registry' in script_name:
 
             self._extract_documentation_metrics(result)
 
@@ -2139,11 +2127,11 @@ class AIToolsService:
 
             self._extract_decision_insights(result)
 
-        elif 'error_handling_coverage' in script_name:
+        elif 'analyze_error_handling' in script_name:
 
             self._extract_error_handling_metrics(result)
 
-        elif 'audit_module_dependencies' in script_name:
+        elif 'analyze_module_dependencies' in script_name:
 
             data = result.get('data')
 
@@ -2281,7 +2269,7 @@ class AIToolsService:
 
                     metrics[current_section].append(entry)
 
-        self.results_cache['function_discovery'] = metrics
+        self.results_cache['analyze_functions'] = metrics
 
     def _extract_documentation_metrics(self, result: Dict[str, Any]):
 
@@ -2297,8 +2285,8 @@ class AIToolsService:
             totals = data.get('totals') if isinstance(data.get('totals'), dict) else None
             documented = totals.get('functions_documented', 0) if isinstance(totals, dict) else 0
 
-            # Get actual total functions from function_discovery (not registry's limited count)
-            fd_metrics = self.results_cache.get('function_discovery', {}) or {}
+            # Get actual total functions from analyze_functions (not registry's limited count)
+            fd_metrics = self.results_cache.get('analyze_functions', {}) or {}
             actual_total = fd_metrics.get('total_functions')
             
             # Recalculate coverage using actual total, not registry's limited count
@@ -2348,7 +2336,7 @@ class AIToolsService:
                 if registry_functions_found is not None:
                     metrics['registry_functions_found'] = registry_functions_found  # For reference only
 
-                # Use actual total from function_discovery
+                # Use actual total from analyze_functions
                 if actual_total is not None:
                     metrics['total_functions'] = actual_total
 
@@ -2394,7 +2382,7 @@ class AIToolsService:
 
             if not isinstance(output, str):
 
-                self.results_cache['audit_function_registry'] = metrics
+                self.results_cache['analyze_function_registry'] = metrics
 
                 return
 
@@ -2434,7 +2422,7 @@ class AIToolsService:
 
                         metrics['missing_items'] = match.group(1)
 
-        self.results_cache['audit_function_registry'] = metrics
+        self.results_cache['analyze_function_registry'] = metrics
 
     def _extract_decision_insights(self, result: Dict[str, Any]):
 
@@ -2556,7 +2544,7 @@ class AIToolsService:
 
                 'functions_missing_error_handling': data.get('functions_missing_error_handling', 0),
 
-                'error_handling_coverage': data.get('error_handling_coverage', 0),
+                'analyze_error_handling': data.get('analyze_error_handling') or data.get('error_handling_coverage', 0),
 
                 'functions_with_decorators': data.get('functions_with_decorators', 0),
 
@@ -2632,9 +2620,9 @@ class AIToolsService:
 
                     if match:
 
-                        metrics['error_handling_coverage'] = float(match.group(1))
+                        metrics['analyze_error_handling'] = float(match.group(1))
 
-        self.results_cache['error_handling_coverage'] = metrics
+        self.results_cache['analyze_error_handling'] = metrics
 
     def _extract_key_metrics(self, results: Dict[str, Any]) -> Dict[str, Any]:
 
@@ -2642,7 +2630,7 @@ class AIToolsService:
 
         combined: Dict[str, Any] = {}
 
-        for cache_key in ('function_discovery', 'audit_function_registry', 'decision_support_metrics', 'error_handling_coverage'):
+        for cache_key in ('analyze_functions', 'analyze_function_registry', 'decision_support_metrics', 'analyze_error_handling'):
 
             cache = self.results_cache.get(cache_key)
 
@@ -2943,7 +2931,7 @@ class AIToolsService:
 
         """Return the top documentation files missing from the registry."""
 
-        metrics = self.results_cache.get('audit_function_registry', {})
+        metrics = self.results_cache.get('analyze_function_registry', {})
 
         missing_files = []
 
@@ -3150,7 +3138,7 @@ class AIToolsService:
         }
 
     def _parse_module_dependency_report(self, output: str) -> Optional[Dict[str, Any]]:
-        """Extract summary statistics from audit_module_dependencies output."""
+        """Extract summary statistics from analyze_module_dependencies output."""
         if not output:
             return None
 
@@ -3276,21 +3264,21 @@ class AIToolsService:
         """Provide consistent totals across downstream documents."""
 
         results_cache = self.results_cache or {}
-        fd_metrics = results_cache.get('function_discovery', {}) or {}
+        fd_metrics = results_cache.get('analyze_functions', {}) or {}
 
         ds_metrics = results_cache.get('decision_support_metrics', {}) or {}
 
-        audit_data = results_cache.get('audit_function_registry', {}) or {}
+        audit_data = results_cache.get('analyze_function_registry', {}) or {}
 
         audit_totals = audit_data.get('totals') if isinstance(audit_data, dict) else {}
         if audit_totals is None or not isinstance(audit_totals, dict):
             audit_totals = {}
 
-        # PRIORITY: Always use function_discovery first (most accurate)
-        # Don't use audit_function_registry's functions_found - it only counts registry entries, not all functions
+        # PRIORITY: Always use analyze_functions first (most accurate)
+        # Don't use analyze_function_registry's functions_found - it only counts registry entries, not all functions
         total_functions = None
 
-        # First priority: function_discovery (most accurate)
+        # First priority: analyze_functions (most accurate)
         if fd_metrics:
             total_functions = fd_metrics.get('total_functions')
 
@@ -3298,7 +3286,7 @@ class AIToolsService:
         if total_functions is None:
             total_functions = ds_metrics.get('total_functions')
 
-        # Last resort: audit_function_registry (but only if it's reasonable)
+        # Last resort: analyze_function_registry (but only if it's reasonable)
         if total_functions is None and isinstance(audit_data, dict):
             audit_total = audit_data.get('total_functions')
             if audit_total is not None and isinstance(audit_total, int) and audit_total > 100:
@@ -3334,14 +3322,14 @@ class AIToolsService:
         if total_functions is None or moderate is None or high is None or critical is None:
             try:
                 import json
-                results_file = self.project_root / "development_tools" / "reports" / "ai_audit_detailed_results.json"
+                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
                     
-                    # Try function_discovery first
-                    if 'results' in cached_data and 'function_discovery' in cached_data['results']:
-                        func_data = cached_data['results']['function_discovery']
+                    # Try analyze_functions first
+                    if 'results' in cached_data and 'analyze_functions' in cached_data['results']:
+                        func_data = cached_data['results']['analyze_functions']
                         if 'data' in func_data:
                             cached_metrics = func_data['data']
                             if total_functions is None:
@@ -3368,10 +3356,10 @@ class AIToolsService:
                                 if critical is None:
                                     critical = cached_ds_metrics.get('critical_complexity')
                     
-                    # Fallback to audit_function_registry - parse high_complexity array
+                    # Fallback to analyze_function_registry - parse high_complexity array
                     if (high is None or critical is None) and 'results' in cached_data:
-                        if 'audit_function_registry' in cached_data['results']:
-                            afr_data = cached_data['results']['audit_function_registry']
+                        if 'analyze_function_registry' in cached_data['results']:
+                            afr_data = cached_data['results']['analyze_function_registry']
                             if 'data' in afr_data and 'analysis' in afr_data['data']:
                                 analysis = afr_data['data']['analysis']
                                 high_complexity_array = analysis.get('high_complexity', [])
@@ -3406,14 +3394,14 @@ class AIToolsService:
         if documented == 0:
             try:
                 import json
-                results_file = self.project_root / "development_tools" / "reports" / "ai_audit_detailed_results.json"
+                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
                     
-                    # Try to get documented count from audit_function_registry
-                    if 'results' in cached_data and 'audit_function_registry' in cached_data['results']:
-                        afr_data = cached_data['results']['audit_function_registry']
+                    # Try to get documented count from analyze_function_registry
+                    if 'results' in cached_data and 'analyze_function_registry' in cached_data['results']:
+                        afr_data = cached_data['results']['analyze_function_registry']
                         if 'data' in afr_data:
                             afr_data_dict = afr_data['data']
                             if 'totals' in afr_data_dict:
@@ -3506,13 +3494,13 @@ class AIToolsService:
         # Enhance results with extracted metrics from results_cache
         enhanced_results = dict(results)
         
-        # Add function_discovery metrics if available
-        if 'function_discovery' in self.results_cache:
-            func_metrics = self.results_cache['function_discovery']
-            if 'function_discovery' not in enhanced_results:
-                enhanced_results['function_discovery'] = {'success': True, 'data': func_metrics}
-            elif 'data' not in enhanced_results.get('function_discovery', {}):
-                enhanced_results['function_discovery']['data'] = func_metrics
+        # Add analyze_functions metrics if available
+        if 'analyze_functions' in self.results_cache:
+            func_metrics = self.results_cache['analyze_functions']
+            if 'analyze_functions' not in enhanced_results:
+                enhanced_results['analyze_functions'] = {'success': True, 'data': func_metrics}
+            elif 'data' not in enhanced_results.get('analyze_functions', {}):
+                enhanced_results['analyze_functions']['data'] = func_metrics
         
         # Add decision_support metrics if available
         if 'decision_support_metrics' in self.results_cache:
@@ -3532,11 +3520,11 @@ class AIToolsService:
 
         audit_data = {
 
-            'generated_by': 'ai_tools_runner.py - AI Development Tools Runner',
+            'generated_by': 'run_development_tools.py - AI Development Tools Runner',
 
             'last_generated': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
 
-            'source': 'python development_tools/ai_tools_runner.py audit',
+            'source': 'python development_tools/run_development_tools.py audit',
 
             'note': 'This file is auto-generated. Do not edit manually.',
 
@@ -3551,7 +3539,7 @@ class AIToolsService:
         }
 
         # Normalise location relative to the project root
-        results_file_path = self.audit_config.get('results_file', 'development_tools/reports/ai_audit_detailed_results.json')
+        results_file_path = self.audit_config.get('results_file', 'development_tools/reports/analysis_detailed_results.json')
         results_file = (self.project_root / results_file_path).resolve()
 
         # Use file rotation for JSON files too
@@ -3622,13 +3610,13 @@ class AIToolsService:
 
         lines.append("> **File**: `development_tools/AI_STATUS.md`")
 
-        lines.append("> **Generated**: This file is auto-generated by ai_tools_runner.py. Do not edit manually.")
+        lines.append("> **Generated**: This file is auto-generated by run_development_tools.py. Do not edit manually.")
 
-        lines.append("> **Generated by**: ai_tools_runner.py - AI Development Tools Runner")
+        lines.append("> **Generated by**: run_development_tools.py - AI Development Tools Runner")
 
         lines.append(f"> **Last Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
-        lines.append("> **Source**: `python development_tools/ai_tools_runner.py status`")
+        lines.append("> **Source**: `python development_tools/run_development_tools.py status`")
 
         lines.append("")
 
@@ -3649,11 +3637,11 @@ class AIToolsService:
             metrics = {}
 
         results_cache = self.results_cache or {}
-        doc_metrics = results_cache.get('audit_function_registry', {}) or {}
+        doc_metrics = results_cache.get('analyze_function_registry', {}) or {}
 
-        error_metrics = results_cache.get('error_handling_coverage', {}) or {}
+        error_metrics = results_cache.get('analyze_error_handling', {}) or {}
 
-        function_metrics = results_cache.get('function_discovery', {}) or {}
+        function_metrics = results_cache.get('analyze_functions', {}) or {}
 
         analyze_docs = results_cache.get('analyze_documentation', {}) or {}
         # analyze_documentation stores the payload directly, not wrapped in 'data'
@@ -3672,7 +3660,7 @@ class AIToolsService:
 
         missing_files = self._get_missing_doc_files(limit=4)
 
-        error_coverage = error_metrics.get('error_handling_coverage')
+        error_coverage = error_metrics.get('analyze_error_handling') or error_metrics.get('error_handling_coverage')
         
         # Recalculate error handling coverage using canonical function count for consistency
         error_total = error_metrics.get('total_functions')
@@ -3720,14 +3708,14 @@ class AIToolsService:
         if total_functions == 'Unknown' or moderate == 'Unknown':
             try:
                 import json
-                results_file = self.project_root / "development_tools" / "reports" / "ai_audit_detailed_results.json"
+                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
                     
-                    # Try function_discovery first
-                    if 'results' in cached_data and 'function_discovery' in cached_data['results']:
-                        func_data = cached_data['results']['function_discovery']
+                    # Try analyze_functions first
+                    if 'results' in cached_data and 'analyze_functions' in cached_data['results']:
+                        func_data = cached_data['results']['analyze_functions']
                         if 'data' in func_data:
                             cached_metrics = func_data['data']
                             if total_functions == 'Unknown':
@@ -3759,7 +3747,7 @@ class AIToolsService:
                 pass
         
         if total_functions == 'Unknown':
-            lines.append("- **Total Functions**: Run `python development_tools/ai_tools_runner.py audit --fast` for detailed metrics")
+            lines.append("- **Total Functions**: Run `python development_tools/run_development_tools.py audit --fast` for detailed metrics")
         else:
             lines.append(f"- **Total Functions**: {total_functions} (Moderate: {moderate}, High: {high}, Critical: {critical})")
 
@@ -3770,12 +3758,12 @@ class AIToolsService:
         if doc_coverage == 'Unknown' or doc_coverage is None:
             try:
                 import json
-                results_file = self.project_root / "development_tools" / "reports" / "ai_audit_detailed_results.json"
+                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
-                    if 'results' in cached_data and 'audit_function_registry' in cached_data['results']:
-                        func_reg_data = cached_data['results']['audit_function_registry']
+                    if 'results' in cached_data and 'analyze_function_registry' in cached_data['results']:
+                        func_reg_data = cached_data['results']['analyze_function_registry']
                         if 'data' in func_reg_data:
                             cached_metrics = func_reg_data['data']
                             cached_doc_cov = cached_metrics.get('doc_coverage') or cached_metrics.get('coverage')
@@ -3816,15 +3804,15 @@ class AIToolsService:
         if not error_coverage or error_coverage == 'Unknown':
             try:
                 import json
-                results_file = Path("development_tools/reports/ai_audit_detailed_results.json")
+                results_file = Path("development_tools/reports/analysis_detailed_results.json")
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
-                    if 'results' in cached_data and 'error_handling_coverage' in cached_data['results']:
-                        error_data = cached_data['results']['error_handling_coverage']
+                    if 'results' in cached_data and 'analyze_error_handling' in cached_data['results']:
+                        error_data = cached_data['results']['analyze_error_handling']
                         if 'data' in error_data:
                             cached_metrics = error_data['data']
-                            error_coverage = cached_metrics.get('error_handling_coverage', 'Unknown')
+                            error_coverage = cached_metrics.get('analyze_error_handling') or cached_metrics.get('error_handling_coverage', 'Unknown')
                             missing_error_handlers = cached_metrics.get('functions_missing_error_handling')
             except Exception:
                 pass
@@ -3841,7 +3829,7 @@ class AIToolsService:
         if not doc_sync_summary:
             try:
                 import json
-                results_file = Path("development_tools/reports/ai_audit_detailed_results.json")
+                results_file = Path("development_tools/reports/analysis_detailed_results.json")
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
@@ -3883,12 +3871,12 @@ class AIToolsService:
         doc_sync_summary_for_signals = None
         try:
             import json
-            results_file = Path("development_tools/reports/ai_audit_detailed_results.json")
+            results_file = Path("development_tools/reports/analysis_detailed_results.json")
             if results_file.exists():
                 with open(results_file, 'r', encoding='utf-8') as f:
                     cached_data = json.load(f)
-                if 'results' in cached_data and 'documentation_sync_checker' in cached_data['results']:
-                    doc_sync_data = cached_data['results']['documentation_sync_checker']
+                if 'results' in cached_data and 'analyze_documentation_sync' in cached_data['results']:
+                    doc_sync_data = cached_data['results']['analyze_documentation_sync']
                     if 'data' in doc_sync_data:
                         cached_metrics = doc_sync_data['data']
                         # Create a doc_sync_summary from the cached data
@@ -3948,9 +3936,9 @@ class AIToolsService:
 
         if not doc_sync_summary_for_signals:
 
-            lines.append("- Run `python development_tools/ai_tools_runner.py doc-sync` for drift details")
+            lines.append("- Run `python development_tools/run_development_tools.py doc-sync` for drift details")
 
-        dependency_summary = self.module_dependency_summary or self.results_cache.get('audit_module_dependencies')
+        dependency_summary = self.module_dependency_summary or self.results_cache.get('analyze_module_dependencies')
 
         if dependency_summary:
 
@@ -4084,12 +4072,12 @@ class AIToolsService:
             # Try to load cached error handling data
             try:
                 import json
-                results_file = Path("development_tools/reports/ai_audit_detailed_results.json")
+                results_file = Path("development_tools/reports/analysis_detailed_results.json")
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
-                    if 'results' in cached_data and 'error_handling_coverage' in cached_data['results']:
-                        error_data = cached_data['results']['error_handling_coverage']
+                    if 'results' in cached_data and 'analyze_error_handling' in cached_data['results']:
+                        error_data = cached_data['results']['analyze_error_handling']
                         if 'data' in error_data:
                             error_metrics = error_data['data']
                         else:
@@ -4105,7 +4093,7 @@ class AIToolsService:
                                 error_metrics = None
                         
                         if error_metrics:
-                            coverage = error_metrics.get('error_handling_coverage', 'Unknown')
+                            coverage = error_metrics.get('analyze_error_handling') or error_metrics.get('error_handling_coverage', 'Unknown')
                             if coverage != 'Unknown':
                                 lines.append(f"- **Error Handling Coverage**: {coverage:.1f}%")
                                 lines.append(f"- **Functions with Error Handling**: {error_metrics.get('functions_with_error_handling', 'Unknown')}")
@@ -4134,15 +4122,15 @@ class AIToolsService:
                                         type_text += f", ... +{len(phase2_by_type) - 3} more"
                                     lines.append(f"- **Phase 2 Exceptions**: {phase2_total} generic exception raises need categorization ({type_text})")
                             else:
-                                lines.append("- **Error Handling**: Run `python development_tools/ai_tools_runner.py audit --fast` for detailed metrics")
+                                lines.append("- **Error Handling**: Run `python development_tools/run_development_tools.py audit --fast` for detailed metrics")
                         else:
-                            lines.append("- **Error Handling**: Run `python development_tools/ai_tools_runner.py audit --fast` for detailed metrics")
+                            lines.append("- **Error Handling**: Run `python development_tools/run_development_tools.py audit --fast` for detailed metrics")
                     else:
-                        lines.append("- **Error Handling**: Run `python development_tools/ai_tools_runner.py audit --fast` for detailed metrics")
+                        lines.append("- **Error Handling**: Run `python development_tools/run_development_tools.py audit --fast` for detailed metrics")
                 else:
-                    lines.append("- **Error Handling**: Run `python development_tools/ai_tools_runner.py audit --fast` for detailed metrics")
+                    lines.append("- **Error Handling**: Run `python development_tools/run_development_tools.py audit --fast` for detailed metrics")
             except Exception:
-                lines.append("- **Error Handling**: Run `python development_tools/ai_tools_runner.py audit --fast` for detailed metrics")
+                lines.append("- **Error Handling**: Run `python development_tools/run_development_tools.py audit --fast` for detailed metrics")
 
         lines.append("")
 
@@ -4204,13 +4192,13 @@ class AIToolsService:
             total_functions = 'Unknown'
             try:
                 import json
-                results_file = self.project_root / "development_tools" / "reports" / "ai_audit_detailed_results.json"
+                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
-                    # Try function_discovery first
-                    if 'results' in cached_data and 'function_discovery' in cached_data['results']:
-                        func_data = cached_data['results']['function_discovery']
+                    # Try analyze_functions first
+                    if 'results' in cached_data and 'analyze_functions' in cached_data['results']:
+                        func_data = cached_data['results']['analyze_functions']
                         if 'data' in func_data:
                             func_metrics = func_data['data']
                             moderate = func_metrics.get('moderate_complexity', 'Unknown')
@@ -4239,10 +4227,10 @@ class AIToolsService:
                                 critical = ds_metrics.get('critical_complexity', 'Unknown')
                                 total_functions = ds_metrics.get('total_functions', 'Unknown')
                     
-                    # Fallback to audit_function_registry - parse high_complexity array
+                    # Fallback to analyze_function_registry - parse high_complexity array
                     if (high == 'Unknown' or critical == 'Unknown') and 'results' in cached_data:
-                        if 'audit_function_registry' in cached_data['results']:
-                            afr_data = cached_data['results']['audit_function_registry']
+                        if 'analyze_function_registry' in cached_data['results']:
+                            afr_data = cached_data['results']['analyze_function_registry']
                             if 'data' in afr_data and 'analysis' in afr_data['data']:
                                 analysis = afr_data['data']['analysis']
                                 high_complexity_array = analysis.get('high_complexity', [])
@@ -4260,7 +4248,7 @@ class AIToolsService:
                                     if moderate == 'Unknown' and total_functions != 'Unknown' and isinstance(total_functions, int):
                                         # Estimate: total - high - critical (approximate, may include low complexity)
                                         moderate = max(0, total_functions - high_count - critical_count)
-                                    # Also get total_functions from audit_function_registry if missing
+                                    # Also get total_functions from analyze_function_registry if missing
                                     if total_functions == 'Unknown' and 'totals' in afr_data['data']:
                                         totals = afr_data['data']['totals']
                                         total_functions = totals.get('functions_found', 'Unknown')
@@ -4285,12 +4273,12 @@ class AIToolsService:
                         if total_functions != 'Unknown' and total_functions is not None:
                             lines.append(f"- **Total Functions**: {total_functions}")
                     else:
-                        lines.append("- **Complexity Analysis**: Run `python development_tools/ai_tools_runner.py audit --fast` for detailed metrics")
+                        lines.append("- **Complexity Analysis**: Run `python development_tools/run_development_tools.py audit --fast` for detailed metrics")
                 else:
-                    lines.append("- **Complexity Analysis**: Run `python development_tools/ai_tools_runner.py audit --fast` for detailed metrics")
+                    lines.append("- **Complexity Analysis**: Run `python development_tools/run_development_tools.py audit --fast` for detailed metrics")
             except Exception as e:
                 logger.debug(f"Failed to load complexity from cache: {e}")
-                lines.append("- **Complexity Analysis**: Run `python development_tools/ai_tools_runner.py audit --fast` for detailed metrics")
+                lines.append("- **Complexity Analysis**: Run `python development_tools/run_development_tools.py audit --fast` for detailed metrics")
 
         lines.append("")
 
@@ -4393,12 +4381,12 @@ class AIToolsService:
             # Try to load cached audit results if not available in memory
             try:
                 import json
-                results_file = Path("development_tools/reports/ai_audit_detailed_results.json")
+                results_file = Path("development_tools/reports/analysis_detailed_results.json")
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
-                    if 'results' in cached_data and 'legacy_reference_cleanup' in cached_data['results']:
-                        legacy_data = cached_data['results']['legacy_reference_cleanup']
+                    if 'results' in cached_data and 'fix_legacy_references' in cached_data['results']:
+                        legacy_data = cached_data['results']['fix_legacy_references']
                         if 'data' in legacy_data:
                             cached_legacy = legacy_data['data']
                             legacy_issues = cached_legacy.get('files_with_issues', 'Unknown')
@@ -4446,13 +4434,13 @@ class AIToolsService:
             validation_loaded = False
             try:
                 import json
-                results_file = self.project_root / "development_tools" / "reports" / "ai_audit_detailed_results.json"
+                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
-                    if 'results' in cached_data and 'validate_ai_work' in cached_data['results']:
-                        validation_data = cached_data['results']['validate_ai_work']
-                        # Handle nested data structure: results.validate_ai_work.data.output
+                    if 'results' in cached_data and 'analyze_ai_work' in cached_data['results']:
+                        validation_data = cached_data['results']['analyze_ai_work']
+                        # Handle nested data structure: results.analyze_ai_work.data.output
                         if 'data' in validation_data:
                             data = validation_data['data']
                             # Check if data is a dict with 'output' key, or if it's the result dict itself
@@ -4528,7 +4516,7 @@ class AIToolsService:
             system_signals = None
             try:
                 import json
-                results_file = self.project_root / "development_tools" / "reports" / "ai_audit_detailed_results.json"
+                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
@@ -4578,11 +4566,11 @@ class AIToolsService:
 
         lines.append("## Quick Commands")
 
-        lines.append("- `python development_tools/ai_tools_runner.py status` - Refresh this snapshot")
+        lines.append("- `python development_tools/run_development_tools.py status` - Refresh this snapshot")
 
-        lines.append("- `python development_tools/ai_tools_runner.py audit --full` - Regenerate all metrics")
+        lines.append("- `python development_tools/run_development_tools.py audit --full` - Regenerate all metrics")
 
-        lines.append("- `python development_tools/ai_tools_runner.py doc-sync` - Update documentation pairing data")
+        lines.append("- `python development_tools/run_development_tools.py doc-sync` - Update documentation pairing data")
 
         lines.append("")
 
@@ -4594,10 +4582,10 @@ class AIToolsService:
         lines.append("# AI Priorities - Immediate Next Steps")
         lines.append("")
         lines.append("> **File**: `development_tools/AI_PRIORITIES.md`")
-        lines.append("> **Generated**: This file is auto-generated by ai_tools_runner.py. Do not edit manually.")
-        lines.append("> **Generated by**: ai_tools_runner.py - AI Development Tools Runner")
+        lines.append("> **Generated**: This file is auto-generated by run_development_tools.py. Do not edit manually.")
+        lines.append("> **Generated by**: run_development_tools.py - AI Development Tools Runner")
         lines.append(f"> **Last Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        lines.append("> **Source**: `python development_tools/ai_tools_runner.py audit`")
+        lines.append("> **Source**: `python development_tools/run_development_tools.py audit`")
         lines.append("")
 
         def percent_text(value: Any, decimals: int = 1) -> str:
@@ -4634,9 +4622,9 @@ class AIToolsService:
             return None
 
         metrics = self._get_canonical_metrics()
-        doc_metrics = self.results_cache.get('audit_function_registry', {}) or {}
-        error_metrics = self.results_cache.get('error_handling_coverage', {}) or {}
-        function_metrics = self.results_cache.get('function_discovery', {}) or {}
+        doc_metrics = self.results_cache.get('analyze_function_registry', {}) or {}
+        error_metrics = self.results_cache.get('analyze_error_handling', {}) or {}
+        function_metrics = self.results_cache.get('analyze_functions', {}) or {}
         doc_sync_summary = self.docs_sync_summary or {}
         legacy_summary = self.legacy_cleanup_summary or {}
         coverage_summary = self._load_coverage_summary()
@@ -4665,7 +4653,7 @@ class AIToolsService:
         missing_docs_count = to_int(doc_metrics.get('missing_docs') or doc_metrics.get('missing_items'))
         missing_doc_files = doc_metrics.get('missing_files') or self._get_missing_doc_files(limit=5)
 
-        error_coverage = error_metrics.get('error_handling_coverage')
+        error_coverage = error_metrics.get('analyze_error_handling') or error_metrics.get('error_handling_coverage')
         
         # Recalculate error handling coverage using canonical function count for consistency
         error_total = error_metrics.get('total_functions')
@@ -4765,7 +4753,7 @@ class AIToolsService:
                     f"{paired_doc_issues} paired documentation sets affected alongside drift."
                 )
             drift_details.append(
-                "Run `python development_tools/ai_tools_runner.py doc-sync --fix` after adjustments."
+                "Run `python development_tools/run_development_tools.py doc-sync --fix` after adjustments."
             )
             add_priority(
                 order=1,
@@ -4781,7 +4769,7 @@ class AIToolsService:
                     f"Document: {self._format_list_for_display(list(missing_doc_files)[:5], limit=3)}"
                 )
             doc_bullets.append(
-                "Regenerate registry entries via `python development_tools/ai_tools_runner.py docs`."
+                "Regenerate registry entries via `python development_tools/run_development_tools.py docs`."
             )
             add_priority(
                 order=2,
@@ -4917,7 +4905,7 @@ class AIToolsService:
                     bullets=dev_bullets
                 )
 
-        dependency_summary = self.module_dependency_summary or self.results_cache.get('audit_module_dependencies')
+        dependency_summary = self.module_dependency_summary or self.results_cache.get('analyze_module_dependencies')
 
         if dependency_summary and dependency_summary.get('missing_dependencies'):
 
@@ -4931,7 +4919,7 @@ class AIToolsService:
 
                 dep_bullets.append(f"Affected files: {self._format_list_for_display(files, limit=3)}")
 
-            dep_bullets.append("Regenerate dependencies via `python development_tools/ai_tools_runner.py docs` and rerun the audit.")
+            dep_bullets.append("Regenerate dependencies via `python development_tools/run_development_tools.py docs` and rerun the audit.")
 
             add_priority(
 
@@ -4952,7 +4940,7 @@ class AIToolsService:
             if legacy_report:
                 legacy_bullets.append(f"Review {legacy_report} for exact locations.")
             legacy_bullets.append(
-                "Use `python development_tools/ai_tools_runner.py legacy --apply` to replace deprecated helpers."
+                "Use `python development_tools/run_development_tools.py legacy --apply` to replace deprecated helpers."
             )
             add_priority(
                 order=legacy_order,
@@ -5007,7 +4995,7 @@ class AIToolsService:
                 for bullet in item['bullets']:
                     lines.append(f"   - {bullet}")
         else:
-            lines.append("All signals are green. Re-run `python development_tools/ai_tools_runner.py status` to monitor.")
+            lines.append("All signals are green. Re-run `python development_tools/run_development_tools.py status` to monitor.")
         lines.append("")
 
         quick_wins: List[str] = []
@@ -5070,7 +5058,7 @@ class AIToolsService:
                 ]
                 detail += f" Focus on {self._format_list_for_display(focus, limit=2)}."
             watch_list.append(detail)
-        dependency_summary = self.module_dependency_summary or self.results_cache.get('audit_module_dependencies')
+        dependency_summary = self.module_dependency_summary or self.results_cache.get('analyze_module_dependencies')
         if dependency_summary and dependency_summary.get('missing_dependencies'):
             missing = dependency_summary['missing_dependencies']
             files = dependency_summary.get('missing_files') or dependency_summary.get('missing_sections') or []
@@ -5108,10 +5096,10 @@ class AIToolsService:
         lines.append("")
 
         lines.append("## Follow-up Commands")
-        lines.append("- `python development_tools/ai_tools_runner.py doc-sync`  -  refresh drift, pairing, and ASCII metrics.")
-        lines.append("- `python development_tools/ai_tools_runner.py legacy --apply`  -  update legacy references in-place.")
-        lines.append("- `python development_tools/ai_tools_runner.py audit --full`  -  rebuild coverage and hygiene data after fixes.")
-        lines.append("- `python development_tools/ai_tools_runner.py status`  -  confirm the latest health snapshot.")
+        lines.append("- `python development_tools/run_development_tools.py doc-sync`  -  refresh drift, pairing, and ASCII metrics.")
+        lines.append("- `python development_tools/run_development_tools.py legacy --apply`  -  update legacy references in-place.")
+        lines.append("- `python development_tools/run_development_tools.py audit --full`  -  rebuild coverage and hygiene data after fixes.")
+        lines.append("- `python development_tools/run_development_tools.py status`  -  confirm the latest health snapshot.")
 
         return '\n'.join(lines)
     def _generate_consolidated_report(self) -> str:
@@ -5124,13 +5112,13 @@ class AIToolsService:
 
         lines.append("")
 
-        lines.append("> **Generated**: This file is auto-generated by ai_tools_runner.py. Do not edit manually.")
+        lines.append("> **Generated**: This file is auto-generated by run_development_tools.py. Do not edit manually.")
 
-        lines.append("> **Generated by**: ai_tools_runner.py - AI Development Tools Runner")
+        lines.append("> **Generated by**: run_development_tools.py - AI Development Tools Runner")
 
         lines.append(f"> **Last Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
-        lines.append("> **Source**: `python development_tools/ai_tools_runner.py audit`")
+        lines.append("> **Source**: `python development_tools/run_development_tools.py audit`")
 
         lines.append("")
 
@@ -5148,7 +5136,7 @@ class AIToolsService:
 
         metrics = self._get_canonical_metrics()
 
-        doc_metrics = self.results_cache.get('audit_function_registry', {}) or {}
+        doc_metrics = self.results_cache.get('analyze_function_registry', {}) or {}
 
         doc_coverage = doc_metrics.get('doc_coverage', metrics.get('doc_coverage'))
 
@@ -5174,7 +5162,7 @@ class AIToolsService:
         consolidation_recs = analyze_docs_data.get('consolidation_recommendations', [])
         file_purposes = analyze_docs_data.get('file_purposes', {})
 
-        error_metrics = self.results_cache.get('error_handling_coverage', {}) or {}
+        error_metrics = self.results_cache.get('analyze_error_handling', {}) or {}
 
         missing_error_handlers = error_metrics.get('functions_missing_error_handling')
 
@@ -5192,7 +5180,7 @@ class AIToolsService:
 
         unused_imports_data = self.results_cache.get('unused_imports', {}) or {}
 
-        function_metrics = self.results_cache.get('function_discovery', {}) or {}
+        function_metrics = self.results_cache.get('analyze_functions', {}) or {}
 
         decision_metrics = self.results_cache.get('decision_support_metrics', {}) or {}
 
@@ -5205,13 +5193,13 @@ class AIToolsService:
             # Try to load from cache
             try:
                 import json
-                results_file = self.project_root / "development_tools" / "reports" / "ai_audit_detailed_results.json"
+                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
-                    if 'results' in cached_data and 'validate_ai_work' in cached_data['results']:
-                        validation_data = cached_data['results']['validate_ai_work']
-                        # Handle nested data structure: results.validate_ai_work.data.output
+                    if 'results' in cached_data and 'analyze_ai_work' in cached_data['results']:
+                        validation_data = cached_data['results']['analyze_ai_work']
+                        # Handle nested data structure: results.analyze_ai_work.data.output
                         if 'data' in validation_data:
                             data = validation_data['data']
                             # Check if data is a dict with 'output' key, or if it's the result dict itself
@@ -5225,7 +5213,7 @@ class AIToolsService:
             except Exception:
                 pass
 
-        results_file = self.audit_config.get('results_file', 'development_tools/reports/ai_audit_detailed_results.json')
+        results_file = self.audit_config.get('results_file', 'development_tools/reports/analysis_detailed_results.json')
 
         issues_file = self.audit_config.get('issues_file', 'development_tools/critical_issues.txt')
 
@@ -5233,7 +5221,7 @@ class AIToolsService:
         # Do this BEFORE Executive Summary so it's available for display
         if doc_coverage == 'Unknown' or doc_coverage is None:
             results_cache = self.results_cache or {}
-            audit_data = results_cache.get('audit_function_registry', {}) or {}
+            audit_data = results_cache.get('analyze_function_registry', {}) or {}
             audit_totals = audit_data.get('totals') if isinstance(audit_data, dict) else {}
             if audit_totals is None or not isinstance(audit_totals, dict):
                 audit_totals = {}
@@ -5248,10 +5236,10 @@ class AIToolsService:
 
         lines.append(f"- Documentation coverage {percent_text(doc_coverage, 2)} with {missing_docs or 0} registry gaps")
 
-        error_cov = error_metrics.get('error_handling_coverage')
+        error_cov = error_metrics.get('analyze_error_handling') or error_metrics.get('error_handling_coverage')
         
         # Recalculate error handling coverage using canonical function count for consistency
-        # error_handling_coverage might use a different total (including tests/dev tools)
+        # analyze_error_handling might use a different total (including tests/dev tools)
         # but we want to show coverage against the same function set as other metrics
         error_total = error_metrics.get('total_functions')
         error_with_handling = error_metrics.get('functions_with_error_handling')
@@ -5321,17 +5309,17 @@ class AIToolsService:
         high = metrics.get('high', 'Unknown')
         critical = metrics.get('critical', 'Unknown')
         
-        # If still Unknown, try loading from function_discovery or decision_support cache
+        # If still Unknown, try loading from analyze_functions or decision_support cache
         if moderate == 'Unknown' or high == 'Unknown':
             try:
                 import json
-                results_file = self.project_root / "development_tools" / "reports" / "ai_audit_detailed_results.json"
+                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
-                    # Try function_discovery first
-                    if 'results' in cached_data and 'function_discovery' in cached_data['results']:
-                        func_data = cached_data['results']['function_discovery']
+                    # Try analyze_functions first
+                    if 'results' in cached_data and 'analyze_functions' in cached_data['results']:
+                        func_data = cached_data['results']['analyze_functions']
                         if 'data' in func_data:
                             cached_metrics = func_data['data']
                             if moderate == 'Unknown':
@@ -5383,7 +5371,7 @@ class AIToolsService:
         doc_coverage = metrics.get('doc_coverage', 'Unknown')
         if doc_coverage == 'Unknown' or doc_coverage is None:
             # Recalculate if we have the data
-            audit_data = results_cache.get('audit_function_registry', {}) or {}
+            audit_data = results_cache.get('analyze_function_registry', {}) or {}
             audit_totals = audit_data.get('totals') if isinstance(audit_data, dict) else {}
             if audit_totals is None or not isinstance(audit_totals, dict):
                 audit_totals = {}
@@ -5466,7 +5454,7 @@ class AIToolsService:
 
             lines.append("- Run doc-sync to capture current documentation drift data")
 
-        dependency_summary = self.module_dependency_summary or self.results_cache.get('audit_module_dependencies')
+        dependency_summary = self.module_dependency_summary or self.results_cache.get('analyze_module_dependencies')
 
         if dependency_summary:
 
@@ -5500,7 +5488,7 @@ class AIToolsService:
             # Use recalculated error_cov from Executive Summary section (already calculated above)
             # If not recalculated, get from error_metrics
             if 'error_cov' not in locals() or error_cov is None:
-                error_cov = error_metrics.get('error_handling_coverage')
+                error_cov = error_metrics.get('analyze_error_handling') or error_metrics.get('error_handling_coverage')
                 # Recalculate if needed
                 error_total = error_metrics.get('total_functions')
                 error_with_handling = error_metrics.get('functions_with_error_handling')
@@ -5612,7 +5600,7 @@ class AIToolsService:
 
         else:
 
-            lines.append("- **Error Handling**: Run `python development_tools/ai_tools_runner.py audit --fast` for detailed metrics")
+            lines.append("- **Error Handling**: Run `python development_tools/run_development_tools.py audit --fast` for detailed metrics")
 
         lines.append("")
 
@@ -5687,7 +5675,7 @@ class AIToolsService:
 
         lines.append("## Complexity & Refactoring")
         
-        # Try to load complexity from decision_support if function_discovery doesn't have it
+        # Try to load complexity from decision_support if analyze_functions doesn't have it
         if function_metrics.get('high_complexity') == 'Unknown' or function_metrics.get('high_complexity') is None:
             if decision_metrics:
                 function_metrics['high_complexity'] = decision_metrics.get('high_complexity', 'Unknown')
@@ -5698,13 +5686,13 @@ class AIToolsService:
         if function_metrics.get('high_complexity') == 'Unknown' or function_metrics.get('high_complexity') is None:
             try:
                 import json
-                results_file = self.project_root / "development_tools" / "reports" / "ai_audit_detailed_results.json"
+                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
-                    # Try function_discovery first
-                    if 'results' in cached_data and 'function_discovery' in cached_data['results']:
-                        func_data = cached_data['results']['function_discovery']
+                    # Try analyze_functions first
+                    if 'results' in cached_data and 'analyze_functions' in cached_data['results']:
+                        func_data = cached_data['results']['analyze_functions']
                         if 'data' in func_data:
                             cached_metrics = func_data['data']
                             function_metrics['high_complexity'] = cached_metrics.get('high_complexity', 'Unknown')
@@ -5847,13 +5835,13 @@ class AIToolsService:
 
         lines.append("- **Suggested Commands**:")
 
-        lines.append("  - `python development_tools/ai_tools_runner.py doc-sync`")
+        lines.append("  - `python development_tools/run_development_tools.py doc-sync`")
 
-        lines.append("  - `python development_tools/ai_tools_runner.py audit --full`")
+        lines.append("  - `python development_tools/run_development_tools.py audit --full`")
 
-        lines.append("  - `python development_tools/ai_tools_runner.py legacy`")
+        lines.append("  - `python development_tools/run_development_tools.py legacy`")
 
-        lines.append("  - `python development_tools/ai_tools_runner.py status`")
+        lines.append("  - `python development_tools/run_development_tools.py status`")
 
         lines.append("")
 
@@ -5881,7 +5869,7 @@ class AIToolsService:
 
             lines.append(f"- Unused imports detail: {unused_report}")
 
-        analyze_report = self.project_root / 'development_tools' / 'reports' / 'ai_audit_detailed_results.json'
+        analyze_report = self.project_root / 'development_tools' / 'reports' / 'analysis_detailed_results.json'
 
         if analyze_report.exists():
 
@@ -5899,9 +5887,9 @@ class AIToolsService:
 
         # Check function documentation coverage
 
-        if 'function_discovery' in self.results_cache:
+        if 'analyze_functions' in self.results_cache:
 
-            metrics = self.results_cache['function_discovery']
+            metrics = self.results_cache['analyze_functions']
 
             if 'coverage' in metrics:
 
@@ -5935,9 +5923,9 @@ class AIToolsService:
 
         # Documentation improvements (only if needed)
 
-        if 'function_discovery' in self.results_cache:
+        if 'analyze_functions' in self.results_cache:
 
-            metrics = self.results_cache['function_discovery']
+            metrics = self.results_cache['analyze_functions']
 
             if 'coverage' in metrics:
 
@@ -6005,7 +5993,7 @@ class AIToolsService:
 
         # Check recent audit results
 
-        results_file_name = (self.audit_config or {}).get('results_file', 'development_tools/reports/ai_audit_detailed_results.json')
+        results_file_name = (self.audit_config or {}).get('results_file', 'development_tools/reports/analysis_detailed_results.json')
 
         for prefix in ('ai_tools/', 'development_tools/'):
 
@@ -6073,7 +6061,7 @@ class AIToolsService:
 
         """Run documentation sync checker and store structured results."""
 
-        result = self.run_script('documentation_sync_checker', *args)
+        result = self.run_script('analyze_documentation_sync', *args)
 
         if result.get('success'):
 
@@ -6101,7 +6089,7 @@ class AIToolsService:
 
         """Run legacy cleanup and store structured results."""
 
-        result = self.run_script('legacy_reference_cleanup', *args)
+        result = self.run_script('fix_legacy_references', *args)
 
         if result.get('success'):
 
@@ -6134,7 +6122,7 @@ class AIToolsService:
         print(f"Comprehensive AI collaboration tools for the {self.project_name} project")
         print()
         print("USAGE:")
-        print("  python development_tools/ai_tools_runner.py <command> [options]")
+        print("  python development_tools/run_development_tools.py <command> [options]")
         print()
         print("AVAILABLE COMMANDS:")
         print()
@@ -6153,13 +6141,13 @@ class AIToolsService:
             print()
 
         print("EXAMPLES:")
-        print("  python development_tools/ai_tools_runner.py status")
-        print("  python development_tools/ai_tools_runner.py audit --full")
-        print("  python development_tools/ai_tools_runner.py docs")
-        print("  python development_tools/ai_tools_runner.py unused-imports")
+        print("  python development_tools/run_development_tools.py status")
+        print("  python development_tools/run_development_tools.py audit --full")
+        print("  python development_tools/run_development_tools.py docs")
+        print("  python development_tools/run_development_tools.py unused-imports")
         print()
         print("For detailed command options:")
-        print("  python development_tools/ai_tools_runner.py <command> --help")
+        print("  python development_tools/run_development_tools.py <command> --help")
 
 @dataclass(frozen=True)
 
@@ -6337,7 +6325,7 @@ def _decision_support_command(service: "AIToolsService", argv: Sequence[str]) ->
 
     return 0 if (isinstance(result, dict) and result.get('success', False)) or result else 1
 
-def _version_sync_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+def _fix_version_sync_command(service: "AIToolsService", argv: Sequence[str]) -> int:
 
     parser = argparse.ArgumentParser(prog='version-sync', add_help=False)
 
@@ -6497,7 +6485,7 @@ COMMAND_REGISTRY = OrderedDict([
 
     ('decision-support', CommandRegistration('decision-support', _decision_support_command, 'Generate decision support insights.')),
 
-    ('version-sync', CommandRegistration('version-sync', _version_sync_command, 'Synchronize version metadata.')),
+    ('version-sync', CommandRegistration('version-sync', _fix_version_sync_command, 'Synchronize version metadata.')),
 
     ('status', CommandRegistration('status', _status_command, 'Print quick system status.')),
 

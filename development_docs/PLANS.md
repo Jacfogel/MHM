@@ -138,9 +138,9 @@
 - [x] **100% coverage achieved** (1,471 of 1,471 functions protected or appropriately excluded)
 - [x] 1,383 functions using `@handle_errors` decorator (excellent quality)
 - [x] 88 functions with basic try-except blocks identified and prioritized (26 high, 38 medium, 24 low priority)
-- [x] Function-level exclusion logic implemented in `error_handling_coverage.py`
+- [x] Function-level exclusion logic implemented in `analyze_error_handling.py`
 - [x] Exclusion comments added to 44 appropriate functions
-- [x] **Phase 1 and Phase 2 auditing tooling completed** - Enhanced `error_handling_coverage.py` to identify and prioritize Phase 1 candidates and audit Phase 2 generic exceptions
+- [x] **Phase 1 and Phase 2 auditing tooling completed** - Enhanced `analyze_error_handling.py` to identify and prioritize Phase 1 candidates and audit Phase 2 generic exceptions
 - [x] **Integration with AI tools completed** - Phase 1 and Phase 2 metrics now appear in `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, and `development_tools/consolidated_report.txt`
 - [x] **Documentation updated** - Phase 1 and Phase 2 functionality documented in error handling guides
 
@@ -150,7 +150,7 @@
   - Entry points (user-facing operations, file I/O, network calls)
   - Functions that don't need custom recovery logic
   - Functions that would benefit from automatic retry/recovery
-- [x] **Tooling enhancement**: Automated identification and prioritization integrated into `error_handling_coverage.py`
+- [x] **Tooling enhancement**: Automated identification and prioritization integrated into `analyze_error_handling.py`
 - [x] **Integration**: Results appear in audit reports for tracking progress
 - [ ] **Next Steps**: Replace high-priority candidates (start with 26 high-priority functions)
   - Focus on entry points in `core/service.py`, `communication/communication_channels/discord/bot.py`, `communication/core/channel_orchestrator.py`
@@ -161,7 +161,7 @@
 
 **Phase 2: Improve Error Categorization** (Priority: Medium)
 - [x] Audit exception raising patterns across codebase
-- [x] **Tooling enhancement**: Automated detection of generic exception raises (ValueError, Exception, KeyError, TypeError) integrated into `error_handling_coverage.py`
+- [x] **Tooling enhancement**: Automated detection of generic exception raises (ValueError, Exception, KeyError, TypeError) integrated into `analyze_error_handling.py`
 - [x] **Integration**: Results appear in audit reports with exception type breakdown
 - [ ] **Next Steps**: Replace generic exception raises with specific `MHMError` subclasses:
   - **Current status**: 1 generic exception identified (1 ValueError)
@@ -230,7 +230,7 @@
 - [ ] Error handling quality distribution shows improvement (more "excellent", fewer "basic")
 
 **Progress Summary**:
-- **Tooling Complete**: Phase 1 and Phase 2 auditing fully integrated into `error_handling_coverage.py` and AI tools
+- **Tooling Complete**: Phase 1 and Phase 2 auditing fully integrated into `analyze_error_handling.py` and AI tools
 - **Current Metrics**: 88 Phase 1 candidates (26 high, 38 medium, 24 low), 1 Phase 2 exception (1 ValueError)
 - **Next Priority**: Replace 26 high-priority Phase 1 candidates, then address the 1 Phase 2 exception
 - **Tracking**: Progress visible in `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, and `development_tools/consolidated_report.txt` after each audit
@@ -264,7 +264,7 @@
 **Notes**:
 - Coverage is already at 100%, so this plan focuses on quality improvements
 - Phase 1 and Phase 2 tooling is complete - now focus on actual replacements
-- Use `error_handling_coverage.py` to track progress and measure quality improvements
+- Use `analyze_error_handling.py` to track progress and measure quality improvements
 - Keep changes small and well-tested - verify behavior after each batch of replacements
 - Reference `core/ERROR_HANDLING_GUIDE.md` and `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` for patterns and best practices
 - Monitor `development_tools/AI_PRIORITIES.md` for updated priority counts as replacements are made

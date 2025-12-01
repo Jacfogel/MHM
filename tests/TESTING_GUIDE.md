@@ -98,14 +98,14 @@ Tests are organized by real-world features and workflows to encourage integratio
 
 - Test development tools and infrastructure components.
 - Include sanity tests for configuration, exclusions, constants, and CLI runners.
-- Integration coverage relies on **mocked CLI smoke tests** (no subprocesses) so the suite stays fast while still exercising `ai_tools_runner` routing.
+- Integration coverage relies on **mocked CLI smoke tests** (no subprocesses) so the suite stays fast while still exercising `run_development_tools` routing.
 - Error-scenario tests simulate `PermissionError`/`OSError` via monkeypatching instead of modifying real filesystem ACLs—keeps results identical on Windows and Linux.
 - **Core analysis tools** have comprehensive test coverage (55+ tests):
-  - `development_tools/documentation_sync_checker.py` — 12 tests for doc pairing validation
+  - `docs/analyze_documentation_sync.py` — 12 tests for doc pairing validation
   - `development_tools/generate_function_registry.py` — 12 tests for function extraction and registry generation
   - `development_tools/generate_module_dependencies.py` — 11 tests for dependency graph generation
-  - `development_tools/legacy_reference_cleanup.py` — 10 tests for legacy pattern detection and cleanup
-  - `development_tools/regenerate_coverage_metrics.py` — 10 tests for coverage regeneration and reporting
+  - `legacy/fix_legacy_references.py` — 10 tests for legacy pattern detection and cleanup
+  - `development_tools/tests/generate_test_coverage.py` — 10 tests for coverage regeneration and reporting
 - Tests use a synthetic fixture project at `tests/fixtures/development_tools_demo/` for isolated testing.
 - Examples:
   - Configuration validation.

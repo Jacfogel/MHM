@@ -13,7 +13,9 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Set
 
 # Add project root to path for core module imports
-project_root = Path(__file__).parent.parent
+# Script is at: development_tools/functions/analyze_function_registry.py
+# So we need to go up 2 levels to get to project root
+project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
@@ -35,7 +37,7 @@ except ImportError:
 config.load_external_config()
 
 # Get configuration
-AUDIT_REGISTRY_CONFIG = config.get_audit_function_registry_config()
+AUDIT_REGISTRY_CONFIG = config.get_analyze_function_registry_config()
 
 PATHS = ProjectPaths()
 # Get registry path from config (default: development_docs/FUNCTION_REGISTRY_DETAIL.md)
@@ -43,7 +45,7 @@ _registry_path_str = AUDIT_REGISTRY_CONFIG.get('registry_path', 'development_doc
 REGISTRY_PATH = PATHS.root / _registry_path_str
 CURRENT_DIR = Path(__file__).parent
 
-FUNCTION_CFG = config.get_function_discovery_config()
+FUNCTION_CFG = config.get_analyze_functions_config()
 HANDLER_KEYWORDS = tuple(keyword.lower() for keyword in FUNCTION_CFG.get("handler_keywords", []))
 
 # Load thresholds and limits from config
@@ -185,7 +187,7 @@ def collect_project_inventory(errors: List[str]) -> Dict[str, Dict[str, object]]
 
     for source_path in PATHS.root.glob("*.py"):
         resolved = source_path.resolve()
-        if resolved in seen or resolved == (CURRENT_DIR / "audit_function_registry.py"):
+        if resolved in seen or resolved == (CURRENT_DIR / "analyze_function_registry.py"):
             continue
         functions, classes = extract_functions_and_classes(resolved, errors)
         inventory[source_path.name] = {
@@ -562,7 +564,7 @@ def execute(args: argparse.Namespace, project_root: Optional[Path] = None, confi
     if config_path:
         config.load_external_config(config_path)
         # Reload config after loading external config
-        AUDIT_REGISTRY_CONFIG = config.get_audit_function_registry_config()
+        AUDIT_REGISTRY_CONFIG = config.get_analyze_function_registry_config()
         _registry_path_str = AUDIT_REGISTRY_CONFIG.get('registry_path', 'development_docs/FUNCTION_REGISTRY_DETAIL.md')
         REGISTRY_PATH = PATHS.root / _registry_path_str
         HIGH_COMPLEXITY_MIN = AUDIT_REGISTRY_CONFIG.get('high_complexity_min', 50)

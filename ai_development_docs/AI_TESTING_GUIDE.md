@@ -55,7 +55,7 @@ When adding a test:
   - CLI routing tests stay lightweight by mocking `AIToolsService` (no subprocesses).
   - Permission/error scenarios are simulated via monkeypatching so results are identical on Windows/Linux.
 
-**Note:** Core analysis tools (`development_tools/documentation_sync_checker.py`, `development_tools/generate_function_registry.py`, `development_tools/generate_module_dependencies.py`, `development_tools/legacy_reference_cleanup.py`, `development_tools/regenerate_coverage_metrics.py`) have comprehensive test coverage (55+ tests) using a synthetic fixture project at `tests/fixtures/development_tools_demo/`.
+**Note:** Core analysis tools (`docs/analyze_documentation_sync.py`, `development_tools/generate_function_registry.py`, `development_tools/generate_module_dependencies.py`, `legacy/fix_legacy_references.py`, `tests/generate_test_coverage.py`) have comprehensive test coverage (55+ tests) using a synthetic fixture project at `tests/fixtures/development_tools_demo/`.
 
 For detailed definitions and examples, see section 2. "Test Layout and Types" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 

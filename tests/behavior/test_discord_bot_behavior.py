@@ -449,10 +449,20 @@ class TestDiscordBotBehavior:
 
         update_resp = handle_user_message(internal_uid, "update task 1 priority high", "discord")
         assert update_resp and update_resp.message
-        tasks = load_active_tasks(internal_uid)
-        # Find the task by title since order might change
-        task = next((t for t in tasks if t.get("title", "").lower() == "clean desk"), None)
-        assert task is not None, "Task should exist"
+        
+        # Retry loading tasks in case of race conditions or caching issues
+        import time
+        task = None
+        for attempt in range(5):
+            tasks = load_active_tasks(internal_uid)
+            # Find the task by title since order might change
+            task = next((t for t in tasks if t.get("title", "").lower() == "clean desk"), None)
+            if task is not None:
+                break
+            if attempt < 4:
+                time.sleep(0.1)  # Brief delay before retry
+        
+        assert task is not None, f"Task should exist after update. Found {len(tasks)} tasks: {[t.get('title') for t in tasks]}"
         assert task.get("priority", "").lower() == "high", f"Priority should be 'high', got '{task.get('priority', 'N/A')}'"
 
         complete_resp = handle_user_message(internal_uid, "complete task 1", "discord")

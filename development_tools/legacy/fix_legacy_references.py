@@ -11,7 +11,7 @@ Configuration is loaded from external config file (development_tools_config.json
 if available, making this tool portable across different projects.
 
 Usage:
-    python development_tools/legacy_reference_cleanup.py [--scan] [--clean] [--dry-run]
+    python legacy/fix_legacy_references.py [--scan] [--clean] [--dry-run]
 
 LEGACY CODE STANDARDS COMPLIANCE:
 This tool is part of the mandatory legacy code management system. When adding new
@@ -39,15 +39,12 @@ if str(project_root) not in sys.path:
 from core.logger import get_component_logger
 
 # Handle both relative and absolute imports
-try:
+# Check if we're running as part of a package to avoid __package__ != __spec__.parent warnings
+if __name__ != '__main__' and __package__ and '.' in __package__:
+    # Running as part of a package, use relative imports
     from . import config
-except ImportError:
-    import sys
-    from pathlib import Path
-    # Add project root to path
-    project_root = Path(__file__).parent.parent.parent
-    if str(project_root) not in sys.path:
-        sys.path.insert(0, str(project_root))
+else:
+    # Running directly or not as a package, use absolute imports
     from development_tools import config
 
 # Load external config on module import (if not already loaded)
@@ -191,7 +188,7 @@ class LegacyReferenceCleanup:
         
         # Skip the checker's own file to avoid false positives
         # The checker defines legacy patterns, so it will match its own pattern definitions
-        if 'legacy_reference_cleanup.py' in rel_path_str:
+        if 'fix_legacy_references.py' in rel_path_str:
             return True
         
         # Skip certain directories (check relative path, not absolute)
@@ -276,7 +273,7 @@ class LegacyReferenceCleanup:
         report_lines.append("## Recommended Follow-Up")
         report_lines.append("1. Confirm whether legacy `enabled_fields` payloads are still produced; if not, plan removal and data migration.")
         report_lines.append("2. Add regression tests covering analytics handler flows and user data migrations before deleting markers.")
-        report_lines.append("3. Track the cleanup effort and rerun `python development_tools/ai_tools_runner.py legacy --clean --dry-run` until this report returns zero issues.")
+        report_lines.append("3. Track the cleanup effort and rerun `python development_tools/run_development_tools.py legacy --clean --dry-run` until this report returns zero issues.")
         report_lines.append("")
 
         for pattern_type in sorted(findings.keys()):

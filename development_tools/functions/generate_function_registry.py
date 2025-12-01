@@ -259,10 +259,10 @@ def extract_classes_from_file(file_path: str) -> List[Dict]:
 
 def scan_all_python_files() -> Dict[str, Dict]:
     """Scan all Python files in the project and extract function/class information."""
-    # Import config - try relative import first, fallback to absolute
-    try:
+    # Import config - check if we're running as part of a package to avoid __package__ != __spec__.parent warnings
+    if __name__ != '__main__' and __package__ and '.' in __package__:
         from . import config
-    except ImportError:
+    else:
         from development_tools import config
     # Ensure external config is loaded
     config.load_external_config()

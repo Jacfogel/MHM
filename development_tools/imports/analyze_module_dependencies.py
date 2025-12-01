@@ -13,25 +13,24 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 # Add project root to path for core module imports
-project_root = Path(__file__).parent.parent
+# Script is at: development_tools/imports/analyze_module_dependencies.py
+# So we need to go up 2 levels to get to project root
+project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 # Handle both relative and absolute imports
-try:
+# Check if we're running as part of a package to avoid __package__ != __spec__.parent warnings
+if __name__ != '__main__' and __package__ and '.' in __package__:
+    # Running as part of a package, use relative imports
     from . import config
     from ..shared.standard_exclusions import should_exclude_file
     from ..shared.constants import (
         is_local_module as _is_local_module,
         is_standard_library_module as _is_stdlib_module,
     )
-except ImportError:
-    import sys
-    from pathlib import Path
-    # Add project root to path
-    project_root = Path(__file__).parent.parent.parent
-    if str(project_root) not in sys.path:
-        sys.path.insert(0, str(project_root))
+else:
+    # Running directly or not as a package, use absolute imports
     from development_tools import config
     from development_tools.shared.standard_exclusions import should_exclude_file
     from development_tools.shared.constants import (
@@ -45,7 +44,7 @@ from core.logger import get_component_logger
 config.load_external_config()
 
 # Get configuration
-AUDIT_DEPS_CONFIG = config.get_audit_module_dependencies_config()
+AUDIT_DEPS_CONFIG = config.get_analyze_module_dependencies_config()
 DEPENDENCY_DOC_PATH = AUDIT_DEPS_CONFIG.get('dependency_doc_path', 'development_docs/MODULE_DEPENDENCIES_DETAIL.md')
 
 logger = get_component_logger("development_tools")
@@ -100,7 +99,7 @@ def is_local_import(module_name: str) -> bool:
 
 def scan_all_python_files() -> Dict[str, Dict]:
     """Scan all Python files in the project and extract import information."""
-    import config
+    # config is already imported at module level
     project_root = config.get_project_root()
     results = {}
     
@@ -145,7 +144,7 @@ def scan_all_python_files() -> Dict[str, Dict]:
 
 def parse_module_dependencies() -> Dict[str, List[str]]:
     """Parse the existing dependency doc to extract documented dependencies."""
-    # Script is at: development_tools/imports/audit_module_dependencies.py
+    # Script is at: development_tools/imports/analyze_module_dependencies.py
     # So we need to go up 2 levels to get to project root
     project_root = Path(__file__).parent.parent.parent
     deps_path = project_root / DEPENDENCY_DOC_PATH
@@ -250,16 +249,16 @@ def generate_dependency_report():
 
 def generate_updated_dependency_sections(actual_imports: Dict[str, Dict]):
     """Generate updated dependency sections for missing files."""
-    logger.info("="*80)
-    logger.info("UPDATED DEPENDENCY SECTIONS TO ADD:")
-    logger.info("="*80)
+    logger.debug("="*80)
+    logger.debug("UPDATED DEPENDENCY SECTIONS TO ADD:")
+    logger.debug("="*80)
     
     for file_path, data in sorted(actual_imports.items()):
         if data['imports']['local']:  # Only show files with local dependencies
-            logger.info(f"#### `{file_path}`")
-            logger.info(f"- **Purpose**: [Add purpose description]")
-            logger.info(f"- **Dependencies**: {', '.join(sorted(data['imports']['local']))}")
-            logger.info(f"- **Used by**: [Add usage information]")
+            logger.debug(f"#### `{file_path}`")
+            logger.debug(f"- **Purpose**: [Add purpose description]")
+            logger.debug(f"- **Dependencies**: {', '.join(sorted(data['imports']['local']))}")
+            logger.debug(f"- **Used by**: [Add usage information]")
 
 def analyze_circular_dependencies(actual_imports: Dict[str, Dict]):
     """Analyze potential circular dependencies."""
@@ -506,7 +505,7 @@ def generate_dependency_report():
     generate_enhanced_dependency_report(actual_imports, documented_deps)
     
     # Generate updated dependency sections
-    logger.info("Generating updated dependency sections...")
+    logger.debug("Generating updated dependency sections...")
     generate_updated_dependency_sections(actual_imports)
     
     # Also analyze circular dependencies

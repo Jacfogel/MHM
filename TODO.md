@@ -67,6 +67,16 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+**Investigate Function Complexity Count Variance**
+- *What it means*: Function complexity results show inconsistent counts between different tools (e.g., `analyze_functions` shows Moderate: 153, High: 138, Critical: 128, while `decision_support` shows Moderate: 377, High: 390, Critical: 329). Both tools use the same thresholds (50, 100, 200) but produce different results.
+- *Why it helps*: Ensures consistent complexity reporting across all tools and prevents confusion from conflicting metrics
+- *Estimated effort*: Small/Medium
+- *Areas to investigate*:
+  - Compare how `analyze_functions.py` and `decision_support.py` calculate complexity
+  - Check if they're using different function discovery methods or filtering criteria
+  - Verify if they're scanning different file sets or applying different exclusions
+  - Determine which tool's results are more accurate and align the other tool to match
+
 **Fix Remaining Test Failure and Suppress Deprecation Warnings**
 - *What it means*: Fix `test_discord_user_creation` failure where `discord_user_id` is empty in account data, and suppress the 50 deprecation warnings about `__package__ != __spec__.parent` from relative imports in development_tools modules
 - *Why it helps*: Ensures all tests pass and reduces test output noise from expected warnings
@@ -113,11 +123,11 @@ When adding new tasks, follow this format:
 ## Medium Priority
 
 **Integrate Documentation Utility Scripts into Development Tools**
-- *What it means*: Integrate documentation maintenance scripts (`scripts/utilities/add_documentation_addresses.py`, `scripts/fix_non_ascii_chars.py`, `scripts/verify_ascii_fix.py`, `scripts/number_documentation_headings.py`, `scripts/utilities/convert_paths_to_links.py`) into `development_tools/documentation_sync_checker.py` or a new documentation fixer module. Add subcommands to `development_tools/ai_tools_runner.py` for batch operations and integration with audit workflows.
+- *What it means*: Integrate documentation maintenance scripts (`scripts/utilities/add_documentation_addresses.py`, `scripts/fix_non_ascii_chars.py`, `scripts/verify_ascii_fix.py`, `scripts/number_documentation_headings.py`, `scripts/utilities/convert_paths_to_links.py`) into `docs/analyze_documentation_sync.py` or a new documentation fixer module. Add subcommands to `development_tools/ai_tools_runner.py` for batch operations and integration with audit workflows.
 - *Why it helps*: Makes documentation maintenance tools discoverable through the centralized tool runner; enables batch operations, validation/fix workflows, and integration with `doc-sync` checks. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.
 - *Estimated effort*: Medium
 - *Subtasks*:
-  - [ ] Integrate `scripts/utilities/add_documentation_addresses.py` functionality into `development_tools/documentation_sync_checker.py` or new fixer module
+  - [ ] Integrate `scripts/utilities/add_documentation_addresses.py` functionality into `docs/analyze_documentation_sync.py` or new fixer module
   - [ ] Integrate `fix_non_ascii_chars.py` and `verify_ascii_fix.py` functionality (ASCII compliance checking/fixing)
   - [ ] Integrate `number_documentation_headings.py` functionality (heading numbering validation/fixing)
   - [ ] Integrate `scripts/utilities/convert_paths_to_links.py` functionality (path-to-link conversion)
@@ -151,7 +161,7 @@ When adding new tasks, follow this format:
 - *Why it helps*: Ensures examples are consistently marked, making the path drift checker more accurate and reducing false positives. Helps maintain documentation quality by catching unmarked examples that should be marked.
 - *Estimated effort*: Medium
 - *Subtasks*:
-  - [ ] Add example marking validation to `development_tools/documentation_sync_checker.py` or create new validation module (already using full path)
+  - [ ] Add example marking validation to `docs/analyze_documentation_sync.py` or create new validation module (already using full path)
   - [ ] Check for file path references in examples that lack proper markers
   - [ ] Validate that example sections use standard markers (`[OK]`, `[AVOID]`, `[GOOD]`, `[BAD]`, `[EXAMPLE]`)
   - [ ] Validate that example headings follow standard format ("Examples:", "Example Usage:", "Example Code:")
@@ -186,18 +196,18 @@ When adding new tasks, follow this format:
   - Temporary file cleanup patterns
 
 **Integrate Unused Imports Cleanup into Unused Imports Checker**
-- *What it means*: Integrate `scripts/cleanup_unused_imports.py` functionality into `development_tools/unused_imports_checker.py`. Add categorization and cleanup recommendations to the existing unused imports analysis.
+- *What it means*: Integrate `scripts/cleanup_unused_imports.py` functionality into `imports/analyze_unused_imports.py`. Add categorization and cleanup recommendations to the existing unused imports analysis.
 - *Why it helps*: Provides actionable recommendations for unused imports (missing error handling, missing logging, safe to remove, etc.) alongside detection. Enables automated cleanup workflows. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.
 - *Estimated effort*: Medium
 - *Subtasks*:
-  - [ ] Integrate categorization logic from `cleanup_unused_imports.py` into `unused_imports_checker.py`
+  - [ ] Integrate categorization logic from `cleanup_unused_imports.py` into `analyze_unused_imports.py`
   - [ ] Add category-based reporting (missing error handling, missing logging, type hints, utilities, safe to remove)
   - [ ] Add cleanup recommendation generation to unused imports report
   - [ ] Consider adding `--categorize` flag to existing unused imports checker command
   - [ ] Update documentation to reflect enhanced reporting capabilities
 
 **Integrate Test Marker Scripts into Coverage/Test Analysis Tools**
-- *What it means*: Integrate test marker scripts (`scripts/find_tests_missing_category_markers.py`, `scripts/add_category_markers.py`, `scripts/analyze_test_markers.py`) into `development_tools/regenerate_coverage_metrics.py` or a new test analysis module. Add subcommands for test marker validation and fixing.
+- *What it means*: Integrate test marker scripts (`scripts/find_tests_missing_category_markers.py`, `scripts/add_category_markers.py`, `scripts/analyze_test_markers.py`) into `tests/generate_coverage_metrics.py` or a new test analysis module. Add subcommands for test marker validation and fixing.
 - *Why it helps*: Centralizes test analysis tools; enables validation of test categorization during coverage runs; provides automated marker addition. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.
 - *Estimated effort*: Medium
 - *Subtasks*:

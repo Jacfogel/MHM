@@ -414,7 +414,7 @@ class TestMHMManagerUI:
                         assert result is False, "Should return False when no user selected"
                         mock_msgbox.warning.assert_called()
     
-    def test_send_test_message_validation_checks_service(self):
+    def test_send_test_message_validation_checks_service(self, qapp):
         """Test that _send_test_message__validate_service_running validates service."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -608,7 +608,7 @@ class TestMHMManagerUI:
                     assert True
     
     @pytest.mark.no_parallel
-    def test_update_user_index_on_startup_calls_rebuild(self):
+    def test_update_user_index_on_startup_calls_rebuild(self, qapp):
         """Test that update_user_index_on_startup calls rebuild_user_index."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -891,7 +891,7 @@ class TestMHMManagerUI:
                         mock_dialog.assert_called_once()
     
     @pytest.mark.no_parallel
-    def test_manage_task_crud_opens_dialog(self):
+    def test_manage_task_crud_opens_dialog(self, qapp):
         """Test that manage_task_crud opens dialog."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -989,7 +989,7 @@ class TestMHMManagerUI:
                         # Verify dialog was opened
                         mock_open_dialog.assert_called_once()
     
-    def test_edit_user_schedules_opens_dialog(self):
+    def test_edit_user_schedules_opens_dialog(self, qapp):
         """Test that edit_user_schedules opens dialog."""
         from ui.ui_app_qt import MHMManagerUI
         

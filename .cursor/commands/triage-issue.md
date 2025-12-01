@@ -9,7 +9,7 @@ Investigate failures methodically before proposing fixes.
 1. Capture symptoms (logs, stack traces, commands, recent changes).
 2. Run a fast audit if metrics are stale:
    ```powershell
-   python -m development_tools.ai_tools_runner audit
+   python -m development_tools.run_development_tools audit
    ```
 3. Consult `ai_development_docs/AI_REFERENCE.md` for likely causes.
 4. Develop hypotheses with evidence and outline verification steps.

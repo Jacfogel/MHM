@@ -76,14 +76,16 @@ class TestUserCreationScenarios:
         import core.config
         user_id = f'test-discord-user-{uuid.uuid4().hex[:8]}'
         
-        # Create test user using centralized utilities for consistent setup
-        from tests.test_utilities import TestUserFactory
-        success = TestUserFactory.create_discord_user(user_id, discord_user_id='discord_user#1234', test_data_dir=test_data_dir)
-        assert success, "Test user should be created successfully"
-        
-        # Patch config to use test data directory for all subsequent calls
+        # Patch config FIRST to ensure all operations use the test data directory
         with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
              patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, 'users')):
+            
+            # Create test user using centralized utilities for consistent setup
+            # Use a valid Discord ID format (numeric snowflake, 17-19 digits)
+            from tests.test_utilities import TestUserFactory
+            discord_user_id = '123456789012345678'  # Valid Discord ID format (numeric snowflake)
+            success = TestUserFactory.create_discord_user(user_id, discord_user_id=discord_user_id, test_data_dir=test_data_dir)
+            assert success, "Test user should be created successfully"
             
             # Get the UUID for the user
             from core.user_management import get_user_id_by_identifier
@@ -108,19 +110,20 @@ class TestUserCreationScenarios:
             import time
             loaded_data = {}
             for attempt in range(5):
-                loaded_data = get_user_data(actual_user_id, 'all')
+                loaded_data = get_user_data(actual_user_id, 'all', auto_create=False)
                 if loaded_data and 'account' in loaded_data:
                     break
                 if attempt < 4:
                     time.sleep(0.1)  # Brief delay before retry
             assert loaded_data and 'account' in loaded_data, f"Account data should be loaded for user {actual_user_id}"
-            assert loaded_data['account']['discord_user_id'] == 'discord_user#1234'
-        assert loaded_data['preferences']['channel']['type'] == 'discord'
-        assert 'motivational' in loaded_data['preferences']['categories']
-        assert loaded_data['account']['features']['checkins'] == 'enabled'
-        assert loaded_data['account']['features']['task_management'] == 'enabled'
-        assert loaded_data['context']['preferred_name'] == 'Discord User'
-        assert loaded_data['context']['gender_identity'] == ['they/them']
+            assert loaded_data['account']['discord_user_id'] == discord_user_id, \
+                f"Expected discord_user_id='{discord_user_id}', got '{loaded_data['account'].get('discord_user_id', 'MISSING')}'"
+            assert loaded_data['preferences']['channel']['type'] == 'discord'
+            assert 'motivational' in loaded_data['preferences']['categories']
+            assert loaded_data['account']['features']['checkins'] == 'enabled'
+            assert loaded_data['account']['features']['task_management'] == 'enabled'
+            assert loaded_data['context']['preferred_name'] == 'Discord User'
+            assert loaded_data['context']['gender_identity'] == ['they/them']
     
     @pytest.mark.unit
     @pytest.mark.no_parallel

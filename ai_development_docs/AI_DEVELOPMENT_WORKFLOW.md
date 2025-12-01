@@ -197,12 +197,12 @@ For a fuller list of tips and examples, see section 8. "Success Tips" in [DEVELO
 
 When to run AI development tools for codebase analysis and health checks:
 
-- **Day-to-day checks**: Run `python development_tools/ai_tools_runner.py audit` for fast analysis without test coverage regeneration. This provides documentation status, legacy references, validation summaries, and quick metrics.
+- **Day-to-day checks**: Run `python development_tools/run_development_tools.py audit` for fast analysis without test coverage regeneration. This provides documentation status, legacy references, validation summaries, and quick metrics.
 
-- **Pre-merge / pre-release checks**: Run `python development_tools/ai_tools_runner.py audit --full` for comprehensive analysis including full pytest coverage, unused imports, dependency regeneration, and HTML coverage reports.
+- **Pre-merge / pre-release checks**: Run `python development_tools/run_development_tools.py audit --full` for comprehensive analysis including full pytest coverage, unused imports, dependency regeneration, and HTML coverage reports.
 
-- **Documentation work**: Run `python development_tools/ai_tools_runner.py doc-sync` to check documentation pairing and path drift, or `python development_tools/ai_tools_runner.py docs` to regenerate function registry and module dependencies.
+- **Documentation work**: Run `python development_tools/run_development_tools.py doc-sync` to check documentation pairing and path drift, or `python development_tools/run_development_tools.py docs` to regenerate function registry and module dependencies.
 
-- **Quick status snapshot**: Run `python development_tools/ai_tools_runner.py status` to view cached summaries from the most recent audit (rerun `audit` if cache is stale).
+- **Quick status snapshot**: Run `python development_tools/run_development_tools.py status` to view cached summaries from the most recent audit (rerun `audit` if cache is stale).
 
 For detailed tool usage and output locations, see [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md).

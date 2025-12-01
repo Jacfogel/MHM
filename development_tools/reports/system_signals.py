@@ -23,16 +23,13 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 # Handle both relative and absolute imports
-try:
+# Check if we're running as part of a package to avoid __package__ != __spec__.parent warnings
+if __name__ != '__main__' and __package__ and '.' in __package__:
+    # Running as part of a package, use relative imports
     from ..shared.standard_exclusions import should_exclude_file
     from ..shared.constants import PROJECT_DIRECTORIES
-except ImportError:
-    import sys
-    from pathlib import Path
-    # Add project root to path
-    project_root = Path(__file__).parent.parent.parent
-    if str(project_root) not in sys.path:
-        sys.path.insert(0, str(project_root))
+else:
+    # Running directly or not as a package, use absolute imports
     from development_tools.shared.standard_exclusions import should_exclude_file
     from development_tools.shared.constants import PROJECT_DIRECTORIES
 
@@ -52,9 +49,10 @@ class SystemSignalsGenerator:
             self.project_root = Path(__file__).parent.parent.parent
         
         # Load config if provided
-        try:
+        # Check if we're running as part of a package to avoid __package__ != __spec__.parent warnings
+        if __name__ != '__main__' and __package__ and '.' in __package__:
             from . import config
-        except ImportError:
+        else:
             from development_tools import config
         
         self.config = config  # Store reference for reuse

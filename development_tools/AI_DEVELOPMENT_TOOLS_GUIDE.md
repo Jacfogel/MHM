@@ -26,10 +26,11 @@ Treat this file as the routing layer for AI collaborators; avoid duplicating hum
 ## 2. Running the Tool Suite
 
 ```powershell
-python development_tools/ai_tools_runner.py <command>
-python development_tools/ai_tools_runner.py --project-root <path> <command>
-python development_tools/ai_tools_runner.py --config-path <path> <command>
-python development_tools/ai_tools_runner.py help
+python development_tools/run_development_tools.py <command>
+python development_tools/run_dev_tools.py <command>  # Shorthand alias
+python development_tools/run_development_tools.py --project-root <path> <command>
+python development_tools/run_development_tools.py --config-path <path> <command>
+python development_tools/run_development_tools.py help
 ```
 
 **Global Options**:
@@ -48,7 +49,7 @@ python development_tools/ai_tools_runner.py help
 
 **Additional commands**: `quick-audit`, `system-signals`, `validate`, `decision-support`, `workflow`, `trees`, `version-sync` (experimental)
 
-`ai_tools_runner.py` is the single dispatcher. All commands must:
+`run_development_tools.py` is the single dispatcher. All commands must:
 - Respect shared configuration (`config.py` with external config file support)
 - Honor `shared/standard_exclusions.py`
 - Avoid importing application modules directly
@@ -74,12 +75,12 @@ python development_tools/ai_tools_runner.py help
 
 Outputs land in predictable locations:
 - AI-facing (root): `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.txt`
-- Domain-specific JSON: `reports/ai_audit_detailed_results.json`, `error_handling/error_handling_details.json`, `tests/coverage_dev_tools.json`, `validation/config_validation_results.json`, `imports/.unused_imports_cache.json`
+- Domain-specific JSON: `reports/analysis_detailed_results.json`, `error_handling/error_handling_details.json`, `tests/coverage_dev_tools.json`, `config/analyze_config_results.json`, `imports/.unused_imports_cache.json`
 - Human-facing: `development_docs/FUNCTION_REGISTRY_DETAIL.md`, `development_docs/MODULE_DEPENDENCIES_DETAIL.md`, `development_docs/LEGACY_REFERENCE_REPORT.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`
 - Coverage artifacts: `coverage.json` (project root), `tests/coverage_html/` (project root), `development_tools/reports/archive/coverage_artifacts/<timestamp>/`
 - Dev tools coverage (audit --full): `tests/coverage_dev_tools.json` (HTML reports disabled)
 
-The `status` command surfaces cached summaries from `reports/ai_audit_detailed_results.json` (complexity, validation, system signals); rerun `audit` if the cache is stale.
+The `status` command surfaces cached summaries from `reports/analysis_detailed_results.json` (complexity, validation, system signals); rerun `audit` if the cache is stale.
 
 **When to run each command**: See "Standard Audit Recipe" in `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md` for guidance on day-to-day checks, pre-merge checks, and documentation work.
 
@@ -108,10 +109,10 @@ The authoritative table lives in `shared/tool_metadata.py`. Use this guide to pi
 - `shared/` - Shared infrastructure (config, constants, exclusions, metadata)
 
 **Tool Categories**:
-- **Documentation & structure**: `docs/documentation_sync_checker.py` [OK], `functions/generate_function_registry.py` [OK], `imports/generate_module_dependencies.py` [OK], `docs/analyze_documentation.py`
-- **Quality, validation, coverage**: `tests/regenerate_coverage_metrics.py` [OK], `ai_work/validate_ai_work.py`, `imports/unused_imports_checker.py`, `error_handling/error_handling_coverage.py`
-- **Legacy, versioning, signals**: `legacy/legacy_reference_cleanup.py` [OK], `reports/system_signals.py`, `reports/quick_status.py`, `docs/version_sync.py` (experimental)
-- **Decision & utilities**: `reports/decision_support.py`, `functions/function_discovery.py`, `functions/auto_document_functions.py` (experimental), `config/config_validator.py`, `shared/file_rotation.py`, `functions/audit_*` helpers, `shared/tool_guide.py`
+- **Documentation & structure**: `docs/analyze_documentation_sync.py` [OK], `functions/generate_function_registry.py` [OK], `imports/generate_module_dependencies.py` [OK], `docs/analyze_documentation.py`
+- **Quality, validation, coverage**: `tests/generate_test_coverage.py` [OK], `ai_work/analyze_ai_work.py`, `imports/analyze_unused_imports.py`, `error_handling/analyze_error_handling.py`
+- **Legacy, versioning, signals**: `legacy/fix_legacy_references.py` [OK], `reports/system_signals.py`, `reports/quick_status.py`, `docs/fix_version_sync.py` (experimental)
+- **Decision & utilities**: `reports/decision_support.py`, `functions/analyze_functions.py`, `functions/generate_function_docstrings.py` (experimental), `config/analyze_config.py`, `shared/file_rotation.py`, `functions/analyze_*` helpers, `shared/tool_guide.py`
 
 [OK] = Has comprehensive test coverage (Phase 3)
 

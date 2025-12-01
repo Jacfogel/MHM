@@ -2,7 +2,7 @@
 # TOOL_TIER: core
 
 """
-function_discovery.py
+analyze_functions.py
 Enhanced function search and relationship mapping for AI-optimized development.
 Finds all functions, categorizes them (handler, utility, test, etc.), and shows relationships.
 
@@ -45,14 +45,14 @@ def _get_scan_directories() -> List[str]:
     """Get scan directories from config."""
     return config.get_scan_directories()
 
-def _get_function_discovery_config() -> Dict:
-    """Get function discovery config from config module."""
-    return config.get_function_discovery_config()
+def _get_analyze_functions_config() -> Dict:
+    """Get analyze functions config from config module."""
+    return config.get_analyze_functions_config()
 
 # Load config values
 PROJECT_ROOT = _get_project_root()
 SCAN_DIRECTORIES = _get_scan_directories()
-FUNCTION_DISCOVERY_CONFIG = _get_function_discovery_config()
+FUNCTION_DISCOVERY_CONFIG = _get_analyze_functions_config()
 HANDLER_KEYWORDS = FUNCTION_DISCOVERY_CONFIG.get('handler_keywords', ['handle', 'process', 'validate'])
 TEST_KEYWORDS = FUNCTION_DISCOVERY_CONFIG.get('test_keywords', ['test_', 'test'])
 MODERATE_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get('moderate_complexity_threshold', 50)

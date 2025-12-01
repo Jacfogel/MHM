@@ -850,13 +850,15 @@ def _save_user_data__check_cross_file_invariants(
         preferences_data = merged_data.get('preferences')
         
         # If account is being updated, use merged data; otherwise read from disk
+        # Use auto_create=False to prevent creating default accounts when checking invariants
         if 'account' not in valid_types:
-            account_result = get_user_data(user_id, 'account')
+            account_result = get_user_data(user_id, 'account', auto_create=False)
             account_data = account_result.get('account', {})
         
         # If preferences is being updated, use merged data; otherwise read from disk
+        # Use auto_create=False to prevent creating default data when checking invariants
         if 'preferences' not in valid_types:
-            prefs_result = get_user_data(user_id, 'preferences')
+            prefs_result = get_user_data(user_id, 'preferences', auto_create=False)
             preferences_data = prefs_result.get('preferences', {})
         
         # Invariant 1: If preferences has categories, account.features.automated_messages must be enabled

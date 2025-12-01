@@ -132,7 +132,7 @@ VALIDATION = {
     'critical_issues_first': True,            # Show critical issues before minor ones
 }
 
-# Error handling settings (for error_handling_coverage.py)
+# Error handling settings (for analyze_error_handling.py)
 # NOTE: Defaults are generic. Projects should provide error_handling section in config file.
 ERROR_HANDLING = {
     'decorator_names': ['@handle_errors', 'handle_errors', 'error_handler'],
@@ -200,7 +200,7 @@ QUICK_AUDIT = {
     'run_documentation_audit': True,
     'run_validation': True,
     'save_results': True,
-    'results_file': 'development_tools/reports/ai_audit_detailed_results.json',  # Generic path - override via config
+    'results_file': 'development_tools/reports/analysis_detailed_results.json',  # Generic path - override via config
     'issues_file': 'development_tools/critical_issues.txt',  # Generic path - override via config
     'audit_scripts': [],  # Empty by default - requires config file
     'concise_output': True,
@@ -303,9 +303,9 @@ def get_project_key_files(default: Optional[list] = None) -> list:
     key_files = _get_external_value('project.key_files', default)
     return key_files if isinstance(key_files, list) else default
 
-def get_function_discovery_config():
-    """Get function discovery configuration (from external config if available, otherwise default)."""
-    external_config = _get_external_value('function_discovery', None)
+def get_analyze_functions_config():
+    """Get analyze functions configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('analyze_functions', None)
     if external_config:
         result = FUNCTION_DISCOVERY.copy()
         result.update(external_config)
@@ -401,9 +401,9 @@ def get_ai_collaboration_config():
         return result
     return AI_COLLABORATION
 
-def get_version_sync_config():
-    """Get version sync configuration (from external config if available, otherwise default)."""
-    external_config = _get_external_value('version_sync', None)
+def get_fix_version_sync_config():
+    """Get fix version sync configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('fix_version_sync', None)
     if external_config:
         # Merge external config with defaults (external takes precedence)
         result = VERSION_SYNC.copy()
@@ -498,9 +498,9 @@ AUDIT_FUNCTION_REGISTRY = {
     'max_duplicates_json': 200,
 }
 
-def get_audit_function_registry_config():
+def get_analyze_function_registry_config():
     """Get audit function registry configuration (from external config if available, otherwise default)."""
-    external_config = _get_external_value('audit_function_registry', None)
+    external_config = _get_external_value('analyze_function_registry', None)
     if external_config:
         result = AUDIT_FUNCTION_REGISTRY.copy()
         result.update(external_config)
@@ -512,9 +512,9 @@ AUDIT_MODULE_DEPENDENCIES = {
     'dependency_doc_path': 'development_docs/MODULE_DEPENDENCIES_DETAIL.md',  # Generic default
 }
 
-def get_audit_module_dependencies_config():
+def get_analyze_module_dependencies_config():
     """Get audit module dependencies configuration (from external config if available, otherwise default)."""
-    external_config = _get_external_value('audit_module_dependencies', None)
+    external_config = _get_external_value('analyze_module_dependencies', None)
     if external_config:
         result = AUDIT_MODULE_DEPENDENCIES.copy()
         result.update(external_config)
@@ -527,9 +527,9 @@ AUDIT_PACKAGE_EXPORTS = {
     'expected_exports': {},  # Expected exports by module
 }
 
-def get_audit_package_exports_config():
+def get_analyze_package_exports_config():
     """Get audit package exports configuration (from external config if available, otherwise default)."""
-    external_config = _get_external_value('audit_package_exports', None)
+    external_config = _get_external_value('analyze_package_exports', None)
     if external_config:
         result = AUDIT_PACKAGE_EXPORTS.copy()
         # Deep merge for nested dicts
@@ -548,9 +548,9 @@ CONFIG_VALIDATOR = {
     'validation_rules': {},  # Custom validation rules
 }
 
-def get_config_validator_config():
+def get_analyze_config_config():
     """Get config validator configuration (from external config if available, otherwise default)."""
-    external_config = _get_external_value('config_validator', None)
+    external_config = _get_external_value('analyze_config', None)
     if external_config:
         result = CONFIG_VALIDATOR.copy()
         # Deep merge for nested dicts
@@ -574,9 +574,9 @@ VALIDATE_AI_WORK = {
     'rule_set_paths': [],
 }
 
-def get_validate_ai_work_config():
+def get_analyze_ai_work_config():
     """Get validate AI work configuration (from external config if available, otherwise default)."""
-    external_config = _get_external_value('validate_ai_work', None)
+    external_config = _get_external_value('analyze_ai_work', None)
     if external_config:
         result = VALIDATE_AI_WORK.copy()
         # Deep merge for nested dicts
@@ -663,9 +663,9 @@ AUTO_DOCUMENT_FUNCTIONS = {
     },
 }
 
-def get_auto_document_functions_config():
-    """Get auto document functions configuration (from external config if available, otherwise default)."""
-    external_config = _get_external_value('auto_document_functions', None)
+def get_generate_function_docstrings_config():
+    """Get generate function docstrings configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('generate_function_docstrings', None)
     if external_config:
         result = AUTO_DOCUMENT_FUNCTIONS.copy()
         # Deep merge for nested dicts

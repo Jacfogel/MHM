@@ -19,7 +19,7 @@ if str(project_root) not in sys.path:
 # Handle both relative and absolute imports
 try:
     from . import config
-    from ..functions.function_discovery import scan_all_functions, categorize_functions
+    from ..functions.analyze_functions import scan_all_functions, categorize_functions
 except ImportError:
     import sys
     from pathlib import Path
@@ -28,7 +28,7 @@ except ImportError:
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
     from development_tools import config
-    from development_tools.functions.function_discovery import scan_all_functions, categorize_functions
+    from development_tools.functions.analyze_functions import scan_all_functions, categorize_functions
 
 from core.logger import get_component_logger
 
@@ -38,7 +38,7 @@ config.load_external_config()
 logger = get_component_logger("development_tools")
 
 # Load config values using the new configurable functions
-FUNCTION_DISCOVERY_CONFIG = config.get_function_discovery_config()
+FUNCTION_DISCOVERY_CONFIG = config.get_analyze_functions_config()
 MODERATE_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get('moderate_complexity_threshold', 50)
 HIGH_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get('high_complexity_threshold', 100)
 CRITICAL_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get('critical_complexity_threshold', 200)

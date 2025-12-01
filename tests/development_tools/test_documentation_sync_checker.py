@@ -1,5 +1,5 @@
 """
-Tests for documentation_sync_checker.py.
+Tests for analyze_documentation_sync.py.
 
 Tests documentation synchronization, path drift detection, ASCII compliance,
 and heading numbering validation.
@@ -14,7 +14,7 @@ from collections import defaultdict
 from tests.development_tools.conftest import load_development_tools_module
 
 # Load the module using the helper
-checker_module = load_development_tools_module("documentation_sync_checker")
+checker_module = load_development_tools_module("analyze_documentation_sync")
 DocumentationSyncChecker = checker_module.DocumentationSyncChecker
 
 

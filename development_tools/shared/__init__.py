@@ -1,4 +1,4 @@
-"""Service layer package for ai_tools_runner commands.
+"""Service layer package for run_development_tools commands.
 
 Contains shared services and utilities used by AI development tools,
 including file exclusion logic, common operations, and configuration management.

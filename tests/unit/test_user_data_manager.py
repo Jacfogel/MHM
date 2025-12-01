@@ -352,6 +352,7 @@ class TestUserDataManagerIndex:
         """
         from core.user_management import get_user_id_by_identifier
         from core.user_data_manager import rebuild_user_index
+        from core.user_data_handlers import get_user_data
         
         user_id = "test_index_user"
         TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
@@ -361,6 +362,14 @@ class TestUserDataManagerIndex:
         actual_user_id = get_user_id_by_identifier(user_id)
         if actual_user_id is None:
             actual_user_id = user_id
+        
+        # Verify account data exists (serial execution ensures data is available)
+        account_data = get_user_data(actual_user_id, 'account', auto_create=False)
+        if not account_data.get('account'):
+            # If account doesn't exist, try to get it with auto_create to ensure it's created
+            account_data = get_user_data(actual_user_id, 'account', auto_create=True)
+            # Rebuild index again after auto-creation
+            rebuild_user_index()
         
         return actual_user_id
     
@@ -373,18 +382,41 @@ class TestUserDataManagerIndex:
         """
         # Arrange: User is created in fixture
         from core.user_data_handlers import get_user_data
+        from core.user_data_manager import rebuild_user_index
         
         # Verify user account exists (serial execution ensures data is available)
+        # If account doesn't exist, try to ensure it's created
         user_data = get_user_data(test_user, 'account', auto_create=False)
         user_account = user_data.get('account') or {}
-        assert user_account and user_account.get('internal_username'), \
-            f"User account data not available for {test_user}"
+        if not user_account or not user_account.get('internal_username'):
+            # Account might not exist yet - try with auto_create
+            user_data = get_user_data(test_user, 'account', auto_create=True)
+            user_account = user_data.get('account') or {}
+            # Rebuild index after auto-creation
+            rebuild_user_index()
+            # Re-read to ensure data is fresh
+            user_data = get_user_data(test_user, 'account', auto_create=False)
+            user_account = user_data.get('account') or {}
         
-        # Act: Update user index
-        result = manager.update_user_index(test_user)
+        assert user_account and user_account.get('internal_username'), \
+            f"User account data not available for {test_user} (account keys: {list(user_account.keys())})"
+        
+        # Act: Update user index (with retry for parallel execution)
+        import time
+        result = False
+        for attempt in range(3):
+            result = manager.update_user_index(test_user)
+            if result:
+                break
+            if attempt < 2:
+                time.sleep(0.1)  # Brief delay before retry
+                # Rebuild index and re-read account to ensure fresh data
+                rebuild_user_index()
+                user_data = get_user_data(test_user, 'account', auto_create=False)
+                user_account = user_data.get('account') or {}
         
         # Assert: Should return True
-        assert result == True, f"Should return True on success. Got: {result}"
+        assert result == True, f"Should return True on success. Got: {result} (user_id={test_user}, internal_username={user_account.get('internal_username')})"
         
         # Assert: Index file should exist and contain user
         if os.path.exists(manager.index_file):

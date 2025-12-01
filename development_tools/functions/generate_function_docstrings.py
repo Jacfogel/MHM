@@ -35,7 +35,7 @@ from core.logger import get_component_logger
 logger = get_component_logger("development_tools")
 
 # Load config at module level
-AUTO_DOC_CONFIG = config.get_auto_document_functions_config()
+AUTO_DOC_CONFIG = config.get_generate_function_docstrings_config()
 
 def detect_function_type(file_path: str, func_name: str, decorators: List[str], args: List[str], function_type_detection: Optional[Dict] = None) -> str:
     """Detect the type of function for template generation using config rules."""
@@ -309,7 +309,7 @@ def scan_and_document_functions(project_root_path: Optional[Path] = None):
     return results
 
 def execute(project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs) -> Dict:
-    """Execute auto document functions (for use by ai_tools_runner)."""
+    """Execute auto document functions (for use by run_development_tools)."""
     global AUTO_DOC_CONFIG
     
     # Load config if project_root or config_path provided
@@ -317,7 +317,7 @@ def execute(project_root: Optional[str] = None, config_path: Optional[str] = Non
         if config_path:
             config.load_external_config(config_path)
         # Reload config (project_root is handled via config file)
-        AUTO_DOC_CONFIG = config.get_auto_document_functions_config()
+        AUTO_DOC_CONFIG = config.get_generate_function_docstrings_config()
     
     if project_root:
         project_root_path = Path(project_root).resolve()

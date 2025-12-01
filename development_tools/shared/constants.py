@@ -262,8 +262,8 @@ ASCII_COMPLIANCE_FILES: Tuple[str, ...] = _load_ascii_compliance_files()
 def _load_version_sync_directories() -> Dict[str, str]:
     """Load version sync directories from config or return defaults."""
     constants_config = _get_constants_config_safe()
-    if constants_config and 'version_sync_directories' in constants_config:
-        return dict(constants_config['version_sync_directories'])
+    if constants_config and 'fix_version_sync_directories' in constants_config:
+        return dict(constants_config['fix_version_sync_directories'])
     # Default: empty (projects should define their own)
     return {}
 

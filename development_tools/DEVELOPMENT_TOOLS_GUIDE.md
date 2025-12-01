@@ -22,7 +22,7 @@ The machine-readable metadata lives in `development_tools/shared/tool_metadata.p
 
 ## 2. Running the Tool Suite
 
-All commands flow through `development_tools/ai_tools_runner.py`.
+All commands flow through `development_tools/run_development_tools.py` (or the shorter alias `development_tools/run_dev_tools.py`).
 
 ### 2.1. Global Options
 
@@ -30,13 +30,15 @@ The runner supports global options that apply to all commands:
 
 ```powershell
 # Specify a custom project root
-python development_tools/ai_tools_runner.py --project-root /path/to/project status
+python development_tools/run_development_tools.py --project-root /path/to/project status
+# Or use the shorthand:
+python development_tools/run_dev_tools.py --project-root /path/to/project status
 
 # Specify a custom config file
-python development_tools/ai_tools_runner.py --config-path /path/to/config.json audit
+python development_tools/run_development_tools.py --config-path /path/to/config.json audit
 
 # Combine both
-python development_tools/ai_tools_runner.py --project-root . --config-path development_tools_config.json status
+python development_tools/run_development_tools.py --project-root . --config-path development_tools_config.json status
 ```
 
 **Configuration File**: By default, the tools look for `development_tools_config.json` in the project root. This file can override paths, project settings, audit behavior, and other configuration. See `development_tools/development_tools_config.json.example` for a template.
@@ -44,15 +46,15 @@ python development_tools/ai_tools_runner.py --project-root . --config-path devel
 ### 2.2. Command Examples
 
 ```powershell
-python development_tools/ai_tools_runner.py --help
-python development_tools/ai_tools_runner.py audit
-python development_tools/ai_tools_runner.py audit --full
-python development_tools/ai_tools_runner.py docs
-python development_tools/ai_tools_runner.py status
-python development_tools/ai_tools_runner.py legacy
-python development_tools/ai_tools_runner.py coverage
-python development_tools/ai_tools_runner.py unused-imports
-python development_tools/ai_tools_runner.py config
+python development_tools/run_development_tools.py --help
+python development_tools/run_development_tools.py audit
+python development_tools/run_development_tools.py audit --full
+python development_tools/run_development_tools.py docs
+python development_tools/run_development_tools.py status
+python development_tools/run_development_tools.py legacy
+python development_tools/run_development_tools.py coverage
+python development_tools/run_development_tools.py unused-imports
+python development_tools/run_development_tools.py config
 ```
 
 ### 2.3. Command Summary
@@ -64,8 +66,8 @@ python development_tools/ai_tools_runner.py config
 - `docs` - regenerates registries, dependency maps, and doc-signals.
 - `doc-sync` - verifies paired doc headings, path drift, ASCII compliance.
 - `config` - prints active configuration contexts and validation warnings.
-- `coverage` - invokes `regenerate_coverage_metrics.py` (HTML + JSON outputs).
-- `legacy` - runs `legacy_reference_cleanup.py` via the dispatcher.
+- `coverage` - invokes `generate_test_coverage.py` (HTML + JSON outputs).
+- `legacy` - runs `fix_legacy_references.py` via the dispatcher.
 
 **Supporting Commands** (advisory, depend on fresh audits):
 - `status` - surfaces cached health summaries (rerun `audit` if stale).
@@ -115,12 +117,12 @@ Regardless of command:
 
 Pipeline artifacts:
 - AI-facing (root): [AI_STATUS.md](development_tools/AI_STATUS.md), `AI_PRIORITIES.md`, `consolidated_report.txt`
-- Domain-specific JSON: `reports/ai_audit_detailed_results.json`, `error_handling/error_handling_details.json`, `tests/coverage_dev_tools.json`, `validation/config_validation_results.json`, `imports/.unused_imports_cache.json`
-  - `reports/ai_audit_detailed_results.json` caches complexity metrics, validation results, and system signals for `status` command
+- Domain-specific JSON: `reports/analysis_detailed_results.json`, `error_handling/error_handling_details.json`, `tests/coverage_dev_tools.json`, `config/analyze_config_results.json`, `imports/.unused_imports_cache.json`
+  - `reports/analysis_detailed_results.json` caches complexity metrics, validation results, and system signals for `status` command
   - `AI_PRIORITIES.md` includes complexity refactoring priority when critical/high complexity functions exist
 - Human-facing: [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md), [MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md), [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md), [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)
 - Coverage: `coverage.json` (project root), `tests/coverage_html/` (project root), `development_tools/reports/archive/coverage_artifacts/<timestamp>/`
-- Cached snapshots: `status` loads data from `reports/ai_audit_detailed_results.json` (complexity, validation, system signals); confirm timestamps before trusting.
+- Cached snapshots: `status` loads data from `reports/analysis_detailed_results.json` (complexity, validation, system signals); confirm timestamps before trusting.
 
 **When to run each command**: See "Standard Audit Recipe" section in [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) for guidance on day-to-day checks (`audit`), pre-merge/pre-release checks (`audit --full`), and documentation work (`doc-sync`, `docs`).
 
@@ -142,33 +144,33 @@ Ensure directories listed in `development_tools/shared/constants.py` remain accu
 
 | Tool | Tier | Trust | Notes |
 | --- | --- | --- | --- |
-| ai_tools_runner.py | core | stable | CLI dispatcher for every AI tooling command. Supports `--project-root` and `--config-path` for portability. |
+| run_development_tools.py | core | stable | CLI dispatcher for every development tooling command. Supports `--project-root` and `--config-path` for portability. |
 | shared/operations.py | core | stable | Implements command handlers and shared execution paths. Accepts project-specific config via external config file. |
 | config.py | core | stable | Central configuration for audit contexts, paths, and workflow knobs. Loads from `development_tools_config.json` with generic fallbacks. |
 | shared/standard_exclusions.py | core | stable | Canonical exclusion patterns consumed by all scanners. Loads exclusions from external config. |
 | shared/constants.py | core | stable | Doc pairing metadata, directory maps, and shared enumerations. Loads constants from external config. |
 | shared/common.py | core | stable | IO helpers plus CLI utilities (command grouping, runners). |
-| documentation_sync_checker.py | core | stable | Validates doc pairing (human vs AI) and detects drift. Parameterized doc roots and metadata schema. [OK] **HAS TESTS (Phase 3)**: 12 tests in `tests/development_tools/test_documentation_sync_checker.py` |
+| analyze_documentation_sync.py | core | stable | Validates doc pairing (human vs AI) and detects drift. Parameterized doc roots and metadata schema. [OK] **HAS TESTS (Phase 3)**: 12 tests in `tests/development_tools/test_analyze_documentation_sync.py` |
 | generate_function_registry.py | core | stable | Builds the authoritative function registry via AST parsing. Configurable scan roots and filters via external config. [OK] **HAS TESTS (Phase 3)**: 12 tests in `tests/development_tools/test_generate_function_registry.py` |
 | generate_module_dependencies.py | core | stable | Produces module dependency graphs and enhancement zones. Accepts custom module prefixes for portability. [OK] **HAS TESTS (Phase 3)**: 11 tests in `tests/development_tools/test_generate_module_dependencies.py` |
-| legacy_reference_cleanup.py | core | stable | Finds/validates LEGACY COMPATIBILITY usage before cleanup. Legacy patterns and mappings load from external config. [OK] **HAS TESTS (Phase 3)**: 10 tests in `tests/development_tools/test_legacy_reference_cleanup.py` |
-| regenerate_coverage_metrics.py | core | stable | Rebuilds coverage artifacts, JSON, and HTML reports. Accepts pytest command, coverage config, and artifact directories via external config. [OK] **HAS TESTS (Phase 3)**: 10 tests in `tests/development_tools/test_regenerate_coverage_metrics.py` |
-| error_handling_coverage.py | core | stable | Audits decorator usage and exception handling depth. Decorator names and exception classes load from external config. |
-| function_discovery.py | core | stable | AST discovery utility supporting registries and audits. Configurable scan roots and filters via external config. |
+| fix_legacy_references.py | core | stable | Finds/validates LEGACY COMPATIBILITY usage before cleanup. Legacy patterns and mappings load from external config. [OK] **HAS TESTS (Phase 3)**: 10 tests in `tests/development_tools/test_fix_legacy_references.py` |
+| generate_test_coverage.py | core | stable | Rebuilds coverage artifacts, JSON, and HTML reports. Accepts pytest command, coverage config, and artifact directories via external config. [OK] **HAS TESTS (Phase 3)**: 10 tests in `tests/development_tools/test_generate_test_coverage.py` |
+| analyze_error_handling.py | core | stable | Audits decorator usage and exception handling depth. Decorator names and exception classes load from external config. |
+| analyze_functions.py | core | stable | AST discovery utility supporting registries and audits. Configurable scan roots and filters via external config. |
 | analyze_documentation.py | supporting | partial | Secondary doc analysis that focuses on corruption/overlap. |
-| audit_function_registry.py | supporting | partial | Validates generated function registry output. |
-| audit_module_dependencies.py | supporting | partial | Cross-checks generated dependency graphs for accuracy. |
-| audit_package_exports.py | supporting | partial | Confirms package export declarations match filesystem reality. |
-| config_validator.py | supporting | partial | Detects configuration drift and missing values across tools. |
-| validate_ai_work.py | supporting | partial | Lightweight structural validator; advisory results only. |
-| unused_imports_checker.py | supporting | partial | AST-based unused import detector (tune noise thresholds). |
+| analyze_function_registry.py | supporting | partial | Validates generated function registry output. |
+| analyze_module_dependencies.py | supporting | partial | Cross-checks generated dependency graphs for accuracy. |
+| analyze_package_exports.py | supporting | partial | Confirms package export declarations match filesystem reality. |
+| analyze_config.py | supporting | partial | Detects configuration drift and missing values across tools. |
+| analyze_ai_work.py | supporting | partial | Lightweight structural validator; advisory results only. |
+| analyze_unused_imports.py | supporting | partial | AST-based unused import detector (tune noise thresholds). |
 | quick_status.py | supporting | advisory | Cached status snapshot that depends on the latest audit run. |
 | system_signals.py | supporting | advisory | Collects OS/process health signals for consolidated reports. |
 | decision_support.py | supporting | advisory | Aggregates metrics into improvement priorities. |
 | shared/file_rotation.py | supporting | stable | Timestamped rotation utility used by coverage generation. |
 | shared/tool_guide.py | supporting | stable | Provides contextual guidance and tier overviews for assistants. |
-| docs/version_sync.py | experimental | experimental | Attempts cross-file version synchronization (fragile). |
-| functions/auto_document_functions.py | experimental | experimental | Auto-generates docstrings; high-risk and currently prototype. |
+| docs/fix_version_sync.py | experimental | experimental | Attempts cross-file version synchronization (fragile). |
+| functions/generate_function_docstrings.py | experimental | experimental | Auto-generates docstrings; high-risk and currently prototype. |
 
 Keep this table synchronized with `shared/tool_metadata.py` and update both when tiers or trust levels change.
 
@@ -187,8 +189,8 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 - Context-specific behavior:
   - `config.py` defines production / development / testing contexts; commands must honor the active context.
   - Never hardcode project paths - always resolve via `shared/common.py` helpers.
-- Run `python development_tools/ai_tools_runner.py doc-sync` after documentation edits to ensure heading parity and ASCII compliance.
-- Treat experimental tools (`docs/version_sync.py`, `functions/auto_document_functions.py`, etc.) as opt-in: dry-run first, capture logs, and record findings in [TODO.md](TODO.md) or the improvement plan.
+- Run `python development_tools/run_development_tools.py doc-sync` after documentation edits to ensure heading parity and ASCII compliance.
+- Treat experimental tools (`docs/fix_version_sync.py`, `functions/generate_function_docstrings.py`, etc.) as opt-in: dry-run first, capture logs, and record findings in [TODO.md](TODO.md) or the improvement plan.
 - Keep file organization portable (mirroring `development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) to support eventual extraction of the suite. The baseline structure should remain:
 
 ```

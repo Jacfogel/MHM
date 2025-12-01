@@ -27,12 +27,12 @@ class ToolInfo:
 
 
 _TOOLS: Dict[str, ToolInfo] = {
-    "ai_tools_runner": ToolInfo(
-        name="ai_tools_runner",
-        path="development_tools/ai_tools_runner.py",
+    "run_development_tools": ToolInfo(
+        name="run_development_tools",
+        path="development_tools/run_development_tools.py",
         tier="core",
         trust="stable",
-        description="CLI entry point that dispatches every AI tooling command.",
+        description="CLI entry point that dispatches every development tooling command.",
     ),
     "operations": ToolInfo(
         name="operations",
@@ -69,9 +69,9 @@ _TOOLS: Dict[str, ToolInfo] = {
         trust="stable",
         description="Shared file/io helpers used across tooling modules.",
     ),
-    "documentation_sync_checker": ToolInfo(
-        name="documentation_sync_checker",
-        path="development_tools/docs/documentation_sync_checker.py",
+    "analyze_documentation_sync": ToolInfo(
+        name="analyze_documentation_sync",
+        path="development_tools/docs/analyze_documentation_sync.py",
         tier="core",
         trust="stable",
         description="Validates human/AI doc pairing and detects drift.",
@@ -90,30 +90,30 @@ _TOOLS: Dict[str, ToolInfo] = {
         trust="stable",
         description="Calculates inter-module dependencies and enhancement zones.",
     ),
-    "legacy_reference_cleanup": ToolInfo(
-        name="legacy_reference_cleanup",
-        path="development_tools/legacy/legacy_reference_cleanup.py",
+    "fix_legacy_references": ToolInfo(
+        name="fix_legacy_references",
+        path="development_tools/legacy/fix_legacy_references.py",
         tier="core",
         trust="stable",
         description="Scans and optionally removes LEGACY COMPATIBILITY markers.",
     ),
-    "regenerate_coverage_metrics": ToolInfo(
-        name="regenerate_coverage_metrics",
-        path="development_tools/tests/regenerate_coverage_metrics.py",
+    "generate_test_coverage": ToolInfo(
+        name="generate_test_coverage",
+        path="development_tools/tests/generate_test_coverage.py",
         tier="core",
         trust="stable",
         description="Runs pytest coverage and manages coverage artifacts.",
     ),
-    "error_handling_coverage": ToolInfo(
-        name="error_handling_coverage",
-        path="development_tools/error_handling/error_handling_coverage.py",
+    "analyze_error_handling": ToolInfo(
+        name="analyze_error_handling",
+        path="development_tools/error_handling/analyze_error_handling.py",
         tier="core",
         trust="stable",
         description="Audits decorator usage and error handling adherence.",
     ),
-    "function_discovery": ToolInfo(
-        name="function_discovery",
-        path="development_tools/functions/function_discovery.py",
+    "analyze_functions": ToolInfo(
+        name="analyze_functions",
+        path="development_tools/functions/analyze_functions.py",
         tier="core",
         trust="stable",
         description="AST discovery utility backing several other tools.",
@@ -125,44 +125,44 @@ _TOOLS: Dict[str, ToolInfo] = {
         trust="partial",
         description="Secondary doc analysis focused on corruption detection.",
     ),
-    "audit_function_registry": ToolInfo(
-        name="audit_function_registry",
-        path="development_tools/functions/audit_function_registry.py",
+    "analyze_function_registry": ToolInfo(
+        name="analyze_function_registry",
+        path="development_tools/functions/analyze_function_registry.py",
         tier="supporting",
         trust="partial",
         description="Validates generated function registry output.",
     ),
-    "audit_module_dependencies": ToolInfo(
-        name="audit_module_dependencies",
-        path="development_tools/imports/audit_module_dependencies.py",
+    "analyze_module_dependencies": ToolInfo(
+        name="analyze_module_dependencies",
+        path="development_tools/imports/analyze_module_dependencies.py",
         tier="supporting",
         trust="partial",
         description="Verifies generated dependency graphs for consistency.",
     ),
-    "audit_package_exports": ToolInfo(
-        name="audit_package_exports",
-        path="development_tools/functions/audit_package_exports.py",
+    "analyze_package_exports": ToolInfo(
+        name="analyze_package_exports",
+        path="development_tools/functions/analyze_package_exports.py",
         tier="supporting",
         trust="partial",
         description="Checks declared exports align with package contents.",
     ),
-    "config_validator": ToolInfo(
-        name="config_validator",
-        path="development_tools/config/config_validator.py",
+    "analyze_config": ToolInfo(
+        name="analyze_config",
+        path="development_tools/config/analyze_config.py",
         tier="supporting",
         trust="partial",
         description="Detects config drift and missing values across tools.",
     ),
-    "validate_ai_work": ToolInfo(
-        name="validate_ai_work",
-        path="development_tools/ai_work/validate_ai_work.py",
+    "analyze_ai_work": ToolInfo(
+        name="analyze_ai_work",
+        path="development_tools/ai_work/analyze_ai_work.py",
         tier="supporting",
         trust="partial",
         description="Lightweight structural validator, advisory only.",
     ),
-    "unused_imports_checker": ToolInfo(
-        name="unused_imports_checker",
-        path="development_tools/imports/unused_imports_checker.py",
+    "analyze_unused_imports": ToolInfo(
+        name="analyze_unused_imports",
+        path="development_tools/imports/analyze_unused_imports.py",
         tier="supporting",
         trust="partial",
         description="AST-based unused import detector (can be noisy).",
@@ -202,19 +202,26 @@ _TOOLS: Dict[str, ToolInfo] = {
         trust="stable",
         description="Generates summarized help text for CLI commands.",
     ),
-    "version_sync": ToolInfo(
-        name="version_sync",
-        path="development_tools/docs/version_sync.py",
+    "fix_version_sync": ToolInfo(
+        name="fix_version_sync",
+        path="development_tools/docs/fix_version_sync.py",
         tier="experimental",
         trust="experimental",
         description="Attempts cross-file version synchronization (fragile).",
     ),
-    "auto_document_functions": ToolInfo(
-        name="auto_document_functions",
-        path="development_tools/functions/auto_document_functions.py",
+    "generate_function_docstrings": ToolInfo(
+        name="generate_function_docstrings",
+        path="development_tools/functions/generate_function_docstrings.py",
         tier="experimental",
         trust="experimental",
         description="Auto-generates docstrings—high-risk, use with caution.",
+    ),
+    "generate_consolidated_report": ToolInfo(
+        name="generate_consolidated_report",
+        path="development_tools/reports/generate_consolidated_report.py",
+        tier="supporting",
+        trust="stable",
+        description="Generates AI_STATUS.md, AI_PRIORITIES.md, and consolidated_report.txt.",
     ),
 }
 

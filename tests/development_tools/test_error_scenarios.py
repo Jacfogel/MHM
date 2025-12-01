@@ -53,7 +53,7 @@ class TestFileCorruptionHandling:
     @pytest.mark.unit
     def test_documentation_sync_handles_missing_pairs(self, temp_docs_dir):
         """DocumentationSyncChecker should report missing docs without crashing."""
-        doc_sync_module = load_development_tools_module("documentation_sync_checker")
+        doc_sync_module = load_development_tools_module("analyze_documentation_sync")
         checker = doc_sync_module.DocumentationSyncChecker(project_root=str(temp_docs_dir))
         checker.paired_docs = {"human.md": "ai.md"}
 
@@ -109,7 +109,7 @@ class TestMissingFileHandling:
     @pytest.mark.unit
     def test_documentation_sync_handles_missing_docs(self, temp_docs_dir):
         """DocumentationSyncChecker should report missing docs gracefully."""
-        doc_sync_module = load_development_tools_module("documentation_sync_checker")
+        doc_sync_module = load_development_tools_module("analyze_documentation_sync")
         checker = doc_sync_module.DocumentationSyncChecker(project_root=str(temp_docs_dir))
         checker.paired_docs = {"docs/human.md": "docs/ai.md"}
 
@@ -122,7 +122,7 @@ class TestMissingFileHandling:
     @pytest.mark.unit
     def test_coverage_handles_missing_coverage_data(self, demo_project_root):
         """CoverageMetricsRegenerator should handle missing data gracefully."""
-        coverage = load_development_tools_module("regenerate_coverage_metrics")
+        coverage = load_development_tools_module("generate_test_coverage")
         regenerator = coverage.CoverageMetricsRegenerator(str(demo_project_root))
 
         empty_data = regenerator.parse_coverage_output("")
@@ -178,7 +178,7 @@ class TestInvalidInputHandling:
     @pytest.mark.unit
     def test_legacy_cleanup_handles_invalid_patterns(self, demo_project_root):
         """Legacy cleanup should tolerate empty search patterns."""
-        legacy = load_development_tools_module("legacy_reference_cleanup")
+        legacy = load_development_tools_module("fix_legacy_references")
         cleanup = legacy.LegacyReferenceCleanup(str(demo_project_root))
 
         try:
@@ -223,7 +223,7 @@ class TestNetworkAndExternalErrorHandling:
     def test_coverage_handles_pytest_failure(self, demo_project_root):
         """Coverage metrics should report pytest failures without crashing."""
         import subprocess
-        coverage = load_development_tools_module("regenerate_coverage_metrics")
+        coverage = load_development_tools_module("generate_test_coverage")
         regenerator = coverage.CoverageMetricsRegenerator(str(demo_project_root))
 
         # Patch subprocess.run globally - all modules import from the same subprocess module

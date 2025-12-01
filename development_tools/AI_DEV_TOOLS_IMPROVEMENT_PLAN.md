@@ -14,7 +14,7 @@ It is intended to guide decisions on tool maintenance, triage, and future enhanc
 
 The `development_tools` directory represents an ambitious and generally well-structured attempt at creating an internal "analysis and audit platform" for the MHM project. The architecture includes:
 
-- A unified dispatcher (`development_tools/ai_tools_runner.py`)
+- A unified dispatcher (`development_tools/run_development_tools.py`)
 - Configurable behavior (`development_tools/config.py`)
 - Centralized exclusions (`development_tools/services/standard_exclusions.py`)
 - Documentation-aware analysis tools
@@ -81,10 +81,10 @@ This section categorizes each tool into "Core," "Supporting," or "Experimental" 
 
 ## 2.2 Runner and Operations Layer
 
-### `development_tools/ai_tools_runner.py`
+### `development_tools/run_development_tools.py`
 - Central dispatcher with command registry.
 - Good entry point; ties the system together.
-- [OK] **HAS CLI SMOKE TESTS (Phase 2)**: 7 tests in `tests/development_tools/test_ai_tools_runner.py` verify command execution and exit codes.
+- [OK] **HAS CLI SMOKE TESTS (Phase 2)**: 7 tests in `tests/development_tools/test_run_development_tools.py` verify command execution and exit codes.
 - [OK] **HAS ENHANCED ERROR HANDLING (Phase 2)**: Try/except blocks with proper logging and exit code propagation.
 
 ### `development_tools/services/operations.py`
@@ -124,7 +124,7 @@ This section categorizes each tool into "Core," "Supporting," or "Experimental" 
 
 ## 2.4 Quality, Coverage & Validation Tools (High Value, Uneven)
 
-### `development_tools/regenerate_coverage_metrics.py`
+### `development_tools/tests/generate_test_coverage.py`
 - Full coverage regeneration with HTML output.
 - Handles artifact rotation and aggregation.
 - High-risk without tests; complex flows.
@@ -152,7 +152,7 @@ This section categorizes each tool into "Core," "Supporting," or "Experimental" 
 - Supports find/verify/scan/clean (with dry-run).
 - Very useful but high-risk; must rely heavily on dry-run.
 
-### `development_tools/experimental/version_sync.py`
+### `development_tools/docs/fix_version_sync.py`
 - Attempts to synchronize versioning across files.
 - Often fragile; underdeveloped; easy to break.
 
@@ -174,11 +174,11 @@ This section categorizes each tool into "Core," "Supporting," or "Experimental" 
 - Aggregates outputs into priorities and complexity insights.
 - Advisory only; not deterministic.
 
-### `development_tools/function_discovery.py`
+### `development_tools/functions/analyze_functions.py`
 - Parses function signatures, handlers, tests.
 - Forms basis for several other tools.
 
-### `development_tools/experimental/auto_document_functions.py`
+### `development_tools/functions/generate_function_docstrings.py`
 - Generates docstrings automatically.
 - High-risk; should be treated as experimental.
 
@@ -614,10 +614,10 @@ This does not fix code, but it stops you from accidentally trusting the wrong to
 
 - [OK] Added "## 10. Standard Audit Recipe" section to `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`
 - [OK] Describes when to run:
-  - `python development_tools/ai_tools_runner.py audit` (day-to-day checks)
-  - `python development_tools/ai_tools_runner.py audit --full` (pre-merge / pre-release checks)
-  - `python development_tools/ai_tools_runner.py doc-sync` and `python development_tools/ai_tools_runner.py docs` (doc work)
-  - `python development_tools/ai_tools_runner.py status` (quick status snapshot)
+  - `python development_tools/run_development_tools.py audit` (day-to-day checks)
+  - `python development_tools/run_development_tools.py audit --full` (pre-merge / pre-release checks)
+  - `python development_tools/run_development_tools.py doc-sync` and `python development_tools/run_development_tools.py docs` (doc work)
+  - `python development_tools/run_development_tools.py status` (quick status snapshot)
 - [OK] Includes reference to `AI_DEVELOPMENT_TOOLS_GUIDE.md` for detailed tool usage
 
 #### Milestone M5.3 - Update `ai_development_docs/AI_SESSION_STARTER.md` **COMPLETED (2025-11-27)**
@@ -688,20 +688,50 @@ Portable today: `development_tools/services/common.py`, `development_tools/syste
 
 **Goal:** Make the tool suite predictable by aligning names with actions and grouping related tools.
 
-**Status:** M7.2 completed (directory reorganization). M7.1 in progress (naming conventions need to be applied to all files). M7.3 pending (tool gap analysis).
+**Status:** M7.1 completed (naming conventions applied to all files and references updated, including second batch of renames). M7.2 completed (directory reorganization). M7.3 pending (tool gap analysis).
 
-#### Milestone M7.1 - Establish Naming Conventions **IN PROGRESS**
-- [OK] Adopted hybrid naming approach:
-  - Verb-based prefixes for actions: `generate_*`, `audit_*`, `validate_*`, `regenerate_*`, `analyze_*`, `check_*`, `cleanup_*`
-  - Descriptive names for utilities: `function_discovery`, `decision_support`, `quick_status`, `system_signals`, `file_rotation`
-- [ ] Rename files that don't follow conventions:
-  - `documentation_sync_checker.py` → `check_documentation_sync.py` or `validate_documentation_sync.py`
-  - `unused_imports_checker.py` → `check_unused_imports.py` or `find_unused_imports.py`
-  - `config_validator.py` → `validate_config.py`
-  - `error_handling_coverage.py` → `analyze_error_handling.py` or `check_error_handling_coverage.py`
-  - `legacy_reference_cleanup.py` → `cleanup_legacy_references.py` or `remove_legacy_references.py`
-- [ ] Update all references after renaming (imports, SCRIPT_REGISTRY, tool_metadata.py, documentation)
-- [ ] Document naming conventions in `development_tools/shared/tool_metadata.py` or a separate guide
+#### Milestone M7.1 - Establish Naming Conventions **COMPLETED (2025-12-01)**
+- [OK] Adopted 3-prefix naming system:
+  - **`analyze_*`** - Finding + assessing (read-only examination, validation, detection)
+  - **`generate_*`** - Making artifacts (create/recreate documentation, registries, reports)
+  - **`fix_*`** - Cleanup/repair (removal, cleanup operations)
+  - **No prefix** - Reporting/utility tools (descriptive names: `decision_support`, `quick_status`, `system_signals`, `consolidated_report`, `function_discovery`, `file_rotation`, `tool_guide`)
+- [OK] Rename files that don't follow conventions:
+  - `docs/documentation_sync_checker.py` → `docs/analyze_documentation_sync.py` ✓
+  - `imports/unused_imports_checker.py` → `imports/analyze_unused_imports.py` ✓
+  - `config/config_validator.py` → `config/analyze_config.py` ✓
+  - `error_handling/error_handling_coverage.py` → `error_handling/analyze_error_handling.py` ✓
+  - `legacy/legacy_reference_cleanup.py` → `legacy/fix_legacy_references.py` ✓
+  - `tests/regenerate_coverage_metrics.py` → `tests/generate_test_coverage.py` ✓
+  - `functions/audit_function_registry.py` → `functions/analyze_function_registry.py` ✓
+  - `imports/audit_module_dependencies.py` → `imports/analyze_module_dependencies.py` ✓
+  - `functions/audit_package_exports.py` → `functions/analyze_package_exports.py` ✓
+  - `ai_work/validate_ai_work.py` → `ai_work/analyze_ai_work.py` ✓
+- [ ] Files that stay (already correct or utilities):
+  - `functions/generate_function_registry.py` ✓
+  - `imports/generate_module_dependencies.py` ✓
+  - `docs/analyze_documentation.py` ✓
+  - `reports/decision_support.py` (utility, no prefix)
+  - `reports/quick_status.py` (utility, no prefix)
+  - `reports/system_signals.py` (utility, no prefix)
+  - `reports/generate_consolidated_report.py` (utility, renamed from consolidated_report.py)
+  - `functions/analyze_functions.py` (utility, no prefix - renamed from function_discovery) ✓
+  - `shared/file_rotation.py` (utility, no prefix)
+  - `shared/tool_guide.py` (utility, no prefix)
+  - `docs/fix_version_sync.py` (experimental, renamed from version_sync) ✓
+  - `functions/generate_function_docstrings.py` (experimental, renamed from auto_document_functions) ✓
+- [OK] Second batch of renames completed (2025-12-01):
+  - `ai_tools_runner.py` → `run_development_tools.py` ✓
+  - `function_discovery.py` → `analyze_functions.py` ✓
+  - `version_sync.py` → `fix_version_sync.py` ✓
+  - `auto_document_functions.py` → `generate_function_docstrings.py` ✓
+  - `generate_coverage_metrics.py` → `generate_test_coverage.py` ✓
+  - `consolidated_report.py` → `generate_consolidated_report.py` ✓
+  - `config_validation_results.json` → `analyze_config_results.json` ✓
+  - `ai_audit_detailed_results.json` → `analysis_detailed_results.json` ✓
+- [OK] Created shorthand alias `run_dev_tools.py` for `run_development_tools.py` ✓
+- [OK] Update all references after renaming (imports, SCRIPT_REGISTRY, tool_metadata.py, documentation, test files, config files) ✓
+- [OK] Document naming conventions in `development_tools/shared/tool_metadata.py` or a separate guide ✓
 
 #### Milestone M7.2 - Reorganize Directory Layout **COMPLETED (2025-11-30)**
 - [OK] Implemented domain-based directory structure with workflow patterns:
@@ -738,7 +768,7 @@ Portable today: `development_tools/services/common.py`, `development_tools/syste
 - [OK] **Phase 4 COMPLETED (2025-11-27)**: Experimental tools moved to dedicated directory, Tier-2 tools reviewed and documented, dev tools coverage tracking added, supporting tools regression tests created (6 tests for `quick_status`, `system_signals`, `file_rotation`)
 - [OK] **Phase 5 COMPLETED (2025-11-27)**: Standard audit recipe added to workflow guide, session starter updated with dev tools routing, all documentation alignment milestones complete
 - [OK] **Phase 6 COMPLETED (2025-11-28)**: All checklists completed - all 14 supporting and experimental tools made portable via external configuration (`development_tools_config.json`). All tools changed from `mhm-specific` to `portable` portability markers. Config getter functions added to `config.py`, config example file updated with all new sections.
-- [IN PROGRESS] **Phase 7**: M7.2 completed (directory reorganization done). M7.1 in progress (naming conventions need to be applied - several files still need renaming). M7.3 pending (tool gap analysis).
+- [OK] **Phase 7**: M7.1 completed (2025-12-01) - all naming conventions applied, both initial and second batch of renames complete, all references updated. M7.2 completed (directory reorganization done). M7.3 pending (tool gap analysis).
 
 This roadmap is intentionally incremental. You do **not** need to implement every milestone at once.  
 Phases 1-3 (tiering + core infrastructure + core analysis tools) are complete. Next focus on Phase 4 (clarify supporting vs experimental tools) or Phase 5 (UX and documentation alignment), then expand as time and energy allow.

@@ -33,14 +33,14 @@ TIER_TITLES = {
 
 # Tool configurations with usage guidance
 TOOL_GUIDE = {
-    "ai_tools_runner.py": {
-        "purpose": "Comprehensive interface for all AI tools (single entry point)",
+    "run_development_tools.py": {
+        "purpose": "Comprehensive interface for all development tools (single entry point)",
         "when_to_use": [
-            "Primary tool for all AI tool operations",
+            "Primary tool for all development tool operations",
             "Simple commands for basic operations (audit, docs, validate, config)",
             "Advanced commands for complex tasks (workflow, quick-audit, decision-support)",
             "When you want a unified interface for all tools",
-            "For both simple user commands and advanced AI workflows"
+            "For both simple user commands and advanced workflows"
         ],
         "output_interpretation": {
             "audit": "Comprehensive audit results with statistics",
@@ -57,7 +57,7 @@ TOOL_GUIDE = {
         ]
     },
     
-    "function_discovery.py": {
+    "analyze_functions.py": {
         "purpose": "Find and categorize all functions with detailed analysis",
         "when_to_use": [
             "Need to understand what functions exist",
@@ -105,7 +105,7 @@ TOOL_GUIDE = {
         ]
     },
     
-    "validate_ai_work.py": {
+    "analyze_ai_work.py": {
         "purpose": "Validate AI-generated work before presenting to user",
         "when_to_use": [
             "Before showing any documentation to user",
@@ -129,7 +129,7 @@ TOOL_GUIDE = {
         ]
     },
     
-    "audit_function_registry.py": {
+    "analyze_function_registry.py": {
         "purpose": "Check completeness and accuracy of function documentation",
         "when_to_use": [
             "Creating or updating function registries",
@@ -151,7 +151,7 @@ TOOL_GUIDE = {
         ]
     },
     
-    "audit_module_dependencies.py": {
+    "analyze_module_dependencies.py": {
         "purpose": "Analyze module dependencies and import relationships",
         "when_to_use": [
             "Understanding code architecture",
@@ -297,7 +297,7 @@ def show_recommendations(scenario):
         logger.info("No specific tool recommendations found.")
         # User-facing help messages stay as print() for immediate visibility
         print("NOTE: Try running the general audit first:")
-        print("   python development_tools/ai_tools_runner.py audit")
+        print("   python development_tools/run_development_tools.py audit")
 
 def run_tool_with_guidance(tool_name):
     """Run a tool and provide guidance on interpreting results"""
@@ -357,14 +357,14 @@ if __name__ == "__main__":
             scenario = " ".join(sys.argv[2:]) if len(sys.argv) > 2 else "documentation"
             show_recommendations(scenario)
         elif command == "run":
-            tool_name = sys.argv[2] if len(sys.argv) > 2 else "ai_tools_runner.py"
+            tool_name = sys.argv[2] if len(sys.argv) > 2 else "run_development_tools.py"
             run_tool_with_guidance(tool_name)
         else:
             print("Usage:")
             print("  python development_tools/shared/tool_guide.py guide                    # Show all tools")
-            print("  python development_tools/shared/tool_guide.py guide ai_tools_runner.py     # Show specific tool")
+            print("  python development_tools/shared/tool_guide.py guide run_development_tools.py     # Show specific tool")
             print("  python development_tools/shared/tool_guide.py recommend 'documentation' # Get recommendations")
-            print("  python development_tools/shared/tool_guide.py run ai_tools_runner.py       # Run with guidance")
+            print("  python development_tools/shared/tool_guide.py run run_development_tools.py       # Run with guidance")
     else:
         # Default: show all tools
         show_tool_guide()

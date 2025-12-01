@@ -1,5 +1,5 @@
 """
-Tests for regenerate_coverage_metrics.py.
+Tests for generate_test_coverage.py.
 
 Tests coverage analysis, parsing, HTML generation, and artifact management.
 """
@@ -14,7 +14,7 @@ from unittest.mock import Mock, patch, MagicMock
 from tests.development_tools.conftest import load_development_tools_module
 
 # Load the module using the helper
-coverage_module = load_development_tools_module("regenerate_coverage_metrics")
+coverage_module = load_development_tools_module("generate_test_coverage")
 
 CoverageMetricsRegenerator = coverage_module.CoverageMetricsRegenerator
 

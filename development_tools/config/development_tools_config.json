@@ -24,7 +24,7 @@
     "ai_docs_dir": "ai_development_docs",
     "development_docs_dir": "development_docs"
   },
-  "version_sync": {
+  "fix_version_sync": {
     "ai_docs": [
       "ai_development_docs/AI_ARCHITECTURE.md",
       "ai_development_docs/AI_CHANGELOG.md",
@@ -105,16 +105,16 @@
     "run_documentation_audit": true,
     "run_validation": true,
     "save_results": true,
-    "results_file": "development_tools/reports/ai_audit_detailed_results.json",
+    "results_file": "development_tools/reports/analysis_detailed_results.json",
     "issues_file": "development_tools/critical_issues.txt",
     "audit_scripts": [
-      "function_discovery.py",
+      "analyze_functions.py",
       "decision_support.py",
-      "audit_function_registry.py",
-      "audit_module_dependencies.py",
+      "analyze_function_registry.py",
+      "analyze_module_dependencies.py",
       "analyze_documentation.py",
-      "error_handling_coverage.py",
-      "documentation_sync_checker.py"
+      "analyze_error_handling.py",
+      "analyze_documentation_sync.py"
     ],
     "concise_output": true,
     "prioritize_issues": true
@@ -136,7 +136,7 @@
     "priority_issues": true,
     "integration_mode": true
   },
-  "function_discovery": {
+  "analyze_functions": {
     "moderate_complexity_threshold": 50,
     "high_complexity_threshold": 100,
     "critical_complexity_threshold": 200,
@@ -412,7 +412,7 @@
         "development_tools/AI_PRIORITIES.md",
         "development_tools/AI_STATUS.md",
         "development_tools/consolidated_report.txt",
-        "development_tools/ai_audit_detailed_results.json",
+        "development_tools/analysis_detailed_results.json",
         "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
         "ai_development_docs/AI_FUNCTION_REGISTRY.md",
         "development_docs/DIRECTORY_TREE.md",
@@ -424,7 +424,7 @@
         "development_tools\\AI_PRIORITIES.md",
         "development_tools\\AI_STATUS.md",
         "development_tools\\consolidated_report.txt",
-        "development_tools\\ai_audit_detailed_results.json",
+        "development_tools\\analysis_detailed_results.json",
         "ai_development_docs\\AI_MODULE_DEPENDENCIES.md",
         "ai_development_docs\\AI_FUNCTION_REGISTRY.md",
         "development_docs\\DIRECTORY_TREE.md",
@@ -468,7 +468,7 @@
       "development_tools/AI_PRIORITIES.md",
       "development_tools/AI_STATUS.md",
       "development_tools/consolidated_report.txt",
-      "development_tools/ai_audit_detailed_results.json"
+      "development_tools/reports/analysis_detailed_results.json"
     ],
     "generated_doc_files": [
       "development_docs/UNUSED_IMPORTS_REPORT.md",
@@ -613,7 +613,7 @@
       "development_docs/PLANS.md",
       "TODO.md"
     ],
-    "version_sync_directories": {
+    "fix_version_sync_directories": {
       "development_tools": "development_tools/",
       "ai_development_docs": "ai_development_docs/",
       "development_docs": "development_docs/",
@@ -646,7 +646,7 @@
     },
     "ignore_rules": []
   },
-  "audit_function_registry": {
+  "analyze_function_registry": {
     "registry_path": "development_docs/FUNCTION_REGISTRY_DETAIL.md",
     "high_complexity_min": 50,
     "top_complexity": 10,
@@ -657,18 +657,18 @@
     "max_undocumented_json": 200,
     "max_duplicates_json": 200
   },
-  "audit_module_dependencies": {
+  "analyze_module_dependencies": {
     "dependency_doc_path": "development_docs/MODULE_DEPENDENCIES_DETAIL.md"
   },
-  "audit_package_exports": {
+  "analyze_package_exports": {
     "export_patterns": [],
     "expected_exports": {}
   },
-  "config_validator": {
+  "analyze_config": {
     "config_schema": {},
     "validation_rules": {}
   },
-  "validate_ai_work": {
+  "analyze_ai_work": {
     "completeness_threshold": 90.0,
     "accuracy_threshold": 85.0,
     "consistency_threshold": 80.0,
@@ -691,7 +691,7 @@
     "core_files": [],
     "data_source_plugins": {}
   },
-  "auto_document_functions": {
+  "generate_function_docstrings": {
     "template_paths": {},
     "doc_targets": {},
     "formatting_rules": {},

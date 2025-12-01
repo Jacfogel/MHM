@@ -52,7 +52,7 @@ class ErrorHandlingAnalyzer:
             'functions_with_error_handling': 0,
             'functions_with_decorators': 0,
             'functions_missing_error_handling': 0,
-            'error_handling_coverage': 0.0,
+            'analyze_error_handling': 0.0,
             'error_patterns': {},
             'missing_error_handling': [],
             'error_handling_quality': {},
@@ -667,7 +667,7 @@ class ErrorHandlingAnalyzer:
             context = 'production'   # Exclude tests and dev tools
         
         # Find all Python files using context-based exclusions
-        # Use same scan directories as function_discovery for consistency
+        # Use same scan directories as analyze_functions for consistency
         try:
             from . import config
         except ImportError:
@@ -676,7 +676,7 @@ class ErrorHandlingAnalyzer:
         # Load external config if not already loaded
         config.load_external_config()
         
-        # Get scan directories from config (same as function_discovery)
+        # Get scan directories from config (same as analyze_functions)
         scan_directories = config.get_scan_directories()
         
         # Add optional directories based on flags
@@ -687,7 +687,7 @@ class ErrorHandlingAnalyzer:
         
         python_files = []
         
-        # Scan configured directories (same approach as function_discovery)
+        # Scan configured directories (same approach as analyze_functions)
         for scan_dir in scan_directories:
             dir_path = self.project_root / scan_dir
             if not dir_path.exists():
@@ -743,7 +743,7 @@ class ErrorHandlingAnalyzer:
             'total_functions': 0,
             'functions_with_error_handling': 0,
             'functions_missing_error_handling': 0,
-            'error_handling_coverage': 0.0,
+            'analyze_error_handling': 0.0,
             'files': set()
         })
         
@@ -825,10 +825,10 @@ class ErrorHandlingAnalyzer:
         worst_modules = []
         for module_name, stats in module_stats.items():
             if stats['total_functions'] > 0:
-                stats['error_handling_coverage'] = (stats['functions_with_error_handling'] / stats['total_functions'] * 100)
+                stats['analyze_error_handling'] = (stats['functions_with_error_handling'] / stats['total_functions'] * 100)
                 worst_modules.append({
                     'module': module_name,
-                    'coverage': stats['error_handling_coverage'],
+                    'coverage': stats['analyze_error_handling'],
                     'missing': stats['functions_missing_error_handling'],
                     'total': stats['total_functions']
                 })
@@ -850,7 +850,7 @@ class ErrorHandlingAnalyzer:
             'functions_with_error_handling': functions_with_error_handling,
             'functions_with_decorators': functions_with_decorators,
             'functions_missing_error_handling': functions_missing_error_handling,
-            'error_handling_coverage': (functions_with_error_handling / total_functions * 100) if total_functions > 0 else 0,
+            'analyze_error_handling': (functions_with_error_handling / total_functions * 100) if total_functions > 0 else 0,
             'error_patterns': dict(error_patterns_count),
             'missing_error_handling': missing_error_handling,
             'error_handling_quality': dict(error_handling_quality),
@@ -870,8 +870,8 @@ class ErrorHandlingAnalyzer:
         recommendations = []
         
         # Coverage recommendations
-        if self.results['error_handling_coverage'] < 80:
-            recommendations.append(f"Improve error handling coverage (currently {self.results['error_handling_coverage']:.1f}%)")
+        if self.results['analyze_error_handling'] < 80:
+            recommendations.append(f"Improve error handling coverage (currently {self.results['analyze_error_handling']:.1f}%)")
         
         # Missing error handling recommendations
         if self.results['functions_missing_error_handling'] > 0:
@@ -908,7 +908,7 @@ class ErrorHandlingAnalyzer:
         logger.info(f"Functions with Error Handling: {self.results['functions_with_error_handling']}")
         logger.info(f"Functions with Decorators: {self.results['functions_with_decorators']}")
         logger.info(f"Functions Missing Error Handling: {self.results['functions_missing_error_handling']}")
-        logger.info(f"Error Handling Coverage: {self.results['error_handling_coverage']:.1f}%")
+        logger.info(f"Error Handling Coverage: {self.results['analyze_error_handling']:.1f}%")
         
         logger.info("Error Handling Quality Distribution:")
         for quality, count in self.results['error_handling_quality'].items():

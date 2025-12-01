@@ -1,4 +1,4 @@
-"""Integration-style CLI tests that ensure ai_tools_runner dispatches correctly."""
+"""Integration-style CLI tests that ensure run_development_tools dispatches correctly."""
 
 from unittest.mock import MagicMock
 
@@ -7,7 +7,7 @@ import pytest
 from tests.development_tools.conftest import load_development_tools_module
 
 load_development_tools_module("shared.file_rotation")
-runner = load_development_tools_module("ai_tools_runner")
+runner = load_development_tools_module("run_development_tools")
 
 
 class TestCommandRouting:

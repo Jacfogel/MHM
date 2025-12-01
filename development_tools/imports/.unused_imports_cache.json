@@ -573,7 +573,7 @@
     "issues": []
   },
   "core/user_data_handlers.py": {
-    "mtime": 1764152145.9119446,
+    "mtime": 1764559831.5616274,
     "issues": []
   },
   "core/user_data_manager.py": {
@@ -736,7 +736,7 @@
     ]
   },
   "tests/behavior/test_account_management_real_behavior.py": {
-    "mtime": 1764477517.864673,
+    "mtime": 1764575659.5321794,
     "issues": []
   },
   "tests/behavior/test_ai_chatbot_behavior.py": {
@@ -1039,7 +1039,7 @@
     "issues": []
   },
   "tests/behavior/test_discord_bot_behavior.py": {
-    "mtime": 1764477518.2657833,
+    "mtime": 1764577515.9378216,
     "issues": []
   },
   "tests/behavior/test_discord_checkin_retry_behavior.py": {
@@ -1328,7 +1328,7 @@
     "issues": []
   },
   "tests/behavior/test_scheduler_coverage_expansion.py": {
-    "mtime": 1764477518.5034192,
+    "mtime": 1764574783.0125694,
     "issues": [
       {
         "type": "warning",
@@ -1417,7 +1417,7 @@
     "issues": []
   },
   "tests/behavior/test_user_data_flow_architecture.py": {
-    "mtime": 1764477518.6703463,
+    "mtime": 1764576324.5218337,
     "issues": [
       {
         "type": "warning",
@@ -1504,7 +1504,7 @@
     ]
   },
   "tests/conftest.py": {
-    "mtime": 1764477519.5560594,
+    "mtime": 1764573322.7238386,
     "issues": []
   },
   "tests/core/test_file_auditor.py": {
@@ -1671,7 +1671,7 @@
     ]
   },
   "tests/integration/test_user_creation.py": {
-    "mtime": 1764477518.920452,
+    "mtime": 1764559615.605964,
     "issues": [
       {
         "type": "warning",
@@ -1697,19 +1697,6 @@
         "path": "tests\\integration\\test_user_creation.py",
         "symbol": "unused-import",
         "message": "Unused import tempfile",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "test_user_creation",
-        "obj": "",
-        "line": 16,
-        "column": 0,
-        "endLine": 16,
-        "endColumn": 31,
-        "path": "tests\\integration\\test_user_creation.py",
-        "symbol": "unused-import",
-        "message": "Unused patch imported from unittest.mock",
         "message-id": "W0611"
       },
       {
@@ -1854,7 +1841,7 @@
     "issues": []
   },
   "tests/test_utilities.py": {
-    "mtime": 1764477519.611769,
+    "mtime": 1764500361.9494362,
     "issues": [
       {
         "type": "warning",
@@ -3054,7 +3041,7 @@
     "issues": []
   },
   "tests/ui/test_ui_app_qt_main.py": {
-    "mtime": 1764477519.0872073,
+    "mtime": 1764576324.5218337,
     "issues": [
       {
         "type": "warning",
@@ -4017,7 +4004,7 @@
     "issues": []
   },
   "tests/unit/test_logger_unit.py": {
-    "mtime": 1764477519.3610275,
+    "mtime": 1764575659.5321794,
     "issues": [
       {
         "type": "warning",
@@ -4162,7 +4149,7 @@
     ]
   },
   "tests/unit/test_schedule_management.py": {
-    "mtime": 1764477519.4101074,
+    "mtime": 1764570203.6526768,
     "issues": []
   },
   "tests/unit/test_service_utilities_network.py": {
@@ -4209,7 +4196,7 @@
     "issues": []
   },
   "tests/unit/test_user_data_manager.py": {
-    "mtime": 1764477519.464047,
+    "mtime": 1764577515.936819,
     "issues": [
       {
         "type": "warning",
@@ -5033,7 +5020,7 @@
     ]
   },
   "tests/behavior/test_account_handler_behavior.py": {
-    "mtime": 1764477517.8447633,
+    "mtime": 1764574783.0120654,
     "issues": []
   },
   "tests/behavior/test_webhook_handler_behavior.py": {
@@ -5431,7 +5418,7 @@
     ]
   },
   "tests/unit/test_checkin_view.py": {
-    "mtime": 1764477519.207176,
+    "mtime": 1764499394.1595626,
     "issues": [
       {
         "type": "warning",
@@ -5586,7 +5573,7 @@
     "issues": []
   },
   "tests/development_tools/conftest.py": {
-    "mtime": 1764492057.247804,
+    "mtime": 1764551803.7530773,
     "issues": []
   },
   "tests/development_tools/test_ai_tools_runner.py": {
@@ -5594,7 +5581,7 @@
     "issues": []
   },
   "tests/development_tools/test_config.py": {
-    "mtime": 1764495728.7302663,
+    "mtime": 1764579877.0489836,
     "issues": []
   },
   "tests/development_tools/test_constants.py": {
@@ -5602,7 +5589,7 @@
     "issues": []
   },
   "tests/development_tools/test_documentation_sync_checker.py": {
-    "mtime": 1764477518.7987566,
+    "mtime": 1764549849.065918,
     "issues": [
       {
         "type": "warning",
@@ -5633,7 +5620,7 @@
     ]
   },
   "tests/development_tools/test_error_scenarios.py": {
-    "mtime": 1764496633.1658669,
+    "mtime": 1764551842.3326516,
     "issues": [
       {
         "type": "warning",
@@ -5726,11 +5713,11 @@
     ]
   },
   "tests/development_tools/test_integration_workflows.py": {
-    "mtime": 1764496633.1658669,
+    "mtime": 1764579877.0479772,
     "issues": []
   },
   "tests/development_tools/test_legacy_reference_cleanup.py": {
-    "mtime": 1764477518.8254066,
+    "mtime": 1764549849.065918,
     "issues": [
       {
         "type": "warning",
@@ -5761,7 +5748,7 @@
     ]
   },
   "tests/development_tools/test_regenerate_coverage_metrics.py": {
-    "mtime": 1764477518.8304112,
+    "mtime": 1764551842.3326516,
     "issues": [
       {
         "type": "warning",
@@ -6125,7 +6112,7 @@
     "issues": []
   },
   "development_tools/functions/generate_function_registry.py": {
-    "mtime": 1764488601.4711916,
+    "mtime": 1764569003.530648,
     "issues": []
   },
   "development_tools/imports/__init__.py": {
@@ -6193,7 +6180,7 @@
     "issues": []
   },
   "development_tools/reports/decision_support.py": {
-    "mtime": 1764478551.6717339,
+    "mtime": 1764552333.0934627,
     "issues": [
       {
         "type": "warning",
@@ -6215,24 +6202,24 @@
         "line": 22,
         "column": 4,
         "endLine": 22,
-        "endColumn": 87,
+        "endColumn": 86,
         "path": "development_tools\\reports\\decision_support.py",
         "symbol": "unused-import",
-        "message": "Unused categorize_functions imported from functions.function_discovery",
+        "message": "Unused categorize_functions imported from functions.analyze_functions",
         "message-id": "W0611"
       }
     ]
   },
   "development_tools/reports/quick_status.py": {
-    "mtime": 1764477373.4947205,
+    "mtime": 1764569003.530648,
     "issues": []
   },
   "development_tools/reports/system_signals.py": {
-    "mtime": 1764488333.1810074,
+    "mtime": 1764569003.5316756,
     "issues": []
   },
   "development_tools/shared/__init__.py": {
-    "mtime": 1764477373.7099245,
+    "mtime": 1764551842.3707395,
     "issues": []
   },
   "development_tools/shared/common.py": {
@@ -6240,19 +6227,19 @@
     "issues": []
   },
   "development_tools/shared/constants.py": {
-    "mtime": 1764477884.6587899,
+    "mtime": 1764552369.4153497,
     "issues": []
   },
   "development_tools/shared/operations.py": {
-    "mtime": 1764496633.1719096,
+    "mtime": 1764582005.3270254,
     "issues": []
   },
   "development_tools/shared/standard_exclusions.py": {
-    "mtime": 1764496633.1658669,
+    "mtime": 1764552466.3441415,
     "issues": []
   },
   "development_tools/shared/tool_metadata.py": {
-    "mtime": 1764493406.3791437,
+    "mtime": 1764551842.3239856,
     "issues": []
   },
   "development_tools/tests/__init__.py": {
@@ -6360,7 +6347,7 @@
     "issues": []
   },
   "development_tools/config/config.py": {
-    "mtime": 1764492057.2391508,
+    "mtime": 1764552037.010882,
     "issues": []
   },
   "development_tools/config/config_validator.py": {
@@ -6394,7 +6381,7 @@
     ]
   },
   "development_tools/imports/generate_module_dependencies.py": {
-    "mtime": 1764493406.3791437,
+    "mtime": 1764582005.3391314,
     "issues": []
   },
   "development_tools/shared/file_rotation.py": {
@@ -6402,7 +6389,172 @@
     "issues": []
   },
   "development_tools/shared/tool_guide.py": {
-    "mtime": 1764492057.2447586,
+    "mtime": 1764552866.860794,
+    "issues": []
+  },
+  "development_tools/ai_work/analyze_ai_work.py": {
+    "mtime": 1764552866.860794,
+    "issues": []
+  },
+  "development_tools/config/analyze_config.py": {
+    "mtime": 1764551984.224393,
+    "issues": []
+  },
+  "development_tools/docs/analyze_documentation_sync.py": {
+    "mtime": 1764582005.337108,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.docs.analyze_documentation_sync",
+        "obj": "",
+        "line": 41,
+        "column": 4,
+        "endLine": 46,
+        "endColumn": 5,
+        "path": "development_tools\\docs\\analyze_documentation_sync.py",
+        "symbol": "unused-import",
+        "message": "Unused DEFAULT_DOCS imported from shared.constants",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "development_tools/docs/fix_version_sync.py": {
+    "mtime": 1764582005.3431487,
+    "issues": []
+  },
+  "development_tools/error_handling/analyze_error_handling.py": {
+    "mtime": 1764552333.250724,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.error_handling.analyze_error_handling",
+        "obj": "",
+        "line": 16,
+        "column": 0,
+        "endLine": 16,
+        "endColumn": 9,
+        "path": "development_tools\\error_handling\\analyze_error_handling.py",
+        "symbol": "unused-import",
+        "message": "Unused import os",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "development_tools/functions/analyze_function_registry.py": {
+    "mtime": 1764552161.568481,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.functions.analyze_function_registry",
+        "obj": "",
+        "line": 25,
+        "column": 4,
+        "endLine": 25,
+        "endColumn": 115,
+        "path": "development_tools\\functions\\analyze_function_registry.py",
+        "symbol": "unused-import",
+        "message": "Unused summary_block imported from shared.common",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.functions.analyze_function_registry",
+        "obj": "",
+        "line": 25,
+        "column": 4,
+        "endLine": 25,
+        "endColumn": 115,
+        "path": "development_tools\\functions\\analyze_function_registry.py",
+        "symbol": "unused-import",
+        "message": "Unused write_text imported from shared.common",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "development_tools/functions/analyze_functions.py": {
+    "mtime": 1764551842.3326516,
+    "issues": []
+  },
+  "development_tools/functions/analyze_package_exports.py": {
+    "mtime": 1764552262.2949278,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.functions.analyze_package_exports",
+        "obj": "",
+        "line": 26,
+        "column": 0,
+        "endLine": 26,
+        "endColumn": 44,
+        "path": "development_tools\\functions\\analyze_package_exports.py",
+        "symbol": "unused-import",
+        "message": "Unused Optional imported from typing",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "development_tools/functions/generate_function_docstrings.py": {
+    "mtime": 1764552866.860794,
+    "issues": []
+  },
+  "development_tools/imports/analyze_module_dependencies.py": {
+    "mtime": 1764569144.3407013,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.imports.analyze_module_dependencies",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 39,
+        "path": "development_tools\\imports\\analyze_module_dependencies.py",
+        "symbol": "unused-import",
+        "message": "Unused Optional imported from typing",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "development_tools/imports/analyze_unused_imports.py": {
+    "mtime": 1764552866.8690405,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.imports.analyze_unused_imports",
+        "obj": "",
+        "line": 29,
+        "column": 0,
+        "endLine": 29,
+        "endColumn": 29,
+        "path": "development_tools\\imports\\analyze_unused_imports.py",
+        "symbol": "unused-import",
+        "message": "Unused partial imported from functools",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "development_tools/legacy/fix_legacy_references.py": {
+    "mtime": 1764569003.530648,
+    "issues": []
+  },
+  "development_tools/reports/generate_consolidated_report.py": {
+    "mtime": 1764492057.235062,
+    "issues": []
+  },
+  "development_tools/run_dev_tools.py": {
+    "mtime": 1764553071.3715465,
+    "issues": []
+  },
+  "development_tools/run_development_tools.py": {
+    "mtime": 1764553071.3715465,
+    "issues": []
+  },
+  "development_tools/tests/generate_test_coverage.py": {
+    "mtime": 1764582005.3381307,
+    "issues": []
+  },
+  "tests/development_tools/test_run_development_tools.py": {
+    "mtime": 1764551842.3326516,
     "issues": []
   }
 }

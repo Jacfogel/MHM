@@ -184,7 +184,7 @@ def get_exclusions(tool_type: str = None, context: str = 'development') -> list:
     Get exclusion patterns for a specific tool type and context.
     
     Args:
-        tool_type: Type of tool ('coverage', 'analysis', 'documentation', 'version_sync', 'file_operations')
+        tool_type: Type of tool ('coverage', 'analysis', 'documentation', 'fix_version_sync', 'file_operations')
         context: Context ('production', 'development', 'testing')
     
     Returns:
@@ -241,7 +241,7 @@ def get_documentation_exclusions() -> list:
 
 def get_version_sync_exclusions() -> list:
     """Get exclusions specifically for version synchronization."""
-    return get_exclusions('version_sync', 'development')
+    return get_exclusions('fix_version_sync', 'development')
 
 def get_file_operations_exclusions() -> list:
     """Get exclusions specifically for file operations."""

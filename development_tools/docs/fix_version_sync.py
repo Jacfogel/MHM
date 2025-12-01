@@ -11,6 +11,7 @@ This prevents manual maintenance issues and ensures consistency.
 import os
 import re
 import sys
+import glob
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -34,19 +35,20 @@ from core.logger import get_component_logger
 logger = get_component_logger("development_tools")
 
 # Configuration - File Categories from config
-AI_DOCS = config.VERSION_SYNC['ai_docs']
-GENERATED_AI_DOCS = config.VERSION_SYNC.get('generated_ai_docs', [])
-GENERATED_DOCS = config.VERSION_SYNC.get('generated_docs', [])
-CURSOR_RULES = config.VERSION_SYNC['cursor_rules']
-CURSOR_COMMANDS = config.VERSION_SYNC.get('cursor_commands', [])
-COMMUNICATION_DOCS = config.VERSION_SYNC.get('communication_docs', [])
-CORE_DOCS = config.VERSION_SYNC.get('core_docs', [])
-LOGS_DOCS = config.VERSION_SYNC.get('logs_docs', [])
-SCRIPTS_DOCS = config.VERSION_SYNC.get('scripts_docs', [])
-TESTS_DOCS = config.VERSION_SYNC.get('tests_docs', [])
-CORE_SYSTEM_FILES = config.VERSION_SYNC['core_system_files']
-DOCUMENTATION_PATTERNS = config.VERSION_SYNC['documentation_patterns']
-EXCLUDE_PATTERNS = config.VERSION_SYNC['exclude_patterns']
+VERSION_SYNC_CONFIG = config.get_fix_version_sync_config()
+AI_DOCS = VERSION_SYNC_CONFIG['ai_docs']
+GENERATED_AI_DOCS = VERSION_SYNC_CONFIG.get('generated_ai_docs', [])
+GENERATED_DOCS = VERSION_SYNC_CONFIG.get('generated_docs', [])
+CURSOR_RULES = VERSION_SYNC_CONFIG['cursor_rules']
+CURSOR_COMMANDS = VERSION_SYNC_CONFIG.get('cursor_commands', [])
+COMMUNICATION_DOCS = VERSION_SYNC_CONFIG.get('communication_docs', [])
+CORE_DOCS = VERSION_SYNC_CONFIG.get('core_docs', [])
+LOGS_DOCS = VERSION_SYNC_CONFIG.get('logs_docs', [])
+SCRIPTS_DOCS = VERSION_SYNC_CONFIG.get('scripts_docs', [])
+TESTS_DOCS = VERSION_SYNC_CONFIG.get('tests_docs', [])
+CORE_SYSTEM_FILES = VERSION_SYNC_CONFIG['core_system_files']
+DOCUMENTATION_PATTERNS = VERSION_SYNC_CONFIG['documentation_patterns']
+EXCLUDE_PATTERNS = VERSION_SYNC_CONFIG['exclude_patterns']
 
 def get_current_date():
     """Get current date in consistent format"""
@@ -110,7 +112,7 @@ def should_track_file(file_path, scope="ai_docs"):
         # All documentation files including new categories (exclude generated)
         all_docs = (AI_DOCS + CURSOR_RULES + CURSOR_COMMANDS +
                    COMMUNICATION_DOCS + CORE_DOCS + LOGS_DOCS +
-                   SCRIPTS_DOCS + TESTS_DOCS + config.VERSION_SYNC['docs'])
+                   SCRIPTS_DOCS + TESTS_DOCS + VERSION_SYNC_CONFIG.get('docs', []))
         # Exclude generated files from docs scope
         if file_path_str in GENERATED_AI_DOCS + GENERATED_DOCS:
             return False
@@ -135,9 +137,22 @@ def find_trackable_files(scope="ai_docs"):
 
     if scope == "ai_docs":
         # Use predefined lists
-        for file_path in AI_DOCS + CURSOR_RULES:
+        # Expand glob patterns in CURSOR_RULES (e.g., ".cursor/rules/*.mdc")
+        expanded_files = []
+        for file_path in AI_DOCS:
             if os.path.exists(file_path):
-                trackable_files.append(file_path)
+                expanded_files.append(file_path)
+        for pattern in CURSOR_RULES:
+            # Check if it's a glob pattern
+            if '*' in pattern or '?' in pattern:
+                # Expand glob pattern
+                matches = glob.glob(pattern, recursive=True)
+                expanded_files.extend(matches)
+            else:
+                # Regular file path
+                if os.path.exists(pattern):
+                    expanded_files.append(pattern)
+        trackable_files.extend(expanded_files)
 
     elif scope == "generated":
         # Use predefined generated file lists
@@ -209,7 +224,7 @@ def validate_referenced_paths():
     """Validate that all referenced paths in documentation exist."""
     try:
         # Import the documentation sync checker from parent directory
-        from ..docs.documentation_sync_checker import DocumentationSyncChecker
+        from ..docs.analyze_documentation_sync import DocumentationSyncChecker
 
         checker = DocumentationSyncChecker()
         results = checker.run_checks()
@@ -472,7 +487,7 @@ def trim_ai_changelog_entries(days_to_keep=30, max_entries=15):
                 "# AI Changelog Archive",
                 "",
                 "> **Purpose**: Archived entries from AI_CHANGELOG.md",
-                "> **Generated**: Auto-archived by version_sync.py",
+                "> **Generated**: Auto-archived by fix_version_sync.py",
                 "",
                 "## Archived Entries",
                 ""
@@ -528,7 +543,16 @@ def sync_versions(target_version=None, force_date_update=False, scope="ai_docs")
 
     # Get files to process
     if scope == "ai_docs":
-        files_to_process = AI_DOCS + CURSOR_RULES
+        # Expand glob patterns in CURSOR_RULES
+        files_to_process = list(AI_DOCS)
+        for pattern in CURSOR_RULES:
+            if '*' in pattern or '?' in pattern:
+                # Expand glob pattern
+                matches = glob.glob(pattern, recursive=True)
+                files_to_process.extend(matches)
+            else:
+                # Regular file path
+                files_to_process.append(pattern)
     else:
         files_to_process = find_trackable_files(scope)
 
@@ -602,7 +626,14 @@ def show_current_versions(scope="ai_docs"):
     logger.info(f"Current Versions (scope: {scope}):")
 
     if scope == "ai_docs":
-        files_to_show = AI_DOCS + CURSOR_RULES
+        # Expand glob patterns in CURSOR_RULES
+        files_to_show = list(AI_DOCS)
+        for pattern in CURSOR_RULES:
+            if '*' in pattern or '?' in pattern:
+                matches = glob.glob(pattern, recursive=True)
+                files_to_show.extend(matches)
+            else:
+                files_to_show.append(pattern)
     else:
         files_to_show = find_trackable_files(scope)
 
@@ -634,7 +665,14 @@ def show_modification_status(scope="ai_docs"):
     logger.info(f"File Modification Status (scope: {scope}):")
 
     if scope == "ai_docs":
-        files_to_check = AI_DOCS + CURSOR_RULES
+        # Expand glob patterns in CURSOR_RULES
+        files_to_check = list(AI_DOCS)
+        for pattern in CURSOR_RULES:
+            if '*' in pattern or '?' in pattern:
+                matches = glob.glob(pattern, recursive=True)
+                files_to_check.extend(matches)
+            else:
+                files_to_check.append(pattern)
     else:
         files_to_check = find_trackable_files(scope)
 
@@ -736,30 +774,30 @@ if __name__ == "__main__":
         else:
             # Usage messages go to stdout for user visibility
             print("Usage:")
-            print("  python development_tools/docs/version_sync.py show                    # Show AI doc versions")
-            print("  python development_tools/docs/version_sync.py show docs               # Show all doc versions")
-            print("  python development_tools/docs/version_sync.py show core               # Show core system versions")
-            print("  python development_tools/docs/version_sync.py status                  # Show AI doc status")
-            print("  python development_tools/docs/version_sync.py status docs             # Show all doc status")
-            print("  python development_tools/docs/version_sync.py sync                    # Sync AI docs (smart dates)")
-            print("  python development_tools/docs/version_sync.py sync --scope=docs       # Sync all documentation")
-            print("  python development_tools/docs/version_sync.py sync --scope=core       # Sync core system files")
-            print("  python development_tools/docs/version_sync.py sync 1.1.0              # Sync to specific version")
-            print("  python development_tools/docs/version_sync.py sync --force            # Force update all dates")
-            print("  python development_tools/docs/version_sync.py trim                     # Trim AI_CHANGELOG entries (30 days, max 15)")
-            print("  python development_tools/docs/version_sync.py trim --days=60 --max=20 # Custom trim settings")
-            print("  python development_tools/docs/version_sync.py check                   # Check if changelog exceeds entry limit")
-            print("  python development_tools/docs/version_sync.py check --max=20          # Check with custom limit")
-            print("  python development_tools/docs/version_sync.py validate                 # Validate all referenced paths exist")
-            print("  python development_tools/docs/version_sync.py sync-todo                # Sync TODO.md with AI_CHANGELOG.md")
+            print("  python development_tools/docs/fix_version_sync.py show                    # Show AI doc versions")
+            print("  python development_tools/docs/fix_version_sync.py show docs               # Show all doc versions")
+            print("  python development_tools/docs/fix_version_sync.py show core               # Show core system versions")
+            print("  python development_tools/docs/fix_version_sync.py status                  # Show AI doc status")
+            print("  python development_tools/docs/fix_version_sync.py status docs             # Show all doc status")
+            print("  python development_tools/docs/fix_version_sync.py sync                    # Sync AI docs (smart dates)")
+            print("  python development_tools/docs/fix_version_sync.py sync --scope=docs       # Sync all documentation")
+            print("  python development_tools/docs/fix_version_sync.py sync --scope=core       # Sync core system files")
+            print("  python development_tools/docs/fix_version_sync.py sync 1.1.0              # Sync to specific version")
+            print("  python development_tools/docs/fix_version_sync.py sync --force            # Force update all dates")
+            print("  python development_tools/docs/fix_version_sync.py trim                     # Trim AI_CHANGELOG entries (30 days, max 15)")
+            print("  python development_tools/docs/fix_version_sync.py trim --days=60 --max=20 # Custom trim settings")
+            print("  python development_tools/docs/fix_version_sync.py check                   # Check if changelog exceeds entry limit")
+            print("  python development_tools/docs/fix_version_sync.py check --max=20          # Check with custom limit")
+            print("  python development_tools/docs/fix_version_sync.py validate                 # Validate all referenced paths exist")
+            print("  python development_tools/docs/fix_version_sync.py sync-todo                # Sync TODO.md with AI_CHANGELOG.md")
     else:
         # Default: show current versions
         show_current_versions()
         # Usage messages go to stdout for user visibility
         print()
         print("To synchronize versions, run:")
-        print("   python development_tools/docs/version_sync.py sync")
-        print("   python development_tools/docs/version_sync.py status")
+        print("   python development_tools/docs/fix_version_sync.py sync")
+        print("   python development_tools/docs/fix_version_sync.py status")
         print()
         print("Available scopes:")
         print("   ai_docs     - AI documentation and cursor rules (default)")

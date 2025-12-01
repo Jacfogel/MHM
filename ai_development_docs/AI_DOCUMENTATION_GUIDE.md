@@ -183,7 +183,7 @@ Treat these as synchronized pairs:
 
 - Before editing a paired doc, check if it has a counterpart and open both.  
 - Prefer updating the detailed doc first, then adjust the AI doc to match.  
-- After edits, run `python development_tools/ai_tools_runner.py doc-sync` if available and fix any mismatches.
+- After edits, run `python development_tools/run_development_tools.py doc-sync` if available and fix any mismatches.
 
 
 ## 4. Maintenance Guidelines
@@ -211,7 +211,7 @@ For generator usage and tooling details, see [AI_DEVELOPMENT_TOOLS_GUIDE.md](dev
 For documentation automation (sync checks, reports, analysis), call:
 
 ```bash
-python development_tools/ai_tools_runner.py <command>
+python development_tools/run_development_tools.py <command>
 ```
 
 and rely on [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) for command descriptions and options.

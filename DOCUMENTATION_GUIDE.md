@@ -326,7 +326,7 @@ This standard optimizes for AI collaborators who need unambiguous, verifiable pa
 
 **Path drift checker behavior:**
 
-The path drift checker (`development_tools/documentation_sync_checker.py`) validates that referenced files exist. It:
+The path drift checker (`docs/analyze_documentation_sync.py`) validates that referenced files exist. It:
 - Accepts full paths from project root
 - Accepts relative paths (e.g., `../README.md`) when the file exists relative to the source document
 - Uses enhanced filtering to reduce false positives (standard library modules, common patterns, etc.)

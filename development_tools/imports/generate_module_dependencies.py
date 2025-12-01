@@ -19,17 +19,22 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 # Handle both relative and absolute imports
-try:
-    from . import config
-    from ..shared.common import ensure_ascii
-except ImportError:
-    # Running directly, use absolute imports
-    import sys
-    from pathlib import Path
-    # Add project root to path
+# Check if we're running as part of a package to avoid __package__ != __spec__.parent warnings
+import sys
+from pathlib import Path
+
+# Add project root to path if running as script
+if __name__ == '__main__':
     project_root = Path(__file__).parent.parent.parent
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
+
+if __name__ != '__main__' and __package__ and '.' in __package__:
+    # Running as part of a package, use relative imports
+    from . import config
+    from ..shared.common import ensure_ascii
+else:
+    # Running directly or not as a package, use absolute imports
     from development_tools import config
     from development_tools.shared.common import ensure_ascii
 from development_tools.shared.constants import (
@@ -153,9 +158,10 @@ def format_import_details(import_info: Dict) -> str:
 def scan_all_python_files(local_prefixes: Optional[Tuple[str, ...]] = None) -> Dict[str, Dict]:
     """Scan all Python files in the project and extract import information."""
     # Handle both relative and absolute imports
-    try:
+    # Check if we're running as part of a package to avoid __package__ != __spec__.parent warnings
+    if __name__ != '__main__' and __package__ and '.' in __package__:
         from . import config
-    except ImportError:
+    else:
         # Running directly, use absolute imports
         from development_tools import config
     

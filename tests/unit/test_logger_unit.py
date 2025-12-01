@@ -515,17 +515,30 @@ class TestEnsureLogsDirectory:
     def test_ensure_logs_directory_creates_directories(self, test_data_dir):
         """Test: ensure_logs_directory creates directories"""
         from tests.test_utilities import TestLogPathMocks
+        import shutil
         
         log_dir = Path(test_data_dir) / "logs"
         with patch('core.logger._get_log_paths_for_environment') as mock_paths:
-            mock_paths.return_value = TestLogPathMocks.create_complete_log_paths_mock(str(log_dir))
+            mock_paths_dict = TestLogPathMocks.create_complete_log_paths_mock(str(log_dir))
+            mock_paths.return_value = mock_paths_dict
+            
+            # Clean up any existing directories to ensure fresh test
+            backup_dir = mock_paths_dict['backup_dir']
+            archive_dir = mock_paths_dict['archive_dir']
+            base_dir = mock_paths_dict['base_dir']
+            if os.path.exists(backup_dir):
+                shutil.rmtree(backup_dir, ignore_errors=True)
+            if os.path.exists(archive_dir):
+                shutil.rmtree(archive_dir, ignore_errors=True)
+            if os.path.exists(base_dir):
+                shutil.rmtree(base_dir, ignore_errors=True)
             
             ensure_logs_directory()
             
-            # Verify directories were created
-            assert os.path.exists(mock_paths.return_value['base_dir']), "Should create base directory"
-            assert os.path.exists(mock_paths.return_value['backup_dir']), "Should create backup directory"
-            assert os.path.exists(mock_paths.return_value['archive_dir']), "Should create archive directory"
+            # Verify directories were created (use the dict directly to avoid any mock issues)
+            assert os.path.exists(base_dir), f"Should create base directory at {base_dir}"
+            assert os.path.exists(backup_dir), f"Should create backup directory at {backup_dir}"
+            assert os.path.exists(archive_dir), f"Should create archive directory at {archive_dir}"
 
 
 class TestGetComponentLogger:

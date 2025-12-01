@@ -36,6 +36,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-01 - Phase 7.1 Completion: Second Batch Renames and Bug Fixes **COMPLETED**
+- Completed Phase 7.1 M7.1: renamed 7 Python files and 2 JSON files (ai_tools_runner → run_development_tools, function_discovery → analyze_functions, etc.), created `run_dev_tools.py` shorthand alias, updated all references throughout codebase.
+- Fixed ModuleNotFoundError in `generate_module_dependencies.py`, duplicate logging issues (directory trees, pytest commands), and `.cursor/rules/*.mdc` glob pattern expansion in version sync. Added TODO task for function complexity variance investigation.
+
 ### 2025-11-30 - Phase 7.2: Development Tools Directory Reorganization **COMPLETED**
 - Completed milestone M7.2 - Reorganized `development_tools/` into domain-based structure (functions/, imports/, error_handling/, tests/, docs/, config/, legacy/, ai_work/, reports/, shared/).
 - Fixed path calculations in 6+ files, updated all imports/references, fixed test failures, and improved coverage metrics accuracy (67.6%).

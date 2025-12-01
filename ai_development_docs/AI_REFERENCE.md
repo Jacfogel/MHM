@@ -8,7 +8,7 @@
 ## 1. Troubleshooting Patterns
 
 ### 1.1. Documentation appears incomplete
-1. Run `python development_tools/ai_tools_runner.py audit` to refresh metrics.
+1. Run `python development_tools/run_development_tools.py audit` to refresh metrics.
 2. Review [AI_STATUS.md](development_tools/AI_STATUS.md) and [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md) to highlight specific gaps.
 3. Draft a remediation plan and confirm next steps with the user before editing docs.
 

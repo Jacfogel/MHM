@@ -74,10 +74,14 @@ class TestScheduleManagement:
             assert periods["morning"]["end_time"] == "11:00"
 
             set_schedule_period_active(user_id, category, "morning", False)
+            # Clear cache after setting active to ensure we read fresh data
+            clear_schedule_periods_cache(user_id, category)
             periods = get_schedule_time_periods(user_id, category)
             assert periods["morning"]["active"] is False
 
             delete_schedule_period(category, "morning")
+            # Clear cache after delete to ensure we read fresh data
+            clear_schedule_periods_cache(user_id, category)
             periods = get_schedule_time_periods(user_id, category)
             assert "morning" not in periods
             assert "ALL" in periods

@@ -1,5 +1,5 @@
 """
-Tests for development_tools ai_tools_runner CLI.
+Tests for development_tools run_development_tools CLI.
 
 Smoke tests that verify the CLI runner works correctly with common commands.
 """
@@ -12,7 +12,7 @@ from pathlib import Path
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent
-RUNNER_SCRIPT = PROJECT_ROOT / "development_tools" / "ai_tools_runner.py"
+RUNNER_SCRIPT = PROJECT_ROOT / "development_tools" / "run_development_tools.py"
 
 
 class TestCLIRunnerSmokeTests:
@@ -102,5 +102,5 @@ class TestCLIRunnerSmokeTests:
     def test_runner_script_is_executable(self):
         """Test that the runner script can be executed."""
         # Just verify it's a Python file
-        assert RUNNER_SCRIPT.suffix == '.py' or RUNNER_SCRIPT.name == 'ai_tools_runner.py'
+        assert RUNNER_SCRIPT.suffix == '.py' or RUNNER_SCRIPT.name == 'run_development_tools.py'
 

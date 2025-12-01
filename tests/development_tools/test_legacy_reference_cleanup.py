@@ -1,5 +1,5 @@
 """
-Tests for legacy_reference_cleanup.py.
+Tests for fix_legacy_references.py.
 
 Tests scanning, verification, and safe cleanup operations.
 """
@@ -12,7 +12,7 @@ from pathlib import Path
 from tests.development_tools.conftest import load_development_tools_module
 
 # Load the module using the helper
-cleanup_module = load_development_tools_module("legacy_reference_cleanup")
+cleanup_module = load_development_tools_module("fix_legacy_references")
 
 LegacyReferenceCleanup = cleanup_module.LegacyReferenceCleanup
 

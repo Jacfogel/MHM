@@ -21,7 +21,7 @@ def load_development_tools_module(module_name: str):
     relative imports correctly.
     
     Args:
-        module_name: Name like 'documentation_sync_checker' (without .py)
+        module_name: Name like 'analyze_documentation_sync' (without .py)
     
     Returns:
         The loaded module

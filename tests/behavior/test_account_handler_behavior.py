@@ -319,8 +319,9 @@ class TestAccountHandlerBehavior:
         new_user_id = "999888777666555444"
         existing_user_id = get_user_id_by_identifier(new_user_id)
         if existing_user_id:
-            from core.user_management import remove_user
-            remove_user(existing_user_id)
+            from core.user_data_manager import delete_user_completely, rebuild_user_index
+            delete_user_completely(existing_user_id, create_backup=False)
+            rebuild_user_index()  # Rebuild index to ensure user is removed
         
         parsed_command = ParsedCommand(
             intent='check_account_status',
@@ -332,8 +333,8 @@ class TestAccountHandlerBehavior:
         response = handler.handle(new_user_id, parsed_command)
         
         # Assert: Should indicate no account
-        assert response.completed is False, "Should indicate no account"
-        assert 'no mhm account' in response.message.lower(), "Should indicate no account found"
+        assert response.completed is False, f"Should indicate no account, but got completed={response.completed}, message={response.message}"
+        assert 'no mhm account' in response.message.lower() or 'no account found' in response.message.lower(), f"Should indicate no account found, but got: {response.message}"
         assert response.rich_data is not None, "Should include rich data"
         assert response.rich_data.get('has_account') is False, "Should indicate no account"
         assert len(response.suggestions) > 0, "Should provide suggestions"

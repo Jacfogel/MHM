@@ -39,7 +39,7 @@ logger = get_component_logger("development_tools")
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="AI development tools command-line interface.",
+        description="Development tools command-line interface. Shorthand: use run_dev_tools.py instead of run_development_tools.py",
         add_help=True,
     )
     parser.add_argument('command', nargs='?', help='Command to execute')
@@ -76,8 +76,10 @@ def _print_available_commands() -> None:
             print("    WARNING: Experimental commands may change or fail; run only with approval.")
         print()
     
-    print("Use `python development_tools/ai_tools_runner.py <command> --help` for command-specific options.")
-    print("Use `python development_tools/ai_tools_runner.py help` for comprehensive help.")
+    print("Use `python development_tools/run_development_tools.py <command> --help` for command-specific options.")
+    print("Use `python development_tools/run_development_tools.py help` for comprehensive help.")
+    print()
+    print("Note: You can use the shorter alias `run_dev_tools.py` instead of `run_development_tools.py`")
 
 
 
