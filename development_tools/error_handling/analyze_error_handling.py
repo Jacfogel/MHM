@@ -28,7 +28,7 @@ if str(project_root) not in sys.path:
 # Handle both relative and absolute imports
 try:
     from ..shared.standard_exclusions import should_exclude_file
-    from . import config
+    from .. import config  # Go up one level from error_handling/ to development_tools/
 except ImportError:
     from development_tools.shared.standard_exclusions import should_exclude_file
     from development_tools import config
@@ -669,7 +669,7 @@ class ErrorHandlingAnalyzer:
         # Find all Python files using context-based exclusions
         # Use same scan directories as analyze_functions for consistency
         try:
-            from . import config
+            from .. import config  # Go up one level from error_handling/ to development_tools/
         except ImportError:
             from development_tools import config
         
@@ -866,106 +866,16 @@ class ErrorHandlingAnalyzer:
         })
 
     def _generate_recommendations(self):
-        """Generate recommendations for improving error handling."""
-        recommendations = []
+        """Generate recommendations for improving error handling (delegates to generate_error_handling_recommendations)."""
+        # Import recommendation generator
+        try:
+            from .generate_error_handling_recommendations import generate_recommendations
+        except ImportError:
+            from development_tools.error_handling.generate_error_handling_recommendations import generate_recommendations
         
-        # Coverage recommendations
-        if self.results['analyze_error_handling'] < 80:
-            recommendations.append(f"Improve error handling coverage (currently {self.results['analyze_error_handling']:.1f}%)")
-        
-        # Missing error handling recommendations
-        if self.results['functions_missing_error_handling'] > 0:
-            recommendations.append(f"Add error handling to {self.results['functions_missing_error_handling']} functions")
-        
-        # Quality recommendations
-        if self.results['error_handling_quality'].get('none', 0) > 0:
-            recommendations.append("Replace basic try-except with @handle_errors decorator where appropriate")
-        
-        # Pattern recommendations (use first decorator from config)
-        error_config = config.get_error_handling_config()
-        decorator_names = error_config.get('decorator_names', ['@handle_errors'])
-        primary_decorator = decorator_names[0] if decorator_names else '@handle_errors'
-        decorator_key = primary_decorator.replace('@', '').replace('_', '_') + '_decorator'
-        
-        if self.results['error_patterns'].get('try_except', 0) > self.results['error_patterns'].get(decorator_key, 0):
-            recommendations.append(f"Consider using {primary_decorator} decorator instead of manual try-except blocks")
-        
-        # Specific missing error handling
-        critical_missing = [f for f in self.results['missing_error_handling'] if f['quality'] == 'none']
-        if critical_missing:
-            recommendations.append(f"Priority: Add error handling to {len(critical_missing)} critical functions")
-        
+        # Generate recommendations using the dedicated tool
+        recommendations = generate_recommendations(self.results)
         self.results['recommendations'] = recommendations
-
-    def print_summary(self):
-        """Print a summary of error handling analysis."""
-        logger.info("=" * 80)
-        logger.info("ERROR HANDLING COVERAGE ANALYSIS")
-        logger.info("=" * 80)
-        
-        logger.info(f"Total Functions: {self.results['total_functions']}")
-        logger.info(f"Functions with Try-Except: {self.results['functions_with_try_except']}")
-        logger.info(f"Functions with Error Handling: {self.results['functions_with_error_handling']}")
-        logger.info(f"Functions with Decorators: {self.results['functions_with_decorators']}")
-        logger.info(f"Functions Missing Error Handling: {self.results['functions_missing_error_handling']}")
-        logger.info(f"Error Handling Coverage: {self.results['analyze_error_handling']:.1f}%")
-        
-        logger.info("Error Handling Quality Distribution:")
-        for quality, count in self.results['error_handling_quality'].items():
-            logger.info(f"  {quality.title()}: {count}")
-        
-        logger.info("Error Patterns Found:")
-        for pattern, count in self.results['error_patterns'].items():
-            logger.info(f"  {pattern}: {count}")
-        
-        # Phase 1: Candidates for decorator replacement
-        logger.info("")
-        logger.info("=" * 80)
-        logger.info("PHASE 1: CANDIDATES FOR DECORATOR REPLACEMENT")
-        logger.info("=" * 80)
-        logger.info(f"Total Phase 1 Candidates: {self.results['phase1_total']}")
-        logger.info("By Priority:")
-        for priority, count in self.results['phase1_by_priority'].items():
-            logger.info(f"  {priority.title()}: {count}")
-        
-        if self.results['phase1_candidates']:
-            logger.info("High-Priority Candidates (first 10):")
-            high_priority = [c for c in self.results['phase1_candidates'] if c['priority'] == 'high']
-            for candidate in high_priority[:10]:
-                logger.info(f"  {candidate['file_path']}:{candidate['function_name']} (line {candidate['line_start']}) - {candidate['operation_type']}")
-            if len(high_priority) > 10:
-                logger.info(f"  ... and {len(high_priority) - 10} more high-priority candidates")
-        
-        # Phase 2: Generic exception raises
-        logger.info("")
-        logger.info("=" * 80)
-        logger.info("PHASE 2: GENERIC EXCEPTION RAISES")
-        logger.info("=" * 80)
-        logger.info(f"Total Generic Exception Raises: {self.results['phase2_total']}")
-        logger.info("By Exception Type:")
-        for exc_type, count in self.results['phase2_by_type'].items():
-            logger.info(f"  {exc_type}: {count}")
-        
-        if self.results['phase2_exceptions']:
-            logger.info("Generic Exception Raises (first 10):")
-            for exc in self.results['phase2_exceptions'][:10]:
-                logger.info(f"  {exc['file_path']}:{exc['line_number']} - {exc['exception_type']} → {exc['suggested_replacement']}")
-                if exc['function_name']:
-                    logger.info(f"    Function: {exc['function_name']} (line {exc['function_line']})")
-            if len(self.results['phase2_exceptions']) > 10:
-                logger.info(f"  ... and {len(self.results['phase2_exceptions']) - 10} more")
-        
-        if self.results['missing_error_handling']:
-            logger.warning(f"Functions Missing Error Handling ({len(self.results['missing_error_handling'])}):")
-            for func in self.results['missing_error_handling'][:10]:  # Show first 10
-                logger.warning(f"  {func['file']}:{func['function']} (line {func['line']})")
-            if len(self.results['missing_error_handling']) > 10:
-                logger.warning(f"  ... and {len(self.results['missing_error_handling']) - 10} more")
-        
-        if self.results['recommendations']:
-            logger.info("Recommendations:")
-            for i, rec in enumerate(self.results['recommendations'], 1):
-                logger.info(f"  {i}. {rec}")
 
 def main():
     """Main function for error handling coverage analysis."""
@@ -993,6 +903,14 @@ def main():
         include_dev_tools=args.include_dev_tools
     )
     
+    # Generate reports using dedicated report generator
+    try:
+        from .generate_error_handling_report import ErrorHandlingReportGenerator
+    except ImportError:
+        from development_tools.error_handling.generate_error_handling_report import ErrorHandlingReportGenerator
+    
+    report_generator = ErrorHandlingReportGenerator(results)
+    
     if args.json:
         # Determine output file path
         if args.output:
@@ -1003,12 +921,11 @@ def main():
             tools_dir.mkdir(exist_ok=True)
             output_path = tools_dir / 'error_handling_details.json'
         
-        # Write JSON to file
-        with open(output_path, 'w', encoding='utf-8') as f:
-            json.dump(results, f, indent=2)
-        logger.info(f"Error handling coverage report written to {output_path}")
+        # Save JSON report
+        report_generator.save_json_report(output_path)
     else:
-        analyzer.print_summary()
+        # Print summary
+        report_generator.print_summary()
     
     return 0
 

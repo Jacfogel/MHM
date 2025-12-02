@@ -3,7 +3,7 @@ alwaysApply: true
 description: "Completeness, consistency, and collaboration expectations"
 globs: ["**/*"]
 priority: 4
-lastUpdated: "2025-12-01"
+lastUpdated: "2025-12-02"
 file: ".cursor/rules/quality-standards.mdc"
 file: ".cursor/rules/quality-standards.mdc"
 ---

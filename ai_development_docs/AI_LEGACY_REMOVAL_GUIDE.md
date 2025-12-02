@@ -63,7 +63,7 @@ Use the legacy cleanup tool as a structured workflow rather than ad hoc search.
 
    - Scans Python and Markdown files.
    - Categorizes references (active code, tests, documentation, config, archive).
-   - For behavior details, see the `LegacyReferenceCleanup.find_all_references` / `scan_for_legacy_references` flow in `legacy/fix_legacy_references.py`.
+   - For behavior details, see the `LegacyReferenceAnalyzer.find_all_references` / `scan_for_legacy_references` flow in `legacy/analyze_legacy_references.py` and `legacy/fix_legacy_references.py`.
 
 2. **Update** - fix all high-impact references
 

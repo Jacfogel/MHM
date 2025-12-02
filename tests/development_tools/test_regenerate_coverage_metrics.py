@@ -13,10 +13,15 @@ from unittest.mock import Mock, patch, MagicMock
 # Import helper from conftest
 from tests.development_tools.conftest import load_development_tools_module
 
-# Load the module using the helper
+# Load the modules using the helper
+# During Batch 3 decomposition, methods were moved to separate classes
 coverage_module = load_development_tools_module("generate_test_coverage")
+analyze_coverage_module = load_development_tools_module("analyze_test_coverage")
+report_generator_module = load_development_tools_module("generate_test_coverage_reports")
 
 CoverageMetricsRegenerator = coverage_module.CoverageMetricsRegenerator
+TestCoverageAnalyzer = analyze_coverage_module.TestCoverageAnalyzer
+TestCoverageReportGenerator = report_generator_module.TestCoverageReportGenerator
 
 
 class TestCoverageParsing:
@@ -27,6 +32,9 @@ class TestCoverageParsing:
         """Test that coverage output is parsed correctly."""
         regenerator = CoverageMetricsRegenerator(str(demo_project_root))
         
+        # Ensure analyzer is initialized (should always be available after Batch 3 decomposition)
+        assert regenerator.analyzer is not None, "TestCoverageAnalyzer should be initialized"
+        
         # Sample coverage output
         sample_output = """Name                      Stmts   Miss  Cover
 ----------------------------------------------------
@@ -36,7 +44,8 @@ demo_module2.py              15      3    80%
 TOTAL                        35      8    77%
 """
         
-        coverage_data = regenerator.parse_coverage_output(sample_output)
+        # parse_coverage_output moved to TestCoverageAnalyzer during Batch 3 decomposition
+        coverage_data = regenerator.analyzer.parse_coverage_output(sample_output)
         
         # Should extract module data
         assert len(coverage_data) > 0
@@ -48,10 +57,14 @@ TOTAL                        35      8    77%
         """Test that overall coverage percentage is extracted."""
         regenerator = CoverageMetricsRegenerator(str(demo_project_root))
         
+        # Ensure analyzer is initialized (should always be available after Batch 3 decomposition)
+        assert regenerator.analyzer is not None, "TestCoverageAnalyzer should be initialized"
+        
         sample_output = """TOTAL                        100     20    80%
 """
         
-        overall = regenerator.extract_overall_coverage(sample_output)
+        # extract_overall_coverage moved to TestCoverageAnalyzer during Batch 3 decomposition
+        overall = regenerator.analyzer.extract_overall_coverage(sample_output)
         
         # Should extract overall coverage
         assert 'overall_coverage' in overall
@@ -68,6 +81,9 @@ class TestCoverageCategorization:
         """Test that modules are categorized correctly."""
         regenerator = CoverageMetricsRegenerator(str(demo_project_root))
         
+        # Ensure analyzer is initialized (should always be available after Batch 3 decomposition)
+        assert regenerator.analyzer is not None, "TestCoverageAnalyzer should be initialized"
+        
         coverage_data = {
             'excellent_module.py': {'coverage': 85},
             'good_module.py': {'coverage': 70},
@@ -76,7 +92,8 @@ class TestCoverageCategorization:
             'critical_module.py': {'coverage': 10},
         }
         
-        categories = regenerator.categorize_modules(coverage_data)
+        # categorize_modules moved to TestCoverageAnalyzer during Batch 3 decomposition
+        categories = regenerator.analyzer.categorize_modules(coverage_data)
         
         # Should categorize correctly
         assert 'excellent' in categories
@@ -100,6 +117,9 @@ class TestCoverageSummary:
         """Test that summary has expected structure."""
         regenerator = CoverageMetricsRegenerator(str(demo_project_root))
         
+        # Ensure report_generator is initialized (should always be available after Batch 3 decomposition)
+        assert regenerator.report_generator is not None, "TestCoverageReportGenerator should be initialized"
+        
         coverage_data = {
             'demo_module.py': {
                 'statements': 20,
@@ -116,7 +136,8 @@ class TestCoverageSummary:
             'overall_coverage': 75.0
         }
         
-        summary = regenerator.generate_coverage_summary(coverage_data, overall_data)
+        # generate_coverage_summary moved to TestCoverageReportGenerator during Batch 3 decomposition
+        summary = regenerator.report_generator.generate_coverage_summary(coverage_data, overall_data)
         
         # Should have expected content
         assert 'Overall Coverage' in summary
@@ -147,7 +168,8 @@ class TestCoverageAnalysis:
             mock_run.return_value = mock_result
             
             # Mock file operations
-            with patch.object(regenerator, 'finalize_coverage_outputs'):
+            # finalize_coverage_outputs moved to TestCoverageReportGenerator during Batch 3 decomposition
+            with patch.object(regenerator.report_generator, 'finalize_coverage_outputs'):
                 results = regenerator.run_coverage_analysis()
                 
                 # Should return results structure
@@ -187,6 +209,9 @@ directory = htmlcov
         """Test that coverage shard files are cleaned up."""
         regenerator = CoverageMetricsRegenerator(str(demo_project_root))
         
+        # Ensure report_generator is initialized (should always be available after Batch 3 decomposition)
+        assert regenerator.report_generator is not None, "TestCoverageReportGenerator should be initialized"
+        
         # Create some mock shard files
         shard1 = demo_project_root / ".coverage.1"
         shard2 = demo_project_root / ".coverage.2"
@@ -194,8 +219,8 @@ directory = htmlcov
         shard2.write_text("test", encoding='utf-8')
         
         try:
-            # Run cleanup
-            regenerator._cleanup_coverage_shards()
+            # _cleanup_coverage_shards moved to TestCoverageReportGenerator during Batch 3 decomposition
+            regenerator.report_generator._cleanup_coverage_shards()
             
             # Shards should be removed
             assert not shard1.exists()
@@ -216,6 +241,9 @@ class TestCoverageJSON:
         """Test loading coverage data from JSON."""
         regenerator = CoverageMetricsRegenerator(str(demo_project_root))
         
+        # Ensure analyzer is initialized (should always be available after Batch 3 decomposition)
+        assert regenerator.analyzer is not None, "TestCoverageAnalyzer should be initialized"
+        
         # Create a sample coverage JSON
         json_file = temp_output_dir / "coverage.json"
         json_data = {
@@ -233,7 +261,8 @@ class TestCoverageJSON:
         }
         json_file.write_text(json.dumps(json_data), encoding='utf-8')
         
-        coverage_data = regenerator._load_coverage_json(json_file)
+        # _load_coverage_json moved to TestCoverageAnalyzer during Batch 3 decomposition (now load_coverage_json)
+        coverage_data = regenerator.analyzer.load_coverage_json(json_file)
         
         # Should load coverage data
         assert len(coverage_data) > 0
@@ -251,6 +280,9 @@ class TestCoveragePlanUpdate:
         regenerator = CoverageMetricsRegenerator(str(demo_project_root))
         regenerator.coverage_plan_file = temp_output_dir / "TEST_COVERAGE_EXPANSION_PLAN.md"
         
+        # Ensure report_generator is initialized (should always be available after Batch 3 decomposition)
+        assert regenerator.report_generator is not None, "TestCoverageReportGenerator should be initialized"
+        
         coverage_data = {
             'demo_module.py': {
                 'statements': 20,
@@ -267,7 +299,8 @@ class TestCoveragePlanUpdate:
             'overall_coverage': 75.0
         }
         
-        summary = regenerator.generate_coverage_summary(coverage_data, overall_data)
+        # generate_coverage_summary moved to TestCoverageReportGenerator during Batch 3 decomposition
+        summary = regenerator.report_generator.generate_coverage_summary(coverage_data, overall_data)
         success = regenerator.update_coverage_plan(summary)
         
         # Should update the file

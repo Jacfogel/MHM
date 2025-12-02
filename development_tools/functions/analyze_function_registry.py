@@ -21,7 +21,7 @@ if str(project_root) not in sys.path:
 
 # Handle both relative and absolute imports
 try:
-    from . import config
+    from .. import config  # Go up one level from functions/ to development_tools/
     from ..shared.common import ProjectPaths, ensure_ascii, iter_python_sources, run_cli, summary_block, write_text
 except ImportError:
     import sys

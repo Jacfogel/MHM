@@ -57,6 +57,14 @@ warnings.filterwarnings("ignore", message=".*audioop.*is deprecated.*", category
 warnings.filterwarnings("ignore", message=".*parameter 'timeout' of type 'float' is deprecated.*", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=pytest.PytestUnhandledThreadExceptionWarning)
 warnings.filterwarnings("ignore", category=pytest.PytestUnraisableExceptionWarning)
+# Suppress PytestCollectionWarning for development tools implementation classes
+# These classes (TestCoverageAnalyzer, TestCoverageReportGenerator) are implementation classes, not test classes
+# They start with "Test" which makes pytest try to collect them, but they have __init__ constructors
+# Apply filters early to catch warnings during collection
+warnings.filterwarnings("ignore", message=".*cannot collect test class.*TestCoverage.*", category=pytest.PytestCollectionWarning)
+warnings.filterwarnings("ignore", message=".*cannot collect test class.*because it has a __init__ constructor.*", category=pytest.PytestCollectionWarning)
+# General filter for all PytestCollectionWarning from development_tools modules
+warnings.filterwarnings("ignore", category=pytest.PytestCollectionWarning, module="development_tools.tests.*")
 
 # Additional __package__ warning filters (redundant but explicit for clarity)
 # The main filter is above, right after importing warnings
@@ -2739,7 +2747,15 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.unit)
 
 def pytest_configure(config):
-    """Configure pytest for MHM testing."""
+    """Configure pytest for MHM testing and suppress collection warnings for development tools implementation classes."""
+    # Suppress PytestCollectionWarning for development tools implementation classes
+    # These warnings are emitted during collection, so we need to filter them in the hook
+    # Note: pytest is already imported at module level, don't import it again here
+    import warnings
+    warnings.filterwarnings("ignore", message=".*cannot collect test class.*TestCoverage.*", category=pytest.PytestCollectionWarning)
+    warnings.filterwarnings("ignore", message=".*cannot collect test class.*because it has a __init__ constructor.*", category=pytest.PytestCollectionWarning)
+    warnings.filterwarnings("ignore", category=pytest.PytestCollectionWarning, module="development_tools.tests.*")
+    
     # Only log from main process to avoid duplicate messages in parallel mode
     if not os.environ.get('PYTEST_XDIST_WORKER'):
         test_logger.debug("Configuring pytest for MHM testing")
@@ -2747,7 +2763,6 @@ def pytest_configure(config):
     # Configure pytest tmpdir to use tests/data/tmp instead of creating pytest-of-* directories
     # This ensures all temporary files stay within tests/data
     try:
-        import pytest
         # Set the base temporary directory for pytest's tmpdir fixture
         if hasattr(config, 'option') and hasattr(config.option, 'tmp_path_factory'):
             config.option.tmp_path_factory = str(tests_data_dir / 'tmp')

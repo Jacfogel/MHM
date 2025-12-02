@@ -23,20 +23,14 @@ if str(project_root) not in sys.path:
 # Check if we're running as part of a package to avoid __package__ != __spec__.parent warnings
 if __name__ != '__main__' and __package__ and '.' in __package__:
     # Running as part of a package, use relative imports
-    from . import config
+    from .. import config
     from ..shared.standard_exclusions import should_exclude_file
-    from ..shared.constants import (
-        is_local_module as _is_local_module,
-        is_standard_library_module as _is_stdlib_module,
-    )
+    from .analyze_module_imports import ModuleImportAnalyzer
 else:
     # Running directly or not as a package, use absolute imports
     from development_tools import config
     from development_tools.shared.standard_exclusions import should_exclude_file
-    from development_tools.shared.constants import (
-        is_local_module as _is_local_module,
-        is_standard_library_module as _is_stdlib_module,
-    )
+    from development_tools.imports.analyze_module_imports import ModuleImportAnalyzer
 
 from core.logger import get_component_logger
 
@@ -50,95 +44,47 @@ DEPENDENCY_DOC_PATH = AUDIT_DEPS_CONFIG.get('dependency_doc_path', 'development_
 logger = get_component_logger("development_tools")
 
 def extract_imports_from_file(file_path: str) -> Dict[str, List[str]]:
-    """Extract all imports from a Python file."""
-    imports = {
-        'standard_library': [],
-        'third_party': [],
-        'local': []
+    """Extract all imports from a Python file.
+    
+    Returns simplified format (Dict[str, List[str]]) for compatibility with audit tool.
+    Uses ModuleImportAnalyzer from analyze_module_imports.py internally.
+    """
+    # Use the analyzer to get detailed imports, then convert to simple format
+    analyzer = ModuleImportAnalyzer()
+    detailed_imports = analyzer.extract_imports_from_file(file_path)
+    
+    # Convert from Dict[str, List[Dict]] to Dict[str, List[str]]
+    simple_imports = {
+        'standard_library': [imp['module'] for imp in detailed_imports.get('standard_library', [])],
+        'third_party': [imp['module'] for imp in detailed_imports.get('third_party', [])],
+        'local': [imp['module'] for imp in detailed_imports.get('local', [])]
     }
     
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        tree = ast.parse(content)
-        
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                for alias in node.names:
-                    module_name = alias.name
-                    if is_standard_library(module_name):
-                        imports['standard_library'].append(module_name)
-                    elif is_local_import(module_name):
-                        imports['local'].append(module_name)
-                    else:
-                        imports['third_party'].append(module_name)
-                        
-            elif isinstance(node, ast.ImportFrom):
-                module_name = node.module
-                if module_name:
-                    if is_standard_library(module_name):
-                        imports['standard_library'].append(module_name)
-                    elif is_local_import(module_name):
-                        imports['local'].append(module_name)
-                    else:
-                        imports['third_party'].append(module_name)
-                
-    except Exception as e:
-        logger.error(f"Error parsing {file_path}: {e}")
-    
-    return imports
-
-def is_standard_library(module_name: str) -> bool:
-    """Check if a module is part of the Python standard library."""
-    return _is_stdlib_module(module_name)
-
-def is_local_import(module_name: str) -> bool:
-    """Check if a module is a local import (part of our project)."""
-    return _is_local_module(module_name)
+    return simple_imports
 
 def scan_all_python_files() -> Dict[str, Dict]:
-    """Scan all Python files in the project and extract import information."""
-    # config is already imported at module level
-    project_root = config.get_project_root()
+    """Scan all Python files in the project and extract import information.
+    
+    Uses ModuleImportAnalyzer from analyze_module_imports.py internally.
+    """
+    # Use the analyzer to get detailed imports
+    analyzer = ModuleImportAnalyzer()
+    detailed_results = analyzer.scan_all_python_files()
+    
+    # Convert to the format expected by this audit tool
+    # Convert from Dict[str, List[Dict]] to Dict[str, List[str]] for imports
     results = {}
-    
-    # Use all directories and let context-based exclusions handle filtering
-    scan_dirs = config.get_scan_directories() + ['tests', 'development_tools']
-    
-    for scan_dir in scan_dirs:
-        dir_path = project_root / scan_dir
-        if not dir_path.exists():
-            continue
-            
-        for py_file in dir_path.rglob('*.py'):
-            # Use context-based exclusions (production context by default)
-            if should_exclude_file(str(py_file), 'analysis', 'production'):
-                continue
-                
-            relative_path = py_file.relative_to(project_root)
-            file_key = str(relative_path).replace('\\', '/')
-            
-            imports = extract_imports_from_file(str(py_file))
-            
-            results[file_key] = {
-                'imports': imports,
-                'total_imports': sum(len(imp_list) for imp_list in imports.values())
-            }
-    
-    # Also scan root directory for .py files
-    for py_file in project_root.glob('*.py'):
-        # Use context-based exclusions instead of hardcoded exclusions
-        if should_exclude_file(str(py_file), 'analysis', 'production'):
-            continue
-            file_key = py_file.name
-            
-            imports = extract_imports_from_file(str(py_file))
-            
-            results[file_key] = {
-                'imports': imports,
-                'total_imports': sum(len(imp_list) for imp_list in imports.values())
-            }
+    for file_key, data in detailed_results.items():
+        imports = data.get('imports', {})
+        simple_imports = {
+            'standard_library': [imp['module'] for imp in imports.get('standard_library', [])],
+            'third_party': [imp['module'] for imp in imports.get('third_party', [])],
+            'local': [imp['module'] for imp in imports.get('local', [])]
+        }
+        results[file_key] = {
+            'imports': simple_imports,
+            'total_imports': data.get('total_imports', 0)
+        }
     
     return results
 
@@ -335,12 +281,32 @@ def identify_enhancement_needs(documented_deps: Dict[str, List[str]], actual_imp
     
     return enhancement_status
 
-def find_usage_of_module(module_name: str, all_modules: Dict[str, Dict]) -> List[str]:
-    """Find all modules that import a given module."""
+def find_usage_of_module(module_name_or_path: str, all_modules: Dict[str, Dict]) -> List[str]:
+    """Find all modules that import a given module or file.
+    
+    Args:
+        module_name_or_path: Either a module name (e.g., 'core.config') or file path (e.g., 'core/config.py')
+        all_modules: Dictionary of file paths to import data (simplified format with List[str] for imports)
+    
+    Returns:
+        List of file paths that import the given module/file
+    """
     using_modules = []
+    
+    # Convert file path to module name if needed
+    if module_name_or_path.endswith('.py'):
+        # It's a file path, convert to module name
+        module_name = module_name_or_path.replace('/', '.').replace('\\', '.').replace('.py', '')
+    else:
+        # It's already a module name
+        module_name = module_name_or_path
+    
+    # Check each file's local imports
     for file_path, data in all_modules.items():
-        if module_name in data['imports']['local']:
+        local_imports = data.get('imports', {}).get('local', [])
+        if module_name in local_imports:
             using_modules.append(file_path)
+    
     return using_modules
 
 def analyze_module_complexity(file_path: str, data: Dict, all_modules: Dict[str, Dict]) -> Dict:

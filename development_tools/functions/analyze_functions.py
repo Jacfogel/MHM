@@ -25,7 +25,7 @@ from core.logger import get_component_logger
 
 # Handle both relative and absolute imports
 try:
-    from . import config
+    from .. import config  # Go up one level from functions/ to development_tools/
     from ..shared.standard_exclusions import should_exclude_file
 except ImportError:
     from development_tools import config
@@ -199,6 +199,75 @@ def extract_decorator_documentation(decorator_list: List[ast.expr]) -> str:
     return "; ".join(documentation)
 
 
+def detect_function_type(file_path: str, func_name: str, decorators: List[str], args: List[str]) -> str:
+    """Detect the type of function for template generation."""
+    file_lower = file_path.lower()
+    func_lower = func_name.lower()
+    
+    # Auto-generated Qt functions
+    if file_lower.startswith('ui/generated/') and func_name == 'qtTrId':
+        return 'qt_translation'
+    
+    # Auto-generated UI setup functions
+    if file_lower.startswith('ui/generated/') and func_name in ['setupUi', 'retranslateUi']:
+        return 'ui_generated'
+    
+    # Test functions
+    if func_lower.startswith('test_') or 'test' in func_lower:
+        return 'test_function'
+    
+    # Special Python methods
+    if func_name.startswith('__') and func_name.endswith('__'):
+        return 'special_method'
+    
+    # Constructor methods
+    if func_name == '__init__':
+        return 'constructor'
+    
+    # Main functions
+    if func_name == 'main':
+        return 'main_function'
+    
+    return 'regular_function'
+
+def generate_function_template(func_type: str, func_name: str, file_path: str, args: List[str]) -> str:
+    """Generate appropriate documentation template based on function type."""
+    
+    if func_type == 'qt_translation':
+        return "Auto-generated Qt translation function for internationalization support"
+    
+    elif func_type == 'ui_generated':
+        if func_name == 'setupUi':
+            return f"Auto-generated Qt UI setup function for {file_path.split('/')[-1].replace('_pyqt.py', '')}"
+        elif func_name == 'retranslateUi':
+            return f"Auto-generated Qt UI translation function for {file_path.split('/')[-1].replace('_pyqt.py', '')}"
+        else:
+            return f"Auto-generated Qt UI function for {file_path.split('/')[-1].replace('_pyqt.py', '')}"
+    
+    elif func_type == 'test_function':
+        # Extract test scenario from function name
+        test_name = func_name.replace('test_', '').replace('_', ' ')
+        if 'real_behavior' in func_name:
+            return f"REAL BEHAVIOR TEST: {test_name.title()}"
+        elif 'integration' in func_name:
+            return f"INTEGRATION TEST: {test_name.title()}"
+        elif 'unit' in func_name:
+            return f"UNIT TEST: {test_name.title()}"
+        else:
+            return f"TEST: {test_name.title()}"
+    
+    elif func_type == 'special_method':
+        return "Special Python method"
+    
+    elif func_type == 'constructor':
+        return "Initialize the object"
+    
+    elif func_type == 'main_function':
+        return "Main entry point for the module"
+    
+    else:
+        return "No description"
+
 @handle_errors("extracting functions from file", default_return=[])
 def extract_functions(file_path: str) -> List[Dict]:
     """Extract all function definitions from a Python file."""
@@ -256,6 +325,221 @@ def extract_functions(file_path: str) -> List[Dict]:
     except Exception as e:
         logger.error(f"Error parsing {file_path}: {e}")
     return functions
+
+@handle_errors("extracting functions from file for registry", default_return=[])
+def extract_functions_from_file(file_path: str) -> List[Dict]:
+    """Extract all function definitions from a Python file (registry format with templates)."""
+    functions = []
+    
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        tree = ast.parse(content)
+        
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef):
+                # Get function signature
+                args = []
+                for arg in node.args.args:
+                    args.append(arg.arg)
+                
+                # Get decorators
+                decorators = []
+                for decorator in node.decorator_list:
+                    if isinstance(decorator, ast.Name):
+                        decorators.append(decorator.id)
+                    elif isinstance(decorator, ast.Call):
+                        if isinstance(decorator.func, ast.Name):
+                            decorators.append(decorator.func.id)
+                
+                # Get docstring
+                docstring = ast.get_docstring(node) or ""
+                
+                # Detect function type
+                func_type = detect_function_type(file_path, node.name, decorators, args)
+                
+                # Generate template if no docstring exists
+                if not docstring.strip() and func_type != 'regular_function':
+                    docstring = generate_function_template(func_type, node.name, file_path, args)
+                
+                # Check if it's a test function
+                is_test = node.name.startswith('test_') or 'test' in node.name.lower()
+                
+                # Check if it's a main function
+                is_main = node.name == 'main' or node.name == '__main__'
+                
+                # Get function complexity (rough estimate)
+                complexity = len(list(ast.walk(node)))
+                
+                # Check if it's a handler/utility function
+                is_handler = any(keyword in node.name.lower() for keyword in ['handle', 'process', 'validate', 'check', 'get', 'set', 'save', 'load'])
+                
+                functions.append({
+                    'name': node.name,
+                    'line': node.lineno,
+                    'args': args,
+                    'decorators': decorators,
+                    'docstring': docstring,
+                    'func_type': func_type,
+                    'is_test': is_test,
+                    'is_main': is_main,
+                    'complexity': complexity,
+                    'has_docstring': bool(docstring.strip()),
+                    'is_handler': is_handler,
+                    'arg_count': len(args),
+                    'has_template': func_type != 'regular_function' and not ast.get_docstring(node)
+                })
+                
+    except Exception as e:
+        logger.error(f"Error parsing {file_path}: {e}")
+    
+    return functions
+
+@handle_errors("extracting classes from file", default_return=[])
+def extract_classes_from_file(file_path: str) -> List[Dict]:
+    """Extract all class definitions from a Python file."""
+    classes = []
+    
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        tree = ast.parse(content)
+        
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef):
+                # Get class methods
+                methods = []
+                for child in node.body:
+                    if isinstance(child, ast.FunctionDef):
+                        # Get method arguments
+                        args = [arg.arg for arg in child.args.args]
+                        
+                        # Get decorators
+                        decorators = []
+                        for d in child.decorator_list:
+                            if isinstance(d, ast.Name):
+                                decorators.append(d.id)
+                            elif isinstance(d, ast.Call) and isinstance(d.func, ast.Name):
+                                decorators.append(d.func.id)
+                            else:
+                                decorators.append(str(d))
+                        
+                        # Get original docstring
+                        original_docstring = ast.get_docstring(child)
+                        
+                        # Detect method type
+                        method_type = detect_function_type(file_path, child.name, decorators, args)
+                        
+                        # Generate template if no docstring exists
+                        docstring = original_docstring or ""
+                        if not docstring.strip() and method_type != 'regular_function':
+                            docstring = generate_function_template(method_type, child.name, file_path, args)
+                        
+                        methods.append({
+                            'name': child.name,
+                            'line': child.lineno,
+                            'args': args,
+                            'decorators': decorators,
+                            'docstring': docstring,
+                            'method_type': method_type,
+                            'has_docstring': bool(docstring.strip()),
+                            'has_template': method_type != 'regular_function' and not original_docstring
+                        })
+                
+                classes.append({
+                    'name': node.name,
+                    'line': node.lineno,
+                    'methods': methods,
+                    'docstring': ast.get_docstring(node)
+                })
+                
+    except Exception as e:
+        logger.error(f"Error parsing {file_path}: {e}")
+    
+    return classes
+
+@handle_errors("scanning all Python files", default_return={})
+def scan_all_python_files() -> Dict[str, Dict]:
+    """Scan all Python files in the project and extract function/class information."""
+    # Import config - check if we're running as part of a package to avoid __package__ != __spec__.parent warnings
+    if __name__ != '__main__' and __package__ and '.' in __package__:
+        from .. import config  # Go up one level from functions/ to development_tools/
+    else:
+        from development_tools import config
+    # Ensure external config is loaded
+    config.load_external_config()
+    from development_tools.shared.standard_exclusions import should_exclude_file
+    project_root = Path(config.get_project_root())
+    results = {}
+    
+    # Directories to scan from configuration
+    scan_dirs = config.get_scan_directories()
+    
+    for scan_dir in scan_dirs:
+        dir_path = project_root / scan_dir
+        if not dir_path.exists():
+            continue
+            
+        for py_file in dir_path.rglob('*.py'):
+            # Use production context exclusions to match audit behavior
+            if should_exclude_file(str(py_file), 'analysis', 'production'):
+                continue
+                
+            relative_path = py_file.relative_to(project_root)
+            file_key = str(relative_path).replace('\\', '/')
+            
+            functions = extract_functions_from_file(str(py_file))
+            classes = extract_classes_from_file(str(py_file))
+            
+            results[file_key] = {
+                'functions': functions,
+                'classes': classes,
+                'total_functions': len(functions),
+                'total_classes': len(classes)
+            }
+    
+    # Also scan root directory for .py files
+    # Get key files from config (entry points that should be included)
+    key_files = config.get_project_key_files([])
+    key_file_names = [Path(f).name for f in key_files] if key_files else []
+    
+    # Always exclude generator scripts
+    exclude_generators = ['generate_function_registry.py', 'generate_module_dependencies.py']
+    
+    for py_file in project_root.glob('*.py'):
+        if py_file.name in exclude_generators:
+            continue
+        # Include key files (entry points) in registry even though they might be in exclusions
+        # They are important entry points and should be documented
+        if key_file_names and py_file.name in key_file_names:
+            file_key = py_file.name
+            functions = extract_functions_from_file(str(py_file))
+            classes = extract_classes_from_file(str(py_file))
+            results[file_key] = {
+                'functions': functions,
+                'classes': classes,
+                'total_functions': len(functions),
+                'total_classes': len(classes)
+            }
+            continue
+        # Use production context exclusions to match audit behavior
+        if should_exclude_file(str(py_file), 'analysis', 'production'):
+            continue
+        file_key = py_file.name
+        
+        functions = extract_functions_from_file(str(py_file))
+        classes = extract_classes_from_file(str(py_file))
+        
+        results[file_key] = {
+            'functions': functions,
+            'classes': classes,
+            'total_functions': len(functions),
+            'total_classes': len(classes)
+        }
+    
+    return results
 
 
 @handle_errors("scanning all functions", default_return=[])

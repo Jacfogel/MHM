@@ -34,7 +34,32 @@ def load_development_tools_module(module_name: str):
         sys.modules["development_tools"] = dt_module
         dt_spec.loader.exec_module(dt_module)
     
-    # Load shared package if needed
+    # Load config module FIRST (before shared modules that depend on it)
+    # Config is at development_tools/config/config.py
+    config_path = project_root / "development_tools" / "config" / "config.py"
+    if config_path.exists():
+        # Load config package first
+        config_init = project_root / "development_tools" / "config" / "__init__.py"
+        if config_init.exists() and "development_tools.config" not in sys.modules:
+            config_pkg_spec = importlib.util.spec_from_file_location("development_tools.config", config_init)
+            config_pkg = importlib.util.module_from_spec(config_pkg_spec)
+            sys.modules["development_tools.config"] = config_pkg
+            config_pkg_spec.loader.exec_module(config_pkg)
+        
+        # Load config module
+        if "development_tools.config.config" not in sys.modules:
+            config_spec = importlib.util.spec_from_file_location("development_tools.config.config", config_path)
+            config_module = importlib.util.module_from_spec(config_spec)
+            sys.modules["development_tools.config.config"] = config_module
+            config_spec.loader.exec_module(config_module)
+            # Make config available as development_tools.config for imports like "from development_tools.config import config"
+            if "development_tools.config" in sys.modules:
+                sys.modules["development_tools.config"].config = config_module
+            # Also add to development_tools package for "from development_tools import config"
+            if "development_tools" in sys.modules:
+                sys.modules["development_tools"].config = config_module
+    
+    # Load shared package if needed (after config)
     shared_init = project_root / "development_tools" / "shared" / "__init__.py"
     if shared_init.exists() and "development_tools.shared" not in sys.modules:
         shared_spec = importlib.util.spec_from_file_location("development_tools.shared", shared_init)
@@ -53,13 +78,64 @@ def load_development_tools_module(module_name: str):
             sys.modules[full_name] = svc_module
             svc_spec.loader.exec_module(svc_module)
     
-    # Load config if needed
-    config_path = project_root / "development_tools" / "config" / "config.py"
-    if config_path.exists() and "development_tools.config" not in sys.modules:
-        config_spec = importlib.util.spec_from_file_location("development_tools.config", config_path)
-        config_module = importlib.util.module_from_spec(config_spec)
-        sys.modules["development_tools.config"] = config_module
-        config_spec.loader.exec_module(config_module)
+    # Load legacy package if needed (for fix_legacy_references imports)
+    legacy_init = project_root / "development_tools" / "legacy" / "__init__.py"
+    if legacy_init.exists() and "development_tools.legacy" not in sys.modules:
+        legacy_spec = importlib.util.spec_from_file_location("development_tools.legacy", legacy_init)
+        legacy_module = importlib.util.module_from_spec(legacy_spec)
+        sys.modules["development_tools.legacy"] = legacy_module
+        legacy_spec.loader.exec_module(legacy_module)
+    
+    # Load legacy submodules if needed (for fix_legacy_references)
+    if "development_tools.legacy" in sys.modules:
+        legacy_modules = ["analyze_legacy_references", "generate_legacy_reference_report"]
+        for legacy_mod_name in legacy_modules:
+            legacy_mod_path = project_root / "development_tools" / "legacy" / f"{legacy_mod_name}.py"
+            full_legacy_name = f"development_tools.legacy.{legacy_mod_name}"
+            if legacy_mod_path.exists() and full_legacy_name not in sys.modules:
+                legacy_mod_spec = importlib.util.spec_from_file_location(full_legacy_name, legacy_mod_path)
+                legacy_mod = importlib.util.module_from_spec(legacy_mod_spec)
+                sys.modules[full_legacy_name] = legacy_mod
+                legacy_mod_spec.loader.exec_module(legacy_mod)
+    
+    # Load imports package if needed (for generate_module_dependencies imports)
+    imports_init = project_root / "development_tools" / "imports" / "__init__.py"
+    if imports_init.exists() and "development_tools.imports" not in sys.modules:
+        imports_spec = importlib.util.spec_from_file_location("development_tools.imports", imports_init)
+        imports_module = importlib.util.module_from_spec(imports_spec)
+        sys.modules["development_tools.imports"] = imports_module
+        imports_spec.loader.exec_module(imports_module)
+        # Make config available for "from . import config" imports
+        if "development_tools.config" in sys.modules:
+            imports_module.config = sys.modules["development_tools.config"]
+        elif "development_tools.config.config" in sys.modules:
+            imports_module.config = sys.modules["development_tools.config.config"]
+    
+    # Load reports package if needed (for system_signals and quick_status imports)
+    reports_init = project_root / "development_tools" / "reports" / "__init__.py"
+    if reports_init.exists() and "development_tools.reports" not in sys.modules:
+        reports_spec = importlib.util.spec_from_file_location("development_tools.reports", reports_init)
+        reports_module = importlib.util.module_from_spec(reports_spec)
+        sys.modules["development_tools.reports"] = reports_module
+        reports_spec.loader.exec_module(reports_module)
+        # Make config available for "from . import config" imports
+        if "development_tools.config" in sys.modules:
+            reports_module.config = sys.modules["development_tools.config"]
+        elif "development_tools.config.config" in sys.modules:
+            reports_module.config = sys.modules["development_tools.config.config"]
+    
+    # Load functions package if needed (for generate_function_registry imports)
+    functions_init = project_root / "development_tools" / "functions" / "__init__.py"
+    if functions_init.exists() and "development_tools.functions" not in sys.modules:
+        functions_spec = importlib.util.spec_from_file_location("development_tools.functions", functions_init)
+        functions_module = importlib.util.module_from_spec(functions_spec)
+        sys.modules["development_tools.functions"] = functions_module
+        functions_spec.loader.exec_module(functions_module)
+        # Make config available for "from . import config" imports
+        if "development_tools.config" in sys.modules:
+            functions_module.config = sys.modules["development_tools.config"]
+        elif "development_tools.config.config" in sys.modules:
+            functions_module.config = sys.modules["development_tools.config.config"]
     
     # Now load the requested module
     # Handle dotted module names (e.g., "shared.file_rotation")
@@ -87,7 +163,12 @@ def load_development_tools_module(module_name: str):
     
     spec = importlib.util.spec_from_file_location(full_module_name, module_path)
     module = importlib.util.module_from_spec(spec)
-    module.__package__ = "development_tools"
+    # Set package correctly based on module location
+    if "." in full_module_name:
+        # For subdirectory modules like "development_tools.legacy.fix_legacy_references"
+        module.__package__ = ".".join(full_module_name.split(".")[:-1])
+    else:
+        module.__package__ = "development_tools"
     sys.modules[full_module_name] = module
     spec.loader.exec_module(module)
     

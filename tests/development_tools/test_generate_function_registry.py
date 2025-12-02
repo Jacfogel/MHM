@@ -11,13 +11,18 @@ from pathlib import Path
 # Import helper from conftest
 from tests.development_tools.conftest import load_development_tools_module
 
-# Load the module using the helper
+# Load modules using the helper
+# Functions moved to analyze_functions.py during Batch 3 decomposition
+analyze_functions_module = load_development_tools_module("analyze_functions")
 registry_module = load_development_tools_module("generate_function_registry")
 
-extract_functions_from_file = registry_module.extract_functions_from_file
-extract_classes_from_file = registry_module.extract_classes_from_file
+# Import discovery functions from analyze_functions.py (moved during Batch 3)
+extract_functions_from_file = analyze_functions_module.extract_functions_from_file
+extract_classes_from_file = analyze_functions_module.extract_classes_from_file
+scan_all_python_files = analyze_functions_module.scan_all_python_files
+
+# Import registry generation functions from generate_function_registry.py (still there)
 detect_function_type = registry_module.detect_function_type
-scan_all_python_files = registry_module.scan_all_python_files
 generate_function_registry_content = registry_module.generate_function_registry_content
 update_function_registry = registry_module.update_function_registry
 

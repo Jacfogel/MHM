@@ -36,6 +36,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-02 - Completed M7.4 Tool Decomposition Plan **COMPLETED**
+- Completed full M7.4 plan: decomposed 6 tools into 20+ focused tools (Batch 1: legacy, Batch 2: docs, Batch 3: functions/error_handling/tests)
+- Additional: decomposed `imports/generate_module_dependencies.py` into `analyze_module_imports.py` and `analyze_dependency_patterns.py`
+- Fixed import paths, updated all tests/references, marked plan complete. All 7 tools decomposed, 23+ new tools created, all success criteria met
+
 ### 2025-12-01 - Development Tools Configuration Cleanup and Fixes **COMPLETED**
 - Consolidated generated files config into single list, cleaned up legacy_preserve_files, unified ASCII_COMPLIANCE_FILES with DEFAULT_DOCS
 - Fixed complexity calculation to exclude only tests (removed handler exclusion - handler keywords too broad, caught complex business logic)

@@ -11,10 +11,14 @@ from pathlib import Path
 # Import helper from conftest
 from tests.development_tools.conftest import load_development_tools_module
 
-# Load the module using the helper
+# Load the modules using the helper
 cleanup_module = load_development_tools_module("fix_legacy_references")
+analyzer_module = load_development_tools_module("analyze_legacy_references")
+report_module = load_development_tools_module("generate_legacy_reference_report")
 
-LegacyReferenceCleanup = cleanup_module.LegacyReferenceCleanup
+LegacyReferenceFixer = cleanup_module.LegacyReferenceFixer
+LegacyReferenceAnalyzer = analyzer_module.LegacyReferenceAnalyzer
+LegacyReferenceReportGenerator = report_module.LegacyReferenceReportGenerator
 
 
 class TestLegacyScanning:
@@ -23,9 +27,9 @@ class TestLegacyScanning:
     @pytest.mark.unit
     def test_scan_for_legacy_references_finds_markers(self, demo_project_root):
         """Test that legacy markers are found."""
-        checker = LegacyReferenceCleanup(str(demo_project_root))
+        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))
         
-        findings = checker.scan_for_legacy_references()
+        findings = analyzer.scan_for_legacy_references()
         
         # Should find legacy compatibility markers in legacy_code.py
         if 'legacy_compatibility_markers' in findings:
@@ -35,32 +39,32 @@ class TestLegacyScanning:
     @pytest.mark.unit
     def test_scan_for_legacy_references_respects_preserve_files(self, demo_project_root):
         """Test that preserved files are skipped."""
-        checker = LegacyReferenceCleanup(str(demo_project_root))
+        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))
         
         # Add a preserve pattern that matches our demo project
-        original_preserve = checker.preserve_files
-        checker.preserve_files = checker.preserve_files | {'README.md'}
+        original_preserve = analyzer.preserve_files
+        analyzer.preserve_files = analyzer.preserve_files | {'README.md'}
         
-        findings = checker.scan_for_legacy_references()
+        findings = analyzer.scan_for_legacy_references()
         
         # README.md should not appear in findings
         for pattern_type, files in findings.items():
             for file_path, _, _ in files:
                 assert 'README.md' not in str(file_path)
         
-        checker.preserve_files = original_preserve
+        analyzer.preserve_files = original_preserve
     
     @pytest.mark.unit
     def test_should_skip_file_exclusions(self, demo_project_root):
         """Test that excluded files are skipped."""
-        checker = LegacyReferenceCleanup(str(demo_project_root))
+        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))
         
         # Test with a file that should be excluded
         excluded_file = demo_project_root / "__pycache__" / "test.pyc"
         excluded_file.parent.mkdir(exist_ok=True)
         excluded_file.write_bytes(b"test")
         
-        should_skip = checker.should_skip_file(excluded_file)
+        should_skip = analyzer.should_skip_file(excluded_file)
         assert should_skip is True
         
         # Clean up - remove file and directory if empty
@@ -78,7 +82,7 @@ class TestReferenceFinding:
     @pytest.mark.unit
     def test_find_all_references_specific_item(self, demo_project_root):
         """Test that specific legacy items are found."""
-        checker = LegacyReferenceCleanup(str(demo_project_root))
+        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))
         
         # Verify the legacy file exists
         legacy_file = demo_project_root / "legacy_code.py"
@@ -89,11 +93,11 @@ class TestReferenceFinding:
         assert 'LegacyChannelWrapper' in content, "LegacyChannelWrapper should exist in legacy_code.py"
         
         # Verify the file is not being skipped
-        assert not checker.should_skip_file(legacy_file), "legacy_code.py should not be skipped"
+        assert not analyzer.should_skip_file(legacy_file), "legacy_code.py should not be skipped"
         
         # Find references to LegacyChannelWrapper
         # Note: find_all_references searches for the item as a pattern in files
-        references = checker.find_all_references('LegacyChannelWrapper')
+        references = analyzer.find_all_references('LegacyChannelWrapper')
         
         # The function should find the class definition
         # It searches for patterns like 'class LegacyChannelWrapper', 'LegacyChannelWrapper(', etc.
@@ -108,10 +112,10 @@ class TestRemovalReadiness:
     @pytest.mark.unit
     def test_verify_removal_readiness_ready(self, demo_project_root):
         """Test that items with no active code references are ready."""
-        checker = LegacyReferenceCleanup(str(demo_project_root))
+        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))
         
         # Test with a non-existent item (should be ready)
-        verification = checker.verify_removal_readiness('NonExistentItem12345')
+        verification = analyzer.verify_removal_readiness('NonExistentItem12345')
         
         # Should be ready (no references found)
         assert verification['ready_for_removal'] is True
@@ -120,10 +124,10 @@ class TestRemovalReadiness:
     @pytest.mark.unit
     def test_verify_removal_readiness_not_ready(self, demo_project_root):
         """Test that items with active code references are not ready."""
-        checker = LegacyReferenceCleanup(str(demo_project_root))
+        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))
         
         # Test with LegacyChannelWrapper which exists in legacy_code.py
-        verification = checker.verify_removal_readiness('LegacyChannelWrapper')
+        verification = analyzer.verify_removal_readiness('LegacyChannelWrapper')
         
         # Should not be ready (has references)
         # Note: May be ready if only in legacy_code.py which might be considered legacy itself
@@ -138,24 +142,25 @@ class TestCleanupOperations:
     @pytest.mark.unit
     def test_cleanup_legacy_references_dry_run(self, temp_project_copy):
         """Test that dry-run reports planned changes without modifying files."""
-        checker = LegacyReferenceCleanup(str(temp_project_copy))
+        analyzer = LegacyReferenceAnalyzer(str(temp_project_copy))
+        fixer = LegacyReferenceFixer(str(temp_project_copy))
         
         # Verify legacy_code.py exists in the copied project
         legacy_file = temp_project_copy / "legacy_code.py"
         assert legacy_file.exists(), f"legacy_code.py should exist in {temp_project_copy}"
         
         # Verify the file is not being skipped
-        assert not checker.should_skip_file(legacy_file), f"legacy_code.py should not be skipped"
+        assert not analyzer.should_skip_file(legacy_file), f"legacy_code.py should not be skipped"
         
         # Scan for legacy references
-        findings = checker.scan_for_legacy_references()
+        findings = analyzer.scan_for_legacy_references()
         
         # Check if we have any findings
         has_findings = any(len(files) > 0 for files in findings.values())
         assert has_findings, f"No legacy references found. Findings: {dict(findings)}"
         
         # Run cleanup in dry-run mode
-        cleanup_results = checker.cleanup_legacy_references(findings, dry_run=True)
+        cleanup_results = fixer.cleanup_legacy_references(findings, dry_run=True)
         
         # Should report what would be changed (structure may vary)
         # The results should be a dict with some indication of what would change
@@ -173,24 +178,25 @@ class TestCleanupOperations:
     @pytest.mark.unit
     def test_cleanup_legacy_references_actual_cleanup(self, temp_project_copy):
         """Test that actual cleanup modifies files correctly."""
-        checker = LegacyReferenceCleanup(str(temp_project_copy))
+        analyzer = LegacyReferenceAnalyzer(str(temp_project_copy))
+        fixer = LegacyReferenceFixer(str(temp_project_copy))
         
         # Verify legacy_code.py exists in the copied project
         legacy_file = temp_project_copy / "legacy_code.py"
         assert legacy_file.exists(), f"legacy_code.py should exist in {temp_project_copy}"
         
         # Verify the file is not being skipped
-        assert not checker.should_skip_file(legacy_file), f"legacy_code.py should not be skipped"
+        assert not analyzer.should_skip_file(legacy_file), f"legacy_code.py should not be skipped"
         
         # Scan for legacy references
-        findings = checker.scan_for_legacy_references()
+        findings = analyzer.scan_for_legacy_references()
         
         # Check if we have any findings (findings is dict of pattern_type -> list of (file_path, content, matches))
         has_findings = any(len(files) > 0 for files in findings.values())
         assert has_findings, f"No legacy references found. Findings: {dict(findings)}"
         
         # Run cleanup in actual mode (not dry-run)
-        cleanup_results = checker.cleanup_legacy_references(findings, dry_run=False)
+        cleanup_results = fixer.cleanup_legacy_references(findings, dry_run=False)
         
         # Should return a dict with results structure
         assert isinstance(cleanup_results, dict)
@@ -206,10 +212,11 @@ class TestReportGeneration:
     @pytest.mark.unit
     def test_generate_cleanup_report_structure(self, demo_project_root):
         """Test that report has expected structure."""
-        checker = LegacyReferenceCleanup(str(demo_project_root))
+        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))
+        report_gen = LegacyReferenceReportGenerator(str(demo_project_root))
         
-        findings = checker.scan_for_legacy_references()
-        report = checker.generate_cleanup_report(findings)
+        findings = analyzer.scan_for_legacy_references()
+        report = report_gen.generate_cleanup_report(findings)
         
         # Should have expected sections
         assert '# Legacy Reference Cleanup Report' in report
@@ -222,7 +229,7 @@ class TestReplacementMappings:
     @pytest.mark.unit
     def test_get_replacement_mappings(self, demo_project_root):
         """Test that replacement mappings work correctly."""
-        checker = LegacyReferenceCleanup(str(demo_project_root))
+        fixer = LegacyReferenceFixer(str(demo_project_root))
         
         # Test various replacements
         test_cases = [
@@ -232,7 +239,7 @@ class TestReplacementMappings:
         ]
         
         for original, expected_start in test_cases:
-            replacement = checker.get_replacement(original)
+            replacement = fixer.get_replacement(original)
             # Should start with expected replacement
-            assert replacement.startswith(expected_start) or original not in checker.replacement_mappings
+            assert replacement.startswith(expected_start) or original not in fixer.replacement_mappings
 

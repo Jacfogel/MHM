@@ -33,7 +33,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 try:
-    from . import config
+    from .. import config  # Go up one level from functions/ to development_tools/
     from ..shared.standard_exclusions import should_exclude_file
 except ImportError:
     from development_tools import config

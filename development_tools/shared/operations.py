@@ -61,20 +61,34 @@ SCRIPT_REGISTRY = {
     'decision_support': 'reports/decision_support.py',
 
     'analyze_documentation_sync': 'docs/analyze_documentation_sync.py',
+    'analyze_path_drift': 'docs/analyze_path_drift.py',
+    'analyze_missing_addresses': 'docs/analyze_missing_addresses.py',
+    'analyze_ascii_compliance': 'docs/analyze_ascii_compliance.py',
+    'analyze_heading_numbering': 'docs/analyze_heading_numbering.py',
+    'analyze_unconverted_links': 'docs/analyze_unconverted_links.py',
+    'generate_directory_tree': 'docs/generate_directory_tree.py',
 
     'analyze_error_handling': 'error_handling/analyze_error_handling.py',
+    'generate_error_handling_report': 'error_handling/generate_error_handling_report.py',
+    'generate_error_handling_recommendations': 'error_handling/generate_error_handling_recommendations.py',
 
     'analyze_functions': 'functions/analyze_functions.py',
-
+    'analyze_function_patterns': 'functions/analyze_function_patterns.py',
     'generate_function_registry': 'functions/generate_function_registry.py',
 
     'generate_module_dependencies': 'imports/generate_module_dependencies.py',
+    'analyze_module_imports': 'imports/analyze_module_imports.py',
+    'analyze_dependency_patterns': 'imports/analyze_dependency_patterns.py',
 
     'fix_legacy_references': 'legacy/fix_legacy_references.py',
+    'analyze_legacy_references': 'legacy/analyze_legacy_references.py',
+    'generate_legacy_reference_report': 'legacy/generate_legacy_reference_report.py',
 
     'quick_status': 'reports/quick_status.py',
 
     'generate_test_coverage': 'tests/generate_test_coverage.py',
+    'analyze_test_coverage': 'tests/analyze_test_coverage.py',
+    'generate_test_coverage_reports': 'tests/generate_test_coverage_reports.py',
 
     'analyze_unused_imports': 'imports/analyze_unused_imports.py',
 
@@ -882,6 +896,14 @@ class AIToolsService:
                     'timestamp': datetime.now().isoformat()
                 }
             
+            # Add aggregated doc sync summary if available
+            if hasattr(self, 'docs_sync_summary') and self.docs_sync_summary:
+                cached_data['results']['analyze_documentation_sync'] = {
+                    'success': True,
+                    'data': self.docs_sync_summary,
+                    'timestamp': datetime.now().isoformat()
+                }
+            
             # Save updated results using create_output_file to ensure correct location and rotation
             from ..shared.file_rotation import create_output_file
             create_output_file(str(results_file), json.dumps(cached_data, indent=2))
@@ -1111,15 +1133,14 @@ class AIToolsService:
     def _check_ascii_compliance(self) -> None:
         """Check for non-ASCII characters in documentation files."""
         try:
-            from ..docs.analyze_documentation_sync import DocumentationSyncChecker  # type: ignore
-            checker = DocumentationSyncChecker()
-            results = checker.run_checks()
-            ascii_issues = results.get('ascii_compliance', {}) if isinstance(results, dict) else {}
-            total_issues = sum(len(issues) for issues in ascii_issues.values())
+            from ..docs.analyze_ascii_compliance import ASCIIComplianceAnalyzer  # type: ignore
+            analyzer = ASCIIComplianceAnalyzer()
+            results = analyzer.check_ascii_compliance()
+            total_issues = sum(len(issues) for issues in results.values())
             if total_issues == 0:
                 logger.info("   ASCII compliance: All documentation files use ASCII-only characters")
             else:
-                logger.warning(f"   ASCII compliance: Found {total_issues} non-ASCII characters in {len(ascii_issues)} files")
+                logger.warning(f"   ASCII compliance: Found {total_issues} non-ASCII characters in {len(results)} files")
                 logger.warning("   -> Replace non-ASCII characters with ASCII equivalents")
         except Exception as exc:
             logger.warning(f"   ASCII compliance check failed: {exc}")
@@ -1639,14 +1660,17 @@ class AIToolsService:
 
         try:
 
-            from development_tools.docs.fix_documentation import DocumentationFixer
-
-            fixer = DocumentationFixer(project_root=str(self.project_root))
+            # Use decomposed fixer classes (Batch 2 decomposition)
+            from development_tools.docs.fix_documentation_addresses import DocumentationAddressFixer
+            from development_tools.docs.fix_documentation_ascii import DocumentationASCIIFixer
+            from development_tools.docs.fix_documentation_headings import DocumentationHeadingFixer
+            from development_tools.docs.fix_documentation_links import DocumentationLinkFixer
 
             results = {}
 
             if fix_type in ('add-addresses', 'all'):
 
+                fixer = DocumentationAddressFixer(project_root=str(self.project_root))
                 result = fixer.fix_add_addresses(dry_run=dry_run)
 
                 results['add_addresses'] = result
@@ -1655,6 +1679,7 @@ class AIToolsService:
 
             if fix_type in ('fix-ascii', 'all'):
 
+                fixer = DocumentationASCIIFixer(project_root=str(self.project_root))
                 result = fixer.fix_ascii(dry_run=dry_run)
 
                 results['fix_ascii'] = result
@@ -1663,6 +1688,7 @@ class AIToolsService:
 
             if fix_type in ('number-headings', 'all'):
 
+                fixer = DocumentationHeadingFixer(project_root=str(self.project_root))
                 result = fixer.fix_number_headings(dry_run=dry_run)
 
                 results['number_headings'] = result
@@ -1671,6 +1697,7 @@ class AIToolsService:
 
             if fix_type in ('convert-links', 'all'):
 
+                fixer = DocumentationLinkFixer(project_root=str(self.project_root))
                 result = fixer.fix_convert_links(dry_run=dry_run)
 
                 results['convert_links'] = result
@@ -1985,7 +2012,7 @@ class AIToolsService:
 
         logger.info("Generating directory trees...")
 
-        result = self.run_script('analyze_documentation_sync', '--generate-trees')
+        result = self.run_script('generate_directory_tree')
 
         if result['success']:
             # Don't log result['output'] as it contains duplicate messages
@@ -2917,6 +2944,227 @@ class AIToolsService:
 
                     summary['path_drift_files'].append(file_part)
 
+        return summary
+
+    def _parse_documentation_sync_output(self, output: str) -> Dict[str, Any]:
+        """Parse paired documentation sync output."""
+        issues = {}
+        if not isinstance(output, str) or not output.strip():
+            return issues
+        
+        lines = output.splitlines()
+        current_section = None
+        for line in lines:
+            line = line.strip()
+            if 'PAIRED DOCUMENTATION ISSUES:' in line:
+                current_section = 'paired_docs'
+                continue
+            if current_section == 'paired_docs' and line.startswith('   '):
+                if ':' in line:
+                    issue_type = line.split(':')[0].strip()
+                    if issue_type not in issues:
+                        issues[issue_type] = []
+                elif line.startswith('     - '):
+                    if current_section:
+                        last_type = list(issues.keys())[-1] if issues else None
+                        if last_type:
+                            issues[last_type].append(line[7:])
+        
+        return issues
+
+    def _parse_path_drift_output(self, output: str) -> Dict[str, Any]:
+        """Parse path drift analysis output."""
+        result = {'files': {}, 'total_issues': 0}
+        if not isinstance(output, str) or not output.strip():
+            return result
+        
+        lines = output.splitlines()
+        in_files_section = False
+        for line in lines:
+            line = line.strip()
+            if 'Total issues found:' in line:
+                value = self._extract_first_int(line)
+                if value is not None:
+                    result['total_issues'] = value
+            elif 'Top files with most issues:' in line:
+                in_files_section = True
+                continue
+            elif in_files_section and ':' in line and line.endswith('issues'):
+                parts = line.split(':')
+                if len(parts) == 2:
+                    file_path = parts[0].strip()
+                    issue_count = self._extract_first_int(parts[1])
+                    if issue_count is not None:
+                        result['files'][file_path] = issue_count
+        
+        return result
+
+    def _parse_ascii_compliance_output(self, output: str) -> Dict[str, Any]:
+        """Parse ASCII compliance check output."""
+        result = {'files': {}, 'total_issues': 0}
+        if not isinstance(output, str) or not output.strip():
+            return result
+        
+        lines = output.splitlines()
+        for line in lines:
+            line = line.strip()
+            if 'Total files with non-ASCII characters:' in line:
+                value = self._extract_first_int(line)
+                if value is not None:
+                    result['file_count'] = value
+            elif 'Total issues found:' in line:
+                value = self._extract_first_int(line)
+                if value is not None:
+                    result['total_issues'] = value
+            elif ':' in line and ('issues' in line.lower() or 'characters' in line.lower()):
+                parts = line.split(':')
+                if len(parts) == 2:
+                    file_path = parts[0].strip()
+                    issue_text = parts[1].strip()
+                    issue_count = self._extract_first_int(issue_text)
+                    if issue_count is not None:
+                        result['files'][file_path] = issue_count
+        
+        return result
+
+    def _parse_heading_numbering_output(self, output: str) -> Dict[str, Any]:
+        """Parse heading numbering check output."""
+        result = {'files': {}, 'total_issues': 0}
+        if not isinstance(output, str) or not output.strip():
+            return result
+        
+        lines = output.splitlines()
+        for line in lines:
+            line = line.strip()
+            if 'Total files with numbering issues:' in line:
+                value = self._extract_first_int(line)
+                if value is not None:
+                    result['file_count'] = value
+            elif 'Total issues found:' in line:
+                value = self._extract_first_int(line)
+                if value is not None:
+                    result['total_issues'] = value
+            elif ':' in line and 'issues' in line.lower():
+                parts = line.split(':')
+                if len(parts) == 2:
+                    file_path = parts[0].strip()
+                    issue_count = self._extract_first_int(parts[1])
+                    if issue_count is not None:
+                        result['files'][file_path] = issue_count
+        
+        return result
+
+    def _parse_missing_addresses_output(self, output: str) -> Dict[str, Any]:
+        """Parse missing addresses check output."""
+        result = {'files': [], 'total_issues': 0}
+        if not isinstance(output, str) or not output.strip():
+            return result
+        
+        if 'All documentation files have file addresses!' in output:
+            return result
+        
+        lines = output.splitlines()
+        for line in lines:
+            line = line.strip()
+            if 'Total files missing addresses:' in line:
+                value = self._extract_first_int(line)
+                if value is not None:
+                    result['total_issues'] = value
+            elif line.startswith('- ') or line.startswith('  - '):
+                file_path = line.lstrip('- ').strip()
+                if file_path:
+                    result['files'].append(file_path)
+        
+        return result
+
+    def _parse_unconverted_links_output(self, output: str) -> Dict[str, Any]:
+        """Parse unconverted links check output."""
+        result = {'files': {}, 'total_issues': 0}
+        if not isinstance(output, str) or not output.strip():
+            return result
+        
+        lines = output.splitlines()
+        for line in lines:
+            line = line.strip()
+            if 'Total files with unconverted links:' in line:
+                value = self._extract_first_int(line)
+                if value is not None:
+                    result['file_count'] = value
+            elif 'Total issues found:' in line:
+                value = self._extract_first_int(line)
+                if value is not None:
+                    result['total_issues'] = value
+            elif ':' in line and 'issues' in line.lower():
+                parts = line.split(':')
+                if len(parts) == 2:
+                    file_path = parts[0].strip()
+                    issue_count = self._extract_first_int(parts[1])
+                    if issue_count is not None:
+                        result['files'][file_path] = issue_count
+        
+        return result
+
+    def _aggregate_doc_sync_results(self, all_results: Dict[str, Any]) -> Dict[str, Any]:
+        """Aggregate results from all documentation sync tools into unified summary."""
+        summary: Dict[str, Any] = {
+            'status': 'PASS',
+            'total_issues': 0,
+            'paired_doc_issues': 0,
+            'path_drift_issues': 0,
+            'ascii_issues': 0,
+            'heading_numbering_issues': 0,
+            'missing_address_issues': 0,
+            'unconverted_link_issues': 0,
+            'path_drift_files': []
+        }
+        
+        # Aggregate paired docs
+        paired_docs = all_results.get('paired_docs', {})
+        if isinstance(paired_docs, dict):
+            for issue_type, issues in paired_docs.items():
+                if isinstance(issues, list):
+                    summary['paired_doc_issues'] += len(issues)
+                    summary['total_issues'] += len(issues)
+        
+        # Aggregate path drift
+        path_drift = all_results.get('path_drift', {})
+        if isinstance(path_drift, dict):
+            summary['path_drift_issues'] = path_drift.get('total_issues', 0)
+            summary['total_issues'] += summary['path_drift_issues']
+            files = path_drift.get('files', {})
+            if isinstance(files, dict):
+                summary['path_drift_files'] = list(files.keys())[:10]  # Top 10
+        
+        # Aggregate ASCII compliance
+        ascii_compliance = all_results.get('ascii_compliance', {})
+        if isinstance(ascii_compliance, dict):
+            summary['ascii_issues'] = ascii_compliance.get('total_issues', 0)
+            summary['total_issues'] += summary['ascii_issues']
+        
+        # Aggregate heading numbering
+        heading_numbering = all_results.get('heading_numbering', {})
+        if isinstance(heading_numbering, dict):
+            summary['heading_numbering_issues'] = heading_numbering.get('total_issues', 0)
+            summary['total_issues'] += summary['heading_numbering_issues']
+        
+        # Aggregate missing addresses
+        missing_addresses = all_results.get('missing_addresses', {})
+        if isinstance(missing_addresses, dict):
+            summary['missing_address_issues'] = missing_addresses.get('total_issues', 0)
+            summary['total_issues'] += summary['missing_address_issues']
+        
+        # Aggregate unconverted links
+        unconverted_links = all_results.get('unconverted_links', {})
+        if isinstance(unconverted_links, dict):
+            summary['unconverted_link_issues'] = unconverted_links.get('total_issues', 0)
+            summary['total_issues'] += summary['unconverted_link_issues']
+        
+        # Determine overall status
+        if summary['total_issues'] > 0:
+            summary['status'] = 'FAIL'
+        else:
+            summary['status'] = 'PASS'
+        
         return summary
 
     def _parse_legacy_output(self, output: str) -> Dict[str, Any]:
@@ -3943,28 +4191,43 @@ class AIToolsService:
 
         lines.append("## Documentation Signals")
 
-        # Load documentation sync checker data for Documentation Signals section
+        # Use aggregated doc sync summary from current run first, then fall back to cache
         doc_sync_summary_for_signals = None
-        try:
-            import json
-            results_file = Path("development_tools/reports/analysis_detailed_results.json")
-            if results_file.exists():
-                with open(results_file, 'r', encoding='utf-8') as f:
-                    cached_data = json.load(f)
-                if 'results' in cached_data and 'analyze_documentation_sync' in cached_data['results']:
-                    doc_sync_data = cached_data['results']['analyze_documentation_sync']
-                    if 'data' in doc_sync_data:
-                        cached_metrics = doc_sync_data['data']
-                        # Create a doc_sync_summary from the cached data
-                        doc_sync_summary_for_signals = {
-                            'status': cached_metrics.get('status', 'UNKNOWN'),
-                            'path_drift_issues': cached_metrics.get('path_drift_issues', 0),
-                            'paired_doc_issues': cached_metrics.get('paired_doc_issues', 0),
-                            'ascii_issues': cached_metrics.get('ascii_issues', 0),
-                            'path_drift_files': cached_metrics.get('path_drift_files', [])
-                        }
-        except Exception:
-            pass
+        if self.docs_sync_summary and isinstance(self.docs_sync_summary, dict):
+            # Use the aggregated summary from _run_doc_sync_check()
+            doc_sync_summary_for_signals = {
+                'status': self.docs_sync_summary.get('status', 'UNKNOWN'),
+                'path_drift_issues': self.docs_sync_summary.get('path_drift_issues', 0),
+                'paired_doc_issues': self.docs_sync_summary.get('paired_doc_issues', 0),
+                'ascii_issues': self.docs_sync_summary.get('ascii_issues', 0),
+                'heading_numbering_issues': self.docs_sync_summary.get('heading_numbering_issues', 0),
+                'missing_address_issues': self.docs_sync_summary.get('missing_address_issues', 0),
+                'unconverted_link_issues': self.docs_sync_summary.get('unconverted_link_issues', 0),
+                'path_drift_files': self.docs_sync_summary.get('path_drift_files', [])
+            }
+        
+        # Fall back to cache if not available in memory
+        if not doc_sync_summary_for_signals:
+            try:
+                import json
+                results_file = Path("development_tools/reports/analysis_detailed_results.json")
+                if results_file.exists():
+                    with open(results_file, 'r', encoding='utf-8') as f:
+                        cached_data = json.load(f)
+                    if 'results' in cached_data and 'analyze_documentation_sync' in cached_data['results']:
+                        doc_sync_data = cached_data['results']['analyze_documentation_sync']
+                        if 'data' in doc_sync_data:
+                            cached_metrics = doc_sync_data['data']
+                            # Create a doc_sync_summary from the cached data
+                            doc_sync_summary_for_signals = {
+                                'status': cached_metrics.get('status', 'UNKNOWN'),
+                                'path_drift_issues': cached_metrics.get('path_drift_issues', 0),
+                                'paired_doc_issues': cached_metrics.get('paired_doc_issues', 0),
+                                'ascii_issues': cached_metrics.get('ascii_issues', 0),
+                                'path_drift_files': cached_metrics.get('path_drift_files', [])
+                            }
+            except Exception:
+                pass
 
         if doc_sync_summary_for_signals:
 
@@ -6135,31 +6398,68 @@ class AIToolsService:
 
     def _run_doc_sync_check(self, *args) -> bool:
 
-        """Run documentation sync checker and store structured results."""
+        """Run all documentation sync checks and aggregate results."""
 
+        all_results = {}
+
+        # Run paired documentation sync
+        logger.info("Running paired documentation synchronization checks...")
         result = self.run_script('analyze_documentation_sync', *args)
+        # For analysis tools, success means they ran and produced output (even if issues found)
+        if result.get('output') or result.get('success'):
+            all_results['paired_docs'] = self._parse_documentation_sync_output(result.get('output', ''))
+        else:
+            logger.warning(f"analyze_documentation_sync failed: {result.get('error', 'Unknown error')}")
 
-        if result.get('success'):
+        # Run path drift analysis
+        logger.info("Running path drift analysis...")
+        result = self.run_script('analyze_path_drift')
+        if result.get('output') or result.get('success'):
+            all_results['path_drift'] = self._parse_path_drift_output(result.get('output', ''))
+        else:
+            logger.warning(f"analyze_path_drift failed: {result.get('error', 'Unknown error')}")
 
-            summary = self._parse_doc_sync_output(result.get('output', ''))
+        # Run ASCII compliance check
+        logger.info("Running ASCII compliance check...")
+        result = self.run_script('analyze_ascii_compliance')
+        if result.get('output') or result.get('success'):
+            all_results['ascii_compliance'] = self._parse_ascii_compliance_output(result.get('output', ''))
+        else:
+            logger.warning(f"analyze_ascii_compliance failed: {result.get('error', 'Unknown error')}")
 
-            result['summary'] = summary
+        # Run heading numbering check
+        logger.info("Running heading numbering check...")
+        result = self.run_script('analyze_heading_numbering')
+        if result.get('output') or result.get('success'):
+            all_results['heading_numbering'] = self._parse_heading_numbering_output(result.get('output', ''))
+        else:
+            logger.warning(f"analyze_heading_numbering failed: {result.get('error', 'Unknown error')}")
 
-            self.docs_sync_results = result
+        # Run missing addresses check
+        logger.info("Running missing addresses check...")
+        result = self.run_script('analyze_missing_addresses')
+        if result.get('output') or result.get('success'):
+            all_results['missing_addresses'] = self._parse_missing_addresses_output(result.get('output', ''))
+        else:
+            logger.warning(f"analyze_missing_addresses failed: {result.get('error', 'Unknown error')}")
 
-            self.docs_sync_summary = summary
+        # Run unconverted links check
+        logger.info("Running unconverted links check...")
+        result = self.run_script('analyze_unconverted_links')
+        if result.get('output') or result.get('success'):
+            all_results['unconverted_links'] = self._parse_unconverted_links_output(result.get('output', ''))
+        else:
+            logger.warning(f"analyze_unconverted_links failed: {result.get('error', 'Unknown error')}")
 
-            return True
+        # Aggregate all results
+        summary = self._aggregate_doc_sync_results(all_results)
 
-        if result.get('output'):
+        self.docs_sync_results = {'success': True, 'summary': summary, 'all_results': all_results}
+        self.docs_sync_summary = summary
 
-            logger.info(result['output'])
+        logger.info(f"Documentation sync summary: {summary.get('status', 'UNKNOWN')} - {summary.get('total_issues', 0)} total issues")
 
-        if result.get('error'):
-
-            logger.error(result['error'])
-
-        return False
+        return True
 
     def _run_legacy_cleanup_scan(self, *args) -> bool:
 

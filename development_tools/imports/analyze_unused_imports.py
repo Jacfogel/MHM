@@ -30,7 +30,7 @@ from functools import partial
 
 # Handle both relative and absolute imports
 try:
-    from . import config
+    from .. import config
     from ..shared.standard_exclusions import should_exclude_file
     from core.logger import get_component_logger
 except ImportError:

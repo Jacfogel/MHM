@@ -3,7 +3,7 @@ alwaysApply: true
 description: "Project snapshot and quick references"
 globs: ["**/*.md", "**/*.txt"]
 priority: 2
-lastUpdated: "2025-12-01"
+lastUpdated: "2025-12-02"
 file: ".cursor/rules/context.mdc"
 file: ".cursor/rules/context.mdc"
 ---

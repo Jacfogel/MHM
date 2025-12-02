@@ -226,21 +226,18 @@ def update_version_info(content, new_version, new_date):
 
 def get_key_directories():
     """Get single source of truth for key directories in the project."""
-    # Import constants from services.constants
+    # Import constants from shared.constants
     from development_tools.shared.constants import VERSION_SYNC_DIRECTORIES
     return VERSION_SYNC_DIRECTORIES
 
 def validate_referenced_paths():
     """Validate that all referenced paths in documentation exist."""
     try:
-        # Import the documentation sync checker from parent directory
-        from ..docs.analyze_documentation_sync import DocumentationSyncChecker
+        # Import the path drift analyzer (path drift was decomposed into separate tool)
+        from ..docs.analyze_path_drift import PathDriftAnalyzer
 
-        checker = DocumentationSyncChecker()
-        results = checker.run_checks()
-
-        # Check if there are any path drift issues
-        path_issues = results.get('path_drift', {})
+        analyzer = PathDriftAnalyzer()
+        path_issues = analyzer.check_path_drift()
         total_issues = sum(len(issues) for issues in path_issues.values())
 
         if total_issues == 0:

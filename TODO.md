@@ -175,6 +175,48 @@ When adding new tasks, follow this format:
   - [ ] Consider integrating marker validation into coverage regeneration workflow
   - [ ] Update documentation to reflect new test marker commands
 
+**Standardize Function Counting and Complexity Metrics**
+- *What it means*: Investigate the different function counting and complexity counting methods used by `analyze_functions` (AST-based, reports 153/138/128) vs `decision_support` (different method, reports 352/376/321). Decide on a single standardized approach and update all tools to use it consistently.
+- *Why it helps*: Eliminates confusion from conflicting metrics; ensures status reports and priorities are based on consistent, accurate data; improves trust in audit results.
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Compare function counting methods in `analyze_functions` vs `decision_support`
+  - [ ] Compare complexity calculation methods (why are numbers so different?)
+  - [ ] Determine which method is more accurate/appropriate
+  - [ ] Standardize all tools to use the chosen method
+  - [ ] Update status generation to use single source of truth
+  - [ ] Document the standardized approach
+
+**Standardize Error Handling Coverage Metrics**
+- *What it means*: Investigate and resolve the disconnect between "Error Handling Coverage" percentage (99.9%) and "Functions Missing Protection" count (2 functions). There's a preexisting discrepancy between coverage percentage and functions needing protection numbers that needs to be standardized one way or the other.
+- *Why it helps*: Ensures error handling metrics are consistent and accurate; prevents confusion about actual error handling status; improves reliability of audit reports.
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Investigate how error handling coverage percentage is calculated
+  - [ ] Investigate how "functions missing protection" count is determined
+  - [ ] Identify why these numbers don't align (e.g., different function sets, different counting methods)
+  - [ ] Decide on standardized approach (use same function set, same counting method)
+  - [ ] Update error handling analysis tools to use standardized approach
+  - [ ] Update status reports to show consistent metrics
+
+**Investigate and Fix Test Coverage Regression**
+- *What it means*: Test coverage dropped from 71.1% to 66.0% (5.1% drop, 1,375 fewer covered statements) after tool refactoring. Several modules show significant coverage drops (>50% for some). Need to identify root cause and restore coverage.
+- *Why it helps*: Maintains test coverage quality; ensures refactoring doesn't break test execution; identifies and fixes test failures from refactoring.
+- *Estimated effort*: Medium
+- *Current Status*: Analysis document created (`development_tools/TEST_COVERAGE_DIFF_ANALYSIS.md`)
+- *Key Findings*:
+  - 6 test failures and 1 import error found in latest run
+  - 5 modules dropped into "Needs_Work" category (<50% coverage)
+  - Test failures related to refactoring (documentation sync checker, legacy cleanup)
+- *Subtasks*:
+  - [ ] Fix test failures from refactoring (documentation sync checker tests, legacy cleanup import error)
+  - [ ] Re-run coverage after test fixes to verify improvement
+  - [ ] Investigate why specific modules lost coverage (task_completion_dialog, message_analytics, checkin_analytics, task_handler)
+  - [ ] Check if tests exist and are running for affected modules
+  - [ ] Compare test execution counts between versions
+  - [ ] Review coverage configuration for changes
+  - [ ] Document findings and resolution in TEST_COVERAGE_DIFF_ANALYSIS.md
+
 
 **Create Project Cleanup Module**
 - *What it means*: Create a new cleanup module in `development_tools/` that integrates `scripts/cleanup_project.py` functionality. Add subcommand to `development_tools/ai_tools_runner.py` for project cleanup operations.

@@ -23,13 +23,14 @@ class TestFileCorruptionHandling:
     @pytest.mark.unit
     def test_function_registry_handles_syntax_errors(self, demo_project_root):
         """extract_functions_from_file should handle syntax errors gracefully."""
-        registry = load_development_tools_module("generate_function_registry")
+        # extract_functions_from_file was moved to analyze_functions.py during Batch 3 decomposition
+        analyze_functions = load_development_tools_module("analyze_functions")
 
         bad_file = demo_project_root / "bad_syntax.py"
         bad_file.write_text("def broken_function(\n    # Missing closing paren\n")
 
         try:
-            functions = registry.extract_functions_from_file(str(bad_file))
+            functions = analyze_functions.extract_functions_from_file(str(bad_file))
             assert isinstance(functions, list)
         finally:
             if bad_file.exists():
@@ -38,13 +39,13 @@ class TestFileCorruptionHandling:
     @pytest.mark.unit
     def test_module_dependencies_handles_import_errors(self, demo_project_root):
         """extract_imports_from_file should handle invalid imports gracefully."""
-        deps = load_development_tools_module("generate_module_dependencies")
+        imports_module = load_development_tools_module("imports.analyze_module_imports")
 
         bad_file = demo_project_root / "bad_imports.py"
         bad_file.write_text("from nonexistent.module import something\nimport also.nonexistent")
 
         try:
-            imports = deps.extract_imports_from_file(str(bad_file))
+            imports = imports_module.extract_imports_from_file(str(bad_file))
             assert isinstance(imports, dict)
         finally:
             if bad_file.exists():
@@ -125,7 +126,8 @@ class TestMissingFileHandling:
         coverage = load_development_tools_module("generate_test_coverage")
         regenerator = coverage.CoverageMetricsRegenerator(str(demo_project_root))
 
-        empty_data = regenerator.parse_coverage_output("")
+        # parse_coverage_output moved to TestCoverageAnalyzer during Batch 3 decomposition
+        empty_data = regenerator.analyzer.parse_coverage_output("")
         assert isinstance(empty_data, dict)
 
 
@@ -178,11 +180,11 @@ class TestInvalidInputHandling:
     @pytest.mark.unit
     def test_legacy_cleanup_handles_invalid_patterns(self, demo_project_root):
         """Legacy cleanup should tolerate empty search patterns."""
-        legacy = load_development_tools_module("fix_legacy_references")
-        cleanup = legacy.LegacyReferenceCleanup(str(demo_project_root))
+        analyzer_module = load_development_tools_module("analyze_legacy_references")
+        analyzer = analyzer_module.LegacyReferenceAnalyzer(str(demo_project_root))
 
         try:
-            result = cleanup.find_all_references("")
+            result = analyzer.find_all_references("")
             assert isinstance(result, dict)
         except (ValueError, AttributeError):
             pass

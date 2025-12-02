@@ -754,10 +754,375 @@ Portable today: `development_tools/services/common.py`, `development_tools/syste
 - [OK] Updated documentation guides with new structure
 - [OK] Fixed all path calculations (`.parent.parent` → `.parent.parent.parent` for subdirectories)
 
-#### Milestone M7.3 - Tool Gap & Future Additions **IN PROGRESS**
+#### Milestone M7.3 - Tool Gap & Future Additions **COMPLETED (2025-12-01)**
 - [OK] Directory structure supports future additions (domain-based organization makes it clear where new tools belong)
-- [ ] Identify desired categories (e.g., test-data generators, AI prompt validators, environment health checks)
-- [ ] Record missing tools or planned improvements in `DEVELOPMENT_TOOLS_GUIDE.md` + the roadmap
+- [OK] Identified desired categories across 6 domains (documentation, code quality, testing, config/environment, AI/prompt, integration)
+- [OK] Recorded missing tools and planned improvements in `DEVELOPMENT_TOOLS_GUIDE.md` section 5 and `AI_DEVELOPMENT_TOOLS_GUIDE.md` section 5
+
+**Gap Analysis Summary:**
+
+**Documentation Domain (7 gaps identified):**
+- H3 heading sync validation (currently only H2)
+- Markdown link validation (existence, anchor validation)
+- Cross-reference accuracy (section numbers, existence verification)
+- Example marking standards validation
+- Metadata standards adherence
+- Markdown anchor integration in cross-references
+- Enhanced overlap detection (currently basic)
+
+**Code Quality Domain (6 gaps identified):**
+- Type hint coverage analysis
+- Docstring quality assessment (beyond presence/absence)
+- Code duplication detection
+- Complexity trend analysis
+- Security pattern analysis
+- Performance anti-pattern detection
+
+**Testing Domain (6 gaps identified):**
+- Test marker validation (scripts exist, need integration)
+- Test isolation verification
+- Test coverage gap analysis
+- Test naming convention compliance
+- Integration test gap analysis
+- Test fixture organization analysis
+
+**Configuration & Environment Domain (5 gaps identified):**
+- Environment health checks
+- Config value validation (beyond drift)
+- Environment variable usage analysis
+- Dependency version conflict detection
+- Path normalization validation
+
+**AI & Prompt Domain (3 gaps identified):**
+- Prompt validation (structure, completeness)
+- Prompt template consistency checking
+- Response quality metrics (beyond structural)
+
+**Integration & Workflow Domain (2 gaps identified):**
+- End-to-end workflow validation
+- Integration point analysis
+
+**Total:** 29 gaps identified across 6 domains, with 25+ potential new tools documented. All findings recorded in both guides with priority classifications (High/Medium/Low).
+
+#### Milestone M7.4 - Decompose Multi-Responsibility Tools **COMPLETED (2025-12-02)**
+
+**Goal:** Break down tools that combine analysis, generation, and fixing into separate, focused tools following the naming conventions (analyze_*, generate_*, fix_*). Also decompose tools that are too broad/complex with multiple distinct concerns.
+
+**Status:** All three batches completed. Batch 1 (Legacy Tools), Batch 2 (Documentation Tools), and Batch 3 (Remaining Tools) have been successfully decomposed. All tools are now modular, testable, and follow the established naming conventions.
+
+**Tools to decompose:**
+
+1. **`legacy/fix_legacy_references.py`** - Currently combines:
+   - Analysis: `scan_for_legacy_references()`, `analyze_file_content()`, `find_all_references()`, `verify_removal_readiness()`
+   - Report generation: `generate_cleanup_report()`
+   - Fixing: `cleanup_legacy_references()`
+   
+   **Decomposition target:**
+   - `legacy/analyze_legacy_references.py` - Analysis only (scan, find, verify)
+   - `legacy/generate_legacy_reference_report.py` - Report generation from analysis results
+   - `legacy/fix_legacy_references.py` - Cleanup operations only (uses analysis results)
+
+2. **`docs/analyze_documentation_sync.py`** (1539 lines) - Very large, combines multiple distinct concerns:
+   - Paired documentation checking (`check_paired_documentation()`)
+   - Path drift analysis (`check_path_drift()`)
+   - ASCII compliance checking (`check_ascii_compliance()`)
+   - Heading numbering validation (`check_heading_numbering()`)
+   - Missing address detection (`check_missing_addresses()`)
+   - Unconverted link detection (`check_unconverted_links()`)
+   - Directory tree generation (`generate_directory_tree()`)
+   
+   **Decomposition target:**
+   - `docs/analyze_documentation_sync.py` - Keep only paired doc sync checking (H2/H3 heading sync)
+   - `docs/analyze_path_drift.py` - Path drift analysis only
+   - `docs/analyze_ascii_compliance.py` - ASCII compliance checking
+   - `docs/analyze_heading_numbering.py` - Heading numbering validation
+   - `docs/analyze_missing_addresses.py` - Missing address detection
+   - `docs/analyze_unconverted_links.py` - Unconverted link detection
+   - `docs/generate_directory_tree.py` - Directory tree generation
+
+3. **`docs/fix_documentation.py`** - Combines 4 distinct fix operations:
+   - Address insertion (`fix_add_addresses()`)
+   - ASCII fixes (`fix_ascii()`)
+   - Heading numbering (`fix_number_headings()`)
+   - Link conversion (`fix_convert_links()`)
+   
+   **Decomposition target:**
+   - `docs/fix_documentation_addresses.py` - Address insertion only
+   - `docs/fix_documentation_ascii.py` - ASCII fixes only
+   - `docs/fix_documentation_headings.py` - Heading numbering only
+   - `docs/fix_documentation_links.py` - Link conversion only
+   - Keep `docs/fix_documentation.py` as a dispatcher that calls all fixers (or remove if not needed)
+
+4. **`functions/generate_function_registry.py`** (1475+ lines) - Very large, combines:
+   - Function/class discovery (`extract_functions_from_file()`, `extract_classes_from_file()`, `scan_all_python_files()`)
+   - Pattern analysis (`analyze_function_patterns()`)
+   - Multiple report section generation (patterns, entry points, operations, complexity, organization, communication)
+   - Registry content generation
+   
+   **Decomposition target:**
+   - `functions/analyze_functions.py` - Already exists, but may need to extract discovery logic
+   - `functions/analyze_function_patterns.py` - Pattern analysis only
+   - `functions/generate_function_registry.py` - Registry generation only (uses analysis results)
+   - Consider separate generators for different report sections if they become too complex
+
+5. **`error_handling/analyze_error_handling.py`** (1016 lines) - Combines:
+   - Error handling analysis (`analyze_file()`, `_analyze_function()`, `_analyze_class()`)
+   - Recommendation generation (`_generate_recommendations()`)
+   - Results aggregation and reporting
+   
+   **Decomposition target:**
+   - `error_handling/analyze_error_handling.py` - Keep analysis only
+   - `error_handling/generate_error_handling_report.py` - Report generation from analysis results
+   - `error_handling/generate_error_handling_recommendations.py` - Recommendation generation
+
+6. **`tests/generate_test_coverage.py`** (1371+ lines) - Combines:
+   - Coverage execution (pytest runs)
+   - Coverage parsing and analysis
+   - Report generation (JSON, HTML)
+   - Artifact management (rotation, archiving)
+   - Coverage plan updates
+   
+   **Decomposition target:**
+   - `tests/analyze_test_coverage.py` - Coverage analysis and parsing
+   - `tests/generate_test_coverage_reports.py` - Report generation (JSON, HTML)
+   - `tests/generate_test_coverage.py` - Keep as orchestrator that runs analysis and generation
+   - Consider separate artifact management if it becomes complex
+
+**Implementation steps:**
+- [OK] Identify all functions in each tool and categorize by responsibility
+- [OK] Extract analysis functions into separate `analyze_*.py` tools
+- [OK] Extract report generation into separate `generate_*_report.py` tools
+- [OK] Refactor fix tools to use analysis results (no analysis logic)
+- [OK] Update CLI commands and operations.py to support separate tools
+- [OK] Update tests to cover each decomposed tool independently
+- [OK] Update documentation and tool_metadata.py with new tool entries
+
+**Batch 1 (Legacy Tools) - COMPLETED:**
+- [OK] Created `legacy/analyze_legacy_references.py` with analysis methods
+- [OK] Created `legacy/generate_legacy_reference_report.py` with report generation
+- [OK] Refactored `legacy/fix_legacy_references.py` to only contain fixing logic
+- [OK] Updated `operations.py` and `tool_metadata.py` with new tool entries
+- [OK] Updated tests to use decomposed tools
+
+**Batch 2 (Documentation Tools) - COMPLETED:**
+- [OK] Created 7 new analysis tools for `analyze_documentation_sync.py` decomposition
+- [OK] Refactored `analyze_documentation_sync.py` to only handle paired doc sync
+- [OK] Updated `operations.py` to call all decomposed documentation analysis tools
+- [OK] Updated `tool_metadata.py` with all new tool entries
+- [OK] Updated tests to use decomposed tools
+
+**Batch 3 (Remaining Tools) - COMPLETED:**
+- [OK] Enhanced `functions/analyze_functions.py` with discovery logic from `generate_function_registry.py`
+- [OK] Created `functions/analyze_function_patterns.py` with pattern analysis
+- [OK] Refactored `functions/generate_function_registry.py` to use analysis results
+- [OK] Refactored `error_handling/analyze_error_handling.py` to keep only analysis methods
+- [OK] Created `error_handling/generate_error_handling_report.py` for report generation
+- [OK] Created `error_handling/generate_error_handling_recommendations.py` for recommendations
+- [OK] Created `tests/analyze_test_coverage.py` for coverage parsing and analysis
+- [OK] Created `tests/generate_test_coverage_reports.py` for report generation
+- [OK] Refactored `tests/generate_test_coverage.py` to be an orchestrator
+- [OK] Updated `operations.py` and `tool_metadata.py` with all new tool entries
+- [OK] Updated tests to use decomposed tools
+- [OK] Fixed all test failures and warnings
+
+**Benefits:**
+- Clearer separation of concerns
+- Tools can be used independently
+- Better testability (test analysis without fixing/generating)
+- Follows established naming conventions
+- More modular and reusable
+- Easier to maintain (smaller, focused files)
+
+**Cross-Cutting Tasks - COMPLETED:**
+- [OK] Ran full test suite to verify no regressions (all tests passing)
+- [OK] Updated `SCRIPT_REGISTRY` in `operations.py` with all new tool entries
+- [OK] Updated `tool_metadata.py` with tier, trust, portability for all new tools
+- [OK] Updated `AI_DEVELOPMENT_TOOLS_GUIDE.md` and `DEVELOPMENT_TOOLS_GUIDE.md` with new tool catalog entries
+- [OK] Updated `AI_DEV_TOOLS_IMPROVEMENT_PLAN.md` to mark M7.4 progress (this section)
+- [OK] Verified all CLI commands still work correctly
+- [OK] Verified audit workflows function correctly (integration tested)
+
+**Success Criteria - ALL MET:**
+- [OK] All 6 original tools decomposed into focused tools (20+ new focused tools created)
+- [OK] All existing functionality preserved (backward compatibility maintained)
+- [OK] All CLI commands work correctly (tested and verified)
+- [OK] All tests pass (full test suite passing, warnings addressed)
+- [OK] All documentation updated (guides, metadata, and improvement plan)
+- [OK] Tool metadata registry complete (all new tools registered)
+- [OK] No regressions in audit workflows (integration verified)
+- [OK] Clear separation of concerns (analyze vs generate vs fix) achieved
+
+**Final Status:** Milestone M7.4 fully completed on 2025-12-02. All 6 original multi-responsibility tools have been successfully decomposed into 20+ focused, single-responsibility tools following the established naming conventions. All functionality preserved, tests passing, documentation updated, and audit workflows verified.
+
+**Additional Decomposition (2025-12-02):**
+- **`imports/generate_module_dependencies.py`** (1418 lines) - Decomposed after M7.4 completion:
+  - **Before**: Combined import extraction, dependency analysis, pattern analysis, purpose inference, and content generation
+  - **After**:
+    - `imports/analyze_module_imports.py` (new) - Import extraction, scanning, reverse dependencies, dependency changes, purpose inference, import formatting
+    - `imports/analyze_dependency_patterns.py` (new) - Dependency pattern analysis, circular dependency detection, risk area detection, critical dependency finding
+    - `imports/generate_module_dependencies.py` (refactored) - Orchestrates the new analysis tools and focuses solely on content generation and manual enhancement preservation
+  - **Updated**: `imports/analyze_module_dependencies.py` now uses `ModuleImportAnalyzer` from `analyze_module_imports.py` instead of duplicating code
+  - **Fixed**: All import paths in `imports/` directory corrected (`from . import config` → `from .. import config`)
+  - **Status**: All tests passing, all references updated, functionality preserved
+
+---
+
+### Phase 8 - Create New Tools to Fill Identified Gaps **PENDING**
+
+**Goal:** Implement new tools based on gaps identified in Phase 7.3 to expand automated analysis, recommendations, and fixes. Also identify and create tools for entirely missing categories.
+
+**Status:** Not started. Depends on completion of Phase 7.3 gap analysis.
+
+#### Missing Tool Categories
+
+**Current categories:**
+- `ai_work/` - AI work validation
+- `config/` - Configuration validation
+- `docs/` - Documentation analysis and sync
+- `error_handling/` - Error handling coverage
+- `functions/` - Function discovery and registry
+- `imports/` - Import checking and dependencies
+- `legacy/` - Legacy cleanup
+- `reports/` - Consolidated reports
+- `shared/` - Shared infrastructure
+- `tests/` - Test coverage metrics
+
+**Missing categories that could benefit from tooling:**
+
+1. **`logging/`** - Logging analysis and validation
+   - Analyze logger usage patterns (component loggers vs root logger)
+   - Validate log level appropriateness
+   - Check for logging anti-patterns (print statements, debug in production)
+   - Analyze log message quality and consistency
+   - Validate logging configuration
+   - **Potential tools:**
+     - `logging/analyze_logger_usage.py` - Logger usage patterns
+     - `logging/analyze_log_levels.py` - Log level appropriateness
+     - `logging/analyze_logging_anti_patterns.py` - Anti-pattern detection
+     - `logging/validate_logging_config.py` - Config validation
+
+2. **`performance/`** - Performance analysis
+   - Detect performance anti-patterns (N+1 queries, inefficient loops)
+   - Analyze function complexity trends
+   - Identify potential bottlenecks
+   - Memory usage analysis
+   - **Potential tools:**
+     - `performance/analyze_performance_anti_patterns.py` - Anti-pattern detection
+     - `performance/analyze_complexity_trends.py` - Complexity tracking
+     - `performance/analyze_bottlenecks.py` - Bottleneck identification
+
+3. **`security/`** - Security analysis
+   - Security pattern validation (input validation, sensitive data handling)
+   - Vulnerability detection
+   - Secret/key exposure detection
+   - **Potential tools:**
+     - `security/analyze_security_patterns.py` - Security best practices
+     - `security/analyze_secrets.py` - Secret exposure detection
+     - `security/analyze_input_validation.py` - Input validation checks
+
+4. **`dependencies/`** - Dependency management (beyond imports)
+   - Dependency version conflict detection
+   - Outdated dependency analysis
+   - Security vulnerability scanning (dependencies)
+   - Dependency graph visualization
+   - **Potential tools:**
+     - `dependencies/analyze_dependency_conflicts.py` - Version conflicts
+     - `dependencies/analyze_outdated_dependencies.py` - Outdated packages
+     - `dependencies/analyze_dependency_vulnerabilities.py` - Security vulnerabilities
+     - `dependencies/generate_dependency_graph.py` - Visualization
+
+5. **`refactoring/`** - Refactoring assistance
+   - Code smell detection
+   - Refactoring opportunity identification
+   - Code duplication detection (could go here or in functions/)
+   - **Potential tools:**
+     - `refactoring/analyze_code_smells.py` - Code smell detection
+     - `refactoring/analyze_refactoring_opportunities.py` - Opportunity identification
+     - `refactoring/analyze_code_duplication.py` - Duplication detection
+
+6. **`standards/`** - Code standards and style enforcement
+   - Coding standard compliance (beyond what linters do)
+   - Project-specific pattern enforcement
+   - Naming convention validation
+   - **Potential tools:**
+     - `standards/analyze_coding_standards.py` - Standards compliance
+     - `standards/analyze_naming_conventions.py` - Naming validation
+     - `standards/enforce_project_patterns.py` - Pattern enforcement
+
+7. **`integration/`** - Integration testing and validation
+   - Integration point analysis
+   - API contract validation
+   - End-to-end workflow validation
+   - **Potential tools:**
+     - `integration/analyze_integration_points.py` - Integration mapping
+     - `integration/validate_api_contracts.py` - Contract validation
+     - `integration/validate_workflows.py` - Workflow validation
+
+8. **`deployment/`** - Deployment and CI/CD
+   - Deployment readiness checks
+   - CI/CD configuration validation
+   - Environment consistency checks
+   - **Potential tools:**
+     - `deployment/analyze_deployment_readiness.py` - Readiness checks
+     - `deployment/validate_ci_config.py` - CI config validation
+     - `deployment/analyze_environment_consistency.py` - Environment checks
+
+**Note:** Some of these categories might overlap with existing categories (e.g., `config/analyze_environment_health.py` could be in `deployment/`). The categorization should be based on primary purpose and usage context.
+
+**Implementation approach:**
+- Prioritize gaps by value and effort
+- Create tools following established patterns (analyze_*, generate_*, fix_*)
+- Integrate into audit workflow where appropriate
+- Add tests using synthetic fixture project
+- Update tool_metadata.py and documentation
+
+**Potential tool categories (from Phase 7.3 gap analysis):**
+
+**Documentation Domain:**
+- [ ] `docs/analyze_link_validity.py` - Validate markdown links point to existing files/sections
+- [ ] `docs/analyze_cross_references.py` - Verify cross-references include section numbers and exist
+- [ ] `docs/analyze_metadata_compliance.py` - Check metadata format adherence
+- [ ] `docs/analyze_example_markers.py` - Validate example marking standards
+- [ ] `docs/fix_cross_references.py` - Auto-fix cross-references with section numbers/anchors
+- [ ] Enhance `docs/analyze_documentation_sync.py` to check H3 heading sync
+
+**Code Quality Domain:**
+- [ ] `functions/analyze_complexity_trends.py` - Track complexity changes over time
+- [ ] `functions/analyze_type_hints.py` - Type hint coverage and quality
+- [ ] `functions/analyze_docstring_quality.py` - Docstring completeness and style
+- [ ] `functions/analyze_code_duplication.py` - Detect duplicate code patterns
+- [ ] `functions/analyze_security_patterns.py` - Security best practices validation
+
+**Testing Domain:**
+- [ ] `tests/analyze_test_markers.py` - Validate test categorization markers (integrate existing scripts)
+- [ ] `tests/analyze_test_isolation.py` - Verify tests don't have side effects
+- [ ] `tests/analyze_test_coverage_gaps.py` - Identify untested code paths
+- [ ] `tests/generate_test_suggestions.py` - Suggest tests for uncovered code
+
+**Configuration & Environment Domain:**
+- [ ] `config/analyze_environment_health.py` - Check environment setup and health
+- [ ] `config/analyze_env_variables.py` - Track environment variable usage
+- [ ] `config/validate_config_values.py` - Validate config value ranges and types
+- [ ] `config/analyze_dependency_conflicts.py` - Detect dependency version issues
+
+**AI & Prompt Domain:**
+- [ ] `ai_work/analyze_prompt_quality.py` - Validate prompt structure and completeness
+- [ ] `ai_work/analyze_prompt_consistency.py` - Check prompt template consistency
+- [ ] `ai_work/analyze_response_quality.py` - Metrics beyond structural validation
+
+**Integration & Workflow Domain:**
+- [ ] `reports/analyze_workflow_integrity.py` - Validate end-to-end workflows
+- [ ] `reports/analyze_integration_points.py` - Map and validate integration points
+
+**Milestones:**
+- M8.1 - Prioritize gaps and create implementation plan
+- M8.2 - Implement high-priority documentation tools
+- M8.3 - Implement code quality analysis tools
+- M8.4 - Implement testing domain tools
+- M8.5 - Implement configuration and environment tools
+- M8.6 - Implement AI/prompt analysis tools
+- M8.7 - Integrate new tools into audit workflow
+- M8.8 - Add comprehensive tests for all new tools
 
 ---
 
@@ -768,7 +1133,7 @@ Portable today: `development_tools/services/common.py`, `development_tools/syste
 - [OK] **Phase 4 COMPLETED (2025-11-27)**: Experimental tools moved to dedicated directory, Tier-2 tools reviewed and documented, dev tools coverage tracking added, supporting tools regression tests created (6 tests for `quick_status`, `system_signals`, `file_rotation`)
 - [OK] **Phase 5 COMPLETED (2025-11-27)**: Standard audit recipe added to workflow guide, session starter updated with dev tools routing, all documentation alignment milestones complete
 - [OK] **Phase 6 COMPLETED (2025-11-28)**: All checklists completed - all 14 supporting and experimental tools made portable via external configuration (`development_tools_config.json`). All tools changed from `mhm-specific` to `portable` portability markers. Config getter functions added to `config.py`, config example file updated with all new sections.
-- [OK] **Phase 7**: M7.1 completed (2025-12-01) - all naming conventions applied, both initial and second batch of renames complete, all references updated. M7.2 completed (directory reorganization done). M7.3 pending (tool gap analysis).
+- [OK] **Phase 7**: M7.1 completed (2025-12-01) - all naming conventions applied, both initial and second batch of renames complete, all references updated. M7.2 completed (directory reorganization done). M7.3 completed (2025-12-01) - tool gap analysis documented, 29 gaps identified across 6 domains, findings recorded in both guides. M7.4 completed (2025-12-02) - all three batches of tool decomposition completed (Legacy Tools, Documentation Tools, Remaining Tools). All 6 original multi-responsibility tools decomposed into 20+ focused tools. All tools now follow single-responsibility principle with clear separation of concerns. All cross-cutting tasks and success criteria met. Full test suite passing, documentation updated, audit workflows verified.
 
 This roadmap is intentionally incremental. You do **not** need to implement every milestone at once.  
 Phases 1-3 (tiering + core infrastructure + core analysis tools) are complete. Next focus on Phase 4 (clarify supporting vs experimental tools) or Phase 5 (UX and documentation alignment), then expand as time and energy allow.

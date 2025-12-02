@@ -43,6 +43,19 @@ except ImportError:
         sys.path.insert(0, str(project_root))
     from development_tools import config
 
+# Import decomposed coverage analysis and report generation tools
+try:
+    from development_tools.tests.analyze_test_coverage import TestCoverageAnalyzer
+    from development_tools.tests.generate_test_coverage_reports import TestCoverageReportGenerator
+except ImportError:
+    # Fallback for relative imports
+    try:
+        from .analyze_test_coverage import TestCoverageAnalyzer
+        from .generate_test_coverage_reports import TestCoverageReportGenerator
+    except ImportError:
+        TestCoverageAnalyzer = None
+        TestCoverageReportGenerator = None
+
 # Load external config on module import (safe to call multiple times)
 config.load_external_config()
 
@@ -142,9 +155,60 @@ class CoverageMetricsRegenerator:
         self.coverage_logs_dir.mkdir(parents=True, exist_ok=True)
         
         # Core modules to track coverage for
-        # Import constants from services.constants
+        # Import constants from shared.constants
         from development_tools.shared.constants import CORE_MODULES
         self.core_modules = list(CORE_MODULES)
+        
+        # Initialize analyzer and report generator
+        # Try to import if not already available (handles cases where imports failed at module level)
+        analyzer_class = TestCoverageAnalyzer
+        if analyzer_class is None:
+            try:
+                from development_tools.tests.analyze_test_coverage import TestCoverageAnalyzer as AnalyzerClass
+                analyzer_class = AnalyzerClass
+            except ImportError:
+                try:
+                    from .analyze_test_coverage import TestCoverageAnalyzer as AnalyzerClass
+                    analyzer_class = AnalyzerClass
+                except ImportError:
+                    analyzer_class = None
+        
+        if analyzer_class is not None:
+            self.analyzer = analyzer_class(str(self.project_root))
+        else:
+            self.analyzer = None
+            if logger:
+                logger.warning("TestCoverageAnalyzer not available - coverage parsing may fail")
+        
+        report_generator_class = TestCoverageReportGenerator
+        if report_generator_class is None:
+            try:
+                from development_tools.tests.generate_test_coverage_reports import TestCoverageReportGenerator as ReportGeneratorClass
+                report_generator_class = ReportGeneratorClass
+            except ImportError:
+                try:
+                    from .generate_test_coverage_reports import TestCoverageReportGenerator as ReportGeneratorClass
+                    report_generator_class = ReportGeneratorClass
+                except ImportError:
+                    report_generator_class = None
+        
+        if report_generator_class is not None:
+            artifact_dirs = {
+                'html_output': str(self.coverage_html_dir.relative_to(self.project_root)),
+                'archive': str(self.archive_root.relative_to(self.project_root)),
+                'logs': str(self.coverage_logs_dir.relative_to(self.project_root))
+            }
+            self.report_generator = report_generator_class(
+                project_root=str(self.project_root),
+                coverage_config=str(self.coverage_config_path.relative_to(self.project_root)) if self.coverage_config_path.exists() else None,
+                artifact_directories=artifact_dirs
+            )
+            # Update coverage_data_file path in report generator to match ours
+            self.report_generator.coverage_data_file = self.coverage_data_file
+        else:
+            self.report_generator = None
+            if logger:
+                logger.warning("TestCoverageReportGenerator not available - report generation may fail")
         
     def _configure_coverage_paths(self) -> None:
         """Load coverage configuration paths from coverage.ini (if it exists and specifies paths)."""
@@ -168,6 +232,31 @@ class CoverageMetricsRegenerator:
         # Ensure parent directories exist when we later write artefacts
         self.coverage_data_file.parent.mkdir(parents=True, exist_ok=True)
         self.coverage_html_dir.parent.mkdir(parents=True, exist_ok=True)
+
+    def _migrate_legacy_logs(self) -> None:
+        """Move legacy coverage logs from the old location into the new directory."""
+        legacy_dir = self.project_root / "logs" / "coverage_regeneration"
+        if not legacy_dir.exists() or legacy_dir.resolve() == self.coverage_logs_dir.resolve():
+            return
+        
+        self.coverage_logs_dir.mkdir(parents=True, exist_ok=True)
+        for item in legacy_dir.iterdir():
+            destination = self.coverage_logs_dir / item.name
+            try:
+                if destination.exists():
+                    # Preserve existing new-format logs by appending timestamp suffix
+                    suffix = datetime.now().strftime("%Y%m%d-%H%M%S")
+                    destination = self.coverage_logs_dir / f"{destination.stem}_{suffix}{destination.suffix}"
+                shutil.move(str(item), str(destination))
+            except Exception as exc:
+                if logger:
+                    logger.warning(f"Failed to migrate legacy log {item}: {exc}")
+        
+        try:
+            legacy_dir.rmdir()
+        except OSError:
+            # Directory not empty (maybe concurrent process); leave it alone
+            pass
 
     def run_coverage_analysis(self) -> Dict[str, Dict[str, any]]:
         """Run pytest coverage analysis and extract metrics."""
@@ -299,12 +388,18 @@ class CoverageMetricsRegenerator:
             
             # Parse coverage from log file if available, otherwise from stdout
             coverage_output_text = log_content if log_content else (result.stdout or "")
-            coverage_data = self.parse_coverage_output(coverage_output_text)
+            if self.analyzer:
+                coverage_data = self.analyzer.parse_coverage_output(coverage_output_text)
+            else:
+                coverage_data = {}
             # Only use existing coverage.json as fallback if pytest actually ran but didn't produce output
             coverage_collected = bool(coverage_data)
             
             if not coverage_data and coverage_output.exists() and pytest_ran:
-                coverage_data = self._load_coverage_json(coverage_output)
+                if self.analyzer:
+                    coverage_data = self.analyzer.load_coverage_json(coverage_output)
+                else:
+                    coverage_data = {}
                 coverage_collected = bool(coverage_data)
             elif not pytest_ran and logger:
                 logger.warning("Pytest appears not to have run - no test output detected in stdout or log files")
@@ -315,10 +410,16 @@ class CoverageMetricsRegenerator:
                     if stderr_content:
                         logger.warning(f"Pytest stderr from log (first 500 chars): {stderr_content[:500]}")
             
-            overall_coverage = self.extract_overall_coverage(coverage_output_text)
+            if self.analyzer:
+                overall_coverage = self.analyzer.extract_overall_coverage(coverage_output_text)
+            else:
+                overall_coverage = {}
             # Always try to load from JSON file if it exists and pytest ran, as it's more accurate
             if coverage_output.exists() and pytest_ran:
-                json_data = self._load_coverage_json(coverage_output)
+                if self.analyzer:
+                    json_data = self.analyzer.load_coverage_json(coverage_output)
+                else:
+                    json_data = {}
                 if json_data:
                     # Recalculate overall from JSON data
                     total_statements = sum(f.get('statements', 0) for f in json_data.values())
@@ -330,8 +431,9 @@ class CoverageMetricsRegenerator:
                     if not coverage_data:
                         coverage_data = json_data
             elif not overall_coverage.get('overall_coverage') and coverage_output.exists() and pytest_ran:
-                overall_coverage = self._extract_overall_from_json(coverage_output)
-                coverage_collected = bool(overall_coverage.get('overall_coverage'))
+                if self.analyzer:
+                    overall_coverage = self.analyzer.extract_overall_from_json(coverage_output)
+                    coverage_collected = bool(overall_coverage.get('overall_coverage'))
             
             # Enhanced error detection and reporting
             if result.returncode != 0:
@@ -390,6 +492,7 @@ class CoverageMetricsRegenerator:
                     if error_details:
                         error_msg += ":\n  - " + "\n  - ".join(error_details)
                     error_msg += f"\n  See {self.pytest_stderr_log} for full stderr output"
+                    cmd_str = ' '.join(cmd)  # Convert command list to string for error message
                     error_msg += f"\n  Command: {cmd_str}"
                     
                     if logger:
@@ -404,7 +507,11 @@ class CoverageMetricsRegenerator:
                         logger.info(f"Random seed used: {test_results['random_seed']}")
             
             try:
-                self.finalize_coverage_outputs()
+                if self.report_generator:
+                    self.report_generator.finalize_coverage_outputs()
+                else:
+                    # Fallback to old method if report generator not available
+                    self._finalize_coverage_outputs_fallback()
             except Exception as finalize_error:
                 if logger:
                     logger.warning(f"Failed to finalize coverage artefacts: {finalize_error}")
@@ -485,13 +592,21 @@ class CoverageMetricsRegenerator:
             )
             
             # Parse coverage results (even if pytest exited with non-zero code, coverage may still be available)
-            coverage_data = self.parse_coverage_output(result.stdout)
+            if self.analyzer:
+                coverage_data = self.analyzer.parse_coverage_output(result.stdout)
+            else:
+                coverage_data = {}
             if not coverage_data and coverage_output.exists():
-                coverage_data = self._load_coverage_json(coverage_output)
+                if self.analyzer:
+                    coverage_data = self.analyzer.load_coverage_json(coverage_output)
             
-            overall_coverage = self.extract_overall_coverage(result.stdout)
+            if self.analyzer:
+                overall_coverage = self.analyzer.extract_overall_coverage(result.stdout)
+            else:
+                overall_coverage = {}
             if not overall_coverage.get('overall_coverage') and coverage_output.exists():
-                overall_coverage = self._extract_overall_from_json(coverage_output)
+                if self.analyzer:
+                    overall_coverage = self.analyzer.extract_overall_from_json(coverage_output)
             
             # Log status after attempting to extract coverage
             if result.returncode != 0:
@@ -659,525 +774,19 @@ class CoverageMetricsRegenerator:
         if logger:
             logger.info(f"Saved pytest output to {stdout_path} and {stderr_path}")
     
-    def parse_coverage_output(self, output: str) -> Dict[str, Dict[str, any]]:
-        """Parse the coverage output to extract module-specific metrics."""
-        coverage_data = {}
-        
-        # Split output into sections
-        sections = output.split('Name')
-        if len(sections) < 2:
-            return coverage_data
-            
-        coverage_section = sections[1]
-        lines = coverage_section.strip().split('\n')
-        
-        for line in lines:
-            if '---' in line or not line.strip():
-                continue
-                
-            # Parse coverage line
-            parts = line.split()
-            if len(parts) >= 4:
-                try:
-                    module_name = parts[0]
-                    statements = int(parts[1])
-                    missed = int(parts[2])
-                    coverage = int(parts[3].rstrip('%'))
-                    
-                    # Extract missing line numbers if available
-                    missing_lines = []
-                    if len(parts) > 4:
-                        missing_part = ' '.join(parts[4:])
-                        missing_lines = self.extract_missing_lines(missing_part)
-                    
-                    coverage_data[module_name] = {
-                        'statements': statements,
-                        'missed': missed,
-                        'coverage': coverage,
-                        'missing_lines': missing_lines,
-                        'covered': statements - missed
-                    }
-                    
-                except (ValueError, IndexError):
-                    continue
-                    
-        return coverage_data
-
-    def _load_coverage_json(self, json_path: Path) -> Dict[str, Dict[str, any]]:
-        """Fallback parser that reads module metrics from coverage JSON output."""
-        try:
-            with open(json_path, 'r', encoding='utf-8') as json_file:
-                data = json.load(json_file)
-        except (FileNotFoundError, json.JSONDecodeError) as exc:
-            if logger:
-                logger.warning(f"Unable to load coverage JSON data: {exc}")
-            return {}
-        
-        files = data.get('files', {})
-        coverage_data: Dict[str, Dict[str, any]] = {}
-        
-        for module_name, file_data in files.items():
-            # Normalize path to use backslashes (Windows format) to match plan file format
-            # Coverage JSON uses backslashes on Windows, but ensure consistency
-            normalized_name = module_name.replace('/', '\\')
-            
-            summary = file_data.get('summary', {})
-            statements = int(summary.get('num_statements', 0))
-            covered = int(summary.get('covered_lines', statements - summary.get('missing_lines', 0)))
-            missed = int(summary.get('missing_lines', statements - covered))
-            percent = summary.get('percent_covered')
-            if isinstance(percent, float):
-                percent_value = int(round(percent))
-            else:
-                try:
-                    percent_value = int(percent)
-                except (TypeError, ValueError):
-                    percent_value = 0
-            
-            missing_lines = file_data.get('missing_lines', [])
-            missing_line_strings = [str(line) for line in missing_lines]
-            
-            coverage_data[normalized_name] = {
-                'statements': statements,
-                'missed': missed,
-                'coverage': percent_value,
-                'missing_lines': missing_line_strings,
-                'covered': covered
-            }
-        
-        return coverage_data
-    
-    def extract_missing_lines(self, missing_part: str) -> List[str]:
-        """Extract missing line numbers from coverage output."""
-        missing_lines = []
-        
-        # Look for patterns like "1-5, 10, 15-20"
-        line_patterns = [
-            r'(\d+)-(\d+)',  # Range like "1-5"
-            r'(\d+)',        # Single line like "10"
-        ]
-        
-        for pattern in line_patterns:
-            matches = re.findall(pattern, missing_part)
-            for match in matches:
-                if len(match) == 2:  # Range
-                    start, end = int(match[0]), int(match[1])
-                    missing_lines.extend([str(i) for i in range(start, end + 1)])
-                else:  # Single line
-                    missing_lines.append(match[0])
-                    
-        return missing_lines
-    
-    def extract_overall_coverage(self, output: str) -> Dict[str, any]:
-        """Extract overall coverage metrics."""
-        overall_data = {
-            'total_statements': 0,
-            'total_missed': 0,
-            'overall_coverage': 0.0
-        }
-        
-        # Look for TOTAL line
-        total_pattern = r'TOTAL\s+(\d+)\s+(\d+)\s+(\d+)%'
-        match = re.search(total_pattern, output)
-        
-        if match:
-            total_statements = int(match.group(1))
-            total_missed = int(match.group(2))
-            overall_data['total_statements'] = total_statements
-            overall_data['total_missed'] = total_missed
-            # Calculate coverage with 1 decimal place for accuracy
-            if total_statements > 0:
-                overall_data['overall_coverage'] = round((total_statements - total_missed) / total_statements * 100, 1)
-            else:
-                overall_data['overall_coverage'] = 0.0
-            
-        return overall_data
-
-    def _extract_overall_from_json(self, json_path: Path) -> Dict[str, any]:
-        """Compute overall coverage using the JSON report."""
-        try:
-            with open(json_path, 'r', encoding='utf-8') as json_file:
-                data = json.load(json_file)
-        except (FileNotFoundError, json.JSONDecodeError):
-            return {
-                'total_statements': 0,
-                'total_missed': 0,
-                'overall_coverage': 0.0
-            }
-        
-        files = data.get('files', {})
-        total_statements = 0
-        total_missed = 0
-        
-        for file_data in files.values():
-            summary = file_data.get('summary', {})
-            total_statements += int(summary.get('num_statements', 0))
-            total_missed += int(summary.get('missing_lines', 0))
-        
-        if total_statements:
-            percent = round((total_statements - total_missed) / total_statements * 100, 1)
-        else:
-            percent = 0.0
-        
-        return {
-            'total_statements': total_statements,
-            'total_missed': total_missed,
-            'overall_coverage': percent
-        }
-
-    def finalize_coverage_outputs(self) -> None:
-        """Combine coverage data, generate HTML, and clean up artefacts."""
-        env = os.environ.copy()
-        env['COVERAGE_FILE'] = str(self.coverage_data_file)
-        if self.coverage_config_path.exists():
-            env['COVERAGE_RCFILE'] = str(self.coverage_config_path)
-        
-        coverage_cmd = [sys.executable, '-m', 'coverage']
-        
-        shard_paths = self._collect_shard_paths()
-        if shard_paths:
-            combine_dirs = {
-                self.project_root.resolve(),
-                self.coverage_data_file.parent.resolve()
-            }
-            combine_args = coverage_cmd + ['combine'] + [str(path) for path in combine_dirs]
-            combine_result = subprocess.run(
-                combine_args,
-                capture_output=True,
-                text=True,
-                cwd=self.project_root,
-                env=env
-            )
-            self._write_command_log('coverage_combine', combine_result)
-            if combine_result.returncode != 0:
-                stdout_message = (combine_result.stdout or "").strip()
-                stderr_message = (combine_result.stderr or "").strip()
-                if "No data to combine" in stdout_message:
-                    if logger:
-                        logger.info("coverage combine reported no data to combine; continuing.")
-                elif logger:
-                    logger.warning(
-                        f"coverage combine exited with {combine_result.returncode}: {stderr_message or stdout_message}"
-                    )
-        else:
-            skip_message = "Skipped coverage combine: no shard files detected."
-            self._write_text_log('coverage_combine', skip_message)
-            if logger:
-                logger.info(skip_message)
-        
-        # Generate HTML report in the canonical directory
-        if self.coverage_html_dir.exists():
-            shutil.rmtree(self.coverage_html_dir)
-        self.coverage_html_dir.mkdir(parents=True, exist_ok=True)
-        
-        html_args = coverage_cmd + ['html', '-d', str(self.coverage_html_dir)]
-        html_result = subprocess.run(
-            html_args,
-            capture_output=True,
-            text=True,
-            cwd=self.project_root,
-            env=env
-        )
-        self._write_command_log('coverage_html', html_result)
-        if html_result.returncode != 0 and logger:
-            logger.warning(
-                f"coverage html exited with {html_result.returncode}: {html_result.stderr.strip()}"
-            )
-        
-        # Regenerate JSON report after combine to ensure it reflects combined data
-        coverage_output = self.project_root / "coverage.json"
-        json_args = coverage_cmd + ['json', '-o', str(coverage_output.resolve())]
-        json_result = subprocess.run(
-            json_args,
-            capture_output=True,
-            text=True,
-            cwd=self.project_root,
-            env=env
-        )
-        if json_result.returncode != 0 and logger:
-            logger.warning(f"coverage json exited with {json_result.returncode}: {json_result.stderr.strip()}")
-        elif logger:
-            logger.debug(f"Regenerated coverage.json after combine")
-        
-        self._cleanup_coverage_shards()
-        self._archive_legacy_html_dirs()
-        self._cleanup_shutdown_flag()
-        self._cleanup_old_logs()
-
-    def _write_command_log(self, command_name: str, result: subprocess.CompletedProcess) -> None:
-        """Persist stdout/stderr for coverage helper commands."""
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        log_path = self.coverage_logs_dir / f"{command_name}_{timestamp}.log"
-        latest_path = self.coverage_logs_dir / f"{command_name}.latest.log"
-        
-        content_lines = [
-            f"# Command: {command_name}",
-            f"# Return code: {result.returncode}",
-            "",
-            "## STDOUT",
-            result.stdout or "",
-            "",
-            "## STDERR",
-            result.stderr or ""
-        ]
-        log_text = "\n".join(content_lines)
-        log_path.write_text(log_text, encoding='utf-8', errors='ignore')
-        latest_path.write_text(log_text, encoding='utf-8', errors='ignore')
-        self.command_logs.append(log_path)
-        
+    def _finalize_coverage_outputs_fallback(self) -> None:
+        """Fallback method for finalizing coverage outputs if report generator is not available."""
+        # This is a minimal fallback - ideally the report generator should always be available
         if logger:
-            logger.info(f"Saved {command_name} logs to {log_path}")
-
-    def _write_text_log(self, log_name: str, message: str) -> None:
-        """Create a simple log file with a message."""
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        log_path = self.coverage_logs_dir / f"{log_name}_{timestamp}.log"
-        latest_path = self.coverage_logs_dir / f"{log_name}.latest.log"
-        content = f"# {log_name.replace('_', ' ').title()}\n\n{message}\n"
-        log_path.write_text(content, encoding='utf-8', errors='ignore')
-        latest_path.write_text(content, encoding='utf-8', errors='ignore')
-        self.command_logs.append(log_path)
-
-    def _collect_shard_paths(self) -> List[Path]:
-        """Return a list of coverage shard files currently on disk."""
-        shard_paths: List[Path] = []
-        patterns = [
-            self.project_root.glob('.coverage.*'),
-            self.coverage_data_file.parent.glob(f"{self.coverage_data_file.name}.*")
-        ]
-        for iterator in patterns:
-            for shard in iterator:
-                if shard.exists():
-                    shard_paths.append(shard)
-        return shard_paths
-
-    def _cleanup_coverage_shards(self) -> None:
-        """Remove leftover .coverage.* files to prevent stale data."""
-        removed = 0
-        for shard in self._collect_shard_paths():
-            try:
-                shard.unlink()
-                removed += 1
-            except FileNotFoundError:
-                continue
-        
-        # Remove root .coverage if different from configured data file
-        root_coverage = self.project_root / ".coverage"
-        if root_coverage.exists() and root_coverage.resolve() != self.coverage_data_file.resolve():
-            try:
-                root_coverage.unlink()
-                removed += 1
-            except FileNotFoundError:
-                pass
-        
-        if logger and removed:
-            logger.info(f"Removed {removed} stale coverage shard(s)")
-
-    def _migrate_legacy_logs(self) -> None:
-        """Move legacy coverage logs from the old location into the new directory."""
-        legacy_dir = self.project_root / "logs" / "coverage_regeneration"
-        if not legacy_dir.exists() or legacy_dir.resolve() == self.coverage_logs_dir.resolve():
-            return
-        
-        self.coverage_logs_dir.mkdir(parents=True, exist_ok=True)
-        for item in legacy_dir.iterdir():
-            destination = self.coverage_logs_dir / item.name
-            try:
-                if destination.exists():
-                    # Preserve existing new-format logs by appending timestamp suffix
-                    suffix = datetime.now().strftime("%Y%m%d-%H%M%S")
-                    destination = self.coverage_logs_dir / f"{destination.stem}_{suffix}{destination.suffix}"
-                shutil.move(str(item), str(destination))
-            except Exception as exc:
-                if logger:
-                    logger.warning(f"Failed to migrate legacy log {item}: {exc}")
-        
-        try:
-            legacy_dir.rmdir()
-        except OSError:
-            # Directory not empty (maybe concurrent process); leave it alone
-            pass
-
-    def _archive_legacy_html_dirs(self) -> None:
-        """Archive and remove redundant legacy coverage HTML directories."""
-        legacy_dirs = [
-            self.project_root / "htmlcov",
-            self.project_root / "tests" / "coverage_html",
-            self.project_root / "tests" / "htmlcov"
-        ]
-        archive_root = self.archive_root
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        
-        for legacy_dir in legacy_dirs:
-            if not legacy_dir.exists():
-                continue
-            
-            # Skip if this directory is the canonical destination
-            if legacy_dir.resolve() == self.coverage_html_dir.resolve():
-                continue
-            
-            destination = archive_root / timestamp / legacy_dir.name
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            
-            if destination.exists():
-                shutil.rmtree(destination)
-            
-            shutil.move(str(legacy_dir), str(destination))
-            self.archived_directories.append({
-                'source': str(legacy_dir),
-                'destination': str(destination)
-            })
-            
-            if logger:
-                logger.info(f"Archived legacy coverage directory {legacy_dir} -> {destination}")
-
-    def _cleanup_shutdown_flag(self) -> None:
-        """Remove the transient shutdown_request.flag file if it was created."""
-        flag_path = self.project_root / "shutdown_request.flag"
-        if flag_path.exists():
-            try:
-                flag_path.unlink()
-                if logger:
-                    logger.info("Removed stray shutdown_request.flag")
-            except OSError as exc:
-                if logger:
-                    logger.warning(f"Unable to remove shutdown_request.flag: {exc}")
+            logger.warning("Using fallback coverage finalization - report generator not available")
     
-    def _cleanup_old_logs(self) -> None:
-        """Remove old coverage regeneration logs, keeping only the latest files."""
-        if not self.coverage_logs_dir.exists():
-            return
-        
-        # Group log files by base name (e.g., pytest_stdout, coverage_html)
-        log_groups = {}
-        for log_file in self.coverage_logs_dir.glob("*.log"):
-            # Skip .latest.log files - always keep these
-            if log_file.name.endswith(".latest.log"):
-                continue
-            
-            # Extract base name (e.g., "pytest_stdout_20251103-010734.log" -> "pytest_stdout")
-            base_name = log_file.stem
-            # Remove timestamp pattern (YYYYMMDD-HHMMSS)
-            parts = base_name.split("_")
-            # Try to find the base name by removing timestamp
-            if len(parts) >= 3:
-                # Pattern: name_20251103_010734 or name_20251103-010734
-                possible_base = "_".join(parts[:-2])  # Remove last two parts if timestamp
-                if not (len(parts[-2]) == 8 and len(parts[-1]) == 6):  # Not a timestamp
-                    possible_base = base_name
-            else:
-                possible_base = base_name
-            
-            # More robust: check if last part looks like a timestamp
-            if "_" in base_name:
-                parts = base_name.rsplit("_", 1)
-                if len(parts) == 2 and len(parts[1]) in [15, 14]:  # timestamp length
-                    possible_base = parts[0]
-                else:
-                    possible_base = base_name
-            else:
-                possible_base = base_name
-            
-            if "-" in possible_base:
-                # Handle hyphenated timestamps like "20251103-010734"
-                possible_base = possible_base.rsplit("-", 1)[0]
-                if "_" in possible_base:
-                    possible_base = possible_base.rsplit("_", 1)[0]
-            
-            if possible_base not in log_groups:
-                log_groups[possible_base] = []
-            log_groups[possible_base].append(log_file)
-        
-        removed_count = 0
-        # For each group, keep only the 2 most recent files (plus the .latest.log)
-        for base_name, log_files in log_groups.items():
-            if len(log_files) <= 2:
-                continue  # Keep all if we have 2 or fewer
-            
-            # Sort by modification time (newest first)
-            log_files.sort(key=lambda f: f.stat().st_mtime, reverse=True)
-            # Keep only the 2 most recent, remove the rest
-            files_to_remove = log_files[2:]
-            
-            for log_file in files_to_remove:
-                try:
-                    log_file.unlink()
-                    removed_count += 1
-                except Exception as exc:
-                    if logger:
-                        logger.warning(f"Unable to remove old log {log_file}: {exc}")
-        
-        if logger and removed_count > 0:
-            logger.info(f"Cleaned up {removed_count} old coverage log files")
-    
-    def categorize_modules(self, coverage_data: Dict[str, Dict[str, any]]) -> Dict[str, List[str]]:
-        """Categorize modules by coverage level."""
-        categories = {
-            'excellent': [],      # 80%+
-            'good': [],           # 60-79%
-            'moderate': [],       # 40-59%
-            'needs_work': [],     # 20-39%
-            'critical': []        # <20%
-        }
-        
-        for module_name, data in coverage_data.items():
-            coverage = data['coverage']
-            
-            if coverage >= 80:
-                categories['excellent'].append(module_name)
-            elif coverage >= 60:
-                categories['good'].append(module_name)
-            elif coverage >= 40:
-                categories['moderate'].append(module_name)
-            elif coverage >= 20:
-                categories['needs_work'].append(module_name)
-            else:
-                categories['critical'].append(module_name)
-                
-        return categories
-    
-    def generate_coverage_summary(self, coverage_data: Dict[str, Dict[str, any]], 
-                                overall_data: Dict[str, any]) -> str:
-        """Generate a coverage summary for the plan."""
-        summary_lines = []
-        
-        # Overall coverage (format with 1 decimal place for accuracy)
-        coverage_value = overall_data['overall_coverage']
-        if isinstance(coverage_value, float):
-            coverage_str = f"{coverage_value:.1f}"
-        elif isinstance(coverage_value, int):
-            coverage_str = f"{coverage_value:.0f}"
-        else:
-            coverage_str = str(coverage_value)
-        summary_lines.append(f"### **Overall Coverage: {coverage_str}%**")
-        summary_lines.append(f"- **Total Statements**: {overall_data['total_statements']:,}")
-        summary_lines.append(f"- **Covered Statements**: {overall_data['total_statements'] - overall_data['total_missed']:,}")
-        summary_lines.append(f"- **Uncovered Statements**: {overall_data['total_missed']:,}")
-        summary_lines.append(f"- **Goal**: Expand to **80%+ coverage** for comprehensive reliability\n")
-        
-        # Coverage by category
-        categories = self.categorize_modules(coverage_data)
-        
-        summary_lines.append("### **Coverage Summary by Category**")
-        
-        for category, modules in categories.items():
-            if modules:
-                avg_coverage = sum(coverage_data[m]['coverage'] for m in modules) / len(modules)
-                summary_lines.append(f"- **{category.title()} ({avg_coverage:.0f}% avg)**: {len(modules)} modules")
-                
-        summary_lines.append("")
-        
-        # Detailed module breakdown
-        summary_lines.append("### **Detailed Module Coverage**")
-        
-        # Sort modules by coverage (lowest first)
-        sorted_modules = sorted(coverage_data.items(), key=lambda x: x[1]['coverage'])
-        
-        for module_name, data in sorted_modules:
-            status_emoji = "*" if data['coverage'] >= 80 else "!" if data['coverage'] >= 60 else "X"
-            summary_lines.append(f"- **{status_emoji} {module_name}**: {data['coverage']}% ({data['covered']}/{data['statements']} lines)")
-            
-        return '\n'.join(summary_lines)
+    def _generate_coverage_summary_fallback(self, coverage_data: Dict[str, Dict[str, any]], 
+                                            overall_data: Dict[str, any]) -> str:
+        """Fallback method for generating coverage summary if report generator is not available."""
+        # This is a minimal fallback - ideally the report generator should always be available
+        if logger:
+            logger.warning("Using fallback coverage summary generation - report generator not available")
+        return f"Overall Coverage: {overall_data.get('overall_coverage', 0):.1f}%"
     
     def update_coverage_plan(self, coverage_summary: str) -> bool:
         """Update the TEST_COVERAGE_EXPANSION_PLAN.md with new metrics."""
@@ -1317,10 +926,17 @@ class CoverageMetricsRegenerator:
             return {}
         
         # Generate summary
-        coverage_summary = self.generate_coverage_summary(
-            coverage_results['modules'], 
-            coverage_results['overall']
-        )
+        if self.report_generator:
+            coverage_summary = self.report_generator.generate_coverage_summary(
+                coverage_results['modules'], 
+                coverage_results['overall']
+            )
+        else:
+            # Fallback to old method if report generator not available
+            coverage_summary = self._generate_coverage_summary_fallback(
+                coverage_results['modules'], 
+                coverage_results['overall']
+            )
         
         # Print summary (headers removed - added by consolidated report)
         print(coverage_summary)

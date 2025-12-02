@@ -1504,7 +1504,7 @@
     ]
   },
   "tests/conftest.py": {
-    "mtime": 1764573322.7238386,
+    "mtime": 1764659573.1169395,
     "issues": []
   },
   "tests/core/test_file_auditor.py": {
@@ -5573,7 +5573,7 @@
     "issues": []
   },
   "tests/development_tools/conftest.py": {
-    "mtime": 1764551803.7530773,
+    "mtime": 1764636278.5929773,
     "issues": []
   },
   "tests/development_tools/test_ai_tools_runner.py": {
@@ -5589,7 +5589,7 @@
     "issues": []
   },
   "tests/development_tools/test_documentation_sync_checker.py": {
-    "mtime": 1764549849.065918,
+    "mtime": 1764634725.7984724,
     "issues": [
       {
         "type": "warning",
@@ -5616,11 +5616,24 @@
         "symbol": "unused-import",
         "message": "Unused Path imported from pathlib",
         "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.test_documentation_sync_checker",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 35,
+        "path": "tests\\development_tools\\test_documentation_sync_checker.py",
+        "symbol": "unused-import",
+        "message": "Unused defaultdict imported from collections",
+        "message-id": "W0611"
       }
     ]
   },
   "tests/development_tools/test_error_scenarios.py": {
-    "mtime": 1764551842.3326516,
+    "mtime": 1764666826.6524794,
     "issues": [
       {
         "type": "warning",
@@ -5651,7 +5664,7 @@
     ]
   },
   "tests/development_tools/test_generate_function_registry.py": {
-    "mtime": 1764477518.8107038,
+    "mtime": 1764653525.5736976,
     "issues": [
       {
         "type": "warning",
@@ -5682,7 +5695,7 @@
     ]
   },
   "tests/development_tools/test_generate_module_dependencies.py": {
-    "mtime": 1764477518.8178506,
+    "mtime": 1764666583.0251882,
     "issues": [
       {
         "type": "warning",
@@ -5717,7 +5730,7 @@
     "issues": []
   },
   "tests/development_tools/test_legacy_reference_cleanup.py": {
-    "mtime": 1764549849.065918,
+    "mtime": 1764634725.7984724,
     "issues": [
       {
         "type": "warning",
@@ -5748,7 +5761,7 @@
     ]
   },
   "tests/development_tools/test_regenerate_coverage_metrics.py": {
-    "mtime": 1764551842.3326516,
+    "mtime": 1764658430.978769,
     "issues": [
       {
         "type": "warning",
@@ -6112,8 +6125,35 @@
     "issues": []
   },
   "development_tools/functions/generate_function_registry.py": {
-    "mtime": 1764569003.530648,
-    "issues": []
+    "mtime": 1764642620.4787588,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.functions.generate_function_registry",
+        "obj": "",
+        "line": 13,
+        "column": 0,
+        "endLine": 13,
+        "endColumn": 10,
+        "path": "development_tools\\functions\\generate_function_registry.py",
+        "symbol": "unused-import",
+        "message": "Unused import ast",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.functions.generate_function_registry",
+        "obj": "",
+        "line": 17,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 34,
+        "path": "development_tools\\functions\\generate_function_registry.py",
+        "symbol": "unused-import",
+        "message": "Unused Any imported from typing",
+        "message-id": "W0611"
+      }
+    ]
   },
   "development_tools/imports/__init__.py": {
     "mtime": 1764477374.2729943,
@@ -6231,7 +6271,7 @@
     "issues": []
   },
   "development_tools/shared/operations.py": {
-    "mtime": 1764593755.925899,
+    "mtime": 1764666583.0262153,
     "issues": []
   },
   "development_tools/shared/standard_exclusions.py": {
@@ -6239,7 +6279,7 @@
     "issues": []
   },
   "development_tools/shared/tool_metadata.py": {
-    "mtime": 1764584963.3957658,
+    "mtime": 1764666583.0251882,
     "issues": []
   },
   "development_tools/tests/__init__.py": {
@@ -6381,8 +6421,48 @@
     ]
   },
   "development_tools/imports/generate_module_dependencies.py": {
-    "mtime": 1764582005.3391314,
-    "issues": []
+    "mtime": 1764667318.8712118,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.imports.generate_module_dependencies",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 51,
+        "path": "development_tools\\imports\\generate_module_dependencies.py",
+        "symbol": "unused-import",
+        "message": "Unused Any imported from typing",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.imports.generate_module_dependencies",
+        "obj": "",
+        "line": 24,
+        "column": 4,
+        "endLine": 31,
+        "endColumn": 5,
+        "path": "development_tools\\imports\\generate_module_dependencies.py",
+        "symbol": "unused-import",
+        "message": "Unused scan_all_python_files imported from analyze_module_imports",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.imports.generate_module_dependencies",
+        "obj": "",
+        "line": 32,
+        "column": 4,
+        "endLine": 35,
+        "endColumn": 5,
+        "path": "development_tools\\imports\\generate_module_dependencies.py",
+        "symbol": "unused-import",
+        "message": "Unused analyze_dependency_patterns imported from analyze_dependency_patterns",
+        "message-id": "W0611"
+      }
+    ]
   },
   "development_tools/shared/file_rotation.py": {
     "mtime": 1764487449.6473727,
@@ -6401,30 +6481,29 @@
     "issues": []
   },
   "development_tools/docs/analyze_documentation_sync.py": {
-    "mtime": 1764589019.1347356,
-    "issues": [
-      {
-        "type": "warning",
-        "module": "development_tools.docs.analyze_documentation_sync",
-        "obj": "",
-        "line": 41,
-        "column": 4,
-        "endLine": 46,
-        "endColumn": 5,
-        "path": "development_tools\\docs\\analyze_documentation_sync.py",
-        "symbol": "unused-import",
-        "message": "Unused DEFAULT_DOCS imported from shared.constants",
-        "message-id": "W0611"
-      }
-    ]
+    "mtime": 1764617930.9391537,
+    "issues": []
   },
   "development_tools/docs/fix_version_sync.py": {
-    "mtime": 1764592611.2213683,
+    "mtime": 1764636011.016667,
     "issues": []
   },
   "development_tools/error_handling/analyze_error_handling.py": {
-    "mtime": 1764552333.250724,
+    "mtime": 1764664462.587858,
     "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.error_handling.analyze_error_handling",
+        "obj": "",
+        "line": 15,
+        "column": 0,
+        "endLine": 15,
+        "endColumn": 11,
+        "path": "development_tools\\error_handling\\analyze_error_handling.py",
+        "symbol": "unused-import",
+        "message": "Unused import json",
+        "message-id": "W0611"
+      },
       {
         "type": "warning",
         "module": "development_tools.error_handling.analyze_error_handling",
@@ -6441,7 +6520,7 @@
     ]
   },
   "development_tools/functions/analyze_function_registry.py": {
-    "mtime": 1764552161.568481,
+    "mtime": 1764664462.587858,
     "issues": [
       {
         "type": "warning",
@@ -6472,11 +6551,11 @@
     ]
   },
   "development_tools/functions/analyze_functions.py": {
-    "mtime": 1764551842.3326516,
+    "mtime": 1764664462.5816154,
     "issues": []
   },
   "development_tools/functions/analyze_package_exports.py": {
-    "mtime": 1764552262.2949278,
+    "mtime": 1764664462.587858,
     "issues": [
       {
         "type": "warning",
@@ -6498,8 +6577,21 @@
     "issues": []
   },
   "development_tools/imports/analyze_module_dependencies.py": {
-    "mtime": 1764569144.3407013,
+    "mtime": 1764667318.8435435,
     "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.imports.analyze_module_dependencies",
+        "obj": "",
+        "line": 9,
+        "column": 0,
+        "endLine": 9,
+        "endColumn": 10,
+        "path": "development_tools\\imports\\analyze_module_dependencies.py",
+        "symbol": "unused-import",
+        "message": "Unused import ast",
+        "message-id": "W0611"
+      },
       {
         "type": "warning",
         "module": "development_tools.imports.analyze_module_dependencies",
@@ -6512,11 +6604,24 @@
         "symbol": "unused-import",
         "message": "Unused Optional imported from typing",
         "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.imports.analyze_module_dependencies",
+        "obj": "",
+        "line": 27,
+        "column": 4,
+        "endLine": 27,
+        "endColumn": 64,
+        "path": "development_tools\\imports\\analyze_module_dependencies.py",
+        "symbol": "unused-import",
+        "message": "Unused should_exclude_file imported from shared.standard_exclusions",
+        "message-id": "W0611"
       }
     ]
   },
   "development_tools/imports/analyze_unused_imports.py": {
-    "mtime": 1764552866.8690405,
+    "mtime": 1764667318.8712118,
     "issues": [
       {
         "type": "warning",
@@ -6534,7 +6639,7 @@
     ]
   },
   "development_tools/legacy/fix_legacy_references.py": {
-    "mtime": 1764591478.2032683,
+    "mtime": 1764617930.9366908,
     "issues": []
   },
   "development_tools/reports/generate_consolidated_report.py": {
@@ -6550,159 +6655,161 @@
     "issues": []
   },
   "development_tools/tests/generate_test_coverage.py": {
-    "mtime": 1764582005.3381307,
-    "issues": []
+    "mtime": 1764659573.1159334,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.tests.generate_test_coverage",
+        "obj": "",
+        "line": 17,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 11,
+        "path": "development_tools\\tests\\generate_test_coverage.py",
+        "symbol": "unused-import",
+        "message": "Unused import json",
+        "message-id": "W0611"
+      }
+    ]
   },
   "tests/development_tools/test_run_development_tools.py": {
     "mtime": 1764551842.3326516,
     "issues": []
   },
   "development_tools/docs/fix_documentation.py": {
-    "mtime": 1764594337.2341948,
+    "mtime": 1764661648.1401694,
+    "issues": []
+  },
+  "development_tools/docs/analyze_ascii_compliance.py": {
+    "mtime": 1764636011.0140464,
+    "issues": []
+  },
+  "development_tools/docs/analyze_heading_numbering.py": {
+    "mtime": 1764636011.0156617,
+    "issues": []
+  },
+  "development_tools/docs/analyze_missing_addresses.py": {
+    "mtime": 1764617930.9391537,
+    "issues": []
+  },
+  "development_tools/docs/analyze_path_drift.py": {
+    "mtime": 1764636011.0140464,
+    "issues": []
+  },
+  "development_tools/docs/analyze_unconverted_links.py": {
+    "mtime": 1764617930.9391537,
+    "issues": []
+  },
+  "development_tools/docs/generate_directory_tree.py": {
+    "mtime": 1764617930.9391537,
+    "issues": []
+  },
+  "development_tools/legacy/analyze_legacy_references.py": {
+    "mtime": 1764617930.9366908,
+    "issues": []
+  },
+  "development_tools/legacy/generate_legacy_reference_report.py": {
+    "mtime": 1764617930.9366908,
+    "issues": []
+  },
+  "development_tools/error_handling/generate_error_handling_recommendations.py": {
+    "mtime": 1764642620.4787588,
+    "issues": []
+  },
+  "development_tools/error_handling/generate_error_handling_report.py": {
+    "mtime": 1764642620.4797597,
+    "issues": []
+  },
+  "development_tools/functions/analyze_function_patterns.py": {
+    "mtime": 1764664462.587858,
     "issues": [
       {
         "type": "warning",
-        "module": "development_tools.docs.fix_documentation",
+        "module": "development_tools.functions.analyze_function_patterns",
         "obj": "",
-        "line": 25,
+        "line": 14,
         "column": 0,
-        "endLine": 25,
-        "endColumn": 35,
-        "path": "development_tools\\docs\\fix_documentation.py",
+        "endLine": 14,
+        "endColumn": 34,
+        "path": "development_tools\\functions\\analyze_function_patterns.py",
         "symbol": "unused-import",
-        "message": "Unused defaultdict imported from collections",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "development_tools.docs.fix_documentation",
-        "obj": "",
-        "line": 37,
-        "column": 4,
-        "endLine": 43,
-        "endColumn": 5,
-        "path": "development_tools\\docs\\fix_documentation.py",
-        "symbol": "unused-import",
-        "message": "Unused STANDARD_LIBRARY_MODULES imported from shared.constants",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "development_tools.docs.fix_documentation",
-        "obj": "",
-        "line": 37,
-        "column": 4,
-        "endLine": 43,
-        "endColumn": 5,
-        "path": "development_tools\\docs\\fix_documentation.py",
-        "symbol": "unused-import",
-        "message": "Unused THIRD_PARTY_LIBRARIES imported from shared.constants",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "development_tools.docs.fix_documentation",
-        "obj": "",
-        "line": 37,
-        "column": 4,
-        "endLine": 43,
-        "endColumn": 5,
-        "path": "development_tools\\docs\\fix_documentation.py",
-        "symbol": "unused-import",
-        "message": "Unused COMMON_FUNCTION_NAMES imported from shared.constants",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "development_tools.docs.fix_documentation",
-        "obj": "",
-        "line": 37,
-        "column": 4,
-        "endLine": 43,
-        "endColumn": 5,
-        "path": "development_tools\\docs\\fix_documentation.py",
-        "symbol": "unused-import",
-        "message": "Unused COMMON_CLASS_NAMES imported from shared.constants",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "development_tools.docs.fix_documentation",
-        "obj": "",
-        "line": 37,
-        "column": 4,
-        "endLine": 43,
-        "endColumn": 5,
-        "path": "development_tools\\docs\\fix_documentation.py",
-        "symbol": "unused-import",
-        "message": "Unused COMMON_VARIABLE_NAMES imported from shared.constants",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "development_tools.docs.fix_documentation",
-        "obj": "",
-        "line": 37,
-        "column": 4,
-        "endLine": 43,
-        "endColumn": 5,
-        "path": "development_tools\\docs\\fix_documentation.py",
-        "symbol": "unused-import",
-        "message": "Unused COMMON_CODE_PATTERNS imported from shared.constants",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "development_tools.docs.fix_documentation",
-        "obj": "",
-        "line": 37,
-        "column": 4,
-        "endLine": 43,
-        "endColumn": 5,
-        "path": "development_tools\\docs\\fix_documentation.py",
-        "symbol": "unused-import",
-        "message": "Unused IGNORED_PATH_PATTERNS imported from shared.constants",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "development_tools.docs.fix_documentation",
-        "obj": "",
-        "line": 37,
-        "column": 4,
-        "endLine": 43,
-        "endColumn": 5,
-        "path": "development_tools\\docs\\fix_documentation.py",
-        "symbol": "unused-import",
-        "message": "Unused COMMAND_PATTERNS imported from shared.constants",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "development_tools.docs.fix_documentation",
-        "obj": "",
-        "line": 37,
-        "column": 4,
-        "endLine": 43,
-        "endColumn": 5,
-        "path": "development_tools\\docs\\fix_documentation.py",
-        "symbol": "unused-import",
-        "message": "Unused TEMPLATE_PATTERNS imported from shared.constants",
-        "message-id": "W0611"
-      },
-      {
-        "type": "warning",
-        "module": "development_tools.docs.fix_documentation",
-        "obj": "",
-        "line": 44,
-        "column": 4,
-        "endLine": 44,
-        "endColumn": 85,
-        "path": "development_tools\\docs\\fix_documentation.py",
-        "symbol": "unused-import",
-        "message": "Unused should_exclude_file imported from shared.standard_exclusions",
+        "message": "Unused List imported from typing",
         "message-id": "W0611"
       }
     ]
+  },
+  "development_tools/tests/analyze_test_coverage.py": {
+    "mtime": 1764642620.4822676,
+    "issues": []
+  },
+  "development_tools/tests/generate_test_coverage_reports.py": {
+    "mtime": 1764642620.4842718,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.tests.generate_test_coverage_reports",
+        "obj": "",
+        "line": 19,
+        "column": 0,
+        "endLine": 19,
+        "endColumn": 44,
+        "path": "development_tools\\tests\\generate_test_coverage_reports.py",
+        "symbol": "unused-import",
+        "message": "Unused Any imported from typing",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "development_tools/docs/fix_documentation_addresses.py": {
+    "mtime": 1764661648.1351652,
+    "issues": []
+  },
+  "development_tools/docs/fix_documentation_ascii.py": {
+    "mtime": 1764661648.136166,
+    "issues": []
+  },
+  "development_tools/docs/fix_documentation_headings.py": {
+    "mtime": 1764661648.136166,
+    "issues": []
+  },
+  "development_tools/docs/fix_documentation_links.py": {
+    "mtime": 1764661648.136166,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.docs.fix_documentation_links",
+        "obj": "",
+        "line": 33,
+        "column": 4,
+        "endLine": 33,
+        "endColumn": 64,
+        "path": "development_tools\\docs\\fix_documentation_links.py",
+        "symbol": "unused-import",
+        "message": "Unused ALL_GENERATED_FILES imported from shared.standard_exclusions",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "development_tools/imports/analyze_dependency_patterns.py": {
+    "mtime": 1764667318.8366358,
+    "issues": [
+      {
+        "type": "warning",
+        "module": "development_tools.imports.analyze_dependency_patterns",
+        "obj": "",
+        "line": 23,
+        "column": 4,
+        "endLine": 23,
+        "endColumn": 44,
+        "path": "development_tools\\imports\\analyze_dependency_patterns.py",
+        "symbol": "unused-import",
+        "message": "Unused ensure_ascii imported from shared.common",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "development_tools/imports/analyze_module_imports.py": {
+    "mtime": 1764667318.8366358,
+    "issues": []
   }
 }
