@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-02 - Fixed Path Drift and Non-ASCII Characters in Documentation **COMPLETED**
+- Fixed 30 path drift issues by updating outdated file path references across multiple documentation files to use full, accurate paths from project root
+- Fixed all non-ASCII characters (emojis) in generated documentation and test files: replaced with ASCII equivalents (`[OK]`, `[ERROR]`, `[WARNING]`, `[MISSING]`); fixed 484 occurrences in test comments
+- Updated documentation analyzers to exclude `.cursor/` directory files and enhanced metadata link deduplication logic
+- Doc Sync status improved from FAIL (32 issues) to PASS (0 issues); Path Drift improved from NEEDS ATTENTION (30 issues) to CLEAN (0 issues)
+
 ### 2025-12-02 - Completed M7.4 Tool Decomposition Plan **COMPLETED**
 - Completed full M7.4 plan: decomposed 6 tools into 20+ focused tools (Batch 1: legacy, Batch 2: docs, Batch 3: functions/error_handling/tests)
 - Additional: decomposed `imports/generate_module_dependencies.py` into `analyze_module_imports.py` and `analyze_dependency_patterns.py`

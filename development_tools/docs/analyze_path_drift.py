@@ -135,8 +135,8 @@ class PathDriftAnalyzer:
         if 'plan' in doc_file_lower:
             return True
         
-        # Skip .cursor/plans/ directory files
-        if '.cursor' in doc_file_path.parts and 'plans' in doc_file_path.parts:
+        # Skip .cursor/ directory files (plans, rules, etc.)
+        if '.cursor' in doc_file_path.parts:
             return True
         
         # Skip archive directories

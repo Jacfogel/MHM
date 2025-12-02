@@ -623,7 +623,7 @@
     "issues": []
   },
   "tests/ai/run_ai_functionality_tests.py": {
-    "mtime": 1764477517.7448297,
+    "mtime": 1764672874.034194,
     "issues": []
   },
   "tests/ai/test_ai_advanced.py": {
@@ -657,7 +657,7 @@
     "issues": []
   },
   "tests/ai/test_ai_functionality_manual.py": {
-    "mtime": 1764477517.788468,
+    "mtime": 1764672874.034194,
     "issues": [
       {
         "type": "warning",
@@ -760,7 +760,7 @@
     "issues": []
   },
   "tests/behavior/test_auto_cleanup_behavior.py": {
-    "mtime": 1764477517.9364018,
+    "mtime": 1764672723.0222566,
     "issues": []
   },
   "tests/behavior/test_backup_manager_behavior.py": {
@@ -803,7 +803,7 @@
     "issues": []
   },
   "tests/behavior/test_checkin_analytics_behavior.py": {
-    "mtime": 1764477518.021809,
+    "mtime": 1764672723.0247948,
     "issues": []
   },
   "tests/behavior/test_checkin_expiry_semantics.py": {
@@ -1023,11 +1023,11 @@
     ]
   },
   "tests/behavior/test_core_message_management_coverage_expansion.py": {
-    "mtime": 1764477518.1963668,
+    "mtime": 1764672723.0288653,
     "issues": []
   },
   "tests/behavior/test_core_service_coverage_expansion.py": {
-    "mtime": 1764477518.225941,
+    "mtime": 1764672723.0309427,
     "issues": []
   },
   "tests/behavior/test_discord_advanced_automation.py": {
@@ -1195,7 +1195,7 @@
     "issues": []
   },
   "tests/behavior/test_logger_behavior.py": {
-    "mtime": 1764477518.3800144,
+    "mtime": 1764672723.0355675,
     "issues": []
   },
   "tests/behavior/test_logger_coverage_expansion.py": {
@@ -1221,7 +1221,7 @@
     "issues": []
   },
   "tests/behavior/test_message_analytics_behavior.py": {
-    "mtime": 1764477518.4097624,
+    "mtime": 1764672723.0360858,
     "issues": []
   },
   "tests/behavior/test_message_behavior.py": {
@@ -1405,7 +1405,7 @@
     "issues": []
   },
   "tests/behavior/test_ui_app_behavior.py": {
-    "mtime": 1764477518.6436996,
+    "mtime": 1764672723.0421302,
     "issues": []
   },
   "tests/behavior/test_ui_automation_complete.py": {
@@ -1911,7 +1911,7 @@
     ]
   },
   "tests/ui/test_account_creation_ui.py": {
-    "mtime": 1764477518.9615998,
+    "mtime": 1764672723.053116,
     "issues": [
       {
         "type": "warning",
@@ -2269,7 +2269,7 @@
     ]
   },
   "tests/ui/test_dialog_behavior.py": {
-    "mtime": 1764477518.999445,
+    "mtime": 1764672723.0546255,
     "issues": [
       {
         "type": "warning",
@@ -3361,7 +3361,7 @@
     ]
   },
   "tests/ui/test_widget_behavior.py": {
-    "mtime": 1764477519.1498516,
+    "mtime": 1764672723.0602062,
     "issues": [
       {
         "type": "warning",
@@ -3587,7 +3587,7 @@
     ]
   },
   "tests/ui/test_widget_behavior_simple.py": {
-    "mtime": 1764477519.1548927,
+    "mtime": 1764672723.0612116,
     "issues": [
       {
         "type": "warning",
@@ -3880,7 +3880,7 @@
     ]
   },
   "tests/unit/test_config.py": {
-    "mtime": 1764477519.2489054,
+    "mtime": 1764672723.06575,
     "issues": [
       {
         "type": "warning",
@@ -3965,11 +3965,11 @@
     ]
   },
   "tests/unit/test_error_handling.py": {
-    "mtime": 1764477519.2968502,
+    "mtime": 1764672723.0682836,
     "issues": []
   },
   "tests/unit/test_file_operations.py": {
-    "mtime": 1764477519.3248339,
+    "mtime": 1764672723.0692885,
     "issues": [
       {
         "type": "warning",
@@ -4279,7 +4279,7 @@
     ]
   },
   "tests/unit/test_user_management.py": {
-    "mtime": 1764477519.4779482,
+    "mtime": 1764672723.0762587,
     "issues": [
       {
         "type": "warning",
@@ -6125,7 +6125,7 @@
     "issues": []
   },
   "development_tools/functions/generate_function_registry.py": {
-    "mtime": 1764642620.4787588,
+    "mtime": 1764672765.4816992,
     "issues": [
       {
         "type": "warning",
@@ -6481,7 +6481,7 @@
     "issues": []
   },
   "development_tools/docs/analyze_documentation_sync.py": {
-    "mtime": 1764617930.9391537,
+    "mtime": 1764670140.097673,
     "issues": []
   },
   "development_tools/docs/fix_version_sync.py": {
@@ -6689,15 +6689,15 @@
     "issues": []
   },
   "development_tools/docs/analyze_missing_addresses.py": {
-    "mtime": 1764617930.9391537,
+    "mtime": 1764672024.2967708,
     "issues": []
   },
   "development_tools/docs/analyze_path_drift.py": {
-    "mtime": 1764636011.0140464,
+    "mtime": 1764672024.2967708,
     "issues": []
   },
   "development_tools/docs/analyze_unconverted_links.py": {
-    "mtime": 1764617930.9391537,
+    "mtime": 1764672265.6911044,
     "issues": []
   },
   "development_tools/docs/generate_directory_tree.py": {
@@ -6761,7 +6761,7 @@
     ]
   },
   "development_tools/docs/fix_documentation_addresses.py": {
-    "mtime": 1764661648.1351652,
+    "mtime": 1764672024.2967708,
     "issues": []
   },
   "development_tools/docs/fix_documentation_ascii.py": {
@@ -6773,7 +6773,7 @@
     "issues": []
   },
   "development_tools/docs/fix_documentation_links.py": {
-    "mtime": 1764661648.136166,
+    "mtime": 1764672265.6911044,
     "issues": [
       {
         "type": "warning",

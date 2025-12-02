@@ -24,7 +24,7 @@ class TestCoreMessageManagementCoverageExpansion:
     def test_get_message_categories_from_env_real_behavior(self):
         """Test getting message categories from environment variable."""
         with patch.dict(os.environ, {'CATEGORIES': 'motivational,health,sleep'}):
-            # ✅ VERIFY REAL BEHAVIOR: Categories retrieved from environment
+            #[OK] VERIFY REAL BEHAVIOR: Categories retrieved from environment
             result = get_message_categories()
             
             assert isinstance(result, list)
@@ -36,7 +36,7 @@ class TestCoreMessageManagementCoverageExpansion:
     def test_get_message_categories_from_json_real_behavior(self):
         """Test getting message categories from JSON format."""
         with patch.dict(os.environ, {'CATEGORIES': '["motivational", "health", "sleep"]'}):
-            # ✅ VERIFY REAL BEHAVIOR: Categories retrieved from JSON
+            #[OK] VERIFY REAL BEHAVIOR: Categories retrieved from JSON
             result = get_message_categories()
             
             assert isinstance(result, list)
@@ -48,7 +48,7 @@ class TestCoreMessageManagementCoverageExpansion:
     def test_get_message_categories_no_env_real_behavior(self):
         """Test getting message categories when no environment variable."""
         with patch.dict(os.environ, {}, clear=True):
-            # ✅ VERIFY REAL BEHAVIOR: Returns empty list when no categories
+            #[OK] VERIFY REAL BEHAVIOR: Returns empty list when no categories
             result = get_message_categories()
             
             assert isinstance(result, list)
@@ -57,7 +57,7 @@ class TestCoreMessageManagementCoverageExpansion:
     @pytest.mark.behavior
     def test_load_default_messages_real_behavior(self):
         """Test loading default messages for a category."""
-        # ✅ VERIFY REAL BEHAVIOR: Default messages loaded successfully
+        #[OK] VERIFY REAL BEHAVIOR: Default messages loaded successfully
         result = load_default_messages("motivational")
         
         assert isinstance(result, list)
@@ -67,7 +67,7 @@ class TestCoreMessageManagementCoverageExpansion:
     @pytest.mark.behavior
     def test_load_default_messages_file_not_found_real_behavior(self):
         """Test loading default messages when file doesn't exist."""
-        # ✅ VERIFY REAL BEHAVIOR: Returns empty list when file not found
+        #[OK] VERIFY REAL BEHAVIOR: Returns empty list when file not found
         result = load_default_messages("nonexistent_category")
         
         assert isinstance(result, list)
@@ -76,7 +76,7 @@ class TestCoreMessageManagementCoverageExpansion:
     @pytest.mark.behavior
     def test_parse_timestamp_real_behavior(self):
         """Test parsing timestamp strings."""
-        # ✅ VERIFY REAL BEHAVIOR: Timestamp parsing works correctly
+        #[OK] VERIFY REAL BEHAVIOR: Timestamp parsing works correctly
         timestamp_str = "2023-01-01T10:00:00Z"
         result = _parse_timestamp(timestamp_str)
         

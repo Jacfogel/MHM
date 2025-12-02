@@ -109,9 +109,20 @@ class DocumentationLinkFixer:
                 modified = False
                 file_conversions = []
                 
-                # Track which files have been linked in metadata section
+                # Track which paths are already linked in metadata section
                 metadata_linked_files = set()
                 
+                # First pass: Find all paths that are already links in metadata section
+                for line_num, line in enumerate(lines):
+                    is_metadata_section = self.link_analyzer._is_metadata_section(lines, line_num)
+                    if is_metadata_section:
+                        # Check for existing links in metadata
+                        link_pattern = r'\[([^\]]+)\]\(([^)]+\.md)\)'
+                        for match in re.finditer(link_pattern, line):
+                            linked_path = match.group(2).replace('\\', '/')
+                            metadata_linked_files.add(linked_path)
+                
+                # Second pass: Convert unconverted paths
                 for line_num, line in enumerate(lines):
                     original_line = line
                     is_metadata_section = self.link_analyzer._is_metadata_section(lines, line_num)
@@ -154,12 +165,12 @@ class DocumentationLinkFixer:
                             breakdown['skipped_invalid_path'] += 1
                             return match.group(0)
                         
-                        # In metadata section, only link each unique file once
+                        # In metadata section, skip if this path is already linked anywhere in metadata
                         if is_metadata_section:
                             if path in metadata_linked_files:
                                 breakdown['metadata_dedup_count'] += 1
-                                return match.group(0)
-                            metadata_linked_files.add(path)
+                                return match.group(0)  # Leave unchanged - already linked in metadata
+                            metadata_linked_files.add(path)  # Track that we're converting this one
                         
                         path_obj = Path(path)
                         filename = path_obj.name

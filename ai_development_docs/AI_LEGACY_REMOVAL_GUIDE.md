@@ -17,10 +17,10 @@
 
 ```powershell
 # Targeted search for a single item
-python legacy/fix_legacy_references.py --find "LegacyItemName"
+python development_tools/legacy/fix_legacy_references.py --find "LegacyItemName"
 
 # Verify readiness for removal
-python legacy/fix_legacy_references.py --verify "LegacyItemName"
+python development_tools/legacy/fix_legacy_references.py --verify "LegacyItemName"
 
 # Run the integrated legacy scan via the tool runner
 python development_tools/run_development_tools.py legacy
@@ -40,7 +40,7 @@ Use this guide only after you understand the general documentation and developme
 - Mark code with a clear `# LEGACY COMPATIBILITY:` header.
 - Log usage when the legacy path is exercised.
 - Add, or update, a removal plan in the relevant docs or changelog.
-- Add specific detection patterns to `legacy/fix_legacy_references.py` (no broad patterns like `"legacy"`).
+- Add specific detection patterns to `development_tools/legacy/fix_legacy_references.py` (no broad patterns like `"legacy"`).
 
 **When preparing to remove legacy code:**
 
@@ -58,12 +58,12 @@ Use the legacy cleanup tool as a structured workflow rather than ad hoc search.
 1. **Find** - map out references
 
    ```powershell
-   python legacy/fix_legacy_references.py --find "LegacyItemName"
+   python development_tools/legacy/fix_legacy_references.py --find "LegacyItemName"
    ```
 
    - Scans Python and Markdown files.
    - Categorizes references (active code, tests, documentation, config, archive).
-   - For behavior details, see the `LegacyReferenceAnalyzer.find_all_references` / `scan_for_legacy_references` flow in `legacy/analyze_legacy_references.py` and `legacy/fix_legacy_references.py`.
+   - For behavior details, see the `LegacyReferenceAnalyzer.find_all_references` / `scan_for_legacy_references` flow in `development_tools/legacy/analyze_legacy_references.py` and `development_tools/legacy/fix_legacy_references.py`.
 
 2. **Update** - fix all high-impact references
 
@@ -75,7 +75,7 @@ Use the legacy cleanup tool as a structured workflow rather than ad hoc search.
 3. **Verify** - confirm the system is ready
 
    ```powershell
-   python legacy/fix_legacy_references.py --verify "LegacyItemName"
+   python development_tools/legacy/fix_legacy_references.py --verify "LegacyItemName"
    ```
 
    - Confirms there are no remaining active code/config references.
@@ -106,7 +106,7 @@ Before you delete a legacy item:
 
 These tools underlie this guide. For detailed behavior and additional commands, see [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) (section 1 "Main Entry Point", section 3 "Generated Outputs", and section 4 "Key Scripts").
 
-- `legacy/fix_legacy_references.py`:
+- `development_tools/legacy/fix_legacy_references.py`:
   - `--scan`: scan for all legacy patterns.
   - `--find <ITEM>`: search for references to a specific legacy item.
   - `--verify <ITEM>`: verify removal readiness and summarize references.

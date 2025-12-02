@@ -59,7 +59,7 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_service_initialization_real_behavior(self, service):
         """Test service initialization with real behavior verification."""
-        # ✅ VERIFY REAL BEHAVIOR: Service initializes with correct default state
+        #[OK] VERIFY REAL BEHAVIOR: Service initializes with correct default state
         # Note: Managers are set up in fixture for high complexity function tests
         assert service.running is False
         assert service.startup_time is None
@@ -69,7 +69,7 @@ class TestCoreServiceCoverageExpansion:
         """Test successful configuration validation."""
         mock_validate, mock_report = mock_config
         
-        # ✅ VERIFY REAL BEHAVIOR: Configuration validation succeeds
+        #[OK] VERIFY REAL BEHAVIOR: Configuration validation succeeds
         result = service.validate_configuration()
         
         # Verify the method was called
@@ -88,7 +88,7 @@ class TestCoreServiceCoverageExpansion:
             # Mock validation failure
             mock_validate.side_effect = Exception("Configuration validation failed")
 
-            # ✅ VERIFY REAL BEHAVIOR: Configuration validation failure is handled
+            #[OK] VERIFY REAL BEHAVIOR: Configuration validation failure is handled
             # The validate_configuration method should call validate_and_raise_if_invalid
             service.validate_configuration()
             
@@ -111,7 +111,7 @@ class TestCoreServiceCoverageExpansion:
             }
             mock_get_dir.return_value = '/test/users/user1'
             
-            # ✅ VERIFY REAL BEHAVIOR: Paths are initialized correctly
+            #[OK] VERIFY REAL BEHAVIOR: Paths are initialized correctly
             paths = service.initialize_paths()
             
             # Verify the method was called
@@ -138,7 +138,7 @@ class TestCoreServiceCoverageExpansion:
             }
             mock_get_dir.return_value = '/test/users/user1'
             
-            # ✅ VERIFY REAL BEHAVIOR: None user IDs are handled gracefully
+            #[OK] VERIFY REAL BEHAVIOR: None user IDs are handled gracefully
             paths = service.initialize_paths()
             
             # Verify the method was called
@@ -162,7 +162,7 @@ class TestCoreServiceCoverageExpansion:
             }
             mock_get_dir.return_value = '/test/users/user1'
             
-            # ✅ VERIFY REAL BEHAVIOR: Invalid categories are handled gracefully
+            #[OK] VERIFY REAL BEHAVIOR: Invalid categories are handled gracefully
             paths = service.initialize_paths()
             
             # Verify the method was called
@@ -188,7 +188,7 @@ class TestCoreServiceCoverageExpansion:
             }
             mock_get_dir.return_value = '/test/users/user1'
             
-            # ✅ VERIFY REAL BEHAVIOR: Empty categories are handled gracefully
+            #[OK] VERIFY REAL BEHAVIOR: Empty categories are handled gracefully
             paths = service.initialize_paths()
             
             # Verify the method was called
@@ -215,7 +215,7 @@ class TestCoreServiceCoverageExpansion:
             # Mock path generation error
             mock_get_dir.side_effect = Exception("Path generation failed")
             
-            # ✅ VERIFY REAL BEHAVIOR: Path generation errors are handled gracefully
+            #[OK] VERIFY REAL BEHAVIOR: Path generation errors are handled gracefully
             paths = service.initialize_paths()
             
             # Verify the method was called
@@ -236,7 +236,7 @@ class TestCoreServiceCoverageExpansion:
             mock_logger = Mock()
             mock_get_logger.return_value = mock_logger
 
-            # ✅ VERIFY REAL BEHAVIOR: Logging check and fix succeeds
+            #[OK] VERIFY REAL BEHAVIOR: Logging check and fix succeeds
             # The check_and_fix_logging method should not raise an exception
             service.check_and_fix_logging()
 
@@ -254,7 +254,7 @@ class TestCoreServiceCoverageExpansion:
             mock_logger = Mock()
             mock_get_logger.return_value = mock_logger
 
-            # ✅ VERIFY REAL BEHAVIOR: Logging check and fix failure is handled
+            #[OK] VERIFY REAL BEHAVIOR: Logging check and fix failure is handled
             # The method should handle failures gracefully
             service.check_and_fix_logging()
 
@@ -264,7 +264,7 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_signal_handler_real_behavior(self, service):
         """Test signal handler behavior."""
-        # ✅ VERIFY REAL BEHAVIOR: Signal handler sets running to False
+        #[OK] VERIFY REAL BEHAVIOR: Signal handler sets running to False
         service.running = True
         
         # Simulate signal handler call
@@ -281,7 +281,7 @@ class TestCoreServiceCoverageExpansion:
             # Mock successful operations
             mock_verify.return_value = True
             
-            # ✅ VERIFY REAL BEHAVIOR: Service startup process works
+            #[OK] VERIFY REAL BEHAVIOR: Service startup process works
             # Test the startup process without actually running the service loop
             
             # Set up service state
@@ -299,7 +299,7 @@ class TestCoreServiceCoverageExpansion:
             # Mock configuration failure
             mock_validate.side_effect = Exception("Configuration validation failed")
             
-            # ✅ VERIFY REAL BEHAVIOR: Configuration failure prevents service startup
+            #[OK] VERIFY REAL BEHAVIOR: Configuration failure prevents service startup
             # Test the validation step without actually starting the service
             service.validate_configuration()
             
@@ -309,7 +309,7 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_start_service_path_initialization_failure_real_behavior(self, service, mock_config):
         """Test service startup with path initialization failure."""
-        # ✅ VERIFY REAL BEHAVIOR: Path initialization works
+        #[OK] VERIFY REAL BEHAVIOR: Path initialization works
         # Test the path initialization step without actually starting the service
         paths = service.initialize_paths()
         
@@ -330,7 +330,7 @@ class TestCoreServiceCoverageExpansion:
             mock_cm_class.return_value = mock_cm
             mock_cm.start.side_effect = Exception("Communication manager failed to start")
             
-            # ✅ VERIFY REAL BEHAVIOR: Communication manager failure is handled
+            #[OK] VERIFY REAL BEHAVIOR: Communication manager failure is handled
             # Test the communication manager creation without actually starting the service
             cm = mock_cm_class()
             with pytest.raises(Exception):
@@ -350,7 +350,7 @@ class TestCoreServiceCoverageExpansion:
             mock_sm_class.return_value = mock_sm
             mock_sm.start.side_effect = Exception("Scheduler manager failed to start")
             
-            # ✅ VERIFY REAL BEHAVIOR: Scheduler manager failure is handled
+            #[OK] VERIFY REAL BEHAVIOR: Scheduler manager failure is handled
             # Test the scheduler manager creation without actually starting the service
             sm = mock_sm_class()
             with pytest.raises(Exception):
@@ -364,7 +364,7 @@ class TestCoreServiceCoverageExpansion:
         service.communication_manager = mock_communication_manager
         service.scheduler_manager = mock_scheduler_manager
         
-        # ✅ VERIFY REAL BEHAVIOR: Service stops gracefully
+        #[OK] VERIFY REAL BEHAVIOR: Service stops gracefully
         service.shutdown()
         
         # Verify service is stopped
@@ -382,7 +382,7 @@ class TestCoreServiceCoverageExpansion:
         service.communication_manager = None
         service.scheduler_manager = None
         
-        # ✅ VERIFY REAL BEHAVIOR: Service stops gracefully even with None managers
+        #[OK] VERIFY REAL BEHAVIOR: Service stops gracefully even with None managers
         service.shutdown()
         
         # Verify service is stopped
@@ -400,7 +400,7 @@ class TestCoreServiceCoverageExpansion:
         mock_communication_manager.stop_all.side_effect = Exception("Communication manager stop failed")
         mock_scheduler_manager.stop_scheduler.side_effect = Exception("Scheduler manager stop failed")
         
-        # ✅ VERIFY REAL BEHAVIOR: Service stops gracefully even with manager stop failures
+        #[OK] VERIFY REAL BEHAVIOR: Service stops gracefully even with manager stop failures
         service.shutdown()
         
         # Verify service is stopped
@@ -409,7 +409,7 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_get_scheduler_manager_real_behavior(self):
         """Test getting scheduler manager."""
-        # ✅ VERIFY REAL BEHAVIOR: get_scheduler_manager returns None when no service is running
+        #[OK] VERIFY REAL BEHAVIOR: get_scheduler_manager returns None when no service is running
         result = get_scheduler_manager()
         assert result is None
 
@@ -420,7 +420,7 @@ class TestCoreServiceCoverageExpansion:
             mock_service = Mock()
             mock_service_class.return_value = mock_service
             
-            # ✅ VERIFY REAL BEHAVIOR: main function creates and starts service
+            #[OK] VERIFY REAL BEHAVIOR: main function creates and starts service
             main()
             
             # Verify service was created and started
@@ -435,7 +435,7 @@ class TestCoreServiceCoverageExpansion:
             mock_service_class.return_value = mock_service
             mock_service.start.side_effect = Exception("Service failed to start")
 
-            # ✅ VERIFY REAL BEHAVIOR: main function handles service failure
+            #[OK] VERIFY REAL BEHAVIOR: main function handles service failure
             # The main function should create a service and call start
             main()
             
@@ -451,7 +451,7 @@ class TestCoreServiceCoverageExpansion:
         service.communication_manager = Mock()
         service.scheduler_manager = Mock()
         
-        # ✅ VERIFY REAL BEHAVIOR: atexit handler stops service gracefully
+        #[OK] VERIFY REAL BEHAVIOR: atexit handler stops service gracefully
         # Simulate atexit handler call
         service.emergency_shutdown()
         
@@ -466,7 +466,7 @@ class TestCoreServiceCoverageExpansion:
         service.communication_manager = None
         service.scheduler_manager = None
         
-        # ✅ VERIFY REAL BEHAVIOR: atexit handler stops service gracefully even with None managers
+        #[OK] VERIFY REAL BEHAVIOR: atexit handler stops service gracefully even with None managers
         # Simulate atexit handler call
         service.emergency_shutdown()
         
@@ -487,7 +487,7 @@ class TestCoreServiceCoverageExpansion:
         mock_cm.stop_all.side_effect = Exception("Communication manager stop failed")
         mock_sm.stop_scheduler.side_effect = Exception("Scheduler manager stop failed")
         
-        # ✅ VERIFY REAL BEHAVIOR: atexit handler stops service gracefully even with manager stop failures
+        #[OK] VERIFY REAL BEHAVIOR: atexit handler stops service gracefully even with manager stop failures
         # Simulate atexit handler call
         service.emergency_shutdown()
         
@@ -497,7 +497,7 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_service_initialization_error_real_behavior(self):
         """Test InitializationError exception."""
-        # ✅ VERIFY REAL BEHAVIOR: InitializationError can be raised and caught
+        #[OK] VERIFY REAL BEHAVIOR: InitializationError can be raised and caught
         error = InitializationError("Test initialization error")
         assert str(error) == "Test initialization error"
         assert isinstance(error, Exception)
@@ -505,7 +505,7 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_service_startup_time_tracking_real_behavior(self, service):
         """Test service startup time tracking."""
-        # ✅ VERIFY REAL BEHAVIOR: Startup time is tracked when service starts
+        #[OK] VERIFY REAL BEHAVIOR: Startup time is tracked when service starts
         assert service.startup_time is None
         
         # Simulate service startup
@@ -518,7 +518,7 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_service_signal_handlers_real_behavior(self, service):
         """Test service signal handlers setup."""
-        # ✅ VERIFY REAL BEHAVIOR: Signal handlers are set up correctly
+        #[OK] VERIFY REAL BEHAVIOR: Signal handlers are set up correctly
         # This test verifies that signal handlers can be set without errors
         try:
             signal.signal(signal.SIGINT, service.signal_handler)
@@ -542,7 +542,7 @@ class TestCoreServiceCoverageExpansion:
             mock_cm_class.return_value = mock_cm
             mock_cm.start.side_effect = [Exception("First attempt failed"), True]
             
-            # ✅ VERIFY REAL BEHAVIOR: Service retry mechanism works
+            #[OK] VERIFY REAL BEHAVIOR: Service retry mechanism works
             # Test the retry mechanism without actually starting the service
             cm = mock_cm_class()
             with pytest.raises(Exception):
@@ -551,7 +551,7 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_service_cleanup_test_message_requests_real_behavior(self, service):
         """Test service cleanup test message requests."""
-        # ✅ VERIFY REAL BEHAVIOR: Cleanup test message requests works
+        #[OK] VERIFY REAL BEHAVIOR: Cleanup test message requests works
         # This method should not raise an exception
         service.cleanup_test_message_requests()
 
@@ -562,18 +562,18 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_cleanup_test_message_requests_empty_directory_real_behavior(self, service, temp_base_dir):
         """REAL BEHAVIOR TEST: Test cleanup when no request files exist."""
-        # ✅ VERIFY REAL BEHAVIOR: Empty directory (no files created)
+        #[OK] VERIFY REAL BEHAVIOR: Empty directory (no files created)
         with patch('core.service.MHMService._cleanup_test_message_requests__get_base_directory', return_value=str(temp_base_dir)):
             service.cleanup_test_message_requests()
             
-            # ✅ VERIFY REAL BEHAVIOR: Should complete without errors when no files exist
+            #[OK] VERIFY REAL BEHAVIOR: Should complete without errors when no files exist
             # Directory should remain empty
             assert len(list(Path(temp_base_dir).iterdir())) == 0
 
     @pytest.mark.behavior
     def test_cleanup_test_message_requests_large_number_of_files_real_behavior(self, service, temp_base_dir):
         """REAL BEHAVIOR TEST: Test cleanup with many request files."""
-        # ✅ VERIFY REAL BEHAVIOR: Create many test message request files
+        #[OK] VERIFY REAL BEHAVIOR: Create many test message request files
         base_path = Path(temp_base_dir)
         for i in range(50):  # Create 50 request files
             request_file = base_path / f'test_message_request_user{i}_motivational.flag'
@@ -587,7 +587,7 @@ class TestCoreServiceCoverageExpansion:
         with patch('core.service.MHMService._cleanup_test_message_requests__get_base_directory', return_value=str(temp_base_dir)):
             service.cleanup_test_message_requests()
             
-            # ✅ VERIFY REAL BEHAVIOR: Should process all 50 request files
+            #[OK] VERIFY REAL BEHAVIOR: Should process all 50 request files
             remaining_files = list(base_path.iterdir())
             assert len(remaining_files) == 3, "Should remove all 50 request files, leaving only 3 other files"
             assert all(f.name in ['other_file.txt', 'config.json', 'data.csv'] for f in remaining_files)
@@ -595,7 +595,7 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_cleanup_test_message_requests_file_permission_error_real_behavior(self, service, temp_base_dir):
         """REAL BEHAVIOR TEST: Test cleanup when file removal fails due to permission errors."""
-        # ✅ VERIFY REAL BEHAVIOR: Create request files
+        #[OK] VERIFY REAL BEHAVIOR: Create request files
         base_path = Path(temp_base_dir)
         request_file1 = base_path / 'test_message_request_user1_motivational.flag'
         request_file2 = base_path / 'test_message_request_user2_health.flag'
@@ -616,13 +616,13 @@ class TestCoreServiceCoverageExpansion:
             
             service.cleanup_test_message_requests()
             
-            # ✅ VERIFY REAL BEHAVIOR: Should log warning for each failed removal
+            #[OK] VERIFY REAL BEHAVIOR: Should log warning for each failed removal
             # Filter for test message request related warnings
             warning_calls = [call for call in mock_logger.warning.call_args_list 
                            if any('test_message_request' in str(arg) for arg in call[0])]
             assert len(warning_calls) == 2, f"Should log warning for each failed removal, got {len(warning_calls)}"
             
-            # ✅ VERIFY REAL BEHAVIOR: Warning messages should mention permission error
+            #[OK] VERIFY REAL BEHAVIOR: Warning messages should mention permission error
             for call in warning_calls:
                 call_str = str(call)
                 assert "Could not remove test message request file" in call_str or "test_message_request" in call_str
@@ -631,7 +631,7 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_cleanup_test_message_requests_partial_failure_real_behavior(self, service, temp_base_dir):
         """REAL BEHAVIOR TEST: Test cleanup when some files succeed and others fail."""
-        # ✅ VERIFY REAL BEHAVIOR: Create request files
+        #[OK] VERIFY REAL BEHAVIOR: Create request files
         base_path = Path(temp_base_dir)
         request_file1 = base_path / 'test_message_request_user1_motivational.flag'
         request_file2 = base_path / 'test_message_request_user2_health.flag'
@@ -655,7 +655,7 @@ class TestCoreServiceCoverageExpansion:
             
             service.cleanup_test_message_requests()
             
-            # ✅ VERIFY REAL BEHAVIOR: Should log success for 2 files and warning for 1
+            #[OK] VERIFY REAL BEHAVIOR: Should log success for 2 files and warning for 1
             # Filter for test message request related calls - check all args in the call
             success_calls = [call for call in mock_logger.info.call_args_list 
                            if any('test_message_request' in str(arg) for arg in call[0])]
@@ -671,12 +671,12 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_cleanup_test_message_requests_directory_access_error_real_behavior(self, service, temp_base_dir):
         """REAL BEHAVIOR TEST: Test cleanup when directory listing fails."""
-        # ✅ VERIFY REAL BEHAVIOR: Mock Path.iterdir to raise PermissionError
+        #[OK] VERIFY REAL BEHAVIOR: Mock Path.iterdir to raise PermissionError
         with patch('core.service.MHMService._cleanup_test_message_requests__get_base_directory', return_value=str(temp_base_dir)), \
              patch('pathlib.Path.iterdir', side_effect=PermissionError("Cannot access directory")), \
              patch('core.service.logger') as mock_logger:
             
-            # ✅ VERIFY REAL BEHAVIOR: Should handle directory access error gracefully
+            #[OK] VERIFY REAL BEHAVIOR: Should handle directory access error gracefully
             # The function should not crash even if directory listing fails
             try:
                 service.cleanup_test_message_requests()
@@ -688,7 +688,7 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_cleanup_test_message_requests_mixed_file_types_real_behavior(self, service, temp_base_dir):
         """REAL BEHAVIOR TEST: Test cleanup with mixed file types in directory."""
-        # ✅ VERIFY REAL BEHAVIOR: Create mixed file types
+        #[OK] VERIFY REAL BEHAVIOR: Create mixed file types
         base_path = Path(temp_base_dir)
         request_files = [
             'test_message_request_user1_motivational.flag',  # Should be cleaned
@@ -708,7 +708,7 @@ class TestCoreServiceCoverageExpansion:
         with patch('core.service.MHMService._cleanup_test_message_requests__get_base_directory', return_value=str(temp_base_dir)):
             service.cleanup_test_message_requests()
             
-            # ✅ VERIFY REAL BEHAVIOR: Should only remove test message request files
+            #[OK] VERIFY REAL BEHAVIOR: Should only remove test message request files
             remaining_files = [f.name for f in base_path.iterdir()]
             assert len(remaining_files) == 3, "Should remove only 4 test message request files, leaving 3 other files"
             assert set(remaining_files) == set(other_files), "Should only have other files remaining"
@@ -716,7 +716,7 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_cleanup_test_message_requests_concurrent_access_simulation_real_behavior(self, service, temp_base_dir):
         """REAL BEHAVIOR TEST: Test cleanup when files disappear during processing."""
-        # ✅ VERIFY REAL BEHAVIOR: Create request files
+        #[OK] VERIFY REAL BEHAVIOR: Create request files
         base_path = Path(temp_base_dir)
         request_file1 = base_path / 'test_message_request_user1_motivational.flag'
         request_file2 = base_path / 'test_message_request_user2_health.flag'
@@ -746,10 +746,10 @@ class TestCoreServiceCoverageExpansion:
             
             service.cleanup_test_message_requests()
             
-            # ✅ VERIFY REAL BEHAVIOR: Should attempt to remove all 3 test message request files
+            #[OK] VERIFY REAL BEHAVIOR: Should attempt to remove all 3 test message request files
             assert call_count[0] == 3, f"Should attempt to remove all 3 test message request files, got {call_count[0]}"
             
-            # ✅ VERIFY REAL BEHAVIOR: Should handle disappearing files gracefully
+            #[OK] VERIFY REAL BEHAVIOR: Should handle disappearing files gracefully
             # Should log success for 2 files and warning for 1
             success_calls = [call for call in mock_logger.info.call_args_list 
                            if any('test_message_request' in str(arg) for arg in call[0])]
@@ -762,7 +762,7 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_cleanup_test_message_requests_file_in_use_error_real_behavior(self, service, temp_base_dir):
         """REAL BEHAVIOR TEST: Test cleanup when files are in use by another process."""
-        # ✅ VERIFY REAL BEHAVIOR: Create request files
+        #[OK] VERIFY REAL BEHAVIOR: Create request files
         base_path = Path(temp_base_dir)
         request_file1 = base_path / 'test_message_request_user1_motivational.flag'
         request_file2 = base_path / 'test_message_request_user2_health.flag'
@@ -782,10 +782,10 @@ class TestCoreServiceCoverageExpansion:
             
             service.cleanup_test_message_requests()
             
-            # ✅ VERIFY REAL BEHAVIOR: Should log warning for each failed removal
+            #[OK] VERIFY REAL BEHAVIOR: Should log warning for each failed removal
             assert mock_logger.warning.call_count == 2, "Should log warning for each failed removal"
             
-            # ✅ VERIFY REAL BEHAVIOR: Warning should mention file in use
+            #[OK] VERIFY REAL BEHAVIOR: Warning should mention file in use
             warning_calls = mock_logger.warning.call_args_list
             for call in warning_calls:
                 assert "Could not remove test message request file" in str(call)
@@ -798,7 +798,7 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_cleanup_test_message_requests_remove_request_file_success_real_behavior(self, service):
         """REAL BEHAVIOR TEST: Test successful file removal by helper function."""
-        # ✅ VERIFY REAL BEHAVIOR: Mock successful file removal
+        #[OK] VERIFY REAL BEHAVIOR: Mock successful file removal
         with patch('core.service.os.remove') as mock_remove, \
              patch('core.service.logger') as mock_logger:
             
@@ -808,13 +808,13 @@ class TestCoreServiceCoverageExpansion:
                 'test_message_request_user1.flag'
             )
             
-            # ✅ VERIFY REAL BEHAVIOR: Should return True on success
+            #[OK] VERIFY REAL BEHAVIOR: Should return True on success
             assert result is True, "Helper function should return True on successful removal"
             
-            # ✅ VERIFY REAL BEHAVIOR: Should call os.remove with correct path
+            #[OK] VERIFY REAL BEHAVIOR: Should call os.remove with correct path
             mock_remove.assert_called_once_with('/test/dir/test_message_request_user1.flag')
             
-            # ✅ VERIFY REAL BEHAVIOR: Should log success message
+            #[OK] VERIFY REAL BEHAVIOR: Should log success message
             mock_logger.info.assert_called_once_with(
                 "Cleanup: Removed test message request file: test_message_request_user1.flag"
             )
@@ -822,7 +822,7 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_cleanup_test_message_requests_remove_request_file_permission_error_real_behavior(self, service):
         """REAL BEHAVIOR TEST: Test file removal with permission error by helper function."""
-        # ✅ VERIFY REAL BEHAVIOR: Mock permission error
+        #[OK] VERIFY REAL BEHAVIOR: Mock permission error
         with patch('core.service.os.remove', side_effect=PermissionError("Permission denied")) as mock_remove, \
              patch('core.service.logger') as mock_logger:
             
@@ -832,13 +832,13 @@ class TestCoreServiceCoverageExpansion:
                 'test_message_request_user1.flag'
             )
             
-            # ✅ VERIFY REAL BEHAVIOR: Should return False on failure
+            #[OK] VERIFY REAL BEHAVIOR: Should return False on failure
             assert result is False, "Helper function should return False on failed removal"
             
-            # ✅ VERIFY REAL BEHAVIOR: Should attempt file removal
+            #[OK] VERIFY REAL BEHAVIOR: Should attempt file removal
             mock_remove.assert_called_once_with('/test/dir/test_message_request_user1.flag')
             
-            # ✅ VERIFY REAL BEHAVIOR: Should log warning message
+            #[OK] VERIFY REAL BEHAVIOR: Should log warning message
             mock_logger.warning.assert_called_once_with(
                 "Could not remove test message request file test_message_request_user1.flag: Permission denied"
             )
@@ -846,7 +846,7 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_cleanup_test_message_requests_remove_request_file_not_found_error_real_behavior(self, service):
         """REAL BEHAVIOR TEST: Test file removal with file not found error by helper function."""
-        # ✅ VERIFY REAL BEHAVIOR: Mock file not found error
+        #[OK] VERIFY REAL BEHAVIOR: Mock file not found error
         with patch('core.service.os.remove', side_effect=FileNotFoundError("File not found")) as mock_remove, \
              patch('core.service.logger') as mock_logger:
             
@@ -856,13 +856,13 @@ class TestCoreServiceCoverageExpansion:
                 'test_message_request_user1.flag'
             )
             
-            # ✅ VERIFY REAL BEHAVIOR: Should return False on failure
+            #[OK] VERIFY REAL BEHAVIOR: Should return False on failure
             assert result is False, "Helper function should return False on failed removal"
             
-            # ✅ VERIFY REAL BEHAVIOR: Should attempt file removal
+            #[OK] VERIFY REAL BEHAVIOR: Should attempt file removal
             mock_remove.assert_called_once_with('/test/dir/test_message_request_user1.flag')
             
-            # ✅ VERIFY REAL BEHAVIOR: Should log warning message
+            #[OK] VERIFY REAL BEHAVIOR: Should log warning message
             mock_logger.warning.assert_called_once_with(
                 "Could not remove test message request file test_message_request_user1.flag: File not found"
             )
@@ -870,7 +870,7 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_cleanup_test_message_requests_remove_request_file_generic_error_real_behavior(self, service):
         """REAL BEHAVIOR TEST: Test file removal with generic error by helper function."""
-        # ✅ VERIFY REAL BEHAVIOR: Mock generic error
+        #[OK] VERIFY REAL BEHAVIOR: Mock generic error
         with patch('core.service.os.remove', side_effect=OSError("Device or resource busy")) as mock_remove, \
              patch('core.service.logger') as mock_logger:
             
@@ -880,13 +880,13 @@ class TestCoreServiceCoverageExpansion:
                 'test_message_request_user1.flag'
             )
             
-            # ✅ VERIFY REAL BEHAVIOR: Should return False on failure
+            #[OK] VERIFY REAL BEHAVIOR: Should return False on failure
             assert result is False, "Helper function should return False on failed removal"
             
-            # ✅ VERIFY REAL BEHAVIOR: Should attempt file removal
+            #[OK] VERIFY REAL BEHAVIOR: Should attempt file removal
             mock_remove.assert_called_once_with('/test/dir/test_message_request_user1.flag')
             
-            # ✅ VERIFY REAL BEHAVIOR: Should log warning message
+            #[OK] VERIFY REAL BEHAVIOR: Should log warning message
             mock_logger.warning.assert_called_once_with(
                 "Could not remove test message request file test_message_request_user1.flag: Device or resource busy"
             )
@@ -894,7 +894,7 @@ class TestCoreServiceCoverageExpansion:
     @pytest.mark.behavior
     def test_service_cleanup_reschedule_requests_real_behavior(self, service):
         """Test service cleanup reschedule requests."""
-        # ✅ VERIFY REAL BEHAVIOR: Cleanup reschedule requests works
+        #[OK] VERIFY REAL BEHAVIOR: Cleanup reschedule requests works
         # This method should not raise an exception
         service.cleanup_reschedule_requests()
 

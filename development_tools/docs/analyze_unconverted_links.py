@@ -325,8 +325,19 @@ class UnconvertedLinkAnalyzer:
                     content = f.read()
                 
                 lines = content.split('\n')
-                metadata_linked_files = set()  # Track metadata deduplication
+                metadata_linked_files = set()  # Track paths already linked in metadata section
                 
+                # First pass: Find all paths that are already links in metadata section
+                for line_num, line in enumerate(lines):
+                    is_metadata_section = self._is_metadata_section(lines, line_num)
+                    if is_metadata_section:
+                        # Check for existing links in metadata
+                        link_pattern = r'\[([^\]]+)\]\(([^)]+\.md)\)'
+                        for match in re.finditer(link_pattern, line):
+                            linked_path = match.group(2).replace('\\', '/')
+                            metadata_linked_files.add(linked_path)
+                
+                # Second pass: Check for unconverted paths
                 for line_num, line in enumerate(lines):
                     is_metadata_section = self._is_metadata_section(lines, line_num)
                     
@@ -360,11 +371,11 @@ class UnconvertedLinkAnalyzer:
                         if not self._should_convert_path_to_link(path, line, line_num, lines, file_path):
                             continue
                         
-                        # In metadata section, only report first occurrence (deduplication)
+                        # In metadata section, skip if this path is already linked anywhere in metadata
                         if is_metadata_section:
                             if path in metadata_linked_files:
-                                continue  # Skip duplicate in metadata
-                            metadata_linked_files.add(path)
+                                continue  # Skip - already linked in metadata section
+                            metadata_linked_files.add(path)  # Track that we're reporting this one
                         
                         unconverted_links[file_path_str].append(
                             f"Line {line_num + 1}: Path `{path}` should be converted to markdown link"

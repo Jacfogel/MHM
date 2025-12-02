@@ -66,8 +66,8 @@ python development_tools/run_development_tools.py config
 - `docs` - regenerates registries, dependency maps, and doc-signals.
 - `doc-sync` - verifies paired doc headings, path drift, ASCII compliance.
 - `config` - prints active configuration contexts and validation warnings.
-- `coverage` - invokes `generate_test_coverage.py` (HTML + JSON outputs).
-- `legacy` - runs `fix_legacy_references.py` via the dispatcher.
+- `coverage` - invokes `development_tools/tests/generate_test_coverage.py` (HTML + JSON outputs).
+- `legacy` - runs `development_tools/legacy/fix_legacy_references.py` via the dispatcher.
 
 **Supporting Commands** (advisory, depend on fresh audits):
 - `status` - surfaces cached health summaries (rerun `audit` if stale).
@@ -85,7 +85,7 @@ python development_tools/run_development_tools.py config
 ### 2.4. Entry Point Expectations
 
 Regardless of command:
-- Respect shared configuration from `config.py` (with external config file support via `development_tools_config.json`).
+- Respect shared configuration from `development_tools/config/config.py` (with external config file support via `development_tools_config.json`).
 - Honor universal exclusions defined in `shared/standard_exclusions.py`.
 - Avoid importing business logic modules (operate via filesystem + configs only).
 - Route logging through the `development_tools` component logger.
@@ -93,7 +93,7 @@ Regardless of command:
 
 **Configuration Priority**:
 1. External config file (`development_tools_config.json` in project root, or path specified via `--config-path`)
-2. Hardcoded defaults in `config.py` (generic/empty fallbacks for portability)
+2. Hardcoded defaults in `development_tools/config/config.py` (generic/empty fallbacks for portability)
 3. Environment-specific detection (project root, scan directories, etc.)
 
 **Portability**: All tools are portable and can be used in other projects. Create a `development_tools_config.json` file in your project root (see `development_tools/development_tools_config.json.example` for a template) to customize paths, exclusions, constants, and other project-specific settings.
@@ -146,11 +146,11 @@ Ensure directories listed in `development_tools/shared/constants.py` remain accu
 | --- | --- | --- | --- |
 | run_development_tools.py | core | stable | CLI dispatcher for every development tooling command. Supports `--project-root` and `--config-path` for portability. |
 | shared/operations.py | core | stable | Implements command handlers and shared execution paths. Accepts project-specific config via external config file. |
-| config.py | core | stable | Central configuration for audit contexts, paths, and workflow knobs. Loads from `development_tools_config.json` with generic fallbacks. |
+| config/config.py | core | stable | Central configuration for audit contexts, paths, and workflow knobs. Loads from `development_tools_config.json` with generic fallbacks. |
 | shared/standard_exclusions.py | core | stable | Canonical exclusion patterns consumed by all scanners. Loads exclusions from external config. |
 | shared/constants.py | core | stable | Doc pairing metadata, directory maps, and shared enumerations. Loads constants from external config. |
 | shared/common.py | core | stable | IO helpers plus CLI utilities (command grouping, runners). |
-| analyze_documentation_sync.py | core | stable | Validates paired documentation (human vs AI) and detects heading sync issues. Refactored during Batch 2 decomposition to only handle paired doc sync. Parameterized doc roots and metadata schema. [OK] **HAS TESTS (Phase 3)**: 12 tests in `tests/development_tools/test_analyze_documentation_sync.py` |
+| analyze_documentation_sync.py | core | stable | Validates paired documentation (human vs AI) and detects heading sync issues. Refactored during Batch 2 decomposition to only handle paired doc sync. Parameterized doc roots and metadata schema. [OK] **HAS TESTS (Phase 3)**: 12 tests in `tests/development_tools/test_documentation_sync_checker.py` |
 | docs/analyze_path_drift.py | core | stable | Analyzes path drift between codebase and documentation. Extracted from analyze_documentation_sync.py during Batch 2 decomposition. |
 | docs/analyze_ascii_compliance.py | core | stable | Checks ASCII compliance in documentation files. Extracted from analyze_documentation_sync.py during Batch 2 decomposition. |
 | docs/analyze_heading_numbering.py | core | stable | Validates H2 and H3 heading numbering in documentation. Extracted from analyze_documentation_sync.py during Batch 2 decomposition. |
@@ -163,10 +163,10 @@ Ensure directories listed in `development_tools/shared/constants.py` remain accu
 | docs/fix_documentation_headings.py | core | stable | Numbers H2 and H3 headings in documentation files. Extracted from fix_documentation.py during Batch 2 decomposition. |
 | docs/fix_documentation_links.py | core | stable | Converts file path references to markdown links in documentation. Extracted from fix_documentation.py during Batch 2 decomposition. |
 | imports/generate_module_dependencies.py | core | stable | Orchestrates module dependency analysis and generates dependency documentation. Refactored after M7.4 completion (2025-12-02) to use analyze_module_imports.py and analyze_dependency_patterns.py. Accepts custom module prefixes for portability. [OK] **HAS TESTS (Phase 3)**: 11 tests in `tests/development_tools/test_generate_module_dependencies.py` |
-| imports/analyze_module_imports.py | core | stable | Extracts and analyzes imports from Python files. Extracted from generate_module_dependencies.py after M7.4 completion (2025-12-02). Provides import extraction, scanning, reverse dependencies, dependency changes, purpose inference, and import formatting. |
+| imports/analyze_module_imports.py | core | stable | Extracts and analyzes imports from Python files. Extracted from generate_module_dependencies.py after M7.4 completion (2025-12-02). Provides import parsing, scanning, reverse dependencies, dependency changes, purpose inference, and import formatting. |
 | imports/analyze_dependency_patterns.py | core | stable | Analyzes dependency patterns, circular dependencies, and risk areas. Extracted from generate_module_dependencies.py after M7.4 completion (2025-12-02). Provides pattern analysis, circular dependency detection, risk area detection, and critical dependency finding. |
-| fix_legacy_references.py | core | stable | Finds/validates LEGACY COMPATIBILITY usage before cleanup. Legacy patterns and mappings load from external config. [OK] **HAS TESTS (Phase 3)**: 10 tests in `tests/development_tools/test_fix_legacy_references.py` |
-| generate_test_coverage.py | core | stable | Orchestrates coverage execution (pytest runs), artifact management, and coverage plan updates. Refactored during Batch 3 decomposition to use analyze_test_coverage.py and generate_test_coverage_reports.py. Accepts pytest command, coverage config, and artifact directories via external config. [OK] **HAS TESTS (Phase 3)**: 10 tests in `tests/development_tools/test_regenerate_coverage_metrics.py` |
+| legacy/fix_legacy_references.py | core | stable | Finds/validates LEGACY COMPATIBILITY usage before cleanup. Legacy patterns and mappings load from external config. [OK] **HAS TESTS (Phase 3)**: 10 tests in `tests/development_tools/test_legacy_reference_cleanup.py` |
+| tests/generate_test_coverage.py | core | stable | Orchestrates coverage execution (pytest runs), artifact management, and coverage plan updates. Refactored during Batch 3 decomposition to use analyze_test_coverage.py and generate_test_coverage_reports.py. Accepts pytest command, coverage config, and artifact directories via external config. [OK] **HAS TESTS (Phase 3)**: 10 tests in `tests/development_tools/test_regenerate_coverage_metrics.py` |
 | analyze_test_coverage.py | core | stable | Parses coverage output and performs coverage analysis. Extracted from generate_test_coverage.py during Batch 3 decomposition. |
 | generate_test_coverage_reports.py | core | stable | Generates coverage reports (JSON, HTML) from analysis results. Extracted from generate_test_coverage.py during Batch 3 decomposition. |
 | analyze_error_handling.py | core | stable | Audits decorator usage and exception handling depth. Refactored during Batch 3 decomposition to keep only analysis methods. Decorator names and exception classes load from external config. |
@@ -205,7 +205,7 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 - Use the shared test locations: `tests/development_tools/` for suites and `tests/fixtures/development_tools_demo/` for synthetic inputs.
 - **Phase 3 Complete (2025-11-26)**: All five core analysis tools have comprehensive test coverage (55+ tests total). The synthetic fixture project provides isolated testing environment for all tool tests.
 - Context-specific behavior:
-  - `config.py` defines production / development / testing contexts; commands must honor the active context.
+  - `development_tools/config/config.py` defines production / development / testing contexts; commands must honor the active context.
   - Never hardcode project paths - always resolve via `shared/common.py` helpers.
 - Run `python development_tools/run_development_tools.py doc-sync` after documentation edits to ensure heading parity and ASCII compliance.
 - Treat experimental tools (`docs/fix_version_sync.py`, `functions/generate_function_docstrings.py`, etc.) as opt-in: dry-run first, capture logs, and record findings in [TODO.md](TODO.md) or the improvement plan.

@@ -103,17 +103,17 @@ class TestUserProfileDialogBehavior:
     @pytest.mark.tasks
     def test_dialog_initialization_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test dialog initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check dialog exists (but is not shown during testing)
+        #[OK] VERIFY INITIAL STATE: Check dialog exists (but is not shown during testing)
         assert dialog is not None, "Dialog should be created"
         assert not dialog.isVisible(), "Dialog should not be visible during testing"
         # Note: UI file sets title to "Dialog", but dialog functionality is correct
         assert dialog.windowTitle() == "Dialog", "Dialog should have correct title"
         
-        # ✅ VERIFY REAL BEHAVIOR: Check all fields are present
+        #[OK] VERIFY REAL BEHAVIOR: Check all fields are present
         assert hasattr(dialog, 'ui'), "Dialog should have UI loaded"
         assert hasattr(dialog, 'profile_widget'), "Profile widget should be loaded"
         
-        # ✅ VERIFY REAL BEHAVIOR: Check profile widget has the expected fields
+        #[OK] VERIFY REAL BEHAVIOR: Check profile widget has the expected fields
         profile_widget = dialog.profile_widget
         assert hasattr(profile_widget, 'ui'), "Profile widget should have UI"
         assert hasattr(profile_widget.ui, 'lineEdit_preferred_name'), "Preferred name field should exist"
@@ -121,7 +121,7 @@ class TestUserProfileDialogBehavior:
         assert hasattr(profile_widget.ui, 'calendarWidget_date_of_birth'), "Date of birth calendar should exist"
         assert hasattr(profile_widget.ui, 'tabWidget'), "Tab widget should exist"
         
-        # ✅ VERIFY REAL BEHAVIOR: Check dynamic list containers are loaded
+        #[OK] VERIFY REAL BEHAVIOR: Check dynamic list containers are loaded
         assert hasattr(profile_widget, 'health_conditions_container'), "Health conditions container should be loaded"
         assert hasattr(profile_widget, 'allergies_container'), "Allergies container should be loaded"
         assert hasattr(profile_widget, 'interests_container'), "Interests container should be loaded"
@@ -129,7 +129,7 @@ class TestUserProfileDialogBehavior:
     @pytest.mark.ui
     def test_data_loading_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test dialog loads existing user data correctly."""
-        # ✅ VERIFY REAL BEHAVIOR: Check data is loaded from files
+        #[OK] VERIFY REAL BEHAVIOR: Check data is loaded from files
         user_id = "test_user_profile"
         user_data = get_user_data(user_id)
         
@@ -137,7 +137,7 @@ class TestUserProfileDialogBehavior:
         # Note: UserProfileDialog doesn't load data automatically, it uses provided data
         assert dialog.personalization_data is not None, "Personalization data should be available"
         
-        # ✅ VERIFY REAL BEHAVIOR: Check fields are populated with loaded data
+        #[OK] VERIFY REAL BEHAVIOR: Check fields are populated with loaded data
         # (Initially empty since we created empty test data)
         profile_widget = dialog.profile_widget
         assert profile_widget.ui.lineEdit_preferred_name.text() == "", "Preferred name should be empty initially"
@@ -145,16 +145,16 @@ class TestUserProfileDialogBehavior:
     @pytest.mark.ui
     def test_data_saving_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test dialog saves user data correctly."""
-        # ✅ VERIFY REAL BEHAVIOR: Enter test data
+        #[OK] VERIFY REAL BEHAVIOR: Enter test data
         test_name = "Test User"
         
         profile_widget = dialog.profile_widget
         QTest.keyClicks(profile_widget.ui.lineEdit_preferred_name, test_name)
         
-        # ✅ VERIFY REAL BEHAVIOR: Save data
+        #[OK] VERIFY REAL BEHAVIOR: Save data
         dialog.save_personalization()
         
-        # ✅ VERIFY REAL BEHAVIOR: Check data was collected from widget
+        #[OK] VERIFY REAL BEHAVIOR: Check data was collected from widget
         personalization_data = profile_widget.get_personalization_data()
         assert personalization_data is not None, "Personalization data should be collected"
         # Note: The dialog doesn't save to file directly, it calls on_save callback
@@ -162,14 +162,14 @@ class TestUserProfileDialogBehavior:
     @pytest.mark.ui
     def test_dynamic_list_fields_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test dynamic list fields work correctly."""
-        # ✅ VERIFY REAL BEHAVIOR: Check dynamic list containers are functional
+        #[OK] VERIFY REAL BEHAVIOR: Check dynamic list containers are functional
         profile_widget = dialog.profile_widget
         
         # Verify containers have the expected methods
         assert hasattr(profile_widget.health_conditions_container, 'get_values'), "Health container should have get_values method"
         assert hasattr(profile_widget.allergies_container, 'get_values'), "Allergies container should have get_values method"
         
-        # ✅ VERIFY REAL BEHAVIOR: Check data collection works
+        #[OK] VERIFY REAL BEHAVIOR: Check data collection works
         personalization_data = profile_widget.get_personalization_data()
         assert personalization_data is not None, "Personalization data should be collected"
         assert isinstance(personalization_data, dict), "Personalization data should be a dictionary"
@@ -212,20 +212,20 @@ class TestCategoryManagementDialogBehavior:
     @pytest.mark.ui
     def test_dialog_initialization_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test dialog initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check dialog exists (but is not shown during testing)
+        #[OK] VERIFY INITIAL STATE: Check dialog exists (but is not shown during testing)
         assert dialog is not None, "Dialog should be created"
         assert not dialog.isVisible(), "Dialog should not be visible during testing"
         # Note: UI file sets title to "Dialog", but dialog functionality is correct
         assert dialog.windowTitle() == "Dialog", "Dialog should have correct title"
         
-        # ✅ VERIFY REAL BEHAVIOR: Check category widget is loaded
+        #[OK] VERIFY REAL BEHAVIOR: Check category widget is loaded
         assert hasattr(dialog, 'category_widget'), "Category widget should be loaded"
         assert hasattr(dialog.category_widget, 'ui'), "Category widget should have UI"
     
     @pytest.mark.ui
     def test_category_selection_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test category selection and saving works correctly."""
-        # ✅ VERIFY REAL BEHAVIOR: Check initial categories are selected
+        #[OK] VERIFY REAL BEHAVIOR: Check initial categories are selected
         user_id = "test_user_categories"
         user_data = get_user_data(user_id)
         
@@ -233,10 +233,10 @@ class TestCategoryManagementDialogBehavior:
         category_widget = dialog.category_widget
         assert hasattr(category_widget, 'get_selected_categories'), "Category widget should have get_selected_categories method"
         
-        # ✅ VERIFY REAL BEHAVIOR: Save changes
+        #[OK] VERIFY REAL BEHAVIOR: Save changes
         dialog.accept()
         
-        # ✅ VERIFY REAL BEHAVIOR: Check dialog accepted successfully
+        #[OK] VERIFY REAL BEHAVIOR: Check dialog accepted successfully
         # Note: The dialog doesn't save data directly, it calls save_category_settings on accept
         assert True, "Dialog should accept successfully"
 
@@ -287,27 +287,27 @@ class TestChannelManagementDialogBehavior:
     @pytest.mark.ui
     def test_dialog_initialization_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test dialog initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check dialog exists (but is not shown during testing)
+        #[OK] VERIFY INITIAL STATE: Check dialog exists (but is not shown during testing)
         assert dialog is not None, "Dialog should be created"
         assert not dialog.isVisible(), "Dialog should not be visible during testing"
         # Note: UI file sets title to "Dialog", but dialog functionality is correct
         assert dialog.windowTitle() == "Dialog", "Dialog should have correct title"
         
-        # ✅ VERIFY REAL BEHAVIOR: Check channel widget is loaded
+        #[OK] VERIFY REAL BEHAVIOR: Check channel widget is loaded
         assert hasattr(dialog, 'channel_widget'), "Channel widget should be loaded"
         assert hasattr(dialog.channel_widget, 'ui'), "Channel widget should have UI"
     
     @pytest.mark.ui
     def test_channel_configuration_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test channel configuration and saving works correctly."""
-        # ✅ VERIFY REAL BEHAVIOR: Check channel widget is functional
+        #[OK] VERIFY REAL BEHAVIOR: Check channel widget is functional
         assert hasattr(dialog, 'channel_widget'), "Channel widget should be loaded"
         assert hasattr(dialog.channel_widget, 'ui'), "Channel widget should have UI"
         
-        # ✅ VERIFY REAL BEHAVIOR: Save changes
+        #[OK] VERIFY REAL BEHAVIOR: Save changes
         dialog.accept()
         
-        # ✅ VERIFY REAL BEHAVIOR: Check dialog accepted successfully
+        #[OK] VERIFY REAL BEHAVIOR: Check dialog accepted successfully
         assert True, "Dialog should accept successfully"
 
 class TestCheckinManagementDialogBehavior:
@@ -356,27 +356,27 @@ class TestCheckinManagementDialogBehavior:
     @pytest.mark.ui
     def test_dialog_initialization_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test dialog initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check dialog exists (but is not shown during testing)
+        #[OK] VERIFY INITIAL STATE: Check dialog exists (but is not shown during testing)
         assert dialog is not None, "Dialog should be created"
         assert not dialog.isVisible(), "Dialog should not be visible during testing"
         # Note: Dialog title is "Check-in Management"
         assert "Check-in Management" in dialog.windowTitle(), "Dialog should have correct title"
         
-        # ✅ VERIFY REAL BEHAVIOR: Check check-in widget is loaded
+        #[OK] VERIFY REAL BEHAVIOR: Check check-in widget is loaded
         assert hasattr(dialog, 'checkin_widget'), "Check-in widget should be loaded"
         assert hasattr(dialog.checkin_widget, 'ui'), "Check-in widget should have UI"
     
     @pytest.mark.ui
     def test_checkin_enablement_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test check-in enablement toggle works correctly."""
-        # ✅ VERIFY REAL BEHAVIOR: Check check-in widget is functional
+        #[OK] VERIFY REAL BEHAVIOR: Check check-in widget is functional
         assert hasattr(dialog, 'checkin_widget'), "Check-in widget should be loaded"
         assert hasattr(dialog.checkin_widget, 'ui'), "Check-in widget should have UI"
         
-        # ✅ VERIFY REAL BEHAVIOR: Save changes
+        #[OK] VERIFY REAL BEHAVIOR: Save changes
         dialog.accept()
         
-        # ✅ VERIFY REAL BEHAVIOR: Check dialog accepted successfully
+        #[OK] VERIFY REAL BEHAVIOR: Check dialog accepted successfully
         assert True, "Dialog should accept successfully"
 
 class TestTaskManagementDialogBehavior:
@@ -431,13 +431,13 @@ class TestTaskManagementDialogBehavior:
     @pytest.mark.ui
     def test_dialog_initialization_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test dialog initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check dialog exists (but is not shown during testing)
+        #[OK] VERIFY INITIAL STATE: Check dialog exists (but is not shown during testing)
         assert dialog is not None, "Dialog should be created"
         assert not dialog.isVisible(), "Dialog should not be visible during testing"
         # Note: UI file sets title to "Dialog", but dialog functionality is correct
         assert dialog.windowTitle() == "Dialog", "Dialog should have correct title"
         
-        # ✅ VERIFY REAL BEHAVIOR: Check task statistics are displayed
+        #[OK] VERIFY REAL BEHAVIOR: Check task statistics are displayed
         assert hasattr(dialog, 'ui'), "Dialog should have UI loaded"
         assert hasattr(dialog.ui, 'label_total_tasks'), "Total tasks label should exist"
         assert hasattr(dialog.ui, 'label_completed_tasks'), "Completed tasks label should exist"
@@ -445,14 +445,14 @@ class TestTaskManagementDialogBehavior:
     @pytest.mark.ui
     def test_task_statistics_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test task statistics are calculated and displayed correctly."""
-        # ✅ VERIFY REAL BEHAVIOR: Check dialog loaded successfully
+        #[OK] VERIFY REAL BEHAVIOR: Check dialog loaded successfully
         assert dialog is not None, "Dialog should be created successfully"
         
-        # ✅ VERIFY REAL BEHAVIOR: Check UI elements are present
+        #[OK] VERIFY REAL BEHAVIOR: Check UI elements are present
         assert hasattr(dialog, 'ui'), "Dialog should have UI loaded"
         
-        # ✅ VERIFY REAL BEHAVIOR: Save any changes
+        #[OK] VERIFY REAL BEHAVIOR: Save any changes
         dialog.accept()
         
-        # ✅ VERIFY REAL BEHAVIOR: Check dialog accepted successfully
+        #[OK] VERIFY REAL BEHAVIOR: Check dialog accepted successfully
         assert True, "Dialog should accept successfully" 

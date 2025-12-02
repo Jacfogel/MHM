@@ -51,7 +51,7 @@ python development_tools/run_development_tools.py help
 **Additional commands**: `quick-audit`, `system-signals`, `validate`, `decision-support`, `workflow`, `trees`, `version-sync` (experimental)
 
 `run_development_tools.py` is the single dispatcher. All commands must:
-- Respect shared configuration (`config.py` with external config file support)
+- Respect shared configuration (`development_tools/config/config.py` with external config file support)
 - Honor `shared/standard_exclusions.py`
 - Avoid importing application modules directly
 
@@ -123,7 +123,7 @@ Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier and
 
 ## 5. Operating Standards and Maintenance
 
-- Use shared infrastructure: `shared/standard_exclusions.py`, `shared/constants.py`, `config.py`
+- Use shared infrastructure: `shared/standard_exclusions.py`, `shared/constants.py`, `config/config.py`
 - Never hardcode project paths; derive them from configuration helpers
 - Keep tools isolated from MHM business logic
 - Store tests under `tests/development_tools/` (with fixtures in `tests/fixtures/development_tools_demo/`)

@@ -1,9 +1,9 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2025-12-02 03:34:39",
+  "last_generated": "2025-12-02 04:57:22",
   "source": "python development_tools/run_development_tools.py audit",
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2025-12-02T03:34:39.959528",
+  "timestamp": "2025-12-02T04:57:22.472457",
   "successful": [
     "analyze_functions",
     "decision_support",
@@ -42,7 +42,7 @@
           "undocumented": 5
         }
       },
-      "timestamp": "2025-12-02T03:39:16.632276"
+      "timestamp": "2025-12-02T05:02:37.634864"
     },
     "analyze_function_registry": {
       "success": true,
@@ -3636,28 +3636,22 @@
     "analyze_documentation_sync": {
       "success": true,
       "data": {
-        "status": "FAIL",
-        "total_issues": 32,
+        "status": "PASS",
+        "total_issues": 0,
         "paired_doc_issues": 0,
-        "path_drift_issues": 30,
+        "path_drift_issues": 0,
         "ascii_issues": 0,
         "heading_numbering_issues": 0,
-        "missing_address_issues": 1,
-        "unconverted_link_issues": 1,
-        "path_drift_files": [
-          "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md",
-          "TODO.md",
-          "ai_development_docs\\AI_TESTING_GUIDE.md",
-          "DOCUMENTATION_GUIDE.md",
-          "tests\\TESTING_GUIDE.md"
-        ]
+        "missing_address_issues": 0,
+        "unconverted_link_issues": 0,
+        "path_drift_files": []
       },
-      "timestamp": "2025-12-02T03:39:16.632276"
+      "timestamp": "2025-12-02T05:02:37.634864"
     },
     "system_signals": {
       "success": true,
       "data": {
-        "timestamp": "2025-12-02T03:39:12.990038",
+        "timestamp": "2025-12-02T05:02:34.048598",
         "system_health": {
           "overall_status": "OK",
           "core_files": {
@@ -3675,27 +3669,27 @@
             "user": "OK",
             "tests": "OK"
           },
-          "last_audit": "2025-12-02T03:38:56.657298",
+          "last_audit": "2025-12-02T05:02:22.207308",
           "warnings": [],
           "errors": []
         },
         "recent_activity": {
           "recent_changes": [
             ".cursor/plans/decompose-multi-responsibility-tools-2e05ed38.plan.md",
-            ".cursor/plans/phase-7-naming-and-directory-reorganization-0001ba11.plan.md",
-            ".cursor/plans/phase-7-renaming-complete-deployment-aeb0a7e9.plan.md",
-            ".cursor/rules/ai-tools.mdc",
-            ".cursor/rules/communication-guidelines.mdc",
             ".cursor/rules/context.mdc",
-            ".cursor/rules/core-guidelines.mdc",
             ".cursor/rules/critical.mdc",
             ".cursor/rules/quality-standards.mdc",
-            ".cursor/rules/testing-guidelines.mdc",
-            ".cursor/rules/ui-guidelines.mdc",
             "DOCUMENTATION_GUIDE.md",
-            "HOW_TO_RUN.md",
-            "PROJECT_VISION.md",
-            "README.md"
+            "TODO.md",
+            "ai_development_docs/AI_CHANGELOG.md",
+            "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+            "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md",
+            "ai_development_docs/AI_SESSION_STARTER.md",
+            "ai_development_docs/AI_TESTING_GUIDE.md",
+            "core/ERROR_HANDLING_GUIDE.md",
+            "coverage.json",
+            "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+            "development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md"
           ],
           "git_status": "Modified",
           "last_commit": null,
@@ -3705,8 +3699,8 @@
         "performance_indicators": {
           "log_file_sizes": {
             "ai.log": "0.0MB",
-            "ai_dev_tools.log": "1.1MB",
-            "app.log": "0.5MB",
+            "ai_dev_tools.log": "1.3MB",
+            "app.log": "0.6MB",
             "communication_manager.log": "0.2MB",
             "discord.log": "0.0MB",
             "email.log": "0.0MB",
@@ -3721,7 +3715,7 @@
           "memory_usage": "Unknown"
         }
       },
-      "timestamp": "2025-12-02T03:39:16.632276"
+      "timestamp": "2025-12-02T05:02:37.634864"
     },
     "fix_legacy_references": {
       "success": true,
@@ -3730,7 +3724,7 @@
         "legacy_markers": 1,
         "report_path": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_docs\\LEGACY_REFERENCE_REPORT.md"
       },
-      "timestamp": "2025-12-02T03:39:16.632276"
+      "timestamp": "2025-12-02T05:02:37.634864"
     },
     "analyze_ai_work": {
       "success": true,
@@ -3740,7 +3734,7 @@
         "error": "",
         "returncode": 0
       },
-      "timestamp": "2025-12-02T03:39:16.632276"
+      "timestamp": "2025-12-02T05:02:37.634864"
     }
   }
 }

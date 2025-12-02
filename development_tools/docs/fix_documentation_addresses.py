@@ -74,8 +74,8 @@ class DocumentationAddressFixer:
                 if rel_path_str in generated_files:
                     continue
                 
-                # Skip .cursor/rules/*.mdc files - they have their own metadata format
-                if '.cursor' in parts and 'rules' in parts and file_path.suffix == '.mdc':
+                # Skip .cursor/ directory files (plans, rules, etc.) - they have their own metadata format
+                if '.cursor' in parts:
                     continue
                 
                 if 'tests' in rel_path.parts:

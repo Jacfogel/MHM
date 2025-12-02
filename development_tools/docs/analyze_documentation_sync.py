@@ -165,15 +165,16 @@ class DocumentationSyncChecker:
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Check paired documentation synchronization")
-    parser.add_argument('--check', action='store_true', help='Run paired documentation checks')
+    parser.add_argument('--check', action='store_true', help='Run paired documentation checks (default: always runs)')
     
     args = parser.parse_args()
     
     checker = DocumentationSyncChecker()
     
-    if args.check or True:  # Default to running checks
-        results = checker.run_checks()
-        checker.print_report(results)
+    # Always run checks by default (this is an analysis tool)
+    # The --check flag is maintained for backward compatibility but has no effect
+    results = checker.run_checks()
+    checker.print_report(results)
 
 
 if __name__ == "__main__":

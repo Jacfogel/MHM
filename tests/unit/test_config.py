@@ -43,18 +43,18 @@ class TestConfigValidation:
                     
                     is_valid, errors, warnings = validate_core_paths()
                     
-                    # ✅ VERIFY FUNCTION RETURN: Check the function worked
+                    #[OK] VERIFY FUNCTION RETURN: Check the function worked
                     assert is_valid is True
                     assert len(errors) == 0
                     
-                    # ✅ VERIFY REAL BEHAVIOR: Check that directories were actually created
+                    #[OK] VERIFY REAL BEHAVIOR: Check that directories were actually created
                     assert os.path.exists(users_dir), f"Users directory should be created at {users_dir}"
                     assert os.path.isdir(users_dir), f"Users directory should be a directory: {users_dir}"
                     
                     assert os.path.exists(messages_dir), f"Messages directory should be created at {messages_dir}"
                     assert os.path.isdir(messages_dir), f"Messages directory should be a directory: {messages_dir}"
                     
-                    # ✅ VERIFY REAL BEHAVIOR: Check that directories are writable
+                    #[OK] VERIFY REAL BEHAVIOR: Check that directories are writable
                     test_file = os.path.join(users_dir, 'test_write.json')
                     try:
                         with open(test_file, 'w') as f:

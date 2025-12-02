@@ -484,7 +484,7 @@ class TestUIAppIntegration:
     @pytest.mark.critical
     def test_send_test_message_no_user_selected_real_behavior(self, qt_app, test_data_dir):
         """REAL BEHAVIOR TEST: Test send_test_message when no user is selected."""
-        # ✅ VERIFY REAL BEHAVIOR: Mock UI components
+        #[OK] VERIFY REAL BEHAVIOR: Mock UI components
         with patch('ui.ui_app_qt.Ui_ui_app_mainwindow'):
             with patch('ui.ui_app_qt.MHMManagerUI.load_ui'):
                 with patch('ui.ui_app_qt.MHMManagerUI.connect_signals'):
@@ -496,7 +496,7 @@ class TestUIAppIntegration:
                                 app.current_user = None  # No user selected
                                 app.send_test_message()
                                 
-                                # ✅ VERIFY REAL BEHAVIOR: Should show warning and return early
+                                #[OK] VERIFY REAL BEHAVIOR: Should show warning and return early
                                 mock_msgbox.warning.assert_called_once_with(
                                     app, "No User Selected", "Please select a user first."
                                 )
@@ -506,7 +506,7 @@ class TestUIAppIntegration:
     @pytest.mark.critical
     def test_send_test_message_service_not_running_real_behavior(self, qt_app, test_data_dir):
         """REAL BEHAVIOR TEST: Test send_test_message when service is not running."""
-        # ✅ VERIFY REAL BEHAVIOR: Mock UI components and service manager
+        #[OK] VERIFY REAL BEHAVIOR: Mock UI components and service manager
         with patch('ui.ui_app_qt.Ui_ui_app_mainwindow'):
             with patch('ui.ui_app_qt.MHMManagerUI.load_ui'):
                 with patch('ui.ui_app_qt.MHMManagerUI.connect_signals'):
@@ -522,7 +522,7 @@ class TestUIAppIntegration:
                                 
                                 app.send_test_message()
                                 
-                                # ✅ VERIFY REAL BEHAVIOR: Should show service not running warning
+                                #[OK] VERIFY REAL BEHAVIOR: Should show service not running warning
                                 mock_msgbox.warning.assert_called_once()
                                 call_args = mock_msgbox.warning.call_args[0]
                                 assert call_args[1] == "Service Not Running"
@@ -533,7 +533,7 @@ class TestUIAppIntegration:
     @pytest.mark.critical
     def test_send_test_message_no_category_selected_real_behavior(self, qt_app, test_data_dir):
         """REAL BEHAVIOR TEST: Test send_test_message when no category is selected."""
-        # ✅ VERIFY REAL BEHAVIOR: Mock UI components
+        #[OK] VERIFY REAL BEHAVIOR: Mock UI components
         with patch('ui.ui_app_qt.Ui_ui_app_mainwindow'):
             with patch('ui.ui_app_qt.MHMManagerUI.load_ui'):
                 with patch('ui.ui_app_qt.MHMManagerUI.connect_signals'):
@@ -552,7 +552,7 @@ class TestUIAppIntegration:
                                 
                                 app.send_test_message()
                                 
-                                # ✅ VERIFY REAL BEHAVIOR: Should show no category selected warning
+                                #[OK] VERIFY REAL BEHAVIOR: Should show no category selected warning
                                 mock_msgbox.warning.assert_called_once_with(
                                     app, "No Category Selected", "Please select a category from the dropdown above."
                                 )
@@ -562,7 +562,7 @@ class TestUIAppIntegration:
     @pytest.mark.critical
     def test_send_test_message_invalid_category_real_behavior(self, qt_app, test_data_dir):
         """REAL BEHAVIOR TEST: Test send_test_message when category data is invalid."""
-        # ✅ VERIFY REAL BEHAVIOR: Mock UI components
+        #[OK] VERIFY REAL BEHAVIOR: Mock UI components
         with patch('ui.ui_app_qt.Ui_ui_app_mainwindow'):
             with patch('ui.ui_app_qt.MHMManagerUI.load_ui'):
                 with patch('ui.ui_app_qt.MHMManagerUI.connect_signals'):
@@ -582,7 +582,7 @@ class TestUIAppIntegration:
                                 
                                 app.send_test_message()
                                 
-                                # ✅ VERIFY REAL BEHAVIOR: Should show invalid category warning
+                                #[OK] VERIFY REAL BEHAVIOR: Should show invalid category warning
                                 mock_msgbox.warning.assert_called_once_with(
                                     app, "Invalid Category", "Please select a valid category from the dropdown."
                                 )
@@ -592,7 +592,7 @@ class TestUIAppIntegration:
     @pytest.mark.critical
     def test_send_test_message_successful_flow_real_behavior(self, qt_app, test_data_dir):
         """REAL BEHAVIOR TEST: Test successful send_test_message flow."""
-        # ✅ VERIFY REAL BEHAVIOR: Mock UI components
+        #[OK] VERIFY REAL BEHAVIOR: Mock UI components
         with patch('ui.ui_app_qt.Ui_ui_app_mainwindow'):
             with patch('ui.ui_app_qt.MHMManagerUI.load_ui'):
                 with patch('ui.ui_app_qt.MHMManagerUI.connect_signals'):
@@ -615,7 +615,7 @@ class TestUIAppIntegration:
                                 
                                 app.send_test_message()
                                 
-                                # ✅ VERIFY REAL BEHAVIOR: Should call send_actual_test_message directly (no confirmation step)
+                                #[OK] VERIFY REAL BEHAVIOR: Should call send_actual_test_message directly (no confirmation step)
                                 app.send_actual_test_message.assert_called_once_with("motivational")
 
     @pytest.mark.behavior
@@ -623,7 +623,7 @@ class TestUIAppIntegration:
     @pytest.mark.critical
     def test_confirm_test_message_user_confirms_real_behavior(self, qt_app, test_data_dir):
         """REAL BEHAVIOR TEST: Test send_actual_test_message is called directly (confirmation step removed)."""
-        # ✅ VERIFY REAL BEHAVIOR: Mock UI components
+        #[OK] VERIFY REAL BEHAVIOR: Mock UI components
         with patch('ui.ui_app_qt.Ui_ui_app_mainwindow'):
             with patch('ui.ui_app_qt.MHMManagerUI.load_ui'):
                 with patch('ui.ui_app_qt.MHMManagerUI.connect_signals'):
@@ -643,7 +643,7 @@ class TestUIAppIntegration:
                                 # Call send_actual_test_message directly (no confirmation step)
                                 app.send_actual_test_message("motivational")
                                 
-                                # ✅ VERIFY REAL BEHAVIOR: Should call send_actual_test_message
+                                #[OK] VERIFY REAL BEHAVIOR: Should call send_actual_test_message
                                 app.send_actual_test_message.assert_called_once_with("motivational")
 
     @pytest.mark.behavior
@@ -651,7 +651,7 @@ class TestUIAppIntegration:
     @pytest.mark.critical
     def test_confirm_test_message_user_cancels_real_behavior(self, qt_app, test_data_dir):
         """REAL BEHAVIOR TEST: Test that send_test_message validates service before sending (confirmation step removed)."""
-        # ✅ VERIFY REAL BEHAVIOR: Mock UI components
+        #[OK] VERIFY REAL BEHAVIOR: Mock UI components
         with patch('ui.ui_app_qt.Ui_ui_app_mainwindow'):
             with patch('ui.ui_app_qt.MHMManagerUI.load_ui'):
                 with patch('ui.ui_app_qt.MHMManagerUI.connect_signals'):
@@ -670,7 +670,7 @@ class TestUIAppIntegration:
                                 
                                 app.send_test_message()
                                 
-                                # ✅ VERIFY REAL BEHAVIOR: Should NOT call send_actual_test_message when service is not running
+                                #[OK] VERIFY REAL BEHAVIOR: Should NOT call send_actual_test_message when service is not running
                                 app.send_actual_test_message.assert_not_called()
 
     @pytest.mark.behavior
@@ -678,7 +678,7 @@ class TestUIAppIntegration:
     @pytest.mark.critical
     def test_send_actual_test_message_creates_request_file_real_behavior(self, qt_app, test_data_dir):
         """REAL BEHAVIOR TEST: Test send_actual_test_message creates request file."""
-        # ✅ VERIFY REAL BEHAVIOR: Mock UI components and file operations
+        #[OK] VERIFY REAL BEHAVIOR: Mock UI components and file operations
         with patch('ui.ui_app_qt.Ui_ui_app_mainwindow'):
             with patch('ui.ui_app_qt.MHMManagerUI.load_ui'):
                 with patch('ui.ui_app_qt.MHMManagerUI.connect_signals'):
@@ -701,9 +701,9 @@ class TestUIAppIntegration:
                                             
                                             app.send_actual_test_message("motivational")
                                             
-                                            # ✅ VERIFY REAL BEHAVIOR: Should create request file
+                                            #[OK] VERIFY REAL BEHAVIOR: Should create request file
                                             mock_file.assert_called_once()
-                                            # ✅ VERIFY REAL BEHAVIOR: Should call set_user_id (may be called multiple times for context switching)
+                                            #[OK] VERIFY REAL BEHAVIOR: Should call set_user_id (may be called multiple times for context switching)
                                             assert mock_context_instance.set_user_id.call_count >= 1
 
     @pytest.mark.behavior
@@ -711,7 +711,7 @@ class TestUIAppIntegration:
     @pytest.mark.critical
     def test_send_test_message_edge_case_negative_index_real_behavior(self, qt_app, test_data_dir):
         """REAL BEHAVIOR TEST: Test send_test_message with negative combo box index."""
-        # ✅ VERIFY REAL BEHAVIOR: Mock UI components
+        #[OK] VERIFY REAL BEHAVIOR: Mock UI components
         with patch('ui.ui_app_qt.Ui_ui_app_mainwindow'):
             with patch('ui.ui_app_qt.MHMManagerUI.load_ui'):
                 with patch('ui.ui_app_qt.MHMManagerUI.connect_signals'):
@@ -730,7 +730,7 @@ class TestUIAppIntegration:
                                 
                                 app.send_test_message()
                                 
-                                # ✅ VERIFY REAL BEHAVIOR: Should show no category selected warning
+                                #[OK] VERIFY REAL BEHAVIOR: Should show no category selected warning
                                 mock_msgbox.warning.assert_called_once_with(
                                     app, "No Category Selected", "Please select a category from the dropdown above."
                                 )
@@ -740,7 +740,7 @@ class TestUIAppIntegration:
     @pytest.mark.critical
     def test_send_test_message_service_manager_error_real_behavior(self, qt_app, test_data_dir):
         """REAL BEHAVIOR TEST: Test send_test_message when service manager throws error."""
-        # ✅ VERIFY REAL BEHAVIOR: Mock UI components
+        #[OK] VERIFY REAL BEHAVIOR: Mock UI components
         with patch('ui.ui_app_qt.Ui_ui_app_mainwindow'):
             with patch('ui.ui_app_qt.MHMManagerUI.load_ui'):
                 with patch('ui.ui_app_qt.MHMManagerUI.connect_signals'):

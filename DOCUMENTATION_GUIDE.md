@@ -321,12 +321,12 @@ This standard optimizes for AI collaborators who need unambiguous, verifiable pa
 - **Always prefer full paths** when referencing files outside the current directory
 - **Verify paths exist** using file search tools before referencing
 - **Use consistent formatting**: Backticks for file references (e.g., `` `core/service.py` ``)
-- **For code files**: Use full paths (e.g., `development_tools/services/operations.py`)
+- **For code files**: Use full paths (e.g., `development_tools/shared/operations.py`)
 - **For documentation files**: Full paths preferred, relative paths acceptable for same-directory references
 
 **Path drift checker behavior:**
 
-The path drift checker (`docs/analyze_documentation_sync.py`) validates that referenced files exist. It:
+The path drift checker (`development_tools/docs/analyze_path_drift.py`) validates that referenced files exist. It:
 - Accepts full paths from project root
 - Accepts relative paths (e.g., `../README.md`) when the file exists relative to the source document
 - Uses enhanced filtering to reduce false positives (standard library modules, common patterns, etc.)
@@ -334,19 +334,19 @@ The path drift checker (`docs/analyze_documentation_sync.py`) validates that ref
 **Examples:**
 
 [OK] **Good (full paths)**:
-- `` `development_tools/services/operations.py` ``
+- `` `development_tools/shared/operations.py` ``
 - `` `core/config.py` ``
 - `` `tests/TESTING_GUIDE.md` ``
 
 [AVOID] **Avoid (ambiguous short names)**:
-- `` `operations.py` `` (could be `development_tools/services/operations.py` or another `operations.py`)
+- `` `operations.py` `` (could be `development_tools/shared/operations.py` or another `operations.py`)
 - `` `config.py` `` (could be `core/config.py` or `development_tools/config.py`)
 - `` `bot.py` `` without context (could be Discord or email bot)
 
 **Examples:**
 
 [OK] **Good (full paths)**:
-- `` `development_tools/ai_tools_runner.py` ``
+- `` `development_tools/run_development_tools.py` ``
 - `` `core/error_handling.py` ``
 - `` `tests/development_tools/test_config.py` ``
 
@@ -448,16 +448,16 @@ When you are done editing:
 
 Several automation tools support documentation and sync:
 
-- `python development_tools/ai_tools_runner.py doc-sync`  
+- `python development_tools/run_development_tools.py doc-sync`  
   Scans for mismatched headings, path drift, ASCII compliance, and heading numbering issues in documentation.
 
-- `python development_tools/ai_tools_runner.py legacy`  
+- `python development_tools/run_development_tools.py legacy`  
   Analyses references and code paths for deprecated or stale usage.
 
-- `python development_tools/ai_tools_runner.py version-sync`  
+- `python development_tools/run_development_tools.py version-sync`  
   Helps ensure version strings remain coherent across files.
 
-Additional tools such as `audit`, `quick-status`, `test-coverage`, and `validate-work` live in `development_tools/ai_tools_runner.py` and may output supporting reports used by documentation.
+Additional tools such as `audit`, `quick-status`, `test-coverage`, and `validate-work` live in `development_tools/run_development_tools.py` and may output supporting reports used by documentation.
 
 For detailed tool behavior, see [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md).
 
@@ -543,7 +543,7 @@ For a full and current list, refer to generated file headers, [DEVELOPMENT_TOOLS
 
 ### 5.4. Automation commands for generated docs
 
-Use `development_tools/ai_tools_runner.py` for documentation-related automation (for example, sync checks and report generation), instead of editing generated files by hand.
+Use `development_tools/run_development_tools.py` for documentation-related automation (for example, sync checks and report generation), instead of editing generated files by hand.
 
 Typical documentation-related commands include:
 
@@ -555,7 +555,7 @@ Typical documentation-related commands include:
 - `trees` - generate directory tree reports that can be referenced from documentation  
 - `status` - print a quick system status summary that can inform high-level docs
 
-The definitive list of commands and their semantics lives in [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md), [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), and `development_tools/services/operations.py`. Do not duplicate that full reference here; treat this guide as a routing layer and use the README as the source of truth for command behavior.
+The definitive list of commands and their semantics lives in [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md), [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), and `development_tools/shared/operations.py`. Do not duplicate that full reference here; treat this guide as a routing layer and use the README as the source of truth for command behavior.
 
 ## 6. Resources
 

@@ -66,7 +66,7 @@ Use these AI docs as your primary routing table; they, in turn, point to detaile
   - Section 3 "Generated Outputs" - where reports and status files live.
 
 - **Legacy removal** - [AI_LEGACY_REMOVAL_GUIDE.md](ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md)  
-  - Quick reference for using `legacy/fix_legacy_references.py` and the `legacy` command.  
+  - Quick reference for using `development_tools/legacy/fix_legacy_references.py` and the `legacy` command.  
   - Tightly coupled with [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) and the legacy reports described there.
 
 ## 3. Safe Change Rules

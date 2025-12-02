@@ -423,7 +423,7 @@ class TestUserManagementEdgeCases:
         """Test complete user lifecycle with real side effects and system state verification."""
         user_id = 'test-user-lifecycle-complete'
         
-        # ✅ VERIFY INITIAL STATE: Check test environment
+        #[OK] VERIFY INITIAL STATE: Check test environment
         assert os.path.exists(test_data_dir), f"Test directory should exist: {test_data_dir}"
         assert os.path.isdir(test_data_dir), f"Test path should be a directory: {test_data_dir}"
         
@@ -434,7 +434,7 @@ class TestUserManagementEdgeCases:
             'task_settings': {'enabled': True}
         }
         
-        # ✅ VERIFY INITIAL STATE: Check user directory doesn't exist
+        #[OK] VERIFY INITIAL STATE: Check user directory doesn't exist
         user_dir = os.path.join(test_data_dir, 'users', user_id)
         initial_user_exists = os.path.exists(user_dir)
         
@@ -442,7 +442,7 @@ class TestUserManagementEdgeCases:
         success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success is True, "Failed to create test user"
         
-        # ✅ VERIFY REAL BEHAVIOR: Check user directory was created
+        #[OK] VERIFY REAL BEHAVIOR: Check user directory was created
         # Get the actual user ID (UUID) that was created to find the correct directory
         # Serial execution ensures index is updated before lookup
         from core.user_management import get_user_id_by_identifier
@@ -457,11 +457,11 @@ class TestUserManagementEdgeCases:
         assert os.path.exists(actual_user_dir), f"User directory should be created: {actual_user_dir}"
         assert os.path.isdir(actual_user_dir), f"User path should be a directory: {actual_user_dir}"
         
-        # ✅ VERIFY REAL BEHAVIOR: Check directory permissions
+        #[OK] VERIFY REAL BEHAVIOR: Check directory permissions
         assert os.access(actual_user_dir, os.R_OK), f"User directory should be readable: {actual_user_dir}"
         assert os.access(actual_user_dir, os.W_OK), f"User directory should be writable: {actual_user_dir}"
         
-        # ✅ VERIFY REAL BEHAVIOR: Check required files were created
+        #[OK] VERIFY REAL BEHAVIOR: Check required files were created
         # TestUserFactory.create_basic_user creates these files
         expected_files = ['account.json', 'preferences.json', 'user_context.json', 'schedules.json']
         # TestUserFactory.create_basic_user only creates messages directory
@@ -482,7 +482,7 @@ class TestUserManagementEdgeCases:
             assert os.access(dir_path, os.W_OK), f"Required directory should be writable: {dir_path}"
         
         # Step 2: Test data loading and verification
-        # ✅ VERIFY REAL BEHAVIOR: Check data can be loaded using unified API
+        #[OK] VERIFY REAL BEHAVIOR: Check data can be loaded using unified API
         # actual_user_id already retrieved above
         
         user_data = get_user_data(actual_user_id, 'all')
@@ -491,7 +491,7 @@ class TestUserManagementEdgeCases:
         assert 'preferences' in user_data
         assert 'context' in user_data
         
-        # ✅ VERIFY REAL BEHAVIOR: Check data structure integrity
+        #[OK] VERIFY REAL BEHAVIOR: Check data structure integrity
         account_data = user_data['account']
         preferences_data = user_data['preferences']
         context_data = user_data['context']
@@ -502,7 +502,7 @@ class TestUserManagementEdgeCases:
         assert 'preferred_name' in context_data
         
         # Step 3: Test data modification and persistence
-        # ✅ VERIFY INITIAL STATE: Check current data state
+        #[OK] VERIFY INITIAL STATE: Check current data state
         initial_preferences = preferences_data.copy()
         
         # Modify preferences
@@ -516,7 +516,7 @@ class TestUserManagementEdgeCases:
         result = update_user_preferences(actual_user_id, new_preferences)
         assert result is True
 
-        # ✅ VERIFY REAL BEHAVIOR: Check data was actually persisted
+        #[OK] VERIFY REAL BEHAVIOR: Check data was actually persisted
         updated_user_data = get_user_data(actual_user_id, 'all')
         updated_preferences = updated_user_data['preferences']
 
@@ -524,7 +524,7 @@ class TestUserManagementEdgeCases:
         assert updated_preferences['timezone'] == 'America/Regina'
         assert updated_preferences['task_settings']['enabled'] is False
 
-        # ✅ VERIFY REAL BEHAVIOR: Check file was actually modified
+        #[OK] VERIFY REAL BEHAVIOR: Check file was actually modified
         preferences_file_path = os.path.join(actual_user_dir, 'preferences.json')
         with open(preferences_file_path, 'r') as f:
             file_preferences = json.load(f)
@@ -542,7 +542,7 @@ class TestUserManagementEdgeCases:
             assert file_preferences.get('data') != {}, "Preferences should contain data"
         
         # Step 4: Test data consistency across operations
-        # ✅ VERIFY REAL BEHAVIOR: Check data consistency
+        #[OK] VERIFY REAL BEHAVIOR: Check data consistency
         consistency_data = get_user_data(actual_user_id, 'all')
         # Check that categories are consistent (may be filtered by validation)
         assert isinstance(consistency_data['preferences']['categories'], list), "Categories should be a list"
@@ -551,7 +551,7 @@ class TestUserManagementEdgeCases:
         assert consistency_data['preferences']['timezone'] == 'America/Regina'
 
         # Step 5: Test partial updates
-        # ✅ VERIFY REAL BEHAVIOR: Test partial preference updates
+        #[OK] VERIFY REAL BEHAVIOR: Test partial preference updates
         partial_updates = {
             'task_settings': {'enabled': True}
         }
@@ -559,7 +559,7 @@ class TestUserManagementEdgeCases:
         partial_result = update_user_preferences(actual_user_id, partial_updates)
         assert partial_result is True
         
-        # ✅ VERIFY REAL BEHAVIOR: Check partial update preserved other data
+        #[OK] VERIFY REAL BEHAVIOR: Check partial update preserved other data
         partial_updated_data = get_user_data(actual_user_id, 'all')
         # Check that categories are preserved (may be filtered by validation)
         assert isinstance(partial_updated_data['preferences']['categories'], list), "Categories should be a list"
@@ -568,18 +568,18 @@ class TestUserManagementEdgeCases:
         assert partial_updated_data['preferences']['task_settings']['enabled'] is True
         
         # Step 6: Test data validation and error handling
-        # ✅ VERIFY REAL BEHAVIOR: Check invalid user ID handling
+        #[OK] VERIFY REAL BEHAVIOR: Check invalid user ID handling
         # Use unique user ID to avoid test interference
         unique_user_id = f'nonexistent-user-{id(self)}'
         invalid_result = get_user_data(unique_user_id, 'all', auto_create=False)
         assert invalid_result == {}
         
-        # ✅ VERIFY REAL BEHAVIOR: Check existing user data is unaffected
+        #[OK] VERIFY REAL BEHAVIOR: Check existing user data is unaffected
         valid_data = get_user_data(actual_user_id, 'all')
         assert valid_data['preferences']['timezone'] == 'America/Regina'
         
         # Step 7: Test file system integrity
-        # ✅ VERIFY REAL BEHAVIOR: Check all files are valid JSON
+        #[OK] VERIFY REAL BEHAVIOR: Check all files are valid JSON
         for file_name in expected_files:
             file_path = os.path.join(actual_user_dir, file_name)
             try:
@@ -588,7 +588,7 @@ class TestUserManagementEdgeCases:
             except json.JSONDecodeError as e:
                 assert False, f"File should be valid JSON: {file_name} - {e}"
         
-        # ✅ VERIFY REAL BEHAVIOR: Check file sizes are reasonable
+        #[OK] VERIFY REAL BEHAVIOR: Check file sizes are reasonable
         for file_name in expected_files:
             file_path = os.path.join(actual_user_dir, file_name)
             file_size = os.path.getsize(file_path)
@@ -596,25 +596,25 @@ class TestUserManagementEdgeCases:
             assert file_size < 10000, f"File should not be unreasonably large: {file_name} - {file_size} bytes"
         
         # Step 8: Test concurrent access simulation
-        # ✅ VERIFY REAL BEHAVIOR: Check concurrent-like operations
+        #[OK] VERIFY REAL BEHAVIOR: Check concurrent-like operations
         concurrent_results = []
         for i in range(10):
             # Simulate concurrent reads
             concurrent_data = get_user_data(actual_user_id, 'preferences')
             concurrent_results.append(concurrent_data['preferences']['timezone'])
         
-        # ✅ VERIFY REAL BEHAVIOR: Check all concurrent reads return consistent data
+        #[OK] VERIFY REAL BEHAVIOR: Check all concurrent reads return consistent data
         for result in concurrent_results:
             assert result == 'America/Regina', f"Concurrent read should return consistent data: {result}"
         
         # Step 9: Test data recovery and resilience
-        # ✅ VERIFY REAL BEHAVIOR: Check system can recover from file corruption
+        #[OK] VERIFY REAL BEHAVIOR: Check system can recover from file corruption
         # Corrupt preferences file
         preferences_file_path = os.path.join(actual_user_dir, 'preferences.json')
         with open(preferences_file_path, 'w') as f:
             f.write('{invalid json}')
         
-        # ✅ VERIFY REAL BEHAVIOR: Check corrupted file is detected
+        #[OK] VERIFY REAL BEHAVIOR: Check corrupted file is detected
         try:
             with open(preferences_file_path, 'r') as f:
                 json.load(f)
@@ -622,19 +622,19 @@ class TestUserManagementEdgeCases:
         except json.JSONDecodeError:
             pass  # Expected behavior
         
-        # ✅ VERIFY REAL BEHAVIOR: Check system handles corrupted file gracefully
+        #[OK] VERIFY REAL BEHAVIOR: Check system handles corrupted file gracefully
         corrupted_result = get_user_data(actual_user_id, 'preferences')
         # Should return empty dict or handle gracefully
         assert isinstance(corrupted_result, dict)
         
         # Step 10: Test final system state
-        # ✅ VERIFY REAL BEHAVIOR: Check final system state is consistent
+        #[OK] VERIFY REAL BEHAVIOR: Check final system state is consistent
         final_user_data = get_user_data(actual_user_id, 'all')
         assert 'account' in final_user_data
         assert 'preferences' in final_user_data
         assert 'context' in final_user_data
         
-        # ✅ VERIFY REAL BEHAVIOR: Check no orphaned files
+        #[OK] VERIFY REAL BEHAVIOR: Check no orphaned files
         user_dir_contents = os.listdir(actual_user_dir)
         all_expected_items = expected_files + expected_dirs
         # Allow for additional feature directories created by the system (e.g., tasks)
@@ -655,7 +655,7 @@ class TestUserManagementEdgeCases:
         ]
         assert len(unexpected_items) == 0, f"No unexpected non-JSON files/directories should be created: {unexpected_items}"
         
-        # ✅ VERIFY REAL BEHAVIOR: Check all files and directories are still accessible
+        #[OK] VERIFY REAL BEHAVIOR: Check all files and directories are still accessible
         for file_name in expected_files:
             file_path = os.path.join(actual_user_dir, file_name)
             assert os.path.exists(file_path), f"File should exist in final state: {file_path}"

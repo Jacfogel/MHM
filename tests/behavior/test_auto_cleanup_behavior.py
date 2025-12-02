@@ -54,10 +54,10 @@ class TestAutoCleanupTimestampBehavior:
     @pytest.mark.regression
     def test_get_last_cleanup_timestamp_no_file_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test getting timestamp when no tracker file exists."""
-        # ✅ VERIFY REAL BEHAVIOR: No file exists initially
+        #[OK] VERIFY REAL BEHAVIOR: No file exists initially
         assert not temp_tracker_file.exists(), "Tracker file should not exist initially"
         
-        # ✅ VERIFY REAL BEHAVIOR: Returns 0 when no file exists
+        #[OK] VERIFY REAL BEHAVIOR: Returns 0 when no file exists
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(temp_tracker_file)):
             timestamp = get_last_cleanup_timestamp()
             assert timestamp == 0, "Should return 0 when no tracker file exists"
@@ -68,7 +68,7 @@ class TestAutoCleanupTimestampBehavior:
     @pytest.mark.regression
     def test_get_last_cleanup_timestamp_with_file_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test getting timestamp from existing tracker file."""
-        # ✅ VERIFY REAL BEHAVIOR: Create test tracker file
+        #[OK] VERIFY REAL BEHAVIOR: Create test tracker file
         test_timestamp = time.time()
         test_data = {
             'last_cleanup_timestamp': test_timestamp,
@@ -80,7 +80,7 @@ class TestAutoCleanupTimestampBehavior:
         
         assert temp_tracker_file.exists(), "Tracker file should be created"
         
-        # ✅ VERIFY REAL BEHAVIOR: Returns correct timestamp
+        #[OK] VERIFY REAL BEHAVIOR: Returns correct timestamp
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(temp_tracker_file)):
             timestamp = get_last_cleanup_timestamp()
             assert timestamp == test_timestamp, "Should return correct timestamp from file"
@@ -91,16 +91,16 @@ class TestAutoCleanupTimestampBehavior:
     @pytest.mark.regression
     def test_update_cleanup_timestamp_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test updating cleanup timestamp creates file with correct data."""
-        # ✅ VERIFY REAL BEHAVIOR: No file exists initially
+        #[OK] VERIFY REAL BEHAVIOR: No file exists initially
         assert not temp_tracker_file.exists(), "Tracker file should not exist initially"
         
-        # ✅ VERIFY REAL BEHAVIOR: Update timestamp creates file
+        #[OK] VERIFY REAL BEHAVIOR: Update timestamp creates file
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(temp_tracker_file)):
             update_cleanup_timestamp()
         
         assert temp_tracker_file.exists(), "Tracker file should be created"
         
-        # ✅ VERIFY REAL BEHAVIOR: File contains correct data structure
+        #[OK] VERIFY REAL BEHAVIOR: File contains correct data structure
         with open(temp_tracker_file, 'r') as f:
             data = json.load(f)
         
@@ -132,10 +132,10 @@ class TestAutoCleanupLogicBehavior:
     @pytest.mark.regression
     def test_should_run_cleanup_never_cleaned_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test cleanup decision when never cleaned before."""
-        # ✅ VERIFY REAL BEHAVIOR: No tracker file exists
+        #[OK] VERIFY REAL BEHAVIOR: No tracker file exists
         assert not temp_tracker_file.exists(), "Tracker file should not exist"
         
-        # ✅ VERIFY REAL BEHAVIOR: Should run cleanup when never cleaned
+        #[OK] VERIFY REAL BEHAVIOR: Should run cleanup when never cleaned
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(temp_tracker_file)):
             should_cleanup = should_run_cleanup()
             assert should_cleanup is True, "Should run cleanup when never cleaned before"
@@ -146,7 +146,7 @@ class TestAutoCleanupLogicBehavior:
     @pytest.mark.regression
     def test_should_run_cleanup_recent_cleanup_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test cleanup decision when recently cleaned."""
-        # ✅ VERIFY REAL BEHAVIOR: Create recent timestamp
+        #[OK] VERIFY REAL BEHAVIOR: Create recent timestamp
         recent_timestamp = time.time() - (1 * 24 * 60 * 60)  # 1 day ago
         test_data = {
             'last_cleanup_timestamp': recent_timestamp,
@@ -156,7 +156,7 @@ class TestAutoCleanupLogicBehavior:
         with open(temp_tracker_file, 'w') as f:
             json.dump(test_data, f)
         
-        # ✅ VERIFY REAL BEHAVIOR: Should not run cleanup when recently cleaned
+        #[OK] VERIFY REAL BEHAVIOR: Should not run cleanup when recently cleaned
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(temp_tracker_file)):
             should_cleanup = should_run_cleanup()
             assert should_cleanup is False, "Should not run cleanup when recently cleaned"
@@ -167,7 +167,7 @@ class TestAutoCleanupLogicBehavior:
     @pytest.mark.regression
     def test_should_run_cleanup_old_cleanup_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test cleanup decision when last cleanup was old."""
-        # ✅ VERIFY REAL BEHAVIOR: Create old timestamp
+        #[OK] VERIFY REAL BEHAVIOR: Create old timestamp
         old_timestamp = time.time() - (35 * 24 * 60 * 60)  # 35 days ago
         test_data = {
             'last_cleanup_timestamp': old_timestamp,
@@ -177,7 +177,7 @@ class TestAutoCleanupLogicBehavior:
         with open(temp_tracker_file, 'w') as f:
             json.dump(test_data, f)
         
-        # ✅ VERIFY REAL BEHAVIOR: Should run cleanup when old cleanup
+        #[OK] VERIFY REAL BEHAVIOR: Should run cleanup when old cleanup
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(temp_tracker_file)):
             should_cleanup = should_run_cleanup()
             assert should_cleanup is True, "Should run cleanup when last cleanup was old"
@@ -188,7 +188,7 @@ class TestAutoCleanupLogicBehavior:
     @pytest.mark.regression
     def test_should_run_cleanup_custom_interval_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test cleanup decision with custom interval."""
-        # ✅ VERIFY REAL BEHAVIOR: Create timestamp at custom interval boundary
+        #[OK] VERIFY REAL BEHAVIOR: Create timestamp at custom interval boundary
         custom_interval = 7  # 7 days
         boundary_timestamp = time.time() - (custom_interval * 24 * 60 * 60)
         test_data = {
@@ -199,7 +199,7 @@ class TestAutoCleanupLogicBehavior:
         with open(temp_tracker_file, 'w') as f:
             json.dump(test_data, f)
         
-        # ✅ VERIFY REAL BEHAVIOR: Should run cleanup at custom interval boundary
+        #[OK] VERIFY REAL BEHAVIOR: Should run cleanup at custom interval boundary
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(temp_tracker_file)):
             should_cleanup = should_run_cleanup(interval_days=custom_interval)
             assert should_cleanup is True, "Should run cleanup at custom interval boundary"
@@ -250,7 +250,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
         if not (subdir_pycache / "subtest.pyc").exists():
             (subdir_pycache / "subtest.pyc").write_text("subtest")
         
-        # ✅ VERIFY REAL BEHAVIOR: Find all __pycache__ directories
+        #[OK] VERIFY REAL BEHAVIOR: Find all __pycache__ directories
         pycache_dirs = find_pycache_dirs(temp_test_dir)
         
         # Filter to only directories within our test directory (parallel tests may create others)
@@ -261,7 +261,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
         # In parallel execution, there may be more, but we should find at least our 2
         assert len(filtered_dirs) >= 2, f"Should find at least 2 __pycache__ directories in test dir. Found: {len(filtered_dirs)}. All dirs: {pycache_dirs}"
         
-        # ✅ VERIFY REAL BEHAVIOR: Directories are correct
+        #[OK] VERIFY REAL BEHAVIOR: Directories are correct
         dir_paths = [Path(d) for d in filtered_dirs]
         assert temp_test_dir / "__pycache__" in dir_paths, "Should find root __pycache__"
         assert temp_test_dir / "subdir" / "__pycache__" in dir_paths, "Should find subdir __pycache__"
@@ -272,12 +272,12 @@ class TestAutoCleanupFileDiscoveryBehavior:
     @pytest.mark.regression
     def test_find_pyc_files_real_behavior(self, temp_test_dir):
         """REAL BEHAVIOR TEST: Test finding .pyc files."""
-        # ✅ VERIFY REAL BEHAVIOR: Find all .pyc files
+        #[OK] VERIFY REAL BEHAVIOR: Find all .pyc files
         pyc_files = find_pyc_files(temp_test_dir)
         
         assert len(pyc_files) == 4, "Should find 4 .pyc files (2 in __pycache__ + 2 standalone)"
         
-        # ✅ VERIFY REAL BEHAVIOR: Files are correct
+        #[OK] VERIFY REAL BEHAVIOR: Files are correct
         file_paths = [Path(f) for f in pyc_files]
         assert temp_test_dir / "standalone.pyc" in file_paths, "Should find standalone .pyc"
         assert temp_test_dir / "subdir" / "another.pyc" in file_paths, "Should find subdir .pyc"
@@ -288,13 +288,13 @@ class TestAutoCleanupFileDiscoveryBehavior:
     @pytest.mark.regression
     def test_calculate_cache_size_real_behavior(self, temp_test_dir):
         """REAL BEHAVIOR TEST: Test calculating cache size."""
-        # ✅ VERIFY REAL BEHAVIOR: Calculate total cache size
+        #[OK] VERIFY REAL BEHAVIOR: Calculate total cache size
         pycache_dirs = find_pycache_dirs(temp_test_dir)
         pyc_files = find_pyc_files(temp_test_dir)
         
         total_size = calculate_cache_size(pycache_dirs, pyc_files)
         
-        # ✅ VERIFY REAL BEHAVIOR: Size is positive and reasonable
+        #[OK] VERIFY REAL BEHAVIOR: Size is positive and reasonable
         assert total_size > 0, "Cache size should be positive"
         assert total_size < 1024 * 1024, "Cache size should be reasonable (< 1MB for test files)"
 
@@ -309,7 +309,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
     @pytest.mark.no_parallel
     def test_calculate_cache_size_large_cache_scenario_real_behavior(self, temp_test_dir):
         """REAL BEHAVIOR TEST: Test calculating cache size with large number of files."""
-        # ✅ VERIFY REAL BEHAVIOR: Create many cache files to simulate large cache
+        #[OK] VERIFY REAL BEHAVIOR: Create many cache files to simulate large cache
         large_cache_dir = temp_test_dir / "large_cache"
         large_cache_dir.mkdir(exist_ok=True)
         
@@ -328,7 +328,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
             standalone_file = large_cache_dir / f"standalone_{i}.pyc"
             standalone_file.write_text(f"standalone cache {i}" * 5)
         
-        # ✅ VERIFY REAL BEHAVIOR: Calculate size of large cache
+        #[OK] VERIFY REAL BEHAVIOR: Calculate size of large cache
         # Retry in case of race conditions with directory creation in parallel execution
         import time
         pycache_dirs = []
@@ -343,7 +343,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
         
         total_size = calculate_cache_size(pycache_dirs, pyc_files)
         
-        # ✅ VERIFY REAL BEHAVIOR: Size calculation handles large cache correctly
+        #[OK] VERIFY REAL BEHAVIOR: Size calculation handles large cache correctly
         assert total_size > 0, "Large cache size should be positive"
         # In parallel execution, some directories might not be found due to race conditions
         # Accept 8+ directories as success (80% success rate is reasonable for parallel execution)
@@ -356,7 +356,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
     @pytest.mark.regression
     def test_calculate_cache_size_file_corruption_handling_real_behavior(self, temp_test_dir):
         """REAL BEHAVIOR TEST: Test cache size calculation when files are corrupted or inaccessible."""
-        # ✅ VERIFY REAL BEHAVIOR: Create normal cache files first
+        #[OK] VERIFY REAL BEHAVIOR: Create normal cache files first
         pycache_dir = temp_test_dir / "corrupted_cache" / "__pycache__"
         pycache_dir.mkdir(parents=True, exist_ok=True)
         
@@ -372,14 +372,14 @@ class TestAutoCleanupFileDiscoveryBehavior:
         standalone_file = temp_test_dir / "standalone.pyc"
         standalone_file.write_text("standalone content")
         
-        # ✅ VERIFY REAL BEHAVIOR: Function should handle corrupted files gracefully
+        #[OK] VERIFY REAL BEHAVIOR: Function should handle corrupted files gracefully
         pycache_dirs = find_pycache_dirs(temp_test_dir)
         pyc_files = find_pyc_files(temp_test_dir)
         
         with patch('core.auto_cleanup.logger') as mock_logger:
             total_size = calculate_cache_size(pycache_dirs, pyc_files)
         
-        # ✅ VERIFY REAL BEHAVIOR: Should calculate size of accessible files
+        #[OK] VERIFY REAL BEHAVIOR: Should calculate size of accessible files
         assert total_size > 0, "Should calculate size of accessible files"
         assert total_size >= len("normal cache content") + len("standalone content"), "Should include normal files"
 
@@ -389,7 +389,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
     @pytest.mark.regression
     def test_calculate_cache_size_nonexistent_files_real_behavior(self, temp_test_dir):
         """REAL BEHAVIOR TEST: Test cache size calculation with non-existent files."""
-        # ✅ VERIFY REAL BEHAVIOR: Create some real files
+        #[OK] VERIFY REAL BEHAVIOR: Create some real files
         real_pycache_dir = temp_test_dir / "real_cache" / "__pycache__"
         real_pycache_dir.mkdir(parents=True, exist_ok=True)
         real_file = real_pycache_dir / "real.pyc"
@@ -398,7 +398,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
         real_standalone = temp_test_dir / "real_standalone.pyc"
         real_standalone.write_text("real standalone")
         
-        # ✅ VERIFY REAL BEHAVIOR: Mix real files with non-existent paths
+        #[OK] VERIFY REAL BEHAVIOR: Mix real files with non-existent paths
         nonexistent_pycache_dirs = [
             str(temp_test_dir / "nonexistent" / "__pycache__"),
             str(temp_test_dir / "missing" / "__pycache__"),
@@ -414,7 +414,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
         with patch('core.auto_cleanup.logger') as mock_logger:
             total_size = calculate_cache_size(nonexistent_pycache_dirs, nonexistent_pyc_files)
         
-        # ✅ VERIFY REAL BEHAVIOR: Should only count existing files
+        #[OK] VERIFY REAL BEHAVIOR: Should only count existing files
         assert total_size > 0, "Should calculate size of existing files"
         assert total_size >= len("real content") + len("real standalone"), "Should include real files"
 
@@ -424,11 +424,11 @@ class TestAutoCleanupFileDiscoveryBehavior:
     @pytest.mark.regression
     def test_calculate_cache_size_empty_inputs_real_behavior(self, temp_test_dir):
         """REAL BEHAVIOR TEST: Test cache size calculation with empty inputs."""
-        # ✅ VERIFY REAL BEHAVIOR: Test with empty lists
+        #[OK] VERIFY REAL BEHAVIOR: Test with empty lists
         total_size = calculate_cache_size([], [])
         assert total_size == 0, "Should return 0 for empty inputs"
         
-        # ✅ VERIFY REAL BEHAVIOR: Test with None inputs (should be handled gracefully)
+        #[OK] VERIFY REAL BEHAVIOR: Test with None inputs (should be handled gracefully)
         with patch('core.auto_cleanup.logger') as mock_logger:
             total_size = calculate_cache_size(None, None)
         assert total_size == 0, "Should return 0 for None inputs"
@@ -439,7 +439,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
     @pytest.mark.regression
     def test_calculate_cache_size_permission_error_simulation_real_behavior(self, temp_test_dir):
         """REAL BEHAVIOR TEST: Test cache size calculation when file access fails."""
-        # ✅ VERIFY REAL BEHAVIOR: Create cache directory
+        #[OK] VERIFY REAL BEHAVIOR: Create cache directory
         pycache_dir = temp_test_dir / "permission_test" / "__pycache__"
         pycache_dir.mkdir(parents=True, exist_ok=True)
         
@@ -451,7 +451,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
         normal_file = pycache_dir / "normal.pyc"
         normal_file.write_text("normal content")
         
-        # ✅ VERIFY REAL BEHAVIOR: Mock os.walk to simulate permission error
+        #[OK] VERIFY REAL BEHAVIOR: Mock os.walk to simulate permission error
         def mock_walk_with_error(path):
             if "permission_test" in path:
                 # Simulate permission error on first directory
@@ -467,7 +467,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
              patch('core.auto_cleanup.logger') as mock_logger:
             total_size = calculate_cache_size(pycache_dirs, pyc_files)
         
-        # ✅ VERIFY REAL BEHAVIOR: Should handle permission errors gracefully
+        #[OK] VERIFY REAL BEHAVIOR: Should handle permission errors gracefully
         assert total_size == 0, "Should return 0 when permission denied"
         mock_logger.warning.assert_called()
 
@@ -477,7 +477,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
     @pytest.mark.regression
     def test_calculate_cache_size_nested_directory_structure_real_behavior(self, temp_test_dir):
         """REAL BEHAVIOR TEST: Test cache size calculation with deeply nested directories."""
-        # ✅ VERIFY REAL BEHAVIOR: Create deeply nested cache structure
+        #[OK] VERIFY REAL BEHAVIOR: Create deeply nested cache structure
         deep_dir = temp_test_dir / "deep" / "nested" / "structure" / "cache"
         deep_dir.mkdir(parents=True, exist_ok=True)
         
@@ -498,13 +498,13 @@ class TestAutoCleanupFileDiscoveryBehavior:
         (temp_test_dir / "deep" / "standalone1.pyc").write_text("standalone 1")
         (temp_test_dir / "deep" / "nested" / "standalone2.pyc").write_text("standalone 2")
         
-        # ✅ VERIFY REAL BEHAVIOR: Calculate size of nested structure
+        #[OK] VERIFY REAL BEHAVIOR: Calculate size of nested structure
         pycache_dirs = find_pycache_dirs(temp_test_dir)
         pyc_files = find_pyc_files(temp_test_dir)
         
         total_size = calculate_cache_size(pycache_dirs, pyc_files)
         
-        # ✅ VERIFY REAL BEHAVIOR: Should handle nested structure correctly
+        #[OK] VERIFY REAL BEHAVIOR: Should handle nested structure correctly
         assert total_size > 0, "Should calculate size of nested files"
         expected_min_size = len("deep content 1") + len("deep content 2") + len("subdir content") + len("standalone 1") + len("standalone 2")
         assert total_size >= expected_min_size, "Should include all nested files"
@@ -515,14 +515,14 @@ class TestAutoCleanupFileDiscoveryBehavior:
     @pytest.mark.regression
     def test_calculate_cache_size_concurrent_file_changes_real_behavior(self, temp_test_dir):
         """REAL BEHAVIOR TEST: Test cache size calculation when files change during calculation."""
-        # ✅ VERIFY REAL BEHAVIOR: Create initial cache files
+        #[OK] VERIFY REAL BEHAVIOR: Create initial cache files
         pycache_dir = temp_test_dir / "concurrent_test" / "__pycache__"
         pycache_dir.mkdir(parents=True, exist_ok=True)
         
         initial_file = pycache_dir / "initial.pyc"
         initial_file.write_text("initial content")
         
-        # ✅ VERIFY REAL BEHAVIOR: Mock os.path.exists to simulate files disappearing during calculation
+        #[OK] VERIFY REAL BEHAVIOR: Mock os.path.exists to simulate files disappearing during calculation
         original_exists = os.path.exists
         call_count = 0
         
@@ -540,7 +540,7 @@ class TestAutoCleanupFileDiscoveryBehavior:
         with patch('core.auto_cleanup.os.path.exists', side_effect=mock_exists_with_changes):
             total_size = calculate_cache_size(pycache_dirs, pyc_files)
         
-        # ✅ VERIFY REAL BEHAVIOR: Should handle concurrent changes gracefully
+        #[OK] VERIFY REAL BEHAVIOR: Should handle concurrent changes gracefully
         assert total_size >= 0, "Should handle file changes gracefully"
 
 class TestAutoCleanupStatusBehavior:
@@ -566,10 +566,10 @@ class TestAutoCleanupStatusBehavior:
     @pytest.mark.regression
     def test_get_cleanup_status_never_cleaned_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test status when never cleaned before."""
-        # ✅ VERIFY REAL BEHAVIOR: No tracker file exists
+        #[OK] VERIFY REAL BEHAVIOR: No tracker file exists
         assert not temp_tracker_file.exists(), "Tracker file should not exist"
         
-        # ✅ VERIFY REAL BEHAVIOR: Status shows never cleaned
+        #[OK] VERIFY REAL BEHAVIOR: Status shows never cleaned
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(temp_tracker_file)):
             status = get_cleanup_status()
         
@@ -583,7 +583,7 @@ class TestAutoCleanupStatusBehavior:
     @pytest.mark.regression
     def test_get_cleanup_status_recent_cleanup_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test status when recently cleaned."""
-        # ✅ VERIFY REAL BEHAVIOR: Create recent timestamp
+        #[OK] VERIFY REAL BEHAVIOR: Create recent timestamp
         recent_timestamp = time.time() - (5 * 24 * 60 * 60)  # 5 days ago
         test_data = {
             'last_cleanup_timestamp': recent_timestamp,
@@ -593,7 +593,7 @@ class TestAutoCleanupStatusBehavior:
         with open(temp_tracker_file, 'w') as f:
             json.dump(test_data, f)
         
-        # ✅ VERIFY REAL BEHAVIOR: Status shows recent cleanup
+        #[OK] VERIFY REAL BEHAVIOR: Status shows recent cleanup
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(temp_tracker_file)):
             status = get_cleanup_status()
         
@@ -608,7 +608,7 @@ class TestAutoCleanupStatusBehavior:
     @pytest.mark.regression
     def test_get_cleanup_status_overdue_cleanup_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test status when cleanup is overdue."""
-        # ✅ VERIFY REAL BEHAVIOR: Create old timestamp
+        #[OK] VERIFY REAL BEHAVIOR: Create old timestamp
         old_timestamp = time.time() - (35 * 24 * 60 * 60)  # 35 days ago
         test_data = {
             'last_cleanup_timestamp': old_timestamp,
@@ -618,7 +618,7 @@ class TestAutoCleanupStatusBehavior:
         with open(temp_tracker_file, 'w') as f:
             json.dump(test_data, f)
         
-        # ✅ VERIFY REAL BEHAVIOR: Status shows overdue cleanup
+        #[OK] VERIFY REAL BEHAVIOR: Status shows overdue cleanup
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(temp_tracker_file)):
             status = get_cleanup_status()
         
@@ -633,7 +633,7 @@ class TestAutoCleanupStatusBehavior:
     @pytest.mark.regression
     def test_get_cleanup_status_exactly_30_days_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test status when cleanup was exactly 30 days ago (boundary condition)."""
-        # ✅ VERIFY REAL BEHAVIOR: Create exactly 30-day-old timestamp
+        #[OK] VERIFY REAL BEHAVIOR: Create exactly 30-day-old timestamp
         exact_timestamp = time.time() - (30 * 24 * 60 * 60)  # Exactly 30 days ago
         test_data = {
             'last_cleanup_timestamp': exact_timestamp,
@@ -643,7 +643,7 @@ class TestAutoCleanupStatusBehavior:
         with open(temp_tracker_file, 'w') as f:
             json.dump(test_data, f)
         
-        # ✅ VERIFY REAL BEHAVIOR: Status shows exactly 30 days
+        #[OK] VERIFY REAL BEHAVIOR: Status shows exactly 30 days
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(temp_tracker_file)):
             status = get_cleanup_status()
         
@@ -658,7 +658,7 @@ class TestAutoCleanupStatusBehavior:
     @pytest.mark.regression
     def test_get_cleanup_status_29_days_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test status when cleanup was 29 days ago (just under threshold)."""
-        # ✅ VERIFY REAL BEHAVIOR: Create 29-day-old timestamp
+        #[OK] VERIFY REAL BEHAVIOR: Create 29-day-old timestamp
         old_timestamp = time.time() - (29 * 24 * 60 * 60)  # 29 days ago
         test_data = {
             'last_cleanup_timestamp': old_timestamp,
@@ -668,7 +668,7 @@ class TestAutoCleanupStatusBehavior:
         with open(temp_tracker_file, 'w') as f:
             json.dump(test_data, f)
         
-        # ✅ VERIFY REAL BEHAVIOR: Status shows 29 days (not overdue)
+        #[OK] VERIFY REAL BEHAVIOR: Status shows 29 days (not overdue)
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(temp_tracker_file)):
             status = get_cleanup_status()
         
@@ -683,7 +683,7 @@ class TestAutoCleanupStatusBehavior:
     @pytest.mark.regression
     def test_get_cleanup_status_31_days_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test status when cleanup was 31 days ago (just over threshold)."""
-        # ✅ VERIFY REAL BEHAVIOR: Create 31-day-old timestamp
+        #[OK] VERIFY REAL BEHAVIOR: Create 31-day-old timestamp
         old_timestamp = time.time() - (31 * 24 * 60 * 60)  # 31 days ago
         test_data = {
             'last_cleanup_timestamp': old_timestamp,
@@ -693,7 +693,7 @@ class TestAutoCleanupStatusBehavior:
         with open(temp_tracker_file, 'w') as f:
             json.dump(test_data, f)
         
-        # ✅ VERIFY REAL BEHAVIOR: Status shows 31 days (overdue)
+        #[OK] VERIFY REAL BEHAVIOR: Status shows 31 days (overdue)
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(temp_tracker_file)):
             status = get_cleanup_status()
         
@@ -708,7 +708,7 @@ class TestAutoCleanupStatusBehavior:
     @pytest.mark.regression
     def test_get_cleanup_status_very_recent_cleanup_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test status when cleanup was very recent (1 day ago)."""
-        # ✅ VERIFY REAL BEHAVIOR: Create 1-day-old timestamp
+        #[OK] VERIFY REAL BEHAVIOR: Create 1-day-old timestamp
         recent_timestamp = time.time() - (1 * 24 * 60 * 60)  # 1 day ago
         test_data = {
             'last_cleanup_timestamp': recent_timestamp,
@@ -718,7 +718,7 @@ class TestAutoCleanupStatusBehavior:
         with open(temp_tracker_file, 'w') as f:
             json.dump(test_data, f)
         
-        # ✅ VERIFY REAL BEHAVIOR: Status shows recent cleanup
+        #[OK] VERIFY REAL BEHAVIOR: Status shows recent cleanup
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(temp_tracker_file)):
             status = get_cleanup_status()
         
@@ -733,7 +733,7 @@ class TestAutoCleanupStatusBehavior:
     @pytest.mark.regression
     def test_get_cleanup_status_very_old_cleanup_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test status when cleanup was very old (100+ days ago)."""
-        # ✅ VERIFY REAL BEHAVIOR: Create very old timestamp
+        #[OK] VERIFY REAL BEHAVIOR: Create very old timestamp
         old_timestamp = time.time() - (100 * 24 * 60 * 60)  # 100 days ago
         test_data = {
             'last_cleanup_timestamp': old_timestamp,
@@ -743,7 +743,7 @@ class TestAutoCleanupStatusBehavior:
         with open(temp_tracker_file, 'w') as f:
             json.dump(test_data, f)
         
-        # ✅ VERIFY REAL BEHAVIOR: Status shows very old cleanup
+        #[OK] VERIFY REAL BEHAVIOR: Status shows very old cleanup
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(temp_tracker_file)):
             status = get_cleanup_status()
         
@@ -758,11 +758,11 @@ class TestAutoCleanupStatusBehavior:
     @pytest.mark.regression
     def test_get_cleanup_status_corrupted_tracker_file_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test status when tracker file contains invalid JSON."""
-        # ✅ VERIFY REAL BEHAVIOR: Create corrupted tracker file
+        #[OK] VERIFY REAL BEHAVIOR: Create corrupted tracker file
         with open(temp_tracker_file, 'w') as f:
             f.write("invalid json content {")
         
-        # ✅ VERIFY REAL BEHAVIOR: Should handle corrupted file gracefully
+        #[OK] VERIFY REAL BEHAVIOR: Should handle corrupted file gracefully
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(temp_tracker_file)):
             status = get_cleanup_status()
         
@@ -777,11 +777,11 @@ class TestAutoCleanupStatusBehavior:
     @pytest.mark.regression
     def test_get_cleanup_status_empty_tracker_file_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test status when tracker file is empty."""
-        # ✅ VERIFY REAL BEHAVIOR: Create empty tracker file
+        #[OK] VERIFY REAL BEHAVIOR: Create empty tracker file
         with open(temp_tracker_file, 'w') as f:
             f.write("")
         
-        # ✅ VERIFY REAL BEHAVIOR: Should handle empty file gracefully
+        #[OK] VERIFY REAL BEHAVIOR: Should handle empty file gracefully
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(temp_tracker_file)):
             status = get_cleanup_status()
         
@@ -796,7 +796,7 @@ class TestAutoCleanupStatusBehavior:
     @pytest.mark.regression
     def test_get_cleanup_status_missing_timestamp_field_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test status when tracker file is missing timestamp field."""
-        # ✅ VERIFY REAL BEHAVIOR: Create tracker file without timestamp
+        #[OK] VERIFY REAL BEHAVIOR: Create tracker file without timestamp
         test_data = {
             'last_cleanup_date': '2023-01-01T00:00:00'
             # Missing 'last_cleanup_timestamp' field
@@ -805,7 +805,7 @@ class TestAutoCleanupStatusBehavior:
         with open(temp_tracker_file, 'w') as f:
             json.dump(test_data, f)
         
-        # ✅ VERIFY REAL BEHAVIOR: Should handle missing field gracefully
+        #[OK] VERIFY REAL BEHAVIOR: Should handle missing field gracefully
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(temp_tracker_file)):
             status = get_cleanup_status()
         
@@ -820,12 +820,12 @@ class TestAutoCleanupStatusBehavior:
     @pytest.mark.regression
     def test_get_cleanup_status_invalid_timestamp_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test status when tracker file contains invalid timestamp."""
-        # ✅ SAFETY CHECK: Ensure we're creating files in the test directory, not root
+        #[OK] SAFETY CHECK: Ensure we're creating files in the test directory, not root
         assert 'tests' in str(temp_tracker_file), "Test file should be in tests directory"
         # Check that filename contains .last_cache_cleanup (may have UUID suffix for isolation)
         assert '.last_cache_cleanup' in str(temp_tracker_file.name), "Test file should have correct name pattern"
         
-        # ✅ VERIFY REAL BEHAVIOR: Create tracker file with invalid timestamp
+        #[OK] VERIFY REAL BEHAVIOR: Create tracker file with invalid timestamp
         test_data = {
             'last_cleanup_timestamp': 'invalid_timestamp',
             'last_cleanup_date': '2023-01-01T00:00:00'
@@ -834,7 +834,7 @@ class TestAutoCleanupStatusBehavior:
         with open(temp_tracker_file, 'w') as f:
             json.dump(test_data, f)
         
-        # ✅ VERIFY REAL BEHAVIOR: Should handle invalid timestamp gracefully
+        #[OK] VERIFY REAL BEHAVIOR: Should handle invalid timestamp gracefully
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(temp_tracker_file)):
             status = get_cleanup_status()
         
@@ -878,17 +878,17 @@ class TestAutoCleanupIntegrationBehavior:
         """REAL BEHAVIOR TEST: Test performing actual cleanup."""
         test_dir, tracker_path = temp_test_environment
         
-        # ✅ VERIFY REAL BEHAVIOR: Cache files exist initially
+        #[OK] VERIFY REAL BEHAVIOR: Cache files exist initially
         assert (test_dir / "__pycache__").exists(), "__pycache__ should exist initially"
         assert (test_dir / "standalone.pyc").exists(), "standalone.pyc should exist initially"
         
-        # ✅ VERIFY REAL BEHAVIOR: Perform cleanup
+        #[OK] VERIFY REAL BEHAVIOR: Perform cleanup
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(tracker_path)):
             success = perform_cleanup(test_dir)
         
         assert success is True, "Cleanup should succeed"
         
-        # ✅ VERIFY REAL BEHAVIOR: Cache files are removed
+        #[OK] VERIFY REAL BEHAVIOR: Cache files are removed
         assert not (test_dir / "__pycache__").exists(), "__pycache__ should be removed"
         assert not (test_dir / "standalone.pyc").exists(), "standalone.pyc should be removed"
     
@@ -900,19 +900,19 @@ class TestAutoCleanupIntegrationBehavior:
         """REAL BEHAVIOR TEST: Test automatic cleanup decision and execution."""
         test_dir, tracker_path = temp_test_environment
         
-        # ✅ VERIFY REAL BEHAVIOR: No tracker file exists initially
+        #[OK] VERIFY REAL BEHAVIOR: No tracker file exists initially
         assert not tracker_path.exists(), "Tracker file should not exist initially"
         
-        # ✅ VERIFY REAL BEHAVIOR: Auto cleanup should run and succeed
+        #[OK] VERIFY REAL BEHAVIOR: Auto cleanup should run and succeed
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(tracker_path)):
             result = auto_cleanup_if_needed(test_dir)
         
         assert result is True, "Auto cleanup should be performed"
         
-        # ✅ VERIFY REAL BEHAVIOR: Tracker file is created
+        #[OK] VERIFY REAL BEHAVIOR: Tracker file is created
         assert tracker_path.exists(), "Tracker file should be created after cleanup"
         
-        # ✅ VERIFY REAL BEHAVIOR: Cache files are removed
+        #[OK] VERIFY REAL BEHAVIOR: Cache files are removed
         assert not (test_dir / "__pycache__").exists(), "__pycache__ should be removed"
         assert not (test_dir / "standalone.pyc").exists(), "standalone.pyc should be removed"
     
@@ -924,7 +924,7 @@ class TestAutoCleanupIntegrationBehavior:
         """REAL BEHAVIOR TEST: Test auto cleanup when not needed."""
         test_dir, tracker_path = temp_test_environment
         
-        # ✅ VERIFY REAL BEHAVIOR: Create recent timestamp
+        #[OK] VERIFY REAL BEHAVIOR: Create recent timestamp
         recent_timestamp = time.time() - (1 * 24 * 60 * 60)  # 1 day ago
         test_data = {
             'last_cleanup_timestamp': recent_timestamp,
@@ -934,12 +934,12 @@ class TestAutoCleanupIntegrationBehavior:
         with open(tracker_path, 'w') as f:
             json.dump(test_data, f)
         
-        # ✅ VERIFY REAL BEHAVIOR: Auto cleanup should not run
+        #[OK] VERIFY REAL BEHAVIOR: Auto cleanup should not run
         with patch('core.auto_cleanup.CLEANUP_TRACKER_FILE', str(tracker_path)):
             result = auto_cleanup_if_needed(test_dir)
         
         assert result is False, "Auto cleanup should not be performed when not needed"
         
-        # ✅ VERIFY REAL BEHAVIOR: Cache files still exist
+        #[OK] VERIFY REAL BEHAVIOR: Cache files still exist
         assert (test_dir / "__pycache__").exists(), "__pycache__ should still exist"
         assert (test_dir / "standalone.pyc").exists(), "standalone.pyc should still exist" 

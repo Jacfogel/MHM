@@ -1346,7 +1346,7 @@ class AITestRunner:
             f.write("## Detailed Results\n\n")
             
             for r in self.results:
-                status_symbol = {"PASS": "✅", "FAIL": "❌", "PARTIAL": "⚠️"}.get(r["status"], "❓")
+                status_symbol = {"PASS": "[OK]", "FAIL": "[ERROR]", "PARTIAL": "[WARNING]"}.get(r["status"], "[UNKNOWN]")
                 f.write(f"### {status_symbol} {r['test_id']}: {r['test_name']}\n\n")
                 f.write(f"- **Status**: {r['status']}\n")
                 if r.get('prompt'):

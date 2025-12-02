@@ -187,9 +187,9 @@ def generate_function_registry_content(actual_functions: Dict[str, Dict]) -> str
 > **See [ARCHITECTURE.md](../ARCHITECTURE.md) for system architecture and design**
 > **See [TODO.md](../TODO.md) for current documentation priorities**
 
-## 📋 **Overview**
+## Overview
 
-### **Function Documentation Coverage: {coverage_percentage:.1f}% {'✅ COMPLETED' if coverage_percentage >= 95 else '⚠️ NEEDS ATTENTION' if coverage_percentage >= 50 else '❌ CRITICAL GAP'}**
+### **Function Documentation Coverage: {coverage_percentage:.1f}% {'[OK] COMPLETED' if coverage_percentage >= 95 else '[WARNING] NEEDS ATTENTION' if coverage_percentage >= 50 else '[ERROR] CRITICAL GAP'}**
 - **Files Scanned**: {total_files}
 - **Functions Found**: {total_functions}
 - **Methods Found**: {total_methods}
@@ -202,7 +202,7 @@ def generate_function_registry_content(actual_functions: Dict[str, Dict]) -> str
 - **Template-Generated**: {template_items}
 - **Last Updated**: {datetime.now().strftime('%Y-%m-%d')}
 
-**Status**: {'✅ **EXCELLENT** - All functions have proper documentation' if coverage_percentage >= 95 else '⚠️ **GOOD** - Most functions documented, some gaps remain' if coverage_percentage >= 50 else '❌ **CRITICAL GAP** - Many functions lack documentation'}
+**Status**: {'[OK] **EXCELLENT** - All functions have proper documentation' if coverage_percentage >= 95 else '[WARNING] **GOOD** - Most functions documented, some gaps remain' if coverage_percentage >= 50 else '[ERROR] **CRITICAL GAP** - Many functions lack documentation'}
 
 **Template Enhancement**: This registry now includes automatic template generation for:
 - **Auto-generated Qt functions** (qtTrId, setupUi, retranslateUi)
@@ -212,7 +212,7 @@ def generate_function_registry_content(actual_functions: Dict[str, Dict]) -> str
 
 **Note**: This registry is automatically generated from the actual codebase. Functions without docstrings are marked as needing documentation. Template-generated documentation is applied to improve coverage.
 
-## 🔍 **Function Categories**
+## Function Categories
 
 ### **Core System Functions** ({sum(data['total_functions'] for file_path, data in actual_functions.items() if file_path.startswith('core/'))})
 Core system utilities, configuration, error handling, and data management functions.
@@ -232,7 +232,7 @@ Task management and scheduling functions.
 ### **Test Functions** ({sum(data['total_functions'] for file_path, data in actual_functions.items() if file_path.startswith('tests/'))})
 Test functions and testing utilities.
 
-## 📁 **Module Organization**
+## Module Organization
 
 """
     
@@ -275,18 +275,18 @@ def generate_file_section(file_path: str, data: Dict) -> str:
         content += "**Functions:**\n"
         for func in sorted(data['functions'], key=lambda x: x['name']):
             args_str = ', '.join(func['args'])
-            doc_status = "✅" if func['has_docstring'] else "❌"
+            doc_status = "[OK]" if func['has_docstring'] else "[MISSING]"
             content += f"- {doc_status} `{func['name']}({args_str})` - {func['docstring'] or 'No description'}\n"
     
     # Classes
     if data['classes']:
         content += "**Classes:**\n"
         for cls in sorted(data['classes'], key=lambda x: x['name']):
-            doc_status = "✅" if cls['docstring'] else "❌"
+            doc_status = "[OK]" if cls['docstring'] else "[MISSING]"
             content += f"- {doc_status} `{cls['name']}` - {cls['docstring'] or 'No description'}\n"
             for method in sorted(cls['methods'], key=lambda x: x['name']):
                 args_str = ', '.join(method['args'])
-                method_doc_status = "✅" if method['has_docstring'] else "❌"
+                method_doc_status = "[OK]" if method['has_docstring'] else "[MISSING]"
                 content += f"  - {method_doc_status} `{cls['name']}.{method['name']}({args_str})` - {method['docstring'] or 'No description'}\n"
     
     content += "\n"

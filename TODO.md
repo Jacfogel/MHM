@@ -119,7 +119,7 @@ When adding new tasks, follow this format:
 - *Why it helps*: Ensures examples are consistently marked, making the path drift checker more accurate and reducing false positives. Helps maintain documentation quality by catching unmarked examples that should be marked.
 - *Estimated effort*: Medium
 - *Subtasks*:
-  - [ ] Add example marking validation to `docs/analyze_documentation_sync.py` or create new validation module (already using full path)
+  - [ ] Add example marking validation to `development_tools/docs/analyze_documentation_sync.py` or create new validation module (already using full path)
   - [ ] Check for file path references in examples that lack proper markers
   - [ ] Validate that example sections use standard markers (`[OK]`, `[AVOID]`, `[GOOD]`, `[BAD]`, `[EXAMPLE]`)
   - [ ] Validate that example headings follow standard format ("Examples:", "Example Usage:", "Example Code:")
@@ -165,12 +165,12 @@ When adding new tasks, follow this format:
   - [ ] Update documentation to reflect enhanced reporting capabilities
 
 **Integrate Test Marker Scripts into Coverage/Test Analysis Tools**
-- *What it means*: Integrate test marker scripts (`scripts/find_tests_missing_category_markers.py`, `scripts/add_category_markers.py`, `scripts/analyze_test_markers.py`) into `tests/generate_coverage_metrics.py` or a new test analysis module. Add subcommands for test marker validation and fixing.
+- *What it means*: Integrate test marker scripts (`scripts/find_tests_missing_category_markers.py`, `scripts/add_category_markers.py`, `scripts/analyze_test_markers.py`) into a new test analysis module. Add subcommands for test marker validation and fixing.
 - *Why it helps*: Centralizes test analysis tools; enables validation of test categorization during coverage runs; provides automated marker addition. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.
 - *Estimated effort*: Medium
 - *Subtasks*:
   - [ ] Integrate test marker analysis functionality into coverage tools or new test analysis module
-  - [ ] Add `test-markers` subcommand to `development_tools/ai_tools_runner.py` with options: `--check`, `--analyze`, `--fix`
+  - [ ] Add `test-markers` subcommand to `development_tools/run_development_tools.py` with options: `--check`, `--analyze`, `--fix`
   - [ ] Support batch operations for adding missing markers based on directory structure
   - [ ] Consider integrating marker validation into coverage regeneration workflow
   - [ ] Update documentation to reflect new test marker commands
@@ -203,7 +203,7 @@ When adding new tasks, follow this format:
 - *What it means*: Test coverage dropped from 71.1% to 66.0% (5.1% drop, 1,375 fewer covered statements) after tool refactoring. Several modules show significant coverage drops (>50% for some). Need to identify root cause and restore coverage.
 - *Why it helps*: Maintains test coverage quality; ensures refactoring doesn't break test execution; identifies and fixes test failures from refactoring.
 - *Estimated effort*: Medium
-- *Current Status*: Analysis document created (`development_tools/TEST_COVERAGE_DIFF_ANALYSIS.md`)
+- *Current Status*: Analysis document to be created when investigating coverage regression
 - *Key Findings*:
   - 6 test failures and 1 import error found in latest run
   - 5 modules dropped into "Needs_Work" category (<50% coverage)
@@ -219,13 +219,13 @@ When adding new tasks, follow this format:
 
 
 **Create Project Cleanup Module**
-- *What it means*: Create a new cleanup module in `development_tools/` that integrates `scripts/cleanup_project.py` functionality. Add subcommand to `development_tools/ai_tools_runner.py` for project cleanup operations.
+- *What it means*: Create a new cleanup module in `development_tools/` that integrates `scripts/cleanup_project.py` functionality. Add subcommand to `development_tools/run_development_tools.py` for project cleanup operations.
 - *Why it helps*: Provides centralized cleanup operations (cache files, temporary directories, test artifacts) through the development tools runner. Enables safe cleanup with dry-run support. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.
 - *Estimated effort*: Medium
 - *Subtasks*:
   - [ ] Create new cleanup module (e.g., `development_tools/cleanup.py` (to be created) or `development_tools/project_cleanup.py` (to be created)) - module to be created
   - [ ] Integrate cleanup operations from `scripts/cleanup_project.py` (cache, pytest cache, coverage files, test temp dirs, etc.)
-  - [ ] Add `cleanup` subcommand to `development_tools/ai_tools_runner.py` with options: `--cache`, `--test-data`, `--coverage`, `--all`, `--dry-run`
+  - [ ] Add `cleanup` subcommand to `development_tools/run_development_tools.py` with options: `--cache`, `--test-data`, `--coverage`, `--all`, `--dry-run`
   - [ ] Maintain safety features (dry-run mode, selective cleanup options)
   - [ ] Update documentation to reflect new cleanup command
 
