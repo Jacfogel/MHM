@@ -47,13 +47,14 @@ logger = get_component_logger("development_tools")
 class ASCIIComplianceAnalyzer:
     """Analyzes documentation files for ASCII compliance."""
     
-    def __init__(self, project_root: Optional[str] = None, config_path: Optional[str] = None):
+    def __init__(self, project_root: Optional[str] = None, config_path: Optional[str] = None, use_cache: bool = True):
         """
         Initialize ASCII compliance analyzer.
         
         Args:
             project_root: Root directory of the project
             config_path: Optional path to external config file
+            use_cache: Whether to use mtime-based caching for file results
         """
         # Load external config if provided
         if config_path:
@@ -66,6 +67,11 @@ class ASCIIComplianceAnalyzer:
             self.project_root = Path(project_root).resolve()
         else:
             self.project_root = Path(config.get_project_root()).resolve()
+        
+        # Caching
+        from development_tools.shared.mtime_cache import MtimeFileCache
+        cache_file = self.project_root / "development_tools" / "docs" / ".ascii_compliance_cache.json"
+        self.cache = MtimeFileCache(cache_file, self.project_root, use_cache=use_cache)
     
     def check_ascii_compliance(self) -> Dict[str, List[str]]:
         """
@@ -128,6 +134,13 @@ class ASCIIComplianceAnalyzer:
             full_path = self.project_root / file_path
             if not full_path.exists():
                 continue
+            
+            # Check cache first
+            cached_issues = self.cache.get_cached(full_path)
+            if cached_issues is not None:
+                if cached_issues:
+                    ascii_issues[file_path] = cached_issues
+                continue
                 
             try:
                 with open(full_path, 'r', encoding='utf-8') as f:
@@ -141,20 +154,31 @@ class ASCIIComplianceAnalyzer:
                             non_ascii_chars[char] = 0
                         non_ascii_chars[char] += 1
                 
+                file_issues = []
                 if non_ascii_chars:
                     # Report all non-ASCII characters
                     for char, count in sorted(non_ascii_chars.items()):
                         if char in KNOWN_REPLACEMENTS:
-                            ascii_issues[file_path].append(
+                            file_issues.append(
                                 f"Non-ASCII character '{char}' (U+{ord(char):04X}): {count} instance(s) found (auto-fixable: '{KNOWN_REPLACEMENTS[char]}')"
                             )
                         else:
-                            ascii_issues[file_path].append(
+                            file_issues.append(
                                 f"Non-ASCII character '{char}' (U+{ord(char):04X}): {count} instance(s) found (manual review needed)"
                             )
+                
+                # Cache results
+                self.cache.cache_results(full_path, file_issues)
+                if file_issues:
+                    ascii_issues[file_path] = file_issues
                         
             except Exception as e:
-                ascii_issues[file_path].append(f"Error reading file: {e}")
+                file_issues = [f"Error reading file: {e}"]
+                self.cache.cache_results(full_path, file_issues)
+                ascii_issues[file_path] = file_issues
+        
+        # Save cache
+        self.cache.save_cache()
         
         return ascii_issues
 

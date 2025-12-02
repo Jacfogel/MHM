@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-02 - Implemented Shared Mtime-Based Caching for Development Tools **COMPLETED**
+- Created shared `MtimeFileCache` utility in `development_tools/shared/mtime_cache.py` for reusable mtime-based file caching across analyzers
+- Refactored 6 analyzers to use shared utility: `analyze_unused_imports.py`, `analyze_ascii_compliance.py`, `analyze_missing_addresses.py`, `analyze_path_drift.py`, `analyze_unconverted_links.py`, `analyze_heading_numbering.py`
+- Removed git-based incremental mode from unused imports checker (mtime cache provides better performance)
+- Eliminated ~250 lines of duplicated caching code; all analyzers now use consistent caching behavior
+
 ### 2025-12-02 - Fixed Path Drift and Non-ASCII Characters in Documentation **COMPLETED**
 - Fixed 30 path drift issues by updating outdated file path references across multiple documentation files to use full, accurate paths from project root
 - Fixed all non-ASCII characters (emojis) in generated documentation and test files: replaced with ASCII equivalents (`[OK]`, `[ERROR]`, `[WARNING]`, `[MISSING]`); fixed 484 occurrences in test comments

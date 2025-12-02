@@ -62,13 +62,14 @@ logger = get_component_logger("development_tools")
 class PathDriftAnalyzer:
     """Analyzes path drift between code and documentation."""
     
-    def __init__(self, project_root: Optional[str] = None, config_path: Optional[str] = None):
+    def __init__(self, project_root: Optional[str] = None, config_path: Optional[str] = None, use_cache: bool = True):
         """
         Initialize path drift analyzer.
         
         Args:
             project_root: Root directory of the project
             config_path: Optional path to external config file
+            use_cache: Whether to use mtime-based caching for file analysis
         """
         # Load external config if provided
         if config_path:
@@ -103,6 +104,11 @@ class PathDriftAnalyzer:
             # Fall back to scan_directories from config
             scan_dirs = config.get_scan_directories()
             self.code_dirs = scan_dirs if scan_dirs else ['core']  # Generic default
+        
+        # Caching - use shared utility
+        from development_tools.shared.mtime_cache import MtimeFileCache
+        cache_file = self.project_root / "development_tools" / "docs" / ".path_drift_cache.json"
+        self.cache = MtimeFileCache(cache_file, self.project_root, use_cache=use_cache)
     
     def _setup_enhanced_filters(self):
         """Setup enhanced filtering patterns to reduce false positives."""
@@ -512,6 +518,14 @@ class PathDriftAnalyzer:
             # Skip historical changelog files - they contain accurate historical references
             if 'CHANGELOG_DETAIL.md' in str(md_file) or 'AI_CHANGELOG.md' in str(md_file):
                 continue
+            
+            # Check cache first
+            cached_paths = self.cache.get_cached(md_file)
+            if cached_paths is not None:
+                if cached_paths:
+                    rel_path = str(md_file.relative_to(self.project_root))
+                    doc_paths[rel_path] = cached_paths
+                continue
                 
             try:
                 with open(md_file, 'r', encoding='utf-8') as f:
@@ -578,11 +592,21 @@ class PathDriftAnalyzer:
                                         # Skip section headers and common markdown link text
                                         if not self._is_section_header_or_link_text(match, line):
                                             doc_paths[str(md_file.relative_to(self.project_root))].append(match)
+                
+                # Cache results for this file
+                rel_path = str(md_file.relative_to(self.project_root))
+                file_paths = doc_paths.get(rel_path, [])
+                self.cache.cache_results(md_file, file_paths)
                                 
             except Exception as e:
                 if logger:
                     logger.warning(f"Error reading {md_file}: {e}")
-                
+                # Cache empty result for files with errors
+                self.cache.cache_results(md_file, [])
+        
+        # Save cache
+        self.cache.save_cache()
+        
         return doc_paths
     
     def check_path_drift(self) -> Dict[str, List[str]]:

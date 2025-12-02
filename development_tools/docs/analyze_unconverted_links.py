@@ -48,13 +48,14 @@ logger = get_component_logger("development_tools")
 class UnconvertedLinkAnalyzer:
     """Analyzes documentation files for unconverted file path links."""
     
-    def __init__(self, project_root: Optional[str] = None, config_path: Optional[str] = None):
+    def __init__(self, project_root: Optional[str] = None, config_path: Optional[str] = None, use_cache: bool = True):
         """
         Initialize unconverted link analyzer.
         
         Args:
             project_root: Root directory of the project
             config_path: Optional path to external config file
+            use_cache: Whether to use mtime-based caching for file analysis
         """
         # Load external config if provided
         if config_path:
@@ -67,6 +68,11 @@ class UnconvertedLinkAnalyzer:
             self.project_root = Path(project_root).resolve()
         else:
             self.project_root = Path(config.get_project_root()).resolve()
+        
+        # Caching - use shared utility
+        from development_tools.shared.mtime_cache import MtimeFileCache
+        cache_file = self.project_root / "development_tools" / "docs" / ".unconverted_links_cache.json"
+        self.cache = MtimeFileCache(cache_file, self.project_root, use_cache=use_cache)
     
     def _is_generated_file(self, file_path: Path) -> bool:
         """Check if a file is generated (should not be edited)."""
@@ -320,6 +326,13 @@ class UnconvertedLinkAnalyzer:
             if self._is_generated_file(file_path):
                 continue
             
+            # Check cache first
+            cached_issues = self.cache.get_cached(file_path)
+            if cached_issues is not None:
+                if cached_issues:
+                    unconverted_links[file_path_str] = cached_issues
+                continue
+            
             try:
                 with open(file_path, 'r', encoding='utf-8') as f:
                     content = f.read()
@@ -381,7 +394,16 @@ class UnconvertedLinkAnalyzer:
                             f"Line {line_num + 1}: Path `{path}` should be converted to markdown link"
                         )
             except Exception as e:
-                unconverted_links[file_path_str].append(f"Error reading file: {e}")
+                file_issues = [f"Error reading file: {e}"]
+                self.cache.cache_results(file_path, file_issues)
+                unconverted_links[file_path_str] = file_issues
+            else:
+                # Cache results for this file
+                file_issues = unconverted_links.get(file_path_str, [])
+                self.cache.cache_results(file_path, file_issues)
+        
+        # Save cache
+        self.cache.save_cache()
         
         return unconverted_links
 

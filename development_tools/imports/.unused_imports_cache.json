@@ -1,47 +1,47 @@
 {
   "ai/__init__.py": {
     "mtime": 1762239950.5542183,
-    "issues": []
+    "results": []
   },
   "ai/cache_manager.py": {
     "mtime": 1760080339.73735,
-    "issues": []
+    "results": []
   },
   "ai/chatbot.py": {
     "mtime": 1762824995.8634748,
-    "issues": []
+    "results": []
   },
   "ai/context_builder.py": {
     "mtime": 1760377270.9669962,
-    "issues": []
+    "results": []
   },
   "ai/conversation_history.py": {
     "mtime": 1760377270.9685063,
-    "issues": []
+    "results": []
   },
   "ai/lm_studio_manager.py": {
     "mtime": 1762411575.257769,
-    "issues": []
+    "results": []
   },
   "ai/prompt_manager.py": {
     "mtime": 1762595629.3469226,
-    "issues": []
+    "results": []
   },
   "development_tools/__init__.py": {
     "mtime": 1764477374.3075554,
-    "issues": []
+    "results": []
   },
   "development_tools/ai_tools_runner.py": {
     "mtime": 1764477374.3075554,
-    "issues": []
+    "results": []
   },
   "development_tools/analyze_documentation.py": {
     "mtime": 1764412698.5270717,
-    "issues": []
+    "results": []
   },
   "development_tools/audit_function_registry.py": {
     "mtime": 1764384186.4844713,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.audit_function_registry",
@@ -72,7 +72,7 @@
   },
   "development_tools/audit_module_dependencies.py": {
     "mtime": 1764384186.4854765,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.audit_module_dependencies",
@@ -90,7 +90,7 @@
   },
   "development_tools/audit_package_exports.py": {
     "mtime": 1764384186.4864814,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.audit_package_exports",
@@ -108,19 +108,19 @@
   },
   "development_tools/auto_document_functions.py": {
     "mtime": 1764068752.9154713,
-    "issues": []
+    "results": []
   },
   "development_tools/config.py": {
     "mtime": 1764477884.6576786,
-    "issues": []
+    "results": []
   },
   "development_tools/config_validator.py": {
     "mtime": 1764384186.4895058,
-    "issues": []
+    "results": []
   },
   "development_tools/decision_support.py": {
     "mtime": 1764384186.4919431,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.decision_support",
@@ -151,7 +151,7 @@
   },
   "development_tools/documentation_sync_checker.py": {
     "mtime": 1764384186.494112,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.documentation_sync_checker",
@@ -169,7 +169,7 @@
   },
   "development_tools/error_handling_coverage.py": {
     "mtime": 1764412466.1909535,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.error_handling_coverage",
@@ -187,63 +187,63 @@
   },
   "development_tools/file_rotation.py": {
     "mtime": 1764477373.7879362,
-    "issues": []
+    "results": []
   },
   "development_tools/function_discovery.py": {
     "mtime": 1764384186.5022686,
-    "issues": []
+    "results": []
   },
   "development_tools/generate_function_registry.py": {
     "mtime": 1764384186.5038762,
-    "issues": []
+    "results": []
   },
   "development_tools/generate_module_dependencies.py": {
     "mtime": 1764384752.5217617,
-    "issues": []
+    "results": []
   },
   "development_tools/legacy_reference_cleanup.py": {
     "mtime": 1764411178.3152876,
-    "issues": []
+    "results": []
   },
   "development_tools/quick_status.py": {
     "mtime": 1764384186.5038762,
-    "issues": []
+    "results": []
   },
   "development_tools/regenerate_coverage_metrics.py": {
     "mtime": 1764384186.5038762,
-    "issues": []
+    "results": []
   },
   "development_tools/services/__init__.py": {
     "mtime": 1762166030.6289499,
-    "issues": []
+    "results": []
   },
   "development_tools/services/common.py": {
     "mtime": 1764384186.5038762,
-    "issues": []
+    "results": []
   },
   "development_tools/services/constants.py": {
     "mtime": 1764384186.5100393,
-    "issues": []
+    "results": []
   },
   "development_tools/services/operations.py": {
     "mtime": 1764416114.004,
-    "issues": []
+    "results": []
   },
   "development_tools/services/standard_exclusions.py": {
     "mtime": 1764384186.5129,
-    "issues": []
+    "results": []
   },
   "development_tools/system_signals.py": {
     "mtime": 1764384186.5149198,
-    "issues": []
+    "results": []
   },
   "development_tools/tool_guide.py": {
     "mtime": 1764477373.8108766,
-    "issues": []
+    "results": []
   },
   "development_tools/unused_imports_checker.py": {
     "mtime": 1764384186.5159018,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.unused_imports_checker",
@@ -261,99 +261,99 @@
   },
   "development_tools/validate_ai_work.py": {
     "mtime": 1764384186.5159018,
-    "issues": []
+    "results": []
   },
   "development_tools/version_sync.py": {
     "mtime": 1764068754.1356206,
-    "issues": []
+    "results": []
   },
   "communication/__init__.py": {
     "mtime": 1763711309.4744065,
-    "issues": []
+    "results": []
   },
   "communication/command_handlers/__init__.py": {
     "mtime": 1762166030.6289499,
-    "issues": []
+    "results": []
   },
   "communication/command_handlers/analytics_handler.py": {
     "mtime": 1762742263.3196037,
-    "issues": []
+    "results": []
   },
   "communication/command_handlers/base_handler.py": {
     "mtime": 1762373328.9733052,
-    "issues": []
+    "results": []
   },
   "communication/command_handlers/checkin_handler.py": {
     "mtime": 1762741286.2978292,
-    "issues": []
+    "results": []
   },
   "communication/command_handlers/interaction_handlers.py": {
     "mtime": 1763720071.77907,
-    "issues": []
+    "results": []
   },
   "communication/command_handlers/profile_handler.py": {
     "mtime": 1760070264.9392748,
-    "issues": []
+    "results": []
   },
   "communication/command_handlers/schedule_handler.py": {
     "mtime": 1760080936.398748,
-    "issues": []
+    "results": []
   },
   "communication/command_handlers/shared_types.py": {
     "mtime": 1755928039.4404283,
-    "issues": []
+    "results": []
   },
   "communication/command_handlers/task_handler.py": {
     "mtime": 1762995628.1971903,
-    "issues": []
+    "results": []
   },
   "communication/communication_channels/__init__.py": {
     "mtime": 1762165794.944414,
-    "issues": []
+    "results": []
   },
   "communication/communication_channels/base/base_channel.py": {
     "mtime": 1763250395.6355665,
-    "issues": []
+    "results": []
   },
   "communication/communication_channels/base/command_registry.py": {
     "mtime": 1763721564.3542426,
-    "issues": []
+    "results": []
   },
   "communication/communication_channels/base/message_formatter.py": {
     "mtime": 1760377270.9745393,
-    "issues": []
+    "results": []
   },
   "communication/communication_channels/base/rich_formatter.py": {
     "mtime": 1760377270.987659,
-    "issues": []
+    "results": []
   },
   "communication/communication_channels/discord/api_client.py": {
     "mtime": 1760377270.987659,
-    "issues": []
+    "results": []
   },
   "communication/communication_channels/discord/bot.py": {
     "mtime": 1763721103.5705447,
-    "issues": []
+    "results": []
   },
   "communication/communication_channels/discord/event_handler.py": {
     "mtime": 1760382013.4594142,
-    "issues": []
+    "results": []
   },
   "communication/communication_channels/email/bot.py": {
     "mtime": 1763675852.5862985,
-    "issues": []
+    "results": []
   },
   "communication/core/__init__.py": {
     "mtime": 1763711309.4744065,
-    "issues": []
+    "results": []
   },
   "communication/core/channel_monitor.py": {
     "mtime": 1760382013.461671,
-    "issues": []
+    "results": []
   },
   "communication/core/channel_orchestrator.py": {
     "mtime": 1763812166.6690197,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "communication.core.channel_orchestrator",
@@ -371,7 +371,7 @@
   },
   "communication/core/factory.py": {
     "mtime": 1760382013.486669,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "communication.core.factory",
@@ -402,71 +402,71 @@
   },
   "communication/core/retry_manager.py": {
     "mtime": 1762411575.2513113,
-    "issues": []
+    "results": []
   },
   "communication/message_processing/__init__.py": {
     "mtime": 1762165794.944414,
-    "issues": []
+    "results": []
   },
   "communication/message_processing/command_parser.py": {
     "mtime": 1763810207.3757505,
-    "issues": []
+    "results": []
   },
   "communication/message_processing/conversation_flow_manager.py": {
     "mtime": 1764153236.50142,
-    "issues": []
+    "results": []
   },
   "communication/message_processing/interaction_manager.py": {
     "mtime": 1764144925.0131495,
-    "issues": []
+    "results": []
   },
   "communication/message_processing/message_router.py": {
     "mtime": 1760382013.4915264,
-    "issues": []
+    "results": []
   },
   "core/__init__.py": {
     "mtime": 1763711309.4766698,
-    "issues": []
+    "results": []
   },
   "core/auto_cleanup.py": {
     "mtime": 1762656733.948244,
-    "issues": []
+    "results": []
   },
   "core/checkin_analytics.py": {
     "mtime": 1762742384.0042298,
-    "issues": []
+    "results": []
   },
   "core/checkin_dynamic_manager.py": {
     "mtime": 1760917663.2039766,
-    "issues": []
+    "results": []
   },
   "core/config.py": {
     "mtime": 1763013850.0730095,
-    "issues": []
+    "results": []
   },
   "core/error_handling.py": {
     "mtime": 1763905464.1914508,
-    "issues": []
+    "results": []
   },
   "core/file_auditor.py": {
     "mtime": 1762595629.3563876,
-    "issues": []
+    "results": []
   },
   "core/file_operations.py": {
     "mtime": 1764136781.6308434,
-    "issues": []
+    "results": []
   },
   "core/headless_service.py": {
     "mtime": 1763711309.4807005,
-    "issues": []
+    "results": []
   },
   "core/logger.py": {
     "mtime": 1764068752.272907,
-    "issues": []
+    "results": []
   },
   "core/message_analytics.py": {
     "mtime": 1762849543.4080434,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "core.message_analytics",
@@ -510,15 +510,15 @@
   },
   "core/message_management.py": {
     "mtime": 1764408572.1972935,
-    "issues": []
+    "results": []
   },
   "core/response_tracking.py": {
     "mtime": 1762656733.9543374,
-    "issues": []
+    "results": []
   },
   "core/schedule_management.py": {
     "mtime": 1764155375.677103,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "core.schedule_management",
@@ -536,11 +536,11 @@
   },
   "core/schedule_utilities.py": {
     "mtime": 1760774424.7047906,
-    "issues": []
+    "results": []
   },
   "core/scheduler.py": {
     "mtime": 1763252077.2041564,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "core.scheduler",
@@ -558,27 +558,27 @@
   },
   "core/schemas.py": {
     "mtime": 1764136781.6318448,
-    "issues": []
+    "results": []
   },
   "core/service.py": {
     "mtime": 1763901149.7110841,
-    "issues": []
+    "results": []
   },
   "core/service_utilities.py": {
     "mtime": 1762656733.9582193,
-    "issues": []
+    "results": []
   },
   "core/ui_management.py": {
     "mtime": 1762853919.7980313,
-    "issues": []
+    "results": []
   },
   "core/user_data_handlers.py": {
     "mtime": 1764559831.5616274,
-    "issues": []
+    "results": []
   },
   "core/user_data_manager.py": {
     "mtime": 1764384182.136284,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "core.user_data_manager",
@@ -596,47 +596,47 @@
   },
   "core/user_data_validation.py": {
     "mtime": 1762934380.7932913,
-    "issues": []
+    "results": []
   },
   "core/user_management.py": {
     "mtime": 1764444237.2527268,
-    "issues": []
+    "results": []
   },
   "run_headless_service.py": {
     "mtime": 1761128659.4125512,
-    "issues": []
+    "results": []
   },
   "tasks/__init__.py": {
     "mtime": 1762239950.5542183,
-    "issues": []
+    "results": []
   },
   "tasks/task_management.py": {
     "mtime": 1763897887.495292,
-    "issues": []
+    "results": []
   },
   "tests/ai/ai_response_validator.py": {
     "mtime": 1764477517.7190988,
-    "issues": []
+    "results": []
   },
   "tests/ai/ai_test_base.py": {
     "mtime": 1764477517.731992,
-    "issues": []
+    "results": []
   },
   "tests/ai/run_ai_functionality_tests.py": {
     "mtime": 1764672874.034194,
-    "issues": []
+    "results": []
   },
   "tests/ai/test_ai_advanced.py": {
     "mtime": 1764477517.7499535,
-    "issues": []
+    "results": []
   },
   "tests/ai/test_ai_cache.py": {
     "mtime": 1764477517.7555032,
-    "issues": []
+    "results": []
   },
   "tests/ai/test_ai_core.py": {
     "mtime": 1764477517.7631097,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_ai_core",
@@ -654,11 +654,11 @@
   },
   "tests/ai/test_ai_errors.py": {
     "mtime": 1764477517.768145,
-    "issues": []
+    "results": []
   },
   "tests/ai/test_ai_functionality_manual.py": {
     "mtime": 1764672874.034194,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_ai_functionality_manual",
@@ -689,19 +689,19 @@
   },
   "tests/ai/test_ai_integration.py": {
     "mtime": 1764477517.794099,
-    "issues": []
+    "results": []
   },
   "tests/ai/test_ai_performance.py": {
     "mtime": 1764477517.7971165,
-    "issues": []
+    "results": []
   },
   "tests/ai/test_ai_quality.py": {
     "mtime": 1764477517.802674,
-    "issues": []
+    "results": []
   },
   "tests/ai/test_cache_manager.py": {
     "mtime": 1764477517.811852,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_cache_manager",
@@ -719,7 +719,7 @@
   },
   "tests/ai/test_context_includes_recent_messages.py": {
     "mtime": 1764477517.8143668,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_context_includes_recent_messages",
@@ -737,39 +737,39 @@
   },
   "tests/behavior/test_account_management_real_behavior.py": {
     "mtime": 1764575659.5321794,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_ai_chatbot_behavior.py": {
     "mtime": 1764477517.877107,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_ai_context_builder_behavior.py": {
     "mtime": 1764477517.8840685,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_ai_context_builder_coverage_expansion.py": {
     "mtime": 1764477517.8942997,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_ai_conversation_history_behavior.py": {
     "mtime": 1764477517.9058056,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_analytics_handler_behavior.py": {
     "mtime": 1764477517.9196208,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_auto_cleanup_behavior.py": {
     "mtime": 1764672723.0222566,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_backup_manager_behavior.py": {
     "mtime": 1764477517.9620075,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_base_handler_behavior.py": {
     "mtime": 1764477517.986174,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_base_handler_behavior",
@@ -800,15 +800,15 @@
   },
   "tests/behavior/test_chat_interaction_storage_real_scenarios.py": {
     "mtime": 1764477518.00702,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_checkin_analytics_behavior.py": {
     "mtime": 1764672723.0247948,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_checkin_expiry_semantics.py": {
     "mtime": 1764477518.0260036,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_checkin_expiry_semantics",
@@ -826,7 +826,7 @@
   },
   "tests/behavior/test_checkin_handler_behavior.py": {
     "mtime": 1764477518.0419028,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_checkin_handler_behavior",
@@ -857,31 +857,31 @@
   },
   "tests/behavior/test_command_discovery_help.py": {
     "mtime": 1764477518.0499458,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_command_parser_coverage_expansion_phase3_simple.py": {
     "mtime": 1764477518.0607598,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_communication_behavior.py": {
     "mtime": 1764477518.0719068,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_communication_command_parser_behavior.py": {
     "mtime": 1764477518.0769877,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_communication_factory_coverage_expansion.py": {
     "mtime": 1764477518.088878,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_communication_interaction_manager_behavior.py": {
     "mtime": 1764477518.1098614,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_communication_manager_behavior.py": {
     "mtime": 1764477518.1184437,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_communication_manager_behavior",
@@ -938,23 +938,23 @@
   },
   "tests/behavior/test_communication_manager_coverage_expansion.py": {
     "mtime": 1764477518.1417928,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_comprehensive_quantitative_analytics.py": {
     "mtime": 1764477518.1488583,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_config_coverage_expansion_phase3_simple.py": {
     "mtime": 1764477518.159354,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_conversation_behavior.py": {
     "mtime": 1764477518.1791742,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_conversation_flow_manager_behavior.py": {
     "mtime": 1764477518.193187,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_conversation_flow_manager_behavior",
@@ -1024,27 +1024,27 @@
   },
   "tests/behavior/test_core_message_management_coverage_expansion.py": {
     "mtime": 1764672723.0288653,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_core_service_coverage_expansion.py": {
     "mtime": 1764672723.0309427,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_discord_advanced_automation.py": {
     "mtime": 1764477518.2297108,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_discord_automation_complete.py": {
     "mtime": 1764477518.2418995,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_discord_bot_behavior.py": {
     "mtime": 1764577515.9378216,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_discord_checkin_retry_behavior.py": {
     "mtime": 1764477518.2738862,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_discord_checkin_retry_behavior",
@@ -1088,23 +1088,23 @@
   },
   "tests/behavior/test_dynamic_checkin_behavior.py": {
     "mtime": 1764477518.2829602,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_email_bot_behavior.py": {
     "mtime": 1764477518.2958863,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_enhanced_command_parser_behavior.py": {
     "mtime": 1764477518.306955,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_error_handling_coverage_expansion_phase3_final.py": {
     "mtime": 1764477518.3187227,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_headless_service_behavior.py": {
     "mtime": 1764477518.3292115,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_headless_service_behavior",
@@ -1161,7 +1161,7 @@
   },
   "tests/behavior/test_interaction_handlers_behavior.py": {
     "mtime": 1764477518.3437595,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_interaction_handlers_behavior",
@@ -1192,15 +1192,15 @@
   },
   "tests/behavior/test_interaction_handlers_coverage_expansion.py": {
     "mtime": 1764477518.3693953,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_logger_behavior.py": {
     "mtime": 1764672723.0355675,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_logger_coverage_expansion.py": {
     "mtime": 1764477518.396618,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_logger_coverage_expansion",
@@ -1218,19 +1218,19 @@
   },
   "tests/behavior/test_logger_coverage_expansion_phase3_simple.py": {
     "mtime": 1764477518.4057086,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_message_analytics_behavior.py": {
     "mtime": 1764672723.0360858,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_message_behavior.py": {
     "mtime": 1764477518.4218469,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_message_router_behavior.py": {
     "mtime": 1764477518.4305842,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_message_router_behavior",
@@ -1261,19 +1261,19 @@
   },
   "tests/behavior/test_natural_language_command_detection.py": {
     "mtime": 1764477518.4341247,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_observability_logging.py": {
     "mtime": 1764477518.4371836,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_profile_display_formatting.py": {
     "mtime": 1764477518.4417071,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_profile_handler_behavior.py": {
     "mtime": 1764477518.4542344,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_profile_handler_behavior",
@@ -1291,15 +1291,15 @@
   },
   "tests/behavior/test_quantitative_analytics_expansion.py": {
     "mtime": 1764477518.4617696,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_response_tracking_behavior.py": {
     "mtime": 1764477518.4702718,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_schedule_handler_behavior.py": {
     "mtime": 1764477518.5171223,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_schedule_handler_behavior",
@@ -1317,19 +1317,19 @@
   },
   "tests/behavior/test_schedule_management_behavior.py": {
     "mtime": 1764477518.5263357,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_schedule_suggestions.py": {
     "mtime": 1764477518.5293384,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_scheduler_behavior.py": {
     "mtime": 1764477518.4804547,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_scheduler_coverage_expansion.py": {
     "mtime": 1764574783.0125694,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_scheduler_coverage_expansion",
@@ -1360,27 +1360,27 @@
   },
   "tests/behavior/test_service_behavior.py": {
     "mtime": 1764477518.5476317,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_service_utilities_behavior.py": {
     "mtime": 1764477518.555337,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_static_logging_check.py": {
     "mtime": 1764477518.5573711,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_task_behavior.py": {
     "mtime": 1764477518.5659463,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_task_crud_disambiguation.py": {
     "mtime": 1764477518.5749843,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_task_handler_behavior.py": {
     "mtime": 1764477518.5934646,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_task_handler_behavior",
@@ -1398,27 +1398,27 @@
   },
   "tests/behavior/test_task_management_coverage_expansion.py": {
     "mtime": 1764477518.6119883,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_task_suggestion_relevance.py": {
     "mtime": 1764477518.6326294,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_ui_app_behavior.py": {
     "mtime": 1764672723.0421302,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_ui_automation_complete.py": {
     "mtime": 1764477518.649853,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_user_context_behavior.py": {
     "mtime": 1764477518.6599348,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_user_data_flow_architecture.py": {
     "mtime": 1764576324.5218337,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_user_data_flow_architecture",
@@ -1462,19 +1462,19 @@
   },
   "tests/behavior/test_user_management_coverage_expansion.py": {
     "mtime": 1764477518.6875238,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_utilities_demo.py": {
     "mtime": 1764477518.6989272,
-    "issues": []
+    "results": []
   },
   "tests/communication/test_channel_monitor.py": {
     "mtime": 1764477518.744278,
-    "issues": []
+    "results": []
   },
   "tests/communication/test_retry_manager.py": {
     "mtime": 1764477518.7493126,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_retry_manager",
@@ -1505,11 +1505,11 @@
   },
   "tests/conftest.py": {
     "mtime": 1764659573.1169395,
-    "issues": []
+    "results": []
   },
   "tests/core/test_file_auditor.py": {
     "mtime": 1764477518.7575314,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_file_auditor",
@@ -1527,7 +1527,7 @@
   },
   "tests/core/test_message_management.py": {
     "mtime": 1764477518.7595472,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_message_management",
@@ -1584,11 +1584,11 @@
   },
   "tests/core/test_python_interpreter_selection.py": {
     "mtime": 1764477518.7625687,
-    "issues": []
+    "results": []
   },
   "tests/core/test_schedule_utilities.py": {
     "mtime": 1764477518.7726934,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_schedule_utilities",
@@ -1619,7 +1619,7 @@
   },
   "tests/debug_file_paths.py": {
     "mtime": 1764477519.5580912,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "debug_file_paths",
@@ -1637,11 +1637,11 @@
   },
   "tests/integration/test_account_lifecycle.py": {
     "mtime": 1764477518.87251,
-    "issues": []
+    "results": []
   },
   "tests/integration/test_account_management.py": {
     "mtime": 1764477518.883855,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_account_management",
@@ -1672,7 +1672,7 @@
   },
   "tests/integration/test_user_creation.py": {
     "mtime": 1764559615.605964,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_user_creation",
@@ -1755,7 +1755,7 @@
   },
   "tests/test_error_handling_improvements.py": {
     "mtime": 1764477519.5664537,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_error_handling_improvements",
@@ -1838,11 +1838,11 @@
   },
   "tests/test_isolation.py": {
     "mtime": 1764477519.5716658,
-    "issues": []
+    "results": []
   },
   "tests/test_utilities.py": {
     "mtime": 1764500361.9494362,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_utilities",
@@ -1912,7 +1912,7 @@
   },
   "tests/ui/test_account_creation_ui.py": {
     "mtime": 1764672723.053116,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_account_creation_ui",
@@ -2112,7 +2112,7 @@
   },
   "tests/ui/test_account_creator_dialog_validation.py": {
     "mtime": 1764477518.9646242,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_account_creator_dialog_validation",
@@ -2130,7 +2130,7 @@
   },
   "tests/ui/test_category_management_dialog.py": {
     "mtime": 1764477518.9782941,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_category_management_dialog",
@@ -2200,7 +2200,7 @@
   },
   "tests/ui/test_channel_management_dialog_coverage_expansion.py": {
     "mtime": 1764477518.9848244,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_channel_management_dialog_coverage_expansion",
@@ -2270,7 +2270,7 @@
   },
   "tests/ui/test_dialog_behavior.py": {
     "mtime": 1764672723.0546255,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_dialog_behavior",
@@ -2509,7 +2509,7 @@
   },
   "tests/ui/test_dialog_coverage_expansion.py": {
     "mtime": 1764477519.0105813,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_dialog_coverage_expansion",
@@ -2735,7 +2735,7 @@
   },
   "tests/ui/test_dialogs.py": {
     "mtime": 1764477518.9913733,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_dialogs",
@@ -2753,7 +2753,7 @@
   },
   "tests/ui/test_message_editor_dialog.py": {
     "mtime": 1764477519.0211408,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_message_editor_dialog",
@@ -2810,7 +2810,7 @@
   },
   "tests/ui/test_process_watcher_dialog.py": {
     "mtime": 1764477519.03172,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_process_watcher_dialog",
@@ -2867,7 +2867,7 @@
   },
   "tests/ui/test_task_crud_dialog.py": {
     "mtime": 1764477519.043162,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_task_crud_dialog",
@@ -2898,7 +2898,7 @@
   },
   "tests/ui/test_task_management_dialog.py": {
     "mtime": 1764477519.0527847,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_task_management_dialog",
@@ -2955,7 +2955,7 @@
   },
   "tests/ui/test_task_settings_widget.py": {
     "mtime": 1764477519.0628603,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_task_settings_widget",
@@ -3038,11 +3038,11 @@
   },
   "tests/ui/test_ui_app_qt_core.py": {
     "mtime": 1764477519.0679522,
-    "issues": []
+    "results": []
   },
   "tests/ui/test_ui_app_qt_main.py": {
     "mtime": 1764576324.5218337,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_ui_app_qt_main",
@@ -3060,7 +3060,7 @@
   },
   "tests/ui/test_ui_button_verification.py": {
     "mtime": 1764477519.0922365,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_ui_button_verification",
@@ -3091,7 +3091,7 @@
   },
   "tests/ui/test_ui_components_headless.py": {
     "mtime": 1764477519.09628,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_ui_components_headless",
@@ -3109,11 +3109,11 @@
   },
   "tests/ui/test_ui_generation.py": {
     "mtime": 1764477519.1039772,
-    "issues": []
+    "results": []
   },
   "tests/ui/test_ui_widgets_coverage_expansion.py": {
     "mtime": 1764477519.1172879,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_ui_widgets_coverage_expansion",
@@ -3222,7 +3222,7 @@
   },
   "tests/ui/test_user_analytics_dialog.py": {
     "mtime": 1764477519.1310859,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_user_analytics_dialog",
@@ -3279,7 +3279,7 @@
   },
   "tests/ui/test_user_profile_dialog_coverage_expansion.py": {
     "mtime": 1764477519.1426563,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_user_profile_dialog_coverage_expansion",
@@ -3362,7 +3362,7 @@
   },
   "tests/ui/test_widget_behavior.py": {
     "mtime": 1764672723.0602062,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_widget_behavior",
@@ -3588,7 +3588,7 @@
   },
   "tests/ui/test_widget_behavior_simple.py": {
     "mtime": 1764672723.0612116,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_widget_behavior_simple",
@@ -3658,7 +3658,7 @@
   },
   "tests/unit/test_admin_panel.py": {
     "mtime": 1764477519.1660345,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_admin_panel",
@@ -3715,19 +3715,19 @@
   },
   "tests/unit/test_ai_deterministic.py": {
     "mtime": 1764477519.1767359,
-    "issues": []
+    "results": []
   },
   "tests/unit/test_auto_cleanup_paths.py": {
     "mtime": 1764477519.1787543,
-    "issues": []
+    "results": []
   },
   "tests/unit/test_checkin_analytics_conversion.py": {
     "mtime": 1764477519.1908493,
-    "issues": []
+    "results": []
   },
   "tests/unit/test_checkin_management_dialog.py": {
     "mtime": 1764477519.2010763,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_checkin_management_dialog",
@@ -3784,11 +3784,11 @@
   },
   "tests/unit/test_cleanup.py": {
     "mtime": 1764477519.2122056,
-    "issues": []
+    "results": []
   },
   "tests/unit/test_command_registry.py": {
     "mtime": 1764477519.2270937,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_command_registry",
@@ -3819,7 +3819,7 @@
   },
   "tests/unit/test_communication_core_init.py": {
     "mtime": 1764477519.232628,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_communication_core_init",
@@ -3850,7 +3850,7 @@
   },
   "tests/unit/test_communication_init.py": {
     "mtime": 1764477519.2408395,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_communication_init",
@@ -3881,7 +3881,7 @@
   },
   "tests/unit/test_config.py": {
     "mtime": 1764672723.06575,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_config",
@@ -3899,7 +3899,7 @@
   },
   "tests/unit/test_discord_api_client.py": {
     "mtime": 1764477519.2604165,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_discord_api_client",
@@ -3917,7 +3917,7 @@
   },
   "tests/unit/test_discord_event_handler.py": {
     "mtime": 1764477519.273012,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_discord_event_handler",
@@ -3948,7 +3948,7 @@
   },
   "tests/unit/test_enhanced_checkin_responses.py": {
     "mtime": 1764477519.283077,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_enhanced_checkin_responses",
@@ -3966,11 +3966,11 @@
   },
   "tests/unit/test_error_handling.py": {
     "mtime": 1764672723.0682836,
-    "issues": []
+    "results": []
   },
   "tests/unit/test_file_operations.py": {
     "mtime": 1764672723.0692885,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_file_operations",
@@ -4001,11 +4001,11 @@
   },
   "tests/unit/test_lm_studio_manager.py": {
     "mtime": 1764477519.3447342,
-    "issues": []
+    "results": []
   },
   "tests/unit/test_logger_unit.py": {
     "mtime": 1764575659.5321794,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_logger_unit",
@@ -4062,11 +4062,11 @@
   },
   "tests/unit/test_logging_components.py": {
     "mtime": 1764477519.3650312,
-    "issues": []
+    "results": []
   },
   "tests/unit/test_message_formatter.py": {
     "mtime": 1764477519.3749826,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_message_formatter",
@@ -4110,11 +4110,11 @@
   },
   "tests/unit/test_no_prints_policy.py": {
     "mtime": 1764477519.3806336,
-    "issues": []
+    "results": []
   },
   "tests/unit/test_recurring_tasks.py": {
     "mtime": 1764477519.397437,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_recurring_tasks",
@@ -4132,7 +4132,7 @@
   },
   "tests/unit/test_rich_formatter.py": {
     "mtime": 1764477519.4069252,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_rich_formatter",
@@ -4150,15 +4150,15 @@
   },
   "tests/unit/test_schedule_management.py": {
     "mtime": 1764570203.6526768,
-    "issues": []
+    "results": []
   },
   "tests/unit/test_service_utilities_network.py": {
     "mtime": 1764477519.4234285,
-    "issues": []
+    "results": []
   },
   "tests/unit/test_user_context.py": {
     "mtime": 1764477519.4365692,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_user_context",
@@ -4189,15 +4189,15 @@
   },
   "tests/unit/test_user_data_loader_idempotency.py": {
     "mtime": 1764477519.447542,
-    "issues": []
+    "results": []
   },
   "tests/unit/test_user_data_loader_order_insensitivity.py": {
     "mtime": 1764477519.4495597,
-    "issues": []
+    "results": []
   },
   "tests/unit/test_user_data_manager.py": {
     "mtime": 1764577515.936819,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_user_data_manager",
@@ -4280,7 +4280,7 @@
   },
   "tests/unit/test_user_management.py": {
     "mtime": 1764672723.0762587,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_user_management",
@@ -4324,79 +4324,79 @@
   },
   "tests/unit/test_validation.py": {
     "mtime": 1764477519.5026555,
-    "issues": []
+    "results": []
   },
   "ui/__init__.py": {
     "mtime": 1762238891.8703425,
-    "issues": []
+    "results": []
   },
   "ui/generate_ui_files.py": {
     "mtime": 1762595629.3664482,
-    "issues": []
+    "results": []
   },
   "ui/ui_app_qt.py": {
     "mtime": 1763812166.6771317,
-    "issues": []
+    "results": []
   },
   "ui/widgets/__init__.py": {
     "mtime": 1762166030.6289499,
-    "issues": []
+    "results": []
   },
   "ui/widgets/category_selection_widget.py": {
     "mtime": 1763714408.1838312,
-    "issues": []
+    "results": []
   },
   "ui/widgets/channel_selection_widget.py": {
     "mtime": 1763714408.1838312,
-    "issues": []
+    "results": []
   },
   "ui/widgets/checkin_settings_widget.py": {
     "mtime": 1762824620.6451106,
-    "issues": []
+    "results": []
   },
   "ui/widgets/dynamic_list_container.py": {
     "mtime": 1763714408.1838312,
-    "issues": []
+    "results": []
   },
   "ui/widgets/dynamic_list_field.py": {
     "mtime": 1760507219.8328872,
-    "issues": []
+    "results": []
   },
   "ui/widgets/period_row_widget.py": {
     "mtime": 1761128659.478172,
-    "issues": []
+    "results": []
   },
   "ui/widgets/tag_widget.py": {
     "mtime": 1761128659.4795337,
-    "issues": []
+    "results": []
   },
   "ui/widgets/task_settings_widget.py": {
     "mtime": 1761128659.4815378,
-    "issues": []
+    "results": []
   },
   "ui/widgets/user_profile_settings_widget.py": {
     "mtime": 1762408814.7069714,
-    "issues": []
+    "results": []
   },
   "user/__init__.py": {
     "mtime": 1762166030.634457,
-    "issues": []
+    "results": []
   },
   "user/context_manager.py": {
     "mtime": 1763714408.1838312,
-    "issues": []
+    "results": []
   },
   "user/user_context.py": {
     "mtime": 1762827103.2488406,
-    "issues": []
+    "results": []
   },
   "user/user_preferences.py": {
     "mtime": 1763714408.1838312,
-    "issues": []
+    "results": []
   },
   "communication/command_handlers/account_handler.py": {
     "mtime": 1763710538.4067607,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "communication.command_handlers.account_handler",
@@ -4414,7 +4414,7 @@
   },
   "communication/communication_channels/discord/account_flow_handler.py": {
     "mtime": 1763711309.4722912,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "account_flow_handler",
@@ -4432,7 +4432,7 @@
   },
   "communication/communication_channels/discord/webhook_handler.py": {
     "mtime": 1764136781.6288388,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "webhook_handler",
@@ -4476,7 +4476,7 @@
   },
   "communication/communication_channels/discord/webhook_server.py": {
     "mtime": 1763706885.2340508,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "webhook_server",
@@ -4533,7 +4533,7 @@
   },
   "communication/communication_channels/discord/welcome_handler.py": {
     "mtime": 1763711309.4722912,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "welcome_handler",
@@ -4551,7 +4551,7 @@
   },
   "communication/core/welcome_manager.py": {
     "mtime": 1763676906.9642756,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "communication.core.welcome_manager",
@@ -4582,7 +4582,7 @@
   },
   "core/file_locking.py": {
     "mtime": 1763847702.106222,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "core.file_locking",
@@ -4613,7 +4613,7 @@
   },
   "tests/behavior/test_discord_task_reminder_followup.py": {
     "mtime": 1764477518.277435,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_discord_task_reminder_followup",
@@ -4683,7 +4683,7 @@
   },
   "tests/behavior/test_task_cleanup_bug.py": {
     "mtime": 1764477518.569311,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_task_cleanup_bug",
@@ -4701,7 +4701,7 @@
   },
   "tests/behavior/test_task_error_handling.py": {
     "mtime": 1764477518.5812175,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_task_error_handling",
@@ -4732,7 +4732,7 @@
   },
   "tests/behavior/test_task_reminder_followup_behavior.py": {
     "mtime": 1764477518.6181386,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_task_reminder_followup_behavior",
@@ -4789,11 +4789,11 @@
   },
   "tests/integration/test_orphaned_reminder_cleanup.py": {
     "mtime": 1764477518.8909383,
-    "issues": []
+    "results": []
   },
   "tests/integration/test_task_cleanup_real.py": {
     "mtime": 1764477518.8960612,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_task_cleanup_real",
@@ -4824,7 +4824,7 @@
   },
   "tests/integration/test_task_cleanup_real_bug_verification.py": {
     "mtime": 1764477518.89908,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_task_cleanup_real_bug_verification",
@@ -4868,7 +4868,7 @@
   },
   "tests/integration/test_task_cleanup_silent_failure.py": {
     "mtime": 1764477518.902109,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_task_cleanup_silent_failure",
@@ -4938,7 +4938,7 @@
   },
   "tests/integration/test_task_reminder_integration.py": {
     "mtime": 1764477518.9081883,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_task_reminder_integration",
@@ -5021,15 +5021,15 @@
   },
   "tests/behavior/test_account_handler_behavior.py": {
     "mtime": 1764574783.0120654,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_webhook_handler_behavior.py": {
     "mtime": 1764477518.713171,
-    "issues": []
+    "results": []
   },
   "tests/behavior/test_webhook_server_behavior.py": {
     "mtime": 1764477518.7239366,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_webhook_server_behavior",
@@ -5086,7 +5086,7 @@
   },
   "tests/behavior/test_welcome_handler_behavior.py": {
     "mtime": 1764477518.7285953,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_welcome_handler_behavior",
@@ -5104,7 +5104,7 @@
   },
   "tests/behavior/test_welcome_manager_behavior.py": {
     "mtime": 1764477518.7361262,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_welcome_manager_behavior",
@@ -5135,15 +5135,15 @@
   },
   "communication/communication_channels/discord/checkin_view.py": {
     "mtime": 1763711309.4722912,
-    "issues": []
+    "results": []
   },
   "communication/communication_channels/discord/task_reminder_view.py": {
     "mtime": 1763711309.4722912,
-    "issues": []
+    "results": []
   },
   "tests/unit/test_prompt_manager.py": {
     "mtime": 1764477519.3917513,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_prompt_manager",
@@ -5239,7 +5239,7 @@
   },
   "tests/unit/test_ui_management.py": {
     "mtime": 1764477519.4295437,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_ui_management",
@@ -5257,7 +5257,7 @@
   },
   "tests/unit/test_user_preferences.py": {
     "mtime": 1764477519.4823487,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_user_preferences",
@@ -5353,11 +5353,11 @@
   },
   "tests/unit/test_error_categorization.py": {
     "mtime": 1764477519.2867007,
-    "issues": []
+    "results": []
   },
   "tests/unit/test_ai_chatbot_helpers.py": {
     "mtime": 1764477519.171558,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_ai_chatbot_helpers",
@@ -5401,7 +5401,7 @@
   },
   "tests/unit/test_channel_orchestrator.py": {
     "mtime": 1764477519.1848001,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_channel_orchestrator",
@@ -5419,7 +5419,7 @@
   },
   "tests/unit/test_checkin_view.py": {
     "mtime": 1764499394.1595626,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_checkin_view",
@@ -5450,7 +5450,7 @@
   },
   "tests/unit/test_command_parser_helpers.py": {
     "mtime": 1764477519.2172613,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_command_parser_helpers",
@@ -5468,7 +5468,7 @@
   },
   "tests/unit/test_email_bot_body_extraction.py": {
     "mtime": 1764477519.277045,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_email_bot_body_extraction",
@@ -5499,7 +5499,7 @@
   },
   "tests/unit/test_file_locking.py": {
     "mtime": 1764477519.308339,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_file_locking",
@@ -5517,7 +5517,7 @@
   },
   "tests/unit/test_interaction_handlers_helpers.py": {
     "mtime": 1764477519.336968,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_interaction_handlers_helpers",
@@ -5548,7 +5548,7 @@
   },
   "tests/unit/test_user_data_handlers.py": {
     "mtime": 1764477519.4450502,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_user_data_handlers",
@@ -5566,31 +5566,31 @@
   },
   "development_tools/services/tool_metadata.py": {
     "mtime": 1764384186.5139003,
-    "issues": []
+    "results": []
   },
   "tests/development_tools/__init__.py": {
     "mtime": 1764477518.8430977,
-    "issues": []
+    "results": []
   },
   "tests/development_tools/conftest.py": {
     "mtime": 1764636278.5929773,
-    "issues": []
+    "results": []
   },
   "tests/development_tools/test_ai_tools_runner.py": {
     "mtime": 1764477518.781813,
-    "issues": []
+    "results": []
   },
   "tests/development_tools/test_config.py": {
     "mtime": 1764579877.0489836,
-    "issues": []
+    "results": []
   },
   "tests/development_tools/test_constants.py": {
     "mtime": 1764484290.405045,
-    "issues": []
+    "results": []
   },
   "tests/development_tools/test_documentation_sync_checker.py": {
     "mtime": 1764634725.7984724,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.test_documentation_sync_checker",
@@ -5634,7 +5634,7 @@
   },
   "tests/development_tools/test_error_scenarios.py": {
     "mtime": 1764666826.6524794,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.test_error_scenarios",
@@ -5665,7 +5665,7 @@
   },
   "tests/development_tools/test_generate_function_registry.py": {
     "mtime": 1764653525.5736976,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.test_generate_function_registry",
@@ -5696,7 +5696,7 @@
   },
   "tests/development_tools/test_generate_module_dependencies.py": {
     "mtime": 1764666583.0251882,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.test_generate_module_dependencies",
@@ -5727,11 +5727,11 @@
   },
   "tests/development_tools/test_integration_workflows.py": {
     "mtime": 1764579877.0479772,
-    "issues": []
+    "results": []
   },
   "tests/development_tools/test_legacy_reference_cleanup.py": {
     "mtime": 1764634725.7984724,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.test_legacy_reference_cleanup",
@@ -5762,7 +5762,7 @@
   },
   "tests/development_tools/test_regenerate_coverage_metrics.py": {
     "mtime": 1764658430.978769,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.test_regenerate_coverage_metrics",
@@ -5806,39 +5806,39 @@
   },
   "tests/development_tools/test_standard_exclusions.py": {
     "mtime": 1764484290.3930166,
-    "issues": []
+    "results": []
   },
   "development_tools/experimental/__init__.py": {
     "mtime": 1764477373.2207437,
-    "issues": []
+    "results": []
   },
   "development_tools/experimental/auto_document_functions.py": {
     "mtime": 1764477373.1953914,
-    "issues": []
+    "results": []
   },
   "development_tools/experimental/version_sync.py": {
     "mtime": 1764478804.2169213,
-    "issues": []
+    "results": []
   },
   "tests/development_tools/test_supporting_tools.py": {
     "mtime": 1764492057.247804,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/__init__.py": {
     "mtime": 1762165794.944414,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/ai_tools_runner.py": {
     "mtime": 1764136781.8316572,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/analyze_documentation.py": {
     "mtime": 1764062445.0465665,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/audit_function_registry.py": {
     "mtime": 1764063050.9656024,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools_backup_20251127_210407.audit_function_registry",
@@ -5869,27 +5869,27 @@
   },
   "development_tools_backup_20251127_210407/audit_module_dependencies.py": {
     "mtime": 1764068752.7237158,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/audit_package_exports.py": {
     "mtime": 1764068752.833706,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/config.py": {
     "mtime": 1764071038.7748718,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/config_validator.py": {
     "mtime": 1764068753.173081,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/decision_support.py": {
     "mtime": 1764288721.1486459,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/documentation_sync_checker.py": {
     "mtime": 1764205472.2638834,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools_backup_20251127_210407.documentation_sync_checker",
@@ -5907,83 +5907,83 @@
   },
   "development_tools_backup_20251127_210407/error_handling_coverage.py": {
     "mtime": 1764068753.4577441,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/experimental/__init__.py": {
     "mtime": 1764230888.0235286,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/experimental/auto_document_functions.py": {
     "mtime": 1764230888.0235286,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/experimental/version_sync.py": {
     "mtime": 1764232539.4053028,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/file_rotation.py": {
     "mtime": 1764240921.2038696,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/function_discovery.py": {
     "mtime": 1764068753.6051848,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/generate_function_registry.py": {
     "mtime": 1764068753.6810317,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/generate_module_dependencies.py": {
     "mtime": 1764068753.7648692,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/legacy_reference_cleanup.py": {
     "mtime": 1764142823.4043508,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/quick_status.py": {
     "mtime": 1764068753.8926904,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/regenerate_coverage_metrics.py": {
     "mtime": 1764233631.1141145,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/services/__init__.py": {
     "mtime": 1762166030.6289499,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/services/common.py": {
     "mtime": 1764070145.1042209,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/services/constants.py": {
     "mtime": 1764204745.4857485,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/services/operations.py": {
     "mtime": 1764293234.5108297,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/services/standard_exclusions.py": {
     "mtime": 1764068757.5684302,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/services/tool_metadata.py": {
     "mtime": 1764230888.0230289,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/system_signals.py": {
     "mtime": 1764240326.5125453,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/tool_guide.py": {
     "mtime": 1764235793.9513476,
-    "issues": []
+    "results": []
   },
   "development_tools_backup_20251127_210407/unused_imports_checker.py": {
     "mtime": 1764068754.0848932,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools_backup_20251127_210407.unused_imports_checker",
@@ -6001,35 +6001,35 @@
   },
   "development_tools_backup_20251127_210407/validate_ai_work.py": {
     "mtime": 1764294121.1437385,
-    "issues": []
+    "results": []
   },
   "tests/unit/test_schema_validation_helpers.py": {
     "mtime": 1764477519.4183085,
-    "issues": []
+    "results": []
   },
   "tests/unit/test_schemas_validation.py": {
     "mtime": 1764477519.4133031,
-    "issues": []
+    "results": []
   },
   "development_tools/ai_work/__init__.py": {
     "mtime": 1764477374.2863028,
-    "issues": []
+    "results": []
   },
   "development_tools/ai_work/validate_ai_work.py": {
     "mtime": 1764478804.213416,
-    "issues": []
+    "results": []
   },
   "development_tools/docs/__init__.py": {
     "mtime": 1764477374.2863028,
-    "issues": []
+    "results": []
   },
   "development_tools/docs/analyze_documentation.py": {
     "mtime": 1764478551.6691794,
-    "issues": []
+    "results": []
   },
   "development_tools/docs/documentation_sync_checker.py": {
     "mtime": 1764478804.213416,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.docs.documentation_sync_checker",
@@ -6047,11 +6047,11 @@
   },
   "development_tools/error_handling/__init__.py": {
     "mtime": 1764477374.2729943,
-    "issues": []
+    "results": []
   },
   "development_tools/error_handling/error_handling_coverage.py": {
     "mtime": 1764494528.8215163,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.error_handling.error_handling_coverage",
@@ -6069,11 +6069,11 @@
   },
   "development_tools/functions/__init__.py": {
     "mtime": 1764477374.271952,
-    "issues": []
+    "results": []
   },
   "development_tools/functions/audit_function_registry.py": {
     "mtime": 1764478551.6691794,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.functions.audit_function_registry",
@@ -6104,7 +6104,7 @@
   },
   "development_tools/functions/audit_package_exports.py": {
     "mtime": 1764477373.2644975,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.functions.audit_package_exports",
@@ -6122,11 +6122,11 @@
   },
   "development_tools/functions/function_discovery.py": {
     "mtime": 1764478551.6691794,
-    "issues": []
+    "results": []
   },
   "development_tools/functions/generate_function_registry.py": {
-    "mtime": 1764672765.4816992,
-    "issues": [
+    "mtime": 1764673558.0587738,
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.functions.generate_function_registry",
@@ -6157,11 +6157,11 @@
   },
   "development_tools/imports/__init__.py": {
     "mtime": 1764477374.2729943,
-    "issues": []
+    "results": []
   },
   "development_tools/imports/unused_imports_checker.py": {
     "mtime": 1764479034.6613605,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.imports.unused_imports_checker",
@@ -6179,19 +6179,19 @@
   },
   "development_tools/legacy/__init__.py": {
     "mtime": 1764477374.2863028,
-    "issues": []
+    "results": []
   },
   "development_tools/legacy/legacy_reference_cleanup.py": {
     "mtime": 1764478804.213416,
-    "issues": []
+    "results": []
   },
   "development_tools/modules/__init__.py": {
     "mtime": 1764477374.2729943,
-    "issues": []
+    "results": []
   },
   "development_tools/modules/audit_module_dependencies.py": {
     "mtime": 1764483862.0085533,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.modules.audit_module_dependencies",
@@ -6209,19 +6209,19 @@
   },
   "development_tools/modules/generate_module_dependencies.py": {
     "mtime": 1764484297.189371,
-    "issues": []
+    "results": []
   },
   "development_tools/reports/__init__.py": {
     "mtime": 1764477374.3055499,
-    "issues": []
+    "results": []
   },
   "development_tools/reports/consolidated_report.py": {
     "mtime": 1764492057.235062,
-    "issues": []
+    "results": []
   },
   "development_tools/reports/decision_support.py": {
     "mtime": 1764594600.2807035,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.reports.decision_support",
@@ -6252,55 +6252,55 @@
   },
   "development_tools/reports/quick_status.py": {
     "mtime": 1764569003.530648,
-    "issues": []
+    "results": []
   },
   "development_tools/reports/system_signals.py": {
     "mtime": 1764593999.3721218,
-    "issues": []
+    "results": []
   },
   "development_tools/shared/__init__.py": {
     "mtime": 1764551842.3707395,
-    "issues": []
+    "results": []
   },
   "development_tools/shared/common.py": {
     "mtime": 1764477374.3075554,
-    "issues": []
+    "results": []
   },
   "development_tools/shared/constants.py": {
     "mtime": 1764592073.0923202,
-    "issues": []
+    "results": []
   },
   "development_tools/shared/operations.py": {
-    "mtime": 1764666583.0262153,
-    "issues": []
+    "mtime": 1764675572.5218782,
+    "results": []
   },
   "development_tools/shared/standard_exclusions.py": {
     "mtime": 1764592611.220368,
-    "issues": []
+    "results": []
   },
   "development_tools/shared/tool_metadata.py": {
     "mtime": 1764666583.0251882,
-    "issues": []
+    "results": []
   },
   "development_tools/tests/__init__.py": {
     "mtime": 1764477374.2729943,
-    "issues": []
+    "results": []
   },
   "development_tools/tests/regenerate_coverage_metrics.py": {
     "mtime": 1764494528.8210156,
-    "issues": []
+    "results": []
   },
   "development_tools/validation/__init__.py": {
     "mtime": 1764478157.6545584,
-    "issues": []
+    "results": []
   },
   "development_tools/validation/config_validator.py": {
     "mtime": 1764478157.6545584,
-    "issues": []
+    "results": []
   },
   "run_mhm.py": {
     "mtime": 1762656733.970959,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "run_mhm",
@@ -6344,7 +6344,7 @@
   },
   "run_tests.py": {
     "mtime": 1764384182.144165,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "run_tests",
@@ -6362,7 +6362,7 @@
   },
   "tests/unit/test_scripts_exclusion_policy.py": {
     "mtime": 1764477519.4216247,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "test_scripts_exclusion_policy",
@@ -6380,31 +6380,31 @@
   },
   "development_tools/reports/file_rotation.py": {
     "mtime": 1764487449.6473727,
-    "issues": []
+    "results": []
   },
   "development_tools/config/__init__.py": {
     "mtime": 1764495728.7302663,
-    "issues": []
+    "results": []
   },
   "development_tools/config/config.py": {
     "mtime": 1764592167.8575876,
-    "issues": []
+    "results": []
   },
   "development_tools/config/config_validator.py": {
     "mtime": 1764494528.8205152,
-    "issues": []
+    "results": []
   },
   "development_tools/docs/version_sync.py": {
     "mtime": 1764492057.236063,
-    "issues": []
+    "results": []
   },
   "development_tools/functions/auto_document_functions.py": {
     "mtime": 1764477373.1953914,
-    "issues": []
+    "results": []
   },
   "development_tools/imports/audit_module_dependencies.py": {
     "mtime": 1764492057.2447586,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.imports.audit_module_dependencies",
@@ -6422,7 +6422,7 @@
   },
   "development_tools/imports/generate_module_dependencies.py": {
     "mtime": 1764667318.8712118,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.imports.generate_module_dependencies",
@@ -6466,31 +6466,31 @@
   },
   "development_tools/shared/file_rotation.py": {
     "mtime": 1764487449.6473727,
-    "issues": []
+    "results": []
   },
   "development_tools/shared/tool_guide.py": {
     "mtime": 1764552866.860794,
-    "issues": []
+    "results": []
   },
   "development_tools/ai_work/analyze_ai_work.py": {
     "mtime": 1764552866.860794,
-    "issues": []
+    "results": []
   },
   "development_tools/config/analyze_config.py": {
     "mtime": 1764551984.224393,
-    "issues": []
+    "results": []
   },
   "development_tools/docs/analyze_documentation_sync.py": {
     "mtime": 1764670140.097673,
-    "issues": []
+    "results": []
   },
   "development_tools/docs/fix_version_sync.py": {
     "mtime": 1764636011.016667,
-    "issues": []
+    "results": []
   },
   "development_tools/error_handling/analyze_error_handling.py": {
     "mtime": 1764664462.587858,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.error_handling.analyze_error_handling",
@@ -6521,7 +6521,7 @@
   },
   "development_tools/functions/analyze_function_registry.py": {
     "mtime": 1764664462.587858,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.functions.analyze_function_registry",
@@ -6552,11 +6552,11 @@
   },
   "development_tools/functions/analyze_functions.py": {
     "mtime": 1764664462.5816154,
-    "issues": []
+    "results": []
   },
   "development_tools/functions/analyze_package_exports.py": {
     "mtime": 1764664462.587858,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.functions.analyze_package_exports",
@@ -6574,11 +6574,11 @@
   },
   "development_tools/functions/generate_function_docstrings.py": {
     "mtime": 1764552866.860794,
-    "issues": []
+    "results": []
   },
   "development_tools/imports/analyze_module_dependencies.py": {
     "mtime": 1764667318.8435435,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.imports.analyze_module_dependencies",
@@ -6621,8 +6621,8 @@
     ]
   },
   "development_tools/imports/analyze_unused_imports.py": {
-    "mtime": 1764667318.8712118,
-    "issues": [
+    "mtime": 1764676085.4275098,
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.imports.analyze_unused_imports",
@@ -6640,23 +6640,23 @@
   },
   "development_tools/legacy/fix_legacy_references.py": {
     "mtime": 1764617930.9366908,
-    "issues": []
+    "results": []
   },
   "development_tools/reports/generate_consolidated_report.py": {
     "mtime": 1764492057.235062,
-    "issues": []
+    "results": []
   },
   "development_tools/run_dev_tools.py": {
     "mtime": 1764553071.3715465,
-    "issues": []
+    "results": []
   },
   "development_tools/run_development_tools.py": {
     "mtime": 1764553071.3715465,
-    "issues": []
+    "results": []
   },
   "development_tools/tests/generate_test_coverage.py": {
     "mtime": 1764659573.1159334,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.tests.generate_test_coverage",
@@ -6674,55 +6674,55 @@
   },
   "tests/development_tools/test_run_development_tools.py": {
     "mtime": 1764551842.3326516,
-    "issues": []
+    "results": []
   },
   "development_tools/docs/fix_documentation.py": {
     "mtime": 1764661648.1401694,
-    "issues": []
+    "results": []
   },
   "development_tools/docs/analyze_ascii_compliance.py": {
-    "mtime": 1764636011.0140464,
-    "issues": []
+    "mtime": 1764675746.7425518,
+    "results": []
   },
   "development_tools/docs/analyze_heading_numbering.py": {
-    "mtime": 1764636011.0156617,
-    "issues": []
+    "mtime": 1764677177.6165242,
+    "results": []
   },
   "development_tools/docs/analyze_missing_addresses.py": {
-    "mtime": 1764672024.2967708,
-    "issues": []
+    "mtime": 1764676085.4255035,
+    "results": []
   },
   "development_tools/docs/analyze_path_drift.py": {
-    "mtime": 1764672024.2967708,
-    "issues": []
+    "mtime": 1764677177.6165242,
+    "results": []
   },
   "development_tools/docs/analyze_unconverted_links.py": {
-    "mtime": 1764672265.6911044,
-    "issues": []
+    "mtime": 1764677177.6165242,
+    "results": []
   },
   "development_tools/docs/generate_directory_tree.py": {
     "mtime": 1764617930.9391537,
-    "issues": []
+    "results": []
   },
   "development_tools/legacy/analyze_legacy_references.py": {
     "mtime": 1764617930.9366908,
-    "issues": []
+    "results": []
   },
   "development_tools/legacy/generate_legacy_reference_report.py": {
     "mtime": 1764617930.9366908,
-    "issues": []
+    "results": []
   },
   "development_tools/error_handling/generate_error_handling_recommendations.py": {
     "mtime": 1764642620.4787588,
-    "issues": []
+    "results": []
   },
   "development_tools/error_handling/generate_error_handling_report.py": {
     "mtime": 1764642620.4797597,
-    "issues": []
+    "results": []
   },
   "development_tools/functions/analyze_function_patterns.py": {
     "mtime": 1764664462.587858,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.functions.analyze_function_patterns",
@@ -6740,11 +6740,11 @@
   },
   "development_tools/tests/analyze_test_coverage.py": {
     "mtime": 1764642620.4822676,
-    "issues": []
+    "results": []
   },
   "development_tools/tests/generate_test_coverage_reports.py": {
     "mtime": 1764642620.4842718,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.tests.generate_test_coverage_reports",
@@ -6762,19 +6762,19 @@
   },
   "development_tools/docs/fix_documentation_addresses.py": {
     "mtime": 1764672024.2967708,
-    "issues": []
+    "results": []
   },
   "development_tools/docs/fix_documentation_ascii.py": {
     "mtime": 1764661648.136166,
-    "issues": []
+    "results": []
   },
   "development_tools/docs/fix_documentation_headings.py": {
     "mtime": 1764661648.136166,
-    "issues": []
+    "results": []
   },
   "development_tools/docs/fix_documentation_links.py": {
     "mtime": 1764672265.6911044,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.docs.fix_documentation_links",
@@ -6792,7 +6792,7 @@
   },
   "development_tools/imports/analyze_dependency_patterns.py": {
     "mtime": 1764667318.8366358,
-    "issues": [
+    "results": [
       {
         "type": "warning",
         "module": "development_tools.imports.analyze_dependency_patterns",
@@ -6810,6 +6810,24 @@
   },
   "development_tools/imports/analyze_module_imports.py": {
     "mtime": 1764667318.8366358,
-    "issues": []
+    "results": []
+  },
+  "development_tools/shared/mtime_cache.py": {
+    "mtime": 1764676075.0011759,
+    "results": [
+      {
+        "type": "warning",
+        "module": "development_tools.shared.mtime_cache",
+        "obj": "",
+        "line": 31,
+        "column": 0,
+        "endLine": 31,
+        "endColumn": 53,
+        "path": "development_tools\\shared\\mtime_cache.py",
+        "symbol": "unused-import",
+        "message": "Unused List imported from typing",
+        "message-id": "W0611"
+      }
+    ]
   }
 }

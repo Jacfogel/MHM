@@ -46,13 +46,14 @@ logger = get_component_logger("development_tools")
 class MissingAddressAnalyzer:
     """Analyzes documentation files for missing file addresses."""
     
-    def __init__(self, project_root: Optional[str] = None, config_path: Optional[str] = None):
+    def __init__(self, project_root: Optional[str] = None, config_path: Optional[str] = None, use_cache: bool = True):
         """
         Initialize missing address analyzer.
         
         Args:
             project_root: Root directory of the project
             config_path: Optional path to external config file
+            use_cache: Whether to use mtime-based caching for file results
         """
         # Load external config if provided
         if config_path:
@@ -65,6 +66,11 @@ class MissingAddressAnalyzer:
             self.project_root = Path(project_root).resolve()
         else:
             self.project_root = Path(config.get_project_root()).resolve()
+        
+        # Caching
+        from development_tools.shared.mtime_cache import MtimeFileCache
+        cache_file = self.project_root / "development_tools" / "docs" / ".missing_addresses_cache.json"
+        self.cache = MtimeFileCache(cache_file, self.project_root, use_cache=use_cache)
     
     def _is_generated_file(self, file_path: Path) -> bool:
         """Check if a file is generated (should not be edited)."""
@@ -131,15 +137,33 @@ class MissingAddressAnalyzer:
             except ValueError:
                 continue
             
+            # Check cache first
+            cached_issues = self.cache.get_cached(file_path)
+            if cached_issues is not None:
+                if cached_issues:
+                    missing_addresses[str(rel_path)] = cached_issues
+                continue
+            
             try:
                 with open(file_path, 'r', encoding='utf-8') as f:
                     content = f.read()
                 
                 has_address = bool(re.search(r'^>\s*\*\*File\*\*:\s*`', content[:2000], re.MULTILINE))
+                file_issues = []
                 if not has_address:
-                    missing_addresses[str(rel_path)].append("Missing file address in header")
+                    file_issues.append("Missing file address in header")
+                
+                # Cache results
+                self.cache.cache_results(file_path, file_issues)
+                if file_issues:
+                    missing_addresses[str(rel_path)] = file_issues
             except Exception as e:
-                missing_addresses[str(rel_path)].append(f"Error reading file: {e}")
+                file_issues = [f"Error reading file: {e}"]
+                self.cache.cache_results(file_path, file_issues)
+                missing_addresses[str(rel_path)] = file_issues
+        
+        # Save cache
+        self.cache.save_cache()
         
         return missing_addresses
 

@@ -123,7 +123,8 @@ Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier and
 
 ## 5. Operating Standards and Maintenance
 
-- Use shared infrastructure: `shared/standard_exclusions.py`, `shared/constants.py`, `config/config.py`
+- Use shared infrastructure: `shared/standard_exclusions.py`, `shared/constants.py`, `config/config.py`, `shared/mtime_cache.py`
+- **Caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. Currently used by: `analyze_unused_imports.py`, `analyze_ascii_compliance.py`, `analyze_missing_addresses.py`
 - Never hardcode project paths; derive them from configuration helpers
 - Keep tools isolated from MHM business logic
 - Store tests under `tests/development_tools/` (with fixtures in `tests/fixtures/development_tools_demo/`)

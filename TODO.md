@@ -104,16 +104,6 @@ When adding new tasks, follow this format:
   - [ ] Create script or tool to help identify and update references automatically
   - [ ] Update documentation standards to require section numbers in references
 
-**Optimize Unused Imports Checker**
-- *What it means*: Explore options for accelerating the unused imports checker (currently takes ~7-8 minutes) and reduce excessive logging
-- *Why it helps*: Makes the unused imports checker more practical for regular use and reduces log noise
-- *Estimated effort*: Medium
-- *Areas to investigate*:
-  - Parallelization of pylint analysis across files
-  - Caching of analysis results for unchanged files
-  - Incremental scanning (only check modified files)
-  - Reduce DEBUG-level logging that creates excessive log output
-
 **Create Example Marking Standards Checker**
 - *What it means*: Create a validation checker to ensure examples in documentation follow the example marking standards (section 2.6 in `DOCUMENTATION_GUIDE.md`). The checker should validate that examples containing file paths are properly marked with `[OK]`, `[AVOID]`, `[GOOD]`, `[BAD]`, `[EXAMPLE]` markers or are under "Examples:" headings.
 - *Why it helps*: Ensures examples are consistently marked, making the path drift checker more accurate and reducing false positives. Helps maintain documentation quality by catching unmarked examples that should be marked.
@@ -240,6 +230,107 @@ When adding new tasks, follow this format:
   - Update documentation to reflect new organization
   - Archive or remove tools that are no longer needed
   - Ensure all active tools are properly documented
+
+**Improve AI_STATUS.md Formatting and Content**
+- *What it means*: Fix formatting issues in AI_STATUS.md: add test coverage to snapshot section, move ASCII Cleanup and Dependency Docs from "Documentation Overlap" to "Documentation Signals", remove redundant "Complexity Hotspots" section (already in snapshot), and remove timestamp
+- *Why it helps*: Makes AI_STATUS.md more accurate, better organized, and less redundant; improves clarity of status information
+- *Estimated effort*: Small
+- *Subtasks*:
+  - [ ] Add test coverage metrics to snapshot section
+  - [ ] Move ASCII Cleanup and Dependency Docs to "Documentation Signals" section
+  - [ ] Remove "Complexity Hotspots" section (duplicate of snapshot data)
+  - [ ] Remove timestamp from status report
+
+**Investigate and Enhance Documentation Overlap Analysis**
+- *What it means*: Investigate what the documentation overlap analysis looks for and enhance it to be more helpful. Currently it reports section overlaps and consolidation opportunities but may not be providing actionable insights.
+- *Why it helps*: Makes documentation overlap analysis more useful for identifying actual issues and opportunities for improvement
+- *Estimated effort*: Medium
+
+**Investigate and Enhance AI Work Validation**
+- *What it means*: Investigate what AI Work Validation looks for and enhance it to be more helpful. Currently it reports "GOOD - keep current standards" but may not be providing actionable insights.
+- *Why it helps*: Makes AI Work Validation more useful for identifying actual issues and maintaining code quality standards
+- *Estimated effort*: Medium
+
+**Investigate and Enhance System Health Analysis**
+- *What it means*: Investigate what System Health looks for and consider enhancing it to be more helpful. Currently it reports "OK" but may not be providing actionable insights.
+- *Why it helps*: Makes System Health analysis more useful for identifying actual issues and maintaining system reliability
+- *Estimated effort*: Medium
+
+**Improve Recent Changes Detection Logic**
+- *What it means*: Investigate the logic for determining the recent changes list in AI_STATUS.md. The current implementation doesn't seem very good at identifying meaningful changes.
+- *Why it helps*: Makes recent changes list more accurate and useful for understanding what's actually changed in the codebase
+- *Estimated effort*: Medium
+
+**Review and Consolidate Audit Command Types**
+- *What it means*: Investigate the different types of audits (status, fast-audit, audit, audit --full). Currently there are too many types and they're not super clearly defined. Consider consolidating or better documenting the differences.
+- *Why it helps*: Reduces confusion about which audit command to use; makes the audit system easier to understand and use
+- *Estimated effort*: Medium
+
+**Fix Failing Test: test_email_user_creation**
+- *What it means*: Investigate failing test `test_email_user_creation` in `test_utilities_demo.py`. The test fails at line 169 with "Email user should be created successfully", indicating the factory method returned False or None. This likely involves user index lookup or configuration patching.
+- *Why it helps*: Fixes a broken test and ensures user creation functionality works correctly
+- *Estimated effort*: Small/Medium
+
+**Standardize Logging Across Development Tools Suite**
+- *What it means*: Investigate and standardize logging across the development tools suite, including adjusting what is considered warning, info, and debug levels. Reduce duplicate and messy log entries.
+- *Why it helps*: Makes development tools logs cleaner, easier to read, and more useful for debugging; reduces log noise
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Standardize log levels (what should be INFO vs DEBUG vs WARNING)
+  - [ ] Remove duplicate log entries (e.g., "Generating directory trees..." appearing multiple times)
+  - [ ] Demote verbose enhancement messages to DEBUG level
+  - [ ] Demote "needs_enhancement" warnings to DEBUG level
+  - [ ] Consolidate related log messages to reduce redundancy
+
+**Add Test Failure Details to Coverage Logging**
+- *What it means*: Add to dev tools logging what tests failed and whether the test coverage quit early. Currently logs show "Coverage data collected successfully, but some tests failed" without details.
+- *Why it helps*: Makes it easier to understand what went wrong during coverage collection and why the process may have quit early
+- *Estimated effort*: Small
+
+**Adjust Test Failure Threshold for Early Quit**
+- *What it means*: Adjust threshold for failures that result in tool quitting early. Currently it's 5, which seems too low and may cause premature termination.
+- *Why it helps*: Prevents tools from quitting too early when there are only a few test failures, allowing more complete data collection
+- *Estimated effort*: Small
+
+**Investigate Changelog Trim Tooling Unavailability**
+- *What it means*: Investigate why changelog check reports "Tooling unavailable (skipping trim)". Handle with care to avoid accidentally losing changelog information.
+- *Why it helps*: Ensures changelog maintenance tooling works correctly and prevents accidental data loss
+- *Estimated effort*: Small
+
+**Include Config Validation in Status Reports**
+- *What it means*: Investigate why config validation isn't included in AI_STATUS, AI_PRIORITIES, or consolidated_report. Add it if it should be included.
+- *Why it helps*: Makes config validation status visible in status reports, helping identify configuration issues early
+- *Estimated effort*: Small
+
+**Standardize How Tools Save Their Findings**
+- *What it means*: Investigate and standardize how development tools save their findings. Different tools may use different formats, locations, or approaches.
+- *Why it helps*: Makes tool outputs more consistent and easier to find; improves maintainability
+- *Estimated effort*: Medium
+
+**Include TODO Sync Status in Status Reports**
+- *What it means*: Include TODO sync status (e.g., "Found 3 completed entries in TODO.md that need review") in AI_STATUS, AI_PRIORITIES, and consolidated_report. Currently it's logged but not included in status reports.
+- *Why it helps*: Makes TODO sync status visible in status reports, helping identify when TODO.md needs attention
+- *Estimated effort*: Small
+
+**Investigate AI_STATUS and AI_PRIORITIES Mid-Audit Updates**
+- *What it means*: Investigate why AI_STATUS and AI_PRIORITIES update midway through the full audit with different results than they have at the end. For example, complexity numbers change (Moderate: 352/153, High: 376/138, Critical: 321/128) and doc sync status changes (FAIL/GOOD).
+- *Why it helps*: Prevents confusion from inconsistent status reports; ensures status files reflect final audit results, not intermediate states
+- *Estimated effort*: Medium
+
+**Improve Console Output During Audit Runs**
+- *What it means*: Improve console output during audit runs. Currently it's an unhelpful mess with a massive dump of raw metrics data (dictionaries, lists, etc.) that's not human-readable. Make it more structured and informative.
+- *Why it helps*: Makes audit progress visible and understandable; helps identify issues during long-running audits; improves developer experience
+- *Estimated effort*: Medium
+
+**Verify Critical Issues File Creation**
+- *What it means*: Investigate whether "Critical issues saved to: development_tools/critical_issues.txt" is a true statement. Verify that the file is actually created and contains meaningful content.
+- *Why it helps*: Ensures critical issues are actually being saved and accessible; prevents false claims in console output
+- *Estimated effort*: Small
+
+**Investigate Version Sync Functionality**
+- *What it means*: Investigate version_sync - what does it do and what files does it cover? Understand its purpose, scope, and ensure it's working correctly.
+- *Why it helps*: Ensures version synchronization is working as intended; helps maintain consistency across versioned files
+- *Estimated effort*: Small/Medium
 
 ### User Experience Improvements
 

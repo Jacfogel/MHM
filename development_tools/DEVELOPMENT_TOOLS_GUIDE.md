@@ -197,6 +197,7 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 ## 5. Operating Standards and Maintenance
 
 - Follow the audit-first workflow (see [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)) before touching documentation or infrastructure
+- **Caching Infrastructure**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The utility handles cache loading, saving, and validation automatically. Currently used by: `analyze_unused_imports.py`, `analyze_ascii_compliance.py`, `analyze_missing_addresses.py`. Other analyzers that scan files (e.g., `analyze_path_drift.py`, `analyze_unconverted_links.py`, `analyze_heading_numbering.py`) could benefit from this utility as well.
 - When adding or relocating tools, update:
   - `shared/tool_metadata.py`
   - This guide and the AI guide (paired H2 requirements)

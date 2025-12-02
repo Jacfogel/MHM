@@ -1,0 +1,114 @@
+{
+  "README.md": {
+    "mtime": 1764594590.264166,
+    "results": []
+  },
+  "HOW_TO_RUN.md": {
+    "mtime": 1764594590.264166,
+    "results": []
+  },
+  "DOCUMENTATION_GUIDE.md": {
+    "mtime": 1764671172.811567,
+    "results": []
+  },
+  "DEVELOPMENT_WORKFLOW.md": {
+    "mtime": 1764406755.6470838,
+    "results": []
+  },
+  "ARCHITECTURE.md": {
+    "mtime": 1764407582.7705636,
+    "results": []
+  },
+  "PROJECT_VISION.md": {
+    "mtime": 1764595053.8919427,
+    "results": []
+  },
+  "ai_development_docs/AI_SESSION_STARTER.md": {
+    "mtime": 1764671172.8155508,
+    "results": []
+  },
+  "ai_development_docs/AI_ARCHITECTURE.md": {
+    "mtime": 1764586289.712287,
+    "results": []
+  },
+  "ai_development_docs/AI_DOCUMENTATION_GUIDE.md": {
+    "mtime": 1764671172.811567,
+    "results": []
+  },
+  "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
+    "mtime": 1764551842.3326516,
+    "results": []
+  },
+  "ai_development_docs/AI_REFERENCE.md": {
+    "mtime": 1764551842.3326516,
+    "results": []
+  },
+  "ai_development_docs/AI_LOGGING_GUIDE.md": {
+    "mtime": 1764407812.3391218,
+    "results": []
+  },
+  "ai_development_docs/AI_TESTING_GUIDE.md": {
+    "mtime": 1764671172.8089833,
+    "results": []
+  },
+  "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md": {
+    "mtime": 1764552037.2329812,
+    "results": []
+  },
+  "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md": {
+    "mtime": 1764671172.811567,
+    "results": []
+  },
+  "core/ERROR_HANDLING_GUIDE.md": {
+    "mtime": 1764671172.8155508,
+    "results": []
+  },
+  "logs/LOGGING_GUIDE.md": {
+    "mtime": 1764594590.264166,
+    "results": []
+  },
+  "tests/TESTING_GUIDE.md": {
+    "mtime": 1764671172.811567,
+    "results": []
+  },
+  "tests/MANUAL_TESTING_GUIDE.md": {
+    "mtime": 1764594590.280242,
+    "results": []
+  },
+  "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md": {
+    "mtime": 1764407297.8728867,
+    "results": []
+  },
+  "tests/MANUAL_DISCORD_TEST_GUIDE.md": {
+    "mtime": 1764595053.8919427,
+    "results": []
+  },
+  "communication/COMMUNICATION_GUIDE.md": {
+    "mtime": 1764594590.2813954,
+    "results": []
+  },
+  "communication/communication_channels/discord/DISCORD_GUIDE.md": {
+    "mtime": 1764594590.2813954,
+    "results": []
+  },
+  "scripts/SCRIPTS_GUIDE.md": {
+    "mtime": 1764068754.2787056,
+    "results": []
+  },
+  "ui/UI_GUIDE.md": {
+    "mtime": 1764594590.2813954,
+    "results": []
+  },
+  "ai/SYSTEM_AI_GUIDE.md": {
+    "mtime": 1764595053.8919427,
+    "results": []
+  },
+  "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
+    "mtime": 1764676726.7338216,
+    "results": []
+  },
+  "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
+    "mtime": 1764676726.7338216,
+    "results": []
+  }
+}

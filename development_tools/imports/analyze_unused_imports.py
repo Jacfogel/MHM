@@ -106,8 +106,11 @@ class UnusedImportsChecker:
         self.max_workers = max_workers or min(multiprocessing.cpu_count(), 8)  # Cap at 8 to avoid overload
         self.use_cache = use_cache
         self.verbose = verbose
-        self.cache_file = self.project_root / "development_tools" / "imports" / ".unused_imports_cache.json"
-        self.cache_data: Dict[str, Dict] = {}
+        
+        # Caching - use shared utility
+        from development_tools.shared.mtime_cache import MtimeFileCache
+        cache_file = self.project_root / "development_tools" / "imports" / ".unused_imports_cache.json"
+        self.cache = MtimeFileCache(cache_file, self.project_root, use_cache=use_cache)
         
         # Get config values
         self.pylint_command = UNUSED_IMPORTS_CONFIG.get('pylint_command', [sys.executable, '-m', 'pylint'])
@@ -148,10 +151,6 @@ class UnusedImportsChecker:
             'cache_hits': 0,
             'cache_misses': 0,
         }
-        
-        # Load cache if enabled
-        if self.use_cache:
-            self._load_cache()
     
     def should_scan_file(self, file_path: Path) -> bool:
         """Determine if a file should be scanned."""
@@ -185,98 +184,20 @@ class UnusedImportsChecker:
         """Find all Python files to scan."""
         python_files = []
         
+        # Full scan
         for file_path in self.project_root.rglob('*.py'):
             if self.should_scan_file(file_path):
                 python_files.append(file_path)
         
         return sorted(python_files)
     
-    def _load_cache(self) -> None:
-        """Load cache from disk if it exists."""
-        if self.cache_file.exists():
-            try:
-                with open(self.cache_file, 'r', encoding='utf-8') as f:
-                    self.cache_data = json.load(f)
-                if logger:
-                    logger.debug(f"Loaded cache with {len(self.cache_data)} entries")
-            except Exception as e:
-                if logger:
-                    logger.warning(f"Failed to load cache: {e}")
-                self.cache_data = {}
-    
-    def _save_cache(self) -> None:
-        """Save cache to disk."""
-        if not self.use_cache:
-            return
-        
-        try:
-            self.cache_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.cache_file, 'w', encoding='utf-8') as f:
-                json.dump(self.cache_data, f, indent=2)
-            if logger:
-                logger.debug(f"Saved cache with {len(self.cache_data)} entries")
-        except Exception as e:
-            if logger:
-                logger.warning(f"Failed to save cache: {e}")
-    
-    def _get_file_cache_key(self, file_path: Path) -> str:
-        """Generate cache key for a file."""
-        try:
-            rel_path = file_path.relative_to(self.project_root)
-            return str(rel_path).replace('\\', '/')
-        except ValueError:
-            return str(file_path)
-    
-    def _is_file_cached(self, file_path: Path) -> bool:
-        """Check if file results are cached and still valid."""
-        if not self.use_cache:
-            return False
-        
-        cache_key = self._get_file_cache_key(file_path)
-        if cache_key not in self.cache_data:
-            return False
-        
-        cached_mtime = self.cache_data[cache_key].get('mtime')
-        if cached_mtime is None:
-            return False
-        
-        try:
-            current_mtime = file_path.stat().st_mtime
-            return current_mtime == cached_mtime
-        except OSError:
-            return False
-    
-    def _get_cached_results(self, file_path: Path) -> Optional[List[Dict]]:
-        """Get cached results for a file."""
-        if not self._is_file_cached(file_path):
-            return None
-        
-        cache_key = self._get_file_cache_key(file_path)
-        cached_issues = self.cache_data[cache_key].get('issues', [])
-        self.stats['cache_hits'] += 1
-        return cached_issues if cached_issues else []
-    
-    def _cache_results(self, file_path: Path, issues: Optional[List[Dict]]) -> None:
-        """Cache results for a file."""
-        if not self.use_cache:
-            return
-        
-        try:
-            cache_key = self._get_file_cache_key(file_path)
-            mtime = file_path.stat().st_mtime
-            self.cache_data[cache_key] = {
-                'mtime': mtime,
-                'issues': issues if issues else []
-            }
-        except OSError:
-            pass
-    
     def run_pylint_on_file(self, file_path: Path) -> Optional[List[Dict]]:
         """Run pylint on a single file to detect unused imports."""
         # Check cache first
-        cached = self._get_cached_results(file_path)
+        cached = self.cache.get_cached(file_path)
         if cached is not None:
-            return cached
+            self.stats['cache_hits'] += 1
+            return cached  # cached is already a list (possibly empty)
         
         self.stats['cache_misses'] += 1
         
@@ -310,7 +231,7 @@ class UnusedImportsChecker:
                 issues = []
             
             # Cache results
-            self._cache_results(file_path, issues)
+            self.cache.cache_results(file_path, issues if issues else [])
             return issues
             
         except subprocess.TimeoutExpired:
@@ -695,9 +616,10 @@ class UnusedImportsChecker:
         cached_results = {}
         
         for file_path in python_files:
-            cached = self._get_cached_results(file_path)
+            cached = self.cache.get_cached(file_path)
             if cached is not None:
-                cached_results[file_path] = cached
+                self.stats['cache_hits'] += 1
+                cached_results[file_path] = cached  # cached is already a list (possibly empty)
             else:
                 files_to_scan.append(file_path)
         
@@ -741,7 +663,7 @@ class UnusedImportsChecker:
             for file_path, issues in results:
                 # Cache the results
                 if issues is not None:
-                    self._cache_results(file_path, issues)
+                    self.cache.cache_results(file_path, issues if issues else [])
                 
                 if issues is None:
                     # Error occurred
@@ -775,7 +697,7 @@ class UnusedImportsChecker:
                         self.stats['total_unused'] += 1
         
         # Save cache
-        self._save_cache()
+        self.cache.save_cache()
         
         print("")  # Blank line after progress
         cache_info = ""
@@ -927,7 +849,11 @@ def execute(project_root: Optional[str] = None, config_path: Optional[str] = Non
         # So we need to go up 2 levels to get to project root
         root_path = Path(__file__).parent.parent.parent
     
-    checker = UnusedImportsChecker(str(root_path), config_path=config_path, verbose=kwargs.get('verbose', False))
+    checker = UnusedImportsChecker(
+        str(root_path), 
+        config_path=config_path, 
+        verbose=kwargs.get('verbose', False)
+    )
     results = checker.scan_codebase()
     
     # Generate report
@@ -957,6 +883,9 @@ def main():
     parser.add_argument('--verbose', '-v', action='store_true',
                        help='Show DEBUG messages during scanning')
     args = parser.parse_args()
+    
+    # Determine project root
+    project_root = Path(__file__).parent.parent.parent
     
     # Run the check
     checker = UnusedImportsChecker(project_root, verbose=args.verbose)

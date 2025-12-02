@@ -6874,18 +6874,16 @@ def _legacy_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     return 0 if success else 1
 
 def _unused_imports_command(service: "AIToolsService", argv: Sequence[str]) -> int:
-
+    """Handle unused-imports command."""
     if argv:
-
+        if '-h' in argv or '--help' in argv:
+            print("Usage: unused-imports")
+            return 0
+        
         if any(arg not in ('-h', '--help') for arg in argv):
-
             print("The 'unused-imports' command does not accept additional arguments.")
-
+            print("Usage: unused-imports")
             return 2
-
-        print("Usage: unused-imports")
-
-        return 0
 
     success = service.run_unused_imports_report()
 

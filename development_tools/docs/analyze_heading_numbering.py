@@ -47,13 +47,14 @@ logger = get_component_logger("development_tools")
 class HeadingNumberingAnalyzer:
     """Analyzes documentation files for heading numbering compliance."""
     
-    def __init__(self, project_root: Optional[str] = None, config_path: Optional[str] = None):
+    def __init__(self, project_root: Optional[str] = None, config_path: Optional[str] = None, use_cache: bool = True):
         """
         Initialize heading numbering analyzer.
         
         Args:
             project_root: Root directory of the project
             config_path: Optional path to external config file
+            use_cache: Whether to use mtime-based caching for file analysis
         """
         # Load external config if provided
         if config_path:
@@ -66,6 +67,11 @@ class HeadingNumberingAnalyzer:
             self.project_root = Path(project_root).resolve()
         else:
             self.project_root = Path(config.get_project_root()).resolve()
+        
+        # Caching - use shared utility
+        from development_tools.shared.mtime_cache import MtimeFileCache
+        cache_file = self.project_root / "development_tools" / "docs" / ".heading_numbering_cache.json"
+        self.cache = MtimeFileCache(cache_file, self.project_root, use_cache=use_cache)
     
     def check_heading_numbering(self) -> Dict[str, List[str]]:
         """
@@ -100,6 +106,13 @@ class HeadingNumberingAnalyzer:
                 
             full_path = self.project_root / file_path
             if not full_path.exists():
+                continue
+            
+            # Check cache first
+            cached_issues = self.cache.get_cached(full_path)
+            if cached_issues is not None:
+                if cached_issues:
+                    numbering_issues[file_path] = cached_issues
                 continue
             
             try:
@@ -307,7 +320,16 @@ class HeadingNumberingAnalyzer:
                             h3_counters[current_h2_number] = expected_h3 + 1
                             
             except Exception as e:
-                numbering_issues[file_path].append(f"Error reading file: {e}")
+                file_issues = [f"Error reading file: {e}"]
+                self.cache.cache_results(full_path, file_issues)
+                numbering_issues[file_path] = file_issues
+            else:
+                # Cache results for this file
+                file_issues = numbering_issues.get(file_path, [])
+                self.cache.cache_results(full_path, file_issues)
+        
+        # Save cache
+        self.cache.save_cache()
         
         return numbering_issues
 
