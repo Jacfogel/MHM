@@ -73,10 +73,13 @@ class LegacyReferenceReportGenerator:
         """
         report_lines = []
 
+        generated_at = self.get_current_timestamp()
         report_lines.append("# Legacy Reference Cleanup Report")
         report_lines.append("")
         report_lines.append("> **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`")
-        report_lines.append(f"> **Generated**: {self.get_current_timestamp()}")
+        report_lines.append("> **Generated**: This file is auto-generated. Do not edit manually.")
+        report_lines.append(f"> **Last Generated**: {generated_at}")
+        report_lines.append("> **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator")
 
         affected_files = {file_path for files in findings.values() for file_path, _, _ in files}
         report_lines.append(f"**Total Files with Issues**: {len(affected_files)}")

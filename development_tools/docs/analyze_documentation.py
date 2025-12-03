@@ -192,16 +192,45 @@ def document_profiles(docs: Dict[str, str]) -> List[str]:
 
 
 def detect_section_overlaps(docs: Dict[str, str]) -> Dict[str, List[str]]:
-    """Detect sections that appear in multiple files (overlap detection)."""
+    """Detect sections that appear in multiple files (overlap detection).
+    
+    Enhanced to provide more actionable insights:
+    - Filters out common/expected overlaps (e.g., "Purpose", "Overview")
+    - Identifies high-value overlaps (sections with significant content)
+    - Provides context about why overlaps might be problematic
+    """
     section_files: Dict[str, List[str]] = defaultdict(list)
+    section_content: Dict[str, Dict[str, str]] = defaultdict(dict)  # section -> file -> content
+    
+    # Common section names that are expected to appear in multiple files (not problematic)
+    expected_overlaps = {
+        'purpose', 'overview', 'introduction', 'summary', 'quick start', 'quick reference',
+        'table of contents', 'contents', 'navigation', 'see also', 'references'
+    }
     
     for filename, content in docs.items():
         sections = extract_sections(content)
-        for section_name in sections.keys():
+        for section_name, section_content_text in sections.items():
             section_files[section_name].append(filename)
+            section_content[section_name][filename] = section_content_text
     
-    # Only return sections that appear in multiple files
-    overlaps = {section: files for section, files in section_files.items() if len(files) > 1}
+    # Filter overlaps: exclude expected/common overlaps and focus on substantial content
+    overlaps = {}
+    for section, files in section_files.items():
+        if len(files) > 1:
+            # Skip if it's an expected/common overlap
+            section_lower = section.lower().strip()
+            if section_lower in expected_overlaps:
+                continue
+            
+            # Only include if at least one file has substantial content (more than 50 chars)
+            has_substantial_content = any(
+                len(section_content[section].get(f, '')) > 50 
+                for f in files
+            )
+            if has_substantial_content:
+                overlaps[section] = files
+    
     return overlaps
 
 
@@ -231,35 +260,142 @@ def analyze_file_purposes(docs: Dict[str, str]) -> Dict[str, Dict[str, object]]:
 
 
 def generate_consolidation_recommendations(docs: Dict[str, str]) -> List[Dict[str, object]]:
-    """Generate recommendations for consolidating documentation files."""
+    """Generate recommendations for consolidating documentation files.
+    
+    Enhanced to provide more actionable insights:
+    - Analyzes content similarity, not just filename keywords
+    - Identifies files with high overlap percentage
+    - Provides specific consolidation strategies
+    - Considers file purposes and audiences
+    """
     recommendations = []
     
-    # Group files by purpose keywords
-    setup_files = [f for f in docs.keys() if any(kw in f.lower() for kw in ['setup', 'run', 'install', 'how_to'])]
+    # Analyze file purposes more deeply
+    file_purposes = analyze_file_purposes(docs)
+    
+    # Group files by purpose keywords (enhanced)
+    setup_files = [f for f in docs.keys() if any(kw in f.lower() for kw in ['setup', 'run', 'install', 'how_to', 'getting_started'])]
     if len(setup_files) > 1:
+        # Check if files have similar content
+        similar_content = _check_content_similarity(docs, setup_files)
         recommendations.append({
             'category': 'Setup/Installation',
             'files': setup_files,
-            'suggestion': 'Consider consolidating into a single SETUP.md or HOW_TO_RUN.md'
+            'suggestion': 'Consider consolidating into a single SETUP.md or HOW_TO_RUN.md',
+            'similarity_score': similar_content,
+            'priority': 'high' if similar_content > 0.3 else 'medium'
         })
     
-    workflow_files = [f for f in docs.keys() if any(kw in f.lower() for kw in ['workflow', 'development', 'guideline'])]
+    workflow_files = [f for f in docs.keys() if any(kw in f.lower() for kw in ['workflow', 'development', 'guideline', 'guide'])]
     if len(workflow_files) > 1:
+        similar_content = _check_content_similarity(docs, workflow_files)
         recommendations.append({
             'category': 'Development Workflow',
             'files': workflow_files,
-            'suggestion': 'Consider consolidating into a single DEVELOPMENT_WORKFLOW.md'
+            'suggestion': 'Consider consolidating into a single DEVELOPMENT_WORKFLOW.md',
+            'similarity_score': similar_content,
+            'priority': 'high' if similar_content > 0.3 else 'medium'
         })
     
-    testing_files = [f for f in docs.keys() if 'test' in f.lower()]
+    testing_files = [f for f in docs.keys() if 'test' in f.lower() and 'test_' not in f.lower()]
     if len(testing_files) > 1:
+        similar_content = _check_content_similarity(docs, testing_files)
         recommendations.append({
             'category': 'Testing',
             'files': testing_files,
-            'suggestion': 'Consider consolidating testing documentation'
+            'suggestion': 'Consider consolidating testing documentation into a single TESTING_GUIDE.md',
+            'similarity_score': similar_content,
+            'priority': 'high' if similar_content > 0.3 else 'medium'
         })
     
+    # Check for files with high section overlap
+    section_overlaps = detect_section_overlaps(docs)
+    high_overlap_files = _identify_high_overlap_files(docs, section_overlaps)
+    for file_group in high_overlap_files:
+        if len(file_group['files']) > 1:
+            recommendations.append({
+                'category': 'High Section Overlap',
+                'files': file_group['files'],
+                'suggestion': f"These files share {file_group['overlap_count']} sections - consider consolidating or clearly differentiating their purposes",
+                'overlap_count': file_group['overlap_count'],
+                'priority': 'high' if file_group['overlap_count'] > 5 else 'medium'
+            })
+    
     return recommendations
+
+
+def _check_content_similarity(docs: Dict[str, str], file_list: List[str]) -> float:
+    """Check content similarity between files (simple word-based similarity)."""
+    if len(file_list) < 2:
+        return 0.0
+    
+    # Extract words from each file
+    file_words = {}
+    for filename in file_list:
+        content = docs.get(filename, '')
+        # Simple word extraction (normalize and split)
+        words = set(re.findall(r'\b\w+\b', content.lower()))
+        file_words[filename] = words
+    
+    # Calculate average similarity between all pairs
+    similarities = []
+    files = list(file_list)
+    for i in range(len(files)):
+        for j in range(i + 1, len(files)):
+            words1 = file_words.get(files[i], set())
+            words2 = file_words.get(files[j], set())
+            if words1 or words2:
+                # Jaccard similarity
+                intersection = len(words1 & words2)
+                union = len(words1 | words2)
+                similarity = intersection / union if union > 0 else 0.0
+                similarities.append(similarity)
+    
+    return sum(similarities) / len(similarities) if similarities else 0.0
+
+
+def _identify_high_overlap_files(docs: Dict[str, str], section_overlaps: Dict[str, List[str]]) -> List[Dict[str, object]]:
+    """Identify groups of files with high section overlap."""
+    # Count overlaps per file pair
+    file_pair_overlaps = defaultdict(int)
+    for section, files in section_overlaps.items():
+        # Count overlaps for each pair of files
+        for i in range(len(files)):
+            for j in range(i + 1, len(files)):
+                pair = tuple(sorted([files[i], files[j]]))
+                file_pair_overlaps[pair] += 1
+    
+    # Group files with high overlap
+    file_groups = defaultdict(set)
+    for (file1, file2), count in file_pair_overlaps.items():
+        if count >= 3:  # Threshold: 3+ shared sections
+            # Try to find existing group or create new
+            found_group = False
+            for group_key, group_files in file_groups.items():
+                if file1 in group_files or file2 in group_files:
+                    file_groups[group_key].add(file1)
+                    file_groups[group_key].add(file2)
+                    found_group = True
+                    break
+            if not found_group:
+                group_key = f"{file1}_{file2}"
+                file_groups[group_key] = {file1, file2}
+    
+    # Convert to list format
+    result = []
+    for group_files in file_groups.values():
+        if len(group_files) > 1:
+            # Count total overlaps for this group
+            overlap_count = sum(
+                1 for section, files in section_overlaps.items()
+                if len(set(files) & group_files) > 1
+            )
+            result.append({
+                'files': sorted(list(group_files)),
+                'overlap_count': overlap_count
+            })
+    
+    return result
 
 
 def format_summary(

@@ -370,11 +370,14 @@ def main():
     results_file = validator.ai_tools_dir / 'config' / 'analyze_config_results.json'
     try:
         # Add generation headers to results
+        timestamp_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        timestamp_iso = datetime.now().isoformat()
         results_with_headers = {
             'generated_by': 'analyze_config.py - Configuration Validation Tool',
-            'last_generated': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'source': 'python development_tools/analyze_config.py',
+            'last_generated': timestamp_str,
+            'source': 'python development_tools/config/analyze_config.py',
             'note': 'This file is auto-generated. Do not edit manually.',
+            'timestamp': timestamp_iso,
             'validation_results': results
         }
         

@@ -89,6 +89,7 @@ SCRIPT_REGISTRY = {
     'generate_test_coverage': 'tests/generate_test_coverage.py',
     'analyze_test_coverage': 'tests/analyze_test_coverage.py',
     'generate_test_coverage_reports': 'tests/generate_test_coverage_reports.py',
+    'analyze_test_markers': 'tests/analyze_test_markers.py',
 
     'analyze_unused_imports': 'imports/analyze_unused_imports.py',
 
@@ -98,7 +99,9 @@ SCRIPT_REGISTRY = {
 
     'fix_documentation': 'docs/fix_documentation.py',
 
-    'system_signals': 'reports/system_signals.py'
+    'system_signals': 'reports/system_signals.py',
+    
+    'cleanup_project': 'shared/fix_project_cleanup.py'
 
 }
 
@@ -148,6 +151,7 @@ class AIToolsService:
         self.system_signals = None
         self.dev_tools_coverage_results = None
         self.module_dependency_summary = None
+        self.todo_sync_result = None
 
         self.exclusion_config = {
 
@@ -501,7 +505,13 @@ class AIToolsService:
                 json_file = self.project_root / 'development_tools' / 'error_handling' / 'error_handling_details.json'
                 if json_file.exists():
                     with open(json_file, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
+                        file_data = json.load(f)
+                    # Handle new structure with metadata wrapper
+                    if 'error_handling_results' in file_data:
+                        data = file_data['error_handling_results']
+                    else:
+                        # Fallback to old structure (direct results)
+                        data = file_data
             except (OSError, json.JSONDecodeError):
                 data = None
 
@@ -782,8 +792,14 @@ class AIToolsService:
 
                 self._run_essential_tools_only()
                 
-                # Save additional tool results to cached file
-                self._save_additional_tool_results()
+            # Save additional tool results to cached file
+            self._save_additional_tool_results()
+            
+            # Reload all cache data to ensure we have the latest state before generating status
+            self._reload_all_cache_data()
+            
+            # Sync TODO.md with changelog BEFORE generating status reports
+            self._sync_todo_with_changelog()
 
             # Create AI-optimized status document (contributed by multiple tools)
 
@@ -818,10 +834,6 @@ class AIToolsService:
             # Check ASCII compliance
 
             self._check_ascii_compliance()
-
-            # Sync TODO.md with changelog
-
-            self._sync_todo_with_changelog()
 
             # Audit completed
 
@@ -904,12 +916,69 @@ class AIToolsService:
                     'timestamp': datetime.now().isoformat()
                 }
             
+            # Add analyze_documentation results if available (includes overlap data)
+            if 'analyze_documentation' in self.results_cache:
+                analyze_docs_data = self.results_cache['analyze_documentation']
+                cached_data['results']['analyze_documentation'] = {
+                    'success': True,
+                    'data': analyze_docs_data,
+                    'timestamp': datetime.now().isoformat()
+                }
+            
             # Save updated results using create_output_file to ensure correct location and rotation
             from ..shared.file_rotation import create_output_file
             create_output_file(str(results_file), json.dumps(cached_data, indent=2))
                 
         except Exception as e:
             logger.warning(f"Failed to save additional tool results: {e}")
+
+    def _reload_all_cache_data(self):
+        """Reload all cache data from disk to ensure we have the latest state before generating status files."""
+        try:
+            import json
+            results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+            
+            if results_file.exists():
+                with open(results_file, 'r', encoding='utf-8') as f:
+                    cached_data = json.load(f)
+                    
+                # Reload results_cache from cached data
+                if 'results' in cached_data:
+                    for tool_name, tool_data in cached_data['results'].items():
+                        if 'data' in tool_data:
+                            self.results_cache[tool_name] = tool_data['data']
+                    
+                    # Reload decision_support_metrics if present
+                    if 'decision_support' in cached_data['results']:
+                        ds_data = cached_data['results']['decision_support']
+                        if 'data' in ds_data and 'decision_support_metrics' in ds_data['data']:
+                            self.results_cache['decision_support_metrics'] = ds_data['data']['decision_support_metrics']
+                
+                # Reload doc sync summary if present
+                if 'analyze_documentation_sync' in cached_data.get('results', {}):
+                    doc_sync_data = cached_data['results']['analyze_documentation_sync']
+                    if 'data' in doc_sync_data:
+                        self.docs_sync_summary = doc_sync_data['data']
+                
+                # Reload coverage summary
+                coverage_summary = self._load_coverage_summary()
+                if coverage_summary:
+                    # Coverage summary is loaded on-demand, but we ensure it's fresh
+                    pass
+                
+                # Reload dev tools coverage
+                if not hasattr(self, 'dev_tools_coverage_results') or not self.dev_tools_coverage_results:
+                    self._load_dev_tools_coverage()
+                
+                # Reload config validation summary (loaded on-demand in status generation)
+                # Reload module dependency summary (should already be in results_cache)
+                if 'analyze_module_dependencies' in cached_data.get('results', {}):
+                    dep_data = cached_data['results']['analyze_module_dependencies']
+                    if 'data' in dep_data:
+                        self.module_dependency_summary = dep_data['data']
+                        
+        except Exception as e:
+            logger.debug(f"Failed to reload cache data: {e}")
 
     def _run_essential_tools_only(self):
         """Run a minimal subset of tools for fast audit mode."""
@@ -1150,11 +1219,18 @@ class AIToolsService:
         try:
             from ..docs.fix_version_sync import sync_todo_with_changelog  # type: ignore
             result = sync_todo_with_changelog()
+            # Store result for status reports
+            self.todo_sync_result = result
             status = result.get('status') if isinstance(result, dict) else None
             if status == 'ok':
+                completed_entries = result.get('completed_entries', 0)
                 moved = result.get('moved_entries', 0)
                 if moved:
                     logger.info(f"   TODO sync: Moved {moved} completed entries from TODO.md")
+                    print(f"TODO sync: Moved {moved} completed entries from TODO.md")
+                elif completed_entries > 0:
+                    logger.info(f"   TODO sync: Found {completed_entries} completed entries in TODO.md that need review")
+                    print(f"TODO sync: Found {completed_entries} completed entries in TODO.md that need review")
                 else:
                     message = result.get('message')
                     logger.info(f"   TODO sync: {message}")
@@ -1163,6 +1239,7 @@ class AIToolsService:
                 logger.warning(f"   TODO sync failed: {message}")
         except Exception as exc:
             logger.warning(f"   TODO sync failed: {exc}")
+            self.todo_sync_result = {'status': 'error', 'message': str(exc), 'completed_entries': 0}
 
     def run_docs(self):
 
@@ -1281,7 +1358,6 @@ class AIToolsService:
         if result['success']:
 
             # Store results for consolidated report
-
             self.validation_results = result
 
             logger.info("=" * 50)
@@ -1309,19 +1385,56 @@ class AIToolsService:
         result = self.run_script('analyze_config')
 
         if result['success']:
-
-            logger.info(result['output'])
-
-            logger.info("=" * 50)
-
-            logger.info("Configuration check completed!")
+            # Print the report instead of just logging it
+            output = result.get('output', '')
+            if output:
+                print(output)
+            else:
+                # If no output, try to extract from JSON results
+                try:
+                    import json
+                    results_file = self.project_root / "development_tools" / "config" / "analyze_config_results.json"
+                    if results_file.exists():
+                        with open(results_file, 'r', encoding='utf-8') as f:
+                            data = json.load(f)
+                        validation_results = data.get('validation_results', {})
+                        summary = validation_results.get('summary', {})
+                        
+                        print("=" * 80)
+                        print("CONFIGURATION VALIDATION REPORT")
+                        print("=" * 80)
+                        print(f"SUMMARY:")
+                        print(f"   Tools using config: {summary.get('tools_using_config', 0)}/{summary.get('total_tools', 0)}")
+                        print(f"   Configuration valid: {'YES' if summary.get('config_valid', False) else 'NO'}")
+                        print(f"   Configuration complete: {'YES' if summary.get('config_complete', False) else 'NO'}")
+                        print(f"   Recommendations: {summary.get('total_recommendations', 0)}")
+                        
+                        # Tool analysis
+                        tools_analysis = validation_results.get('tools_analysis', {})
+                        if tools_analysis:
+                            print(f"TOOL ANALYSIS:")
+                            for tool_name, analysis in tools_analysis.items():
+                                status = "OK" if analysis.get('imports_config', False) and not analysis.get('issues', []) else "WARN" if analysis.get('issues', []) else "FAIL"
+                                print(f"   {status} {tool_name}")
+                                if analysis.get('issues'):
+                                    for issue in analysis['issues']:
+                                        print(f"      Issue: {issue}")
+                        
+                        # Recommendations
+                        recommendations = validation_results.get('recommendations', [])
+                        if recommendations:
+                            print(f"RECOMMENDATIONS:")
+                            for i, rec in enumerate(recommendations, 1):
+                                print(f"   {i}. {rec}")
+                        
+                        print(f"Configuration validation complete!")
+                except Exception as e:
+                    logger.debug(f"Could not extract config report from JSON: {e}")
+                    logger.info("Configuration check completed!")
 
             return True
-
         else:
-
             logger.error(f"Configuration check failed: {result['error']}")
-
             return False
 
     # ===== ADVANCED COMMANDS (for AI collaborators) =====
@@ -1471,20 +1584,39 @@ class AIToolsService:
         result = self.run_script('decision_support')
 
         if result['success']:
-
-            # Extract and format actionable insights
-
-            insights = self._extract_actionable_insights(result['output'])
-
-            logger.info(insights)
+            # Print the key findings instead of just logging
+            output = result.get('output', '')
+            if output:
+                print(output)
+            else:
+                # If no output, try to extract key findings from JSON
+                try:
+                    import json
+                    results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+                    if results_file.exists():
+                        with open(results_file, 'r', encoding='utf-8') as f:
+                            data = json.load(f)
+                        if 'results' in data and 'decision_support' in data['results']:
+                            ds_data = data['results']['decision_support']
+                            if 'data' in ds_data and 'decision_support_metrics' in ds_data['data']:
+                                metrics = ds_data['data']['decision_support_metrics']
+                                print("=== AI DECISION SUPPORT DASHBOARD ===")
+                                if metrics.get('total_functions'):
+                                    print(f"Total functions: {metrics['total_functions']}")
+                                if metrics.get('critical_complexity'):
+                                    print(f"[CRITICAL] Critical Complexity (>199 nodes): {metrics['critical_complexity']}")
+                                if metrics.get('high_complexity'):
+                                    print(f"[HIGH] High Complexity (100-199 nodes): {metrics['high_complexity']}")
+                                if metrics.get('moderate_complexity'):
+                                    print(f"[MODERATE] Moderate Complexity (50-99 nodes): {metrics['moderate_complexity']}")
+                except Exception as e:
+                    logger.debug(f"Could not extract decision support from JSON: {e}")
+                    logger.info("Decision support completed!")
 
             # Return the result dict so metrics can be extracted
             return result
-
         else:
-
             logger.error(f"Decision support failed: {result['error']}")
-
             return result
 
     def run_version_sync(self, scope: str = 'docs'):
@@ -1773,6 +1905,26 @@ class AIToolsService:
             
             logger.info("Coverage metrics regenerated and plan updated!")
             
+            # Run test marker analysis after coverage (when tests are run)
+            try:
+                logger.info("  - Running test marker analysis...")
+                marker_result = self.run_script('analyze_test_markers', '--check', '--json')
+                if marker_result.get('success'):
+                    output = marker_result.get('output', '')
+                    if output:
+                        try:
+                            import json
+                            marker_data = json.loads(output)
+                            missing_count = marker_data.get('missing_count', 0)
+                            if missing_count > 0:
+                                logger.info(f"  - Test marker analysis: {missing_count} tests missing category markers")
+                            else:
+                                logger.info("  - Test marker analysis: All tests have category markers")
+                        except (json.JSONDecodeError, ValueError):
+                            pass
+            except Exception as exc:
+                logger.debug(f"  - Test marker analysis failed (non-critical): {exc}")
+            
             # Reload coverage summary after regeneration - force reload
             self.coverage_results = None  # Clear cached results
             # Force reload by clearing any cached coverage_summary
@@ -1912,6 +2064,70 @@ class AIToolsService:
 
         return False
 
+    def run_cleanup(self, cache: bool = False, test_data: bool = False, 
+                    coverage: bool = False, all_cleanup: bool = False, 
+                    dry_run: bool = False) -> Dict:
+        """Run project cleanup operations."""
+        logger.info("Starting project cleanup...")
+        
+        script_path = Path(__file__).resolve().parent.parent / 'shared' / 'fix_project_cleanup.py'
+        cmd = [sys.executable, str(script_path)]
+        
+        if dry_run:
+            cmd.append('--dry-run')
+        if cache:
+            cmd.append('--cache')
+        if test_data:
+            cmd.append('--test-data')
+        if coverage:
+            cmd.append('--coverage')
+        if all_cleanup:
+            cmd.append('--all')
+        
+        cmd.append('--json')
+        
+        try:
+            result_proc = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                cwd=str(self.project_root),
+                timeout=300
+            )
+            
+            output = result_proc.stdout
+            error_output = result_proc.stderr
+            
+            if result_proc.returncode == 0:
+                try:
+                    data = json.loads(output)
+                    return {
+                        'success': True,
+                        'output': output,
+                        'data': data,
+                        'returncode': result_proc.returncode
+                    }
+                except json.JSONDecodeError:
+                    return {
+                        'success': True,
+                        'output': output,
+                        'error': error_output,
+                        'returncode': result_proc.returncode
+                    }
+            else:
+                return {
+                    'success': False,
+                    'output': output,
+                    'error': error_output,
+                    'returncode': result_proc.returncode
+                }
+        except subprocess.TimeoutExpired:
+            logger.error("Project cleanup timed out")
+            return {'success': False, 'error': 'Timeout'}
+        except Exception as exc:
+            logger.error(f"Project cleanup failed: {exc}")
+            return {'success': False, 'error': str(exc)}
+
     def run_system_signals(self):
         """Run system signals generator"""
         logger.info("Starting system signals generation...")
@@ -1937,6 +2153,71 @@ class AIToolsService:
             if result.get('error'):
                 logger.error(f"Completed system signals generation with errors: {result['error']}")
             return False
+
+    def run_test_markers(self, action: str = 'check', dry_run: bool = False) -> Dict:
+        """
+        Run test marker analysis with specified action.
+        
+        Note: Only 'check' and 'analyze' actions are supported.
+        For fixing markers, use fix_test_markers.py directly.
+        """
+        logger.info(f"Starting test marker {action}...")
+        
+        script_path = Path(__file__).resolve().parent.parent / 'tests' / 'analyze_test_markers.py'
+        cmd = [sys.executable, str(script_path)]
+        
+        if action == 'check':
+            cmd.append('--check')
+        elif action == 'analyze':
+            cmd.append('--analyze')
+        else:
+            logger.error(f"Unknown action: {action}. Only 'check' and 'analyze' are supported.")
+            return {'success': False, 'error': f'Unknown action: {action}. Use fix_test_markers.py for fixing.'}
+        
+        cmd.append('--json')
+        
+        try:
+            result_proc = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                cwd=str(self.project_root),
+                timeout=300
+            )
+            
+            output = result_proc.stdout
+            error_output = result_proc.stderr
+            
+            if result_proc.returncode == 0 or (action == 'check' and result_proc.returncode == 1):
+                # Return code 1 from check means markers are missing (expected)
+                try:
+                    data = json.loads(output)
+                    return {
+                        'success': True,
+                        'output': output,
+                        'data': data,
+                        'returncode': result_proc.returncode
+                    }
+                except json.JSONDecodeError:
+                    return {
+                        'success': True,
+                        'output': output,
+                        'error': error_output,
+                        'returncode': result_proc.returncode
+                    }
+            else:
+                return {
+                    'success': False,
+                    'output': output,
+                    'error': error_output,
+                    'returncode': result_proc.returncode
+                }
+        except subprocess.TimeoutExpired:
+            logger.error("Test marker analysis timed out")
+            return {'success': False, 'error': 'Timeout'}
+        except Exception as exc:
+            logger.error(f"Test marker analysis failed: {exc}")
+            return {'success': False, 'error': str(exc)}
 
     def run_unused_imports_report(self):
 
@@ -3416,6 +3697,24 @@ class AIToolsService:
 
         }
 
+    def _load_config_validation_summary(self) -> Optional[Dict[str, Any]]:
+        """Load config validation summary from JSON file."""
+        try:
+            config_file = self.project_root / "development_tools" / "config" / "analyze_config_results.json"
+            if config_file.exists():
+                import json
+                with open(config_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    validation_results = data.get('validation_results', {})
+                    summary = validation_results.get('summary', {})
+                    # Include recommendations and tools_analysis in the returned summary
+                    summary['recommendations'] = validation_results.get('recommendations', [])
+                    summary['tools_analysis'] = validation_results.get('tools_analysis', {})
+                    return summary
+        except Exception as e:
+            logger.debug(f"Failed to load config validation summary: {e}")
+        return None
+
     def _load_dev_tools_coverage(self) -> None:
         """Load dev tools coverage from JSON file if it exists."""
         coverage_path = self.project_root / "development_tools" / "tests" / "coverage_dev_tools.json"
@@ -3842,24 +4141,17 @@ class AIToolsService:
             elif 'decision_support_metrics' not in decision_support_result.get('data', {}):
                 decision_support_result['data']['decision_support_metrics'] = ds_metrics
 
+        timestamp_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        timestamp_iso = datetime.now().isoformat()
         audit_data = {
-
             'generated_by': 'run_development_tools.py - AI Development Tools Runner',
-
-            'last_generated': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-
+            'last_generated': timestamp_str,
             'source': 'python development_tools/run_development_tools.py audit',
-
             'note': 'This file is auto-generated. Do not edit manually.',
-
-            'timestamp': datetime.now().isoformat(),
-
+            'timestamp': timestamp_iso,
             'successful': successful,
-
             'failed': failed,
-
             'results': enhanced_results
-
         }
 
         # Normalise location relative to the project root
@@ -3933,15 +4225,10 @@ class AIToolsService:
         lines.append("")
 
         lines.append("> **File**: `development_tools/AI_STATUS.md`")
-
-        lines.append("> **Generated**: This file is auto-generated by run_development_tools.py. Do not edit manually.")
-
-        lines.append("> **Generated by**: run_development_tools.py - AI Development Tools Runner")
-
+        lines.append("> **Generated**: This file is auto-generated. Do not edit manually.")
         lines.append(f"> **Last Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
         lines.append("> **Source**: `python development_tools/run_development_tools.py status`")
-
+        lines.append("> **Generated by**: run_development_tools.py - AI Development Tools Runner")
         lines.append("")
 
         def percent_text(value: Any, decimals: int = 1) -> str:
@@ -3955,6 +4242,33 @@ class AIToolsService:
                 return value if value.strip().endswith('%') else f"{value}%"
 
             return self._format_percentage(value, decimals)
+
+        def to_int(value: Any) -> Optional[int]:
+            if isinstance(value, int):
+                return value
+            if isinstance(value, float):
+                return int(value)
+            if isinstance(value, str):
+                stripped = value.strip().rstrip('%')
+                try:
+                    return int(float(stripped))
+                except ValueError:
+                    return None
+            if isinstance(value, dict):
+                count = value.get('count')
+                return to_int(count)
+            return None
+
+        def to_float(value: Any) -> Optional[float]:
+            if isinstance(value, (int, float)):
+                return float(value)
+            if isinstance(value, str):
+                stripped = value.strip().rstrip('%')
+                try:
+                    return float(stripped)
+                except ValueError:
+                    return None
+            return None
 
         metrics = self._get_canonical_metrics()
         if not isinstance(metrics, dict):
@@ -3975,9 +4289,23 @@ class AIToolsService:
             analyze_docs_data = {}
         
         # Extract overlap analysis data
-        section_overlaps = analyze_docs_data.get('section_overlaps', {})
-        consolidation_recs = analyze_docs_data.get('consolidation_recommendations', [])
-
+        # Check if overlap analysis was run (indicated by presence of these keys, even if empty)
+        # If keys don't exist, overlap analysis wasn't run
+        # If keys exist but are None/empty, analysis was run but found nothing
+        overlap_analysis_ran = (
+            'section_overlaps' in analyze_docs_data or 
+            'consolidation_recommendations' in analyze_docs_data
+        )
+        
+        section_overlaps = analyze_docs_data.get('section_overlaps', {}) if overlap_analysis_ran else {}
+        consolidation_recs = analyze_docs_data.get('consolidation_recommendations', []) if overlap_analysis_ran else []
+        
+        # Normalize to empty dict/list if None
+        if section_overlaps is None:
+            section_overlaps = {}
+        if consolidation_recs is None:
+            consolidation_recs = []
+        
         doc_coverage = doc_metrics.get('doc_coverage', metrics.get('doc_coverage', 'Unknown'))
 
         missing_docs = doc_metrics.get('missing_docs') or doc_metrics.get('missing_items')
@@ -3986,25 +4314,21 @@ class AIToolsService:
 
         error_coverage = error_metrics.get('analyze_error_handling') or error_metrics.get('error_handling_coverage')
         
-        # Recalculate error handling coverage using canonical function count for consistency
+        # Use the actual count from error analysis, not a recalculation
+        # The error analysis tool knows which functions actually need error handling
+        # Recalculating based on different totals can give incorrect results
+        missing_error_handlers = to_int(error_metrics.get('functions_missing_error_handling'))
+        
+        # Only recalculate coverage if totals differ, but keep the actual missing count
         error_total = error_metrics.get('total_functions')
         error_with_handling = error_metrics.get('functions_with_error_handling')
         canonical_total = metrics.get('total_functions')
         
         if error_coverage is not None and canonical_total and error_total and error_with_handling:
-            # If error_handling used a different total, recalculate for consistency
             if error_total != canonical_total:
                 recalc_coverage = (error_with_handling / canonical_total) * 100
                 if 0 <= recalc_coverage <= 100:
                     error_coverage = recalc_coverage
-                    # Also update missing count
-                    missing_error_handlers = canonical_total - error_with_handling
-                else:
-                    missing_error_handlers = error_metrics.get('functions_missing_error_handling')
-            else:
-                missing_error_handlers = error_metrics.get('functions_missing_error_handling')
-        else:
-            missing_error_handlers = error_metrics.get('functions_missing_error_handling')
 
         worst_error_modules = error_metrics.get('worst_modules') or []
 
@@ -4125,6 +4449,8 @@ class AIToolsService:
         # Try to load error handling coverage from cached data
         error_coverage = 'Unknown'
         missing_error_handlers = None
+        error_total = None
+        error_with_handling = None
         if not error_coverage or error_coverage == 'Unknown':
             try:
                 import json
@@ -4138,14 +4464,27 @@ class AIToolsService:
                             cached_metrics = error_data['data']
                             error_coverage = cached_metrics.get('analyze_error_handling') or cached_metrics.get('error_handling_coverage', 'Unknown')
                             missing_error_handlers = cached_metrics.get('functions_missing_error_handling')
+                            error_total = cached_metrics.get('total_functions')
+                            error_with_handling = cached_metrics.get('functions_with_error_handling')
             except Exception:
                 pass
+        
+        # Use the actual count from error analysis, not a recalculation
+        missing_error_handlers = to_int(error_metrics.get('functions_missing_error_handling'))
+        
+        # Only recalculate coverage if totals differ, but keep the actual missing count
+        canonical_total = metrics.get('total_functions')
+        if error_coverage is not None and canonical_total and error_total and error_with_handling:
+            if error_total != canonical_total:
+                recalc_coverage = (error_with_handling / canonical_total) * 100
+                if 0 <= recalc_coverage <= 100:
+                    error_coverage = recalc_coverage
 
         lines.append(
 
             f"- **Error Handling Coverage**: {percent_text(error_coverage, 1)}"
 
-            + (f" ({missing_error_handlers} functions without handlers)" if missing_error_handlers else "")
+            + (f" ({missing_error_handlers} functions without handlers)" if missing_error_handlers is not None else "")
 
         )
 
@@ -4186,6 +4525,15 @@ class AIToolsService:
         else:
 
             lines.append("- **Doc Sync**: Not collected in this run (pending doc-sync refresh)")
+
+        # Add test coverage to snapshot
+        if coverage_summary and isinstance(coverage_summary, dict):
+            overall = coverage_summary.get('overall') or {}
+            if overall.get('coverage') is not None:
+                lines.append(
+                    f"- **Test Coverage**: {percent_text(overall.get('coverage'), 1)} "
+                    f"({overall.get('covered')} of {overall.get('statements')} statements)"
+                )
 
         lines.append("")
 
@@ -4255,6 +4603,47 @@ class AIToolsService:
 
                 lines.append(f"- **Paired Docs**: {status_label} ({paired} issues)")
         
+        # Add ASCII Cleanup to Documentation Signals
+        if ascii_issues:
+            lines.append(f"- **ASCII Cleanup**: {ascii_issues} files contain non-ASCII characters")
+        
+        # Add Dependency Docs to Documentation Signals
+        dependency_summary = self.module_dependency_summary or self.results_cache.get('analyze_module_dependencies')
+        if dependency_summary:
+            missing_deps = dependency_summary.get('missing_dependencies')
+            if missing_deps:
+                lines.append(f"- **Dependency Docs**: {missing_deps} undocumented references detected")
+                missing_files = dependency_summary.get('missing_files') or dependency_summary.get('missing_sections') or []
+                if missing_files:
+                    lines.append(f"  Top files: {self._format_list_for_display(missing_files, limit=3)}")
+            else:
+                lines.append("- **Dependency Docs**: CLEAN (no undocumented dependencies)")
+        
+        if not doc_sync_summary_for_signals:
+            lines.append("- Run `python development_tools/run_development_tools.py doc-sync` for drift details")
+        
+        # Add config validation status
+        config_validation_summary = self._load_config_validation_summary()
+        if config_validation_summary:
+            config_valid = config_validation_summary.get('config_valid', False)
+            config_complete = config_validation_summary.get('config_complete', False)
+            total_recommendations = config_validation_summary.get('total_recommendations', 0)
+            if config_valid and config_complete and total_recommendations == 0:
+                lines.append("- **Config Validation**: CLEAN (no issues)")
+            elif total_recommendations > 0:
+                lines.append(f"- **Config Validation**: {total_recommendations} recommendations")
+            else:
+                lines.append("- **Config Validation**: Needs attention")
+        
+        # Add TODO sync status
+        todo_sync_result = getattr(self, 'todo_sync_result', None)
+        if todo_sync_result and isinstance(todo_sync_result, dict):
+            completed_entries = todo_sync_result.get('completed_entries', 0)
+            if completed_entries > 0:
+                lines.append(f"- **TODO Sync**: {completed_entries} completed entries need review")
+            else:
+                lines.append("- **TODO Sync**: CLEAN (no completed entries)")
+        
         # Add overlap analysis summary (always show, even if no overlaps found)
         lines.append("")
         lines.append("## Documentation Overlap")
@@ -4262,40 +4651,29 @@ class AIToolsService:
         consolidation_count = len(consolidation_recs) if consolidation_recs else 0
         
         if overlap_count > 0 or consolidation_count > 0:
-            if section_overlaps:
+            if section_overlaps and overlap_count > 0:
                 lines.append(f"- **Section Overlaps**: {overlap_count} sections duplicated across files")
-            if consolidation_recs:
+                # Show first few overlaps
+                top_overlaps = sorted(section_overlaps.items(), key=lambda x: len(x[1]), reverse=True)[:3]
+                for section, files in top_overlaps:
+                    lines.append(f"  - `{section}` appears in: {', '.join(files[:3])}{'...' if len(files) > 3 else ''}")
+            if consolidation_recs and consolidation_count > 0:
                 lines.append(f"- **Consolidation Opportunities**: {consolidation_count} file groups could be merged")
+                # Show first few recommendations
+                for rec in consolidation_recs[:3]:
+                    category = rec.get('category', 'Unknown')
+                    files = rec.get('files', [])
+                    suggestion = rec.get('suggestion', '')
+                    if files and len(files) > 1:
+                        lines.append(f"  - **{category}**: {len(files)} files - {suggestion}")
+                        lines.append(f"    Files: {', '.join(files[:3])}{'...' if len(files) > 3 else ''}")
         else:
-            lines.append("- **Status**: No overlaps detected (analysis performed)")
-
-        if ascii_issues:
-
-            lines.append(f"- **ASCII Cleanup**: {ascii_issues} files contain non-ASCII characters")
-
-        if not doc_sync_summary_for_signals:
-
-            lines.append("- Run `python development_tools/run_development_tools.py doc-sync` for drift details")
-
-        dependency_summary = self.module_dependency_summary or self.results_cache.get('analyze_module_dependencies')
-
-        if dependency_summary:
-
-            missing_deps = dependency_summary.get('missing_dependencies')
-
-            if missing_deps:
-
-                lines.append(f"- **Dependency Docs**: {missing_deps} undocumented references detected")
-
-                missing_files = dependency_summary.get('missing_files') or dependency_summary.get('missing_sections') or []
-
-                if missing_files:
-
-                    lines.append(f"  Top files: {self._format_list_for_display(missing_files, limit=3)}")
-
+            if overlap_analysis_ran:
+                lines.append("- **Status**: No overlaps detected (analysis performed)")
+                lines.append("  - Overlap analysis ran but found no section overlaps or consolidation opportunities")
             else:
-
-                lines.append("- **Dependency Docs**: CLEAN (no undocumented dependencies)")
+                lines.append("- **Status**: Overlap analysis not run (use `audit --full` or `--overlap` flag)")
+                lines.append("  - Fast audits skip overlap analysis; run `audit --full` to include it")
 
         doc_artifacts = analyze_docs.get('artifacts') if isinstance(analyze_docs, dict) else None
 
@@ -4383,29 +4761,37 @@ class AIToolsService:
 
                 module_descriptions = []
 
-                for module in worst_error_modules[:3]:
-
+                # Filter out 100% modules (missing 0) - they don't need attention
+                # Convert coverage to float for comparison (handles both string and numeric values)
+                modules_needing_attention = []
+                for m in worst_error_modules[:5]:
+                    missing = m.get('missing', 0)
+                    coverage_val = m.get('coverage', 100)
+                    if isinstance(coverage_val, str):
+                        coverage_val = to_float(coverage_val) or 100
+                    elif not isinstance(coverage_val, (int, float)):
+                        coverage_val = 100
+                    if missing > 0 and coverage_val < 100:
+                        modules_needing_attention.append(m)
+                
+                for module in modules_needing_attention[:3]:
                     module_name = module.get('module', 'Unknown')
-
                     coverage_value = module.get('coverage')
-
                     coverage_text = percent_text(coverage_value, 1)
-
                     missing = module.get('missing')
-
                     total = module.get('total')
 
                     detail = f"{module_name} ({coverage_text}"
 
                     if missing is not None and total is not None:
-
                         detail += f", missing {missing}/{total}"
 
                     detail += ")"
 
                     module_descriptions.append(detail)
-
-                lines.append(f"- **Modules to Prioritize**: {', '.join(module_descriptions)}")
+                
+                if module_descriptions:
+                    lines.append(f"- **Modules to Prioritize**: {', '.join(module_descriptions)}")
 
         else:
             # Try to load cached error handling data
@@ -4425,7 +4811,13 @@ class AIToolsService:
                                 json_file = self.project_root / 'development_tools' / 'error_handling' / 'error_handling_details.json'
                                 if json_file.exists():
                                     with open(json_file, 'r', encoding='utf-8') as f:
-                                        error_metrics = json.load(f)
+                                        file_data = json.load(f)
+                                    # Handle new structure with metadata wrapper
+                                    if 'error_handling_results' in file_data:
+                                        error_metrics = file_data['error_handling_results']
+                                    else:
+                                        # Fallback to old structure (direct results)
+                                        error_metrics = file_data
                                 else:
                                     error_metrics = None
                             except (OSError, json.JSONDecodeError):
@@ -4473,154 +4865,6 @@ class AIToolsService:
 
         lines.append("")
 
-        lines.append("## Complexity Hotspots")
-
-        critical_examples = function_metrics.get('critical_complexity_examples') or []
-
-        high_examples = function_metrics.get('high_complexity_examples') or []
-
-        undocumented_examples = function_metrics.get('undocumented_examples') or []
-
-        if critical_examples:
-
-            formatted = [
-
-                f"{item['function']} ({item['file']}, complexity {item['complexity']})"
-
-                for item in critical_examples[:3]
-
-            ]
-
-            lines.append(f"- **Critical** (>199 nodes): {', '.join(formatted)}")
-
-        if high_examples:
-
-            formatted = [
-
-                f"{item['function']} ({item['file']}, complexity {item['complexity']})"
-
-                for item in high_examples[:3]
-
-            ]
-
-            lines.append(f"- **High** (100-199 nodes): {', '.join(formatted)}")
-
-        if undocumented_examples:
-
-            formatted = [
-
-                f"{item['function']} ({item['file']})"
-
-                for item in undocumented_examples[:3]
-
-            ]
-
-            lines.append(f"- **Undocumented Functions**: {', '.join(formatted)}")
-
-        # Always display canonical metrics (even if we showed examples above)
-        # This ensures consistency with Snapshot section
-        if moderate != 'Unknown' and moderate is not None:
-            lines.append(f"- **Complexity Distribution**: Moderate: {moderate}, High: {high}, Critical: {critical}")
-            if total_functions != 'Unknown' and total_functions is not None:
-                lines.append(f"- **Total Functions**: {total_functions}")
-        elif not (critical_examples or high_examples or undocumented_examples):
-            # Try to load cached complexity data
-            moderate = 'Unknown'
-            high = 'Unknown'
-            critical = 'Unknown'
-            total_functions = 'Unknown'
-            try:
-                import json
-                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
-                if results_file.exists():
-                    with open(results_file, 'r', encoding='utf-8') as f:
-                        cached_data = json.load(f)
-                    # Try analyze_functions first
-                    if 'results' in cached_data and 'analyze_functions' in cached_data['results']:
-                        func_data = cached_data['results']['analyze_functions']
-                        if 'data' in func_data:
-                            func_metrics = func_data['data']
-                            moderate = func_metrics.get('moderate_complexity', 'Unknown')
-                            high = func_metrics.get('high_complexity', 'Unknown')
-                            critical = func_metrics.get('critical_complexity', 'Unknown')
-                            total_functions = func_metrics.get('total_functions', 'Unknown')
-                    # Fallback to decision_support metrics
-                    if moderate == 'Unknown' and 'results' in cached_data:
-                        # Check if decision_support was run and metrics were extracted
-                        if 'decision_support' in cached_data['results']:
-                            ds_data = cached_data['results']['decision_support']
-                            # The metrics might be in the results_cache or in the data
-                            if 'data' in ds_data:
-                                ds_metrics = ds_data['data'].get('decision_support_metrics', {})
-                                if ds_metrics:
-                                    moderate = ds_metrics.get('moderate_complexity', 'Unknown')
-                                    high = ds_metrics.get('high_complexity', 'Unknown')
-                                    critical = ds_metrics.get('critical_complexity', 'Unknown')
-                                    total_functions = ds_metrics.get('total_functions', 'Unknown')
-                        # Also check if decision_support_metrics is directly in results
-                        if moderate == 'Unknown' and 'decision_support_metrics' in cached_data.get('results', {}):
-                            ds_metrics = cached_data['results']['decision_support_metrics']
-                            if isinstance(ds_metrics, dict):
-                                moderate = ds_metrics.get('moderate_complexity', 'Unknown')
-                                high = ds_metrics.get('high_complexity', 'Unknown')
-                                critical = ds_metrics.get('critical_complexity', 'Unknown')
-                                total_functions = ds_metrics.get('total_functions', 'Unknown')
-                    
-                    # Fallback to analyze_function_registry - parse high_complexity array
-                    if (high == 'Unknown' or critical == 'Unknown') and 'results' in cached_data:
-                        if 'analyze_function_registry' in cached_data['results']:
-                            afr_data = cached_data['results']['analyze_function_registry']
-                            if 'data' in afr_data and 'analysis' in afr_data['data']:
-                                analysis = afr_data['data']['analysis']
-                                high_complexity_array = analysis.get('high_complexity', [])
-                                if isinstance(high_complexity_array, list):
-                                    # Count by thresholds: MODERATE=50, HIGH=100, CRITICAL=200
-                                    critical_count = sum(1 for f in high_complexity_array 
-                                                        if isinstance(f, dict) and f.get('complexity', 0) >= 200)
-                                    high_count = sum(1 for f in high_complexity_array 
-                                                   if isinstance(f, dict) and 100 <= f.get('complexity', 0) < 200)
-                                    if critical == 'Unknown':
-                                        critical = critical_count
-                                    if high == 'Unknown':
-                                        high = high_count
-                                    # For moderate, we'd need all functions, but we can estimate if we have total
-                                    if moderate == 'Unknown' and total_functions != 'Unknown' and isinstance(total_functions, int):
-                                        # Estimate: total - high - critical (approximate, may include low complexity)
-                                        moderate = max(0, total_functions - high_count - critical_count)
-                                    # Also get total_functions from analyze_function_registry if missing
-                                    if total_functions == 'Unknown' and 'totals' in afr_data['data']:
-                                        totals = afr_data['data']['totals']
-                                        total_functions = totals.get('functions_found', 'Unknown')
-                    
-                    # Update metrics if we found them in cache
-                    if moderate != 'Unknown' and moderate is not None:
-                        # Update metrics dict for consistency
-                        metrics['moderate'] = moderate
-                        metrics['high'] = high
-                        metrics['critical'] = critical
-                        if total_functions != 'Unknown' and total_functions is not None:
-                            metrics['total_functions'] = total_functions
-                    
-                    # Always use canonical metrics for display (re-read from metrics dict)
-                    moderate = metrics.get('moderate', 'Unknown')
-                    high = metrics.get('high', 'Unknown')
-                    critical = metrics.get('critical', 'Unknown')
-                    total_functions = metrics.get('total_functions', 'Unknown')
-                    
-                    if moderate != 'Unknown' and moderate is not None:
-                        lines.append(f"- **Complexity Distribution**: Moderate: {moderate}, High: {high}, Critical: {critical}")
-                        if total_functions != 'Unknown' and total_functions is not None:
-                            lines.append(f"- **Total Functions**: {total_functions}")
-                    else:
-                        lines.append("- **Complexity Analysis**: Run `python development_tools/run_development_tools.py audit --fast` for detailed metrics")
-                else:
-                    lines.append("- **Complexity Analysis**: Run `python development_tools/run_development_tools.py audit --fast` for detailed metrics")
-            except Exception as e:
-                logger.debug(f"Failed to load complexity from cache: {e}")
-                lines.append("- **Complexity Analysis**: Run `python development_tools/run_development_tools.py audit --fast` for detailed metrics")
-
-        lines.append("")
-
         lines.append("## Test Coverage")
 
         dev_tools_insights = self._get_dev_tools_coverage_insights()
@@ -4640,8 +4884,7 @@ class AIToolsService:
             generated = overall.get('generated')
 
             if generated:
-
-                lines.append(f"- **Report Timestamp**: {generated}")
+                pass  # Generated timestamp available
 
             module_gaps = (coverage_summary.get('modules') or [])[:3]
 
@@ -4655,7 +4898,7 @@ class AIToolsService:
 
                 ]
 
-                lines.append(f"- **Lowest Modules**: {', '.join(descriptions)}")
+                lines.append(f"- **Lowest Coverage Domains**: {', '.join(descriptions)}")
 
             worst_files = (coverage_summary or {}).get('worst_files') or []
 
@@ -4688,7 +4931,7 @@ class AIToolsService:
                         f"{Path(item['path']).name} ({percent_text(item.get('coverage'), 1)}, missing {item.get('missed')} lines)"
                         for item in low_modules
                     ]
-                    lines.append(f"- **Lowest Dev Tool Modules**: {', '.join(dev_descriptions)}")
+                    lines.append(f"- **Lowest Dev Tool Coverage**: {', '.join(dev_descriptions)}")
 
         else:
 
@@ -4752,25 +4995,12 @@ class AIToolsService:
 
         lines.append("## Validation Status")
 
+        validation_output = ''
         if hasattr(self, 'validation_results') and self.validation_results:
-
             validation_output = self.validation_results.get('output', '')
-
-            if 'POOR' in validation_output:
-
-                lines.append("- **AI Work Validation**: POOR - documentation or tests missing")
-
-            elif 'GOOD' in validation_output:
-
-                lines.append("- **AI Work Validation**: GOOD - keep current standards")
-
-            else:
-
-                lines.append("- **AI Work Validation**: NEEDS REVIEW - inspect consolidated report")
-
-        else:
-            # Try to load cached audit results if not available in memory
-            validation_loaded = False
+        
+        if not validation_output:
+            # Try to load from cache
             try:
                 import json
                 results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
@@ -4778,31 +5008,25 @@ class AIToolsService:
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
                     if 'results' in cached_data and 'analyze_ai_work' in cached_data['results']:
-                        validation_data = cached_data['results']['analyze_ai_work']
-                        # Handle nested data structure: results.analyze_ai_work.data.output
-                        if 'data' in validation_data:
-                            data = validation_data['data']
-                            # Check if data is a dict with 'output' key, or if it's the result dict itself
-                            if isinstance(data, dict):
-                                validation_output = data.get('output', '') or ''
-                                # If output is empty, check if there's a nested structure
-                                if not validation_output and 'data' in data:
-                                    validation_output = data['data'].get('output', '') or ''
-                        else:
-                            validation_output = validation_data.get('output', '') or ''
-                        if validation_output:
-                            if 'POOR' in validation_output:
-                                lines.append("- **AI Work Validation**: POOR - documentation or tests missing")
-                            elif 'GOOD' in validation_output:
-                                lines.append("- **AI Work Validation**: GOOD - keep current standards")
-                            else:
-                                lines.append("- **AI Work Validation**: NEEDS REVIEW - inspect consolidated report")
-                            validation_loaded = True
+                        validation_result = cached_data['results']['analyze_ai_work']
+                        if 'data' in validation_result:
+                            data = validation_result['data']
+                            validation_output = data.get('output', '') or ''
             except Exception as e:
                 logger.debug(f"Failed to load validation from cache: {e}")
-            
-            if not validation_loaded:
-                lines.append("- Validation results unavailable (run `audit --fast` for latest validation)")
+        
+        if validation_output:
+            # Parse text output for status
+            if 'POOR' in validation_output:
+                lines.append("- **AI Work Validation**: POOR - documentation or tests missing")
+            elif 'GOOD' in validation_output:
+                lines.append("- **AI Work Validation**: GOOD - keep current standards")
+            elif 'NEEDS ATTENTION' in validation_output or 'FAIR' in validation_output:
+                lines.append("- **AI Work Validation**: NEEDS ATTENTION - see consolidated report for details")
+            else:
+                lines.append("- **AI Work Validation**: Status available (see consolidated report)")
+        else:
+            lines.append("- Validation results unavailable (run `audit --fast` for latest validation)")
 
         lines.append("")
 
@@ -4921,10 +5145,10 @@ class AIToolsService:
         lines.append("# AI Priorities - Immediate Next Steps")
         lines.append("")
         lines.append("> **File**: `development_tools/AI_PRIORITIES.md`")
-        lines.append("> **Generated**: This file is auto-generated by run_development_tools.py. Do not edit manually.")
-        lines.append("> **Generated by**: run_development_tools.py - AI Development Tools Runner")
+        lines.append("> **Generated**: This file is auto-generated. Do not edit manually.")
         lines.append(f"> **Last Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         lines.append("> **Source**: `python development_tools/run_development_tools.py audit`")
+        lines.append("> **Generated by**: run_development_tools.py - AI Development Tools Runner")
         lines.append("")
 
         def percent_text(value: Any, decimals: int = 1) -> str:
@@ -4942,8 +5166,10 @@ class AIToolsService:
                 return int(value)
             if isinstance(value, str):
                 stripped = value.strip().rstrip('%')
-                if stripped.isdigit():
-                    return int(stripped)
+                try:
+                    return int(float(stripped))
+                except ValueError:
+                    return None
             if isinstance(value, dict):
                 count = value.get('count')
                 return to_int(count)
@@ -4999,20 +5225,17 @@ class AIToolsService:
         error_with_handling = error_metrics.get('functions_with_error_handling')
         canonical_total = metrics.get('total_functions')
         
+        # Use the actual count from error analysis, not a recalculation
+        # The error analysis tool knows which functions actually need error handling
+        # Recalculating based on different totals can give incorrect results
+        missing_error_handlers = to_int(error_metrics.get('functions_missing_error_handling'))
+        
+        # Only recalculate coverage if totals differ, but keep the actual missing count
         if error_coverage is not None and canonical_total and error_total and error_with_handling:
-            # If error_handling used a different total, recalculate for consistency
             if error_total != canonical_total:
                 recalc_coverage = (error_with_handling / canonical_total) * 100
                 if 0 <= recalc_coverage <= 100:
                     error_coverage = recalc_coverage
-                    # Also update missing count
-                    missing_error_handlers = canonical_total - error_with_handling
-                else:
-                    missing_error_handlers = to_int(error_metrics.get('functions_missing_error_handling'))
-            else:
-                missing_error_handlers = to_int(error_metrics.get('functions_missing_error_handling'))
-        else:
-            missing_error_handlers = to_int(error_metrics.get('functions_missing_error_handling'))
         
         worst_error_modules = error_metrics.get('worst_modules') or []
 
@@ -5035,7 +5258,9 @@ class AIToolsService:
             module_entries = (coverage_summary or {}).get('modules') or []
             for module in module_entries:
                 coverage_value = to_float(module.get('coverage'))
-                if coverage_value is not None and coverage_value < 80:
+                # Convert coverage to float for comparison (handles both string and numeric values)
+                coverage_float = to_float(coverage_value) if coverage_value is not None else None
+                if coverage_float is not None and coverage_float < 80:
                     low_coverage_modules.append(module)
             low_coverage_modules = low_coverage_modules[:3]
             worst_coverage_files = (coverage_summary or {}).get('worst_files') or []
@@ -5213,13 +5438,13 @@ class AIToolsService:
                 for module in low_coverage_modules
             ]
             coverage_bullets = [
-                f"Target modules: {self._format_list_for_display(coverage_highlights, limit=3)}",
-                "Add scenario tests before the next full audit to lift module coverage above 80%."
+                f"Target domains: {self._format_list_for_display(coverage_highlights, limit=3)}",
+                "Add scenario tests before the next full audit to lift domain coverage above 80%."
             ]
             add_priority(
                 order=coverage_order,
-                title="Raise coverage for low-performing modules",
-                reason=f"{len(low_coverage_modules)} key modules remain below the 80% target.",
+                title="Raise coverage for low-performing domains",
+                reason=f"{len(low_coverage_modules)} key domains remain below the 80% target.",
                 bullets=coverage_bullets
             )
 
@@ -5327,6 +5552,23 @@ class AIToolsService:
                 bullets=complexity_bullets
             )
 
+        # Add TODO sync as priority if there are completed entries
+        todo_sync_result = getattr(self, 'todo_sync_result', None)
+        if todo_sync_result and isinstance(todo_sync_result, dict):
+            completed_entries = todo_sync_result.get('completed_entries', 0)
+            if completed_entries > 0:
+                todo_order = max([item['order'] for item in priority_items] + [0]) + 1
+                add_priority(
+                    order=todo_order,
+                    title="Review completed TODO entries",
+                    reason=f"{completed_entries} completed entry/entries in TODO.md need review for changelog.",
+                    bullets=[
+                        "Review completed entries in TODO.md",
+                        "If already documented in changelogs, remove from TODO.md",
+                        "If not documented, move to CHANGELOG_DETAIL.md and AI_CHANGELOG.md first, then remove from TODO.md"
+                    ]
+                )
+        
         lines.append("## Immediate Focus (Ranked)")
         if priority_items:
             for idx, item in enumerate(sorted(priority_items, key=lambda entry: entry['order']), start=1):
@@ -5379,11 +5621,16 @@ class AIToolsService:
         lines.append("")
 
         watch_list: List[str] = []
-        if doc_coverage_value is not None:
+        # Only add doc coverage to watch list if below threshold (90%)
+        # Convert coverage to float for comparison (handles both string and numeric values)
+        doc_coverage_float = to_float(doc_coverage_value) if doc_coverage_value is not None else None
+        if doc_coverage_float is not None and doc_coverage_float < 90:
             watch_list.append(f"Documentation coverage sits at {percent_text(doc_coverage_value, 2)} (target 90%).")
         if coverage_overall:
+            coverage_pct = coverage_overall.get('coverage', 0)
+            target = 80  # Standard target for test coverage
             watch_list.append(
-                f"Overall test coverage is {percent_text(coverage_overall.get('coverage'), 1)} "
+                f"Overall test coverage is {percent_text(coverage_pct, 1)} (target {target}%) "
                 f"({coverage_overall.get('covered')} / {coverage_overall.get('statements')} statements)."
             )
         if dev_tools_insights and dev_tools_insights.get('overall_pct') is not None:
@@ -5425,6 +5672,43 @@ class AIToolsService:
             watch_list.append(f"Monitor high complexity functions: {self._format_list_for_display(high_focus, limit=2)}.")
         if legacy_markers and (not legacy_files or legacy_files == 0):
             watch_list.append(f"{legacy_markers} legacy markers remain; schedule periodic cleanup post-sprint.")
+        
+        # Add config validation to watch list
+        config_validation_summary = self._load_config_validation_summary()
+        if config_validation_summary:
+            total_recommendations = config_validation_summary.get('total_recommendations', 0)
+            if total_recommendations > 0:
+                watch_list.append(f"Config validation: {total_recommendations} recommendation(s) pending review.")
+        
+        # Add TODO sync to watch list
+        todo_sync_result = getattr(self, 'todo_sync_result', None)
+        if todo_sync_result and isinstance(todo_sync_result, dict):
+            completed_entries = todo_sync_result.get('completed_entries', 0)
+            if completed_entries > 0:
+                watch_list.append(f"TODO sync: {completed_entries} completed entry/entries in TODO.md need review for changelog.")
+        
+        # Add AI work validation to watch list (lightweight structural validation only)
+        validation_output = ''
+        if hasattr(self, 'validation_results') and self.validation_results:
+            validation_output = self.validation_results.get('output', '')
+        
+        if not validation_output:
+            try:
+                import json
+                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+                if results_file.exists():
+                    with open(results_file, 'r', encoding='utf-8') as f:
+                        cached_data = json.load(f)
+                    if 'results' in cached_data and 'analyze_ai_work' in cached_data['results']:
+                        validation_result = cached_data['results']['analyze_ai_work']
+                        if 'data' in validation_result:
+                            data = validation_result['data']
+                            validation_output = data.get('output', '') or ''
+            except Exception:
+                pass
+        
+        if validation_output and ('POOR' in validation_output or 'NEEDS ATTENTION' in validation_output or 'FAIR' in validation_output):
+            watch_list.append("AI Work Validation: Structural validation issues detected (see consolidated report)")
 
         lines.append("## Watch List")
         if watch_list:
@@ -5448,17 +5732,11 @@ class AIToolsService:
         lines: List[str] = []
 
         lines.append("# Comprehensive AI Development Tools Report")
-
         lines.append("")
-
-        lines.append("> **Generated**: This file is auto-generated by run_development_tools.py. Do not edit manually.")
-
-        lines.append("> **Generated by**: run_development_tools.py - AI Development Tools Runner")
-
+        lines.append("> **Generated**: This file is auto-generated. Do not edit manually.")
         lines.append(f"> **Last Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
         lines.append("> **Source**: `python development_tools/run_development_tools.py audit`")
-
+        lines.append("> **Generated by**: run_development_tools.py - AI Development Tools Runner")
         lines.append("")
 
         def percent_text(value: Any, decimals: int = 1) -> str:
@@ -5472,6 +5750,33 @@ class AIToolsService:
                 return value if value.strip().endswith('%') else f"{value}%"
 
             return self._format_percentage(value, decimals)
+
+        def to_int(value: Any) -> Optional[int]:
+            if isinstance(value, int):
+                return value
+            if isinstance(value, float):
+                return int(value)
+            if isinstance(value, str):
+                stripped = value.strip().rstrip('%')
+                try:
+                    return int(float(stripped))
+                except ValueError:
+                    return None
+            if isinstance(value, dict):
+                count = value.get('count')
+                return to_int(count)
+            return None
+
+        def to_float(value: Any) -> Optional[float]:
+            if isinstance(value, (int, float)):
+                return float(value)
+            if isinstance(value, str):
+                stripped = value.strip().rstrip('%')
+                try:
+                    return float(stripped)
+                except ValueError:
+                    return None
+            return None
 
         metrics = self._get_canonical_metrics()
 
@@ -5497,9 +5802,21 @@ class AIToolsService:
         doc_artifacts = analyze_docs_data.get('artifacts') if isinstance(analyze_docs_data, dict) else None
         
         # Extract overlap analysis data
-        section_overlaps = analyze_docs_data.get('section_overlaps', {})
-        consolidation_recs = analyze_docs_data.get('consolidation_recommendations', [])
+        # Check if overlap analysis was run (indicated by presence of these keys, even if empty)
+        overlap_analysis_ran = (
+            'section_overlaps' in analyze_docs_data or 
+            'consolidation_recommendations' in analyze_docs_data
+        )
+        
+        section_overlaps = analyze_docs_data.get('section_overlaps', {}) if overlap_analysis_ran else {}
+        consolidation_recs = analyze_docs_data.get('consolidation_recommendations', []) if overlap_analysis_ran else []
         file_purposes = analyze_docs_data.get('file_purposes', {})
+        
+        # Normalize to empty dict/list if None
+        if section_overlaps is None:
+            section_overlaps = {}
+        if consolidation_recs is None:
+            consolidation_recs = []
 
         error_metrics = self.results_cache.get('analyze_error_handling', {}) or {}
 
@@ -5578,29 +5895,20 @@ class AIToolsService:
         error_cov = error_metrics.get('analyze_error_handling') or error_metrics.get('error_handling_coverage')
         
         # Recalculate error handling coverage using canonical function count for consistency
-        # analyze_error_handling might use a different total (including tests/dev tools)
-        # but we want to show coverage against the same function set as other metrics
+        # Use the actual count from error analysis, not a recalculation
+        missing_error_handlers = to_int(error_metrics.get('functions_missing_error_handling', 0))
+        
+        # Only recalculate coverage if totals differ, but keep the actual missing count
         error_total = error_metrics.get('total_functions')
         error_with_handling = error_metrics.get('functions_with_error_handling')
         canonical_total = metrics.get('total_functions')
         
         if error_cov is not None and canonical_total and error_total and error_with_handling:
-            # If error_handling used a different total, recalculate for consistency
             if error_total != canonical_total:
                 # Recalculate coverage using canonical total
                 recalc_coverage = (error_with_handling / canonical_total) * 100
                 if 0 <= recalc_coverage <= 100:
                     error_cov = recalc_coverage
-                    # Also update missing count
-                    missing_error_handlers = canonical_total - error_with_handling
-                else:
-                    # If recalculation gives > 100%, it means error_with_handling includes functions from tests/dev tools
-                    # that aren't in canonical_total. In this case, we can't accurately recalculate.
-                    # Use the original value but note it might be based on a different function set.
-                    pass
-            elif error_total == canonical_total:
-                # Same total, use the original coverage value
-                missing_error_handlers = error_metrics.get('functions_missing_error_handling', 0)
 
         if error_cov is not None:
 
@@ -5756,8 +6064,12 @@ class AIToolsService:
                     if files:
                         lines.append(f"  - {category}: {len(files)} files ({', '.join(files[:2])}{'...' if len(files) > 2 else ''}) - {suggestion}")
         else:
-            lines.append("- **Status**: No section overlaps or consolidation opportunities detected")
-            lines.append("- Overlap analysis was performed during this audit")
+            if overlap_analysis_ran:
+                lines.append("- **Status**: No section overlaps or consolidation opportunities detected")
+                lines.append("- Overlap analysis was performed during this audit")
+            else:
+                lines.append("- **Status**: Overlap analysis not run (use `audit --full` or `--overlap` flag)")
+                lines.append("  - Fast audits skip overlap analysis; run `audit --full` to include it")
 
         if doc_sync_summary:
 
@@ -5792,6 +6104,56 @@ class AIToolsService:
         else:
 
             lines.append("- Run doc-sync to capture current documentation drift data")
+        
+        # Add config validation status
+        config_validation_summary = self._load_config_validation_summary()
+        if config_validation_summary:
+            lines.append("")
+            lines.append("## Configuration Validation")
+            config_valid = config_validation_summary.get('config_valid', False)
+            config_complete = config_validation_summary.get('config_complete', False)
+            total_recommendations = config_validation_summary.get('total_recommendations', 0)
+            tools_using_config = config_validation_summary.get('tools_using_config', 0)
+            total_tools = config_validation_summary.get('total_tools', 0)
+            recommendations = config_validation_summary.get('recommendations', [])
+            tools_analysis = config_validation_summary.get('tools_analysis', {})
+            
+            lines.append(f"- **Config Valid**: {'Yes' if config_valid else 'No'}")
+            lines.append(f"- **Config Complete**: {'Yes' if config_complete else 'No'}")
+            if total_tools > 0:
+                lines.append(f"- **Tools Using Config**: {tools_using_config}/{total_tools}")
+            if total_recommendations > 0:
+                lines.append(f"- **Total Recommendations**: {total_recommendations}")
+                # Show first few recommendations
+                if recommendations:
+                    lines.append("")
+                    lines.append("**Top Recommendations:**")
+                    for i, rec in enumerate(recommendations[:5], 1):
+                        rec_text = rec if isinstance(rec, str) else rec.get('message', str(rec))
+                        lines.append(f"  {i}. {rec_text}")
+                    if len(recommendations) > 5:
+                        lines.append(f"  ... and {len(recommendations) - 5} more recommendations")
+                # List tools with issues
+                tools_with_issues = [
+                    tool for tool, data in tools_analysis.items() 
+                    if data.get('issues') and len(data.get('issues', [])) > 0
+                ]
+                if tools_with_issues:
+                    lines.append(f"- **Tools Needing Updates**: {', '.join(tools_with_issues[:3])}{'...' if len(tools_with_issues) > 3 else ''}")
+            else:
+                lines.append("- **Dependency Docs**: 0 undocumented references")
+        
+        # Add TODO sync status
+        todo_sync_result = getattr(self, 'todo_sync_result', None)
+        if todo_sync_result and isinstance(todo_sync_result, dict):
+            lines.append("")
+            lines.append("## TODO Sync Status")
+            completed_entries = todo_sync_result.get('completed_entries', 0)
+            if completed_entries > 0:
+                lines.append(f"- **Status**: {completed_entries} completed entry/entries in TODO.md need review")
+                lines.append("- **Action**: Review completed entries - if already documented in changelogs, remove from TODO.md; otherwise move to CHANGELOG_DETAIL.md and AI_CHANGELOG.md first")
+            else:
+                lines.append("- **Status**: CLEAN (no completed entries found)")
 
         dependency_summary = self.module_dependency_summary or self.results_cache.get('analyze_module_dependencies')
 
@@ -5829,6 +6191,10 @@ class AIToolsService:
             if 'error_cov' not in locals() or error_cov is None:
                 error_cov = error_metrics.get('analyze_error_handling') or error_metrics.get('error_handling_coverage')
                 # Recalculate if needed
+                # Use the actual count from error analysis, not a recalculation
+                missing_error_handlers = to_int(error_metrics.get('functions_missing_error_handling', 0))
+                
+                # Only recalculate coverage if totals differ, but keep the actual missing count
                 error_total = error_metrics.get('total_functions')
                 error_with_handling = error_metrics.get('functions_with_error_handling')
                 canonical_total = metrics.get('total_functions')
@@ -5837,13 +6203,6 @@ class AIToolsService:
                         recalc_coverage = (error_with_handling / canonical_total) * 100
                         if 0 <= recalc_coverage <= 100:
                             error_cov = recalc_coverage
-                            missing_error_handlers = canonical_total - error_with_handling
-                        else:
-                            missing_error_handlers = error_metrics.get('functions_missing_error_handling', 0)
-                    else:
-                        missing_error_handlers = error_metrics.get('functions_missing_error_handling', 0)
-                else:
-                    missing_error_handlers = error_metrics.get('functions_missing_error_handling', 0)
 
             lines.append(f"- **Coverage**: {percent_text(error_cov, 1)}")
 
@@ -5915,27 +6274,29 @@ class AIToolsService:
 
                 module_summaries = []
 
-                for module in worst_error_modules[:5]:
-
+                # Filter out 100% modules (missing 0) - they don't need attention
+                modules_needing_attention = [
+                    m for m in worst_error_modules[:5] 
+                    if m.get('missing', 0) > 0 and m.get('coverage', 100) < 100
+                ]
+                
+                for module in modules_needing_attention:
                     module_name = module.get('module', 'Unknown')
-
                     coverage_pct = percent_text(module.get('coverage'), 1)
-
                     missing = module.get('missing')
-
                     total = module.get('total')
 
                     detail = f"{module_name} ({coverage_pct}"
 
                     if missing is not None and total is not None:
-
                         detail += f", missing {missing}/{total}"
 
                     detail += ")"
 
                     module_summaries.append(detail)
-
-                lines.append(f"- **Modules Requiring Attention**: {', '.join(module_summaries)}")
+                
+                if module_summaries:
+                    lines.append(f"- **Modules Requiring Attention**: {', '.join(module_summaries)}")
 
         else:
 
@@ -5951,7 +6312,16 @@ class AIToolsService:
 
             lines.append(f"- **Overall Coverage**: {percent_text(overall.get('coverage'), 1)} ({overall.get('covered')} of {overall.get('statements')} statements)")
 
-            module_gaps = [m for m in (coverage_summary.get('modules') or []) if m.get('coverage', 100) < 90]
+            # Convert coverage to float for comparison (handles both string and numeric values)
+            module_gaps = []
+            for m in (coverage_summary.get('modules') or []):
+                coverage_val = m.get('coverage', 100)
+                if isinstance(coverage_val, str):
+                    coverage_val = to_float(coverage_val) or 100
+                elif not isinstance(coverage_val, (int, float)):
+                    coverage_val = 100
+                if coverage_val < 90:
+                    module_gaps.append(m)
 
             if module_gaps:
 
@@ -5991,16 +6361,14 @@ class AIToolsService:
                         f"{Path(item['path']).name} ({percent_text(item.get('coverage'), 1)}, missing {item.get('missed')} lines)"
                         for item in low_modules
                     ]
-                    lines.append(f"- **Lowest Dev Tool Modules**: {', '.join(dev_descriptions)}")
+                    lines.append(f"- **Lowest Dev Tool Coverage**: {', '.join(dev_descriptions)}")
                 if dev_tools_insights.get('html'):
                     lines.append(f"- **Dev Tools Report**: {dev_tools_insights['html']}")
 
             generated = overall.get('generated')
 
             if generated:
-
-                lines.append(f"- **Report Timestamp**: {generated}")
-            
+                pass  # Generated timestamp available
 
         elif hasattr(self, 'coverage_results') and self.coverage_results:
 
@@ -6156,20 +6524,17 @@ class AIToolsService:
 
         lines.append("## Validation & Follow-ups")
 
-        if 'POOR' in validation_output:
-
-            lines.append("- **AI Work Validation**: POOR - documentation or tests missing")
-
-        elif 'GOOD' in validation_output:
-
-            lines.append("- **AI Work Validation**: GOOD - keep current standards")
-
-        elif validation_output:
-
-            lines.append("- **AI Work Validation**: NEEDS REVIEW - inspect consolidated report")
-
+        if validation_output:
+            # Parse text output for status
+            if 'POOR' in validation_output:
+                lines.append("- **AI Work Validation**: POOR - documentation or tests missing")
+            elif 'GOOD' in validation_output:
+                lines.append("- **AI Work Validation**: GOOD - keep current standards")
+            elif 'NEEDS ATTENTION' in validation_output or 'FAIR' in validation_output:
+                lines.append("- **AI Work Validation**: NEEDS ATTENTION - structural validation issues detected")
+            else:
+                lines.append("- **AI Work Validation**: Status available (see validation output)")
         else:
-
             lines.append("- Validation results unavailable for this run")
 
         lines.append("- **Suggested Commands**:")
@@ -6889,6 +7254,56 @@ def _unused_imports_command(service: "AIToolsService", argv: Sequence[str]) -> i
 
     return 0 if success else 1
 
+def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Handle cleanup command."""
+    import argparse
+    
+    parser = argparse.ArgumentParser(prog='cleanup', add_help=False)
+    parser.add_argument('--cache', action='store_true', help='Clean cache directories (__pycache__, .pytest_cache)')
+    parser.add_argument('--test-data', action='store_true', help='Clean test data directories')
+    parser.add_argument('--coverage', action='store_true', help='Clean coverage files and logs')
+    parser.add_argument('--all', action='store_true', help='Clean all categories (default if no specific category specified)')
+    parser.add_argument('--dry-run', action='store_true', help='Show what would be removed without actually removing')
+    
+    if '-h' in argv or '--help' in argv:
+        print("Usage: cleanup [--cache] [--test-data] [--coverage] [--all] [--dry-run]")
+        print("  --cache      Clean cache directories (__pycache__, .pytest_cache)")
+        print("  --test-data  Clean test data directories")
+        print("  --coverage   Clean coverage files and logs")
+        print("  --all        Clean all categories (default if no specific category specified)")
+        print("  --dry-run    Show what would be removed without making changes")
+        return 0
+    
+    try:
+        args, unknown = parser.parse_known_args(argv)
+        if unknown:
+            print(f"Unknown arguments: {unknown}")
+            print("Usage: cleanup [--cache] [--test-data] [--coverage] [--all] [--dry-run]")
+            return 2
+    except SystemExit:
+        return 2
+    
+    result = service.run_cleanup(
+        cache=args.cache,
+        test_data=args.test_data,
+        coverage=args.coverage,
+        all_cleanup=args.all,
+        dry_run=args.dry_run
+    )
+    
+    if result.get('success'):
+        data = result.get('data', {})
+        total_removed = data.get('total_removed', 0)
+        total_failed = data.get('total_failed', 0)
+        if args.dry_run:
+            logger.info(f"DRY RUN: Would remove {total_removed} items")
+        else:
+            logger.info(f"Cleanup completed: {total_removed} items removed, {total_failed} failed")
+        return 0 if total_failed == 0 else 1
+    else:
+        logger.error(f"Cleanup failed: {result.get('error', 'Unknown error')}")
+        return 1
+
 def _trees_command(service: "AIToolsService", argv: Sequence[str]) -> int:
 
     if argv:
@@ -6944,6 +7359,8 @@ COMMAND_REGISTRY = OrderedDict([
     ('legacy', CommandRegistration('legacy', _legacy_command, 'Scan for legacy references.')),
 
     ('unused-imports', CommandRegistration('unused-imports', _unused_imports_command, 'Detect unused imports in codebase.')),
+
+    ('cleanup', CommandRegistration('cleanup', _cleanup_command, 'Clean up project cache and temporary files.')),
 
     ('trees', CommandRegistration('trees', _trees_command, 'Generate directory tree reports.')),
 

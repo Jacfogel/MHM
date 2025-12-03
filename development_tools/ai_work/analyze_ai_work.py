@@ -2,8 +2,15 @@
 # TOOL_TIER: supporting
 
 """
-Validation script for AI-generated work.
-Helps verify completeness and accuracy before presenting to user.
+Lightweight structural validator for AI-generated work.
+Helps verify basic completeness and consistency before presenting to user.
+
+Note: This tool performs lightweight structural validation only. For comprehensive
+analysis, use the domain-specific tools:
+- Documentation: docs/analyze_documentation_sync.py
+- Error handling: error_handling/analyze_error_handling.py
+- Test coverage: tests/analyze_test_coverage.py
+- Changelog sync: docs/fix_version_sync.py
 """
 
 import ast
@@ -12,16 +19,9 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 
-# Optional yaml import
-try:
-    import yaml
-    HAS_YAML = True
-except ImportError:
-    HAS_YAML = False
+# YAML support removed - not needed for lightweight structural validation
 
 # Add project root to path for core module imports
-# Script is at: development_tools/ai_work/analyze_ai_work.py
-# So we need to go up 2 levels to get to project root
 project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
@@ -32,7 +32,6 @@ try:
 except ImportError:
     import sys
     from pathlib import Path
-    # Add project root to path
     project_root = Path(__file__).parent.parent.parent
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
@@ -44,6 +43,7 @@ logger = get_component_logger("development_tools")
 
 # Load config at module level
 VALIDATE_AI_WORK_CONFIG = config.get_analyze_ai_work_config()
+
 
 def validate_documentation_completeness(doc_file: str, code_files: List[str]) -> Dict:
     """Validate that documentation covers all relevant code."""
@@ -121,6 +121,7 @@ def validate_documentation_completeness(doc_file: str, code_files: List[str]) ->
     
     return results
 
+
 def validate_code_consistency(changed_files: List[str]) -> Dict:
     """Validate that code changes are consistent across files."""
     results = {
@@ -181,6 +182,7 @@ def validate_code_consistency(changed_files: List[str]) -> Dict:
     
     return results
 
+
 def validate_file_structure(created_files: List[str], modified_files: List[str]) -> Dict:
     """Validate that file structure changes are appropriate."""
     results = {
@@ -214,6 +216,7 @@ def validate_file_structure(created_files: List[str], modified_files: List[str])
                 results['naming_conventions'] = False
     
     return results
+
 
 def generate_validation_report(validation_type: str, **kwargs) -> str:
     """Generate a comprehensive validation report."""
@@ -296,12 +299,13 @@ def generate_validation_report(validation_type: str, **kwargs) -> str:
     
     return "\n".join(report)
 
+
 def analyze_ai_work(work_type: str, project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs) -> str:
     """
     Main validation function for AI work.
     
     Args:
-        work_type: Type of validation to perform
+        work_type: Type of validation to perform ("documentation", "code_changes", "file_creation")
         project_root: Optional project root path (for config loading)
         config_path: Optional path to config file (for config loading)
         **kwargs: Additional arguments for validation
@@ -330,11 +334,8 @@ def analyze_ai_work(work_type: str, project_root: Optional[str] = None, config_p
                     try:
                         with open(rule_path_obj, 'r', encoding='utf-8') as f:
                             if rule_path_obj.suffix in ('.yaml', '.yml'):
-                                if HAS_YAML:
-                                    loaded_rules = yaml.safe_load(f)
-                                else:
-                                    logger.warning(f"YAML support not available, skipping {rule_path}")
-                                    continue
+                                logger.warning(f"YAML rule files not supported, skipping {rule_path}")
+                                continue
                             else:
                                 import json
                                 loaded_rules = json.load(f)
@@ -352,17 +353,44 @@ def analyze_ai_work(work_type: str, project_root: Optional[str] = None, config_p
     else:
         return "Unknown validation type"
 
+
 def execute(project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs) -> str:
     """Execute validation (for use by run_development_tools)."""
     work_type = kwargs.get('work_type', 'documentation')
     return analyze_ai_work(work_type, project_root=project_root, config_path=config_path, **kwargs)
 
+
 if __name__ == "__main__":
-    # Example usage
-    result = analyze_ai_work("documentation", 
-                              doc_file="README.md", 
-                              code_files=[])  # Provide project-specific code files
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Lightweight structural validator for AI-generated work')
+    parser.add_argument('--work-type', default='documentation',
+                       choices=['documentation', 'code_changes', 'file_creation'],
+                       help='Type of validation to perform')
+    parser.add_argument('--doc-file', help='Documentation file to validate (for documentation type)')
+    parser.add_argument('--code-files', nargs='*', help='Code files to validate (for documentation type)')
+    parser.add_argument('--changed-files', nargs='*', help='Changed files to validate (for code_changes type)')
+    parser.add_argument('--created-files', nargs='*', help='Created files to validate (for file_creation type)')
+    parser.add_argument('--modified-files', nargs='*', help='Modified files to validate (for file_creation type)')
+    
+    args = parser.parse_args()
+    
+    kwargs = {}
+    if args.doc_file:
+        kwargs['doc_file'] = args.doc_file
+    if args.code_files:
+        kwargs['code_files'] = args.code_files
+    if args.changed_files:
+        kwargs['changed_files'] = args.changed_files
+    if args.created_files:
+        kwargs['created_files'] = args.created_files
+    if args.modified_files:
+        kwargs['modified_files'] = args.modified_files
+    
+    result = analyze_ai_work(args.work_type, **kwargs)
+    
     # Print to stdout so subprocess.run can capture it
     print(result)
-    # Also log for debugging
-    logger.info(result) 
+    # Also log for debugging (but not the full output)
+    if len(result) < 500:  # Only log short outputs
+        logger.info(result)

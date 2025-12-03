@@ -223,6 +223,20 @@ _TOOLS: Dict[str, ToolInfo] = {
         trust="stable",
         description="Generates coverage reports (JSON, HTML, summary) from analysis results.",
     ),
+    "analyze_test_markers": ToolInfo(
+        name="analyze_test_markers",
+        path="development_tools/tests/analyze_test_markers.py",
+        tier="supporting",
+        trust="stable",
+        description="Analyze and manage pytest test category markers (unit/integration/behavior/ui).",
+    ),
+    "cleanup_project": ToolInfo(
+        name="cleanup_project",
+        path="development_tools/shared/fix_project_cleanup.py",
+        tier="supporting",
+        trust="stable",
+        description="Clean up project cache files, temporary directories, and artifacts.",
+    ),
     "analyze_error_handling": ToolInfo(
         name="analyze_error_handling",
         path="development_tools/error_handling/analyze_error_handling.py",
@@ -393,6 +407,7 @@ COMMAND_GROUPS = OrderedDict(
                 "unused-imports",
                 "workflow",
                 "trees",
+                "cleanup",
                 "help",
             ],
         },

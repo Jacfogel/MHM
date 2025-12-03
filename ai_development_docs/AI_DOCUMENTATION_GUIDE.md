@@ -217,6 +217,43 @@ AI view of generated docs.
   - Updating the generator (for example, scripts in `development_tools/`), then  
   - Regenerating the file.
 
+### 5.1. Metadata Standards
+
+All generated files must include standardized metadata to identify their origin and generation details.
+
+**Markdown files (.md):**
+```markdown
+# Document Title
+
+> **File**: `path/to/file.md`
+> **Generated**: This file is auto-generated. Do not edit manually.
+> **Last Generated**: YYYY-MM-DD HH:MM:SS
+> **Source**: `python development_tools/path/to/generator.py` - Tool Description
+> **Audience**: [Target audience]
+> **Purpose**: [What this document is for]
+> **Status**: **ACTIVE** - [Brief status note]
+> **Version**: --scope - AI Collaboration System Active
+> **Last Updated**: 2025-12-03
+```
+
+**JSON files (.json):**
+```json
+{
+  "generated_by": "Tool Name - Tool Description",
+  "last_generated": "YYYY-MM-DD HH:MM:SS",
+  "source": "python development_tools/path/to/tool.py [command]",
+  "note": "This file is auto-generated. Do not edit manually.",
+  "timestamp": "YYYY-MM-DDTHH:MM:SS.ffffff",
+  ...
+}
+```
+
+**Generated files using this standard:**
+- Markdown: `development_docs/FUNCTION_REGISTRY_DETAIL.md`, `development_docs/MODULE_DEPENDENCIES_DETAIL.md`, `development_docs/LEGACY_REFERENCE_REPORT.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`, `development_docs/TEST_COVERAGE_EXPANSION_PLAN.md`, `development_docs/DIRECTORY_TREE.md`, `ai_development_docs/AI_FUNCTION_REGISTRY.md`, `ai_development_docs/AI_MODULE_DEPENDENCIES.md`, `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.txt`
+- JSON: `development_tools/reports/analysis_detailed_results.json`, `development_tools/error_handling/error_handling_details.json`, `development_tools/config/analyze_config_results.json`
+
+For detailed standards, see section 5.1 in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md).
+
 For generator usage and tooling details, see [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md).
 
 

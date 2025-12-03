@@ -2,6 +2,11 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
+> **Last Generated**: 2025-12-03 04:04:57
+> **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
+> **Audience**: Human developer and AI collaborators
+> **Purpose**: Visual representation of project directory structure
+> **Status**: **ACTIVE** - Auto-generated from filesystem tree command
 
 Folder PATH listing
 Volume serial number is 5EAC-07BC
@@ -48,6 +53,7 @@ C:.
 |   |       decompose-multi-responsibility-tools-2e05ed38.plan.md
 |   |       phase-7-naming-and-directory-reorganization-0001ba11.plan.md
 |   |       phase-7-renaming-complete-deployment-aeb0a7e9.plan.md
+|   |       phase-9-status-reports-and-metrics-standardization-99cf574c.plan.md
 |   |       
 |   \---rules
 |           ai-tools.mdc
@@ -167,6 +173,7 @@ C:.
 |   |   AI_DEV_TOOLS_IMPROVEMENT_PLAN.md
 |   |   AI_PRIORITIES.md
 |   |   AI_STATUS.md
+|   |   COMMAND_TEST_RESULTS.md
 |   |   consolidated_report.txt
 |   |   DEVELOPMENT_TOOLS_GUIDE.md
 |   |   run_development_tools.py
@@ -174,7 +181,15 @@ C:.
 |   |   __init__.py
 |   |   
 |   +---ai_work
-|   |   |   analyze_ai_work.py
+|   |       analyze_ai_work.py
+|   |       __init__.py
+|   |       
+|   +---config
+|   |   |   analyze_config.py
+|   |   |   analyze_config_results.json
+|   |   |   config.py
+|   |   |   development_tools_config.json
+|   |   |   development_tools_config.json.example
 |   |   |   __init__.py
 |   |   |   
 |   |   \---__pycache__
@@ -264,28 +279,26 @@ C:.
 |   |           script_test_lm_studio.py
 |   |           script_test_new_modules.py
 |   |           
-|   +---utilities
-|   |   |   add_checkin_schedules.py
-|   |   |   add_documentation_addresses.py
-|   |   |   check_checkin_schedules.py
-|   |   |   cleanup_duplicate_messages.py
-|   |   |   cleanup_test_users.py
-|   |   |   convert_paths_to_links.py
-|   |   |   fix_user_schedules.py
-|   |   |   rebuild_index.py
-|   |   |   regenerate_ui.ps1
-|   |   |   restore_custom_periods.py
-|   |   |   user_data_cli.py
-|   |   |   
-|   |   +---cleanup
-|   |   |       cleanup_backups.py
-|   |   |       cleanup_data_test_users.py
-|   |   |       cleanup_real_test_users.py
-|   |   |       cleanup_test_data.py
-|   |   |       cleanup_user_message_files.py
-|   |   |       
-|   |   \---__pycache__
-    (Python cache files)
+|   \---utilities
+|       |   add_checkin_schedules.py
+|       |   add_documentation_addresses.py
+|       |   check_checkin_schedules.py
+|       |   cleanup_duplicate_messages.py
+|       |   cleanup_test_users.py
+|       |   convert_paths_to_links.py
+|       |   fix_user_schedules.py
+|       |   rebuild_index.py
+|       |   regenerate_ui.ps1
+|       |   restore_custom_periods.py
+|       |   user_data_cli.py
+|       |   
+|       \---cleanup
+|               cleanup_backups.py
+|               cleanup_data_test_users.py
+|               cleanup_real_test_users.py
+|               cleanup_test_data.py
+|               cleanup_user_message_files.py
+|               
 +---styles
 |       admin_theme.qss
 |       

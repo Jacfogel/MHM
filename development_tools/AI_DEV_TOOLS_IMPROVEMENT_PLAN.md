@@ -967,6 +967,133 @@ Portable today: `development_tools/services/common.py`, `development_tools/syste
 
 ---
 
+### Phase 9 - Status Reports and Metrics Standardization **IN PROGRESS (2025-12-03)**
+
+**Goal:** Fix foundational issues with status reports and standardize metrics across all tools to ensure consistent, accurate, and reliable audit outputs.
+
+**Status:** M9.1.1 and M9.1.2 completed. Remaining milestones pending.
+
+#### Milestone M9.1.1 - Fix AI_STATUS.md Formatting and Content **COMPLETED (2025-12-03)**
+
+- [OK] Add test coverage metrics to snapshot section
+- [OK] Move ASCII Cleanup and Dependency Docs from "Documentation Overlap" to "Documentation Signals" section
+- [OK] Remove redundant "Complexity Hotspots" section (duplicate of snapshot data)
+- [OK] Standardize timestamp format in status report (kept "Last Generated" timestamp with standardized format)
+- **Files**: `development_tools/shared/operations.py` (status generation), `development_tools/AI_STATUS.md` (output)
+
+#### Milestone M9.1.2 - Include Missing Data in Status Reports **COMPLETED (2025-12-03)**
+
+- [OK] Investigate why config validation isn't included in AI_STATUS, AI_PRIORITIES, or consolidated_report
+- [OK] Add config validation status to all three reports (shows recommendations count and top recommendations)
+- [OK] Include TODO sync status (e.g., "Found 5 completed entries in TODO.md that need review") in all status reports
+- [OK] Fix overlap analysis detection - ensure overlap data is saved to JSON cache and properly detected in reports
+- **Files**: `development_tools/shared/operations.py` (status generation methods)
+
+#### Milestone M9.1.3 - Fix Mid-Audit Status Updates **PENDING**
+
+- [ ] Investigate why AI_STATUS and AI_PRIORITIES update midway through full audit with different results than at the end
+- [ ] Identify root cause (e.g., complexity numbers change: Moderate: 352/153, High: 376/138, Critical: 321/128)
+- [ ] Fix doc sync status inconsistency (FAIL/GOOD changes during audit)
+- [ ] Ensure status files reflect final audit results, not intermediate states
+- **Files**: `development_tools/shared/operations.py` (audit workflow), status generation methods
+
+#### Milestone M9.1.4 - Standardize Tool Output Storage **PENDING**
+
+- [ ] Investigate how different development tools save their findings (formats, locations, approaches)
+- [ ] Document current patterns and inconsistencies
+- [ ] Define standard output format and location conventions
+- [ ] Create shared utility for consistent output storage (if needed)
+- [ ] Update tools to use standardized approach
+- **Files**: All tool modules, `development_tools/shared/` (potential new utility)
+
+#### Milestone M9.2.1 - Standardize Function Counting and Complexity Metrics **PENDING**
+
+- [ ] Compare function counting methods in `analyze_functions` (AST-based, reports 153/138/128) vs `decision_support` (reports 352/376/321)
+- [ ] Compare complexity calculation methods (why are numbers so different?)
+- [ ] Determine which method is more accurate/appropriate
+- [ ] Standardize all tools to use the chosen method
+- [ ] Update `_get_canonical_metrics()` to use single source of truth
+- [ ] Document the standardized approach
+- **Files**: `development_tools/functions/analyze_functions.py`, `development_tools/reports/decision_support.py`, `development_tools/shared/operations.py` (`_get_canonical_metrics`)
+
+#### Milestone M9.2.2 - Standardize Error Handling Coverage Metrics **PENDING**
+
+- [ ] Investigate how error handling coverage percentage is calculated (currently 99.9%)
+- [ ] Investigate how "functions missing protection" count is determined (currently 2 functions)
+- [ ] Identify why these numbers don't align (different function sets, different counting methods)
+- [ ] Decide on standardized approach (use same function set, same counting method)
+- [ ] Update error handling analysis tools to use standardized approach
+- [ ] Update status reports to show consistent metrics
+- **Files**: `development_tools/error_handling/analyze_error_handling.py`, `development_tools/shared/operations.py` (error handling metrics)
+
+---
+
+### Phase 10 - Tool Integration and Enhancement **IN PROGRESS (2025-12-03)**
+
+**Goal:** Integrate existing scripts into the development tools suite and enhance existing tools to provide more actionable insights.
+
+**Status:** M10.1.1 and M10.1.2 completed. Remaining milestones pending.
+
+## Phase 10.1 - Tool Integration
+
+### Milestone M10.1.1 - Integrate Test Marker Scripts **COMPLETED (2025-12-03)**
+
+- [OK] Integrate test marker analysis functionality from `scripts/find_tests_missing_category_markers.py`, `scripts/add_category_markers.py`, `scripts/analyze_test_markers.py` into `development_tools/tests/analyze_test_markers.py`
+- [OK] Integrated marker validation into coverage regeneration workflow (runs automatically during coverage generation)
+- [OK] Created `development_tools/tests/fix_test_markers.py` for marker fixing operations (separated from analysis)
+- [OK] Updated documentation to reflect test marker integration
+- **Note**: Test marker analysis is now part of the audit workflow and runs automatically when test coverage is generated. The `add_markers` functionality was moved to `fix_test_markers.py` following the naming conventions.
+- **Files**: `development_tools/tests/analyze_test_markers.py`, `development_tools/tests/fix_test_markers.py`, `development_tools/shared/operations.py`
+
+### Milestone M10.1.2 - Create Project Cleanup Module **COMPLETED (2025-12-03)**
+
+- [OK] Created cleanup module at `development_tools/shared/fix_project_cleanup.py` (following `fix_*` naming convention)
+- [OK] Integrated cleanup operations from `scripts/cleanup_project.py` (cache, pytest cache, coverage files, test temp dirs, etc.)
+- [OK] Added `cleanup` subcommand to `development_tools/run_development_tools.py` with options: `--cache`, `--test-data`, `--coverage`, `--all`, `--dry-run`
+- [OK] Maintained safety features (dry-run mode, selective cleanup options)
+- [OK] Updated documentation to reflect new cleanup command
+- **Files**: `development_tools/shared/fix_project_cleanup.py`, `development_tools/shared/operations.py`
+
+## Phase 10.2 - Tool Enhancement
+
+### Milestone M10.2.1 - Enhance Documentation Overlap Analysis **PENDING**
+
+- [ ] Investigate what documentation overlap analysis currently looks for
+- [ ] Enhance to provide more actionable insights beyond section overlaps and consolidation opportunities
+- [ ] Improve detection of actual issues vs. false positives
+- **Files**: `development_tools/docs/analyze_documentation.py`
+
+### Milestone M10.2.2 - Enhance AI Work Validation **PENDING**
+
+- [ ] Investigate what AI Work Validation currently looks for
+- [ ] Enhance to provide actionable insights beyond "GOOD - keep current standards"
+- [ ] Add specific recommendations for maintaining code quality standards
+- **Files**: `development_tools/ai_work/analyze_ai_work.py`
+
+### Milestone M10.2.3 - Enhance System Health Analysis **PENDING**
+
+- [ ] Investigate what System Health currently looks for
+- [ ] Enhance to provide actionable insights beyond "OK" status
+- [ ] Add specific health indicators and recommendations
+- **Files**: `development_tools/reports/system_signals.py`
+
+### Milestone M10.2.4 - Improve Recent Changes Detection **PENDING**
+
+- [ ] Investigate the logic for determining recent changes list in AI_STATUS.md
+- [ ] Improve detection to identify meaningful changes (not just file modifications)
+- [ ] Make recent changes list more accurate and useful
+- **Files**: `development_tools/shared/operations.py` (recent changes logic)
+
+### Milestone M10.2.5 - Consolidate Audit Command Types **PENDING**
+
+- [ ] Investigate different audit types (status, fast-audit, audit, audit --full)
+- [ ] Document differences clearly
+- [ ] Consider consolidating or better organizing command structure
+- [ ] Update documentation and help text
+- **Files**: `development_tools/run_development_tools.py`, `development_tools/shared/operations.py`, documentation guides
+
+---
+
 ### Phase 8 - Create New Tools to Fill Identified Gaps **PENDING**
 
 **Goal:** Implement new tools based on gaps identified in Phase 7.3 to expand automated analysis, recommendations, and fixes. Also identify and create tools for entirely missing categories.
@@ -1134,6 +1261,8 @@ Portable today: `development_tools/services/common.py`, `development_tools/syste
 - [OK] **Phase 5 COMPLETED (2025-11-27)**: Standard audit recipe added to workflow guide, session starter updated with dev tools routing, all documentation alignment milestones complete
 - [OK] **Phase 6 COMPLETED (2025-11-28)**: All checklists completed - all 14 supporting and experimental tools made portable via external configuration (`development_tools_config.json`). All tools changed from `mhm-specific` to `portable` portability markers. Config getter functions added to `config.py`, config example file updated with all new sections.
 - [OK] **Phase 7**: M7.1 completed (2025-12-01) - all naming conventions applied, both initial and second batch of renames complete, all references updated. M7.2 completed (directory reorganization done). M7.3 completed (2025-12-01) - tool gap analysis documented, 29 gaps identified across 6 domains, findings recorded in both guides. M7.4 completed (2025-12-02) - all three batches of tool decomposition completed (Legacy Tools, Documentation Tools, Remaining Tools). All 6 original multi-responsibility tools decomposed into 20+ focused tools. All tools now follow single-responsibility principle with clear separation of concerns. All cross-cutting tasks and success criteria met. Full test suite passing, documentation updated, audit workflows verified.
+- [OK] **Phase 9**: M9.1.1 completed (2025-12-03) - AI_STATUS.md formatting fixed (test coverage added to snapshot, items moved to Documentation Signals, redundant sections removed, timestamp standardized). M9.1.2 completed (2025-12-03) - config validation and TODO sync status added to all three reports, overlap analysis detection fixed. Remaining milestones (M9.1.3, M9.1.4, M9.2.1, M9.2.2) pending.
+- [OK] **Phase 10**: M10.1.1 completed (2025-12-03) - test marker scripts integrated into `development_tools/tests/analyze_test_markers.py` and `fix_test_markers.py`, marker validation integrated into coverage workflow. M10.1.2 completed (2025-12-03) - project cleanup module created at `development_tools/shared/fix_project_cleanup.py` with `cleanup` subcommand. Remaining milestones (M10.2.1-M10.2.5) pending.
 
 This roadmap is intentionally incremental. You do **not** need to implement every milestone at once.  
 Phases 1-3 (tiering + core infrastructure + core analysis tools) are complete. Next focus on Phase 4 (clarify supporting vs experimental tools) or Phase 5 (UX and documentation alignment), then expand as time and energy allow.

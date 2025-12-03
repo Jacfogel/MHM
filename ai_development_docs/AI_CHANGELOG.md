@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-03 - Phase 9 Status Reports Improvements and Tool Integration **COMPLETED**
+- Completed Phase 9 M9.1.1 and M9.1.2: Fixed AI_STATUS.md formatting (test coverage in snapshot, moved items to Documentation Signals, removed redundant sections), added config validation with recommendations and TODO sync status to all three status reports, fixed overlap analysis detection by ensuring data is saved to JSON cache
+- Completed Phase 10 M10.1.1 and M10.1.2: Integrated test marker scripts into `development_tools/tests/analyze_test_markers.py` and `fix_test_markers.py` (runs automatically during coverage), created project cleanup module at `shared/fix_project_cleanup.py` with `cleanup` subcommand
+- Improved console output: `config`, `decision-support`, and `TODO sync` commands now print their results to stdout
+- Updated improvement plan and TODO.md to reflect completed work
+
 ### 2025-12-02 - Implemented Shared Mtime-Based Caching for Development Tools **COMPLETED**
 - Created shared `MtimeFileCache` utility in `development_tools/shared/mtime_cache.py` for reusable mtime-based file caching across analyzers
 - Refactored 6 analyzers to use shared utility: `analyze_unused_imports.py`, `analyze_ascii_compliance.py`, `analyze_missing_addresses.py`, `analyze_path_drift.py`, `analyze_unconverted_links.py`, `analyze_heading_numbering.py`

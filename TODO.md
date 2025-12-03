@@ -144,7 +144,7 @@ When adding new tasks, follow this format:
   - Temporary file cleanup patterns
 
 **Integrate Unused Imports Cleanup into Unused Imports Checker**
-- *What it means*: Integrate `scripts/cleanup_unused_imports.py` functionality into `imports/analyze_unused_imports.py`. Add categorization and cleanup recommendations to the existing unused imports analysis.
+- *What it means*: Integrate `scripts/cleanup_unused_imports.py` functionality into a new tool, `imports/fix_unused_imports.py`. Add categorization and cleanup recommendations to the existing unused imports analysis.
 - *Why it helps*: Provides actionable recommendations for unused imports (missing error handling, missing logging, safe to remove, etc.) alongside detection. Enables automated cleanup workflows. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.
 - *Estimated effort*: Medium
 - *Subtasks*:
@@ -154,92 +154,10 @@ When adding new tasks, follow this format:
   - [ ] Consider adding `--categorize` flag to existing unused imports checker command
   - [ ] Update documentation to reflect enhanced reporting capabilities
 
-**Integrate Test Marker Scripts into Coverage/Test Analysis Tools**
-- *What it means*: Integrate test marker scripts (`scripts/find_tests_missing_category_markers.py`, `scripts/add_category_markers.py`, `scripts/analyze_test_markers.py`) into a new test analysis module. Add subcommands for test marker validation and fixing.
-- *Why it helps*: Centralizes test analysis tools; enables validation of test categorization during coverage runs; provides automated marker addition. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Integrate test marker analysis functionality into coverage tools or new test analysis module
-  - [ ] Add `test-markers` subcommand to `development_tools/run_development_tools.py` with options: `--check`, `--analyze`, `--fix`
-  - [ ] Support batch operations for adding missing markers based on directory structure
-  - [ ] Consider integrating marker validation into coverage regeneration workflow
-  - [ ] Update documentation to reflect new test marker commands
-
-**Standardize Function Counting and Complexity Metrics**
-- *What it means*: Investigate the different function counting and complexity counting methods used by `analyze_functions` (AST-based, reports 153/138/128) vs `decision_support` (different method, reports 352/376/321). Decide on a single standardized approach and update all tools to use it consistently.
-- *Why it helps*: Eliminates confusion from conflicting metrics; ensures status reports and priorities are based on consistent, accurate data; improves trust in audit results.
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Compare function counting methods in `analyze_functions` vs `decision_support`
-  - [ ] Compare complexity calculation methods (why are numbers so different?)
-  - [ ] Determine which method is more accurate/appropriate
-  - [ ] Standardize all tools to use the chosen method
-  - [ ] Update status generation to use single source of truth
-  - [ ] Document the standardized approach
-
-**Standardize Error Handling Coverage Metrics**
-- *What it means*: Investigate and resolve the disconnect between "Error Handling Coverage" percentage (99.9%) and "Functions Missing Protection" count (2 functions). There's a preexisting discrepancy between coverage percentage and functions needing protection numbers that needs to be standardized one way or the other.
-- *Why it helps*: Ensures error handling metrics are consistent and accurate; prevents confusion about actual error handling status; improves reliability of audit reports.
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Investigate how error handling coverage percentage is calculated
-  - [ ] Investigate how "functions missing protection" count is determined
-  - [ ] Identify why these numbers don't align (e.g., different function sets, different counting methods)
-  - [ ] Decide on standardized approach (use same function set, same counting method)
-  - [ ] Update error handling analysis tools to use standardized approach
-  - [ ] Update status reports to show consistent metrics
-
-**Investigate and Fix Test Coverage Regression**
-- *What it means*: Test coverage dropped from 71.1% to 66.0% (5.1% drop, 1,375 fewer covered statements) after tool refactoring. Several modules show significant coverage drops (>50% for some). Need to identify root cause and restore coverage.
-- *Why it helps*: Maintains test coverage quality; ensures refactoring doesn't break test execution; identifies and fixes test failures from refactoring.
-- *Estimated effort*: Medium
-- *Current Status*: Analysis document to be created when investigating coverage regression
-- *Key Findings*:
-  - 6 test failures and 1 import error found in latest run
-  - 5 modules dropped into "Needs_Work" category (<50% coverage)
-  - Test failures related to refactoring (documentation sync checker, legacy cleanup)
-- *Subtasks*:
-  - [ ] Fix test failures from refactoring (documentation sync checker tests, legacy cleanup import error)
-  - [ ] Re-run coverage after test fixes to verify improvement
-  - [ ] Investigate why specific modules lost coverage (task_completion_dialog, message_analytics, checkin_analytics, task_handler)
-  - [ ] Check if tests exist and are running for affected modules
-  - [ ] Compare test execution counts between versions
-  - [ ] Review coverage configuration for changes
-  - [ ] Document findings and resolution in TEST_COVERAGE_DIFF_ANALYSIS.md
 
 
-**Create Project Cleanup Module**
-- *What it means*: Create a new cleanup module in `development_tools/` that integrates `scripts/cleanup_project.py` functionality. Add subcommand to `development_tools/run_development_tools.py` for project cleanup operations.
-- *Why it helps*: Provides centralized cleanup operations (cache files, temporary directories, test artifacts) through the development tools runner. Enables safe cleanup with dry-run support. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Create new cleanup module (e.g., `development_tools/cleanup.py` (to be created) or `development_tools/project_cleanup.py` (to be created)) - module to be created
-  - [ ] Integrate cleanup operations from `scripts/cleanup_project.py` (cache, pytest cache, coverage files, test temp dirs, etc.)
-  - [ ] Add `cleanup` subcommand to `development_tools/run_development_tools.py` with options: `--cache`, `--test-data`, `--coverage`, `--all`, `--dry-run`
-  - [ ] Maintain safety features (dry-run mode, selective cleanup options)
-  - [ ] Update documentation to reflect new cleanup command
 
 
-**Reorganize AI Development Tools Subdirectory**
-- *What it means*: Reorganize development_tools subdirectory, including a review of the files within to determine whether any of them are no longer active or useful
-- *Why it helps*: Improves organization, reduces confusion, and makes the tools easier to navigate and maintain
-- *Estimated effort*: Medium
-- *Areas to review*:
-  - Identify unused or obsolete tools
-  - Group related tools into logical subdirectories
-  - Update documentation to reflect new organization
-  - Archive or remove tools that are no longer needed
-  - Ensure all active tools are properly documented
-
-**Improve AI_STATUS.md Formatting and Content**
-- *What it means*: Fix formatting issues in AI_STATUS.md: add test coverage to snapshot section, move ASCII Cleanup and Dependency Docs from "Documentation Overlap" to "Documentation Signals", remove redundant "Complexity Hotspots" section (already in snapshot), and remove timestamp
-- *Why it helps*: Makes AI_STATUS.md more accurate, better organized, and less redundant; improves clarity of status information
-- *Estimated effort*: Small
-- *Subtasks*:
-  - [ ] Add test coverage metrics to snapshot section
-  - [ ] Move ASCII Cleanup and Dependency Docs to "Documentation Signals" section
-  - [ ] Remove "Complexity Hotspots" section (duplicate of snapshot data)
-  - [ ] Remove timestamp from status report
 
 **Investigate and Enhance Documentation Overlap Analysis**
 - *What it means*: Investigate what the documentation overlap analysis looks for and enhance it to be more helpful. Currently it reports section overlaps and consolidation opportunities but may not be providing actionable insights.
@@ -250,6 +168,7 @@ When adding new tasks, follow this format:
 - *What it means*: Investigate what AI Work Validation looks for and enhance it to be more helpful. Currently it reports "GOOD - keep current standards" but may not be providing actionable insights.
 - *Why it helps*: Makes AI Work Validation more useful for identifying actual issues and maintaining code quality standards
 - *Estimated effort*: Medium
+- *Status*: `analyze_ai_work.py` should not  duplicate logic that was already covered by domain-specific tools (docs/analyze_documentation_sync.py, error_handling/analyze_error_handling.py, tests/analyze_test_coverage.py). All comprehensive validation should be done via domain-specific tools, not duplicated in ai_work.
 
 **Investigate and Enhance System Health Analysis**
 - *What it means*: Investigate what System Health looks for and consider enhancing it to be more helpful. Currently it reports "OK" but may not be providing actionable insights.
@@ -297,25 +216,9 @@ When adding new tasks, follow this format:
 - *Why it helps*: Ensures changelog maintenance tooling works correctly and prevents accidental data loss
 - *Estimated effort*: Small
 
-**Include Config Validation in Status Reports**
-- *What it means*: Investigate why config validation isn't included in AI_STATUS, AI_PRIORITIES, or consolidated_report. Add it if it should be included.
-- *Why it helps*: Makes config validation status visible in status reports, helping identify configuration issues early
-- *Estimated effort*: Small
 
-**Standardize How Tools Save Their Findings**
-- *What it means*: Investigate and standardize how development tools save their findings. Different tools may use different formats, locations, or approaches.
-- *Why it helps*: Makes tool outputs more consistent and easier to find; improves maintainability
-- *Estimated effort*: Medium
 
-**Include TODO Sync Status in Status Reports**
-- *What it means*: Include TODO sync status (e.g., "Found 3 completed entries in TODO.md that need review") in AI_STATUS, AI_PRIORITIES, and consolidated_report. Currently it's logged but not included in status reports.
-- *Why it helps*: Makes TODO sync status visible in status reports, helping identify when TODO.md needs attention
-- *Estimated effort*: Small
 
-**Investigate AI_STATUS and AI_PRIORITIES Mid-Audit Updates**
-- *What it means*: Investigate why AI_STATUS and AI_PRIORITIES update midway through the full audit with different results than they have at the end. For example, complexity numbers change (Moderate: 352/153, High: 376/138, Critical: 321/128) and doc sync status changes (FAIL/GOOD).
-- *Why it helps*: Prevents confusion from inconsistent status reports; ensures status files reflect final audit results, not intermediate states
-- *Estimated effort*: Medium
 
 **Improve Console Output During Audit Runs**
 - *What it means*: Improve console output during audit runs. Currently it's an unhelpful mess with a massive dump of raw metrics data (dictionaries, lists, etc.) that's not human-readable. Make it more structured and informative.

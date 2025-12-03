@@ -50,8 +50,11 @@ def find_complexity_functions(functions):
     
     Excludes test functions from complexity counts.
     Test functions are tracked separately and should not inflate complexity metrics.
+    
+    Note: Handler functions are NOT excluded - keyword-based detection is too broad
+    and catches many utility functions that should be included in complexity metrics.
     """
-    # Filter out test functions - they should be tracked separately, not in complexity counts
+    # Filter out test functions only - they should be tracked separately, not in complexity counts
     non_test_functions = [f for f in functions if not f.get('is_test', False)]
     
     moderate = [f for f in non_test_functions if f['complexity'] >= MODERATE_COMPLEXITY and f['complexity'] < HIGH_COMPLEXITY]
@@ -70,8 +73,8 @@ def find_duplicate_names(functions):
 
 
 def print_dashboard(functions):
-    logger.info("=== AI DECISION SUPPORT DASHBOARD ===")
-    logger.info(f"Total functions: {len(functions)}")
+    # Print dashboard to stdout so it's visible when run directly
+    print("=== AI DECISION SUPPORT DASHBOARD ===")
     moderate_complex, high_complex, critical_complex = find_complexity_functions(functions)
     undocumented_handlers = find_undocumented_handlers(functions)
     duplicates = find_duplicate_names(functions)
@@ -86,58 +89,59 @@ def print_dashboard(functions):
     print(f"Undocumented functions: {len(undocumented_handlers)}")
 
     # Complexity analysis with differentiated levels
+    # Print to stdout so it's visible when run directly
     total_complex = len(moderate_complex) + len(high_complex) + len(critical_complex)
     if total_complex > 0:
-        logger.warning(f"[COMPLEXITY] Functions needing attention: {total_complex}")
+        print(f"[COMPLEXITY] Functions needing attention: {total_complex}")
         if critical_complex:
-            logger.warning(f"  [CRITICAL] Critical Complexity (>{CRITICAL_COMPLEXITY-1} nodes): {len(critical_complex)}")
+            print(f"  [CRITICAL] Critical Complexity (>{CRITICAL_COMPLEXITY-1} nodes): {len(critical_complex)}")
             for f in critical_complex[:5]:
-                logger.warning(f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})")
+                print(f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})")
             if len(critical_complex) > 5:
-                logger.warning(f"    ...and {len(critical_complex)-5} more.")
+                print(f"    ...and {len(critical_complex)-5} more.")
         
         if high_complex:
-            logger.warning(f"  [HIGH] High Complexity ({HIGH_COMPLEXITY}-{CRITICAL_COMPLEXITY-1} nodes): {len(high_complex)}")
+            print(f"  [HIGH] High Complexity ({HIGH_COMPLEXITY}-{CRITICAL_COMPLEXITY-1} nodes): {len(high_complex)}")
             for f in high_complex[:5]:
-                logger.warning(f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})")
+                print(f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})")
             if len(high_complex) > 5:
-                logger.warning(f"    ...and {len(high_complex)-5} more.")
+                print(f"    ...and {len(high_complex)-5} more.")
         
         if moderate_complex:
-            logger.info(f"  [MODERATE] Moderate Complexity ({MODERATE_COMPLEXITY}-{HIGH_COMPLEXITY-1} nodes): {len(moderate_complex)}")
+            print(f"  [MODERATE] Moderate Complexity ({MODERATE_COMPLEXITY}-{HIGH_COMPLEXITY-1} nodes): {len(moderate_complex)}")
             for f in moderate_complex[:3]:
-                logger.info(f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})")
+                print(f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})")
             if len(moderate_complex) > 3:
-                logger.info(f"    ...and {len(moderate_complex)-3} more.")
+                print(f"    ...and {len(moderate_complex)-3} more.")
 
     if undocumented_handlers:
-        logger.warning(f"[DOC] Undocumented Handlers: {len(undocumented_handlers)}")
+        print(f"[DOC] Undocumented Handlers: {len(undocumented_handlers)}")
         for f in undocumented_handlers[:10]:
-            logger.warning(f"  - {f['name']} (file: {Path(f['file']).name})")
+            print(f"  - {f['name']} (file: {Path(f['file']).name})")
         if len(undocumented_handlers) > 10:
-            logger.warning(f"  ...and {len(undocumented_handlers)-10} more.")
+            print(f"  ...and {len(undocumented_handlers)-10} more.")
 
     if duplicates:
-        logger.warning(f"[DUPE] Duplicate Function Names: {len(duplicates)}")
+        print(f"[DUPE] Duplicate Function Names: {len(duplicates)}")
         for name, files in list(duplicates.items())[:5]:
-            logger.warning(f"  - {name}: {', '.join(Path(f).name for f in files)}")
+            print(f"  - {name}: {', '.join(Path(f).name for f in files)}")
         if len(duplicates) > 5:
-            logger.warning(f"  ...and {len(duplicates)-5} more.")
+            print(f"  ...and {len(duplicates)-5} more.")
 
-    logger.info("=== SUGGESTED NEXT STEPS ===")
+    print("=== SUGGESTED NEXT STEPS ===")
     if critical_complex:
-        logger.warning("- [CRITICAL] Refactor critical complexity functions immediately.")
+        print("- [CRITICAL] Refactor critical complexity functions immediately.")
     if high_complex:
-        logger.warning("- [HIGH] Refactor high complexity functions for maintainability.")
+        print("- [HIGH] Refactor high complexity functions for maintainability.")
     if moderate_complex:
-        logger.info("- [MODERATE] Review moderate complexity functions when time permits.")
+        print("- [MODERATE] Review moderate complexity functions when time permits.")
     if undocumented_handlers:
-        logger.warning("- Add docstrings to undocumented handler/utility functions.")
+        print("- Add docstrings to undocumented handler/utility functions.")
     if duplicates:
-        logger.warning("- Review duplicate function names for possible consolidation or renaming.")
+        print("- Review duplicate function names for possible consolidation or renaming.")
     if not (total_complex or undocumented_handlers or duplicates):
-        logger.info("- Codebase is in excellent shape! Proceed with confidence.")
-    logger.info("Tip: Use this dashboard before major refactoring, documentation, or architectural changes.")
+        print("- Codebase is in excellent shape! Proceed with confidence.")
+    print("Tip: Use this dashboard before major refactoring, documentation, or architectural changes.")
 
 
 def main():

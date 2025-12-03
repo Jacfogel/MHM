@@ -11,6 +11,7 @@ if available, making this tool portable across different projects.
 
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any
 
@@ -111,10 +112,20 @@ class ErrorHandlingReportGenerator:
                 logger.info(f"  {i}. {rec}")
     
     def save_json_report(self, output_path: Path) -> None:
-        """Save analysis results as JSON report."""
+        """Save analysis results as JSON report with standardized metadata."""
         output_path.parent.mkdir(parents=True, exist_ok=True)
+        timestamp_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        timestamp_iso = datetime.now().isoformat()
+        report_data = {
+            'generated_by': 'generate_error_handling_report.py - Error Handling Report Generator',
+            'last_generated': timestamp_str,
+            'source': 'python development_tools/error_handling/generate_error_handling_report.py',
+            'note': 'This file is auto-generated. Do not edit manually.',
+            'timestamp': timestamp_iso,
+            'error_handling_results': self.results
+        }
         with open(output_path, 'w', encoding='utf-8') as f:
-            json.dump(self.results, f, indent=2)
+            json.dump(report_data, f, indent=2)
         logger.info(f"Error handling coverage report written to {output_path}")
 
 

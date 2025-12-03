@@ -1465,7 +1465,7 @@
     "results": []
   },
   "tests/behavior/test_utilities_demo.py": {
-    "mtime": 1764477518.6989272,
+    "mtime": 1764752161.1894424,
     "results": []
   },
   "tests/communication/test_channel_monitor.py": {
@@ -6024,7 +6024,7 @@
     "results": []
   },
   "development_tools/docs/analyze_documentation.py": {
-    "mtime": 1764478551.6691794,
+    "mtime": 1764746603.918015,
     "results": []
   },
   "development_tools/docs/documentation_sync_checker.py": {
@@ -6125,7 +6125,7 @@
     "results": []
   },
   "development_tools/functions/generate_function_registry.py": {
-    "mtime": 1764673558.0587738,
+    "mtime": 1764754855.6071362,
     "results": [
       {
         "type": "warning",
@@ -6220,7 +6220,7 @@
     "results": []
   },
   "development_tools/reports/decision_support.py": {
-    "mtime": 1764594600.2807035,
+    "mtime": 1764754855.6123767,
     "results": [
       {
         "type": "warning",
@@ -6271,7 +6271,7 @@
     "results": []
   },
   "development_tools/shared/operations.py": {
-    "mtime": 1764675572.5218782,
+    "mtime": 1764762220.3678157,
     "results": []
   },
   "development_tools/shared/standard_exclusions.py": {
@@ -6279,7 +6279,7 @@
     "results": []
   },
   "development_tools/shared/tool_metadata.py": {
-    "mtime": 1764666583.0251882,
+    "mtime": 1764748772.1627629,
     "results": []
   },
   "development_tools/tests/__init__.py": {
@@ -6421,7 +6421,7 @@
     ]
   },
   "development_tools/imports/generate_module_dependencies.py": {
-    "mtime": 1764667318.8712118,
+    "mtime": 1764754855.6071362,
     "results": [
       {
         "type": "warning",
@@ -6473,11 +6473,11 @@
     "results": []
   },
   "development_tools/ai_work/analyze_ai_work.py": {
-    "mtime": 1764552866.860794,
+    "mtime": 1764748963.6688395,
     "results": []
   },
   "development_tools/config/analyze_config.py": {
-    "mtime": 1764551984.224393,
+    "mtime": 1764754855.6113722,
     "results": []
   },
   "development_tools/docs/analyze_documentation_sync.py": {
@@ -6621,7 +6621,7 @@
     ]
   },
   "development_tools/imports/analyze_unused_imports.py": {
-    "mtime": 1764676085.4275098,
+    "mtime": 1764754855.6101778,
     "results": [
       {
         "type": "warning",
@@ -6655,7 +6655,7 @@
     "results": []
   },
   "development_tools/tests/generate_test_coverage.py": {
-    "mtime": 1764659573.1159334,
+    "mtime": 1764754855.6113722,
     "results": [
       {
         "type": "warning",
@@ -6701,7 +6701,7 @@
     "results": []
   },
   "development_tools/docs/generate_directory_tree.py": {
-    "mtime": 1764617930.9391537,
+    "mtime": 1764756254.7708006,
     "results": []
   },
   "development_tools/legacy/analyze_legacy_references.py": {
@@ -6709,7 +6709,7 @@
     "results": []
   },
   "development_tools/legacy/generate_legacy_reference_report.py": {
-    "mtime": 1764617930.9366908,
+    "mtime": 1764754855.6071362,
     "results": []
   },
   "development_tools/error_handling/generate_error_handling_recommendations.py": {
@@ -6717,7 +6717,7 @@
     "results": []
   },
   "development_tools/error_handling/generate_error_handling_report.py": {
-    "mtime": 1764642620.4797597,
+    "mtime": 1764754855.6113722,
     "results": []
   },
   "development_tools/functions/analyze_function_patterns.py": {
@@ -6826,6 +6826,58 @@
         "path": "development_tools\\shared\\mtime_cache.py",
         "symbol": "unused-import",
         "message": "Unused List imported from typing",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "development_tools/shared/fix_project_cleanup.py": {
+    "mtime": 1764747300.223032,
+    "results": []
+  },
+  "development_tools/tests/analyze_test_markers.py": {
+    "mtime": 1764748963.6688395,
+    "results": []
+  },
+  "development_tools/tests/fix_test_markers.py": {
+    "mtime": 1764748772.1552722,
+    "results": [
+      {
+        "type": "warning",
+        "module": "development_tools.tests.fix_test_markers",
+        "obj": "",
+        "line": 12,
+        "column": 0,
+        "endLine": 12,
+        "endColumn": 9,
+        "path": "development_tools\\tests\\fix_test_markers.py",
+        "symbol": "unused-import",
+        "message": "Unused import re",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.tests.fix_test_markers",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 46,
+        "path": "development_tools\\tests\\fix_test_markers.py",
+        "symbol": "unused-import",
+        "message": "Unused List imported from typing",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.tests.fix_test_markers",
+        "obj": "",
+        "line": 14,
+        "column": 0,
+        "endLine": 14,
+        "endColumn": 46,
+        "path": "development_tools\\tests\\fix_test_markers.py",
+        "symbol": "unused-import",
+        "message": "Unused Tuple imported from typing",
         "message-id": "W0611"
       }
     ]

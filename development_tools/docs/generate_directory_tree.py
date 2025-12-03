@@ -17,6 +17,7 @@ Usage:
 import argparse
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -133,12 +134,20 @@ class DirectoryTreeGenerator:
             else:
                 processed_lines.append(line)
         
-        # Create the final content
+        # Create the final content with standardized metadata
+        now = datetime.now()
+        timestamp = now.strftime('%Y-%m-%d %H:%M:%S')
+        
         header = [
             "# Project Directory Tree",
             "",
             f"> **File**: `{output_file}`",
             "> **Generated**: This file is auto-generated. Do not edit manually.",
+            f"> **Last Generated**: {timestamp}",
+            f"> **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator",
+            "> **Audience**: Human developer and AI collaborators",
+            "> **Purpose**: Visual representation of project directory structure",
+            "> **Status**: **ACTIVE** - Auto-generated from filesystem tree command",
             ""
         ]
         
