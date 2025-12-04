@@ -5,9 +5,9 @@ from typing import Dict, Any
 
 # PySide6 imports
 from PySide6.QtWidgets import (
-    QDialog, QMessageBox
+    QDialog, QMessageBox, QSizePolicy, QDialogButtonBox
 )
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Qt
 
 # Set up logging
 from core.logger import setup_logging, get_component_logger
@@ -254,14 +254,18 @@ class AccountCreatorDialog(QDialog):
         button_box = self.ui.buttonBox_save_cancel
         if button_box:
             # Clear existing connections and connect manually
-            try:
-                button_box.accepted.disconnect()
-            except:
-                pass  # Signal wasn't connected
-            try:
-                button_box.rejected.disconnect()
-            except:
-                pass  # Signal wasn't connected
+            # Suppress RuntimeWarning when disconnecting signals that aren't connected
+            import warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", RuntimeWarning)
+                try:
+                    button_box.accepted.disconnect()
+                except (RuntimeError, TypeError):
+                    pass  # Signal wasn't connected or error disconnecting
+                try:
+                    button_box.rejected.disconnect()
+                except (RuntimeError, TypeError):
+                    pass  # Signal wasn't connected or error disconnecting
             
             # Connect buttons manually
             save_button = button_box.button(QDialogButtonBox.StandardButton.Save)
@@ -326,8 +330,12 @@ class AccountCreatorDialog(QDialog):
             super().keyPressEvent(event)
     
     @handle_errors("handling username change", default_return=None)
-    def on_username_changed(self):
-        """Handle username change."""
+    def on_username_changed(self, text=""):
+        """Handle username change.
+        
+        Args:
+            text: The new text from the textChanged signal (ignored, we read from widget)
+        """
         username_edit = self.ui.lineEdit_username
         if username_edit:
             self._username = username_edit.text().strip().lower()
@@ -348,8 +356,12 @@ class AccountCreatorDialog(QDialog):
         self._username = value
     
     @handle_errors("handling preferred name change", default_return=None)
-    def on_preferred_name_changed(self):
-        """Handle preferred name change."""
+    def on_preferred_name_changed(self, text=""):
+        """Handle preferred name change.
+        
+        Args:
+            text: The new text from the textChanged signal (ignored, we read from widget)
+        """
         preferred_name_edit = self.ui.lineEdit_preferred_name
         if preferred_name_edit:
             self.preferred_name = preferred_name_edit.text().strip()

@@ -223,9 +223,14 @@ class PathDriftAnalyzer:
             return True
         
         # Skip paths that contain Python keywords or operators
+        # Check for whole-word matches only (not substrings)
         python_keywords = ['def', 'class', 'import', 'from', 'if', 'else', 'for', 'while', 'try', 'except', 'finally', 'with', 'as', 'return', 'yield', 'lambda', 'and', 'or', 'not', 'in', 'is', 'True', 'False', 'None']
-        if any(keyword in path for keyword in python_keywords):
-            return True
+        # Use word boundaries to avoid false positives (e.g., "in" in "nonexistent")
+        import re
+        for keyword in python_keywords:
+            # Match whole word only, not as substring
+            if re.search(r'\b' + re.escape(keyword) + r'\b', path):
+                return True
         
         # Skip paths that look like code snippets (contain newlines or are very long)
         if '\n' in path or len(path) > 200:
@@ -506,11 +511,17 @@ class PathDriftAnalyzer:
     
     def scan_documentation_paths(self) -> Dict[str, List[str]]:
         """Scan documentation files for path references."""
+        # Ensure enhanced filters are set up (needed by filtering methods)
+        if not hasattr(self, 'stdlib_modules'):
+            self._setup_enhanced_filters()
+        
         doc_paths = defaultdict(list)
         
         for md_file in self.project_root.rglob("*.md"):
             # Skip files that should be excluded
-            if should_exclude_file(str(md_file), 'documentation'):
+            # Check path relative to project root to avoid matching parent directory exclusions
+            rel_path = str(md_file.relative_to(self.project_root))
+            if should_exclude_file(rel_path, 'documentation'):
                 continue
                 
             if md_file.name.startswith('.'):

@@ -10,14 +10,13 @@ import pytest
 import tempfile
 import shutil
 from pathlib import Path
-import sys
 
-# Add project root to path
-project_root = Path(__file__).parent.parent.parent
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
+# Import helper from conftest
+from tests.development_tools.conftest import load_development_tools_module
 
-from development_tools.docs.analyze_path_drift import PathDriftAnalyzer
+# Load the module using the helper
+path_drift_module = load_development_tools_module("docs.analyze_path_drift")
+PathDriftAnalyzer = path_drift_module.PathDriftAnalyzer
 
 
 class TestPathDriftDetection:
@@ -34,26 +33,31 @@ class TestPathDriftDetection:
         docs_dir.mkdir()
         
         doc_file = docs_dir / "README.md"
-        doc_file.write_text("""
-# Test Documentation
-
-This file references a non-existent file: `core/nonexistent_module.py`
-
-Also references: `tests/missing_test.py`
-""")
+        # Write content without leading spaces to avoid issues with path extraction
+        doc_file.write_text(
+            "# Test Documentation\n\n"
+            "This file references a non-existent file: `core/nonexistent_module.py`\n\n"
+            "Also references: `tests/missing_test.py`\n"
+        )
         
-        # Create analyzer
-        analyzer = PathDriftAnalyzer(project_root=str(project_dir))
+        # Create analyzer with cache disabled for testing
+        analyzer = PathDriftAnalyzer(project_root=str(project_dir), use_cache=False)
         
         # Run path drift check
         results = analyzer.check_path_drift()
-        
+
         # Verify that the documentation file is flagged
-        doc_file_str = str(doc_file.relative_to(project_dir))
-        assert doc_file_str in results, f"Expected {doc_file_str} to be in drift results"
-        
-        # Verify that the issues are detected
-        issues = results[doc_file_str]
+        # Normalize path separators for cross-platform compatibility
+        doc_file_str = str(doc_file.relative_to(project_dir)).replace('\\', '/')
+        doc_file_win = str(doc_file.relative_to(project_dir))
+        # Check both normalized and original path formats
+        found = doc_file_str in results or doc_file_win in results
+        doc_paths = analyzer.scan_documentation_paths()
+        assert found, f"Expected {doc_file_str} (or Windows path) to be in drift results. Got: {list(results.keys())}. Doc paths: {dict(doc_paths)}"
+
+        # Get the key that was actually used (could be either format)
+        result_key = doc_file_str if doc_file_str in results else doc_file_win
+        issues = results[result_key]
         assert len(issues) > 0, "Expected at least one path drift issue"
         
         # Check that the non-existent files are mentioned

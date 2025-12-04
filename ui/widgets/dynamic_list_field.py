@@ -79,8 +79,12 @@ class DynamicListField(QWidget):
 
     # ------------------------------------------------------------------
     @handle_errors("handling text change in dynamic list field")
-    def on_text_changed(self):
-        """Called when user types in the text field."""
+    def on_text_changed(self, text=""):
+        """Called when user types in the text field.
+        
+        Args:
+            text: The new text from the textEdited signal (ignored, we read from widget)
+        """
         try:
             # Toggle delete button visibility for editable rows
             if self.editable:
@@ -101,8 +105,12 @@ class DynamicListField(QWidget):
             # Don't re-raise to avoid breaking UI interaction
 
     @handle_errors("handling checkbox toggle in dynamic list field")
-    def on_checkbox_toggled(self):
-        """Called when user clicks the checkbox."""
+    def on_checkbox_toggled(self, checked=False):
+        """Called when user clicks the checkbox.
+        
+        Args:
+            checked: The new checked state from the toggled signal (ignored, we read from widget)
+        """
         try:
             # Only emit if we're not in the middle of duplicate handling
             from ui.widgets.dynamic_list_container import DynamicListContainer

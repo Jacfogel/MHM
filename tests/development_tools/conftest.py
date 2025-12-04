@@ -137,6 +137,14 @@ def load_development_tools_module(module_name: str):
         elif "development_tools.config.config" in sys.modules:
             functions_module.config = sys.modules["development_tools.config.config"]
     
+    # Load docs package if needed (for analyze_path_drift and other docs tools)
+    docs_init = project_root / "development_tools" / "docs" / "__init__.py"
+    if docs_init.exists() and "development_tools.docs" not in sys.modules:
+        docs_spec = importlib.util.spec_from_file_location("development_tools.docs", docs_init)
+        docs_module = importlib.util.module_from_spec(docs_spec)
+        sys.modules["development_tools.docs"] = docs_module
+        docs_spec.loader.exec_module(docs_module)
+    
     # Now load the requested module
     # Handle dotted module names (e.g., "shared.file_rotation")
     if "." in module_name:

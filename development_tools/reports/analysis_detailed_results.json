@@ -5272,6 +5272,75 @@
         }
       },
       "timestamp": "2025-12-04T07:33:37.866106"
+    },
+    "system_signals": {
+      "success": true,
+      "data": {
+        "timestamp": "2025-12-04T16:08:45.165218",
+        "system_health": {
+          "overall_status": "OK",
+          "core_files": {
+            "run_mhm.py": "OK",
+            "core/service.py": "OK",
+            "core/config.py": "OK"
+          },
+          "key_directories": {
+            ".": "OK",
+            "ai": "OK",
+            "communication": "OK",
+            "core": "OK",
+            "tasks": "OK",
+            "ui": "OK",
+            "user": "OK",
+            "tests": "OK"
+          },
+          "last_audit": "2025-12-04T11:49:15.728940",
+          "warnings": [],
+          "errors": []
+        },
+        "recent_activity": {
+          "recent_changes": [
+            ".cursor/plans/standardize-audit-commands-and-tool-output-ac7c7c62.plan.md",
+            "ai_development_docs/AI_CHANGELOG.md",
+            "ai_development_docs/AI_TESTING_GUIDE.md",
+            "coverage.json",
+            "data/user_index.json",
+            "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/messages/sent_messages.json",
+            "development_docs/TEST_COVERAGE_REPORT.md",
+            "development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
+            "development_tools/config/analyze_config_results.json",
+            "development_tools/docs/.ascii_compliance_cache.json",
+            "development_tools/docs/.path_drift_cache.json",
+            "development_tools/docs/analyze_ascii_compliance.py",
+            "development_tools/docs/analyze_heading_numbering.py",
+            "development_tools/docs/analyze_missing_addresses.py",
+            "development_tools/docs/analyze_path_drift.py"
+          ],
+          "git_status": "Modified",
+          "last_commit": null,
+          "uncommitted_changes": true
+        },
+        "critical_alerts": [],
+        "performance_indicators": {
+          "log_file_sizes": {
+            "ai.log": "0.0MB",
+            "ai_dev_tools.log": "0.2MB",
+            "app.log": "0.2MB",
+            "communication_manager.log": "0.0MB",
+            "discord.log": "0.0MB",
+            "email.log": "0.0MB",
+            "errors.log": "0.0MB",
+            "file_ops.log": "0.0MB",
+            "message.log": "0.0MB",
+            "scheduler.log": "0.0MB",
+            "ui.log": "0.0MB",
+            "user_activity.log": "0.0MB"
+          },
+          "cache_status": "Unknown",
+          "memory_usage": "Unknown"
+        }
+      },
+      "timestamp": "2025-12-04T16:08:49.478280"
     }
   }
 }

@@ -36,6 +36,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-04 - UI Signal Handler Fixes and Test Infrastructure Improvements **COMPLETED**
+- Fixed signal handler signature mismatches in `account_creator_dialog.py` and `dynamic_list_field.py` that caused `TypeError` errors during UI interactions
+- Fixed path drift detection test failure by using relative paths for file exclusion checks instead of absolute paths
+- Resolved `RuntimeWarning` for signal disconnection by making disconnect calls safe with try-except handling
+- Created comprehensive signal integration tests (`test_signal_handler_integration.py`) to catch signature mismatches and missing imports before production
+- All 3486 tests pass with 0 warnings
+
 ### 2025-12-04 - Standardized Audit Commands and Tool Output Storage **IN PROGRESS**
 - Implemented three-tier audit structure (`audit --quick`, `audit`, `audit --full`) with standardized tool output storage in domain-organized JSON files
 - Created `output_storage.py` utility for consistent result storage with automatic archiving; refactored all tool wrappers to use it

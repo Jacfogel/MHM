@@ -836,10 +836,12 @@ class MHMManagerUI(QMainWindow):
             None: Always returns None
         """
         """Refresh the user list in the combo box by reading user account files"""
+        # Remember the currently selected user before any operations
+        current_user_id = self.current_user
+        
+        # Block signals during refresh to prevent empty string errors
+        self.ui.comboBox_users.blockSignals(True)
         try:
-            # Remember the currently selected user
-            current_user_id = self.current_user
-            
             # Get all user IDs from directories
             user_ids = get_all_user_ids()
             
@@ -945,6 +947,9 @@ class MHMManagerUI(QMainWindow):
             except Exception as fallback_error:
                 logger.error(f"Fallback user list refresh also failed: {fallback_error}")
                 QMessageBox.warning(self, "Error", f"Failed to refresh user list: {e}")
+        finally:
+            # Always re-enable signals, even if an error occurred
+            self.ui.comboBox_users.blockSignals(False)
         
         # Reselect the previously selected user if it still exists
         if current_user_id:
@@ -965,12 +970,17 @@ class MHMManagerUI(QMainWindow):
             None: Always returns None
         """
         # Validate user_display
-        if not user_display or not isinstance(user_display, str):
-            logger.error(f"Invalid user_display: {user_display}")
+        # Empty strings are expected during combo box refresh, so handle gracefully
+        if not user_display:
+            # Empty string during refresh is normal, just return silently
+            return None
+            
+        if not isinstance(user_display, str):
+            logger.error(f"Invalid user_display type: {type(user_display)}, value: {user_display}")
             return None
             
         if not user_display.strip():
-            logger.error("Empty user_display provided")
+            # Empty or whitespace-only string - expected during refresh, return silently
             return None
         """Handle user selection from combo box"""
         if not user_display or user_display == "Select a user...":
