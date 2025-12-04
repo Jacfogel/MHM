@@ -1,0 +1,19 @@
+{
+  "generated_by": "analyze_functions - Development Tools",
+  "last_generated": "2025-12-04 07:33:39",
+  "timestamp": "2025-12-04T07:33:39.451302",
+  "tool_name": "analyze_functions",
+  "domain": "functions",
+  "source": "python development_tools/functions/analyze_functions.py",
+  "note": "This file is auto-generated. Do not edit manually.",
+  "data": {
+    "total_functions": 1490,
+    "moderate_complexity": 153,
+    "high_complexity": 138,
+    "critical_complexity": 128,
+    "undocumented": 23,
+    "handlers": 836,
+    "tests": 60,
+    "utilities": 0
+  }
+}

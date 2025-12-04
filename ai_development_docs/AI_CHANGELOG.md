@@ -36,6 +36,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-04 - Standardized Audit Commands and Tool Output Storage **IN PROGRESS**
+- Implemented three-tier audit structure (`audit --quick`, `audit`, `audit --full`) with standardized tool output storage in domain-organized JSON files
+- Created `output_storage.py` utility for consistent result storage with automatic archiving; refactored all tool wrappers to use it
+- Fixed critical bugs: path drift detection, unused imports data loading, complexity examples, consolidated report regeneration, and error handling
+- Updated CLI commands, configuration, and documentation; added Phase 11 tasks for refinement work
+- Remaining: timing analysis, comprehensive testing, and Phase 11 cleanup tasks
+
 ### 2025-12-03 - Phase 9 Status Reports Improvements and Tool Integration **COMPLETED**
 - Completed Phase 9 M9.1.1 and M9.1.2: Fixed AI_STATUS.md formatting (test coverage in snapshot, moved items to Documentation Signals, removed redundant sections), added config validation with recommendations and TODO sync status to all three status reports, fixed overlap analysis detection by ensuring data is saved to JSON cache
 - Completed Phase 10 M10.1.1 and M10.1.2: Integrated test marker scripts into `development_tools/tests/analyze_test_markers.py` and `fix_test_markers.py` (runs automatically during coverage), created project cleanup module at `shared/fix_project_cleanup.py` with `cleanup` subcommand

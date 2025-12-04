@@ -1,9 +1,9 @@
 {
   "generated_by": "analyze_config.py - Configuration Validation Tool",
-  "last_generated": "2025-12-03 05:47:56",
+  "last_generated": "2025-12-04 07:37:05",
   "source": "python development_tools/config/analyze_config.py",
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2025-12-03T05:47:56.695866",
+  "timestamp": "2025-12-04T07:37:05.457665",
   "validation_results": {
     "tools_analysis": {
       "run_development_tools.py": {

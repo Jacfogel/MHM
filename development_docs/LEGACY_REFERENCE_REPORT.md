@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-03 05:44:05
+> **Last Generated**: 2025-12-04 07:36:45
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 2
-**Legacy Compatibility Markers Detected**: 20
+**Total Files with Issues**: 5
+**Legacy Compatibility Markers Detected**: 28
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
-- Legacy compatibility markers remain in 1 file(s) (2 total markers).
+- Legacy compatibility markers remain in 3 file(s) (9 total markers).
 
 ## Recommended Follow-Up
 1. Confirm whether legacy `enabled_fields` payloads are still produced; if not, plan removal and data migration.
@@ -92,7 +92,48 @@
   ```
 
 ## Legacy Compatibility Markers
-**Files Affected**: 1
+**Files Affected**: 3
+
+### development_tools\shared\mtime_cache.py
+**Issues Found**: 2
+
+- **Line 112**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Fallback to legacy file-based loading
+  ```
+
+- **Line 164**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Fallback to legacy file-based saving
+  ```
+
+### development_tools\shared\operations.py
+**Issues Found**: 5
+
+- **Line 546**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Reading from old file location for backward compatibility
+  ```
+
+- **Line 5382**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Reading from old file location for backward compatibility
+  ```
+
+- **Line 7372**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Fallback to results_cache or central aggregation file
+  ```
+
+- **Line 7429**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Fallback to results_cache or central aggregation file
+  ```
+
+- **Line 7912**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Handle deprecated --fast flag
+  ```
 
 ### tests\fixtures\development_tools_demo\legacy_code.py
 **Issues Found**: 2
@@ -108,7 +149,7 @@
   ```
 
 ## Old Bot Directory
-**Files Affected**: 2
+**Files Affected**: 3
 
 ### tests\development_tools\test_legacy_reference_cleanup.py
 **Issues Found**: 3
@@ -126,6 +167,14 @@
 - **Line 238**: `import bot.`
   ```
   ('import bot.', 'import communication.'),
+  ```
+
+### tests\development_tools\test_path_drift_detection.py
+**Issues Found**: 1
+
+- **Line 117**: `bot/`
+  ```
+  - `bot/old_module.py` (legacy path)
   ```
 
 ### tests\fixtures\development_tools_demo\legacy_code.py

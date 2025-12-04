@@ -105,10 +105,11 @@ class PathDriftAnalyzer:
             scan_dirs = config.get_scan_directories()
             self.code_dirs = scan_dirs if scan_dirs else ['core']  # Generic default
         
-        # Caching - use shared utility
+        # Caching - use standardized storage
         from development_tools.shared.mtime_cache import MtimeFileCache
-        cache_file = self.project_root / "development_tools" / "docs" / ".path_drift_cache.json"
-        self.cache = MtimeFileCache(cache_file, self.project_root, use_cache=use_cache)
+        cache_file = self.project_root / "development_tools" / "docs" / ".path_drift_cache.json"  # Legacy fallback
+        self.cache = MtimeFileCache(cache_file, self.project_root, use_cache=use_cache,
+                                    tool_name='analyze_path_drift', domain='docs')
     
     def _setup_enhanced_filters(self):
         """Setup enhanced filtering patterns to reduce false positives."""

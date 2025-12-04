@@ -38,9 +38,11 @@ python development_tools/run_development_tools.py help
 - `--config-path <path>` - Override config file path (default: `development_tools_config.json` in project root)
 
 **Most commonly used commands**:
-- `audit` / `audit --full` - Fast or comprehensive audit
+- `audit` - Standard audit (Tier 2 - default, includes quality checks)
+- `audit --quick` - Quick audit (Tier 1 - core metrics only, ~30-60s)
+- `audit --full` - Full audit (Tier 3 - comprehensive analysis, ~10-30min)
 - `status` - Quick system status (uses cached audit data)
-- `docs` - Regenerate documentation artifacts
+- `docs` - Regenerate static documentation artifacts (FUNCTION_REGISTRY, MODULE_DEPENDENCIES, DIRECTORY_TREE)
 - `doc-sync` - Check documentation synchronization
 - `doc-fix` - Fix documentation issues (addresses, ASCII, headings, links)
 - `legacy` - Scan for legacy references
@@ -48,7 +50,7 @@ python development_tools/run_development_tools.py help
 - `unused-imports` - Detect unused imports
 - `config` - Check configuration consistency
 
-**Additional commands**: `quick-audit`, `system-signals`, `validate`, `decision-support`, `workflow`, `trees`, `cleanup`, `version-sync` (experimental)
+**Additional commands**: `quick-audit` (deprecated - use `audit --quick`), `system-signals`, `validate`, `decision-support`, `workflow`, `trees`, `cleanup`, `version-sync` (experimental)
 
 **Note**: Test marker analysis is automatically run during `audit --full` when coverage is generated. For fixing markers, use `development_tools/tests/fix_test_markers.py` directly.
 
@@ -63,25 +65,62 @@ python development_tools/run_development_tools.py help
 
 ## 3. Audit Modes and Outputs
 
-### 3.1. Fast mode - `audit`
-- Documentation and legacy signals
-- Complexity metrics (moderate/high/critical function counts)
-- Validation summaries and quick metrics
-- System signals + cached data
+### 3.1. Tier 1: Quick Audit - `audit --quick`
+- **Duration**: ~30-60 seconds
+- **Tools**: Core metrics only
+  - `analyze_functions` - Function discovery and complexity metrics
+  - `analyze_documentation_sync` - Documentation synchronization status
+  - `system_signals` - System health signals
+  - `quick_status` - Quick system status snapshot
+- **Use case**: Fast health check, pre-commit validation
 
-### 3.2. Full mode - `audit --full`
-- Full pytest + coverage regeneration
-- Unused import detection
-- Dependency + registry regeneration
-- HTML coverage reports
-- All fast mode data plus comprehensive coverage analysis
+### 3.2. Tier 2: Standard Audit - `audit` (default)
+- **Duration**: ~2-5 minutes
+- **Tools**: Everything in Tier 1 PLUS:
+  - `analyze_documentation` - Documentation quality analysis
+  - `analyze_error_handling` - Error handling coverage
+  - `decision_support` - Complexity insights and recommendations
+  - `analyze_config` - Configuration validation
+  - `analyze_ai_work` - AI work validation
+  - `analyze_function_registry` - Function registry validation
+  - `analyze_module_dependencies` - Module dependency validation
+- **Use case**: Standard quality checks, daily development workflow
 
-Outputs land in predictable locations:
+### 3.3. Tier 3: Full Audit - `audit --full`
+- **Duration**: ~10-30 minutes (depends on test suite)
+- **Tools**: Everything in Tier 1 & 2 PLUS:
+  - `generate_test_coverage` - Full test coverage regeneration
+  - `analyze_unused_imports` - Unused import detection
+  - `analyze_legacy_references` - Legacy code scanning
+  - `analyze_module_dependencies` - Full dependency analysis
+  - Report generators:
+    - `generate_legacy_reference_report` → `LEGACY_REFERENCE_REPORT.md`
+    - `generate_test_coverage_reports` → `TEST_COVERAGE_EXPANSION_PLAN.md`
+    - `analyze_unused_imports` → `UNUSED_IMPORTS_REPORT.md`
+- **Use case**: Comprehensive analysis, pre-release checks, periodic deep audits
+
+**Note**: All three tiers update the same output files:
 - AI-facing (root): `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.txt`
-- Domain-specific JSON: `reports/analysis_detailed_results.json`, `error_handling/error_handling_details.json`, `tests/coverage_dev_tools.json`, `config/analyze_config_results.json`, `imports/.unused_imports_cache.json`
-- Human-facing: `development_docs/FUNCTION_REGISTRY_DETAIL.md`, `development_docs/MODULE_DEPENDENCIES_DETAIL.md`, `development_docs/LEGACY_REFERENCE_REPORT.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`
-- Coverage artifacts: `coverage.json` (project root), `tests/coverage_html/` (project root), `development_tools/reports/archive/coverage_artifacts/<timestamp>/`
-- Dev tools coverage (audit --full): `tests/coverage_dev_tools.json` (HTML reports disabled)
+- Central aggregation: `development_tools/reports/analysis_detailed_results.json`
+- Domain-specific JSON: Individual tool results in `development_tools/{domain}/jsons/{tool}_results.json` (with automatic archiving)
+
+**Tool Output Storage**:
+- Individual tool results: `development_tools/{domain}/jsons/{tool}_results.json` (e.g., `functions/jsons/analyze_functions_results.json`)
+- Cache files: `development_tools/{domain}/jsons/.{tool}_cache.json`
+- Archives: `development_tools/{domain}/jsons/archive/` (keeps last 5 versions)
+- Central aggregation: `development_tools/reports/analysis_detailed_results.json` (aggregates all tool results)
+
+**Human-facing reports** (generated by Tier 3):
+- `development_docs/LEGACY_REFERENCE_REPORT.md`
+- `development_docs/TEST_COVERAGE_EXPANSION_PLAN.md`
+- `development_docs/UNUSED_IMPORTS_REPORT.md`
+
+**Static documentation** (regenerated via `docs` command, not during audits):
+- `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
+- `ai_development_docs/AI_FUNCTION_REGISTRY.md`
+- `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
+- `development_docs/FUNCTION_REGISTRY_DETAIL.md`
+- `development_docs/DIRECTORY_TREE.md`
 
 The `status` command surfaces cached summaries from `reports/analysis_detailed_results.json` (complexity, validation, system signals); rerun `audit` if the cache is stale.
 

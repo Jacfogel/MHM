@@ -51,27 +51,71 @@ class MtimeFileCache:
         self,
         cache_file: Path,
         project_root: Path,
-        use_cache: bool = True
+        use_cache: bool = True,
+        tool_name: Optional[str] = None,
+        domain: Optional[str] = None
     ):
         """
         Initialize the cache.
         
         Args:
-            cache_file: Path to the JSON cache file
+            cache_file: Path to the JSON cache file (legacy - used if tool_name/domain not provided)
             project_root: Root directory of the project (for relative path generation)
             use_cache: Whether to use caching (if False, all operations are no-ops)
+            tool_name: Name of the tool (e.g., 'analyze_ascii_compliance') - if provided, uses standardized storage
+            domain: Domain directory (e.g., 'docs') - if provided with tool_name, uses standardized storage
         """
         self.cache_file = cache_file
         self.project_root = project_root.resolve()
         self.use_cache = use_cache
         self.cache_data: Dict[str, Dict[str, Any]] = {}
+        self.tool_name = tool_name
+        self.domain = domain
+        self.use_standardized_storage = tool_name is not None and domain is not None
         
         if self.use_cache:
             self._load_cache()
     
     def _load_cache(self) -> None:
         """Load cache from disk if it exists."""
+        if self.use_standardized_storage:
+            # Use standardized storage
+            try:
+                from .output_storage import load_tool_cache
+                loaded_data = load_tool_cache(self.tool_name, self.domain, project_root=self.project_root)
+                if loaded_data:
+                    # load_tool_cache already extracts data from metadata wrapper, so loaded_data is the cache content
+                    # Migrate old cache format (with 'issues' key) to new format (with 'results' key)
+                    migrated_data = {}
+                    for key, value in loaded_data.items():
+                        if isinstance(value, dict):
+                            # Check if it's old format with 'issues' key
+                            if 'issues' in value and 'results' not in value:
+                                migrated_data[key] = {
+                                    'mtime': value.get('mtime'),
+                                    'results': value.get('issues', [])
+                                }
+                            else:
+                                # Already in new format or has 'results' key
+                                migrated_data[key] = value
+                        else:
+                            # Invalid format, skip
+                            continue
+                    self.cache_data = migrated_data
+                    if logger:
+                        logger.debug(f"Loaded cache from standardized storage ({self.tool_name}) with {len(self.cache_data)} entries")
+                    return
+            except Exception as e:
+                if logger:
+                    logger.warning(f"Failed to load cache from standardized storage: {e}")
+        
+        # LEGACY COMPATIBILITY: Fallback to legacy file-based loading
+        # New standardized storage location: development_tools/{domain}/jsons/.{tool_name}_cache.json
+        # Removal plan: After all tools migrate to standardized storage and old cache files are removed, remove this fallback.
+        # Detection: Search for "cache_file.exists()" and "MtimeFileCache" without tool_name/domain parameters to find legacy usage.
         if self.cache_file.exists():
+            if logger:
+                logger.debug(f"LEGACY: Loading cache from legacy location: {self.cache_file}")
             try:
                 with open(self.cache_file, 'r', encoding='utf-8') as f:
                     loaded_data = json.load(f)
@@ -105,6 +149,24 @@ class MtimeFileCache:
         if not self.use_cache:
             return
         
+        if self.use_standardized_storage:
+            # Use standardized storage
+            try:
+                from .output_storage import save_tool_cache
+                save_tool_cache(self.tool_name, self.domain, self.cache_data, project_root=self.project_root)
+                if logger:
+                    logger.debug(f"Saved cache to standardized storage ({self.tool_name}) with {len(self.cache_data)} entries")
+                return
+            except Exception as e:
+                if logger:
+                    logger.warning(f"Failed to save cache to standardized storage: {e}")
+        
+        # LEGACY COMPATIBILITY: Fallback to legacy file-based saving
+        # New standardized storage location: development_tools/{domain}/jsons/.{tool_name}_cache.json
+        # Removal plan: After all tools migrate to standardized storage and old cache files are removed, remove this fallback.
+        # Detection: Search for "cache_file.parent.mkdir" and "MtimeFileCache" without tool_name/domain parameters to find legacy usage.
+        if logger:
+            logger.debug(f"LEGACY: Saving cache to legacy location: {self.cache_file}")
         try:
             self.cache_file.parent.mkdir(parents=True, exist_ok=True)
             with open(self.cache_file, 'w', encoding='utf-8') as f:

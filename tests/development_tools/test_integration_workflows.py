@@ -20,7 +20,7 @@ class TestCommandRouting:
         monkeypatch.setattr(runner, "AIToolsService", lambda project_root=None, config_path=None: mock_service)
 
         assert runner.main(["audit"]) == 0
-        mock_service.run_audit.assert_called_once_with(fast=True, include_overlap=False)
+        mock_service.run_audit.assert_called_once_with(quick=False, full=False, include_overlap=False)
 
     @pytest.mark.integration
     def test_audit_command_failure(self, monkeypatch):

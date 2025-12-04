@@ -6271,8 +6271,22 @@
     "results": []
   },
   "development_tools/shared/operations.py": {
-    "mtime": 1764762220.3678157,
-    "results": []
+    "mtime": 1764842251.3002107,
+    "results": [
+      {
+        "type": "warning",
+        "module": "development_tools.shared.operations",
+        "obj": "",
+        "line": 110,
+        "column": 0,
+        "endLine": 110,
+        "endColumn": 112,
+        "path": "development_tools\\shared\\operations.py",
+        "symbol": "unused-import",
+        "message": "Unused load_tool_result imported from output_storage",
+        "message-id": "W0611"
+      }
+    ]
   },
   "development_tools/shared/standard_exclusions.py": {
     "mtime": 1764592611.220368,
@@ -6387,7 +6401,7 @@
     "results": []
   },
   "development_tools/config/config.py": {
-    "mtime": 1764592167.8575876,
+    "mtime": 1764816606.0274749,
     "results": []
   },
   "development_tools/config/config_validator.py": {
@@ -6655,7 +6669,7 @@
     "results": []
   },
   "development_tools/tests/generate_test_coverage.py": {
-    "mtime": 1764754855.6113722,
+    "mtime": 1764842251.3022869,
     "results": [
       {
         "type": "warning",
@@ -6878,6 +6892,37 @@
         "path": "development_tools\\tests\\fix_test_markers.py",
         "symbol": "unused-import",
         "message": "Unused Tuple imported from typing",
+        "message-id": "W0611"
+      }
+    ]
+  },
+  "development_tools/shared/output_storage.py": {
+    "mtime": 1764816606.0274749,
+    "results": [
+      {
+        "type": "warning",
+        "module": "development_tools.shared.output_storage",
+        "obj": "",
+        "line": 11,
+        "column": 0,
+        "endLine": 11,
+        "endColumn": 9,
+        "path": "development_tools\\shared\\output_storage.py",
+        "symbol": "unused-import",
+        "message": "Unused import os",
+        "message-id": "W0611"
+      },
+      {
+        "type": "warning",
+        "module": "development_tools.shared.output_storage",
+        "obj": "",
+        "line": 17,
+        "column": 0,
+        "endLine": 17,
+        "endColumn": 58,
+        "path": "development_tools\\shared\\output_storage.py",
+        "symbol": "unused-import",
+        "message": "Unused create_output_file imported from file_rotation",
         "message-id": "W0611"
       }
     ]

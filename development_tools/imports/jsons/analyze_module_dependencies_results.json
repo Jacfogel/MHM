@@ -1,0 +1,21 @@
+{
+  "generated_by": "analyze_module_dependencies - Development Tools",
+  "last_generated": "2025-12-04 07:33:50",
+  "timestamp": "2025-12-04T07:33:50.393755",
+  "tool_name": "analyze_module_dependencies",
+  "domain": "imports",
+  "source": "python development_tools/imports/analyze_module_dependencies.py",
+  "note": "This file is auto-generated. Do not edit manually.",
+  "data": {
+    "files_scanned": 328,
+    "total_imports": 3778,
+    "documented_dependencies": 327,
+    "standard_library": 1281,
+    "third_party": 562,
+    "local_imports": 1935,
+    "missing_dependencies": 1,
+    "missing_sections": [
+      "tests/development_tools/test_path_drift_detection.py"
+    ]
+  }
+}

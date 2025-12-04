@@ -109,8 +109,9 @@ class UnusedImportsChecker:
         
         # Caching - use shared utility
         from development_tools.shared.mtime_cache import MtimeFileCache
-        cache_file = self.project_root / "development_tools" / "imports" / ".unused_imports_cache.json"
-        self.cache = MtimeFileCache(cache_file, self.project_root, use_cache=use_cache)
+        cache_file = self.project_root / "development_tools" / "imports" / ".unused_imports_cache.json"  # Legacy fallback
+        self.cache = MtimeFileCache(cache_file, self.project_root, use_cache=use_cache,
+                                    tool_name='analyze_unused_imports', domain='imports')
         
         # Get config values
         self.pylint_command = UNUSED_IMPORTS_CONFIG.get('pylint_command', [sys.executable, '-m', 'pylint'])

@@ -60,9 +60,10 @@ python development_tools/run_development_tools.py config
 ### 2.3. Command Summary
 
 **Core Commands** (daily-safe, audit-first workflow):
-- `audit` - fast mode; regenerates lightweight reports and cached signals.
-- `audit --full` - long-running; adds pytest coverage, unused imports, dependency regeneration, HTML reports.
-- `quick-audit` - comprehensive audit without extras (alternative to `audit`).
+- `audit` - Standard audit (Tier 2, default); regenerates quality checks and cached signals.
+- `audit --quick` - Quick audit (Tier 1); core metrics only (~30-60s).
+- `audit --full` - Full audit (Tier 3); comprehensive analysis including coverage (~10-30min).
+- `quick-audit` - [DEPRECATED] Use `audit --quick` instead.
 - `docs` - regenerates registries, dependency maps, and doc-signals.
 - `doc-sync` - verifies paired doc headings, path drift, ASCII compliance.
 - `config` - prints configuration validation report with tool analysis and recommendations.
@@ -103,18 +104,26 @@ Regardless of command:
 
 ## 3. Audit Modes and Outputs
 
-**Fast mode (`audit`)** collects:
-- Documentation drift metrics
-- Legacy reference summaries
-- Complexity metrics (function complexity distribution: moderate/high/critical counts)
-- Validation snapshots and quick system signals
+**Tier 1: Quick Audit (`audit --quick`)** collects:
+- Function discovery and complexity metrics
+- Documentation synchronization status
+- System health signals
+- Quick status snapshot
 
-**Full mode (`audit --full`)** adds:
+**Tier 2: Standard Audit (`audit`, default)** includes everything in Tier 1 plus:
+- Documentation quality analysis
+- Error handling coverage
+- Decision support insights
+- Configuration validation
+- AI work validation
+- Function registry and module dependency validation
+
+**Tier 3: Full Audit (`audit --full`)** includes everything in Tier 1 & 2 plus:
 - Full pytest execution with coverage regeneration
 - Unused import detection
-- Registry and dependency regeneration
-- Coverage HTML/JSON refresh plus archival
-- All fast mode data plus comprehensive coverage analysis
+- Legacy reference scanning
+- Module dependency analysis
+- Improvement opportunity reports (LEGACY_REFERENCE_REPORT.md, TEST_COVERAGE_EXPANSION_PLAN.md, UNUSED_IMPORTS_REPORT.md)
 
 Pipeline artifacts:
 - AI-facing (root): [AI_STATUS.md](development_tools/AI_STATUS.md), `AI_PRIORITIES.md`, `consolidated_report.txt`

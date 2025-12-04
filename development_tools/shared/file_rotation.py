@@ -131,7 +131,7 @@ class FileRotator:
         return filtered_files
 
 
-def create_output_file(file_path: str, content: str, rotate: bool = True, max_versions: int = None) -> str:
+def create_output_file(file_path: str, content: str, rotate: bool = True, max_versions: int = None) -> Path:
     """
     Create an output file with optional rotation.
     
@@ -142,9 +142,13 @@ def create_output_file(file_path: str, content: str, rotate: bool = True, max_ve
         max_versions: Maximum number of backup versions to keep
         
     Returns:
-        Path to the created file
+        Path object pointing to the created file
     """
-    file_path = Path(file_path)
+    # Ensure file_path is a Path object
+    if isinstance(file_path, str):
+        file_path = Path(file_path)
+    else:
+        file_path = Path(file_path)
     
     # Ensure directory exists
     file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -158,14 +162,19 @@ def create_output_file(file_path: str, content: str, rotate: bool = True, max_ve
             base_dir = file_path_obj.parent / "reports"
         else:
             base_dir = file_path_obj.parent
+        # Ensure base_dir is a Path object before converting to string
+        if isinstance(base_dir, str):
+            base_dir = Path(base_dir)
         rotator = FileRotator(base_dir=str(base_dir))
-        file_path = Path(rotator.rotate_file(str(file_path), max_versions))
+        rotated_path = rotator.rotate_file(str(file_path), max_versions)
+        # Ensure rotated_path is converted back to Path
+        file_path = Path(rotated_path) if isinstance(rotated_path, str) else rotated_path
     
     # Write content to file
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write(content)
     
-    return str(file_path)
+    return file_path
 
 
 def append_to_log(log_file: str, content: str, max_size_mb: int = 10) -> str:

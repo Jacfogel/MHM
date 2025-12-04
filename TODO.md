@@ -143,6 +143,18 @@ When adding new tasks, follow this format:
   - Test data cleanup (tests/test_utilities.py, test fixtures)
   - Temporary file cleanup patterns
 
+**Break Down analyze_unused_imports into Analyze and Generate Components**
+- *What it means*: Decompose `analyze_unused_imports.py` following the naming conventions: separate analysis logic into `imports/analyze_unused_imports.py` (detection only) and report generation into `imports/generate_unused_imports_report.py` (creates UNUSED_IMPORTS_REPORT.md)
+- *Why it helps*: Follows established naming conventions (analyze_* vs generate_*), improves modularity, allows analysis without report generation, and aligns with other decomposed tools
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Extract analysis logic from current `analyze_unused_imports.py` (keep detection/scanning)
+  - [ ] Create `imports/generate_unused_imports_report.py` with report generation logic
+  - [ ] Update `analyze_unused_imports.py` to focus on analysis only
+  - [ ] Update operations.py to call both tools appropriately
+  - [ ] Update tests to cover both components
+  - [ ] Update documentation and tool_metadata.py
+
 **Integrate Unused Imports Cleanup into Unused Imports Checker**
 - *What it means*: Integrate `scripts/cleanup_unused_imports.py` functionality into a new tool, `imports/fix_unused_imports.py`. Add categorization and cleanup recommendations to the existing unused imports analysis.
 - *Why it helps*: Provides actionable recommendations for unused imports (missing error handling, missing logging, safe to remove, etc.) alongside detection. Enables automated cleanup workflows. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.

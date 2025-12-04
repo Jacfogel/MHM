@@ -207,6 +207,28 @@ QUICK_AUDIT = {
     'prioritize_issues': True
 }
 
+# Audit tier configuration
+# Defines which tools run in each audit tier
+AUDIT_TIERS = {
+    'quick': {
+        'tools': ['analyze_functions', 'analyze_documentation_sync', 'system_signals', 'quick_status'],
+        'description': 'Lightweight analysis - core metrics only'
+    },
+    'standard': {
+        'tools': ['analyze_documentation', 'analyze_error_handling', 'decision_support', 'analyze_config', 'analyze_ai_work'],
+        'description': 'Standard analysis - includes quality checks'
+    },
+    'full': {
+        'analyze_tools': ['generate_test_coverage', 'analyze_unused_imports', 'analyze_legacy_references', 'analyze_module_dependencies'],
+        'report_generators': [
+            'generate_legacy_reference_report',  # → LEGACY_REFERENCE_REPORT.md
+            'generate_test_coverage_reports',    # → TEST_COVERAGE_EXPANSION_PLAN.md
+            'analyze_unused_imports'             # → UNUSED_IMPORTS_REPORT.md (generates report)
+        ],
+        'description': 'Comprehensive analysis - includes coverage, dependencies, and improvement reports'
+    }
+}
+
 # Version sync settings
 # NOTE: Projects should provide config file. All paths are relative to project root.
 VERSION_SYNC = {
@@ -428,6 +450,22 @@ def get_quick_audit_config():
         result.update(external_config)
         return result
     return QUICK_AUDIT
+
+def get_audit_tiers_config():
+    """Get audit tier configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('audit_tiers', None)
+    if external_config:
+        # Merge external config with defaults (external takes precedence)
+        result = AUDIT_TIERS.copy()
+        # Deep merge for nested dicts
+        for tier in ['quick', 'standard', 'full']:
+            if tier in external_config:
+                if tier in result:
+                    result[tier] = {**result[tier], **external_config[tier]}
+                else:
+                    result[tier] = external_config[tier]
+        return result
+    return AUDIT_TIERS
 
 def get_paths_config():
     """

@@ -20,7 +20,7 @@
     "results": []
   },
   "TODO.md": {
-    "mtime": 1764747415.672555,
+    "mtime": 1764815652.5991216,
     "results": []
   },
   "PROJECT_VISION.md": {
@@ -28,7 +28,7 @@
     "results": []
   },
   "development_docs/CHANGELOG_DETAIL.md": {
-    "mtime": 1764678780.3061893,
+    "mtime": 1764763391.0081165,
     "results": []
   },
   "development_docs/PLANS.md": {
@@ -44,15 +44,15 @@
     "results": []
   },
   "ai_development_docs/AI_DOCUMENTATION_GUIDE.md": {
-    "mtime": 1764756646.0714016,
+    "mtime": 1764801181.047629,
     "results": []
   },
   "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
-    "mtime": 1764551842.3326516,
+    "mtime": 1764816606.0436912,
     "results": []
   },
   "ai_development_docs/AI_CHANGELOG.md": {
-    "mtime": 1764678780.1991165,
+    "mtime": 1764763391.0086203,
     "results": []
   },
   "ai_development_docs/AI_REFERENCE.md": {
@@ -120,11 +120,13 @@
     "results": []
   },
   "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
-    "mtime": 1764756254.7708006,
-    "results": []
+    "mtime": 1764816606.035673,
+    "results": [
+      "Non-ASCII character '\u2192' (U+2192): 3 instance(s) found (auto-fixable: '->')"
+    ]
   },
   "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
-    "mtime": 1764756280.9856236,
+    "mtime": 1764817861.9507194,
     "results": []
   }
 }

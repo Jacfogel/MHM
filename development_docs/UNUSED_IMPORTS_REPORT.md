@@ -2,18 +2,18 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-03 05:44:13
+> **Last Generated**: 2025-12-04 07:36:39
 > **Source**: `python development_tools/run_development_tools.py unused-imports` - Unused Imports Detection Tool
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 347
-- **Files with Unused Imports**: 124
-- **Total Unused Imports**: 365
+- **Total Files Scanned**: 349
+- **Files with Unused Imports**: 127
+- **Total Unused Imports**: 371
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 93 imports
+- **Obvious Unused**: 99 imports
 - **Type Hints Only**: 2 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 7 imports
@@ -185,6 +185,22 @@
 - **Line 31**: Unused List imported from typing
   - Symbol: `unused-import`
 
+### `development_tools/shared/operations.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 110**: Unused load_tool_result imported from output_storage
+  - Symbol: `unused-import`
+
+### `development_tools/shared/output_storage.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 11**: Unused import os
+  - Symbol: `unused-import`
+- **Line 17**: Unused create_output_file imported from file_rotation
+  - Symbol: `unused-import`
+
 ### `development_tools/tests/fix_test_markers.py`
 
 **Count**: 3 unused import(s)
@@ -339,6 +355,17 @@
 **Count**: 1 unused import(s)
 
 - **Line 8**: Unused import sys
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_path_drift_detection.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 9**: Unused import pytest
+  - Symbol: `unused-import`
+- **Line 10**: Unused import tempfile
+  - Symbol: `unused-import`
+- **Line 11**: Unused import shutil
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_regenerate_coverage_metrics.py`
