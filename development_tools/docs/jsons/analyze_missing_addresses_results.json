@@ -1,0 +1,14 @@
+{
+  "generated_by": "analyze_missing_addresses - Development Tools",
+  "last_generated": "2025-12-05 05:29:40",
+  "timestamp": "2025-12-05T05:29:40.888746",
+  "tool_name": "analyze_missing_addresses",
+  "domain": "docs",
+  "source": "python development_tools/docs/analyze_missing_addresses.py",
+  "note": "This file is auto-generated. Do not edit manually.",
+  "data": {
+    "files": {},
+    "file_count": 0,
+    "total_issues": 0
+  }
+}

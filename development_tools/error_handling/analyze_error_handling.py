@@ -883,7 +883,7 @@ def main():
     
     parser = argparse.ArgumentParser(description='Analyze error handling coverage in the codebase')
     parser.add_argument('--json', action='store_true', help='Output results in JSON format')
-    parser.add_argument('--output', type=str, help='Output file path (default: development_tools/error_handling/error_handling_details.json when --json is used)')
+    parser.add_argument('--output', type=str, help='Output file path (default: development_tools/error_handling/jsons/error_handling_details.json when --json is used)')
     parser.add_argument('--project-root', default='.', help='Project root directory')
     parser.add_argument('--include-tests', action='store_true', help='Include test files in analysis')
     parser.add_argument('--include-dev-tools', action='store_true', help='Include development_tools in analysis')
@@ -919,7 +919,7 @@ def main():
             # Default to development_tools/error_handling directory
             tools_dir = project_root / 'development_tools' / 'error_handling'
             tools_dir.mkdir(exist_ok=True)
-            output_path = tools_dir / 'error_handling_details.json'
+            output_path = tools_dir / 'jsons' / 'error_handling_details.json'
         
         # Save JSON report
         report_generator.save_json_report(output_path)

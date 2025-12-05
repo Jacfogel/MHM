@@ -161,6 +161,26 @@ def get_user_data(
             except Exception as index_error:
                 logger.debug(f"Index check failed for user {user_id}: {index_error}")
                 # If index check fails, fall back to file-based checks below
+        # For auto_create=True, check if user directory exists
+        # If directory exists, always allow loaders to proceed (index is just a cache)
+        # If directory doesn't exist, only return empty if user is truly nonexistent (not in index)
+        elif auto_create is True:
+            from core.config import get_user_data_dir as _get_user_data_dir
+            user_dir = _get_user_data_dir(user_id)
+            if not os.path.exists(user_dir):
+                # Directory doesn't exist - check if user is in index
+                # If user is in index, allow loaders to proceed (they may create the directory)
+                # If user is not in index, return empty (truly nonexistent user)
+                try:
+                    known_ids = set(get_all_user_ids())
+                    if user_id not in known_ids:
+                        logger.debug(f"get_user_data: user {user_id} not in index and directory missing with auto_create=True; returning empty")
+                        return {}
+                    # User is in index but directory missing - allow loaders to proceed
+                except Exception:
+                    # If index check fails, allow loaders to proceed (they may create the directory)
+                    pass
+            # If directory exists, always proceed (regardless of index status)
     except Exception:
         pass
 
@@ -876,12 +896,16 @@ def _save_user_data__check_cross_file_invariants(
                         else:
                             # Account not being updated, but we need to update it - add to merged_data
                             if 'account' not in merged_data:
-                                # Copy and normalize account data before adding
-                                merged_account = account_data.copy() if account_data else {}
+                                # Deep copy account data to avoid mutating the original
+                                import copy
+                                merged_account = copy.deepcopy(account_data) if account_data else {}
                                 # Normalize the account data
                                 _save_user_data__normalize_data('account', merged_account)
                                 merged_data['account'] = merged_account
-                            merged_data['account']['features'] = feats
+                            # Update features after adding to merged_data to ensure the update persists
+                            if 'features' not in merged_data['account']:
+                                merged_data['account']['features'] = {}
+                            merged_data['account']['features'].update(feats)
                 
                 # Ensure schedules exist for all categories
                 try:

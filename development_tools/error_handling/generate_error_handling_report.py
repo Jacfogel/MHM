@@ -135,7 +135,7 @@ def main():
     
     parser = argparse.ArgumentParser(description='Generate error handling reports from analysis results')
     parser.add_argument('--input', type=str, required=True, help='Input JSON file with analysis results')
-    parser.add_argument('--output', type=str, help='Output file path (default: development_tools/error_handling/error_handling_details.json)')
+    parser.add_argument('--output', type=str, help='Output file path (default: development_tools/error_handling/jsons/error_handling_details.json)')
     parser.add_argument('--format', choices=['json', 'summary', 'both'], default='both', help='Output format')
     
     args = parser.parse_args()
@@ -156,7 +156,7 @@ def main():
             project_root = Path(args.input).parent.parent.parent
             tools_dir = project_root / 'development_tools' / 'error_handling'
             tools_dir.mkdir(exist_ok=True)
-            output_path = tools_dir / 'error_handling_details.json'
+            output_path = tools_dir / 'jsons' / 'error_handling_details.json'
         
         generator.save_json_report(output_path)
     

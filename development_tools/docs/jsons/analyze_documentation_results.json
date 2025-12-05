@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_documentation - Development Tools",
-  "last_generated": "2025-12-04 07:33:43",
-  "timestamp": "2025-12-04T07:33:43.401472",
+  "last_generated": "2025-12-05 05:29:45",
+  "timestamp": "2025-12-05T05:29:45.314117",
   "tool_name": "analyze_documentation",
   "domain": "docs",
   "source": "python development_tools/docs/analyze_documentation.py",
@@ -41,7 +41,7 @@
           "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
         ],
         "priority": "medium",
-        "similarity_score": 0.1921182841899749,
+        "similarity_score": 0.19206324412059533,
         "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
       },
       {
@@ -54,86 +54,6 @@
         "priority": "medium",
         "similarity_score": 0.29697863023774945,
         "suggestion": "Consider consolidating testing documentation into a single TESTING_GUIDE.md"
-      },
-      {
-        "category": "High Section Overlap",
-        "files": [
-          "DOCUMENTATION_GUIDE.md",
-          "ai_development_docs/AI_DOCUMENTATION_GUIDE.md"
-        ],
-        "overlap_count": 8,
-        "priority": "high",
-        "suggestion": "These files share 8 sections - consider consolidating or clearly differentiating their purposes"
-      },
-      {
-        "category": "High Section Overlap",
-        "files": [
-          "DEVELOPMENT_WORKFLOW.md",
-          "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
-        ],
-        "overlap_count": 9,
-        "priority": "high",
-        "suggestion": "These files share 9 sections - consider consolidating or clearly differentiating their purposes"
-      },
-      {
-        "category": "High Section Overlap",
-        "files": [
-          "ARCHITECTURE.md",
-          "ai_development_docs/AI_ARCHITECTURE.md"
-        ],
-        "overlap_count": 7,
-        "priority": "high",
-        "suggestion": "These files share 7 sections - consider consolidating or clearly differentiating their purposes"
-      },
-      {
-        "category": "High Section Overlap",
-        "files": [
-          "ai_development_docs/AI_CHANGELOG.md",
-          "development_docs/CHANGELOG_DETAIL.md"
-        ],
-        "overlap_count": 94,
-        "priority": "high",
-        "suggestion": "These files share 94 sections - consider consolidating or clearly differentiating their purposes"
-      },
-      {
-        "category": "High Section Overlap",
-        "files": [
-          "ai_development_docs/AI_LOGGING_GUIDE.md",
-          "logs/LOGGING_GUIDE.md"
-        ],
-        "overlap_count": 10,
-        "priority": "high",
-        "suggestion": "These files share 10 sections - consider consolidating or clearly differentiating their purposes"
-      },
-      {
-        "category": "High Section Overlap",
-        "files": [
-          "ai_development_docs/AI_TESTING_GUIDE.md",
-          "tests/TESTING_GUIDE.md"
-        ],
-        "overlap_count": 8,
-        "priority": "high",
-        "suggestion": "These files share 8 sections - consider consolidating or clearly differentiating their purposes"
-      },
-      {
-        "category": "High Section Overlap",
-        "files": [
-          "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
-          "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
-        ],
-        "overlap_count": 7,
-        "priority": "high",
-        "suggestion": "These files share 7 sections - consider consolidating or clearly differentiating their purposes"
-      },
-      {
-        "category": "High Section Overlap",
-        "files": [
-          "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-          "core/ERROR_HANDLING_GUIDE.md"
-        ],
-        "overlap_count": 11,
-        "priority": "high",
-        "suggestion": "These files share 11 sections - consider consolidating or clearly differentiating their purposes"
       }
     ],
     "documents": [
@@ -274,12 +194,12 @@
         ]
       },
       "TODO.md": {
-        "content_length": 23515,
+        "content_length": 23929,
         "header_info": "# TODO.md - MHM Project Tasks\n\n> **File**: `TODO.md`\n> **Audience**: Human Developer (Beginner Programmer) and AI collaborators\n> **Purpose**: Current development priorities and planned improvements  ",
         "section_count": 9,
         "sections": [
           "Introduction",
-          "How to Add New TODOs",
+          "How to Add New TODOs\u2705",
           "High Priority",
           "Medium Priority",
           "User Experience Improvements",
@@ -322,20 +242,20 @@
         ]
       },
       "ai_development_docs/AI_CHANGELOG.md": {
-        "content_length": 123763,
+        "content_length": 125134,
         "header_info": "# AI Changelog - Brief Summary for AI Context\n\n\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent ch",
-        "section_count": 148,
+        "section_count": 150,
         "sections": [
           "Introduction",
           "Overview",
           "How to Update This File",
           "YYYY-MM-DD - Brief Title **COMPLETED**",
           "Recent Changes (Most Recent First)",
+          "2025-12-04 - UI Signal Handler Fixes and Test Infrastructure Improvements **COMPLETED**",
+          "2025-12-04 - Standardized Audit Commands and Tool Output Storage **IN PROGRESS**",
           "2025-12-03 - Phase 9 Status Reports Improvements and Tool Integration **COMPLETED**",
           "2025-12-02 - Implemented Shared Mtime-Based Caching for Development Tools **COMPLETED**",
-          "2025-12-02 - Fixed Path Drift and Non-ASCII Characters in Documentation **COMPLETED**",
-          "2025-12-02 - Completed M7.4 Tool Decomposition Plan **COMPLETED**",
-          "2025-12-01 - Development Tools Configuration Cleanup and Fixes **COMPLETED**"
+          "2025-12-02 - Fixed Path Drift and Non-ASCII Characters in Documentation **COMPLETED**"
         ]
       },
       "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -521,9 +441,9 @@
         ]
       },
       "development_docs/CHANGELOG_DETAIL.md": {
-        "content_length": 862141,
+        "content_length": 868336,
         "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of ",
-        "section_count": 301,
+        "section_count": 303,
         "sections": [
           "Introduction",
           "Overview",
@@ -531,10 +451,10 @@
           "How to Add Changes",
           "YYYY-MM-DD - Brief Title",
           "Recent Changes (Most Recent First)",
+          "2025-12-04 - UI Signal Handler Fixes and Test Infrastructure Improvements **COMPLETED**",
+          "2025-12-04 - Standardized Audit Commands and Tool Output Storage **IN PROGRESS**",
           "2025-12-03 - Phase 9 Status Reports Improvements and Tool Integration **COMPLETED**",
-          "2025-12-02 - Implemented Shared Mtime-Based Caching for Development Tools **COMPLETED**",
-          "2025-12-02 - Fixed Path Drift and Non-ASCII Characters in Documentation **COMPLETED**",
-          "2025-12-02 - Completed M7.4 Tool Decomposition Plan and Additional Module Dependencies Decomposition **COMPLETED**"
+          "2025-12-02 - Implemented Shared Mtime-Based Caching for Development Tools **COMPLETED**"
         ]
       },
       "development_docs/PLANS.md": {
@@ -706,18 +626,6 @@
     "missing": [],
     "placeholders": [],
     "section_overlaps": {
-      "1. Directory Overview": [
-        "ARCHITECTURE.md",
-        "ai_development_docs/AI_ARCHITECTURE.md"
-      ],
-      "1. Documentation Categories": [
-        "DOCUMENTATION_GUIDE.md",
-        "ai_development_docs/AI_DOCUMENTATION_GUIDE.md"
-      ],
-      "1. Purpose and Design Principles": [
-        "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-        "core/ERROR_HANDLING_GUIDE.md"
-      ],
       "1. Purpose and Scope": [
         "ai_development_docs/AI_LOGGING_GUIDE.md",
         "ai_development_docs/AI_TESTING_GUIDE.md",
@@ -727,598 +635,6 @@
         "communication/communication_channels/discord/DISCORD_GUIDE.md",
         "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
         "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
-      ],
-      "1. Safety First": [
-        "DEVELOPMENT_WORKFLOW.md",
-        "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
-      ],
-      "1.2. AI-facing documents": [
-        "DOCUMENTATION_GUIDE.md",
-        "ai_development_docs/AI_DOCUMENTATION_GUIDE.md"
-      ],
-      "10. Examples": [
-        "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-        "core/ERROR_HANDLING_GUIDE.md"
-      ],
-      "10. Usage Examples": [
-        "ai_development_docs/AI_LOGGING_GUIDE.md",
-        "logs/LOGGING_GUIDE.md"
-      ],
-      "11. Cross-References": [
-        "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-        "core/ERROR_HANDLING_GUIDE.md"
-      ],
-      "2. Architecture Overview": [
-        "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-        "core/ERROR_HANDLING_GUIDE.md"
-      ],
-      "2. Logging Architecture": [
-        "ai_development_docs/AI_LOGGING_GUIDE.md",
-        "logs/LOGGING_GUIDE.md"
-      ],
-      "2. Running the Tool Suite": [
-        "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
-        "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
-      ],
-      "2. Standards and Templates": [
-        "DOCUMENTATION_GUIDE.md",
-        "ai_development_docs/AI_DOCUMENTATION_GUIDE.md"
-      ],
-      "2. Test Layout and Types": [
-        "ai_development_docs/AI_TESTING_GUIDE.md",
-        "tests/TESTING_GUIDE.md"
-      ],
-      "2. User Data Model": [
-        "ARCHITECTURE.md",
-        "ai_development_docs/AI_ARCHITECTURE.md"
-      ],
-      "2. Virtual Environment Best Practices": [
-        "DEVELOPMENT_WORKFLOW.md",
-        "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
-      ],
-      "2025-01-09 - Test Coverage Expansion Session: Communication, UI, and Discord Bot Modules **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-01-14 - Test Coverage Expansion for User Preferences, UI Management, and Prompt Manager **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-01-16 - Pathlib Migration Completion and Test Fixes **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-01-27 - Pytest Markers Analysis and Standardization **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-01-XX - Error Handling Coverage Expansion to 92.9% **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-01-XX - Preferences Block Preservation When Features Disabled **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-01-XX - Test Isolation Improvements and Bug Fixes **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-01 - Chat Interaction Storage Testing Implementation **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-01 - Comprehensive Error Handling Enhancement **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-01 - Comprehensive Quantitative Analytics Expansion **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-01 - Log Rotation Truncation Fix **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-01 - Test Suite Warnings Resolution and Coverage Improvements **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-02 - AI Development Tools Audit and Documentation Fixes **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-11 - Critical Async Error Handling Fix for Discord Message Receiving **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-11 - Fixed Two Critical Errors: AttributeError and Invalid File Path **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-11 - Test Suite Fixes: All 50 Failures Resolved **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-12 - Fixed Test Logging: Headers, Isolation, and Rotation **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-13 - Automated Weekly Backup System **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-13 - Consolidated Legacy Daily Checkin Files **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-13 - User Index Refactoring: Removed Redundant Data Cache **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-16 - Unused Imports Cleanup Phase 2.11 **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-17 - LM Studio Automatic Management System **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-18 - Comprehensive Unused Imports Cleanup - Final Phase **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-18 - Logging System Optimization and Redundancy Reduction **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-19 - Enhanced Checkin Response Parsing and Skip Functionality **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-19 - Unused Imports Analysis and Tool Improvement **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-21 - Documentation & Testing Improvements **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-23 - UI Service Management Integration **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-24 - AI Quick Reference Cleanup **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-10-24 - Cursor Rules & Commands Refresh **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-02 - AI Response Quality Improvements & Documentation Updates **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-02 - Documentation Sync Fixes & Test Warning Resolution **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-02 - UI Validation Fixes, Import Detection Improvements, and AI Validator Enhancements **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-03 - Package-Level Exports Migration (Phase 0-2 Complete) **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-03 - Package-Level Exports Migration (Phases 3-10 Complete) **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-03 - Test Artifact Cleanup Enhancements and Coverage Log Management **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-03 - Unused Imports Cleanup, AI Function Registry Dynamic Improvements, and Command File Syntax Fixes **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-04 - AI Documentation Generators Enhancement **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-04 - Documentation Maintenance, Error Messages, and AI Prompt Improvements **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-05 - Communication Module Test Coverage Expansion **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-05 - Log File Rollover Fix and Infinite Error Loop Prevention **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-05 - Pytest Marks Audit and Test Categorization Improvements **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-06 - AI Development Tools Component Logger Implementation **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-06 - Test Coverage Expansion for Communication and UI Modules **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-06 - Test Coverage Expansion for Priority Modules **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-06 - Test Isolation Improvements and Coverage Regeneration Enhancements **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-06 - UI Dialog Test Coverage Expansion and Test Quality Improvements **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-09 - Analytics Scale Normalization and Conversion Helper Functions **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-09 - Critical Fix: Scheduler User Detection Bug **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-09 - Critical Fix: Test Users Creating Real Windows Scheduled Tasks **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-09 - Legacy Code Cleanup and Documentation Drift Fixes **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-09 - Legacy Compatibility Audit and Module Investigation **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-09 - Test Coverage Expansion: Account Creator Dialog, Discord Bot, and Warning Fix **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-09 - Test Coverage Expansion: Communication Core, UI Dialogs, and Interaction Manager **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-10 - Plan Investigation, Test Fixes, Discord Validation, and Plan Cleanup **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-10 - Testing Infrastructure Improvements and Discord Retry Verification **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-11 - Audit System Performance Optimization and Test Suite Logging Improvements **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-11 - User Data Flow Architecture Refactoring, Message Analytics Foundation, Plan Maintenance, and Test Suite Fixes **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-12 - Email Polling Timeout and Event Loop Fix **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-12 - Email Timeout Logging Reduction and Parallel Test Race Condition Fix **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-12 - Parallel Test Execution Stability: File Locking and Race Condition Fixes **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-13 - Discord Welcome Message System and Account Management Flow **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-13 - Documentation Sync Improvements and Tool Enhancements **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-13 - Test Coverage Expansion and Test Suite Fixes **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-14 - Enhanced Discord Account Creation with Feature Selection **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-14 - Test Suite Stability Fixes and Race Condition Improvements **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-15 - Discord Button UI Improvements and Test Isolation Fixes **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-15 - Documentation File Address Standard Implementation **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-15 - UI Dialog Accuracy Improvements and Discord View Creation Fixes **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-16 - Flaky Test Detection Improvements and Parallel Execution Marker Application **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-16 - Test Stability Improvements, Coroutine Warning Suppression, and Parallel Execution Marker Application **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-17 - Logger Recursion Fix & Test Retry Logic Cleanup **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-18 - Comprehensive Documentation Review and Reorganization **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-18 - Documentation Heading Numbering Standardization Implementation **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-20 - Error Handling Coverage Expansion to 100% **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-20 - PLANS.md and TODO.md Systematic Review and Documentation Consolidation **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-20 - Test Infrastructure Robustness Improvements and Flaky Test Fixes **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-23 - Test Coverage Expansion and Test Suite Optimization **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-23 - Test Suite Stability Fixes and Logging Improvements **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-24 - Test Suite Performance Investigation and Reversion **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-25 - AI Dev Tools Phase 2: Core Infrastructure Stabilization **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-26 - AI Dev Tools Phase 3: Core Analysis Tools Hardening **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-26 - Command Reference Documentation Sync **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-26 - Documentation Quality Improvements and Path-to-Link Conversion **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-26 - Pathlib cleanup for Discord diagnostic **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-26 - Schedule Period Edit Cache Race Condition Fix **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-28 - Phase 6 Development Tools: Complete Portability Implementation **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-28 - Phase 6 Development Tools: Core Tool Portability Implementation **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-29 - User Profile Settings Widget Legacy Review **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-11-30 - Phase 7.2: Development Tools Directory Reorganization **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-12-02 - Fixed Path Drift and Non-ASCII Characters in Documentation **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-12-02 - Implemented Shared Mtime-Based Caching for Development Tools **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "2025-12-03 - Phase 9 Status Reports Improvements and Tool Integration **COMPLETED**": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
-      ],
-      "3. Audit Modes and Outputs": [
-        "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
-        "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
-      ],
-      "3. Data Handling Patterns": [
-        "ARCHITECTURE.md",
-        "ai_development_docs/AI_ARCHITECTURE.md"
-      ],
-      "3. Development Process": [
-        "DEVELOPMENT_WORKFLOW.md",
-        "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
-      ],
-      "3. Documentation Synchronization Checklist": [
-        "DOCUMENTATION_GUIDE.md",
-        "ai_development_docs/AI_DOCUMENTATION_GUIDE.md"
-      ],
-      "3. Fixtures, Utilities, and Safety": [
-        "ai_development_docs/AI_TESTING_GUIDE.md",
-        "tests/TESTING_GUIDE.md"
-      ],
-      "3. Log Levels and When to Use Them": [
-        "ai_development_docs/AI_LOGGING_GUIDE.md",
-        "logs/LOGGING_GUIDE.md"
-      ],
-      "3. Usage Patterns": [
-        "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-        "core/ERROR_HANDLING_GUIDE.md"
-      ],
-      "3.1. Paired documentation files": [
-        "DOCUMENTATION_GUIDE.md",
-        "ai_development_docs/AI_DOCUMENTATION_GUIDE.md"
-      ],
-      "4. Component Log Files and Layout": [
-        "ai_development_docs/AI_LOGGING_GUIDE.md",
-        "logs/LOGGING_GUIDE.md"
-      ],
-      "4. Error Categories and Severity": [
-        "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-        "core/ERROR_HANDLING_GUIDE.md"
-      ],
-      "4. Key Modules and Responsibilities": [
-        "ARCHITECTURE.md",
-        "ai_development_docs/AI_ARCHITECTURE.md"
-      ],
-      "4. Maintenance Guidelines": [
-        "DOCUMENTATION_GUIDE.md",
-        "ai_development_docs/AI_DOCUMENTATION_GUIDE.md"
-      ],
-      "4. Running Automated Tests": [
-        "ai_development_docs/AI_TESTING_GUIDE.md",
-        "tests/TESTING_GUIDE.md"
-      ],
-      "4. Testing Strategy": [
-        "DEVELOPMENT_WORKFLOW.md",
-        "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
-      ],
-      "4. Tool Catalog and Tiering": [
-        "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
-        "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
-      ],
-      "4.1. Naming Conventions": [
-        "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
-        "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
-      ],
-      "5. Common Tasks": [
-        "DEVELOPMENT_WORKFLOW.md",
-        "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
-      ],
-      "5. Configuration (Environment Variables)": [
-        "ai_development_docs/AI_LOGGING_GUIDE.md",
-        "logs/LOGGING_GUIDE.md"
-      ],
-      "5. Error Message Guidelines": [
-        "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-        "core/ERROR_HANDLING_GUIDE.md"
-      ],
-      "5. Generated Documentation Standards": [
-        "DOCUMENTATION_GUIDE.md",
-        "ai_development_docs/AI_DOCUMENTATION_GUIDE.md"
-      ],
-      "5. Operating Standards and Maintenance": [
-        "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
-        "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
-      ],
-      "5. Parallel Execution and Coverage": [
-        "ai_development_docs/AI_TESTING_GUIDE.md",
-        "tests/TESTING_GUIDE.md"
-      ],
-      "5. UI Architecture and Naming Conventions": [
-        "ARCHITECTURE.md",
-        "ai_development_docs/AI_ARCHITECTURE.md"
-      ],
-      "6. Channel-Agnostic Architecture": [
-        "ARCHITECTURE.md",
-        "ai_development_docs/AI_ARCHITECTURE.md"
-      ],
-      "6. Configuration and Integration": [
-        "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-        "core/ERROR_HANDLING_GUIDE.md"
-      ],
-      "6. Emergency Procedures": [
-        "DEVELOPMENT_WORKFLOW.md",
-        "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
-      ],
-      "6. Generated File Metadata Standards": [
-        "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
-        "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
-      ],
-      "6. Log Rotation, Backups, and Archival": [
-        "ai_development_docs/AI_LOGGING_GUIDE.md",
-        "logs/LOGGING_GUIDE.md"
-      ],
-      "6. Resources": [
-        "DOCUMENTATION_GUIDE.md",
-        "ai_development_docs/AI_DOCUMENTATION_GUIDE.md"
-      ],
-      "6. Writing and Extending Tests": [
-        "ai_development_docs/AI_TESTING_GUIDE.md",
-        "tests/TESTING_GUIDE.md"
-      ],
-      "7. Debugging and Troubleshooting": [
-        "ai_development_docs/AI_TESTING_GUIDE.md",
-        "tests/TESTING_GUIDE.md"
-      ],
-      "7. Development Notes": [
-        "ARCHITECTURE.md",
-        "ai_development_docs/AI_ARCHITECTURE.md"
-      ],
-      "7. Learning Resources": [
-        "DEVELOPMENT_WORKFLOW.md",
-        "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
-      ],
-      "7. Legacy Compatibility Logging Standard": [
-        "ai_development_docs/AI_LOGGING_GUIDE.md",
-        "logs/LOGGING_GUIDE.md"
-      ],
-      "7. Testing Error Handling": [
-        "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-        "core/ERROR_HANDLING_GUIDE.md"
-      ],
-      "8. Maintenance and Cleanup": [
-        "ai_development_docs/AI_LOGGING_GUIDE.md",
-        "logs/LOGGING_GUIDE.md"
-      ],
-      "8. Manual and Channel-Specific Testing Overview": [
-        "ai_development_docs/AI_TESTING_GUIDE.md",
-        "tests/TESTING_GUIDE.md"
-      ],
-      "8. Monitoring and Debugging": [
-        "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-        "core/ERROR_HANDLING_GUIDE.md"
-      ],
-      "8. Success Tips": [
-        "DEVELOPMENT_WORKFLOW.md",
-        "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
-      ],
-      "9. Best Practices": [
-        "ai_development_docs/AI_LOGGING_GUIDE.md",
-        "logs/LOGGING_GUIDE.md"
-      ],
-      "9. Git Workflow (PowerShell-Safe)": [
-        "DEVELOPMENT_WORKFLOW.md",
-        "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
-      ],
-      "9. Legacy and Migration": [
-        "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-        "core/ERROR_HANDLING_GUIDE.md"
-      ],
-      "How to Update This File": [
-        "development_docs/CHANGELOG_DETAIL.md",
-        "ai_development_docs/AI_CHANGELOG.md"
       ],
       "Testing": [
         "TODO.md",

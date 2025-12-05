@@ -196,9 +196,22 @@ def detect_section_overlaps(docs: Dict[str, str]) -> Dict[str, List[str]]:
     
     Enhanced to provide more actionable insights:
     - Filters out common/expected overlaps (e.g., "Purpose", "Overview")
+    - Excludes paired documentation headers (which are required to match)
     - Identifies high-value overlaps (sections with significant content)
     - Provides context about why overlaps might be problematic
     """
+    # Import PAIRED_DOCS to exclude paired doc headers
+    try:
+        from ..shared.constants import PAIRED_DOCS
+    except ImportError:
+        from development_tools.shared.constants import PAIRED_DOCS
+    
+    # Build set of paired doc filenames (both human and AI versions)
+    paired_doc_files = set()
+    for human_doc, ai_doc in PAIRED_DOCS.items():
+        paired_doc_files.add(human_doc)
+        paired_doc_files.add(ai_doc)
+    
     section_files: Dict[str, List[str]] = defaultdict(list)
     section_content: Dict[str, Dict[str, str]] = defaultdict(dict)  # section -> file -> content
     
@@ -221,6 +234,10 @@ def detect_section_overlaps(docs: Dict[str, str]) -> Dict[str, List[str]]:
             # Skip if it's an expected/common overlap
             section_lower = section.lower().strip()
             if section_lower in expected_overlaps:
+                continue
+            
+            # Skip if all files with this section are paired docs (paired docs are required to have matching headers)
+            if all(f in paired_doc_files for f in files):
                 continue
             
             # Only include if at least one file has substantial content (more than 50 chars)
@@ -491,14 +508,14 @@ def execute(args: argparse.Namespace, project_root: Optional[Path] = None, confi
         'artifacts': artifacts,
     }
     
-    # Add overlap data to payload if requested
+    # Add overlap data to payload if requested (always include keys, even if empty, to indicate analysis ran)
     if include_overlap:
         section_overlaps = detect_section_overlaps(docs)
         consolidation_recs = generate_consolidation_recommendations(docs)
         file_purposes = analyze_file_purposes(docs)
-        payload['section_overlaps'] = section_overlaps
-        payload['consolidation_recommendations'] = consolidation_recs
-        payload['file_purposes'] = file_purposes
+        payload['section_overlaps'] = section_overlaps if section_overlaps else {}
+        payload['consolidation_recommendations'] = consolidation_recs if consolidation_recs else []
+        payload['file_purposes'] = file_purposes if file_purposes else {}
     
     exit_code = 0
     if duplicates or placeholders or artifacts:

@@ -971,7 +971,7 @@ Portable today: `development_tools/services/common.py`, `development_tools/syste
 
 **Goal:** Fix foundational issues with status reports and standardize metrics across all tools to ensure consistent, accurate, and reliable audit outputs.
 
-**Status:** M9.1.1 and M9.1.2 completed. Remaining milestones pending.
+**Status:** M9.1.1, M9.1.2, and M9.1.4 completed. M9.1.3 needs verification. M9.2.1 and M9.2.2 pending.
 
 #### Milestone M9.1.1 - Fix AI_STATUS.md Formatting and Content **COMPLETED (2025-12-03)**
 
@@ -989,15 +989,17 @@ Portable today: `development_tools/services/common.py`, `development_tools/syste
 - [OK] Fix overlap analysis detection - ensure overlap data is saved to JSON cache and properly detected in reports
 - **Files**: `development_tools/shared/operations.py` (status generation methods)
 
-#### Milestone M9.1.3 - Fix Mid-Audit Status Updates **PENDING**
+#### Milestone M9.1.3 - Fix Mid-Audit Status Updates **NEEDS VERIFICATION**
 
-- [ ] Investigate why AI_STATUS and AI_PRIORITIES update midway through full audit with different results than at the end
-- [ ] Identify root cause (e.g., complexity numbers change: Moderate: 352/153, High: 376/138, Critical: 321/128)
-- [ ] Fix doc sync status inconsistency (FAIL/GOOD changes during audit)
-- [ ] Ensure status files reflect final audit results, not intermediate states
-- **Files**: `development_tools/shared/operations.py` (audit workflow), status generation methods
+- [OK] Code structure indicates fix is implemented: status files are generated at end of audit (not mid-audit) via `_generate_all_status_files()` called after all tiers complete
+- [ ] **VERIFICATION NEEDED**: Test that AI_STATUS and AI_PRIORITIES do not update during audit execution
+- [ ] **VERIFICATION NEEDED**: Verify complexity numbers remain consistent throughout audit (no changes from Moderate: 352/153, High: 376/138, Critical: 321/128)
+- [ ] **VERIFICATION NEEDED**: Confirm doc sync status doesn't change during audit (no FAIL/GOOD transitions)
+- [ ] **VERIFICATION NEEDED**: Test with full audit to ensure status files reflect final audit results, not intermediate states
+- **Note**: Code review shows status generation happens after `_reload_all_cache_data()` and `_sync_todo_with_changelog()` at the end of `run_audit()`, suggesting fix is in place but needs testing to confirm
+- **Files**: `development_tools/shared/operations.py` (audit workflow, `run_audit()` method, status generation methods)
 
-#### Milestone M9.1.4 - Standardize Tool Output Storage **COMPLETED (2025-01-XX)**
+#### Milestone M9.1.4 - Standardize Tool Output Storage **COMPLETED (2025-12-04)**
 
 - [OK] Investigate how different development tools save their findings (formats, locations, approaches)
 - [OK] Document current patterns and inconsistencies
@@ -1007,6 +1009,9 @@ Portable today: `development_tools/services/common.py`, `development_tools/syste
 - [OK] Implement domain-organized storage: `development_tools/{domain}/jsons/{tool}_results.json`
 - [OK] Implement automatic archiving (keeps last 5 versions in `{domain}/jsons/archive/`)
 - [OK] Central aggregation in `development_tools/reports/analysis_detailed_results.json`
+- [OK] Fixed missing results files for: `analyze_ai_work`, `analyze_ascii_compliance`, `analyze_heading_numbering`, `analyze_missing_addresses`, `analyze_unconverted_links`, `analyze_test_markers`, `analyze_test_coverage`, `system_signals`, `decision_support` (2025-12-05)
+- [OK] **Investigation Work (2025-12-05)**: Created `comprehensive_file_analysis.py` and `analyze_json_files.py` to systematically identify missing JSON results files. Created documentation files to track findings. After fixes applied, moved analysis scripts to `scripts/` directory and deleted single-use documentation files, consolidating findings into this improvement plan.
+- [OK] **Critical Fix (2025-12-05)**: Removed duplicate `run_decision_support` method at line 2133 that was overriding the fixed version at line 469, preventing results from being saved to standardized storage.
 - **Files**: `development_tools/shared/output_storage.py`, `development_tools/shared/operations.py` (tool wrappers updated)
 
 #### Milestone M9.2.1 - Standardize Function Counting and Complexity Metrics **PENDING**
@@ -1035,7 +1040,7 @@ Portable today: `development_tools/services/common.py`, `development_tools/syste
 
 **Goal:** Integrate existing scripts into the development tools suite and enhance existing tools to provide more actionable insights.
 
-**Status:** M10.1.1 and M10.1.2 completed. Remaining milestones pending.
+**Status:** M10.1.1, M10.1.2, and M10.2.5 completed. Remaining milestones pending.
 
 ## Phase 10.1 - Tool Integration
 
@@ -1295,58 +1300,69 @@ Portable today: `development_tools/services/common.py`, `development_tools/syste
 
 ---
 
-### Phase 11 - Post-Standardization Cleanup and Refinement **IN PROGRESS (2025-12-04)**
+### Phase 11 - Post-Standardization Cleanup and Refinement **IN PROGRESS (2025-12-05)**
 
 **Goal:** Address issues discovered after audit command standardization and tool output storage implementation, and continue codebase health improvements.
 
-**Status:** Initial tasks identified. Work in progress.
+**Status:** M11.1, M11.3 need verification. M11.2 completed (2025-12-05). M11.4-M11.7 pending. **M11.8 is HIGH PRIORITY** - report data flow issue blocking findings from appearing in general reports.
 
-#### Milestone M11.1 - Fix Path Drift Detection **PENDING**
+#### Milestone M11.1 - Fix Path Drift Detection **NEEDS VERIFICATION**
 
-- [ ] Investigate why path drift detection is not finding issues even though issues exist
-- [ ] Review `docs/analyze_path_drift.py` logic and validation checks
-- [ ] Verify path validation integration in `_validate_referenced_paths()` method
-- [ ] Test with known path drift issues to confirm detection works
-- [ ] Fix detection logic or validation integration as needed
-- [ ] Ensure path drift issues appear correctly in AI_STATUS.md and consolidated_report.txt
+- [OK] Path drift detection tool exists and is integrated: `docs/analyze_path_drift.py` is called during audit
+- [OK] Path validation is integrated: `_validate_referenced_paths()` method exists and is called during audit
+- [OK] Path drift data is displayed in status reports: code shows path drift issues are included in AI_STATUS.md and consolidated_report.txt
+- [ ] **VERIFICATION NEEDED**: Test with known path drift issues to confirm detection actually finds them
+- [ ] **VERIFICATION NEEDED**: Verify path validation (`_validate_referenced_paths()`) correctly identifies missing/broken paths
+- [ ] **VERIFICATION NEEDED**: Confirm path drift issues appear correctly in both AI_STATUS.md and consolidated_report.txt when issues exist
+- [ ] If verification fails, investigate detection logic or validation integration and fix as needed
+- **Note**: Code structure suggests path drift detection is integrated, but needs testing with actual issues to confirm it works correctly
 - **Files**: `development_tools/docs/analyze_path_drift.py`, `development_tools/shared/operations.py` (`_validate_referenced_paths`, `_generate_ai_status_document`)
 
-#### Milestone M11.2 - Fix Unused Imports Data Availability **PENDING**
+#### Milestone M11.2 - Fix Unused Imports Data Availability **COMPLETED (2025-12-05)**
 
-- [ ] Investigate why unused imports show "Data unavailable" in AI_STATUS.md and consolidated_report.txt despite `audit --full` running and `UNUSED_IMPORTS_REPORT.md` being regenerated
-- [ ] Verify `analyze_unused_imports` tool saves data correctly to standardized storage
-- [ ] Check data loading logic in `_generate_ai_status_document()` and `_generate_consolidated_report()`
-- [ ] Verify data format matches expected structure
-- [ ] Ensure unused imports data appears in AI_PRIORITIES.md when appropriate
-- [ ] Test end-to-end: run `audit --full`, verify unused imports appear in all three reports
+- [OK] Unused imports tool exists: `analyze_unused_imports.py` is part of Tier 3 (full audit)
+- [OK] Data loading logic exists: `_generate_ai_status_document()` attempts to load unused imports data from standardized storage
+- [OK] **FIXED**: Refactored `run_unused_imports_report()` to directly call `execute()` function from `analyze_unused_imports.py` instead of parsing subprocess stdout, ensuring structured data is correctly captured and saved
+- [OK] **VERIFIED**: Unused imports data now appears correctly in all three reports (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.txt) after running `audit --full`
+- [OK] Data format verified: Results include `total_unused`, `files_with_issues`, `by_category` keys as expected
+- **Note**: Issue was that `run_unused_imports_report()` was using subprocess calls and JSON parsing from stdout, which was unreliable. Fixed by directly calling the `execute()` function to get structured data.
 - **Files**: `development_tools/imports/analyze_unused_imports.py`, `development_tools/shared/operations.py` (`run_unused_imports_report`, `_generate_ai_status_document`, `_generate_ai_priorities_document`, `_generate_consolidated_report`)
 
-#### Milestone M11.3 - Verify and Clean Up Standardized Storage **PENDING**
+#### Milestone M11.3 - Verify and Clean Up Standardized Storage **NEEDS VERIFICATION**
 
-- [ ] Investigate whether `development_tools/{domain}/jsons/` directories are being properly populated
-- [ ] Verify file rotation and archiving work correctly for tool result JSON files
-- [ ] Check for unnecessary JSON files in `development_tools/{domain}/` directories (should be in `jsons/` subdirectories)
-- [ ] Clean up any misplaced or duplicate JSON files
-- [ ] Verify cache files (`.{tool}_cache.json`) are in correct locations (`{domain}/jsons/`)
-- [ ] Test archiving mechanism (keeps last 5 versions in `{domain}/jsons/archive/`)
-- **Files**: `development_tools/shared/output_storage.py`, all domain directories (`docs/`, `imports/`, `functions/`, etc.)
+- [OK] Storage structure exists: `development_tools/{domain}/jsons/` directories exist (verified: `docs/jsons/`, `functions/jsons/`, `imports/jsons/`, `error_handling/jsons/`, `legacy/jsons/`, `reports/jsons/`)
+- [OK] Archive directories exist: `{domain}/jsons/archive/` directories are present
+- [OK] Output storage utility exists: `output_storage.py` implements `save_tool_result()` with archiving support
+- [ ] **VERIFICATION NEEDED**: Verify file rotation and archiving work correctly for tool result JSON files (test that old files are moved to archive/)
+- [ ] **VERIFICATION NEEDED**: Check for unnecessary JSON files in `development_tools/{domain}/` directories (should be in `jsons/` subdirectories, not root domain directories)
+- [ ] **VERIFICATION NEEDED**: Verify cache files (`.{tool}_cache.json`) are in correct locations (`{domain}/jsons/` not `{domain}/`)
+- [ ] **VERIFICATION NEEDED**: Test archiving mechanism (keeps last 5 versions in `{domain}/jsons/archive/`, removes older versions)
+- [ ] **CLEANUP NEEDED**: If verification finds issues, clean up any misplaced or duplicate JSON files
+- **Note**: Storage structure appears correct, but needs testing to verify archiving and cleanup work as expected
+- **Files**: `development_tools/shared/output_storage.py`, all domain directories (`docs/`, `imports/`, `functions/`, `error_handling/`, `legacy/`, `reports/`, etc.)
 
 #### Milestone M11.4 - Complete Outstanding Plan Items **PENDING**
 
 - [ ] Review `.cursor/plans/standardize-audit-commands-and-tool-output-ac7c7c62.plan.md` for any untested or incomplete items
-- [ ] Verify all three audit tiers work correctly (quick, standard, full)
-- [ ] Test that all 4 output files (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.txt, analysis_detailed_results.json) are updated by all tiers
-- [ ] Verify tier inheritance (Tier 2 includes Tier 1, Tier 3 includes Tier 1 and 2)
-- [ ] Test individual tool result storage in domain-organized JSON files
-- [ ] Verify central aggregation in `analysis_detailed_results.json`
-- [ ] Test file rotation and archiving for all output types
+- [ ] **TESTING NEEDED**: Verify all three audit tiers work correctly (quick, standard, full)
+- [ ] **TESTING NEEDED**: Test that all 4 output files (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.txt, analysis_detailed_results.json) are updated by all tiers
+- [ ] **TESTING NEEDED**: Verify tier inheritance (Tier 2 includes Tier 1, Tier 3 includes Tier 1 and 2)
+- [ ] **TESTING NEEDED**: Test individual tool result storage in domain-organized JSON files
+- [ ] **TESTING NEEDED**: Verify central aggregation in `analysis_detailed_results.json`
+- [ ] **TESTING NEEDED**: Test file rotation and archiving for all output types
+- [ ] **TESTING NEEDED**: Measure tool execution times (Phase 2.5 from standardize-audit-commands plan) - create TIMING_ANALYSIS.md
+- [ ] **TESTING NEEDED**: Comprehensive testing strategy (Phase 10.2.7) - test all tiers independently
 - [ ] Document any remaining gaps or issues
+- **Note**: Core implementation is complete per standardize-audit-commands plan (status: "In Progress - Core implementation completed, refinement and testing pending"), but comprehensive testing is still pending. Related plans: `.cursor/plans/decompose-multi-responsibility-tools-2e05ed38.plan.md` (COMPLETED), `.cursor/plans/phase-9-status-reports-and-metrics-standardization-99cf574c.plan.md` (some milestones completed, see Phase 9 section above).
 - **Files**: `development_tools/shared/operations.py`, `development_tools/shared/output_storage.py`, `.cursor/plans/standardize-audit-commands-and-tool-output-ac7c7c62.plan.md`
 
 #### Milestone M11.5 - Remove Legacy Code Using Search-and-Close Methodology **PENDING**
 
+- [OK] Initial analysis completed (2025-12-04): Found 13 LEGACY COMPATIBILITY markers across 2 files (`operations.py`: 11, `mtime_cache.py`: 2)
+- [OK] Identified safe-to-remove: `_save_audit_results()` method (not called anywhere)
+- [OK] Identified keep-for-compatibility: `run_quick_audit()`, `quick-audit` command, `--fast` flag, `TEST_COVERAGE_EXPANSION_PLAN.md` fallback
+- [OK] Identified keep-as-fallbacks: Legacy file path fallbacks, central aggregation fallbacks, legacy cache file fallbacks (transition period)
 - [ ] Review `ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md` for search-and-close methodology
-- [ ] Identify all legacy code marked with `LEGACY COMPATIBILITY` headers in development tools
 - [ ] For each legacy code block:
   - [ ] Verify all references have been updated
   - [ ] Confirm no active usage of legacy paths/patterns
@@ -1394,6 +1410,29 @@ Portable today: `development_tools/services/common.py`, `development_tools/syste
 - [ ] Document findings and recommendations
 - **Files**: `development_tools/shared/common.py`, `development_tools/shared/constants.py`, `development_tools/shared/standard_exclusions.py`, `development_tools/config/config.py`
 
+#### Milestone M11.8 - Fix Report Data Flow **HIGH PRIORITY - PENDING (2025-12-05)**
+
+**Priority**: HIGH - This issue prevents findings from analysis tools from appearing in the general reports that users rely on for codebase health insights.
+
+**Problem**: Findings from analysis tools are not consistently appearing in general reports (`AI_PRIORITIES.md`, `AI_STATUS.md`, `consolidated_report.txt`), despite tools running successfully and saving data to standardized storage.
+
+**Investigation Tasks**:
+- [ ] Identify which specific findings are missing (e.g., ASCII compliance warnings, path drift details, error handling metrics, complexity insights, etc.)
+- [ ] Trace complete data flow from tool execution → JSON storage → report generation
+- [ ] Check if data is being saved correctly to standardized storage but not loaded during report generation
+- [ ] Check if data format doesn't match what report generators expect
+- [ ] Check if report generation methods are missing data loading logic for certain tools
+- [ ] Review `_generate_ai_status_document()`, `_generate_ai_priorities_document()`, and `_generate_consolidated_report()` for missing data sources
+
+**Fix Tasks**:
+- [ ] Fix data loading in all three report generation methods
+- [ ] Ensure consistent data access patterns across all tools
+- [ ] Add fallback loading mechanisms where appropriate
+- [ ] Verify all findings appear correctly in all three reports after fixes
+- [ ] Document the data flow and ensure it's consistent across all tools
+
+**Files**: `development_tools/shared/operations.py` (report generation methods), `development_tools/shared/output_storage.py` (data loading)
+
 **Progress Summary:**
 - [OK] **Phase 1 COMPLETED (2025-11-25)**: Tiering system fully implemented, documentation split and aligned, all path references updated
 - [OK] **Phase 2 COMPLETED (2025-11-25)**: Core infrastructure stabilized with test coverage (77 tests), consistent logging, and normalized error handling
@@ -1402,12 +1441,50 @@ Portable today: `development_tools/services/common.py`, `development_tools/syste
 - [OK] **Phase 5 COMPLETED (2025-11-27)**: Standard audit recipe added to workflow guide, session starter updated with dev tools routing, all documentation alignment milestones complete
 - [OK] **Phase 6 COMPLETED (2025-11-28)**: All checklists completed - all 14 supporting and experimental tools made portable via external configuration (`development_tools_config.json`). All tools changed from `mhm-specific` to `portable` portability markers. Config getter functions added to `config.py`, config example file updated with all new sections.
 - [OK] **Phase 7**: M7.1 completed (2025-12-01) - all naming conventions applied, both initial and second batch of renames complete, all references updated. M7.2 completed (directory reorganization done). M7.3 completed (2025-12-01) - tool gap analysis documented, 29 gaps identified across 6 domains, findings recorded in both guides. M7.4 completed (2025-12-02) - all three batches of tool decomposition completed (Legacy Tools, Documentation Tools, Remaining Tools). All 6 original multi-responsibility tools decomposed into 20+ focused tools. All tools now follow single-responsibility principle with clear separation of concerns. All cross-cutting tasks and success criteria met. Full test suite passing, documentation updated, audit workflows verified.
-- [OK] **Phase 9**: M9.1.1 completed (2025-12-03) - AI_STATUS.md formatting fixed (test coverage added to snapshot, items moved to Documentation Signals, redundant sections removed, timestamp standardized). M9.1.2 completed (2025-12-03) - config validation and TODO sync status added to all three reports, overlap analysis detection fixed. M9.1.4 completed (2025-12-04) - standardized tool output storage implemented with domain-organized JSON files and automatic archiving. Remaining milestones (M9.1.3, M9.2.1, M9.2.2) pending.
-- [OK] **Phase 10**: M10.1.1 completed (2025-12-03) - test marker scripts integrated into `development_tools/tests/analyze_test_markers.py` and `fix_test_markers.py`, marker validation integrated into coverage workflow. M10.1.2 completed (2025-12-03) - project cleanup module created at `development_tools/shared/fix_project_cleanup.py` with `cleanup` subcommand. M10.2.5 completed (2025-12-04) - audit command types consolidated into three-tier structure (quick/standard/full). Remaining milestones (M10.2.1-M10.2.4) pending.
-- [IN PROGRESS] **Phase 11**: All milestones pending - post-standardization cleanup and refinement tasks identified.
+- [OK] **Phase 9**: M9.1.1 completed (2025-12-03) - AI_STATUS.md formatting fixed (test coverage added to snapshot, items moved to Documentation Signals, redundant sections removed, timestamp standardized). M9.1.2 completed (2025-12-03) - config validation and TODO sync status added to all three reports, overlap analysis detection fixed. M9.1.3 needs verification - code structure suggests fix is in place (status files generated at end), but testing needed to confirm. M9.1.4 completed (2025-12-04) - standardized tool output storage implemented with domain-organized JSON files and automatic archiving. Fixed missing results files for 9 tools (2025-12-05): `analyze_ai_work`, `analyze_ascii_compliance`, `analyze_heading_numbering`, `analyze_missing_addresses`, `analyze_unconverted_links`, `analyze_test_markers`, `analyze_test_coverage`, `system_signals`, `decision_support`. Remaining milestones (M9.2.1, M9.2.2) pending.
+- [OK] **Phase 10**: M10.1.1 completed (2025-12-03) - test marker scripts integrated into `development_tools/tests/analyze_test_markers.py` and `fix_test_markers.py`, marker validation integrated into coverage workflow. M10.1.2 completed (2025-12-03) - project cleanup module created at `development_tools/shared/fix_project_cleanup.py` with `cleanup` subcommand. M10.2.5 completed (2025-12-04) - audit command types consolidated into three-tier structure (quick/standard/full). Remaining milestones (M10.2.1-M10.2.4, M10.2.6-M10.2.7) pending.
+- [IN PROGRESS] **Phase 11**: M11.1, M11.3 need verification (code structure suggests integration is correct, but testing needed). M11.2 completed (2025-12-05) - unused imports data availability fixed by refactoring to use direct function calls instead of subprocess stdout parsing. M11.4-M11.7 pending - post-standardization cleanup and refinement tasks identified. **M11.8 HIGH PRIORITY (2025-12-05)** - report data flow issue identified: findings from analysis tools not consistently appearing in general reports despite successful execution and data storage. **Investigation Work (2025-12-05)**: Created analysis scripts to identify missing JSON files, discovered and fixed duplicate `run_decision_support` method, added missing `save_tool_result` calls for 9 tools. Moved one-time analysis scripts to `scripts/` directory, cleaned up single-use documentation files and consolidated findings into improvement plan.
+
+**Phase 11 Summary:**
+- **Needs Verification** (code exists, needs testing): M9.1.3 (mid-audit status updates), M11.1 (path drift detection), M11.3 (standardized storage archiving)
+- **COMPLETED (2025-12-05)**: M11.2 (unused imports data availability) - Fixed by refactoring `run_unused_imports_report()` to use direct function calls instead of subprocess stdout parsing
+- **HIGH PRIORITY** (blocking user experience): M11.8 (report data flow - findings not appearing in general reports)
+- **Confirmed Pending** (work not started): M11.4 (outstanding plan items testing), M11.5 (legacy code removal - initial analysis completed 2025-12-04), M11.6 (operations.py refactoring), M11.7 (shared utility review)
+- **Investigation & Cleanup Work (2025-12-05)**: 
+  - Created `comprehensive_file_analysis.py` and `analyze_json_files.py` to systematically identify missing JSON results files
+  - Created documentation files (`JSON_FILES_ANALYSIS.md`, `MISSING_FILES_ANALYSIS.md`, `MISSING_FILES_FIXES_APPLIED.md`, `LEGACY_CODE_REMOVAL_STATUS.md`) to track investigation findings
+  - Discovered and fixed duplicate `run_decision_support` method preventing results from being saved
+  - Added missing `save_tool_result` calls for 9 tools: `analyze_ai_work`, `analyze_ascii_compliance`, `analyze_heading_numbering`, `analyze_missing_addresses`, `analyze_unconverted_links`, `analyze_test_markers`, `analyze_test_coverage`, `system_signals`, `decision_support`
+  - Moved one-time analysis scripts to `scripts/` directory after cleanup
+  - Deleted single-use documentation files after consolidating findings into improvement plan
+  - All expected JSON results files now being created successfully
 
 This roadmap is intentionally incremental. You do **not** need to implement every milestone at once.  
 Phases 1-3 (tiering + core infrastructure + core analysis tools) are complete. Next focus on Phase 4 (clarify supporting vs experimental tools) or Phase 5 (UX and documentation alignment), then expand as time and energy allow.
+
+---
+
+## Future Enhancement Requests (2025-12-05)
+
+**8. Convert consolidated_report.txt to .md format**
+- *What it means*: Change `development_tools/consolidated_report.txt` to `development_tools/consolidated_report.md` for better markdown rendering and consistency with other reports.
+- *Why it helps*: Markdown files render better in editors and GitHub, and maintains consistency with other report files.
+- *Estimated effort*: Small
+
+**9. Expand consolidated report detail**
+- *What it means*: The consolidated report should contain at least as much detail as `AI_STATUS.md`, ideally a bit more detail on every topic.
+- *Why it helps*: The consolidated report is meant to be a comprehensive overview, so it should be more detailed than the status snapshot.
+- *Estimated effort*: Medium
+
+**10. Move config validation recommendations to AI_PRIORITIES**
+- *What it means*: The "Top Recommendations" section in `consolidated_report.txt` (lines 41-47) should be rewritten and included in `AI_PRIORITIES.md` instead of the consolidated report.
+- *Why it helps*: Config validation issues are actionable priorities, not just informational status. They belong in the priorities document.
+- *Estimated effort*: Small
+
+**11. Investigate "Symbol: unused-import" bullet points**
+- *What it means*: The `UNUSED_IMPORTS_REPORT.md` includes bullet points like "- Symbol: `unused-import`" for each unused import. Investigate if these serve a purpose or if they're redundant noise.
+- *Why it helps*: If they don't serve a purpose, removing them will make the report cleaner and easier to read.
+- *Estimated effort*: Small
 
 ---
 

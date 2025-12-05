@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-04 07:36:45
+> **Last Generated**: 2025-12-05 05:33:27
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 5
 **Legacy Compatibility Markers Detected**: 28
@@ -110,27 +110,27 @@
 ### development_tools\shared\operations.py
 **Issues Found**: 5
 
-- **Line 546**: `# LEGACY COMPATIBILITY:`
+- **Line 682**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Reading from old file location for backward compatibility
   ```
 
-- **Line 5382**: `# LEGACY COMPATIBILITY:`
+- **Line 5615**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Reading from old file location for backward compatibility
   ```
 
-- **Line 7372**: `# LEGACY COMPATIBILITY:`
+- **Line 7695**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Fallback to results_cache or central aggregation file
   ```
 
-- **Line 7429**: `# LEGACY COMPATIBILITY:`
+- **Line 7757**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Fallback to results_cache or central aggregation file
   ```
 
-- **Line 7912**: `# LEGACY COMPATIBILITY:`
+- **Line 8422**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Handle deprecated --fast flag
   ```
@@ -172,7 +172,7 @@
 ### tests\development_tools\test_path_drift_detection.py
 **Issues Found**: 1
 
-- **Line 117**: `bot/`
+- **Line 121**: `bot/`
   ```
   - `bot/old_module.py` (legacy path)
   ```

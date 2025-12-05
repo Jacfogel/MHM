@@ -36,6 +36,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-05 - Development Tools Investigation, Fixes, and User Data Handler Improvements **COMPLETED**
+- Conducted systematic investigation of missing JSON results files; created analysis scripts to identify 9 tools missing `save_tool_result` calls
+- Fixed duplicate `run_decision_support` method preventing results from being saved; added missing `save_tool_result` calls for 9 tools
+- Completed M11.2 (unused imports data availability) by refactoring to use direct function calls instead of subprocess stdout parsing
+- Moved one-time analysis scripts to `scripts/` directory and deleted single-use documentation files after consolidating findings into improvement plan
+- Updated `AI_DEV_TOOLS_IMPROVEMENT_PLAN.md` to reflect completed work and align with original plan goals from session start
+- Refined `get_user_data` logic to correctly handle edge cases (directory exists but user not in index, etc.)
+- Fixed deep copy issue in cross-file invariants using `copy.deepcopy()` for nested dictionaries
+- All 3348 tests pass; fixed 4 test failures related to user data retrieval edge cases
+
 ### 2025-12-04 - UI Signal Handler Fixes and Test Infrastructure Improvements **COMPLETED**
 - Fixed signal handler signature mismatches in `account_creator_dialog.py` and `dynamic_list_field.py` that caused `TypeError` errors during UI interactions
 - Fixed path drift detection test failure by using relative paths for file exclusion checks instead of absolute paths

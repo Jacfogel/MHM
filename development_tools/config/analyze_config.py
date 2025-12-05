@@ -367,7 +367,7 @@ def main():
     validator.print_validation_report(results)
     
     # Save results with proper headers
-    results_file = validator.ai_tools_dir / 'config' / 'analyze_config_results.json'
+    results_file = validator.ai_tools_dir / 'config' / 'jsons' / 'analyze_config_results.json'
     try:
         # Add generation headers to results
         timestamp_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')

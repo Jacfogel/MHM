@@ -2,24 +2,24 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-04 07:36:39
+> **Last Generated**: 2025-12-05 05:33:25
 > **Source**: `python development_tools/run_development_tools.py unused-imports` - Unused Imports Detection Tool
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 349
-- **Files with Unused Imports**: 127
-- **Total Unused Imports**: 371
+- **Total Files Scanned**: 350
+- **Files with Unused Imports**: 128
+- **Total Unused Imports**: 378
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 99 imports
+- **Obvious Unused**: 101 imports
 - **Type Hints Only**: 2 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 7 imports
 - **Star Imports**: 0 imports
-- **Test Mocking**: 125 imports
-- **Qt Testing**: 51 imports
+- **Test Mocking**: 127 imports
+- **Qt Testing**: 54 imports
 - **Test Infrastructure**: 84 imports
 - **Production Test Mocking**: 3 imports
 - **Ui Imports**: 0 imports
@@ -359,13 +359,15 @@
 
 ### `tests/development_tools/test_path_drift_detection.py`
 
-**Count**: 3 unused import(s)
+**Count**: 4 unused import(s)
 
 - **Line 9**: Unused import pytest
   - Symbol: `unused-import`
 - **Line 10**: Unused import tempfile
   - Symbol: `unused-import`
 - **Line 11**: Unused import shutil
+  - Symbol: `unused-import`
+- **Line 12**: Unused Path imported from pathlib
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_regenerate_coverage_metrics.py`
@@ -420,6 +422,13 @@
 **Count**: 1 unused import(s)
 
 - **Line 16**: Unused MHMError imported from core.error_handling
+  - Symbol: `unused-import`
+
+### `tests/ui/test_signal_handler_integration.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 20**: Unused QCheckBox imported from PySide6.QtWidgets
   - Symbol: `unused-import`
 
 ### `tests/unit/test_ai_chatbot_helpers.py`
@@ -878,6 +887,15 @@
 - **Line 16**: Unused Mock imported from unittest.mock
   - Symbol: `unused-import`
 
+### `tests/ui/test_signal_handler_integration.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 19**: Unused patch imported from unittest.mock
+  - Symbol: `unused-import`
+- **Line 19**: Unused MagicMock imported from unittest.mock
+  - Symbol: `unused-import`
+
 ### `tests/ui/test_task_crud_dialog.py`
 
 **Count**: 1 unused import(s)
@@ -1237,6 +1255,17 @@
 - **Line 19**: Unused QTimer imported from PySide6.QtCore
   - Symbol: `unused-import`
 - **Line 20**: Unused QTest imported from PySide6.QtTest
+  - Symbol: `unused-import`
+
+### `tests/ui/test_signal_handler_integration.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 20**: Unused QLineEdit imported from PySide6.QtWidgets
+  - Symbol: `unused-import`
+- **Line 21**: Unused Qt imported from PySide6.QtCore
+  - Symbol: `unused-import`
+- **Line 22**: Unused QTest imported from PySide6.QtTest
   - Symbol: `unused-import`
 
 ### `tests/ui/test_task_crud_dialog.py`

@@ -2069,6 +2069,129 @@
             "time_periods": [
                 "ALL"
             ]
-        }
+        },
+        [
+            {
+              "message": "Fun fact: Sea otters hold hands while they sleep so they don’t drift away from each other.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-1001-4b3a-8f21-aaaabbbb0001"
+            },
+            {
+              "message": "Fun fact: Crows can remember human faces and pass that information along to other crows in their group.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-1002-4b3a-8f21-aaaabbbb0002"
+            },
+            {
+              "message": "Fun fact: Octopuses have three hearts and blue blood, and they can taste with their arms.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-1003-4b3a-8f21-aaaabbbb0003"
+            },
+            {
+              "message": "Fun fact: There are more possible ways to shuffle a deck of cards than there are stars in the Milky Way galaxy.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-1004-4b3a-8f21-aaaabbbb0004"
+            },
+            {
+              "message": "Fun fact: Honey never really spoils. Archaeologists have found pots of honey in ancient tombs that are still edible.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-1005-4b3a-8f21-aaaabbbb0005"
+            },
+            {
+              "message": "Fun fact: A group of flamingos is called a flamboyance, which feels pretty accurate.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-1006-4b3a-8f21-aaaabbbb0006"
+            },
+            {
+              "message": "Fun fact: Wombats have cube-shaped poop, which keeps it from rolling away on the uneven ground they live on.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-1007-4b3a-8f21-aaaabbbb0007"
+            },
+            {
+              "message": "Fun fact: There’s a species of jellyfish that can revert back to its younger form, essentially resetting its life cycle.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-1008-4b3a-8f21-aaaabbbb0008"
+            },
+            {
+              "message": "Fun fact: Bananas are berries, but strawberries are not. Botany is chaotic like that.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-1009-4b3a-8f21-aaaabbbb0009"
+            },
+            {
+              "message": "Fun fact: Some cats have been trained to use buttons to “talk” by pressing them to play recorded words.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-100a-4b3a-8f21-aaaabbbb000a"
+            },
+            {
+              "message": "Fun fact: The smell of rain on dry ground has a name: petrichor.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-100b-4b3a-8f21-aaaabbbb000b"
+            },
+            {
+              "message": "Fun fact: Sloths can hold their breath longer than dolphins—up to 40 minutes—because their metabolism is so slow.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-100c-4b3a-8f21-aaaabbbb000c"
+            },
+            {
+              "message": "Fun fact: Some plants can communicate distress by releasing chemicals that warn nearby plants of danger.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-100d-4b3a-8f21-aaaabbbb000d"
+            },
+            {
+              "message": "Fun fact: Humpback whales have been observed creating “bubble nets” to herd fish into a tight ball before eating.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-100e-4b3a-8f21-aaaabbbb000e"
+            },
+            {
+              "message": "Fun fact: The average cloud can weigh more than a million pounds, even though it looks light and fluffy.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-100f-4b3a-8f21-aaaabbbb000f"
+            },
+            {
+              "message": "Fun fact: Some lizards can shoot blood from their eyes as a defense mechanism against predators.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-1010-4b3a-8f21-aaaabbbb0010"
+            },
+            {
+              "message": "Fun fact: There are tiny mites that live in human eyelashes and eyebrows, and most of the time they cause zero problems.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-1011-4b3a-8f21-aaaabbbb0011"
+            },
+            {
+              "message": "Fun fact: The heart of a blue whale is so large that a human could, in theory, crawl through its major blood vessels.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-1012-4b3a-8f21-aaaabbbb0012"
+            },
+            {
+              "message": "Fun fact: Some birds, like ravens and parrots, can plan ahead and even understand simple cause-and-effect puzzles.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-1013-4b3a-8f21-aaaabbbb0013"
+            },
+            {
+              "message": "Fun fact: The fingerprints of a koala are so similar to human fingerprints that they can confuse forensic scanners.",
+              "days": ["ALL"],
+              "time_periods": ["ALL"],
+              "message_id": "3f9c2b10-1014-4b3a-8f21-aaaabbbb0014"
+            }
+          ]
+          
     ]
 }

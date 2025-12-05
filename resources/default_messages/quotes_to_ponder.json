@@ -39,6 +39,161 @@
                 "ALL"
             ],
             "message_id": "ad6b7666-2de1-4e3b-afe8-d5552e947d75"
-        }
+        },
+        {
+            "messages": [
+              {
+                "message": "Quote to ponder: \"The happiness of your life depends upon the quality of your thoughts.\" — Marcus Aurelius",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0001"
+              },
+              {
+                "message": "Quote to ponder: \"We suffer more often in imagination than in reality.\" — Seneca",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0002"
+              },
+              {
+                "message": "Quote to ponder: \"Man is disturbed not by things, but by the views he takes of them.\" — Epictetus",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0003"
+              },
+              {
+                "message": "Quote to ponder: \"When you arise in the morning, think of what a privilege it is to be alive.\" — Marcus Aurelius",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0004"
+              },
+              {
+                "message": "Quote to ponder: \"He who is brave is free.\" — Seneca",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0005"
+              },
+              {
+                "message": "Quote to ponder: \"If you are depressed you are living in the past. If you are anxious you are living in the future. If you are at peace you are living in the present.\" — Lao Tzu",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0006"
+              },
+              {
+                "message": "Quote to ponder: \"It is not what happens to you, but how you react to it that matters.\" — Epictetus",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0007"
+              },
+              {
+                "message": "Quote to ponder: \"The obstacle is the path.\" — Zen proverb",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0008"
+              },
+              {
+                "message": "Quote to ponder: \"What you think, you become. What you feel, you attract. What you imagine, you create.\" — Attributed to the Buddha",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0009"
+              },
+              {
+                "message": "Quote to ponder: \"Knowing yourself is the beginning of all wisdom.\" — Aristotle",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0010"
+              },
+              {
+                "message": "Quote to ponder: \"Act as if what you do makes a difference. It does.\" — William James",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0011"
+              },
+              {
+                "message": "Quote to ponder: \"The only way to have a friend is to be one.\" — Ralph Waldo Emerson",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0012"
+              },
+              {
+                "message": "Quote to ponder: \"It is never too late to be what you might have been.\" — George Eliot",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0013"
+              },
+              {
+                "message": "Quote to ponder: \"All our life is but a mass of habits.\" — William James",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0014"
+              },
+              {
+                "message": "Quote to ponder: \"The only people who never fail are those who never try.\" — Ilka Chase",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0015"
+              },
+              {
+                "message": "Quote to ponder: \"Things do not change; we change.\" — Henry David Thoreau",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0016"
+              },
+              {
+                "message": "Quote to ponder: \"Nothing ever goes away until it has taught us what we need to know.\" — Pema Chödrön",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0017"
+              },
+              {
+                "message": "Quote to ponder: \"What lies behind us and what lies before us are tiny matters compared to what lies within us.\" — Ralph Waldo Emerson",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0018"
+              },
+              {
+                "message": "Quote to ponder: \"The greatest wealth is to live content with little.\" — Plato",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0019"
+              },
+              {
+                "message": "Quote to ponder: \"Be kind, for everyone you meet is fighting a hard battle.\" — Attributed to Plato",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0020"
+              },
+              {
+                "message": "Quote to ponder: \"Wherever you go, there you are.\" — Jon Kabat-Zinn",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0021"
+              },
+              {
+                "message": "Quote to ponder: \"Do not act as if you had ten thousand years to throw away.\" — Marcus Aurelius",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0022"
+              },
+              {
+                "message": "Quote to ponder: \"No man is free who is not master of himself.\" — Epictetus",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0023"
+              },
+              {
+                "message": "Quote to ponder: \"Luck is what happens when preparation meets opportunity.\" — Seneca",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0024"
+              },
+              {
+                "message": "Quote to ponder: \"A journey of a thousand miles begins with a single step.\" — Lao Tzu",
+                "days": ["ALL"],
+                "time_periods": ["ALL"],
+                "message_id": "qpd-0025"
+              }
+            ]
+          }
+          
     ]
 }

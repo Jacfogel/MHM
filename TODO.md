@@ -8,10 +8,10 @@
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_EXPANSION_PLAN.md](development_docs/TEST_COVERAGE_EXPANSION_PLAN.md) for testing strategy**
 
-## How to Add New TODOs
-
-When adding new tasks, follow this format:
-
+## How to Add New TODOs✅
+✅
+When adding new tasks, follow this format:✅
+✅
 ```markdown
 **Task Title** - Brief description
 - *What it means*: Simple explanation of the task
@@ -155,7 +155,7 @@ When adding new tasks, follow this format:
   - [ ] Update tests to cover both components
   - [ ] Update documentation and tool_metadata.py
 
-**Integrate Unused Imports Cleanup into Unused Imports Checker**
+**Create a new Unused Imports Cleanup module in development_tools/imports/ that incorporates the functionality from scripts/cleanup_unused_imports.py**
 - *What it means*: Integrate `scripts/cleanup_unused_imports.py` functionality into a new tool, `imports/fix_unused_imports.py`. Add categorization and cleanup recommendations to the existing unused imports analysis.
 - *Why it helps*: Provides actionable recommendations for unused imports (missing error handling, missing logging, safe to remove, etc.) alongside detection. Enables automated cleanup workflows. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.
 - *Estimated effort*: Medium
@@ -165,11 +165,6 @@ When adding new tasks, follow this format:
   - [ ] Add cleanup recommendation generation to unused imports report
   - [ ] Consider adding `--categorize` flag to existing unused imports checker command
   - [ ] Update documentation to reflect enhanced reporting capabilities
-
-
-
-
-
 
 **Investigate and Enhance Documentation Overlap Analysis**
 - *What it means*: Investigate what the documentation overlap analysis looks for and enhance it to be more helpful. Currently it reports section overlaps and consolidation opportunities but may not be providing actionable insights.
@@ -227,10 +222,6 @@ When adding new tasks, follow this format:
 - *What it means*: Investigate why changelog check reports "Tooling unavailable (skipping trim)". Handle with care to avoid accidentally losing changelog information.
 - *Why it helps*: Ensures changelog maintenance tooling works correctly and prevents accidental data loss
 - *Estimated effort*: Small
-
-
-
-
 
 **Improve Console Output During Audit Runs**
 - *What it means*: Improve console output during audit runs. Currently it's an unhelpful mess with a massive dump of raw metrics data (dictionaries, lists, etc.) that's not human-readable. Make it more structured and informative.
@@ -357,6 +348,11 @@ When adding new tasks, follow this format:
 **Create Development Guidelines**
 - *What it means*: Establish coding standards and best practices
 - *Why it helps*: Consistency and clarity, especially when collaborating with AI tools
+- *Estimated effort*: Small
+
+**Investigate markdown link issues**
+- *What it means*: Some markdown links work in the editor while others don't, even with the same format. Need to investigate why relative paths work for some files but not others.
+- *Why it helps*: Ensures all report links are clickable and functional in the editor
 - *Estimated effort*: Small
 
 

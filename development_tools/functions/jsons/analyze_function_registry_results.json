@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_function_registry - Development Tools",
-  "last_generated": "2025-12-04 07:33:48",
-  "timestamp": "2025-12-04T07:33:48.029875",
+  "last_generated": "2025-12-05 05:29:49",
+  "timestamp": "2025-12-05T05:29:49.623634",
   "tool_name": "analyze_function_registry",
   "domain": "functions",
   "source": "python development_tools/functions/analyze_function_registry.py",
@@ -713,16 +713,16 @@
           "name": "_create_comprehensive_context_prompt"
         },
         {
+          "complexity": 2130,
+          "file": "core/user_data_handlers.py",
+          "has_docstring": true,
+          "name": "get_user_data"
+        },
+        {
           "complexity": 2115,
           "file": "communication/communication_channels/discord/bot.py",
           "has_docstring": true,
           "name": "initialize__register_events"
-        },
-        {
-          "complexity": 2067,
-          "file": "core/user_data_handlers.py",
-          "has_docstring": true,
-          "name": "get_user_data"
         },
         {
           "complexity": 1976,
@@ -821,7 +821,7 @@
           "name": "run_command"
         },
         {
-          "complexity": 713,
+          "complexity": 735,
           "file": "ui/ui_app_qt.py",
           "has_docstring": true,
           "name": "refresh_user_list"
@@ -1446,6 +1446,12 @@
         },
         {
           "complexity": 360,
+          "file": "ui/dialogs/account_creator_dialog.py",
+          "has_docstring": true,
+          "name": "setup_connections"
+        },
+        {
+          "complexity": 360,
           "file": "ai/context_builder.py",
           "has_docstring": true,
           "name": "analyze_context"
@@ -1548,6 +1554,12 @@
         },
         {
           "complexity": 337,
+          "file": "core/user_data_handlers.py",
+          "has_docstring": true,
+          "name": "_save_user_data__check_cross_file_invariants"
+        },
+        {
+          "complexity": 337,
           "file": "ui/dialogs/account_creator_dialog.py",
           "has_docstring": true,
           "name": "_validate_and_accept__update_user_index"
@@ -1587,12 +1599,6 @@
           "file": "core/user_management.py",
           "has_docstring": true,
           "name": "_get_user_data__load_preferences"
-        },
-        {
-          "complexity": 330,
-          "file": "ui/dialogs/account_creator_dialog.py",
-          "has_docstring": true,
-          "name": "setup_connections"
         },
         {
           "complexity": 328,
@@ -1689,12 +1695,6 @@
           "file": "ui/dialogs/task_crud_dialog.py",
           "has_docstring": true,
           "name": "refresh_completed_tasks"
-        },
-        {
-          "complexity": 311,
-          "file": "core/user_data_handlers.py",
-          "has_docstring": true,
-          "name": "_save_user_data__check_cross_file_invariants"
         },
         {
           "complexity": 310,

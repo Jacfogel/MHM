@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_unused_imports - Development Tools",
-  "last_generated": "2025-12-04 07:36:42",
-  "timestamp": "2025-12-04T07:36:42.899576",
+  "last_generated": "2025-12-05 05:33:25",
+  "timestamp": "2025-12-05T05:33:25.584582",
   "tool_name": "analyze_unused_imports",
   "domain": "imports",
   "note": "This file is auto-generated. Do not edit manually.",
@@ -580,7 +580,7 @@
       "results": []
     },
     "core/user_data_handlers.py": {
-      "mtime": 1764559831.5616274,
+      "mtime": 1764934155.7210472,
       "results": []
     },
     "core/user_data_manager.py": {
@@ -4342,7 +4342,7 @@
       "results": []
     },
     "ui/ui_app_qt.py": {
-      "mtime": 1763812166.6771317,
+      "mtime": 1764886897.612208,
       "results": []
     },
     "ui/widgets/__init__.py": {
@@ -4366,7 +4366,7 @@
       "results": []
     },
     "ui/widgets/dynamic_list_field.py": {
-      "mtime": 1760507219.8328872,
+      "mtime": 1764869435.7044697,
       "results": []
     },
     "ui/widgets/period_row_widget.py": {
@@ -5580,7 +5580,7 @@
       "results": []
     },
     "tests/development_tools/conftest.py": {
-      "mtime": 1764636278.5929773,
+      "mtime": 1764870523.0651467,
       "results": []
     },
     "tests/development_tools/test_ai_tools_runner.py": {
@@ -6031,7 +6031,7 @@
       "results": []
     },
     "development_tools/docs/analyze_documentation.py": {
-      "mtime": 1764746603.918015,
+      "mtime": 1764918973.1461215,
       "results": []
     },
     "development_tools/docs/documentation_sync_checker.py": {
@@ -6278,7 +6278,7 @@
       "results": []
     },
     "development_tools/shared/operations.py": {
-      "mtime": 1764855058.6553183,
+      "mtime": 1764930856.6184163,
       "results": [
         {
           "type": "warning",
@@ -6498,7 +6498,7 @@
       "results": []
     },
     "development_tools/config/analyze_config.py": {
-      "mtime": 1764754855.6113722,
+      "mtime": 1764903977.5001297,
       "results": []
     },
     "development_tools/docs/analyze_documentation_sync.py": {
@@ -6510,7 +6510,7 @@
       "results": []
     },
     "development_tools/error_handling/analyze_error_handling.py": {
-      "mtime": 1764664462.587858,
+      "mtime": 1764903977.5028398,
       "results": [
         {
           "type": "warning",
@@ -6714,7 +6714,7 @@
       "results": []
     },
     "development_tools/docs/analyze_path_drift.py": {
-      "mtime": 1764845682.225847,
+      "mtime": 1764903977.5001297,
       "results": []
     },
     "development_tools/docs/analyze_unconverted_links.py": {
@@ -6738,7 +6738,7 @@
       "results": []
     },
     "development_tools/error_handling/generate_error_handling_report.py": {
-      "mtime": 1764754855.6113722,
+      "mtime": 1764903977.5028398,
       "results": []
     },
     "development_tools/functions/analyze_function_patterns.py": {
@@ -6935,7 +6935,7 @@
       ]
     },
     "tests/development_tools/test_path_drift_detection.py": {
-      "mtime": 1764844930.2810104,
+      "mtime": 1764885717.3416598,
       "results": [
         {
           "type": "warning",
@@ -6974,6 +6974,216 @@
           "path": "tests\\development_tools\\test_path_drift_detection.py",
           "symbol": "unused-import",
           "message": "Unused import shutil",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.test_path_drift_detection",
+          "obj": "",
+          "line": 12,
+          "column": 0,
+          "endLine": 12,
+          "endColumn": 24,
+          "path": "tests\\development_tools\\test_path_drift_detection.py",
+          "symbol": "unused-import",
+          "message": "Unused Path imported from pathlib",
+          "message-id": "W0611"
+        }
+      ]
+    },
+    "tests/ui/test_signal_handler_integration.py": {
+      "mtime": 1764870223.726027,
+      "results": [
+        {
+          "type": "warning",
+          "module": "test_signal_handler_integration",
+          "obj": "",
+          "line": 19,
+          "column": 0,
+          "endLine": 19,
+          "endColumn": 42,
+          "path": "tests\\ui\\test_signal_handler_integration.py",
+          "symbol": "unused-import",
+          "message": "Unused patch imported from unittest.mock",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "test_signal_handler_integration",
+          "obj": "",
+          "line": 19,
+          "column": 0,
+          "endLine": 19,
+          "endColumn": 42,
+          "path": "tests\\ui\\test_signal_handler_integration.py",
+          "symbol": "unused-import",
+          "message": "Unused MagicMock imported from unittest.mock",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "test_signal_handler_integration",
+          "obj": "",
+          "line": 20,
+          "column": 0,
+          "endLine": 20,
+          "endColumn": 64,
+          "path": "tests\\ui\\test_signal_handler_integration.py",
+          "symbol": "unused-import",
+          "message": "Unused QLineEdit imported from PySide6.QtWidgets",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "test_signal_handler_integration",
+          "obj": "",
+          "line": 20,
+          "column": 0,
+          "endLine": 20,
+          "endColumn": 64,
+          "path": "tests\\ui\\test_signal_handler_integration.py",
+          "symbol": "unused-import",
+          "message": "Unused QCheckBox imported from PySide6.QtWidgets",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "test_signal_handler_integration",
+          "obj": "",
+          "line": 21,
+          "column": 0,
+          "endLine": 21,
+          "endColumn": 29,
+          "path": "tests\\ui\\test_signal_handler_integration.py",
+          "symbol": "unused-import",
+          "message": "Unused Qt imported from PySide6.QtCore",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "test_signal_handler_integration",
+          "obj": "",
+          "line": 22,
+          "column": 0,
+          "endLine": 22,
+          "endColumn": 32,
+          "path": "tests\\ui\\test_signal_handler_integration.py",
+          "symbol": "unused-import",
+          "message": "Unused QTest imported from PySide6.QtTest",
+          "message-id": "W0611"
+        }
+      ]
+    },
+    "development_tools/analyze_json_files.py": {
+      "mtime": 1764926176.2904904,
+      "results": [
+        {
+          "type": "warning",
+          "module": "development_tools.analyze_json_files",
+          "obj": "",
+          "line": 12,
+          "column": 0,
+          "endLine": 12,
+          "endColumn": 11,
+          "path": "development_tools\\analyze_json_files.py",
+          "symbol": "unused-import",
+          "message": "Unused import json",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.analyze_json_files",
+          "obj": "",
+          "line": 14,
+          "column": 0,
+          "endLine": 14,
+          "endColumn": 41,
+          "path": "development_tools\\analyze_json_files.py",
+          "symbol": "unused-import",
+          "message": "Unused Set imported from typing",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.analyze_json_files",
+          "obj": "",
+          "line": 14,
+          "column": 0,
+          "endLine": 14,
+          "endColumn": 41,
+          "path": "development_tools\\analyze_json_files.py",
+          "symbol": "unused-import",
+          "message": "Unused List imported from typing",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.analyze_json_files",
+          "obj": "",
+          "line": 14,
+          "column": 0,
+          "endLine": 14,
+          "endColumn": 41,
+          "path": "development_tools\\analyze_json_files.py",
+          "symbol": "unused-import",
+          "message": "Unused Tuple imported from typing",
+          "message-id": "W0611"
+        }
+      ]
+    },
+    "development_tools/comprehensive_file_analysis.py": {
+      "mtime": 1764926756.4831278,
+      "results": [
+        {
+          "type": "warning",
+          "module": "development_tools.comprehensive_file_analysis",
+          "obj": "",
+          "line": 14,
+          "column": 0,
+          "endLine": 14,
+          "endColumn": 11,
+          "path": "development_tools\\comprehensive_file_analysis.py",
+          "symbol": "unused-import",
+          "message": "Unused import json",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.comprehensive_file_analysis",
+          "obj": "",
+          "line": 17,
+          "column": 0,
+          "endLine": 17,
+          "endColumn": 51,
+          "path": "development_tools\\comprehensive_file_analysis.py",
+          "symbol": "unused-import",
+          "message": "Unused List imported from typing",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.comprehensive_file_analysis",
+          "obj": "",
+          "line": 17,
+          "column": 0,
+          "endLine": 17,
+          "endColumn": 51,
+          "path": "development_tools\\comprehensive_file_analysis.py",
+          "symbol": "unused-import",
+          "message": "Unused Tuple imported from typing",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.comprehensive_file_analysis",
+          "obj": "",
+          "line": 17,
+          "column": 0,
+          "endLine": 17,
+          "endColumn": 51,
+          "path": "development_tools\\comprehensive_file_analysis.py",
+          "symbol": "unused-import",
+          "message": "Unused Optional imported from typing",
           "message-id": "W0611"
         }
       ]

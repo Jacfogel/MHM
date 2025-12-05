@@ -39,6 +39,33 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-05 - Development Tools Investigation, Fixes, and User Data Handler Improvements **COMPLETED**
+- **Feature**: Conducted systematic investigation of missing JSON results files in development tools, discovered and fixed critical bugs preventing results from being saved, completed Milestone M11.2 (unused imports data availability), and fixed multiple test failures in user data handlers. Created analysis scripts to identify missing files, applied fixes for 9 tools missing `save_tool_result` calls, removed duplicate `run_decision_support` method, and cleaned up investigation artifacts. Updated `AI_DEV_TOOLS_IMPROVEMENT_PLAN.md` to reflect completed work and align with original plan goals from session start.
+- **Impact**: All expected JSON results files are now being created successfully. Unused imports data now appears correctly in all three reports (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.txt). Development tools directory is cleaner with one-time scripts properly organized in `scripts/` directory. Test suite passes with 3348 tests passing. User data retrieval now correctly handles edge cases where users exist but aren't in the index yet, or where directory structure isn't fully initialized. Improvement plan accurately reflects current state and completed milestones.
+- **Technical Changes**:
+  - **Investigation Work**: Created `comprehensive_file_analysis.py` and `analyze_json_files.py` to systematically identify which tools were missing `save_tool_result` calls or had incorrect data saving logic. Created documentation files (`JSON_FILES_ANALYSIS.md`, `MISSING_FILES_ANALYSIS.md`, `MISSING_FILES_FIXES_APPLIED.md`, `LEGACY_CODE_REMOVAL_STATUS.md`) to track findings during investigation.
+  - **Critical Fixes**:
+    - **Modified**: `development_tools/shared/operations.py` - Removed duplicate `run_decision_support` method at line 2133 that was overriding the fixed version at line 469. The duplicate method didn't include the `save_tool_result` call, preventing results from being saved to standardized storage.
+    - **Modified**: `development_tools/shared/operations.py` - Added missing `save_tool_result` calls for 9 tools: `analyze_ai_work`, `analyze_ascii_compliance`, `analyze_heading_numbering`, `analyze_missing_addresses`, `analyze_unconverted_links`, `analyze_test_markers`, `analyze_test_coverage`, `system_signals`, `decision_support`. These tools were running successfully but not saving their results to standardized storage.
+    - **Modified**: `development_tools/shared/operations.py` - Fixed unused imports data availability (M11.2) by refactoring `run_unused_imports_report()` to directly call `execute()` function from `analyze_unused_imports.py` instead of parsing subprocess stdout, ensuring structured data is correctly captured and saved.
+  - **Cleanup Work**:
+    - **Moved**: `development_tools/comprehensive_file_analysis.py` → `scripts/comprehensive_file_analysis.py` (one-time analysis script, moved after investigation complete)
+    - **Moved**: `development_tools/analyze_json_files.py` → `scripts/analyze_json_files.py` (one-time analysis script, moved after investigation complete)
+    - **Deleted**: `development_tools/JSON_FILES_ANALYSIS.md`, `development_tools/MISSING_FILES_ANALYSIS.md`, `development_tools/MISSING_FILES_FIXES_APPLIED.md`, `development_tools/LEGACY_CODE_REMOVAL_STATUS.md` (single-use documentation files, findings consolidated into `AI_DEV_TOOLS_IMPROVEMENT_PLAN.md`)
+  - **Improvement Plan Updates**:
+    - **Modified**: `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md` - Marked M11.2 (unused imports data availability) as COMPLETED (2025-12-05) with details on the fix. Updated M9.1.4 to include investigation work and critical fixes. Updated Phase 11 status and summary to reflect completed work, investigation process, and cleanup. Added comprehensive notes about the investigation workflow (create scripts → identify issues → apply fixes → cleanup).
+  - **User Data Handler Fixes**:
+    - **Modified**: `core/user_data_handlers.py` - Refined `get_user_data` logic for `auto_create=True`:
+      - If directory exists: always allow loaders to proceed (index is just a cache, shouldn't block reading existing data)
+      - If directory doesn't exist and user is not in index: return empty dict (truly nonexistent user)
+      - If directory doesn't exist but user is in index: allow loaders to proceed (they may create the directory)
+    - **Modified**: `core/user_data_handlers.py` - Fixed deep copy issue in cross-file invariants by using `copy.deepcopy()` instead of `.copy()` when adding account data to merged_data, ensuring nested dictionaries (like `features`) are properly copied without shared references.
+- **Tests**: All 3348 tests pass (1 skipped). Fixed test failures:
+  - `test_get_user_data_nonexistent_user` - Now correctly returns empty dict for truly nonexistent users even with `auto_create=True`
+  - `test_cross_file_invariant_account_not_in_original_update` - Now correctly loads account data after cross-file invariant updates using deep copy
+  - `test_schedule_period_lifecycle` - Now correctly reads schedule periods even if user isn't in index yet
+  - `test_multiple_users_same_features_real_behavior` - `rebuild_user_index` now works correctly even if users aren't in index yet
+
 ### 2025-12-04 - UI Signal Handler Fixes and Test Infrastructure Improvements **COMPLETED**
 - **Feature**: Fixed multiple UI signal handler signature mismatches that caused `TypeError` errors during account creation and dynamic list field interactions. Fixed path drift detection test failure caused by incorrect file exclusion logic. Resolved `RuntimeWarning` for signal disconnection. Created comprehensive signal integration tests to prevent future regressions.
 - **Impact**: Eliminates `TypeError` errors in UI components when signals emit parameters. Account creation and dynamic list field interactions now work correctly. Path drift detection tests pass reliably. Signal disconnection warnings eliminated. New test suite catches signal handler signature mismatches and missing imports before they reach production.

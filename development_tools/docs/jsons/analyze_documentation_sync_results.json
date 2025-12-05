@@ -1,26 +1,140 @@
 {
   "generated_by": "analyze_documentation_sync - Development Tools",
-  "last_generated": "2025-12-04 07:33:39",
-  "timestamp": "2025-12-04T07:33:39.467448",
+  "last_generated": "2025-12-05 05:29:41",
+  "timestamp": "2025-12-05T05:29:41.705538",
   "tool_name": "analyze_documentation_sync",
   "domain": "docs",
   "source": "python development_tools/docs/analyze_documentation_sync.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
     "status": "FAIL",
-    "total_issues": 1,
-    "paired_doc_issues": 1,
-    "path_drift_issues": 0,
+    "total_issues": 42,
+    "paired_doc_issues": 0,
+    "path_drift_issues": 42,
     "ascii_compliance_issues": 0,
     "heading_numbering_issues": 0,
-    "path_drift_files": [],
-    "paired_docs": {
-      "content_sync": [
-        "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md has sections missing in DEVELOPMENT_WORKFLOW.md: {'10. Standard Audit Recipe'}"
-      ]
+    "path_drift_files": [
+      "ARCHITECTURE.md",
+      "DOCUMENTATION_GUIDE.md",
+      "TODO.md",
+      "ai\\SYSTEM_AI_GUIDE.md",
+      "ai_development_docs\\AI_DOCUMENTATION_GUIDE.md",
+      "ai_development_docs\\AI_ERROR_HANDLING_GUIDE.md",
+      "communication\\COMMUNICATION_GUIDE.md",
+      "core\\ERROR_HANDLING_GUIDE.md",
+      "development_docs\\UNUSED_IMPORTS_REPORT.md",
+      "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md"
+    ],
+    "paired_docs": {},
+    "path_drift": {
+      "files": {
+        "ARCHITECTURE.md": 4,
+        "DOCUMENTATION_GUIDE.md": 3,
+        "TODO.md": 3,
+        "ai\\SYSTEM_AI_GUIDE.md": 1,
+        "ai_development_docs\\AI_DOCUMENTATION_GUIDE.md": 1,
+        "ai_development_docs\\AI_ERROR_HANDLING_GUIDE.md": 2,
+        "communication\\COMMUNICATION_GUIDE.md": 3,
+        "core\\ERROR_HANDLING_GUIDE.md": 1,
+        "development_docs\\UNUSED_IMPORTS_REPORT.md": 1,
+        "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md": 6,
+        "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md": 2,
+        "logs\\LOGGING_GUIDE.md": 2,
+        "development_tools\\shared\\OUTPUT_STORAGE_STANDARDS.md": 7,
+        "tests\\fixtures\\development_tools_demo\\docs\\bad_numbering_doc.md": 1,
+        "tests\\fixtures\\development_tools_demo\\docs\\mismatched_ai_doc.md": 2,
+        "tests\\fixtures\\development_tools_demo\\docs\\mismatched_human_doc.md": 2,
+        "tests\\fixtures\\development_tools_demo\\docs\\misnumbered_doc.md": 1
+      },
+      "total_issues": 42,
+      "detailed_issues": {
+        "ARCHITECTURE.md": [
+          "Missing file: something_dialog_pyqt.py",
+          "Missing file: ui/dialogs/something_dialog.py",
+          "Missing file: something_widget_pyqt.py",
+          "Missing file: ui/widgets/something_widget.py"
+        ],
+        "DOCUMENTATION_GUIDE.md": [
+          "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md",
+          "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md",
+          "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md"
+        ],
+        "TODO.md": [
+          "Missing file: TEST_COVERAGE_EXPANSION_PLAN.md",
+          "Missing file: analyze_ai_work.py",
+          "Missing file: test_utilities_demo.py"
+        ],
+        "ai\\SYSTEM_AI_GUIDE.md": [
+          "Missing file: response_tracking.py"
+        ],
+        "ai_development_docs\\AI_DOCUMENTATION_GUIDE.md": [
+          "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md"
+        ],
+        "ai_development_docs\\AI_ERROR_HANDLING_GUIDE.md": [
+          "Missing file: analyze_error_handling.py",
+          "Missing file: error_handling.py"
+        ],
+        "communication\\COMMUNICATION_GUIDE.md": [
+          "Missing file: command_parser.py",
+          "Missing file: command_parser.py",
+          "Missing file: interaction_manager.py"
+        ],
+        "core\\ERROR_HANDLING_GUIDE.md": [
+          "Missing file: analyze_error_handling.py"
+        ],
+        "development_docs\\UNUSED_IMPORTS_REPORT.md": [
+          "Potentially outdated module: annotations"
+        ],
+        "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md": [
+          "Missing file: LEGACY_REFERENCE_REPORT.md",
+          "Missing file: TEST_COVERAGE_EXPANSION_PLAN.md",
+          "Missing file: UNUSED_IMPORTS_REPORT.md",
+          "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md",
+          "Missing file: analyze_missing_addresses.py",
+          "Missing file: reports/file_rotation.py"
+        ],
+        "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md": [
+          "Potentially outdated module: detector.",
+          "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md"
+        ],
+        "logs\\LOGGING_GUIDE.md": [
+          "Missing file: backup_manager.py",
+          "Missing file: auto_cleanup.py"
+        ],
+        "development_tools\\shared\\OUTPUT_STORAGE_STANDARDS.md": [
+          "Missing file: AI_STATUS.md",
+          "Missing file: AI_PRIORITIES.md",
+          "Missing file: FUNCTION_REGISTRY_DETAIL.md",
+          "Missing file: MODULE_DEPENDENCIES_DETAIL.md",
+          "Missing file: LEGACY_REFERENCE_REPORT.md",
+          "Missing file: UNUSED_IMPORTS_REPORT.md",
+          "Missing file: DIRECTORY_TREE.md"
+        ],
+        "tests\\fixtures\\development_tools_demo\\docs\\bad_numbering_doc.md": [
+          "Missing file: docs/bad_numbering_doc.md"
+        ],
+        "tests\\fixtures\\development_tools_demo\\docs\\mismatched_ai_doc.md": [
+          "Missing file: docs/mismatched_ai_doc.md",
+          "Missing file: docs/mismatched_human_doc.md"
+        ],
+        "tests\\fixtures\\development_tools_demo\\docs\\mismatched_human_doc.md": [
+          "Missing file: docs/mismatched_human_doc.md",
+          "Missing file: docs/mismatched_ai_doc.md"
+        ],
+        "tests\\fixtures\\development_tools_demo\\docs\\misnumbered_doc.md": [
+          "Missing file: docs/misnumbered_doc.md"
+        ]
+      }
     },
-    "path_drift": {},
-    "ascii_compliance": {},
-    "heading_numbering": {}
+    "ascii_compliance": {
+      "files": {},
+      "file_count": 0,
+      "total_issues": 0
+    },
+    "heading_numbering": {
+      "files": {},
+      "file_count": 0,
+      "total_issues": 0
+    }
   }
 }

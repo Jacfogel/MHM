@@ -483,8 +483,144 @@ class AIToolsService:
             args.append("--include-dev-tools")
 
         result = self.run_script("decision_support", *args)
+        
+        # Extract insights from text output
+        self._extract_decision_insights(result)
+        
+        # Always try to save, even if result.get('success') is False (script might have output)
+        try:
+            from .output_storage import save_tool_result
+            # Use extracted insights if available, otherwise try to parse output
+            data = None
+            # Check both cache keys (metrics might be stored under either)
+            if 'decision_support_metrics' in self.results_cache:
+                data = self.results_cache['decision_support_metrics']
+                logger.info("Using decision_support_metrics from cache")
+            elif 'decision_support' in self.results_cache:
+                data = self.results_cache['decision_support']
+                logger.info("Using decision_support from cache")
+            elif result.get('data'):
+                data = result.get('data')
+                logger.info("Using data from result")
+            elif result.get('output'):
+                try:
+                    import json
+                    data = json.loads(result.get('output', ''))
+                    logger.info("Parsed JSON from output")
+                except (json.JSONDecodeError, TypeError):
+                    # If output is not JSON, create structured data from result
+                    data = {
+                        'success': result.get('success', False),
+                        'output': result.get('output', ''),
+                        'error': result.get('error', ''),
+                        'returncode': result.get('returncode', 0)
+                    }
+                    logger.info("Created structured data from output")
+            
+            # Always save something - prefer extracted metrics, fallback to metadata
+            # Even if metrics dict is empty, we should save it (it's still valid data)
+            if data is not None:
+                logger.info(f"Attempting to save decision_support results (data type: {type(data).__name__})")
+                save_tool_result('decision_support', 'reports', data, project_root=self.project_root)
+                if isinstance(data, dict):
+                    logger.info(f"Saved decision_support results with {len(data)} keys: {list(data.keys())[:5]}")
+                else:
+                    logger.info("Saved decision_support results (non-dict data)")
+            else:
+                # Fallback: save at least the result metadata
+                logger.info("No data extracted from decision_support, saving result metadata")
+                save_tool_result('decision_support', 'reports', {
+                    'success': result.get('success', False),
+                    'output': result.get('output', '')[:500] if result.get('output') else '',  # Truncate long output
+                    'returncode': result.get('returncode', 0)
+                }, project_root=self.project_root)
+                logger.info("Saved decision_support result metadata")
+        except Exception as save_error:
+            logger.error(f"Failed to save decision_support results: {save_error}", exc_info=True)
 
         return result
+
+    def run_analyze_function_patterns(self) -> Dict:
+        """Run analyze_function_patterns and save results."""
+        try:
+            from .output_storage import save_tool_result
+            from ..functions.analyze_function_patterns import analyze_function_patterns
+            from ..functions.analyze_functions import scan_all_python_files
+            
+            # Get function data
+            actual_functions = scan_all_python_files()
+            
+            # Analyze patterns
+            patterns = analyze_function_patterns(actual_functions)
+            
+            # Save to standardized storage
+            save_tool_result('analyze_function_patterns', 'functions', patterns, project_root=self.project_root)
+            
+            return {
+                'success': True,
+                'data': patterns
+            }
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_function_patterns: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
+
+    def run_analyze_module_imports(self) -> Dict:
+        """Run analyze_module_imports and save results."""
+        try:
+            from .output_storage import save_tool_result
+            from ..imports.analyze_module_imports import ModuleImportAnalyzer
+            
+            # Initialize analyzer
+            analyzer = ModuleImportAnalyzer(project_root=str(self.project_root))
+            
+            # Scan all Python files
+            import_data = analyzer.scan_all_python_files()
+            
+            # Save to standardized storage
+            save_tool_result('analyze_module_imports', 'imports', import_data, project_root=self.project_root)
+            
+            return {
+                'success': True,
+                'data': import_data
+            }
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_module_imports: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
+
+    def run_analyze_dependency_patterns(self) -> Dict:
+        """Run analyze_dependency_patterns and save results."""
+        try:
+            from .output_storage import save_tool_result
+            from ..imports.analyze_module_imports import ModuleImportAnalyzer
+            from ..imports.analyze_dependency_patterns import DependencyPatternAnalyzer
+            
+            # Get import data first
+            import_analyzer = ModuleImportAnalyzer(project_root=str(self.project_root))
+            actual_imports = import_analyzer.scan_all_python_files()
+            
+            # Analyze dependency patterns
+            pattern_analyzer = DependencyPatternAnalyzer()
+            patterns = pattern_analyzer.analyze_dependency_patterns(actual_imports)
+            
+            # Save to standardized storage
+            save_tool_result('analyze_dependency_patterns', 'imports', patterns, project_root=self.project_root)
+            
+            return {
+                'success': True,
+                'data': patterns
+            }
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_dependency_patterns: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
 
     def run_analyze_error_handling(self) -> Dict:
 
@@ -550,7 +686,7 @@ class AIToolsService:
         if data is None:
             try:
                 # Try old file location first (backward compatibility)
-                json_file = self.project_root / 'development_tools' / 'error_handling' / 'error_handling_details.json'
+                json_file = self.project_root / 'development_tools' / 'error_handling' / 'jsons' / 'error_handling_details.json'
                 if json_file.exists():
                     with open(json_file, 'r', encoding='utf-8') as f:
                         file_data = json.load(f)
@@ -606,48 +742,68 @@ class AIToolsService:
     def run_analyze_documentation_sync(self) -> Dict:
         """Run analyze_documentation_sync with structured data handling."""
         try:
-            # Import and call the checker directly to get structured data
-            from ..docs.analyze_documentation_sync import DocumentationSyncChecker
-            
-            checker = DocumentationSyncChecker()
-            results = checker.run_checks()
-            
-            # Convert results to the expected format
-            summary = results.get('summary', {})
-            data = {
-                'status': summary.get('status', 'UNKNOWN'),
-                'total_issues': summary.get('total_issues', 0),
-                'paired_doc_issues': summary.get('paired_doc_issues', 0),
-                'path_drift_issues': summary.get('path_drift_issues', 0),
-                'ascii_compliance_issues': summary.get('ascii_compliance_issues', 0),
-                'heading_numbering_issues': summary.get('heading_numbering_issues', 0),
-                'path_drift_files': list(results.get('path_drift', {}).keys()),
-                # Store detailed issues for each category
-                'paired_docs': results.get('paired_docs', {}),
-                'path_drift': results.get('path_drift', {}),
-                'ascii_compliance': results.get('ascii_compliance', {}),
-                'heading_numbering': results.get('heading_numbering', {})
-            }
-            
-            # Generate text output for compatibility
-            import io
-            import sys
-            output_buffer = io.StringIO()
-            original_stdout = sys.stdout
-            sys.stdout = output_buffer
-            try:
-                checker.print_report(results)
-                output = output_buffer.getvalue()
-            finally:
-                sys.stdout = original_stdout
-            
-            return {
-                'success': True,
-                'output': output,
-                'error': '',
-                'returncode': 0,
-                'data': data
-            }
+            # Use _run_doc_sync_check to get all aggregated data (paired docs, path drift, ASCII, heading numbering, etc.)
+            if self._run_doc_sync_check('--check'):
+                # Get aggregated summary and all results
+                summary = self.docs_sync_summary or {}
+                all_results = getattr(self, 'docs_sync_results', {}).get('all_results', {})
+                
+                # Convert to the expected format for JSON output
+                data = {
+                    'status': summary.get('status', 'UNKNOWN'),
+                    'total_issues': summary.get('total_issues', 0),
+                    'paired_doc_issues': summary.get('paired_doc_issues', 0),
+                    'path_drift_issues': summary.get('path_drift_issues', 0),
+                    'ascii_compliance_issues': summary.get('ascii_issues', 0),  # Note: summary uses 'ascii_issues' key
+                    'heading_numbering_issues': summary.get('heading_numbering_issues', 0),
+                    'path_drift_files': summary.get('path_drift_files', []),
+                    # Store detailed issues for each category
+                    'paired_docs': all_results.get('paired_docs', {}),
+                    'path_drift': all_results.get('path_drift', {}),
+                    'ascii_compliance': all_results.get('ascii_compliance', {}),
+                    'heading_numbering': all_results.get('heading_numbering', {})
+                }
+                
+                # Generate text output for compatibility
+                import io
+                import sys
+                output_buffer = io.StringIO()
+                original_stdout = sys.stdout
+                sys.stdout = output_buffer
+                try:
+                    # Import and use DocumentationSyncChecker for text output
+                    from ..docs.analyze_documentation_sync import DocumentationSyncChecker
+                    checker = DocumentationSyncChecker()
+                    # Create a results dict compatible with print_report
+                    results = {
+                        'summary': summary,
+                        'paired_docs': all_results.get('paired_docs', {}),
+                        'path_drift': all_results.get('path_drift', {}),
+                        'ascii_compliance': all_results.get('ascii_compliance', {}),
+                        'heading_numbering': all_results.get('heading_numbering', {})
+                    }
+                    checker.print_report(results)
+                    output = output_buffer.getvalue()
+                finally:
+                    sys.stdout = original_stdout
+                
+                # Save to standardized storage
+                try:
+                    from .output_storage import save_tool_result
+                    save_tool_result('analyze_documentation_sync', 'docs', data, project_root=self.project_root)
+                except Exception as e:
+                    logger.warning(f"Failed to save analyze_documentation_sync result: {e}")
+                
+                return {
+                    'success': True,
+                    'output': output,
+                    'error': '',
+                    'returncode': 0,
+                    'data': data
+                }
+            else:
+                # _run_doc_sync_check failed, fall through to fallback
+                raise Exception("_run_doc_sync_check returned False")
         except Exception as e:
             logger.error(f"Error running documentation sync checker: {e}")
             # Fallback to subprocess method
@@ -668,6 +824,7 @@ class AIToolsService:
             
             # Save to standardized storage
             try:
+                from .output_storage import save_tool_result
                 save_tool_result('analyze_documentation_sync', 'docs', data, project_root=self.project_root)
             except Exception as e:
                 logger.warning(f"Failed to save analyze_documentation_sync result: {e}")
@@ -677,6 +834,90 @@ class AIToolsService:
         else:
             result['success'] = False
             result['error'] = f'Failed to parse documentation sync output: {e}'
+        
+        return result
+
+    def run_analyze_path_drift(self) -> Dict:
+        """Run analyze_path_drift with structured data handling."""
+        try:
+            # Import and call the analyzer directly to get structured data
+            from ..docs.analyze_path_drift import PathDriftAnalyzer
+            
+            analyzer = PathDriftAnalyzer()
+            structured_results = analyzer.run_analysis()
+            
+            # Convert to the expected format
+            data = {
+                'files': structured_results.get('files', {}),
+                'total_issues': structured_results.get('total_issues', 0),
+                'detailed_issues': structured_results.get('detailed_issues', {})
+            }
+            
+            # Generate text output for compatibility
+            import io
+            import sys
+            output_buffer = io.StringIO()
+            original_stdout = sys.stdout
+            sys.stdout = output_buffer
+            try:
+                # Print in the format expected by _parse_path_drift_output
+                if data['total_issues'] > 0:
+                    print(f"\nPath Drift Issues:")
+                    print(f"   Total files with issues: {len(data['files'])}")
+                    print(f"   Total issues found: {data['total_issues']}")
+                    print(f"   Top files with most issues:")
+                    sorted_files = sorted(data['files'].items(), key=lambda x: x[1], reverse=True)
+                    for doc_file, issue_count in sorted_files[:5]:
+                        print(f"     {doc_file}: {issue_count} issues")
+                else:
+                    print("\nNo path drift issues found!")
+                output = output_buffer.getvalue()
+            finally:
+                sys.stdout = original_stdout
+            
+            # Save to standardized storage
+            try:
+                from .output_storage import save_tool_result
+                save_tool_result('analyze_path_drift', 'docs', data, project_root=self.project_root)
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_path_drift result: {e}")
+            
+            return {
+                'success': True,
+                'output': output,
+                'error': '',
+                'returncode': 0,
+                'data': data
+            }
+        except Exception as e:
+            logger.error(f"Error running path drift analyzer: {e}", exc_info=True)
+            # Fallback to subprocess method
+            result = self.run_script("analyze_path_drift")
+            output = result.get('output', '')
+            data = None
+            
+            if output:
+                try:
+                    # Try to parse JSON output if available
+                    data = json.loads(output)
+                except json.JSONDecodeError:
+                    # If not JSON, create structured data from text output
+                    data = self._parse_path_drift_output(output)
+            
+            if data:
+                # Save to standardized storage
+                try:
+                    from .output_storage import save_tool_result
+                    save_tool_result('analyze_path_drift', 'docs', data, project_root=self.project_root)
+                except Exception as e:
+                    logger.warning(f"Failed to save analyze_path_drift result: {e}")
+            
+                result['data'] = data
+                result['success'] = True
+                result['error'] = ''
+            else:
+                result['success'] = False
+                result['error'] = f'Failed to parse path drift output: {e}'
         
         return result
 
@@ -944,6 +1185,13 @@ class AIToolsService:
         # Sync TODO.md with changelog BEFORE generating status reports
         self._sync_todo_with_changelog()
 
+        # Validate referenced paths exist BEFORE generating status reports
+        # (so path validation results are available when status is generated)
+        try:
+            self._validate_referenced_paths()
+        except Exception as e:
+            logger.warning(f"Path validation failed (non-blocking): {e}")
+
         # Generate all 4 output files ONCE at the end (not mid-audit)
         try:
             # Create AI-optimized status document
@@ -964,12 +1212,6 @@ class AIToolsService:
                 self._check_and_trim_changelog_entries()
             except Exception as e:
                 logger.warning(f"Changelog trim check failed (non-blocking): {e}")
-
-            # Validate referenced paths exist
-            try:
-                self._validate_referenced_paths()
-            except Exception as e:
-                logger.warning(f"Path validation failed (non-blocking): {e}")
 
             # Check for documentation duplicates and placeholders
             try:
@@ -1263,6 +1505,11 @@ class AIToolsService:
             # Doc validators (check if docs need regeneration)
             ('analyze_function_registry', self.run_analyze_function_registry),
             ('analyze_module_dependencies', self.run_analyze_module_dependencies),
+            # Import and pattern analysis (run after module_dependencies for dependency analysis)
+            ('analyze_module_imports', self.run_analyze_module_imports),
+            ('analyze_dependency_patterns', self.run_analyze_dependency_patterns),
+            # Function pattern analysis
+            ('analyze_function_patterns', self.run_analyze_function_patterns),
         ]
         
         for tool_name, tool_func in tier2_tools:
@@ -1281,13 +1528,24 @@ class AIToolsService:
                 if success:
                     successful.append(tool_name)
                     # Save result to standardized storage if it has data
-                    if isinstance(result, dict) and 'data' in result:
-                        try:
-                            # Determine domain for tool using standardized function
-                            domain = _get_domain_from_tool_name(tool_name, self.project_root)
-                            save_tool_result(tool_name, domain, result['data'], project_root=self.project_root)
-                        except Exception as e:
-                            logger.debug(f"Failed to save {tool_name} result: {e}")
+                    # Note: Some tools (like decision_support) save in their own methods,
+                    # but we also save here if data is present for consistency
+                    if isinstance(result, dict):
+                        data = result.get('data')
+                        if not data and result.get('output'):
+                            # Try to parse output as JSON
+                            try:
+                                import json
+                                data = json.loads(result.get('output', ''))
+                            except (json.JSONDecodeError, TypeError):
+                                pass
+                        if data:
+                            try:
+                                # Determine domain for tool using standardized function
+                                domain = _get_domain_from_tool_name(tool_name, self.project_root)
+                                save_tool_result(tool_name, domain, data, project_root=self.project_root)
+                            except Exception as e:
+                                logger.debug(f"Failed to save {tool_name} result: {e}")
                 else:
                     failed.append(tool_name)
                     error_msg = result.get('error', 'Unknown error') if isinstance(result, dict) else str(result)
@@ -1553,11 +1811,20 @@ class AIToolsService:
             analyzer = ASCIIComplianceAnalyzer()
             results = analyzer.check_ascii_compliance()
             total_issues = sum(len(issues) for issues in results.values())
+            files_with_issues = len(results)
             if total_issues == 0:
                 logger.info("   ASCII compliance: All documentation files use ASCII-only characters")
+                # Store in docs_sync_summary even if 0
+                if not hasattr(self, 'docs_sync_summary') or not self.docs_sync_summary:
+                    self.docs_sync_summary = {}
+                self.docs_sync_summary['ascii_issues'] = 0
             else:
-                logger.warning(f"   ASCII compliance: Found {total_issues} non-ASCII characters in {len(results)} files")
+                logger.warning(f"   ASCII compliance: Found {total_issues} non-ASCII characters in {files_with_issues} files")
                 logger.warning("   -> Replace non-ASCII characters with ASCII equivalents")
+                # Store in docs_sync_summary for display in reports
+                if not hasattr(self, 'docs_sync_summary') or not self.docs_sync_summary:
+                    self.docs_sync_summary = {}
+                self.docs_sync_summary['ascii_issues'] = files_with_issues
         except Exception as exc:
             logger.warning(f"   ASCII compliance check failed: {exc}")
 
@@ -1706,6 +1973,28 @@ class AIToolsService:
 
             # Store results for consolidated report
             self.validation_results = result
+            
+            # Save results to standardized storage
+            try:
+                from .output_storage import save_tool_result
+                # Try to extract data from output or result
+                data = result.get('data')
+                if not data and result.get('output'):
+                    try:
+                        import json
+                        data = json.loads(result.get('output', ''))
+                    except (json.JSONDecodeError, TypeError):
+                        # If output is not JSON, create structured data from result
+                        data = {
+                            'success': result.get('success', False),
+                            'output': result.get('output', ''),
+                            'error': result.get('error', ''),
+                            'returncode': result.get('returncode', 0)
+                        }
+                if data:
+                    save_tool_result('analyze_ai_work', 'ai_work', data, project_root=self.project_root)
+            except Exception as e:
+                logger.debug(f"Failed to save analyze_ai_work results: {e}")
 
             logger.info("=" * 50)
 
@@ -1740,7 +2029,7 @@ class AIToolsService:
                 # If no output, try to extract from JSON results
                 try:
                     import json
-                    results_file = self.project_root / "development_tools" / "config" / "analyze_config_results.json"
+                    results_file = self.project_root / "development_tools" / "config" / "jsons" / "analyze_config_results.json"
                     if results_file.exists():
                         with open(results_file, 'r', encoding='utf-8') as f:
                             data = json.load(f)
@@ -1841,51 +2130,6 @@ class AIToolsService:
         # Use new tier-based structure
         return self._run_quick_audit_tools()
 
-    def run_decision_support(self):
-
-        """Get actionable insights for decision-making"""
-
-        logger.info("Getting actionable insights...")
-
-        logger.info("=" * 50)
-
-        result = self.run_script('decision_support')
-
-        if result['success']:
-            # Print the key findings instead of just logging
-            output = result.get('output', '')
-            if output:
-                print(output)
-            else:
-                # If no output, try to extract key findings from JSON
-                try:
-                    import json
-                    results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
-                    if results_file.exists():
-                        with open(results_file, 'r', encoding='utf-8') as f:
-                            data = json.load(f)
-                        if 'results' in data and 'decision_support' in data['results']:
-                            ds_data = data['results']['decision_support']
-                            if 'data' in ds_data and 'decision_support_metrics' in ds_data['data']:
-                                metrics = ds_data['data']['decision_support_metrics']
-                                print("=== AI DECISION SUPPORT DASHBOARD ===")
-                                if metrics.get('total_functions'):
-                                    print(f"Total functions: {metrics['total_functions']}")
-                                if metrics.get('critical_complexity'):
-                                    print(f"[CRITICAL] Critical Complexity (>199 nodes): {metrics['critical_complexity']}")
-                                if metrics.get('high_complexity'):
-                                    print(f"[HIGH] High Complexity (100-199 nodes): {metrics['high_complexity']}")
-                                if metrics.get('moderate_complexity'):
-                                    print(f"[MODERATE] Moderate Complexity (50-99 nodes): {metrics['moderate_complexity']}")
-                except Exception as e:
-                    logger.debug(f"Could not extract decision support from JSON: {e}")
-                    logger.info("Decision support completed!")
-
-            # Return the result dict so metrics can be extracted
-            return result
-        else:
-            logger.error(f"Decision support failed: {result['error']}")
-            return result
 
     def run_version_sync(self, scope: str = 'docs'):
 
@@ -2176,20 +2420,16 @@ class AIToolsService:
             # Run test marker analysis after coverage (when tests are run)
             try:
                 logger.info("  - Running test marker analysis...")
-                marker_result = self.run_script('analyze_test_markers', '--check', '--json')
+                # Use run_test_markers() method which includes save_tool_result
+                marker_result = self.run_test_markers('check')
                 if marker_result.get('success'):
-                    output = marker_result.get('output', '')
-                    if output:
-                        try:
-                            import json
-                            marker_data = json.loads(output)
-                            missing_count = marker_data.get('missing_count', 0)
-                            if missing_count > 0:
-                                logger.info(f"  - Test marker analysis: {missing_count} tests missing category markers")
-                            else:
-                                logger.info("  - Test marker analysis: All tests have category markers")
-                        except (json.JSONDecodeError, ValueError):
-                            pass
+                    data = marker_result.get('data')
+                    if data:
+                        missing_count = data.get('missing_count', 0)
+                        if missing_count > 0:
+                            logger.info(f"  - Test marker analysis: {missing_count} tests missing category markers")
+                        else:
+                            logger.info("  - Test marker analysis: All tests have category markers")
             except Exception as exc:
                 logger.debug(f"  - Test marker analysis failed (non-critical): {exc}")
             
@@ -2205,6 +2445,12 @@ class AIToolsService:
             if coverage_summary:
                 overall = coverage_summary.get('overall', {})
                 logger.info(f"Reloaded coverage summary after regeneration: {overall.get('coverage', 'N/A')}% ({overall.get('covered', 'N/A')} of {overall.get('statements', 'N/A')} statements)")
+                # Save to standardized storage
+                try:
+                    from .output_storage import save_tool_result
+                    save_tool_result('analyze_test_coverage', 'tests', coverage_summary, project_root=self.project_root)
+                except Exception as save_error:
+                    logger.debug(f"Failed to save analyze_test_coverage results: {save_error}")
             else:
                 logger.warning("Failed to reload coverage summary after regeneration - coverage.json may not have been updated")
             
@@ -2409,6 +2655,12 @@ class AIToolsService:
                 try:
                     import json
                     self.system_signals = json.loads(output)
+                    # Save to standardized storage
+                    try:
+                        from .output_storage import save_tool_result
+                        save_tool_result('system_signals', 'reports', self.system_signals, project_root=self.project_root)
+                    except Exception as save_error:
+                        logger.debug(f"Failed to save system_signals results: {save_error}")
                     logger.info("Completed system signals generation successfully!")
                     return True
                 except json.JSONDecodeError:
@@ -2460,6 +2712,12 @@ class AIToolsService:
                 # Return code 1 from check means markers are missing (expected)
                 try:
                     data = json.loads(output)
+                    # Save to standardized storage
+                    try:
+                        from .output_storage import save_tool_result
+                        save_tool_result('analyze_test_markers', 'tests', data, project_root=self.project_root)
+                    except Exception as save_error:
+                        logger.debug(f"Failed to save analyze_test_markers results: {save_error}")
                     return {
                         'success': True,
                         'output': output,
@@ -2498,88 +2756,23 @@ class AIToolsService:
 
         logger.info("Starting unused imports check...")
 
-        # Use longer timeout for this script (10 minutes) as it runs pylint on many files
-
-        script_path = Path(__file__).resolve().parent.parent / 'imports' / 'analyze_unused_imports.py'
-
-        # First run: Generate the report (without --json flag so report is written to file)
-        # The script generates the report by default when --json is NOT used
-        cmd_report = [sys.executable, str(script_path)]
+        # Use execute() function directly instead of subprocess - more reliable and efficient
+        # execute() generates the report and returns structured data in one call
+        data = None
+        result = {'success': False, 'output': '', 'error': '', 'returncode': 0}
         
         try:
-            result_proc_report = subprocess.run(
-                cmd_report,
-                capture_output=True,
-                text=True,
-                cwd=str(self.project_root),
-                timeout=600  # 10 minute timeout for pylint operations
-            )
-            if result_proc_report.returncode == 0:
-                logger.info("Unused imports report generated successfully")
-        except subprocess.TimeoutExpired:
-            logger.warning("Unused imports report generation timed out")
-        except Exception as e:
-            logger.warning(f"Unused imports report generation failed: {e}")
-
-        # Second run: Get JSON data for standardized storage
-        cmd = [sys.executable, str(script_path), '--json']
-
-        try:
-
-            result_proc = subprocess.run(
-
-                cmd,
-
-                capture_output=True,
-
-                text=True,
-
-                cwd=str(self.project_root),
-
-                timeout=600  # 10 minute timeout for pylint operations
-
-            )
-
-            result = {
-
-                'success': result_proc.returncode == 0,
-
-                'output': result_proc.stdout,
-
-                'error': result_proc.stderr,
-
-                'returncode': result_proc.returncode
-
-            }
-
-        except subprocess.TimeoutExpired:
-
-            logger.error("Completed unused imports check with errors: Timed out after 10 minutes")
-
-            return {
-                'success': False,
-                'output': '',
-                'error': 'Timed out after 10 minutes',
-                'returncode': None
-            }
-
-        # Parse JSON output if available
-        data = None
-        if result.get('output'):
-            try:
-                import json
-                data = json.loads(result['output'])
-            except json.JSONDecodeError:
-                # If JSON parsing fails, try to get data from run_analyze_unused_imports
-                # which has better JSON handling
-                logger.debug("Failed to parse JSON from unused imports report, trying analyze method")
-                analyze_result = self.run_analyze_unused_imports()
-                if isinstance(analyze_result, dict) and 'data' in analyze_result:
-                    data = analyze_result['data']
-                elif isinstance(analyze_result, dict) and 'stats' in analyze_result:
-                    # If analyze_result has 'stats', convert to expected format
-                    stats = analyze_result.get('stats', {})
-                    findings = analyze_result.get('results', {}).get('findings', {})
+            from ..imports.analyze_unused_imports import execute
+            # execute() generates the report and returns structured data
+            execute_result = execute(project_root=str(self.project_root), output='development_docs/UNUSED_IMPORTS_REPORT.md')
+            if isinstance(execute_result, dict):
+                # execute() returns {'results': ..., 'report': ..., 'stats': ...}
+                stats = execute_result.get('stats', {})
+                results = execute_result.get('results', {})
+                findings = results.get('findings', {}) if isinstance(results, dict) else {}
+                
+                if stats:
+                    # Construct summary data matching get_summary_data() format
                     data = {
                         'files_scanned': stats.get('files_scanned', 0),
                         'files_with_issues': stats.get('files_with_issues', 0),
@@ -2587,18 +2780,74 @@ class AIToolsService:
                         'by_category': {
                             category: len(items) if isinstance(items, list) else items
                             for category, items in findings.items()
-                        },
-                        'status': 'CRITICAL' if stats.get('total_unused', 0) > 20 else 'NEEDS ATTENTION' if stats.get('total_unused', 0) > 0 else 'GOOD'
+                        } if findings else {},
+                        'status': 'GOOD' if stats.get('total_unused', 0) == 0 else ('NEEDS ATTENTION' if stats.get('total_unused', 0) < 20 else 'CRITICAL')
                     }
+                    result['success'] = True
+                    logger.info("Unused imports report generated successfully")
+                    logger.debug(f"Got unused imports data from execute() function: {data.get('total_unused', 0)} unused imports")
+                else:
+                    logger.warning("execute() returned no stats data")
+                    result['error'] = 'No stats data returned from execute()'
+        except Exception as e:
+            logger.warning(f"Failed to get unused imports data from execute function: {e}")
+            result['error'] = str(e)
+            # Fallback: Try subprocess approach if execute() fails
+            if not data:
+                try:
+                    script_path = Path(__file__).resolve().parent.parent / 'imports' / 'analyze_unused_imports.py'
+                    cmd = [sys.executable, str(script_path), '--json']
+                    result_proc = subprocess.run(
+                        cmd,
+                        capture_output=True,
+                        text=True,
+                        cwd=str(self.project_root),
+                        timeout=600
+                    )
+                    if result_proc.returncode == 0 and result_proc.stdout:
+                        import json
+                        try:
+                            data = json.loads(result_proc.stdout.strip())
+                            result['success'] = True
+                            logger.debug("Got unused imports data from subprocess fallback")
+                        except json.JSONDecodeError:
+                            result['error'] = 'Failed to parse JSON from subprocess output'
+                except Exception as e2:
+                    logger.warning(f"Subprocess fallback also failed: {e2}")
+                    result['error'] = f"Both execute() and subprocess failed: {e2}"
+        
+        # Ensure data has the expected structure
+        if data and isinstance(data, dict):
+            # Normalize data structure to match what status reports expect
+            if 'total_unused' not in data and 'stats' in data:
+                # Convert from stats format
+                stats = data.get('stats', {})
+                findings = data.get('findings', {})
+                data = {
+                    'files_scanned': stats.get('files_scanned', 0),
+                    'files_with_issues': stats.get('files_with_issues', 0),
+                    'total_unused': stats.get('total_unused', 0),
+                    'by_category': {
+                        category: len(items) if isinstance(items, list) else items
+                        for category, items in findings.items()
+                    } if findings else {},
+                    'status': 'GOOD' if stats.get('total_unused', 0) == 0 else ('NEEDS ATTENTION' if stats.get('total_unused', 0) < 20 else 'CRITICAL')
+                }
         
         # Save to standardized storage if we have data
-        if data:
+        # Check if data exists and has the expected structure (total_unused can be 0, so check for key existence)
+        if data and isinstance(data, dict) and ('total_unused' in data or 'stats' in data or 'files_with_issues' in data):
             try:
                 from .output_storage import save_tool_result
                 save_tool_result('analyze_unused_imports', 'imports', data, project_root=self.project_root)
                 self.results_cache['analyze_unused_imports'] = data
+                logger.debug(f"Saved unused imports data: {len(data)} keys, total_unused={data.get('total_unused', 'N/A')}")
             except Exception as e:
                 logger.warning(f"Failed to save analyze_unused_imports result: {e}")
+        elif not data:
+            logger.warning("No unused imports data to save - data is None or empty")
+        else:
+            logger.warning(f"Unused imports data structure unexpected: {type(data)}, keys: {list(data.keys()) if isinstance(data, dict) else 'N/A'}")
 
         if result['success']:
 
@@ -3312,13 +3561,16 @@ class AIToolsService:
         if high_examples:
             metrics['high_complexity_examples'] = high_examples
 
-        # Debug: log extracted metrics
-        if metrics:
-            logger.debug(f"Extracted decision_support metrics: {metrics}")
-        else:
-            logger.warning("No metrics extracted from decision_support output")
-
+        # Store extracted metrics in results_cache
+        # Always store metrics, even if empty (empty dict is still valid data)
         self.results_cache['decision_support_metrics'] = metrics
+        # Also store under 'decision_support' key for consistency with other tools
+        self.results_cache['decision_support'] = metrics
+        
+        if metrics:
+            logger.debug(f"Extracted decision_support metrics: {list(metrics.keys())}")
+        else:
+            logger.warning("No metrics extracted from decision_support output - metrics dict is empty")
         
         # Also store examples in analyze_functions cache for backward compatibility
         if 'analyze_functions' not in self.results_cache:
@@ -4117,7 +4369,7 @@ class AIToolsService:
     def _load_config_validation_summary(self) -> Optional[Dict[str, Any]]:
         """Load config validation summary from JSON file."""
         try:
-            config_file = self.project_root / "development_tools" / "config" / "analyze_config_results.json"
+            config_file = self.project_root / "development_tools" / "config" / "jsons" / "analyze_config_results.json"
             if config_file.exists():
                 import json
                 with open(config_file, 'r', encoding='utf-8') as f:
@@ -4527,66 +4779,6 @@ class AIToolsService:
 
         return 'No specific actionable insights found.'
 
-    # LEGACY COMPATIBILITY
-    # This method was replaced by _save_audit_results_aggregated() which uses standardized storage.
-    # Removal plan: This method is not currently called. Remove after confirming no external callers exist.
-    # Detection: Search for "_save_audit_results(" to find any remaining callers.
-    def _save_audit_results(self, successful: List, failed: List, results: Dict):
-
-        """Save detailed audit results (legacy method - kept for backward compatibility)
-        
-        DEPRECATED: Use _save_audit_results_aggregated() instead, which uses standardized storage.
-        """
-        logger.warning("LEGACY: _save_audit_results() is deprecated. Use _save_audit_results_aggregated() instead.")
-        
-        # Enhance results with extracted metrics from results_cache
-        enhanced_results = dict(results)
-        
-        # Add analyze_functions metrics if available
-        if 'analyze_functions' in self.results_cache:
-            func_metrics = self.results_cache['analyze_functions']
-            if 'analyze_functions' not in enhanced_results:
-                enhanced_results['analyze_functions'] = {'success': True, 'data': func_metrics}
-            elif 'data' not in enhanced_results.get('analyze_functions', {}):
-                enhanced_results['analyze_functions']['data'] = func_metrics
-        
-        # Add decision_support metrics if available
-        if 'decision_support_metrics' in self.results_cache:
-            ds_metrics = self.results_cache['decision_support_metrics']
-            # Check if decision_support exists and is a dict with proper structure
-            decision_support_result = enhanced_results.get('decision_support')
-            if decision_support_result is None or not isinstance(decision_support_result, dict):
-                # Replace boolean or None with proper dict structure
-                enhanced_results['decision_support'] = {
-                    'success': True,
-                    'data': {'decision_support_metrics': ds_metrics}
-                }
-            elif 'data' not in decision_support_result:
-                decision_support_result['data'] = {'decision_support_metrics': ds_metrics}
-            elif 'decision_support_metrics' not in decision_support_result.get('data', {}):
-                decision_support_result['data']['decision_support_metrics'] = ds_metrics
-
-        timestamp_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        timestamp_iso = datetime.now().isoformat()
-        audit_data = {
-            'generated_by': 'run_development_tools.py - AI Development Tools Runner',
-            'last_generated': timestamp_str,
-            'source': 'python development_tools/run_development_tools.py audit',
-            'note': 'This file is auto-generated. Do not edit manually.',
-            'timestamp': timestamp_iso,
-            'successful': successful,
-            'failed': failed,
-            'results': enhanced_results
-        }
-
-        # Normalise location relative to the project root
-        results_file_path = self.audit_config.get('results_file', 'development_tools/reports/analysis_detailed_results.json')
-        results_file = (self.project_root / results_file_path).resolve()
-
-        # Use file rotation for JSON files too
-
-        create_output_file(str(results_file), json.dumps(audit_data, indent=2))
-
     def _save_audit_results_aggregated(self, tier: int):
         """Save aggregated audit results from all tool result files.
         
@@ -4715,6 +4907,17 @@ class AIToolsService:
         report_lines.append(f"Timestamp: {datetime.now().isoformat()}")
 
         return "\n".join(report_lines)
+
+    def _resolve_report_path(self, report_path: str) -> Path:
+        """Helper to resolve relative report paths to absolute paths."""
+        if isinstance(report_path, str):
+            # If it's a relative path, make it absolute
+            if not Path(report_path).is_absolute():
+                return self.project_root / report_path
+            else:
+                return Path(report_path)
+        else:
+            return Path(report_path) if not isinstance(report_path, Path) else report_path
 
     def _generate_ai_status_document(self) -> str:
 
@@ -4921,6 +5124,7 @@ class AIToolsService:
         doc_coverage = metrics.get('doc_coverage', 'Unknown')
         missing_docs = None
         missing_files = []
+        documented = None  # Initialize documented variable
         if doc_coverage == 'Unknown' or doc_coverage is None:
             try:
                 import json
@@ -4940,6 +5144,9 @@ class AIToolsService:
                                     doc_coverage = str(cached_doc_cov)
                             missing_docs = cached_metrics.get('missing') or cached_metrics.get('missing_docs') or cached_metrics.get('missing_items')
                             missing_files = []
+                            # Try to get documented count from totals
+                            if 'totals' in cached_metrics and isinstance(cached_metrics['totals'], dict):
+                                documented = cached_metrics['totals'].get('functions_documented')
                         else:
                             # Parse from text output
                             output = func_reg_data.get('output', '')
@@ -4951,8 +5158,25 @@ class AIToolsService:
             except Exception as e:
                 logger.debug(f"Failed to load doc_coverage from cache in status: {e}")
                 pass
-
-        doc_line = f"- **Documentation Coverage**: {percent_text(doc_coverage, 2)}"
+        
+        # If documented is still None, try to get it from metrics
+        if documented is None:
+            # Try to get from analyze_function_registry results cache
+            func_reg_cache = self.results_cache.get('analyze_function_registry', {})
+            if isinstance(func_reg_cache, dict):
+                totals = func_reg_cache.get('totals', {})
+                if isinstance(totals, dict):
+                    documented = totals.get('functions_documented')
+        
+        # Calculate functions without docstrings
+        functions_without_docstrings = None
+        if total_functions is not None and isinstance(total_functions, (int, float)):
+            if documented is not None and isinstance(documented, (int, float)):
+                functions_without_docstrings = int(total_functions - documented)
+        
+        doc_line = f"- **Docstring Coverage**: {percent_text(doc_coverage, 2)}"
+        if functions_without_docstrings is not None:
+            doc_line += f" ({functions_without_docstrings} functions without docstrings)"
 
         if missing_docs:
 
@@ -5123,21 +5347,29 @@ class AIToolsService:
             # Check for path validation issues first (separate from path_drift - checks if referenced paths exist)
             # Path validation is more critical than path drift
             path_val_issues = None
+            path_val_status = None
             if hasattr(self, 'path_validation_result') and self.path_validation_result:
-                path_val_status = self.path_validation_result.get('status')
-                path_val_issues = self.path_validation_result.get('issues_found', 0)
-                if path_val_status == 'fail' and path_val_issues and path_val_issues > 0:
-                    lines.append(f"- **Path Validation**: NEEDS ATTENTION ({path_val_issues} referenced paths don't exist)")
-                elif path_val_status == 'ok' or (path_val_status == 'fail' and path_val_issues == 0):
-                    lines.append(f"- **Path Validation**: CLEAN (all referenced paths exist)")
+                if isinstance(self.path_validation_result, dict):
+                    path_val_status = self.path_validation_result.get('status')
+                    path_val_issues = self.path_validation_result.get('issues_found', 0)
+                    # Also check if issues_found is in the result but status might be different
+                    if path_val_issues is None or path_val_issues == 0:
+                        # Try to get issues from details if available
+                        details = self.path_validation_result.get('details', {})
+                        if details and isinstance(details, dict):
+                            # Count total issues from details
+                            total_issues = sum(len(issues) if isinstance(issues, (list, dict)) else 1 for issues in details.values())
+                            if total_issues > 0:
+                                path_val_issues = total_issues
+                                if path_val_status != 'ok':
+                                    path_val_status = 'fail'
             
             # Then check path drift (documentation path changes)
-            # Path drift should only show CLEAN if path_drift_issues is 0 AND path validation passed
+            # Path drift checks for documentation path inconsistencies
+            # Path validation checks if referenced paths actually exist
+            # They can have different issues, but if path validation found issues, we show those under Path Drift
+            # to avoid duplication
             if path_drift is not None:
-                # Path drift is independent of overall status - check path_drift_issues directly
-                # If path_drift_issues is 0, it means the tool ran and found 0 path drift issues
-                # (overall status can be FAIL due to other issues like paired_doc_issues)
-                # But also check path validation - if path validation found issues, show them instead
                 if path_drift == 0:
                     # Path drift tool found 0 issues
                     if path_val_issues is None:
@@ -5150,15 +5382,16 @@ class AIToolsService:
                         lines.append(f"- **Path Drift**: {severity} ({path_drift} issues)")
                     else:
                         # Path drift found 0, but path validation found issues - show path validation issues
+                        # Don't duplicate by showing both Path Validation and Path Drift
                         severity = "NEEDS ATTENTION"
-                        lines.append(f"- **Path Drift**: {severity} ({path_val_issues} path validation issues found)")
+                        lines.append(f"- **Path Drift**: {severity} ({path_val_issues} referenced paths don't exist)")
                 else:
-                    # Path drift found issues
+                    # Path drift found issues - show those
                     severity = "NEEDS ATTENTION"
                     lines.append(f"- **Path Drift**: {severity} ({path_drift} issues)")
             elif path_val_issues is not None and path_val_issues > 0:
                 # Path drift didn't run, but path validation found issues
-                lines.append(f"- **Path Drift**: NEEDS ATTENTION ({path_val_issues} path validation issues found)")
+                lines.append(f"- **Path Drift**: NEEDS ATTENTION ({path_val_issues} referenced paths don't exist)")
             else:
                 # If neither path_drift nor path_validation ran, show unknown
                 lines.append("- **Path Drift**: Unknown (run `audit` to check)")
@@ -5185,7 +5418,7 @@ class AIToolsService:
                                 lines.append(f"  - ...and {len(content_sync_issues) - 3} more issue(s)")
         
         # Add ASCII Cleanup to Documentation Signals
-        if ascii_issues:
+        if ascii_issues is not None and ascii_issues > 0:
             lines.append(f"- **ASCII Cleanup**: {ascii_issues} files contain non-ASCII characters")
         
         # Add Dependency Docs to Documentation Signals
@@ -5382,7 +5615,11 @@ class AIToolsService:
                             # LEGACY COMPATIBILITY: Reading from old file location for backward compatibility
                             # New standardized storage location: error_handling/jsons/analyze_error_handling_results.json
                             try:
-                                json_file = self.project_root / 'development_tools' / 'error_handling' / 'error_handling_details.json'
+                                # Try new location first, then fallback to old location
+                                json_file = self.project_root / 'development_tools' / 'error_handling' / 'jsons' / 'error_handling_details.json'
+                                if not json_file.exists():
+                                    # Fallback to old location
+                                    json_file = self.project_root / 'development_tools' / 'error_handling' / 'error_handling_details.json'
                                 if json_file.exists():
                                     with open(json_file, 'r', encoding='utf-8') as f:
                                         file_data = json.load(f)
@@ -5479,7 +5716,7 @@ class AIToolsService:
 
                 ]
 
-                lines.append(f"    - **Lowest Coverage Domains**: {', '.join(descriptions)}")
+                lines.append(f"    - **Domains with Lowest Coverage**: {', '.join(descriptions)}")
 
             worst_files = (coverage_summary or {}).get('worst_files') or []
 
@@ -5487,13 +5724,18 @@ class AIToolsService:
 
                 descriptions = [
 
-                    f"{item['path']} ({percent_text(item.get('coverage'), 1)})"
+                    f"{item['path']} ({percent_text(item.get('coverage'), 1)}, missing {item.get('missed', 0)} lines)"
 
                     for item in worst_files[:3]
 
                 ]
 
-                lines.append(f"    - **Files Needing Tests**: {', '.join(descriptions)}")
+                lines.append(f"    - **Modules with Lowest Coverage**: {', '.join(descriptions)}")
+            
+            # Add report link for test coverage
+            coverage_report_path = self.project_root / "development_docs" / "TEST_COVERAGE_REPORT.md"
+            if coverage_report_path.exists():
+                lines.append(f"    - **Detailed Report**: [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md)")
             
             if dev_tools_insights and dev_tools_insights.get('overall_pct') is not None:
                 dev_pct = dev_tools_insights['overall_pct']
@@ -5519,17 +5761,34 @@ class AIToolsService:
 
         # Add unused imports status
         # Try results_cache first (from current audit), then standardized storage
-        unused_imports_data = self.results_cache.get('analyze_unused_imports', {}) or {}
-        if not unused_imports_data or not isinstance(unused_imports_data, dict):
-            try:
+        # Load unused imports data from standardized storage (simplified fallback chain)
+        unused_imports_data = {}
+        try:
+            # First try results_cache (in-memory, fastest)
+            cached = self.results_cache.get('analyze_unused_imports')
+            if cached and isinstance(cached, dict):
+                unused_imports_data = cached
+            else:
+                # Fallback to standardized storage
                 from .output_storage import load_tool_result
                 unused_result = load_tool_result('analyze_unused_imports', 'imports', project_root=self.project_root)
-                if unused_result:
-                    # load_tool_result already unwraps the 'data' key, so unused_result IS the data
-                    unused_imports_data = unused_result if isinstance(unused_result, dict) else {}
-            except Exception as e:
-                logger.debug(f"Failed to load unused imports for AI_STATUS: {e}")
-                unused_imports_data = {}
+                if unused_result and isinstance(unused_result, dict):
+                    # load_tool_result returns the data directly (already unwrapped)
+                    unused_imports_data = unused_result
+                else:
+                    # Try loading from central aggregation file as last resort
+                    import json
+                    results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+                    if results_file.exists():
+                        with open(results_file, 'r', encoding='utf-8') as f:
+                            cached_data = json.load(f)
+                        if 'results' in cached_data and 'analyze_unused_imports' in cached_data['results']:
+                            unused_data = cached_data['results']['analyze_unused_imports']
+                            if 'data' in unused_data:
+                                unused_imports_data = unused_data['data']
+        except Exception as e:
+            logger.debug(f"Failed to load unused imports for AI_STATUS: {e}")
+            unused_imports_data = {}
         
         if unused_imports_data and isinstance(unused_imports_data, dict):
             total_unused = unused_imports_data.get('total_unused', 0)
@@ -5549,6 +5808,11 @@ class AIToolsService:
             else:
                 lines.append("## Unused Imports")
                 lines.append("- **Status**: CLEAN (no unused imports detected)")
+            
+            # Add report link for unused imports
+            unused_imports_report_path = self.project_root / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
+            if unused_imports_report_path.exists():
+                lines.append(f"- **Detailed Report**: [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)")
         else:
             lines.append("## Unused Imports")
             lines.append("- **Status**: Data unavailable (run `audit --full` for latest scan)")
@@ -5572,8 +5836,23 @@ class AIToolsService:
             report_path = legacy_summary.get('report_path')
 
             if report_path:
-
-                lines.append(f"- **Detailed Report**: {report_path}")
+                # Convert to markdown link if it's a valid path
+                # Handle both relative and absolute paths
+                if isinstance(report_path, str):
+                    # If it's a relative path, make it absolute
+                    if not Path(report_path).is_absolute():
+                        report_path_obj = self.project_root / report_path
+                    else:
+                        report_path_obj = Path(report_path)
+                else:
+                    report_path_obj = report_path
+                
+                if report_path_obj.exists():
+                    rel_path = report_path_obj.relative_to(self.project_root)
+                    lines.append(f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})")
+                else:
+                    # If file doesn't exist, just show the path as-is
+                    lines.append(f"- **Detailed Report**: {report_path}")
 
         else:
             # Try to load from standardized storage first, then fall back to central aggregation
@@ -5596,10 +5875,10 @@ class AIToolsService:
                                 lines.append(f"- **Legacy References**: {legacy_issues} files still reference legacy patterns")
                             report_path = legacy_data.get('report_path') or 'development_docs/LEGACY_REFERENCE_REPORT.md'
                             if report_path:
-                                # Ensure report_path is a Path object before calling .exists()
-                                report_path_obj = Path(report_path) if isinstance(report_path, str) else report_path
-                                if isinstance(report_path_obj, Path) and report_path_obj.exists():
-                                    lines.append(f"- **Detailed Report**: {report_path}")
+                                report_path_obj = self._resolve_report_path(report_path)
+                                if report_path_obj.exists():
+                                    rel_path = report_path_obj.relative_to(self.project_root)
+                                    lines.append(f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})")
                             legacy_found = True
                 else:
                     # LEGACY COMPATIBILITY
@@ -5628,8 +5907,11 @@ class AIToolsService:
                                         else:
                                             lines.append(f"- **Legacy References**: {legacy_issues} files still reference legacy patterns")
                                         report_path = cached_legacy.get('report_path') or 'development_docs/LEGACY_REFERENCE_REPORT.md'
-                                        if report_path and Path(report_path).exists():
-                                            lines.append(f"- **Detailed Report**: {report_path}")
+                                        if report_path:
+                                            report_path_obj = self._resolve_report_path(report_path)
+                                            if report_path_obj.exists():
+                                                rel_path = report_path_obj.relative_to(self.project_root)
+                                                lines.append(f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})")
                                         legacy_found = True
             except Exception as e:
                 logger.debug(f"Failed to load legacy data: {e}")
@@ -5646,8 +5928,11 @@ class AIToolsService:
                         else:
                             lines.append(f"- **Legacy References**: {legacy_issues} files still reference legacy patterns")
                         report_path = legacy_cache.get('report_path') or 'development_docs/LEGACY_REFERENCE_REPORT.md'
-                        if report_path and Path(report_path).exists():
-                            lines.append(f"- **Detailed Report**: {report_path}")
+                        if report_path:
+                            report_path_obj = self._resolve_report_path(report_path)
+                            if report_path_obj.exists():
+                                rel_path = report_path_obj.relative_to(self.project_root)
+                                lines.append(f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})")
                         legacy_found = True
                 
                 if not legacy_found:
@@ -5877,6 +6162,16 @@ class AIToolsService:
         metrics = self._get_canonical_metrics()
         doc_metrics = self.results_cache.get('analyze_function_registry', {}) or {}
         error_metrics = self.results_cache.get('analyze_error_handling', {}) or {}
+        # If error_metrics is empty, try loading from standardized storage
+        if not error_metrics:
+            try:
+                from .output_storage import load_tool_result
+                error_result = load_tool_result('analyze_error_handling', 'error_handling', project_root=self.project_root)
+                if error_result and isinstance(error_result, dict):
+                    error_metrics = error_result
+                    self.results_cache['analyze_error_handling'] = error_metrics
+            except Exception as e:
+                logger.debug(f"Failed to load error_handling from standardized storage: {e}")
         function_metrics = self.results_cache.get('analyze_functions', {}) or {}
         doc_sync_summary = self.docs_sync_summary or {}
         legacy_summary = self.legacy_cleanup_summary or {}
@@ -6082,7 +6377,44 @@ class AIToolsService:
                 bullets=doc_bullets
             )
 
-        # Phase 1: Decorator replacement candidates
+        # Add error handling to missing functions FIRST (before Phase 1/2, as it's more critical)
+        # This should be ranked higher than Phase 1/2 because functions with NO error handling are more critical
+        # than functions that have basic error handling that needs upgrading
+        if missing_error_handlers and missing_error_handlers > 0:
+            error_handling_bullets: List[str] = []
+            
+            # List modules with function counts
+            if worst_error_modules:
+                module_list = []
+                for module in worst_error_modules[:10]:  # Show up to 10 modules
+                    module_name = module.get('module', 'Unknown')
+                    missing_count = module.get('missing', 0)
+                    if missing_count > 0:
+                        module_list.append(f"{module_name}: {missing_count} functions")
+                
+                if module_list:
+                    module_list_str = self._format_list_for_display(module_list, limit=10)
+                    error_handling_bullets.append(module_list_str)
+            
+            error_handling_bullets.append(
+                "Add error handling decorators or try-except blocks to protect these functions."
+            )
+            
+            # Determine order: should come after path drift (1) and missing docs (2), but before Phase 1/2
+            # If Phase 1/2 exist, this should be order 3, and Phase 1/2 should be 4 and 5
+            # If Phase 1/2 don't exist, this can be order 3
+            phase1_total = to_int(error_metrics.get('phase1_total', 0))
+            phase2_total = to_int(error_metrics.get('phase2_total', 0))
+            error_handling_order = 3  # Default order (after path drift and missing docs)
+            
+            add_priority(
+                order=error_handling_order,
+                title="Add error handling to missing functions",
+                reason=f"{missing_error_handlers} functions have no error handling.",
+                bullets=error_handling_bullets
+            )
+        
+        # Phase 1: Decorator replacement candidates (after missing error handlers)
         phase1_total = to_int(error_metrics.get('phase1_total', 0))
         phase1_by_priority = error_metrics.get('phase1_by_priority', {}) or {}
         phase1_high = to_int(phase1_by_priority.get('high', 0))
@@ -6101,14 +6433,16 @@ class AIToolsService:
             phase1_bullets.append(
                 "Apply `@handle_errors` decorator to replace basic try-except blocks."
             )
+            # Order should be 4 if missing error handlers exists, otherwise 3
+            phase1_order = 4 if (missing_error_handlers and missing_error_handlers > 0) else 3
             add_priority(
-                order=3,
+                order=phase1_order,
                 title="Phase 1: Replace basic try-except with decorators",
                 reason=f"{phase1_total} functions have try-except blocks that should use `@handle_errors` decorator.",
                 bullets=phase1_bullets
             )
         
-        # Phase 2: Generic exception categorization
+        # Phase 2: Generic exception categorization (after Phase 1)
         phase2_total = to_int(error_metrics.get('phase2_total', 0))
         phase2_by_type = error_metrics.get('phase2_by_type', {}) or {}
         
@@ -6126,40 +6460,16 @@ class AIToolsService:
             phase2_bullets.append(
                 "See `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` for categorization rules."
             )
+            # Order should be 5 if missing error handlers exists, otherwise 4
+            phase2_order = 5 if (missing_error_handlers and missing_error_handlers > 0) else 4
             add_priority(
-                order=4,
+                order=phase2_order,
                 title="Phase 2: Categorize generic exceptions",
                 reason=f"{phase2_total} generic exception raises need categorization into project-specific error classes.",
                 bullets=phase2_bullets
             )
         
-        # General error handling priority (if no Phase 1/2 but still missing handlers)
-        if missing_error_handlers and missing_error_handlers > 0 and not (phase1_total or phase2_total):
-            module_samples: List[str] = []
-            for module in worst_error_modules[:3]:
-                module_name = module.get('module', 'Unknown')
-                coverage_value = percent_text(module.get('coverage'), 1)
-                missing = module.get('missing')
-                total = module.get('total')
-                detail = f"{module_name} ({coverage_value}"
-                if missing is not None and total is not None:
-                    detail += f", missing {missing}/{total}"
-                detail += ")"
-                module_samples.append(detail)
-            error_bullets = []
-            if module_samples:
-                error_bullets.append(
-                    f"Focus modules: {self._format_list_for_display(module_samples, limit=3)}"
-                )
-            error_bullets.append(
-                "Convert remaining basic handlers to `@handle_errors` and add guard tests."
-            )
-            add_priority(
-                order=3,
-                title="Harden critical error handling",
-                reason=f"{missing_error_handlers} functions still lack structured error recovery.",
-                bullets=error_bullets
-            )
+        # Legacy error handling priority removed - now handled above with proper ordering
 
         # Adjust order numbers based on whether Phase 1/2 priorities exist
         coverage_order = 4
@@ -6167,7 +6477,7 @@ class AIToolsService:
         dependency_order = dev_coverage_order + 1
         legacy_order = dependency_order + 1
         if phase1_total or phase2_total:
-            coverage_order = 5
+            coverage_order = 6  # After Phase 1 (3), Phase 2 (4), error handling (5)
             dev_coverage_order = coverage_order + 1
             dependency_order = dev_coverage_order + 1
             legacy_order = dependency_order + 1
@@ -6183,7 +6493,7 @@ class AIToolsService:
             ]
             add_priority(
                 order=coverage_order,
-                title="Raise coverage for low-performing domains",
+                title="Raise coverage for domains below target",
                 reason=f"{len(low_coverage_modules)} key domains remain below the 80% target.",
                 bullets=coverage_bullets
             )
@@ -6225,17 +6535,13 @@ class AIToolsService:
 
             dep_bullets.append("Regenerate dependencies via `python development_tools/run_development_tools.py docs` and rerun the audit.")
 
-            add_priority(
-
-                order=dependency_order,
-
-                title="Refresh dependency documentation",
-
-                reason=f"{missing} module dependencies are undocumented.",
-
-                bullets=dep_bullets
-
-            )
+            # Don't add as priority - move to Quick Wins instead
+            # Store for Quick Wins section
+            if not hasattr(self, '_quick_wins_dependency'):
+                self._quick_wins_dependency = {
+                    'missing': missing,
+                    'files': files
+                }
 
         if legacy_files and legacy_files > 0:
             legacy_bullets: List[str] = []
@@ -6321,22 +6627,13 @@ class AIToolsService:
                 bullets=complexity_bullets
             )
 
-        # Add TODO sync as priority if there are completed entries
+        # Store TODO sync for Quick Wins instead of Immediate Focus
         todo_sync_result = getattr(self, 'todo_sync_result', None)
         if todo_sync_result and isinstance(todo_sync_result, dict):
             completed_entries = todo_sync_result.get('completed_entries', 0)
             if completed_entries > 0:
-                todo_order = max([item['order'] for item in priority_items] + [0]) + 1
-                add_priority(
-                    order=todo_order,
-                    title="Review completed TODO entries",
-                    reason=f"{completed_entries} completed entry/entries in TODO.md need review for changelog.",
-                    bullets=[
-                        "Review completed entries in TODO.md",
-                        "If already documented in changelogs, remove from TODO.md",
-                        "If not documented, move to CHANGELOG_DETAIL.md and AI_CHANGELOG.md first, then remove from TODO.md"
-                    ]
-                )
+                if not hasattr(self, '_quick_wins_todo'):
+                    self._quick_wins_todo = completed_entries
         
         lines.append("## Immediate Focus (Ranked)")
         if priority_items:
@@ -6349,8 +6646,23 @@ class AIToolsService:
         lines.append("")
 
         quick_wins: List[str] = []
-        if ascii_issues:
+        if ascii_issues is not None and ascii_issues > 0:
             quick_wins.append(f"Normalize {ascii_issues} file(s) with non-ASCII characters via doc-fix.")
+        
+        # Add dependency documentation refresh to Quick Wins
+        if hasattr(self, '_quick_wins_dependency') and self._quick_wins_dependency:
+            dep_info = self._quick_wins_dependency
+            missing = dep_info.get('missing', 0)
+            files = dep_info.get('files', [])
+            if missing > 0:
+                files_str = self._format_list_for_display(files, limit=2) if files else "affected files"
+                quick_wins.append(f"Refresh dependency documentation: {missing} module dependencies are undocumented ({files_str}). Regenerate via `python development_tools/run_development_tools.py docs`.")
+        
+        # Add TODO sync to Quick Wins
+        if hasattr(self, '_quick_wins_todo') and self._quick_wins_todo:
+            completed_entries = self._quick_wins_todo
+            quick_wins.append(f"Review {completed_entries} completed TODO entry/entries - if documented in changelogs, remove from TODO.md; otherwise move to CHANGELOG_DETAIL.md and AI_CHANGELOG.md first.")
+        
         if paired_doc_issues and not (path_drift_count and path_drift_count > 0):
             # Add actionable details about paired doc issues
             if doc_sync_summary:
@@ -6382,18 +6694,22 @@ class AIToolsService:
             quick_wins.append(f"Replace {len(analyze_placeholders)} placeholder section(s) flagged by docs scan.")
         
         # Add unused imports to quick wins if available
-        unused_imports_data = self.results_cache.get('analyze_unused_imports', {}) or {}
-        if not unused_imports_data or not isinstance(unused_imports_data, dict):
-            # Try to load from standardized storage
-            try:
+        # Load unused imports data from standardized storage (simplified fallback chain)
+        unused_imports_data = {}
+        try:
+            # First try results_cache (in-memory, fastest)
+            cached = self.results_cache.get('analyze_unused_imports')
+            if cached and isinstance(cached, dict):
+                unused_imports_data = cached
+            else:
+                # Fallback to standardized storage
                 from .output_storage import load_tool_result
                 unused_result = load_tool_result('analyze_unused_imports', 'imports', project_root=self.project_root)
-                if unused_result:
-                    # load_tool_result already unwraps the 'data' key, so unused_result IS the data
-                    unused_imports_data = unused_result if isinstance(unused_result, dict) else {}
-            except Exception as e:
-                logger.debug(f"Failed to load unused imports for AI_PRIORITIES: {e}")
-                unused_imports_data = {}
+                if unused_result and isinstance(unused_result, dict):
+                    unused_imports_data = unused_result
+        except Exception as e:
+            logger.debug(f"Failed to load unused imports for AI_PRIORITIES: {e}")
+            unused_imports_data = {}
         
         if unused_imports_data and isinstance(unused_imports_data, dict):
             total_unused = unused_imports_data.get('total_unused', 0)
@@ -6401,8 +6717,8 @@ class AIToolsService:
             if total_unused > 0 and files_with_issues > 0:
                 by_category = unused_imports_data.get('by_category') or {}
                 obvious = by_category.get('obvious_unused', 0)
-                if obvious > 0:
-                    quick_wins.append(f"Remove {obvious} obvious unused import(s) across {files_with_issues} file(s).")
+                # Removed from Quick Wins - unused imports cleanup is not a quick win
+                # (it requires careful review to avoid breaking code)
 
         lines.append("## Quick Wins")
         if quick_wins:
@@ -6629,15 +6945,22 @@ class AIToolsService:
         doc_sync_summary = self.docs_sync_summary or {}
 
         # Initialize unused_imports_data early so it can be used later
-        unused_imports_data = self.results_cache.get('analyze_unused_imports', {}) or {}
-        if not unused_imports_data or not isinstance(unused_imports_data, dict):
-            try:
+        # Load unused imports data from standardized storage (simplified fallback chain)
+        unused_imports_data = {}
+        try:
+            # First try results_cache (in-memory, fastest)
+            cached = self.results_cache.get('analyze_unused_imports')
+            if cached and isinstance(cached, dict):
+                unused_imports_data = cached
+            else:
+                # Fallback to standardized storage
                 from .output_storage import load_tool_result
                 unused_result = load_tool_result('analyze_unused_imports', 'imports', project_root=self.project_root)
-                if unused_result:
-                    unused_imports_data = unused_result if isinstance(unused_result, dict) else {}
-            except Exception:
-                unused_imports_data = {}
+                if unused_result and isinstance(unused_result, dict):
+                    unused_imports_data = unused_result
+        except Exception as e:
+            logger.debug(f"Failed to load unused imports for consolidated report: {e}")
+            unused_imports_data = {}
 
         analyze_docs = self.results_cache.get('analyze_documentation', {}) or {}
         # analyze_documentation stores the payload directly, not wrapped in 'data'
@@ -6973,7 +7296,7 @@ class AIToolsService:
                         if len(content_sync_issues) > 3:
                             lines.append(f"    - ...and {len(content_sync_issues) - 3} more issue(s)")
 
-            if ascii_issues:
+            if ascii_issues is not None and ascii_issues > 0:
                 lines.append(f"  - {ascii_issues} files contain non-ASCII characters")
 
             drift_files = doc_sync_summary.get('path_drift_files') or []
@@ -7049,7 +7372,7 @@ class AIToolsService:
 
         lines.append("## Error Handling Analysis")
 
-        if error_metrics:
+        if error_metrics and isinstance(error_metrics, dict):
             # Use recalculated error_cov from Executive Summary section (already calculated above)
             # If not recalculated, get from error_metrics
             if 'error_cov' not in locals() or error_cov is None:
@@ -7412,7 +7735,12 @@ class AIToolsService:
 
             report_path = legacy_summary.get('report_path')
             if report_path:
-                lines.append(f"- **Detailed Report**: {report_path}")
+                report_path_obj = self._resolve_report_path(report_path)
+                if report_path_obj.exists():
+                    rel_path = report_path_obj.relative_to(self.project_root)
+                    lines.append(f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})")
+                else:
+                    lines.append(f"- **Detailed Report**: {report_path}")
         else:
             lines.append("- **Legacy References**: Data unavailable (run `audit --full` for latest scan)")
 
@@ -7459,7 +7787,8 @@ class AIToolsService:
                 report_path = self.project_root / 'development_docs' / 'UNUSED_IMPORTS_REPORT.md'
                 # Ensure report_path is a Path object before calling .exists()
                 if isinstance(report_path, Path) and report_path.exists():
-                    lines.append(f"- **Detailed Report**: {report_path}")
+                    rel_path = report_path.relative_to(self.project_root)
+                    lines.append(f"- **Detailed Report**: [UNUSED_IMPORTS_REPORT.md]({rel_path.as_posix()})")
             else:
                 lines.append("- **Unused Imports**: CLEAN (no unused imports detected)")
         else:
@@ -7467,7 +7796,7 @@ class AIToolsService:
 
         ascii_issues = doc_sync_summary.get('ascii_issues') if doc_sync_summary else None
 
-        if ascii_issues:
+        if ascii_issues is not None and ascii_issues > 0:
 
             lines.append(f"- **ASCII Cleanup**: {ascii_issues} files need normalization")
 
@@ -7504,40 +7833,33 @@ class AIToolsService:
 
         # Critical issues summary (if exists)
         if issues_file.exists():
-            lines.append(f"- Critical issues summary: {issues_file}")
+            rel_path = issues_file.relative_to(self.project_root)
+            lines.append(f"- Critical issues summary: [{rel_path.as_posix()}]({rel_path.as_posix()})")
 
-        lines.append("- Latest AI status: development_tools/AI_STATUS.md")
-        lines.append("- Current AI priorities: development_tools/AI_PRIORITIES.md")
-        lines.append("- Detailed JSON results: development_tools/reports/analysis_detailed_results.json")
+        lines.append("- Latest AI status: [AI_STATUS.md](development_tools/AI_STATUS.md)")
+        lines.append("- Current AI priorities: [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md)")
+        lines.append("- Detailed JSON results: [analysis_detailed_results.json](development_tools/reports/analysis_detailed_results.json)")
         
         # Legacy reference report
         legacy_report = self.project_root / 'development_docs' / 'LEGACY_REFERENCE_REPORT.md'
         if legacy_report.exists():
             # Use relative path from project root
             rel_path = legacy_report.relative_to(self.project_root)
-            lines.append(f"- Legacy reference report: {rel_path.as_posix()}")
+            lines.append(f"- Legacy reference report: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})")
         
         # Test coverage report
         coverage_report = self.project_root / 'development_docs' / 'TEST_COVERAGE_REPORT.md'
-        if not coverage_report.exists():
-            # LEGACY COMPATIBILITY
-            # Fallback to old filename TEST_COVERAGE_EXPANSION_PLAN.md during transition period.
-            # New standardized filename: TEST_COVERAGE_REPORT.md
-            # Removal plan: After one release cycle, remove this fallback. All tools should generate TEST_COVERAGE_REPORT.md.
-            # Detection: Search for "TEST_COVERAGE_EXPANSION_PLAN.md" to find all references.
-            logger.debug("LEGACY: Falling back to TEST_COVERAGE_EXPANSION_PLAN.md (new name: TEST_COVERAGE_REPORT.md)")
-            coverage_report = self.project_root / 'development_docs' / 'TEST_COVERAGE_EXPANSION_PLAN.md'
         if coverage_report.exists():
-            # Use relative path from project root
             rel_path = coverage_report.relative_to(self.project_root)
-            lines.append(f"- Test coverage report: {rel_path.as_posix()}")
+            lines.append(f"- Test coverage report: [TEST_COVERAGE_REPORT.md]({rel_path.as_posix()})")
         
         # Unused imports report
-        unused_report = self.project_root / 'development_docs' / 'UNUSED_IMPORTS_REPORT.md'
-        if unused_report.exists():
-            # Use relative path from project root
-            rel_path = unused_report.relative_to(self.project_root)
-            lines.append(f"- Unused imports detail: {rel_path.as_posix()}")
+        unused_imports_report = self.project_root / 'development_docs' / 'UNUSED_IMPORTS_REPORT.md'
+        if unused_imports_report.exists():
+            rel_path = unused_imports_report.relative_to(self.project_root)
+            lines.append(f"- Unused imports detail: [UNUSED_IMPORTS_REPORT.md]({rel_path.as_posix()})")
+        
+        # Legacy compatibility check removed - we only add links if files exist, no duplicate fallback text needed
         
         # Historical audit data archive
         archive_dir = self.project_root / 'development_tools' / 'reports' / 'archive'
@@ -7743,8 +8065,12 @@ class AIToolsService:
 
         # Run path drift analysis
         logger.info("Running path drift analysis...")
-        result = self.run_script('analyze_path_drift')
-        if result.get('output') or result.get('success'):
+        result = self.run_analyze_path_drift()
+        if result.get('data'):
+            # Use structured data if available
+            all_results['path_drift'] = result.get('data', {})
+        elif result.get('output') or result.get('success'):
+            # Fallback to parsing output
             all_results['path_drift'] = self._parse_path_drift_output(result.get('output', ''))
         else:
             logger.warning(f"analyze_path_drift failed: {result.get('error', 'Unknown error')}")
@@ -7752,34 +8078,218 @@ class AIToolsService:
         # Run ASCII compliance check
         logger.info("Running ASCII compliance check...")
         result = self.run_script('analyze_ascii_compliance')
-        if result.get('output') or result.get('success'):
-            all_results['ascii_compliance'] = self._parse_ascii_compliance_output(result.get('output', ''))
-        else:
-            logger.warning(f"analyze_ascii_compliance failed: {result.get('error', 'Unknown error')}")
+        # Try to load from standardized storage first
+        try:
+            from .output_storage import load_tool_result, save_tool_result
+            ascii_data = load_tool_result('analyze_ascii_compliance', 'docs', project_root=self.project_root)
+            if ascii_data and isinstance(ascii_data, dict):
+                # Convert from cache format to expected format
+                files_data = ascii_data.get('data', {})
+                files_with_issues = {}
+                total_issues = 0
+                for file_path, file_info in files_data.items():
+                    if isinstance(file_info, dict):
+                        results = file_info.get('results', [])
+                        if results:
+                            files_with_issues[file_path] = len(results)
+                            total_issues += len(results)
+                ascii_result = {
+                    'files': files_with_issues,
+                    'file_count': len(files_with_issues),
+                    'total_issues': total_issues
+                }
+                all_results['ascii_compliance'] = ascii_result
+                # Save to standardized storage as results file
+                try:
+                    save_tool_result('analyze_ascii_compliance', 'docs', ascii_result, project_root=self.project_root)
+                except Exception as save_error:
+                    logger.debug(f"Failed to save ASCII compliance results: {save_error}")
+            elif result.get('output') or result.get('success'):
+                # Fallback to parsing output
+                ascii_result = self._parse_ascii_compliance_output(result.get('output', ''))
+                all_results['ascii_compliance'] = ascii_result
+                # Save parsed results to standardized storage
+                try:
+                    save_tool_result('analyze_ascii_compliance', 'docs', ascii_result, project_root=self.project_root)
+                except Exception as save_error:
+                    logger.debug(f"Failed to save ASCII compliance results: {save_error}")
+            else:
+                logger.warning(f"analyze_ascii_compliance failed: {result.get('error', 'Unknown error')}")
+        except Exception as e:
+            logger.debug(f"Failed to load ASCII compliance from storage: {e}, falling back to parsing output")
+            if result.get('output') or result.get('success'):
+                ascii_result = self._parse_ascii_compliance_output(result.get('output', ''))
+                all_results['ascii_compliance'] = ascii_result
+                # Save parsed results to standardized storage
+                try:
+                    from .output_storage import save_tool_result
+                    save_tool_result('analyze_ascii_compliance', 'docs', ascii_result, project_root=self.project_root)
+                except Exception as save_error:
+                    logger.debug(f"Failed to save ASCII compliance results: {save_error}")
+            else:
+                logger.warning(f"analyze_ascii_compliance failed: {result.get('error', 'Unknown error')}")
 
         # Run heading numbering check
         logger.info("Running heading numbering check...")
         result = self.run_script('analyze_heading_numbering')
-        if result.get('output') or result.get('success'):
-            all_results['heading_numbering'] = self._parse_heading_numbering_output(result.get('output', ''))
-        else:
-            logger.warning(f"analyze_heading_numbering failed: {result.get('error', 'Unknown error')}")
+        # Try to load from standardized storage first
+        try:
+            from .output_storage import load_tool_result, save_tool_result
+            heading_data = load_tool_result('analyze_heading_numbering', 'docs', project_root=self.project_root)
+            if heading_data and isinstance(heading_data, dict):
+                # Convert from cache format to expected format
+                files_data = heading_data.get('data', {})
+                files_with_issues = {}
+                total_issues = 0
+                for file_path, file_info in files_data.items():
+                    if isinstance(file_info, dict):
+                        results = file_info.get('results', [])
+                        if results:
+                            files_with_issues[file_path] = len(results)
+                            total_issues += len(results)
+                heading_result = {
+                    'files': files_with_issues,
+                    'file_count': len(files_with_issues),
+                    'total_issues': total_issues
+                }
+                all_results['heading_numbering'] = heading_result
+                # Save to standardized storage as results file
+                try:
+                    save_tool_result('analyze_heading_numbering', 'docs', heading_result, project_root=self.project_root)
+                except Exception as save_error:
+                    logger.debug(f"Failed to save heading numbering results: {save_error}")
+            elif result.get('output') or result.get('success'):
+                # Fallback to parsing output
+                heading_result = self._parse_heading_numbering_output(result.get('output', ''))
+                all_results['heading_numbering'] = heading_result
+                # Save parsed results to standardized storage
+                try:
+                    save_tool_result('analyze_heading_numbering', 'docs', heading_result, project_root=self.project_root)
+                except Exception as save_error:
+                    logger.debug(f"Failed to save heading numbering results: {save_error}")
+            else:
+                logger.warning(f"analyze_heading_numbering failed: {result.get('error', 'Unknown error')}")
+        except Exception as e:
+            logger.debug(f"Failed to load heading numbering from storage: {e}, falling back to parsing output")
+            if result.get('output') or result.get('success'):
+                heading_result = self._parse_heading_numbering_output(result.get('output', ''))
+                all_results['heading_numbering'] = heading_result
+                # Save parsed results to standardized storage
+                try:
+                    from .output_storage import save_tool_result
+                    save_tool_result('analyze_heading_numbering', 'docs', heading_result, project_root=self.project_root)
+                except Exception as save_error:
+                    logger.debug(f"Failed to save heading numbering results: {save_error}")
+            else:
+                logger.warning(f"analyze_heading_numbering failed: {result.get('error', 'Unknown error')}")
 
         # Run missing addresses check
         logger.info("Running missing addresses check...")
         result = self.run_script('analyze_missing_addresses')
-        if result.get('output') or result.get('success'):
-            all_results['missing_addresses'] = self._parse_missing_addresses_output(result.get('output', ''))
-        else:
-            logger.warning(f"analyze_missing_addresses failed: {result.get('error', 'Unknown error')}")
+        # Try to load from standardized storage first
+        try:
+            from .output_storage import load_tool_result, save_tool_result
+            missing_data = load_tool_result('analyze_missing_addresses', 'docs', project_root=self.project_root)
+            if missing_data and isinstance(missing_data, dict):
+                # Convert from cache format to expected format
+                files_data = missing_data.get('data', {})
+                files_with_issues = {}
+                total_issues = 0
+                for file_path, file_info in files_data.items():
+                    if isinstance(file_info, dict):
+                        results = file_info.get('results', [])
+                        if results:
+                            files_with_issues[file_path] = len(results)
+                            total_issues += len(results)
+                missing_result = {
+                    'files': files_with_issues,
+                    'file_count': len(files_with_issues),
+                    'total_issues': total_issues
+                }
+                all_results['missing_addresses'] = missing_result
+                # Save to standardized storage as results file
+                try:
+                    save_tool_result('analyze_missing_addresses', 'docs', missing_result, project_root=self.project_root)
+                except Exception as save_error:
+                    logger.debug(f"Failed to save missing addresses results: {save_error}")
+            elif result.get('output') or result.get('success'):
+                # Fallback to parsing output
+                missing_result = self._parse_missing_addresses_output(result.get('output', ''))
+                all_results['missing_addresses'] = missing_result
+                # Save parsed results to standardized storage
+                try:
+                    save_tool_result('analyze_missing_addresses', 'docs', missing_result, project_root=self.project_root)
+                except Exception as save_error:
+                    logger.debug(f"Failed to save missing addresses results: {save_error}")
+            else:
+                logger.warning(f"analyze_missing_addresses failed: {result.get('error', 'Unknown error')}")
+        except Exception as e:
+            logger.debug(f"Failed to load missing addresses from storage: {e}, falling back to parsing output")
+            if result.get('output') or result.get('success'):
+                missing_result = self._parse_missing_addresses_output(result.get('output', ''))
+                all_results['missing_addresses'] = missing_result
+                # Save parsed results to standardized storage
+                try:
+                    from .output_storage import save_tool_result
+                    save_tool_result('analyze_missing_addresses', 'docs', missing_result, project_root=self.project_root)
+                except Exception as save_error:
+                    logger.debug(f"Failed to save missing addresses results: {save_error}")
+            else:
+                logger.warning(f"analyze_missing_addresses failed: {result.get('error', 'Unknown error')}")
 
         # Run unconverted links check
         logger.info("Running unconverted links check...")
         result = self.run_script('analyze_unconverted_links')
-        if result.get('output') or result.get('success'):
-            all_results['unconverted_links'] = self._parse_unconverted_links_output(result.get('output', ''))
-        else:
-            logger.warning(f"analyze_unconverted_links failed: {result.get('error', 'Unknown error')}")
+        # Try to load from standardized storage first
+        try:
+            from .output_storage import load_tool_result, save_tool_result
+            links_data = load_tool_result('analyze_unconverted_links', 'docs', project_root=self.project_root)
+            if links_data and isinstance(links_data, dict):
+                # Convert from cache format to expected format
+                files_data = links_data.get('data', {})
+                files_with_issues = {}
+                total_issues = 0
+                for file_path, file_info in files_data.items():
+                    if isinstance(file_info, dict):
+                        results = file_info.get('results', [])
+                        if results:
+                            files_with_issues[file_path] = len(results)
+                            total_issues += len(results)
+                links_result = {
+                    'files': files_with_issues,
+                    'file_count': len(files_with_issues),
+                    'total_issues': total_issues
+                }
+                all_results['unconverted_links'] = links_result
+                # Save to standardized storage as results file
+                try:
+                    save_tool_result('analyze_unconverted_links', 'docs', links_result, project_root=self.project_root)
+                except Exception as save_error:
+                    logger.debug(f"Failed to save unconverted links results: {save_error}")
+            elif result.get('output') or result.get('success'):
+                # Fallback to parsing output
+                links_result = self._parse_unconverted_links_output(result.get('output', ''))
+                all_results['unconverted_links'] = links_result
+                # Save parsed results to standardized storage
+                try:
+                    save_tool_result('analyze_unconverted_links', 'docs', links_result, project_root=self.project_root)
+                except Exception as save_error:
+                    logger.debug(f"Failed to save unconverted links results: {save_error}")
+            else:
+                logger.warning(f"analyze_unconverted_links failed: {result.get('error', 'Unknown error')}")
+        except Exception as e:
+            logger.debug(f"Failed to load unconverted links from storage: {e}, falling back to parsing output")
+            if result.get('output') or result.get('success'):
+                links_result = self._parse_unconverted_links_output(result.get('output', ''))
+                all_results['unconverted_links'] = links_result
+                # Save parsed results to standardized storage
+                try:
+                    from .output_storage import save_tool_result
+                    save_tool_result('analyze_unconverted_links', 'docs', links_result, project_root=self.project_root)
+                except Exception as save_error:
+                    logger.debug(f"Failed to save unconverted links results: {save_error}")
+            else:
+                logger.warning(f"analyze_unconverted_links failed: {result.get('error', 'Unknown error')}")
 
         # Aggregate all results
         summary = self._aggregate_doc_sync_results(all_results)

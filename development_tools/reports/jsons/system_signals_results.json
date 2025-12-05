@@ -1,0 +1,74 @@
+{
+  "generated_by": "system_signals - Development Tools",
+  "last_generated": "2025-12-05 05:33:41",
+  "timestamp": "2025-12-05T05:33:41.578573",
+  "tool_name": "system_signals",
+  "domain": "reports",
+  "source": "python development_tools/reports/system_signals.py",
+  "note": "This file is auto-generated. Do not edit manually.",
+  "data": {
+    "timestamp": "2025-12-05T05:33:35.912729",
+    "system_health": {
+      "overall_status": "OK",
+      "core_files": {
+        "run_mhm.py": "OK",
+        "core/service.py": "OK",
+        "core/config.py": "OK"
+      },
+      "key_directories": {
+        ".": "OK",
+        "ai": "OK",
+        "communication": "OK",
+        "core": "OK",
+        "tasks": "OK",
+        "ui": "OK",
+        "user": "OK",
+        "tests": "OK"
+      },
+      "last_audit": "2025-12-05T05:31:58.629394",
+      "warnings": [],
+      "errors": []
+    },
+    "recent_activity": {
+      "recent_changes": [
+        ".cursor/plans/decompose-multi-responsibility-tools-2e05ed38.plan.md",
+        ".cursor/plans/standardize-audit-commands-and-tool-output-ac7c7c62.plan.md",
+        "TODO.md",
+        "ai_development_docs/AI_CHANGELOG.md",
+        "ai_development_docs/AI_TESTING_GUIDE.md",
+        "core/user_data_handlers.py",
+        "coverage.json",
+        "data/user_index.json",
+        "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/messages/sent_messages.json",
+        "development_docs/TEST_COVERAGE_REPORT.md",
+        "development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
+        "development_tools/ai_work/jsons/analyze_ai_work_results.json",
+        "development_tools/config/analyze_config.py",
+        "development_tools/config/jsons/analyze_config_results.json",
+        "development_tools/docs/analyze_documentation.py"
+      ],
+      "git_status": "Modified",
+      "last_commit": null,
+      "uncommitted_changes": true
+    },
+    "critical_alerts": [],
+    "performance_indicators": {
+      "log_file_sizes": {
+        "ai.log": "0.0MB",
+        "ai_dev_tools.log": "0.3MB",
+        "app.log": "0.3MB",
+        "communication_manager.log": "0.1MB",
+        "discord.log": "0.0MB",
+        "email.log": "0.0MB",
+        "errors.log": "0.0MB",
+        "file_ops.log": "0.0MB",
+        "message.log": "0.0MB",
+        "scheduler.log": "0.0MB",
+        "ui.log": "0.0MB",
+        "user_activity.log": "0.0MB"
+      },
+      "cache_status": "Unknown",
+      "memory_usage": "Unknown"
+    }
+  }
+}

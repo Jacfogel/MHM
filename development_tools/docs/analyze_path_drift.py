@@ -19,7 +19,7 @@ import re
 import argparse
 import sys
 from pathlib import Path
-from typing import Dict, List, Set, Optional
+from typing import Dict, List, Set, Optional, Any
 from collections import defaultdict
 
 # Add project root to path for core module imports
@@ -683,26 +683,59 @@ class PathDriftAnalyzer:
                         drift_issues[doc_file].append(f"Potentially outdated module: {path}")
                     
         return drift_issues
+    
+    def run_analysis(self) -> Dict[str, Any]:
+        """
+        Run path drift analysis and return structured results.
+        
+        Returns:
+            Dictionary with 'files', 'total_issues', and 'summary' keys
+        """
+        drift_issues = self.check_path_drift()
+        
+        # Convert to structured format
+        files = {}
+        total_issues = 0
+        for doc_file, issues in drift_issues.items():
+            issue_count = len(issues)
+            files[doc_file] = issue_count
+            total_issues += issue_count
+        
+        return {
+            'files': files,
+            'total_issues': total_issues,
+            'detailed_issues': dict(drift_issues)  # Keep detailed issues for reference
+        }
 
 
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Check for path drift between code and documentation")
+    parser.add_argument('--json', action='store_true', help='Output results as JSON')
     
     args = parser.parse_args()
     
     analyzer = PathDriftAnalyzer()
-    results = analyzer.check_path_drift()
+    structured_results = analyzer.run_analysis()
     
-    # Print results
+    if args.json:
+        import json
+        print(json.dumps(structured_results, indent=2))
+        return 0
+    
+    # Print results in human-readable format
+    results = structured_results.get('detailed_issues', {})
+    total_issues = structured_results.get('total_issues', 0)
+    files = structured_results.get('files', {})
+    
     if results:
         print(f"\nPath Drift Issues:")
         print(f"   Total files with issues: {len(results)}")
-        print(f"   Total issues found: {sum(len(issues) for issues in results.values())}")
+        print(f"   Total issues found: {total_issues}")
         print(f"   Top files with most issues:")
-        sorted_files = sorted(results.items(), key=lambda x: len(x[1]), reverse=True)
-        for doc_file, issues in sorted_files[:5]:
-            print(f"     {doc_file}: {len(issues)} issues")
+        sorted_files = sorted(files.items(), key=lambda x: x[1], reverse=True)
+        for doc_file, issue_count in sorted_files[:5]:
+            print(f"     {doc_file}: {issue_count} issues")
     else:
         print("\nNo path drift issues found!")
     

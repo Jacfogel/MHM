@@ -1,0 +1,77 @@
+{
+  "generated_by": "analyze_test_coverage - Development Tools",
+  "last_generated": "2025-12-05 05:33:19",
+  "timestamp": "2025-12-05T05:33:19.368175",
+  "tool_name": "analyze_test_coverage",
+  "domain": "tests",
+  "source": "python development_tools/tests/analyze_test_coverage.py",
+  "note": "This file is auto-generated. Do not edit manually.",
+  "data": {
+    "overall": {
+      "coverage": 71.1,
+      "statements": 27101,
+      "covered": 19272,
+      "missed": 7829,
+      "generated": "2025-12-05T05:33:14.817732"
+    },
+    "modules": [
+      {
+        "module": "communication",
+        "coverage": 68.3,
+        "missed": 2803
+      },
+      {
+        "module": "ui",
+        "coverage": 70.4,
+        "missed": 1852
+      },
+      {
+        "module": "core",
+        "coverage": 71.4,
+        "missed": 2694
+      },
+      {
+        "module": "ai",
+        "coverage": 78.9,
+        "missed": 360
+      },
+      {
+        "module": "tasks",
+        "coverage": 81.8,
+        "missed": 108
+      },
+      {
+        "module": "user",
+        "coverage": 95.8,
+        "missed": 12
+      }
+    ],
+    "worst_files": [
+      {
+        "path": "communication/communication_channels/discord/bot.py",
+        "coverage": 45.3,
+        "missing": 659
+      },
+      {
+        "path": "ui/ui_app_qt.py",
+        "coverage": 48.4,
+        "missing": 731
+      },
+      {
+        "path": "ui/dialogs/account_creator_dialog.py",
+        "coverage": 54.2,
+        "missing": 298
+      },
+      {
+        "path": "communication/command_handlers/interaction_handlers.py",
+        "coverage": 58.3,
+        "missing": 649
+      },
+      {
+        "path": "core/file_locking.py",
+        "coverage": 59.4,
+        "missing": 52
+      }
+    ]
+  }
+}

@@ -1,8 +1,8 @@
 {
-  "generated_by": "analyze_ascii_compliance - Development Tools",
-  "last_generated": "2025-12-05 05:33:59",
-  "timestamp": "2025-12-05T05:33:59.548485",
-  "tool_name": "analyze_ascii_compliance",
+  "generated_by": "analyze_unconverted_links - Development Tools",
+  "last_generated": "2025-12-05 05:29:41",
+  "timestamp": "2025-12-05T05:29:41.653522",
+  "tool_name": "analyze_unconverted_links",
   "domain": "docs",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
@@ -28,16 +28,10 @@
     },
     "TODO.md": {
       "mtime": 1764924741.960043,
-      "results": [
-        "Non-ASCII character '\u2705' (U+2705): 4 instance(s) found (auto-fixable: '[OK]')"
-      ]
+      "results": []
     },
     "PROJECT_VISION.md": {
       "mtime": 1764595053.8919427,
-      "results": []
-    },
-    "development_docs/CHANGELOG_DETAIL.md": {
-      "mtime": 1764886608.20419,
       "results": []
     },
     "development_docs/PLANS.md": {
@@ -130,9 +124,7 @@
     },
     "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
       "mtime": 1764816606.035673,
-      "results": [
-        "Non-ASCII character '\u2192' (U+2192): 3 instance(s) found (auto-fixable: '->')"
-      ]
+      "results": []
     },
     "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
       "mtime": 1764817861.9507194,

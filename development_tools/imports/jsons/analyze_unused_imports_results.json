@@ -1,10 +1,27 @@
 {
   "generated_by": "analyze_unused_imports - Development Tools",
-  "last_generated": "2025-12-04 07:36:43",
-  "timestamp": "2025-12-04T07:36:43.003298",
+  "last_generated": "2025-12-05 05:33:25",
+  "timestamp": "2025-12-05T05:33:25.605316",
   "tool_name": "analyze_unused_imports",
   "domain": "imports",
   "source": "python development_tools/imports/analyze_unused_imports.py",
   "note": "This file is auto-generated. Do not edit manually.",
-  "data": {}
+  "data": {
+    "files_scanned": 350,
+    "files_with_issues": 128,
+    "total_unused": 378,
+    "by_category": {
+      "obvious_unused": 101,
+      "type_hints_only": 2,
+      "re_exports": 0,
+      "conditional_imports": 7,
+      "star_imports": 0,
+      "test_mocking": 127,
+      "qt_testing": 54,
+      "test_infrastructure": 84,
+      "production_test_mocking": 3,
+      "ui_imports": 0
+    },
+    "status": "CRITICAL"
+  }
 }
