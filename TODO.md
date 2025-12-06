@@ -8,10 +8,10 @@
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_EXPANSION_PLAN.md](development_docs/TEST_COVERAGE_EXPANSION_PLAN.md) for testing strategy**
 
-## How to Add New TODOs✅
-✅
-When adding new tasks, follow this format:✅
-✅
+## How to Add New TODOs
+
+When adding new tasks, follow this format:
+
 ```markdown
 **Task Title** - Brief description
 - *What it means*: Simple explanation of the task
@@ -143,99 +143,11 @@ When adding new tasks, follow this format:✅
   - Test data cleanup (tests/test_utilities.py, test fixtures)
   - Temporary file cleanup patterns
 
-**Break Down analyze_unused_imports into Analyze and Generate Components**
-- *What it means*: Decompose `analyze_unused_imports.py` following the naming conventions: separate analysis logic into `imports/analyze_unused_imports.py` (detection only) and report generation into `imports/generate_unused_imports_report.py` (creates UNUSED_IMPORTS_REPORT.md)
-- *Why it helps*: Follows established naming conventions (analyze_* vs generate_*), improves modularity, allows analysis without report generation, and aligns with other decomposed tools
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Extract analysis logic from current `analyze_unused_imports.py` (keep detection/scanning)
-  - [ ] Create `imports/generate_unused_imports_report.py` with report generation logic
-  - [ ] Update `analyze_unused_imports.py` to focus on analysis only
-  - [ ] Update operations.py to call both tools appropriately
-  - [ ] Update tests to cover both components
-  - [ ] Update documentation and tool_metadata.py
-
-**Create a new Unused Imports Cleanup module in development_tools/imports/ that incorporates the functionality from scripts/cleanup_unused_imports.py**
-- *What it means*: Integrate `scripts/cleanup_unused_imports.py` functionality into a new tool, `imports/fix_unused_imports.py`. Add categorization and cleanup recommendations to the existing unused imports analysis.
-- *Why it helps*: Provides actionable recommendations for unused imports (missing error handling, missing logging, safe to remove, etc.) alongside detection. Enables automated cleanup workflows. Note: Functionality should be preserved even when Phase 7 (Naming & Directory Strategy) reorganizes development tools.
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Integrate categorization logic from `cleanup_unused_imports.py` into `analyze_unused_imports.py`
-  - [ ] Add category-based reporting (missing error handling, missing logging, type hints, utilities, safe to remove)
-  - [ ] Add cleanup recommendation generation to unused imports report
-  - [ ] Consider adding `--categorize` flag to existing unused imports checker command
-  - [ ] Update documentation to reflect enhanced reporting capabilities
-
-**Investigate and Enhance Documentation Overlap Analysis**
-- *What it means*: Investigate what the documentation overlap analysis looks for and enhance it to be more helpful. Currently it reports section overlaps and consolidation opportunities but may not be providing actionable insights.
-- *Why it helps*: Makes documentation overlap analysis more useful for identifying actual issues and opportunities for improvement
-- *Estimated effort*: Medium
-
-**Investigate and Enhance AI Work Validation**
-- *What it means*: Investigate what AI Work Validation looks for and enhance it to be more helpful. Currently it reports "GOOD - keep current standards" but may not be providing actionable insights.
-- *Why it helps*: Makes AI Work Validation more useful for identifying actual issues and maintaining code quality standards
-- *Estimated effort*: Medium
-- *Status*: `analyze_ai_work.py` should not  duplicate logic that was already covered by domain-specific tools (docs/analyze_documentation_sync.py, error_handling/analyze_error_handling.py, tests/analyze_test_coverage.py). All comprehensive validation should be done via domain-specific tools, not duplicated in ai_work.
-
-**Investigate and Enhance System Health Analysis**
-- *What it means*: Investigate what System Health looks for and consider enhancing it to be more helpful. Currently it reports "OK" but may not be providing actionable insights.
-- *Why it helps*: Makes System Health analysis more useful for identifying actual issues and maintaining system reliability
-- *Estimated effort*: Medium
-
-**Improve Recent Changes Detection Logic**
-- *What it means*: Investigate the logic for determining the recent changes list in AI_STATUS.md. The current implementation doesn't seem very good at identifying meaningful changes.
-- *Why it helps*: Makes recent changes list more accurate and useful for understanding what's actually changed in the codebase
-- *Estimated effort*: Medium
-
-**Review and Consolidate Audit Command Types**
-- *What it means*: Investigate the different types of audits (status, fast-audit, audit, audit --full). Currently there are too many types and they're not super clearly defined. Consider consolidating or better documenting the differences.
-- *Why it helps*: Reduces confusion about which audit command to use; makes the audit system easier to understand and use
-- *Estimated effort*: Medium
+**Note**: Development tools related tasks have been moved to `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md` for centralized planning and tracking. See that document for all development tools improvements, enhancements, and maintenance tasks.
 
 **Fix Failing Test: test_email_user_creation**
 - *What it means*: Investigate failing test `test_email_user_creation` in `test_utilities_demo.py`. The test fails at line 169 with "Email user should be created successfully", indicating the factory method returned False or None. This likely involves user index lookup or configuration patching.
 - *Why it helps*: Fixes a broken test and ensures user creation functionality works correctly
-- *Estimated effort*: Small/Medium
-
-**Standardize Logging Across Development Tools Suite**
-- *What it means*: Investigate and standardize logging across the development tools suite, including adjusting what is considered warning, info, and debug levels. Reduce duplicate and messy log entries.
-- *Why it helps*: Makes development tools logs cleaner, easier to read, and more useful for debugging; reduces log noise
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Standardize log levels (what should be INFO vs DEBUG vs WARNING)
-  - [ ] Remove duplicate log entries (e.g., "Generating directory trees..." appearing multiple times)
-  - [ ] Demote verbose enhancement messages to DEBUG level
-  - [ ] Demote "needs_enhancement" warnings to DEBUG level
-  - [ ] Consolidate related log messages to reduce redundancy
-
-**Add Test Failure Details to Coverage Logging**
-- *What it means*: Add to dev tools logging what tests failed and whether the test coverage quit early. Currently logs show "Coverage data collected successfully, but some tests failed" without details.
-- *Why it helps*: Makes it easier to understand what went wrong during coverage collection and why the process may have quit early
-- *Estimated effort*: Small
-
-**Adjust Test Failure Threshold for Early Quit**
-- *What it means*: Adjust threshold for failures that result in tool quitting early. Currently it's 5, which seems too low and may cause premature termination.
-- *Why it helps*: Prevents tools from quitting too early when there are only a few test failures, allowing more complete data collection
-- *Estimated effort*: Small
-
-**Investigate Changelog Trim Tooling Unavailability**
-- *What it means*: Investigate why changelog check reports "Tooling unavailable (skipping trim)". Handle with care to avoid accidentally losing changelog information.
-- *Why it helps*: Ensures changelog maintenance tooling works correctly and prevents accidental data loss
-- *Estimated effort*: Small
-
-**Improve Console Output During Audit Runs**
-- *What it means*: Improve console output during audit runs. Currently it's an unhelpful mess with a massive dump of raw metrics data (dictionaries, lists, etc.) that's not human-readable. Make it more structured and informative.
-- *Why it helps*: Makes audit progress visible and understandable; helps identify issues during long-running audits; improves developer experience
-- *Estimated effort*: Medium
-
-**Verify Critical Issues File Creation**
-- *What it means*: Investigate whether "Critical issues saved to: development_tools/critical_issues.txt" is a true statement. Verify that the file is actually created and contains meaningful content.
-- *Why it helps*: Ensures critical issues are actually being saved and accessible; prevents false claims in console output
-- *Estimated effort*: Small
-
-**Investigate Version Sync Functionality**
-- *What it means*: Investigate version_sync - what does it do and what files does it cover? Understand its purpose, scope, and ensure it's working correctly.
-- *Why it helps*: Ensures version synchronization is working as intended; helps maintain consistency across versioned files
 - *Estimated effort*: Small/Medium
 
 ### User Experience Improvements

@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-05 05:33:27
+> **Last Generated**: 2025-12-06 04:32:43
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 5
-**Legacy Compatibility Markers Detected**: 28
+**Legacy Compatibility Markers Detected**: 26
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
-- Legacy compatibility markers remain in 3 file(s) (9 total markers).
+- Legacy compatibility markers remain in 3 file(s) (7 total markers).
 
 ## Recommended Follow-Up
 1. Confirm whether legacy `enabled_fields` payloads are still produced; if not, plan removal and data migration.
@@ -108,29 +108,19 @@
   ```
 
 ### development_tools\shared\operations.py
-**Issues Found**: 5
+**Issues Found**: 3
 
 - **Line 682**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Reading from old file location for backward compatibility
   ```
 
-- **Line 5615**: `# LEGACY COMPATIBILITY:`
+- **Line 5695**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Reading from old file location for backward compatibility
   ```
 
-- **Line 7695**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Fallback to results_cache or central aggregation file
-  ```
-
-- **Line 7757**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Fallback to results_cache or central aggregation file
-  ```
-
-- **Line 8422**: `# LEGACY COMPATIBILITY:`
+- **Line 8785**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Handle deprecated --fast flag
   ```

@@ -4755,6 +4755,76 @@ class AIToolsService:
             'doc_coverage': doc_coverage
         }
 
+    def _load_tool_data(self, tool_name: str, domain: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Unified data loading helper with consistent fallback chain.
+        
+        Loads tool data from multiple sources in order of preference:
+        1. results_cache (in-memory, fastest)
+        2. load_tool_result() (standardized storage)
+        3. Central aggregation file (analysis_detailed_results.json)
+        
+        Args:
+            tool_name: Name of the tool (e.g., 'analyze_functions')
+            domain: Domain directory (e.g., 'functions'). If None, inferred from tool_name
+            
+        Returns:
+            Dict containing tool data, or empty dict if not found
+        """
+        # Step 1: Check results_cache (in-memory, fastest)
+        if hasattr(self, 'results_cache') and self.results_cache:
+            cached_data = self.results_cache.get(tool_name)
+            if cached_data and isinstance(cached_data, dict):
+                logger.debug(f"Loaded {tool_name} from results_cache")
+                return cached_data
+        
+        # Step 2: Fallback to standardized storage
+        try:
+            from .output_storage import load_tool_result
+            stored_data = load_tool_result(tool_name, domain, project_root=self.project_root)
+            if stored_data and isinstance(stored_data, dict):
+                logger.debug(f"Loaded {tool_name} from standardized storage")
+                # Store in cache for future use
+                if not hasattr(self, 'results_cache'):
+                    self.results_cache = {}
+                self.results_cache[tool_name] = stored_data
+                return stored_data
+        except Exception as e:
+            logger.debug(f"Failed to load {tool_name} from standardized storage: {e}")
+        
+        # Step 3: Fallback to central aggregation file
+        try:
+            import json
+            results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+            if results_file.exists():
+                with open(results_file, 'r', encoding='utf-8') as f:
+                    cached_data = json.load(f)
+                
+                if 'results' in cached_data and tool_name in cached_data['results']:
+                    tool_data = cached_data['results'][tool_name]
+                    # Handle nested data structure: results.tool_name.data
+                    if 'data' in tool_data:
+                        data = tool_data['data']
+                        logger.debug(f"Loaded {tool_name} from central aggregation file")
+                        # Store in cache for future use
+                        if not hasattr(self, 'results_cache'):
+                            self.results_cache = {}
+                        self.results_cache[tool_name] = data
+                        return data
+                    else:
+                        # Some tools store data directly without 'data' wrapper
+                        logger.debug(f"Loaded {tool_name} from central aggregation file (direct)")
+                        if not hasattr(self, 'results_cache'):
+                            self.results_cache = {}
+                        self.results_cache[tool_name] = tool_data
+                        return tool_data
+        except Exception as e:
+            logger.debug(f"Failed to load {tool_name} from central aggregation file: {e}")
+        
+        # No data found in any source
+        logger.debug(f"No data found for {tool_name} in any source")
+        return {}
+
     def _extract_actionable_insights(self, output: str) -> str:
 
         """Extract and format actionable insights from raw output."""
@@ -4994,19 +5064,16 @@ class AIToolsService:
         if not isinstance(metrics, dict):
             metrics = {}
 
-        results_cache = self.results_cache or {}
-        doc_metrics = results_cache.get('analyze_function_registry', {}) or {}
-
-        error_metrics = results_cache.get('analyze_error_handling', {}) or {}
-
-        function_metrics = results_cache.get('analyze_functions', {}) or {}
-
-        analyze_docs = results_cache.get('analyze_documentation', {}) or {}
-        # analyze_documentation stores the payload directly, not wrapped in 'data'
-        if isinstance(analyze_docs, dict):
-            analyze_docs_data = analyze_docs
-        else:
-            analyze_docs_data = {}
+        # Load all tool data using unified loader
+        doc_metrics = self._load_tool_data('analyze_function_registry', 'functions')
+        error_metrics = self._load_tool_data('analyze_error_handling', 'error_handling')
+        function_metrics = self._load_tool_data('analyze_functions', 'functions')
+        analyze_docs_data = self._load_tool_data('analyze_documentation', 'docs')
+        # Load additional documentation analysis tools
+        ascii_data = self._load_tool_data('analyze_ascii_compliance', 'docs')
+        heading_data = self._load_tool_data('analyze_heading_numbering', 'docs')
+        missing_addresses_data = self._load_tool_data('analyze_missing_addresses', 'docs')
+        unconverted_links_data = self._load_tool_data('analyze_unconverted_links', 'docs')
         
         # Extract overlap analysis data
         # Check if overlap analysis was run (indicated by presence of these keys, even if empty)
@@ -5059,11 +5126,14 @@ class AIToolsService:
         if not hasattr(self, 'dev_tools_coverage_results') or not self.dev_tools_coverage_results:
             self._load_dev_tools_coverage()
 
-        doc_sync_summary = self.docs_sync_summary or {}
+        # Load doc sync and legacy data using unified loader
+        doc_sync_data = self._load_tool_data('analyze_documentation_sync', 'docs')
+        doc_sync_summary = self.docs_sync_summary or doc_sync_data or {}
         if not isinstance(doc_sync_summary, dict):
             doc_sync_summary = {}
 
-        legacy_summary = self.legacy_cleanup_summary or {}
+        legacy_data = self._load_tool_data('analyze_legacy_references', 'legacy')
+        legacy_summary = self.legacy_cleanup_summary or legacy_data or {}
 
         lines.append("## Snapshot")
 
@@ -5299,42 +5369,17 @@ class AIToolsService:
         
         # Fall back to cache if not available in memory
         if not doc_sync_summary_for_signals:
-            try:
-                # Try standardized storage first
-                from .output_storage import load_tool_result
-                doc_sync_result = load_tool_result('analyze_documentation_sync', 'docs', project_root=self.project_root)
-                if doc_sync_result:
-                    # load_tool_result already unwraps the 'data' key, so doc_sync_result IS the data
-                    cached_metrics = doc_sync_result if isinstance(doc_sync_result, dict) else {}
-                    doc_sync_summary_for_signals = {
-                        'status': cached_metrics.get('status', 'UNKNOWN'),
-                        'path_drift_issues': cached_metrics.get('path_drift_issues', 0),
-                        'paired_doc_issues': cached_metrics.get('paired_doc_issues', 0),
-                        'ascii_issues': cached_metrics.get('ascii_issues', 0),
-                        'path_drift_files': cached_metrics.get('path_drift_files', [])
-                    }
-                else:
-                    # Fall back to central aggregation file
-                    import json
-                    results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
-                    if results_file.exists():
-                        with open(results_file, 'r', encoding='utf-8') as f:
-                            cached_data = json.load(f)
-                        if 'results' in cached_data and 'analyze_documentation_sync' in cached_data['results']:
-                            doc_sync_data = cached_data['results']['analyze_documentation_sync']
-                            if 'data' in doc_sync_data:
-                                cached_metrics = doc_sync_data['data']
-                                # Create a doc_sync_summary from the cached data
-                                doc_sync_summary_for_signals = {
-                                    'status': cached_metrics.get('status', 'UNKNOWN'),
-                                    'path_drift_issues': cached_metrics.get('path_drift_issues', 0),
-                                    'paired_doc_issues': cached_metrics.get('paired_doc_issues', 0),
-                                    'ascii_issues': cached_metrics.get('ascii_issues', 0),
-                                    'path_drift_files': cached_metrics.get('path_drift_files', [])
-                                }
-            except Exception as e:
-                logger.debug(f"Failed to load doc sync summary: {e}")
-                pass
+            # Load doc sync data using unified loader
+            doc_sync_result = self._load_tool_data('analyze_documentation_sync', 'docs')
+            if doc_sync_result:
+                cached_metrics = doc_sync_result if isinstance(doc_sync_result, dict) else {}
+                doc_sync_summary_for_signals = {
+                    'status': cached_metrics.get('status', 'UNKNOWN'),
+                    'path_drift_issues': cached_metrics.get('path_drift_issues', 0),
+                    'paired_doc_issues': cached_metrics.get('paired_doc_issues', 0),
+                    'ascii_issues': cached_metrics.get('ascii_issues', 0),
+                    'path_drift_files': cached_metrics.get('path_drift_files', [])
+                }
 
         if doc_sync_summary_for_signals:
 
@@ -5417,9 +5462,44 @@ class AIToolsService:
                             if len(content_sync_issues) > 3:
                                 lines.append(f"  - ...and {len(content_sync_issues) - 3} more issue(s)")
         
-        # Add ASCII Cleanup to Documentation Signals
+        # Add ASCII Compliance to Documentation Signals
+        # First check doc_sync_summary (aggregated), then check direct tool result
         if ascii_issues is not None and ascii_issues > 0:
-            lines.append(f"- **ASCII Cleanup**: {ascii_issues} files contain non-ASCII characters")
+            lines.append(f"- **ASCII Compliance**: {ascii_issues} files contain non-ASCII characters")
+        elif ascii_data and isinstance(ascii_data, dict):
+            ascii_total = ascii_data.get('total_issues', 0)
+            ascii_file_count = ascii_data.get('file_count', 0)
+            if ascii_total > 0 or ascii_file_count > 0:
+                lines.append(f"- **ASCII Compliance**: {ascii_total} issues in {ascii_file_count} files")
+            else:
+                lines.append("- **ASCII Compliance**: CLEAN (all files are ASCII-compliant)")
+        
+        # Add Heading Numbering to Documentation Signals
+        if heading_data and isinstance(heading_data, dict):
+            heading_total = heading_data.get('total_issues', 0)
+            heading_file_count = heading_data.get('file_count', 0)
+            if heading_total > 0 or heading_file_count > 0:
+                lines.append(f"- **Heading Numbering**: {heading_total} issues in {heading_file_count} files")
+            else:
+                lines.append("- **Heading Numbering**: CLEAN (all headings properly numbered)")
+        
+        # Add Missing Addresses to Documentation Signals
+        if missing_addresses_data and isinstance(missing_addresses_data, dict):
+            missing_total = missing_addresses_data.get('total_issues', 0)
+            missing_file_count = missing_addresses_data.get('file_count', 0)
+            if missing_total > 0 or missing_file_count > 0:
+                lines.append(f"- **Missing Addresses**: {missing_total} issues in {missing_file_count} files")
+            else:
+                lines.append("- **Missing Addresses**: CLEAN (all documentation addresses present)")
+        
+        # Add Unconverted Links to Documentation Signals
+        if unconverted_links_data and isinstance(unconverted_links_data, dict):
+            links_total = unconverted_links_data.get('total_issues', 0)
+            links_file_count = unconverted_links_data.get('file_count', 0)
+            if links_total > 0 or links_file_count > 0:
+                lines.append(f"- **Unconverted Links**: {links_total} issues in {links_file_count} files")
+            else:
+                lines.append("- **Unconverted Links**: CLEAN (all links properly converted)")
         
         # Add Dependency Docs to Documentation Signals
         dependency_summary = self.module_dependency_summary or self.results_cache.get('analyze_module_dependencies')
@@ -5480,7 +5560,7 @@ class AIToolsService:
                 lines.append("- **Status**: Overlap analysis not run (use `audit --full` or `--overlap` flag)")
                 lines.append("  - Standard audits skip overlap analysis by default; run `audit --full` or use `--overlap` flag to include it")
 
-        doc_artifacts = analyze_docs.get('artifacts') if isinstance(analyze_docs, dict) else None
+        doc_artifacts = analyze_docs_data.get('artifacts') if isinstance(analyze_docs_data, dict) else None
 
         if doc_artifacts:
 
@@ -5724,7 +5804,7 @@ class AIToolsService:
 
                 descriptions = [
 
-                    f"{item['path']} ({percent_text(item.get('coverage'), 1)}, missing {item.get('missed', 0)} lines)"
+                    f"{item['path']} ({percent_text(item.get('coverage'), 1)}, missing {item.get('missing', item.get('missed', 0))} lines)"
 
                     for item in worst_files[:3]
 
@@ -5762,33 +5842,8 @@ class AIToolsService:
         # Add unused imports status
         # Try results_cache first (from current audit), then standardized storage
         # Load unused imports data from standardized storage (simplified fallback chain)
-        unused_imports_data = {}
-        try:
-            # First try results_cache (in-memory, fastest)
-            cached = self.results_cache.get('analyze_unused_imports')
-            if cached and isinstance(cached, dict):
-                unused_imports_data = cached
-            else:
-                # Fallback to standardized storage
-                from .output_storage import load_tool_result
-                unused_result = load_tool_result('analyze_unused_imports', 'imports', project_root=self.project_root)
-                if unused_result and isinstance(unused_result, dict):
-                    # load_tool_result returns the data directly (already unwrapped)
-                    unused_imports_data = unused_result
-                else:
-                    # Try loading from central aggregation file as last resort
-                    import json
-                    results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
-                    if results_file.exists():
-                        with open(results_file, 'r', encoding='utf-8') as f:
-                            cached_data = json.load(f)
-                        if 'results' in cached_data and 'analyze_unused_imports' in cached_data['results']:
-                            unused_data = cached_data['results']['analyze_unused_imports']
-                            if 'data' in unused_data:
-                                unused_imports_data = unused_data['data']
-        except Exception as e:
-            logger.debug(f"Failed to load unused imports for AI_STATUS: {e}")
-            unused_imports_data = {}
+        # Load unused imports data using unified loader
+        unused_imports_data = self._load_tool_data('analyze_unused_imports', 'imports')
         
         if unused_imports_data and isinstance(unused_imports_data, dict):
             total_unused = unused_imports_data.get('total_unused', 0)
@@ -5855,119 +5910,40 @@ class AIToolsService:
                     lines.append(f"- **Detailed Report**: {report_path}")
 
         else:
-            # Try to load from standardized storage first, then fall back to central aggregation
-            legacy_found = False
-            try:
-                from .output_storage import load_tool_result
-                legacy_result = load_tool_result('analyze_legacy_references', 'legacy', project_root=self.project_root)
-                if legacy_result and 'data' in legacy_result:
-                    legacy_data = legacy_result['data']
-                    # Extract files_with_issues from the legacy data structure
-                    if isinstance(legacy_data, dict):
-                        # Try different possible keys for legacy issues count
-                        legacy_issues = (legacy_data.get('files_with_issues') or 
-                                       legacy_data.get('total_files') or
-                                       len(legacy_data.get('findings', {}).get('legacy_compatibility_markers', [])))
-                        if legacy_issues is not None and legacy_issues != 'Unknown':
-                            if legacy_issues == 0:
-                                lines.append("- **Legacy References**: CLEAN (0 files flagged)")
-                            else:
-                                lines.append(f"- **Legacy References**: {legacy_issues} files still reference legacy patterns")
-                            report_path = legacy_data.get('report_path') or 'development_docs/LEGACY_REFERENCE_REPORT.md'
-                            if report_path:
-                                report_path_obj = self._resolve_report_path(report_path)
-                                if report_path_obj.exists():
-                                    rel_path = report_path_obj.relative_to(self.project_root)
-                                    lines.append(f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})")
-                            legacy_found = True
+            # Load legacy data using unified loader (already loaded above, but check if we need to display it)
+            if not legacy_summary:
+                legacy_summary = legacy_data
+            if legacy_summary:
+                legacy_issues = legacy_summary.get('files_with_issues')
+                if legacy_issues is not None:
+                    if legacy_issues == 0:
+                        lines.append("- **Legacy References**: CLEAN (0 files flagged)")
+                    else:
+                        lines.append(f"- **Legacy References**: {legacy_issues} files still reference legacy patterns")
+                    report_path = legacy_summary.get('report_path') or 'development_docs/LEGACY_REFERENCE_REPORT.md'
+                    if report_path:
+                        report_path_obj = self._resolve_report_path(report_path)
+                        if report_path_obj.exists():
+                            rel_path = report_path_obj.relative_to(self.project_root)
+                            lines.append(f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})")
                 else:
-                    # LEGACY COMPATIBILITY
-                    # Fall back to central aggregation file (analysis_detailed_results.json) if standardized storage not available.
-                    # New standardized storage location: development_tools/legacy/jsons/analyze_legacy_references_results.json
-                    # Removal plan: After standardized storage is fully adopted, remove this fallback. All tools should use standardized storage.
-                    # Detection: Search for "analysis_detailed_results.json" and "analyze_legacy_references" to find all fallback references.
-                    logger.debug("LEGACY: Falling back to central aggregation file for legacy references (prefer standardized storage)")
-                    import json
-                    results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
-                    if results_file.exists():
-                        with open(results_file, 'r', encoding='utf-8') as f:
-                            cached_data = json.load(f)
-                        # Check for analyze_legacy_references (not fix_legacy_references)
-                        if 'results' in cached_data and 'analyze_legacy_references' in cached_data['results']:
-                            legacy_data = cached_data['results']['analyze_legacy_references']
-                            if 'data' in legacy_data:
-                                cached_legacy = legacy_data['data']
-                                if isinstance(cached_legacy, dict):
-                                    legacy_issues = (cached_legacy.get('files_with_issues') or 
-                                                   cached_legacy.get('total_files') or
-                                                   len(cached_legacy.get('findings', {}).get('legacy_compatibility_markers', [])))
-                                    if legacy_issues is not None and legacy_issues != 'Unknown':
-                                        if legacy_issues == 0:
-                                            lines.append("- **Legacy References**: CLEAN (0 files flagged)")
-                                        else:
-                                            lines.append(f"- **Legacy References**: {legacy_issues} files still reference legacy patterns")
-                                        report_path = cached_legacy.get('report_path') or 'development_docs/LEGACY_REFERENCE_REPORT.md'
-                                        if report_path:
-                                            report_path_obj = self._resolve_report_path(report_path)
-                                            if report_path_obj.exists():
-                                                rel_path = report_path_obj.relative_to(self.project_root)
-                                                lines.append(f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})")
-                                        legacy_found = True
-            except Exception as e:
-                logger.debug(f"Failed to load legacy data: {e}")
-            
-            # If we still don't have legacy data, show unavailable message
-            if not legacy_found:
-                # Try one more time to load from results_cache (in case it was just run)
-                if 'analyze_legacy_references' in self.results_cache:
-                    legacy_cache = self.results_cache['analyze_legacy_references']
-                    if isinstance(legacy_cache, dict):
-                        legacy_issues = legacy_cache.get('files_with_issues', 0)
-                        if legacy_issues == 0:
-                            lines.append("- **Legacy References**: CLEAN (0 files flagged)")
-                        else:
-                            lines.append(f"- **Legacy References**: {legacy_issues} files still reference legacy patterns")
-                        report_path = legacy_cache.get('report_path') or 'development_docs/LEGACY_REFERENCE_REPORT.md'
-                        if report_path:
-                            report_path_obj = self._resolve_report_path(report_path)
-                            if report_path_obj.exists():
-                                rel_path = report_path_obj.relative_to(self.project_root)
-                                lines.append(f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})")
-                        legacy_found = True
-                
-                if not legacy_found:
                     lines.append("- Legacy reference data unavailable (run `audit --full` for latest scan)")
+            else:
+                lines.append("- Legacy reference data unavailable (run `audit --full` for latest scan)")
 
         lines.append("")
 
         lines.append("## Validation Status")
 
+        # Load validation data using unified loader
         validation_output = ''
         if hasattr(self, 'validation_results') and self.validation_results:
             validation_output = self.validation_results.get('output', '')
         
         if not validation_output:
-            # Try to load from standardized storage first, then fall back to central aggregation
-            try:
-                from .output_storage import load_tool_result
-                validation_result = load_tool_result('analyze_ai_work', 'ai_work', project_root=self.project_root)
-                if validation_result and 'data' in validation_result:
-                    data = validation_result['data']
-                    validation_output = data.get('output', '') or ''
-                else:
-                    # Fall back to central aggregation file
-                    import json
-                    results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
-                    if results_file.exists():
-                        with open(results_file, 'r', encoding='utf-8') as f:
-                            cached_data = json.load(f)
-                        if 'results' in cached_data and 'analyze_ai_work' in cached_data['results']:
-                            validation_result = cached_data['results']['analyze_ai_work']
-                            if 'data' in validation_result:
-                                data = validation_result['data']
-                                validation_output = data.get('output', '') or ''
-            except Exception as e:
-                logger.debug(f"Failed to load validation from cache: {e}")
+            validation_data = self._load_tool_data('analyze_ai_work', 'ai_work')
+            if validation_data:
+                validation_output = validation_data.get('output', '') or ''
         
         if validation_output:
             # Parse text output for status
@@ -6160,33 +6136,28 @@ class AIToolsService:
             return None
 
         metrics = self._get_canonical_metrics()
-        doc_metrics = self.results_cache.get('analyze_function_registry', {}) or {}
-        error_metrics = self.results_cache.get('analyze_error_handling', {}) or {}
-        # If error_metrics is empty, try loading from standardized storage
-        if not error_metrics:
-            try:
-                from .output_storage import load_tool_result
-                error_result = load_tool_result('analyze_error_handling', 'error_handling', project_root=self.project_root)
-                if error_result and isinstance(error_result, dict):
-                    error_metrics = error_result
-                    self.results_cache['analyze_error_handling'] = error_metrics
-            except Exception as e:
-                logger.debug(f"Failed to load error_handling from standardized storage: {e}")
-        function_metrics = self.results_cache.get('analyze_functions', {}) or {}
-        doc_sync_summary = self.docs_sync_summary or {}
-        legacy_summary = self.legacy_cleanup_summary or {}
+        # Load all tool data using unified loader
+        doc_metrics = self._load_tool_data('analyze_function_registry', 'functions')
+        error_metrics = self._load_tool_data('analyze_error_handling', 'error_handling')
+        function_metrics = self._load_tool_data('analyze_functions', 'functions')
+        doc_sync_data = self._load_tool_data('analyze_documentation_sync', 'docs')
+        doc_sync_summary = self.docs_sync_summary or doc_sync_data or {}
+        legacy_data = self._load_tool_data('analyze_legacy_references', 'legacy')
+        legacy_summary = self.legacy_cleanup_summary or legacy_data or {}
         coverage_summary = self._load_coverage_summary()
         
         # Load dev tools coverage if not already loaded
         if not hasattr(self, 'dev_tools_coverage_results') or not self.dev_tools_coverage_results:
             self._load_dev_tools_coverage()
         
-        analyze_docs_result = self.results_cache.get('analyze_documentation', {}) or {}
-        # analyze_documentation stores the payload directly, not wrapped in 'data'
-        if isinstance(analyze_docs_result, dict):
-            analyze_data = analyze_docs_result
-        else:
-            analyze_data = {}
+        # Load documentation analysis data using unified loader
+        analyze_data = self._load_tool_data('analyze_documentation', 'docs')
+        
+        # Load additional documentation analysis tools for recommendations
+        ascii_data = self._load_tool_data('analyze_ascii_compliance', 'docs')
+        heading_data = self._load_tool_data('analyze_heading_numbering', 'docs')
+        missing_addresses_data = self._load_tool_data('analyze_missing_addresses', 'docs')
+        unconverted_links_data = self._load_tool_data('analyze_unconverted_links', 'docs')
         
         # Extract overlap analysis data
         section_overlaps = analyze_data.get('section_overlaps', {})
@@ -6281,21 +6252,16 @@ class AIToolsService:
                 high_examples = decision_metrics.get('high_complexity_examples', [])
                 function_metrics['high_complexity_examples'] = high_examples
         
-        # If examples are still missing, try to reload from standardized storage
+        # If examples are still missing, reload function metrics using unified loader
         if not critical_examples and not high_examples:
-            try:
-                from .output_storage import load_tool_result
-                func_result = load_tool_result('analyze_functions', 'functions', project_root=self.project_root)
-                if func_result and isinstance(func_result, dict):
-                    # load_tool_result unwraps 'data', so func_result IS the data
-                    if 'critical_complexity_examples' in func_result:
-                        critical_examples = func_result.get('critical_complexity_examples', [])
-                        function_metrics['critical_complexity_examples'] = critical_examples
-                    if 'high_complexity_examples' in func_result:
-                        high_examples = func_result.get('high_complexity_examples', [])
-                        function_metrics['high_complexity_examples'] = high_examples
-            except Exception:
-                pass  # If loading fails, continue with what we have
+            func_result = self._load_tool_data('analyze_functions', 'functions')
+            if func_result and isinstance(func_result, dict):
+                if 'critical_complexity_examples' in func_result:
+                    critical_examples = func_result.get('critical_complexity_examples', [])
+                    function_metrics['critical_complexity_examples'] = critical_examples
+                if 'high_complexity_examples' in func_result:
+                    high_examples = func_result.get('high_complexity_examples', [])
+                    function_metrics['high_complexity_examples'] = high_examples
         
         # Get complexity metrics from canonical metrics or decision_support
         moderate_complex = to_int(metrics.get('moderate'))
@@ -6421,12 +6387,53 @@ class AIToolsService:
         
         if phase1_total and phase1_total > 0:
             phase1_bullets: List[str] = []
-            if phase1_high and phase1_high > 0:
-                phase1_bullets.append(
-                    f"Start with {phase1_high} high-priority candidates (entry points and critical operations)."
-                )
+            # Get phase1 candidates to group by module
+            phase1_candidates = error_metrics.get('phase1_candidates', [])
+            
+            # Group by module (file_path) and priority
+            if phase1_candidates and isinstance(phase1_candidates, list):
+                from collections import defaultdict
+                high_by_module = defaultdict(int)
+                medium_by_module = defaultdict(int)
+                
+                for candidate in phase1_candidates:
+                    if isinstance(candidate, dict):
+                        file_path = candidate.get('file_path', '')
+                        priority = candidate.get('priority', '').lower()
+                        if file_path:
+                            # Extract module name (file path without extension)
+                            module = file_path.replace('\\', '/')
+                            if priority == 'high':
+                                high_by_module[module] += 1
+                            elif priority == 'medium':
+                                medium_by_module[module] += 1
+                
+                # Show top modules with high-priority candidates, or medium if no high
+                if phase1_high and phase1_high > 0:
+                    phase1_bullets.append(
+                        f"Start with {phase1_high} high-priority candidates (entry points and critical operations)."
+                    )
+                    if high_by_module:
+                        # Sort by count and show top 3
+                        top_modules = sorted(high_by_module.items(), key=lambda x: x[1], reverse=True)[:3]
+                        module_list = [f"{Path(m).name} ({count})" for m, count in top_modules]
+                        if module_list:
+                            phase1_bullets.append(f"Top modules: {self._format_list_for_display(module_list, limit=3)}")
+                else:
+                    # No high priority, show medium priority modules
+                    phase1_medium = to_int(phase1_by_priority.get('medium', 0))
+                    if phase1_medium and phase1_medium > 0:
+                        phase1_bullets.append(
+                            f"Process {phase1_medium} medium-priority functions."
+                        )
+                        if medium_by_module:
+                            top_modules = sorted(medium_by_module.items(), key=lambda x: x[1], reverse=True)[:3]
+                            module_list = [f"{Path(m).name} ({count})" for m, count in top_modules]
+                            if module_list:
+                                phase1_bullets.append(f"Top modules: {self._format_list_for_display(module_list, limit=3)}")
+            
             phase1_medium = to_int(phase1_by_priority.get('medium', 0))
-            if phase1_medium and phase1_medium > 0:
+            if phase1_medium and phase1_medium > 0 and phase1_high and phase1_high > 0:
                 phase1_bullets.append(
                     f"Then process {phase1_medium} medium-priority functions."
                 )
@@ -6454,6 +6461,27 @@ class AIToolsService:
                 phase2_bullets.append(
                     f"Most common: {self._format_list_for_display(exc_details, limit=3)}"
                 )
+            
+            # Get phase2 exceptions to group by module
+            phase2_exceptions = error_metrics.get('phase2_exceptions', [])
+            if phase2_exceptions and isinstance(phase2_exceptions, list):
+                from collections import defaultdict
+                exceptions_by_module = defaultdict(int)
+                
+                for exc in phase2_exceptions:
+                    if isinstance(exc, dict):
+                        file_path = exc.get('file_path', '')
+                        if file_path:
+                            module = file_path.replace('\\', '/')
+                            exceptions_by_module[module] += 1
+                
+                if exceptions_by_module:
+                    # Sort by count and show top 3
+                    top_modules = sorted(exceptions_by_module.items(), key=lambda x: x[1], reverse=True)[:3]
+                    module_list = [f"{Path(m).name} ({count})" for m, count in top_modules]
+                    if module_list:
+                        phase2_bullets.append(f"Top modules: {self._format_list_for_display(module_list, limit=3)}")
+            
             phase2_bullets.append(
                 "Replace generic exceptions (ValueError, Exception, KeyError, TypeError) with specific project error classes."
             )
@@ -6472,15 +6500,16 @@ class AIToolsService:
         # Legacy error handling priority removed - now handled above with proper ordering
 
         # Adjust order numbers based on whether Phase 1/2 priorities exist
+        # Note: dependency_order is calculated but not used (dependency docs moved to Quick Wins)
         coverage_order = 4
         dev_coverage_order = coverage_order + 1
-        dependency_order = dev_coverage_order + 1
-        legacy_order = dependency_order + 1
+        config_order = dev_coverage_order + 1  # Config validation comes after dev tools coverage
+        legacy_order = config_order + 1  # Legacy comes after config (dependency_order not used)
         if phase1_total or phase2_total:
             coverage_order = 6  # After Phase 1 (3), Phase 2 (4), error handling (5)
             dev_coverage_order = coverage_order + 1
-            dependency_order = dev_coverage_order + 1
-            legacy_order = dependency_order + 1
+            config_order = dev_coverage_order + 1  # Config validation comes after dev tools coverage
+            legacy_order = config_order + 1  # Legacy comes after config (dependency_order not used)
         
         if low_coverage_modules:
             coverage_highlights = [
@@ -6550,7 +6579,7 @@ class AIToolsService:
             if legacy_report:
                 legacy_bullets.append(f"Review {legacy_report} for exact locations.")
             legacy_bullets.append(
-                "Use `python development_tools/run_development_tools.py legacy --apply` to replace deprecated helpers."
+                "Use `python development_tools/run_development_tools.py legacy` to scan for legacy references."
             )
             add_priority(
                 order=legacy_order,
@@ -6558,6 +6587,37 @@ class AIToolsService:
                 reason=f"{legacy_files} files still depend on legacy compatibility markers.",
                 bullets=legacy_bullets
             )
+        
+        # Add config validation recommendations to Immediate Focus (before complexity)
+        config_validation_summary = self._load_config_validation_summary()
+        if config_validation_summary:
+            total_recommendations = config_validation_summary.get('total_recommendations', 0)
+            recommendations = config_validation_summary.get('recommendations', [])
+            if total_recommendations > 0 and recommendations:
+                # Use the config_order calculated above (after dev tools coverage, before legacy)
+                config_bullets: List[str] = []
+                # Show top 2-3 recommendations, removing duplicates
+                seen_messages = set()
+                unique_recs = []
+                for rec in recommendations:
+                    rec_text = rec if isinstance(rec, str) else rec.get('message', str(rec))
+                    # Normalize to check for duplicates (case-insensitive, ignore "Update" vs "Fix" prefix)
+                    normalized = rec_text.lower().replace('update ', '').replace('fix ', '').replace('fixes ', '')
+                    if normalized not in seen_messages:
+                        seen_messages.add(normalized)
+                        unique_recs.append(rec_text)
+                    if len(unique_recs) >= 3:
+                        break
+                for rec_text in unique_recs:
+                    config_bullets.append(rec_text)
+                if len(recommendations) > len(unique_recs):
+                    config_bullets.append(f"...and {len(recommendations) - len(unique_recs)} more recommendation(s)")
+                add_priority(
+                    order=config_order,
+                    title="Update tools to use centralized config",
+                    reason=f"{total_recommendations} config validation recommendation(s) pending review.",
+                    bullets=config_bullets
+                )
         
         # Add complexity refactoring priority if there are critical or high complexity functions
         complexity_order = legacy_order + 1
@@ -6633,7 +6693,13 @@ class AIToolsService:
             completed_entries = todo_sync_result.get('completed_entries', 0)
             if completed_entries > 0:
                 if not hasattr(self, '_quick_wins_todo'):
-                    self._quick_wins_todo = completed_entries
+                    # Get line numbers from entries if available
+                    entries = todo_sync_result.get('entries', [])
+                    line_numbers = [str(entry.get('line_number', '')) for entry in entries if entry.get('line_number')]
+                    self._quick_wins_todo = {
+                        'count': completed_entries,
+                        'line_numbers': line_numbers
+                    }
         
         lines.append("## Immediate Focus (Ranked)")
         if priority_items:
@@ -6660,8 +6726,19 @@ class AIToolsService:
         
         # Add TODO sync to Quick Wins
         if hasattr(self, '_quick_wins_todo') and self._quick_wins_todo:
-            completed_entries = self._quick_wins_todo
-            quick_wins.append(f"Review {completed_entries} completed TODO entry/entries - if documented in changelogs, remove from TODO.md; otherwise move to CHANGELOG_DETAIL.md and AI_CHANGELOG.md first.")
+            if isinstance(self._quick_wins_todo, dict):
+                count = self._quick_wins_todo.get('count', 0)
+                line_numbers = self._quick_wins_todo.get('line_numbers', [])
+                if line_numbers:
+                    lines_str = ', '.join(line_numbers[:5])  # Show up to 5 line numbers
+                    if len(line_numbers) > 5:
+                        lines_str += f", ... +{len(line_numbers) - 5}"
+                    quick_wins.append(f"Review {count} completed TODO entry/entries (lines {lines_str}) - if documented in changelogs, remove from TODO.md; otherwise move to CHANGELOG_DETAIL.md and AI_CHANGELOG.md first.")
+                else:
+                    quick_wins.append(f"Review {count} completed TODO entry/entries - if documented in changelogs, remove from TODO.md; otherwise move to CHANGELOG_DETAIL.md and AI_CHANGELOG.md first.")
+            else:
+                # Backward compatibility
+                quick_wins.append(f"Review {self._quick_wins_todo} completed TODO entry/entries - if documented in changelogs, remove from TODO.md; otherwise move to CHANGELOG_DETAIL.md and AI_CHANGELOG.md first.")
         
         if paired_doc_issues and not (path_drift_count and path_drift_count > 0):
             # Add actionable details about paired doc issues
@@ -6692,6 +6769,31 @@ class AIToolsService:
             quick_wins.append(f"Merge {len(analyze_duplicates)} duplicate documentation block(s).")
         if analyze_placeholders:
             quick_wins.append(f"Replace {len(analyze_placeholders)} placeholder section(s) flagged by docs scan.")
+        
+        # Add documentation analysis quick wins
+        if ascii_data and isinstance(ascii_data, dict):
+            ascii_total = ascii_data.get('total_issues', 0)
+            ascii_file_count = ascii_data.get('file_count', 0)
+            if ascii_total > 0:
+                quick_wins.append(f"Fix {ascii_total} ASCII compliance issue(s) in {ascii_file_count} file(s) - run `python development_tools/run_development_tools.py doc-fix --fix-ascii`")
+        
+        if heading_data and isinstance(heading_data, dict):
+            heading_total = heading_data.get('total_issues', 0)
+            heading_file_count = heading_data.get('file_count', 0)
+            if heading_total > 0:
+                quick_wins.append(f"Fix {heading_total} heading numbering issue(s) in {heading_file_count} file(s) - run `python development_tools/run_development_tools.py doc-fix --number-headings`")
+        
+        if missing_addresses_data and isinstance(missing_addresses_data, dict):
+            missing_total = missing_addresses_data.get('total_issues', 0)
+            missing_file_count = missing_addresses_data.get('file_count', 0)
+            if missing_total > 0:
+                quick_wins.append(f"Add file address metadata to {missing_file_count} file(s) missing addresses - run `python development_tools/run_development_tools.py doc-fix --add-addresses`")
+        
+        if unconverted_links_data and isinstance(unconverted_links_data, dict):
+            links_total = unconverted_links_data.get('total_issues', 0)
+            links_file_count = unconverted_links_data.get('file_count', 0)
+            if links_total > 0:
+                quick_wins.append(f"Convert {links_total} unconverted link(s) in {links_file_count} file(s) - run `python development_tools/run_development_tools.py doc-fix --convert-links`")
         
         # Add unused imports to quick wins if available
         # Load unused imports data from standardized storage (simplified fallback chain)
@@ -6801,29 +6903,6 @@ class AIToolsService:
         if legacy_markers and (not legacy_files or legacy_files == 0):
             watch_list.append(f"{legacy_markers} legacy markers remain; schedule periodic cleanup post-sprint.")
         
-        # Add config validation recommendations to priorities if significant
-        config_validation_summary = self._load_config_validation_summary()
-        if config_validation_summary:
-            total_recommendations = config_validation_summary.get('total_recommendations', 0)
-            recommendations = config_validation_summary.get('recommendations', [])
-            if total_recommendations > 0 and recommendations:
-                # Add as a priority item (lower priority than error handling but higher than TODO)
-                config_order = 10  # Lower priority than error handling (3-4) but before TODO
-                config_bullets: List[str] = []
-                # Show top 2-3 recommendations
-                for rec in recommendations[:3]:
-                    rec_text = rec if isinstance(rec, str) else rec.get('message', str(rec))
-                    config_bullets.append(rec_text)
-                if len(recommendations) > 3:
-                    config_bullets.append(f"...and {len(recommendations) - 3} more recommendation(s)")
-                add_priority(
-                    order=config_order,
-                    title="Update tools to use centralized config",
-                    reason=f"{total_recommendations} config validation recommendation(s) pending review.",
-                    bullets=config_bullets
-                )
-                # Don't add to watch list since it's already in priorities
-        
         # Add AI work validation to watch list (lightweight structural validation only)
         validation_output = ''
         if hasattr(self, 'validation_results') and self.validation_results:
@@ -6857,7 +6936,6 @@ class AIToolsService:
 
         lines.append("## Follow-up Commands")
         lines.append("- `python development_tools/run_development_tools.py doc-sync`  -  refresh drift, pairing, and ASCII metrics.")
-        lines.append("- `python development_tools/run_development_tools.py legacy --apply`  -  update legacy references in-place.")
         lines.append("- `python development_tools/run_development_tools.py audit --full`  -  rebuild coverage and hygiene data after fixes.")
         lines.append("- `python development_tools/run_development_tools.py status`  -  confirm the latest health snapshot.")
 
@@ -6932,42 +7010,26 @@ class AIToolsService:
 
         metrics = self._get_canonical_metrics()
 
-        doc_metrics = self.results_cache.get('analyze_function_registry', {}) or {}
-
+        # Load all tool data using unified loader
+        doc_metrics = self._load_tool_data('analyze_function_registry', 'functions')
         doc_coverage = doc_metrics.get('doc_coverage', metrics.get('doc_coverage'))
-
         missing_docs = doc_metrics.get('missing_docs') or doc_metrics.get('missing_items')
-
         doc_totals = doc_metrics.get('totals') or {}
-
         documented_functions = doc_totals.get('functions_documented')
 
-        doc_sync_summary = self.docs_sync_summary or {}
+        doc_sync_data = self._load_tool_data('analyze_documentation_sync', 'docs')
+        doc_sync_summary = self.docs_sync_summary or doc_sync_data or {}
 
-        # Initialize unused_imports_data early so it can be used later
-        # Load unused imports data from standardized storage (simplified fallback chain)
-        unused_imports_data = {}
-        try:
-            # First try results_cache (in-memory, fastest)
-            cached = self.results_cache.get('analyze_unused_imports')
-            if cached and isinstance(cached, dict):
-                unused_imports_data = cached
-            else:
-                # Fallback to standardized storage
-                from .output_storage import load_tool_result
-                unused_result = load_tool_result('analyze_unused_imports', 'imports', project_root=self.project_root)
-                if unused_result and isinstance(unused_result, dict):
-                    unused_imports_data = unused_result
-        except Exception as e:
-            logger.debug(f"Failed to load unused imports for consolidated report: {e}")
-            unused_imports_data = {}
+        # Load unused imports data using unified loader
+        unused_imports_data = self._load_tool_data('analyze_unused_imports', 'imports')
 
-        analyze_docs = self.results_cache.get('analyze_documentation', {}) or {}
-        # analyze_documentation stores the payload directly, not wrapped in 'data'
-        if isinstance(analyze_docs, dict):
-            analyze_docs_data = analyze_docs
-        else:
-            analyze_docs_data = {}
+        # Load documentation analysis data using unified loader
+        analyze_docs_data = self._load_tool_data('analyze_documentation', 'docs')
+        # Load additional documentation analysis tools
+        ascii_data = self._load_tool_data('analyze_ascii_compliance', 'docs')
+        heading_data = self._load_tool_data('analyze_heading_numbering', 'docs')
+        missing_addresses_data = self._load_tool_data('analyze_missing_addresses', 'docs')
+        unconverted_links_data = self._load_tool_data('analyze_unconverted_links', 'docs')
 
         doc_artifacts = analyze_docs_data.get('artifacts') if isinstance(analyze_docs_data, dict) else None
         
@@ -6988,12 +7050,10 @@ class AIToolsService:
         if consolidation_recs is None:
             consolidation_recs = []
 
-        error_metrics = self.results_cache.get('analyze_error_handling', {}) or {}
-
+        # Load error handling data using unified loader
+        error_metrics = self._load_tool_data('analyze_error_handling', 'error_handling')
         missing_error_handlers = error_metrics.get('functions_missing_error_handling')
-
         error_recommendations = error_metrics.get('recommendations') or []
-
         worst_error_modules = error_metrics.get('worst_modules') or []
 
         coverage_summary = self._load_coverage_summary()
@@ -7002,66 +7062,37 @@ class AIToolsService:
         if not hasattr(self, 'dev_tools_coverage_results') or not self.dev_tools_coverage_results:
             self._load_dev_tools_coverage()
 
-        # Try to load legacy_summary from instance variable, then results_cache, then standardized storage
-        legacy_summary = self.legacy_cleanup_summary or {}
-        if not legacy_summary and 'analyze_legacy_references' in self.results_cache:
-            cached_data = self.results_cache['analyze_legacy_references']
-            if isinstance(cached_data, dict):
-                legacy_summary = {
-                    'files_with_issues': cached_data.get('files_with_issues', 0),
-                    'legacy_markers': cached_data.get('legacy_markers', 0),
-                    'report_path': cached_data.get('report_path', 'development_docs/LEGACY_REFERENCE_REPORT.md')
-                }
+        # Load legacy data using unified loader
+        legacy_data = self._load_tool_data('analyze_legacy_references', 'legacy')
+        legacy_summary = self.legacy_cleanup_summary or legacy_data or {}
+        if not legacy_summary and isinstance(legacy_data, dict):
+            legacy_summary = {
+                'files_with_issues': legacy_data.get('files_with_issues', 0),
+                'legacy_markers': legacy_data.get('legacy_markers', 0),
+                'report_path': legacy_data.get('report_path', 'development_docs/LEGACY_REFERENCE_REPORT.md')
+            }
 
-        # Try to load unused_imports_data from results_cache with correct key
-        unused_imports_data = self.results_cache.get('analyze_unused_imports', {}) or {}
-
-        # Load function_metrics from results_cache, ensuring examples are included
-        function_metrics = self.results_cache.get('analyze_functions', {}) or {}
-        # If examples are missing, try to load from standardized storage
+        # Load function metrics using unified loader, ensuring examples are included
+        function_metrics = self._load_tool_data('analyze_functions', 'functions')
+        # If examples are missing, reload to ensure we have them
         if not function_metrics.get('critical_complexity_examples') and not function_metrics.get('high_complexity_examples'):
-            try:
-                from .output_storage import load_tool_result
-                func_result = load_tool_result('analyze_functions', 'functions', project_root=self.project_root)
-                if func_result and isinstance(func_result, dict):
-                    # load_tool_result already unwraps the 'data' key, so func_result IS the data
-                    if 'critical_complexity_examples' in func_result:
-                        function_metrics['critical_complexity_examples'] = func_result.get('critical_complexity_examples', [])
-                    if 'high_complexity_examples' in func_result:
-                        function_metrics['high_complexity_examples'] = func_result.get('high_complexity_examples', [])
-            except Exception:
-                pass  # If loading fails, continue with what we have
+            func_result = self._load_tool_data('analyze_functions', 'functions')
+            if func_result and isinstance(func_result, dict):
+                if 'critical_complexity_examples' in func_result:
+                    function_metrics['critical_complexity_examples'] = func_result.get('critical_complexity_examples', [])
+                if 'high_complexity_examples' in func_result:
+                    function_metrics['high_complexity_examples'] = func_result.get('high_complexity_examples', [])
 
         decision_metrics = self.results_cache.get('decision_support_metrics', {}) or {}
 
+        # Load validation data using unified loader
         validation_output = ""
-
         if hasattr(self, 'validation_results') and self.validation_results:
-
             validation_output = self.validation_results.get('output', '') or ""
         else:
-            # Try to load from cache
-            try:
-                import json
-                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
-                if results_file.exists():
-                    with open(results_file, 'r', encoding='utf-8') as f:
-                        cached_data = json.load(f)
-                    if 'results' in cached_data and 'analyze_ai_work' in cached_data['results']:
-                        validation_data = cached_data['results']['analyze_ai_work']
-                        # Handle nested data structure: results.analyze_ai_work.data.output
-                        if 'data' in validation_data:
-                            data = validation_data['data']
-                            # Check if data is a dict with 'output' key, or if it's the result dict itself
-                            if isinstance(data, dict):
-                                validation_output = data.get('output', '') or ''
-                                # If output is empty, check if there's a nested structure
-                                if not validation_output and 'data' in data:
-                                    validation_output = data['data'].get('output', '') or ''
-                        else:
-                            validation_output = validation_data.get('output', '') or ""
-            except Exception:
-                pass
+            validation_data = self._load_tool_data('analyze_ai_work', 'ai_work')
+            if validation_data:
+                validation_output = validation_data.get('output', '') or ''
 
         results_file = self.audit_config.get('results_file', 'development_tools/reports/analysis_detailed_results.json')
 
@@ -7072,8 +7103,8 @@ class AIToolsService:
         # Recalculate doc_coverage if Unknown (same logic as Documentation Findings section)
         # Do this BEFORE Executive Summary so it's available for display
         if doc_coverage == 'Unknown' or doc_coverage is None:
-            results_cache = self.results_cache or {}
-            audit_data = results_cache.get('analyze_function_registry', {}) or {}
+            # Use already loaded doc_metrics
+            audit_data = doc_metrics
             audit_totals = audit_data.get('totals') if isinstance(audit_data, dict) else {}
             if audit_totals is None or not isinstance(audit_totals, dict):
                 audit_totals = {}
@@ -7086,7 +7117,58 @@ class AIToolsService:
 
         lines.append("## Executive Summary")
 
-        lines.append(f"- Documentation coverage {percent_text(doc_coverage, 2)} with {missing_docs or 0} registry gaps")
+        # Get complexity metrics, trying multiple sources
+        total_funcs = metrics.get('total_functions', 'Unknown')
+        moderate = metrics.get('moderate', 'Unknown')
+        high = metrics.get('high', 'Unknown')
+        critical = metrics.get('critical', 'Unknown')
+        
+        # If still Unknown, try loading from analyze_functions or decision_support cache
+        if moderate == 'Unknown' or high == 'Unknown':
+            try:
+                import json
+                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+                if results_file.exists():
+                    with open(results_file, 'r', encoding='utf-8') as f:
+                        cached_data = json.load(f)
+                    # Try analyze_functions first
+                    if 'results' in cached_data and 'analyze_functions' in cached_data['results']:
+                        func_data = cached_data['results']['analyze_functions']
+                        if 'data' in func_data:
+                            cached_metrics = func_data['data']
+                            if moderate == 'Unknown':
+                                moderate = cached_metrics.get('moderate_complexity', 'Unknown')
+                            if high == 'Unknown':
+                                high = cached_metrics.get('high_complexity', 'Unknown')
+                            if critical == 'Unknown':
+                                critical = cached_metrics.get('critical_complexity', 'Unknown')
+                            if total_funcs == 'Unknown':
+                                total_funcs = cached_metrics.get('total_functions', 'Unknown')
+                    # Fallback to decision_support
+                    if (moderate == 'Unknown' or high == 'Unknown') and 'results' in cached_data and 'decision_support' in cached_data['results']:
+                        ds_data = cached_data['results']['decision_support']
+                        if 'data' in ds_data and 'decision_support_metrics' in ds_data['data']:
+                            ds_metrics = ds_data['data']['decision_support_metrics']
+                            if moderate == 'Unknown':
+                                moderate = ds_metrics.get('moderate_complexity', 'Unknown')
+                            if high == 'Unknown':
+                                high = ds_metrics.get('high_complexity', 'Unknown')
+                            if critical == 'Unknown':
+                                critical = ds_metrics.get('critical_complexity', 'Unknown')
+                            if total_funcs == 'Unknown':
+                                total_funcs = ds_metrics.get('total_functions', 'Unknown')
+            except Exception as e:
+                logger.debug(f"Failed to load complexity from cache in consolidated report: {e}")
+                pass
+
+        # Add Total Functions to Executive Summary
+        if total_funcs == 'Unknown':
+            lines.append("- **Total Functions**: Run `python development_tools/run_development_tools.py audit` for detailed metrics")
+        else:
+            # Order: Critical, High, Moderate (most critical first)
+            lines.append(f"- **Total Functions**: {total_funcs} (Critical: {critical}, High: {high}, Moderate: {moderate})")
+
+        lines.append(f"- Docstring Coverage {percent_text(doc_coverage, 2)} with {missing_docs or 0} registry gaps")
 
         # NOTE: 'error_handling_coverage' is a backward compatibility fallback for old JSON format
         error_cov = error_metrics.get('analyze_error_handling') or error_metrics.get('error_handling_coverage')
@@ -7145,113 +7227,269 @@ class AIToolsService:
 
         lines.append("")
 
-        lines.append("## Audit Metrics")
-
-        # Get complexity metrics, trying multiple sources
-        total_funcs = metrics.get('total_functions', 'Unknown')
-        moderate = metrics.get('moderate', 'Unknown')
-        high = metrics.get('high', 'Unknown')
-        critical = metrics.get('critical', 'Unknown')
+        # Documentation Status section (consolidated from Documentation Signals and Doc Sync Status)
+        lines.append("## Documentation Status")
         
-        # If still Unknown, try loading from analyze_functions or decision_support cache
-        if moderate == 'Unknown' or high == 'Unknown':
-            try:
-                import json
-                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
-                if results_file.exists():
-                    with open(results_file, 'r', encoding='utf-8') as f:
-                        cached_data = json.load(f)
-                    # Try analyze_functions first
-                    if 'results' in cached_data and 'analyze_functions' in cached_data['results']:
-                        func_data = cached_data['results']['analyze_functions']
-                        if 'data' in func_data:
-                            cached_metrics = func_data['data']
-                            if moderate == 'Unknown':
-                                moderate = cached_metrics.get('moderate_complexity', 'Unknown')
-                            if high == 'Unknown':
-                                high = cached_metrics.get('high_complexity', 'Unknown')
-                            if critical == 'Unknown':
-                                critical = cached_metrics.get('critical_complexity', 'Unknown')
-                            if total_funcs == 'Unknown':
-                                total_funcs = cached_metrics.get('total_functions', 'Unknown')
-                    # Fallback to decision_support
-                    if (moderate == 'Unknown' or high == 'Unknown') and 'results' in cached_data and 'decision_support' in cached_data['results']:
-                        ds_data = cached_data['results']['decision_support']
-                        if 'data' in ds_data and 'decision_support_metrics' in ds_data['data']:
-                            ds_metrics = ds_data['data']['decision_support_metrics']
-                            if moderate == 'Unknown':
-                                moderate = ds_metrics.get('moderate_complexity', 'Unknown')
-                            if high == 'Unknown':
-                                high = ds_metrics.get('high_complexity', 'Unknown')
-                            if critical == 'Unknown':
-                                critical = ds_metrics.get('critical_complexity', 'Unknown')
-                            if total_funcs == 'Unknown':
-                                total_funcs = ds_metrics.get('total_functions', 'Unknown')
-            except Exception as e:
-                logger.debug(f"Failed to load complexity from cache in consolidated report: {e}")
-                pass
-
-        lines.append(f"- **Total Functions**: {total_funcs}")
-
-        lines.append(f"- **Complexity Distribution**: Moderate {moderate}, High {high}, Critical {critical}")
-
-        if documented_functions is not None:
-
-            lines.append(f"- **Documented Functions**: {documented_functions}")
-
-        if decision_metrics:
-
-            actions = decision_metrics.get('decision_support_items')
-
-            if actions:
-
-                lines.append(f"- **Decision Support Signals Captured**: {actions}")
+        # Use aggregated doc sync summary from current run first, then fall back to cache
+        doc_sync_summary_for_signals = None
+        if self.docs_sync_summary and isinstance(self.docs_sync_summary, dict):
+            # Use the aggregated summary from _run_doc_sync_check()
+            doc_sync_summary_for_signals = {
+                'status': self.docs_sync_summary.get('status', 'UNKNOWN'),
+                'path_drift_issues': self.docs_sync_summary.get('path_drift_issues', 0),
+                'paired_doc_issues': self.docs_sync_summary.get('paired_doc_issues', 0),
+                'ascii_issues': self.docs_sync_summary.get('ascii_issues', 0),
+                'heading_numbering_issues': self.docs_sync_summary.get('heading_numbering_issues', 0),
+                'missing_address_issues': self.docs_sync_summary.get('missing_address_issues', 0),
+                'unconverted_link_issues': self.docs_sync_summary.get('unconverted_link_issues', 0),
+                'path_drift_files': self.docs_sync_summary.get('path_drift_files', [])
+            }
+        
+        # Fall back to cache if not available in memory
+        if not doc_sync_summary_for_signals:
+            # Load doc sync data using unified loader
+            doc_sync_result = self._load_tool_data('analyze_documentation_sync', 'docs')
+            if doc_sync_result:
+                cached_metrics = doc_sync_result if isinstance(doc_sync_result, dict) else {}
+                doc_sync_summary_for_signals = {
+                    'status': cached_metrics.get('status', 'UNKNOWN'),
+                    'path_drift_issues': cached_metrics.get('path_drift_issues', 0),
+                    'paired_doc_issues': cached_metrics.get('paired_doc_issues', 0),
+                    'ascii_issues': cached_metrics.get('ascii_issues', 0),
+                    'path_drift_files': cached_metrics.get('path_drift_files', [])
+                }
+        
+        # Use doc_sync_summary if available, otherwise use doc_sync_summary_for_signals
+        effective_summary = doc_sync_summary if doc_sync_summary else doc_sync_summary_for_signals
+        
+        # Reformat Documentation Status to be more readable
+        # Note: Documentation Sync includes only path drift and paired docs
+        # ASCII, headings, missing addresses, unconverted links are separate documentation quality issues
+        if effective_summary:
+            # Path Drift
+            path_drift = effective_summary.get('path_drift_issues', 0)
+            if path_drift > 0:
+                drift_files = effective_summary.get('path_drift_files', [])
+                lines.append("**Path Drift** FAIL")
+                lines.append(f"  - {path_drift} problem files")
+                # Show up to 4 files, with correct overflow count based on total path_drift count
+                if len(drift_files) <= 4:
+                    drift_hotspots = ', '.join(drift_files)
+                else:
+                    visible = ', '.join(drift_files[:4])
+                    remaining = path_drift - 4  # Use total path_drift count, not just len(drift_files)
+                    drift_hotspots = f"{visible}, ... +{remaining}"
+                lines.append(f"  - Top files: {drift_hotspots}")
+            else:
+                lines.append("**Path Drift** CLEAN")
+                lines.append("  - 0 problem files")
+            
+            # Paired Docs
+            paired = effective_summary.get('paired_doc_issues', 0) or 0
+            if paired == 0:
+                lines.append("**Paired Docs** CLEAN")
+                lines.append("  - 0 H2 mismatches")
+            else:
+                lines.append("**Paired Docs** FAIL")
+                lines.append(f"  - {paired} H2 mismatches")
+            
+            # Helper function to extract file paths with issue counts from tool data
+            def extract_files_with_issue_counts(tool_data):
+                """Extract file paths with their issue counts from tool data."""
+                if not tool_data or not isinstance(tool_data, dict):
+                    return {}
+                
+                file_counts = {}
+                
+                # Handle results file format: { "files": {...}, "file_count": 0, "total_issues": 0 }
+                if 'files' in tool_data:
+                    files_dict = tool_data.get('files', {})
+                    if isinstance(files_dict, dict):
+                        for file_path, value in files_dict.items():
+                            if isinstance(file_path, str):
+                                # value can be issue count (int) or dict with results
+                                if isinstance(value, (int, float)):
+                                    file_counts[file_path] = int(value)
+                                elif isinstance(value, dict):
+                                    results = value.get('results', [])
+                                    if isinstance(results, list):
+                                        file_counts[file_path] = len(results)
+                                    else:
+                                        file_counts[file_path] = 1
+                
+                # Handle cache format: { "file_path": { "mtime": ..., "results": [...] } }
+                # Or wrapped in 'data': { "data": { "file_path": {...} } }
+                if not file_counts:
+                    data_dict = tool_data.get('data', tool_data) if 'data' in tool_data else tool_data
+                    if isinstance(data_dict, dict):
+                        for f, v in data_dict.items():
+                            if isinstance(f, str) and isinstance(v, dict):
+                                results = v.get('results', [])
+                                if isinstance(results, list) and len(results) > 0:
+                                    file_counts[f] = len(results)
+                
+                return file_counts
+            
+            # Helper function to extract file paths from tool data (handles both cache and results formats)
+            def extract_files_with_issues(tool_data):
+                """Extract file paths that have issues from tool data."""
+                file_counts = extract_files_with_issue_counts(tool_data)
+                return list(file_counts.keys())
+            
+            # Helper function to get issue count from tool data or summary
+            def get_issue_count(summary_key, tool_data, default=0):
+                """Get issue count from summary, or calculate from tool data if not in summary."""
+                count = effective_summary.get(summary_key, 0) if effective_summary else 0
+                if count == 0 and tool_data and isinstance(tool_data, dict):
+                    # Try to calculate from tool data
+                    if 'total_issues' in tool_data:
+                        count = tool_data.get('total_issues', 0)
+                    elif 'files' in tool_data:
+                        files_dict = tool_data.get('files', {})
+                        if isinstance(files_dict, dict):
+                            # Sum up issue counts if files dict has counts
+                            count = sum(v if isinstance(v, (int, float)) else 1 for v in files_dict.values())
+                    else:
+                        # Try cache format: count files with non-empty results
+                        data_dict = tool_data.get('data', tool_data) if 'data' in tool_data else tool_data
+                        if isinstance(data_dict, dict):
+                            total = 0
+                            for f, v in data_dict.items():
+                                if isinstance(v, dict):
+                                    results = v.get('results', [])
+                                    if isinstance(results, list) and len(results) > 0:
+                                        total += len(results)
+                            if total > 0:
+                                count = total
+                return count if count > 0 else default
+            
+            # ASCII Compliance
+            ascii_issues = get_issue_count('ascii_issues', ascii_data)
+            if ascii_issues > 0:
+                ascii_file_counts = extract_files_with_issue_counts(ascii_data)
+                file_count = len(ascii_file_counts) or ascii_data.get('file_count', 0) if ascii_data and isinstance(ascii_data, dict) else len(ascii_file_counts)
+                lines.append("**ASCII Compliance** FAIL")
+                lines.append(f"  - {file_count} files with {ascii_issues} total issues")
+                if ascii_file_counts:
+                    sorted_files = sorted(ascii_file_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+                    file_list = [f"{file_path} ({count})" for file_path, count in sorted_files]
+                    if len(ascii_file_counts) > 5:
+                        file_list.append(f"... +{len(ascii_file_counts) - 5}")
+                    lines.append(f"  - Top files: {', '.join(file_list)}")
+            else:
+                lines.append("**ASCII Compliance** CLEAN")
+                lines.append("  - 0 files with issues")
+            
+            # Heading Numbering
+            heading_issues = get_issue_count('heading_numbering_issues', heading_data)
+            if heading_issues > 0:
+                heading_file_counts = extract_files_with_issue_counts(heading_data)
+                file_count = len(heading_file_counts) or heading_data.get('file_count', 0) if heading_data and isinstance(heading_data, dict) else len(heading_file_counts)
+                lines.append("**Heading Numbering** FAIL")
+                lines.append(f"  - {file_count} files with {heading_issues} total issues")
+                if heading_file_counts:
+                    sorted_files = sorted(heading_file_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+                    file_list = [f"{file_path} ({count})" for file_path, count in sorted_files]
+                    if len(heading_file_counts) > 5:
+                        file_list.append(f"... +{len(heading_file_counts) - 5}")
+                    lines.append(f"  - Top files: {', '.join(file_list)}")
+            else:
+                lines.append("**Heading Numbering** CLEAN")
+                lines.append("  - 0 files with issues")
+            
+            # Missing Addresses
+            missing_address_issues = get_issue_count('missing_address_issues', missing_addresses_data)
+            if missing_address_issues > 0:
+                missing_file_counts = extract_files_with_issue_counts(missing_addresses_data)
+                file_count = len(missing_file_counts) or missing_addresses_data.get('file_count', 0) if missing_addresses_data and isinstance(missing_addresses_data, dict) else len(missing_file_counts)
+                lines.append("**Missing Addresses** FAIL")
+                lines.append(f"  - {file_count} files with {missing_address_issues} total documentation missing addresses")
+                if missing_file_counts:
+                    sorted_files = sorted(missing_file_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+                    file_list = [f"{file_path} ({count})" for file_path, count in sorted_files]
+                    if len(missing_file_counts) > 5:
+                        file_list.append(f"... +{len(missing_file_counts) - 5}")
+                    lines.append(f"  - Top files: {', '.join(file_list)}")
+            else:
+                lines.append("**Missing Addresses** CLEAN")
+                lines.append("  - 0 files with missing addresses")
+            
+            # Unconverted Links
+            unconverted_link_issues = get_issue_count('unconverted_link_issues', unconverted_links_data)
+            if unconverted_link_issues > 0:
+                unconverted_file_counts = extract_files_with_issue_counts(unconverted_links_data)
+                file_count = len(unconverted_file_counts) or unconverted_links_data.get('file_count', 0) if unconverted_links_data and isinstance(unconverted_links_data, dict) else len(unconverted_file_counts)
+                lines.append("**Unconverted Links** FAIL")
+                lines.append(f"  - {file_count} files with {unconverted_link_issues} total issues")
+                if unconverted_file_counts:
+                    sorted_files = sorted(unconverted_file_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+                    file_list = [f"{file_path} ({count})" for file_path, count in sorted_files]
+                    if len(unconverted_file_counts) > 5:
+                        file_list.append(f"... +{len(unconverted_file_counts) - 5}")
+                    lines.append(f"  - Top files: {', '.join(file_list)}")
+            else:
+                lines.append("**Unconverted Links** CLEAN")
+                lines.append("  - 0 files with unconverted links")
+            
+            # Dependency Documentation
+            dependency_summary = None
+            if hasattr(self, 'module_dependency_summary') and self.module_dependency_summary:
+                dependency_summary = self.module_dependency_summary
+            elif hasattr(self, 'results_cache') and self.results_cache:
+                dependency_summary = self.results_cache.get('analyze_module_dependencies')
+            if not dependency_summary:
+                dependency_data = self._load_tool_data('analyze_module_dependencies', 'imports')
+                if dependency_data and isinstance(dependency_data, dict):
+                    dependency_summary = dependency_data
+            
+            missing_deps = dependency_summary.get('missing_dependencies') if dependency_summary else None
+            if missing_deps:
+                lines.append("**Dependency Documentation** FAIL")
+                missing_files = dependency_summary.get('missing_files') or dependency_summary.get('missing_sections') or []
+                file_count = len(missing_files) if missing_files else missing_deps
+                lines.append(f"  - {file_count} files with {missing_deps} total undocumented references detected")
+                if missing_files:
+                    file_list = []
+                    for i, file_path in enumerate(missing_files[:5]):
+                        file_list.append(f"{file_path} (1)")
+                    if len(missing_files) > 5:
+                        file_list.append(f"... +{len(missing_files) - 5}")
+                    lines.append(f"  - Top files: {', '.join(file_list)}")
+            else:
+                lines.append("**Dependency Documentation** CLEAN")
+                lines.append("  - 0 undocumented references")
+            
+            # TODO.md Status
+            todo_sync_result = getattr(self, 'todo_sync_result', None)
+            if todo_sync_result and isinstance(todo_sync_result, dict):
+                entries = todo_sync_result.get('entries', [])
+                completed_entries = todo_sync_result.get('completed_entries', [])
+                
+                if (entries and isinstance(entries, list) and len(entries) > 0) or (completed_entries and len(completed_entries) > 0):
+                    entry_count = len(entries) if entries else len(completed_entries)
+                    lines.append("**TODO.md Status** FAIL")
+                    lines.append(f"  - {entry_count} completed entries detected")
+                else:
+                    lines.append("**TODO.md Status** CLEAN")
+                    lines.append("  - 0 completed entries detected")
+            else:
+                lines.append("**TODO.md Status** CLEAN")
+                lines.append("  - 0 completed entries detected")
 
         lines.append("")
 
-        lines.append("## Documentation Findings")
-
-        # Use canonical metrics for doc_coverage (same as AI_STATUS.md)
-        doc_coverage = metrics.get('doc_coverage', 'Unknown')
-        if doc_coverage == 'Unknown' or doc_coverage is None:
-            # Recalculate if we have the data
-            audit_data = results_cache.get('analyze_function_registry', {}) or {}
-            audit_totals = audit_data.get('totals') if isinstance(audit_data, dict) else {}
-            if audit_totals is None or not isinstance(audit_totals, dict):
-                audit_totals = {}
-            documented = audit_totals.get('functions_documented', 0)
-            total_funcs = metrics.get('total_functions')
-            if total_funcs and isinstance(total_funcs, (int, float)) and total_funcs > 0 and documented > 0:
-                coverage_pct = (documented / total_funcs) * 100
-                if 0 <= coverage_pct <= 100:
-                    doc_coverage = f"{coverage_pct:.2f}%"
-        
-        lines.append(f"- **Coverage**: {percent_text(doc_coverage, 2)}")
-
-        if missing_docs:
-
-            lines.append(f"- **Missing Registry Entries**: {missing_docs}")
-
-        missing_files = self._get_missing_doc_files(limit=8)
-
-        if missing_files:
-
-            lines.append(f"- **Docs to Update**: {self._format_list_for_display(missing_files, limit=8)}")
-        
-        # Add overlap analysis section (always show, even if no overlaps found)
-        lines.append("")
-        lines.append("## Documentation Overlap Analysis")
+        lines.append("## Documentation Overlap")
         overlap_count = len(section_overlaps) if section_overlaps else 0
         consolidation_count = len(consolidation_recs) if consolidation_recs else 0
         
         if overlap_count > 0 or consolidation_count > 0:
-            if section_overlaps:
-                lines.append(f"- **Section Overlaps**: {overlap_count} sections appear in multiple files")
-                # Show top 5 overlaps
-                top_overlaps = sorted(section_overlaps.items(), key=lambda x: len(x[1]), reverse=True)[:5]
-                for section_name, files in top_overlaps:
-                    if len(files) > 1:
-                        lines.append(f"  - Section '{section_name}' appears in {len(files)} files: {', '.join(files[:3])}{'...' if len(files) > 3 else ''}")
+            if section_overlaps and overlap_count > 0:
+                lines.append(f"- **Section Overlaps**: {overlap_count} sections duplicated across files")
+                # Show first few overlaps
+                top_overlaps = sorted(section_overlaps.items(), key=lambda x: len(x[1]), reverse=True)[:3]
+                for section, files in top_overlaps:
+                    lines.append(f"  - `{section}` appears in: {', '.join(files[:3])}{'...' if len(files) > 3 else ''}")
+            # Consolidation opportunities moved to AI_PRIORITIES (not shown in AI_STATUS)
             if consolidation_recs:
                 lines.append(f"- **Consolidation Opportunities**: {consolidation_count} file groups identified for potential consolidation")
                 for rec in consolidation_recs[:3]:  # Show top 3 recommendations
@@ -7262,115 +7500,15 @@ class AIToolsService:
                         lines.append(f"  - {category}: {len(files)} files ({', '.join(files[:2])}{'...' if len(files) > 2 else ''}) - {suggestion}")
         else:
             if overlap_analysis_ran:
-                lines.append("- **Status**: No section overlaps or consolidation opportunities detected")
-                lines.append("- Overlap analysis was performed during this audit")
+                lines.append("- **Status**: No overlaps detected (analysis performed)")
+                lines.append("  - Overlap analysis ran but found no section overlaps or consolidation opportunities")
             else:
                 lines.append("- **Status**: Overlap analysis not run (use `audit --full` or `--overlap` flag)")
                 lines.append("  - Standard audits skip overlap analysis by default; run `audit --full` or use `--overlap` flag to include it")
 
-        if doc_sync_summary:
-
-            path_drift = doc_sync_summary.get('path_drift_issues')
-
-            paired = doc_sync_summary.get('paired_doc_issues')
-
-            ascii_issues = doc_sync_summary.get('ascii_issues')
-
-            total_issues = doc_sync_summary.get('total_issues')
-
-            lines.append(f"- **Doc Sync Status**: {doc_sync_summary.get('status', 'Unknown')} ({total_issues or 0} issues)")
-
-            if path_drift:
-
-                lines.append(f"  - Path drift in {path_drift} files")
-
-            if paired:
-                lines.append(f"  - {paired} paired documents out of sync")
-                # Add details about paired doc issues
-                paired_docs_data = doc_sync_summary.get('paired_docs', {})
-                if isinstance(paired_docs_data, dict):
-                    content_sync_issues = paired_docs_data.get('content_sync', [])
-                    if content_sync_issues:
-                        for issue in content_sync_issues[:3]:
-                            lines.append(f"    - {issue}")
-                        if len(content_sync_issues) > 3:
-                            lines.append(f"    - ...and {len(content_sync_issues) - 3} more issue(s)")
-
-            if ascii_issues is not None and ascii_issues > 0:
-                lines.append(f"  - {ascii_issues} files contain non-ASCII characters")
-
-            drift_files = doc_sync_summary.get('path_drift_files') or []
-            if path_drift and drift_files:
-                lines.append(f"  - Path drift hotspots: {self._format_list_for_display(drift_files, limit=5)}")
-
-        else:
-
-            lines.append("- Run doc-sync to capture current documentation drift data")
-        
-        # Add config validation status
-        config_validation_summary = self._load_config_validation_summary()
-        if config_validation_summary:
-            lines.append("")
-            lines.append("## Configuration Validation")
-            config_valid = config_validation_summary.get('config_valid', False)
-            config_complete = config_validation_summary.get('config_complete', False)
-            total_recommendations = config_validation_summary.get('total_recommendations', 0)
-            tools_using_config = config_validation_summary.get('tools_using_config', 0)
-            total_tools = config_validation_summary.get('total_tools', 0)
-            recommendations = config_validation_summary.get('recommendations', [])
-            tools_analysis = config_validation_summary.get('tools_analysis', {})
-            
-            lines.append(f"- **Config Valid**: {'Yes' if config_valid else 'No'}")
-            lines.append(f"- **Config Complete**: {'Yes' if config_complete else 'No'}")
-            if total_tools > 0:
-                lines.append(f"- **Tools Using Config**: {tools_using_config}/{total_tools}")
-            if total_recommendations > 0:
-                lines.append(f"- **Total Recommendations**: {total_recommendations}")
-                # Show first few recommendations
-                if recommendations:
-                    lines.append("")
-                    lines.append("**Top Recommendations:**")
-                    for i, rec in enumerate(recommendations[:5], 1):
-                        rec_text = rec if isinstance(rec, str) else rec.get('message', str(rec))
-                        lines.append(f"  {i}. {rec_text}")
-                    if len(recommendations) > 5:
-                        lines.append(f"  ... and {len(recommendations) - 5} more recommendations")
-                # List tools with issues
-                tools_with_issues = [
-                    tool for tool, data in tools_analysis.items() 
-                    if data.get('issues') and len(data.get('issues', [])) > 0
-                ]
-                if tools_with_issues:
-                    lines.append(f"- **Tools Needing Updates**: {', '.join(tools_with_issues[:3])}{'...' if len(tools_with_issues) > 3 else ''}")
-        
-        # Add TODO sync status
-        todo_sync_result = getattr(self, 'todo_sync_result', None)
-        if todo_sync_result and isinstance(todo_sync_result, dict):
-            lines.append("")
-            lines.append("## TODO Sync Status")
-            completed_entries = todo_sync_result.get('completed_entries', 0)
-            if completed_entries > 0:
-                lines.append(f"- **Status**: {completed_entries} completed entry/entries in TODO.md need review")
-                lines.append("- **Action**: Review completed entries - if already documented in changelogs, remove from TODO.md; otherwise move to CHANGELOG_DETAIL.md and AI_CHANGELOG.md first")
-            else:
-                lines.append("- **Status**: CLEAN (no completed entries found)")
-        
-        # Dependency Docs belongs in Documentation section, not TODO Sync Status
-        # (Dependency Docs is already shown in the Documentation Signals section above)
-
-        if doc_artifacts:
-
-            artifact = doc_artifacts[0]
-
-            lines.append(f"- **Content Fix**: {artifact.get('file')} line {artifact.get('line')} flagged for {artifact.get('pattern')}")
-
-            if len(doc_artifacts) > 1:
-
-                lines.append(f"  - Additional documentation findings: {len(doc_artifacts) - 1} more items")
-
         lines.append("")
 
-        lines.append("## Error Handling Analysis")
+        lines.append("## Error Handling")
 
         if error_metrics and isinstance(error_metrics, dict):
             # Use recalculated error_cov from Executive Summary section (already calculated above)
@@ -7392,26 +7530,38 @@ class AIToolsService:
                         if 0 <= recalc_coverage <= 100:
                             error_cov = recalc_coverage
 
-            lines.append(f"- **Coverage**: {percent_text(error_cov, 1)}")
+            # Add Missing Error Handling (same as AI_STATUS.md) - this should be first
+            lines.append(f"- **Missing Error Handling**: {missing_error_handlers or 0} functions lack protections")
+            
+            # Add top candidate modules for missing error handling
+            if worst_error_modules:
+                module_summaries = []
+                # Filter out 100% modules (missing 0) - they don't need attention
+                modules_needing_attention = [
+                    m for m in worst_error_modules[:3] 
+                    if m.get('missing', 0) > 0 and m.get('coverage', 100) < 100
+                ]
+                
+                for module in modules_needing_attention:
+                    module_name = module.get('module', 'Unknown')
+                    coverage_pct = percent_text(module.get('coverage'), 1)
+                    missing = module.get('missing')
+                    total = module.get('total')
+                    detail = f"{module_name} ({coverage_pct}"
+                    if missing is not None and total is not None:
+                        detail += f", missing {missing}/{total}"
+                    detail += ")"
+                    module_summaries.append(detail)
+                
+                if module_summaries:
+                    lines.append(f"  - Top candidate modules: {', '.join(module_summaries)}")
+            
+            # Add @handle_errors Usage (same as AI_STATUS.md)
+            decorated = error_metrics.get('functions_with_decorators')
+            if decorated is not None:
+                lines.append(f"- **@handle_errors Usage**: {decorated} functions already use the decorator")
 
-            lines.append(f"- **Functions Missing Protection**: {missing_error_handlers or 0}")
-
-            quality = error_metrics.get('error_handling_quality') or {}
-
-            basic = quality.get('basic')
-
-            none = quality.get('none')
-
-            if basic:
-
-                lines.append(f"- **Upgrade Targets**: {basic} functions rely on basic try-except blocks")
-
-            if none:
-
-                lines.append(f"- **Critical Items**: {none} functions have no error handling")
-
-            # Phase 1: Decorator replacement candidates
-
+            # Phase 1: Decorator replacement candidates (enhanced for consolidated report)
             phase1_total = error_metrics.get('phase1_total', 0)
 
             if phase1_total > 0:
@@ -7434,57 +7584,73 @@ class AIToolsService:
 
                 priority_text = ', '.join(priority_breakdown) if priority_breakdown else '0'
 
-                lines.append(f"- **Phase 1 Candidates**: {phase1_total} functions need `@handle_errors` decorator ({priority_text} priority)")
+                lines.append(f"- **Phase 1 Candidates**: {phase1_total} functions with basic try-except blocks need decorator replacement ({priority_text} priority)")
+                
+                # Group by module and show top modules
+                phase1_candidates = error_metrics.get('phase1_candidates', [])
+                if phase1_candidates and isinstance(phase1_candidates, list):
+                    from collections import defaultdict
+                    from pathlib import Path
+                    by_module = defaultdict(int)
+                    
+                    for candidate in phase1_candidates:
+                        if isinstance(candidate, dict):
+                            file_path = candidate.get('file_path', '')
+                            if file_path:
+                                # Extract module name (file path without extension)
+                                module = Path(file_path).name
+                                by_module[module] += 1
+                    
+                    if by_module:
+                        top_modules = sorted(by_module.items(), key=lambda x: x[1], reverse=True)[:3]
+                        module_list = [f"{module} ({count})" for module, count in top_modules]
+                        if len(by_module) > 3:
+                            module_list.append(f"... +{len(by_module) - 3}")
+                        lines.append(f"  - Top candidate modules with function counts: {', '.join(module_list)}")
 
-            # Phase 2: Generic exception categorization
-
+            # Phase 2: Generic exception categorization (enhanced for consolidated report)
             phase2_total = error_metrics.get('phase2_total', 0)
 
             if phase2_total > 0:
 
                 phase2_by_type = error_metrics.get('phase2_by_type', {})
 
-                type_breakdown = [f"{count} {exc_type}" for exc_type, count in sorted(phase2_by_type.items(), key=lambda x: x[1], reverse=True)[:5]]
+                type_breakdown = [f"{count} {exc_type}" for exc_type, count in sorted(phase2_by_type.items(), key=lambda x: x[1], reverse=True)[:3]]
 
                 type_text = ', '.join(type_breakdown) if type_breakdown else '0'
 
-                if len(phase2_by_type) > 5:
+                if len(phase2_by_type) > 3:
 
-                    type_text += f", ... +{len(phase2_by_type) - 5} more"
+                    type_text += f", ... +{len(phase2_by_type) - 3} more"
 
                 lines.append(f"- **Phase 2 Exceptions**: {phase2_total} generic exception raises need categorization ({type_text})")
-
-            if error_recommendations:
-
-                lines.append(f"- **Top Recommendation**: {error_recommendations[0]}")
-
-            if worst_error_modules:
-
-                module_summaries = []
-
-                # Filter out 100% modules (missing 0) - they don't need attention
-                modules_needing_attention = [
-                    m for m in worst_error_modules[:5] 
-                    if m.get('missing', 0) > 0 and m.get('coverage', 100) < 100
-                ]
                 
-                for module in modules_needing_attention:
-                    module_name = module.get('module', 'Unknown')
-                    coverage_pct = percent_text(module.get('coverage'), 1)
-                    missing = module.get('missing')
-                    total = module.get('total')
+                # Group by module and show top modules with exception types
+                phase2_exceptions = error_metrics.get('phase2_exceptions', [])
+                if phase2_exceptions and isinstance(phase2_exceptions, list):
+                    from collections import defaultdict
+                    from pathlib import Path
+                    by_module = defaultdict(lambda: defaultdict(int))
+                    
+                    for exc in phase2_exceptions:
+                        if isinstance(exc, dict):
+                            file_path = exc.get('file_path', '')
+                            exc_type = exc.get('exception_type', 'Unknown')
+                            if file_path:
+                                module = Path(file_path).name
+                                by_module[module][exc_type] += 1
+                    
+                    if by_module:
+                        # Format: module_name (count ExceptionType)
+                        module_list = []
+                        for module, exc_types in sorted(by_module.items(), key=lambda x: sum(x[1].values()), reverse=True)[:3]:
+                            exc_details = [f"{count} {exc_type}" for exc_type, count in sorted(exc_types.items(), key=lambda x: x[1], reverse=True)]
+                            module_list.append(f"{module} ({', '.join(exc_details)})")
+                        
+                        if len(by_module) > 3:
+                            module_list.append(f"... +{len(by_module) - 3}")
+                        lines.append(f"  - Top candidate modules with function counts and exception types: {', '.join(module_list)}")
 
-                    detail = f"{module_name} ({coverage_pct}"
-
-                    if missing is not None and total is not None:
-                        detail += f", missing {missing}/{total}"
-
-                    detail += ")"
-
-                    module_summaries.append(detail)
-                
-                if module_summaries:
-                    lines.append(f"- **Modules Requiring Attention**: {', '.join(module_summaries)}")
 
         else:
 
@@ -7492,38 +7658,40 @@ class AIToolsService:
 
         lines.append("")
 
-        lines.append("## Testing & Coverage")
+        lines.append("## Test Coverage")
         
         if coverage_summary and isinstance(coverage_summary, dict):
             overall = coverage_summary.get('overall') or {}
             lines.append(f"- **Overall Coverage**: {percent_text(overall.get('coverage'), 1)} ({overall.get('covered')} of {overall.get('statements')} statements)")
 
-            # Convert coverage to float for comparison (handles both string and numeric values)
-            module_gaps = []
+            # Add Domains with Lowest Coverage (same as AI_STATUS.md) - show domains below 80%
+            domain_gaps = []
             for m in (coverage_summary.get('modules') or []):
                 coverage_val = m.get('coverage', 100)
                 if isinstance(coverage_val, str):
                     coverage_val = to_float(coverage_val) or 100
                 elif not isinstance(coverage_val, (int, float)):
                     coverage_val = 100
-                if coverage_val < 90:
-                    module_gaps.append(m)
-
-            if module_gaps:
-                module_descriptions = [
+                if coverage_val < 80:  # Show domains below 80% target
+                    domain_gaps.append(m)
+            
+            if domain_gaps:
+                domain_descriptions = [
                     f"{m['module']} ({percent_text(m.get('coverage'), 1)}, missing {m.get('missed')} lines)"
-                    for m in module_gaps[:5]
+                    for m in domain_gaps[:5]
                 ]
-                lines.append(f"    - **Modules with Lowest Coverage**: {', '.join(module_descriptions)}")
+                lines.append(f"    - **Domains with Lowest Coverage**: {', '.join(domain_descriptions)}")
 
+            # Modules with Lowest Coverage should show individual files, not domains
             worst_files = (coverage_summary or {}).get('worst_files') or []
 
             if worst_files:
                 file_descriptions = [
-                    f"{item['path']} ({percent_text(item.get('coverage'), 1)})"
+                    f"{item['path']} ({percent_text(item.get('coverage'), 1)}, missing {item.get('missing', item.get('missed', 0))} lines)"
                     for item in worst_files[:5]
                 ]
-                lines.append(f"    - **Files with Lowest Coverage**: {', '.join(file_descriptions)}")
+                lines.append(f"    - **Modules with Lowest Coverage**: {', '.join(file_descriptions)}")
+                lines.append(f"    - **Detailed Report**: [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md)")
 
             if dev_tools_insights and dev_tools_insights.get('overall_pct') is not None:
                 dev_pct = dev_tools_insights['overall_pct']
@@ -7539,7 +7707,7 @@ class AIToolsService:
                     ]
                     lines.append(f"    - **Modules with Lowest Coverage**: {', '.join(dev_descriptions)}")
                 if dev_tools_insights.get('html'):
-                    lines.append(f"- **Dev Tools Report**: {dev_tools_insights['html']}")
+                    lines.append(f"    - **Detailed Report**: [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md)")
 
             generated = overall.get('generated')
 
@@ -7553,6 +7721,165 @@ class AIToolsService:
         else:
 
             lines.append("- Run `audit --full` to regenerate coverage metrics")
+
+        lines.append("")
+
+        lines.append("## Unused Imports")
+
+        # Unused imports data already loaded at top of method using unified loader
+        if unused_imports_data:
+            total_unused = unused_imports_data.get('total_unused', 0)
+            files_with_issues = unused_imports_data.get('files_with_issues', 0)
+            if total_unused > 0 or files_with_issues > 0:
+                lines.append(f"- **Total Unused**: {total_unused} imports across {files_with_issues} files")
+                by_category = unused_imports_data.get('by_category') or {}
+                obvious = by_category.get('obvious_unused')
+                if obvious:
+                    lines.append(f"    - **Obvious Removals**: {obvious} imports")
+                type_only = by_category.get('type_hints_only')
+                if type_only:
+                    lines.append(f"    - **Type-Only Imports**: {type_only} imports")
+                
+                # Add top files with unused imports
+                # Load from cache file which has file-level data
+                from collections import defaultdict
+                from pathlib import Path
+                import json
+                file_counts = defaultdict(int)
+                
+                # Try to load from cache file (check both possible locations)
+                cache_file = self.project_root / "development_tools" / "imports" / "jsons" / ".analyze_unused_imports_cache.json"
+                if not cache_file.exists():
+                    # Try legacy location
+                    cache_file = self.project_root / "development_tools" / "imports" / ".analyze_unused_imports_cache.json"
+                
+                if cache_file.exists():
+                    try:
+                        with open(cache_file, 'r', encoding='utf-8') as f:
+                            cache_data = json.load(f)
+                        # Cache structure: { "data": { "file_path": { "mtime": ..., "results": [...] } } }
+                        # Or direct: { "file_path": { "mtime": ..., "results": [...] } }
+                        if 'data' in cache_data and isinstance(cache_data['data'], dict):
+                            cache_data = cache_data['data']
+                        
+                        for file_path, file_data in cache_data.items():
+                            if isinstance(file_data, dict):
+                                results = file_data.get('results', [])
+                                if isinstance(results, list) and len(results) > 0:
+                                    file_counts[file_path] = len(results)
+                    except Exception:
+                        pass
+                
+                if file_counts:
+                    # Sort by count (descending) and show top 5
+                    sorted_files = sorted(file_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+                    file_list = [f"{Path(f).name} ({count})" for f, count in sorted_files]
+                    # Use the actual number of files with issues from the summary, not the cache count
+                    # (cache may include files with 0 unused imports)
+                    total_files_with_issues = unused_imports_data.get('files_with_issues', len(file_counts)) if unused_imports_data and isinstance(unused_imports_data, dict) else len(file_counts)
+                    if total_files_with_issues > 5:
+                        file_list.append(f"... +{total_files_with_issues - 5}")
+                    lines.append(f"    - **Top files**: {', '.join(file_list)}")
+                
+                report_path = self.project_root / 'development_docs' / 'UNUSED_IMPORTS_REPORT.md'
+                # Ensure report_path is a Path object before calling .exists()
+                if isinstance(report_path, Path) and report_path.exists():
+                    rel_path = report_path.relative_to(self.project_root)
+                    lines.append(f"- **Detailed Report**: [UNUSED_IMPORTS_REPORT.md]({rel_path.as_posix()})")
+            else:
+                lines.append("- **Unused Imports**: CLEAN (no unused imports detected)")
+        else:
+            lines.append("- **Unused Imports**: Data unavailable (run `audit --full` for latest scan)")
+
+        lines.append("")
+
+        # Legacy References section (renamed from Legacy & Code Hygiene)
+        lines.append("## Legacy References")
+
+        # Legacy data already loaded at top of method using unified loader
+        # If legacy_summary is still empty, try to extract from legacy_data
+        if not legacy_summary and legacy_data:
+            if isinstance(legacy_data, dict):
+                # Calculate files_with_issues from findings structure
+                findings = legacy_data.get('findings', {})
+                if findings:
+                    # Count total files across all pattern types
+                    total_files = sum(len(file_list) for file_list in findings.values())
+                    # Count total markers (matches) across all files
+                    total_markers = 0
+                    for pattern_type, file_list in findings.items():
+                        for file_entry in file_list:
+                            # file_entry is [file_path, content, matches]
+                            if len(file_entry) >= 3:
+                                matches = file_entry[2]
+                                if isinstance(matches, list):
+                                    total_markers += len(matches)
+                    
+                    legacy_issues = legacy_data.get('files_with_issues') or total_files
+                    legacy_markers = legacy_data.get('legacy_markers') or total_markers
+                else:
+                    # Fallback to direct values if findings not present
+                    legacy_issues = legacy_data.get('files_with_issues') or 0
+                    legacy_markers = legacy_data.get('legacy_markers') or 0
+                
+                report_path = legacy_data.get('report_path') or 'development_docs/LEGACY_REFERENCE_REPORT.md'
+                if legacy_issues is not None:
+                    legacy_summary = {
+                        'files_with_issues': legacy_issues,
+                        'legacy_markers': legacy_markers,
+                        'report_path': report_path,
+                        'findings': findings  # Keep findings for top files list
+                    }
+
+        if legacy_summary:
+            legacy_issues = legacy_summary.get('files_with_issues')
+            legacy_markers = legacy_summary.get('legacy_markers')
+            if legacy_issues is not None:
+                lines.append(f"- **Files with Legacy Markers**: {legacy_issues}")
+            else:
+                lines.append("- **Files with Legacy Markers**: Unknown")
+            
+            if legacy_markers is not None:
+                lines.append(f"- **Markers Found**: {legacy_markers}")
+            else:
+                lines.append("- **Markers Found**: Unknown")
+            
+            # Add top files with legacy markers
+            findings = legacy_summary.get('findings', {})
+            if findings and isinstance(findings, dict):
+                from collections import defaultdict
+                from pathlib import Path
+                file_counts = defaultdict(int)
+                for pattern_type, file_list in findings.items():
+                    for file_entry in file_list:
+                        if isinstance(file_entry, list) and len(file_entry) >= 3:
+                            file_path = file_entry[0]
+                            matches = file_entry[2]
+                            if isinstance(matches, list):
+                                file_counts[file_path] += len(matches)
+                            else:
+                                file_counts[file_path] += 1
+                
+                if file_counts:
+                    # Sort by count (descending) and show top 5
+                    sorted_files = sorted(file_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+                    file_list = [f"{Path(f).name} ({count})" for f, count in sorted_files]
+                    if len(file_counts) > 5:
+                        file_list.append(f"... +{len(file_counts) - 5}")
+                    lines.append(f"    - **Top files**: {', '.join(file_list)}")
+
+            report_path = legacy_summary.get('report_path')
+            if report_path:
+                report_path_obj = self._resolve_report_path(report_path)
+                if report_path_obj.exists():
+                    rel_path = report_path_obj.relative_to(self.project_root)
+                    lines.append(f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})")
+                else:
+                    lines.append(f"- **Detailed Report**: {report_path}")
+        else:
+            lines.append("- **Files with Legacy Markers**: Data unavailable (run `audit --full` for latest scan)")
+            lines.append("- **Markers Found**: Data unavailable")
+            lines.append("- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md)")
 
         lines.append("")
 
@@ -7602,37 +7929,56 @@ class AIToolsService:
             except Exception:
                 pass
 
-        lines.append(f"- **High Complexity Functions**: {function_metrics.get('high_complexity', 'Unknown')}")
-
+        # Reorder to show most critical first: Critical, High, Moderate
         lines.append(f"- **Critical Complexity Functions**: {function_metrics.get('critical_complexity', 'Unknown')}")
+        lines.append(f"- **High Complexity Functions**: {function_metrics.get('high_complexity', 'Unknown')}")
+        lines.append(f"- **Moderate Complexity Functions**: {function_metrics.get('moderate_complexity', 'Unknown')}")
 
+        # Add highest complexity functions list
         critical_examples = function_metrics.get('critical_complexity_examples') or []
-
-        if critical_examples:
-
-            critical_items = [
-
-                f"{item['function']} ({item['file']})"
-
-                for item in critical_examples[:5]
-
-            ]
-
-            lines.append(f"- **Critical Examples**: {', '.join(critical_items)}")
-
         high_examples = function_metrics.get('high_complexity_examples') or []
-
-        if high_examples:
-
-            high_items = [
-
-                f"{item['function']} ({item['file']})"
-
-                for item in high_examples[:5]
-
-            ]
-
-            lines.append(f"- **High Complexity Examples**: {', '.join(high_items)}")
+        
+        # Combine and sort by complexity (if available)
+        all_examples = []
+        for item in critical_examples[:5]:
+            if isinstance(item, dict):
+                complexity = item.get('complexity', item.get('nodes', 0))
+                all_examples.append({
+                    'function': item.get('function', 'Unknown'),
+                    'file': item.get('file', 'Unknown'),
+                    'complexity': complexity,
+                    'priority': 'critical'
+                })
+        
+        for item in high_examples[:3]:  # Show fewer high complexity to keep list focused
+            if isinstance(item, dict):
+                complexity = item.get('complexity', item.get('nodes', 0))
+                all_examples.append({
+                    'function': item.get('function', 'Unknown'),
+                    'file': item.get('file', 'Unknown'),
+                    'complexity': complexity,
+                    'priority': 'high'
+                })
+        
+        if all_examples:
+            # Sort by complexity (descending)
+            all_examples.sort(key=lambda x: x.get('complexity', 0), reverse=True)
+            # Show top 5 functions
+            top_functions = all_examples[:5]
+            function_list = []
+            for func_info in top_functions:
+                func_name = func_info.get('function', 'Unknown')
+                file_name = Path(func_info.get('file', 'Unknown')).name
+                complexity = func_info.get('complexity', 0)
+                if complexity > 0:
+                    function_list.append(f"{func_name} ({file_name}, {complexity} nodes)")
+                else:
+                    function_list.append(f"{func_name} ({file_name})")
+            
+            if function_list:
+                if len(all_examples) > 5:
+                    function_list.append(f"... +{len(all_examples) - 5}")
+                lines.append(f"    - **Top functions**: {', '.join(function_list)}")
 
         undocumented_examples = function_metrics.get('undocumented_examples') or []
 
@@ -7650,159 +7996,7 @@ class AIToolsService:
 
         lines.append("")
 
-        lines.append("## Legacy & Code Hygiene")
-
-        # Try to load legacy data from standardized storage if not in legacy_summary
-        if not legacy_summary:
-            try:
-                from .output_storage import load_tool_result
-                legacy_result = load_tool_result('analyze_legacy_references', 'legacy', project_root=self.project_root)
-                if legacy_result:
-                    # load_tool_result already unwraps the 'data' key, so legacy_result IS the data
-                    legacy_data = legacy_result
-                    if isinstance(legacy_data, dict):
-                        # Calculate files_with_issues from findings structure
-                        findings = legacy_data.get('findings', {})
-                        if findings:
-                            # Count total files across all pattern types
-                            total_files = sum(len(file_list) for file_list in findings.values())
-                            # Count total markers (matches) across all files
-                            total_markers = 0
-                            for pattern_type, file_list in findings.items():
-                                for file_entry in file_list:
-                                    # file_entry is [file_path, content, matches]
-                                    if len(file_entry) >= 3:
-                                        matches = file_entry[2]
-                                        if isinstance(matches, list):
-                                            total_markers += len(matches)
-                            
-                            legacy_issues = legacy_data.get('files_with_issues') or total_files
-                            legacy_markers = legacy_data.get('legacy_markers') or total_markers
-                        else:
-                            # Fallback to direct values if findings not present
-                            legacy_issues = legacy_data.get('files_with_issues') or 0
-                            legacy_markers = legacy_data.get('legacy_markers') or 0
-                        
-                        report_path = legacy_data.get('report_path') or 'development_docs/LEGACY_REFERENCE_REPORT.md'
-                        if legacy_issues is not None:
-                            legacy_summary = {
-                                'files_with_issues': legacy_issues,
-                                'legacy_markers': legacy_markers,
-                                'report_path': report_path
-                            }
-            except Exception as e:
-                logger.debug(f"Failed to load legacy data for consolidated report: {e}")
-                # LEGACY COMPATIBILITY: Fallback to results_cache or central aggregation file
-                if 'analyze_legacy_references' in self.results_cache:
-                    cached_data = self.results_cache['analyze_legacy_references']
-                    if isinstance(cached_data, dict):
-                        legacy_summary = {
-                            'files_with_issues': cached_data.get('files_with_issues', 0),
-                            'legacy_markers': cached_data.get('legacy_markers', 0),
-                            'report_path': cached_data.get('report_path', 'development_docs/LEGACY_REFERENCE_REPORT.md')
-                        }
-                else:
-                    # Try central aggregation file as last resort
-                    try:
-                        import json
-                        results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
-                        if results_file.exists():
-                            with open(results_file, 'r', encoding='utf-8') as f:
-                                cached_data = json.load(f)
-                            if 'results' in cached_data and 'analyze_legacy_references' in cached_data['results']:
-                                legacy_data = cached_data['results']['analyze_legacy_references']
-                                if 'data' in legacy_data:
-                                    cached_legacy = legacy_data['data']
-                                    if isinstance(cached_legacy, dict):
-                                        legacy_summary = {
-                                            'files_with_issues': cached_legacy.get('files_with_issues', 0),
-                                            'legacy_markers': cached_legacy.get('legacy_markers', 0),
-                                            'report_path': cached_legacy.get('report_path', 'development_docs/LEGACY_REFERENCE_REPORT.md')
-                                        }
-                    except Exception:
-                        pass  # If all fallbacks fail, legacy_summary remains empty
-
-        if legacy_summary:
-            legacy_issues = legacy_summary.get('files_with_issues')
-            if legacy_issues is not None:
-                lines.append(f"- **Files with Legacy Markers**: {legacy_issues}")
-            else:
-                lines.append("- **Files with Legacy Markers**: Unknown")
-
-            legacy_markers = legacy_summary.get('legacy_markers')
-            if legacy_markers is not None:
-                lines.append(f"- **Markers Found**: {legacy_markers}")
-
-            report_path = legacy_summary.get('report_path')
-            if report_path:
-                report_path_obj = self._resolve_report_path(report_path)
-                if report_path_obj.exists():
-                    rel_path = report_path_obj.relative_to(self.project_root)
-                    lines.append(f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})")
-                else:
-                    lines.append(f"- **Detailed Report**: {report_path}")
-        else:
-            lines.append("- **Legacy References**: Data unavailable (run `audit --full` for latest scan)")
-
-        # Try to load unused imports from standardized storage if not in cache
-        if not unused_imports_data:
-            try:
-                from .output_storage import load_tool_result
-                unused_result = load_tool_result('analyze_unused_imports', 'imports', project_root=self.project_root)
-                if unused_result:
-                    # load_tool_result already unwraps the 'data' key, so unused_result IS the data
-                    unused_imports_data = unused_result
-            except Exception as e:
-                logger.debug(f"Failed to load unused imports data for consolidated report: {e}")
-                # LEGACY COMPATIBILITY: Fallback to results_cache or central aggregation file
-                if 'analyze_unused_imports' in self.results_cache:
-                    unused_imports_data = self.results_cache['analyze_unused_imports']
-                else:
-                    # Try central aggregation file as last resort
-                    try:
-                        import json
-                        results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
-                        if results_file.exists():
-                            with open(results_file, 'r', encoding='utf-8') as f:
-                                cached_data = json.load(f)
-                            if 'results' in cached_data and 'analyze_unused_imports' in cached_data['results']:
-                                unused_data = cached_data['results']['analyze_unused_imports']
-                                if 'data' in unused_data:
-                                    unused_imports_data = unused_data['data']
-                    except Exception:
-                        pass  # If all fallbacks fail, unused_imports_data remains empty
-
-        if unused_imports_data:
-            total_unused = unused_imports_data.get('total_unused', 0)
-            files_with_issues = unused_imports_data.get('files_with_issues', 0)
-            if total_unused > 0 or files_with_issues > 0:
-                lines.append(f"- **Unused Imports**: {total_unused} across {files_with_issues} files")
-                by_category = unused_imports_data.get('by_category') or {}
-                obvious = by_category.get('obvious_unused')
-                if obvious:
-                    lines.append(f"  - Obvious removals: {obvious}")
-                type_only = by_category.get('type_hints_only')
-                if type_only:
-                    lines.append(f"  - Type-only imports: {type_only}")
-                report_path = self.project_root / 'development_docs' / 'UNUSED_IMPORTS_REPORT.md'
-                # Ensure report_path is a Path object before calling .exists()
-                if isinstance(report_path, Path) and report_path.exists():
-                    rel_path = report_path.relative_to(self.project_root)
-                    lines.append(f"- **Detailed Report**: [UNUSED_IMPORTS_REPORT.md]({rel_path.as_posix()})")
-            else:
-                lines.append("- **Unused Imports**: CLEAN (no unused imports detected)")
-        else:
-            lines.append("- **Unused Imports**: Data unavailable (run `audit --full` for latest scan)")
-
-        ascii_issues = doc_sync_summary.get('ascii_issues') if doc_sync_summary else None
-
-        if ascii_issues is not None and ascii_issues > 0:
-
-            lines.append(f"- **ASCII Cleanup**: {ascii_issues} files need normalization")
-
-        lines.append("")
-
-        lines.append("## Validation & Follow-ups")
+        lines.append("## Validation Status")
 
         if validation_output:
             # Parse text output for status
@@ -7815,17 +8009,98 @@ class AIToolsService:
             else:
                 lines.append("- **AI Work Validation**: Status available (see validation output)")
         else:
-            lines.append("- Validation results unavailable for this run")
+            lines.append("- **AI Work Validation**: Data unavailable (run `audit --full` for validation)")
+        
+        # Add Config Validation to Validation Status
+        config_validation_summary = self._load_config_validation_summary()
+        if config_validation_summary:
+            config_valid = config_validation_summary.get('config_valid', False)
+            config_complete = config_validation_summary.get('config_complete', False)
+            recommendations = config_validation_summary.get('recommendations', [])
+            tools_using_config = config_validation_summary.get('tools_using_config', 0)
+            total_tools = config_validation_summary.get('total_tools', 0)
+            tools_analysis = config_validation_summary.get('tools_analysis', {})
+            
+            lines.append("- **Configuration Validation**")
+            lines.append(f"  - Config valid: {'Yes' if config_valid else 'No'}")
+            lines.append(f"  - Config complete: {'Yes' if config_complete else 'No'}")
+            if total_tools > 0:
+                lines.append(f"  - Tools using config: {tools_using_config}/{total_tools}")
+            
+            # Find tools missing config module import
+            missing_import_tools = []
+            if tools_analysis and isinstance(tools_analysis, dict):
+                for tool_name, tool_data in tools_analysis.items():
+                    if isinstance(tool_data, dict):
+                        issues = tool_data.get('issues', [])
+                        if isinstance(issues, list):
+                            for issue in issues:
+                                if isinstance(issue, str) and 'import config' in issue.lower():
+                                    missing_import_tools.append(tool_name)
+                                    break
+            
+            if missing_import_tools:
+                lines.append(f"  - Tools missing config module import: {', '.join(missing_import_tools)}")
+            
+            # Don't show individual recommendations - they're redundant with "Tools missing config module import" above
+        else:
+            lines.append("- **Configuration Validation**: Data unavailable (run `audit --full` for validation)")
 
-        lines.append("- **Suggested Commands**:")
+        lines.append("")
 
-        lines.append("  - `python development_tools/run_development_tools.py doc-sync`")
-
-        lines.append("  - `python development_tools/run_development_tools.py audit --full`")
-
-        lines.append("  - `python development_tools/run_development_tools.py legacy`")
-
-        lines.append("  - `python development_tools/run_development_tools.py status`")
+        lines.append("## System Signals")
+        
+        # Load system signals data (same as AI_STATUS.md)
+        system_signals_data = None
+        # First try in-memory cache
+        if hasattr(self, 'system_signals') and self.system_signals:
+            system_signals_data = self.system_signals
+        else:
+            # Try loading from cache file
+            try:
+                import json
+                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+                if results_file.exists():
+                    with open(results_file, 'r', encoding='utf-8') as f:
+                        cached_data = json.load(f)
+                    if 'results' in cached_data and 'system_signals' in cached_data['results']:
+                        signals_result = cached_data['results']['system_signals']
+                        if 'data' in signals_result:
+                            system_signals_data = signals_result['data']
+            except Exception as e:
+                logger.debug(f"Failed to load system signals from cache: {e}")
+        
+        if system_signals_data and isinstance(system_signals_data, dict):
+            overall_status = system_signals_data.get('overall_status', 'Unknown')
+            if overall_status and overall_status != 'Unknown':
+                lines.append(f"- **System Health**: {overall_status}")
+            else:
+                lines.append("- **System Health**: OK")
+            
+            # Get recent_changes from recent_activity (same as AI_STATUS.md)
+            recent_activity = system_signals_data.get('recent_activity', {})
+            recent_changes = recent_activity.get('recent_changes') or [] if isinstance(recent_activity, dict) else []
+            if recent_changes and isinstance(recent_changes, list):
+                changes_str = self._format_list_for_display(recent_changes, limit=3)
+                lines.append(f"- **Recent Changes**: {changes_str}")
+        elif hasattr(self, 'system_signals') and self.system_signals:
+            # Fallback: try to extract from in-memory system_signals attribute (same as AI_STATUS.md)
+            system_health = self.system_signals.get('system_health', {}) if isinstance(self.system_signals, dict) else {}
+            overall_status = system_health.get('overall_status') if isinstance(system_health, dict) else None
+            if overall_status:
+                lines.append(f"- **System Health**: {overall_status}")
+            else:
+                lines.append("- **System Health**: OK")
+            
+            # Get recent_changes from recent_activity (same as AI_STATUS.md)
+            recent_activity = self.system_signals.get('recent_activity', {}) if isinstance(self.system_signals, dict) else {}
+            recent_changes = recent_activity.get('recent_changes') or [] if isinstance(recent_activity, dict) else []
+            if recent_changes and isinstance(recent_changes, list):
+                changes_str = self._format_list_for_display(recent_changes, limit=3)
+                lines.append(f"- **Recent Changes**: {changes_str}")
+        else:
+            lines.append("- **System Health**: OK")
+            lines.append("- **Recent Changes**: Data unavailable (run `system-signals` command)")
 
         lines.append("")
 
@@ -8078,21 +8353,43 @@ class AIToolsService:
         # Run ASCII compliance check
         logger.info("Running ASCII compliance check...")
         result = self.run_script('analyze_ascii_compliance')
-        # Try to load from standardized storage first
+        # Try to load from standardized storage first, then cache file
         try:
             from .output_storage import load_tool_result, save_tool_result
             ascii_data = load_tool_result('analyze_ascii_compliance', 'docs', project_root=self.project_root)
+            # If results file is empty or has no issues, try loading from cache
+            if (not ascii_data or not isinstance(ascii_data, dict) or 
+                ascii_data.get('total_issues', 0) == 0 or 
+                len(ascii_data.get('files', {})) == 0):
+                # Try loading from cache file
+                cache_file = self.project_root / "development_tools" / "docs" / "jsons" / ".analyze_ascii_compliance_cache.json"
+                if cache_file.exists():
+                    try:
+                        with open(cache_file, 'r', encoding='utf-8') as f:
+                            cache_data = json.load(f)
+                        ascii_data = cache_data.get('data', {})
+                    except Exception as cache_error:
+                        logger.debug(f"Failed to load ASCII compliance from cache: {cache_error}")
+                        ascii_data = None
+            
             if ascii_data and isinstance(ascii_data, dict):
                 # Convert from cache format to expected format
-                files_data = ascii_data.get('data', {})
-                files_with_issues = {}
-                total_issues = 0
-                for file_path, file_info in files_data.items():
-                    if isinstance(file_info, dict):
-                        results = file_info.get('results', [])
-                        if results:
-                            files_with_issues[file_path] = len(results)
-                            total_issues += len(results)
+                # ascii_data from cache is already the files dict, not nested under 'data'
+                # ascii_data from results file has structure: {'files': {}, 'file_count': 0, 'total_issues': 0}
+                if 'files' in ascii_data and ascii_data.get('files'):
+                    # Already in results format and has data
+                    files_with_issues = ascii_data.get('files', {})
+                    total_issues = ascii_data.get('total_issues', 0)
+                else:
+                    # Cache format: dict of file_path -> {mtime, results}
+                    files_with_issues = {}
+                    total_issues = 0
+                    for file_path, file_info in ascii_data.items():
+                        if isinstance(file_info, dict):
+                            results = file_info.get('results', [])
+                            if results:
+                                files_with_issues[file_path] = len(results)
+                                total_issues += len(results)
                 ascii_result = {
                     'files': files_with_issues,
                     'file_count': len(files_with_issues),
@@ -8132,21 +8429,43 @@ class AIToolsService:
         # Run heading numbering check
         logger.info("Running heading numbering check...")
         result = self.run_script('analyze_heading_numbering')
-        # Try to load from standardized storage first
+        # Try to load from standardized storage first, then cache file
         try:
             from .output_storage import load_tool_result, save_tool_result
             heading_data = load_tool_result('analyze_heading_numbering', 'docs', project_root=self.project_root)
+            # If results file is empty or has no issues, try loading from cache
+            if (not heading_data or not isinstance(heading_data, dict) or 
+                heading_data.get('total_issues', 0) == 0 or 
+                len(heading_data.get('files', {})) == 0):
+                # Try loading from cache file
+                cache_file = self.project_root / "development_tools" / "docs" / "jsons" / ".analyze_heading_numbering_cache.json"
+                if cache_file.exists():
+                    try:
+                        with open(cache_file, 'r', encoding='utf-8') as f:
+                            cache_data = json.load(f)
+                        heading_data = cache_data.get('data', {})
+                    except Exception as cache_error:
+                        logger.debug(f"Failed to load heading numbering from cache: {cache_error}")
+                        heading_data = None
+            
             if heading_data and isinstance(heading_data, dict):
                 # Convert from cache format to expected format
-                files_data = heading_data.get('data', {})
-                files_with_issues = {}
-                total_issues = 0
-                for file_path, file_info in files_data.items():
-                    if isinstance(file_info, dict):
-                        results = file_info.get('results', [])
-                        if results:
-                            files_with_issues[file_path] = len(results)
-                            total_issues += len(results)
+                # heading_data from cache is already the files dict, not nested under 'data'
+                # heading_data from results file has structure: {'files': {}, 'file_count': 0, 'total_issues': 0}
+                if 'files' in heading_data and heading_data.get('files'):
+                    # Already in results format and has data
+                    files_with_issues = heading_data.get('files', {})
+                    total_issues = heading_data.get('total_issues', 0)
+                else:
+                    # Cache format: dict of file_path -> {mtime, results}
+                    files_with_issues = {}
+                    total_issues = 0
+                    for file_path, file_info in heading_data.items():
+                        if isinstance(file_info, dict):
+                            results = file_info.get('results', [])
+                            if results:
+                                files_with_issues[file_path] = len(results)
+                                total_issues += len(results)
                 heading_result = {
                     'files': files_with_issues,
                     'file_count': len(files_with_issues),
@@ -8186,21 +8505,43 @@ class AIToolsService:
         # Run missing addresses check
         logger.info("Running missing addresses check...")
         result = self.run_script('analyze_missing_addresses')
-        # Try to load from standardized storage first
+        # Try to load from standardized storage first, then cache file
         try:
             from .output_storage import load_tool_result, save_tool_result
             missing_data = load_tool_result('analyze_missing_addresses', 'docs', project_root=self.project_root)
+            # If results file is empty or has no issues, try loading from cache
+            if (not missing_data or not isinstance(missing_data, dict) or 
+                missing_data.get('total_issues', 0) == 0 or 
+                len(missing_data.get('files', {})) == 0):
+                # Try loading from cache file
+                cache_file = self.project_root / "development_tools" / "docs" / "jsons" / ".analyze_missing_addresses_cache.json"
+                if cache_file.exists():
+                    try:
+                        with open(cache_file, 'r', encoding='utf-8') as f:
+                            cache_data = json.load(f)
+                        missing_data = cache_data.get('data', {})
+                    except Exception as cache_error:
+                        logger.debug(f"Failed to load missing addresses from cache: {cache_error}")
+                        missing_data = None
+            
             if missing_data and isinstance(missing_data, dict):
                 # Convert from cache format to expected format
-                files_data = missing_data.get('data', {})
-                files_with_issues = {}
-                total_issues = 0
-                for file_path, file_info in files_data.items():
-                    if isinstance(file_info, dict):
-                        results = file_info.get('results', [])
-                        if results:
-                            files_with_issues[file_path] = len(results)
-                            total_issues += len(results)
+                # missing_data from cache is already the files dict, not nested under 'data'
+                # missing_data from results file has structure: {'files': {}, 'file_count': 0, 'total_issues': 0}
+                if 'files' in missing_data and missing_data.get('files'):
+                    # Already in results format and has data
+                    files_with_issues = missing_data.get('files', {})
+                    total_issues = missing_data.get('total_issues', 0)
+                else:
+                    # Cache format: dict of file_path -> {mtime, results}
+                    files_with_issues = {}
+                    total_issues = 0
+                    for file_path, file_info in missing_data.items():
+                        if isinstance(file_info, dict):
+                            results = file_info.get('results', [])
+                            if results:
+                                files_with_issues[file_path] = len(results)
+                                total_issues += len(results)
                 missing_result = {
                     'files': files_with_issues,
                     'file_count': len(files_with_issues),
@@ -8240,21 +8581,43 @@ class AIToolsService:
         # Run unconverted links check
         logger.info("Running unconverted links check...")
         result = self.run_script('analyze_unconverted_links')
-        # Try to load from standardized storage first
+        # Try to load from standardized storage first, then cache file
         try:
             from .output_storage import load_tool_result, save_tool_result
             links_data = load_tool_result('analyze_unconverted_links', 'docs', project_root=self.project_root)
+            # If results file is empty or has no issues, try loading from cache
+            if (not links_data or not isinstance(links_data, dict) or 
+                links_data.get('total_issues', 0) == 0 or 
+                len(links_data.get('files', {})) == 0):
+                # Try loading from cache file
+                cache_file = self.project_root / "development_tools" / "docs" / "jsons" / ".analyze_unconverted_links_cache.json"
+                if cache_file.exists():
+                    try:
+                        with open(cache_file, 'r', encoding='utf-8') as f:
+                            cache_data = json.load(f)
+                        links_data = cache_data.get('data', {})
+                    except Exception as cache_error:
+                        logger.debug(f"Failed to load unconverted links from cache: {cache_error}")
+                        links_data = None
+            
             if links_data and isinstance(links_data, dict):
                 # Convert from cache format to expected format
-                files_data = links_data.get('data', {})
-                files_with_issues = {}
-                total_issues = 0
-                for file_path, file_info in files_data.items():
-                    if isinstance(file_info, dict):
-                        results = file_info.get('results', [])
-                        if results:
-                            files_with_issues[file_path] = len(results)
-                            total_issues += len(results)
+                # links_data from cache is already the files dict, not nested under 'data'
+                # links_data from results file has structure: {'files': {}, 'file_count': 0, 'total_issues': 0}
+                if 'files' in links_data and links_data.get('files'):
+                    # Already in results format and has data
+                    files_with_issues = links_data.get('files', {})
+                    total_issues = links_data.get('total_issues', 0)
+                else:
+                    # Cache format: dict of file_path -> {mtime, results}
+                    files_with_issues = {}
+                    total_issues = 0
+                    for file_path, file_info in links_data.items():
+                        if isinstance(file_info, dict):
+                            results = file_info.get('results', [])
+                            if results:
+                                files_with_issues[file_path] = len(results)
+                                total_issues += len(results)
                 links_result = {
                     'files': files_with_issues,
                     'file_count': len(files_with_issues),

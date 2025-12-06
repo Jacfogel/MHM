@@ -275,23 +275,38 @@ def sync_todo_with_changelog():
             todo_content = f.read()
 
         # Find completed entries in TODO.md
+        # Skip first 33 lines (header/metadata section)
         completed_entries = []
         lines = todo_content.split('\n')
         
         for i, line in enumerate(lines):
-            # Look for lines with COMPLETED, completed, DONE, or done markers
-            if re.search(r'\*\*.*\*\*.*\*\*COMPLETED\*\*', line, re.IGNORECASE) or \
-               re.search(r'\*\*.*\*\*.*\*\*DONE\*\*', line, re.IGNORECASE) or \
-               re.search(r'COMPLETED', line, re.IGNORECASE) or \
-               re.search(r'DONE', line, re.IGNORECASE):
-                
-                # Extract the task title and context
-                task_title = line.strip()
-                completed_entries.append({
-                    'line_number': i + 1,
-                    'title': task_title,
-                    'context': lines[max(0, i-2):i+3]  # Include 2 lines before and after for context
-                })
+            # Skip first 33 lines (0-indexed, so lines 0-32)
+            if i < 33:
+                continue
+            
+            # Check if this line is a header line (starts with **, ##, ###, or is preceded by newline/empty line)
+            is_header_line = False
+            if i > 0:
+                prev_line = lines[i-1].strip() if i > 0 else ""
+                # Header if: starts with markdown heading, starts with **, or preceded by empty line
+                if line.strip().startswith(('##', '###', '**')) or (prev_line == "" and line.strip()):
+                    is_header_line = True
+            
+            # Only flag entries where completion marker is in the header line
+            if is_header_line:
+                # Look for lines with COMPLETED, completed, DONE, or done markers
+                if re.search(r'\*\*.*\*\*.*\*\*COMPLETED\*\*', line, re.IGNORECASE) or \
+                   re.search(r'\*\*.*\*\*.*\*\*DONE\*\*', line, re.IGNORECASE) or \
+                   (re.search(r'COMPLETED', line, re.IGNORECASE) and line.strip().startswith(('**', '##', '###'))) or \
+                   (re.search(r'DONE', line, re.IGNORECASE) and line.strip().startswith(('**', '##', '###'))):
+                    
+                    # Extract the task title and context
+                    task_title = line.strip()
+                    completed_entries.append({
+                        'line_number': i + 1,
+                        'title': task_title,
+                        'context': lines[max(0, i-2):i+3]  # Include 2 lines before and after for context
+                    })
 
         if completed_entries:
             return {

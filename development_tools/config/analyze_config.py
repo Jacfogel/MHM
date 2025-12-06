@@ -122,10 +122,7 @@ class ConfigValidator:
                         'matches': len(matches)
                     })
             
-            # Check for issues
-            if not analysis['imports_config']:
-                analysis['issues'].append("Does not import config module")
-            
+            # Check for issues (only add issues not already tracked by boolean flags)
             if not analysis['uses_config_functions'] and analysis['hardcoded_values']:
                 analysis['issues'].append("Has hardcoded values but doesn't use config functions")
             
@@ -251,8 +248,10 @@ class ConfigValidator:
             if analysis['hardcoded_values']:
                 recommendations.append(f"Replace hardcoded values in {tool_name} with config functions")
             
+            # Add "Fix issues" recommendation for any remaining issues
             if analysis['issues']:
-                recommendations.append(f"Fix issues in {tool_name}: {', '.join(analysis['issues'])}")
+                issues_str = ', '.join(analysis['issues'])
+                recommendations.append(f"Fix issues in {tool_name}: {issues_str}")
         
         # Configuration recommendations
         if config_validation['missing_directories']:

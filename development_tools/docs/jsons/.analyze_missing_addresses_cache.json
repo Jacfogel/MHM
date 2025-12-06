@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_missing_addresses - Development Tools",
-  "last_generated": "2025-12-05 05:29:40",
-  "timestamp": "2025-12-05T05:29:40.856729",
+  "last_generated": "2025-12-06 04:28:18",
+  "timestamp": "2025-12-06T04:28:18.475854",
   "tool_name": "analyze_missing_addresses",
   "domain": "docs",
   "note": "This file is auto-generated. Do not edit manually.",
@@ -31,7 +31,7 @@
       "results": []
     },
     "TODO.md": {
-      "mtime": 1764924741.960043,
+      "mtime": 1764979737.055818,
       "results": []
     },
     "ai/SYSTEM_AI_GUIDE.md": {
@@ -43,7 +43,7 @@
       "results": []
     },
     "ai_development_docs/AI_CHANGELOG.md": {
-      "mtime": 1764886608.200926,
+      "mtime": 1764935458.1923773,
       "results": []
     },
     "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -87,15 +87,25 @@
       "results": []
     },
     "development_docs/PLANS.md": {
-      "mtime": 1764587505.500232,
+      "mtime": 1764985737.3786047,
+      "results": []
+    },
+    "development_docs/TEST_ANALYSIS.md": {
+      "mtime": 1764986414.860307,
+      "results": [
+        "Missing file address in header"
+      ]
+    },
+    "development_docs/TEST_COVERAGE_REPORT.md": {
+      "mtime": 1765016058.0504284,
       "results": []
     },
     "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
       "mtime": 1764816606.035673,
       "results": []
     },
-    "development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md": {
-      "mtime": 1764932411.6236491,
+    "development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md": {
+      "mtime": 1764980565.0365345,
       "results": []
     },
     "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
@@ -142,41 +152,9 @@
       "mtime": 1764594590.2813954,
       "results": []
     },
-    "development_tools/COMMAND_TEST_RESULTS.md": {
-      "mtime": 1764748061.7752662,
-      "results": [
-        "Missing file address in header"
-      ]
-    },
     "development_tools/shared/OUTPUT_STORAGE_STANDARDS.md": {
       "mtime": 1764746603.9147153,
       "results": []
-    },
-    "development_docs/TEST_COVERAGE_REPORT.md": {
-      "mtime": 1764933892.074752,
-      "results": []
-    },
-    "development_tools/LEGACY_CODE_REMOVAL_STATUS.md": {
-      "mtime": 1764903977.5028398,
-      "results": []
-    },
-    "development_tools/JSON_FILES_ANALYSIS.md": {
-      "mtime": 1764926176.2910764,
-      "results": [
-        "Missing file address in header"
-      ]
-    },
-    "development_tools/MISSING_FILES_ANALYSIS.md": {
-      "mtime": 1764926539.3429642,
-      "results": [
-        "Missing file address in header"
-      ]
-    },
-    "development_tools/MISSING_FILES_FIXES_APPLIED.md": {
-      "mtime": 1764926728.1420157,
-      "results": [
-        "Missing file address in header"
-      ]
     }
   }
 }

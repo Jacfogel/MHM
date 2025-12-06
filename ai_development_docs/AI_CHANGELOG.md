@@ -36,6 +36,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-06 - Fix Report Data Flow (Priority 1.1) **COMPLETED**
+- Fixed critical data flow issue where analysis tool findings were not consistently appearing in reports despite successful execution
+- Created unified `_load_tool_data()` helper method with consistent fallback chain (cache → storage → aggregation) for all three report generation methods
+- Added missing tools to reports: ASCII compliance, heading numbering, missing addresses, unconverted links
+- Verified 100% accuracy - all metrics match between JSON files and reports (10/10 tools verified)
+- Enhanced report formatting and readability; added top files lists and fixed overflow indicators
+
 ### 2025-12-05 - Development Tools Investigation, Fixes, and User Data Handler Improvements **COMPLETED**
 - Conducted systematic investigation of missing JSON results files; created analysis scripts to identify 9 tools missing `save_tool_result` calls
 - Fixed duplicate `run_decision_support` method preventing results from being saved; added missing `save_tool_result` calls for 9 tools

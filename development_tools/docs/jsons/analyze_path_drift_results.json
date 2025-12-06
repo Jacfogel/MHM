@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_path_drift - Development Tools",
-  "last_generated": "2025-12-05 05:29:38",
-  "timestamp": "2025-12-05T05:29:38.000946",
+  "last_generated": "2025-12-06 04:28:14",
+  "timestamp": "2025-12-06T04:28:14.994207",
   "tool_name": "analyze_path_drift",
   "domain": "docs",
   "source": "python development_tools/docs/analyze_path_drift.py",
@@ -10,15 +10,16 @@
     "files": {
       "ARCHITECTURE.md": 4,
       "DOCUMENTATION_GUIDE.md": 3,
-      "TODO.md": 3,
+      "TODO.md": 2,
       "ai\\SYSTEM_AI_GUIDE.md": 1,
-      "ai_development_docs\\AI_DOCUMENTATION_GUIDE.md": 1,
+      "ai_development_docs\\AI_DOCUMENTATION_GUIDE.md": 2,
       "ai_development_docs\\AI_ERROR_HANDLING_GUIDE.md": 2,
       "communication\\COMMUNICATION_GUIDE.md": 3,
       "core\\ERROR_HANDLING_GUIDE.md": 1,
+      "development_docs\\TEST_ANALYSIS.md": 1,
       "development_docs\\UNUSED_IMPORTS_REPORT.md": 1,
       "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md": 6,
-      "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md": 2,
+      "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md": 5,
       "logs\\LOGGING_GUIDE.md": 2,
       "development_tools\\shared\\OUTPUT_STORAGE_STANDARDS.md": 7,
       "tests\\fixtures\\development_tools_demo\\docs\\bad_numbering_doc.md": 1,
@@ -26,7 +27,7 @@
       "tests\\fixtures\\development_tools_demo\\docs\\mismatched_human_doc.md": 2,
       "tests\\fixtures\\development_tools_demo\\docs\\misnumbered_doc.md": 1
     },
-    "total_issues": 42,
+    "total_issues": 46,
     "detailed_issues": {
       "ARCHITECTURE.md": [
         "Missing file: something_dialog_pyqt.py",
@@ -35,19 +36,19 @@
         "Missing file: ui/widgets/something_widget.py"
       ],
       "DOCUMENTATION_GUIDE.md": [
+        "Missing file: TEST_COVERAGE_EXPANSION_PLAN.md",
         "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md",
-        "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md",
-        "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md"
+        "Missing file: TEST_COVERAGE_EXPANSION_PLAN.md"
       ],
       "TODO.md": [
         "Missing file: TEST_COVERAGE_EXPANSION_PLAN.md",
-        "Missing file: analyze_ai_work.py",
         "Missing file: test_utilities_demo.py"
       ],
       "ai\\SYSTEM_AI_GUIDE.md": [
         "Missing file: response_tracking.py"
       ],
       "ai_development_docs\\AI_DOCUMENTATION_GUIDE.md": [
+        "Missing file: AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
         "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md"
       ],
       "ai_development_docs\\AI_ERROR_HANDLING_GUIDE.md": [
@@ -62,6 +63,9 @@
       "core\\ERROR_HANDLING_GUIDE.md": [
         "Missing file: analyze_error_handling.py"
       ],
+      "development_docs\\TEST_ANALYSIS.md": [
+        "Missing file: nonexistent_file.md"
+      ],
       "development_docs\\UNUSED_IMPORTS_REPORT.md": [
         "Potentially outdated module: annotations"
       ],
@@ -74,7 +78,10 @@
         "Missing file: reports/file_rotation.py"
       ],
       "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md": [
+        "Missing file: AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
         "Potentially outdated module: detector.",
+        "Missing file: AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
+        "Missing file: AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
         "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md"
       ],
       "logs\\LOGGING_GUIDE.md": [
