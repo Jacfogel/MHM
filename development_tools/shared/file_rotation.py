@@ -131,24 +131,68 @@ class FileRotator:
         return filtered_files
 
 
-def create_output_file(file_path: str, content: str, rotate: bool = True, max_versions: int = None) -> Path:
+def create_output_file(file_path: str, content: str, rotate: bool = True, max_versions: int = None, project_root: Optional[Path] = None) -> Path:
     """
     Create an output file with optional rotation.
     
     Args:
-        file_path: Path to the output file
+        file_path: Path to the output file (relative to project_root if project_root provided)
         content: Content to write to the file
         rotate: Whether to rotate existing files
         max_versions: Maximum number of backup versions to keep
+        project_root: Optional project root to resolve relative paths against
         
     Returns:
         Path object pointing to the created file
     """
+    # Check if this is a status file write during audit (defensive check)
+    file_name = Path(file_path).name if isinstance(file_path, (str, Path)) else str(file_path)
+    status_files = ['AI_STATUS.md', 'AI_PRIORITIES.md', 'consolidated_report.txt']
+    if file_name in status_files:
+        # Check if audit is in progress by looking for the global flag in operations module
+        try:
+            import sys
+            if 'development_tools.shared.operations' in sys.modules:
+                operations_module = sys.modules['development_tools.shared.operations']
+                # Check global audit flag (prevents writes even from new instances created during tests)
+                if hasattr(operations_module, '_AUDIT_IN_PROGRESS_GLOBAL') and operations_module._AUDIT_IN_PROGRESS_GLOBAL:
+                    from core.logger import get_component_logger
+                    logger = get_component_logger("development_tools")
+                    logger.warning(f"create_output_file() called to write {file_name} during audit! Blocking write to prevent mid-audit status file changes.")
+                    import traceback
+                    logger.debug(f"Call stack:\n{''.join(traceback.format_stack())}")
+                    # Raise exception to prevent the write
+                    raise RuntimeError(f"Cannot write {file_name} during audit - status files should only be written at the end of audit")
+        except RuntimeError:
+            # Re-raise our blocking exception
+            raise
+        except Exception:
+            # If check fails, continue (defensive check only - don't block if we can't check)
+            pass
+    
     # Ensure file_path is a Path object
     if isinstance(file_path, str):
         file_path = Path(file_path)
     else:
         file_path = Path(file_path)
+    
+    # Resolve relative paths against project_root if provided
+    if project_root is not None:
+        if not file_path.is_absolute():
+            file_path = project_root / file_path
+        else:
+            # If absolute, use as-is
+            pass
+    else:
+        # Try to get project_root from config if not provided
+        try:
+            from ..config import config
+            config_project_root = config.get_project_root()
+            if config_project_root and not file_path.is_absolute():
+                file_path = Path(config_project_root) / file_path
+        except (ImportError, AttributeError):
+            # If config not available, use path as-is
+            pass
     
     # Ensure directory exists
     file_path.parent.mkdir(parents=True, exist_ok=True)

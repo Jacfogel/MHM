@@ -219,3 +219,9 @@ def temp_coverage_dir():
     with tempfile.TemporaryDirectory() as tmpdir:
         yield Path(tmpdir)
 
+
+@pytest.fixture
+def test_config_path():
+    """Return path to test-specific config that doesn't exclude tests/fixtures/."""
+    config_path = Path(__file__).parent / "test_config.json"
+    return str(config_path.resolve())

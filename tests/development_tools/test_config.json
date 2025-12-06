@@ -1,0 +1,66 @@
+{
+  "exclusions": {
+    "universal_exclusions": [
+      "__pycache__",
+      "*.pyc",
+      "*.pyo",
+      "*.pyi",
+      "venv",
+      ".venv",
+      "env",
+      ".env",
+      "node_modules",
+      ".git",
+      ".gitignore",
+      ".gitattributes",
+      ".vscode",
+      ".idea",
+      "*.swp",
+      "*.swo",
+      "*~",
+      ".cursorignore",
+      ".DS_Store",
+      "Thumbs.db",
+      "desktop.ini",
+      "archive",
+      "backup*",
+      "backups",
+      "scripts",
+      "scripts/*",
+      "scripts/**/*",
+      ".pytest_cache",
+      "tests/__pycache__",
+      "tests/.pytest_cache",
+      "tests/logs/",
+      "tests/data/",
+      "tests/temp/",
+      "*/generated/*",
+      "*/ui/generated/*",
+      "*/pyscript*",
+      "*/shibokensupport/*",
+      "*/signature_bootstrap.py",
+      "run_mhm.py",
+      "*/run_mhm.py",
+      "run_tests.py",
+      "*/run_tests.py"
+    ]
+  },
+  "paths": {
+    "project_root": ".",
+    "scan_directories": [
+      "core",
+      "communication",
+      "ui",
+      "user",
+      "tasks",
+      "tests",
+      "ai"
+    ],
+    "docs_dir": "development_docs",
+    "logs_dir": "logs",
+    "data_dir": "data",
+    "ai_docs_dir": "ai_development_docs",
+    "development_docs_dir": "development_docs"
+  }
+}
+

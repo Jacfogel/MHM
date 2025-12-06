@@ -314,13 +314,17 @@ class ConfigValidator:
         # Tool analysis
         logger.info(f"TOOL ANALYSIS:")
         for tool_name, analysis in results['tools_analysis'].items():
-            status = "OK" if analysis['imports_config'] and not analysis['issues'] else "WARN" if analysis['issues'] else "FAIL"
-            if status == "OK":
+            # Status logic: OK if imports config and no issues, WARN if has issues or doesn't import config (recommendation), FAIL only for critical issues
+            if analysis['imports_config'] and not analysis['issues']:
+                status = "OK"
                 logger.info(f"   {status} {tool_name}")
-            elif status == "WARN":
+            elif analysis['issues']:
+                status = "WARN"
                 logger.warning(f"   {status} {tool_name}")
             else:
-                logger.error(f"   {status} {tool_name}")
+                # Doesn't import config but no issues - this is a recommendation, not an error
+                status = "WARN"
+                logger.warning(f"   {status} {tool_name} (recommendation: import config module)")
             
             if analysis['config_functions_used']:
                 logger.info(f"      Uses: {', '.join(analysis['config_functions_used'])}")

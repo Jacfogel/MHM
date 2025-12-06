@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_unused_imports - Development Tools",
-  "last_generated": "2025-12-06 04:32:41",
-  "timestamp": "2025-12-06T04:32:41.227921",
+  "last_generated": "2025-12-06 08:15:55",
+  "timestamp": "2025-12-06T08:15:55.090085",
   "tool_name": "analyze_unused_imports",
   "domain": "imports",
   "note": "This file is auto-generated. Do not edit manually.",
@@ -5580,7 +5580,7 @@
       "results": []
     },
     "tests/development_tools/conftest.py": {
-      "mtime": 1764870523.0651467,
+      "mtime": 1765020317.616971,
       "results": []
     },
     "tests/development_tools/test_ai_tools_runner.py": {
@@ -6278,7 +6278,7 @@
       "results": []
     },
     "development_tools/shared/operations.py": {
-      "mtime": 1765016598.553482,
+      "mtime": 1765028998.261333,
       "results": [
         {
           "type": "warning",
@@ -6486,7 +6486,7 @@
       ]
     },
     "development_tools/shared/file_rotation.py": {
-      "mtime": 1764852375.9948657,
+      "mtime": 1765028381.689032,
       "results": []
     },
     "development_tools/shared/tool_guide.py": {
@@ -6498,7 +6498,7 @@
       "results": []
     },
     "development_tools/config/analyze_config.py": {
-      "mtime": 1765014812.0677695,
+      "mtime": 1765024637.024601,
       "results": []
     },
     "development_tools/docs/analyze_documentation_sync.py": {
@@ -6506,7 +6506,7 @@
       "results": []
     },
     "development_tools/docs/fix_version_sync.py": {
-      "mtime": 1765011597.7800355,
+      "mtime": 1765018408.6569817,
       "results": []
     },
     "development_tools/error_handling/analyze_error_handling.py": {
@@ -6904,7 +6904,7 @@
       ]
     },
     "development_tools/shared/output_storage.py": {
-      "mtime": 1764816606.0274749,
+      "mtime": 1765024998.3740993,
       "results": [
         {
           "type": "warning",
@@ -7184,6 +7184,371 @@
           "path": "development_tools\\comprehensive_file_analysis.py",
           "symbol": "unused-import",
           "message": "Unused Optional imported from typing",
+          "message-id": "W0611"
+        }
+      ]
+    },
+    "tests/development_tools/test_analysis_tool_validation.py": {
+      "mtime": 1765023111.947265,
+      "results": [
+        {
+          "type": "warning",
+          "module": "development_tools.test_analysis_tool_validation",
+          "obj": "",
+          "line": 12,
+          "column": 0,
+          "endLine": 12,
+          "endColumn": 111,
+          "path": "tests\\development_tools\\test_analysis_tool_validation.py",
+          "symbol": "unused-import",
+          "message": "Unused demo_project_root imported from tests.development_tools.conftest",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.test_analysis_tool_validation",
+          "obj": "",
+          "line": 12,
+          "column": 0,
+          "endLine": 12,
+          "endColumn": 111,
+          "path": "tests\\development_tools\\test_analysis_tool_validation.py",
+          "symbol": "unused-import",
+          "message": "Unused test_config_path imported from tests.development_tools.conftest",
+          "message-id": "W0611"
+        }
+      ]
+    },
+    "tests/development_tools/test_analyze_ai_work.py": {
+      "mtime": 1765020177.619421,
+      "results": [
+        {
+          "type": "warning",
+          "module": "development_tools.test_analyze_ai_work",
+          "obj": "",
+          "line": 9,
+          "column": 0,
+          "endLine": 9,
+          "endColumn": 15,
+          "path": "tests\\development_tools\\test_analyze_ai_work.py",
+          "symbol": "unused-import",
+          "message": "Unused import tempfile",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.test_analyze_ai_work",
+          "obj": "",
+          "line": 10,
+          "column": 0,
+          "endLine": 10,
+          "endColumn": 24,
+          "path": "tests\\development_tools\\test_analyze_ai_work.py",
+          "symbol": "unused-import",
+          "message": "Unused Path imported from pathlib",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.test_analyze_ai_work",
+          "obj": "",
+          "line": 11,
+          "column": 0,
+          "endLine": 11,
+          "endColumn": 42,
+          "path": "tests\\development_tools\\test_analyze_ai_work.py",
+          "symbol": "unused-import",
+          "message": "Unused patch imported from unittest.mock",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.test_analyze_ai_work",
+          "obj": "",
+          "line": 11,
+          "column": 0,
+          "endLine": 11,
+          "endColumn": 42,
+          "path": "tests\\development_tools\\test_analyze_ai_work.py",
+          "symbol": "unused-import",
+          "message": "Unused MagicMock imported from unittest.mock",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.test_analyze_ai_work",
+          "obj": "",
+          "line": 13,
+          "column": 0,
+          "endLine": 13,
+          "endColumn": 93,
+          "path": "tests\\development_tools\\test_analyze_ai_work.py",
+          "symbol": "unused-import",
+          "message": "Unused demo_project_root imported from tests.development_tools.conftest",
+          "message-id": "W0611"
+        }
+      ]
+    },
+    "tests/development_tools/test_analyze_documentation.py": {
+      "mtime": 1765021575.4406302,
+      "results": [
+        {
+          "type": "warning",
+          "module": "development_tools.test_analyze_documentation",
+          "obj": "",
+          "line": 9,
+          "column": 0,
+          "endLine": 9,
+          "endColumn": 15,
+          "path": "tests\\development_tools\\test_analyze_documentation.py",
+          "symbol": "unused-import",
+          "message": "Unused import tempfile",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.test_analyze_documentation",
+          "obj": "",
+          "line": 13,
+          "column": 0,
+          "endLine": 13,
+          "endColumn": 93,
+          "path": "tests\\development_tools\\test_analyze_documentation.py",
+          "symbol": "unused-import",
+          "message": "Unused demo_project_root imported from tests.development_tools.conftest",
+          "message-id": "W0611"
+        }
+      ]
+    },
+    "tests/development_tools/test_analyze_missing_addresses.py": {
+      "mtime": 1765020339.5568702,
+      "results": [
+        {
+          "type": "warning",
+          "module": "development_tools.test_analyze_missing_addresses",
+          "obj": "",
+          "line": 8,
+          "column": 0,
+          "endLine": 8,
+          "endColumn": 15,
+          "path": "tests\\development_tools\\test_analyze_missing_addresses.py",
+          "symbol": "unused-import",
+          "message": "Unused import tempfile",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.test_analyze_missing_addresses",
+          "obj": "",
+          "line": 9,
+          "column": 0,
+          "endLine": 9,
+          "endColumn": 24,
+          "path": "tests\\development_tools\\test_analyze_missing_addresses.py",
+          "symbol": "unused-import",
+          "message": "Unused Path imported from pathlib",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.test_analyze_missing_addresses",
+          "obj": "",
+          "line": 11,
+          "column": 0,
+          "endLine": 11,
+          "endColumn": 111,
+          "path": "tests\\development_tools\\test_analyze_missing_addresses.py",
+          "symbol": "unused-import",
+          "message": "Unused demo_project_root imported from tests.development_tools.conftest",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.test_analyze_missing_addresses",
+          "obj": "",
+          "line": 11,
+          "column": 0,
+          "endLine": 11,
+          "endColumn": 111,
+          "path": "tests\\development_tools\\test_analyze_missing_addresses.py",
+          "symbol": "unused-import",
+          "message": "Unused test_config_path imported from tests.development_tools.conftest",
+          "message-id": "W0611"
+        }
+      ]
+    },
+    "tests/development_tools/test_audit_status_updates.py": {
+      "mtime": 1765021575.4406302,
+      "results": [
+        {
+          "type": "warning",
+          "module": "development_tools.test_audit_status_updates",
+          "obj": "",
+          "line": 12,
+          "column": 0,
+          "endLine": 12,
+          "endColumn": 48,
+          "path": "tests\\development_tools\\test_audit_status_updates.py",
+          "symbol": "unused-import",
+          "message": "Unused call imported from unittest.mock",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.test_audit_status_updates",
+          "obj": "",
+          "line": 14,
+          "column": 0,
+          "endLine": 14,
+          "endColumn": 93,
+          "path": "tests\\development_tools\\test_audit_status_updates.py",
+          "symbol": "unused-import",
+          "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
+          "message-id": "W0611"
+        }
+      ]
+    },
+    "tests/development_tools/test_output_storage_archiving.py": {
+      "mtime": 1765020804.141964,
+      "results": [
+        {
+          "type": "warning",
+          "module": "development_tools.test_output_storage_archiving",
+          "obj": "",
+          "line": 8,
+          "column": 0,
+          "endLine": 8,
+          "endColumn": 11,
+          "path": "tests\\development_tools\\test_output_storage_archiving.py",
+          "symbol": "unused-import",
+          "message": "Unused import json",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.test_output_storage_archiving",
+          "obj": "",
+          "line": 10,
+          "column": 0,
+          "endLine": 10,
+          "endColumn": 24,
+          "path": "tests\\development_tools\\test_output_storage_archiving.py",
+          "symbol": "unused-import",
+          "message": "Unused Path imported from pathlib",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.test_output_storage_archiving",
+          "obj": "",
+          "line": 11,
+          "column": 0,
+          "endLine": 11,
+          "endColumn": 31,
+          "path": "tests\\development_tools\\test_output_storage_archiving.py",
+          "symbol": "unused-import",
+          "message": "Unused patch imported from unittest.mock",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.test_output_storage_archiving",
+          "obj": "",
+          "line": 13,
+          "column": 0,
+          "endLine": 13,
+          "endColumn": 93,
+          "path": "tests\\development_tools\\test_output_storage_archiving.py",
+          "symbol": "unused-import",
+          "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
+          "message-id": "W0611"
+        }
+      ]
+    },
+    "tests/development_tools/test_path_drift_integration.py": {
+      "mtime": 1765021575.4406302,
+      "results": [
+        {
+          "type": "warning",
+          "module": "development_tools.test_path_drift_integration",
+          "obj": "",
+          "line": 9,
+          "column": 0,
+          "endLine": 9,
+          "endColumn": 15,
+          "path": "tests\\development_tools\\test_path_drift_integration.py",
+          "symbol": "unused-import",
+          "message": "Unused import tempfile",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.test_path_drift_integration",
+          "obj": "",
+          "line": 10,
+          "column": 0,
+          "endLine": 10,
+          "endColumn": 24,
+          "path": "tests\\development_tools\\test_path_drift_integration.py",
+          "symbol": "unused-import",
+          "message": "Unused Path imported from pathlib",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.test_path_drift_integration",
+          "obj": "",
+          "line": 13,
+          "column": 0,
+          "endLine": 13,
+          "endColumn": 93,
+          "path": "tests\\development_tools\\test_path_drift_integration.py",
+          "symbol": "unused-import",
+          "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
+          "message-id": "W0611"
+        }
+      ]
+    },
+    "tests/development_tools/test_status_file_timing.py": {
+      "mtime": 1765027222.6057854,
+      "results": [
+        {
+          "type": "warning",
+          "module": "development_tools.test_status_file_timing",
+          "obj": "",
+          "line": 9,
+          "column": 0,
+          "endLine": 9,
+          "endColumn": 9,
+          "path": "tests\\development_tools\\test_status_file_timing.py",
+          "symbol": "unused-import",
+          "message": "Unused import os",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.test_status_file_timing",
+          "obj": "",
+          "line": 13,
+          "column": 0,
+          "endLine": 13,
+          "endColumn": 42,
+          "path": "tests\\development_tools\\test_status_file_timing.py",
+          "symbol": "unused-import",
+          "message": "Unused MagicMock imported from unittest.mock",
+          "message-id": "W0611"
+        },
+        {
+          "type": "warning",
+          "module": "development_tools.test_status_file_timing",
+          "obj": "",
+          "line": 21,
+          "column": 0,
+          "endLine": 21,
+          "endColumn": 93,
+          "path": "tests\\development_tools\\test_status_file_timing.py",
+          "symbol": "unused-import",
+          "message": "Unused demo_project_root imported from tests.development_tools.conftest",
           "message-id": "W0611"
         }
       ]

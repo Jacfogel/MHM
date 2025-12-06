@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_path_drift - Development Tools",
-  "last_generated": "2025-12-06 04:28:14",
-  "timestamp": "2025-12-06T04:28:14.994207",
+  "last_generated": "2025-12-06 08:11:46",
+  "timestamp": "2025-12-06T08:11:46.614210",
   "tool_name": "analyze_path_drift",
   "domain": "docs",
   "source": "python development_tools/docs/analyze_path_drift.py",
@@ -16,7 +16,6 @@
       "ai_development_docs\\AI_ERROR_HANDLING_GUIDE.md": 2,
       "communication\\COMMUNICATION_GUIDE.md": 3,
       "core\\ERROR_HANDLING_GUIDE.md": 1,
-      "development_docs\\TEST_ANALYSIS.md": 1,
       "development_docs\\UNUSED_IMPORTS_REPORT.md": 1,
       "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md": 6,
       "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md": 5,
@@ -25,9 +24,11 @@
       "tests\\fixtures\\development_tools_demo\\docs\\bad_numbering_doc.md": 1,
       "tests\\fixtures\\development_tools_demo\\docs\\mismatched_ai_doc.md": 2,
       "tests\\fixtures\\development_tools_demo\\docs\\mismatched_human_doc.md": 2,
-      "tests\\fixtures\\development_tools_demo\\docs\\misnumbered_doc.md": 1
+      "tests\\fixtures\\development_tools_demo\\docs\\misnumbered_doc.md": 1,
+      "tests\\fixtures\\development_tools_demo\\docs\\path_drift_test_doc.md": 4,
+      "tests\\fixtures\\development_tools_demo\\docs\\analysis_validation\\path_drift_issues.md": 4
     },
-    "total_issues": 46,
+    "total_issues": 53,
     "detailed_issues": {
       "ARCHITECTURE.md": [
         "Missing file: something_dialog_pyqt.py",
@@ -62,9 +63,6 @@
       ],
       "core\\ERROR_HANDLING_GUIDE.md": [
         "Missing file: analyze_error_handling.py"
-      ],
-      "development_docs\\TEST_ANALYSIS.md": [
-        "Missing file: nonexistent_file.md"
       ],
       "development_docs\\UNUSED_IMPORTS_REPORT.md": [
         "Potentially outdated module: annotations"
@@ -110,6 +108,18 @@
       ],
       "tests\\fixtures\\development_tools_demo\\docs\\misnumbered_doc.md": [
         "Missing file: docs/misnumbered_doc.md"
+      ],
+      "tests\\fixtures\\development_tools_demo\\docs\\path_drift_test_doc.md": [
+        "Missing file: core/missing_module.py",
+        "Missing file: tests/missing_test.py",
+        "Missing file: demo_module.py",
+        "Missing file: demo_module2.py"
+      ],
+      "tests\\fixtures\\development_tools_demo\\docs\\analysis_validation\\path_drift_issues.md": [
+        "Missing file: core/missing_module.py",
+        "Missing file: tests/missing_test.py",
+        "Missing file: demo_module.py",
+        "Missing file: demo_module2.py"
       ]
     }
   }

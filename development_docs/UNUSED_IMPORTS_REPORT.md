@@ -2,25 +2,25 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-06 04:32:41
+> **Last Generated**: 2025-12-06 08:15:55
 > **Source**: `python development_tools/run_development_tools.py unused-imports` - Unused Imports Detection Tool
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 350
-- **Files with Unused Imports**: 128
-- **Total Unused Imports**: 378
+- **Total Files Scanned**: 358
+- **Files with Unused Imports**: 136
+- **Total Unused Imports**: 403
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 101 imports
+- **Obvious Unused**: 112 imports
 - **Type Hints Only**: 2 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 7 imports
 - **Star Imports**: 0 imports
-- **Test Mocking**: 127 imports
+- **Test Mocking**: 131 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 84 imports
+- **Test Infrastructure**: 94 imports
 - **Production Test Mocking**: 3 imports
 - **Ui Imports**: 0 imports
 
@@ -320,6 +320,47 @@
 - **Line 13**: Unused WELCOME_TRACKING_FILE imported from communication.core.welcome_manager
   - Symbol: `unused-import`
 
+### `tests/development_tools/test_analysis_tool_validation.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 12**: Unused demo_project_root imported from tests.development_tools.conftest
+  - Symbol: `unused-import`
+- **Line 12**: Unused test_config_path imported from tests.development_tools.conftest
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_analyze_ai_work.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 13**: Unused demo_project_root imported from tests.development_tools.conftest
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_analyze_documentation.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 13**: Unused demo_project_root imported from tests.development_tools.conftest
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_analyze_missing_addresses.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 11**: Unused demo_project_root imported from tests.development_tools.conftest
+  - Symbol: `unused-import`
+- **Line 11**: Unused test_config_path imported from tests.development_tools.conftest
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_audit_status_updates.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 12**: Unused call imported from unittest.mock
+  - Symbol: `unused-import`
+- **Line 14**: Unused temp_project_copy imported from tests.development_tools.conftest
+  - Symbol: `unused-import`
+
 ### `tests/development_tools/test_documentation_sync_checker.py`
 
 **Count**: 2 unused import(s)
@@ -357,6 +398,13 @@
 - **Line 8**: Unused import sys
   - Symbol: `unused-import`
 
+### `tests/development_tools/test_output_storage_archiving.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 13**: Unused temp_project_copy imported from tests.development_tools.conftest
+  - Symbol: `unused-import`
+
 ### `tests/development_tools/test_path_drift_detection.py`
 
 **Count**: 4 unused import(s)
@@ -370,11 +418,25 @@
 - **Line 12**: Unused Path imported from pathlib
   - Symbol: `unused-import`
 
+### `tests/development_tools/test_path_drift_integration.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 13**: Unused temp_project_copy imported from tests.development_tools.conftest
+  - Symbol: `unused-import`
+
 ### `tests/development_tools/test_regenerate_coverage_metrics.py`
 
 **Count**: 1 unused import(s)
 
 - **Line 8**: Unused import sys
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_status_file_timing.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 21**: Unused demo_project_root imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
 ### `tests/integration/test_task_cleanup_real.py`
@@ -733,11 +795,34 @@
 - **Line 8**: Unused Mock imported from unittest.mock
   - Symbol: `unused-import`
 
+### `tests/development_tools/test_analyze_ai_work.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 11**: Unused patch imported from unittest.mock
+  - Symbol: `unused-import`
+- **Line 11**: Unused MagicMock imported from unittest.mock
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_output_storage_archiving.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 11**: Unused patch imported from unittest.mock
+  - Symbol: `unused-import`
+
 ### `tests/development_tools/test_regenerate_coverage_metrics.py`
 
 **Count**: 1 unused import(s)
 
 - **Line 11**: Unused MagicMock imported from unittest.mock
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_status_file_timing.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 13**: Unused MagicMock imported from unittest.mock
   - Symbol: `unused-import`
 
 ### `tests/integration/test_task_cleanup_real_bug_verification.py`
@@ -1522,6 +1607,31 @@
 - **Line 1**: Unused import pytest
   - Symbol: `unused-import`
 
+### `tests/development_tools/test_analyze_ai_work.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 9**: Unused import tempfile
+  - Symbol: `unused-import`
+- **Line 10**: Unused Path imported from pathlib
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_analyze_documentation.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 9**: Unused import tempfile
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_analyze_missing_addresses.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 8**: Unused import tempfile
+  - Symbol: `unused-import`
+- **Line 9**: Unused Path imported from pathlib
+  - Symbol: `unused-import`
+
 ### `tests/development_tools/test_documentation_sync_checker.py`
 
 **Count**: 1 unused import(s)
@@ -1557,11 +1667,36 @@
 - **Line 9**: Unused Path imported from pathlib
   - Symbol: `unused-import`
 
+### `tests/development_tools/test_output_storage_archiving.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 8**: Unused import json
+  - Symbol: `unused-import`
+- **Line 10**: Unused Path imported from pathlib
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_path_drift_integration.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 9**: Unused import tempfile
+  - Symbol: `unused-import`
+- **Line 10**: Unused Path imported from pathlib
+  - Symbol: `unused-import`
+
 ### `tests/development_tools/test_regenerate_coverage_metrics.py`
 
 **Count**: 1 unused import(s)
 
 - **Line 10**: Unused Path imported from pathlib
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_status_file_timing.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 9**: Unused import os
   - Symbol: `unused-import`
 
 ### `tests/integration/test_account_management.py`

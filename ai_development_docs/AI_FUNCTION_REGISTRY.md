@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-03 03:45:46
+> **Last Generated**: 2025-12-06 08:00:59
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -222,8 +222,8 @@ Core System Decision Tree:
 ### **Complexity Metrics**
 Most complex functions (may need refactoring):
 1. [OK] `ai/chatbot.py::_create_comprehensive_context_prompt()` - Complexity: 2192
-2. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2115
-3. [OK] `core/user_data_handlers.py::get_user_data()` - Complexity: 2067
+2. [OK] `core/user_data_handlers.py::get_user_data()` - Complexity: 2130
+3. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2115
 4. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 1976
 5. [OK] `run_tests.py::print_combined_summary()` - Complexity: 1338
 
@@ -243,4 +243,4 @@ Most complex functions (may need refactoring):
 - `tasks/` - Task management system (2 files, 21 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: 2025-12-03 03:45:46
+> **Last Updated**: 2025-12-06 08:00:59

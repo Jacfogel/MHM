@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-03 04:04:57
+> **Last Generated**: 2025-12-06 08:01:04
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -51,9 +51,10 @@ C:.
 |   |       
 |   +---plans
 |   |       decompose-multi-responsibility-tools-2e05ed38.plan.md
-|   |       phase-7-naming-and-directory-reorganization-0001ba11.plan.md
-|   |       phase-7-renaming-complete-deployment-aeb0a7e9.plan.md
+|   |       fix_report_data_flow_88cf33c9.plan.md
 |   |       phase-9-status-reports-and-metrics-standardization-99cf574c.plan.md
+|   |       standardize-audit-commands-and-tool-output-ac7c7c62.plan.md
+|   |       verify_audit_status_updates_and_test_coverage_d8c87cd4.plan.md
 |   |       
 |   \---rules
 |           ai-tools.mdc
@@ -165,15 +166,14 @@ C:.
 |       LEGACY_REFERENCE_REPORT.md
 |       MODULE_DEPENDENCIES_DETAIL.md
 |       PLANS.md
-|       TEST_COVERAGE_EXPANSION_PLAN.md
+|       TEST_COVERAGE_REPORT.md
 |       UNUSED_IMPORTS_REPORT.md
 |       
 +---development_tools
 |   |   AI_DEVELOPMENT_TOOLS_GUIDE.md
-|   |   AI_DEV_TOOLS_IMPROVEMENT_PLAN.md
+|   |   AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md
 |   |   AI_PRIORITIES.md
 |   |   AI_STATUS.md
-|   |   COMMAND_TEST_RESULTS.md
 |   |   consolidated_report.txt
 |   |   DEVELOPMENT_TOOLS_GUIDE.md
 |   |   run_development_tools.py
@@ -181,19 +181,14 @@ C:.
 |   |   __init__.py
 |   |   
 |   +---ai_work
-|   |       analyze_ai_work.py
-|   |       __init__.py
-|   |       
-|   +---config
-|   |   |   analyze_config.py
-|   |   |   analyze_config_results.json
-|   |   |   config.py
-|   |   |   development_tools_config.json
-|   |   |   development_tools_config.json.example
+|   |   |   analyze_ai_work.py
 |   |   |   __init__.py
 |   |   |   
-|   |   \---__pycache__
-    (Python cache files)
+|   |   +---jsons
+|   |   |   |   analyze_ai_work_results.json
+|   |   |   |   
+|   |   |   \---archive
+    (archived files)
 +---htmlcov
     (HTML coverage reports)
 +---logs
@@ -230,11 +225,13 @@ C:.
 |           
 +---scripts
 |   |   add_category_markers.py
+|   |   analyze_json_files.py
 |   |   analyze_non_standard_tests.md
 |   |   analyze_test_markers.py
 |   |   cleanup_project.py
 |   |   cleanup_unused_imports.py
 |   |   cleanup_windows_tasks.py
+|   |   comprehensive_file_analysis.py
 |   |   demo_dynamic_checkin.py
 |   |   find_tests_missing_category_markers.py
 |   |   fix_non_ascii_chars.py

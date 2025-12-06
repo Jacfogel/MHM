@@ -1,13 +1,13 @@
 {
   "generated_by": "quick_status - Development Tools",
-  "last_generated": "2025-12-06 04:28:11",
-  "timestamp": "2025-12-06T04:28:11.464315",
+  "last_generated": "2025-12-06 08:11:43",
+  "timestamp": "2025-12-06T08:11:43.314417",
   "tool_name": "quick_status",
   "domain": "reports",
   "source": "python development_tools/reports/quick_status.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
-    "timestamp": "2025-12-06T04:28:11.254219",
+    "timestamp": "2025-12-06T08:11:43.138788",
     "system_health": {
       "core_files": {
         "run_mhm.py": "OK",
@@ -27,7 +27,7 @@
     },
     "documentation_status": {
       "coverage": "Unknown",
-      "recent_audit": "2025-12-06T04:23:58.710384",
+      "recent_audit": "2025-12-06T07:56:32.432328",
       "key_files": {
         "README.md": "OK",
         "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -40,11 +40,10 @@
     "critical_issues": [],
     "action_items": [],
     "recent_activity": {
-      "last_audit": "2025-12-06T04:23:58.710384",
+      "last_audit": "2025-12-06T07:56:32.432328",
       "recent_changes": [
         "coverage.json",
         "core/user_data_handlers.py",
-        "ai_development_docs/AI_TESTING_GUIDE.md",
         "ai_development_docs/AI_CHANGELOG.md",
         "TODO.md"
       ]

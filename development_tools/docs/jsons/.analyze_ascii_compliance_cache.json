@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_ascii_compliance - Development Tools",
-  "last_generated": "2025-12-06 04:33:23",
-  "timestamp": "2025-12-06T04:33:23.026843",
+  "last_generated": "2025-12-06 08:17:36",
+  "timestamp": "2025-12-06T08:17:36.451321",
   "tool_name": "analyze_ascii_compliance",
   "domain": "docs",
   "note": "This file is auto-generated. Do not edit manually.",
@@ -27,7 +27,7 @@
       "results": []
     },
     "TODO.md": {
-      "mtime": 1764979737.055818,
+      "mtime": 1765030284.1340258,
       "results": []
     },
     "PROJECT_VISION.md": {
@@ -35,24 +35,14 @@
       "results": []
     },
     "development_docs/CHANGELOG_DETAIL.md": {
-      "mtime": 1764935458.208457,
+      "mtime": 1765030316.9478393,
       "results": [
-        "Non-ASCII character '\u2192' (U+2192): 5 instance(s) found (auto-fixable: '->')"
+        "Non-ASCII character '\u2192' (U+2192): 7 instance(s) found (auto-fixable: '->')"
       ]
     },
     "development_docs/PLANS.md": {
       "mtime": 1764985737.3786047,
       "results": []
-    },
-    "development_docs/TEST_ANALYSIS.md": {
-      "mtime": 1764986414.860307,
-      "results": [
-        "Non-ASCII character '\u00e9' (U+00E9): 3 instance(s) found (manual review needed)",
-        "Non-ASCII character '\u00ef' (U+00EF): 1 instance(s) found (manual review needed)",
-        "Non-ASCII character '\u65e5' (U+65E5): 1 instance(s) found (manual review needed)",
-        "Non-ASCII character '\u672c' (U+672C): 1 instance(s) found (manual review needed)",
-        "Non-ASCII character '\u8a9e' (U+8A9E): 1 instance(s) found (manual review needed)"
-      ]
     },
     "ai_development_docs/AI_SESSION_STARTER.md": {
       "mtime": 1764671172.8155508,
@@ -71,8 +61,10 @@
       "results": []
     },
     "ai_development_docs/AI_CHANGELOG.md": {
-      "mtime": 1764935458.1923773,
-      "results": []
+      "mtime": 1765030322.7136664,
+      "results": [
+        "Non-ASCII character '\u2192' (U+2192): 2 instance(s) found (auto-fixable: '->')"
+      ]
     },
     "ai_development_docs/AI_REFERENCE.md": {
       "mtime": 1764551842.3326516,

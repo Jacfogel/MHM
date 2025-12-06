@@ -1,0 +1,14 @@
+{
+  "generated_by": "analyze_unconverted_links - Development Tools",
+  "last_generated": "2025-12-06 08:17:22",
+  "timestamp": "2025-12-06T08:17:22.373278",
+  "tool_name": "analyze_unconverted_links",
+  "domain": "docs",
+  "note": "This file is auto-generated. Do not edit manually.",
+  "data": {
+    "README.md": {
+      "mtime": 1764199889.5785062,
+      "results": []
+    }
+  }
+}

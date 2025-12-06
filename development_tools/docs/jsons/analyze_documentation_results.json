@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_documentation - Development Tools",
-  "last_generated": "2025-12-06 04:28:24",
-  "timestamp": "2025-12-06T04:28:24.160364",
+  "last_generated": "2025-12-06 08:11:55",
+  "timestamp": "2025-12-06T08:11:55.176647",
   "tool_name": "analyze_documentation",
   "domain": "docs",
   "source": "python development_tools/docs/analyze_documentation.py",
@@ -16,7 +16,6 @@
           "DEVELOPMENT_WORKFLOW.md",
           "development_docs/CHANGELOG_DETAIL.md",
           "development_docs/PLANS.md",
-          "development_docs/TEST_ANALYSIS.md",
           "ai_development_docs/AI_SESSION_STARTER.md",
           "ai_development_docs/AI_ARCHITECTURE.md",
           "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
@@ -42,7 +41,7 @@
           "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
         ],
         "priority": "medium",
-        "similarity_score": 0.18140827666247297,
+        "similarity_score": 0.19196195941595065,
         "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
       },
       {
@@ -81,7 +80,6 @@
       "core/ERROR_HANDLING_GUIDE.md",
       "development_docs/CHANGELOG_DETAIL.md",
       "development_docs/PLANS.md",
-      "development_docs/TEST_ANALYSIS.md",
       "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
       "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
       "logs/LOGGING_GUIDE.md",
@@ -244,20 +242,20 @@
         ]
       },
       "ai_development_docs/AI_CHANGELOG.md": {
-        "content_length": 126228,
+        "content_length": 127710,
         "header_info": "# AI Changelog - Brief Summary for AI Context\n\n\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent ch",
-        "section_count": 151,
+        "section_count": 153,
         "sections": [
           "Introduction",
           "Overview",
           "How to Update This File",
           "YYYY-MM-DD - Brief Title **COMPLETED**",
           "Recent Changes (Most Recent First)",
+          "2025-12-06 - Verification Plan Implementation and Mid-Audit Status Write Investigation **IN PROGRESS**",
+          "2025-12-06 - Fix Report Data Flow (Priority 1.1) **COMPLETED**",
           "2025-12-05 - Development Tools Investigation, Fixes, and User Data Handler Improvements **COMPLETED**",
           "2025-12-04 - UI Signal Handler Fixes and Test Infrastructure Improvements **COMPLETED**",
-          "2025-12-04 - Standardized Audit Commands and Tool Output Storage **IN PROGRESS**",
-          "2025-12-03 - Phase 9 Status Reports Improvements and Tool Integration **COMPLETED**",
-          "2025-12-02 - Implemented Shared Mtime-Based Caching for Development Tools **COMPLETED**"
+          "2025-12-04 - Standardized Audit Commands and Tool Output Storage **IN PROGRESS**"
         ]
       },
       "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -443,9 +441,9 @@
         ]
       },
       "development_docs/CHANGELOG_DETAIL.md": {
-        "content_length": 873645,
+        "content_length": 885468,
         "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of ",
-        "section_count": 304,
+        "section_count": 306,
         "sections": [
           "Introduction",
           "Overview",
@@ -453,10 +451,10 @@
           "How to Add Changes",
           "YYYY-MM-DD - Brief Title",
           "Recent Changes (Most Recent First)",
+          "2025-12-06 - Verification Plan Implementation and Mid-Audit Status Write Investigation **IN PROGRESS**",
+          "2025-12-06 - Fix Report Data Flow (Priority 1.1) **COMPLETED**",
           "2025-12-05 - Development Tools Investigation, Fixes, and User Data Handler Improvements **COMPLETED**",
-          "2025-12-04 - UI Signal Handler Fixes and Test Infrastructure Improvements **COMPLETED**",
-          "2025-12-04 - Standardized Audit Commands and Tool Output Storage **IN PROGRESS**",
-          "2025-12-03 - Phase 9 Status Reports Improvements and Tool Integration **COMPLETED**"
+          "2025-12-04 - UI Signal Handler Fixes and Test Infrastructure Improvements **COMPLETED**"
         ]
       },
       "development_docs/PLANS.md": {
@@ -474,20 +472,6 @@
           "**Mood-Aware Support Calibration** **PLANNING**",
           "**2025-09-16 - High Complexity Function Refactoring - Phase 2** **IN PROGRESS**",
           "**Message Deduplication Advanced Features**"
-        ]
-      },
-      "development_docs/TEST_ANALYSIS.md": {
-        "content_length": 864,
-        "header_info": "# Test Analysis File\n\nThis is a test file to verify analysis tools detect issues properly.\n\n## Unnumbered Heading\n\nThis heading should be numbered.\n\n### Another Unnumbered Heading\n\nThis is a subheadin",
-        "section_count": 7,
-        "sections": [
-          "Introduction",
-          "Unnumbered Heading",
-          "Another Unnumbered Heading",
-          "Missing Address",
-          "Non-ASCII Characters",
-          "Unconverted Links",
-          "Properly Formatted Section"
         ]
       },
       "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {

@@ -1,0 +1,66 @@
+{
+  "generated_by": "system_signals - Development Tools",
+  "last_generated": "2025-12-06 08:17:28",
+  "timestamp": "2025-12-06T08:17:28.783539",
+  "tool_name": "system_signals",
+  "domain": "reports",
+  "source": "python development_tools/reports/system_signals.py",
+  "note": "This file is auto-generated. Do not edit manually.",
+  "data": {
+    "timestamp": "2025-12-06T08:17:24.037063",
+    "system_health": {
+      "overall_status": "OK",
+      "core_files": {
+        "requirements.txt": "OK",
+        "pyproject.toml": "OK"
+      },
+      "key_directories": {
+        ".": "OK"
+      },
+      "last_audit": "2025-12-06T08:16:15.758703",
+      "warnings": [],
+      "errors": []
+    },
+    "recent_activity": {
+      "recent_changes": [
+        ".cursor/plans/fix_report_data_flow_88cf33c9.plan.md",
+        ".cursor/plans/standardize-audit-commands-and-tool-output-ac7c7c62.plan.md",
+        ".cursor/plans/verify_audit_status_updates_and_test_coverage_d8c87cd4.plan.md",
+        "TODO.md",
+        "ai_development_docs/AI_CHANGELOG.md",
+        "ai_development_docs/AI_FUNCTION_REGISTRY.md",
+        "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
+        "coverage.json",
+        "development_docs/CHANGELOG_DETAIL.md",
+        "development_docs/DIRECTORY_TREE.md",
+        "development_docs/FUNCTION_REGISTRY_DETAIL.md",
+        "development_docs/LEGACY_REFERENCE_REPORT.md",
+        "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
+        "development_docs/TEST_COVERAGE_REPORT.md",
+        "development_docs/UNUSED_IMPORTS_REPORT.md"
+      ],
+      "git_status": "Modified",
+      "last_commit": null,
+      "uncommitted_changes": true
+    },
+    "critical_alerts": [],
+    "performance_indicators": {
+      "log_file_sizes": {
+        "ai.log": "0.0MB",
+        "ai_dev_tools.log": "0.4MB",
+        "app.log": "0.3MB",
+        "communication_manager.log": "0.1MB",
+        "discord.log": "0.0MB",
+        "email.log": "0.0MB",
+        "errors.log": "0.0MB",
+        "file_ops.log": "0.0MB",
+        "message.log": "0.0MB",
+        "scheduler.log": "0.0MB",
+        "ui.log": "0.0MB",
+        "user_activity.log": "0.0MB"
+      },
+      "cache_status": "Unknown",
+      "memory_usage": "Unknown"
+    }
+  }
+}

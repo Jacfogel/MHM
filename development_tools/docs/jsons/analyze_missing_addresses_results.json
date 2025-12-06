@@ -1,16 +1,14 @@
 {
   "generated_by": "analyze_missing_addresses - Development Tools",
-  "last_generated": "2025-12-06 04:28:18",
-  "timestamp": "2025-12-06T04:28:18.534169",
+  "last_generated": "2025-12-06 08:11:49",
+  "timestamp": "2025-12-06T08:11:49.846365",
   "tool_name": "analyze_missing_addresses",
   "domain": "docs",
   "source": "python development_tools/docs/analyze_missing_addresses.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
-    "files": {
-      "development_docs/TEST_ANALYSIS.md": 1
-    },
-    "file_count": 1,
-    "total_issues": 1
+    "files": {},
+    "file_count": 0,
+    "total_issues": 0
   }
 }

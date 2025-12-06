@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_module_imports - Development Tools",
-  "last_generated": "2025-12-06 04:28:35",
-  "timestamp": "2025-12-06T04:28:35.627536",
+  "last_generated": "2025-12-06 08:12:05",
+  "timestamp": "2025-12-06T08:12:05.110770",
   "tool_name": "analyze_module_imports",
   "domain": "imports",
   "source": "python development_tools/imports/analyze_module_imports.py",
@@ -22370,6 +22370,281 @@
       },
       "total_imports": 6
     },
+    "tests/development_tools/test_analysis_tool_validation.py": {
+      "imports": {
+        "standard_library": [
+          {
+            "module": "pathlib",
+            "as_name": null,
+            "imported_items": [
+              "Path"
+            ]
+          },
+          {
+            "module": "unittest.mock",
+            "as_name": null,
+            "imported_items": [
+              "patch"
+            ]
+          }
+        ],
+        "third_party": [
+          {
+            "module": "pytest",
+            "as_name": null,
+            "imported_items": [
+              "pytest"
+            ]
+          }
+        ],
+        "local": [
+          {
+            "module": "tests.development_tools.conftest",
+            "as_name": null,
+            "imported_items": [
+              "load_development_tools_module",
+              "demo_project_root",
+              "test_config_path"
+            ]
+          },
+          {
+            "module": "development_tools.shared",
+            "as_name": null,
+            "imported_items": [
+              "constants"
+            ]
+          },
+          {
+            "module": "development_tools.shared",
+            "as_name": null,
+            "imported_items": [
+              "constants"
+            ]
+          },
+          {
+            "module": "development_tools.shared",
+            "as_name": null,
+            "imported_items": [
+              "constants"
+            ]
+          },
+          {
+            "module": "development_tools.shared",
+            "as_name": null,
+            "imported_items": [
+              "constants"
+            ]
+          }
+        ]
+      },
+      "total_imports": 8
+    },
+    "tests/development_tools/test_analyze_ai_work.py": {
+      "imports": {
+        "standard_library": [
+          {
+            "module": "tempfile",
+            "as_name": null,
+            "imported_items": [
+              "tempfile"
+            ]
+          },
+          {
+            "module": "pathlib",
+            "as_name": null,
+            "imported_items": [
+              "Path"
+            ]
+          },
+          {
+            "module": "unittest.mock",
+            "as_name": null,
+            "imported_items": [
+              "patch",
+              "MagicMock"
+            ]
+          }
+        ],
+        "third_party": [
+          {
+            "module": "pytest",
+            "as_name": null,
+            "imported_items": [
+              "pytest"
+            ]
+          }
+        ],
+        "local": [
+          {
+            "module": "tests.development_tools.conftest",
+            "as_name": null,
+            "imported_items": [
+              "load_development_tools_module",
+              "demo_project_root"
+            ]
+          }
+        ]
+      },
+      "total_imports": 5
+    },
+    "tests/development_tools/test_analyze_documentation.py": {
+      "imports": {
+        "standard_library": [
+          {
+            "module": "tempfile",
+            "as_name": null,
+            "imported_items": [
+              "tempfile"
+            ]
+          },
+          {
+            "module": "pathlib",
+            "as_name": null,
+            "imported_items": [
+              "Path"
+            ]
+          },
+          {
+            "module": "unittest.mock",
+            "as_name": null,
+            "imported_items": [
+              "patch"
+            ]
+          },
+          {
+            "module": "argparse",
+            "as_name": null,
+            "imported_items": [
+              "argparse"
+            ]
+          },
+          {
+            "module": "argparse",
+            "as_name": null,
+            "imported_items": [
+              "argparse"
+            ]
+          }
+        ],
+        "third_party": [
+          {
+            "module": "pytest",
+            "as_name": null,
+            "imported_items": [
+              "pytest"
+            ]
+          }
+        ],
+        "local": [
+          {
+            "module": "tests.development_tools.conftest",
+            "as_name": null,
+            "imported_items": [
+              "load_development_tools_module",
+              "demo_project_root"
+            ]
+          }
+        ]
+      },
+      "total_imports": 7
+    },
+    "tests/development_tools/test_analyze_missing_addresses.py": {
+      "imports": {
+        "standard_library": [
+          {
+            "module": "tempfile",
+            "as_name": null,
+            "imported_items": [
+              "tempfile"
+            ]
+          },
+          {
+            "module": "pathlib",
+            "as_name": null,
+            "imported_items": [
+              "Path"
+            ]
+          }
+        ],
+        "third_party": [
+          {
+            "module": "pytest",
+            "as_name": null,
+            "imported_items": [
+              "pytest"
+            ]
+          }
+        ],
+        "local": [
+          {
+            "module": "tests.development_tools.conftest",
+            "as_name": null,
+            "imported_items": [
+              "load_development_tools_module",
+              "demo_project_root",
+              "test_config_path"
+            ]
+          }
+        ]
+      },
+      "total_imports": 4
+    },
+    "tests/development_tools/test_audit_status_updates.py": {
+      "imports": {
+        "standard_library": [
+          {
+            "module": "os",
+            "as_name": null,
+            "imported_items": [
+              "os"
+            ]
+          },
+          {
+            "module": "time",
+            "as_name": null,
+            "imported_items": [
+              "time"
+            ]
+          },
+          {
+            "module": "pathlib",
+            "as_name": null,
+            "imported_items": [
+              "Path"
+            ]
+          },
+          {
+            "module": "unittest.mock",
+            "as_name": null,
+            "imported_items": [
+              "patch",
+              "MagicMock",
+              "call"
+            ]
+          }
+        ],
+        "third_party": [
+          {
+            "module": "pytest",
+            "as_name": null,
+            "imported_items": [
+              "pytest"
+            ]
+          }
+        ],
+        "local": [
+          {
+            "module": "tests.development_tools.conftest",
+            "as_name": null,
+            "imported_items": [
+              "load_development_tools_module",
+              "temp_project_copy"
+            ]
+          }
+        ]
+      },
+      "total_imports": 6
+    },
     "tests/development_tools/test_config.py": {
       "imports": {
         "standard_library": [
@@ -22940,6 +23215,67 @@
       },
       "total_imports": 4
     },
+    "tests/development_tools/test_output_storage_archiving.py": {
+      "imports": {
+        "standard_library": [
+          {
+            "module": "json",
+            "as_name": null,
+            "imported_items": [
+              "json"
+            ]
+          },
+          {
+            "module": "time",
+            "as_name": null,
+            "imported_items": [
+              "time"
+            ]
+          },
+          {
+            "module": "pathlib",
+            "as_name": null,
+            "imported_items": [
+              "Path"
+            ]
+          },
+          {
+            "module": "unittest.mock",
+            "as_name": null,
+            "imported_items": [
+              "patch"
+            ]
+          },
+          {
+            "module": "logging",
+            "as_name": null,
+            "imported_items": [
+              "logging"
+            ]
+          }
+        ],
+        "third_party": [
+          {
+            "module": "pytest",
+            "as_name": null,
+            "imported_items": [
+              "pytest"
+            ]
+          }
+        ],
+        "local": [
+          {
+            "module": "tests.development_tools.conftest",
+            "as_name": null,
+            "imported_items": [
+              "load_development_tools_module",
+              "temp_project_copy"
+            ]
+          }
+        ]
+      },
+      "total_imports": 7
+    },
     "tests/development_tools/test_path_drift_detection.py": {
       "imports": {
         "standard_library": [
@@ -22980,6 +23316,54 @@
             "as_name": null,
             "imported_items": [
               "load_development_tools_module"
+            ]
+          }
+        ]
+      },
+      "total_imports": 5
+    },
+    "tests/development_tools/test_path_drift_integration.py": {
+      "imports": {
+        "standard_library": [
+          {
+            "module": "tempfile",
+            "as_name": null,
+            "imported_items": [
+              "tempfile"
+            ]
+          },
+          {
+            "module": "pathlib",
+            "as_name": null,
+            "imported_items": [
+              "Path"
+            ]
+          },
+          {
+            "module": "unittest.mock",
+            "as_name": null,
+            "imported_items": [
+              "MagicMock",
+              "patch"
+            ]
+          }
+        ],
+        "third_party": [
+          {
+            "module": "pytest",
+            "as_name": null,
+            "imported_items": [
+              "pytest"
+            ]
+          }
+        ],
+        "local": [
+          {
+            "module": "tests.development_tools.conftest",
+            "as_name": null,
+            "imported_items": [
+              "load_development_tools_module",
+              "temp_project_copy"
             ]
           }
         ]
@@ -23116,6 +23500,75 @@
         "local": []
       },
       "total_imports": 4
+    },
+    "tests/development_tools/test_status_file_timing.py": {
+      "imports": {
+        "standard_library": [
+          {
+            "module": "os",
+            "as_name": null,
+            "imported_items": [
+              "os"
+            ]
+          },
+          {
+            "module": "sys",
+            "as_name": null,
+            "imported_items": [
+              "sys"
+            ]
+          },
+          {
+            "module": "time",
+            "as_name": null,
+            "imported_items": [
+              "time"
+            ]
+          },
+          {
+            "module": "pathlib",
+            "as_name": null,
+            "imported_items": [
+              "Path"
+            ]
+          },
+          {
+            "module": "unittest.mock",
+            "as_name": null,
+            "imported_items": [
+              "patch",
+              "MagicMock"
+            ]
+          }
+        ],
+        "third_party": [
+          {
+            "module": "pytest",
+            "as_name": null,
+            "imported_items": [
+              "pytest"
+            ]
+          }
+        ],
+        "local": [
+          {
+            "module": "tests.development_tools.conftest",
+            "as_name": null,
+            "imported_items": [
+              "demo_project_root",
+              "load_development_tools_module"
+            ]
+          },
+          {
+            "module": "development_tools.shared",
+            "as_name": null,
+            "imported_items": [
+              "file_rotation"
+            ]
+          }
+        ]
+      },
+      "total_imports": 8
     },
     "tests/development_tools/test_supporting_tools.py": {
       "imports": {

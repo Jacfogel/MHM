@@ -109,6 +109,10 @@ from ..shared.file_rotation import create_output_file
 from .common import COMMAND_TIERS
 from .output_storage import save_tool_result, load_tool_result, get_all_tool_results, _get_domain_from_tool_name
 
+# Module-level flag to track if ANY audit is in progress
+# This prevents status file writes even from new AIToolsService instances created during tests
+_AUDIT_IN_PROGRESS_GLOBAL = False
+
 class AIToolsService:
 
     """Comprehensive AI tools runner optimized for AI collaboration."""
@@ -1123,6 +1127,9 @@ class AIToolsService:
         Returns:
             True if successful, False otherwise
         """
+        # Declare global flag at the start of the function
+        global _AUDIT_IN_PROGRESS_GLOBAL
+        
         # Determine audit tier
         if quick:
             tier = 1
@@ -1139,6 +1146,11 @@ class AIToolsService:
 
         # Store audit tier for status file generation
         self.current_audit_tier = tier
+        # Flag to prevent status file writes during audit (they should only happen at the end)
+        self._audit_in_progress = True
+        # Set global flag so even new instances know audit is in progress
+        _AUDIT_IN_PROGRESS_GLOBAL = True
+        logger.debug(f"Set global audit flag: _AUDIT_IN_PROGRESS_GLOBAL = True (tier {tier})")
 
         # Store overlap flag for tools that need it
         self._include_overlap = include_overlap
@@ -1193,18 +1205,51 @@ class AIToolsService:
             logger.warning(f"Path validation failed (non-blocking): {e}")
 
         # Generate all 4 output files ONCE at the end (not mid-audit)
+        # Ensure current_audit_tier is still set (defensive check)
+        if self.current_audit_tier is None:
+            logger.warning(f"current_audit_tier is None at end of audit! Setting to tier {tier}")
+        
         try:
-            # Create AI-optimized status document
-            ai_status = self._generate_ai_status_document()
-            ai_status_file = create_output_file("development_tools/AI_STATUS.md", ai_status)
+            # Log that we're about to write status files (to help debug mid-audit writes)
+            logger.info(f"Writing status files at end of audit (tier {self.current_audit_tier}, audit_in_progress={getattr(self, '_audit_in_progress', False)})")
+            
+            # Temporarily clear global flag to allow end-of-audit writes
+            # (We're in run_audit()'s finally block, so this is the legitimate end-of-audit write)
+            was_audit_in_progress = _AUDIT_IN_PROGRESS_GLOBAL
+            _AUDIT_IN_PROGRESS_GLOBAL = False
+            logger.debug("Temporarily cleared global audit flag to allow end-of-audit status file writes")
+            
+            try:
+                # Create AI-optimized status document
+                try:
+                    ai_status = self._generate_ai_status_document()
+                except Exception as e:
+                    logger.warning(f"Error generating AI_STATUS document: {e}")
+                    ai_status = "# AI Status\n\nError generating status document. Please run audit again."
+                ai_status_file = create_output_file("development_tools/AI_STATUS.md", ai_status, project_root=self.project_root)
+                logger.debug(f"AI_STATUS.md written to: {ai_status_file}")
 
-            # Create AI-optimized priorities document
-            ai_priorities = self._generate_ai_priorities_document()
-            ai_priorities_file = create_output_file("development_tools/AI_PRIORITIES.md", ai_priorities)
+                # Create AI-optimized priorities document
+                try:
+                    ai_priorities = self._generate_ai_priorities_document()
+                except Exception as e:
+                    logger.warning(f"Error generating AI_PRIORITIES document: {e}")
+                    ai_priorities = "# AI Priorities\n\nError generating priorities document. Please run audit again."
+                ai_priorities_file = create_output_file("development_tools/AI_PRIORITIES.md", ai_priorities, project_root=self.project_root)
+                logger.debug(f"AI_PRIORITIES.md written to: {ai_priorities_file}")
 
-            # Create comprehensive consolidated report
-            consolidated_report = self._generate_consolidated_report()
-            consolidated_file = create_output_file("development_tools/consolidated_report.txt", consolidated_report)
+                # Create comprehensive consolidated report
+                try:
+                    consolidated_report = self._generate_consolidated_report()
+                except Exception as e:
+                    logger.warning(f"Error generating consolidated report: {e}")
+                    consolidated_report = "Error generating consolidated report. Please run audit again."
+                consolidated_file = create_output_file("development_tools/consolidated_report.txt", consolidated_report, project_root=self.project_root)
+                logger.debug(f"consolidated_report.txt written to: {consolidated_file}")
+            finally:
+                # Restore global flag (will be cleared again in outer finally block)
+                _AUDIT_IN_PROGRESS_GLOBAL = was_audit_in_progress
+                logger.debug("Restored global audit flag after end-of-audit status file writes")
 
             # Check and trim AI_CHANGELOG entries to prevent bloat
             # Wrap in try-except to prevent errors from blocking file generation
@@ -1241,6 +1286,12 @@ class AIToolsService:
             logger.error(f"Error generating status files: {e}")
             logger.error(f"Full traceback:\n{traceback.format_exc()}")
             success = False
+        finally:
+            # Clear audit flag after status files are written
+            self._audit_in_progress = False
+            # Clear global flag as well (already declared as global at function start)
+            _AUDIT_IN_PROGRESS_GLOBAL = False
+            logger.debug("Cleared global audit flag: _AUDIT_IN_PROGRESS_GLOBAL = False")
 
         return success
 
@@ -1319,7 +1370,7 @@ class AIToolsService:
             
             # Save updated results using create_output_file to ensure correct location and rotation
             from ..shared.file_rotation import create_output_file
-            create_output_file(str(results_file), json.dumps(cached_data, indent=2))
+            create_output_file(str(results_file), json.dumps(cached_data, indent=2), project_root=self.project_root)
                 
         except Exception as e:
             logger.warning(f"Failed to save additional tool results: {e}")
@@ -2183,9 +2234,20 @@ class AIToolsService:
             logger.error(f"Development tools coverage analysis failed: {exc}")
             return {'coverage_collected': False, 'error': str(exc)}
 
-    def run_status(self):
+    def run_status(self, skip_status_files: bool = False):
 
-        """Get current system status - quick check that updates status files"""
+        """Get current system status - quick check that updates status files
+        
+        Args:
+            skip_status_files: If True, skip writing status files (used when called during audit)
+        """
+        # Automatically skip status files if audit is in progress (check both instance and global flag)
+        global _AUDIT_IN_PROGRESS_GLOBAL
+        if (hasattr(self, '_audit_in_progress') and self._audit_in_progress) or _AUDIT_IN_PROGRESS_GLOBAL:
+            skip_status_files = True
+            logger.warning("run_status() called during audit! Skipping status file generation to prevent mid-audit writes.")
+            import traceback
+            logger.debug(f"Call stack:\n{''.join(traceback.format_stack())}")
 
         logger.info("Starting status check...")
 
@@ -2238,23 +2300,26 @@ class AIToolsService:
             # Save additional tool results to cached file (including system signals)
             self._save_additional_tool_results()
 
-            # Generate all three status files with current data
-            logger.info("Generating status files...")
-            
-            # AI Status
-            ai_status = self._generate_ai_status_document()
-            ai_status_file = create_output_file("development_tools/AI_STATUS.md", ai_status)
-            logger.info(f"AI Status: {ai_status_file}")
-            
-            # AI Priorities
-            ai_priorities = self._generate_ai_priorities_document()
-            ai_priorities_file = create_output_file("development_tools/AI_PRIORITIES.md", ai_priorities)
-            logger.info(f"AI Priorities: {ai_priorities_file}")
-            
-            # Consolidated Report
-            consolidated_report = self._generate_consolidated_report()
-            consolidated_file = create_output_file("development_tools/consolidated_report.txt", consolidated_report)
-            logger.info(f"Consolidated Report: {consolidated_file}")
+            # Generate all three status files with current data (unless skipped)
+            if not skip_status_files:
+                logger.info("Generating status files...")
+                
+                # AI Status
+                ai_status = self._generate_ai_status_document()
+                ai_status_file = create_output_file("development_tools/AI_STATUS.md", ai_status, project_root=self.project_root)
+                logger.info(f"AI Status: {ai_status_file}")
+                
+                # AI Priorities
+                ai_priorities = self._generate_ai_priorities_document()
+                ai_priorities_file = create_output_file("development_tools/AI_PRIORITIES.md", ai_priorities, project_root=self.project_root)
+                logger.info(f"AI Priorities: {ai_priorities_file}")
+                
+                # Consolidated Report
+                consolidated_report = self._generate_consolidated_report()
+                consolidated_file = create_output_file("development_tools/consolidated_report.txt", consolidated_report, project_root=self.project_root)
+                logger.info(f"Consolidated Report: {consolidated_file}")
+            else:
+                logger.debug("Skipping status file generation (called during audit)")
 
             logger.info("Completed status check successfully!")
 
@@ -4924,7 +4989,7 @@ class AIToolsService:
         
         # Import json if not already imported
         import json
-        create_output_file(str(results_file), json.dumps(audit_data, indent=2))
+        create_output_file(str(results_file), json.dumps(audit_data, indent=2), project_root=self.project_root)
 
     def _generate_audit_report(self):
 
@@ -4992,6 +5057,19 @@ class AIToolsService:
     def _generate_ai_status_document(self) -> str:
 
         """Generate AI-optimized status document."""
+        
+        # Log when this is called during audit to help debug mid-audit writes
+        # Check both instance flag and global flag (for new instances created during tests)
+        global _AUDIT_IN_PROGRESS_GLOBAL
+        instance_flag = hasattr(self, '_audit_in_progress') and self._audit_in_progress
+        if instance_flag or _AUDIT_IN_PROGRESS_GLOBAL:
+            if not instance_flag and _AUDIT_IN_PROGRESS_GLOBAL:
+                # This is a new instance created during audit (likely from tests)
+                logger.warning("_generate_ai_status_document() called from NEW instance during audit! This should only happen at the end.")
+            else:
+                logger.warning("_generate_ai_status_document() called during audit! This should only happen at the end.")
+            import traceback
+            logger.debug(f"Call stack:\n{''.join(traceback.format_stack())}")
 
         lines: List[str] = []
 
@@ -5003,6 +5081,10 @@ class AIToolsService:
         lines.append("> **Generated**: This file is auto-generated. Do not edit manually.")
         lines.append(f"> **Last Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         # Determine source command based on audit tier
+        # If audit is in progress but tier is not set, log a warning
+        if hasattr(self, '_audit_in_progress') and self._audit_in_progress and self.current_audit_tier is None:
+            logger.warning("_generate_ai_status_document() called during audit but current_audit_tier is None!")
+        
         if self.current_audit_tier == 1:
             source_cmd = "python development_tools/run_development_tools.py audit --quick"
             tier_name = "Tier 1 (Quick Audit)"
@@ -8353,7 +8435,7 @@ class AIToolsService:
         # Run ASCII compliance check
         logger.info("Running ASCII compliance check...")
         result = self.run_script('analyze_ascii_compliance')
-        # Try to load from standardized storage first, then cache file
+        # Always save results to ensure result JSON is regenerated on every audit
         try:
             from .output_storage import load_tool_result, save_tool_result
             ascii_data = load_tool_result('analyze_ascii_compliance', 'docs', project_root=self.project_root)
@@ -8472,9 +8554,10 @@ class AIToolsService:
                     'total_issues': total_issues
                 }
                 all_results['heading_numbering'] = heading_result
-                # Save to standardized storage as results file
+                # ALWAYS save to standardized storage to ensure result JSON is regenerated on every audit
                 try:
                     save_tool_result('analyze_heading_numbering', 'docs', heading_result, project_root=self.project_root)
+                    logger.debug("Regenerated analyze_heading_numbering_results.json")
                 except Exception as save_error:
                     logger.debug(f"Failed to save heading numbering results: {save_error}")
             elif result.get('output') or result.get('success'):
@@ -8548,9 +8631,10 @@ class AIToolsService:
                     'total_issues': total_issues
                 }
                 all_results['missing_addresses'] = missing_result
-                # Save to standardized storage as results file
+                # ALWAYS save to standardized storage to ensure result JSON is regenerated on every audit
                 try:
                     save_tool_result('analyze_missing_addresses', 'docs', missing_result, project_root=self.project_root)
+                    logger.debug("Regenerated analyze_missing_addresses_results.json")
                 except Exception as save_error:
                     logger.debug(f"Failed to save missing addresses results: {save_error}")
             elif result.get('output') or result.get('success'):
@@ -8624,9 +8708,10 @@ class AIToolsService:
                     'total_issues': total_issues
                 }
                 all_results['unconverted_links'] = links_result
-                # Save to standardized storage as results file
+                # ALWAYS save to standardized storage to ensure result JSON is regenerated on every audit
                 try:
                     save_tool_result('analyze_unconverted_links', 'docs', links_result, project_root=self.project_root)
+                    logger.debug("Regenerated analyze_unconverted_links_results.json")
                 except Exception as save_error:
                     logger.debug(f"Failed to save unconverted links results: {save_error}")
             elif result.get('output') or result.get('success'):

@@ -1,0 +1,471 @@
+{
+  "generated_by": "run_development_tools.py - AI Development Tools Runner",
+  "last_generated": "2025-12-06 08:17:28",
+  "source": "python development_tools/run_development_tools.py audit --quick",
+  "audit_tier": 1,
+  "note": "This file is auto-generated. Do not edit manually.",
+  "timestamp": "2025-12-06T08:17:28.861444",
+  "successful": [
+    "analyze_functions",
+    "analyze_ascii_compliance",
+    "analyze_documentation",
+    "analyze_documentation_sync",
+    "analyze_heading_numbering",
+    "analyze_missing_addresses",
+    "analyze_path_drift",
+    "analyze_unconverted_links",
+    "quick_status",
+    "system_signals"
+  ],
+  "failed": [],
+  "results": {
+    "analyze_functions": {
+      "success": true,
+      "data": {
+        "total_functions": 21,
+        "moderate_complexity": 0,
+        "high_complexity": 0,
+        "critical_complexity": 0,
+        "undocumented": 1,
+        "handlers": 6,
+        "tests": 4,
+        "utilities": 0
+      },
+      "timestamp": "2025-12-06T08:17:11.473523"
+    },
+    "analyze_ascii_compliance": {
+      "success": true,
+      "data": {
+        "files": {},
+        "file_count": 0,
+        "total_issues": 0
+      },
+      "timestamp": "2025-12-06T08:17:17.055717"
+    },
+    "analyze_documentation": {
+      "success": true,
+      "data": {
+        "artifacts": [],
+        "documents": [
+          "README.md",
+          "TODO.md"
+        ],
+        "duplicates": [],
+        "missing": [],
+        "placeholders": []
+      },
+      "timestamp": "2025-12-06T06:51:12.494935"
+    },
+    "analyze_documentation_sync": {
+      "success": true,
+      "data": {
+        "status": "FAIL",
+        "total_issues": 61,
+        "paired_doc_issues": 0,
+        "path_drift_issues": 53,
+        "ascii_compliance_issues": 0,
+        "heading_numbering_issues": 0,
+        "path_drift_files": [
+          "ARCHITECTURE.md",
+          "DOCUMENTATION_GUIDE.md",
+          "TODO.md",
+          "ai\\SYSTEM_AI_GUIDE.md",
+          "ai_development_docs\\AI_DOCUMENTATION_GUIDE.md",
+          "ai_development_docs\\AI_ERROR_HANDLING_GUIDE.md",
+          "communication\\COMMUNICATION_GUIDE.md",
+          "core\\ERROR_HANDLING_GUIDE.md",
+          "development_docs\\UNUSED_IMPORTS_REPORT.md",
+          "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md"
+        ],
+        "paired_docs": {},
+        "path_drift": {
+          "files": {
+            "ARCHITECTURE.md": 4,
+            "DOCUMENTATION_GUIDE.md": 3,
+            "TODO.md": 2,
+            "ai\\SYSTEM_AI_GUIDE.md": 1,
+            "ai_development_docs\\AI_DOCUMENTATION_GUIDE.md": 2,
+            "ai_development_docs\\AI_ERROR_HANDLING_GUIDE.md": 2,
+            "communication\\COMMUNICATION_GUIDE.md": 3,
+            "core\\ERROR_HANDLING_GUIDE.md": 1,
+            "development_docs\\UNUSED_IMPORTS_REPORT.md": 1,
+            "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md": 6,
+            "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md": 5,
+            "logs\\LOGGING_GUIDE.md": 2,
+            "development_tools\\shared\\OUTPUT_STORAGE_STANDARDS.md": 7,
+            "tests\\fixtures\\development_tools_demo\\docs\\bad_numbering_doc.md": 1,
+            "tests\\fixtures\\development_tools_demo\\docs\\mismatched_ai_doc.md": 2,
+            "tests\\fixtures\\development_tools_demo\\docs\\mismatched_human_doc.md": 2,
+            "tests\\fixtures\\development_tools_demo\\docs\\misnumbered_doc.md": 1,
+            "tests\\fixtures\\development_tools_demo\\docs\\path_drift_test_doc.md": 4,
+            "tests\\fixtures\\development_tools_demo\\docs\\analysis_validation\\path_drift_issues.md": 4
+          },
+          "total_issues": 53,
+          "detailed_issues": {
+            "ARCHITECTURE.md": [
+              "Missing file: something_dialog_pyqt.py",
+              "Missing file: ui/dialogs/something_dialog.py",
+              "Missing file: something_widget_pyqt.py",
+              "Missing file: ui/widgets/something_widget.py"
+            ],
+            "DOCUMENTATION_GUIDE.md": [
+              "Missing file: TEST_COVERAGE_EXPANSION_PLAN.md",
+              "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md",
+              "Missing file: TEST_COVERAGE_EXPANSION_PLAN.md"
+            ],
+            "TODO.md": [
+              "Missing file: TEST_COVERAGE_EXPANSION_PLAN.md",
+              "Missing file: test_utilities_demo.py"
+            ],
+            "ai\\SYSTEM_AI_GUIDE.md": [
+              "Missing file: response_tracking.py"
+            ],
+            "ai_development_docs\\AI_DOCUMENTATION_GUIDE.md": [
+              "Missing file: AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
+              "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md"
+            ],
+            "ai_development_docs\\AI_ERROR_HANDLING_GUIDE.md": [
+              "Missing file: analyze_error_handling.py",
+              "Missing file: error_handling.py"
+            ],
+            "communication\\COMMUNICATION_GUIDE.md": [
+              "Missing file: command_parser.py",
+              "Missing file: command_parser.py",
+              "Missing file: interaction_manager.py"
+            ],
+            "core\\ERROR_HANDLING_GUIDE.md": [
+              "Missing file: analyze_error_handling.py"
+            ],
+            "development_docs\\UNUSED_IMPORTS_REPORT.md": [
+              "Potentially outdated module: annotations"
+            ],
+            "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md": [
+              "Missing file: LEGACY_REFERENCE_REPORT.md",
+              "Missing file: TEST_COVERAGE_EXPANSION_PLAN.md",
+              "Missing file: UNUSED_IMPORTS_REPORT.md",
+              "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md",
+              "Missing file: analyze_missing_addresses.py",
+              "Missing file: reports/file_rotation.py"
+            ],
+            "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md": [
+              "Missing file: AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
+              "Potentially outdated module: detector.",
+              "Missing file: AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
+              "Missing file: AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
+              "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md"
+            ],
+            "logs\\LOGGING_GUIDE.md": [
+              "Missing file: backup_manager.py",
+              "Missing file: auto_cleanup.py"
+            ],
+            "development_tools\\shared\\OUTPUT_STORAGE_STANDARDS.md": [
+              "Missing file: AI_STATUS.md",
+              "Missing file: AI_PRIORITIES.md",
+              "Missing file: FUNCTION_REGISTRY_DETAIL.md",
+              "Missing file: MODULE_DEPENDENCIES_DETAIL.md",
+              "Missing file: LEGACY_REFERENCE_REPORT.md",
+              "Missing file: UNUSED_IMPORTS_REPORT.md",
+              "Missing file: DIRECTORY_TREE.md"
+            ],
+            "tests\\fixtures\\development_tools_demo\\docs\\bad_numbering_doc.md": [
+              "Missing file: docs/bad_numbering_doc.md"
+            ],
+            "tests\\fixtures\\development_tools_demo\\docs\\mismatched_ai_doc.md": [
+              "Missing file: docs/mismatched_ai_doc.md",
+              "Missing file: docs/mismatched_human_doc.md"
+            ],
+            "tests\\fixtures\\development_tools_demo\\docs\\mismatched_human_doc.md": [
+              "Missing file: docs/mismatched_human_doc.md",
+              "Missing file: docs/mismatched_ai_doc.md"
+            ],
+            "tests\\fixtures\\development_tools_demo\\docs\\misnumbered_doc.md": [
+              "Missing file: docs/misnumbered_doc.md"
+            ],
+            "tests\\fixtures\\development_tools_demo\\docs\\path_drift_test_doc.md": [
+              "Missing file: core/missing_module.py",
+              "Missing file: tests/missing_test.py",
+              "Missing file: demo_module.py",
+              "Missing file: demo_module2.py"
+            ],
+            "tests\\fixtures\\development_tools_demo\\docs\\analysis_validation\\path_drift_issues.md": [
+              "Missing file: core/missing_module.py",
+              "Missing file: tests/missing_test.py",
+              "Missing file: demo_module.py",
+              "Missing file: demo_module2.py"
+            ]
+          }
+        },
+        "ascii_compliance": {
+          "files": {},
+          "file_count": 0,
+          "total_issues": 0
+        },
+        "heading_numbering": {
+          "files": {},
+          "file_count": 0,
+          "total_issues": 0
+        }
+      },
+      "timestamp": "2025-12-06T08:17:22.490045"
+    },
+    "analyze_heading_numbering": {
+      "success": true,
+      "data": {
+        "files": {},
+        "file_count": 0,
+        "total_issues": 0
+      },
+      "timestamp": "2025-12-06T08:17:19.075446"
+    },
+    "analyze_missing_addresses": {
+      "success": true,
+      "data": {
+        "files": {
+          "docs/path_drift_test_doc.md": 1,
+          "docs/standalone_doc.md": 1,
+          "docs/analysis_validation/ascii_compliance_issues.md": 1,
+          "docs/analysis_validation/heading_numbering_issues.md": 1,
+          "docs/analysis_validation/missing_addresses.md": 1,
+          "docs/analysis_validation/path_drift_issues.md": 1,
+          "docs/analysis_validation/properly_formatted.md": 1,
+          "docs/analysis_validation/unconverted_links.md": 1
+        },
+        "file_count": 8,
+        "total_issues": 8
+      },
+      "timestamp": "2025-12-06T08:17:20.762668"
+    },
+    "analyze_path_drift": {
+      "success": true,
+      "data": {
+        "files": {
+          "ARCHITECTURE.md": 4,
+          "DOCUMENTATION_GUIDE.md": 3,
+          "TODO.md": 2,
+          "ai\\SYSTEM_AI_GUIDE.md": 1,
+          "ai_development_docs\\AI_DOCUMENTATION_GUIDE.md": 2,
+          "ai_development_docs\\AI_ERROR_HANDLING_GUIDE.md": 2,
+          "communication\\COMMUNICATION_GUIDE.md": 3,
+          "core\\ERROR_HANDLING_GUIDE.md": 1,
+          "development_docs\\UNUSED_IMPORTS_REPORT.md": 1,
+          "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md": 6,
+          "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md": 5,
+          "logs\\LOGGING_GUIDE.md": 2,
+          "development_tools\\shared\\OUTPUT_STORAGE_STANDARDS.md": 7,
+          "tests\\fixtures\\development_tools_demo\\docs\\bad_numbering_doc.md": 1,
+          "tests\\fixtures\\development_tools_demo\\docs\\mismatched_ai_doc.md": 2,
+          "tests\\fixtures\\development_tools_demo\\docs\\mismatched_human_doc.md": 2,
+          "tests\\fixtures\\development_tools_demo\\docs\\misnumbered_doc.md": 1,
+          "tests\\fixtures\\development_tools_demo\\docs\\path_drift_test_doc.md": 4,
+          "tests\\fixtures\\development_tools_demo\\docs\\analysis_validation\\path_drift_issues.md": 4
+        },
+        "total_issues": 53,
+        "detailed_issues": {
+          "ARCHITECTURE.md": [
+            "Missing file: something_dialog_pyqt.py",
+            "Missing file: ui/dialogs/something_dialog.py",
+            "Missing file: something_widget_pyqt.py",
+            "Missing file: ui/widgets/something_widget.py"
+          ],
+          "DOCUMENTATION_GUIDE.md": [
+            "Missing file: TEST_COVERAGE_EXPANSION_PLAN.md",
+            "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md",
+            "Missing file: TEST_COVERAGE_EXPANSION_PLAN.md"
+          ],
+          "TODO.md": [
+            "Missing file: TEST_COVERAGE_EXPANSION_PLAN.md",
+            "Missing file: test_utilities_demo.py"
+          ],
+          "ai\\SYSTEM_AI_GUIDE.md": [
+            "Missing file: response_tracking.py"
+          ],
+          "ai_development_docs\\AI_DOCUMENTATION_GUIDE.md": [
+            "Missing file: AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
+            "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md"
+          ],
+          "ai_development_docs\\AI_ERROR_HANDLING_GUIDE.md": [
+            "Missing file: analyze_error_handling.py",
+            "Missing file: error_handling.py"
+          ],
+          "communication\\COMMUNICATION_GUIDE.md": [
+            "Missing file: command_parser.py",
+            "Missing file: command_parser.py",
+            "Missing file: interaction_manager.py"
+          ],
+          "core\\ERROR_HANDLING_GUIDE.md": [
+            "Missing file: analyze_error_handling.py"
+          ],
+          "development_docs\\UNUSED_IMPORTS_REPORT.md": [
+            "Potentially outdated module: annotations"
+          ],
+          "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md": [
+            "Missing file: LEGACY_REFERENCE_REPORT.md",
+            "Missing file: TEST_COVERAGE_EXPANSION_PLAN.md",
+            "Missing file: UNUSED_IMPORTS_REPORT.md",
+            "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md",
+            "Missing file: analyze_missing_addresses.py",
+            "Missing file: reports/file_rotation.py"
+          ],
+          "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md": [
+            "Missing file: AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
+            "Potentially outdated module: detector.",
+            "Missing file: AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
+            "Missing file: AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
+            "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md"
+          ],
+          "logs\\LOGGING_GUIDE.md": [
+            "Missing file: backup_manager.py",
+            "Missing file: auto_cleanup.py"
+          ],
+          "development_tools\\shared\\OUTPUT_STORAGE_STANDARDS.md": [
+            "Missing file: AI_STATUS.md",
+            "Missing file: AI_PRIORITIES.md",
+            "Missing file: FUNCTION_REGISTRY_DETAIL.md",
+            "Missing file: MODULE_DEPENDENCIES_DETAIL.md",
+            "Missing file: LEGACY_REFERENCE_REPORT.md",
+            "Missing file: UNUSED_IMPORTS_REPORT.md",
+            "Missing file: DIRECTORY_TREE.md"
+          ],
+          "tests\\fixtures\\development_tools_demo\\docs\\bad_numbering_doc.md": [
+            "Missing file: docs/bad_numbering_doc.md"
+          ],
+          "tests\\fixtures\\development_tools_demo\\docs\\mismatched_ai_doc.md": [
+            "Missing file: docs/mismatched_ai_doc.md",
+            "Missing file: docs/mismatched_human_doc.md"
+          ],
+          "tests\\fixtures\\development_tools_demo\\docs\\mismatched_human_doc.md": [
+            "Missing file: docs/mismatched_human_doc.md",
+            "Missing file: docs/mismatched_ai_doc.md"
+          ],
+          "tests\\fixtures\\development_tools_demo\\docs\\misnumbered_doc.md": [
+            "Missing file: docs/misnumbered_doc.md"
+          ],
+          "tests\\fixtures\\development_tools_demo\\docs\\path_drift_test_doc.md": [
+            "Missing file: core/missing_module.py",
+            "Missing file: tests/missing_test.py",
+            "Missing file: demo_module.py",
+            "Missing file: demo_module2.py"
+          ],
+          "tests\\fixtures\\development_tools_demo\\docs\\analysis_validation\\path_drift_issues.md": [
+            "Missing file: core/missing_module.py",
+            "Missing file: tests/missing_test.py",
+            "Missing file: demo_module.py",
+            "Missing file: demo_module2.py"
+          ]
+        }
+      },
+      "timestamp": "2025-12-06T08:17:14.768214"
+    },
+    "analyze_unconverted_links": {
+      "success": true,
+      "data": {
+        "files": {},
+        "file_count": 0,
+        "total_issues": 0
+      },
+      "timestamp": "2025-12-06T08:17:22.476668"
+    },
+    "quick_status": {
+      "success": true,
+      "data": {
+        "timestamp": "2025-12-06T08:17:09.549614",
+        "system_health": {
+          "core_files": {
+            "requirements.txt": "OK"
+          },
+          "key_directories": {
+            "core": "OK",
+            "tests": "OK"
+          },
+          "overall_status": "OK"
+        },
+        "documentation_status": {
+          "coverage": "Unknown",
+          "recent_audit": "2025-12-06T07:56:32.432328",
+          "key_files": {
+            "README.md": "OK",
+            "ai_development_docs/AI_CHANGELOG.md": "OK",
+            "development_docs/CHANGELOG_DETAIL.md": "OK",
+            "TODO.md": "OK",
+            "development_docs/FUNCTION_REGISTRY_DETAIL.md": "OK",
+            "development_docs/MODULE_DEPENDENCIES_DETAIL.md": "OK"
+          }
+        },
+        "critical_issues": [],
+        "action_items": [],
+        "recent_activity": {
+          "last_audit": "2025-12-06T07:56:32.432328",
+          "recent_changes": [
+            "coverage.json",
+            "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
+            "ai_development_docs/AI_FUNCTION_REGISTRY.md",
+            "ai_development_docs/AI_CHANGELOG.md",
+            "TODO.md"
+          ]
+        }
+      },
+      "timestamp": "2025-12-06T08:17:09.777572"
+    },
+    "system_signals": {
+      "success": true,
+      "data": {
+        "timestamp": "2025-12-06T08:17:24.037063",
+        "system_health": {
+          "overall_status": "OK",
+          "core_files": {
+            "requirements.txt": "OK",
+            "pyproject.toml": "OK"
+          },
+          "key_directories": {
+            ".": "OK"
+          },
+          "last_audit": "2025-12-06T08:16:15.758703",
+          "warnings": [],
+          "errors": []
+        },
+        "recent_activity": {
+          "recent_changes": [
+            ".cursor/plans/fix_report_data_flow_88cf33c9.plan.md",
+            ".cursor/plans/standardize-audit-commands-and-tool-output-ac7c7c62.plan.md",
+            ".cursor/plans/verify_audit_status_updates_and_test_coverage_d8c87cd4.plan.md",
+            "TODO.md",
+            "ai_development_docs/AI_CHANGELOG.md",
+            "ai_development_docs/AI_FUNCTION_REGISTRY.md",
+            "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
+            "coverage.json",
+            "development_docs/CHANGELOG_DETAIL.md",
+            "development_docs/DIRECTORY_TREE.md",
+            "development_docs/FUNCTION_REGISTRY_DETAIL.md",
+            "development_docs/LEGACY_REFERENCE_REPORT.md",
+            "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
+            "development_docs/TEST_COVERAGE_REPORT.md",
+            "development_docs/UNUSED_IMPORTS_REPORT.md"
+          ],
+          "git_status": "Modified",
+          "last_commit": null,
+          "uncommitted_changes": true
+        },
+        "critical_alerts": [],
+        "performance_indicators": {
+          "log_file_sizes": {
+            "ai.log": "0.0MB",
+            "ai_dev_tools.log": "0.4MB",
+            "app.log": "0.3MB",
+            "communication_manager.log": "0.1MB",
+            "discord.log": "0.0MB",
+            "email.log": "0.0MB",
+            "errors.log": "0.0MB",
+            "file_ops.log": "0.0MB",
+            "message.log": "0.0MB",
+            "scheduler.log": "0.0MB",
+            "ui.log": "0.0MB",
+            "user_activity.log": "0.0MB"
+          },
+          "cache_status": "Unknown",
+          "memory_usage": "Unknown"
+        }
+      },
+      "timestamp": "2025-12-06T08:17:28.783539"
+    }
+  }
+}

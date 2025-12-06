@@ -1,0 +1,14 @@
+{
+  "generated_by": "analyze_heading_numbering - Development Tools",
+  "last_generated": "2025-12-06 08:17:19",
+  "timestamp": "2025-12-06T08:17:19.075446",
+  "tool_name": "analyze_heading_numbering",
+  "domain": "docs",
+  "source": "python development_tools/docs/analyze_heading_numbering.py",
+  "note": "This file is auto-generated. Do not edit manually.",
+  "data": {
+    "files": {},
+    "file_count": 0,
+    "total_issues": 0
+  }
+}

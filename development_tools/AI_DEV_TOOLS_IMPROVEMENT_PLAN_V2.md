@@ -70,16 +70,49 @@ This document is a restructured and condensed version of the original improvemen
 ### Priority 2: Verification & Testing (Needs Confirmation)
 
 #### 2.1 Verify Mid-Audit Status Updates
-**Status**: NEEDS VERIFICATION  
-**Issue**: Code structure suggests fix is in place, but needs testing to confirm status files don't update during audit execution.
+**Status**: ⚠️ PARTIAL - ISSUE PERSISTS  
+**Priority**: HIGH  
+**Issue**: Status files (`AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.txt`) are being written multiple times during audit execution, not just at the end. Observed 3 mid-audit writes during test coverage analysis phase, plus the final expected write.
 
-**Tasks**:
-- [ ] Test that AI_STATUS and AI_PRIORITIES do not update during audit execution
-- [ ] Verify complexity numbers remain consistent throughout audit
-- [ ] Confirm doc sync status doesn't change during audit (no FAIL/GOOD transitions)
-- [ ] Test with full audit to ensure status files reflect final audit results
+**Root Cause Analysis**:
+- **Initial Hypothesis**: Instance-level `_audit_in_progress` flag doesn't prevent writes from new `AIToolsService` instances created during tests
+- **Evidence**: Mid-audit writes occur during test coverage analysis (07:50:32-07:54:34 and 07:54:56-07:56:32), when pytest runs tests that may create new service instances
+- **Attempted Fix**: Added module-level global flag `_AUDIT_IN_PROGRESS_GLOBAL` to track audit state across all instances
+- **Current Status**: Fix implemented but issue persists - status files still written 3 times mid-audit (observed in audit run 2025-12-06 07:50:06-07:56:33)
 
-**Files**: `development_tools/shared/operations.py` (`run_audit()` method)
+**Implementation Details**:
+- Added `_AUDIT_IN_PROGRESS_GLOBAL` module-level flag (line 114 in `operations.py`)
+- Set flag to `True` when audit starts (line 1152)
+- Check flag in `run_status()` (line 2247), `_generate_ai_status_document()` (line 5064), and `create_output_file()` (line 158 in `file_rotation.py`)
+- Temporarily clear flag during legitimate end-of-audit write (line 1219)
+- Clear flag in finally block when audit completes (line 1294)
+
+**Why Fix May Not Be Working**:
+1. **Tests may be creating instances in separate processes**: If pytest runs tests in separate processes (via `pytest-xdist`), the global flag won't be shared across processes
+2. **`create_output_file()` check may be failing silently**: The check in `file_rotation.py` may not be catching all writes, or exceptions may be caught and ignored
+3. **Status file writes may be happening from different code paths**: There may be other code paths that write status files that we haven't identified
+4. **File watchers or external processes**: Some external process or file watcher might be triggering writes
+
+**Next Steps**:
+- [ ] Add more aggressive logging to identify exact source of mid-audit writes (log call stack for every status file write attempt)
+- [ ] Check if tests are running in separate processes (pytest-xdist workers) that don't share the global flag
+- [ ] Add file modification time tracking to detect when status files are actually written
+- [ ] Consider using a file-based lock or flag file instead of in-memory global variable for cross-process protection
+- [ ] Investigate if any test fixtures or test setup code is calling status generation methods
+- [ ] Add runtime check in `create_output_file()` to raise exception (not just log warning) when status file write attempted during audit
+- [ ] Review test coverage analysis code to see if it's creating AIToolsService instances
+
+**Files**: 
+- `development_tools/shared/operations.py` (lines 1130-1297, 2243-2250, 5059-5074)
+- `development_tools/shared/file_rotation.py` (lines 148-171)
+- `tests/development_tools/` (all test files that might create AIToolsService instances)
+
+**Test Evidence**:
+- Audit run 2025-12-06 07:50:06-07:56:33: 3 mid-audit status file writes detected
+- All mid-audit writes occurred during test coverage analysis phase (pytest execution)
+- Final write at 07:56:33 logged correctly with warning (expected behavior)
+- Log shows: "Writing status files at end of audit (tier 3, audit_in_progress=True)" at 07:56:33
+- Warning logged: "_generate_ai_status_document() called during audit! This should only happen at the end." (this is expected for the final write)
 
 #### 2.2 Verify Path Drift Detection
 **Status**: NEEDS VERIFICATION  
@@ -104,6 +137,47 @@ This document is a restructured and condensed version of the original improvemen
 - [ ] Clean up any misplaced or duplicate JSON files if found
 
 **Files**: `development_tools/shared/output_storage.py`, all domain directories
+
+#### 2.5 Ensure All Tools Explicitly Save Results
+**Status**: IN PROGRESS  
+**Priority**: HIGH  
+**Issue**: Some tools may not be explicitly saving results, leading to stale data in result JSON files. Need to audit all 20 tools with `*_results.json` files and ensure explicit `save_tool_result()` calls with debug logging.
+
+**Known Result Files (20 total)**:
+1. `analyze_test_markers_results.json` - tests domain ✅ (has save_tool_result in operations.py line 2783)
+2. `analyze_test_coverage_results.json` - tests domain ✅ (has save_tool_result in operations.py line 2516)
+3. `analyze_legacy_references_results.json` - legacy domain ✅ (has save_tool_result in operations.py line 993)
+4. `analyze_unused_imports_results.json` - imports domain ✅ (has save_tool_result in operations.py line 2907)
+5. `analyze_module_imports_results.json` - imports domain ✅ (has save_tool_result in operations.py line 587)
+6. `analyze_module_dependencies_results.json` - imports domain ✅ (has save_tool_result in operations.py line 403)
+7. `analyze_dependency_patterns_results.json` - imports domain ✅ (has save_tool_result in operations.py line 616)
+8. `analyze_functions_results.json` - functions domain ✅ (has save_tool_result in operations.py line 463)
+9. `analyze_function_registry_results.json` - functions domain ✅ (has save_tool_result in operations.py line 353)
+10. `analyze_function_patterns_results.json` - functions domain ✅ (has save_tool_result in operations.py line 561)
+11. `analyze_error_handling_results.json` - error_handling domain ✅ (has save_tool_result in operations.py line 716)
+12. `analyze_unconverted_links_results.json` - docs domain ✅ (has save_tool_result in operations.py lines 8713, 8723, 8736)
+13. `analyze_path_drift_results.json` - docs domain ✅ (has save_tool_result in operations.py lines 885, 915)
+14. `analyze_missing_addresses_results.json` - docs domain ✅ (has save_tool_result in operations.py lines 8636, 8646, 8659)
+15. `analyze_heading_numbering_results.json` - docs domain ✅ (has save_tool_result in operations.py lines 8559, 8569, 8582)
+16. `analyze_documentation_sync_results.json` - docs domain ✅ (has save_tool_result in operations.py lines 797, 832)
+17. `analyze_documentation_results.json` - docs domain ✅ (has save_tool_result in operations.py line 303)
+18. `analyze_ascii_compliance_results.json` - docs domain ✅ (has save_tool_result in operations.py lines 8483, 8492, 8505)
+19. `analyze_config_results.json` - config domain ⚠️ (saves directly via json.dump in analyze_config.py line 388, NOT using save_tool_result)
+20. `analyze_ai_work_results.json` - ai_work domain ✅ (has save_tool_result in operations.py line 2046)
+
+**Tasks**:
+- [x] Added explicit `save_tool_result()` calls for 4 tools: `analyze_ascii_compliance`, `analyze_heading_numbering`, `analyze_missing_addresses`, `analyze_unconverted_links` (within `_run_analyze_documentation_sync_tools`)
+- [x] Audited all 20 tools - found that 19 already have `save_tool_result()` calls in operations.py
+- [ ] **Update `analyze_config.py` to use `save_tool_result()` instead of direct `json.dump()`** (currently saves directly at line 388)
+- [ ] Add debug logging: `logger.debug("Regenerated {tool_name}_results.json")` after each save_tool_result call
+- [ ] Verify all result JSON files are regenerated on every audit that covers their tier
+- [ ] Document which tools save results and when
+
+**Files**: 
+- `development_tools/shared/operations.py` (all tool wrapper methods)
+- `development_tools/config/analyze_config.py` (needs update to use save_tool_result instead of json.dump)
+
+**Progress**: 19 of 20 tools using standardized storage (95%) - only `analyze_config` needs to be updated
 
 #### 2.4 Comprehensive Audit Tier Testing
 **Status**: PENDING  
@@ -590,21 +664,43 @@ This document is a restructured and condensed version of the original improvemen
 - [ ] Stale recommendations are automatically removed
 
 #### 7.3 Improve Development Tools Test Coverage
-**Status**: PENDING  
+**Status**: IN PROGRESS  
 **Priority**: HIGH (from AI_PRIORITIES.md)  
-**Issue**: Development tools coverage is 28.8% (target 60%+). Specific modules at 0% coverage.
+**Issue**: Development tools coverage is 40.2% (target 60%+). Specific modules at 0% coverage.
+
+**Progress**:
+- [x] Created `tests/development_tools/test_analyze_documentation.py` - Tests for documentation analysis module
+- [x] Created `tests/development_tools/test_analyze_missing_addresses.py` - Tests for missing address detection module
+- [x] Created `tests/development_tools/test_analysis_tool_validation.py` - Validation tests using structured fixtures
+- [x] Created structured test fixtures in `tests/fixtures/development_tools_demo/docs/analysis_validation/`:
+  - `heading_numbering_issues.md`, `missing_addresses.md`, `ascii_compliance_issues.md`, `unconverted_links.md`, `path_drift_issues.md`, `properly_formatted.md`
+- [x] Deleted `development_docs/TEST_ANALYSIS.md` - Replaced with structured fixtures
+- [x] Created `tests/development_tools/test_config.json` - Test-specific config that doesn't exclude fixtures
+- [x] Added `test_config_path` fixture to `tests/development_tools/conftest.py`
+- [x] Created `tests/development_tools/test_audit_status_updates.py` - Status file update verification
+- [x] Created `tests/development_tools/test_path_drift_integration.py` - Path drift integration tests
+- [x] Created `tests/development_tools/test_output_storage_archiving.py` - Storage archiving verification
+- [x] Created `tests/development_tools/test_status_file_timing.py` - Status file timing verification
+- [ ] **Still needed**: `tests/development_tools/test_analyze_ai_work.py` - Tests for AI work validation module (0.0%, missing 206 lines)
 
 **Tasks**:
-- [ ] Focus on modules with 0% coverage:
-  - `analyze_ai_work.py` (0.0%, missing 206 lines)
-  - `analyze_documentation.py` (0.0%, missing 298 lines)
-  - `analyze_missing_addresses.py` (0.0%, missing 109 lines)
-- [ ] Add behavior tests for each module using synthetic fixture project
-- [ ] Target 60%+ coverage for development tools overall
+- [x] Replace TEST_ANALYSIS.md with proper test fixtures (Priority 7.1/7.3)
+- [x] Add behavior tests for `analyze_documentation.py` using synthetic fixture project
+- [x] Add behavior tests for `analyze_missing_addresses.py` using synthetic fixture project
+- [ ] Add behavior tests for `analyze_ai_work.py` using synthetic fixture project
+- [ ] Target 60%+ coverage for development tools overall (currently 40.2%)
 - [ ] Strengthen tests in `tests/development_tools/` for fragile helpers
+- [x] Update development tools tests to use `test_config.json` fixture instead of default config
+- [x] Ensure tests use `test_config_path` fixture from `conftest.py` to allow analyzers to process fixture files
 - [ ] Document test coverage improvements
 
-**Files**: `development_tools/ai_work/analyze_ai_work.py`, `development_tools/docs/analyze_documentation.py`, `development_tools/docs/analyze_missing_addresses.py`, `tests/development_tools/`
+**Files**: 
+- `development_tools/ai_work/analyze_ai_work.py` (still needs tests)
+- `development_tools/docs/analyze_documentation.py` ✅ (has tests)
+- `development_tools/docs/analyze_missing_addresses.py` ✅ (has tests)
+- `tests/development_tools/` (test files created)
+- `tests/development_tools/test_config.json` ✅ (created)
+- `tests/fixtures/development_tools_demo/docs/analysis_validation/` ✅ (created)
 
 #### 7.4 Fix Documentation Drift
 **Status**: PENDING  

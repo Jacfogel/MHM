@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_test_coverage - Development Tools",
-  "last_generated": "2025-12-06 04:32:30",
-  "timestamp": "2025-12-06T04:32:30.931301",
+  "last_generated": "2025-12-06 08:15:54",
+  "timestamp": "2025-12-06T08:15:54.082056",
   "tool_name": "analyze_test_coverage",
   "domain": "tests",
   "source": "python development_tools/tests/analyze_test_coverage.py",
@@ -10,30 +10,30 @@
     "overall": {
       "coverage": 71.2,
       "statements": 27101,
-      "covered": 19288,
-      "missed": 7813,
-      "generated": "2025-12-06T04:32:24.363411"
+      "covered": 19300,
+      "missed": 7801,
+      "generated": "2025-12-06T08:15:49.135226"
     },
     "modules": [
       {
         "module": "communication",
         "coverage": 68.5,
-        "missed": 2785
+        "missed": 2784
       },
       {
         "module": "ui",
         "coverage": 70.4,
-        "missed": 1852
+        "missed": 1848
       },
       {
         "module": "core",
         "coverage": 71.4,
-        "missed": 2689
+        "missed": 2688
       },
       {
         "module": "ai",
-        "coverage": 78.5,
-        "missed": 367
+        "coverage": 78.9,
+        "missed": 361
       },
       {
         "module": "tasks",
@@ -54,8 +54,8 @@
       },
       {
         "path": "ui/ui_app_qt.py",
-        "coverage": 48.4,
-        "missing": 731
+        "coverage": 48.7,
+        "missing": 727
       },
       {
         "path": "ui/dialogs/account_creator_dialog.py",

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-03 03:45:46
+> **Last Generated**: 2025-12-06 08:00:59
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -25,7 +25,7 @@
 - **Classes Documented**: 124
 - **Total Documented**: 2410
 - **Template-Generated**: 36
-- **Last Updated**: 2025-12-03
+- **Last Updated**: 2025-12-06
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -4427,8 +4427,14 @@ Returns:
 - [OK] `load_widgets(self)` - Load all the widget UI files into the placeholder widgets.
 - [OK] `on_feature_toggled(self, checked)` - Handle feature enablement checkbox toggles.
 - [MISSING] `on_personalization_save(data)` - No description
-- [OK] `on_preferred_name_changed(self)` - Handle preferred name change.
-- [OK] `on_username_changed(self)` - Handle username change.
+- [OK] `on_preferred_name_changed(self, text)` - Handle preferred name change.
+
+Args:
+    text: The new text from the textChanged signal (ignored, we read from widget)
+- [OK] `on_username_changed(self, text)` - Handle username change.
+
+Args:
+    text: The new text from the textChanged signal (ignored, we read from widget)
 - [OK] `open_personalization_dialog(self)` - Open the personalization dialog.
 - [OK] `setup_connections(self)` - Setup signal connections.
 - [OK] `setup_dialog(self)` - Set up the dialog properties.
@@ -4477,8 +4483,14 @@ Returns:
   - [OK] `AccountCreatorDialog.load_task_management_widget(self)` - Load the task management widget.
   - [OK] `AccountCreatorDialog.load_widgets(self)` - Load all the widget UI files into the placeholder widgets.
   - [OK] `AccountCreatorDialog.on_feature_toggled(self, checked)` - Handle feature enablement checkbox toggles.
-  - [OK] `AccountCreatorDialog.on_preferred_name_changed(self)` - Handle preferred name change.
-  - [OK] `AccountCreatorDialog.on_username_changed(self)` - Handle username change.
+  - [OK] `AccountCreatorDialog.on_preferred_name_changed(self, text)` - Handle preferred name change.
+
+Args:
+    text: The new text from the textChanged signal (ignored, we read from widget)
+  - [OK] `AccountCreatorDialog.on_username_changed(self, text)` - Handle username change.
+
+Args:
+    text: The new text from the textChanged signal (ignored, we read from widget)
   - [OK] `AccountCreatorDialog.open_personalization_dialog(self)` - Open the personalization dialog.
   - [OK] `AccountCreatorDialog.setup_connections(self)` - Setup signal connections.
   - [OK] `AccountCreatorDialog.setup_dialog(self)` - Set up the dialog properties.
@@ -5446,9 +5458,15 @@ Args:
 - [MISSING] `get_text(self)` - No description
 - [MISSING] `is_blank(self)` - No description
 - [MISSING] `is_checked(self)` - No description
-- [OK] `on_checkbox_toggled(self)` - Called when user clicks the checkbox.
+- [OK] `on_checkbox_toggled(self, checked)` - Called when user clicks the checkbox.
+
+Args:
+    checked: The new checked state from the toggled signal (ignored, we read from widget)
 - [OK] `on_editing_finished(self)` - Notify parent container that text editing has finished (for duplicate validation).
-- [OK] `on_text_changed(self)` - Called when user types in the text field.
+- [OK] `on_text_changed(self, text)` - Called when user types in the text field.
+
+Args:
+    text: The new text from the textEdited signal (ignored, we read from widget)
 - [MISSING] `set_checked(self, state)` - No description
 - [MISSING] `set_text(self, text)` - No description
 **Classes:**
@@ -5458,9 +5476,15 @@ Args:
   - [MISSING] `DynamicListField.get_text(self)` - No description
   - [MISSING] `DynamicListField.is_blank(self)` - No description
   - [MISSING] `DynamicListField.is_checked(self)` - No description
-  - [OK] `DynamicListField.on_checkbox_toggled(self)` - Called when user clicks the checkbox.
+  - [OK] `DynamicListField.on_checkbox_toggled(self, checked)` - Called when user clicks the checkbox.
+
+Args:
+    checked: The new checked state from the toggled signal (ignored, we read from widget)
   - [OK] `DynamicListField.on_editing_finished(self)` - Notify parent container that text editing has finished (for duplicate validation).
-  - [OK] `DynamicListField.on_text_changed(self)` - Called when user types in the text field.
+  - [OK] `DynamicListField.on_text_changed(self, text)` - Called when user types in the text field.
+
+Args:
+    text: The new text from the textEdited signal (ignored, we read from widget)
   - [MISSING] `DynamicListField.set_checked(self, state)` - No description
   - [MISSING] `DynamicListField.set_text(self, text)` - No description
 

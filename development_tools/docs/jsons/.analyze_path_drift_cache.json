@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_path_drift - Development Tools",
-  "last_generated": "2025-12-06 04:33:22",
-  "timestamp": "2025-12-06T04:33:22.718381",
+  "last_generated": "2025-12-06 08:17:36",
+  "timestamp": "2025-12-06T08:17:36.123357",
   "tool_name": "analyze_path_drift",
   "domain": "docs",
   "note": "This file is auto-generated. Do not edit manually.",
@@ -289,7 +289,7 @@
       ]
     },
     "TODO.md": {
-      "mtime": 1764979737.055818,
+      "mtime": 1765030284.1340258,
       "results": [
         "TODO.md",
         "README.md",
@@ -573,7 +573,7 @@
       ]
     },
     "ai_development_docs/AI_FUNCTION_REGISTRY.md": {
-      "mtime": 1764755146.154462,
+      "mtime": 1765029659.8861866,
       "results": [
         "ai_development_docs/AI_FUNCTION_REGISTRY.md",
         "communication/command_handlers/account_handler.py",
@@ -649,7 +649,7 @@
       ]
     },
     "ai_development_docs/AI_MODULE_DEPENDENCIES.md": {
-      "mtime": 1764755149.7950003,
+      "mtime": 1765029663.2192473,
       "results": [
         "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
         "communication/__init__.py",
@@ -829,13 +829,13 @@
       ]
     },
     "development_docs/DIRECTORY_TREE.md": {
-      "mtime": 1764756297.564911,
+      "mtime": 1765029664.4060383,
       "results": [
         "development_docs/DIRECTORY_TREE.md"
       ]
     },
     "development_docs/FUNCTION_REGISTRY_DETAIL.md": {
-      "mtime": 1764755146.154462,
+      "mtime": 1765029659.885457,
       "results": [
         "development_docs/FUNCTION_REGISTRY_DETAIL.md",
         "README.md",
@@ -938,14 +938,14 @@
       ]
     },
     "development_docs/LEGACY_REFERENCE_REPORT.md": {
-      "mtime": 1765017163.5211115,
+      "mtime": 1765030557.173929,
       "results": [
         "development_docs/LEGACY_REFERENCE_REPORT.md",
         "bot."
       ]
     },
     "development_docs/MODULE_DEPENDENCIES_DETAIL.md": {
-      "mtime": 1764755149.793497,
+      "mtime": 1765029663.2192473,
       "results": [
         "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
         "README.md",
@@ -1097,6 +1097,7 @@
         "tests/integration/test_orphaned_reminder_cleanup.py",
         "tests/test_error_handling_improvements.py",
         "tests/ui/test_dialogs.py",
+        "tests/ui/test_signal_handler_integration.py",
         "tests/unit/test_channel_orchestrator.py",
         "ui/ui_app_qt.py",
         "communication/core/factory.py",
@@ -1794,6 +1795,7 @@
         "tests/ui/test_dialogs.py",
         "tests/ui/test_message_editor_dialog.py",
         "tests/ui/test_process_watcher_dialog.py",
+        "tests/ui/test_signal_handler_integration.py",
         "tests/ui/test_ui_app_qt_core.py",
         "tests/ui/test_ui_app_qt_main.py",
         "tests/ui/test_ui_components_headless.py",
@@ -1812,13 +1814,25 @@
         "tests/debug_file_paths.py",
         "tests/development_tools/__init__.py",
         "tests/development_tools/conftest.py",
+        "tests/development_tools/test_analysis_tool_validation.py",
+        "tests/development_tools/test_analyze_ai_work.py",
+        "tests/development_tools/test_analyze_documentation.py",
+        "tests/development_tools/test_analyze_missing_addresses.py",
+        "tests/development_tools/test_audit_status_updates.py",
         "tests/development_tools/test_documentation_sync_checker.py",
         "tests/development_tools/test_error_scenarios.py",
         "tests/development_tools/test_generate_module_dependencies.py",
         "tests/development_tools/test_integration_workflows.py",
         "tests/development_tools/test_legacy_reference_cleanup.py",
+        "tests/development_tools/test_output_storage_archiving.py",
         "tests/development_tools/test_regenerate_coverage_metrics.py",
+        "tests/development_tools/test_status_file_timing.py",
         "tests/development_tools/test_supporting_tools.py",
+        "tests/development_tools/test_analysis_tool_validation.py",
+        "tests/development_tools/test_analyze_ai_work.py",
+        "tests/development_tools/test_analyze_documentation.py",
+        "tests/development_tools/test_analyze_missing_addresses.py",
+        "tests/development_tools/test_audit_status_updates.py",
         "tests/development_tools/test_config.py",
         "tests/development_tools/test_constants.py",
         "tests/development_tools/test_documentation_sync_checker.py",
@@ -1826,9 +1840,11 @@
         "tests/development_tools/test_generate_module_dependencies.py",
         "tests/development_tools/test_integration_workflows.py",
         "tests/development_tools/test_legacy_reference_cleanup.py",
+        "tests/development_tools/test_output_storage_archiving.py",
         "tests/development_tools/test_regenerate_coverage_metrics.py",
         "tests/development_tools/test_run_development_tools.py",
         "tests/development_tools/test_standard_exclusions.py",
+        "tests/development_tools/test_status_file_timing.py",
         "tests/development_tools/test_supporting_tools.py",
         "tests/fixtures/development_tools_demo/demo_module.py",
         "tests/fixtures/development_tools_demo/demo_module2.py",
@@ -1913,6 +1929,7 @@
         "or",
         "tests/ui/test_message_editor_dialog.py",
         "tests/ui/test_process_watcher_dialog.py",
+        "tests/ui/test_signal_handler_integration.py",
         "tests/ui/test_ui_app_qt_core.py",
         "tests/ui/test_ui_app_qt_main.py",
         "tests/ui/test_ui_components_headless.py",
@@ -1969,6 +1986,7 @@
         "tests/ui/test_account_creation_ui.py",
         "tests/ui/test_account_creator_dialog_validation.py",
         "tests/ui/test_dialogs.py",
+        "tests/ui/test_signal_handler_integration.py",
         "tests/ui/test_ui_components_headless.py",
         "ui/ui_app_qt.py",
         "ui/dialogs/admin_panel.py",
@@ -2096,6 +2114,7 @@
         "ui/widgets/dynamic_list_field.py",
         "ui/widgets/user_profile_settings_widget.py",
         "ui/widgets/dynamic_list_field.py",
+        "tests/ui/test_signal_handler_integration.py",
         "tests/ui/test_widget_behavior.py",
         "tests/ui/test_widget_behavior_simple.py",
         "ui/widgets/dynamic_list_container.py",
@@ -2196,20 +2215,14 @@
         "ui/ui_app_qt.py"
       ]
     },
-    "development_docs/TEST_ANALYSIS.md": {
-      "mtime": 1764986414.860307,
-      "results": [
-        "nonexistent_file.md"
-      ]
-    },
     "development_docs/TEST_COVERAGE_REPORT.md": {
-      "mtime": 1765017148.7112598,
+      "mtime": 1765030552.118106,
       "results": [
         "development_docs/TEST_COVERAGE_REPORT.md"
       ]
     },
     "development_docs/UNUSED_IMPORTS_REPORT.md": {
-      "mtime": 1765017161.244028,
+      "mtime": 1765030555.1151826,
       "results": [
         "development_docs/UNUSED_IMPORTS_REPORT.md",
         "communication/command_handlers/account_handler.py",
@@ -2246,6 +2259,11 @@
         "tests/behavior/test_user_data_flow_architecture.py",
         "tests/behavior/test_webhook_server_behavior.py",
         "tests/behavior/test_welcome_manager_behavior.py",
+        "tests/development_tools/test_analysis_tool_validation.py",
+        "tests/development_tools/test_analyze_ai_work.py",
+        "tests/development_tools/test_analyze_documentation.py",
+        "tests/development_tools/test_analyze_missing_addresses.py",
+        "tests/development_tools/test_audit_status_updates.py",
         "tests/development_tools/test_documentation_sync_checker.py",
         "sys",
         "tests/development_tools/test_error_scenarios.py",
@@ -2255,11 +2273,13 @@
         "sys",
         "tests/development_tools/test_legacy_reference_cleanup.py",
         "sys",
+        "tests/development_tools/test_output_storage_archiving.py",
         "pytest",
         "tempfile",
         "shutil",
         "tests/development_tools/test_regenerate_coverage_metrics.py",
         "sys",
+        "tests/development_tools/test_status_file_timing.py",
         "tests/test_error_handling_improvements.py",
         "tests/ui/test_signal_handler_integration.py",
         "tests/unit/test_ai_chatbot_helpers.py",
@@ -2295,7 +2315,10 @@
         "tests/core/test_file_auditor.py",
         "tests/core/test_message_management.py",
         "tests/core/test_schedule_utilities.py",
+        "tests/development_tools/test_analyze_ai_work.py",
+        "tests/development_tools/test_output_storage_archiving.py",
         "tests/development_tools/test_regenerate_coverage_metrics.py",
+        "tests/development_tools/test_status_file_timing.py",
         "tests/integration/test_user_creation.py",
         "tests/test_error_handling_improvements.py",
         "tests/test_utilities.py",
@@ -2381,12 +2404,23 @@
         "tests/core/test_schedule_utilities.py",
         "tests/debug_file_paths.py",
         "pytest",
+        "tests/development_tools/test_analyze_ai_work.py",
+        "tempfile",
+        "tests/development_tools/test_analyze_documentation.py",
+        "tempfile",
+        "tests/development_tools/test_analyze_missing_addresses.py",
+        "tempfile",
         "tests/development_tools/test_documentation_sync_checker.py",
         "tests/development_tools/test_error_scenarios.py",
         "shutil",
         "tests/development_tools/test_generate_module_dependencies.py",
         "tests/development_tools/test_legacy_reference_cleanup.py",
+        "tests/development_tools/test_output_storage_archiving.py",
+        "json",
+        "tempfile",
         "tests/development_tools/test_regenerate_coverage_metrics.py",
+        "tests/development_tools/test_status_file_timing.py",
+        "os",
         "tests/integration/test_account_management.py",
         "time",
         "tempfile",
@@ -2502,14 +2536,24 @@
       ]
     },
     "development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md": {
-      "mtime": 1764980565.0365345,
+      "mtime": 1765030319.3145416,
       "results": [
         "development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md",
         "development_tools/shared/operations.py",
         "development_tools/shared/output_storage.py",
+        "development_docs/CHANGELOG_DETAIL.md",
+        "AI_STATUS.md",
+        "AI_PRIORITIES.md",
+        "operations.py",
+        "file_rotation.py",
+        "file_rotation.py",
         "development_tools/shared/operations.py",
+        "development_tools/shared/file_rotation.py",
         "development_tools/shared/operations.py",
         "development_tools/shared/output_storage.py",
+        "analyze_config.py",
+        "development_tools/shared/operations.py",
+        "development_tools/config/analyze_config.py",
         "development_tools/shared/operations.py",
         "development_tools/shared/output_storage.py",
         "development_tools/functions/analyze_functions.py",
@@ -2556,9 +2600,22 @@
         "development_tools/config/analyze_config.py",
         "development_tools/shared/operations.py",
         "development_tools/reports/decision_support.py",
-        "analyze_ai_work.py",
+        "tests/development_tools/test_analyze_documentation.py",
+        "tests/development_tools/test_analyze_missing_addresses.py",
+        "tests/development_tools/test_analysis_tool_validation.py",
+        "heading_numbering_issues.md",
+        "missing_addresses.md",
+        "unconverted_links.md",
+        "development_docs/TEST_ANALYSIS.md",
+        "tests/development_tools/conftest.py",
+        "tests/development_tools/test_audit_status_updates.py",
+        "tests/development_tools/test_output_storage_archiving.py",
+        "tests/development_tools/test_status_file_timing.py",
+        "tests/development_tools/test_analyze_ai_work.py",
         "analyze_documentation.py",
         "analyze_missing_addresses.py",
+        "analyze_ai_work.py",
+        "conftest.py",
         "development_tools/ai_work/analyze_ai_work.py",
         "development_tools/docs/analyze_documentation.py",
         "development_tools/docs/analyze_missing_addresses.py",
@@ -2596,21 +2653,15 @@
       ]
     },
     "development_tools/AI_PRIORITIES.md": {
-      "mtime": 1765017190.7206893,
+      "mtime": 1765030649.9975467,
       "results": [
-        "development_tools/AI_PRIORITIES.md",
-        "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-        "config",
-        "config"
+        "development_tools/AI_PRIORITIES.md"
       ]
     },
     "development_tools/AI_STATUS.md": {
-      "mtime": 1765017190.6806324,
+      "mtime": 1765030649.9916413,
       "results": [
-        "development_tools/AI_STATUS.md",
-        "development_docs/TEST_COVERAGE_REPORT.md",
-        "development_docs/UNUSED_IMPORTS_REPORT.md",
-        "development_docs/LEGACY_REFERENCE_REPORT.md"
+        "development_tools/AI_STATUS.md"
       ]
     },
     "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
@@ -2974,6 +3025,21 @@
         "tests/generate_test_coverage.py"
       ]
     },
+    ".cursor/plans/fix_report_data_flow_88cf33c9.plan.md": {
+      "mtime": 1765017285.447544,
+      "results": [
+        "development_tools/AI_STATUS.md",
+        "development_tools/AI_PRIORITIES.md",
+        "operations.py",
+        "development_tools/shared/operations.py",
+        "development_tools/shared/operations.py",
+        "development_tools/shared/operations.py",
+        "development_tools/shared/operations.py",
+        "development_tools/shared/operations.py",
+        "development_tools/shared/operations.py",
+        "development_tools/config/analyze_config.py"
+      ]
+    },
     ".cursor/plans/phase-9-status-reports-and-metrics-standardization-99cf574c.plan.md": {
       "mtime": 1764935030.0659294,
       "results": [
@@ -3009,7 +3075,7 @@
       ]
     },
     ".cursor/plans/standardize-audit-commands-and-tool-output-ac7c7c62.plan.md": {
-      "mtime": 1764931813.32261,
+      "mtime": 1765030037.2458668,
       "results": [
         "development_tools/shared/output_storage.py",
         "development_tools/shared/output_storage.py",
@@ -3048,6 +3114,63 @@
         "AI_DEVELOPMENT_WORKFLOW.md",
         "TIMING_ANALYSIS.md",
         "AI_DEV_TOOLS_IMPROVEMENT_PLAN.md"
+      ]
+    },
+    ".cursor/plans/verify_audit_status_updates_and_test_coverage_d8c87cd4.plan.md": {
+      "mtime": 1765030039.3827283,
+      "results": [
+        "development_docs/TEST_ANALYSIS.md",
+        "AI_STATUS.md",
+        "AI_PRIORITIES.md",
+        "tests/development_tools/test_audit_status_updates.py",
+        "tests/development_tools/test_audit_status_updates.py",
+        "development_tools/shared/operations.py",
+        "AI_STATUS.md",
+        "operations.py",
+        "development_tools/shared/operations.py",
+        "tests/development_tools/test_output_storage_archiving.py",
+        "tests/development_tools/test_output_storage_archiving.py",
+        "development_tools/shared/output_storage.py",
+        "development_tools/shared/file_rotation.py",
+        "development_docs/TEST_ANALYSIS.md",
+        "development_docs/TEST_ANALYSIS.md",
+        "tests/development_tools/test_analysis_tool_validation.py",
+        "analyze_heading_numbering.py",
+        "heading_numbering_issues.md",
+        "analyze_missing_addresses.py",
+        "missing_addresses.md",
+        "analyze_unconverted_links.py",
+        "unconverted_links.md",
+        "development_docs/TEST_ANALYSIS.md",
+        "tests/development_tools/test_analysis_tool_validation.py",
+        "development_docs/TEST_ANALYSIS.md",
+        "development_tools/shared/standard_exclusions.py",
+        "analyze_ai_work.py",
+        "analyze_documentation.py",
+        "analyze_missing_addresses.py",
+        "tests/development_tools/test_analyze_ai_work.py",
+        "tests/development_tools/test_analyze_documentation.py",
+        "tests/development_tools/test_analyze_missing_addresses.py",
+        "tests/development_tools/test_analyze_ai_work.py",
+        "tests/development_tools/test_analyze_documentation.py",
+        "tests/development_tools/test_analyze_missing_addresses.py",
+        "development_tools/ai_work/analyze_ai_work.py",
+        "development_tools/docs/analyze_documentation.py",
+        "development_tools/docs/analyze_missing_addresses.py",
+        "tests/development_tools/test_audit_status_updates.py",
+        "tests/development_tools/test_output_storage_archiving.py",
+        "tests/development_tools/test_analysis_tool_validation.py",
+        "tests/development_tools/test_analyze_ai_work.py",
+        "tests/development_tools/test_analyze_documentation.py",
+        "tests/development_tools/test_analyze_missing_addresses.py",
+        "development_tools/shared/standard_exclusions.py",
+        "development_docs/TEST_ANALYSIS.md",
+        "development_tools/shared/operations.py",
+        "development_tools/shared/output_storage.py",
+        "development_tools/shared/file_rotation.py",
+        "development_tools/ai_work/analyze_ai_work.py",
+        "development_tools/docs/analyze_documentation.py",
+        "development_tools/docs/analyze_missing_addresses.py"
       ]
     },
     "communication/communication_channels/discord/DISCORD_GUIDE.md": {
@@ -3206,24 +3329,52 @@
         "tests/fixtures/development_tools_demo/docs/numbered_doc.md"
       ]
     },
+    "tests/fixtures/development_tools_demo/docs/path_drift_test_doc.md": {
+      "mtime": 1765019442.215231,
+      "results": [
+        "core/missing_module.py",
+        "tests/missing_test.py",
+        "demo_module.py",
+        "demo_module2.py"
+      ]
+    },
     "tests/fixtures/development_tools_demo/docs/standalone_doc.md": {
       "mtime": 1764139471.4318745,
       "results": []
     },
-    ".cursor/plans/fix_report_data_flow_88cf33c9.plan.md": {
-      "mtime": 1765006924.7506397,
+    "tests/fixtures/development_tools_demo/docs/analysis_validation/ascii_compliance_issues.md": {
+      "mtime": 1765019499.646464,
+      "results": []
+    },
+    "tests/fixtures/development_tools_demo/docs/analysis_validation/heading_numbering_issues.md": {
+      "mtime": 1765019491.6097813,
+      "results": []
+    },
+    "tests/fixtures/development_tools_demo/docs/analysis_validation/missing_addresses.md": {
+      "mtime": 1765019495.9296973,
+      "results": []
+    },
+    "tests/fixtures/development_tools_demo/docs/analysis_validation/path_drift_issues.md": {
+      "mtime": 1765019507.7344832,
       "results": [
-        "development_tools/AI_STATUS.md",
-        "development_tools/AI_PRIORITIES.md",
-        "development_tools/AI_STATUS.md",
-        "development_tools/AI_PRIORITIES.md",
-        "development_tools/shared/operations.py",
-        "development_tools/shared/operations.py",
-        "development_tools/shared/operations.py",
-        "development_tools/shared/operations.py",
-        "development_tools/shared/operations.py",
-        "development_tools/shared/operations.py",
-        "output_storage.py"
+        "core/missing_module.py",
+        "tests/missing_test.py",
+        "demo_module.py",
+        "demo_module2.py"
+      ]
+    },
+    "tests/fixtures/development_tools_demo/docs/analysis_validation/properly_formatted.md": {
+      "mtime": 1765022093.5757947,
+      "results": []
+    },
+    "tests/fixtures/development_tools_demo/docs/analysis_validation/unconverted_links.md": {
+      "mtime": 1765019504.564198,
+      "results": []
+    },
+    "tests/data/pytest-of-Julie/pytest-0/test_path_drift_excludes_test_0/test_project/tests/fixtures/development_tools_demo/docs/test_fixture.md": {
+      "mtime": 1765029384.495637,
+      "results": [
+        "core/missing.py"
       ]
     }
   }

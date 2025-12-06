@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_dependency_patterns - Development Tools",
-  "last_generated": "2025-12-06 04:28:37",
-  "timestamp": "2025-12-06T04:28:37.823981",
+  "last_generated": "2025-12-06 08:12:07",
+  "timestamp": "2025-12-06T08:12:07.056397",
   "tool_name": "analyze_dependency_patterns",
   "domain": "imports",
   "source": "python development_tools/imports/analyze_dependency_patterns.py",
@@ -2808,6 +2808,36 @@
         ]
       },
       {
+        "file": "tests/development_tools/test_analysis_tool_validation.py",
+        "dependencies": [
+          "pytest"
+        ]
+      },
+      {
+        "file": "tests/development_tools/test_analyze_ai_work.py",
+        "dependencies": [
+          "pytest"
+        ]
+      },
+      {
+        "file": "tests/development_tools/test_analyze_documentation.py",
+        "dependencies": [
+          "pytest"
+        ]
+      },
+      {
+        "file": "tests/development_tools/test_analyze_missing_addresses.py",
+        "dependencies": [
+          "pytest"
+        ]
+      },
+      {
+        "file": "tests/development_tools/test_audit_status_updates.py",
+        "dependencies": [
+          "pytest"
+        ]
+      },
+      {
         "file": "tests/development_tools/test_config.py",
         "dependencies": [
           "pytest"
@@ -2856,7 +2886,19 @@
         ]
       },
       {
+        "file": "tests/development_tools/test_output_storage_archiving.py",
+        "dependencies": [
+          "pytest"
+        ]
+      },
+      {
         "file": "tests/development_tools/test_path_drift_detection.py",
+        "dependencies": [
+          "pytest"
+        ]
+      },
+      {
+        "file": "tests/development_tools/test_path_drift_integration.py",
         "dependencies": [
           "pytest"
         ]
@@ -2875,6 +2917,12 @@
       },
       {
         "file": "tests/development_tools/test_standard_exclusions.py",
+        "dependencies": [
+          "pytest"
+        ]
+      },
+      {
+        "file": "tests/development_tools/test_status_file_timing.py",
         "dependencies": [
           "pytest"
         ]

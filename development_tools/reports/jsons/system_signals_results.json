@@ -1,13 +1,13 @@
 {
   "generated_by": "system_signals - Development Tools",
-  "last_generated": "2025-12-06 04:33:09",
-  "timestamp": "2025-12-06T04:33:09.726094",
+  "last_generated": "2025-12-06 08:16:14",
+  "timestamp": "2025-12-06T08:16:14.745291",
   "tool_name": "system_signals",
   "domain": "reports",
   "source": "python development_tools/reports/system_signals.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
-    "timestamp": "2025-12-06T04:33:03.494934",
+    "timestamp": "2025-12-06T08:16:08.266055",
     "system_health": {
       "overall_status": "OK",
       "core_files": {
@@ -25,27 +25,27 @@
         "user": "OK",
         "tests": "OK"
       },
-      "last_audit": "2025-12-06T04:31:19.501945",
+      "last_audit": "2025-12-06T08:14:44.887796",
       "warnings": [],
       "errors": []
     },
     "recent_activity": {
       "recent_changes": [
         ".cursor/plans/fix_report_data_flow_88cf33c9.plan.md",
-        ".cursor/plans/phase-9-status-reports-and-metrics-standardization-99cf574c.plan.md",
         ".cursor/plans/standardize-audit-commands-and-tool-output-ac7c7c62.plan.md",
+        ".cursor/plans/verify_audit_status_updates_and_test_coverage_d8c87cd4.plan.md",
         "TODO.md",
         "ai_development_docs/AI_CHANGELOG.md",
-        "core/user_data_handlers.py",
         "coverage.json",
-        "data/conversation_states.json",
-        "data/user_index.json",
-        "data/users/72a13563-5934-42e8-bc55-f0c851a899cc/messages/sent_messages.json",
-        "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/messages/sent_messages.json",
-        "development_docs/PLANS.md",
-        "development_docs/TEST_ANALYSIS.md",
         "development_docs/TEST_COVERAGE_REPORT.md",
-        "development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md"
+        "development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md",
+        "development_tools/ai_work/jsons/analyze_ai_work_results.json",
+        "development_tools/config/analyze_config.py",
+        "development_tools/config/development_tools_config.json",
+        "development_tools/config/jsons/analyze_config_results.json",
+        "development_tools/docs/fix_version_sync.py",
+        "development_tools/docs/jsons/.analyze_ascii_compliance_cache.json",
+        "development_tools/docs/jsons/.analyze_heading_numbering_cache.json"
       ],
       "git_status": "Modified",
       "last_commit": null,
@@ -55,9 +55,9 @@
     "performance_indicators": {
       "log_file_sizes": {
         "ai.log": "0.0MB",
-        "ai_dev_tools.log": "0.2MB",
-        "app.log": "0.2MB",
-        "communication_manager.log": "0.0MB",
+        "ai_dev_tools.log": "0.4MB",
+        "app.log": "0.3MB",
+        "communication_manager.log": "0.1MB",
         "discord.log": "0.0MB",
         "email.log": "0.0MB",
         "errors.log": "0.0MB",

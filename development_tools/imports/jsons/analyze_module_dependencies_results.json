@@ -1,22 +1,17 @@
 {
   "generated_by": "analyze_module_dependencies - Development Tools",
-  "last_generated": "2025-12-06 04:28:33",
-  "timestamp": "2025-12-06T04:28:33.370298",
+  "last_generated": "2025-12-06 08:12:03",
+  "timestamp": "2025-12-06T08:12:03.149662",
   "tool_name": "analyze_module_dependencies",
   "domain": "imports",
   "source": "python development_tools/imports/analyze_module_dependencies.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
-    "files_scanned": 329,
-    "total_imports": 3795,
-    "documented_dependencies": 327,
-    "standard_library": 1287,
-    "third_party": 566,
-    "local_imports": 1942,
-    "missing_dependencies": 2,
-    "missing_sections": [
-      "tests/development_tools/test_path_drift_detection.py",
-      "tests/ui/test_signal_handler_integration.py"
-    ]
+    "files_scanned": 337,
+    "total_imports": 3845,
+    "documented_dependencies": 337,
+    "standard_library": 1316,
+    "third_party": 574,
+    "local_imports": 1955
   }
 }

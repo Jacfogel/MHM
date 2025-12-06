@@ -1,0 +1,46 @@
+{
+  "generated_by": "quick_status - Development Tools",
+  "last_generated": "2025-12-06 08:17:09",
+  "timestamp": "2025-12-06T08:17:09.777572",
+  "tool_name": "quick_status",
+  "domain": "reports",
+  "source": "python development_tools/reports/quick_status.py",
+  "note": "This file is auto-generated. Do not edit manually.",
+  "data": {
+    "timestamp": "2025-12-06T08:17:09.549614",
+    "system_health": {
+      "core_files": {
+        "requirements.txt": "OK"
+      },
+      "key_directories": {
+        "core": "OK",
+        "tests": "OK"
+      },
+      "overall_status": "OK"
+    },
+    "documentation_status": {
+      "coverage": "Unknown",
+      "recent_audit": "2025-12-06T07:56:32.432328",
+      "key_files": {
+        "README.md": "OK",
+        "ai_development_docs/AI_CHANGELOG.md": "OK",
+        "development_docs/CHANGELOG_DETAIL.md": "OK",
+        "TODO.md": "OK",
+        "development_docs/FUNCTION_REGISTRY_DETAIL.md": "OK",
+        "development_docs/MODULE_DEPENDENCIES_DETAIL.md": "OK"
+      }
+    },
+    "critical_issues": [],
+    "action_items": [],
+    "recent_activity": {
+      "last_audit": "2025-12-06T07:56:32.432328",
+      "recent_changes": [
+        "coverage.json",
+        "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
+        "ai_development_docs/AI_FUNCTION_REGISTRY.md",
+        "ai_development_docs/AI_CHANGELOG.md",
+        "TODO.md"
+      ]
+    }
+  }
+}

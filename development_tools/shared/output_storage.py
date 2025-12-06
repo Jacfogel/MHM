@@ -149,10 +149,76 @@ def save_tool_result(tool_name: str, domain: Optional[str] = None, data: Dict[st
     return result_file
 
 
+def _validate_result_files_exist(data: Dict[str, Any], project_root: Path) -> Dict[str, Any]:
+    """
+    Validate that files referenced in result data still exist, removing references to deleted files.
+    
+    This prevents stale data from deleted files appearing in reports.
+    
+    Args:
+        data: Result data dictionary that may contain file references
+        project_root: Project root directory for resolving file paths
+        
+    Returns:
+        Validated data dictionary with deleted file references removed
+    """
+    if not isinstance(data, dict):
+        return data
+    
+    validated_data = data.copy()
+    
+    # Check for common patterns in documentation analysis results
+    # Pattern 1: 'files' dict mapping file paths to issue counts/lists
+    if 'files' in validated_data and isinstance(validated_data['files'], dict):
+        original_files = validated_data['files'].copy()
+        validated_files = {}
+        removed_count = 0
+        
+        for file_path, issues in original_files.items():
+            # Try to resolve file path relative to project root
+            try:
+                # Handle both forward and backslash paths
+                normalized_path = file_path.replace('\\', '/')
+                file_full_path = project_root / normalized_path
+                
+                if file_full_path.exists():
+                    validated_files[file_path] = issues
+                else:
+                    removed_count += 1
+                    if logger:
+                        logger.debug(f"Removed reference to deleted file from results: {file_path}")
+            except Exception:
+                # If path resolution fails, keep it (might be a special path)
+                validated_files[file_path] = issues
+        
+        validated_data['files'] = validated_files
+        
+        # Update counts if they exist
+        if removed_count > 0:
+            if 'file_count' in validated_data:
+                validated_data['file_count'] = len(validated_files)
+            if 'total_issues' in validated_data:
+                # Recalculate total issues from remaining files
+                total = sum(len(v) if isinstance(v, list) else (v if isinstance(v, (int, float)) else 0) 
+                           for v in validated_files.values())
+                validated_data['total_issues'] = total
+    
+    # Pattern 2: Nested structures (e.g., analyze_documentation_sync_results.json)
+    # Recursively validate nested dicts that might contain file references
+    for key, value in validated_data.items():
+        if isinstance(value, dict) and key != 'files':
+            validated_data[key] = _validate_result_files_exist(value, project_root)
+    
+    return validated_data
+
+
 def load_tool_result(tool_name: str, domain: Optional[str] = None, 
                      project_root: Optional[Path] = None) -> Optional[Dict[str, Any]]:
     """
     Load tool result from domain-specific JSON file.
+    
+    Automatically validates that referenced files still exist, removing
+    references to deleted files to prevent stale data in reports.
     
     Args:
         tool_name: Name of the tool (e.g., 'analyze_functions')
@@ -160,7 +226,7 @@ def load_tool_result(tool_name: str, domain: Optional[str] = None,
         project_root: Project root directory. If None, auto-detected
         
     Returns:
-        Data dict if file exists, None otherwise
+        Data dict if file exists, None otherwise (with deleted file references removed)
     """
     if project_root is None:
         project_root = _get_project_root()
@@ -180,7 +246,15 @@ def load_tool_result(tool_name: str, domain: Optional[str] = None,
     try:
         with open(result_file, 'r', encoding='utf-8') as f:
             result_data = json.load(f)
-        return result_data.get('data', result_data)
+        
+        data = result_data.get('data', result_data)
+        
+        # Validate that referenced files still exist (for documentation analysis tools)
+        # Only validate for tools that reference file paths
+        if domain in ('docs', 'error_handling', 'legacy') and isinstance(data, dict):
+            data = _validate_result_files_exist(data, project_root)
+        
+        return data
     except (json.JSONDecodeError, IOError) as e:
         logger.warning(f"Failed to load tool result from {result_file}: {e}")
         return None
