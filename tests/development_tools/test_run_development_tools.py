@@ -22,6 +22,11 @@ class TestCLIRunnerSmokeTests:
     @pytest.mark.smoke
     def test_status_command_exits_zero(self):
         """Test that 'status' command exits with code 0 and produces output."""
+        # Check if audit is in progress (lock file exists) - skip test if so to prevent mid-audit writes
+        lock_file = PROJECT_ROOT / "development_tools" / ".audit_in_progress.lock"
+        if lock_file.exists():
+            pytest.skip("Skipping status command test during audit to prevent mid-audit status file writes")
+        
         result = subprocess.run(
             [sys.executable, str(RUNNER_SCRIPT), "status"],
             cwd=str(PROJECT_ROOT),

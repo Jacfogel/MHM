@@ -130,6 +130,12 @@ class TestOutputStorageArchiving:
         domains = ['docs', 'functions', 'error_handling', 'tests', 'imports', 'legacy', 
                    'config', 'ai_work', 'reports']
         
+        # Known exceptions: files that are intentionally placed outside jsons/ subdirectories
+        # These are central aggregation files or special configuration files
+        known_exceptions = [
+            'analysis_detailed_results.json',  # Central aggregation file in reports/
+        ]
+        
         misplaced_files = []
         
         for domain in domains:
@@ -142,7 +148,9 @@ class TestOutputStorageArchiving:
                 if json_file.name.startswith('.'):
                     continue  # Skip hidden files
                 if json_file.parent.name != 'jsons':
-                    misplaced_files.append(str(json_file))
+                    # Check if this is a known exception
+                    if json_file.name not in known_exceptions:
+                        misplaced_files.append(str(json_file))
         
         # Report any misplaced files (but don't fail - these might be intentional)
         if misplaced_files:

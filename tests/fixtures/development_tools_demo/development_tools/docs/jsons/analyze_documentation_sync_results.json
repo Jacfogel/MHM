@@ -1,16 +1,16 @@
 {
   "generated_by": "analyze_documentation_sync - Development Tools",
-  "last_generated": "2025-12-06 08:17:22",
-  "timestamp": "2025-12-06T08:17:22.490045",
+  "last_generated": "2025-12-06 23:43:01",
+  "timestamp": "2025-12-06T23:43:01.450196",
   "tool_name": "analyze_documentation_sync",
   "domain": "docs",
   "source": "python development_tools/docs/analyze_documentation_sync.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
     "status": "FAIL",
-    "total_issues": 61,
+    "total_issues": 38,
     "paired_doc_issues": 0,
-    "path_drift_issues": 53,
+    "path_drift_issues": 30,
     "ascii_compliance_issues": 0,
     "heading_numbering_issues": 0,
     "path_drift_files": [
@@ -18,12 +18,12 @@
       "DOCUMENTATION_GUIDE.md",
       "TODO.md",
       "ai\\SYSTEM_AI_GUIDE.md",
-      "ai_development_docs\\AI_DOCUMENTATION_GUIDE.md",
-      "ai_development_docs\\AI_ERROR_HANDLING_GUIDE.md",
       "communication\\COMMUNICATION_GUIDE.md",
       "core\\ERROR_HANDLING_GUIDE.md",
-      "development_docs\\UNUSED_IMPORTS_REPORT.md",
-      "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md"
+      "logs\\LOGGING_GUIDE.md",
+      "tests\\fixtures\\development_tools_demo\\docs\\bad_numbering_doc.md",
+      "tests\\fixtures\\development_tools_demo\\docs\\mismatched_ai_doc.md",
+      "tests\\fixtures\\development_tools_demo\\docs\\mismatched_human_doc.md"
     ],
     "paired_docs": {},
     "path_drift": {
@@ -32,15 +32,9 @@
         "DOCUMENTATION_GUIDE.md": 3,
         "TODO.md": 2,
         "ai\\SYSTEM_AI_GUIDE.md": 1,
-        "ai_development_docs\\AI_DOCUMENTATION_GUIDE.md": 2,
-        "ai_development_docs\\AI_ERROR_HANDLING_GUIDE.md": 2,
         "communication\\COMMUNICATION_GUIDE.md": 3,
         "core\\ERROR_HANDLING_GUIDE.md": 1,
-        "development_docs\\UNUSED_IMPORTS_REPORT.md": 1,
-        "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md": 6,
-        "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md": 5,
         "logs\\LOGGING_GUIDE.md": 2,
-        "development_tools\\shared\\OUTPUT_STORAGE_STANDARDS.md": 7,
         "tests\\fixtures\\development_tools_demo\\docs\\bad_numbering_doc.md": 1,
         "tests\\fixtures\\development_tools_demo\\docs\\mismatched_ai_doc.md": 2,
         "tests\\fixtures\\development_tools_demo\\docs\\mismatched_human_doc.md": 2,
@@ -48,7 +42,7 @@
         "tests\\fixtures\\development_tools_demo\\docs\\path_drift_test_doc.md": 4,
         "tests\\fixtures\\development_tools_demo\\docs\\analysis_validation\\path_drift_issues.md": 4
       },
-      "total_issues": 53,
+      "total_issues": 30,
       "detailed_issues": {
         "ARCHITECTURE.md": [
           "Missing file: something_dialog_pyqt.py",
@@ -68,14 +62,6 @@
         "ai\\SYSTEM_AI_GUIDE.md": [
           "Missing file: response_tracking.py"
         ],
-        "ai_development_docs\\AI_DOCUMENTATION_GUIDE.md": [
-          "Missing file: AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
-          "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md"
-        ],
-        "ai_development_docs\\AI_ERROR_HANDLING_GUIDE.md": [
-          "Missing file: analyze_error_handling.py",
-          "Missing file: error_handling.py"
-        ],
         "communication\\COMMUNICATION_GUIDE.md": [
           "Missing file: command_parser.py",
           "Missing file: command_parser.py",
@@ -84,36 +70,9 @@
         "core\\ERROR_HANDLING_GUIDE.md": [
           "Missing file: analyze_error_handling.py"
         ],
-        "development_docs\\UNUSED_IMPORTS_REPORT.md": [
-          "Potentially outdated module: annotations"
-        ],
-        "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md": [
-          "Missing file: LEGACY_REFERENCE_REPORT.md",
-          "Missing file: TEST_COVERAGE_EXPANSION_PLAN.md",
-          "Missing file: UNUSED_IMPORTS_REPORT.md",
-          "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md",
-          "Missing file: analyze_missing_addresses.py",
-          "Missing file: reports/file_rotation.py"
-        ],
-        "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md": [
-          "Missing file: AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
-          "Potentially outdated module: detector.",
-          "Missing file: AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
-          "Missing file: AI_DEV_TOOLS_IMPROVEMENT_PLAN.md",
-          "Missing file: development_docs/TEST_COVERAGE_EXPANSION_PLAN.md"
-        ],
         "logs\\LOGGING_GUIDE.md": [
           "Missing file: backup_manager.py",
           "Missing file: auto_cleanup.py"
-        ],
-        "development_tools\\shared\\OUTPUT_STORAGE_STANDARDS.md": [
-          "Missing file: AI_STATUS.md",
-          "Missing file: AI_PRIORITIES.md",
-          "Missing file: FUNCTION_REGISTRY_DETAIL.md",
-          "Missing file: MODULE_DEPENDENCIES_DETAIL.md",
-          "Missing file: LEGACY_REFERENCE_REPORT.md",
-          "Missing file: UNUSED_IMPORTS_REPORT.md",
-          "Missing file: DIRECTORY_TREE.md"
         ],
         "tests\\fixtures\\development_tools_demo\\docs\\bad_numbering_doc.md": [
           "Missing file: docs/bad_numbering_doc.md"

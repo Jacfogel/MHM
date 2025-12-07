@@ -113,6 +113,72 @@ from .output_storage import save_tool_result, load_tool_result, get_all_tool_res
 # This prevents status file writes even from new AIToolsService instances created during tests
 _AUDIT_IN_PROGRESS_GLOBAL = False
 
+# File-based lock for cross-process protection (when pytest-xdist runs tests in separate processes)
+_AUDIT_LOCK_FILE = None  # Will be set to Path object when audit starts
+
+def _get_status_file_mtimes(project_root: Path) -> Dict[str, float]:
+    """
+    Get modification times for all status files.
+    
+    Args:
+        project_root: Project root directory
+        
+    Returns:
+        Dictionary mapping file names to modification times (or 0 if file doesn't exist)
+    """
+    status_files = {
+        'AI_STATUS.md': project_root / 'development_tools' / 'AI_STATUS.md',
+        'AI_PRIORITIES.md': project_root / 'development_tools' / 'AI_PRIORITIES.md',
+        'consolidated_report.txt': project_root / 'development_tools' / 'consolidated_report.txt'
+    }
+    
+    mtimes = {}
+    for name, path in status_files.items():
+        if path.exists():
+            mtimes[name] = path.stat().st_mtime
+        else:
+            mtimes[name] = 0.0
+    
+    return mtimes
+
+def _is_audit_in_progress(project_root: Path) -> bool:
+    """
+    Check if audit is in progress using both in-memory flag and file-based lock.
+    This works across processes (e.g., pytest-xdist workers).
+    Also checks for coverage regeneration in progress.
+    
+    Args:
+        project_root: Project root directory
+        
+    Returns:
+        True if audit or coverage regeneration is in progress, False otherwise
+    """
+    global _AUDIT_IN_PROGRESS_GLOBAL, _AUDIT_LOCK_FILE
+    
+    # Check in-memory flag (works within same process)
+    if _AUDIT_IN_PROGRESS_GLOBAL:
+        return True
+    
+    # Check file-based lock (works across processes)
+    if _AUDIT_LOCK_FILE is None:
+        _AUDIT_LOCK_FILE = project_root / 'development_tools' / '.audit_in_progress.lock'
+    
+    audit_lock_exists = _AUDIT_LOCK_FILE.exists()
+    
+    # Also check for coverage regeneration lock
+    coverage_lock_file = project_root / 'development_tools' / '.coverage_in_progress.lock'
+    coverage_lock_exists = coverage_lock_file.exists()
+    
+    lock_exists = audit_lock_exists or coverage_lock_exists
+    
+    # Log the check for debugging (only if lock exists to avoid spam)
+    if lock_exists:
+        from core.logger import get_component_logger
+        logger = get_component_logger("development_tools")
+        logger.debug(f"Audit/coverage lock file check: audit={audit_lock_exists}, coverage={coverage_lock_exists} (project_root: {project_root})")
+    
+    return lock_exists
+
 class AIToolsService:
 
     """Comprehensive AI tools runner optimized for AI collaboration."""
@@ -1127,8 +1193,8 @@ class AIToolsService:
         Returns:
             True if successful, False otherwise
         """
-        # Declare global flag at the start of the function
-        global _AUDIT_IN_PROGRESS_GLOBAL
+        # Declare global flags at the start of the function
+        global _AUDIT_IN_PROGRESS_GLOBAL, _AUDIT_LOCK_FILE
         
         # Determine audit tier
         if quick:
@@ -1150,7 +1216,19 @@ class AIToolsService:
         self._audit_in_progress = True
         # Set global flag so even new instances know audit is in progress
         _AUDIT_IN_PROGRESS_GLOBAL = True
-        logger.debug(f"Set global audit flag: _AUDIT_IN_PROGRESS_GLOBAL = True (tier {tier})")
+        
+        # Create file-based lock for cross-process protection (pytest-xdist workers)
+        if _AUDIT_LOCK_FILE is None:
+            _AUDIT_LOCK_FILE = self.project_root / 'development_tools' / '.audit_in_progress.lock'
+        try:
+            _AUDIT_LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
+            _AUDIT_LOCK_FILE.touch()
+        except Exception as e:
+            logger.warning(f"Failed to create audit lock file: {e}")
+        
+        # Track status file modification times at audit start (for detecting mid-audit writes)
+        initial_mtimes = _get_status_file_mtimes(self.project_root)
+        self._audit_start_mtimes = initial_mtimes
 
         # Store overlap flag for tools that need it
         self._include_overlap = include_overlap
@@ -1210,14 +1288,25 @@ class AIToolsService:
             logger.warning(f"current_audit_tier is None at end of audit! Setting to tier {tier}")
         
         try:
-            # Log that we're about to write status files (to help debug mid-audit writes)
-            logger.info(f"Writing status files at end of audit (tier {self.current_audit_tier}, audit_in_progress={getattr(self, '_audit_in_progress', False)})")
+            # Track status file modification times before final write (for detecting mid-audit writes)
+            pre_final_mtimes = _get_status_file_mtimes(self.project_root)
+            # Compare with audit start times and warn if files were modified during audit
+            if hasattr(self, '_audit_start_mtimes'):
+                for file_name, mtime in pre_final_mtimes.items():
+                    if mtime > self._audit_start_mtimes.get(file_name, 0):
+                        logger.warning(f"Status file {file_name} was modified during audit (before final write)! Mtime changed from {self._audit_start_mtimes.get(file_name, 0)} to {mtime}")
             
-            # Temporarily clear global flag to allow end-of-audit writes
+            # Temporarily clear global flag and lock file to allow end-of-audit writes
             # (We're in run_audit()'s finally block, so this is the legitimate end-of-audit write)
             was_audit_in_progress = _AUDIT_IN_PROGRESS_GLOBAL
             _AUDIT_IN_PROGRESS_GLOBAL = False
-            logger.debug("Temporarily cleared global audit flag to allow end-of-audit status file writes")
+            
+            # Temporarily remove lock file to allow end-of-audit writes
+            if _AUDIT_LOCK_FILE and _AUDIT_LOCK_FILE.exists():
+                try:
+                    _AUDIT_LOCK_FILE.unlink()
+                except Exception as e:
+                    logger.warning(f"Failed to temporarily remove audit lock file: {e}")
             
             try:
                 # Create AI-optimized status document
@@ -1227,7 +1316,6 @@ class AIToolsService:
                     logger.warning(f"Error generating AI_STATUS document: {e}")
                     ai_status = "# AI Status\n\nError generating status document. Please run audit again."
                 ai_status_file = create_output_file("development_tools/AI_STATUS.md", ai_status, project_root=self.project_root)
-                logger.debug(f"AI_STATUS.md written to: {ai_status_file}")
 
                 # Create AI-optimized priorities document
                 try:
@@ -1236,7 +1324,6 @@ class AIToolsService:
                     logger.warning(f"Error generating AI_PRIORITIES document: {e}")
                     ai_priorities = "# AI Priorities\n\nError generating priorities document. Please run audit again."
                 ai_priorities_file = create_output_file("development_tools/AI_PRIORITIES.md", ai_priorities, project_root=self.project_root)
-                logger.debug(f"AI_PRIORITIES.md written to: {ai_priorities_file}")
 
                 # Create comprehensive consolidated report
                 try:
@@ -1245,11 +1332,18 @@ class AIToolsService:
                     logger.warning(f"Error generating consolidated report: {e}")
                     consolidated_report = "Error generating consolidated report. Please run audit again."
                 consolidated_file = create_output_file("development_tools/consolidated_report.txt", consolidated_report, project_root=self.project_root)
-                logger.debug(f"consolidated_report.txt written to: {consolidated_file}")
+                
+                # Verify all files were written (check mtimes)
+                post_final_mtimes = _get_status_file_mtimes(self.project_root)
+                for file_name, mtime in post_final_mtimes.items():
+                    if mtime <= pre_final_mtimes.get(file_name, 0):
+                        logger.warning(f"Status file {file_name} mtime did not change during final write! Expected write but mtime unchanged.")
             finally:
                 # Restore global flag (will be cleared again in outer finally block)
                 _AUDIT_IN_PROGRESS_GLOBAL = was_audit_in_progress
-                logger.debug("Restored global audit flag after end-of-audit status file writes")
+                
+                # Don't restore lock file - it will be removed in the outer finally block anyway
+                # (We're at the end of audit, so the lock should be removed)
 
             # Check and trim AI_CHANGELOG entries to prevent bloat
             # Wrap in try-except to prevent errors from blocking file generation
@@ -1292,6 +1386,14 @@ class AIToolsService:
             # Clear global flag as well (already declared as global at function start)
             _AUDIT_IN_PROGRESS_GLOBAL = False
             logger.debug("Cleared global audit flag: _AUDIT_IN_PROGRESS_GLOBAL = False")
+            
+            # Remove file-based lock
+            if _AUDIT_LOCK_FILE and _AUDIT_LOCK_FILE.exists():
+                try:
+                    _AUDIT_LOCK_FILE.unlink()
+                    logger.debug(f"Removed audit lock file: {_AUDIT_LOCK_FILE}")
+                except Exception as e:
+                    logger.warning(f"Failed to remove audit lock file: {e}")
 
         return success
 
@@ -2072,52 +2174,44 @@ class AIToolsService:
         result = self.run_script('analyze_config')
 
         if result['success']:
-            # Print the report instead of just logging it
+            # Parse JSON output if available
             output = result.get('output', '')
             if output:
-                print(output)
-            else:
-                # If no output, try to extract from JSON results
+                # The output contains both the report (printed by analyze_config) and JSON
+                # Extract JSON from the end of output (it's printed last)
                 try:
                     import json
-                    results_file = self.project_root / "development_tools" / "config" / "jsons" / "analyze_config_results.json"
-                    if results_file.exists():
-                        with open(results_file, 'r', encoding='utf-8') as f:
-                            data = json.load(f)
-                        validation_results = data.get('validation_results', {})
-                        summary = validation_results.get('summary', {})
+                    # Find the last JSON object in the output (it's printed at the end)
+                    lines = output.strip().split('\n')
+                    json_start = None
+                    for i in range(len(lines) - 1, -1, -1):
+                        if lines[i].strip().startswith('{'):
+                            json_start = i
+                            break
+                    
+                    if json_start is not None:
+                        json_output = '\n'.join(lines[json_start:])
+                        json_data = json.loads(json_output)
                         
-                        print("=" * 80)
-                        print("CONFIGURATION VALIDATION REPORT")
-                        print("=" * 80)
-                        print(f"SUMMARY:")
-                        print(f"   Tools using config: {summary.get('tools_using_config', 0)}/{summary.get('total_tools', 0)}")
-                        print(f"   Configuration valid: {'YES' if summary.get('config_valid', False) else 'NO'}")
-                        print(f"   Configuration complete: {'YES' if summary.get('config_complete', False) else 'NO'}")
-                        print(f"   Recommendations: {summary.get('total_recommendations', 0)}")
-                        
-                        # Tool analysis
-                        tools_analysis = validation_results.get('tools_analysis', {})
-                        if tools_analysis:
-                            print(f"TOOL ANALYSIS:")
-                            for tool_name, analysis in tools_analysis.items():
-                                status = "OK" if analysis.get('imports_config', False) and not analysis.get('issues', []) else "WARN" if analysis.get('issues', []) else "FAIL"
-                                print(f"   {status} {tool_name}")
-                                if analysis.get('issues'):
-                                    for issue in analysis['issues']:
-                                        print(f"      Issue: {issue}")
-                        
-                        # Recommendations
-                        recommendations = validation_results.get('recommendations', [])
-                        if recommendations:
-                            print(f"RECOMMENDATIONS:")
-                            for i, rec in enumerate(recommendations, 1):
-                                print(f"   {i}. {rec}")
-                        
-                        print(f"Configuration validation complete!")
-                except Exception as e:
-                    logger.debug(f"Could not extract config report from JSON: {e}")
-                    logger.info("Configuration check completed!")
+                        # Save to standardized storage
+                        try:
+                            save_tool_result('analyze_config', 'config', json_data, project_root=self.project_root)
+                            logger.debug("Regenerated analyze_config_results.json")
+                        except Exception as e:
+                            logger.warning(f"Failed to save analyze_config result: {e}")
+                    else:
+                        # Fallback: try to parse entire output as JSON
+                        json_data = json.loads(output)
+                        save_tool_result('analyze_config', 'config', json_data, project_root=self.project_root)
+                        logger.debug("Regenerated analyze_config_results.json")
+                except (json.JSONDecodeError, ValueError) as e:
+                    logger.warning(f"Failed to parse analyze_config JSON output: {e}")
+                    logger.debug(f"Output was: {output[:500]}...")  # Log first 500 chars for debugging
+                
+                # Print the output (which includes the report)
+                print(output)
+            else:
+                logger.warning("No output from analyze_config script")
 
             return True
         else:
@@ -2212,6 +2306,18 @@ class AIToolsService:
         """Run coverage analysis specifically for development_tools directory."""
         logger.info("Starting development tools coverage analysis...")
         
+        # Create coverage lock file to prevent status file writes during pytest execution
+        global _AUDIT_LOCK_FILE
+        if _AUDIT_LOCK_FILE is None:
+            _AUDIT_LOCK_FILE = self.project_root / 'development_tools' / '.audit_in_progress.lock'
+        coverage_lock_file = self.project_root / 'development_tools' / '.coverage_in_progress.lock'
+
+        # Create lock file to prevent status writes during coverage
+        try:
+            coverage_lock_file.touch()
+        except Exception as e:
+            logger.warning(f"Failed to create coverage lock file: {e}")
+        
         try:
             from ..tests.generate_test_coverage import CoverageMetricsRegenerator
             
@@ -2233,6 +2339,13 @@ class AIToolsService:
         except Exception as exc:
             logger.error(f"Development tools coverage analysis failed: {exc}")
             return {'coverage_collected': False, 'error': str(exc)}
+        finally:
+            # Remove coverage lock file
+            try:
+                if coverage_lock_file.exists():
+                    coverage_lock_file.unlink()
+            except Exception as e:
+                logger.warning(f"Failed to remove coverage lock file: {e}")
 
     def run_status(self, skip_status_files: bool = False):
 
@@ -2241,13 +2354,17 @@ class AIToolsService:
         Args:
             skip_status_files: If True, skip writing status files (used when called during audit)
         """
-        # Automatically skip status files if audit is in progress (check both instance and global flag)
-        global _AUDIT_IN_PROGRESS_GLOBAL
-        if (hasattr(self, '_audit_in_progress') and self._audit_in_progress) or _AUDIT_IN_PROGRESS_GLOBAL:
+        # Automatically skip status files if audit is in progress (check both instance flag and audit status)
+        instance_flag = hasattr(self, '_audit_in_progress') and self._audit_in_progress
+        audit_in_progress_check = _is_audit_in_progress(self.project_root)
+        if instance_flag or audit_in_progress_check:
             skip_status_files = True
-            logger.warning("run_status() called during audit! Skipping status file generation to prevent mid-audit writes.")
+            logger.warning(f"run_status() called during audit! Skipping status file generation to prevent mid-audit writes. (instance_flag={instance_flag}, audit_in_progress={audit_in_progress_check}, project_root={self.project_root})")
             import traceback
             logger.debug(f"Call stack:\n{''.join(traceback.format_stack())}")
+        else:
+            # Log when run_status is called and audit is NOT in progress (for debugging)
+            logger.debug(f"run_status() called - audit NOT in progress (instance_flag={instance_flag}, audit_in_progress={audit_in_progress_check})")
 
         logger.info("Starting status check...")
 
@@ -2438,147 +2555,182 @@ class AIToolsService:
         """Regenerate test coverage metrics"""
 
         logger.info("Starting coverage regeneration...")
+        
+        # Create coverage lock file to prevent status file writes during pytest execution
+        global _AUDIT_LOCK_FILE
+        if _AUDIT_LOCK_FILE is None:
+            _AUDIT_LOCK_FILE = self.project_root / 'development_tools' / '.audit_in_progress.lock'
+        coverage_lock_file = self.project_root / 'development_tools' / '.coverage_in_progress.lock'
+
+        # Create lock file to prevent status writes during coverage
+        try:
+            coverage_lock_file.touch()
+        except Exception as e:
+            logger.warning(f"Failed to create coverage lock file: {e}")
+        
+        # Track status file modification times before test coverage (for detecting mid-audit writes)
+        pre_coverage_mtimes = _get_status_file_mtimes(self.project_root)
+        # Compare with audit start times and warn if files were modified
+        if hasattr(self, '_audit_start_mtimes'):
+            for file_name, mtime in pre_coverage_mtimes.items():
+                if mtime > self._audit_start_mtimes.get(file_name, 0):
+                    logger.warning(f"Status file {file_name} was modified before test coverage! Mtime changed from {self._audit_start_mtimes.get(file_name, 0)} to {mtime}")
 
         logger.info("Regenerating test coverage metrics...")
-
-        result = self.run_script('generate_test_coverage', '--update-plan', timeout=1800)  # 30 minute timeout for coverage
-
-        # Parse test results from output
-        output = result.get('output', '')
-        error_output = result.get('error', '')
-        test_results = self._parse_test_results_from_output(output)
         
-        # Log error output if present for debugging
-        if error_output and logger:
-            logger.warning(f"Coverage regeneration stderr: {error_output[:500]}")
-        
-        # Check if coverage was collected successfully
-        # Only consider it collected if we see actual test output, not just existing files
-        coverage_collected = (
-            'TOTAL' in output or 
-            'coverage:' in output.lower() or
-            ('passed' in output.lower() and 'failed' in output.lower()) or  # Test results present
-            ('[  ' in output and '%]' in output)  # Progress indicators from pytest
-        )
-        
-        # If no test output detected but coverage.json exists, warn that tests may not have run
-        if not coverage_collected and ((self.project_root / "coverage.json").exists() or (self.project_root / "development_tools" / "tests" / "coverage.json").exists()):
-            if logger:
-                logger.error("Coverage regeneration completed with no test output detected - tests likely did not run!")
-                logger.error(f"Script output length: {len(output)} chars, stderr length: {len(error_output)} chars")
-                if error_output:
-                    logger.error(f"Script stderr (first 1000 chars): {error_output[:1000]}")
-                logger.error("This indicates the test suite did not execute. Check for import errors or pytest configuration issues.")
-            # Don't consider it collected - this is a failure
-            coverage_collected = False
-
-        if result['success']:
-
-            # Store results for consolidated report
-
-            self.coverage_results = result
-
-            logger.info("Completed coverage regeneration successfully!")
+        try:
+            result = self.run_script('generate_test_coverage', '--update-plan', timeout=1800)  # 30 minute timeout for coverage
             
-            logger.info("Coverage metrics regenerated and plan updated!")
-            
-            # Run test marker analysis after coverage (when tests are run)
-            try:
-                logger.info("  - Running test marker analysis...")
-                # Use run_test_markers() method which includes save_tool_result
-                marker_result = self.run_test_markers('check')
-                if marker_result.get('success'):
-                    data = marker_result.get('data')
-                    if data:
-                        missing_count = data.get('missing_count', 0)
-                        if missing_count > 0:
-                            logger.info(f"  - Test marker analysis: {missing_count} tests missing category markers")
-                        else:
-                            logger.info("  - Test marker analysis: All tests have category markers")
-            except Exception as exc:
-                logger.debug(f"  - Test marker analysis failed (non-critical): {exc}")
-            
-            # Reload coverage summary after regeneration - force reload
-            self.coverage_results = None  # Clear cached results
-            # Force reload by clearing any cached coverage_summary
-            if hasattr(self, '_cached_coverage_summary'):
-                delattr(self, '_cached_coverage_summary')
-            # Wait a moment for file system to sync, then reload
-            import time
-            time.sleep(0.5)  # Brief pause to ensure file is written
-            coverage_summary = self._load_coverage_summary()
-            if coverage_summary:
-                overall = coverage_summary.get('overall', {})
-                logger.info(f"Reloaded coverage summary after regeneration: {overall.get('coverage', 'N/A')}% ({overall.get('covered', 'N/A')} of {overall.get('statements', 'N/A')} statements)")
-                # Save to standardized storage
-                try:
-                    from .output_storage import save_tool_result
-                    save_tool_result('analyze_test_coverage', 'tests', coverage_summary, project_root=self.project_root)
-                except Exception as save_error:
-                    logger.debug(f"Failed to save analyze_test_coverage results: {save_error}")
-            else:
-                logger.warning("Failed to reload coverage summary after regeneration - coverage.json may not have been updated")
-            
-            # Report test results if available
-            if test_results.get('test_summary'):
-                logger.info(f"Test results: {test_results['test_summary']}")
-                if test_results.get('random_seed'):
-                    logger.info(f"Random seed used: {test_results['random_seed']}")
+            # Track status file modification times after test coverage (for detecting mid-audit writes)
+            post_coverage_mtimes = _get_status_file_mtimes(self.project_root)
+            # Compare with pre-coverage times and warn if files were modified
+            for file_name, mtime in post_coverage_mtimes.items():
+                if mtime > pre_coverage_mtimes.get(file_name, 0):
+                    logger.warning(f"Status file {file_name} was modified during test coverage! Mtime changed from {pre_coverage_mtimes.get(file_name, 0)} to {mtime}")
 
-        else:
+            # Parse test results from output
+            output = result.get('output', '')
+            error_output = result.get('error', '')
+            test_results = self._parse_test_results_from_output(output)
+            
+            # Log error output if present for debugging
+            if error_output and logger:
+                logger.warning(f"Coverage regeneration stderr: {error_output[:500]}")
+            
+            # Check if coverage was collected successfully
+            # Only consider it collected if we see actual test output, not just existing files
+            coverage_collected = (
+                'TOTAL' in output or 
+                'coverage:' in output.lower() or
+                ('passed' in output.lower() and 'failed' in output.lower()) or  # Test results present
+                ('[  ' in output and '%]' in output)  # Progress indicators from pytest
+            )
+            
+            # If no test output detected but coverage.json exists, warn that tests may not have run
+            if not coverage_collected and ((self.project_root / "coverage.json").exists() or (self.project_root / "development_tools" / "tests" / "coverage.json").exists()):
+                if logger:
+                    logger.error("Coverage regeneration completed with no test output detected - tests likely did not run!")
+                    logger.error(f"Script output length: {len(output)} chars, stderr length: {len(error_output)} chars")
+                    if error_output:
+                        logger.error(f"Script stderr (first 1000 chars): {error_output[:1000]}")
+                    logger.error("This indicates the test suite did not execute. Check for import errors or pytest configuration issues.")
+                # Don't consider it collected - this is a failure
+                coverage_collected = False
 
-            # Distinguish between coverage collection failures and test failures
-            if coverage_collected:
-                # Coverage was collected successfully, but tests may have failed
-                logger.warning("Coverage data collected successfully, but script exited with non-zero code")
+            if result['success']:
+
+                # Store results for consolidated report
+
+                self.coverage_results = result
+
+                logger.info("Completed coverage regeneration successfully!")
                 
-                if test_results.get('failed_count', 0) > 0:
-                    failure_msg = f"Test failures detected ({test_results['failed_count']} failed, {test_results.get('passed_count', 0)} passed)"
+                logger.info("Coverage metrics regenerated and plan updated!")
+                
+                # Run test marker analysis after coverage (when tests are run)
+                try:
+                    logger.info("  - Running test marker analysis...")
+                    # Use run_test_markers() method which includes save_tool_result
+                    marker_result = self.run_test_markers('check')
+                    if marker_result.get('success'):
+                        data = marker_result.get('data')
+                        if data:
+                            missing_count = data.get('missing_count', 0)
+                            if missing_count > 0:
+                                logger.info(f"  - Test marker analysis: {missing_count} tests missing category markers")
+                            else:
+                                logger.info("  - Test marker analysis: All tests have category markers")
+                except Exception as exc:
+                    logger.debug(f"  - Test marker analysis failed (non-critical): {exc}")
+                
+                # Reload coverage summary after regeneration - force reload
+                self.coverage_results = None  # Clear cached results
+                # Force reload by clearing any cached coverage_summary
+                if hasattr(self, '_cached_coverage_summary'):
+                    delattr(self, '_cached_coverage_summary')
+                # Wait a moment for file system to sync, then reload
+                import time
+                time.sleep(0.5)  # Brief pause to ensure file is written
+                coverage_summary = self._load_coverage_summary()
+                if coverage_summary:
+                    overall = coverage_summary.get('overall', {})
+                    logger.info(f"Reloaded coverage summary after regeneration: {overall.get('coverage', 'N/A')}% ({overall.get('covered', 'N/A')} of {overall.get('statements', 'N/A')} statements)")
+                    # Save to standardized storage
+                    try:
+                        from .output_storage import save_tool_result
+                        save_tool_result('analyze_test_coverage', 'tests', coverage_summary, project_root=self.project_root)
+                    except Exception as save_error:
+                        logger.debug(f"Failed to save analyze_test_coverage results: {save_error}")
+                else:
+                    logger.warning("Failed to reload coverage summary after regeneration - coverage.json may not have been updated")
+                
+                # Report test results if available
+                if test_results.get('test_summary'):
+                    logger.info(f"Test results: {test_results['test_summary']}")
                     if test_results.get('random_seed'):
-                        failure_msg += f" (random seed: {test_results['random_seed']})"
-                    logger.warning(failure_msg)
-                    
-                    if test_results.get('failed_tests'):
-                        logger.warning("Failed tests:")
-                        for test_name in test_results['failed_tests']:
-                            logger.warning(f"  - {test_name}")
-                    else:
-                        logger.warning("  See development_tools/tests/logs/coverage_regeneration/ for detailed test failure information")
+                        logger.info(f"Random seed used: {test_results['random_seed']}")
+
             else:
-                # Coverage collection failed
-                error_msg = "Coverage regeneration failed"
 
-                if result.get('error'):
+                # Distinguish between coverage collection failures and test failures
+                if coverage_collected:
+                    # Coverage was collected successfully, but tests may have failed
+                    logger.warning("Coverage data collected successfully, but script exited with non-zero code")
+                    
+                    if test_results.get('failed_count', 0) > 0:
+                        failure_msg = f"Test failures detected ({test_results['failed_count']} failed, {test_results.get('passed_count', 0)} passed)"
+                        if test_results.get('random_seed'):
+                            failure_msg += f" (random seed: {test_results['random_seed']})"
+                        logger.warning(failure_msg)
+                        
+                        if test_results.get('failed_tests'):
+                            logger.warning("Failed tests:")
+                            for test_name in test_results['failed_tests']:
+                                logger.warning(f"  - {test_name}")
+                        else:
+                            logger.warning("  See development_tools/tests/logs/coverage_regeneration/ for detailed test failure information")
+                else:
+                    # Coverage collection failed
+                    error_msg = "Coverage regeneration failed"
 
-                    error_msg += f": {result['error']}"
+                    if result.get('error'):
 
-                if result.get('returncode') is not None:
+                        error_msg += f": {result['error']}"
 
-                    error_msg += f" (exit code: {result['returncode']})"
+                    if result.get('returncode') is not None:
 
-                # Check for common failure patterns in output
+                        error_msg += f" (exit code: {result['returncode']})"
 
-                if 'unrecognized arguments' in output.lower():
+                    # Check for common failure patterns in output
 
-                    error_msg += "\n  - Detected pytest argument error (possibly empty --cov argument)"
+                    if 'unrecognized arguments' in output.lower():
 
-                # Check for empty --cov pattern: "--cov --cov" (two --cov in a row)
-                if output and '--cov' in output:
-                    output_parts = output.split()
-                    for i in range(len(output_parts) - 1):
-                        if output_parts[i] == '--cov' and output_parts[i + 1] == '--cov':
-                            error_msg += "\n  - Detected empty --cov argument in error output"
-                            break
+                        error_msg += "\n  - Detected pytest argument error (possibly empty --cov argument)"
 
-                logger.error(f"ERROR: {error_msg}")
+                    # Check for empty --cov pattern: "--cov --cov" (two --cov in a row)
+                    if output and '--cov' in output:
+                        output_parts = output.split()
+                        for i in range(len(output_parts) - 1):
+                            if output_parts[i] == '--cov' and output_parts[i + 1] == '--cov':
+                                error_msg += "\n  - Detected empty --cov argument in error output"
+                                break
 
-                if result.get('error'):
+                    logger.error(f"ERROR: {error_msg}")
 
-                    logger.error(f"  Full error: {result['error'][:500]}")  # Limit error length
+                    if result.get('error'):
 
-            logger.info("  Check development_tools/tests/logs/coverage_regeneration/ for detailed logs")
+                        logger.error(f"  Full error: {result['error'][:500]}")  # Limit error length
 
-        return result['success']
+                logger.info("  Check development_tools/tests/logs/coverage_regeneration/ for detailed logs")
+            
+            return result['success']
+        finally:
+            # Remove coverage lock file
+            try:
+                if coverage_lock_file.exists():
+                    coverage_lock_file.unlink()
+            except Exception as e:
+                logger.warning(f"Failed to remove coverage lock file: {e}")
     
     def _parse_test_results_from_output(self, output: str) -> Dict[str, Any]:
         """Parse test results from pytest output."""
@@ -5058,13 +5210,16 @@ class AIToolsService:
 
         """Generate AI-optimized status document."""
         
-        # Log when this is called during audit to help debug mid-audit writes
-        # Check both instance flag and global flag (for new instances created during tests)
-        global _AUDIT_IN_PROGRESS_GLOBAL
+        # Check if this is a mid-audit write (not the legitimate end-of-audit write)
+        # Only warn if audit is in progress AND we're not in the legitimate end-of-audit context
+        # (indicated by current_audit_tier being set, which means we're in run_audit()'s finally block)
         instance_flag = hasattr(self, '_audit_in_progress') and self._audit_in_progress
-        if instance_flag or _AUDIT_IN_PROGRESS_GLOBAL:
-            if not instance_flag and _AUDIT_IN_PROGRESS_GLOBAL:
-                # This is a new instance created during audit (likely from tests)
+        audit_in_progress = instance_flag or _is_audit_in_progress(self.project_root)
+        is_legitimate_end_write = hasattr(self, 'current_audit_tier') and self.current_audit_tier is not None
+        
+        if audit_in_progress and not is_legitimate_end_write:
+            # This is a mid-audit write from a new instance (likely from tests or separate process)
+            if not instance_flag:
                 logger.warning("_generate_ai_status_document() called from NEW instance during audit! This should only happen at the end.")
             else:
                 logger.warning("_generate_ai_status_document() called during audit! This should only happen at the end.")
@@ -6157,6 +6312,22 @@ class AIToolsService:
 
     def _generate_ai_priorities_document(self) -> str:
         """Generate AI-optimized priorities document with immediate next steps."""
+        
+        # Check if this is a mid-audit write (not the legitimate end-of-audit write)
+        # Only warn if audit is in progress AND we're not in the legitimate end-of-audit context
+        instance_flag = hasattr(self, '_audit_in_progress') and self._audit_in_progress
+        audit_in_progress = instance_flag or _is_audit_in_progress(self.project_root)
+        is_legitimate_end_write = hasattr(self, 'current_audit_tier') and self.current_audit_tier is not None
+        
+        if audit_in_progress and not is_legitimate_end_write:
+            # This is a mid-audit write from a new instance (likely from tests or separate process)
+            if not instance_flag:
+                logger.warning("_generate_ai_priorities_document() called from NEW instance during audit! This should only happen at the end.")
+            else:
+                logger.warning("_generate_ai_priorities_document() called during audit! This should only happen at the end.")
+            import traceback
+            logger.debug(f"Call stack:\n{''.join(traceback.format_stack())}")
+        
         lines: List[str] = []
         lines.append("# AI Priorities - Immediate Next Steps")
         lines.append("")
@@ -7025,6 +7196,21 @@ class AIToolsService:
     def _generate_consolidated_report(self) -> str:
 
         """Generate comprehensive consolidated report combining all tool outputs."""
+        
+        # Check if this is a mid-audit write (not the legitimate end-of-audit write)
+        # Only warn if audit is in progress AND we're not in the legitimate end-of-audit context
+        instance_flag = hasattr(self, '_audit_in_progress') and self._audit_in_progress
+        audit_in_progress = instance_flag or _is_audit_in_progress(self.project_root)
+        is_legitimate_end_write = hasattr(self, 'current_audit_tier') and self.current_audit_tier is not None
+        
+        if audit_in_progress and not is_legitimate_end_write:
+            # This is a mid-audit write from a new instance (likely from tests or separate process)
+            if not instance_flag:
+                logger.warning("_generate_consolidated_report() called from NEW instance during audit! This should only happen at the end.")
+            else:
+                logger.warning("_generate_consolidated_report() called during audit! This should only happen at the end.")
+            import traceback
+            logger.debug(f"Call stack:\n{''.join(traceback.format_stack())}")
 
         lines: List[str] = []
 

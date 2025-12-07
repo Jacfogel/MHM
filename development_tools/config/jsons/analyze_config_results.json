@@ -1,10 +1,12 @@
 {
-  "generated_by": "analyze_config.py - Configuration Validation Tool",
-  "last_generated": "2025-12-06 08:16:41",
+  "generated_by": "analyze_config - Development Tools",
+  "last_generated": "2025-12-06 23:42:42",
+  "timestamp": "2025-12-06T23:42:42.422786",
+  "tool_name": "analyze_config",
+  "domain": "config",
   "source": "python development_tools/config/analyze_config.py",
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2025-12-06T08:16:41.419794",
-  "validation_results": {
+  "data": {
     "tools_analysis": {
       "run_development_tools.py": {
         "imports_config": false,
@@ -29,7 +31,15 @@
       }
     },
     "config_validation": {
-      "scan_directories_exist": [],
+      "scan_directories_exist": [
+        "core",
+        "communication",
+        "ui",
+        "user",
+        "tasks",
+        "tests",
+        "ai"
+      ],
       "missing_directories": [],
       "config_structure_valid": true,
       "issues": []

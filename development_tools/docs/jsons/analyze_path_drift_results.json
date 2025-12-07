@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_path_drift - Development Tools",
-  "last_generated": "2025-12-06 08:11:46",
-  "timestamp": "2025-12-06T08:11:46.614210",
+  "last_generated": "2025-12-06 23:37:56",
+  "timestamp": "2025-12-06T23:37:56.595330",
   "tool_name": "analyze_path_drift",
   "domain": "docs",
   "source": "python development_tools/docs/analyze_path_drift.py",
@@ -20,6 +20,7 @@
       "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md": 6,
       "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md": 5,
       "logs\\LOGGING_GUIDE.md": 2,
+      "tests\\DEVELOPMENT_TOOLS_TESTING_GUIDE.md": 7,
       "development_tools\\shared\\OUTPUT_STORAGE_STANDARDS.md": 7,
       "tests\\fixtures\\development_tools_demo\\docs\\bad_numbering_doc.md": 1,
       "tests\\fixtures\\development_tools_demo\\docs\\mismatched_ai_doc.md": 2,
@@ -28,7 +29,7 @@
       "tests\\fixtures\\development_tools_demo\\docs\\path_drift_test_doc.md": 4,
       "tests\\fixtures\\development_tools_demo\\docs\\analysis_validation\\path_drift_issues.md": 4
     },
-    "total_issues": 53,
+    "total_issues": 60,
     "detailed_issues": {
       "ARCHITECTURE.md": [
         "Missing file: something_dialog_pyqt.py",
@@ -85,6 +86,15 @@
       "logs\\LOGGING_GUIDE.md": [
         "Missing file: backup_manager.py",
         "Missing file: auto_cleanup.py"
+      ],
+      "tests\\DEVELOPMENT_TOOLS_TESTING_GUIDE.md": [
+        "Missing file: demo_module.py",
+        "Missing file: demo_module2.py",
+        "Missing file: legacy_code.py",
+        "Missing file: demo_tests.py",
+        "Missing file: demo_module.py",
+        "Missing file: demo_tests.py",
+        "Missing file: test_integration_workflows.py"
       ],
       "development_tools\\shared\\OUTPUT_STORAGE_STANDARDS.md": [
         "Missing file: AI_STATUS.md",

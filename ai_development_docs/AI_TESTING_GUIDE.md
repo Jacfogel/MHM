@@ -57,6 +57,8 @@ When adding a test:
 
 **Note:** Core analysis tools (`development_tools/docs/analyze_documentation_sync.py`, `development_tools/functions/generate_function_registry.py`, `development_tools/imports/generate_module_dependencies.py`, `development_tools/legacy/fix_legacy_references.py`, `development_tools/tests/generate_test_coverage.py`) have comprehensive test coverage (55+ tests) using a synthetic fixture project at `tests/fixtures/development_tools_demo/`.
 
+For detailed guidance on development tools testing, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
+
 For detailed definitions and examples, see section 2. "Test Layout and Types" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 
 ---

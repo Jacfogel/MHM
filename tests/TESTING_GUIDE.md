@@ -107,6 +107,7 @@ Tests are organized by real-world features and workflows to encourage integratio
   - `development_tools/legacy/fix_legacy_references.py` - 10 tests for legacy pattern detection and cleanup
   - `development_tools/tests/generate_test_coverage.py` - 10 tests for coverage regeneration and reporting
 - Tests use a synthetic fixture project at `tests/fixtures/development_tools_demo/` for isolated testing.
+- For detailed guidance on development tools testing, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
 - Examples:
   - Configuration validation.
   - File exclusion patterns.
@@ -579,7 +580,29 @@ Run these tests when:
 - Modifying how prompts or responses are constructed.
 - Adjusting how AI integrates with message scheduling or user data.
 
-### 8.5. Relationship to this guide
+### 8.5. Development tools testing
+
+For development tools testing (analysis tools, CLI runners, infrastructure), use:
+
+- [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md)
+  - Section 1. "Quick Start".
+  - Section 4. "Test Fixtures and Isolation".
+  - Section 5. "Critical Safety Rules".
+  - Section 6. "Portability Considerations".
+
+Run development tools tests when:
+
+- Modifying development tools behavior (analysis, reporting, CLI routing).
+- Adding or changing tool functionality.
+- Investigating issues with the development tools infrastructure.
+
+Run development tools tests when:
+
+- Modifying development tools behavior (analysis, reporting, CLI routing).
+- Adding or changing tool functionality.
+- Investigating issues with the development tools infrastructure.
+
+### 8.6. Relationship to this guide
 
 This guide (TESTING_GUIDE.md) defines **how testing works overall** and how automated tests are structured and executed.
 

@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_ascii_compliance - Development Tools",
-  "last_generated": "2025-12-06 08:17:36",
-  "timestamp": "2025-12-06T08:17:36.451321",
+  "last_generated": "2025-12-06 23:43:56",
+  "timestamp": "2025-12-06T23:43:56.230795",
   "tool_name": "analyze_ascii_compliance",
   "domain": "docs",
   "note": "This file is auto-generated. Do not edit manually.",
@@ -15,7 +15,7 @@
       "results": []
     },
     "DOCUMENTATION_GUIDE.md": {
-      "mtime": 1764756254.7660725,
+      "mtime": 1765077952.843807,
       "results": []
     },
     "DEVELOPMENT_WORKFLOW.md": {
@@ -27,7 +27,7 @@
       "results": []
     },
     "TODO.md": {
-      "mtime": 1765030284.1340258,
+      "mtime": 1765082694.765292,
       "results": []
     },
     "PROJECT_VISION.md": {
@@ -53,7 +53,7 @@
       "results": []
     },
     "ai_development_docs/AI_DOCUMENTATION_GUIDE.md": {
-      "mtime": 1764801181.047629,
+      "mtime": 1765077952.8417966,
       "results": []
     },
     "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -75,7 +75,7 @@
       "results": []
     },
     "ai_development_docs/AI_TESTING_GUIDE.md": {
-      "mtime": 1764870006.3977401,
+      "mtime": 1765077952.8372989,
       "results": []
     },
     "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md": {
@@ -95,7 +95,7 @@
       "results": []
     },
     "tests/TESTING_GUIDE.md": {
-      "mtime": 1764870006.4558666,
+      "mtime": 1765077952.8372989,
       "results": []
     },
     "tests/MANUAL_TESTING_GUIDE.md": {
@@ -131,13 +131,17 @@
       "results": []
     },
     "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
-      "mtime": 1764816606.035673,
+      "mtime": 1765077952.8383055,
       "results": [
         "Non-ASCII character '\u2192' (U+2192): 3 instance(s) found (auto-fixable: '->')"
       ]
     },
     "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
-      "mtime": 1764817861.9507194,
+      "mtime": 1765077952.8372989,
+      "results": []
+    },
+    "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md": {
+      "mtime": 1765077520.3602946,
       "results": []
     }
   }

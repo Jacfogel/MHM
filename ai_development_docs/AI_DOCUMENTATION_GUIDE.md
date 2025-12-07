@@ -17,7 +17,7 @@ Use this to decide which doc to open or reference.
 - Development workflow and safe changes: [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)
 - Logging, testing, and error handling:
   - Logging: [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md)
-  - Testing: [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)
+  - Testing: [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md)
   - Error handling: [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md)
 - Documentation system and sync rules:
   - This doc: AI_DOCUMENTATION_GUIDE.md (routing rules and doc classes)

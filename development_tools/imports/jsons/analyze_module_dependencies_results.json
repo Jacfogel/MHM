@@ -1,17 +1,17 @@
 {
   "generated_by": "analyze_module_dependencies - Development Tools",
-  "last_generated": "2025-12-06 08:12:03",
-  "timestamp": "2025-12-06T08:12:03.149662",
+  "last_generated": "2025-12-06 23:38:13",
+  "timestamp": "2025-12-06T23:38:13.176354",
   "tool_name": "analyze_module_dependencies",
   "domain": "imports",
   "source": "python development_tools/imports/analyze_module_dependencies.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
     "files_scanned": 337,
-    "total_imports": 3845,
+    "total_imports": 3841,
     "documented_dependencies": 337,
-    "standard_library": 1316,
+    "standard_library": 1313,
     "third_party": 574,
-    "local_imports": 1955
+    "local_imports": 1954
   }
 }

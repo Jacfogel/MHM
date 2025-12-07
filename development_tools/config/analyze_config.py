@@ -365,30 +365,17 @@ class ConfigValidator:
 
 def main():
     """Main function to run configuration validation."""
+    import sys
+    import json
+    
     validator = ConfigValidator()
     results = validator.run_validation()
     validator.print_validation_report(results)
     
-    # Save results with proper headers
-    results_file = validator.ai_tools_dir / 'config' / 'jsons' / 'analyze_config_results.json'
-    try:
-        # Add generation headers to results
-        timestamp_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        timestamp_iso = datetime.now().isoformat()
-        results_with_headers = {
-            'generated_by': 'analyze_config.py - Configuration Validation Tool',
-            'last_generated': timestamp_str,
-            'source': 'python development_tools/config/analyze_config.py',
-            'note': 'This file is auto-generated. Do not edit manually.',
-            'timestamp': timestamp_iso,
-            'validation_results': results
-        }
-        
-        with open(results_file, 'w', encoding='utf-8') as f:
-            json.dump(results_with_headers, f, indent=2)
-        logger.info(f"Results saved to: {results_file}")
-    except Exception as e:
-        logger.error(f"Failed to save results: {e}")
+    # Always output JSON to stdout for wrapper to capture and save via save_tool_result()
+    # This matches the pattern used by other tools like analyze_functions
+    # The report is printed above for human readability, JSON is for programmatic use
+    print(json.dumps(results, indent=2))
 
 if __name__ == "__main__":
     main() 

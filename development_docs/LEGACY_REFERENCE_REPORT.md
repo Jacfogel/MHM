@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-06 08:15:57
+> **Last Generated**: 2025-12-06 23:42:32
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 5
 **Legacy Compatibility Markers Detected**: 26
@@ -110,17 +110,17 @@
 ### development_tools\shared\operations.py
 **Issues Found**: 3
 
-- **Line 686**: `# LEGACY COMPATIBILITY:`
+- **Line 752**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Reading from old file location for backward compatibility
   ```
 
-- **Line 5777**: `# LEGACY COMPATIBILITY:`
+- **Line 5932**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Reading from old file location for backward compatibility
   ```
 
-- **Line 8870**: `# LEGACY COMPATIBILITY:`
+- **Line 9056**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Handle deprecated --fast flag
   ```

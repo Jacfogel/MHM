@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_path_drift - Development Tools",
-  "last_generated": "2025-12-06 08:17:36",
-  "timestamp": "2025-12-06T08:17:36.123357",
+  "last_generated": "2025-12-06 23:43:55",
+  "timestamp": "2025-12-06T23:43:55.919835",
   "tool_name": "analyze_path_drift",
   "domain": "docs",
   "note": "This file is auto-generated. Do not edit manually.",
@@ -89,7 +89,7 @@
       ]
     },
     "DOCUMENTATION_GUIDE.md": {
-      "mtime": 1764756254.7660725,
+      "mtime": 1765077952.843807,
       "results": [
         "DOCUMENTATION_GUIDE.md",
         "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
@@ -104,6 +104,7 @@
         "ai_development_docs/AI_LOGGING_GUIDE.md",
         "tests/TESTING_GUIDE.md",
         "ai_development_docs/AI_TESTING_GUIDE.md",
+        "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
         "core/ERROR_HANDLING_GUIDE.md",
         "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
         "ai_development_docs/AI_SESSION_STARTER.md",
@@ -289,7 +290,7 @@
       ]
     },
     "TODO.md": {
-      "mtime": 1765030284.1340258,
+      "mtime": 1765082694.765292,
       "results": [
         "TODO.md",
         "README.md",
@@ -306,6 +307,7 @@
         "scripts/static_checks/check_channel_loggers.py",
         "run_tests.py",
         "logs/LOGGING_GUIDE.md",
+        "tests/ui/test_account_creation_ui.py",
         "communication/core/channel_orchestrator.py"
       ]
     },
@@ -475,7 +477,7 @@
       ]
     },
     "ai_development_docs/AI_DOCUMENTATION_GUIDE.md": {
-      "mtime": 1764801181.047629,
+      "mtime": 1765077952.8417966,
       "results": [
         "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
         "DOCUMENTATION_GUIDE.md",
@@ -484,6 +486,7 @@
         "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
         "ai_development_docs/AI_LOGGING_GUIDE.md",
         "ai_development_docs/AI_TESTING_GUIDE.md",
+        "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
         "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
         "DOCUMENTATION_GUIDE.md",
         "ai_development_docs/AI_SESSION_STARTER.md",
@@ -742,7 +745,7 @@
       ]
     },
     "ai_development_docs/AI_TESTING_GUIDE.md": {
-      "mtime": 1764870006.3977401,
+      "mtime": 1765077952.8372989,
       "results": [
         "ai_development_docs/AI_TESTING_GUIDE.md",
         "tests/TESTING_GUIDE.md",
@@ -752,6 +755,7 @@
         "development_tools/docs/analyze_documentation_sync.py",
         "development_tools/legacy/fix_legacy_references.py",
         "development_tools/tests/generate_test_coverage.py",
+        "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
         "tests/TESTING_GUIDE.md",
         "tests/conftest.py",
         "tests/test_utilities.py",
@@ -938,7 +942,7 @@
       ]
     },
     "development_docs/LEGACY_REFERENCE_REPORT.md": {
-      "mtime": 1765030557.173929,
+      "mtime": 1765086152.774678,
       "results": [
         "development_docs/LEGACY_REFERENCE_REPORT.md",
         "bot."
@@ -2216,13 +2220,13 @@
       ]
     },
     "development_docs/TEST_COVERAGE_REPORT.md": {
-      "mtime": 1765030552.118106,
+      "mtime": 1765086139.3800423,
       "results": [
         "development_docs/TEST_COVERAGE_REPORT.md"
       ]
     },
     "development_docs/UNUSED_IMPORTS_REPORT.md": {
-      "mtime": 1765030555.1151826,
+      "mtime": 1765086150.6507282,
       "results": [
         "development_docs/UNUSED_IMPORTS_REPORT.md",
         "communication/command_handlers/account_handler.py",
@@ -2239,6 +2243,8 @@
         "core/schedule_management.py",
         "core/scheduler.py",
         "core/user_data_manager.py",
+        "development_tools/config/analyze_config.py",
+        "json",
         "development_tools/error_handling/analyze_error_handling.py",
         "json",
         "os",
@@ -2318,7 +2324,6 @@
         "tests/development_tools/test_analyze_ai_work.py",
         "tests/development_tools/test_output_storage_archiving.py",
         "tests/development_tools/test_regenerate_coverage_metrics.py",
-        "tests/development_tools/test_status_file_timing.py",
         "tests/integration/test_user_creation.py",
         "tests/test_error_handling_improvements.py",
         "tests/test_utilities.py",
@@ -2419,8 +2424,6 @@
         "json",
         "tempfile",
         "tests/development_tools/test_regenerate_coverage_metrics.py",
-        "tests/development_tools/test_status_file_timing.py",
-        "os",
         "tests/integration/test_account_management.py",
         "time",
         "tempfile",
@@ -2465,7 +2468,7 @@
       ]
     },
     "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
-      "mtime": 1764816606.035673,
+      "mtime": 1765077952.8383055,
       "results": [
         "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
         "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
@@ -2528,6 +2531,7 @@
         "shared/mtime_cache.py",
         "shared/mtime_cache.py",
         "analyze_missing_addresses.py",
+        "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
         "reports/quick_status.py",
         "reports/system_signals.py",
         "reports/file_rotation.py",
@@ -2536,24 +2540,28 @@
       ]
     },
     "development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md": {
-      "mtime": 1765030319.3145416,
+      "mtime": 1765084809.1868126,
       "results": [
         "development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md",
+        "analyze_config.py",
         "development_tools/shared/operations.py",
         "development_tools/shared/output_storage.py",
         "development_docs/CHANGELOG_DETAIL.md",
         "AI_STATUS.md",
         "AI_PRIORITIES.md",
-        "operations.py",
-        "file_rotation.py",
-        "file_rotation.py",
         "development_tools/shared/operations.py",
         "development_tools/shared/file_rotation.py",
+        "tests/development_tools/test_run_development_tools.py",
+        "tests/development_tools/test_status_file_timing.py",
+        "tests/development_tools/test_audit_status_updates.py",
         "development_tools/shared/operations.py",
         "development_tools/shared/output_storage.py",
         "analyze_config.py",
-        "development_tools/shared/operations.py",
+        "operations.py",
+        "analyze_config.py",
+        "output_storage.py",
         "development_tools/config/analyze_config.py",
+        "development_tools/shared/operations.py",
         "development_tools/shared/operations.py",
         "development_tools/shared/output_storage.py",
         "development_tools/functions/analyze_functions.py",
@@ -2653,19 +2661,23 @@
       ]
     },
     "development_tools/AI_PRIORITIES.md": {
-      "mtime": 1765030649.9975467,
+      "mtime": 1765085295.3459773,
       "results": [
-        "development_tools/AI_PRIORITIES.md"
+        "development_tools/AI_PRIORITIES.md",
+        "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md"
       ]
     },
     "development_tools/AI_STATUS.md": {
-      "mtime": 1765030649.9916413,
+      "mtime": 1765085295.3292856,
       "results": [
-        "development_tools/AI_STATUS.md"
+        "development_tools/AI_STATUS.md",
+        "development_docs/TEST_COVERAGE_REPORT.md",
+        "development_docs/UNUSED_IMPORTS_REPORT.md",
+        "development_docs/LEGACY_REFERENCE_REPORT.md"
       ]
     },
     "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
-      "mtime": 1764817861.9507194,
+      "mtime": 1765077952.8372989,
       "results": [
         "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
         "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
@@ -2789,7 +2801,7 @@
       ]
     },
     "tests/TESTING_GUIDE.md": {
-      "mtime": 1764870006.4558666,
+      "mtime": 1765077952.8372989,
       "results": [
         "tests/TESTING_GUIDE.md",
         "ai_development_docs/AI_TESTING_GUIDE.md",
@@ -2799,6 +2811,7 @@
         "development_tools/docs/analyze_documentation_sync.py",
         "development_tools/legacy/fix_legacy_references.py",
         "development_tools/tests/generate_test_coverage.py",
+        "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
         "tests/conftest.py",
         "tests/conftest.py",
         "tests/test_utilities.py",
@@ -2813,7 +2826,8 @@
         "tests/MANUAL_TESTING_GUIDE.md",
         "tests/MANUAL_DISCORD_TEST_GUIDE.md",
         "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
-        "ai/SYSTEM_AI_GUIDE.md"
+        "ai/SYSTEM_AI_GUIDE.md",
+        "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md"
       ]
     },
     "ui/UI_GUIDE.md": {
@@ -3372,9 +3386,85 @@
       "results": []
     },
     "tests/data/pytest-of-Julie/pytest-0/test_path_drift_excludes_test_0/test_project/tests/fixtures/development_tools_demo/docs/test_fixture.md": {
-      "mtime": 1765029384.495637,
+      "mtime": 1765073352.9440682,
       "results": [
         "core/missing.py"
+      ]
+    },
+    "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md": {
+      "mtime": 1765077520.3602946,
+      "results": [
+        "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
+        "tests/TESTING_GUIDE.md",
+        "tests/TESTING_GUIDE.md",
+        "tests/development_tools/conftest.py",
+        "tests/development_tools/test_config.py",
+        "tests/development_tools/test_constants.py",
+        "tests/development_tools/test_standard_exclusions.py",
+        "tests/development_tools/test_analyze_documentation.py",
+        "tests/development_tools/test_analyze_missing_addresses.py",
+        "tests/development_tools/test_analysis_tool_validation.py",
+        "tests/development_tools/test_documentation_sync_checker.py",
+        "tests/development_tools/test_generate_module_dependencies.py",
+        "tests/development_tools/test_regenerate_coverage_metrics.py",
+        "tests/development_tools/test_legacy_reference_cleanup.py",
+        "tests/development_tools/test_audit_status_updates.py",
+        "tests/development_tools/test_status_file_timing.py",
+        "tests/development_tools/test_output_storage_archiving.py",
+        "tests/development_tools/test_run_development_tools.py",
+        "tests/development_tools/test_integration_workflows.py",
+        "tests/development_tools/test_error_scenarios.py",
+        "tests/development_tools/test_supporting_tools.py",
+        "tests/development_tools/test_analyze_ai_work.py",
+        "demo_module.py",
+        "demo_module2.py",
+        "legacy_code.py",
+        "demo_tests.py",
+        "demo_module.py",
+        "demo_tests.py",
+        "conftest.py",
+        "test_integration_workflows.py",
+        "tests/TESTING_GUIDE.md"
+      ]
+    },
+    "tests/fixtures/development_tools_demo/development_tools/AI_PRIORITIES.md": {
+      "mtime": 1765081700.7391179,
+      "results": [
+        "development_tools/AI_PRIORITIES.md"
+      ]
+    },
+    "tests/fixtures/development_tools_demo/development_tools/AI_STATUS.md": {
+      "mtime": 1765081700.7341113,
+      "results": [
+        "development_tools/AI_STATUS.md"
+      ]
+    },
+    ".cursor/plans/complete_tool_result_saving_and_fix_mid-audit_status_updates_2b6e7afe.plan.md": {
+      "mtime": 1765084429.6272168,
+      "results": [
+        "output_storage.py",
+        "analyze_config.py",
+        "analyze_config.py",
+        "development_tools/config/analyze_config.py",
+        "operations.py",
+        "development_tools/shared/operations.py",
+        "analyze_config.py",
+        "file_rotation.py",
+        "development_tools/shared/file_rotation.py",
+        "development_tools/shared/operations.py",
+        "development_tools/shared/operations.py",
+        "development_tools/shared/operations.py",
+        "generate_test_coverage.py",
+        "development_tools/tests/generate_test_coverage.py",
+        "development_tools/shared/file_rotation.py",
+        "AI_STATUS.md",
+        "AI_PRIORITIES.md",
+        "development_tools/config/analyze_config.py",
+        "development_tools/shared/operations.py",
+        "development_tools/shared/file_rotation.py",
+        "development_tools/shared/operations.py",
+        "development_tools/tests/generate_test_coverage.py",
+        "analyze_config.py"
       ]
     }
   }

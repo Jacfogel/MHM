@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_functions - Development Tools",
-  "last_generated": "2025-12-06 08:17:11",
-  "timestamp": "2025-12-06T08:17:11.473523",
+  "last_generated": "2025-12-06 23:42:51",
+  "timestamp": "2025-12-06T23:42:51.708198",
   "tool_name": "analyze_functions",
   "domain": "functions",
   "source": "python development_tools/functions/analyze_functions.py",

@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_missing_addresses - Development Tools",
-  "last_generated": "2025-12-06 08:11:49",
-  "timestamp": "2025-12-06T08:11:49.780681",
+  "last_generated": "2025-12-06 23:38:00",
+  "timestamp": "2025-12-06T23:38:00.180302",
   "tool_name": "analyze_missing_addresses",
   "domain": "docs",
   "note": "This file is auto-generated. Do not edit manually.",
@@ -15,7 +15,7 @@
       "results": []
     },
     "DOCUMENTATION_GUIDE.md": {
-      "mtime": 1764756254.7660725,
+      "mtime": 1765077952.843807,
       "results": []
     },
     "HOW_TO_RUN.md": {
@@ -31,7 +31,7 @@
       "results": []
     },
     "TODO.md": {
-      "mtime": 1765030284.1340258,
+      "mtime": 1765082694.765292,
       "results": []
     },
     "ai/SYSTEM_AI_GUIDE.md": {
@@ -43,7 +43,7 @@
       "results": []
     },
     "ai_development_docs/AI_CHANGELOG.md": {
-      "mtime": 1765030204.0287168,
+      "mtime": 1765030322.7136664,
       "results": []
     },
     "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -51,7 +51,7 @@
       "results": []
     },
     "ai_development_docs/AI_DOCUMENTATION_GUIDE.md": {
-      "mtime": 1764801181.047629,
+      "mtime": 1765077952.8417966,
       "results": []
     },
     "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md": {
@@ -75,7 +75,7 @@
       "results": []
     },
     "ai_development_docs/AI_TESTING_GUIDE.md": {
-      "mtime": 1764870006.3977401,
+      "mtime": 1765077952.8372989,
       "results": []
     },
     "communication/COMMUNICATION_GUIDE.md": {
@@ -91,19 +91,19 @@
       "results": []
     },
     "development_docs/TEST_COVERAGE_REPORT.md": {
-      "mtime": 1765029283.823394,
+      "mtime": 1765085191.9659808,
       "results": []
     },
     "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
-      "mtime": 1764816606.035673,
+      "mtime": 1765077952.8383055,
       "results": []
     },
     "development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md": {
-      "mtime": 1765030204.0326247,
+      "mtime": 1765084809.1868126,
       "results": []
     },
     "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
-      "mtime": 1764817861.9507194,
+      "mtime": 1765077952.8372989,
       "results": []
     },
     "logs/LOGGING_GUIDE.md": {
@@ -135,7 +135,7 @@
       "results": []
     },
     "tests/TESTING_GUIDE.md": {
-      "mtime": 1764870006.4558666,
+      "mtime": 1765077952.8372989,
       "results": []
     },
     "ui/UI_GUIDE.md": {
@@ -148,6 +148,10 @@
     },
     "development_tools/shared/OUTPUT_STORAGE_STANDARDS.md": {
       "mtime": 1764746603.9147153,
+      "results": []
+    },
+    "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md": {
+      "mtime": 1765077520.3602946,
       "results": []
     }
   }

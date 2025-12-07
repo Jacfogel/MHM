@@ -30,7 +30,7 @@ This section helps you choose the right documentation file quickly and safely.
 
 - **Logging, testing, and error handling**  
   - Logging: [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) and [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md)  
-  - Testing: [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) and [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)  
+  - Testing: [TESTING_GUIDE.md](tests/TESTING_GUIDE.md), [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), and [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md)  
   - Error handling: [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) and [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md)
 
 - **AI collaboration and rules**  

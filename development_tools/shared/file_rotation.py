@@ -154,13 +154,55 @@ def create_output_file(file_path: str, content: str, rotate: bool = True, max_ve
             import sys
             if 'development_tools.shared.operations' in sys.modules:
                 operations_module = sys.modules['development_tools.shared.operations']
-                # Check global audit flag (prevents writes even from new instances created during tests)
-                if hasattr(operations_module, '_AUDIT_IN_PROGRESS_GLOBAL') and operations_module._AUDIT_IN_PROGRESS_GLOBAL:
+                # Check both in-memory flag and file-based lock (for cross-process protection)
+                # Use the helper function if available, otherwise fall back to direct check
+                if hasattr(operations_module, '_is_audit_in_progress'):
+                    # Use helper function that checks both in-memory and file-based lock
+                    # Use project_root parameter if provided, otherwise try to infer from file_path
+                    check_project_root = None
+                    if project_root is not None:
+                        # Use provided project_root parameter (most reliable)
+                        check_project_root = Path(project_root).resolve()
+                    else:
+                        # Try to infer from file_path (fallback)
+                        try:
+                            inferred_root = Path(file_path).resolve()
+                            # Go up to project root (file_path is like project_root/development_tools/AI_STATUS.md)
+                            while inferred_root.name != 'development_tools' and inferred_root.parent != inferred_root:
+                                inferred_root = inferred_root.parent
+                            if inferred_root.name == 'development_tools':
+                                inferred_root = inferred_root.parent
+                            check_project_root = inferred_root
+                        except Exception as e:
+                            from core.logger import get_component_logger
+                            debug_logger = get_component_logger("development_tools")
+                            debug_logger.warning(f"Failed to infer project root from file_path for {file_name}: {e}")
+                    
+                    if check_project_root:
+                        try:
+                            is_in_progress = operations_module._is_audit_in_progress(check_project_root)
+                            # Check result logged only if blocking (see warning below)
+                        except Exception as e:
+                            # If check fails, assume not in progress (defensive - don't block if we can't check)
+                            from core.logger import get_component_logger
+                            debug_logger = get_component_logger("development_tools")
+                            debug_logger.warning(f"Failed to check audit status for {file_name}: {e}")
+                            is_in_progress = False
+                    else:
+                        # Can't determine project root, assume not in progress (defensive)
+                        is_in_progress = False
+                elif hasattr(operations_module, '_AUDIT_IN_PROGRESS_GLOBAL') and operations_module._AUDIT_IN_PROGRESS_GLOBAL:
+                    is_in_progress = True
+                else:
+                    is_in_progress = False
+                
+                if is_in_progress:
                     from core.logger import get_component_logger
                     logger = get_component_logger("development_tools")
                     logger.warning(f"create_output_file() called to write {file_name} during audit! Blocking write to prevent mid-audit status file changes.")
                     import traceback
-                    logger.debug(f"Call stack:\n{''.join(traceback.format_stack())}")
+                    call_stack = ''.join(traceback.format_stack())
+                    logger.debug(f"Call stack for blocked {file_name} write attempt:\n{call_stack}")
                     # Raise exception to prevent the write
                     raise RuntimeError(f"Cannot write {file_name} during audit - status files should only be written at the end of audit")
         except RuntimeError:
@@ -169,6 +211,8 @@ def create_output_file(file_path: str, content: str, rotate: bool = True, max_ve
         except Exception:
             # If check fails, continue (defensive check only - don't block if we can't check)
             pass
+    
+    # Status files are logged at DEBUG level when actually written (see operations.py for audit context)
     
     # Ensure file_path is a Path object
     if isinstance(file_path, str):

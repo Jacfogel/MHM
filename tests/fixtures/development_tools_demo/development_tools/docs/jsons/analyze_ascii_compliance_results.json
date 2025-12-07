@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_ascii_compliance - Development Tools",
-  "last_generated": "2025-12-06 08:17:17",
-  "timestamp": "2025-12-06T08:17:17.055717",
+  "last_generated": "2025-12-06 23:42:55",
+  "timestamp": "2025-12-06T23:42:55.691129",
   "tool_name": "analyze_ascii_compliance",
   "domain": "docs",
   "source": "python development_tools/docs/analyze_ascii_compliance.py",

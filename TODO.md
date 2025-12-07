@@ -237,6 +237,11 @@ When adding new tasks, follow this format:
   - [ ] Ensure job runs before test steps and fails the pipeline on violations
   - [ ] Document the check in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) (contributor notes)
 
+**Investigate Account Creation UI Test Failure**
+- *What it means*: Fix `test_account_creation_real_behavior` in `tests/ui/test_account_creation_ui.py` - test expects user directory to be created but it's not being created during the test execution
+- *Why it helps*: Ensures account creation workflow works correctly and maintains test coverage for UI functionality
+- *Estimated effort*: Small/Medium
+
 **Improve AI Terminal Interaction Reliability**
 - *What it means*: Investigate why AI assistants often misinterpret PowerShell output or make incorrect assumptions
 - *Why it helps*: Reduces confusion and improves the reliability of AI-assisted development

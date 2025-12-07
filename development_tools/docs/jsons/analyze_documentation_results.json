@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_documentation - Development Tools",
-  "last_generated": "2025-12-06 08:11:55",
-  "timestamp": "2025-12-06T08:11:55.176647",
+  "last_generated": "2025-12-06 23:38:05",
+  "timestamp": "2025-12-06T23:38:05.317765",
   "tool_name": "analyze_documentation",
   "domain": "docs",
   "source": "python development_tools/docs/analyze_documentation.py",
@@ -32,6 +32,7 @@
           "tests/MANUAL_TESTING_GUIDE.md",
           "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
           "tests/MANUAL_DISCORD_TEST_GUIDE.md",
+          "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
           "communication/COMMUNICATION_GUIDE.md",
           "communication/communication_channels/discord/DISCORD_GUIDE.md",
           "scripts/SCRIPTS_GUIDE.md",
@@ -41,7 +42,7 @@
           "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
         ],
         "priority": "medium",
-        "similarity_score": 0.19196195941595065,
+        "similarity_score": 0.1918820339665752,
         "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
       },
       {
@@ -49,11 +50,22 @@
         "files": [
           "ai_development_docs/AI_TESTING_GUIDE.md",
           "tests/TESTING_GUIDE.md",
-          "tests/MANUAL_TESTING_GUIDE.md"
+          "tests/MANUAL_TESTING_GUIDE.md",
+          "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md"
         ],
         "priority": "medium",
-        "similarity_score": 0.29697863023774945,
+        "similarity_score": 0.26807322366527847,
         "suggestion": "Consider consolidating testing documentation into a single TESTING_GUIDE.md"
+      },
+      {
+        "category": "High Section Overlap",
+        "files": [
+          "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
+          "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md"
+        ],
+        "overlap_count": 3,
+        "priority": "medium",
+        "suggestion": "These files share 3 sections - consider consolidating or clearly differentiating their purposes"
       }
     ],
     "documents": [
@@ -84,6 +96,7 @@
       "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
       "logs/LOGGING_GUIDE.md",
       "scripts/SCRIPTS_GUIDE.md",
+      "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
       "tests/MANUAL_DISCORD_TEST_GUIDE.md",
       "tests/MANUAL_TESTING_GUIDE.md",
       "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
@@ -126,7 +139,7 @@
         ]
       },
       "DOCUMENTATION_GUIDE.md": {
-        "content_length": 30991,
+        "content_length": 31072,
         "header_info": "# Documentation Guide\n\n> **File**: `DOCUMENTATION_GUIDE.md`  \n> **Audience**: Developers and contributors  \n> **Purpose**: Organize, author, and maintain project documentation  \n> **Style**: Comprehen",
         "section_count": 32,
         "sections": [
@@ -194,7 +207,7 @@
         ]
       },
       "TODO.md": {
-        "content_length": 16494,
+        "content_length": 16896,
         "header_info": "# TODO.md - MHM Project Tasks\n\n> **File**: `TODO.md`\n> **Audience**: Human Developer (Beginner Programmer) and AI collaborators\n> **Purpose**: Current development priorities and planned improvements  ",
         "section_count": 9,
         "sections": [
@@ -276,7 +289,7 @@
         ]
       },
       "ai_development_docs/AI_DOCUMENTATION_GUIDE.md": {
-        "content_length": 13641,
+        "content_length": 13721,
         "header_info": "# AI Documentation Guide\n\n> **File**: `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`\n> **Pair**: [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md)\n> **Audience**: AI collaborators and tools\n> **Purpos",
         "section_count": 19,
         "sections": [
@@ -374,7 +387,7 @@
         ]
       },
       "ai_development_docs/AI_TESTING_GUIDE.md": {
-        "content_length": 9655,
+        "content_length": 9792,
         "header_info": "# AI Testing Guide\n\n> **File**: `ai_development_docs/AI_TESTING_GUIDE.md`  \n> **Pair**: [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)  \n> **Audience**: AI collaborators and tools  \n> **Purpose**: Routing",
         "section_count": 9,
         "sections": [
@@ -475,7 +488,7 @@
         ]
       },
       "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
-        "content_length": 12965,
+        "content_length": 13081,
         "header_info": "# AI Development Tools Guide\n\n> **File**: `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`  \n> **Audience**: AI collaborators and automated tooling  \n> **Purpose**: Routing and constraints for all AI",
         "section_count": 11,
         "sections": [
@@ -492,7 +505,7 @@
         ]
       },
       "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
-        "content_length": 24500,
+        "content_length": 24617,
         "header_info": "# Development Tools Guide\n\n> **File**: `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`  \n> **Audience**: Human maintainers and contributors  \n> **Purpose**: Detailed reference for every development too",
         "section_count": 16,
         "sections": [
@@ -540,6 +553,23 @@
           "2.4. Debug Tools (`debug/`)",
           "2.5. Utilities (`utilities/`)",
           "2.6. Cleanup Tools (`utilities/cleanup/`)"
+        ]
+      },
+      "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md": {
+        "content_length": 10306,
+        "header_info": "# Development Tools Testing Guide\n\n> **File**: `tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on development tools  \n> **Purpose**: Quick reference f",
+        "section_count": 21,
+        "sections": [
+          "Introduction",
+          "1. Quick Start",
+          "2. Test Suite Structure",
+          "3. Prerequisites",
+          "4. Test Fixtures and Isolation",
+          "4.1. Synthetic Demo Project",
+          "4.2. Test Configuration",
+          "4.3. Temporary Project Copies",
+          "5. Critical Safety Rules",
+          "5.1. Never Modify Real Project Files"
         ]
       },
       "tests/MANUAL_DISCORD_TEST_GUIDE.md": {
@@ -594,9 +624,9 @@
         ]
       },
       "tests/TESTING_GUIDE.md": {
-        "content_length": 21189,
+        "content_length": 22125,
         "header_info": "# Testing Guide\n\n> **File**: `tests/TESTING_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on MHM  \n> **Purpose**: Comprehensive testing framework focused on real behavior, integrati",
-        "section_count": 35,
+        "section_count": 36,
         "sections": [
           "Introduction",
           "1. Purpose and Scope",
@@ -635,6 +665,18 @@
         "communication/communication_channels/discord/DISCORD_GUIDE.md",
         "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
         "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
+      ],
+      "1. Quick Start": [
+        "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
+        "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md"
+      ],
+      "2. Test Suite Structure": [
+        "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
+        "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md"
+      ],
+      "3. Prerequisites": [
+        "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
+        "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md"
       ],
       "Testing": [
         "TODO.md",

@@ -2,25 +2,25 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-06 08:15:55
+> **Last Generated**: 2025-12-06 23:42:30
 > **Source**: `python development_tools/run_development_tools.py unused-imports` - Unused Imports Detection Tool
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 358
-- **Files with Unused Imports**: 136
+- **Files with Unused Imports**: 137
 - **Total Unused Imports**: 403
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 112 imports
+- **Obvious Unused**: 114 imports
 - **Type Hints Only**: 2 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 7 imports
 - **Star Imports**: 0 imports
-- **Test Mocking**: 131 imports
+- **Test Mocking**: 130 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 94 imports
+- **Test Infrastructure**: 93 imports
 - **Production Test Mocking**: 3 imports
 - **Ui Imports**: 0 imports
 
@@ -112,6 +112,15 @@
 **Count**: 1 unused import(s)
 
 - **Line 19**: Unused save_json_data imported from core.file_operations
+  - Symbol: `unused-import`
+
+### `development_tools/config/analyze_config.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 15**: Unused import json
+  - Symbol: `unused-import`
+- **Line 16**: Unused datetime imported from datetime
   - Symbol: `unused-import`
 
 ### `development_tools/error_handling/analyze_error_handling.py`
@@ -436,7 +445,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 21**: Unused demo_project_root imported from tests.development_tools.conftest
+- **Line 18**: Unused demo_project_root imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
 ### `tests/integration/test_task_cleanup_real.py`
@@ -816,13 +825,6 @@
 **Count**: 1 unused import(s)
 
 - **Line 11**: Unused MagicMock imported from unittest.mock
-  - Symbol: `unused-import`
-
-### `tests/development_tools/test_status_file_timing.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 13**: Unused MagicMock imported from unittest.mock
   - Symbol: `unused-import`
 
 ### `tests/integration/test_task_cleanup_real_bug_verification.py`
@@ -1690,13 +1692,6 @@
 **Count**: 1 unused import(s)
 
 - **Line 10**: Unused Path imported from pathlib
-  - Symbol: `unused-import`
-
-### `tests/development_tools/test_status_file_timing.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 9**: Unused import os
   - Symbol: `unused-import`
 
 ### `tests/integration/test_account_management.py`

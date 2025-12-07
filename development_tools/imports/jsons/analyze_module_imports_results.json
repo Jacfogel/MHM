@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_module_imports - Development Tools",
-  "last_generated": "2025-12-06 08:12:05",
-  "timestamp": "2025-12-06T08:12:05.110770",
+  "last_generated": "2025-12-06 23:38:14",
+  "timestamp": "2025-12-06T23:38:14.996150",
   "tool_name": "analyze_module_imports",
   "domain": "imports",
   "source": "python development_tools/imports/analyze_module_imports.py",
@@ -23505,13 +23505,6 @@
       "imports": {
         "standard_library": [
           {
-            "module": "os",
-            "as_name": null,
-            "imported_items": [
-              "os"
-            ]
-          },
-          {
             "module": "sys",
             "as_name": null,
             "imported_items": [
@@ -23519,25 +23512,10 @@
             ]
           },
           {
-            "module": "time",
-            "as_name": null,
-            "imported_items": [
-              "time"
-            ]
-          },
-          {
             "module": "pathlib",
             "as_name": null,
             "imported_items": [
               "Path"
-            ]
-          },
-          {
-            "module": "unittest.mock",
-            "as_name": null,
-            "imported_items": [
-              "patch",
-              "MagicMock"
             ]
           }
         ],
@@ -23558,17 +23536,10 @@
               "demo_project_root",
               "load_development_tools_module"
             ]
-          },
-          {
-            "module": "development_tools.shared",
-            "as_name": null,
-            "imported_items": [
-              "file_rotation"
-            ]
           }
         ]
       },
-      "total_imports": 8
+      "total_imports": 4
     },
     "tests/development_tools/test_supporting_tools.py": {
       "imports": {
