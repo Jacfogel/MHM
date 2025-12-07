@@ -1,13 +1,13 @@
 {
   "generated_by": "system_signals - Development Tools",
-  "last_generated": "2025-12-06 23:43:08",
-  "timestamp": "2025-12-06T23:43:08.369323",
+  "last_generated": "2025-12-07 13:37:55",
+  "timestamp": "2025-12-07T13:37:55.193736",
   "tool_name": "system_signals",
   "domain": "reports",
   "source": "python development_tools/reports/system_signals.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
-    "timestamp": "2025-12-06T23:43:03.179872",
+    "timestamp": "2025-12-07T13:37:50.348568",
     "system_health": {
       "overall_status": "OK",
       "core_files": {
@@ -17,27 +17,27 @@
       "key_directories": {
         ".": "OK"
       },
-      "last_audit": "2025-12-06T23:28:14.597494",
+      "last_audit": "2025-12-07T13:30:18.757515",
       "warnings": [],
       "errors": []
     },
     "recent_activity": {
       "recent_changes": [
-        ".cursor/plans/complete_tool_result_saving_and_fix_mid-audit_status_updates_2b6e7afe.plan.md",
-        ".cursor/plans/fix_report_data_flow_88cf33c9.plan.md",
-        ".cursor/plans/standardize-audit-commands-and-tool-output-ac7c7c62.plan.md",
-        ".cursor/plans/verify_audit_status_updates_and_test_coverage_d8c87cd4.plan.md",
+        ".cursor/plans/standardize_analysis_tool_results_format_f3751a36.plan.md",
+        ".cursor/plans/standardize_and_streamline_development_tools_8784da3c.plan.md",
+        "ARCHITECTURE.md",
         "DOCUMENTATION_GUIDE.md",
         "TODO.md",
+        "ai/SYSTEM_AI_GUIDE.md",
         "ai_development_docs/AI_CHANGELOG.md",
         "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+        "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
         "ai_development_docs/AI_FUNCTION_REGISTRY.md",
         "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
         "ai_development_docs/AI_TESTING_GUIDE.md",
-        "coverage.json",
-        "data/conversation_states.json",
-        "data/user_index.json",
-        "data/users/72a13563-5934-42e8-bc55-f0c851a899cc/messages/sent_messages.json"
+        "communication/COMMUNICATION_GUIDE.md",
+        "core/ERROR_HANDLING_GUIDE.md",
+        "coverage.json"
       ],
       "git_status": "Modified",
       "last_commit": null,
@@ -47,9 +47,9 @@
     "performance_indicators": {
       "log_file_sizes": {
         "ai.log": "0.0MB",
-        "ai_dev_tools.log": "0.6MB",
-        "app.log": "0.5MB",
-        "communication_manager.log": "0.1MB",
+        "ai_dev_tools.log": "0.1MB",
+        "app.log": "0.1MB",
+        "communication_manager.log": "0.0MB",
         "discord.log": "0.0MB",
         "email.log": "0.0MB",
         "errors.log": "0.0MB",

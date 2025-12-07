@@ -130,7 +130,7 @@ Examples (non-exhaustive):
 - **[MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md)**  
 - **[LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md)**  
 - **[UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)**  
-- **[TEST_COVERAGE_EXPANSION_PLAN.md](development_docs/TEST_COVERAGE_EXPANSION_PLAN.md)**  
+- **[TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md)**  
 - **[AI_FUNCTION_REGISTRY.md](ai_development_docs/AI_FUNCTION_REGISTRY.md)**  
 - **[AI_MODULE_DEPENDENCIES.md](ai_development_docs/AI_MODULE_DEPENDENCIES.md)**
 
@@ -538,7 +538,7 @@ All generated Markdown files must use this standardized metadata format:
 - `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 - `development_docs/LEGACY_REFERENCE_REPORT.md`
 - `development_docs/UNUSED_IMPORTS_REPORT.md`
-- `development_docs/TEST_COVERAGE_EXPANSION_PLAN.md`
+- `development_docs/TEST_COVERAGE_REPORT.md`
 - `development_docs/DIRECTORY_TREE.md`
 - `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 - `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
@@ -589,7 +589,7 @@ Common generated files include:
 - [MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md)  
 - [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md)  
 - [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)   
-- [TEST_COVERAGE_EXPANSION_PLAN.md](development_docs/TEST_COVERAGE_EXPANSION_PLAN.md)  
+- [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md)  
 - [AI_FUNCTION_REGISTRY.md](ai_development_docs/AI_FUNCTION_REGISTRY.md)  
 - [AI_MODULE_DEPENDENCIES.md](ai_development_docs/AI_MODULE_DEPENDENCIES.md)
 

@@ -1,13 +1,13 @@
 {
   "generated_by": "quick_status - Development Tools",
-  "last_generated": "2025-12-06 23:37:53",
-  "timestamp": "2025-12-06T23:37:53.287750",
+  "last_generated": "2025-12-07 16:45:27",
+  "timestamp": "2025-12-07T16:45:27.002939",
   "tool_name": "quick_status",
   "domain": "reports",
   "source": "python development_tools/reports/quick_status.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
-    "timestamp": "2025-12-06T23:37:53.105574",
+    "timestamp": "2025-12-07T16:45:26.814913",
     "system_health": {
       "core_files": {
         "run_mhm.py": "OK",
@@ -27,7 +27,7 @@
     },
     "documentation_status": {
       "coverage": "Unknown",
-      "recent_audit": "2025-12-06T23:28:14.546556",
+      "recent_audit": "2025-12-07T16:43:47.820959",
       "key_files": {
         "README.md": "OK",
         "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -40,14 +40,19 @@
     "critical_issues": [],
     "action_items": [],
     "recent_activity": {
-      "last_audit": "2025-12-06T23:28:14.546556",
+      "last_audit": "2025-12-07T16:43:47.820959",
       "recent_changes": [
         "coverage.json",
+        "core/ERROR_HANDLING_GUIDE.md",
+        "communication/COMMUNICATION_GUIDE.md",
         "ai_development_docs/AI_TESTING_GUIDE.md",
+        "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
         "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
         "ai_development_docs/AI_CHANGELOG.md",
+        "ai/SYSTEM_AI_GUIDE.md",
         "TODO.md",
-        "DOCUMENTATION_GUIDE.md"
+        "DOCUMENTATION_GUIDE.md",
+        "ARCHITECTURE.md"
       ]
     }
   }

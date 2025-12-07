@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_heading_numbering - Development Tools",
-  "last_generated": "2025-12-06 23:37:58",
-  "timestamp": "2025-12-06T23:37:58.314448",
+  "last_generated": "2025-12-07 16:45:32",
+  "timestamp": "2025-12-07T16:45:32.083046",
   "tool_name": "analyze_heading_numbering",
   "domain": "docs",
   "source": "python development_tools/docs/analyze_heading_numbering.py",

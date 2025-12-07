@@ -6,7 +6,7 @@
 > **Style**: Organized, actionable, beginner-friendly
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
-> **See [TEST_COVERAGE_EXPANSION_PLAN.md](development_docs/TEST_COVERAGE_EXPANSION_PLAN.md) for testing strategy**
+> **See [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md) for testing strategy**
 
 ## How to Add New TODOs
 
@@ -143,12 +143,8 @@ When adding new tasks, follow this format:
   - Test data cleanup (tests/test_utilities.py, test fixtures)
   - Temporary file cleanup patterns
 
-**Note**: Development tools related tasks have been moved to `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md` for centralized planning and tracking. See that document for all development tools improvements, enhancements, and maintenance tasks.
+**Note**: Development tools related tasks have been moved to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md) for centralized planning and tracking. See that document for all development tools improvements, enhancements, and maintenance tasks.
 
-**Fix Failing Test: test_email_user_creation**
-- *What it means*: Investigate failing test `test_email_user_creation` in `test_utilities_demo.py`. The test fails at line 169 with "Email user should be created successfully", indicating the factory method returned False or None. This likely involves user index lookup or configuration patching.
-- *Why it helps*: Fixes a broken test and ensures user creation functionality works correctly
-- *Estimated effort*: Small/Medium
 
 ### User Experience Improvements
 
@@ -237,10 +233,6 @@ When adding new tasks, follow this format:
   - [ ] Ensure job runs before test steps and fails the pipeline on violations
   - [ ] Document the check in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) (contributor notes)
 
-**Investigate Account Creation UI Test Failure**
-- *What it means*: Fix `test_account_creation_real_behavior` in `tests/ui/test_account_creation_ui.py` - test expects user directory to be created but it's not being created during the test execution
-- *Why it helps*: Ensures account creation workflow works correctly and maintains test coverage for UI functionality
-- *Estimated effort*: Small/Medium
 
 **Improve AI Terminal Interaction Reliability**
 - *What it means*: Investigate why AI assistants often misinterpret PowerShell output or make incorrect assumptions

@@ -219,7 +219,7 @@ Rotation is typically implemented via rotating handlers configured in `core/logg
 - Up to `LOG_BACKUP_COUNT` rotated files are kept (for example `app.log.1`, `app.log.2`, ...).
 - If `LOG_COMPRESS_BACKUPS` is enabled, rotated logs may be gzipped or otherwise compressed.
 
-Supporting scripts and services (for example, `backup_manager.py`, `auto_cleanup.py`, and scheduled tasks) may:
+Supporting scripts and services (for example, `core/backup_manager.py`, `core/auto_cleanup.py`, and scheduled tasks) may:
 
 - Move older logs into `LOG_ARCHIVE_DIR`
 - Enforce retention policies
@@ -264,7 +264,7 @@ Operational guidelines:
 
 Backups and auto-cleanup tools:
 
-- `backup_manager.py` and `auto_cleanup.py` participate in overall log and data maintenance.
+- `core/backup_manager.py` and `core/auto_cleanup.py` participate in overall log and data maintenance.
 - Their exact behavior (retention, archive structure) should be reviewed before changing retention-related environment variables or directory layouts.
 
 ---

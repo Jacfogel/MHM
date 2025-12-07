@@ -181,7 +181,7 @@ Conversation history lives through:
 
 When you add new forms of tracked data, prefer:
 
-1. Extending `response_tracking.py` (or related tracking utilities).
+1. Extending `core/response_tracking.py` (or related tracking utilities).
 2. Updating `UserContextManager` and `ContextBuilder` to integrate the new signals.
 3. Keeping the context summary short and stable to avoid prompt bloat.
 

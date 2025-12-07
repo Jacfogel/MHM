@@ -1,18 +1,14 @@
 {
   "generated_by": "analyze_ascii_compliance - Development Tools",
-  "last_generated": "2025-12-06 23:37:57",
-  "timestamp": "2025-12-06T23:37:57.445809",
+  "last_generated": "2025-12-07 16:45:31",
+  "timestamp": "2025-12-07T16:45:31.212909",
   "tool_name": "analyze_ascii_compliance",
   "domain": "docs",
   "source": "python development_tools/docs/analyze_ascii_compliance.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
-    "files": {
-      "development_docs/CHANGELOG_DETAIL.md": 1,
-      "development_docs/PLANS.md": 5,
-      "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": 1
-    },
-    "file_count": 3,
-    "total_issues": 7
+    "files": {},
+    "file_count": 0,
+    "total_issues": 0
   }
 }

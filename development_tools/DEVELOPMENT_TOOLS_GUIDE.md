@@ -14,7 +14,7 @@
 Use this guide when you need:
 - The authoritative human-readable catalog of tools and tiers
 - Rationale behind trust levels and roadmap priorities
-- Links to supporting plans such as [AI_DEV_TOOLS_IMPROVEMENT_PLAN.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md)
+- Links to supporting plans such as [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md)
 
 The machine-readable metadata lives in `development_tools/shared/tool_metadata.py` and is surfaced to AI collaborators through the paired guide.
 
@@ -123,7 +123,7 @@ Regardless of command:
 - Unused import detection
 - Legacy reference scanning
 - Module dependency analysis
-- Improvement opportunity reports (LEGACY_REFERENCE_REPORT.md, TEST_COVERAGE_EXPANSION_PLAN.md, UNUSED_IMPORTS_REPORT.md)
+- Improvement opportunity reports (LEGACY_REFERENCE_REPORT.md, TEST_COVERAGE_REPORT.md, UNUSED_IMPORTS_REPORT.md)
 
 Pipeline artifacts:
 - AI-facing (root): [AI_STATUS.md](development_tools/AI_STATUS.md), `AI_PRIORITIES.md`, `consolidated_report.txt`
@@ -230,7 +230,7 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 - When adding or relocating tools, update:
   - `shared/tool_metadata.py`
   - This guide and the AI guide (paired H2 requirements)
-  - [AI_DEV_TOOLS_IMPROVEMENT_PLAN.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md) if scope or gaps change
+  - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md) if scope or gaps change
 - Maintain directory integrity (`development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) so automation can locate artifacts; keep generated reports under the paths enumerated in `shared/constants.py`.
 - Use the shared test locations: `tests/development_tools/` for suites and `tests/fixtures/development_tools_demo/` for synthetic inputs.
 - **Phase 3 Complete (2025-11-26)**: All five core analysis tools have comprehensive test coverage (55+ tests total). The synthetic fixture project provides isolated testing environment for all tool tests.
@@ -253,7 +253,7 @@ development_tools/tests/logs/
 ```
 
 - Do not implement bespoke exclusion logic inside individual tools - always import from `shared/standard_exclusions.py` so rules remain centralized.
-- Treat the tooling as a self-contained subproject: track follow-up work in [AI_DEV_TOOLS_IMPROVEMENT_PLAN.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md), document shipped changes in both changelogs, and keep the AI + human guides synchronized.
+- Treat the tooling as a self-contained subproject: track follow-up work in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md), document shipped changes in both changelogs, and keep the AI + human guides synchronized.
 
 Keeping these standards ensures the tooling ecosystem remains predictable for both humans and AI collaborators.
 
@@ -293,7 +293,7 @@ All generated Markdown files must use this standardized metadata format at the b
 - `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 - `development_docs/LEGACY_REFERENCE_REPORT.md`
 - `development_docs/UNUSED_IMPORTS_REPORT.md`
-- `development_docs/TEST_COVERAGE_EXPANSION_PLAN.md`
+- `development_docs/TEST_COVERAGE_REPORT.md`
 - `development_docs/DIRECTORY_TREE.md`
 - `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 - `ai_development_docs/AI_MODULE_DEPENDENCIES.md`

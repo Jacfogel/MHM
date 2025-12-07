@@ -76,11 +76,11 @@ Channel adapters must *only* work with these models, not raw business objects wh
 
 Key modules (names may vary slightly, but responsibilities are stable):
 
-- `command_parser.py`  
+- `communication/message_processing/command_parser.py`  
   - Turns raw text into parsed commands/intents.  
   - Understands both explicit commands (e.g., `/tasks`) and natural language.
 
-- `interaction_manager.py`  
+- `communication/message_processing/interaction_manager.py`  
   - Central entry point for user messages from any channel.  
   - Routes parsed commands to the correct interaction handlers.  
   - Returns channel-agnostic response objects.
@@ -223,8 +223,8 @@ High-level structure (only communication-related parts):
 - `communication/`  
   - `COMMUNICATION_GUIDE.md` - this document.  
   - `message_processing/`  
-    - `command_parser.py` - natural language and command parsing.  
-    - `interaction_manager.py` - central message routing and response handling.  
+    - `communication/message_processing/command_parser.py` - natural language and command parsing.  
+    - `communication/message_processing/interaction_manager.py` - central message routing and response handling.  
     - `communication/message_processing/conversation_flow_manager.py` - multi-step flow handling.  
   - `communication_channels/`  
     - `base/` - shared channel abstractions and formatters.  

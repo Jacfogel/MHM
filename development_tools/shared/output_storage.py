@@ -213,20 +213,24 @@ def _validate_result_files_exist(data: Dict[str, Any], project_root: Path) -> Di
 
 
 def load_tool_result(tool_name: str, domain: Optional[str] = None, 
-                     project_root: Optional[Path] = None) -> Optional[Dict[str, Any]]:
+                     project_root: Optional[Path] = None, normalize: bool = True) -> Optional[Dict[str, Any]]:
     """
     Load tool result from domain-specific JSON file.
     
     Automatically validates that referenced files still exist, removing
     references to deleted files to prevent stale data in reports.
     
+    Optionally normalizes data to standard format for consistent access.
+    
     Args:
         tool_name: Name of the tool (e.g., 'analyze_functions')
         domain: Domain directory (e.g., 'functions'). If None, inferred from tool_name
         project_root: Project root directory. If None, auto-detected
+        normalize: If True, normalize data to standard format (default: True)
         
     Returns:
-        Data dict if file exists, None otherwise (with deleted file references removed)
+        Data dict if file exists, None otherwise (with deleted file references removed,
+        and normalized to standard format if normalize=True)
     """
     if project_root is None:
         project_root = _get_project_root()
@@ -253,6 +257,11 @@ def load_tool_result(tool_name: str, domain: Optional[str] = None,
         # Only validate for tools that reference file paths
         if domain in ('docs', 'error_handling', 'legacy') and isinstance(data, dict):
             data = _validate_result_files_exist(data, project_root)
+        
+        # Normalize to standard format if requested
+        if normalize and isinstance(data, dict):
+            from .result_format import normalize_to_standard_format
+            data = normalize_to_standard_format(tool_name, data)
         
         return data
     except (json.JSONDecodeError, IOError) as e:

@@ -36,6 +36,17 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-07 - Fixed Report Data Loss After Normalization **COMPLETED**
+- Fixed data loss in AI development tools reports by updating data access patterns to use helper functions handling both standard and old formats
+- Corrected path drift (26 issues), doc sync status (FAIL with 26 tracked issues), missing error handling (2 functions), and validation status display
+- Updated `_load_config_validation_summary()` to handle both JSON formats; preserved calculated values to prevent overwrites
+- All reports now show accurate data; verified with `status`, `audit`, and `audit --full` commands
+
+### 2025-12-06 - Fix Test Failures: Email User Creation and Account Creation UI **COMPLETED**
+- Fixed `test_email_user_creation` and `test_account_creation_real_behavior` test failures by enhancing `verify_email_user_creation__with_test_dir()` to update user index before verification
+- Added email parameter extraction and explicit index update call to prevent race conditions in user lookup
+- Both tests now pass consistently; removed completed tasks from TODO.md
+
 ### 2025-12-06 - Complete Tool Result Saving and Fix Mid-Audit Status Updates **COMPLETED**
 - Completed Priority 2.5: Updated analyze_config.py to use standardized save_tool_result() storage - all 20 tools now use standardized storage (100%)
 - Completed Priority 2.1: Fixed mid-audit status writes by implementing file-based locks (.audit_in_progress.lock, .coverage_in_progress.lock) for cross-process protection with pytest-xdist
@@ -52,7 +63,7 @@ Guidelines:
 
 ### 2025-12-06 - Fix Report Data Flow (Priority 1.1) **COMPLETED**
 - Fixed critical data flow issue where analysis tool findings were not consistently appearing in reports despite successful execution
-- Created unified `_load_tool_data()` helper method with consistent fallback chain (cache → storage → aggregation) for all three report generation methods
+- Created unified `_load_tool_data()` helper method with consistent fallback chain (cache -> storage -> aggregation) for all three report generation methods
 - Added missing tools to reports: ASCII compliance, heading numbering, missing addresses, unconverted links
 - Verified 100% accuracy - all metrics match between JSON files and reports (10/10 tools verified)
 - Enhanced report formatting and readability; added top files lists and fixed overflow indicators

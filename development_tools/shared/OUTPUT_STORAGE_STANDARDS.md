@@ -9,7 +9,7 @@
 ### Pattern 1: Using `create_output_file()` (Recommended)
 **Location**: `development_tools/shared/file_rotation.py`
 **Used by**: 
-- Status files: `AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.txt`
+- Status files: `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.txt`
 - `analysis_detailed_results.json` (via `_save_additional_tool_results()`)
 
 **Benefits**:
@@ -48,11 +48,11 @@
 ### Pattern 4: Human-Facing Documentation
 **Location**: `development_docs/`
 **Files**:
-- `FUNCTION_REGISTRY_DETAIL.md`
-- `MODULE_DEPENDENCIES_DETAIL.md`
-- `LEGACY_REFERENCE_REPORT.md`
-- `UNUSED_IMPORTS_REPORT.md`
-- `DIRECTORY_TREE.md`
+- `development_docs/FUNCTION_REGISTRY_DETAIL.md`
+- `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
+- `development_docs/LEGACY_REFERENCE_REPORT.md`
+- `development_docs/UNUSED_IMPORTS_REPORT.md`
+- `development_docs/DIRECTORY_TREE.md`
 
 **Pattern**: Direct file writing, no rotation
 
@@ -64,7 +64,7 @@
    - Format: Markdown (`.md`) or Text (`.txt`)
    - Location: `development_tools/`
    - Method: `create_output_file()`
-   - Examples: `AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.txt`
+   - Examples: `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.txt`
 
 2. **Analysis Results** (JSON, domain-specific)
    - Format: JSON (`.json`)
@@ -78,7 +78,7 @@
    - Location: `development_docs/`
    - Method: `create_output_file()` (with rotation disabled for docs)
    - Naming: `{DESCRIPTION}_DETAIL.md` or `{DESCRIPTION}_REPORT.md`
-   - Examples: `FUNCTION_REGISTRY_DETAIL.md`, `LEGACY_REFERENCE_REPORT.md`
+   - Examples: `development_docs/FUNCTION_REGISTRY_DETAIL.md`, `development_docs/LEGACY_REFERENCE_REPORT.md`
 
 4. **Cache Files** (JSON, temporary)
    - Format: JSON (`.json`)
@@ -89,7 +89,7 @@
 
 ### Standard 2: File Naming Conventions
 
-- **Status files**: `{NAME}.md` or `{NAME}.txt` (e.g., `AI_STATUS.md`)
+- **Status files**: `{NAME}.md` or `{NAME}.txt` (e.g., `development_tools/AI_STATUS.md`)
 - **Analysis results**: `{tool_name}_results.json` or `{domain}_details.json`
 - **Documentation**: `{DESCRIPTION}_DETAIL.md` or `{DESCRIPTION}_REPORT.md`
 - **Cache files**: `.{tool_name}_cache.json` (hidden files)
@@ -98,9 +98,9 @@
 
 ```
 development_tools/
-├── AI_STATUS.md                    # Status report (root)
-├── AI_PRIORITIES.md                # Status report (root)
-├── consolidated_report.txt          # Status report (root)
+├── AI_STATUS.md                    # Status report (root: development_tools/)
+├── AI_PRIORITIES.md                # Status report (root: development_tools/)
+├── consolidated_report.txt          # Status report (root: development_tools/)
 ├── reports/
 │   ├── analysis_detailed_results.json  # Consolidated analysis cache
 │   └── archive/                    # Archived reports
@@ -115,9 +115,9 @@ development_tools/
 └── ...
 
 development_docs/
-├── FUNCTION_REGISTRY_DETAIL.md
-├── MODULE_DEPENDENCIES_DETAIL.md
-├── LEGACY_REFERENCE_REPORT.md
+├── FUNCTION_REGISTRY_DETAIL.md     # development_docs/
+├── MODULE_DEPENDENCIES_DETAIL.md    # development_docs/
+├── LEGACY_REFERENCE_REPORT.md       # development_docs/
 └── ...
 ```
 

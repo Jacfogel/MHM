@@ -136,7 +136,7 @@ AI routing:
   - Ensure both success and failure paths are covered.  
   - Use helpers in `tests/test_utilities.py` to assert on logs/metrics where appropriate.  
 
-- Use `analyze_error_handling.py` and related tooling when measuring coverage or generating reports.  
+- Use `development_tools/error_handling/analyze_error_handling.py` and related tooling when measuring coverage or generating reports.  
 - **Phase 1 and Phase 2 Auditing**: The coverage tool now provides specialized analysis for quality improvements:
   - **Phase 1**: Identifies functions with basic try-except blocks that should use `@handle_errors` decorator, with priority categorization (high/medium/low)
   - **Phase 2**: Audits generic exception raises that should be replaced with specific `MHMError` subclasses
@@ -158,7 +158,7 @@ AI rules:
   - Look for repeated failures of the same operation or unhandled exceptions.  
 
 - Prefer improving:
-  - Exception types, messages, and contexts in `error_handling.py`.  
+  - Exception types, messages, and contexts in `core/error_handling.py`.  
   - Tests that reproduce and prevent regressions.  
 
 Avoid adding one-off debug prints; use structured logging and the existing log files.

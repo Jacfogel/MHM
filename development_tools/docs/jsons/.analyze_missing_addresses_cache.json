@@ -1,13 +1,13 @@
 {
   "generated_by": "analyze_missing_addresses - Development Tools",
-  "last_generated": "2025-12-06 23:38:00",
-  "timestamp": "2025-12-06T23:38:00.180302",
+  "last_generated": "2025-12-07 16:45:33",
+  "timestamp": "2025-12-07T16:45:33.488051",
   "tool_name": "analyze_missing_addresses",
   "domain": "docs",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
     "ARCHITECTURE.md": {
-      "mtime": 1764407582.7705636,
+      "mtime": 1765090813.6306126,
       "results": []
     },
     "DEVELOPMENT_WORKFLOW.md": {
@@ -15,7 +15,7 @@
       "results": []
     },
     "DOCUMENTATION_GUIDE.md": {
-      "mtime": 1765077952.843807,
+      "mtime": 1765090813.6319916,
       "results": []
     },
     "HOW_TO_RUN.md": {
@@ -31,11 +31,11 @@
       "results": []
     },
     "TODO.md": {
-      "mtime": 1765082694.765292,
+      "mtime": 1765090813.6306126,
       "results": []
     },
     "ai/SYSTEM_AI_GUIDE.md": {
-      "mtime": 1764595053.8919427,
+      "mtime": 1765090813.6329975,
       "results": []
     },
     "ai_development_docs/AI_ARCHITECTURE.md": {
@@ -43,7 +43,7 @@
       "results": []
     },
     "ai_development_docs/AI_CHANGELOG.md": {
-      "mtime": 1765030322.7136664,
+      "mtime": 1765090515.2768223,
       "results": []
     },
     "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -51,11 +51,11 @@
       "results": []
     },
     "ai_development_docs/AI_DOCUMENTATION_GUIDE.md": {
-      "mtime": 1765077952.8417966,
+      "mtime": 1765090813.6329975,
       "results": []
     },
     "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md": {
-      "mtime": 1764552037.2329812,
+      "mtime": 1765090813.6329975,
       "results": []
     },
     "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md": {
@@ -79,11 +79,11 @@
       "results": []
     },
     "communication/COMMUNICATION_GUIDE.md": {
-      "mtime": 1764594590.2813954,
+      "mtime": 1765090813.6329975,
       "results": []
     },
     "core/ERROR_HANDLING_GUIDE.md": {
-      "mtime": 1764671172.8155508,
+      "mtime": 1765090813.6329975,
       "results": []
     },
     "development_docs/PLANS.md": {
@@ -91,11 +91,11 @@
       "results": []
     },
     "development_docs/TEST_COVERAGE_REPORT.md": {
-      "mtime": 1765085191.9659808,
+      "mtime": 1765136235.1096377,
       "results": []
     },
     "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
-      "mtime": 1765077952.8383055,
+      "mtime": 1765090813.6319916,
       "results": []
     },
     "development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md": {
@@ -103,11 +103,11 @@
       "results": []
     },
     "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
-      "mtime": 1765077952.8372989,
+      "mtime": 1765090813.6329975,
       "results": []
     },
     "logs/LOGGING_GUIDE.md": {
-      "mtime": 1764594590.264166,
+      "mtime": 1765090813.6329975,
       "results": []
     },
     "scripts/analyze_non_standard_tests.md": {
@@ -147,11 +147,15 @@
       "results": []
     },
     "development_tools/shared/OUTPUT_STORAGE_STANDARDS.md": {
-      "mtime": 1764746603.9147153,
+      "mtime": 1765090955.2456434,
       "results": []
     },
     "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md": {
       "mtime": 1765077520.3602946,
+      "results": []
+    },
+    "development_tools/shared/RESULT_FORMAT_STANDARD.md": {
+      "mtime": 1765135542.6492834,
       "results": []
     }
   }

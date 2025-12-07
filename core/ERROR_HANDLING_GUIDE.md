@@ -264,7 +264,7 @@ Error handling is tested in multiple ways:
   - Verify decorator behavior, logging, and recovery results.  
 
 - **Coverage tooling**  
-  - `analyze_error_handling.py` analyzes which error paths have test coverage.  
+  - `development_tools/error_handling/analyze_error_handling.py` analyzes which error paths have test coverage.  
   - Can be integrated into automated workflows via `development_tools/run_development_tools.py` commands to generate reports.
   - **Phase 1 and Phase 2 Analysis**: The tool now includes specialized auditing for quality improvements:
     - **Phase 1**: Identifies functions with basic try-except blocks that should use `@handle_errors` decorator, prioritized by entry points and operation types

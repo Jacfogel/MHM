@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_unused_imports - Development Tools",
-  "last_generated": "2025-12-06 23:42:30",
-  "timestamp": "2025-12-06T23:42:30.631984",
+  "last_generated": "2025-12-07 13:37:28",
+  "timestamp": "2025-12-07T13:37:28.030397",
   "tool_name": "analyze_unused_imports",
   "domain": "imports",
   "note": "This file is auto-generated. Do not edit manually.",
@@ -1848,7 +1848,7 @@
       "results": []
     },
     "tests/test_utilities.py": {
-      "mtime": 1764500361.9494362,
+      "mtime": 1765089912.857815,
       "results": [
         {
           "type": "warning",
@@ -6278,7 +6278,7 @@
       "results": []
     },
     "development_tools/shared/operations.py": {
-      "mtime": 1765085849.769632,
+      "mtime": 1765135761.4596863,
       "results": [
         {
           "type": "warning",
@@ -6931,7 +6931,7 @@
       ]
     },
     "development_tools/shared/output_storage.py": {
-      "mtime": 1765024998.3740993,
+      "mtime": 1765095221.4976687,
       "results": [
         {
           "type": "warning",
@@ -7553,6 +7553,10 @@
           "message-id": "W0611"
         }
       ]
+    },
+    "development_tools/shared/result_format.py": {
+      "mtime": 1765095221.4976687,
+      "results": []
     }
   }
 }

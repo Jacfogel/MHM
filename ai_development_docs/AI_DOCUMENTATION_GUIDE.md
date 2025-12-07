@@ -108,7 +108,7 @@ When suggesting new docs or edits:
 
 **Format:**
 - **Full paths (preferred)**: `development_tools/config/config.py`, `core/service.py`
-- **Short names (acceptable only when directory is 100% obvious)**: In [AI_DEV_TOOLS_IMPROVEMENT_PLAN.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN.md), `development_tools/config/config.py` should still be used (full paths preferred)
+- **Short names (acceptable only when directory is 100% obvious)**: In [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md), `development_tools/config/config.py` should still be used (full paths preferred)
 - **Relative paths (use sparingly)**: `../README.md` (from `ai_development_docs/`), `AI_LOGGING_GUIDE.md` (same directory)
 
 **Best practices:**
@@ -249,7 +249,7 @@ All generated files must include standardized metadata to identify their origin 
 ```
 
 **Generated files using this standard:**
-- Markdown: `development_docs/FUNCTION_REGISTRY_DETAIL.md`, `development_docs/MODULE_DEPENDENCIES_DETAIL.md`, `development_docs/LEGACY_REFERENCE_REPORT.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`, `development_docs/TEST_COVERAGE_EXPANSION_PLAN.md`, `development_docs/DIRECTORY_TREE.md`, `ai_development_docs/AI_FUNCTION_REGISTRY.md`, `ai_development_docs/AI_MODULE_DEPENDENCIES.md`, `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.txt`
+- Markdown: `development_docs/FUNCTION_REGISTRY_DETAIL.md`, `development_docs/MODULE_DEPENDENCIES_DETAIL.md`, `development_docs/LEGACY_REFERENCE_REPORT.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`, `development_docs/TEST_COVERAGE_REPORT.md`, `development_docs/DIRECTORY_TREE.md`, `ai_development_docs/AI_FUNCTION_REGISTRY.md`, `ai_development_docs/AI_MODULE_DEPENDENCIES.md`, `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.txt`
 - JSON: `development_tools/reports/analysis_detailed_results.json`, `development_tools/error_handling/error_handling_details.json`, `development_tools/config/analyze_config_results.json`
 
 For detailed standards, see section 5.1 in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md).

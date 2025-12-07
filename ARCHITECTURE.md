@@ -344,6 +344,8 @@ Typical structure:
 
 Naming conventions:
 
+[EXAMPLE] The following are example file names showing the naming pattern:
+
 - Dialog design: `something_dialog.ui`  
 - Dialog generated: `something_dialog_pyqt.py` (or similar)  
 - Dialog implementation: `ui/dialogs/something_dialog.py` with class `SomethingDialog`

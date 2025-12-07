@@ -752,7 +752,7 @@ class TestUserFactory:
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
             
             # Verify user creation with proper configuration patching
-            return TestUserFactory.verify_email_user_creation__with_test_dir(user_id, actual_user_id, test_data_dir)
+            return TestUserFactory.verify_email_user_creation__with_test_dir(user_id, actual_user_id, test_data_dir, email=email)
             
         except Exception as e:
             logger.error(f"Error creating email user with test dir {user_id}: {e}")
@@ -2401,8 +2401,25 @@ class TestUserFactory:
                 return actual_user_id is not None
 
     @staticmethod
-    def verify_email_user_creation__with_test_dir(user_id: str, actual_user_id: str, test_data_dir: str) -> str:
+    def verify_email_user_creation__with_test_dir(user_id: str, actual_user_id: str, test_data_dir: str, email: str = None) -> str:
         """Helper function to verify email user creation with proper configuration patching"""
+        # CRITICAL: Ensure user index is updated FIRST so get_user_id_by_identifier can find the user
+        # Extract email from user data if not provided (for cases where verification is called separately)
+        if email is None:
+            # Try to get email from account file
+            user_dir = os.path.join(test_data_dir, "users", actual_user_id)
+            account_file = os.path.join(user_dir, "account.json")
+            if os.path.exists(account_file):
+                try:
+                    with open(account_file, 'r', encoding='utf-8') as f:
+                        account_data = json.load(f)
+                        email = account_data.get('email')
+                except Exception:
+                    pass
+        
+        # Update user index to ensure the user can be found
+        TestUserFactory.create_basic_user__update_index(test_data_dir, user_id, actual_user_id, email=email)
+        
         # CRITICAL FIX: Patch the configuration to use the test data directory
         # This ensures that system functions can find the created users
         from unittest.mock import patch

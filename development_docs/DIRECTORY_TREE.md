@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-06 08:01:04
+> **Last Generated**: 2025-12-07 01:03:49
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -50,22 +50,8 @@ C:.
 |   |       triage-issue.md
 |   |       
 |   +---plans
-|   |       decompose-multi-responsibility-tools-2e05ed38.plan.md
-|   |       fix_report_data_flow_88cf33c9.plan.md
-|   |       phase-9-status-reports-and-metrics-standardization-99cf574c.plan.md
-|   |       standardize-audit-commands-and-tool-output-ac7c7c62.plan.md
-|   |       verify_audit_status_updates_and_test_coverage_d8c87cd4.plan.md
-|   |       
-|   \---rules
-|           ai-tools.mdc
-|           communication-guidelines.mdc
-|           context.mdc
-|           core-guidelines.mdc
-|           critical.mdc
-|           quality-standards.mdc
-|           testing-guidelines.mdc
-|           ui-guidelines.mdc
-|           
+|   |   \---archive
+    (archived files)
 +---.pytest_cache
     (pytest cache files)
 +---.venv
@@ -309,6 +295,7 @@ C:.
 |   |   .coverage
 |   |   conftest.py
 |   |   debug_file_paths.py
+|   |   DEVELOPMENT_TOOLS_TESTING_GUIDE.md
 |   |   flaky_test_report.md
 |   |   MANUAL_DISCORD_TEST_GUIDE.md
 |   |   MANUAL_TESTING_GUIDE.md

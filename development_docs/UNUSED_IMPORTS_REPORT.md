@@ -2,12 +2,12 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-06 23:42:30
+> **Last Generated**: 2025-12-07 13:37:28
 > **Source**: `python development_tools/run_development_tools.py unused-imports` - Unused Imports Detection Tool
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 358
+- **Total Files Scanned**: 359
 - **Files with Unused Imports**: 137
 - **Total Unused Imports**: 403
 

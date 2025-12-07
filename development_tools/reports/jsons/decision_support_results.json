@@ -1,7 +1,7 @@
 {
   "generated_by": "decision_support - Development Tools",
-  "last_generated": "2025-12-06 23:38:07",
-  "timestamp": "2025-12-06T23:38:07.284321",
+  "last_generated": "2025-12-07 16:45:40",
+  "timestamp": "2025-12-07T16:45:40.367285",
   "tool_name": "decision_support",
   "domain": "reports",
   "source": "python development_tools/reports/decision_support.py",

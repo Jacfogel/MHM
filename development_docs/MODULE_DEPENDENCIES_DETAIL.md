@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-06 08:01:02
+> **Last Generated**: 2025-12-07 01:03:47
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 337
-- **Total Imports Found**: 3845
+- **Total Imports Found**: 3841
 - **Dependencies Documented**: 337 (100% coverage)
-- **Standard Library Imports**: 1316 (34.2%)
+- **Standard Library Imports**: 1313 (34.2%)
 - **Third-Party Imports**: 574 (14.9%)
-- **Local Imports**: 1955 (50.8%)
-- **Last Updated**: 2025-12-06
+- **Local Imports**: 1954 (50.9%)
+- **Last Updated**: 2025-12-07
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 1316 imports (34.2%)
+- **Standard Library**: 1313 imports (34.2%)
 - **Third-Party**: 574 imports (14.9%)
-- **Local**: 1955 imports (50.8%)
+- **Local**: 1954 imports (50.9%)
 
 ## Module Dependencies by Directory
 
@@ -1029,7 +1029,7 @@
 
 **Dependency Changes**:
 - Added: communication.communication_channels.discord.checkin_view, communication.communication_channels.discord.task_reminder_view, communication.message_processing.interaction_manager, core.config, core.error_handling, core.file_operations, core.logger, core.message_management, core.schedule_management, core.schemas, core.service_utilities, core.user_data_handlers, core.user_management, tasks.task_management
-- Removed: communication/command_handlers/account_handler.py, core/scheduler.py, core/service.py, tests/behavior/test_communication_behavior.py, tests/behavior/test_communication_manager_behavior.py, tests/behavior/test_communication_manager_coverage_expansion.py, tests/behavior/test_conversation_flow_manager_behavior.py, tests/behavior/test_discord_checkin_retry_behavior.py, tests/conftest.py, tests/integration/test_orphaned_reminder_cleanup.py, tests/integration/test_task_cleanup_real.py, tests/integration/test_task_reminder_integration.py, tests/test_error_handling_improvements.py, tests/ui/test_dialogs.py, tests/unit/test_channel_orchestrator.py, ui/ui_app_qt.py
+- Removed: communication/command_handlers/account_handler.py, core/scheduler.py, core/service.py, tests/behavior/test_communication_behavior.py, tests/behavior/test_communication_manager_behavior.py, tests/behavior/test_communication_manager_coverage_expansion.py, tests/behavior/test_conversation_flow_manager_behavior.py, tests/behavior/test_discord_checkin_retry_behavior.py, tests/conftest.py, tests/integration/test_orphaned_reminder_cleanup.py, tests/integration/test_task_cleanup_real.py, tests/integration/test_task_reminder_integration.py, tests/test_error_handling_improvements.py, tests/ui/test_dialogs.py, tests/ui/test_signal_handler_integration.py, tests/unit/test_channel_orchestrator.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Manages communication across all channels
@@ -4907,7 +4907,7 @@
 
 **Dependency Changes**:
 - Added: ai.cache_manager, ai.chatbot, communication.core.channel_orchestrator, communication.message_processing.conversation_flow_manager, communication.message_processing.message_router, core.config, core.logger, core.scheduler, core.service, core.user_data_handlers, core.user_data_manager, core.user_management, tests.test_utilities
-- Removed: PySide6.QtWidgets, tests/behavior/test_account_management_real_behavior.py, tests/behavior/test_ai_chatbot_behavior.py, tests/behavior/test_service_utilities_behavior.py, tests/behavior/test_ui_app_behavior.py, tests/integration/test_account_lifecycle.py, tests/integration/test_account_management.py, tests/test_utilities.py, tests/ui/test_account_creation_ui.py, tests/ui/test_account_creator_dialog_validation.py, tests/ui/test_category_management_dialog.py, tests/ui/test_channel_management_dialog_coverage_expansion.py, tests/ui/test_dialog_behavior.py, tests/ui/test_dialog_coverage_expansion.py, tests/ui/test_dialogs.py, tests/ui/test_message_editor_dialog.py, tests/ui/test_process_watcher_dialog.py, tests/ui/test_task_crud_dialog.py, tests/ui/test_task_management_dialog.py, tests/ui/test_task_settings_widget.py, tests/ui/test_ui_app_qt_core.py, tests/ui/test_ui_app_qt_main.py, tests/ui/test_ui_button_verification.py, tests/ui/test_ui_components_headless.py, tests/ui/test_ui_generation.py, tests/ui/test_ui_widgets_coverage_expansion.py, tests/ui/test_user_analytics_dialog.py, tests/ui/test_user_profile_dialog_coverage_expansion.py, tests/ui/test_widget_behavior.py, tests/ui/test_widget_behavior_simple.py, tests/unit/test_admin_panel.py, tests/unit/test_checkin_management_dialog.py, unittest.mock
+- Removed: PySide6.QtWidgets, tests/behavior/test_account_management_real_behavior.py, tests/behavior/test_ai_chatbot_behavior.py, tests/behavior/test_service_utilities_behavior.py, tests/behavior/test_ui_app_behavior.py, tests/integration/test_account_lifecycle.py, tests/integration/test_account_management.py, tests/test_utilities.py, tests/ui/test_account_creation_ui.py, tests/ui/test_account_creator_dialog_validation.py, tests/ui/test_category_management_dialog.py, tests/ui/test_channel_management_dialog_coverage_expansion.py, tests/ui/test_dialog_behavior.py, tests/ui/test_dialog_coverage_expansion.py, tests/ui/test_dialogs.py, tests/ui/test_message_editor_dialog.py, tests/ui/test_process_watcher_dialog.py, tests/ui/test_signal_handler_integration.py, tests/ui/test_task_crud_dialog.py, tests/ui/test_task_management_dialog.py, tests/ui/test_task_settings_widget.py, tests/ui/test_ui_app_qt_core.py, tests/ui/test_ui_app_qt_main.py, tests/ui/test_ui_button_verification.py, tests/ui/test_ui_components_headless.py, tests/ui/test_ui_generation.py, tests/ui/test_ui_widgets_coverage_expansion.py, tests/ui/test_user_analytics_dialog.py, tests/ui/test_user_profile_dialog_coverage_expansion.py, tests/ui/test_widget_behavior.py, tests/ui/test_widget_behavior_simple.py, tests/unit/test_admin_panel.py, tests/unit/test_checkin_management_dialog.py, unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Test configuration and fixtures
@@ -5051,7 +5051,7 @@
   - `tests/development_tools/test_supporting_tools.py`
 
 **Dependency Changes**:
-- Removed: importlib.util, tests/development_tools/test_documentation_sync_checker.py, tests/development_tools/test_error_scenarios.py, tests/development_tools/test_generate_function_registry.py, tests/development_tools/test_generate_module_dependencies.py, tests/development_tools/test_integration_workflows.py, tests/development_tools/test_legacy_reference_cleanup.py, tests/development_tools/test_regenerate_coverage_metrics.py, tests/development_tools/test_supporting_tools.py
+- Removed: importlib.util, tests/development_tools/test_analysis_tool_validation.py, tests/development_tools/test_analyze_ai_work.py, tests/development_tools/test_analyze_documentation.py, tests/development_tools/test_analyze_missing_addresses.py, tests/development_tools/test_audit_status_updates.py, tests/development_tools/test_documentation_sync_checker.py, tests/development_tools/test_error_scenarios.py, tests/development_tools/test_generate_function_registry.py, tests/development_tools/test_generate_module_dependencies.py, tests/development_tools/test_integration_workflows.py, tests/development_tools/test_legacy_reference_cleanup.py, tests/development_tools/test_output_storage_archiving.py, tests/development_tools/test_path_drift_detection.py, tests/development_tools/test_path_drift_integration.py, tests/development_tools/test_regenerate_coverage_metrics.py, tests/development_tools/test_status_file_timing.py, tests/development_tools/test_supporting_tools.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5072,6 +5072,7 @@
 
 **Dependency Changes**:
 - Added: development_tools.shared, tests.development_tools.conftest
+- Removed: unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5092,6 +5093,7 @@
 
 **Dependency Changes**:
 - Added: tests.development_tools.conftest
+- Removed: unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5113,6 +5115,7 @@
 
 **Dependency Changes**:
 - Added: tests.development_tools.conftest
+- Removed: unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5153,6 +5156,7 @@
 
 **Dependency Changes**:
 - Added: tests.development_tools.conftest
+- Removed: unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5339,6 +5343,7 @@
 
 **Dependency Changes**:
 - Added: tests.development_tools.conftest
+- Removed: unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5379,6 +5384,7 @@
 
 **Dependency Changes**:
 - Added: tests.development_tools.conftest
+- Removed: unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5443,20 +5449,17 @@
 - **Purpose**: Test file for status file timing
 - **Dependencies**: 
   - **Local**:
-    - `development_tools.shared (file_rotation)` (NEW)
     - `tests.development_tools.conftest (demo_project_root, load_development_tools_module)` (NEW)
   - **Standard Library**:
-    - `os`
     - `pathlib (Path)`
     - `sys`
-    - `time`
-    - `unittest.mock (MagicMock, patch)`
   - **Third-party**:
     - `pytest`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: development_tools.shared, tests.development_tools.conftest
+- Added: tests.development_tools.conftest
+- Removed: unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6230,6 +6233,7 @@
 
 **Dependency Changes**:
 - Added: communication.core.channel_orchestrator, tests.conftest, ui.dialogs.account_creator_dialog, ui.widgets.dynamic_list_field
+- Removed: PySide6.QtCore, PySide6.QtTest, PySide6.QtWidgets, unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -7620,7 +7624,7 @@
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.file_operations, core.logger, core.service, core.user_data_handlers, core.user_data_manager, core.user_data_validation, core.user_management, tasks.task_management, ui.dialogs.user_profile_dialog, ui.generated.account_creator_dialog_pyqt, ui.widgets.category_selection_widget, ui.widgets.channel_selection_widget, ui.widgets.checkin_settings_widget, ui.widgets.task_settings_widget
-- Removed: PySide6.QtCore, PySide6.QtWidgets, tests/ui/test_account_creation_ui.py, tests/ui/test_account_creator_dialog_validation.py, tests/ui/test_dialogs.py, tests/ui/test_ui_button_verification.py, tests/ui/test_ui_components_headless.py, ui/ui_app_qt.py
+- Removed: PySide6.QtCore, PySide6.QtWidgets, tests/ui/test_account_creation_ui.py, tests/ui/test_account_creator_dialog_validation.py, tests/ui/test_dialogs.py, tests/ui/test_signal_handler_integration.py, tests/ui/test_ui_button_verification.py, tests/ui/test_ui_components_headless.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Account creation dialog
@@ -8840,7 +8844,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling, core.logger, ui.generated.dynamic_list_field_template_pyqt, ui.widgets.dynamic_list_container
-- Removed: PySide6.QtCore, PySide6.QtWidgets, tests/ui/test_widget_behavior.py, tests/ui/test_widget_behavior_simple.py, ui/widgets/dynamic_list_container.py
+- Removed: PySide6.QtCore, PySide6.QtWidgets, tests/ui/test_signal_handler_integration.py, tests/ui/test_widget_behavior.py, tests/ui/test_widget_behavior_simple.py, ui/widgets/dynamic_list_container.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Dynamic list field - UI component for individual list items
