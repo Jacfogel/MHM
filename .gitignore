@@ -42,12 +42,16 @@ htmlcov/
 .coverage
 tests/.coverage
 .coverage.*
+coverage.json
+coverage_html/
+.coverage_dev_tools
 .cache
 nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
+
 
 # Translations
 *.mo
@@ -64,9 +68,6 @@ instance/
 
 # Scrapy stuff:
 .scrapy
-
-# Sphinx documentation
-
 
 # PyBuilder
 target/
@@ -127,40 +128,33 @@ desktop.ini
 # Project specific
 data/
 scripts/
-!scripts/debug/
-!scripts/debug/*.py
-!scripts/static_checks/
-!scripts/static_checks/*.py
-!scripts/static_checks/**
-app.log
 app.log.*
 *.log
 *.log.*
 .last_cache_cleanup
 shutdown_request.flag
-resources/default_messages/invalid.json
 
 # Test data and backups
-tests/data/user_index.json
-tests/data/backups/
+tests/data/
 tests/logs/
 tests/ai/results/
+tests/fixtures/development_tools_demo/development_tools
 archive/
 
-# Coverage files
-.coverage
-coverage.json
-coverage_html/
-.coverage_dev_tools
-development_tools/.coverage_dev_tools
-development_tools/coverage_dev_tools.json
-development_tools/coverage_html_dev_tools/
-development_tools/logs/
-
 # Development tools cache and result files
-development_tools/.unused_imports_cache.json
-development_tools/config_validation_results.json
-development_tools/error_handling_details.json
+development_tools/ai_work/jsons
+development_tools/config/jsons
+development_tools/docs/jsons
+development_tools/error_handling/jsons
+development_tools/functions/jsons
+development_tools/imports/jsons
+development_tools/legacy/jsons
+development_tools/reports/jsons
+development_tools/reports/analysis_detailed_results.json
+development_tools/tests/jsons
+development_tools/AI_STATUS.md
+development_tools/AI_PRIORITIES.md
+development_tools/consolidated_report.txt
 
 # IDE files
 .vscode/
