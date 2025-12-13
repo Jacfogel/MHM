@@ -75,7 +75,7 @@ python development_tools/run_development_tools.py config
 - `system-signals` - generates system health and status signals.
 - `validate` - validates AI-generated work (lightweight structural validation).
 - `decision-support` - generates decision support insights.
-- `unused-imports` - runs the AST-based unused import detector.
+- `unused-imports` - runs the AST-based unused import detection tool.
 - `workflow` - executes an audit-first workflow task.
 - `trees` - generates directory tree reports.
 - `cleanup` - cleans up project cache files, temporary directories, and artifacts.

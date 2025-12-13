@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2025-12-13 03:04:37",
+  "last_generated": "2025-12-13 04:53:01",
   "source": "python development_tools/run_development_tools.py audit --quick",
   "audit_tier": 1,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2025-12-13T03:04:37.134859",
+  "timestamp": "2025-12-13T04:53:01.126203",
   "successful": [
     "analyze_functions",
     "analyze_ascii_compliance",
@@ -31,7 +31,7 @@
         "tests": 4,
         "utilities": 0
       },
-      "timestamp": "2025-12-13T03:04:04.532648"
+      "timestamp": "2025-12-13T04:52:44.389244"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -40,7 +40,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-13T03:04:12.918727"
+      "timestamp": "2025-12-13T04:52:48.903540"
     },
     "analyze_documentation": {
       "success": true,
@@ -60,89 +60,17 @@
       "success": true,
       "data": {
         "status": "FAIL",
-        "total_issues": 34,
+        "total_issues": 8,
         "paired_doc_issues": 0,
-        "path_drift_issues": 26,
+        "path_drift_issues": 0,
         "ascii_compliance_issues": 0,
         "heading_numbering_issues": 0,
-        "path_drift_files": [
-          "ARCHITECTURE.md",
-          "development_docs\\UNUSED_IMPORTS_REPORT.md",
-          "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md",
-          "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md",
-          "tests\\DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
-          "tests\\fixtures\\development_tools_demo\\docs\\bad_numbering_doc.md",
-          "tests\\fixtures\\development_tools_demo\\docs\\mismatched_ai_doc.md",
-          "tests\\fixtures\\development_tools_demo\\docs\\mismatched_human_doc.md",
-          "tests\\fixtures\\development_tools_demo\\docs\\misnumbered_doc.md",
-          "tests\\fixtures\\development_tools_demo\\docs\\path_drift_test_doc.md"
-        ],
+        "path_drift_files": [],
         "paired_docs": {},
         "path_drift": {
-          "files": {
-            "ARCHITECTURE.md": 2,
-            "development_docs\\UNUSED_IMPORTS_REPORT.md": 1,
-            "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md": 1,
-            "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md": 1,
-            "tests\\DEVELOPMENT_TOOLS_TESTING_GUIDE.md": 7,
-            "tests\\fixtures\\development_tools_demo\\docs\\bad_numbering_doc.md": 1,
-            "tests\\fixtures\\development_tools_demo\\docs\\mismatched_ai_doc.md": 2,
-            "tests\\fixtures\\development_tools_demo\\docs\\mismatched_human_doc.md": 2,
-            "tests\\fixtures\\development_tools_demo\\docs\\misnumbered_doc.md": 1,
-            "tests\\fixtures\\development_tools_demo\\docs\\path_drift_test_doc.md": 4,
-            "tests\\fixtures\\development_tools_demo\\docs\\analysis_validation\\path_drift_issues.md": 4
-          },
-          "total_issues": 26,
-          "detailed_issues": {
-            "ARCHITECTURE.md": [
-              "Missing file: something_widget_pyqt.py",
-              "Missing file: ui/widgets/something_widget.py"
-            ],
-            "development_docs\\UNUSED_IMPORTS_REPORT.md": [
-              "Potentially outdated module: annotations"
-            ],
-            "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md": [
-              "Missing file: analyze_missing_addresses.py"
-            ],
-            "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md": [
-              "Potentially outdated module: detector."
-            ],
-            "tests\\DEVELOPMENT_TOOLS_TESTING_GUIDE.md": [
-              "Missing file: demo_module.py",
-              "Missing file: demo_module2.py",
-              "Missing file: legacy_code.py",
-              "Missing file: demo_tests.py",
-              "Missing file: demo_module.py",
-              "Missing file: demo_tests.py",
-              "Missing file: test_integration_workflows.py"
-            ],
-            "tests\\fixtures\\development_tools_demo\\docs\\bad_numbering_doc.md": [
-              "Missing file: docs/bad_numbering_doc.md"
-            ],
-            "tests\\fixtures\\development_tools_demo\\docs\\mismatched_ai_doc.md": [
-              "Missing file: docs/mismatched_ai_doc.md",
-              "Missing file: docs/mismatched_human_doc.md"
-            ],
-            "tests\\fixtures\\development_tools_demo\\docs\\mismatched_human_doc.md": [
-              "Missing file: docs/mismatched_human_doc.md",
-              "Missing file: docs/mismatched_ai_doc.md"
-            ],
-            "tests\\fixtures\\development_tools_demo\\docs\\misnumbered_doc.md": [
-              "Missing file: docs/misnumbered_doc.md"
-            ],
-            "tests\\fixtures\\development_tools_demo\\docs\\path_drift_test_doc.md": [
-              "Missing file: core/missing_module.py",
-              "Missing file: tests/missing_test.py",
-              "Missing file: demo_module.py",
-              "Missing file: demo_module2.py"
-            ],
-            "tests\\fixtures\\development_tools_demo\\docs\\analysis_validation\\path_drift_issues.md": [
-              "Missing file: core/missing_module.py",
-              "Missing file: tests/missing_test.py",
-              "Missing file: demo_module.py",
-              "Missing file: demo_module2.py"
-            ]
-          }
+          "files": {},
+          "total_issues": 0,
+          "detailed_issues": {}
         },
         "ascii_compliance": {
           "files": {},
@@ -155,7 +83,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2025-12-13T03:04:23.682882"
+      "timestamp": "2025-12-13T04:52:54.024256"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -164,7 +92,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-13T03:04:16.491665"
+      "timestamp": "2025-12-13T04:52:50.663573"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -182,77 +110,16 @@
         "file_count": 8,
         "total_issues": 8
       },
-      "timestamp": "2025-12-13T03:04:19.874661"
+      "timestamp": "2025-12-13T04:52:52.372650"
     },
     "analyze_path_drift": {
       "success": true,
       "data": {
-        "files": {
-          "ARCHITECTURE.md": 2,
-          "development_docs\\UNUSED_IMPORTS_REPORT.md": 1,
-          "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md": 1,
-          "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md": 1,
-          "tests\\DEVELOPMENT_TOOLS_TESTING_GUIDE.md": 7,
-          "tests\\fixtures\\development_tools_demo\\docs\\bad_numbering_doc.md": 1,
-          "tests\\fixtures\\development_tools_demo\\docs\\mismatched_ai_doc.md": 2,
-          "tests\\fixtures\\development_tools_demo\\docs\\mismatched_human_doc.md": 2,
-          "tests\\fixtures\\development_tools_demo\\docs\\misnumbered_doc.md": 1,
-          "tests\\fixtures\\development_tools_demo\\docs\\path_drift_test_doc.md": 4,
-          "tests\\fixtures\\development_tools_demo\\docs\\analysis_validation\\path_drift_issues.md": 4
-        },
-        "total_issues": 26,
-        "detailed_issues": {
-          "ARCHITECTURE.md": [
-            "Missing file: something_widget_pyqt.py",
-            "Missing file: ui/widgets/something_widget.py"
-          ],
-          "development_docs\\UNUSED_IMPORTS_REPORT.md": [
-            "Potentially outdated module: annotations"
-          ],
-          "development_tools\\AI_DEVELOPMENT_TOOLS_GUIDE.md": [
-            "Missing file: analyze_missing_addresses.py"
-          ],
-          "development_tools\\DEVELOPMENT_TOOLS_GUIDE.md": [
-            "Potentially outdated module: detector."
-          ],
-          "tests\\DEVELOPMENT_TOOLS_TESTING_GUIDE.md": [
-            "Missing file: demo_module.py",
-            "Missing file: demo_module2.py",
-            "Missing file: legacy_code.py",
-            "Missing file: demo_tests.py",
-            "Missing file: demo_module.py",
-            "Missing file: demo_tests.py",
-            "Missing file: test_integration_workflows.py"
-          ],
-          "tests\\fixtures\\development_tools_demo\\docs\\bad_numbering_doc.md": [
-            "Missing file: docs/bad_numbering_doc.md"
-          ],
-          "tests\\fixtures\\development_tools_demo\\docs\\mismatched_ai_doc.md": [
-            "Missing file: docs/mismatched_ai_doc.md",
-            "Missing file: docs/mismatched_human_doc.md"
-          ],
-          "tests\\fixtures\\development_tools_demo\\docs\\mismatched_human_doc.md": [
-            "Missing file: docs/mismatched_human_doc.md",
-            "Missing file: docs/mismatched_ai_doc.md"
-          ],
-          "tests\\fixtures\\development_tools_demo\\docs\\misnumbered_doc.md": [
-            "Missing file: docs/misnumbered_doc.md"
-          ],
-          "tests\\fixtures\\development_tools_demo\\docs\\path_drift_test_doc.md": [
-            "Missing file: core/missing_module.py",
-            "Missing file: tests/missing_test.py",
-            "Missing file: demo_module.py",
-            "Missing file: demo_module2.py"
-          ],
-          "tests\\fixtures\\development_tools_demo\\docs\\analysis_validation\\path_drift_issues.md": [
-            "Missing file: core/missing_module.py",
-            "Missing file: tests/missing_test.py",
-            "Missing file: demo_module.py",
-            "Missing file: demo_module2.py"
-          ]
-        }
+        "files": {},
+        "total_issues": 0,
+        "detailed_issues": {}
       },
-      "timestamp": "2025-12-13T03:04:09.744337"
+      "timestamp": "2025-12-13T04:52:47.254431"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -261,12 +128,12 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-13T03:04:23.659302"
+      "timestamp": "2025-12-13T04:52:54.019797"
     },
     "quick_status": {
       "success": true,
       "data": {
-        "timestamp": "2025-12-13T03:04:00.275007",
+        "timestamp": "2025-12-13T04:52:42.469704",
         "system_health": {
           "core_files": {
             "requirements.txt": "OK"
@@ -279,7 +146,7 @@
         },
         "documentation_status": {
           "coverage": "Unknown",
-          "recent_audit": "2025-12-13T02:35:43.943201",
+          "recent_audit": "2025-12-13T04:30:02.060457",
           "key_files": {
             "README.md": "OK",
             "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -292,32 +159,20 @@
         "critical_issues": [],
         "action_items": [],
         "recent_activity": {
-          "last_audit": "2025-12-13T02:35:43.943201",
+          "last_audit": "2025-12-13T04:30:02.060457",
           "recent_changes": [
-            "verify_reports.py",
-            "verify_detailed.py",
-            "verify_all_metrics.py",
-            "report_verification_summary.md",
-            "fixes_applied_summary.md",
             "coverage.json",
-            "core/ERROR_HANDLING_GUIDE.md",
-            "comprehensive_verification_report.md",
-            "communication/COMMUNICATION_GUIDE.md",
-            "ai_development_docs/AI_TESTING_GUIDE.md",
-            "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
-            "ai_development_docs/AI_FUNCTION_REGISTRY.md",
-            "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-            "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
-            "ai_development_docs/AI_CHANGELOG.md"
+            "ai_development_docs/AI_CHANGELOG.md",
+            "ARCHITECTURE.md"
           ]
         }
       },
-      "timestamp": "2025-12-13T03:04:00.864534"
+      "timestamp": "2025-12-13T04:52:42.699393"
     },
     "system_signals": {
       "success": true,
       "data": {
-        "timestamp": "2025-12-13T03:04:26.717233",
+        "timestamp": "2025-12-13T04:52:55.733477",
         "system_health": {
           "overall_status": "OK",
           "core_files": {
@@ -327,37 +182,39 @@
           "key_directories": {
             ".": "OK"
           },
-          "last_audit": "2025-12-13T02:35:44.034000",
+          "last_audit": "2025-12-13T04:30:02.114254",
           "warnings": [],
           "errors": []
         },
         "recent_activity": {
           "recent_changes": [
+            ".cursor/plans/development_tools_next_steps_3f22ec88.plan.md",
+            ".cursor/plans/standardize_analysis_tool_results_format_f3751a36.plan.md",
             ".cursor/plans/standardize_and_streamline_development_tools_8784da3c.plan.md",
+            "ARCHITECTURE.md",
             "ai_development_docs/AI_CHANGELOG.md",
-            "comprehensive_verification_report.md",
             "coverage.json",
             "data/conversation_states.json",
             "data/user_index.json",
-            "data/users/72a13563-5934-42e8-bc55-f0c851a899cc/messages/sent_messages.json",
-            "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/chat_interactions.json",
-            "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/checkins.json",
             "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/messages/sent_messages.json",
-            "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/tasks/active_tasks.json",
             "development_docs/CHANGELOG_DETAIL.md",
             "development_docs/LEGACY_REFERENCE_REPORT.md",
             "development_docs/SESSION_SUMMARY_2025-12-07.md",
-            "development_docs/TEST_COVERAGE_REPORT.md"
+            "development_docs/TEST_COVERAGE_REPORT.md",
+            "development_docs/UNUSED_IMPORTS_REPORT.md",
+            "development_tools/.audit_in_progress.lock"
           ],
           "git_status": "Modified",
           "last_commit": null,
           "uncommitted_changes": true
         },
-        "critical_alerts": [],
+        "critical_alerts": [
+          "CRITICAL: Recent errors in logs/errors.log"
+        ],
         "performance_indicators": {
           "log_file_sizes": {
             "ai.log": "0.0MB",
-            "ai_dev_tools.log": "0.1MB",
+            "ai_dev_tools.log": "0.2MB",
             "app.log": "0.1MB",
             "communication_manager.log": "0.0MB",
             "discord.log": "0.0MB",
@@ -373,7 +230,7 @@
           "memory_usage": "Unknown"
         }
       },
-      "timestamp": "2025-12-13T03:04:36.957726"
+      "timestamp": "2025-12-13T04:53:01.053459"
     }
   }
 }

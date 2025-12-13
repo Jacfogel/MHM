@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-13 03:01:47
+> **Last Generated**: 2025-12-13 04:51:54
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 5
-**Legacy Compatibility Markers Detected**: 26
+**Total Files with Issues**: 6
+**Legacy Compatibility Markers Detected**: 35
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
-- Legacy compatibility markers remain in 3 file(s) (7 total markers).
+- Legacy compatibility markers remain in 4 file(s) (16 total markers).
 
 ## Recommended Follow-Up
 1. Confirm whether legacy `enabled_fields` payloads are still produced; if not, plan removal and data migration.
@@ -92,7 +92,15 @@
   ```
 
 ## Legacy Compatibility Markers
-**Files Affected**: 3
+**Files Affected**: 4
+
+### development_tools\docs\analyze_path_drift.py
+**Issues Found**: 1
+
+- **Line 751**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Handle both standard format (new) and legacy format (old)
+  ```
 
 ### development_tools\shared\mtime_cache.py
 **Issues Found**: 2
@@ -108,19 +116,59 @@
   ```
 
 ### development_tools\shared\operations.py
-**Issues Found**: 3
+**Issues Found**: 11
 
 - **Line 879**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Reading from old file location for backward compatibility
   ```
 
-- **Line 6224**: `# LEGACY COMPATIBILITY:`
+- **Line 1046**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Handle both standard format (new) and legacy format (old)
+  ```
+
+- **Line 3215**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Ensure data is in standard format
+  ```
+
+- **Line 4306**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Convert back to legacy format for backward compatibility with existing code
+  ```
+
+- **Line 4320**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
+  ```
+
+- **Line 4376**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
+  ```
+
+- **Line 4421**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
+  ```
+
+- **Line 4465**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
+  ```
+
+- **Line 4502**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
+  ```
+
+- **Line 6315**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Reading from old file location for backward compatibility
   ```
 
-- **Line 9960**: `# LEGACY COMPATIBILITY:`
+- **Line 10137**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Handle deprecated --fast flag
   ```

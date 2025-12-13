@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_unused_imports - Development Tools",
-  "last_generated": "2025-12-13 03:01:43",
-  "timestamp": "2025-12-13T03:01:43.989387",
+  "last_generated": "2025-12-13 04:51:52",
+  "timestamp": "2025-12-13T04:51:52.101381",
   "tool_name": "analyze_unused_imports",
   "domain": "imports",
   "note": "This file is auto-generated. Do not edit manually.",
@@ -6270,15 +6270,15 @@
       "results": []
     },
     "development_tools/shared/common.py": {
-      "mtime": 1765190397.573563,
+      "mtime": 1765617887.2278464,
       "results": []
     },
     "development_tools/shared/constants.py": {
-      "mtime": 1765612744.7846832,
+      "mtime": 1765617887.2290971,
       "results": []
     },
     "development_tools/shared/operations.py": {
-      "mtime": 1765615852.0038362,
+      "mtime": 1765622512.7806559,
       "results": [
         {
           "type": "warning",
@@ -6498,7 +6498,7 @@
       "results": []
     },
     "development_tools/config/analyze_config.py": {
-      "mtime": 1765066749.0867653,
+      "mtime": 1765620245.4340384,
       "results": [
         {
           "type": "warning",
@@ -6568,7 +6568,7 @@
       ]
     },
     "development_tools/functions/analyze_function_registry.py": {
-      "mtime": 1765193153.4076192,
+      "mtime": 1765617887.179033,
       "results": [
         {
           "type": "warning",
@@ -6603,7 +6603,7 @@
       "results": []
     },
     "development_tools/functions/analyze_package_exports.py": {
-      "mtime": 1765186297.5136993,
+      "mtime": 1765617887.1815631,
       "results": [
         {
           "type": "warning",
@@ -6669,7 +6669,7 @@
       ]
     },
     "development_tools/imports/analyze_unused_imports.py": {
-      "mtime": 1764845682.225847,
+      "mtime": 1765621406.1550012,
       "results": [
         {
           "type": "warning",
@@ -6729,23 +6729,23 @@
       "results": []
     },
     "development_tools/docs/analyze_ascii_compliance.py": {
-      "mtime": 1764845682.222183,
+      "mtime": 1765621406.144864,
       "results": []
     },
     "development_tools/docs/analyze_heading_numbering.py": {
-      "mtime": 1764845682.222183,
+      "mtime": 1765621406.1550012,
       "results": []
     },
     "development_tools/docs/analyze_missing_addresses.py": {
-      "mtime": 1764845682.225847,
+      "mtime": 1765621406.1550012,
       "results": []
     },
     "development_tools/docs/analyze_path_drift.py": {
-      "mtime": 1764903977.5001297,
+      "mtime": 1765620620.8433144,
       "results": []
     },
     "development_tools/docs/analyze_unconverted_links.py": {
-      "mtime": 1764845682.225847,
+      "mtime": 1765621406.1550012,
       "results": []
     },
     "development_tools/docs/generate_directory_tree.py": {
@@ -7436,7 +7436,7 @@
       ]
     },
     "tests/development_tools/test_output_storage_archiving.py": {
-      "mtime": 1765162171.1899543,
+      "mtime": 1765617887.2491672,
       "results": [
         {
           "type": "warning",
@@ -7555,7 +7555,7 @@
       ]
     },
     "development_tools/shared/result_format.py": {
-      "mtime": 1765184792.1851091,
+      "mtime": 1765617887.2369533,
       "results": []
     },
     "verify_all_metrics.py": {

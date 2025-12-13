@@ -1,13 +1,73 @@
 {
   "generated_by": "analyze_documentation - Development Tools",
-  "last_generated": "2025-12-13 03:06:20",
-  "timestamp": "2025-12-13T03:06:20.727331",
+  "last_generated": "2025-12-13 04:46:07",
+  "timestamp": "2025-12-13T04:46:07.008613",
   "tool_name": "analyze_documentation",
   "domain": "docs",
   "source": "python development_tools/docs/analyze_documentation.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
     "artifacts": [],
+    "consolidation_recommendations": [
+      {
+        "category": "Development Workflow",
+        "files": [
+          "DOCUMENTATION_GUIDE.md",
+          "DEVELOPMENT_WORKFLOW.md",
+          "development_docs/CHANGELOG_DETAIL.md",
+          "development_docs/PLANS.md",
+          "ai_development_docs/AI_SESSION_STARTER.md",
+          "ai_development_docs/AI_ARCHITECTURE.md",
+          "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+          "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+          "ai_development_docs/AI_CHANGELOG.md",
+          "ai_development_docs/AI_REFERENCE.md",
+          "ai_development_docs/AI_LOGGING_GUIDE.md",
+          "ai_development_docs/AI_TESTING_GUIDE.md",
+          "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+          "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md",
+          "core/ERROR_HANDLING_GUIDE.md",
+          "logs/LOGGING_GUIDE.md",
+          "tests/TESTING_GUIDE.md",
+          "tests/MANUAL_TESTING_GUIDE.md",
+          "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
+          "tests/MANUAL_DISCORD_TEST_GUIDE.md",
+          "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
+          "communication/COMMUNICATION_GUIDE.md",
+          "communication/communication_channels/discord/DISCORD_GUIDE.md",
+          "scripts/SCRIPTS_GUIDE.md",
+          "ui/UI_GUIDE.md",
+          "ai/SYSTEM_AI_GUIDE.md",
+          "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+          "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
+        ],
+        "priority": "medium",
+        "similarity_score": 0.1917594239575105,
+        "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
+      },
+      {
+        "category": "Testing",
+        "files": [
+          "ai_development_docs/AI_TESTING_GUIDE.md",
+          "tests/TESTING_GUIDE.md",
+          "tests/MANUAL_TESTING_GUIDE.md",
+          "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md"
+        ],
+        "priority": "medium",
+        "similarity_score": 0.26807322366527847,
+        "suggestion": "Consider consolidating testing documentation into a single TESTING_GUIDE.md"
+      },
+      {
+        "category": "High Section Overlap",
+        "files": [
+          "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
+          "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md"
+        ],
+        "overlap_count": 3,
+        "priority": "medium",
+        "suggestion": "These files share 3 sections - consider consolidating or clearly differentiating their purposes"
+      }
+    ],
     "documents": [
       "ARCHITECTURE.md",
       "DEVELOPMENT_WORKFLOW.md",
@@ -44,6 +104,555 @@
       "ui/UI_GUIDE.md"
     ],
     "duplicates": [],
+    "file_purposes": {
+      "ARCHITECTURE.md": {
+        "content_length": 17498,
+        "header_info": "# MHM System Architecture\n\n> **File**: `ARCHITECTURE.md`\n> **Audience**: Human developers building or maintaining the platform  \n> **Purpose**: Explain system design, module responsibilities, and data",
+        "section_count": 9,
+        "sections": [
+          "Introduction",
+          "1. Directory Overview",
+          "2. User Data Model",
+          "2.1. User Data Flow Diagram",
+          "3. Data Handling Patterns",
+          "4. Key Modules and Responsibilities",
+          "5. UI Architecture and Naming Conventions",
+          "6. Channel-Agnostic Architecture",
+          "7. Development Notes"
+        ]
+      },
+      "DEVELOPMENT_WORKFLOW.md": {
+        "content_length": 14260,
+        "header_info": "# Development Workflow Guide\n\n> **File**: `DEVELOPMENT_WORKFLOW.md`  \n> **Audience**: Human developer (beginner programmer)  \n> **Purpose**: Safe development practices and day-to-day procedures  \n> **",
+        "section_count": 32,
+        "sections": [
+          "Introduction",
+          "Quick Reference",
+          "1. Safety First",
+          "1.1. Core Safety Rules",
+          "1.2. Pre-Change Checklist",
+          "2. Virtual Environment Best Practices",
+          "2.1. Why It Matters",
+          "2.2. Common Commands (PowerShell)",
+          "2.3. Troubleshooting",
+          "2.4. Configuration and .env"
+        ]
+      },
+      "DOCUMENTATION_GUIDE.md": {
+        "content_length": 31032,
+        "header_info": "# Documentation Guide\n\n> **File**: `DOCUMENTATION_GUIDE.md`  \n> **Audience**: Developers and contributors  \n> **Purpose**: Organize, author, and maintain project documentation  \n> **Style**: Comprehen",
+        "section_count": 32,
+        "sections": [
+          "Introduction",
+          "Quick Reference",
+          "1. Documentation Categories",
+          "1.1. Human-facing documents",
+          "1.2. AI-facing documents",
+          "1.3. Generated and analytical documentation",
+          "2. Standards and Templates",
+          "2.1. Metadata for `.md` documentation files",
+          "2.2. Metadata for `.mdc` rule files",
+          "2.3. Structure guidelines for human-facing docs"
+        ]
+      },
+      "HOW_TO_RUN.md": {
+        "content_length": 7400,
+        "header_info": "# How to Run MHM\n\n\n> **File**: `HOW_TO_RUN.md`\n> **Audience**: New users and developers setting up the project  \n> **Purpose**: Step-by-step setup and launch instructions  \n> **Style**: Clear, beginne",
+        "section_count": 18,
+        "sections": [
+          "Introduction",
+          "1. Quick Start (Recommended)",
+          "1.1. Step 1: Set up Virtual Environment",
+          "1.2. Step 2: Install Dependencies",
+          "1.3. Step 3: Install the Project in Editable Mode",
+          "1.4. Step 4: Configure Environment (Optional)",
+          "1.5. Step 5: Launch the Application",
+          "2. Alternative Commands",
+          "3. Command Reference (Discord and Chat)",
+          "4. Alternative Launch Methods"
+        ]
+      },
+      "PROJECT_VISION.md": {
+        "content_length": 9684,
+        "header_info": "# MHM Project Vision\n\n\n> **File**: `PROJECT_VISION.md`\n> **Audience**: Human Developer, AI Collaborators, and Future Contributors  \n> **Purpose**: Overarching vision, mission, and long-term direction ",
+        "section_count": 42,
+        "sections": [
+          "Introduction",
+          "1. **Core Vision**",
+          "2. **Mission Statement**",
+          "3. **Core Values**",
+          "3.1. **1. Personalized & Adaptive**",
+          "3.2. **2. Hope-Focused & Supportive**",
+          "3.3. **3. Executive Functioning Support**",
+          "4. **Target Users**",
+          "4.1. **Primary User: You**",
+          "4.2. **Secondary Users: Similar Individuals**"
+        ]
+      },
+      "README.md": {
+        "content_length": 14109,
+        "header_info": "# Mental Health Management (MHM)\n\n> **File**: `README.md`\n> **Audience**: Human developer (beginner-friendly)\n> **Purpose**: High-level overview, navigation, and quick start\n> **Style**: Beginner-frie",
+        "section_count": 17,
+        "sections": [
+          "Introduction",
+          "1. Navigation",
+          "2. Features",
+          "3. Quick Start",
+          "3.1. Headless service commands",
+          "4. Documentation",
+          "5. Architecture",
+          "6. AI Integration (Optional)",
+          "7. Project Structure",
+          "8. License and privacy"
+        ]
+      },
+      "TODO.md": {
+        "content_length": 16043,
+        "header_info": "# TODO.md - MHM Project Tasks\n\n> **File**: `TODO.md`\n> **Audience**: Human Developer (Beginner Programmer) and AI collaborators\n> **Purpose**: Current development priorities and planned improvements  ",
+        "section_count": 9,
+        "sections": [
+          "Introduction",
+          "How to Add New TODOs",
+          "High Priority",
+          "Medium Priority",
+          "User Experience Improvements",
+          "Performance Optimizations",
+          "Low Priority",
+          "Documentation",
+          "Testing"
+        ]
+      },
+      "ai/SYSTEM_AI_GUIDE.md": {
+        "content_length": 17921,
+        "header_info": "# AI System Documentation\n\n> **File**: `ai/SYSTEM_AI_GUIDE.md`\n> **Audience**: Developers and AI collaborators working on MHM's AI system\n> **Purpose**: Explain how the AI subsystem is structured, how",
+        "section_count": 26,
+        "sections": [
+          "Introduction",
+          "1. Overview",
+          "2. High-Level Architecture",
+          "2.1. Core components",
+          "2.2. Request / response flow (simplified)",
+          "3. Entry Points and Modes",
+          "3.1. Main runtime entry points",
+          "3.2. Modes",
+          "3.3. Command parsing integration",
+          "4. Context and Conversation State"
+        ]
+      },
+      "ai_development_docs/AI_ARCHITECTURE.md": {
+        "content_length": 8754,
+        "header_info": "# AI Architecture - Quick Reference\n\n> **File**: `ai_development_docs/AI_ARCHITECTURE.md`  \n> **Pair**: [ARCHITECTURE.md](ARCHITECTURE.md)  \n> **Audience**: AI collaborators and tools  \n> **Purpose**:",
+        "section_count": 8,
+        "sections": [
+          "Introduction",
+          "1. Directory Overview",
+          "2. User Data Model",
+          "3. Data Handling Patterns",
+          "4. Key Modules and Responsibilities",
+          "5. UI Architecture and Naming Conventions",
+          "6. Channel-Agnostic Architecture",
+          "7. Development Notes"
+        ]
+      },
+      "ai_development_docs/AI_CHANGELOG.md": {
+        "content_length": 131824,
+        "header_info": "# AI Changelog - Brief Summary for AI Context\n\n\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent ch",
+        "section_count": 158,
+        "sections": [
+          "Introduction",
+          "Overview",
+          "How to Update This File",
+          "YYYY-MM-DD - Brief Title **COMPLETED**",
+          "Recent Changes (Most Recent First)",
+          "2025-12-13 - Standardized Tool Output and Improved Report Display **COMPLETED**",
+          "2025-12-13 - Fixed Overlap Analysis Data Preservation Across Audit Tiers **COMPLETED**",
+          "2025-12-07 - Fixed Report Data Loss After Normalization **COMPLETED**",
+          "2025-12-06 - Fix Test Failures: Email User Creation and Account Creation UI **COMPLETED**",
+          "2025-12-06 - Complete Tool Result Saving and Fix Mid-Audit Status Updates **COMPLETED**"
+        ]
+      },
+      "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
+        "content_length": 12042,
+        "header_info": "# AI Development Workflow Guide\n\n> **File**: `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`  \n> **Pair**: [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md)\n> **Audience**: AI collaborators and tool",
+        "section_count": 12,
+        "sections": [
+          "Introduction",
+          "Quick Reference",
+          "1. Safety First",
+          "2. Virtual Environment Best Practices",
+          "3. Development Process",
+          "4. Testing Strategy",
+          "5. Common Tasks",
+          "6. Emergency Procedures",
+          "7. Learning Resources",
+          "8. Success Tips"
+        ]
+      },
+      "ai_development_docs/AI_DOCUMENTATION_GUIDE.md": {
+        "content_length": 13719,
+        "header_info": "# AI Documentation Guide\n\n> **File**: `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`\n> **Pair**: [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md)\n> **Audience**: AI collaborators and tools\n> **Purpos",
+        "section_count": 19,
+        "sections": [
+          "Introduction",
+          "Quick Reference",
+          "1. Documentation Categories",
+          "1.1. Detailed documentation",
+          "1.2. AI-facing documents",
+          "1.3. Generated and analytical docs",
+          "2. Standards and Templates",
+          "2.1. Heading numbering standard",
+          "2.2. Example marking standards",
+          "2.3. File path reference standards"
+        ]
+      },
+      "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md": {
+        "content_length": 8852,
+        "header_info": "# AI Error Handling Guide\n\n> **File**: `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`  \n> **Pair**: [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md)  \n> **Audience**: AI collaborators and too",
+        "section_count": 12,
+        "sections": [
+          "Introduction",
+          "1. Purpose and Design Principles",
+          "2. Architecture Overview",
+          "3. Usage Patterns",
+          "4. Error Categories and Severity",
+          "5. Error Message Guidelines",
+          "6. Configuration and Integration",
+          "7. Testing Error Handling",
+          "8. Monitoring and Debugging",
+          "9. Legacy and Migration"
+        ]
+      },
+      "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md": {
+        "content_length": 6496,
+        "header_info": "# AI Legacy Code Removal Guide\n\n> **File**: `ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md`\n> **Audience**: AI collaborators and developers cleaning up deprecated code paths\n> **Purpose**: Routing an",
+        "section_count": 8,
+        "sections": [
+          "Introduction",
+          "Quick Reference",
+          "1. Standards",
+          "2. Process",
+          "3. Checklist",
+          "4. Tools",
+          "5. Best Practices",
+          "6. Success Criteria"
+        ]
+      },
+      "ai_development_docs/AI_LOGGING_GUIDE.md": {
+        "content_length": 8089,
+        "header_info": "# AI Logging Guide\n\n> **File**: `ai_development_docs/AI_LOGGING_GUIDE.md`  \n> **Pair**: [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)  \n> **Audience**: AI assistants and automation tools  \n> **Purpose**: ",
+        "section_count": 11,
+        "sections": [
+          "Introduction",
+          "1. Purpose and Scope",
+          "2. Logging Architecture",
+          "3. Log Levels and When to Use Them",
+          "4. Component Log Files and Layout",
+          "5. Configuration (Environment Variables)",
+          "6. Log Rotation, Backups, and Archival",
+          "7. Legacy Compatibility Logging Standard",
+          "8. Maintenance and Cleanup",
+          "9. Best Practices"
+        ]
+      },
+      "ai_development_docs/AI_REFERENCE.md": {
+        "content_length": 3776,
+        "header_info": "# AI Reference - Troubleshooting & System Understanding\n\n\n> **File**: `ai_development_docs/AI_REFERENCE.md`\n> **Purpose**: Troubleshooting patterns and deep system understanding for AI collaborators  ",
+        "section_count": 13,
+        "sections": [
+          "Introduction",
+          "1. Troubleshooting Patterns",
+          "1.1. Documentation appears incomplete",
+          "1.2. Code change introduced failures",
+          "1.3. PowerShell command failed",
+          "1.4. User questions accuracy",
+          "2. Communication Patterns",
+          "3. System Understanding",
+          "3.1. Critical files (do not break)",
+          "3.2. Data flow patterns"
+        ]
+      },
+      "ai_development_docs/AI_SESSION_STARTER.md": {
+        "content_length": 6935,
+        "header_info": "# AI Session Starter\n\n> **File**: `ai_development_docs/AI_SESSION_STARTER.md`\n> **Audience**: AI collaborators working on the MHM codebase and docs\n> **Purpose**: Provide a compact starting point for ",
+        "section_count": 8,
+        "sections": [
+          "Introduction",
+          "1. Starting a Session",
+          "2. Core AI References",
+          "3. Safe Change Rules",
+          "4. Typical Tasks and Where to Look",
+          "4.1. \"Help me edit documentation\"",
+          "4.2. \"Help me refactor or clean up code\"",
+          "4.3. \"Help me understand the system\""
+        ]
+      },
+      "ai_development_docs/AI_TESTING_GUIDE.md": {
+        "content_length": 9792,
+        "header_info": "# AI Testing Guide\n\n> **File**: `ai_development_docs/AI_TESTING_GUIDE.md`  \n> **Pair**: [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)  \n> **Audience**: AI collaborators and tools  \n> **Purpose**: Routing",
+        "section_count": 9,
+        "sections": [
+          "Introduction",
+          "1. Purpose and Scope",
+          "2. Test Layout and Types",
+          "3. Fixtures, Utilities, and Safety",
+          "4. Running Automated Tests",
+          "5. Parallel Execution and Coverage",
+          "6. Writing and Extending Tests",
+          "7. Debugging and Troubleshooting",
+          "8. Manual and Channel-Specific Testing Overview"
+        ]
+      },
+      "communication/COMMUNICATION_GUIDE.md": {
+        "content_length": 11766,
+        "header_info": "# Communication Module - Channel-Agnostic Architecture\n\n> **File**: `communication/COMMUNICATION_GUIDE.md`  \n> **Audience**: Developers and maintainers working on communication channels and message fl",
+        "section_count": 16,
+        "sections": [
+          "Introduction",
+          "1. Core Principle",
+          "2. Architecture Layers",
+          "2.1. High-Level Flow",
+          "2.2. Message Models",
+          "2.3. Message Processing (`communication/message_processing/`)",
+          "2.4. Channel Base and Adapters (`communication/communication_channels/`)",
+          "3. Key Patterns",
+          "3.1. Error Handling Boundaries",
+          "3.2. Logging"
+        ]
+      },
+      "communication/communication_channels/discord/DISCORD_GUIDE.md": {
+        "content_length": 15924,
+        "header_info": "# Discord Channel Guide\n\n> **File**: `communication/communication_channels/discord/DISCORD_GUIDE.md`  \n> **Audience**: Developers and maintainers working on the Discord channel  \n> **Purpose**: Docume",
+        "section_count": 22,
+        "sections": [
+          "Introduction",
+          "1. Purpose and Scope",
+          "2. Discord Channel Architecture",
+          "3. Bot Lifecycle and Connection Management",
+          "3.1. Startup",
+          "3.2. Shutdown and Disconnects",
+          "4. Message and Interaction Flow",
+          "4.1. Messages",
+          "4.2. Reactions and Membership Events",
+          "4.3. UI Views and Button Callbacks"
+        ]
+      },
+      "core/ERROR_HANDLING_GUIDE.md": {
+        "content_length": 17987,
+        "header_info": "# Error Handling Guide\n\n> **File**: `core/ERROR_HANDLING_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on MHM  \n> **Purpose**: Centralized error handling patterns, categories, and i",
+        "section_count": 24,
+        "sections": [
+          "Introduction",
+          "1. Purpose and Design Principles",
+          "2. Architecture Overview",
+          "2.1. Core types and hierarchy",
+          "2.2. Recovery strategies",
+          "2.3. Error handler and helpers",
+          "2.4. Decorators and utilities",
+          "2.5. Integration with logging",
+          "3. Usage Patterns",
+          "3.1. Decorated functions (preferred)"
+        ]
+      },
+      "development_docs/CHANGELOG_DETAIL.md": {
+        "content_length": 898036,
+        "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of ",
+        "section_count": 311,
+        "sections": [
+          "Introduction",
+          "Overview",
+          "How to Update This File",
+          "How to Add Changes",
+          "YYYY-MM-DD - Brief Title",
+          "Recent Changes (Most Recent First)",
+          "2025-12-13 - Standardized Tool Output and Improved Report Display **COMPLETED**",
+          "2025-12-13 - Fixed Overlap Analysis Data Preservation Across Audit Tiers **COMPLETED**",
+          "2025-12-07 - Fixed Report Data Loss Issues After Normalization **COMPLETED**",
+          "2025-12-06 - Fix Test Failures: Email User Creation and Account Creation UI **COMPLETED**"
+        ]
+      },
+      "development_docs/PLANS.md": {
+        "content_length": 58499,
+        "header_info": "# MHM Development Plans\n\n\n> **File**: `development_docs/PLANS.md`\n> **Audience**: Human Developer & AI Collaborators  \n> **Purpose**: Consolidated development plans (grouped, interdependent work) with",
+        "section_count": 45,
+        "sections": [
+          "Introduction",
+          "[ACTIVE] **Current Active Plans**",
+          "**Test Suite Performance Optimization Plan** **ON HOLD**",
+          "**Error Handling Quality Improvement Plan** **IN PROGRESS**",
+          "**AI Chatbot Actionability Sprint** **IN PROGRESS**",
+          "**Discord App/Bot Capabilities Exploration** **PLANNING**",
+          "**Account Management System Improvements** **MOSTLY COMPLETE**",
+          "**Mood-Aware Support Calibration** **PLANNING**",
+          "**2025-09-16 - High Complexity Function Refactoring - Phase 2** **IN PROGRESS**",
+          "**Message Deduplication Advanced Features**"
+        ]
+      },
+      "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
+        "content_length": 13136,
+        "header_info": "# AI Development Tools Guide\n\n> **File**: `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`  \n> **Audience**: AI collaborators and automated tooling  \n> **Purpose**: Routing and constraints for all AI",
+        "section_count": 11,
+        "sections": [
+          "Introduction",
+          "1. Purpose and Scope",
+          "2. Running the Tool Suite",
+          "3. Audit Modes and Outputs",
+          "3.1. Tier 1: Quick Audit - `audit --quick`",
+          "3.2. Tier 2: Standard Audit - `audit` (default)",
+          "3.3. Tier 3: Full Audit - `audit --full`",
+          "4. Tool Catalog and Tiering",
+          "4.1. Naming Conventions",
+          "5. Operating Standards and Maintenance"
+        ]
+      },
+      "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
+        "content_length": 24625,
+        "header_info": "# Development Tools Guide\n\n> **File**: `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`  \n> **Audience**: Human maintainers and contributors  \n> **Purpose**: Detailed reference for every development too",
+        "section_count": 16,
+        "sections": [
+          "Introduction",
+          "1. Purpose and Scope",
+          "2. Running the Tool Suite",
+          "2.1. Global Options",
+          "2.2. Command Examples",
+          "2.3. Command Summary",
+          "2.4. Entry Point Expectations",
+          "3. Audit Modes and Outputs",
+          "4. Tool Catalog and Tiering",
+          "4.1. Naming Conventions"
+        ]
+      },
+      "logs/LOGGING_GUIDE.md": {
+        "content_length": 11151,
+        "header_info": "# Logging Guide\n\n> **File**: `logs/LOGGING_GUIDE.md`  \n> **Audience**: Developers and maintainers  \n> **Purpose**: Describe logging architecture, behavior, and maintenance tasks for MHM  \n> **Style**:",
+        "section_count": 32,
+        "sections": [
+          "Introduction",
+          "1. Purpose and Scope",
+          "2. Logging Architecture",
+          "2.1. Central logger module",
+          "2.2. Component loggers",
+          "2.3. Format",
+          "3. Log Levels and When to Use Them",
+          "3.1. DEBUG",
+          "3.2. INFO",
+          "3.3. WARNING"
+        ]
+      },
+      "scripts/SCRIPTS_GUIDE.md": {
+        "content_length": 6685,
+        "header_info": "# Scripts Directory\n\n\n> **File**: `scripts/SCRIPTS_GUIDE.md`\n> **Audience**: Developers using MHM utility scripts and tools  \n> **Purpose**: Guide for utility scripts, migration tools, and testing scr",
+        "section_count": 14,
+        "sections": [
+          "Introduction",
+          "Quick Reference",
+          "1. Structure",
+          "2. Available Scripts",
+          "2.1. Project Cleanup (`scripts/`)",
+          "2.2. Testing Tools (`testing/`)",
+          "2.3. AI Testing (`testing/ai/`)",
+          "2.4. Debug Tools (`debug/`)",
+          "2.5. Utilities (`utilities/`)",
+          "2.6. Cleanup Tools (`utilities/cleanup/`)"
+        ]
+      },
+      "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md": {
+        "content_length": 10411,
+        "header_info": "# Development Tools Testing Guide\n\n> **File**: `tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on development tools  \n> **Purpose**: Quick reference f",
+        "section_count": 21,
+        "sections": [
+          "Introduction",
+          "1. Quick Start",
+          "2. Test Suite Structure",
+          "3. Prerequisites",
+          "4. Test Fixtures and Isolation",
+          "4.1. Synthetic Demo Project",
+          "4.2. Test Configuration",
+          "4.3. Temporary Project Copies",
+          "5. Critical Safety Rules",
+          "5.1. Never Modify Real Project Files"
+        ]
+      },
+      "tests/MANUAL_DISCORD_TEST_GUIDE.md": {
+        "content_length": 7077,
+        "header_info": "# Manual Discord Testing Guide\n\n> **File**: `tests/MANUAL_DISCORD_TEST_GUIDE.md`  \n> **Audience**: Developers and AI assistants performing manual Discord testing  \n> **Purpose**: Manual testing proced",
+        "section_count": 10,
+        "sections": [
+          "Introduction",
+          "1. Prerequisites",
+          "2. Task Reminder Follow-up Flow Testing",
+          "2.1. Basic Test Scenarios",
+          "2.2. Edge Cases",
+          "3. Verification Commands",
+          "4. Success Criteria",
+          "5. Known Issues to Watch For",
+          "6. Reporting Results",
+          "7. Quick Test Checklist"
+        ]
+      },
+      "tests/MANUAL_TESTING_GUIDE.md": {
+        "content_length": 11513,
+        "header_info": "# Manual Testing Guide\n\n> **File**: `tests/MANUAL_TESTING_GUIDE.md`  \n> **Audience**: Developers and AI assistants performing manual testing  \n> **Purpose**: Canonical manual testing flows and checkli",
+        "section_count": 26,
+        "sections": [
+          "Introduction",
+          "1. Purpose and Scope",
+          "2. Core Manual Flows",
+          "2.1. Application startup and shutdown",
+          "2.2. Basic configuration and environment",
+          "3. UI Manual Testing",
+          "3.1. Layout and visual checks",
+          "3.2. Navigation and interaction",
+          "3.3. Validation and error feedback",
+          "4. Scheduling & Reminder Manual Tests"
+        ]
+      },
+      "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md": {
+        "content_length": 4945,
+        "header_info": "# System AI Functionality Testing Guide\n\n> **File**: `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on MHM AI functionality  \n> **Purpose**: Quick",
+        "section_count": 10,
+        "sections": [
+          "Introduction",
+          "1. Quick Start",
+          "2. Test Suite Structure",
+          "3. Prerequisites",
+          "4. Test Data Scenarios",
+          "5. Logging Behavior",
+          "6. Test Features",
+          "7. Test Categories",
+          "8. Known Issues",
+          "9. Cleanup"
+        ]
+      },
+      "tests/TESTING_GUIDE.md": {
+        "content_length": 22125,
+        "header_info": "# Testing Guide\n\n> **File**: `tests/TESTING_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on MHM  \n> **Purpose**: Comprehensive testing framework focused on real behavior, integrati",
+        "section_count": 36,
+        "sections": [
+          "Introduction",
+          "1. Purpose and Scope",
+          "2. Test Layout and Types",
+          "2.1. Discovery rules",
+          "2.2. Test types",
+          "2.3. Where to put new tests",
+          "3. Fixtures, Utilities, and Safety",
+          "3.1. Shared fixtures and hooks",
+          "3.2. Test utilities and helpers",
+          "3.3. Filesystem safety"
+        ]
+      },
+      "ui/UI_GUIDE.md": {
+        "content_length": 7863,
+        "header_info": "# UI Development Guide\n\n> **File**: `ui/UI_GUIDE.md`  \n> **Audience**: Developers working on MHM UI components  \n> **Purpose**: Guide for UI development, generation, and maintenance  \n> **Style**: Tec",
+        "section_count": 5,
+        "sections": [
+          "Introduction",
+          "Quick Reference",
+          "1. UI Generation",
+          "2. File Structure",
+          "3. Usage Pattern"
+        ]
+      }
+    },
     "missing": [],
     "placeholders": [],
     "section_overlaps": {
@@ -73,66 +682,6 @@
         "TODO.md",
         "development_docs/CHANGELOG_DETAIL.md"
       ]
-    },
-    "consolidation_recommendations": [
-      {
-        "category": "Development Workflow",
-        "files": [
-          "DOCUMENTATION_GUIDE.md",
-          "DEVELOPMENT_WORKFLOW.md",
-          "development_docs/CHANGELOG_DETAIL.md",
-          "development_docs/PLANS.md",
-          "ai_development_docs/AI_SESSION_STARTER.md",
-          "ai_development_docs/AI_ARCHITECTURE.md",
-          "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
-          "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-          "ai_development_docs/AI_CHANGELOG.md",
-          "ai_development_docs/AI_REFERENCE.md",
-          "ai_development_docs/AI_LOGGING_GUIDE.md",
-          "ai_development_docs/AI_TESTING_GUIDE.md",
-          "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-          "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md",
-          "core/ERROR_HANDLING_GUIDE.md",
-          "logs/LOGGING_GUIDE.md",
-          "tests/TESTING_GUIDE.md",
-          "tests/MANUAL_TESTING_GUIDE.md",
-          "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
-          "tests/MANUAL_DISCORD_TEST_GUIDE.md",
-          "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
-          "communication/COMMUNICATION_GUIDE.md",
-          "communication/communication_channels/discord/DISCORD_GUIDE.md",
-          "scripts/SCRIPTS_GUIDE.md",
-          "ui/UI_GUIDE.md",
-          "ai/SYSTEM_AI_GUIDE.md",
-          "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
-          "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
-        ],
-        "priority": "medium",
-        "similarity_score": 0.19179895153170765,
-        "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
-      },
-      {
-        "category": "Testing",
-        "files": [
-          "ai_development_docs/AI_TESTING_GUIDE.md",
-          "tests/TESTING_GUIDE.md",
-          "tests/MANUAL_TESTING_GUIDE.md",
-          "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md"
-        ],
-        "priority": "medium",
-        "similarity_score": 0.26807322366527847,
-        "suggestion": "Consider consolidating testing documentation into a single TESTING_GUIDE.md"
-      },
-      {
-        "category": "High Section Overlap",
-        "files": [
-          "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
-          "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md"
-        ],
-        "overlap_count": 3,
-        "priority": "medium",
-        "suggestion": "These files share 3 sections - consider consolidating or clearly differentiating their purposes"
-      }
-    ]
+    }
   }
 }

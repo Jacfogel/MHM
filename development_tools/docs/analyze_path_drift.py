@@ -131,6 +131,7 @@ class PathDriftAnalyzer:
         - Files with "PLAN" in the name (historical context files)
         - Files in .cursor/plans/ directory
         - Files in archive directories
+        - Test fixture files (intentional test data, not real documentation issues)
         
         Note: Example sections within files are excluded via _is_in_example_context(),
         not by excluding entire files.
@@ -150,12 +151,21 @@ class PathDriftAnalyzer:
         if 'archive' in doc_file_path.parts:
             return True
         
+        # Skip test fixture files (intentional test data, not real documentation issues)
+        # These are in tests/fixtures/ or tests/fixtures/development_tools_demo/
+        if 'tests' in doc_file_path.parts and 'fixtures' in doc_file_path.parts:
+            return True
+        
         return False
     
     def _should_skip_path(self, path: str, doc_file: str) -> bool:
         """Enhanced path filtering to reduce false positives."""
         # Skip URLs and anchors
         if path.startswith(('http', '#', 'mailto')):
+            return True
+        
+        # Skip Python __future__ feature names (not modules)
+        if path == 'annotations' or path == '__future__':
             return True
         
         # Skip external website references and markdown section headers
@@ -327,6 +337,10 @@ class PathDriftAnalyzer:
         if 'archive' in line_lower or 'archived' in line_lower:
             return True
         
+        # Check for [ARCHIVED] marker (similar to [EXAMPLE])
+        if '[archived]' in line_lower:
+            return True
+        
         # Standard 5: Check for example phrases in the current line
         example_phrases = ['for example', 'for instance', 'e.g.,', 'e.g.', 'example:', 'examples:']
         for phrase in example_phrases:
@@ -342,14 +356,18 @@ class PathDriftAnalyzer:
             if re.match(marker, line_stripped, re.IGNORECASE):
                 return True
         
-        # Standard 1 & 5 (continued): Check previous lines (up to 5 lines back) for example markers and phrases
-        # This catches cases where [AVOID] or [OK] is on a previous line (per standard)
-        for i in range(max(0, line_num - 5), line_num):
+        # Standard 1 & 5 (continued): Check previous lines (up to 10 lines back) for example markers and phrases
+        # This catches cases where [AVOID] or [OK] or [EXAMPLE] or [ARCHIVED] is on a previous line (per standard)
+        for i in range(max(0, line_num - 10), line_num):
             prev_line = lines[i].strip()
             prev_line_lower = prev_line.lower()
             # Check for archive references in previous lines too
             if 'archive' in prev_line_lower or 'archived' in prev_line_lower:
-                if line_num - i <= 3:  # Within 3 lines of archive reference
+                if line_num - i <= 10:  # Within 10 lines of archive reference (extended for [ARCHIVED] sections)
+                    return True
+            # Check for [ARCHIVED] marker in previous lines
+            if '[archived]' in prev_line_lower:
+                if line_num - i <= 10:  # Within 10 lines of [ARCHIVED] marker
                     return True
             # Check for example phrases in previous lines
             for phrase in example_phrases:
@@ -362,7 +380,7 @@ class PathDriftAnalyzer:
                     # If we found a marker, check if current line is part of the example
                     # (list item, continuation, or within same section)
                     if line_stripped.startswith(('-', '*', '1.', '2.', '3.', '  ')) or \
-                       line_num - i <= 3:  # Within 3 lines of the marker
+                       line_num - i <= 10:  # Within 10 lines of the marker (extended for [EXAMPLE] sections)
                         return True
         
         # Standard 2: Check if we're in an "Examples" section by looking backwards for section headers
@@ -686,10 +704,10 @@ class PathDriftAnalyzer:
     
     def run_analysis(self) -> Dict[str, Any]:
         """
-        Run path drift analysis and return structured results.
+        Run path drift analysis and return results in standard format.
         
         Returns:
-            Dictionary with 'files', 'total_issues', and 'summary' keys
+            Dictionary with standard format: 'summary', 'files', and 'details' keys
         """
         drift_issues = self.check_path_drift()
         
@@ -701,10 +719,16 @@ class PathDriftAnalyzer:
             files[doc_file] = issue_count
             total_issues += issue_count
         
+        # Return standard format
         return {
+            'summary': {
+                'total_issues': total_issues,
+                'files_affected': len(files)
+            },
             'files': files,
-            'total_issues': total_issues,
-            'detailed_issues': dict(drift_issues)  # Keep detailed issues for reference
+            'details': {
+                'detailed_issues': dict(drift_issues)  # Keep detailed issues for reference
+            }
         }
 
 
@@ -724,9 +748,23 @@ def main():
         return 0
     
     # Print results in human-readable format
-    results = structured_results.get('detailed_issues', {})
-    total_issues = structured_results.get('total_issues', 0)
-    files = structured_results.get('files', {})
+    # LEGACY COMPATIBILITY: Handle both standard format (new) and legacy format (old)
+    # Standard format uses 'summary' key; legacy format has 'total_issues' at top level
+    # Removal plan: After all callers are updated to use standard format, remove legacy format handling.
+    # Detection: Search for "Legacy format (backward compatibility)" in this file.
+    if 'summary' in structured_results:
+        # Standard format
+        summary = structured_results.get('summary', {})
+        total_issues = summary.get('total_issues', 0)
+        files = structured_results.get('files', {})
+        details = structured_results.get('details', {})
+        results = details.get('detailed_issues', {})
+    else:
+        # Legacy format (backward compatibility)
+        logger.debug("analyze_path_drift main: Using legacy format (backward compatibility)")
+        results = structured_results.get('detailed_issues', {})
+        total_issues = structured_results.get('total_issues', 0)
+        files = structured_results.get('files', {})
     
     if results:
         print(f"\nPath Drift Issues:")

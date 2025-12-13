@@ -1,14 +1,14 @@
 {
   "generated_by": "analyze_function_registry - Development Tools",
-  "last_generated": "2025-12-13 03:06:30",
-  "timestamp": "2025-12-13T03:06:30.286489",
+  "last_generated": "2025-12-13 04:46:11",
+  "timestamp": "2025-12-13T04:46:11.501877",
   "tool_name": "analyze_function_registry",
   "domain": "functions",
   "source": "python development_tools/functions/analyze_function_registry.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
     "analysis": {
-      "duplicate_count": 118,
+      "duplicate_count": 117,
       "duplicate_sample": [
         {
           "files": [
@@ -568,10 +568,6 @@
           "ui/widgets/task_settings_widget.py",
           "ui/widgets/user_profile_settings_widget.py"
         ],
-        "load_json": [
-          "verify_all_metrics.py",
-          "verify_detailed.py"
-        ],
         "main": [
           "core/headless_service.py",
           "core/service.py",
@@ -579,8 +575,7 @@
           "run_mhm.py",
           "run_tests.py",
           "ui/generate_ui_files.py",
-          "ui/ui_app_qt.py",
-          "verify_reports.py"
+          "ui/ui_app_qt.py"
         ],
         "mark_as_welcomed": [
           "communication/communication_channels/discord/welcome_handler.py",
@@ -1618,12 +1613,6 @@
           "name": "schedule_daily_message_job"
         },
         {
-          "complexity": 327,
-          "file": "verify_reports.py",
-          "has_docstring": true,
-          "name": "verify_functions_metrics"
-        },
-        {
           "complexity": 326,
           "file": "core/user_data_manager.py",
           "has_docstring": true,
@@ -1910,9 +1899,15 @@
           "file": "ui/widgets/tag_widget.py",
           "has_docstring": true,
           "name": "add_tag"
+        },
+        {
+          "complexity": 288,
+          "file": "ui/ui_app_qt.py",
+          "has_docstring": true,
+          "name": "start_service"
         }
       ],
-      "high_complexity_total": 1085,
+      "high_complexity_total": 1078,
       "undocumented_handlers": [
         {
           "file": "communication/command_handlers/account_handler.py",
@@ -2237,17 +2232,9 @@
         {
           "file": "ui/widgets/task_settings_widget.py",
           "name": "load_existing_data"
-        },
-        {
-          "file": "verify_all_metrics.py",
-          "name": "load_json"
-        },
-        {
-          "file": "verify_detailed.py",
-          "name": "load_json"
         }
       ],
-      "undocumented_handlers_total": 83,
+      "undocumented_handlers_total": 81,
       "undocumented_other": [
         {
           "file": "communication/communication_channels/discord/account_flow_handler.py",
@@ -2516,127 +2503,23 @@
       ],
       "undocumented_other_total": 66
     },
-    "coverage": 92.92,
+    "coverage": 93.6,
     "errors": [],
     "extra": {
       "count": 0,
       "files": {}
     },
     "missing": {
-      "count": 11,
-      "files": {
-        "verify_all_metrics.py": [
-          "load_json",
-          "verify_metric"
-        ],
-        "verify_detailed.py": [
-          "load_json"
-        ],
-        "verify_reports.py": [
-          "load_json_file",
-          "main",
-          "verify_documentation_metrics",
-          "verify_error_handling",
-          "verify_functions_metrics",
-          "verify_legacy_references",
-          "verify_test_coverage",
-          "verify_unused_imports"
-        ]
-      },
-      "missing_files": [
-        "verify_all_metrics.py",
-        "verify_detailed.py",
-        "verify_reports.py"
-      ]
+      "count": 0,
+      "files": {},
+      "missing_files": []
     },
-    "registry_sections": {
-      "verify_all_metrics.py": {
-        "classes": [],
-        "functions": [
-          {
-            "args": [
-              "file_path"
-            ],
-            "docstring": "",
-            "name": "load_json"
-          },
-          {
-            "args": [
-              "name",
-              "expected",
-              "actual",
-              "tolerance"
-            ],
-            "docstring": "Verify a metric with optional tolerance for floating point.",
-            "name": "verify_metric"
-          }
-        ]
-      },
-      "verify_detailed.py": {
-        "classes": [],
-        "functions": [
-          {
-            "args": [
-              "file_path"
-            ],
-            "docstring": "",
-            "name": "load_json"
-          }
-        ]
-      },
-      "verify_reports.py": {
-        "classes": [],
-        "functions": [
-          {
-            "args": [
-              "file_path"
-            ],
-            "docstring": "Load JSON file and return data.",
-            "name": "load_json_file"
-          },
-          {
-            "args": [],
-            "docstring": "Verify function metrics from analyze_functions.",
-            "name": "verify_functions_metrics"
-          },
-          {
-            "args": [],
-            "docstring": "Verify test coverage metrics.",
-            "name": "verify_test_coverage"
-          },
-          {
-            "args": [],
-            "docstring": "Verify error handling metrics.",
-            "name": "verify_error_handling"
-          },
-          {
-            "args": [],
-            "docstring": "Verify documentation metrics.",
-            "name": "verify_documentation_metrics"
-          },
-          {
-            "args": [],
-            "docstring": "Verify unused imports metrics.",
-            "name": "verify_unused_imports"
-          },
-          {
-            "args": [],
-            "docstring": "Verify legacy references metrics.",
-            "name": "verify_legacy_references"
-          },
-          {
-            "args": [],
-            "docstring": "Run all verification checks.",
-            "name": "main"
-          }
-        ]
-      }
-    },
+    "registry_sections": {},
     "totals": {
       "classes_found": 159,
-      "files_scanned": 110,
+      "files_scanned": 107,
       "functions_documented": 1404,
-      "functions_found": 1511
+      "functions_found": 1500
     }
   }
 }

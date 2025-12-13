@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_heading_numbering - Development Tools",
-  "last_generated": "2025-12-13 03:06:07",
-  "timestamp": "2025-12-13T03:06:07.598462",
+  "last_generated": "2025-12-13 04:45:59",
+  "timestamp": "2025-12-13T04:45:59.688101",
   "tool_name": "analyze_heading_numbering",
   "domain": "docs",
   "note": "This file is auto-generated. Do not edit manually.",
@@ -23,7 +23,7 @@
       "results": []
     },
     "ARCHITECTURE.md": {
-      "mtime": 1765090813.6306126,
+      "mtime": 1765620245.4273417,
       "results": []
     },
     "PROJECT_VISION.md": {
@@ -111,15 +111,15 @@
       "results": []
     },
     "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
-      "mtime": 1765090813.6319916,
+      "mtime": 1765620828.8689911,
       "results": []
     },
     "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
-      "mtime": 1765090813.6329975,
+      "mtime": 1765620245.4273417,
       "results": []
     },
     "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md": {
-      "mtime": 1765077520.3602946,
+      "mtime": 1765620245.4273417,
       "results": []
     }
   }

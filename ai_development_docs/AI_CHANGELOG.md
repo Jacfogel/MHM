@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-13 - Standardized Tool Output and Improved Report Display **COMPLETED**
+- **Tool Migration**: Migrated 6 analysis tools to output standard format directly: `analyze_ascii_compliance`, `analyze_heading_numbering`, `analyze_missing_addresses`, `analyze_unconverted_links`, `analyze_path_drift`, and `analyze_unused_imports`. Added `run_analysis()` methods returning standard format with `summary`, `files`, and `details` sections. Updated `main()` functions to support `--json` output. Updated `operations.py` to call tools with `--json` flag and parse JSON output.
+- **Legacy Compatibility**: Added backward compatibility handling for legacy formats with proper `# LEGACY COMPATIBILITY:` markers, logging when legacy paths are exercised, and removal plan documentation. Detection patterns already exist in `analyze_legacy_references.py` for `# LEGACY COMPATIBILITY:` markers.
+- **Report Display Improvements**: Fixed docstring coverage display in AI_STATUS.md to always show registry gaps count (e.g., "98.47% (0 items missing from registry)"). Removed redundant "Focus on" modules list from watchlist (these belong only in priorities section). Added clarifying comments explaining relationship between docstring coverage (from `analyze_functions`) and registry gaps (from `analyze_function_registry`) - these measure different aspects of documentation completeness.
+- **Impact**: Tools now output consistent standard format, making report generation simpler and more reliable. Reports provide clearer context about different documentation metrics. Backward compatibility ensures existing code continues to work during migration period. Legacy compatibility code is properly marked and documented for future removal.
+
 ### 2025-12-13 - Fixed Overlap Analysis Data Preservation Across Audit Tiers **COMPLETED**
 - Fixed overlap analysis data loss when running Tier 2 audits after Tier 3 audits by preserving cached overlap data in `run_analyze_documentation()`
 - Overlap analysis results from Tier 3 audits now persist across lower-tier audits; reports show correct status and data when cached

@@ -344,15 +344,15 @@ Typical structure:
 
 Naming conventions:
 
-[EXAMPLE] The following are example file names showing the naming pattern:
+[EXAMPLE] Examples: The following are example file names showing the naming pattern:
 
 - Dialog design: `something_dialog.ui`  
 - Dialog generated: `something_dialog_pyqt.py` (or similar)  
 - Dialog implementation: `ui/dialogs/something_dialog.py` with class `SomethingDialog`
 
-- Widget design: `something_widget.ui`  
-- Widget generated: `something_widget_pyqt.py`  
-- Widget implementation: `ui/widgets/something_widget.py` with class `SomethingWidget`
+- Widget design: `something_widget.ui` (example file)  
+- Widget generated: `something_widget_pyqt.py` (example file)  
+- Widget implementation: `ui/widgets/something_widget.py` (example file) with class `SomethingWidget`
 
 The goal is that when you see a dialog in the UI, you can easily find:
 

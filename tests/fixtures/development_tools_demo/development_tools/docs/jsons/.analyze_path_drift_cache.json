@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_path_drift - Development Tools",
-  "last_generated": "2025-12-13 03:05:01",
-  "timestamp": "2025-12-13T03:05:01.440154",
+  "last_generated": "2025-12-13 04:53:18",
+  "timestamp": "2025-12-13T04:53:18.085073",
   "tool_name": "analyze_path_drift",
   "domain": "docs",
   "note": "This file is auto-generated. Do not edit manually.",
@@ -128,13 +128,13 @@
       ]
     },
     "development_tools/AI_PRIORITIES.md": {
-      "mtime": 1765614434.4524734,
+      "mtime": 1765620965.4399097,
       "results": [
         "development_tools/AI_PRIORITIES.md"
       ]
     },
     "development_tools/AI_STATUS.md": {
-      "mtime": 1765614434.4353364,
+      "mtime": 1765620965.4315236,
       "results": [
         "development_tools/AI_STATUS.md"
       ]

@@ -19,7 +19,7 @@ import re
 import argparse
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from collections import defaultdict
 
 # Add project root to path for core module imports
@@ -407,15 +407,75 @@ class UnconvertedLinkAnalyzer:
         self.cache.save_cache()
         
         return unconverted_links
+    
+    def run_analysis(self) -> Dict[str, Any]:
+        """
+        Run unconverted links analysis and return results in standard format.
+        
+        Returns:
+            Dictionary with standard format structure:
+            {
+                "summary": {
+                    "total_issues": int,
+                    "files_affected": int,
+                    "status": str
+                },
+                "files": {
+                    "file_path": issue_count
+                },
+                "details": {
+                    "detailed_issues": Dict[str, List[str]]
+                }
+            }
+        """
+        unconverted_links = self.check_unconverted_links()
+        
+        # Convert to standard format
+        files = {}
+        total_issues = 0
+        for file_path, issues in unconverted_links.items():
+            issue_count = len(issues)
+            files[file_path] = issue_count
+            total_issues += issue_count
+        
+        # Determine status
+        if total_issues == 0:
+            status = "CLEAN"
+        elif total_issues < 10:
+            status = "NEEDS_ATTENTION"
+        else:
+            status = "CRITICAL"
+        
+        return {
+            'summary': {
+                'total_issues': total_issues,
+                'files_affected': len(files),
+                'status': status
+            },
+            'files': files,
+            'details': {
+                'detailed_issues': dict(unconverted_links)
+            }
+        }
 
 
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Check for unconverted file path links in documentation")
+    parser.add_argument('--json', action='store_true', help='Output results as JSON in standard format')
     
     args = parser.parse_args()
     
     analyzer = UnconvertedLinkAnalyzer()
+    
+    # Use run_analysis() to get standard format
+    if args.json:
+        import json
+        results = analyzer.run_analysis()
+        print(json.dumps(results, indent=2))
+        return 0
+    
+    # Otherwise use check_unconverted_links() for human-readable output
     results = analyzer.check_unconverted_links()
     
     # Print results

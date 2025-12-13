@@ -23,7 +23,7 @@ import argparse
 import json
 import multiprocessing
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 from collections import defaultdict
 from datetime import datetime
 from functools import partial
@@ -804,7 +804,7 @@ class UnusedImportsChecker:
         lines.append("## Overall Recommendations")
         lines.append("")
         lines.append("1. **Obvious Unused**: Review and remove obvious unused imports to improve code cleanliness")
-        lines.append("2. **Type Hints**: For type hint imports, consider using `from __future__ import annotations` and `TYPE_CHECKING`")
+        lines.append("2. **Type Hints**: For type hint imports, consider using `from __future__ import annotations` and `TYPE_CHECKING` (note: the word \"annotations\" here refers to the Python `__future__` feature name, not a module to import)")
         lines.append("3. **Re-exports**: Verify `__init__.py` imports are intentional re-exports")
         lines.append("4. **Conditional Imports**: Be cautious with conditional imports - they may be handling optional dependencies")
         lines.append("5. **Star Imports**: Consider replacing star imports with explicit imports for better clarity")
@@ -838,6 +838,44 @@ class UnusedImportsChecker:
             return 'NEEDS ATTENTION'
         else:
             return 'CRITICAL'
+    
+    def run_analysis(self) -> Dict[str, Any]:
+        """
+        Run unused imports analysis and return results in standard format.
+        
+        Returns:
+            Dictionary with standard format: 'summary', 'files', and 'details' keys
+        """
+        # Ensure scan has been run
+        if not hasattr(self, 'findings') or not self.findings:
+            self.scan_codebase()
+        
+        # Build files dict from findings
+        files = {}
+        for category, items in self.findings.items():
+            for item in items:
+                file_path = item.get('file', '')
+                if file_path:
+                    if file_path not in files:
+                        files[file_path] = 0
+                    files[file_path] += 1
+        
+        # Return standard format
+        return {
+            'summary': {
+                'total_issues': self.stats['total_unused'],
+                'files_affected': self.stats['files_with_issues'],
+                'status': self._determine_status()
+            },
+            'files': files,
+            'details': {
+                'by_category': {
+                    category: len(items)
+                    for category, items in self.findings.items()
+                },
+                'files_scanned': self.stats['files_scanned']
+            }
+        }
 
 
 def execute(project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs) -> Dict:
@@ -907,9 +945,9 @@ def main():
         print(f"Files with issues: {checker.stats['files_with_issues']}")
         print(f"Total unused imports: {checker.stats['total_unused']}")
     else:
-        # Output JSON for integration
-        summary = checker.get_summary_data()
-        print(json.dumps(summary, indent=2))
+        # Output JSON in standard format for integration
+        standard_results = checker.run_analysis()
+        print(json.dumps(standard_results, indent=2))
     
     return 0
 

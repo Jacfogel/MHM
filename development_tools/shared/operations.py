@@ -1043,12 +1043,26 @@ class AIToolsService:
             analyzer = PathDriftAnalyzer()
             structured_results = analyzer.run_analysis()
             
-            # Convert to the expected format
-            data = {
-                'files': structured_results.get('files', {}),
-                'total_issues': structured_results.get('total_issues', 0),
-                'detailed_issues': structured_results.get('detailed_issues', {})
-            }
+            # LEGACY COMPATIBILITY: Handle both standard format (new) and legacy format (old)
+            # Standard format uses 'summary' key; legacy format has 'total_issues' at top level
+            # Removal plan: After all tools are migrated to standard format, remove legacy format handling.
+            # Detection: Search for "Legacy format (backward compatibility)" in this file.
+            if 'summary' in structured_results:
+                # Standard format
+                summary = structured_results.get('summary', {})
+                data = {
+                    'files': structured_results.get('files', {}),
+                    'total_issues': summary.get('total_issues', 0),
+                    'detailed_issues': structured_results.get('details', {}).get('detailed_issues', {})
+                }
+            else:
+                # Legacy format (backward compatibility)
+                logger.debug("analyze_path_drift: Using legacy format (backward compatibility)")
+                data = {
+                    'files': structured_results.get('files', {}),
+                    'total_issues': structured_results.get('total_issues', 0),
+                    'detailed_issues': structured_results.get('detailed_issues', {})
+                }
             
             # Generate text output for compatibility
             import io
@@ -1089,7 +1103,7 @@ class AIToolsService:
         except Exception as e:
             logger.error(f"Error running path drift analyzer: {e}", exc_info=True)
             # Fallback to subprocess method - use unified helper to load from cache first
-            result = self.run_script("analyze_path_drift")
+            result = self.run_script("analyze_path_drift", '--json')
             try:
                 cache_file = self.project_root / "development_tools" / "docs" / "jsons" / ".analyze_path_drift_cache.json"
                 
@@ -3146,33 +3160,28 @@ class AIToolsService:
         result = {'success': False, 'output': '', 'error': '', 'returncode': 0}
         
         try:
-            from ..imports.analyze_unused_imports import execute
-            # execute() generates the report and returns structured data
+            from ..imports.analyze_unused_imports import UnusedImportsChecker, execute
+            # Use execute() to generate report, then get standard format via run_analysis()
             execute_result = execute(project_root=str(self.project_root), output='development_docs/UNUSED_IMPORTS_REPORT.md')
             if isinstance(execute_result, dict):
-                # execute() returns {'results': ..., 'report': ..., 'stats': ...}
-                stats = execute_result.get('stats', {})
-                results = execute_result.get('results', {})
-                findings = results.get('findings', {}) if isinstance(results, dict) else {}
+                # Create checker instance to get standard format
+                checker = UnusedImportsChecker(str(self.project_root))
+                # Scan was already done by execute(), so we can call run_analysis() directly
+                # But we need to set findings and stats from execute_result
+                if 'results' in execute_result:
+                    results = execute_result.get('results', {})
+                    checker.findings = results.get('findings', {})
+                if 'stats' in execute_result:
+                    checker.stats = execute_result.get('stats', {})
                 
-                if stats:
-                    # Construct summary data matching get_summary_data() format
-                    data = {
-                        'files_scanned': stats.get('files_scanned', 0),
-                        'files_with_issues': stats.get('files_with_issues', 0),
-                        'total_unused': stats.get('total_unused', 0),
-                        'by_category': {
-                            category: len(items) if isinstance(items, list) else items
-                            for category, items in findings.items()
-                        } if findings else {},
-                        'status': 'GOOD' if stats.get('total_unused', 0) == 0 else ('NEEDS ATTENTION' if stats.get('total_unused', 0) < 20 else 'CRITICAL')
-                    }
-                    result['success'] = True
-                    logger.info("Unused imports report generated successfully")
-                    logger.debug(f"Got unused imports data from execute() function: {data.get('total_unused', 0)} unused imports")
-                else:
-                    logger.warning("execute() returned no stats data")
-                    result['error'] = 'No stats data returned from execute()'
+                # Get standard format
+                data = checker.run_analysis()
+                result['success'] = True
+                logger.info("Unused imports report generated successfully")
+                logger.debug(f"Got unused imports data in standard format: {data.get('summary', {}).get('total_issues', 0)} unused imports")
+            else:
+                logger.warning("execute() returned unexpected format")
+                result['error'] = 'execute() returned unexpected format'
         except Exception as e:
             logger.warning(f"Failed to get unused imports data from execute function: {e}")
             result['error'] = str(e)
@@ -3191,41 +3200,42 @@ class AIToolsService:
                     if result_proc.returncode == 0 and result_proc.stdout:
                         import json
                         try:
-                            data = json.loads(result_proc.stdout.strip())
+                            parsed = json.loads(result_proc.stdout.strip())
+                            # Normalize to standard format if needed
+                            from .result_format import normalize_to_standard_format
+                            data = normalize_to_standard_format('analyze_unused_imports', parsed)
                             result['success'] = True
-                            logger.debug("Got unused imports data from subprocess fallback")
+                            logger.debug("Got unused imports data from subprocess fallback (normalized to standard format)")
                         except json.JSONDecodeError:
                             result['error'] = 'Failed to parse JSON from subprocess output'
                 except Exception as e2:
                     logger.warning(f"Subprocess fallback also failed: {e2}")
                     result['error'] = f"Both execute() and subprocess failed: {e2}"
         
-        # Ensure data has the expected structure
+        # LEGACY COMPATIBILITY: Ensure data is in standard format
+        # Normalize legacy format to standard format if needed
+        # Removal plan: After all tools output standard format directly, remove normalization step.
+        # Detection: Search for "Normalize to standard format if needed" in this file.
         if data and isinstance(data, dict):
-            # Normalize data structure to match what status reports expect
-            if 'total_unused' not in data and 'stats' in data:
-                # Convert from stats format
-                stats = data.get('stats', {})
-                findings = data.get('findings', {})
-                data = {
-                    'files_scanned': stats.get('files_scanned', 0),
-                    'files_with_issues': stats.get('files_with_issues', 0),
-                    'total_unused': stats.get('total_unused', 0),
-                    'by_category': {
-                        category: len(items) if isinstance(items, list) else items
-                        for category, items in findings.items()
-                    } if findings else {},
-                    'status': 'GOOD' if stats.get('total_unused', 0) == 0 else ('NEEDS ATTENTION' if stats.get('total_unused', 0) < 20 else 'CRITICAL')
-                }
+            # Normalize to standard format if needed
+            if 'summary' not in data:
+                logger.debug("run_unused_imports_report: Normalizing legacy format to standard format (backward compatibility)")
+                from .result_format import normalize_to_standard_format
+                data = normalize_to_standard_format('analyze_unused_imports', data)
         
         # Save to standardized storage if we have data
-        # Check if data exists and has the expected structure (total_unused can be 0, so check for key existence)
-        if data and isinstance(data, dict) and ('total_unused' in data or 'stats' in data or 'files_with_issues' in data):
+        # Check if data exists and has the expected structure (standard format or legacy format)
+        if data and isinstance(data, dict) and ('summary' in data or 'total_unused' in data or 'stats' in data or 'files_with_issues' in data):
             try:
                 from .output_storage import save_tool_result
                 save_tool_result('analyze_unused_imports', 'imports', data, project_root=self.project_root)
                 self.results_cache['analyze_unused_imports'] = data
-                logger.debug(f"Saved unused imports data: {len(data)} keys, total_unused={data.get('total_unused', 'N/A')}")
+                # Log using standard format if available
+                if 'summary' in data:
+                    total_issues = data.get('summary', {}).get('total_issues', 'N/A')
+                    logger.debug(f"Saved unused imports data in standard format: total_issues={total_issues}")
+                else:
+                    logger.debug(f"Saved unused imports data: {len(data)} keys, total_unused={data.get('total_unused', 'N/A')}")
             except Exception as e:
                 logger.warning(f"Failed to save analyze_unused_imports result: {e}")
         elif not data:
@@ -4285,6 +4295,31 @@ class AIToolsService:
 
     def _parse_path_drift_output(self, output: str) -> Dict[str, Any]:
         """Parse path drift analysis output."""
+        # Try to parse as JSON first (when --json flag is used)
+        if output.strip().startswith('{'):
+            try:
+                import json
+                parsed = json.loads(output)
+                # Normalize to standard format if needed
+                from .result_format import normalize_to_standard_format
+                normalized = normalize_to_standard_format('analyze_path_drift', parsed)
+                # LEGACY COMPATIBILITY: Convert back to legacy format for backward compatibility with existing code
+                # Removal plan: After all code using legacy format is updated, remove this conversion.
+                # Detection: Search for "Convert back to legacy format" in this file.
+                if 'summary' in normalized:
+                    logger.debug("_parse_path_drift_output: Converting standard format to legacy format (backward compatibility)")
+                    return {
+                        'files': normalized.get('files', {}),
+                        'total_issues': normalized.get('summary', {}).get('total_issues', 0),
+                        'detailed_issues': normalized.get('details', {}).get('detailed_issues', {})
+                    }
+                return normalized
+            except (json.JSONDecodeError, ValueError):
+                pass  # Fall through to text parsing
+        
+        # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
+        # Removal plan: After all tools output JSON, remove text parsing fallback.
+        # Detection: Search for "Fall back to text parsing for backward compatibility" in this file.
         result = {'files': {}, 'total_issues': 0}
         if not isinstance(output, str) or not output.strip():
             return result
@@ -4327,6 +4362,20 @@ class AIToolsService:
 
     def _parse_ascii_compliance_output(self, output: str) -> Dict[str, Any]:
         """Parse ASCII compliance check output. Returns standard format."""
+        # Try to parse as JSON first (when --json flag is used)
+        if output.strip().startswith('{'):
+            try:
+                import json
+                parsed = json.loads(output)
+                # Normalize to standard format if needed
+                from .result_format import normalize_to_standard_format
+                return normalize_to_standard_format(parsed)
+            except (json.JSONDecodeError, ValueError):
+                pass  # Fall through to text parsing
+        
+        # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
+        # Removal plan: After all tools output JSON, remove text parsing fallback.
+        # Detection: Search for "Fall back to text parsing for backward compatibility" in this file.
         files = {}
         total_issues = 0
         file_count = 0
@@ -4358,6 +4407,20 @@ class AIToolsService:
 
     def _parse_heading_numbering_output(self, output: str) -> Dict[str, Any]:
         """Parse heading numbering check output. Returns standard format."""
+        # Try to parse as JSON first (when --json flag is used)
+        if output.strip().startswith('{'):
+            try:
+                import json
+                parsed = json.loads(output)
+                # Normalize to standard format if needed
+                from .result_format import normalize_to_standard_format
+                return normalize_to_standard_format(parsed)
+            except (json.JSONDecodeError, ValueError):
+                pass  # Fall through to text parsing
+        
+        # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
+        # Removal plan: After all tools output JSON, remove text parsing fallback.
+        # Detection: Search for "Fall back to text parsing for backward compatibility" in this file.
         files = {}
         total_issues = 0
         file_count = 0
@@ -4388,6 +4451,20 @@ class AIToolsService:
 
     def _parse_missing_addresses_output(self, output: str) -> Dict[str, Any]:
         """Parse missing addresses check output."""
+        # Try to parse as JSON first (when --json flag is used)
+        if output.strip().startswith('{'):
+            try:
+                import json
+                parsed = json.loads(output)
+                # Normalize to standard format if needed
+                from .result_format import normalize_to_standard_format
+                return normalize_to_standard_format(parsed)
+            except (json.JSONDecodeError, ValueError):
+                pass  # Fall through to text parsing
+        
+        # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
+        # Removal plan: After all tools output JSON, remove text parsing fallback.
+        # Detection: Search for "Fall back to text parsing for backward compatibility" in this file.
         result = {'files': [], 'total_issues': 0}
         if not isinstance(output, str) or not output.strip():
             return result
@@ -4411,6 +4488,20 @@ class AIToolsService:
 
     def _parse_unconverted_links_output(self, output: str) -> Dict[str, Any]:
         """Parse unconverted links check output."""
+        # Try to parse as JSON first (when --json flag is used)
+        if output.strip().startswith('{'):
+            try:
+                import json
+                parsed = json.loads(output)
+                # Normalize to standard format if needed
+                from .result_format import normalize_to_standard_format
+                return normalize_to_standard_format(parsed)
+            except (json.JSONDecodeError, ValueError):
+                pass  # Fall through to text parsing
+        
+        # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
+        # Removal plan: After all tools output JSON, remove text parsing fallback.
+        # Detection: Search for "Fall back to text parsing for backward compatibility" in this file.
         result = {'files': {}, 'total_issues': 0}
         if not isinstance(output, str) or not output.strip():
             return result
@@ -5691,18 +5782,18 @@ class AIToolsService:
             pass
         
         doc_line = f"- **Docstring Coverage**: {percent_text(doc_coverage, 2)}"
-        if functions_without_docstrings is not None:
-            doc_line += f" ({functions_without_docstrings} functions without docstrings)"
-
+        
+        # Show registry gaps count (items missing from registry) in the docstring coverage line
+        missing_count = 0
         if missing_docs:
             # Extract count if missing_docs is a dictionary, otherwise use it as-is
             if isinstance(missing_docs, dict):
                 missing_count = missing_docs.get('count', 0)
             else:
                 missing_count = to_int(missing_docs) or 0
-            
-            if missing_count > 0:
-                doc_line += f" ({missing_count} items missing from registry)"
+        
+        # Always show registry gaps count (even when 0)
+        doc_line += f" ({missing_count} items missing from registry)"
 
         lines.append(doc_line)
 
@@ -6911,10 +7002,53 @@ class AIToolsService:
                     critical_complex = to_int(decision_metrics.get('critical_complexity'))
 
         priority_items: List[Dict[str, Any]] = []
+        
+        # Fixed priority tiers (simplified from dynamic ordering)
+        # Tier 1 (Critical): Path drift, missing error handling, missing docs
+        TIER_1_CRITICAL = 1
+        # Tier 2 (High): Error handling improvements, test coverage
+        TIER_2_HIGH = 4
+        # Tier 3 (Medium): Legacy cleanup, complexity refactoring
+        TIER_3_MEDIUM = 7
+        # Tier 4 (Low): Documentation consolidation, config updates
+        TIER_4_LOW = 9
+        
+        # Track current order within each tier
+        tier_1_counter = TIER_1_CRITICAL
+        tier_2_counter = TIER_2_HIGH
+        tier_3_counter = TIER_3_MEDIUM
+        tier_4_counter = TIER_4_LOW
 
-        def add_priority(order: int, title: str, reason: str, bullets: List[str]) -> None:
+        def add_priority(tier: int, title: str, reason: str, bullets: List[str]) -> None:
+            """Add priority with fixed tier-based ordering.
+            
+            Args:
+                tier: Priority tier (1=Critical, 2=High, 3=Medium, 4=Low)
+                title: Priority title
+                reason: Priority reason
+                bullets: List of bullet points
+            """
+            nonlocal tier_1_counter, tier_2_counter, tier_3_counter, tier_4_counter
             if not reason:
                 return
+            # Map tier to order value
+            if tier == 1:
+                order = tier_1_counter
+                tier_1_counter += 1
+            elif tier == 2:
+                order = tier_2_counter
+                tier_2_counter += 1
+            elif tier == 3:
+                order = tier_3_counter
+                tier_3_counter += 1
+            elif tier == 4:
+                order = tier_4_counter
+                tier_4_counter += 1
+            else:
+                # Default to tier 4 for unknown tiers
+                order = tier_4_counter
+                tier_4_counter += 1
+            
             priority_items.append({
                 'order': order,
                 'title': title,
@@ -6933,10 +7067,16 @@ class AIToolsService:
                     f"{paired_doc_issues} paired documentation sets affected alongside drift."
                 )
             drift_details.append(
-                "Run `python development_tools/run_development_tools.py doc-sync --fix` after adjustments."
+                "Action: Fix broken paths in top offender files, then run `python development_tools/run_development_tools.py doc-sync --fix`"
+            )
+            drift_details.append(
+                "Effort: Small (update file paths in documentation, run automated fix tool)"
+            )
+            drift_details.append(
+                "Why this matters: Broken paths in documentation reduce trust and make navigation difficult"
             )
             add_priority(
-                order=1,
+                tier=1,  # Tier 1: Critical
                 title="Stabilize documentation drift",
                 reason=f"{path_drift_count} documentation paths are out of sync.",
                 bullets=drift_details
@@ -6960,7 +7100,13 @@ class AIToolsService:
                         f"Example functions needing docstrings: {self._format_list_for_display(example_names, limit=3)}"
                     )
             doc_bullets.append(
-                "Add docstrings to functions missing them. Regenerate registry entries via `python development_tools/run_development_tools.py docs`."
+                "Action: Add docstrings to functions missing them. Regenerate registry entries via `python development_tools/run_development_tools.py docs`."
+            )
+            doc_bullets.append(
+                "Effort: Medium (requires understanding each function's purpose and parameters)"
+            )
+            doc_bullets.append(
+                "Why this matters: Documentation helps AI collaborators and future developers understand code intent"
             )
             # Calculate total and documented for better context
             total_funcs = metrics.get('total_functions')
@@ -6971,7 +7117,7 @@ class AIToolsService:
                 reason_text += f" ({total_funcs} total, {documented_funcs} documented)"
             reason_text += "."
             add_priority(
-                order=2,
+                tier=1,  # Tier 1: Critical
                 title="Add documentation to missing functions",
                 reason=reason_text,
                 bullets=doc_bullets
@@ -6999,16 +7145,33 @@ class AIToolsService:
             error_handling_bullets.append(
                 "Add error handling decorators or try-except blocks to protect these functions."
             )
-            
-            # Determine order: should come after path drift (1) and missing docs (2), but before Phase 1/2
-            # If Phase 1/2 exist, this should be order 3, and Phase 1/2 should be 4 and 5
-            # If Phase 1/2 don't exist, this can be order 3
-            phase1_total = to_int(get_error_field('phase1_total', 0))
-            phase2_total = to_int(get_error_field('phase2_total', 0))
-            error_handling_order = 3  # Default order (after path drift and missing docs)
+            # Add specific file paths and line numbers if available
+            missing_error_list = get_error_field('missing_error_handling', []) or []
+            if missing_error_list and isinstance(missing_error_list, list):
+                specific_functions = []
+                for func_info in missing_error_list[:3]:
+                    if isinstance(func_info, dict):
+                        file_path = func_info.get('file', '')
+                        func_name = func_info.get('function', '')
+                        line_num = func_info.get('line', '')
+                        if file_path and func_name:
+                            if line_num:
+                                specific_functions.append(f"{file_path}:{line_num} ({func_name})")
+                            else:
+                                specific_functions.append(f"{file_path} ({func_name})")
+                if specific_functions:
+                    error_handling_bullets.append(
+                        f"Specific functions: {self._format_list_for_display(specific_functions, limit=3)}"
+                    )
+            error_handling_bullets.append(
+                "Effort: Small (add @handle_errors decorator or wrap in try-except)"
+            )
+            error_handling_bullets.append(
+                "Why this matters: Functions without error handling can crash the application on unexpected errors"
+            )
             
             add_priority(
-                order=error_handling_order,
+                tier=1,  # Tier 1: Critical
                 title="Add error handling to missing functions",
                 reason=f"{missing_error_handlers} functions have no error handling.",
                 bullets=error_handling_bullets
@@ -7076,10 +7239,15 @@ class AIToolsService:
             phase1_bullets.append(
                 "Apply `@handle_errors` decorator to replace basic try-except blocks."
             )
-            # Order should be 4 if missing error handlers exists, otherwise 3
-            phase1_order = 4 if (missing_error_handlers and missing_error_handlers > 0) else 3
+            # Add effort estimate and context
+            phase1_bullets.append(
+                "Effort: Medium (requires reviewing each function's error handling needs)"
+            )
+            phase1_bullets.append(
+                "Why this matters: Centralized error handling provides consistent logging and recovery patterns"
+            )
             add_priority(
-                order=phase1_order,
+                tier=2,  # Tier 2: High
                 title="Phase 1: Replace basic try-except with decorators",
                 reason=f"{phase1_total} functions have try-except blocks that should use `@handle_errors` decorator.",
                 bullets=phase1_bullets
@@ -7126,10 +7294,14 @@ class AIToolsService:
             phase2_bullets.append(
                 "See `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` for categorization rules."
             )
-            # Order should be 5 if missing error handlers exists, otherwise 4
-            phase2_order = 5 if (missing_error_handlers and missing_error_handlers > 0) else 4
+            phase2_bullets.append(
+                "Effort: Small (replace exception class names, update imports)"
+            )
+            phase2_bullets.append(
+                "Why this matters: Specific error classes enable targeted error handling and better debugging"
+            )
             add_priority(
-                order=phase2_order,
+                tier=2,  # Tier 2: High
                 title="Phase 2: Categorize generic exceptions",
                 reason=f"{phase2_total} generic exception raises need categorization into project-specific error classes.",
                 bullets=phase2_bullets
@@ -7137,18 +7309,7 @@ class AIToolsService:
         
         # Legacy error handling priority removed - now handled above with proper ordering
 
-        # Adjust order numbers based on whether Phase 1/2 priorities exist
-        # Note: dependency_order is calculated but not used (dependency docs moved to Quick Wins)
-        coverage_order = 4
-        dev_coverage_order = coverage_order + 1
-        config_order = dev_coverage_order + 1  # Config validation comes after dev tools coverage
-        legacy_order = config_order + 1  # Legacy comes after config (dependency_order not used)
-        if phase1_total or phase2_total:
-            coverage_order = 6  # After Phase 1 (3), Phase 2 (4), error handling (5)
-            dev_coverage_order = coverage_order + 1
-            config_order = dev_coverage_order + 1  # Config validation comes after dev tools coverage
-            legacy_order = config_order + 1  # Legacy comes after config (dependency_order not used)
-        
+        # Use fixed tier-based ordering (no dynamic calculation needed)
         if low_coverage_modules:
             coverage_highlights = [
                 f"{module.get('module', 'module')} ({percent_text(module.get('coverage'), 1)}, {module.get('missed')} lines missing)"
@@ -7159,7 +7320,7 @@ class AIToolsService:
                 "Add scenario tests before the next full audit to lift domain coverage above 80%."
             ]
             add_priority(
-                order=coverage_order,
+                tier=2,  # Tier 2: High
                 title="Raise coverage for domains below target",
                 reason=f"{len(low_coverage_modules)} key domains remain below the 80% target.",
                 bullets=coverage_bullets
@@ -7180,7 +7341,7 @@ class AIToolsService:
                     dev_bullets.append(f"Review HTML report at {dev_tools_insights['html']}")
                 dev_bullets.append("Strengthen tests in `tests/development_tools/` for fragile helpers.")
                 add_priority(
-                    order=dev_coverage_order,
+                    tier=2,  # Tier 2: High
                     title="Raise development tools coverage",
                     reason=f"Development tools coverage is {percent_text(dev_pct, 1)} (target 60%+).",
                     bullets=dev_bullets
@@ -7220,7 +7381,7 @@ class AIToolsService:
                 "Use `python development_tools/run_development_tools.py legacy` to scan for legacy references."
             )
             add_priority(
-                order=legacy_order,
+                tier=3,  # Tier 3: Medium
                 title="Retire remaining legacy references",
                 reason=f"{legacy_files} files still depend on legacy compatibility markers.",
                 bullets=legacy_bullets
@@ -7240,7 +7401,29 @@ class AIToolsService:
                 for rec in recommendations:
                     rec_text = rec if isinstance(rec, str) else rec.get('message', str(rec))
                     # Normalize to check for duplicates (case-insensitive, ignore "Update" vs "Fix" prefix)
-                    normalized = rec_text.lower().replace('update ', '').replace('fix ', '').replace('fixes ', '')
+                    # Also normalize tool names and common phrases to catch semantic duplicates
+                    normalized = rec_text.lower()
+                    # Remove prefixes
+                    normalized = normalized.replace('update ', '').replace('fix ', '').replace('fixes ', '')
+                    # Normalize "import config module" variations
+                    normalized = normalized.replace('does not import config', 'import config').replace('to import config module', 'import config')
+                    # Extract tool name and core message for better duplicate detection
+                    if ':' in normalized:
+                        # For "Fix issues in X: Y" format, check if Y is already covered
+                        parts = normalized.split(':', 1)
+                        if len(parts) == 2:
+                            tool_part = parts[0].strip()
+                            issue_part = parts[1].strip()
+                            # Check if issue is about config import (already covered by "Update X to import config")
+                            if 'import config' in issue_part:
+                                # Skip this recommendation if we already have "Update X to import config"
+                                skip = False
+                                for seen in seen_messages:
+                                    if tool_part in seen and 'import config' in seen:
+                                        skip = True
+                                        break
+                                if skip:
+                                    continue
                     if normalized not in seen_messages:
                         seen_messages.add(normalized)
                         unique_recs.append(rec_text)
@@ -7251,15 +7434,14 @@ class AIToolsService:
                 if len(recommendations) > len(unique_recs):
                     config_bullets.append(f"...and {len(recommendations) - len(unique_recs)} more recommendation(s)")
                 add_priority(
-                    order=config_order,
+                    tier=4,  # Tier 4: Low
                     title="Update tools to use centralized config",
                     reason=f"{total_recommendations} config validation recommendation(s) pending review.",
                     bullets=config_bullets
                 )
         
-        # Add test markers priority (after error handling, before coverage)
+        # Add test markers priority (Tier 2: High - test quality)
         test_markers_data = self._load_tool_data('analyze_test_markers', 'tests')
-        test_markers_order = config_order + 1  # After config, before legacy
         if test_markers_data and isinstance(test_markers_data, dict):
             # Handle both standard format and old format
             if 'summary' in test_markers_data:
@@ -7289,7 +7471,7 @@ class AIToolsService:
                     "Add category markers to test functions using `development_tools/tests/fix_test_markers.py`."
                 )
                 add_priority(
-                    order=test_markers_order,
+                    tier=2,  # Tier 2: High
                     title="Add test category markers",
                     reason=f"{missing_markers} tests missing category markers.",
                     bullets=test_markers_bullets
@@ -7324,7 +7506,6 @@ class AIToolsService:
                             }
                     else:
                         # Add as priority item
-                        handlers_order = test_markers_order + 1
                         handlers_bullets: List[str] = []
                         handler_examples = []
                         for h in handlers_no_doc[:3]:
@@ -7342,14 +7523,13 @@ class AIToolsService:
                             "Add docstrings to handler classes to improve code documentation."
                         )
                         add_priority(
-                            order=handlers_order,
+                            tier=1,  # Tier 1: Critical (documentation)
                             title="Add documentation to handler classes",
                             reason=f"{len(handlers_no_doc)} handler classes missing documentation.",
                             bullets=handlers_bullets
                         )
         
         # Add complexity refactoring priority if there are critical or high complexity functions
-        complexity_order = legacy_order + 1
         if critical_complex and critical_complex > 0:
             complexity_bullets: List[str] = []
             if critical_examples:
@@ -7380,7 +7560,7 @@ class AIToolsService:
                     f"Then address {high_complex} high-complexity functions (100-199 nodes)."
                 )
             add_priority(
-                order=complexity_order,
+                tier=3,  # Tier 3: Medium
                 title="Refactor high-complexity functions",
                 reason=f"{critical_complex} critical-complexity functions (>199 nodes) need immediate attention.",
                 bullets=complexity_bullets
@@ -7410,7 +7590,7 @@ class AIToolsService:
                         f"Highest complexity: {self._format_list_for_display(example_names, limit=3)}"
                     )
             add_priority(
-                order=complexity_order,
+                tier=3,  # Tier 3: Medium
                 title="Refactor high-complexity functions",
                 reason=f"{high_complex} high-complexity functions (100-199 nodes) should be simplified.",
                 bullets=complexity_bullets
@@ -7584,7 +7764,7 @@ class AIToolsService:
         
         # Add consolidation opportunities as priority items
         if consolidation_recs and consolidation_count > 0:
-            consolidation_order = 11  # After config but before TODO
+            # Use tier 4 for consolidation (low priority)
             consolidation_bullets: List[str] = []
             for rec in consolidation_recs[:3]:  # Show top 3
                 category = rec.get('category', 'Unknown')
@@ -7594,17 +7774,17 @@ class AIToolsService:
                     consolidation_bullets.append(f"{category}: {len(files)} files - {suggestion}")
                     consolidation_bullets.append(f"  Files: {', '.join(files[:3])}{'...' if len(files) > 3 else ''}")
             add_priority(
-                order=consolidation_order,
+                tier=4,  # Tier 4: Low
                 title="Consolidate documentation files",
                 reason=f"{consolidation_count} file groups could be consolidated to reduce redundancy.",
                 bullets=consolidation_bullets
             )
         elif overlap_count > 0:
             # If only overlaps (no consolidation recs), add as lower priority
-            overlap_order = 12
+            # Use tier 4 for overlap (low priority)
             overlap_bullets = [f"{overlap_count} section overlaps detected - review for consolidation opportunities"]
             add_priority(
-                order=overlap_order,
+                tier=4,  # Tier 4: Low
                 title="Review documentation overlaps",
                 reason=f"{overlap_count} section overlaps detected across documentation files.",
                 bullets=overlap_bullets
@@ -7628,13 +7808,7 @@ class AIToolsService:
         if dev_tools_insights and dev_tools_insights.get('overall_pct') is not None:
             dev_pct = dev_tools_insights['overall_pct']
             detail = f"Development tools coverage is {percent_text(dev_pct, 1)} (target 60%+)."
-            low_modules = dev_tools_insights.get('low_modules') or []
-            if low_modules:
-                focus = [
-                    f"{Path(item['path']).name} ({percent_text(item.get('coverage'), 1)})"
-                    for item in low_modules
-                ]
-                detail += f" Focus on {self._format_list_for_display(focus, limit=2)}."
+            # Note: Specific modules to focus on are listed in priorities, not watchlist
             watch_list.append(detail)
         dependency_summary = self.module_dependency_summary or self.results_cache.get('analyze_module_dependencies')
         # Removed dependency docs and TODO sync from watchlist per user feedback
@@ -8100,6 +8274,9 @@ class AIToolsService:
         # Documentation Coverage section
         lines.append("## Documentation Coverage")
         lines.append(f"- **Docstring Coverage**: {percent_text(doc_coverage, 2)}")
+        # Note: Docstring coverage measures functions with docstrings in code (from analyze_functions)
+        # Registry gaps measures functions missing from FUNCTION_REGISTRY_DETAIL.md (from analyze_function_registry)
+        # These are different metrics: a function can have a docstring but not be in the registry, or vice versa
         
         if missing_docs_count > 0:
             lines.append(f"- **Registry Gaps**: {missing_docs_count} items missing from registry")
@@ -9727,7 +9904,7 @@ class AIToolsService:
 
         # Run ASCII compliance check
         logger.info("Running ASCII compliance check...")
-        result = self.run_script('analyze_ascii_compliance')
+        result = self.run_script('analyze_ascii_compliance', '--json')
         try:
             cache_file = self.project_root / "development_tools" / "docs" / "jsons" / ".analyze_ascii_compliance_cache.json"
             ascii_result = self._load_mtime_cached_tool_results(
@@ -9753,7 +9930,7 @@ class AIToolsService:
 
         # Run heading numbering check
         logger.info("Running heading numbering check...")
-        result = self.run_script('analyze_heading_numbering')
+        result = self.run_script('analyze_heading_numbering', '--json')
         try:
             cache_file = self.project_root / "development_tools" / "docs" / "jsons" / ".analyze_heading_numbering_cache.json"
             heading_result = self._load_mtime_cached_tool_results(
@@ -9779,7 +9956,7 @@ class AIToolsService:
 
         # Run missing addresses check
         logger.info("Running missing addresses check...")
-        result = self.run_script('analyze_missing_addresses')
+        result = self.run_script('analyze_missing_addresses', '--json')
         try:
             cache_file = self.project_root / "development_tools" / "docs" / "jsons" / ".analyze_missing_addresses_cache.json"
             missing_result = self._load_mtime_cached_tool_results(
@@ -9805,7 +9982,7 @@ class AIToolsService:
 
         # Run unconverted links check
         logger.info("Running unconverted links check...")
-        result = self.run_script('analyze_unconverted_links')
+        result = self.run_script('analyze_unconverted_links', '--json')
         try:
             cache_file = self.project_root / "development_tools" / "docs" / "jsons" / ".analyze_unconverted_links_cache.json"
             links_result = self._load_mtime_cached_tool_results(

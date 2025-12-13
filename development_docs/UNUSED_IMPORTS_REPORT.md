@@ -2,12 +2,12 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-13 03:01:44
+> **Last Generated**: 2025-12-13 04:51:52
 > **Source**: `python development_tools/run_development_tools.py unused-imports` - Unused Imports Detection Tool
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 362
+- **Total Files Scanned**: 359
 - **Files with Unused Imports**: 137
 - **Total Unused Imports**: 403
 
@@ -1931,7 +1931,7 @@
 ## Overall Recommendations
 
 1. **Obvious Unused**: Review and remove obvious unused imports to improve code cleanliness
-2. **Type Hints**: For type hint imports, consider using `from __future__ import annotations` and `TYPE_CHECKING`
+2. **Type Hints**: For type hint imports, consider using `from __future__ import annotations` and `TYPE_CHECKING` (note: the word "annotations" here refers to the Python `__future__` feature name, not a module to import)
 3. **Re-exports**: Verify `__init__.py` imports are intentional re-exports
 4. **Conditional Imports**: Be cautious with conditional imports - they may be handling optional dependencies
 5. **Star Imports**: Consider replacing star imports with explicit imports for better clarity

@@ -1,13 +1,13 @@
 {
   "generated_by": "system_signals - Development Tools",
-  "last_generated": "2025-12-13 03:04:36",
-  "timestamp": "2025-12-13T03:04:36.957726",
+  "last_generated": "2025-12-13 04:53:01",
+  "timestamp": "2025-12-13T04:53:01.053459",
   "tool_name": "system_signals",
   "domain": "reports",
   "source": "python development_tools/reports/system_signals.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
-    "timestamp": "2025-12-13T03:04:26.717233",
+    "timestamp": "2025-12-13T04:52:55.733477",
     "system_health": {
       "overall_status": "OK",
       "core_files": {
@@ -17,37 +17,39 @@
       "key_directories": {
         ".": "OK"
       },
-      "last_audit": "2025-12-13T02:35:44.034000",
+      "last_audit": "2025-12-13T04:30:02.114254",
       "warnings": [],
       "errors": []
     },
     "recent_activity": {
       "recent_changes": [
+        ".cursor/plans/development_tools_next_steps_3f22ec88.plan.md",
+        ".cursor/plans/standardize_analysis_tool_results_format_f3751a36.plan.md",
         ".cursor/plans/standardize_and_streamline_development_tools_8784da3c.plan.md",
+        "ARCHITECTURE.md",
         "ai_development_docs/AI_CHANGELOG.md",
-        "comprehensive_verification_report.md",
         "coverage.json",
         "data/conversation_states.json",
         "data/user_index.json",
-        "data/users/72a13563-5934-42e8-bc55-f0c851a899cc/messages/sent_messages.json",
-        "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/chat_interactions.json",
-        "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/checkins.json",
         "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/messages/sent_messages.json",
-        "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/tasks/active_tasks.json",
         "development_docs/CHANGELOG_DETAIL.md",
         "development_docs/LEGACY_REFERENCE_REPORT.md",
         "development_docs/SESSION_SUMMARY_2025-12-07.md",
-        "development_docs/TEST_COVERAGE_REPORT.md"
+        "development_docs/TEST_COVERAGE_REPORT.md",
+        "development_docs/UNUSED_IMPORTS_REPORT.md",
+        "development_tools/.audit_in_progress.lock"
       ],
       "git_status": "Modified",
       "last_commit": null,
       "uncommitted_changes": true
     },
-    "critical_alerts": [],
+    "critical_alerts": [
+      "CRITICAL: Recent errors in logs/errors.log"
+    ],
     "performance_indicators": {
       "log_file_sizes": {
         "ai.log": "0.0MB",
-        "ai_dev_tools.log": "0.1MB",
+        "ai_dev_tools.log": "0.2MB",
         "app.log": "0.1MB",
         "communication_manager.log": "0.0MB",
         "discord.log": "0.0MB",

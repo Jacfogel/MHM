@@ -59,20 +59,20 @@ The development tools test suite is organized into focused, maintainable modules
 
 ### 4.1. Synthetic Demo Project
 
-Tests use a synthetic fixture project at `tests/fixtures/development_tools_demo/` for isolated testing. This fixture provides:
+[EXAMPLE] Tests use a synthetic fixture project at `tests/fixtures/development_tools_demo/` for isolated testing. This fixture provides:
 
-- **Demo modules** (`demo_module.py`, `demo_module2.py`) with various function types for function registry testing
+- **Demo modules** (example files: `demo_module.py`, `demo_module2.py`) with various function types for function registry testing
 - **Paired documentation files** (some synced, some mismatched) for documentation sync testing
-- **Legacy code patterns** (`legacy_code.py`) for legacy cleanup testing
-- **Test files** (`demo_tests.py`) for coverage runs
+- **Legacy code patterns** (example file: `legacy_code.py`) for legacy cleanup testing
+- **Test files** (example file: `demo_tests.py`) for coverage runs
 - **Documentation files** in `docs/` for path drift and documentation analysis testing
 
 **Expected Test Outcomes**:
-- Function registry should find all functions in `demo_module.py`
+- Function registry should find all functions in example file `demo_module.py`
 - Module dependencies should detect imports between modules
 - Documentation sync should detect mismatched H2 headings
 - Legacy cleanup should find legacy markers and patterns
-- Coverage should generate metrics for `demo_tests.py`
+- Coverage should generate metrics for example file `demo_tests.py`
 
 ### 4.2. Test Configuration
 
@@ -135,7 +135,7 @@ service.run_audit(quick=True)  # Writes only to temp directory
 CLI smoke tests that run actual subprocess commands (like `test_status_command_exits_zero`) must:
 - Check for audit lock files and skip during audits to prevent mid-audit status file writes
 - Use the real project root **only** for read-only operations or when the command is guaranteed not to write files
-- Prefer mocking `AIToolsService` over subprocess calls when possible (see `test_integration_workflows.py`)
+- Prefer mocking `AIToolsService` over subprocess calls when possible (see example: `test_integration_workflows.py` in test fixtures)
 
 **Example**:
 ```python

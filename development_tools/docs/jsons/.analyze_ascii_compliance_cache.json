@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_ascii_compliance - Development Tools",
-  "last_generated": "2025-12-13 03:07:04",
-  "timestamp": "2025-12-13T03:07:04.253273",
+  "last_generated": "2025-12-13 04:53:42",
+  "timestamp": "2025-12-13T04:53:42.536089",
   "tool_name": "analyze_ascii_compliance",
   "domain": "docs",
   "note": "This file is auto-generated. Do not edit manually.",
@@ -23,7 +23,7 @@
       "results": []
     },
     "ARCHITECTURE.md": {
-      "mtime": 1765090813.6306126,
+      "mtime": 1765620245.4273417,
       "results": []
     },
     "TODO.md": {
@@ -35,7 +35,7 @@
       "results": []
     },
     "development_docs/CHANGELOG_DETAIL.md": {
-      "mtime": 1765147630.7515798,
+      "mtime": 1765622700.4488,
       "results": []
     },
     "development_docs/PLANS.md": {
@@ -59,7 +59,7 @@
       "results": []
     },
     "ai_development_docs/AI_CHANGELOG.md": {
-      "mtime": 1765147630.7221186,
+      "mtime": 1765622700.4327245,
       "results": []
     },
     "ai_development_docs/AI_REFERENCE.md": {
@@ -127,15 +127,15 @@
       "results": []
     },
     "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
-      "mtime": 1765090813.6319916,
+      "mtime": 1765620828.8689911,
       "results": []
     },
     "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
-      "mtime": 1765090813.6329975,
+      "mtime": 1765620245.4273417,
       "results": []
     },
     "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md": {
-      "mtime": 1765077520.3602946,
+      "mtime": 1765620245.4273417,
       "results": []
     }
   }

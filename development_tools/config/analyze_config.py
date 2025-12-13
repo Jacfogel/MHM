@@ -239,29 +239,58 @@ class ConfigValidator:
     def generate_recommendations(self, tools_analysis: Dict, config_validation: Dict, completeness: Dict) -> List[str]:
         """Generate recommendations for improving configuration usage."""
         recommendations = []
+        seen_recommendations = set()  # Track recommendations to avoid duplicates
         
         # Tool-specific recommendations
         for tool_name, analysis in tools_analysis.items():
+            # Check if tool doesn't import config
             if not analysis['imports_config']:
-                recommendations.append(f"Update {tool_name} to import config module")
+                rec = f"Update {tool_name} to import config module"
+                if rec not in seen_recommendations:
+                    recommendations.append(rec)
+                    seen_recommendations.add(rec)
             
+            # Check for hardcoded values
             if analysis['hardcoded_values']:
-                recommendations.append(f"Replace hardcoded values in {tool_name} with config functions")
+                rec = f"Replace hardcoded values in {tool_name} with config functions"
+                if rec not in seen_recommendations:
+                    recommendations.append(rec)
+                    seen_recommendations.add(rec)
             
-            # Add "Fix issues" recommendation for any remaining issues
+            # Add "Fix issues" recommendation for any remaining issues (excluding config import issues)
             if analysis['issues']:
-                issues_str = ', '.join(analysis['issues'])
-                recommendations.append(f"Fix issues in {tool_name}: {issues_str}")
+                # Filter out issues that are already covered by other recommendations
+                filtered_issues = []
+                for issue in analysis['issues']:
+                    # Skip issues about missing config import (already covered above)
+                    if 'import config' not in issue.lower() and 'does not import' not in issue.lower():
+                        filtered_issues.append(issue)
+                
+                if filtered_issues:
+                    issues_str = ', '.join(filtered_issues)
+                    rec = f"Fix issues in {tool_name}: {issues_str}"
+                    if rec not in seen_recommendations:
+                        recommendations.append(rec)
+                        seen_recommendations.add(rec)
         
         # Configuration recommendations
         if config_validation['missing_directories']:
-            recommendations.append(f"Add missing directories to SCAN_DIRECTORIES or remove them: {', '.join(config_validation['missing_directories'])}")
+            rec = f"Add missing directories to SCAN_DIRECTORIES or remove them: {', '.join(config_validation['missing_directories'])}"
+            if rec not in seen_recommendations:
+                recommendations.append(rec)
+                seen_recommendations.add(rec)
         
         if not config_validation['config_structure_valid']:
-            recommendations.append("Fix configuration structure issues")
+            rec = "Fix configuration structure issues"
+            if rec not in seen_recommendations:
+                recommendations.append(rec)
+                seen_recommendations.add(rec)
         
         if not completeness['sections_complete']:
-            recommendations.append(f"Add missing configuration fields: {', '.join(completeness['missing_fields'])}")
+            rec = f"Add missing configuration fields: {', '.join(completeness['missing_fields'])}"
+            if rec not in seen_recommendations:
+                recommendations.append(rec)
+                seen_recommendations.add(rec)
         
         return recommendations
     

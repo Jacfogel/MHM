@@ -1,13 +1,13 @@
 {
   "generated_by": "analyze_missing_addresses - Development Tools",
-  "last_generated": "2025-12-13 03:06:10",
-  "timestamp": "2025-12-13T03:06:10.402307",
+  "last_generated": "2025-12-13 04:46:01",
+  "timestamp": "2025-12-13T04:46:01.173312",
   "tool_name": "analyze_missing_addresses",
   "domain": "docs",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
     "ARCHITECTURE.md": {
-      "mtime": 1765090813.6306126,
+      "mtime": 1765620245.4273417,
       "results": []
     },
     "DEVELOPMENT_WORKFLOW.md": {
@@ -43,7 +43,7 @@
       "results": []
     },
     "ai_development_docs/AI_CHANGELOG.md": {
-      "mtime": 1765147630.7221186,
+      "mtime": 1765622700.4327245,
       "results": []
     },
     "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -91,19 +91,19 @@
       "results": []
     },
     "development_docs/TEST_COVERAGE_REPORT.md": {
-      "mtime": 1765616478.8645108,
+      "mtime": 1765621681.9192154,
       "results": []
     },
     "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
-      "mtime": 1765090813.6319916,
+      "mtime": 1765620828.8689911,
       "results": []
     },
     "development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md": {
-      "mtime": 1765084809.1868126,
+      "mtime": 1765622735.6187346,
       "results": []
     },
     "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
-      "mtime": 1765090813.6329975,
+      "mtime": 1765620245.4273417,
       "results": []
     },
     "logs/LOGGING_GUIDE.md": {
@@ -151,7 +151,7 @@
       "results": []
     },
     "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md": {
-      "mtime": 1765077520.3602946,
+      "mtime": 1765620245.4273417,
       "results": []
     },
     "development_tools/shared/RESULT_FORMAT_STANDARD.md": {
@@ -159,7 +159,7 @@
       "results": []
     },
     "development_docs/SESSION_SUMMARY_2025-12-07.md": {
-      "mtime": 1765147630.720111,
+      "mtime": 1765622700.4277558,
       "results": [
         "Missing file address in header"
       ]
