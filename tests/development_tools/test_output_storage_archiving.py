@@ -64,8 +64,12 @@ class TestOutputStorageArchiving:
         assert len(archived_files) > 0, "At least one archived file should exist"
         
         # Verify current file has new data
-        current_data = load_tool_result('test_tool', domain='docs', project_root=temp_project_copy)
+        # Disable normalization for this test since we're testing archiving, not normalization
+        current_data = load_tool_result('test_tool', domain='docs', project_root=temp_project_copy, normalize=False)
         assert current_data is not None, "Current result should be loadable"
+        # Data is stored in 'data' field of the JSON structure
+        if 'data' in current_data:
+            current_data = current_data['data']
         assert current_data.get('test') == 'data2', "Current result should have new data"
     
     @pytest.mark.unit

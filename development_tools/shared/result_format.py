@@ -52,7 +52,13 @@ def normalize_to_standard_format(tool_name: str, data: Dict[str, Any]) -> Dict[s
     # Route to appropriate converter based on tool name and data structure
     converter = _get_converter(tool_name, data)
     if converter:
-        normalized = converter(data)
+        # Check if converter needs tool_name (only _normalize_fallback does)
+        import inspect
+        sig = inspect.signature(converter)
+        if len(sig.parameters) == 2:
+            normalized = converter(tool_name, data)
+        else:
+            normalized = converter(data)
         logger.debug(f"Normalized {tool_name} from {converter.__name__}")
         return normalized
     
@@ -112,9 +118,30 @@ def _get_converter(tool_name: str, data: Dict[str, Any]) -> Optional[callable]:
     
     # Format 10: Module dependencies
     if tool_name == 'analyze_module_dependencies':
-        if 'missing_dependencies' in data:
+        if 'files_scanned' in data or 'missing_dependencies' in data:
             return _normalize_module_dependencies
     
+    # Format 11: Package exports
+    if tool_name == 'analyze_package_exports':
+        if 'packages' in data or 'summary' in data:
+            return _normalize_package_exports
+    
+    # Format 12: Pattern tools (function patterns, dependency patterns)
+    if tool_name in ('analyze_function_patterns', 'analyze_dependency_patterns'):
+        return _normalize_pattern_tools
+    
+    # Format 13: Documentation analysis
+    if tool_name == 'analyze_documentation':
+        if 'artifacts' in data or 'duplicates' in data or 'section_overlaps' in data:
+            return _normalize_documentation
+    
+    # Format 14: AI work validation
+    if tool_name == 'analyze_ai_work':
+        return _normalize_ai_work
+    
+    # Fallback for unknown formats
+    return _normalize_fallback
+
     # Format 11: Test coverage
     if tool_name == 'analyze_test_coverage':
         if 'overall' in data or 'modules' in data:
@@ -356,9 +383,20 @@ def _normalize_legacy_references(data: Dict[str, Any]) -> Dict[str, Any]:
 
 def _normalize_test_markers(data: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize Format 9: Test markers."""
+    # Use missing_count (number of tests missing markers) as total_issues
+    missing_count = data.get('missing_count', 0)
+    missing_list = data.get('missing', [])
+    
+    # Count unique files with missing markers
+    files_affected = 0
+    if missing_list:
+        files_affected = len(set(item.get('file', '') for item in missing_list if item.get('file')))
+    elif data.get('files_needing_markers'):
+        files_affected = data.get('files_needing_markers', 0)
+    
     summary = {
-        'total_issues': data.get('files_needing_markers', 0),
-        'files_affected': data.get('files_needing_markers', 0)
+        'total_issues': missing_count,
+        'files_affected': files_affected
     }
     
     result = {
@@ -523,6 +561,38 @@ def _normalize_ai_work(data: Dict[str, Any]) -> Dict[str, Any]:
     # Preserve all original data in details
     for key, value in data.items():
         result['details'][key] = value
+    
+    return result
+
+
+def _normalize_package_exports(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalize Format 11: Package exports."""
+    summary_data = data.get('summary', {})
+    
+    # Calculate total issues (missing + unnecessary exports)
+    total_missing = summary_data.get('total_missing_exports', 0)
+    total_unnecessary = summary_data.get('total_unnecessary_exports', 0)
+    total_issues = total_missing + total_unnecessary
+    
+    # Count packages with issues
+    packages = data.get('packages', {})
+    packages_with_issues = sum(
+        1 for pkg, report in packages.items()
+        if isinstance(report, dict) and (
+            report.get('missing_exports') or report.get('potentially_unnecessary')
+        )
+    )
+    
+    summary = {
+        'total_issues': total_issues,
+        'files_affected': packages_with_issues,  # Packages are like "files" here
+        'status': 'NEEDS_ATTENTION' if total_issues > 0 else 'GOOD'
+    }
+    
+    result = {
+        'summary': summary,
+        'details': data  # Preserve all original data
+    }
     
     return result
 

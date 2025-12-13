@@ -167,8 +167,8 @@ CORRUPTED_ARTIFACT_PATTERNS = (
 THIRD_PARTY_LIBRARIES: Tuple[str, ...] = (
     'PyQt5', 'PyQt6', 'PySide6', 'discord', 'requests', 'aiohttp', 'pandas', 'numpy',
     'matplotlib', 'seaborn', 'scipy', 'sklearn', 'tensorflow', 'torch', 'pytorch',
-    'flask', 'django', 'fastapi', 'sqlalchemy', 'alembic', 'psycopg2', 'pymongo',
-    'redis', 'celery', 'gunicorn', 'uvicorn', 'pytest', 'black', 'flake8', 'mypy'
+    'fastapi', 'sqlalchemy', 'alembic', 'psycopg2', 'pymongo', 'redis', 'celery', 
+    'gunicorn', 'uvicorn', 'pytest', 'black', 'flake8', 'mypy'
 )
 
 COMMON_FUNCTION_NAMES: Tuple[str, ...] = (

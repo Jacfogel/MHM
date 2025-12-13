@@ -1,24 +1,24 @@
 {
   "generated_by": "analyze_test_coverage - Development Tools",
-  "last_generated": "2025-12-07 13:37:17",
-  "timestamp": "2025-12-07T13:37:17.059059",
+  "last_generated": "2025-12-13 03:01:23",
+  "timestamp": "2025-12-13T03:01:23.446199",
   "tool_name": "analyze_test_coverage",
   "domain": "tests",
   "source": "python development_tools/tests/analyze_test_coverage.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
     "overall": {
-      "coverage": 71.2,
+      "coverage": 71.3,
       "statements": 27101,
-      "covered": 19297,
-      "missed": 7804,
-      "generated": "2025-12-07T13:37:12.203356"
+      "covered": 19317,
+      "missed": 7784,
+      "generated": "2025-12-13T03:01:12.984144"
     },
     "modules": [
       {
         "module": "communication",
         "coverage": 68.5,
-        "missed": 2783
+        "missed": 2784
       },
       {
         "module": "ui",
@@ -27,13 +27,13 @@
       },
       {
         "module": "core",
-        "coverage": 71.5,
-        "missed": 2683
+        "coverage": 71.8,
+        "missed": 2657
       },
       {
         "module": "ai",
-        "coverage": 78.6,
-        "missed": 366
+        "coverage": 78.3,
+        "missed": 371
       },
       {
         "module": "tasks",
@@ -63,14 +63,14 @@
         "missing": 298
       },
       {
-        "path": "core/file_locking.py",
-        "coverage": 59.4,
-        "missing": 52
-      },
-      {
         "path": "communication/command_handlers/interaction_handlers.py",
         "coverage": 59.5,
         "missing": 631
+      },
+      {
+        "path": "communication/core/channel_orchestrator.py",
+        "coverage": 60.2,
+        "missing": 404
       }
     ]
   }

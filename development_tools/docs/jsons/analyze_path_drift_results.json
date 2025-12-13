@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_path_drift - Development Tools",
-  "last_generated": "2025-12-07 16:45:30",
-  "timestamp": "2025-12-07T16:45:30.322326",
+  "last_generated": "2025-12-13 03:06:03",
+  "timestamp": "2025-12-13T03:06:03.974742",
   "tool_name": "analyze_path_drift",
   "domain": "docs",
   "source": "python development_tools/docs/analyze_path_drift.py",

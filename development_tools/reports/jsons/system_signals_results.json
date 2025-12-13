@@ -1,13 +1,13 @@
 {
   "generated_by": "system_signals - Development Tools",
-  "last_generated": "2025-12-07 16:45:38",
-  "timestamp": "2025-12-07T16:45:38.160249",
+  "last_generated": "2025-12-13 03:06:20",
+  "timestamp": "2025-12-13T03:06:20.067505",
   "tool_name": "system_signals",
   "domain": "reports",
   "source": "python development_tools/reports/system_signals.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
-    "timestamp": "2025-12-07T16:45:35.238505",
+    "timestamp": "2025-12-13T03:06:14.007790",
     "system_health": {
       "overall_status": "OK",
       "core_files": {
@@ -25,27 +25,27 @@
         "user": "OK",
         "tests": "OK"
       },
-      "last_audit": "2025-12-07T16:43:47.872028",
+      "last_audit": "2025-12-13T03:05:13.925863",
       "warnings": [],
       "errors": []
     },
     "recent_activity": {
       "recent_changes": [
-        ".cursor/plans/standardize_analysis_tool_results_format_f3751a36.plan.md",
         ".cursor/plans/standardize_and_streamline_development_tools_8784da3c.plan.md",
-        "ARCHITECTURE.md",
-        "DOCUMENTATION_GUIDE.md",
-        "TODO.md",
-        "ai/SYSTEM_AI_GUIDE.md",
         "ai_development_docs/AI_CHANGELOG.md",
-        "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
-        "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-        "ai_development_docs/AI_TESTING_GUIDE.md",
-        "communication/COMMUNICATION_GUIDE.md",
-        "core/ERROR_HANDLING_GUIDE.md",
+        "comprehensive_verification_report.md",
         "coverage.json",
         "data/conversation_states.json",
-        "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/tasks/active_tasks.json"
+        "data/user_index.json",
+        "data/users/72a13563-5934-42e8-bc55-f0c851a899cc/messages/sent_messages.json",
+        "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/chat_interactions.json",
+        "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/checkins.json",
+        "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/messages/sent_messages.json",
+        "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/tasks/active_tasks.json",
+        "development_docs/SESSION_SUMMARY_2025-12-07.md",
+        "development_docs/TEST_COVERAGE_REPORT.md",
+        "development_tools/.audit_in_progress.lock",
+        "development_tools/ai_work/jsons/analyze_ai_work_results.json"
       ],
       "git_status": "Modified",
       "last_commit": null,
@@ -55,7 +55,7 @@
     "performance_indicators": {
       "log_file_sizes": {
         "ai.log": "0.0MB",
-        "ai_dev_tools.log": "0.2MB",
+        "ai_dev_tools.log": "0.1MB",
         "app.log": "0.1MB",
         "communication_manager.log": "0.0MB",
         "discord.log": "0.0MB",
@@ -63,7 +63,7 @@
         "errors.log": "0.0MB",
         "file_ops.log": "0.0MB",
         "message.log": "0.0MB",
-        "scheduler.log": "0.0MB",
+        "scheduler.log": "0.2MB",
         "ui.log": "0.0MB",
         "user_activity.log": "0.0MB"
       },

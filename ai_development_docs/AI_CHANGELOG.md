@@ -36,6 +36,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-13 - Fixed Overlap Analysis Data Preservation Across Audit Tiers **COMPLETED**
+- Fixed overlap analysis data loss when running Tier 2 audits after Tier 3 audits by preserving cached overlap data in `run_analyze_documentation()`
+- Overlap analysis results from Tier 3 audits now persist across lower-tier audits; reports show correct status and data when cached
+- Updated SESSION_SUMMARY_2025-12-07.md and cleaned up temporary verification files created during debugging
+
 ### 2025-12-07 - Fixed Report Data Loss After Normalization **COMPLETED**
 - Fixed data loss in AI development tools reports by updating data access patterns to use helper functions handling both standard and old formats
 - Corrected path drift (26 issues), doc sync status (FAIL with 26 tracked issues), missing error handling (2 functions), and validation status display

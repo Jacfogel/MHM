@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_function_patterns - Development Tools",
-  "last_generated": "2025-12-07 16:45:52",
-  "timestamp": "2025-12-07T16:45:52.537926",
+  "last_generated": "2025-12-13 03:06:46",
+  "timestamp": "2025-12-13T03:06:46.717536",
   "tool_name": "analyze_function_patterns",
   "domain": "functions",
   "source": "python development_tools/functions/analyze_function_patterns.py",
@@ -723,6 +723,11 @@
         "file": "run_tests.py",
         "function": "main",
         "has_doc": true
+      },
+      {
+        "file": "verify_reports.py",
+        "function": "main",
+        "has_doc": true
       }
     ],
     "data_access": [
@@ -1344,6 +1349,21 @@
       {
         "file": "ai/prompt_manager.py",
         "function": "reload_custom_prompt",
+        "has_doc": true
+      },
+      {
+        "file": "verify_all_metrics.py",
+        "function": "load_json",
+        "has_doc": false
+      },
+      {
+        "file": "verify_detailed.py",
+        "function": "load_json",
+        "has_doc": false
+      },
+      {
+        "file": "verify_reports.py",
+        "function": "load_json_file",
         "has_doc": true
       }
     ],

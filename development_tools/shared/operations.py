@@ -74,6 +74,7 @@ SCRIPT_REGISTRY = {
 
     'analyze_functions': 'functions/analyze_functions.py',
     'analyze_function_patterns': 'functions/analyze_function_patterns.py',
+    'analyze_package_exports': 'functions/analyze_package_exports.py',
     'generate_function_registry': 'functions/generate_function_registry.py',
 
     'generate_module_dependencies': 'imports/generate_module_dependencies.py',
@@ -342,6 +343,32 @@ class AIToolsService:
         args = ["--json"]
         if include_overlap:
             args.append("--overlap")
+        
+        # Before running, check if we have cached overlap data to preserve
+        cached_overlap_data = None
+        cached_overlap_in_details = False
+        if not include_overlap:
+            # Try to load existing cached data that might have overlap analysis
+            try:
+                from .output_storage import load_tool_result
+                cached_data = load_tool_result('analyze_documentation', 'docs', project_root=self.project_root, normalize=False)
+                if cached_data and isinstance(cached_data, dict):
+                    cached_data_dict = cached_data.get('data', cached_data)
+                    # Check both top level and details for overlap data
+                    details = cached_data_dict.get('details', {})
+                    # Check if overlap data exists in cached data
+                    has_section_overlaps = 'section_overlaps' in cached_data_dict or 'section_overlaps' in details
+                    has_consolidation = 'consolidation_recommendations' in cached_data_dict or 'consolidation_recommendations' in details
+                    if has_section_overlaps or has_consolidation:
+                        # Determine if overlap data is in details or top level
+                        cached_overlap_in_details = ('section_overlaps' in details or 'consolidation_recommendations' in details)
+                        cached_overlap_data = {
+                            'section_overlaps': details.get('section_overlaps') if cached_overlap_in_details else cached_data_dict.get('section_overlaps'),
+                            'consolidation_recommendations': details.get('consolidation_recommendations') if cached_overlap_in_details else cached_data_dict.get('consolidation_recommendations')
+                        }
+            except Exception as e:
+                logger.debug(f"Failed to load cached overlap data: {e}")
+        
         result = self.run_script("analyze_documentation", *args)
 
         output = result.get('output', '')
@@ -359,6 +386,29 @@ class AIToolsService:
                 data = None
 
         if data is not None:
+            # If we have cached overlap data and new data doesn't include it, merge it in
+            if cached_overlap_data and not include_overlap:
+                # Check if new data has overlap keys (it shouldn't if --overlap wasn't used)
+                details = data.get('details', {})
+                has_overlap = ('section_overlaps' in data or 'consolidation_recommendations' in data or
+                              'section_overlaps' in details or 'consolidation_recommendations' in details)
+                if not has_overlap:
+                    # Preserve overlap data in the same location it was found (top level or details)
+                    if cached_overlap_in_details:
+                        # Put in details section
+                        if 'details' not in data:
+                            data['details'] = {}
+                        if cached_overlap_data.get('section_overlaps'):
+                            data['details']['section_overlaps'] = cached_overlap_data['section_overlaps']
+                        if cached_overlap_data.get('consolidation_recommendations'):
+                            data['details']['consolidation_recommendations'] = cached_overlap_data['consolidation_recommendations']
+                    else:
+                        # Put at top level
+                        if cached_overlap_data.get('section_overlaps'):
+                            data['section_overlaps'] = cached_overlap_data['section_overlaps']
+                        if cached_overlap_data.get('consolidation_recommendations'):
+                            data['consolidation_recommendations'] = cached_overlap_data['consolidation_recommendations']
+                    logger.debug("Preserved cached overlap analysis data in new results")
 
             result['data'] = data
 
@@ -395,6 +445,19 @@ class AIToolsService:
         """Run analyze_function_registry with structured JSON handling."""
 
         result = self.run_script("analyze_function_registry", "--json")
+        
+        # Log stderr for debugging (includes our debug_print output)
+        stderr_output = result.get('error', '')
+        if stderr_output:
+            # Log at INFO level so it's visible, and include in error message
+            logger.info(f"analyze_function_registry stderr output: {stderr_output}")
+            # Check if there's a traceback in stderr that we should log
+            if 'Traceback' in stderr_output or 'File "' in stderr_output:
+                logger.error(f"analyze_function_registry traceback found in stderr:\n{stderr_output}")
+            if not result.get('success'):
+                # Include stderr in the error message for better debugging
+                original_error = result.get('error', '')
+                result['error'] = f"{original_error}\nStderr: {stderr_output}" if original_error != stderr_output else stderr_output
 
         output = result.get('output', '')
 
@@ -687,6 +750,70 @@ class AIToolsService:
             }
         except Exception as e:
             logger.warning(f"Failed to run analyze_dependency_patterns: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
+
+    def run_analyze_package_exports(self) -> Dict:
+        """Run analyze_package_exports and save results."""
+        try:
+            from .output_storage import save_tool_result
+            from ..functions.analyze_package_exports import generate_audit_report
+            
+            # Audit all packages
+            packages = ['core', 'communication', 'ui', 'tasks', 'ai', 'user']
+            all_reports = {}
+            
+            for package in packages:
+                try:
+                    report = generate_audit_report(package)
+                    # Convert sets to lists for JSON serialization
+                    if isinstance(report, dict):
+                        # Convert all sets to sorted lists
+                        for key, value in report.items():
+                            if isinstance(value, set):
+                                report[key] = sorted(value)
+                            elif isinstance(value, dict):
+                                # Recursively convert sets in nested dicts
+                                for nested_key, nested_value in value.items():
+                                    if isinstance(nested_value, set):
+                                        value[nested_key] = sorted(nested_value)
+                    all_reports[package] = report
+                except Exception as e:
+                    logger.warning(f"Failed to audit package {package}: {e}")
+                    all_reports[package] = {
+                        'package': package,
+                        'error': str(e),
+                        'missing_exports': [],
+                        'potentially_unnecessary': []
+                    }
+            
+            # Aggregate summary
+            total_missing = sum(len(r.get('missing_exports', [])) for r in all_reports.values())
+            total_unnecessary = sum(len(r.get('potentially_unnecessary', [])) for r in all_reports.values())
+            packages_with_missing = sum(1 for r in all_reports.values() if r.get('missing_exports'))
+            
+            summary = {
+                'total_missing_exports': total_missing,
+                'total_unnecessary_exports': total_unnecessary,
+                'packages_with_missing': packages_with_missing
+            }
+            
+            result_data = {
+                'summary': summary,
+                'packages': all_reports
+            }
+            
+            # Save to standardized storage
+            save_tool_result('analyze_package_exports', 'functions', result_data, project_root=self.project_root)
+            
+            return {
+                'success': True,
+                'data': result_data
+            }
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_package_exports: {e}")
             return {
                 'success': False,
                 'error': str(e)
@@ -1698,6 +1825,8 @@ class AIToolsService:
             ('analyze_dependency_patterns', self.run_analyze_dependency_patterns),
             # Function pattern analysis
             ('analyze_function_patterns', self.run_analyze_function_patterns),
+            # Package exports analysis
+            ('analyze_package_exports', self.run_analyze_package_exports),
         ]
         
         for tool_name, tool_func in tier2_tools:
@@ -1740,7 +1869,10 @@ class AIToolsService:
                     logger.warning(f"  - {tool_name} completed with issues: {error_msg}")
             except Exception as exc:
                 failed.append(tool_name)
+                import traceback
+                exc_traceback = traceback.format_exc()
                 logger.error(f"  - {tool_name} failed: {exc}")
+                logger.error(f"  - {tool_name} traceback:\n{exc_traceback}")
         
         if failed:
             logger.warning(f"Tier 2 completed with {len(failed)} failure(s): {', '.join(failed)}")
@@ -3509,52 +3641,29 @@ class AIToolsService:
         data = result.get('data')
 
         if isinstance(data, dict):
-
-            # Get documented count from registry
-            totals = data.get('totals') if isinstance(data.get('totals'), dict) else None
-            documented = totals.get('functions_documented', 0) if isinstance(totals, dict) else 0
-
-            # Get actual total functions from analyze_functions (not registry's limited count)
+            # Use analyze_functions for docstring coverage (consistent source)
+            # This measures actual docstrings in code, not registry documentation
             fd_metrics = self.results_cache.get('analyze_functions', {}) or {}
-            actual_total = fd_metrics.get('total_functions')
+            total_functions = fd_metrics.get('total_functions')
+            undocumented = fd_metrics.get('undocumented', 0)
             
-            # Recalculate coverage using actual total, not registry's limited count
-            if actual_total is not None and actual_total > 0 and documented > 0:
-                coverage_pct = (documented / actual_total) * 100
-                # Only use if reasonable (not > 100%)
-                if coverage_pct <= 100:
+            # Initialize documented to None
+            documented = None
+            
+            if total_functions is not None and total_functions > 0:
+                # Calculate documented count from total - undocumented
+                documented = total_functions - undocumented
+                coverage_pct = (documented / total_functions) * 100
+                if 0 <= coverage_pct <= 100:
                     metrics['doc_coverage'] = f"{coverage_pct:.2f}%"
                 else:
-                    # Invalid - skip the wrong coverage from registry
                     metrics['doc_coverage'] = 'Unknown'
             else:
-                # Fallback: try to use registry's coverage but validate it
-                coverage = data.get('coverage')
-                if coverage is not None:
-                    coverage_str = str(coverage).strip()
-                    try:
-                        coverage_val = float(coverage_str.strip('%'))
-                        # Skip obviously wrong values (> 100%)
-                        if coverage_val <= 100:
-                            metrics['doc_coverage'] = f"{coverage_val:.2f}%"
-                        else:
-                            metrics['doc_coverage'] = 'Unknown'
-                    except (TypeError, ValueError):
-                        # If it's already a string and reasonable, use it
-                        if coverage_str.endswith('%'):
-                            try:
-                                val = float(coverage_str.strip('%'))
-                                if val <= 100:
-                                    metrics['doc_coverage'] = coverage_str
-                                else:
-                                    metrics['doc_coverage'] = 'Unknown'
-                            except:
-                                metrics['doc_coverage'] = 'Unknown'
-                        else:
-                            metrics['doc_coverage'] = 'Unknown'
-                else:
-                    metrics['doc_coverage'] = 'Unknown'
+                # If analyze_functions data not available, mark as unknown
+                metrics['doc_coverage'] = 'Unknown'
 
+            # Get totals from data (for analyze_function_registry)
+            totals = data.get('totals')
             if isinstance(totals, dict):
 
                 metrics['totals'] = totals
@@ -3565,9 +3674,9 @@ class AIToolsService:
                 if registry_functions_found is not None:
                     metrics['registry_functions_found'] = registry_functions_found  # For reference only
 
-                # Use actual total from analyze_functions
-                if actual_total is not None:
-                    metrics['total_functions'] = actual_total
+                # Use actual total from analyze_functions (already calculated above)
+                if total_functions is not None:
+                    metrics['total_functions'] = total_functions
 
                 if documented is not None:
 
@@ -4966,49 +5075,24 @@ class AIToolsService:
 
         doc_coverage = audit_data.get('doc_coverage') if isinstance(audit_data, dict) else None
 
-        # Recalculate documentation coverage using actual total functions
-        # The registry's functions_found only counts functions in the registry, not all functions
-        audit_totals = audit_data.get('totals') if isinstance(audit_data, dict) else {}
-        if audit_totals is None or not isinstance(audit_totals, dict):
-            audit_totals = {}
-        documented = audit_totals.get('functions_documented', 0)
-        
-        # If documented is 0, try loading from cache file (structure might be different)
-        if documented == 0:
-            try:
-                import json
-                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
-                if results_file.exists():
-                    with open(results_file, 'r', encoding='utf-8') as f:
-                        cached_data = json.load(f)
-                    
-                    # Try to get documented count from analyze_function_registry
-                    if 'results' in cached_data and 'analyze_function_registry' in cached_data['results']:
-                        afr_data = cached_data['results']['analyze_function_registry']
-                        if 'data' in afr_data:
-                            afr_data_dict = afr_data['data']
-                            if 'totals' in afr_data_dict:
-                                cached_totals = afr_data_dict['totals']
-                                if isinstance(cached_totals, dict):
-                                    documented = cached_totals.get('functions_documented', 0)
-            except Exception as e:
-                logger.debug(f"Failed to load documented count from cache: {e}")
-        
-        # ALWAYS recalculate documentation coverage using actual total functions
-        # Never trust the registry's coverage calculation - it uses wrong denominator
-        if total_functions is not None and isinstance(total_functions, (int, float)) and total_functions > 0:
-            if documented > 0:
-                coverage_pct = (documented / total_functions) * 100
-                # Only use if reasonable (0-100%)
+        # Use analyze_functions for docstring coverage (consistent source)
+        # This measures actual docstrings in code, not registry documentation
+        if doc_coverage is None:
+            # Get from analyze_functions data
+            fd_metrics = self.results_cache.get('analyze_functions', {}) or {}
+            func_total = fd_metrics.get('total_functions')
+            func_undocumented = fd_metrics.get('undocumented', 0)
+            
+            if func_total is not None and func_total > 0:
+                # Calculate documented count from total - undocumented
+                func_documented = func_total - func_undocumented
+                coverage_pct = (func_documented / func_total) * 100
                 if 0 <= coverage_pct <= 100:
                     doc_coverage = f"{coverage_pct:.2f}%"
                 else:
-                    doc_coverage = 'Unknown'  # Invalid calculation
+                    doc_coverage = 'Unknown'
             else:
-                doc_coverage = '0.00%'  # No documented functions
-        else:
-            # Can't calculate without total - mark as unknown
-            doc_coverage = 'Unknown'
+                doc_coverage = 'Unknown'
 
         # Validate any existing doc_coverage value and reject invalid ones
         if isinstance(doc_coverage, str):
@@ -5021,8 +5105,13 @@ class AIToolsService:
                         val = float(val_str)
                         if val > 100:
                             # Invalid - recalculate if we have the data
-                            if total_functions and documented:
-                                coverage_pct = (documented / total_functions) * 100
+                            # Try to get documented count from available data
+                            fd_metrics = self.results_cache.get('analyze_functions', {}) or {}
+                            func_total = fd_metrics.get('total_functions')
+                            func_undocumented = fd_metrics.get('undocumented', 0)
+                            if func_total is not None and func_total > 0:
+                                func_documented = func_total - func_undocumented
+                                coverage_pct = (func_documented / func_total) * 100
                                 if 0 <= coverage_pct <= 100:
                                     doc_coverage = f"{coverage_pct:.2f}%"
                                 else:
@@ -5401,13 +5490,24 @@ class AIToolsService:
         # Check if overlap analysis was run (indicated by presence of these keys, even if empty)
         # If keys don't exist, overlap analysis wasn't run
         # If keys exist but are None/empty, analysis was run but found nothing
+        # Check both top level and details section (normalization may move data to details)
+        details = analyze_docs_data.get('details', {})
         overlap_analysis_ran = (
             'section_overlaps' in analyze_docs_data or 
-            'consolidation_recommendations' in analyze_docs_data
+            'consolidation_recommendations' in analyze_docs_data or
+            'section_overlaps' in details or 
+            'consolidation_recommendations' in details
         )
         
-        section_overlaps = analyze_docs_data.get('section_overlaps', {}) if overlap_analysis_ran else {}
-        consolidation_recs = analyze_docs_data.get('consolidation_recommendations', []) if overlap_analysis_ran else []
+        # Get from top level first, then fall back to details
+        section_overlaps = (
+            analyze_docs_data.get('section_overlaps') or 
+            details.get('section_overlaps', {})
+        ) if overlap_analysis_ran else {}
+        consolidation_recs = (
+            analyze_docs_data.get('consolidation_recommendations') or 
+            details.get('consolidation_recommendations', [])
+        ) if overlap_analysis_ran else []
         
         # Normalize to empty dict/list if None
         if section_overlaps is None:
@@ -5447,12 +5547,15 @@ class AIToolsService:
         error_with_handling = error_details.get('functions_with_error_handling') or error_metrics.get('functions_with_error_handling')
         canonical_total = metrics.get('total_functions')
         
-        # Only recalculate coverage if totals differ, but keep the actual missing count
-        if error_coverage is not None and canonical_total and error_total and error_with_handling:
-            if error_total != canonical_total:
-                recalc_coverage = (error_with_handling / canonical_total) * 100
-                if 0 <= recalc_coverage <= 100:
-                    error_coverage = recalc_coverage
+        # Calculate coverage using error_total (actual functions analyzed), not canonical_total
+        # This ensures accuracy - error handling analysis may analyze fewer functions than total
+        if error_total and error_with_handling:
+            calc_coverage = (error_with_handling / error_total) * 100
+            if 0 <= calc_coverage <= 100:
+                error_coverage = calc_coverage
+        elif error_coverage is None and error_total and error_with_handling:
+            # If coverage not provided, calculate it
+            error_coverage = (error_with_handling / error_total) * 100
 
         worst_error_modules = error_details.get('worst_modules') or error_metrics.get('worst_modules') or []
         if worst_error_modules is None or not isinstance(worst_error_modules, (list, tuple)):
@@ -5528,11 +5631,14 @@ class AIToolsService:
         else:
             lines.append(f"- **Total Functions**: {total_functions} (Moderate: {moderate}, High: {high}, Critical: {critical})")
 
-        # Try to load documentation coverage from cached data
+        # Use analyze_functions for docstring coverage (consistent source)
+        # This measures actual docstrings in code, not registry documentation
         doc_coverage = metrics.get('doc_coverage', 'Unknown')
+        functions_without_docstrings = None
         missing_docs = None
         missing_files = []
-        documented = None  # Initialize documented variable
+        
+        # If doc_coverage is Unknown, try to calculate from analyze_functions data
         if doc_coverage == 'Unknown' or doc_coverage is None:
             try:
                 import json
@@ -5540,55 +5646,63 @@ class AIToolsService:
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
-                    if 'results' in cached_data and 'analyze_function_registry' in cached_data['results']:
-                        func_reg_data = cached_data['results']['analyze_function_registry']
-                        if 'data' in func_reg_data:
-                            cached_metrics = func_reg_data['data']
-                            cached_doc_cov = cached_metrics.get('doc_coverage') or cached_metrics.get('coverage')
-                            if cached_doc_cov is not None:
-                                if isinstance(cached_doc_cov, (int, float)):
-                                    doc_coverage = f"{float(cached_doc_cov):.2f}%"
-                                else:
-                                    doc_coverage = str(cached_doc_cov)
-                            missing_docs = cached_metrics.get('missing') or cached_metrics.get('missing_docs') or cached_metrics.get('missing_items')
-                            missing_files = []
-                            # Try to get documented count from totals
-                            if 'totals' in cached_metrics and isinstance(cached_metrics['totals'], dict):
-                                documented = cached_metrics['totals'].get('functions_documented')
-                        else:
-                            # Parse from text output
-                            output = func_reg_data.get('output', '')
-                            if 'Documentation Coverage:' in output:
-                                import re
-                                match = re.search(r'Documentation Coverage:\s*(\d+\.?\d*)%', output)
-                                if match:
-                                    doc_coverage = match.group(1) + '%'
+                    # Use analyze_functions data for docstring coverage
+                    if 'results' in cached_data and 'analyze_functions' in cached_data['results']:
+                        func_data = cached_data['results']['analyze_functions']
+                        if 'data' in func_data:
+                            func_metrics = func_data['data']
+                            func_total = func_metrics.get('total_functions')
+                            func_undocumented = func_metrics.get('undocumented', 0)
+                            if func_total is not None and func_total > 0:
+                                func_documented = func_total - func_undocumented
+                                coverage_pct = (func_documented / func_total) * 100
+                                doc_coverage = f"{coverage_pct:.2f}%"
+                                functions_without_docstrings = func_undocumented
             except Exception as e:
                 logger.debug(f"Failed to load doc_coverage from cache in status: {e}")
                 pass
         
-        # If documented is still None, try to get it from metrics
-        if documented is None:
-            # Try to get from analyze_function_registry results cache
-            func_reg_cache = self.results_cache.get('analyze_function_registry', {})
-            if isinstance(func_reg_cache, dict):
-                totals = func_reg_cache.get('totals', {})
-                if isinstance(totals, dict):
-                    documented = totals.get('functions_documented')
+        # If still unknown, try to get from results cache
+        if (doc_coverage == 'Unknown' or doc_coverage is None) and total_functions is not None:
+            func_cache = self.results_cache.get('analyze_functions', {})
+            if isinstance(func_cache, dict):
+                func_undocumented = func_cache.get('undocumented', 0)
+                if isinstance(func_undocumented, (int, float)) and total_functions > 0:
+                    func_documented = total_functions - func_undocumented
+                    coverage_pct = (func_documented / total_functions) * 100
+                    doc_coverage = f"{coverage_pct:.2f}%"
+                    functions_without_docstrings = int(func_undocumented)
         
-        # Calculate functions without docstrings
-        functions_without_docstrings = None
-        if total_functions is not None and isinstance(total_functions, (int, float)):
-            if documented is not None and isinstance(documented, (int, float)):
-                functions_without_docstrings = int(total_functions - documented)
+        # Also check registry for missing items (separate metric - registry completeness)
+        try:
+            import json
+            results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+            if results_file.exists():
+                with open(results_file, 'r', encoding='utf-8') as f:
+                    cached_data = json.load(f)
+                if 'results' in cached_data and 'analyze_function_registry' in cached_data['results']:
+                    func_reg_data = cached_data['results']['analyze_function_registry']
+                    if 'data' in func_reg_data:
+                        cached_metrics = func_reg_data['data']
+                        missing_docs = cached_metrics.get('missing') or cached_metrics.get('missing_docs') or cached_metrics.get('missing_items')
+                        missing_files = cached_metrics.get('missing_files', [])
+        except Exception as e:
+            logger.debug(f"Failed to load registry missing data: {e}")
+            pass
         
         doc_line = f"- **Docstring Coverage**: {percent_text(doc_coverage, 2)}"
         if functions_without_docstrings is not None:
             doc_line += f" ({functions_without_docstrings} functions without docstrings)"
 
         if missing_docs:
-
-            doc_line += f" ({missing_docs} items missing from registry)"
+            # Extract count if missing_docs is a dictionary, otherwise use it as-is
+            if isinstance(missing_docs, dict):
+                missing_count = missing_docs.get('count', 0)
+            else:
+                missing_count = to_int(missing_docs) or 0
+            
+            if missing_count > 0:
+                doc_line += f" ({missing_count} items missing from registry)"
 
         lines.append(doc_line)
 
@@ -5850,11 +5964,7 @@ class AIToolsService:
                 # If neither path_drift nor path_validation ran, show unknown
                 lines.append("- **Path Drift**: Unknown (run `audit` to check)")
 
-            drift_files = doc_sync_summary_for_signals.get('path_drift_files') or []
-
-            if drift_files:
-
-                lines.append(f"- **Drift Hotspots**: {self._format_list_for_display(drift_files, limit=4)}")
+            # Drift Hotspots removed from AI_STATUS (detailed info in consolidated_report.txt)
 
             if paired is not None:
                 status_label = "SYNCHRONIZED" if paired == 0 else "NEEDS ATTENTION"
@@ -5924,9 +6034,7 @@ class AIToolsService:
             missing_deps = dependency_summary.get('missing_dependencies')
             if missing_deps:
                 lines.append(f"- **Dependency Docs**: {missing_deps} undocumented references detected")
-                missing_files = dependency_summary.get('missing_files') or dependency_summary.get('missing_sections') or []
-                if missing_files:
-                    lines.append(f"  Top files: {self._format_list_for_display(missing_files, limit=3)}")
+                # Top files removed from AI_STATUS (detailed info in consolidated_report.txt)
             else:
                 lines.append("- **Dependency Docs**: CLEAN (no undocumented dependencies)")
         
@@ -6097,8 +6205,7 @@ class AIToolsService:
 
                     module_descriptions.append(detail)
                 
-                if module_descriptions:
-                    lines.append(f"- **Modules to Prioritize**: {', '.join(module_descriptions)}")
+                # Modules to Prioritize removed from AI_STATUS (detailed info in consolidated_report.txt)
 
         else:
             # Try to load cached error handling data
@@ -6215,39 +6322,16 @@ class AIToolsService:
             if generated:
                 pass  # Generated timestamp available
 
-            module_gaps = (coverage_summary.get('modules') or [])[:3]
+            # Domains with Lowest Coverage removed from AI_STATUS (detailed info in consolidated_report.txt)
 
-            if module_gaps:
-
-                descriptions = [
-
-                    f"{m['module']} ({percent_text(m.get('coverage'), 1)}, missing {m.get('missed')} lines)"
-
-                    for m in module_gaps
-
-                ]
-
-                lines.append(f"    - **Domains with Lowest Coverage**: {', '.join(descriptions)}")
-
-            worst_files = (coverage_summary or {}).get('worst_files') or []
-
-            if worst_files:
-
-                descriptions = [
-
-                    f"{item['path']} ({percent_text(item.get('coverage'), 1)}, missing {item.get('missing', item.get('missed', 0))} lines)"
-
-                    for item in worst_files[:3]
-
-                ]
-
-                lines.append(f"    - **Modules with Lowest Coverage**: {', '.join(descriptions)}")
+            # Modules with Lowest Coverage removed from AI_STATUS (detailed info in consolidated_report.txt)
             
             # Add report link for test coverage
             coverage_report_path = self.project_root / "development_docs" / "TEST_COVERAGE_REPORT.md"
             if coverage_report_path.exists():
                 lines.append(f"    - **Detailed Report**: [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md)")
             
+            # Add development tools coverage BEFORE test markers (inside coverage_summary block)
             if dev_tools_insights and dev_tools_insights.get('overall_pct') is not None:
                 dev_pct = dev_tools_insights['overall_pct']
                 dev_statements = dev_tools_insights.get('statements')
@@ -6256,17 +6340,55 @@ class AIToolsService:
                 if dev_statements is not None and dev_covered is not None:
                     summary_line += f" ({dev_covered} of {dev_statements} statements)"
                 lines.append(summary_line)
-                low_modules = dev_tools_insights.get('low_modules') or []
-                if low_modules:
-                    dev_descriptions = [
-                        f"{Path(item['path']).name} ({percent_text(item.get('coverage'), 1)}, missing {item.get('missed')} lines)"
-                        for item in low_modules[:5]
-                    ]
-                    lines.append(f"    - **Modules with Lowest Coverage**: {', '.join(dev_descriptions)}")
+                # Modules with Lowest Coverage removed from AI_STATUS (detailed info in consolidated_report.txt)
 
         else:
 
             lines.append("- Coverage data unavailable; run `audit --full` to regenerate metrics")
+            # Add development tools coverage even if overall coverage is unavailable
+            if dev_tools_insights and dev_tools_insights.get('overall_pct') is not None:
+                dev_pct = dev_tools_insights['overall_pct']
+                dev_statements = dev_tools_insights.get('statements')
+                dev_covered = dev_tools_insights.get('covered')
+                summary_line = f"- **Development Tools Coverage**: {percent_text(dev_pct, 1)}"
+                if dev_statements is not None and dev_covered is not None:
+                    summary_line += f" ({dev_covered} of {dev_statements} statements)"
+                lines.append(summary_line)
+                # Modules with Lowest Coverage removed from AI_STATUS (detailed info in consolidated_report.txt)
+        
+        # Add test markers status
+        test_markers_data = self._load_tool_data('analyze_test_markers', 'tests')
+        if test_markers_data and isinstance(test_markers_data, dict):
+            # Handle both standard format and old format
+            if 'summary' in test_markers_data:
+                summary = test_markers_data.get('summary', {})
+                missing_count = summary.get('total_issues', 0)
+                details = test_markers_data.get('details', {})
+                missing_list = details.get('missing', [])
+            else:
+                # Old format
+                missing_count = test_markers_data.get('missing_count', 0)
+                missing_list = test_markers_data.get('missing', [])
+            
+            if missing_count > 0 or (missing_list and len(missing_list) > 0):
+                lines.append("## Test Markers")
+                # Use len(missing_list) if missing_count is 0 but list has items
+                actual_count = missing_count if missing_count > 0 else len(missing_list) if missing_list else 0
+                lines.append(f"- **Missing Category Markers**: {actual_count} tests missing pytest category markers")
+                # Group by file
+                from collections import defaultdict
+                files_with_missing = defaultdict(list)
+                for item in missing_list:
+                    if isinstance(item, dict):
+                        file_path = item.get('file', '')
+                        test_name = item.get('name', '')
+                        if file_path:
+                            files_with_missing[file_path].append(test_name)
+                
+                # Top files removed from AI_STATUS (detailed info in consolidated_report.txt)
+            else:
+                lines.append("## Test Markers")
+                lines.append("- **Status**: CLEAN (all tests have category markers)")
 
         lines.append("")
 
@@ -6666,12 +6788,15 @@ class AIToolsService:
         # Recalculating based on different totals can give incorrect results
         missing_error_handlers = to_int(get_error_field('functions_missing_error_handling'))
         
-        # Only recalculate coverage if totals differ, but keep the actual missing count
-        if error_coverage is not None and canonical_total and error_total and error_with_handling:
-            if error_total != canonical_total:
-                recalc_coverage = (error_with_handling / canonical_total) * 100
-                if 0 <= recalc_coverage <= 100:
-                    error_coverage = recalc_coverage
+        # Calculate coverage using error_total (actual functions analyzed), not canonical_total
+        # This ensures accuracy - error handling analysis may analyze fewer functions than total
+        if error_total and error_with_handling:
+            calc_coverage = (error_with_handling / error_total) * 100
+            if 0 <= calc_coverage <= 100:
+                error_coverage = calc_coverage
+        elif error_coverage is None and error_total and error_with_handling:
+            # If coverage not provided, calculate it
+            error_coverage = (error_with_handling / error_total) * 100
         
         worst_error_modules = get_error_field('worst_modules', []) or []
         if worst_error_modules is None or not isinstance(worst_error_modules, (list, tuple)):
@@ -7132,6 +7257,97 @@ class AIToolsService:
                     bullets=config_bullets
                 )
         
+        # Add test markers priority (after error handling, before coverage)
+        test_markers_data = self._load_tool_data('analyze_test_markers', 'tests')
+        test_markers_order = config_order + 1  # After config, before legacy
+        if test_markers_data and isinstance(test_markers_data, dict):
+            # Handle both standard format and old format
+            if 'summary' in test_markers_data:
+                missing_markers = test_markers_data['summary'].get('total_issues', 0)
+                details = test_markers_data.get('details', {})
+                missing_list = details.get('missing', [])
+            else:
+                missing_markers = test_markers_data.get('missing_count', 0)
+                missing_list = test_markers_data.get('missing', [])
+            
+            if missing_markers and missing_markers > 0:
+                test_markers_bullets: List[str] = []
+                # Get unique files with missing markers
+                if missing_list:
+                    files_with_missing = set()
+                    for item in missing_list:
+                        if isinstance(item, dict):
+                            file_path = item.get('file', '')
+                            if file_path:
+                                files_with_missing.add(file_path)
+                    if files_with_missing:
+                        files_list = list(files_with_missing)[:3]
+                        test_markers_bullets.append(
+                            f"Top files: {self._format_list_for_display(files_list, limit=3)}"
+                        )
+                test_markers_bullets.append(
+                    "Add category markers to test functions using `development_tools/tests/fix_test_markers.py`."
+                )
+                add_priority(
+                    order=test_markers_order,
+                    title="Add test category markers",
+                    reason=f"{missing_markers} tests missing category markers.",
+                    bullets=test_markers_bullets
+                )
+        
+        # Add function patterns (handlers without docs) as priority or quick win
+        function_patterns_data = self._load_tool_data('analyze_function_patterns', 'functions')
+        if function_patterns_data and isinstance(function_patterns_data, dict):
+            # Handle both standard format and old format
+            if 'details' in function_patterns_data:
+                handlers = function_patterns_data['details'].get('handlers', [])
+            else:
+                handlers = function_patterns_data.get('handlers', [])
+            
+            if handlers:
+                handlers_no_doc = [h for h in handlers if not h.get('has_doc', True)]
+                if handlers_no_doc:
+                    # Add as quick win if small, otherwise as priority
+                    if len(handlers_no_doc) <= 5:
+                        if not hasattr(self, '_quick_wins_handlers'):
+                            handler_examples = []
+                            for h in handlers_no_doc[:3]:
+                                class_name = h.get('class', 'Unknown')
+                                file_path = h.get('file', '')
+                                if file_path:
+                                    handler_examples.append(f"{class_name} ({file_path})")
+                                else:
+                                    handler_examples.append(class_name)
+                            self._quick_wins_handlers = {
+                                'count': len(handlers_no_doc),
+                                'examples': handler_examples
+                            }
+                    else:
+                        # Add as priority item
+                        handlers_order = test_markers_order + 1
+                        handlers_bullets: List[str] = []
+                        handler_examples = []
+                        for h in handlers_no_doc[:3]:
+                            class_name = h.get('class', 'Unknown')
+                            file_path = h.get('file', '')
+                            if file_path:
+                                handler_examples.append(f"{class_name} ({file_path})")
+                            else:
+                                handler_examples.append(class_name)
+                        if handler_examples:
+                            handlers_bullets.append(
+                                f"Examples: {self._format_list_for_display(handler_examples, limit=3)}"
+                            )
+                        handlers_bullets.append(
+                            "Add docstrings to handler classes to improve code documentation."
+                        )
+                        add_priority(
+                            order=handlers_order,
+                            title="Add documentation to handler classes",
+                            reason=f"{len(handlers_no_doc)} handler classes missing documentation.",
+                            bullets=handlers_bullets
+                        )
+        
         # Add complexity refactoring priority if there are critical or high complexity functions
         complexity_order = legacy_order + 1
         if critical_complex and critical_complex > 0:
@@ -7236,6 +7452,15 @@ class AIToolsService:
             if missing > 0:
                 files_str = self._format_list_for_display(files, limit=2) if files else "affected files"
                 quick_wins.append(f"Refresh dependency documentation: {missing} module dependencies are undocumented ({files_str}). Regenerate via `python development_tools/run_development_tools.py docs`.")
+        
+        # Add handler classes without docs to Quick Wins (if small count)
+        if hasattr(self, '_quick_wins_handlers') and self._quick_wins_handlers:
+            handler_info = self._quick_wins_handlers
+            count = handler_info.get('count', 0)
+            examples = handler_info.get('examples', [])
+            if count > 0:
+                examples_str = self._format_list_for_display(examples, limit=2) if examples else ""
+                quick_wins.append(f"Add documentation to {count} handler class(es) missing docs{(' (' + examples_str + ')') if examples_str else ''}.")
         
         # Add TODO sync to Quick Wins
         if hasattr(self, '_quick_wins_todo') and self._quick_wins_todo:
@@ -7554,7 +7779,14 @@ class AIToolsService:
         # Access doc_metrics - check details first (normalized), then top level (backward compat)
         doc_metrics_details = doc_metrics.get('details', {})
         doc_coverage = doc_metrics_details.get('doc_coverage') or doc_metrics.get('doc_coverage', metrics.get('doc_coverage'))
-        missing_docs = doc_metrics_details.get('missing_docs') or doc_metrics_details.get('missing_items') or doc_metrics.get('missing_docs') or doc_metrics.get('missing_items')
+        missing_docs_raw = doc_metrics_details.get('missing_docs') or doc_metrics_details.get('missing_items') or doc_metrics.get('missing_docs') or doc_metrics.get('missing_items')
+        # Extract count if missing_docs is a dictionary, otherwise use it as-is
+        if isinstance(missing_docs_raw, dict):
+            missing_docs_count = missing_docs_raw.get('count', 0)
+            missing_docs_list = missing_docs_raw.get('files', {})  # Dictionary of file -> list of functions
+        else:
+            missing_docs_count = to_int(missing_docs_raw) or 0
+            missing_docs_list = {}
         doc_totals = doc_metrics_details.get('totals') or doc_metrics.get('totals') or {}
         documented_functions = doc_totals.get('functions_documented') if isinstance(doc_totals, dict) else None
 
@@ -7581,14 +7813,28 @@ class AIToolsService:
         
         # Extract overlap analysis data
         # Check if overlap analysis was run (indicated by presence of these keys, even if empty)
+        # Check both top level and details section (normalization may move data to details)
+        details = analyze_docs_data.get('details', {})
         overlap_analysis_ran = (
             'section_overlaps' in analyze_docs_data or 
-            'consolidation_recommendations' in analyze_docs_data
+            'consolidation_recommendations' in analyze_docs_data or
+            'section_overlaps' in details or 
+            'consolidation_recommendations' in details
         )
         
-        section_overlaps = analyze_docs_data.get('section_overlaps', {}) if overlap_analysis_ran else {}
-        consolidation_recs = analyze_docs_data.get('consolidation_recommendations', []) if overlap_analysis_ran else []
-        file_purposes = analyze_docs_data.get('file_purposes', {})
+        # Get from top level first, then fall back to details
+        section_overlaps = (
+            analyze_docs_data.get('section_overlaps') or 
+            details.get('section_overlaps', {})
+        ) if overlap_analysis_ran else {}
+        consolidation_recs = (
+            analyze_docs_data.get('consolidation_recommendations') or 
+            details.get('consolidation_recommendations', [])
+        ) if overlap_analysis_ran else []
+        file_purposes = (
+            analyze_docs_data.get('file_purposes') or 
+            details.get('file_purposes', {})
+        )
         
         # Normalize to empty dict/list if None
         if section_overlaps is None:
@@ -7658,6 +7904,29 @@ class AIToolsService:
         # Convert to Path object for .exists() check
         issues_file = self.project_root / issues_file_str if isinstance(issues_file_str, str) else Path(issues_file_str)
 
+        # Load missing_docs data from cache if not already loaded
+        if missing_docs_count == 0 and missing_docs_list == {}:
+            try:
+                import json
+                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+                if results_file.exists():
+                    with open(results_file, 'r', encoding='utf-8') as f:
+                        cached_data = json.load(f)
+                    if 'results' in cached_data and 'analyze_function_registry' in cached_data['results']:
+                        func_reg_data = cached_data['results']['analyze_function_registry']
+                        if 'data' in func_reg_data:
+                            cached_metrics = func_reg_data['data']
+                            missing_docs_raw = cached_metrics.get('missing') or cached_metrics.get('missing_docs') or cached_metrics.get('missing_items')
+                            if missing_docs_raw:
+                                if isinstance(missing_docs_raw, dict):
+                                    missing_docs_count = missing_docs_raw.get('count', 0)
+                                    missing_docs_list = missing_docs_raw.get('files', {})
+                                else:
+                                    missing_docs_count = to_int(missing_docs_raw) or 0
+            except Exception as e:
+                logger.debug(f"Failed to load registry missing data in consolidated report: {e}")
+                pass
+        
         # Recalculate doc_coverage if Unknown (same logic as Documentation Findings section)
         # Do this BEFORE Executive Summary so it's available for display
         if doc_coverage == 'Unknown' or doc_coverage is None:
@@ -7726,26 +7995,36 @@ class AIToolsService:
             # Order: Critical, High, Moderate (most critical first)
             lines.append(f"- **Total Functions**: {total_funcs} (Critical: {critical}, High: {high}, Moderate: {moderate})")
 
-        lines.append(f"- Docstring Coverage {percent_text(doc_coverage, 2)} with {missing_docs or 0} registry gaps")
+        # Docstring Coverage moved to its own section (removed from Executive Summary)
+        
+        # Add test markers to executive summary
+        test_markers_data = self._load_tool_data('analyze_test_markers', 'tests')
+        if test_markers_data and isinstance(test_markers_data, dict):
+            if 'summary' in test_markers_data:
+                missing_markers = test_markers_data['summary'].get('total_issues', 0)
+            else:
+                missing_markers = test_markers_data.get('missing_count', 0)
+            if missing_markers > 0:
+                lines.append(f"- Test markers: {missing_markers} tests missing category markers")
 
         # NOTE: 'error_handling_coverage' is a backward compatibility fallback for old JSON format
         error_cov = error_metrics.get('analyze_error_handling') or error_metrics.get('error_handling_coverage')
         
-        # Recalculate error handling coverage using canonical function count for consistency
+        # Calculate error handling coverage using error_total (actual functions analyzed)
         # Use the actual count from error analysis, not a recalculation
         missing_error_handlers = to_int(error_metrics.get('functions_missing_error_handling', 0))
         
-        # Only recalculate coverage if totals differ, but keep the actual missing count
+        # Calculate coverage using error_total (actual functions analyzed), not canonical_total
         error_total = error_metrics.get('total_functions')
         error_with_handling = error_metrics.get('functions_with_error_handling')
-        canonical_total = metrics.get('total_functions')
         
-        if error_cov is not None and canonical_total and error_total and error_with_handling:
-            if error_total != canonical_total:
-                # Recalculate coverage using canonical total
-                recalc_coverage = (error_with_handling / canonical_total) * 100
-                if 0 <= recalc_coverage <= 100:
-                    error_cov = recalc_coverage
+        if error_total and error_with_handling:
+            calc_coverage = (error_with_handling / error_total) * 100
+            if 0 <= calc_coverage <= 100:
+                error_cov = calc_coverage
+        elif error_cov is None and error_total and error_with_handling:
+            # If coverage not provided, calculate it
+            error_cov = (error_with_handling / error_total) * 100
 
         if error_cov is not None:
 
@@ -7758,18 +8037,37 @@ class AIToolsService:
             overall = coverage_summary.get('overall') or {}
             overall_cov = overall.get('coverage')
 
-            lines.append(f"- Overall test coverage {percent_text(overall_cov, 1)} across {overall.get('statements', 0)} statements")
+            lines.append(f"- **Overall test coverage**: {percent_text(overall_cov, 1)} across {overall.get('statements', 0)} statements")
             
+            # Add development tools coverage summary (details appear in Test Coverage section)
             if dev_tools_insights and dev_tools_insights.get('overall_pct') is not None:
                 dev_pct = dev_tools_insights['overall_pct']
-                summary_line = f"- Development tools coverage {percent_text(dev_pct, 1)}"
+                summary_line = f"- **Development tools coverage**: {percent_text(dev_pct, 1)}"
                 if dev_tools_insights.get('covered') is not None and dev_tools_insights.get('statements') is not None:
                     summary_line += f" ({dev_tools_insights['covered']} of {dev_tools_insights['statements']} statements)"
                 lines.append(summary_line)
+                # Modules with Lowest Coverage removed from Executive Summary (detailed info in Test Coverage section)
 
         elif hasattr(self, 'coverage_results') and self.coverage_results:
 
             lines.append("- Coverage regeneration flagged issues; inspect coverage.json for details")
+            # Add development tools coverage summary (details appear in Test Coverage section)
+            if dev_tools_insights and dev_tools_insights.get('overall_pct') is not None:
+                dev_pct = dev_tools_insights['overall_pct']
+                summary_line = f"- **Development tools coverage**: {percent_text(dev_pct, 1)}"
+                if dev_tools_insights.get('covered') is not None and dev_tools_insights.get('statements') is not None:
+                    summary_line += f" ({dev_tools_insights['covered']} of {dev_tools_insights['statements']} statements)"
+                lines.append(summary_line)
+                # Modules with Lowest Coverage removed from Executive Summary (detailed info in Test Coverage section)
+        else:
+            # Add development tools coverage summary (details appear in Test Coverage section)
+            if dev_tools_insights and dev_tools_insights.get('overall_pct') is not None:
+                dev_pct = dev_tools_insights['overall_pct']
+                summary_line = f"- **Development tools coverage**: {percent_text(dev_pct, 1)}"
+                if dev_tools_insights.get('covered') is not None and dev_tools_insights.get('statements') is not None:
+                    summary_line += f" ({dev_tools_insights['covered']} of {dev_tools_insights['statements']} statements)"
+                lines.append(summary_line)
+                # Modules with Lowest Coverage removed from Executive Summary (detailed info in Test Coverage section)
 
         # Get path_drift - check standard format first
         path_drift = None
@@ -7783,7 +8081,7 @@ class AIToolsService:
 
         if path_drift is not None:
 
-            lines.append(f"- Documentation path drift: {path_drift} files need sync")
+            lines.append(f"- **Documentation path drift**: {path_drift} issues need sync")
 
         # Get legacy_issues - check standard format first
         legacy_issues = None
@@ -7795,8 +8093,45 @@ class AIToolsService:
 
         if legacy_issues is not None:
 
-            lines.append(f"- Legacy references outstanding in {legacy_issues} files")
+            lines.append(f"- **Legacy references**: {legacy_issues} files still reference legacy patterns")
 
+        lines.append("")
+
+        # Documentation Coverage section
+        lines.append("## Documentation Coverage")
+        lines.append(f"- **Docstring Coverage**: {percent_text(doc_coverage, 2)}")
+        
+        if missing_docs_count > 0:
+            lines.append(f"- **Registry Gaps**: {missing_docs_count} items missing from registry")
+            # Build list of top missing items
+            if missing_docs_list and isinstance(missing_docs_list, dict):
+                # Sort files by number of missing functions (descending)
+                sorted_files = sorted(
+                    missing_docs_list.items(), 
+                    key=lambda x: len(x[1]) if isinstance(x[1], list) else 1, 
+                    reverse=True
+                )[:5]
+                
+                if sorted_files:
+                    item_list = []
+                    for file_path, funcs in sorted_files:
+                        func_count = len(funcs) if isinstance(funcs, list) else 1
+                        file_name = Path(file_path).name if file_path else 'Unknown'
+                        if func_count == 1 and isinstance(funcs, list) and funcs:
+                            func_name = funcs[0] if funcs else 'Unknown'
+                            item_list.append(f"{func_name} ({file_name})")
+                        else:
+                            item_list.append(f"{file_name} ({func_count} functions)")
+                    
+                    if len(sorted_files) < len(missing_docs_list) if isinstance(missing_docs_list, dict) else False:
+                        total_files = len(missing_docs_list)
+                        item_list.append(f"... +{total_files - len(sorted_files)} more")
+                    
+                    if item_list:
+                        lines.append(f"    - **Top items**: {', '.join(item_list)}")
+        else:
+            lines.append(f"- **Registry Gaps**: 0 items missing from registry")
+        
         lines.append("")
 
         # Documentation Status section (consolidated from Documentation Signals and Doc Sync Status)
@@ -7862,7 +8197,7 @@ class AIToolsService:
                 if not isinstance(drift_files, list):
                     drift_files = []
                 lines.append("**Path Drift** FAIL")
-                lines.append(f"  - {path_drift} problem files")
+                lines.append(f"  - {path_drift} problem files (total issues)")
                 # Show up to 4 files, with correct overflow count based on total path_drift count
                 if len(drift_files) <= 4:
                     drift_hotspots = ', '.join(drift_files)
@@ -8179,15 +8514,16 @@ class AIToolsService:
                 if details_missing is not None and details_missing > 0 and (missing_error_handlers is None or missing_error_handlers == 0):
                     missing_error_handlers = details_missing
                 
-                # Only recalculate coverage if totals differ, but keep the actual missing count
+                # Calculate coverage using error_total (actual functions analyzed), not canonical_total
                 error_total = error_metrics.get('total_functions')
                 error_with_handling = error_metrics.get('functions_with_error_handling')
-                canonical_total = metrics.get('total_functions')
-                if error_cov is not None and canonical_total and error_total and error_with_handling:
-                    if error_total != canonical_total:
-                        recalc_coverage = (error_with_handling / canonical_total) * 100
-                        if 0 <= recalc_coverage <= 100:
-                            error_cov = recalc_coverage
+                if error_total and error_with_handling:
+                    calc_coverage = (error_with_handling / error_total) * 100
+                    if 0 <= calc_coverage <= 100:
+                        error_cov = calc_coverage
+                elif error_cov is None and error_total and error_with_handling:
+                    # If coverage not provided, calculate it
+                    error_cov = (error_with_handling / error_total) * 100
 
             # Add Missing Error Handling (same as AI_STATUS.md) - this should be first
             if missing_error_handlers is None:
@@ -8260,7 +8596,6 @@ class AIToolsService:
                     phase1_candidates = []
                 if phase1_candidates:
                     from collections import defaultdict
-                    from pathlib import Path
                     by_module = defaultdict(int)
                     
                     for candidate in phase1_candidates:
@@ -8303,7 +8638,6 @@ class AIToolsService:
                     phase2_exceptions = []
                 if phase2_exceptions:
                     from collections import defaultdict
-                    from pathlib import Path
                     by_module = defaultdict(lambda: defaultdict(int))
                     
                     for exc in phase2_exceptions:
@@ -8366,13 +8700,17 @@ class AIToolsService:
                 ]
                 lines.append(f"    - **Modules with Lowest Coverage**: {', '.join(file_descriptions)}")
                 lines.append(f"    - **Detailed Report**: [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md)")
-
+            
+            # Add development tools coverage
+            dev_tools_insights = self._get_dev_tools_coverage_insights()
             if dev_tools_insights and dev_tools_insights.get('overall_pct') is not None:
                 dev_pct = dev_tools_insights['overall_pct']
-                dev_line = f"- **Development Tools Coverage**: {percent_text(dev_pct, 1)}"
-                if dev_tools_insights.get('covered') is not None and dev_tools_insights.get('statements') is not None:
-                    dev_line += f" ({dev_tools_insights['covered']} of {dev_tools_insights['statements']} statements)"
-                lines.append(dev_line)
+                dev_statements = dev_tools_insights.get('statements')
+                dev_covered = dev_tools_insights.get('covered')
+                summary_line = f"- **Development Tools Coverage**: {percent_text(dev_pct, 1)}"
+                if dev_statements is not None and dev_covered is not None:
+                    summary_line += f" ({dev_covered} of {dev_statements} statements)"
+                lines.append(summary_line)
                 low_modules = dev_tools_insights.get('low_modules') or []
                 if low_modules:
                     dev_descriptions = [
@@ -8380,8 +8718,45 @@ class AIToolsService:
                         for item in low_modules[:5]
                     ]
                     lines.append(f"    - **Modules with Lowest Coverage**: {', '.join(dev_descriptions)}")
-                if dev_tools_insights.get('html'):
-                    lines.append(f"    - **Detailed Report**: [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md)")
+            
+            # Add test markers status
+            test_markers_data = self._load_tool_data('analyze_test_markers', 'tests')
+            if test_markers_data and isinstance(test_markers_data, dict):
+                # Handle both standard format and old format
+                if 'summary' in test_markers_data:
+                    summary = test_markers_data.get('summary', {})
+                    missing_count = summary.get('total_issues', 0)
+                    details = test_markers_data.get('details', {})
+                    missing_list = details.get('missing', [])
+                else:
+                    # Old format
+                    missing_count = test_markers_data.get('missing_count', 0)
+                    missing_list = test_markers_data.get('missing', [])
+                
+                if missing_count > 0 or (missing_list and len(missing_list) > 0):
+                    lines.append("## Test Markers")
+                    # Use len(missing_list) if missing_count is 0 but list has items
+                    actual_count = missing_count if missing_count > 0 else len(missing_list) if missing_list else 0
+                    lines.append(f"- **Missing Category Markers**: {actual_count} tests missing pytest category markers")
+                    # Group by file
+                    from collections import defaultdict
+                    files_with_missing = defaultdict(list)
+                    for item in missing_list:
+                        if isinstance(item, dict):
+                            file_path = item.get('file', '')
+                            test_name = item.get('name', '')
+                            if file_path:
+                                files_with_missing[file_path].append(test_name)
+                    
+                    if files_with_missing:
+                        sorted_files = sorted(files_with_missing.items(), key=lambda x: len(x[1]), reverse=True)[:5]
+                        file_list = [f"{Path(f).name} ({len(tests)} tests)" for f, tests in sorted_files]
+                        if len(files_with_missing) > 5:
+                            file_list.append(f"... +{len(files_with_missing) - 5} files")
+                        lines.append(f"    - **Top files**: {', '.join(file_list)}")
+                else:
+                    lines.append("## Test Markers")
+                    lines.append("- **Status**: CLEAN (all tests have category markers)")
 
             generated = overall.get('generated')
 
@@ -8420,7 +8795,6 @@ class AIToolsService:
                 # Add top files with unused imports
                 # Load from cache file which has file-level data
                 from collections import defaultdict
-                from pathlib import Path
                 import json
                 file_counts = defaultdict(int)
                 
@@ -8540,7 +8914,6 @@ class AIToolsService:
             # Add top files with legacy markers
             if findings and isinstance(findings, dict):
                 from collections import defaultdict
-                from pathlib import Path
                 file_counts = defaultdict(int)
                 for pattern_type, file_list in findings.items():
                     for file_entry in file_list:
@@ -8636,8 +9009,32 @@ class AIToolsService:
         lines.append(f"- **Moderate Complexity Functions**: {get_function_field('moderate_complexity', 'Unknown')}")
 
         # Add highest complexity functions list
+        # Try to load examples from multiple sources
         critical_examples = get_function_field('critical_complexity_examples', [])
         high_examples = get_function_field('high_complexity_examples', [])
+        
+        # Also check decision_support_metrics for examples
+        decision_metrics = self.results_cache.get('decision_support_metrics', {})
+        if decision_metrics:
+            if not critical_examples and 'critical_complexity_examples' in decision_metrics:
+                critical_examples = decision_metrics.get('critical_complexity_examples', [])
+            if not high_examples and 'high_complexity_examples' in decision_metrics:
+                high_examples = decision_metrics.get('high_complexity_examples', [])
+        
+        # If examples are still missing, try reloading from analyze_functions
+        if not critical_examples and not high_examples:
+            func_result = self._load_tool_data('analyze_functions', 'functions')
+            if func_result and isinstance(func_result, dict):
+                # Check both normalized format (details) and old format
+                func_details = func_result.get('details', {})
+                if 'critical_complexity_examples' in func_details:
+                    critical_examples = func_details.get('critical_complexity_examples', [])
+                elif 'critical_complexity_examples' in func_result:
+                    critical_examples = func_result.get('critical_complexity_examples', [])
+                if 'high_complexity_examples' in func_details:
+                    high_examples = func_details.get('high_complexity_examples', [])
+                elif 'high_complexity_examples' in func_result:
+                    high_examples = func_result.get('high_complexity_examples', [])
         
         # Combine and sort by complexity (if available)
         all_examples = []
@@ -8678,7 +9075,7 @@ class AIToolsService:
             
             if function_list:
                 if len(all_examples) > 5:
-                    function_list.append(f"... +{len(all_examples) - 5}")
+                    function_list.append(f"... +{len(all_examples) - 5} more")
                 lines.append(f"    - **Top functions**: {', '.join(function_list)}")
 
         undocumented_examples = get_function_field('undocumented_examples', [])
@@ -8694,6 +9091,129 @@ class AIToolsService:
             ]
 
             lines.append(f"- **Undocumented Functions**: {', '.join(undocumented_items)}")
+        
+        lines.append("")
+        
+        # Add function patterns (handlers without docs)
+        function_patterns_data = self._load_tool_data('analyze_function_patterns', 'functions')
+        if function_patterns_data and isinstance(function_patterns_data, dict):
+            # Handle both standard format and old format
+            if 'details' in function_patterns_data:
+                handlers = function_patterns_data['details'].get('handlers', [])
+            else:
+                handlers = function_patterns_data.get('handlers', [])
+            
+            if handlers:
+                handlers_no_doc = [h for h in handlers if not h.get('has_doc', True)]
+                if handlers_no_doc:
+                    lines.append("## Function Patterns")
+                    lines.append(f"- **Handler Classes Without Documentation**: {len(handlers_no_doc)} of {len(handlers)} handler classes")
+                    # Show top handlers without docs
+                    top_handlers = sorted(handlers_no_doc, key=lambda x: x.get('methods', 0), reverse=True)[:5]
+                    handler_list = [f"{h.get('class', 'Unknown')} ({Path(h.get('file', '')).name}, {h.get('methods', 0)} methods)" for h in top_handlers]
+                    if len(handlers_no_doc) > 5:
+                        handler_list.append(f"... +{len(handlers_no_doc) - 5} more")
+                    lines.append(f"    - **Top handlers**: {', '.join(handler_list)}")
+
+        # Add package exports analysis
+        package_exports_data = self._load_tool_data('analyze_package_exports', 'functions')
+        if package_exports_data and isinstance(package_exports_data, dict):
+            # Handle both standard format and old format
+            if 'summary' in package_exports_data:
+                summary = package_exports_data.get('summary', {})
+                total_missing = summary.get('total_missing_exports', 0)
+                total_unnecessary = summary.get('total_unnecessary_exports', 0)
+                details = package_exports_data.get('details', {})
+                packages = details.get('packages', {})
+            else:
+                # Old format
+                summary_data = package_exports_data.get('summary', {})
+                total_missing = summary_data.get('total_missing_exports', 0)
+                total_unnecessary = summary_data.get('total_unnecessary_exports', 0)
+                packages = package_exports_data.get('packages', {})
+            
+            if total_missing > 0 or total_unnecessary > 0:
+                lines.append("## Package Exports")
+                lines.append(f"- **Missing Exports**: {total_missing} items should be exported but aren't")
+                lines.append(f"- **Potentially Unnecessary**: {total_unnecessary} items exported but not used")
+                # Show packages with issues
+                if packages:
+                    packages_with_issues = []
+                    for pkg_name, pkg_report in packages.items():
+                        if isinstance(pkg_report, dict):
+                            missing = len(pkg_report.get('missing_exports', []))
+                            unnecessary = len(pkg_report.get('potentially_unnecessary', []))
+                            if missing > 0 or unnecessary > 0:
+                                issues = []
+                                if missing > 0:
+                                    issues.append(f"{missing} missing")
+                                if unnecessary > 0:
+                                    issues.append(f"{unnecessary} unnecessary")
+                                packages_with_issues.append(f"{pkg_name} ({', '.join(issues)})")
+                    if packages_with_issues:
+                        lines.append(f"    - **Packages with issues**: {', '.join(packages_with_issues[:3])}")
+                        if len(packages_with_issues) > 3:
+                            lines.append(f"    - ... +{len(packages_with_issues) - 3} more")
+
+        # Add module imports analysis
+        module_imports_data = self._load_tool_data('analyze_module_imports', 'imports')
+        if module_imports_data and isinstance(module_imports_data, dict):
+            # Normalized format has data in details
+            details = module_imports_data.get('details', {})
+            # The actual import data might be in details['data'] or directly in details
+            import_data = details.get('data', details) if 'data' in details else details
+            # If still not found, check top level
+            if not import_data or (isinstance(import_data, dict) and len(import_data) == 0):
+                import_data = module_imports_data.get('data', module_imports_data)
+            
+            # Count files and imports
+            if isinstance(import_data, dict):
+                total_files = len(import_data)
+                total_imports = sum(
+                    v.get('total_imports', 0) if isinstance(v, dict) else 0
+                    for v in import_data.values()
+                )
+            else:
+                total_files = 0
+                total_imports = 0
+            
+            if total_files > 0:
+                lines.append("")
+                lines.append("## Module Imports")
+                lines.append(f"- **Files Analyzed**: {total_files} Python files")
+                if total_imports > 0:
+                    lines.append(f"- **Total Imports**: {total_imports} import statements")
+
+        lines.append("")
+        
+        # Add dependency patterns analysis
+        dependency_patterns_data = self._load_tool_data('analyze_dependency_patterns', 'imports')
+        if dependency_patterns_data and isinstance(dependency_patterns_data, dict):
+            # Normalized format has data in details
+            details = dependency_patterns_data.get('details', {})
+            # The actual pattern data might be in details['data'] or directly in details
+            patterns_data = details.get('data', details) if 'data' in details else details
+            # If still not found, check top level
+            if not patterns_data or (isinstance(patterns_data, dict) and len(patterns_data) == 0):
+                patterns_data = dependency_patterns_data.get('data', dependency_patterns_data)
+            
+            # Extract counts
+            if isinstance(patterns_data, dict):
+                circular_deps = len(patterns_data.get('circular_dependencies', []))
+                high_coupling = len(patterns_data.get('high_coupling', []))
+            else:
+                circular_deps = 0
+                high_coupling = 0
+            
+            if circular_deps > 0 or high_coupling > 0:
+                lines.append("## Dependency Patterns")
+                if circular_deps > 0:
+                    lines.append(f"- **Circular Dependencies**: {circular_deps} circular dependency chains detected")
+                if high_coupling > 0:
+                    lines.append(f"- **High Coupling**: {high_coupling} modules with high coupling")
+            elif circular_deps == 0 and high_coupling == 0 and patterns_data:
+                lines.append("## Dependency Patterns")
+                lines.append("- **Status**: CLEAN (no circular dependencies or high coupling detected)")
 
         lines.append("")
 
@@ -8757,6 +9277,48 @@ class AIToolsService:
                     lines.append(f"  - Recommendations: {len(remaining_recs)} additional issue(s) - see analyze_config_results.json for details")
         else:
             lines.append("- **Configuration Validation**: Data unavailable (run `audit --full` for validation)")
+
+        # Add package exports analysis
+        package_exports_data = self._load_tool_data('analyze_package_exports', 'functions')
+        if package_exports_data and isinstance(package_exports_data, dict):
+            # Handle both standard format and old format
+            if 'summary' in package_exports_data:
+                summary = package_exports_data.get('summary', {})
+                total_missing = summary.get('total_missing_exports', 0)
+                total_unnecessary = summary.get('total_unnecessary_exports', 0)
+                packages_with_missing = summary.get('packages_with_missing', 0)
+                details = package_exports_data.get('details', {})
+                packages = details.get('packages', {})
+            else:
+                # Old format
+                summary_data = package_exports_data.get('summary', {})
+                total_missing = summary_data.get('total_missing_exports', 0)
+                total_unnecessary = summary_data.get('total_unnecessary_exports', 0)
+                packages_with_missing = summary_data.get('packages_with_missing', 0)
+                packages = package_exports_data.get('packages', {})
+            
+            if total_missing > 0 or total_unnecessary > 0:
+                lines.append("## Package Exports")
+                lines.append(f"- **Missing Exports**: {total_missing} items should be exported but aren't")
+                lines.append(f"- **Potentially Unnecessary**: {total_unnecessary} items exported but not used")
+                # Show packages with issues
+                if packages:
+                    packages_with_issues = []
+                    for pkg_name, pkg_report in packages.items():
+                        if isinstance(pkg_report, dict):
+                            missing = len(pkg_report.get('missing_exports', []))
+                            unnecessary = len(pkg_report.get('potentially_unnecessary', []))
+                            if missing > 0 or unnecessary > 0:
+                                issues = []
+                                if missing > 0:
+                                    issues.append(f"{missing} missing")
+                                if unnecessary > 0:
+                                    issues.append(f"{unnecessary} unnecessary")
+                                packages_with_issues.append(f"{pkg_name} ({', '.join(issues)})")
+                    if packages_with_issues:
+                        lines.append(f"    - **Packages with issues**: {', '.join(packages_with_issues[:3])}")
+                        if len(packages_with_issues) > 3:
+                            lines.append(f"    - ... +{len(packages_with_issues) - 3} more")
 
         lines.append("")
 

@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Iterable, Iterator, Sequence, Tuple, Dict, Any
@@ -106,9 +107,21 @@ def run_cli(execute: Callable[[argparse.Namespace], Tuple[int, str, Dict[str, An
         for args, kwargs in arguments:
             parser.add_argument(*args, **kwargs)
     namespace = parser.parse_args()
-    exit_code, text_output, data = execute(namespace)
+    try:
+        exit_code, text_output, data = execute(namespace)
+    except Exception as e:
+        print(f"ERROR in execute: {type(e).__name__}: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc(file=sys.stderr)
+        raise
     if namespace.json:
-        print(json.dumps(data or {}, indent=2, sort_keys=True))
+        try:
+            print(json.dumps(data or {}, indent=2, sort_keys=True))
+        except Exception as e:
+            print(f"ERROR in json.dumps: {type(e).__name__}: {e}", file=sys.stderr)
+            import traceback
+            traceback.print_exc(file=sys.stderr)
+            raise
     elif text_output:
         print(ensure_ascii(text_output))
     return exit_code

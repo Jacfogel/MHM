@@ -1,5 +1,5 @@
 # Session Summary - Report Data Loss Fixes
-**Date**: 2025-12-07  
+**Date**: 2025-12-07 (updated 2025-12-13)  
 **Focus**: Fixing data loss and display issues in AI development tools reports
 
 ## Problem Statement
@@ -9,6 +9,7 @@ After implementing the normalization layer for tool results, significant data lo
 - Missing error handling showing 0 functions instead of 2
 - Validation status section incomplete
 - Missing error handling not appearing in AI_STATUS.md
+- Overlap analysis data lost when running lower-tier audits after Tier 3 audit
 
 ## Actions Taken
 
@@ -47,6 +48,16 @@ After implementing the normalization layer for tool results, significant data lo
 - `get_error_field()`: Extracts fields from error metrics handling both formats
 - Updated all report generators to use these helpers consistently
 
+### 6. Fixed Overlap Analysis Data Preservation
+- **Issue**: Overlap analysis data was lost when running Tier 2 audits after a Tier 3 audit (which includes overlap analysis)
+- **Root Cause**: Tier 2 audits run `analyze_documentation` without `--overlap` flag, overwriting cached results that contained overlap data
+- **Fix**: Modified `run_analyze_documentation()` to:
+  - Check for cached overlap data before running when `include_overlap=False`
+  - Preserve cached overlap data (if present) and merge it into new results after tool execution
+  - Preserve overlap data in its original location (top level or details section)
+- **Files Modified**: `development_tools/shared/operations.py` (lines 339-430)
+- **Result**: Overlap analysis results from Tier 3 audits now persist across lower-tier audits
+
 ## Results
 
 ### Before Fixes
@@ -60,6 +71,7 @@ After implementing the normalization layer for tool results, significant data lo
 - Doc Sync: FAIL (26 tracked issues) ✅
 - Missing Error Handling: 2 functions ✅
 - Validation Status: Complete with all details ✅
+- Overlap Analysis: Preserved across audit tiers ✅
 
 ## Files Modified
 - `development_tools/shared/operations.py`: Multiple sections updated for data access patterns
@@ -80,4 +92,16 @@ After implementing the normalization layer for tool results, significant data lo
 - All fixes maintain backward compatibility with old format
 - Helper functions provide consistent data access patterns
 - Reports now correctly display all relevant information from normalized data
+- Overlap analysis data is preserved when running lower-tier audits, ensuring cached Tier 3 results remain available
+
+## Temporary Files Cleaned Up
+The following temporary verification scripts and summary files were created during debugging and have been removed:
+- `verify_all_metrics.py` - Comprehensive metric verification script
+- `verify_detailed.py` - Detailed verification script  
+- `verify_reports.py` - Report verification script
+- `report_verification_summary.md` - Summary of verification findings
+- `fixes_applied_summary.md` - Summary of fixes applied
+- `comprehensive_verification_report.md` - Comprehensive verification report
+
+These were useful during development but are no longer needed as all issues have been resolved and verified.
 

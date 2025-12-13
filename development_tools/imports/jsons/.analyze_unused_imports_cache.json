@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_unused_imports - Development Tools",
-  "last_generated": "2025-12-07 13:37:28",
-  "timestamp": "2025-12-07T13:37:28.030397",
+  "last_generated": "2025-12-13 03:01:43",
+  "timestamp": "2025-12-13T03:01:43.989387",
   "tool_name": "analyze_unused_imports",
   "domain": "imports",
   "note": "This file is auto-generated. Do not edit manually.",
@@ -6270,23 +6270,23 @@
       "results": []
     },
     "development_tools/shared/common.py": {
-      "mtime": 1764477374.3075554,
+      "mtime": 1765190397.573563,
       "results": []
     },
     "development_tools/shared/constants.py": {
-      "mtime": 1764592073.0923202,
+      "mtime": 1765612744.7846832,
       "results": []
     },
     "development_tools/shared/operations.py": {
-      "mtime": 1765135761.4596863,
+      "mtime": 1765615852.0038362,
       "results": [
         {
           "type": "warning",
           "module": "development_tools.shared.operations",
           "obj": "",
-          "line": 110,
+          "line": 111,
           "column": 0,
-          "endLine": 110,
+          "endLine": 111,
           "endColumn": 112,
           "path": "development_tools\\shared\\operations.py",
           "symbol": "unused-import",
@@ -6568,15 +6568,15 @@
       ]
     },
     "development_tools/functions/analyze_function_registry.py": {
-      "mtime": 1764664462.587858,
+      "mtime": 1765193153.4076192,
       "results": [
         {
           "type": "warning",
           "module": "development_tools.functions.analyze_function_registry",
           "obj": "",
-          "line": 25,
+          "line": 26,
           "column": 4,
-          "endLine": 25,
+          "endLine": 26,
           "endColumn": 115,
           "path": "development_tools\\functions\\analyze_function_registry.py",
           "symbol": "unused-import",
@@ -6587,9 +6587,9 @@
           "type": "warning",
           "module": "development_tools.functions.analyze_function_registry",
           "obj": "",
-          "line": 25,
+          "line": 26,
           "column": 4,
-          "endLine": 25,
+          "endLine": 26,
           "endColumn": 115,
           "path": "development_tools\\functions\\analyze_function_registry.py",
           "symbol": "unused-import",
@@ -6603,7 +6603,7 @@
       "results": []
     },
     "development_tools/functions/analyze_package_exports.py": {
-      "mtime": 1764664462.587858,
+      "mtime": 1765186297.5136993,
       "results": [
         {
           "type": "warning",
@@ -7436,7 +7436,7 @@
       ]
     },
     "tests/development_tools/test_output_storage_archiving.py": {
-      "mtime": 1765081105.9332595,
+      "mtime": 1765162171.1899543,
       "results": [
         {
           "type": "warning",
@@ -7555,7 +7555,19 @@
       ]
     },
     "development_tools/shared/result_format.py": {
-      "mtime": 1765095221.4976687,
+      "mtime": 1765184792.1851091,
+      "results": []
+    },
+    "verify_all_metrics.py": {
+      "mtime": 1765163155.3199267,
+      "results": []
+    },
+    "verify_detailed.py": {
+      "mtime": 1765162523.5957637,
+      "results": []
+    },
+    "verify_reports.py": {
+      "mtime": 1765162523.5957637,
       "results": []
     }
   }

@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_documentation - Development Tools",
-  "last_generated": "2025-12-07 16:45:38",
-  "timestamp": "2025-12-07T16:45:38.324743",
+  "last_generated": "2025-12-13 03:06:20",
+  "timestamp": "2025-12-13T03:06:20.727331",
   "tool_name": "analyze_documentation",
   "domain": "docs",
   "source": "python development_tools/docs/analyze_documentation.py",
@@ -45,6 +45,94 @@
     ],
     "duplicates": [],
     "missing": [],
-    "placeholders": []
+    "placeholders": [],
+    "section_overlaps": {
+      "1. Purpose and Scope": [
+        "ai_development_docs/AI_LOGGING_GUIDE.md",
+        "ai_development_docs/AI_TESTING_GUIDE.md",
+        "logs/LOGGING_GUIDE.md",
+        "tests/TESTING_GUIDE.md",
+        "tests/MANUAL_TESTING_GUIDE.md",
+        "communication/communication_channels/discord/DISCORD_GUIDE.md",
+        "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
+      ],
+      "1. Quick Start": [
+        "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
+        "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md"
+      ],
+      "2. Test Suite Structure": [
+        "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
+        "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md"
+      ],
+      "3. Prerequisites": [
+        "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
+        "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md"
+      ],
+      "Testing": [
+        "TODO.md",
+        "development_docs/CHANGELOG_DETAIL.md"
+      ]
+    },
+    "consolidation_recommendations": [
+      {
+        "category": "Development Workflow",
+        "files": [
+          "DOCUMENTATION_GUIDE.md",
+          "DEVELOPMENT_WORKFLOW.md",
+          "development_docs/CHANGELOG_DETAIL.md",
+          "development_docs/PLANS.md",
+          "ai_development_docs/AI_SESSION_STARTER.md",
+          "ai_development_docs/AI_ARCHITECTURE.md",
+          "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+          "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+          "ai_development_docs/AI_CHANGELOG.md",
+          "ai_development_docs/AI_REFERENCE.md",
+          "ai_development_docs/AI_LOGGING_GUIDE.md",
+          "ai_development_docs/AI_TESTING_GUIDE.md",
+          "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+          "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md",
+          "core/ERROR_HANDLING_GUIDE.md",
+          "logs/LOGGING_GUIDE.md",
+          "tests/TESTING_GUIDE.md",
+          "tests/MANUAL_TESTING_GUIDE.md",
+          "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
+          "tests/MANUAL_DISCORD_TEST_GUIDE.md",
+          "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
+          "communication/COMMUNICATION_GUIDE.md",
+          "communication/communication_channels/discord/DISCORD_GUIDE.md",
+          "scripts/SCRIPTS_GUIDE.md",
+          "ui/UI_GUIDE.md",
+          "ai/SYSTEM_AI_GUIDE.md",
+          "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+          "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
+        ],
+        "priority": "medium",
+        "similarity_score": 0.19179895153170765,
+        "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
+      },
+      {
+        "category": "Testing",
+        "files": [
+          "ai_development_docs/AI_TESTING_GUIDE.md",
+          "tests/TESTING_GUIDE.md",
+          "tests/MANUAL_TESTING_GUIDE.md",
+          "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md"
+        ],
+        "priority": "medium",
+        "similarity_score": 0.26807322366527847,
+        "suggestion": "Consider consolidating testing documentation into a single TESTING_GUIDE.md"
+      },
+      {
+        "category": "High Section Overlap",
+        "files": [
+          "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
+          "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md"
+        ],
+        "overlap_count": 3,
+        "priority": "medium",
+        "suggestion": "These files share 3 sections - consider consolidating or clearly differentiating their purposes"
+      }
+    ]
   }
 }

@@ -1,23 +1,23 @@
 {
   "generated_by": "decision_support - Development Tools",
-  "last_generated": "2025-12-07 16:45:40",
-  "timestamp": "2025-12-07T16:45:40.367285",
+  "last_generated": "2025-12-13 03:06:24",
+  "timestamp": "2025-12-13T03:06:24.753938",
   "tool_name": "decision_support",
   "domain": "reports",
   "source": "python development_tools/reports/decision_support.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
-    "total_functions": 1490,
+    "total_functions": 1501,
     "moderate_complexity": 352,
-    "high_complexity": 376,
+    "high_complexity": 377,
     "critical_complexity": 321,
-    "undocumented": 5,
+    "undocumented": 7,
     "decision_support_items": 5,
     "decision_support_sample": [
-      "[COMPLEXITY] Functions needing attention: 1049",
+      "[COMPLEXITY] Functions needing attention: 1050",
       "[CRITICAL] Critical Complexity (>199 nodes): 321",
-      "[DOC] Undocumented Handlers: 5",
-      "[DUPE] Duplicate Function Names: 144",
+      "[DOC] Undocumented Handlers: 7",
+      "[DUPE] Duplicate Function Names: 145",
       "- [CRITICAL] Refactor critical complexity functions immediately."
     ],
     "critical_complexity_examples": [
@@ -127,6 +127,18 @@
         "name": "set_contact_info",
         "function": "set_contact_info",
         "file": "channel_selection_widget.py",
+        "complexity": 0
+      },
+      {
+        "name": "load_json",
+        "function": "load_json",
+        "file": "verify_all_metrics.py",
+        "complexity": 0
+      },
+      {
+        "name": "load_json",
+        "function": "load_json",
+        "file": "verify_detailed.py",
         "complexity": 0
       }
     ]

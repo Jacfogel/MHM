@@ -1,14 +1,14 @@
 {
   "generated_by": "analyze_documentation_sync - Development Tools",
-  "last_generated": "2025-12-07 16:45:34",
-  "timestamp": "2025-12-07T16:45:34.430143",
+  "last_generated": "2025-12-13 03:06:12",
+  "timestamp": "2025-12-13T03:06:12.326378",
   "tool_name": "analyze_documentation_sync",
   "domain": "docs",
   "source": "python development_tools/docs/analyze_documentation_sync.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
     "status": "FAIL",
-    "total_issues": 26,
+    "total_issues": 30,
     "paired_doc_issues": 0,
     "path_drift_issues": 26,
     "ascii_compliance_issues": 0,

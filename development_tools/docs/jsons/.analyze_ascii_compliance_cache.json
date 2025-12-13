@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_ascii_compliance - Development Tools",
-  "last_generated": "2025-12-07 16:45:53",
-  "timestamp": "2025-12-07T16:45:53.540221",
+  "last_generated": "2025-12-13 03:07:04",
+  "timestamp": "2025-12-13T03:07:04.253273",
   "tool_name": "analyze_ascii_compliance",
   "domain": "docs",
   "note": "This file is auto-generated. Do not edit manually.",
@@ -35,7 +35,7 @@
       "results": []
     },
     "development_docs/CHANGELOG_DETAIL.md": {
-      "mtime": 1765090515.2768223,
+      "mtime": 1765147630.7515798,
       "results": []
     },
     "development_docs/PLANS.md": {
@@ -59,7 +59,7 @@
       "results": []
     },
     "ai_development_docs/AI_CHANGELOG.md": {
-      "mtime": 1765090515.2768223,
+      "mtime": 1765147630.7221186,
       "results": []
     },
     "ai_development_docs/AI_REFERENCE.md": {

@@ -2,12 +2,12 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-07 13:37:28
+> **Last Generated**: 2025-12-13 03:01:44
 > **Source**: `python development_tools/run_development_tools.py unused-imports` - Unused Imports Detection Tool
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 359
+- **Total Files Scanned**: 362
 - **Files with Unused Imports**: 137
 - **Total Unused Imports**: 403
 
@@ -198,7 +198,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 110**: Unused load_tool_result imported from output_storage
+- **Line 111**: Unused load_tool_result imported from output_storage
   - Symbol: `unused-import`
 
 ### `development_tools/shared/output_storage.py`
@@ -629,9 +629,9 @@
 
 **Count**: 2 unused import(s)
 
-- **Line 25**: Unused summary_block imported from shared.common
+- **Line 26**: Unused summary_block imported from shared.common
   - Symbol: `unused-import`
-- **Line 25**: Unused write_text imported from shared.common
+- **Line 26**: Unused write_text imported from shared.common
   - Symbol: `unused-import`
 
 ### `development_tools/imports/analyze_dependency_patterns.py`

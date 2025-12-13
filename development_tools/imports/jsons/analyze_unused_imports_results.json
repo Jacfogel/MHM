@@ -1,13 +1,13 @@
 {
   "generated_by": "analyze_unused_imports - Development Tools",
-  "last_generated": "2025-12-07 13:37:28",
-  "timestamp": "2025-12-07T13:37:28.049933",
+  "last_generated": "2025-12-13 03:01:44",
+  "timestamp": "2025-12-13T03:01:44.028960",
   "tool_name": "analyze_unused_imports",
   "domain": "imports",
   "source": "python development_tools/imports/analyze_unused_imports.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "data": {
-    "files_scanned": 359,
+    "files_scanned": 362,
     "files_with_issues": 137,
     "total_unused": 403,
     "by_category": {

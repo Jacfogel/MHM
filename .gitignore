@@ -1,12 +1,24 @@
-# Byte-compiled / optimized / DLL files
+##############################
+# MHM .gitignore (Windows)
+# Ignore generated / machine-specific / cache / runtime artifacts
+##############################
+
+# ============================
+# Python bytecode and caches
+# ============================
 __pycache__/
 *.py[cod]
 *$py.class
 
-# C extensions
+# ============================
+# Native extensions / binaries
+# ============================
 *.so
+*.dll
 
+# ============================
 # Distribution / packaging
+# ============================
 .Python
 build/
 develop-eggs/
@@ -25,17 +37,21 @@ wheels/
 *.egg
 MANIFEST
 
+# ============================
 # PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+# ============================
 *.manifest
 *.spec
 
+# ============================
 # Installer logs
+# ============================
 pip-log.txt
 pip-delete-this-directory.txt
 
+# ============================
 # Unit test / coverage reports
+# ============================
 htmlcov/
 .tox/
 .nox/
@@ -52,43 +68,43 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
-
+# ============================
 # Translations
+# ============================
 *.mo
 *.pot
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-
-# Flask stuff:
+# ============================
+# Flask (possible future usage)
+# ============================
 instance/
 .webassets-cache
 
-# Scrapy stuff:
-.scrapy
-
-# PyBuilder
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
+# ============================
+# pyenv (possible future usage)
+# ============================
 .python-version
 
-# celery beat schedule file
+# ============================
+# celery (possible future usage)
+# ============================
 celerybeat-schedule
 
-# SageMath parsed files
-*.sage.py
+# ============================
+# mkdocs (possible future usage)
+# ============================
+site/
 
-# Environments
+# ============================
+# mypy (possible future usage)
+# ============================
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# ============================
+# Environments / secrets
+# ============================
 .env
 .venv
 env/
@@ -96,26 +112,11 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
 !.env.example
 
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-
+# ============================
 # OS generated files
+# ============================
 .DS_Store
 .DS_Store?
 ._*
@@ -125,38 +126,41 @@ ehthumbs.db
 Thumbs.db
 desktop.ini
 
+# ============================
 # Project specific
+# ============================
+
+# data/ is primarily user-specific data (intentionally not committed)
 data/
+
+# scripts/ contains single-use / utility / non-canonical scripts (intentionally not committed)
 scripts/
-app.log.*
 *.log
 *.log.*
 .last_cache_cleanup
 shutdown_request.flag
 
+# ============================
 # Test data and backups
+# ============================
 tests/data/
 tests/logs/
 tests/ai/results/
 tests/fixtures/development_tools_demo/development_tools
 archive/
 
+# ============================
 # Development tools cache and result files
-development_tools/ai_work/jsons
-development_tools/config/jsons
-development_tools/docs/jsons
-development_tools/error_handling/jsons
-development_tools/functions/jsons
-development_tools/imports/jsons
-development_tools/legacy/jsons
-development_tools/reports/jsons
+# ============================
+development_tools/**/jsons/
 development_tools/reports/analysis_detailed_results.json
-development_tools/tests/jsons
 development_tools/AI_STATUS.md
 development_tools/AI_PRIORITIES.md
 development_tools/consolidated_report.txt
 
+# ============================
 # IDE files
+# ============================
 .vscode/
 .idea/
 .cursor/

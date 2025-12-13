@@ -417,8 +417,8 @@ def generate_audit_report(package_name: str) -> Dict:
         'potentially_unnecessary': sorted(potentially_unnecessary),
         'cross_module_usage': {name: stats for name, stats in cross_module_items.items()},
         'import_usage_details': import_usage,
-        'package_api_items': all_package_items,
-        'registry_items': registry_items
+        'package_api_items': sorted(all_package_items),  # Convert set to sorted list
+        'registry_items': sorted(registry_items)  # Convert set to sorted list
     }
     
     return report

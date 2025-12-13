@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2025-12-07 13:37:55",
+  "last_generated": "2025-12-13 03:04:37",
   "source": "python development_tools/run_development_tools.py audit --quick",
   "audit_tier": 1,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2025-12-07T13:37:55.303629",
+  "timestamp": "2025-12-13T03:04:37.134859",
   "successful": [
     "analyze_functions",
     "analyze_ascii_compliance",
@@ -31,7 +31,7 @@
         "tests": 4,
         "utilities": 0
       },
-      "timestamp": "2025-12-07T13:37:38.440416"
+      "timestamp": "2025-12-13T03:04:04.532648"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -40,7 +40,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-07T13:37:43.706080"
+      "timestamp": "2025-12-13T03:04:12.918727"
     },
     "analyze_documentation": {
       "success": true,
@@ -155,7 +155,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2025-12-07T13:37:48.762241"
+      "timestamp": "2025-12-13T03:04:23.682882"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -164,7 +164,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-07T13:37:45.410180"
+      "timestamp": "2025-12-13T03:04:16.491665"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -182,7 +182,7 @@
         "file_count": 8,
         "total_issues": 8
       },
-      "timestamp": "2025-12-07T13:37:47.094345"
+      "timestamp": "2025-12-13T03:04:19.874661"
     },
     "analyze_path_drift": {
       "success": true,
@@ -252,7 +252,7 @@
           ]
         }
       },
-      "timestamp": "2025-12-07T13:37:42.070323"
+      "timestamp": "2025-12-13T03:04:09.744337"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -261,12 +261,12 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-07T13:37:48.749274"
+      "timestamp": "2025-12-13T03:04:23.659302"
     },
     "quick_status": {
       "success": true,
       "data": {
-        "timestamp": "2025-12-07T13:37:36.408442",
+        "timestamp": "2025-12-13T03:04:00.275007",
         "system_health": {
           "core_files": {
             "requirements.txt": "OK"
@@ -279,7 +279,7 @@
         },
         "documentation_status": {
           "coverage": "Unknown",
-          "recent_audit": "2025-12-07T13:27:01.832803",
+          "recent_audit": "2025-12-13T02:35:43.943201",
           "key_files": {
             "README.md": "OK",
             "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -292,30 +292,32 @@
         "critical_issues": [],
         "action_items": [],
         "recent_activity": {
-          "last_audit": "2025-12-07T13:27:01.832803",
+          "last_audit": "2025-12-13T02:35:43.943201",
           "recent_changes": [
+            "verify_reports.py",
+            "verify_detailed.py",
+            "verify_all_metrics.py",
+            "report_verification_summary.md",
+            "fixes_applied_summary.md",
             "coverage.json",
             "core/ERROR_HANDLING_GUIDE.md",
+            "comprehensive_verification_report.md",
             "communication/COMMUNICATION_GUIDE.md",
             "ai_development_docs/AI_TESTING_GUIDE.md",
             "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
             "ai_development_docs/AI_FUNCTION_REGISTRY.md",
             "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
             "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
-            "ai_development_docs/AI_CHANGELOG.md",
-            "ai/SYSTEM_AI_GUIDE.md",
-            "TODO.md",
-            "DOCUMENTATION_GUIDE.md",
-            "ARCHITECTURE.md"
+            "ai_development_docs/AI_CHANGELOG.md"
           ]
         }
       },
-      "timestamp": "2025-12-07T13:37:36.695926"
+      "timestamp": "2025-12-13T03:04:00.864534"
     },
     "system_signals": {
       "success": true,
       "data": {
-        "timestamp": "2025-12-07T13:37:50.348568",
+        "timestamp": "2025-12-13T03:04:26.717233",
         "system_health": {
           "overall_status": "OK",
           "core_files": {
@@ -325,27 +327,27 @@
           "key_directories": {
             ".": "OK"
           },
-          "last_audit": "2025-12-07T13:30:18.757515",
+          "last_audit": "2025-12-13T02:35:44.034000",
           "warnings": [],
           "errors": []
         },
         "recent_activity": {
           "recent_changes": [
-            ".cursor/plans/standardize_analysis_tool_results_format_f3751a36.plan.md",
             ".cursor/plans/standardize_and_streamline_development_tools_8784da3c.plan.md",
-            "ARCHITECTURE.md",
-            "DOCUMENTATION_GUIDE.md",
-            "TODO.md",
-            "ai/SYSTEM_AI_GUIDE.md",
             "ai_development_docs/AI_CHANGELOG.md",
-            "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
-            "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-            "ai_development_docs/AI_FUNCTION_REGISTRY.md",
-            "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
-            "ai_development_docs/AI_TESTING_GUIDE.md",
-            "communication/COMMUNICATION_GUIDE.md",
-            "core/ERROR_HANDLING_GUIDE.md",
-            "coverage.json"
+            "comprehensive_verification_report.md",
+            "coverage.json",
+            "data/conversation_states.json",
+            "data/user_index.json",
+            "data/users/72a13563-5934-42e8-bc55-f0c851a899cc/messages/sent_messages.json",
+            "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/chat_interactions.json",
+            "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/checkins.json",
+            "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/messages/sent_messages.json",
+            "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/tasks/active_tasks.json",
+            "development_docs/CHANGELOG_DETAIL.md",
+            "development_docs/LEGACY_REFERENCE_REPORT.md",
+            "development_docs/SESSION_SUMMARY_2025-12-07.md",
+            "development_docs/TEST_COVERAGE_REPORT.md"
           ],
           "git_status": "Modified",
           "last_commit": null,
@@ -363,7 +365,7 @@
             "errors.log": "0.0MB",
             "file_ops.log": "0.0MB",
             "message.log": "0.0MB",
-            "scheduler.log": "0.0MB",
+            "scheduler.log": "0.2MB",
             "ui.log": "0.0MB",
             "user_activity.log": "0.0MB"
           },
@@ -371,7 +373,7 @@
           "memory_usage": "Unknown"
         }
       },
-      "timestamp": "2025-12-07T13:37:55.193736"
+      "timestamp": "2025-12-13T03:04:36.957726"
     }
   }
 }

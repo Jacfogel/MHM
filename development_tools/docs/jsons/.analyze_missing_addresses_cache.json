@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_missing_addresses - Development Tools",
-  "last_generated": "2025-12-07 16:45:33",
-  "timestamp": "2025-12-07T16:45:33.488051",
+  "last_generated": "2025-12-13 03:06:10",
+  "timestamp": "2025-12-13T03:06:10.402307",
   "tool_name": "analyze_missing_addresses",
   "domain": "docs",
   "note": "This file is auto-generated. Do not edit manually.",
@@ -43,7 +43,7 @@
       "results": []
     },
     "ai_development_docs/AI_CHANGELOG.md": {
-      "mtime": 1765090515.2768223,
+      "mtime": 1765147630.7221186,
       "results": []
     },
     "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -91,7 +91,7 @@
       "results": []
     },
     "development_docs/TEST_COVERAGE_REPORT.md": {
-      "mtime": 1765136235.1096377,
+      "mtime": 1765616478.8645108,
       "results": []
     },
     "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
@@ -157,6 +157,30 @@
     "development_tools/shared/RESULT_FORMAT_STANDARD.md": {
       "mtime": 1765135542.6492834,
       "results": []
+    },
+    "development_docs/SESSION_SUMMARY_2025-12-07.md": {
+      "mtime": 1765147630.720111,
+      "results": [
+        "Missing file address in header"
+      ]
+    },
+    "comprehensive_verification_report.md": {
+      "mtime": 1765163166.2512114,
+      "results": [
+        "Missing file address in header"
+      ]
+    },
+    "fixes_applied_summary.md": {
+      "mtime": 1765163155.3214302,
+      "results": [
+        "Missing file address in header"
+      ]
+    },
+    "report_verification_summary.md": {
+      "mtime": 1765162632.1637144,
+      "results": [
+        "Missing file address in header"
+      ]
     }
   }
 }
