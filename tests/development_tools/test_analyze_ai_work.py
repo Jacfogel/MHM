@@ -145,9 +145,13 @@ class TestClass:
         # Run analysis on demo project
         result = analyze_ai_work("documentation", project_root=str(demo_project_root))
         
-        # Verify results structure (returns a string report)
-        assert isinstance(result, str), "Result should be a string"
-        assert len(result) > 0, "Result should have content"
+        # Verify results structure (returns standard format dict)
+        assert isinstance(result, dict), "Result should be a dictionary"
+        assert 'summary' in result, "Result should have summary"
+        assert 'details' in result, "Result should have details"
+        assert 'output' in result['details'], "Result details should have output"
+        assert isinstance(result['details']['output'], str), "Output should be a string"
+        assert len(result['details']['output']) > 0, "Output should have content"
     
     @pytest.mark.unit
     def test_analyze_ai_work_empty_project(self, tmp_path):
@@ -157,7 +161,10 @@ class TestClass:
         
         result = analyze_ai_work("documentation", project_root=str(tmp_path))
         
-        assert isinstance(result, str), "Result should be a string"
+        assert isinstance(result, dict), "Result should be a dictionary"
+        assert 'summary' in result, "Result should have summary"
+        assert 'details' in result, "Result should have details"
+        assert isinstance(result['details']['output'], str), "Output should be a string"
     
     @pytest.mark.unit
     def test_execute_function(self, tmp_path):
@@ -167,7 +174,10 @@ class TestClass:
         
         result = execute(project_root=str(tmp_path))
         
-        assert isinstance(result, str), "Result should be a string"
+        assert isinstance(result, dict), "Result should be a dictionary"
+        assert 'summary' in result, "Result should have summary"
+        assert 'details' in result, "Result should have details"
+        assert isinstance(result['details']['output'], str), "Output should be a string"
     
     @pytest.mark.unit
     def test_validate_documentation_completeness_malformed_python(self, tmp_path):
@@ -465,8 +475,11 @@ from typing import Dict, List
             changed_files=[str(code_file)]
         )
         
-        assert isinstance(result, str), "Result should be a string"
-        assert len(result) > 0, "Result should have content"
+        assert isinstance(result, dict), "Result should be a dictionary"
+        assert 'summary' in result, "Result should have summary"
+        assert 'details' in result, "Result should have details"
+        assert isinstance(result['details']['output'], str), "Output should be a string"
+        assert len(result['details']['output']) > 0, "Output should have content"
     
     @pytest.mark.unit
     def test_analyze_ai_work_file_creation_type(self, tmp_path):
@@ -482,15 +495,20 @@ from typing import Dict, List
             modified_files=[]
         )
         
-        assert isinstance(result, str), "Result should be a string"
-        assert len(result) > 0, "Result should have content"
+        assert isinstance(result, dict), "Result should be a dictionary"
+        assert 'summary' in result, "Result should have summary"
+        assert 'details' in result, "Result should have details"
+        assert isinstance(result['details']['output'], str), "Output should be a string"
+        assert len(result['details']['output']) > 0, "Output should have content"
     
     @pytest.mark.unit
     def test_analyze_ai_work_unknown_type(self, tmp_path):
         """Test analyze_ai_work with unknown validation type."""
         result = analyze_ai_work("unknown_type", project_root=str(tmp_path))
         
-        assert result == "Unknown validation type", \
+        assert isinstance(result, dict), "Result should be a dictionary"
+        assert 'details' in result, "Result should have details"
+        assert result['details']['output'] == "Unknown validation type", \
             "Should return error message for unknown type"
     
     @pytest.mark.unit
@@ -506,7 +524,10 @@ from typing import Dict, List
             config_path=str(config_file)
         )
         
-        assert isinstance(result, str), "Result should be a string"
+        assert isinstance(result, dict), "Result should be a dictionary"
+        assert 'summary' in result, "Result should have summary"
+        assert 'details' in result, "Result should have details"
+        assert isinstance(result['details']['output'], str), "Output should be a string"
     
     @pytest.mark.unit
     def test_execute_with_work_type(self, tmp_path):
@@ -517,7 +538,10 @@ from typing import Dict, List
             changed_files=[]
         )
         
-        assert isinstance(result, str), "Result should be a string"
+        assert isinstance(result, dict), "Result should be a dictionary"
+        assert 'summary' in result, "Result should have summary"
+        assert 'details' in result, "Result should have details"
+        assert isinstance(result['details']['output'], str), "Output should be a string"
     
     @pytest.mark.unit
     def test_validate_documentation_completeness_multiple_code_files(self, tmp_path):

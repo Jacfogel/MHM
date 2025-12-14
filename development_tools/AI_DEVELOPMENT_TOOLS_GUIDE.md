@@ -109,6 +109,24 @@ python development_tools/run_development_tools.py help
 - **AI_PRIORITIES.md**: Actionable priorities with prioritized example lists (functions and handler classes) using ", ... +N" format when there are more items
 - **consolidated_report.txt**: Comprehensive details including all metrics from AI_STATUS plus detailed example lists in the Function Patterns section
 
+**Tool Output Format (Standard Format)**:
+- All analysis tools output JSON in a standardized structure:
+  ```json
+  {
+    "summary": {
+      "total_issues": <number>,
+      "files_affected": <number>,
+      "status": "<PASS|FAIL|WARN>" (optional)
+    },
+    "details": {
+      // Tool-specific data (original metrics, findings, etc.)
+    }
+  }
+  ```
+- Tools can be run with `--json` flag to output standard format directly
+- Normalization layer in `result_format.py` handles backward compatibility for legacy formats
+- Report generation code accesses data from `details` section when in standard format
+
 **Tool Output Storage**:
 - Individual tool results: `development_tools/{domain}/jsons/{tool}_results.json` (e.g., `functions/jsons/analyze_functions_results.json`)
 - Cache files: `development_tools/{domain}/jsons/.{tool}_cache.json`
@@ -186,6 +204,7 @@ Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier and
 
 - Use shared infrastructure: `shared/standard_exclusions.py`, `shared/constants.py`, `config/config.py`, `shared/mtime_cache.py`
 - **Caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. Currently used by: `imports/analyze_unused_imports.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_missing_addresses.py`
+- **Output Format**: All analysis tools output standard format JSON with `summary` (total_issues, files_affected, status) and `details` (tool-specific data). Use `--json` flag when running tools standalone to get standard format output.
 - Never hardcode project paths; derive them from configuration helpers
 - Keep tools isolated from MHM business logic
 - Store tests under `tests/development_tools/` (with fixtures in `tests/fixtures/development_tools_demo/`)
@@ -193,6 +212,7 @@ Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier and
 - For detailed testing guidance, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md)
 - **Phase 4 Follow-up (2025-11-27)**: Supporting tools `reports/quick_status.py`, `reports/system_signals.py`, and `shared/file_rotation.py` now have targeted regression tests in `tests/development_tools/test_supporting_tools.py`
 - **Phase 6 Complete (2025-11-28)**: All core tools are now portable via external configuration (`development_tools_config.json`). Tools can be used in other projects with minimal setup.
+- **Standard Format Migration Complete (2025-12-14)**: All 19 analysis tools now output standard format directly. Normalization layer provides backward compatibility. All tests updated to match new format.
 - Preserve the directory structure (`development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) to ease eventual extraction
 - Treat experimental tools cautiously (dry-run first, log outcomes)
 - Keep this guide paired with the human document; update both whenever commands, tiers, or workflows change

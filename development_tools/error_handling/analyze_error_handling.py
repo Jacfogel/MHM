@@ -66,6 +66,26 @@ class ErrorHandlingAnalyzer:
             'phase2_total': 0,
             'phase2_by_type': {}
         }
+    
+    def _to_standard_format(self) -> Dict[str, Any]:
+        """Convert results to standard format."""
+        # Calculate files_affected from unique files in missing_error_handling list
+        missing_error_handling = self.results.get('missing_error_handling', [])
+        unique_files = set()
+        for item in missing_error_handling:
+            if isinstance(item, dict) and 'file' in item:
+                unique_files.add(item['file'])
+            elif isinstance(item, str):
+                # Handle case where item is just a file path string
+                unique_files.add(item)
+        
+        return {
+            'summary': {
+                'total_issues': self.results.get('functions_missing_error_handling', 0),
+                'files_affected': len(unique_files)
+            },
+            'details': self.results.copy()
+        }
         
         # Load error handling configuration from external config
         error_config = config.get_error_handling_config()
@@ -717,7 +737,8 @@ class ErrorHandlingAnalyzer:
         # Generate recommendations
         self._generate_recommendations()
         
-        return self.results
+        # Convert to standard format
+        return self._to_standard_format()
 
     def _aggregate_results(self, file_results: List[Dict[str, Any]]):
         """Aggregate results from all files."""
@@ -912,19 +933,17 @@ def main():
     report_generator = ErrorHandlingReportGenerator(results)
     
     if args.json:
-        # Determine output file path
-        if args.output:
-            output_path = Path(args.output)
-        else:
-            # Default to development_tools/error_handling directory
-            tools_dir = project_root / 'development_tools' / 'error_handling'
-            tools_dir.mkdir(exist_ok=True)
-            output_path = tools_dir / 'jsons' / 'error_handling_details.json'
-        
-        # Save JSON report
-        report_generator.save_json_report(output_path)
+        # Output standard format JSON directly
+        import json
+        print(json.dumps(results, indent=2))
     else:
-        # Print summary
+        # Print summary (extract details if in standard format)
+        if 'summary' in results and 'details' in results:
+            # Standard format - use details for report generator
+            report_generator = ErrorHandlingReportGenerator(results['details'])
+        else:
+            # Legacy format
+            report_generator = ErrorHandlingReportGenerator(results)
         report_generator.print_summary()
     
     return 0

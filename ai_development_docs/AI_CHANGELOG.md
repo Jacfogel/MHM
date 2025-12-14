@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-14 - Completed Standard Format Migration for All Analysis Tools **COMPLETED**
+- **Tool Migration Complete**: Migrated all 19 analysis tools to output standard format directly. All tools now return consistent JSON with `summary` (total_issues, files_affected, status) and `details` (tool-specific data). Tools support `--json` flag for direct standard format output. Normalization layer provides backward compatibility.
+- **Test Suite Fixed**: Updated all 8 failing tests to match new standard format. Tests now expect dict structure with `summary` and `details` sections. All tests pass successfully.
+- **Report Display Fixes**: Fixed config validation to show recommendation count and tool details. Fixed legacy references section formatting. Fixed docstring coverage calculation. Fixed data access throughout report generation to use standard format structure.
+- **Impact**: Consistent tool output enables simplified data aggregation. All tests pass. Reports display correct information. Standard format migration complete with full backward compatibility.
+
 ### 2025-12-14 - Standardized Report Format and Fixed Test Suite Timeout **COMPLETED**
 - **Report Format Standardization**: Standardized report format across AI_STATUS.md, AI_PRIORITIES.md, and consolidated_report.txt. AI_STATUS.md now shows "Function Docstring Coverage" with explicit missing count (e.g., "23 functions missing docstrings") and separate "Registry Gaps" metric. AI_PRIORITIES.md includes prioritized example lists with ", ... +N more" format showing top 5 by complexity. Consolidated all docstring metrics into Function Patterns section. Updated `analyze_functions.py` to include `undocumented_examples` in JSON output.
 - **Test Suite Timeout Fix**: Fixed test suite timeout issues - reduced pytest timeout from 30 to 15 minutes, outer script timeout from 30 to 20 minutes. Added timeouts to all coverage subprocess calls (combine: 60s, html: 600s, json: 120s) with better error messages for diagnosis.

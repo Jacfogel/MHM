@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Provide a focused, actionable roadmap for remaining development tools improvements  
 > **Style**: Direct, technical, and concise  
-> **Last Updated**: 2025-12-14
+> **Last Updated**: 2025-12-14 (Standard Format Migration Complete)
 
 This document is a restructured and condensed version of the original improvement plan, focusing on remaining work and integrating related tasks from TODO.md.
 
@@ -33,8 +33,27 @@ This document is a restructured and condensed version of the original improvemen
 - ✅ **Priority 2.1**: Fixed mid-audit status updates - implemented file-based locks for cross-process protection, added coverage lock protection, and test skip checks
 - ✅ **Priority 2.5**: Ensured all tools explicitly save results - updated `analyze_config.py` to use standardized `save_tool_result()` storage (20/20 tools now use standardized storage, 100%)
 
-**Standardization Phase 3 COMPLETED (2025-12-13):**
-- ✅ **Tool Migration**: Migrated 6 analysis tools to output standard format directly: `analyze_ascii_compliance`, `analyze_heading_numbering`, `analyze_missing_addresses`, `analyze_unconverted_links`, `analyze_path_drift`, and `analyze_unused_imports`
+**Standard Format Migration COMPLETED (2025-12-13 to 2025-12-14):**
+- ✅ **Tool Migration (Phase 1 - 2025-12-13)**: Migrated 6 analysis tools to output standard format directly: `analyze_ascii_compliance`, `analyze_heading_numbering`, `analyze_missing_addresses`, `analyze_unconverted_links`, `analyze_path_drift`, and `analyze_unused_imports`
+- ✅ **Tool Migration (Phase 2 - 2025-12-14)**: Migrated remaining 13 tools to output standard format directly:
+  - `analyze_documentation_sync` - Returns standard format with `summary` (total_issues, files_affected, status) and `details` (paired_doc_issues, paired_docs)
+  - `analyze_functions` - Returns standard format with `summary` (total_issues from complexity counts) and `details` (all original metrics)
+  - `analyze_error_handling` - Returns standard format with `summary` (total_issues from missing error handling) and `details` (all original data)
+  - `analyze_function_registry` - Returns standard format with `summary` (total_issues from missing/extra counts) and `details` (all original data)
+  - `analyze_config` - Returns standard format with `summary` (total_issues from validation/tool issues) and `details` (tools_analysis, validation, completeness, recommendations)
+  - `analyze_function_patterns`, `analyze_module_imports`, `analyze_dependency_patterns` - Return standard format with `total_issues: 0` (data-only tools)
+  - `analyze_package_exports` - Returns standard format with `summary` (total_issues from missing/unnecessary exports) and `details` (all original data)
+  - `analyze_documentation` - Returns standard format with `summary` (total_issues aggregated from missing/duplicates/placeholders/artifacts) and `details` (all original lists)
+  - `analyze_ai_work` - Returns standard format dict instead of string, with `summary` (total_issues, status) and `details` (output string, work_type)
+  - `analyze_module_dependencies` - Returns standard format with `summary` (total_issues from missing dependencies) and `details` (all original data)
+  - `analyze_legacy_references` - Returns standard format with `summary` (total_issues from legacy_markers) and `details` (findings, report_path)
+  - `analyze_test_coverage` - Coverage data normalized to standard format in `generate_test_coverage.py` wrapper
+- ✅ **Normalization Layer Updates**: Updated all `_normalize_*` functions in `result_format.py` to detect standard format and skip conversion if data is already in standard format
+- ✅ **Operations Wrapper Updates**: Updated all `run_analyze_*` functions in `operations.py` to handle standard format directly, including proper data access from `details` section
+- ✅ **Test Suite Updates (2025-12-14)**: Updated all failing tests to match new standard format:
+  - Fixed 5 tests in `test_analyze_ai_work.py` - Now expect dict with `summary` and `details.output` instead of string
+  - Fixed 2 tests in `test_analyze_documentation.py` - Now access data from `details` section
+  - Fixed 1 test in `test_documentation_sync_checker.py` - Now accesses `paired_docs` from `details` section
 - ✅ **Legacy Compatibility**: Added proper `# LEGACY COMPATIBILITY:` markers, logging, and removal plan documentation for backward compatibility
 - ✅ **Report Display Improvements**: Fixed docstring coverage display to show registry gaps count, removed redundant "Focus on" modules from watchlist, added clarifying comments about documentation metrics
 - ✅ **Report Format Standardization (2025-12-14)**: 
@@ -42,12 +61,20 @@ This document is a restructured and condensed version of the original improvemen
   - AI_PRIORITIES.md includes prioritized example lists for functions and handler classes with ", ... +N" format
   - consolidated_report.txt consolidates all docstring metrics into Function Patterns section with detailed example lists
   - Removed duplicate sections and "Regenerate registry entries" conditional text from priorities
+  - Fixed config validation display to show recommendation count and tool details
+  - Fixed legacy references section to show detailed report link after top files
 - ✅ **Test Suite Timeout Fix (2025-12-14)**:
   - Reduced pytest timeout from 30 minutes to 15 minutes (tests complete in ~3-5 minutes)
   - Reduced outer script timeout from 30 minutes to 20 minutes
   - Added timeouts to all subprocess calls in `finalize_coverage_outputs()` (combine: 60s, html: 600s, json: 120s)
   - Added better error messages for timeout diagnosis (deadlocks, hanging tests, resource issues)
   - Test suite now completes successfully without hanging
+- ✅ **Data Access Fixes (2025-12-14)**: Fixed all report generation code to properly access data from standard format:
+  - Updated `_get_canonical_metrics()` to handle standard format (extract from `details` when present)
+  - Updated all cached metrics access to handle standard format
+  - Fixed docstring coverage calculation to use `analyze_functions` data from `details`
+  - Fixed config validation loading to prefer values from nested `summary` in standard format
+  - Fixed legacy reference report generation to access findings from `details.findings`
 
 **Key Achievements:**
 - 138+ tests across all development tools
@@ -55,6 +82,7 @@ This document is a restructured and condensed version of the original improvemen
 - Standardized naming conventions (`analyze_*`, `generate_*`, `fix_*`)
 - Three-tier audit system (quick/standard/full)
 - Standardized output storage with domain-organized JSON files
+- **Standardized output format (2025-12-14)**: All 19 analysis tools now output consistent JSON structure with `summary` (total_issues, files_affected, status) and `details` (tool-specific data)
 
 ---
 
@@ -877,11 +905,12 @@ This document is a restructured and condensed version of the original improvemen
 ## Work Organization
 
 ### Immediate Next Steps (This Week)
-1. **Validate Analysis Logic (Priority 7.1)** - HIGH PRIORITY, ensures issues are real
-2. **Improve Recommendation Quality (Priority 7.2)** - HIGH PRIORITY, improves trust and actionability
-3. **Improve Development Tools Test Coverage (Priority 7.3)** - HIGH PRIORITY, target 60%+
-4. **Fix Documentation Drift (Priority 7.4)** - HIGH PRIORITY, 60 paths out of sync (after validation)
-5. **Standardize Logging (Priority 5.1)** - Improves developer experience
+1. **✅ Standard Format Migration (COMPLETED 2025-12-14)** - All 19 analysis tools now output standard format, tests updated, normalization layer provides backward compatibility
+2. **Validate Analysis Logic (Priority 7.1)** - HIGH PRIORITY, ensures issues are real
+3. **Improve Recommendation Quality (Priority 7.2)** - HIGH PRIORITY, improves trust and actionability
+4. **Improve Development Tools Test Coverage (Priority 7.3)** - HIGH PRIORITY, target 60%+
+5. **Fix Documentation Drift (Priority 7.4)** - HIGH PRIORITY, 60 paths out of sync (after validation)
+6. **Standardize Logging (Priority 5.1)** - Improves developer experience
 
 ### Short Term (Next 2 Weeks)
 1. Complete all verification tasks (Priority 2)

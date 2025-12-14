@@ -310,18 +310,30 @@ class ConfigValidator:
         # Generate recommendations
         recommendations = self.generate_recommendations(tools_analysis, config_validation, completeness)
         
-        # Compile results
+        # Calculate total issues
+        validation_issues = len(config_validation.get('issues', []))
+        tool_issues = sum(len(t.get('issues', [])) for t in tools_analysis.values())
+        completeness_issues = len(completeness.get('missing_fields', []))
+        total_issues = validation_issues + tool_issues + completeness_issues
+        
+        # Compile results in standard format
         results = {
-            'tools_analysis': tools_analysis,
-            'config_validation': config_validation,
-            'completeness': completeness,
-            'recommendations': recommendations,
             'summary': {
-                'tools_using_config': sum(1 for t in tools_analysis.values() if t['imports_config']),
-                'total_tools': len(tools_analysis),
-                'config_valid': config_validation['config_structure_valid'],
-                'config_complete': completeness['sections_complete'],
-                'total_recommendations': len(recommendations)
+                'total_issues': total_issues,
+                'files_affected': 0  # Not file-based
+            },
+            'details': {
+                'tools_analysis': tools_analysis,
+                'validation': config_validation,
+                'completeness': completeness,
+                'recommendations': recommendations,
+                'summary': {
+                    'tools_using_config': sum(1 for t in tools_analysis.values() if t['imports_config']),
+                    'total_tools': len(tools_analysis),
+                    'config_valid': config_validation['config_structure_valid'],
+                    'config_complete': completeness['sections_complete'],
+                    'total_recommendations': len(recommendations)
+                }
             }
         }
         
@@ -333,16 +345,33 @@ class ConfigValidator:
         logger.info("CONFIGURATION VALIDATION REPORT")
         logger.info("="*80)
         
-        summary = results['summary']
+        # Handle both standard format and legacy format
+        if 'details' in results and 'summary' in results:
+            # Standard format - summary is at top level, details contain the nested data
+            top_summary = results['summary']
+            details = results['details']
+            nested_summary = details.get('summary', {})
+            tools_analysis = details.get('tools_analysis', {})
+            config_validation = details.get('validation', {})
+            completeness = details.get('completeness', {})
+            recommendations = details.get('recommendations', [])
+        else:
+            # Legacy format
+            nested_summary = results.get('summary', {})
+            tools_analysis = results.get('tools_analysis', {})
+            config_validation = results.get('config_validation', {})
+            completeness = results.get('completeness', {})
+            recommendations = results.get('recommendations', [])
+        
         logger.info(f"SUMMARY:")
-        logger.info(f"   Tools using config: {summary['tools_using_config']}/{summary['total_tools']}")
-        logger.info(f"   Configuration valid: {'YES' if summary['config_valid'] else 'NO'}")
-        logger.info(f"   Configuration complete: {'YES' if summary['config_complete'] else 'NO'}")
-        logger.info(f"   Recommendations: {summary['total_recommendations']}")
+        logger.info(f"   Tools using config: {nested_summary.get('tools_using_config', 0)}/{nested_summary.get('total_tools', 0)}")
+        logger.info(f"   Configuration valid: {'YES' if nested_summary.get('config_valid', False) else 'NO'}")
+        logger.info(f"   Configuration complete: {'YES' if nested_summary.get('config_complete', False) else 'NO'}")
+        logger.info(f"   Recommendations: {nested_summary.get('total_recommendations', len(recommendations))}")
         
         # Tool analysis
         logger.info(f"TOOL ANALYSIS:")
-        for tool_name, analysis in results['tools_analysis'].items():
+        for tool_name, analysis in tools_analysis.items():
             # Status logic: OK if imports config and no issues, WARN if has issues or doesn't import config (recommendation), FAIL only for critical issues
             if analysis['imports_config'] and not analysis['issues']:
                 status = "OK"
@@ -366,28 +395,26 @@ class ConfigValidator:
                     logger.warning(f"      Issue: {issue}")
         
         # Configuration validation
-        config_validation = results['config_validation']
-        if config_validation['missing_directories']:
+        if config_validation.get('missing_directories'):
             logger.warning(f"MISSING DIRECTORIES:")
             for directory in config_validation['missing_directories']:
                 logger.warning(f"   - {directory}")
         
-        if config_validation['issues']:
+        if config_validation.get('issues'):
             logger.warning(f"CONFIGURATION ISSUES:")
             for issue in config_validation['issues']:
                 logger.warning(f"   - {issue}")
         
         # Completeness
-        completeness = results['completeness']
-        if completeness['missing_fields']:
+        if completeness.get('missing_fields'):
             logger.warning(f"MISSING CONFIGURATION FIELDS:")
             for field in completeness['missing_fields']:
                 logger.warning(f"   - {field}")
         
         # Recommendations
-        if results['recommendations']:
+        if recommendations:
             logger.info(f"RECOMMENDATIONS:")
-            for i, rec in enumerate(results['recommendations'], 1):
+            for i, rec in enumerate(recommendations, 1):
                 logger.info(f"   {i}. {rec}")
         
         logger.info(f"Configuration validation complete!")

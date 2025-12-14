@@ -500,7 +500,11 @@ def execute(args: argparse.Namespace, project_root: Optional[Path] = None, confi
     include_overlap = getattr(args, 'overlap', False)
     summary = format_summary(docs, missing, duplicates, placeholders, artifacts, include_overlap=include_overlap)
     
-    payload = {
+    # Calculate total issues
+    total_issues = len(missing) + len(duplicates) + len(placeholders) + len(artifacts)
+    
+    # Build details dict
+    details = {
         'documents': sorted(docs.keys()),
         'missing': sorted(missing),
         'duplicates': duplicates,
@@ -508,14 +512,23 @@ def execute(args: argparse.Namespace, project_root: Optional[Path] = None, confi
         'artifacts': artifacts,
     }
     
-    # Add overlap data to payload if requested (always include keys, even if empty, to indicate analysis ran)
+    # Add overlap data to details if requested (always include keys, even if empty, to indicate analysis ran)
     if include_overlap:
         section_overlaps = detect_section_overlaps(docs)
         consolidation_recs = generate_consolidation_recommendations(docs)
         file_purposes = analyze_file_purposes(docs)
-        payload['section_overlaps'] = section_overlaps if section_overlaps else {}
-        payload['consolidation_recommendations'] = consolidation_recs if consolidation_recs else []
-        payload['file_purposes'] = file_purposes if file_purposes else {}
+        details['section_overlaps'] = section_overlaps if section_overlaps else {}
+        details['consolidation_recommendations'] = consolidation_recs if consolidation_recs else []
+        details['file_purposes'] = file_purposes if file_purposes else {}
+    
+    # Return standard format
+    payload = {
+        'summary': {
+            'total_issues': total_issues,
+            'files_affected': 0  # Not file-based
+        },
+        'details': details
+    }
     
     exit_code = 0
     if duplicates or placeholders or artifacts:

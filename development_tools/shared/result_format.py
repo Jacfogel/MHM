@@ -182,6 +182,12 @@ def _create_empty_standard_format() -> Dict[str, Any]:
 
 def _normalize_file_based(data: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize Format 1: File-based analysis tools."""
+    # Check if already in standard format
+    if 'summary' in data and isinstance(data.get('summary'), dict):
+        if 'total_issues' in data['summary'] and 'files_affected' in data['summary']:
+            return data
+    
+    # Legacy format normalization
     summary = {
         'total_issues': data.get('total_issues', 0),
         'files_affected': data.get('file_count', 0)
@@ -206,6 +212,12 @@ def _normalize_file_based(data: Dict[str, Any]) -> Dict[str, Any]:
 
 def _normalize_path_drift(data: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize Format 2: Path drift analysis."""
+    # Check if already in standard format
+    if 'summary' in data and isinstance(data.get('summary'), dict):
+        if 'total_issues' in data['summary'] and 'files_affected' in data['summary']:
+            return data
+    
+    # Legacy format normalization
     files = data.get('files', {})
     summary = {
         'total_issues': data.get('total_issues', 0),
@@ -235,6 +247,12 @@ def _normalize_path_drift(data: Dict[str, Any]) -> Dict[str, Any]:
 
 def _normalize_unused_imports(data: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize Format 3: Unused imports."""
+    # Check if already in standard format
+    if 'summary' in data and isinstance(data.get('summary'), dict):
+        if 'total_issues' in data['summary'] and 'files_affected' in data['summary']:
+            return data
+    
+    # Legacy format normalization
     summary = {
         'total_issues': data.get('total_unused', 0),
         'files_affected': data.get('files_with_issues', 0),
@@ -263,9 +281,15 @@ def _normalize_unused_imports(data: Dict[str, Any]) -> Dict[str, Any]:
 
 def _normalize_documentation_sync(data: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize Format 4: Documentation sync (aggregator tool)."""
+    # Check if already in standard format
+    if 'summary' in data and isinstance(data.get('summary'), dict):
+        if 'total_issues' in data['summary'] and 'files_affected' in data['summary']:
+            return data
+    
+    # Legacy format normalization
     summary = {
         'total_issues': data.get('total_issues', 0),
-        'files_affected': len(data.get('path_drift_files', [])),
+        'files_affected': len(data.get('path_drift_files', [])) if isinstance(data.get('path_drift_files'), list) else 0,
         'status': data.get('status', 'UNKNOWN')
     }
     
@@ -284,6 +308,12 @@ def _normalize_documentation_sync(data: Dict[str, Any]) -> Dict[str, Any]:
 
 def _normalize_functions(data: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize Format 5: Functions analysis."""
+    # Check if already in standard format
+    if 'summary' in data and isinstance(data.get('summary'), dict):
+        if 'total_issues' in data['summary'] and 'files_affected' in data['summary']:
+            return data
+    
+    # Legacy format normalization
     # Calculate total_issues from complexity counts
     total_issues = (
         data.get('moderate_complexity', 0) +
@@ -311,6 +341,12 @@ def _normalize_functions(data: Dict[str, Any]) -> Dict[str, Any]:
 
 def _normalize_error_handling(data: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize Format 6: Error handling analysis."""
+    # Check if already in standard format
+    if 'summary' in data and isinstance(data.get('summary'), dict):
+        if 'total_issues' in data['summary'] and 'files_affected' in data['summary']:
+            return data
+    
+    # Legacy format normalization
     summary = {
         'total_issues': data.get('functions_missing_error_handling', 0),
         'files_affected': 0  # Not file-based, but could calculate from missing_error_handling list
@@ -338,6 +374,12 @@ def _normalize_error_handling(data: Dict[str, Any]) -> Dict[str, Any]:
 
 def _normalize_function_registry(data: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize Format 7: Function registry analysis."""
+    # Check if already in standard format
+    if 'summary' in data and isinstance(data.get('summary'), dict):
+        if 'total_issues' in data['summary'] and 'files_affected' in data['summary']:
+            return data
+    
+    # Legacy format normalization
     # Calculate total_issues from missing/extra items
     missing = data.get('missing', {})
     extra = data.get('extra', {})
@@ -364,6 +406,12 @@ def _normalize_function_registry(data: Dict[str, Any]) -> Dict[str, Any]:
 
 def _normalize_legacy_references(data: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize Format 8: Legacy references."""
+    # Check if already in standard format
+    if 'summary' in data and isinstance(data.get('summary'), dict):
+        if 'total_issues' in data['summary'] and 'files_affected' in data['summary']:
+            return data
+    
+    # Legacy format normalization
     summary = {
         'total_issues': data.get('legacy_markers', 0),
         'files_affected': data.get('files_with_issues', 0)
@@ -383,6 +431,12 @@ def _normalize_legacy_references(data: Dict[str, Any]) -> Dict[str, Any]:
 
 def _normalize_test_markers(data: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize Format 9: Test markers."""
+    # Check if already in standard format
+    if 'summary' in data and isinstance(data.get('summary'), dict):
+        if 'total_issues' in data['summary'] and 'files_affected' in data['summary']:
+            return data
+    
+    # Legacy format normalization
     # Use missing_count (number of tests missing markers) as total_issues
     missing_count = data.get('missing_count', 0)
     missing_list = data.get('missing', [])
@@ -413,8 +467,14 @@ def _normalize_test_markers(data: Dict[str, Any]) -> Dict[str, Any]:
 
 def _normalize_module_dependencies(data: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize Format 10: Module dependencies."""
+    # Check if already in standard format
+    if 'summary' in data and isinstance(data.get('summary'), dict):
+        if 'total_issues' in data['summary'] and 'files_affected' in data['summary']:
+            return data
+    
+    # Legacy format normalization
     missing_deps = data.get('missing_dependencies', 0)
-    missing_sections = len(data.get('missing_sections', []))
+    missing_sections = len(data.get('missing_sections', [])) if isinstance(data.get('missing_sections'), list) else 0
     
     summary = {
         'total_issues': missing_deps + missing_sections,
@@ -435,6 +495,12 @@ def _normalize_module_dependencies(data: Dict[str, Any]) -> Dict[str, Any]:
 
 def _normalize_test_coverage(data: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize Format 11: Test coverage."""
+    # Check if already in standard format
+    if 'summary' in data and isinstance(data.get('summary'), dict):
+        if 'total_issues' in data['summary'] and 'files_affected' in data['summary']:
+            return data
+    
+    # Legacy format normalization
     # Coverage doesn't have "issues" in the traditional sense
     # Calculate gaps from overall coverage
     overall = data.get('overall', {})
@@ -460,16 +526,31 @@ def _normalize_test_coverage(data: Dict[str, Any]) -> Dict[str, Any]:
 
 def _normalize_config(data: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize Format 12: Config analysis."""
+    # Check if already in standard format
+    if 'summary' in data and isinstance(data.get('summary'), dict):
+        if 'total_issues' in data['summary'] and 'files_affected' in data['summary']:
+            return data
+    
+    # Legacy format normalization
     # Count validation issues
     validation = data.get('validation', {})
-    tool_analysis = data.get('tool_analysis', {})
+    config_validation = data.get('config_validation', {})
+    tool_analysis = data.get('tools_analysis', {})
+    completeness = data.get('completeness', {})
     
     issues = 0
     if isinstance(validation, dict):
         issues += len(validation.get('errors', []))
         issues += len(validation.get('warnings', []))
+    if isinstance(config_validation, dict):
+        issues += len(config_validation.get('issues', []))
     if isinstance(tool_analysis, dict):
-        issues += len(tool_analysis.get('issues', []))
+        if isinstance(tool_analysis, list):
+            issues += sum(len(t.get('issues', [])) for t in tool_analysis if isinstance(t, dict))
+        else:
+            issues += sum(len(t.get('issues', [])) for t in tool_analysis.values() if isinstance(t, dict))
+    if isinstance(completeness, dict):
+        issues += len(completeness.get('missing_fields', []))
     
     summary = {
         'total_issues': issues,
@@ -490,6 +571,12 @@ def _normalize_config(data: Dict[str, Any]) -> Dict[str, Any]:
 
 def _normalize_pattern_tools(data: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize Format 13: Pattern/import tools (no issues, just data)."""
+    # Check if already in standard format
+    if 'summary' in data and isinstance(data.get('summary'), dict):
+        if 'total_issues' in data['summary'] and 'files_affected' in data['summary']:
+            return data
+    
+    # Legacy format normalization
     summary = {
         'total_issues': 0,
         'files_affected': 0
@@ -509,6 +596,12 @@ def _normalize_pattern_tools(data: Dict[str, Any]) -> Dict[str, Any]:
 
 def _normalize_documentation(data: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize Format 14: Documentation analysis."""
+    # Check if already in standard format
+    if 'summary' in data and isinstance(data.get('summary'), dict):
+        if 'total_issues' in data['summary'] and 'files_affected' in data['summary']:
+            return data
+    
+    # Legacy format normalization
     # Aggregate issues from missing, duplicates, placeholders, artifacts
     missing_count = len(data.get('missing', []))
     duplicates_count = len(data.get('duplicates', []))
@@ -534,6 +627,12 @@ def _normalize_documentation(data: Dict[str, Any]) -> Dict[str, Any]:
 
 def _normalize_ai_work(data: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize Format 15: AI work validation (string output)."""
+    # Check if already in standard format
+    if 'summary' in data and isinstance(data.get('summary'), dict):
+        if 'total_issues' in data['summary'] and 'files_affected' in data['summary']:
+            return data
+    
+    # Legacy format normalization
     # AI work typically has string output, wrap it
     output = data.get('output', '')
     
@@ -567,6 +666,12 @@ def _normalize_ai_work(data: Dict[str, Any]) -> Dict[str, Any]:
 
 def _normalize_package_exports(data: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize Format 11: Package exports."""
+    # Check if already in standard format
+    if 'summary' in data and isinstance(data.get('summary'), dict):
+        if 'total_issues' in data['summary'] and 'files_affected' in data['summary']:
+            return data
+    
+    # Legacy format normalization
     summary_data = data.get('summary', {})
     
     # Calculate total issues (missing + unnecessary exports)

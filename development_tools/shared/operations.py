@@ -524,12 +524,24 @@ class AIToolsService:
         summary = self._parse_module_dependency_report(output)
 
         if summary:
-
-            result['data'] = summary
+            # Convert to standard format
+            missing_dependencies = summary.get('missing_dependencies', 0)
+            missing_sections = summary.get('missing_sections', [])
+            total_issues = missing_dependencies + len(missing_sections) if isinstance(missing_sections, list) else missing_dependencies
+            
+            standard_format = {
+                'summary': {
+                    'total_issues': total_issues,
+                    'files_affected': 0  # Not file-based
+                },
+                'details': summary
+            }
+            
+            result['data'] = standard_format
 
             # Save to standardized storage
             try:
-                save_tool_result('analyze_module_dependencies', 'imports', summary, project_root=self.project_root)
+                save_tool_result('analyze_module_dependencies', 'imports', standard_format, project_root=self.project_root)
             except Exception as e:
                 logger.warning(f"Failed to save analyze_module_dependencies result: {e}")
 
@@ -578,19 +590,24 @@ class AIToolsService:
                 
                 # Merge in examples extracted from text output (if available)
                 if 'analyze_functions' in self.results_cache:
-                    extracted_metrics = self.results_cache['analyze_functions']
-                    # Merge examples into json_data
+                    extracted_metrics_raw = self.results_cache['analyze_functions']
+                    # Handle standard format - extract from details if present
+                    if 'details' in extracted_metrics_raw and isinstance(extracted_metrics_raw.get('details'), dict):
+                        extracted_metrics = extracted_metrics_raw['details']
+                    else:
+                        extracted_metrics = extracted_metrics_raw
+                    # Merge examples into json_data details
                     if 'critical_complexity_examples' in extracted_metrics:
-                        json_data['critical_complexity_examples'] = extracted_metrics['critical_complexity_examples']
+                        json_data['details']['critical_complexity_examples'] = extracted_metrics['critical_complexity_examples']
                     if 'high_complexity_examples' in extracted_metrics:
-                        json_data['high_complexity_examples'] = extracted_metrics['high_complexity_examples']
+                        json_data['details']['high_complexity_examples'] = extracted_metrics['high_complexity_examples']
                     if 'undocumented_examples' in extracted_metrics:
-                        json_data['undocumented_examples'] = extracted_metrics['undocumented_examples']
+                        json_data['details']['undocumented_examples'] = extracted_metrics['undocumented_examples']
                 
                 # Save to standardized storage (with examples included)
                 try:
                     save_tool_result('analyze_functions', 'functions', json_data, project_root=self.project_root)
-                    # Also update results_cache with merged data
+                    # Also update results_cache with merged data (store in standard format for consistency)
                     self.results_cache['analyze_functions'] = json_data
                 except Exception as e:
                     logger.warning(f"Failed to save analyze_functions result: {e}")
@@ -685,9 +702,18 @@ class AIToolsService:
             
             # Analyze patterns
             patterns = analyze_function_patterns(actual_functions)
-            
+
+            # Convert to standard format
+            standard_format = {
+                'summary': {
+                    'total_issues': 0,  # No issues, just data
+                    'files_affected': 0
+                },
+                'details': patterns
+            }
+
             # Save to standardized storage
-            save_tool_result('analyze_function_patterns', 'functions', patterns, project_root=self.project_root)
+            save_tool_result('analyze_function_patterns', 'functions', standard_format, project_root=self.project_root)
             
             return {
                 'success': True,
@@ -711,13 +737,22 @@ class AIToolsService:
             
             # Scan all Python files
             import_data = analyzer.scan_all_python_files()
-            
+
+            # Convert to standard format
+            standard_format = {
+                'summary': {
+                    'total_issues': 0,  # No issues, just data
+                    'files_affected': 0
+                },
+                'details': import_data
+            }
+
             # Save to standardized storage
-            save_tool_result('analyze_module_imports', 'imports', import_data, project_root=self.project_root)
+            save_tool_result('analyze_module_imports', 'imports', standard_format, project_root=self.project_root)
             
             return {
                 'success': True,
-                'data': import_data
+                'data': standard_format
             }
         except Exception as e:
             logger.warning(f"Failed to run analyze_module_imports: {e}")
@@ -740,13 +775,22 @@ class AIToolsService:
             # Analyze dependency patterns
             pattern_analyzer = DependencyPatternAnalyzer()
             patterns = pattern_analyzer.analyze_dependency_patterns(actual_imports)
-            
+
+            # Convert to standard format
+            standard_format = {
+                'summary': {
+                    'total_issues': 0,  # No issues, just data
+                    'files_affected': 0
+                },
+                'details': patterns
+            }
+
             # Save to standardized storage
-            save_tool_result('analyze_dependency_patterns', 'imports', patterns, project_root=self.project_root)
-            
+            save_tool_result('analyze_dependency_patterns', 'imports', standard_format, project_root=self.project_root)
+
             return {
                 'success': True,
-                'data': patterns
+                'data': standard_format
             }
         except Exception as e:
             logger.warning(f"Failed to run analyze_dependency_patterns: {e}")
@@ -793,16 +837,20 @@ class AIToolsService:
             total_missing = sum(len(r.get('missing_exports', [])) for r in all_reports.values())
             total_unnecessary = sum(len(r.get('potentially_unnecessary', [])) for r in all_reports.values())
             packages_with_missing = sum(1 for r in all_reports.values() if r.get('missing_exports'))
+            total_issues = total_missing + total_unnecessary
             
-            summary = {
-                'total_missing_exports': total_missing,
-                'total_unnecessary_exports': total_unnecessary,
-                'packages_with_missing': packages_with_missing
-            }
-            
+            # Convert to standard format
             result_data = {
-                'summary': summary,
-                'packages': all_reports
+                'summary': {
+                    'total_issues': total_issues,
+                    'files_affected': packages_with_missing  # Packages are like "files" here
+                },
+                'details': {
+                    'total_missing_exports': total_missing,
+                    'total_unnecessary_exports': total_unnecessary,
+                    'packages_with_missing': packages_with_missing,
+                    'packages': all_reports
+                }
             }
             
             # Save to standardized storage
@@ -945,20 +993,31 @@ class AIToolsService:
                 summary = self.docs_sync_summary or {}
                 all_results = getattr(self, 'docs_sync_results', {}).get('all_results', {})
                 
-                # Convert to the expected format for JSON output
+                # Convert to standard format
+                path_drift_files = summary.get('path_drift_files', [])
                 data = {
-                    'status': summary.get('status', 'UNKNOWN'),
-                    'total_issues': summary.get('total_issues', 0),
-                    'paired_doc_issues': summary.get('paired_doc_issues', 0),
-                    'path_drift_issues': summary.get('path_drift_issues', 0),
-                    'ascii_compliance_issues': summary.get('ascii_issues', 0),  # Note: summary uses 'ascii_issues' key
-                    'heading_numbering_issues': summary.get('heading_numbering_issues', 0),
-                    'path_drift_files': summary.get('path_drift_files', []),
-                    # Store detailed issues for each category
-                    'paired_docs': all_results.get('paired_docs', {}),
-                    'path_drift': all_results.get('path_drift', {}),
-                    'ascii_compliance': all_results.get('ascii_compliance', {}),
-                    'heading_numbering': all_results.get('heading_numbering', {})
+                    'summary': {
+                        'total_issues': summary.get('total_issues', 0),
+                        'files_affected': len(path_drift_files) if isinstance(path_drift_files, list) else 0,
+                        'status': summary.get('status', 'UNKNOWN')
+                    },
+                    'details': {
+                        # Store all original fields in details
+                        'paired_doc_issues': summary.get('paired_doc_issues', 0),
+                        'path_drift_issues': summary.get('path_drift_issues', 0),
+                        'ascii_compliance_issues': summary.get('ascii_issues', 0),  # Note: summary uses 'ascii_issues' key
+                        'heading_numbering_issues': summary.get('heading_numbering_issues', 0),
+                        'missing_address_issues': summary.get('missing_address_issues', 0),
+                        'unconverted_link_issues': summary.get('unconverted_link_issues', 0),
+                        'path_drift_files': path_drift_files,
+                        # Store detailed issues for each category
+                        'paired_docs': all_results.get('paired_docs', {}),
+                        'path_drift': all_results.get('path_drift', {}),
+                        'ascii_compliance': all_results.get('ascii_compliance', {}),
+                        'heading_numbering': all_results.get('heading_numbering', {}),
+                        'missing_addresses': all_results.get('missing_addresses', {}),
+                        'unconverted_links': all_results.get('unconverted_links', {})
+                    }
                 }
                 
                 # Generate text output for compatibility
@@ -1222,30 +1281,37 @@ class AIToolsService:
                     [file_path, content, matches] for file_path, content, matches in file_list
                 ]
             
-            data = {
-                'findings': serializable_findings,
-                'files_with_issues': total_files,
-                'legacy_markers': total_markers,
-                'report_path': 'development_docs/LEGACY_REFERENCE_REPORT.md'
+            # Convert to standard format
+            standard_format = {
+                'summary': {
+                    'total_issues': total_markers,
+                    'files_affected': total_files
+                },
+                'details': {
+                    'findings': serializable_findings,
+                    'files_with_issues': total_files,
+                    'legacy_markers': total_markers,
+                    'report_path': 'development_docs/LEGACY_REFERENCE_REPORT.md'
+                }
             }
-            
+
             # Save to standardized storage
             try:
                 from .output_storage import save_tool_result
-                save_tool_result('analyze_legacy_references', 'legacy', data, project_root=self.project_root)
+                save_tool_result('analyze_legacy_references', 'legacy', standard_format, project_root=self.project_root)
             except Exception as e:
                 logger.warning(f"Failed to save analyze_legacy_references result: {e}")
             
             # Store in results_cache and legacy_cleanup_summary
-            self.results_cache['analyze_legacy_references'] = data
-            self.legacy_cleanup_summary = data
-            
+            self.results_cache['analyze_legacy_references'] = standard_format
+            self.legacy_cleanup_summary = standard_format
+
             return {
                 'success': True,
                 'output': f"Found {total_files} files with {total_markers} legacy markers",
                 'error': '',
                 'returncode': 0,
-                'data': data
+                'data': standard_format
             }
         except Exception as e:
             logger.error(f"Failed to run analyze_legacy_references: {e}")
@@ -1973,8 +2039,11 @@ class AIToolsService:
                                 legacy_data = legacy_result
                         
                         if legacy_data and isinstance(legacy_data, dict):
-                            # Extract findings from the data structure
-                            findings = legacy_data.get('findings', {})
+                            # Extract findings from the data structure (handle standard format)
+                            if 'details' in legacy_data and isinstance(legacy_data.get('details'), dict):
+                                findings = legacy_data['details'].get('findings', {})
+                            else:
+                                findings = legacy_data.get('findings', {})
                             if findings:
                                 # Convert back to the format expected by generate_legacy_reference_report
                                 # Findings are stored as Dict[str, List[List]] (file_path, content, matches)
@@ -2839,10 +2908,21 @@ class AIToolsService:
                 if coverage_summary:
                     overall = coverage_summary.get('overall', {})
                     logger.info(f"Reloaded coverage summary after regeneration: {overall.get('coverage', 'N/A')}% ({overall.get('covered', 'N/A')} of {overall.get('statements', 'N/A')} statements)")
+                    
+                    # Convert to standard format
+                    missed = overall.get('missed', 0)
+                    standard_format = {
+                        'summary': {
+                            'total_issues': missed,  # Lines not covered
+                            'files_affected': 0  # Not file-based
+                        },
+                        'details': coverage_summary
+                    }
+                    
                     # Save to standardized storage
                     try:
                         from .output_storage import save_tool_result
-                        save_tool_result('analyze_test_coverage', 'tests', coverage_summary, project_root=self.project_root)
+                        save_tool_result('analyze_test_coverage', 'tests', standard_format, project_root=self.project_root)
                     except Exception as save_error:
                         logger.debug(f"Failed to save analyze_test_coverage results: {save_error}")
                 else:
@@ -3643,7 +3723,18 @@ class AIToolsService:
 
                     metrics[current_section].append(entry)
 
-        self.results_cache['analyze_functions'] = metrics
+        # Preserve standard format if already present, otherwise store metrics
+        if 'analyze_functions' in self.results_cache and isinstance(self.results_cache['analyze_functions'], dict):
+            existing = self.results_cache['analyze_functions']
+            # If it's in standard format, merge metrics into details
+            if 'details' in existing and isinstance(existing.get('details'), dict):
+                existing['details'].update(metrics)
+                self.results_cache['analyze_functions'] = existing
+            else:
+                # Old format - just update
+                self.results_cache['analyze_functions'].update(metrics)
+        else:
+            self.results_cache['analyze_functions'] = metrics
 
     def _extract_documentation_metrics(self, result: Dict[str, Any]):
 
@@ -3656,7 +3747,12 @@ class AIToolsService:
         if isinstance(data, dict):
             # Use analyze_functions for docstring coverage (consistent source)
             # This measures actual docstrings in code, not registry documentation
-            fd_metrics = self.results_cache.get('analyze_functions', {}) or {}
+            fd_metrics_raw = self.results_cache.get('analyze_functions', {}) or {}
+            # Handle standard format
+            if 'details' in fd_metrics_raw and isinstance(fd_metrics_raw.get('details'), dict):
+                fd_metrics = fd_metrics_raw['details']
+            else:
+                fd_metrics = fd_metrics_raw
             total_functions = fd_metrics.get('total_functions')
             undocumented = fd_metrics.get('undocumented', 0)
             
@@ -3947,12 +4043,24 @@ class AIToolsService:
             logger.warning("No metrics extracted from decision_support output - metrics dict is empty")
         
         # Also store examples in analyze_functions cache for backward compatibility
+        # Preserve standard format if already present
         if 'analyze_functions' not in self.results_cache:
             self.results_cache['analyze_functions'] = {}
-        if critical_examples:
-            self.results_cache['analyze_functions']['critical_complexity_examples'] = critical_examples
-        if high_examples:
-            self.results_cache['analyze_functions']['high_complexity_examples'] = high_examples
+        existing = self.results_cache['analyze_functions']
+        # If it's in standard format, add examples to details
+        if 'details' in existing and isinstance(existing.get('details'), dict):
+            if critical_examples:
+                existing['details']['critical_complexity_examples'] = critical_examples
+            if high_examples:
+                existing['details']['high_complexity_examples'] = high_examples
+            self.results_cache['analyze_functions'] = existing
+        else:
+            # Old format - add to top level
+            if critical_examples:
+                existing['critical_complexity_examples'] = critical_examples
+            if high_examples:
+                existing['high_complexity_examples'] = high_examples
+            self.results_cache['analyze_functions'] = existing
 
     def _extract_error_handling_metrics(self, result: Dict[str, Any]):
 
@@ -4850,22 +4958,66 @@ class AIToolsService:
                 import json
                 with open(config_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                    # Handle both old format (validation_results) and new format (data)
-                    if 'data' in data:
-                        # New format: data is at top level
-                        config_data = data['data']
-                        summary = config_data.get('summary', {})
-                        # Include recommendations and tools_analysis in the returned summary
-                        summary['recommendations'] = config_data.get('recommendations', [])
-                        summary['tools_analysis'] = config_data.get('tools_analysis', {})
-                        # Also include config_validation and completeness if available
-                        if 'config_validation' in config_data:
-                            config_validation = config_data['config_validation']
-                            summary['config_valid'] = config_validation.get('config_structure_valid', summary.get('config_valid', False))
-                        if 'completeness' in config_data:
-                            completeness = config_data['completeness']
-                            summary['config_complete'] = completeness.get('sections_complete', summary.get('config_complete', False))
+                    # Handle standard format (summary/details) and legacy formats
+                    if 'summary' in data and 'details' in data:
+                        # Standard format: summary and details at top level
+                        top_summary = data['summary']
+                        details = data['details']
+                        nested_summary = details.get('summary', {})
+                        # Merge top-level summary with nested summary
+                        summary = {**top_summary, **nested_summary}
+                        # Include recommendations and tools_analysis from details
+                        summary['recommendations'] = details.get('recommendations', [])
+                        summary['tools_analysis'] = details.get('tools_analysis', {})
+                        # Get config_valid and config_complete from nested summary (preferred) or validation/completeness
+                        # nested_summary should have these values from analyze_config
+                        summary['config_valid'] = nested_summary.get('config_valid', summary.get('config_valid', False))
+                        summary['config_complete'] = nested_summary.get('config_complete', summary.get('config_complete', False))
+                        # Fallback to validation/completeness if not in nested_summary
+                        if 'validation' in details and summary.get('config_valid') is False:
+                            validation = details['validation']
+                            summary['config_valid'] = validation.get('config_structure_valid', False)
+                        if 'completeness' in details and summary.get('config_complete') is False:
+                            completeness = details['completeness']
+                            summary['config_complete'] = completeness.get('sections_complete', False)
                         return summary
+                    elif 'data' in data:
+                        # Legacy format: data is at top level
+                        config_data = data['data']
+                        # Check if it's standard format nested in data
+                        if 'summary' in config_data and 'details' in config_data:
+                            top_summary = config_data['summary']
+                            details = config_data['details']
+                            nested_summary = details.get('summary', {})
+                            summary = {**top_summary, **nested_summary}
+                            summary['recommendations'] = details.get('recommendations', [])
+                            summary['tools_analysis'] = details.get('tools_analysis', {})
+                            # Get config_valid and config_complete from nested summary (preferred)
+                            summary['config_valid'] = nested_summary.get('config_valid', summary.get('config_valid', False))
+                            summary['config_complete'] = nested_summary.get('config_complete', summary.get('config_complete', False))
+                            # Fallback to validation/completeness if not in nested_summary
+                            if 'validation' in details and summary.get('config_valid') is False:
+                                validation = details['validation']
+                                summary['config_valid'] = validation.get('config_structure_valid', False)
+                            if 'completeness' in details and summary.get('config_complete') is False:
+                                completeness = details['completeness']
+                                summary['config_complete'] = completeness.get('sections_complete', False)
+                            return summary
+                        else:
+                            # Old legacy format
+                            summary = config_data.get('summary', {})
+                            # Include recommendations and tools_analysis in the returned summary
+                            summary['recommendations'] = config_data.get('recommendations', [])
+                            summary['tools_analysis'] = config_data.get('tools_analysis', {})
+                            # Also include config_validation and completeness if available
+                            # But prefer values from summary if they exist
+                            if 'config_validation' in config_data and summary.get('config_valid') is None:
+                                config_validation = config_data['config_validation']
+                                summary['config_valid'] = config_validation.get('config_structure_valid', False)
+                            if 'completeness' in config_data and summary.get('config_complete') is None:
+                                completeness = config_data['completeness']
+                                summary['config_complete'] = completeness.get('sections_complete', False)
+                            return summary
                     elif 'validation_results' in data:
                         # Old format: validation_results wrapper
                         validation_results = data.get('validation_results', {})
@@ -5050,13 +5202,24 @@ class AIToolsService:
         """Provide consistent totals across downstream documents."""
 
         results_cache = self.results_cache or {}
-        fd_metrics = results_cache.get('analyze_functions', {}) or {}
+        fd_metrics_raw = results_cache.get('analyze_functions', {}) or {}
+        
+        # Handle standard format - extract details if present
+        if 'details' in fd_metrics_raw and isinstance(fd_metrics_raw.get('details'), dict):
+            fd_metrics = fd_metrics_raw['details']
+        else:
+            fd_metrics = fd_metrics_raw
 
         ds_metrics = results_cache.get('decision_support_metrics', {}) or {}
 
         audit_data = results_cache.get('analyze_function_registry', {}) or {}
-
-        audit_totals = audit_data.get('totals') if isinstance(audit_data, dict) else {}
+        
+        # Handle standard format for audit_data
+        if 'details' in audit_data and isinstance(audit_data.get('details'), dict):
+            audit_data_details = audit_data['details']
+            audit_totals = audit_data_details.get('totals') if isinstance(audit_data_details, dict) else {}
+        else:
+            audit_totals = audit_data.get('totals') if isinstance(audit_data, dict) else {}
         if audit_totals is None or not isinstance(audit_totals, dict):
             audit_totals = {}
 
@@ -5074,7 +5237,11 @@ class AIToolsService:
 
         # Last resort: analyze_function_registry (but only if it's reasonable)
         if total_functions is None and isinstance(audit_data, dict):
-            audit_total = audit_data.get('total_functions')
+            # Check both standard format and legacy format
+            if 'details' in audit_data:
+                audit_total = audit_data['details'].get('totals', {}).get('functions_found')
+            else:
+                audit_total = audit_data.get('total_functions')
             if audit_total is not None and isinstance(audit_total, int) and audit_total > 100:
                 # Only use if it seems reasonable (not the 11 from registry scan)
                 total_functions = audit_total
@@ -5117,7 +5284,12 @@ class AIToolsService:
                     if 'results' in cached_data and 'analyze_functions' in cached_data['results']:
                         func_data = cached_data['results']['analyze_functions']
                         if 'data' in func_data:
-                            cached_metrics = func_data['data']
+                            cached_metrics_raw = func_data['data']
+                            # Handle standard format
+                            if 'details' in cached_metrics_raw and isinstance(cached_metrics_raw.get('details'), dict):
+                                cached_metrics = cached_metrics_raw['details']
+                            else:
+                                cached_metrics = cached_metrics_raw
                             if total_functions is None:
                                 total_functions = cached_metrics.get('total_functions')
                             if moderate is None:
@@ -5173,7 +5345,12 @@ class AIToolsService:
         # This measures actual docstrings in code, not registry documentation
         if doc_coverage is None:
             # Get from analyze_functions data
-            fd_metrics = self.results_cache.get('analyze_functions', {}) or {}
+            fd_metrics_raw = self.results_cache.get('analyze_functions', {}) or {}
+            # Handle standard format
+            if 'details' in fd_metrics_raw and isinstance(fd_metrics_raw.get('details'), dict):
+                fd_metrics = fd_metrics_raw['details']
+            else:
+                fd_metrics = fd_metrics_raw
             func_total = fd_metrics.get('total_functions')
             func_undocumented = fd_metrics.get('undocumented', 0)
             
@@ -5200,7 +5377,12 @@ class AIToolsService:
                         if val > 100:
                             # Invalid - recalculate if we have the data
                             # Try to get documented count from available data
-                            fd_metrics = self.results_cache.get('analyze_functions', {}) or {}
+                            fd_metrics_raw = self.results_cache.get('analyze_functions', {}) or {}
+                            # Handle standard format
+                            if 'details' in fd_metrics_raw and isinstance(fd_metrics_raw.get('details'), dict):
+                                fd_metrics = fd_metrics_raw['details']
+                            else:
+                                fd_metrics = fd_metrics_raw
                             func_total = fd_metrics.get('total_functions')
                             func_undocumented = fd_metrics.get('undocumented', 0)
                             if func_total is not None and func_total > 0:
@@ -5691,7 +5873,12 @@ class AIToolsService:
                     if 'results' in cached_data and 'analyze_functions' in cached_data['results']:
                         func_data = cached_data['results']['analyze_functions']
                         if 'data' in func_data:
-                            cached_metrics = func_data['data']
+                            cached_metrics_raw = func_data['data']
+                            # Handle standard format
+                            if 'details' in cached_metrics_raw and isinstance(cached_metrics_raw.get('details'), dict):
+                                cached_metrics = cached_metrics_raw['details']
+                            else:
+                                cached_metrics = cached_metrics_raw
                             if total_functions == 'Unknown':
                                 total_functions = cached_metrics.get('total_functions', 'Unknown')
                             if moderate == 'Unknown':
@@ -5757,7 +5944,12 @@ class AIToolsService:
                     if 'results' in cached_data and 'analyze_functions' in cached_data['results']:
                         func_data = cached_data['results']['analyze_functions']
                         if 'data' in func_data:
-                            func_metrics = func_data['data']
+                            func_metrics_raw = func_data['data']
+                            # Handle standard format
+                            if 'details' in func_metrics_raw and isinstance(func_metrics_raw.get('details'), dict):
+                                func_metrics = func_metrics_raw['details']
+                            else:
+                                func_metrics = func_metrics_raw
                             func_total = func_metrics.get('total_functions')
                             func_undocumented = func_metrics.get('undocumented', 0)
                             if func_total is not None and func_total > 0:
@@ -5771,8 +5963,13 @@ class AIToolsService:
         
         # Final fallback to results cache
         if (doc_coverage == 'Unknown' or doc_coverage is None) and functions_without_docstrings is None and total_functions is not None:
-            func_cache = self.results_cache.get('analyze_functions', {})
-            if isinstance(func_cache, dict):
+            func_cache_raw = self.results_cache.get('analyze_functions', {})
+            if isinstance(func_cache_raw, dict):
+                # Handle standard format
+                if 'details' in func_cache_raw and isinstance(func_cache_raw.get('details'), dict):
+                    func_cache = func_cache_raw['details']
+                else:
+                    func_cache = func_cache_raw
                 func_undocumented = func_cache.get('undocumented', 0)
                 if isinstance(func_undocumented, (int, float)) and total_functions > 0:
                     func_documented = total_functions - func_undocumented
@@ -5936,9 +6133,11 @@ class AIToolsService:
                     return default
                 # Check standard format first
                 if 'summary' in data and isinstance(data.get('summary'), dict):
-                    # Standard format - check details for specific fields, summary for status
+                    # Standard format - check summary for status and total_issues, details for other fields
                     if field_name == 'status':
                         return data['summary'].get('status', default)
+                    elif field_name == 'total_issues':
+                        return data['summary'].get('total_issues', default)
                     else:
                         return data.get('details', {}).get(field_name, default)
                 else:
@@ -5985,9 +6184,11 @@ class AIToolsService:
                 return default
             # Check standard format first
             if 'summary' in data and isinstance(data.get('summary'), dict):
-                # Standard format - check details for specific fields, summary for status
+                # Standard format - check summary for status and total_issues, details for other fields
                 if field_name == 'status':
                     return data['summary'].get('status', default)
+                elif field_name == 'total_issues':
+                    return data['summary'].get('total_issues', default)
                 else:
                     return data.get('details', {}).get(field_name, default)
             else:
@@ -6068,9 +6269,11 @@ class AIToolsService:
                     return default
                 # Check standard format first
                 if 'summary' in data and isinstance(data.get('summary'), dict):
-                    # Standard format - check details for specific fields, summary for status
+                    # Standard format - check summary for status and total_issues, details for other fields
                     if field_name == 'status':
                         return data['summary'].get('status', default)
+                    elif field_name == 'total_issues':
+                        return data['summary'].get('total_issues', default)
                     else:
                         return data.get('details', {}).get(field_name, default)
                 else:
@@ -6196,7 +6399,7 @@ class AIToolsService:
             if config_valid and config_complete and total_recommendations == 0:
                 lines.append("- **Config Validation**: CLEAN (no issues)")
             elif total_recommendations > 0:
-                lines.append(f"- **Config Validation**: {total_recommendations} recommendations")
+                lines.append(f"- **Config Validation**: {total_recommendations} recommendation(s)")
             else:
                 lines.append("- **Config Validation**: Needs attention")
         
@@ -6984,9 +7187,11 @@ class AIToolsService:
                 return default
             # Check standard format first
             if 'summary' in data and isinstance(data.get('summary'), dict):
-                # Standard format - check details for specific fields, summary for status
+                # Standard format - check summary for status and total_issues, details for other fields
                 if field_name == 'status':
                     return data['summary'].get('status', default)
+                elif field_name == 'total_issues':
+                    return data['summary'].get('total_issues', default)
                 else:
                     return data.get('details', {}).get(field_name, default)
             else:
@@ -8228,14 +8433,21 @@ class AIToolsService:
 
         # Load function metrics using unified loader, ensuring examples are included
         function_metrics = self._load_tool_data('analyze_functions', 'functions')
+        # Handle standard format - extract details if present
+        function_metrics_details = function_metrics.get('details', {}) if isinstance(function_metrics, dict) else {}
         # If examples are missing, reload to ensure we have them
-        if not function_metrics.get('critical_complexity_examples') and not function_metrics.get('high_complexity_examples'):
+        if not function_metrics_details.get('critical_complexity_examples') and not function_metrics_details.get('high_complexity_examples'):
             func_result = self._load_tool_data('analyze_functions', 'functions')
             if func_result and isinstance(func_result, dict):
-                if 'critical_complexity_examples' in func_result:
-                    function_metrics['critical_complexity_examples'] = func_result.get('critical_complexity_examples', [])
-                if 'high_complexity_examples' in func_result:
-                    function_metrics['high_complexity_examples'] = func_result.get('high_complexity_examples', [])
+                func_details = func_result.get('details', {})
+                if 'critical_complexity_examples' in func_details:
+                    function_metrics_details['critical_complexity_examples'] = func_details.get('critical_complexity_examples', [])
+                elif 'critical_complexity_examples' in func_result:
+                    function_metrics_details['critical_complexity_examples'] = func_result.get('critical_complexity_examples', [])
+                if 'high_complexity_examples' in func_details:
+                    function_metrics_details['high_complexity_examples'] = func_details.get('high_complexity_examples', [])
+                elif 'high_complexity_examples' in func_result:
+                    function_metrics_details['high_complexity_examples'] = func_result.get('high_complexity_examples', [])
         
         # Get missing docstrings count for consolidated report (initialize early for use in multiple sections)
         # This comes from analyze_functions (actual code analysis)
@@ -8318,17 +8530,23 @@ class AIToolsService:
         # Recalculate doc_coverage if Unknown (same logic as Documentation Findings section)
         # Do this BEFORE Executive Summary so it's available for display
         if doc_coverage == 'Unknown' or doc_coverage is None:
-            # Use already loaded doc_metrics
-            audit_data = doc_metrics
-            audit_totals = audit_data.get('totals') if isinstance(audit_data, dict) else {}
-            if audit_totals is None or not isinstance(audit_totals, dict):
-                audit_totals = {}
-            documented = audit_totals.get('functions_documented', 0)
-            total_funcs = metrics.get('total_functions')
-            if total_funcs and isinstance(total_funcs, (int, float)) and total_funcs > 0 and documented > 0:
-                coverage_pct = (documented / total_funcs) * 100
-                if 0 <= coverage_pct <= 100:
-                    doc_coverage = f"{coverage_pct:.2f}%"
+            # Use analyze_functions data (most accurate - counts all functions, not just registry entries)
+            function_data_for_coverage = self._load_tool_data('analyze_functions', 'functions')
+            if isinstance(function_data_for_coverage, dict):
+                func_details_for_coverage = function_data_for_coverage.get('details', {})
+                func_total_for_coverage = func_details_for_coverage.get('total_functions') or function_data_for_coverage.get('total_functions')
+                func_undocumented_for_coverage = func_details_for_coverage.get('undocumented', 0) or function_data_for_coverage.get('undocumented', 0)
+                if func_total_for_coverage and isinstance(func_total_for_coverage, (int, float)) and func_total_for_coverage > 0:
+                    func_documented_for_coverage = func_total_for_coverage - func_undocumented_for_coverage
+                    coverage_pct = (func_documented_for_coverage / func_total_for_coverage) * 100
+                    if 0 <= coverage_pct <= 100:
+                        doc_coverage = f"{coverage_pct:.2f}%"
+                    else:
+                        doc_coverage = 'Unknown'
+                else:
+                    doc_coverage = 'Unknown'
+            else:
+                doc_coverage = 'Unknown'
 
         lines.append("## Executive Summary")
 
@@ -8350,7 +8568,12 @@ class AIToolsService:
                     if 'results' in cached_data and 'analyze_functions' in cached_data['results']:
                         func_data = cached_data['results']['analyze_functions']
                         if 'data' in func_data:
-                            cached_metrics = func_data['data']
+                            cached_metrics_raw = func_data['data']
+                            # Handle standard format
+                            if 'details' in cached_metrics_raw and isinstance(cached_metrics_raw.get('details'), dict):
+                                cached_metrics = cached_metrics_raw['details']
+                            else:
+                                cached_metrics = cached_metrics_raw
                             if moderate == 'Unknown':
                                 moderate = cached_metrics.get('moderate_complexity', 'Unknown')
                             if high == 'Unknown':
@@ -8529,9 +8752,11 @@ class AIToolsService:
                 return default
             # Check standard format first
             if 'summary' in data and isinstance(data.get('summary'), dict):
-                # Standard format - check details for specific fields, summary for status
+                # Standard format - check summary for status and total_issues, details for other fields
                 if field_name == 'status':
                     return data['summary'].get('status', default)
+                elif field_name == 'total_issues':
+                    return data['summary'].get('total_issues', default)
                 else:
                     return data.get('details', {}).get(field_name, default)
             else:
@@ -9255,6 +9480,9 @@ class AIToolsService:
                 legacy_markers = legacy_summary.get('legacy_markers')
                 findings = legacy_summary.get('findings', {})
             
+            # Get report path from details or legacy_summary
+            report_path = details.get('report_path') if 'details' in legacy_summary else legacy_summary.get('report_path')
+            
             if legacy_issues is not None:
                 lines.append(f"- **Files with Legacy Markers**: {legacy_issues}")
             else:
@@ -9286,19 +9514,30 @@ class AIToolsService:
                     if len(file_counts) > 5:
                         file_list.append(f"... +{len(file_counts) - 5}")
                     lines.append(f"    - **Top files**: {', '.join(file_list)}")
-
-            report_path = legacy_summary.get('report_path')
+            
+            # Add detailed report link last (after top files)
             if report_path:
                 report_path_obj = self._resolve_report_path(report_path)
                 if report_path_obj.exists():
                     rel_path = report_path_obj.relative_to(self.project_root)
                     lines.append(f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})")
-                else:
-                    lines.append(f"- **Detailed Report**: {report_path}")
+
+            # Report path already handled above in standard format section
+            else:
+                # If legacy_issues is None but we have data, still show report link
+                if report_path:
+                    report_path_obj = self._resolve_report_path(report_path)
+                    if report_path_obj.exists():
+                        rel_path = report_path_obj.relative_to(self.project_root)
+                        lines.append(f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})")
         else:
             lines.append("- **Files with Legacy Markers**: Data unavailable (run `audit --full` for latest scan)")
             lines.append("- **Markers Found**: Data unavailable")
-            lines.append("- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md)")
+            # Always show report link if file exists
+            legacy_report = self.project_root / 'development_docs' / 'LEGACY_REFERENCE_REPORT.md'
+            if legacy_report.exists():
+                rel_path = legacy_report.relative_to(self.project_root)
+                lines.append(f"- **Detailed Report**: [LEGACY_REFERENCE_REPORT.md]({rel_path.as_posix()})")
 
         lines.append("")
 
@@ -9700,6 +9939,18 @@ class AIToolsService:
             
             if missing_import_tools:
                 lines.append(f"  - Tools missing config module import: {', '.join(missing_import_tools)}")
+            elif recommendations:
+                # If no missing import tools but we have recommendations, extract tool names from recommendations
+                rec_tools = []
+                for rec in recommendations:
+                    if isinstance(rec, str):
+                        # Extract tool name from recommendation like "Update run_development_tools.py to import config module"
+                        if 'Update' in rec and 'to import config' in rec:
+                            tool_match = rec.split('Update')[1].split('to import')[0].strip()
+                            if tool_match:
+                                rec_tools.append(tool_match)
+                if rec_tools:
+                    lines.append(f"  - Tools missing config module import: {', '.join(rec_tools)}")
             
             # Show recommendations if available and not already covered by missing_import_tools
             if recommendations and isinstance(recommendations, list) and len(recommendations) > 0:

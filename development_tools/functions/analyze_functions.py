@@ -757,16 +757,30 @@ def main():
                 for func in sorted_undoc
             ]
         
+        # Calculate total issues (complexity issues + undocumented)
+        moderate_complexity = len(categories.get('moderate_complex', []))
+        high_complexity = len(categories.get('high_complex', []))
+        critical_complexity = len(categories.get('critical_complex', []))
+        undocumented = len(undocumented_list)
+        total_issues = moderate_complexity + high_complexity + critical_complexity + undocumented
+        
+        # Return standard format
         metrics = {
+            'summary': {
+                'total_issues': total_issues,
+                'files_affected': 0  # Not file-based
+            },
+            'details': {
             'total_functions': len(all_functions),
-            'moderate_complexity': len(categories.get('moderate_complex', [])),
-            'high_complexity': len(categories.get('high_complex', [])),
-            'critical_complexity': len(categories.get('critical_complex', [])),
-            'undocumented': len(undocumented_list),
+                'moderate_complexity': moderate_complexity,
+                'high_complexity': high_complexity,
+                'critical_complexity': critical_complexity,
+                'undocumented': undocumented,
             'undocumented_examples': undocumented_examples,
             'handlers': len(categories.get('handlers', [])),
             'tests': len(categories.get('tests', [])),
             'utilities': len(categories.get('utilities', []))
+            }
         }
         print(json.dumps(metrics, indent=2))
     else:

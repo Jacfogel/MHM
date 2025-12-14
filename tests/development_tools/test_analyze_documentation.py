@@ -160,9 +160,11 @@ More complete content here.
         assert isinstance(result, str), "Result should be a string"
         assert len(result) > 0, "Result should have content"
         assert isinstance(payload, dict), "Payload should be a dictionary"
-        assert 'artifacts' in payload, "Payload should have artifacts"
-        assert 'duplicates' in payload, "Payload should have duplicates"
-        assert 'placeholders' in payload, "Payload should have placeholders"
+        assert 'summary' in payload, "Payload should have summary (standard format)"
+        assert 'details' in payload, "Payload should have details (standard format)"
+        assert 'artifacts' in payload['details'], "Payload details should have artifacts"
+        assert 'duplicates' in payload['details'], "Payload details should have duplicates"
+        assert 'placeholders' in payload['details'], "Payload details should have placeholders"
     
     @pytest.mark.unit
     def test_analyze_documentation_empty_project(self, tmp_path):
@@ -173,7 +175,9 @@ More complete content here.
         
         assert isinstance(result, str), "Result should be a string"
         assert isinstance(payload, dict), "Payload should be a dictionary"
-        assert 'artifacts' in payload, "Payload should have artifacts"
+        assert 'summary' in payload, "Payload should have summary (standard format)"
+        assert 'details' in payload, "Payload should have details (standard format)"
+        assert 'artifacts' in payload['details'], "Payload details should have artifacts"
     
     @pytest.mark.unit
     def test_extract_sections_custom_patterns(self):

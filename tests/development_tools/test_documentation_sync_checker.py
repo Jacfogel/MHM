@@ -271,10 +271,11 @@ class TestIntegration:
         
         results = checker.run_checks()
         
-        # Should return a dict with expected keys (now only paired_docs after refactoring)
+        # Should return a dict in standard format
         assert isinstance(results, dict)
-        assert 'paired_docs' in results
-        assert 'summary' in results
+        assert 'summary' in results, "Results should have summary (standard format)"
+        assert 'details' in results, "Results should have details (standard format)"
+        assert 'paired_docs' in results['details'], "Results details should have paired_docs"
         
         # Summary should have expected structure
         summary = results['summary']

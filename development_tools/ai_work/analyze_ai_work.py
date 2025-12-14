@@ -300,7 +300,7 @@ def generate_validation_report(validation_type: str, **kwargs) -> str:
     return "\n".join(report)
 
 
-def analyze_ai_work(work_type: str, project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs) -> str:
+def analyze_ai_work(work_type: str, project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs) -> Dict:
     """
     Main validation function for AI work.
     
@@ -344,17 +344,41 @@ def analyze_ai_work(work_type: str, project_root: Optional[str] = None, config_p
                     except Exception as e:
                         logger.warning(f"Failed to load rule set from {rule_path}: {e}")
     
+    # Generate report text
     if work_type == "documentation":
-        return generate_validation_report("documentation", **kwargs)
+        output = generate_validation_report("documentation", **kwargs)
     elif work_type == "code_changes":
-        return generate_validation_report("code_consistency", **kwargs)
+        output = generate_validation_report("code_consistency", **kwargs)
     elif work_type == "file_creation":
-        return generate_validation_report("file_structure", **kwargs)
+        output = generate_validation_report("file_structure", **kwargs)
     else:
-        return "Unknown validation type"
+        output = "Unknown validation type"
+    
+    # Extract status from output
+    status = 'UNKNOWN'
+    if isinstance(output, str):
+        if 'POOR' in output or 'FAIL' in output:
+            status = 'POOR'
+        elif 'GOOD' in output or 'PASS' in output:
+            status = 'GOOD'
+        elif 'NEEDS ATTENTION' in output or 'FAIR' in output or 'WARNING' in output:
+            status = 'NEEDS_ATTENTION'
+    
+    # Return standard format
+    return {
+        'summary': {
+            'total_issues': 0 if status in ('GOOD', 'UNKNOWN') else 1,
+            'files_affected': 0,
+            'status': status
+        },
+        'details': {
+            'output': output,
+            'work_type': work_type
+        }
+    }
 
 
-def execute(project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs) -> str:
+def execute(project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs) -> Dict:
     """Execute validation (for use by run_development_tools)."""
     work_type = kwargs.pop('work_type', 'documentation')
     return analyze_ai_work(work_type, project_root=project_root, config_path=config_path, **kwargs)
@@ -373,6 +397,7 @@ if __name__ == "__main__":
     parser.add_argument('--created-files', nargs='*', help='Created files to validate (for file_creation type)')
     parser.add_argument('--modified-files', nargs='*', help='Modified files to validate (for file_creation type)')
     
+    parser.add_argument('--json', action='store_true', help='Output results as JSON in standard format')
     args = parser.parse_args()
     
     kwargs = {}
@@ -388,9 +413,15 @@ if __name__ == "__main__":
         kwargs['modified_files'] = args.modified_files
     
     result = analyze_ai_work(args.work_type, **kwargs)
-    
-    # Print to stdout so subprocess.run can capture it
-    print(result)
-    # Also log for debugging (but not the full output)
-    if len(result) < 500:  # Only log short outputs
-        logger.info(result)
+
+    if args.json:
+        # Output JSON in standard format
+        import json
+        print(json.dumps(result, indent=2))
+    else:
+        # Print text output for backward compatibility
+        output = result.get('details', {}).get('output', '')
+        print(output)
+        # Also log for debugging (but not the full output)
+        if len(output) < 500:  # Only log short outputs
+            logger.info(output)

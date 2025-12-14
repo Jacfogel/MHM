@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-14 05:08:59
+> **Last Generated**: 2025-12-14 06:18:59
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 6
 **Legacy Compatibility Markers Detected**: 35
@@ -118,57 +118,57 @@
 ### development_tools\shared\operations.py
 **Issues Found**: 11
 
-- **Line 879**: `# LEGACY COMPATIBILITY:`
+- **Line 927**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Reading from old file location for backward compatibility
   ```
 
-- **Line 1046**: `# LEGACY COMPATIBILITY:`
+- **Line 1105**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Handle both standard format (new) and legacy format (old)
   ```
 
-- **Line 3218**: `# LEGACY COMPATIBILITY:`
+- **Line 3298**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Ensure data is in standard format
   ```
 
-- **Line 4309**: `# LEGACY COMPATIBILITY:`
+- **Line 4417**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Convert back to legacy format for backward compatibility with existing code
   ```
 
-- **Line 4323**: `# LEGACY COMPATIBILITY:`
+- **Line 4431**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
   ```
 
-- **Line 4379**: `# LEGACY COMPATIBILITY:`
+- **Line 4487**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
   ```
 
-- **Line 4424**: `# LEGACY COMPATIBILITY:`
+- **Line 4532**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
   ```
 
-- **Line 4468**: `# LEGACY COMPATIBILITY:`
+- **Line 4576**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
   ```
 
-- **Line 4505**: `# LEGACY COMPATIBILITY:`
+- **Line 4613**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
   ```
 
-- **Line 6370**: `# LEGACY COMPATIBILITY:`
+- **Line 6573**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Reading from old file location for backward compatibility
   ```
 
-- **Line 10392**: `# LEGACY COMPATIBILITY:`
+- **Line 10643**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Handle deprecated --fast flag
   ```

@@ -137,7 +137,26 @@ Pipeline artifacts:
 - **consolidated_report.txt**: Comprehensive details including all metrics from AI_STATUS plus detailed example lists in the Function Patterns section
 - Human-facing: [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md), [MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md), [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md), [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)
 - Coverage: `coverage.json` (project root), `tests/coverage_html/` (project root), `development_tools/reports/archive/coverage_artifacts/<timestamp>/`
-- Cached snapshots: `status` loads data from `reports/analysis_detailed_results.json` (complexity, validation, system signals); confirm timestamps before trusting.
+- Cached snapshots: `status` loads data from `reports/analysis_detailed_results.json` (complexity, validation, system signals); confirm timestamps before trusting
+
+**Tool Output Format (Standard Format - 2025-12-14)**:
+- All 19 analysis tools now output JSON in a standardized structure for consistent data aggregation:
+  ```json
+  {
+    "summary": {
+      "total_issues": <number>,
+      "files_affected": <number>,
+      "status": "<PASS|FAIL|WARN>" (optional)
+    },
+    "details": {
+      // Tool-specific data (original metrics, findings, etc.)
+    }
+  }
+  ```
+- Tools support `--json` flag to output standard format directly when run standalone
+- Normalization layer in `development_tools/shared/result_format.py` provides backward compatibility for any legacy formats
+- Report generation code automatically detects and handles standard format, accessing data from `details` section
+- This standardization enables consistent data aggregation, easier tool integration, and simplified report generation.
 
 **When to run each command**: See "Standard Audit Recipe" section in [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) for guidance on day-to-day checks (`audit`), pre-merge/pre-release checks (`audit --full`), and documentation work (`doc-sync`, `docs`).
 
@@ -232,6 +251,7 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 
 - Follow the audit-first workflow (see [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)) before touching documentation or infrastructure
 - **Caching Infrastructure**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The utility handles cache loading, saving, and validation automatically. Currently used by: `analyze_unused_imports.py`, `analyze_ascii_compliance.py`, `analyze_missing_addresses.py`. Other analyzers that scan files (e.g., `analyze_path_drift.py`, `analyze_unconverted_links.py`, `analyze_heading_numbering.py`) could benefit from this utility as well.
+- **Output Format Standardization (2025-12-14)**: All 19 analysis tools now output JSON in a standardized structure with `summary` (total_issues, files_affected, status) and `details` (tool-specific data). This enables consistent data aggregation and simplified report generation. Tools support `--json` flag for direct standard format output. The normalization layer in `shared/result_format.py` provides backward compatibility for any legacy formats.
 - When adding or relocating tools, update:
   - `shared/tool_metadata.py`
   - This guide and the AI guide (paired H2 requirements)

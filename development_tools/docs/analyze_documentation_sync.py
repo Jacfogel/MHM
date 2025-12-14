@@ -112,30 +112,36 @@ class DocumentationSyncChecker:
     
     def run_checks(self) -> Dict[str, any]:
         """
-        Run paired documentation synchronization checks.
+        Run paired documentation synchronization checks and return results in standard format.
         
         Note: Other documentation checks (path drift, ASCII compliance, etc.)
         have been decomposed into separate tools. This method only checks
         paired documentation consistency.
+        
+        Returns:
+            Dictionary with standard format: 'summary', and 'details' keys
         """
         if logger:
             logger.info("Running paired documentation synchronization checks...")
         
-        results = {
-            'paired_docs': self.check_paired_documentation(),
-            'summary': {}
-        }
+        paired_docs = self.check_paired_documentation()
         
         # Generate summary
-        total_issues = sum(len(issues) for issues in results['paired_docs'].values())
+        total_issues = sum(len(issues) for issues in paired_docs.values())
+        status = 'PASS' if total_issues == 0 else 'FAIL'
         
-        results['summary'] = {
+        # Return standard format
+        return {
+            'summary': {
             'total_issues': total_issues,
+                'files_affected': 0,  # Not file-based
+                'status': status
+            },
+            'details': {
             'paired_doc_issues': total_issues,
-            'status': 'PASS' if total_issues == 0 else 'FAIL'
+                'paired_docs': paired_docs
+            }
         }
-        
-        return results
     
     def print_report(self, results: Dict[str, any]):
         """Print a formatted report of the results."""
@@ -164,8 +170,10 @@ class DocumentationSyncChecker:
 
 def main():
     """Main entry point."""
+    import json
     parser = argparse.ArgumentParser(description="Check paired documentation synchronization")
     parser.add_argument('--check', action='store_true', help='Run paired documentation checks (default: always runs)')
+    parser.add_argument('--json', action='store_true', help='Output results as JSON in standard format')
     
     args = parser.parse_args()
     
@@ -174,7 +182,21 @@ def main():
     # Always run checks by default (this is an analysis tool)
     # The --check flag is maintained for backward compatibility but has no effect
     results = checker.run_checks()
-    checker.print_report(results)
+    
+    if args.json:
+        # Output JSON in standard format
+        print(json.dumps(results, indent=2))
+    else:
+        # Convert to old format for print_report compatibility
+        legacy_results = {
+            'summary': {
+                'total_issues': results['summary']['total_issues'],
+                'paired_doc_issues': results['details']['paired_doc_issues'],
+                'status': results['summary']['status']
+            },
+            'paired_docs': results['details']['paired_docs']
+        }
+        checker.print_report(legacy_results)
 
 
 if __name__ == "__main__":

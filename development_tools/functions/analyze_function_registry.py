@@ -614,31 +614,42 @@ def execute(args: argparse.Namespace, project_root: Optional[Path] = None, confi
         except Exception as e:
             raise
         totals_for_payload = metrics.get("totals", {})
+        missing_count = metrics.get("missing_count", 0)
+        extra_count = metrics.get("extra_count", 0)
+        total_issues = missing_count + extra_count
+        
+        # Return standard format
         payload = {
-            "totals": totals_for_payload,
-            "coverage": round(metrics.get("coverage", 0.0), 2),
-            "missing": {
-                "count": metrics.get("missing_count", 0),
-                "files": metrics.get("missing_by_file", {}),
-                "missing_files": metrics.get("missing_files", []),
+            "summary": {
+                "total_issues": total_issues,
+                "files_affected": 0  # Not file-based
             },
-            "extra": {
-                "count": metrics.get("extra_count", 0),
-                "files": metrics.get("extra_by_file", {}),
-            },
-            "analysis": {
-                "high_complexity": analysis["high_complexity"],
-                "high_complexity_total": analysis["high_complexity_total"],
-                "undocumented_handlers": analysis["undocumented_handlers"],
-                "undocumented_handlers_total": analysis["undocumented_handlers_total"],
-                "undocumented_other": analysis["undocumented_other"],
-                "undocumented_other_total": analysis["undocumented_other_total"],
-                "duplicates": analysis["duplicates"],
-                "duplicate_count": analysis["duplicate_count"],
-                "duplicate_sample": analysis["duplicate_sample"],
-            },
-            "registry_sections": sections,
-            "errors": errors,
+            "details": {
+                "totals": totals_for_payload,
+                "coverage": round(metrics.get("coverage", 0.0), 2),
+                "missing": {
+                    "count": missing_count,
+                    "files": metrics.get("missing_by_file", {}),
+                    "missing_files": metrics.get("missing_files", []),
+                },
+                "extra": {
+                    "count": extra_count,
+                    "files": metrics.get("extra_by_file", {}),
+                },
+                "analysis": {
+                    "high_complexity": analysis["high_complexity"],
+                    "high_complexity_total": analysis["high_complexity_total"],
+                    "undocumented_handlers": analysis["undocumented_handlers"],
+                    "undocumented_handlers_total": analysis["undocumented_handlers_total"],
+                    "undocumented_other": analysis["undocumented_other"],
+                    "undocumented_other_total": analysis["undocumented_other_total"],
+                    "duplicates": analysis["duplicates"],
+                    "duplicate_count": analysis["duplicate_count"],
+                    "duplicate_sample": analysis["duplicate_sample"],
+                },
+                "registry_sections": sections,
+                "errors": errors,
+            }
         }
         exit_code = 0
         if metrics.get("missing_count", 0) or metrics.get("extra_count", 0) or errors:
