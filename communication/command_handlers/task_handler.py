@@ -27,10 +27,12 @@ class TaskManagementHandler(InteractionHandler):
     
     @handle_errors("checking if can handle intent")
     def can_handle(self, intent: str) -> bool:
+        """Check if this handler can handle the given intent."""
         return intent in ['create_task', 'list_tasks', 'complete_task', 'delete_task', 'update_task', 'task_stats']
     
     @handle_errors("handling task management interaction", default_return=InteractionResponse("I'm having trouble with task management right now. Please try again.", True))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
+        """Handle task management interactions."""
         intent = parsed_command.intent
         entities = parsed_command.entities
         
@@ -659,10 +661,12 @@ class TaskManagementHandler(InteractionHandler):
     
     @handle_errors("getting help")
     def get_help(self) -> str:
+        """Get help text for task management commands."""
         return "Help with task management - create, list, complete, delete, and update tasks"
     
     @handle_errors("getting examples")
     def get_examples(self) -> List[str]:
+        """Get example commands for task management."""
         return [
             "create task 'Call mom tomorrow'",
             "list tasks",

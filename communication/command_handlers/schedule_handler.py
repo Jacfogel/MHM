@@ -16,10 +16,12 @@ class ScheduleManagementHandler(InteractionHandler):
     
     @handle_errors("checking if can handle schedule intent", default_return=False)
     def can_handle(self, intent: str) -> bool:
+        """Check if this handler can handle the given intent."""
         return intent in ['show_schedule', 'update_schedule', 'schedule_status', 'add_schedule_period', 'edit_schedule_period']
     
     @handle_errors("handling schedule management interaction", default_return=InteractionResponse("I'm having trouble with schedule management right now. Please try again.", True))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
+        """Handle schedule management interactions."""
         intent = parsed_command.intent
         entities = parsed_command.entities
         
@@ -444,10 +446,12 @@ class ScheduleManagementHandler(InteractionHandler):
     
     @handle_errors("getting schedule help", default_return="Help with schedule management - manage your message, task, and check-in schedules")
     def get_help(self) -> str:
+        """Get help text for schedule management commands."""
         return "Help with schedule management - manage your message, task, and check-in schedules"
     
     @handle_errors("getting schedule examples", default_return=[])
     def get_examples(self) -> List[str]:
+        """Get example commands for schedule management."""
         return [
             "show schedule",
             "show my task schedule",

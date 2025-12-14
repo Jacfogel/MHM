@@ -356,7 +356,7 @@ def analyze_ai_work(work_type: str, project_root: Optional[str] = None, config_p
 
 def execute(project_root: Optional[str] = None, config_path: Optional[str] = None, **kwargs) -> str:
     """Execute validation (for use by run_development_tools)."""
-    work_type = kwargs.get('work_type', 'documentation')
+    work_type = kwargs.pop('work_type', 'documentation')
     return analyze_ai_work(work_type, project_root=project_root, config_path=config_path, **kwargs)
 
 

@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-14 - Standardized Report Format and Fixed Test Suite Timeout **COMPLETED**
+- **Report Format Standardization**: Standardized report format across AI_STATUS.md, AI_PRIORITIES.md, and consolidated_report.txt. AI_STATUS.md now shows "Function Docstring Coverage" with explicit missing count (e.g., "23 functions missing docstrings") and separate "Registry Gaps" metric. AI_PRIORITIES.md includes prioritized example lists with ", ... +N more" format showing top 5 by complexity. Consolidated all docstring metrics into Function Patterns section. Updated `analyze_functions.py` to include `undocumented_examples` in JSON output.
+- **Test Suite Timeout Fix**: Fixed test suite timeout issues - reduced pytest timeout from 30 to 15 minutes, outer script timeout from 30 to 20 minutes. Added timeouts to all coverage subprocess calls (combine: 60s, html: 600s, json: 120s) with better error messages for diagnosis.
+- **Documentation Cleanup**: Removed redundant files (SESSION_SUMMARY_2025-12-07.md, DOCUMENTATION_DETECTION_VALIDATION.md) - information preserved in improvement plan and changelogs.
+- **Impact**: Reports show consistent, prioritized information. Test suite completes successfully without hanging. Documentation is cleaner with redundant files removed.
+
 ### 2025-12-13 - Standardized Tool Output and Improved Report Display **COMPLETED**
 - **Tool Migration**: Migrated 6 analysis tools to output standard format directly: `analyze_ascii_compliance`, `analyze_heading_numbering`, `analyze_missing_addresses`, `analyze_unconverted_links`, `analyze_path_drift`, and `analyze_unused_imports`. Added `run_analysis()` methods returning standard format with `summary`, `files`, and `details` sections. Updated `main()` functions to support `--json` output. Updated `operations.py` to call tools with `--json` flag and parse JSON output.
 - **Legacy Compatibility**: Added backward compatibility handling for legacy formats with proper `# LEGACY COMPATIBILITY:` markers, logging when legacy paths are exercised, and removal plan documentation. Detection patterns already exist in `analyze_legacy_references.py` for `# LEGACY COMPATIBILITY:` markers.

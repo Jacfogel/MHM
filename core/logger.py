@@ -1133,14 +1133,19 @@ def get_log_file_info():
             
             for backup_file in backup_file_paths:
                 if os.path.exists(backup_file):
-                    file_size = os.path.getsize(backup_file)
-                    backup_total_size += file_size
-                    backup_file_info.append({
-                        'name': os.path.basename(backup_file),
-                        'location': 'backup',
-                        'size_bytes': file_size,
-                        'size_mb': round(file_size / (1024 * 1024), 2)
-                    })
+                    try:
+                        file_size = os.path.getsize(backup_file)
+                        backup_total_size += file_size
+                        backup_file_info.append({
+                            'name': os.path.basename(backup_file),
+                            'location': 'backup',
+                            'size_bytes': file_size,
+                            'size_mb': round(file_size / (1024 * 1024), 2)
+                        })
+                    except (OSError, FileNotFoundError):
+                        # File was deleted between existence check and size check
+                        # Skip it and continue
+                        continue
         
         # Calculate total size
         total_size = current_log_size + backup_total_size

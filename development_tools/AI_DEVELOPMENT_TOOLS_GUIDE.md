@@ -104,6 +104,11 @@ python development_tools/run_development_tools.py help
 - Central aggregation: `development_tools/reports/analysis_detailed_results.json`
 - Domain-specific JSON: Individual tool results in `development_tools/{domain}/jsons/{tool}_results.json` (with automatic archiving)
 
+**Report Format Standards**:
+- **AI_STATUS.md**: High-level summary including Function Docstring Coverage (with missing count) and Registry Gaps (separate metrics)
+- **AI_PRIORITIES.md**: Actionable priorities with prioritized example lists (functions and handler classes) using ", ... +N" format when there are more items
+- **consolidated_report.txt**: Comprehensive details including all metrics from AI_STATUS plus detailed example lists in the Function Patterns section
+
 **Tool Output Storage**:
 - Individual tool results: `development_tools/{domain}/jsons/{tool}_results.json` (e.g., `functions/jsons/analyze_functions_results.json`)
 - Cache files: `development_tools/{domain}/jsons/.{tool}_cache.json`

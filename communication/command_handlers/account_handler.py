@@ -363,10 +363,12 @@ class AccountManagementHandler(InteractionHandler):
     
     @handle_errors("getting account handler help")
     def get_help(self) -> str:
+        """Get help text for account management commands."""
         return "Account management - create or link your MHM account"
     
     @handle_errors("getting account handler examples")
     def get_examples(self) -> List[str]:
+        """Get example commands for account management."""
         return [
             "create account",
             "link account",

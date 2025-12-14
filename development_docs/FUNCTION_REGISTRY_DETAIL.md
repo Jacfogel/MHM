@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-07 01:03:44
+> **Last Generated**: 2025-12-13 22:52:32
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 91.2% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 94.7% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 107
 - **Functions Found**: 1500
 - **Methods Found**: 1143
 - **Classes Found**: 159
 - **Total Items**: 2643
-- **Functions Documented**: 1371
-- **Methods Documented**: 1039
+- **Functions Documented**: 1417
+- **Methods Documented**: 1085
 - **Classes Documented**: 124
-- **Total Documented**: 2410
+- **Total Documented**: 2502
 - **Template-Generated**: 36
-- **Last Updated**: 2025-12-07
+- **Last Updated**: 2025-12-13
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -677,8 +677,8 @@ Args:
     channel_identifier: Channel-specific identifier (Discord user ID, etc.) - used for message context only
 - [OK] `_username_exists(self, username)` - Check if a username already exists in the system
 - [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent
-- [MISSING] `get_examples(self)` - No description
-- [MISSING] `get_help(self)` - No description
+- [OK] `get_examples(self)` - Get example commands for account management.
+- [OK] `get_help(self)` - Get help text for account management commands.
 - [OK] `handle(self, user_id, parsed_command)` - Handle account management interactions
 **Classes:**
 - [OK] `AccountManagementHandler` - Handler for account management interactions
@@ -702,8 +702,8 @@ Returns:
     InteractionResponse with account linking result
   - [OK] `AccountManagementHandler._username_exists(self, username)` - Check if a username already exists in the system
   - [OK] `AccountManagementHandler.can_handle(self, intent)` - Check if this handler can handle the given intent
-  - [MISSING] `AccountManagementHandler.get_examples(self)` - No description
-  - [MISSING] `AccountManagementHandler.get_help(self)` - No description
+  - [OK] `AccountManagementHandler.get_examples(self)` - Get example commands for account management.
+  - [OK] `AccountManagementHandler.get_help(self)` - Get help text for account management commands.
   - [OK] `AccountManagementHandler.handle(self, user_id, parsed_command)` - Handle account management interactions
 
 #### `communication/command_handlers/analytics_handler.py`
@@ -725,10 +725,10 @@ Returns:
 - [OK] `_handle_task_stats(self, user_id, entities)` - Show detailed task statistics
 - [OK] `_handle_wellness_score(self, user_id, entities)` - Show wellness score
 - [OK] `_truncate_response(self, response, max_length)` - Truncate response to fit Discord message limits
-- [MISSING] `can_handle(self, intent)` - No description
-- [MISSING] `get_examples(self)` - No description
-- [MISSING] `get_help(self)` - No description
-- [MISSING] `handle(self, user_id, parsed_command)` - No description
+- [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
+- [OK] `get_examples(self)` - Get example commands for analytics.
+- [OK] `get_help(self)` - Get help text for analytics commands.
+- [OK] `handle(self, user_id, parsed_command)` - Handle analytics and insights interactions.
 **Classes:**
 - [OK] `AnalyticsHandler` - Handler for analytics and insights interactions
   - [OK] `AnalyticsHandler._get_field_scale(self, field)` - Determine the scale for a field (1-5 scale, or None for other types)
@@ -748,10 +748,10 @@ Returns:
   - [OK] `AnalyticsHandler._handle_task_stats(self, user_id, entities)` - Show detailed task statistics
   - [OK] `AnalyticsHandler._handle_wellness_score(self, user_id, entities)` - Show wellness score
   - [OK] `AnalyticsHandler._truncate_response(self, response, max_length)` - Truncate response to fit Discord message limits
-  - [MISSING] `AnalyticsHandler.can_handle(self, intent)` - No description
-  - [MISSING] `AnalyticsHandler.get_examples(self)` - No description
-  - [MISSING] `AnalyticsHandler.get_help(self)` - No description
-  - [MISSING] `AnalyticsHandler.handle(self, user_id, parsed_command)` - No description
+  - [OK] `AnalyticsHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
+  - [OK] `AnalyticsHandler.get_examples(self)` - Get example commands for analytics.
+  - [OK] `AnalyticsHandler.get_help(self)` - Get help text for analytics commands.
+  - [OK] `AnalyticsHandler.handle(self, user_id, parsed_command)` - Handle analytics and insights interactions.
 
 #### `communication/command_handlers/base_handler.py`
 **Functions:**
@@ -825,19 +825,19 @@ Returns:
 - [OK] `_handle_checkin_status(self, user_id)` - Handle check-in status request
 - [OK] `_handle_continue_checkin(self, user_id, entities)` - Handle continuing a check-in
 - [OK] `_handle_start_checkin(self, user_id)` - Handle starting a check-in by delegating to conversation manager
-- [MISSING] `can_handle(self, intent)` - No description
-- [MISSING] `get_examples(self)` - No description
-- [MISSING] `get_help(self)` - No description
-- [MISSING] `handle(self, user_id, parsed_command)` - No description
+- [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
+- [OK] `get_examples(self)` - Get example commands for check-ins.
+- [OK] `get_help(self)` - Get help text for check-in commands.
+- [OK] `handle(self, user_id, parsed_command)` - Handle check-in interactions.
 **Classes:**
 - [OK] `CheckinHandler` - Handler for check-in interactions
   - [OK] `CheckinHandler._handle_checkin_status(self, user_id)` - Handle check-in status request
   - [OK] `CheckinHandler._handle_continue_checkin(self, user_id, entities)` - Handle continuing a check-in
   - [OK] `CheckinHandler._handle_start_checkin(self, user_id)` - Handle starting a check-in by delegating to conversation manager
-  - [MISSING] `CheckinHandler.can_handle(self, intent)` - No description
-  - [MISSING] `CheckinHandler.get_examples(self)` - No description
-  - [MISSING] `CheckinHandler.get_help(self)` - No description
-  - [MISSING] `CheckinHandler.handle(self, user_id, parsed_command)` - No description
+  - [OK] `CheckinHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
+  - [OK] `CheckinHandler.get_examples(self)` - Get example commands for check-ins.
+  - [OK] `CheckinHandler.get_help(self)` - Get help text for check-in commands.
+  - [OK] `CheckinHandler.handle(self, user_id, parsed_command)` - Handle check-in interactions.
 
 #### `communication/command_handlers/interaction_handlers.py`
 **Functions:**
@@ -895,35 +895,35 @@ Returns:
 - [OK] `_handle_update_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id
 - [OK] `_handle_wellness_score(self, user_id, entities)` - Show wellness score
 - [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent
-- [MISSING] `can_handle(self, intent)` - No description
-- [MISSING] `can_handle(self, intent)` - No description
-- [MISSING] `can_handle(self, intent)` - No description
-- [MISSING] `can_handle(self, intent)` - No description
-- [MISSING] `can_handle(self, intent)` - No description
-- [MISSING] `can_handle(self, intent)` - No description
+- [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
+- [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
+- [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
+- [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
+- [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
+- [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
 - [OK] `get_all_handlers()` - Get all registered handlers
 - [OK] `get_examples(self)` - Get example commands for this handler
-- [MISSING] `get_examples(self)` - No description
-- [MISSING] `get_examples(self)` - No description
-- [MISSING] `get_examples(self)` - No description
-- [MISSING] `get_examples(self)` - No description
-- [MISSING] `get_examples(self)` - No description
-- [MISSING] `get_examples(self)` - No description
+- [OK] `get_examples(self)` - Get example commands for task management.
+- [OK] `get_examples(self)` - Get example commands for check-ins.
+- [OK] `get_examples(self)` - Get example commands for profile management.
+- [OK] `get_examples(self)` - Get example commands for help.
+- [OK] `get_examples(self)` - Get example commands for schedule management.
+- [OK] `get_examples(self)` - Get example commands for analytics.
 - [OK] `get_help(self)` - Get help text for this handler
-- [MISSING] `get_help(self)` - No description
-- [MISSING] `get_help(self)` - No description
-- [MISSING] `get_help(self)` - No description
-- [MISSING] `get_help(self)` - No description
-- [MISSING] `get_help(self)` - No description
-- [MISSING] `get_help(self)` - No description
+- [OK] `get_help(self)` - Get help text for task management commands.
+- [OK] `get_help(self)` - Get help text for check-in commands.
+- [OK] `get_help(self)` - Get help text for profile management commands.
+- [OK] `get_help(self)` - Get help text for help commands.
+- [OK] `get_help(self)` - Get help text for schedule management commands.
+- [OK] `get_help(self)` - Get help text for analytics commands.
 - [OK] `get_interaction_handler(intent)` - Get the appropriate handler for an intent
 - [OK] `handle(self, user_id, parsed_command)` - Handle the interaction and return a response
-- [MISSING] `handle(self, user_id, parsed_command)` - No description
-- [MISSING] `handle(self, user_id, parsed_command)` - No description
-- [MISSING] `handle(self, user_id, parsed_command)` - No description
-- [MISSING] `handle(self, user_id, parsed_command)` - No description
-- [MISSING] `handle(self, user_id, parsed_command)` - No description
-- [MISSING] `handle(self, user_id, parsed_command)` - No description
+- [OK] `handle(self, user_id, parsed_command)` - Handle task management interactions.
+- [OK] `handle(self, user_id, parsed_command)` - Handle check-in interactions.
+- [OK] `handle(self, user_id, parsed_command)` - Handle profile management interactions.
+- [OK] `handle(self, user_id, parsed_command)` - Handle help and command information interactions.
+- [OK] `handle(self, user_id, parsed_command)` - Handle schedule management interactions.
+- [OK] `handle(self, user_id, parsed_command)` - Handle analytics and insights interactions.
 **Classes:**
 - [OK] `AnalyticsHandler` - Handler for analytics and insights interactions
   - [OK] `AnalyticsHandler._get_field_scale(self, field)` - Determine the scale for a field (1-5 scale, or None for other types)
@@ -939,28 +939,28 @@ Returns:
   - [OK] `AnalyticsHandler._handle_show_analytics(self, user_id, entities)` - Show comprehensive analytics overview
   - [OK] `AnalyticsHandler._handle_sleep_analysis(self, user_id, entities)` - Show sleep analysis
   - [OK] `AnalyticsHandler._handle_wellness_score(self, user_id, entities)` - Show wellness score
-  - [MISSING] `AnalyticsHandler.can_handle(self, intent)` - No description
-  - [MISSING] `AnalyticsHandler.get_examples(self)` - No description
-  - [MISSING] `AnalyticsHandler.get_help(self)` - No description
-  - [MISSING] `AnalyticsHandler.handle(self, user_id, parsed_command)` - No description
+  - [OK] `AnalyticsHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
+  - [OK] `AnalyticsHandler.get_examples(self)` - Get example commands for analytics.
+  - [OK] `AnalyticsHandler.get_help(self)` - Get help text for analytics commands.
+  - [OK] `AnalyticsHandler.handle(self, user_id, parsed_command)` - Handle analytics and insights interactions.
 - [OK] `CheckinHandler` - Handler for check-in interactions
   - [OK] `CheckinHandler._handle_checkin_status(self, user_id)` - Handle check-in status request
   - [OK] `CheckinHandler._handle_continue_checkin(self, user_id, entities)` - Handle continuing a check-in
   - [OK] `CheckinHandler._handle_start_checkin(self, user_id)` - Handle starting a check-in by delegating to conversation manager
-  - [MISSING] `CheckinHandler.can_handle(self, intent)` - No description
-  - [MISSING] `CheckinHandler.get_examples(self)` - No description
-  - [MISSING] `CheckinHandler.get_help(self)` - No description
-  - [MISSING] `CheckinHandler.handle(self, user_id, parsed_command)` - No description
+  - [OK] `CheckinHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
+  - [OK] `CheckinHandler.get_examples(self)` - Get example commands for check-ins.
+  - [OK] `CheckinHandler.get_help(self)` - Get help text for check-in commands.
+  - [OK] `CheckinHandler.handle(self, user_id, parsed_command)` - Handle check-in interactions.
 - [OK] `HelpHandler` - Handler for help and command information
   - [OK] `HelpHandler._handle_commands_list(self, user_id)` - Handle commands list request
   - [OK] `HelpHandler._handle_examples(self, user_id, entities)` - Handle examples request
   - [OK] `HelpHandler._handle_general_help(self, user_id, entities)` - Handle general help request
   - [OK] `HelpHandler._handle_messages(self, user_id)` - Handle messages request with message history and settings
   - [OK] `HelpHandler._handle_status(self, user_id)` - Handle status request with detailed system information
-  - [MISSING] `HelpHandler.can_handle(self, intent)` - No description
-  - [MISSING] `HelpHandler.get_examples(self)` - No description
-  - [MISSING] `HelpHandler.get_help(self)` - No description
-  - [MISSING] `HelpHandler.handle(self, user_id, parsed_command)` - No description
+  - [OK] `HelpHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
+  - [OK] `HelpHandler.get_examples(self)` - Get example commands for help.
+  - [OK] `HelpHandler.get_help(self)` - Get help text for help commands.
+  - [OK] `HelpHandler.handle(self, user_id, parsed_command)` - Handle help and command information interactions.
 - [OK] `InteractionHandler` - Abstract base class for interaction handlers
   - [OK] `InteractionHandler.can_handle(self, intent)` - Check if this handler can handle the given intent
   - [OK] `InteractionHandler.get_examples(self)` - Get example commands for this handler
@@ -970,10 +970,10 @@ Returns:
   - [OK] `ProfileHandler._handle_profile_stats(self, user_id)` - Handle profile statistics
   - [OK] `ProfileHandler._handle_show_profile(self, user_id)` - Handle showing user profile with comprehensive personalization data
   - [OK] `ProfileHandler._handle_update_profile(self, user_id, entities)` - Handle comprehensive profile updates
-  - [MISSING] `ProfileHandler.can_handle(self, intent)` - No description
-  - [MISSING] `ProfileHandler.get_examples(self)` - No description
-  - [MISSING] `ProfileHandler.get_help(self)` - No description
-  - [MISSING] `ProfileHandler.handle(self, user_id, parsed_command)` - No description
+  - [OK] `ProfileHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
+  - [OK] `ProfileHandler.get_examples(self)` - Get example commands for profile management.
+  - [OK] `ProfileHandler.get_help(self)` - Get help text for profile management commands.
+  - [OK] `ProfileHandler.handle(self, user_id, parsed_command)` - Handle profile management interactions.
 - [OK] `ScheduleManagementHandler` - Handler for schedule management interactions
   - [OK] `ScheduleManagementHandler._handle_add_schedule_period(self, user_id, entities)` - Add a new schedule period with enhanced options
   - [OK] `ScheduleManagementHandler._handle_add_schedule_period__parse_time_format(self, time_str)` - Parse various time formats and convert to standard format
@@ -982,10 +982,10 @@ Returns:
   - [OK] `ScheduleManagementHandler._handle_schedule_status(self, user_id, entities)` - Show status of schedules
   - [OK] `ScheduleManagementHandler._handle_show_schedule(self, user_id, entities)` - Show schedule for a specific category or all categories
   - [OK] `ScheduleManagementHandler._handle_update_schedule(self, user_id, entities)` - Update schedule settings
-  - [MISSING] `ScheduleManagementHandler.can_handle(self, intent)` - No description
-  - [MISSING] `ScheduleManagementHandler.get_examples(self)` - No description
-  - [MISSING] `ScheduleManagementHandler.get_help(self)` - No description
-  - [MISSING] `ScheduleManagementHandler.handle(self, user_id, parsed_command)` - No description
+  - [OK] `ScheduleManagementHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
+  - [OK] `ScheduleManagementHandler.get_examples(self)` - Get example commands for schedule management.
+  - [OK] `ScheduleManagementHandler.get_help(self)` - Get help text for schedule management commands.
+  - [OK] `ScheduleManagementHandler.handle(self, user_id, parsed_command)` - Handle schedule management interactions.
 - [OK] `TaskManagementHandler` - Handler for task management interactions
   - [OK] `TaskManagementHandler._get_task_candidates(self, tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
   - [OK] `TaskManagementHandler._handle_complete_task(self, user_id, entities)` - Handle task completion
@@ -1009,10 +1009,10 @@ Returns:
   - [OK] `TaskManagementHandler._handle_task_stats(self, user_id, entities)` - Handle task statistics with dynamic time periods
   - [OK] `TaskManagementHandler._handle_update_task(self, user_id, entities)` - Handle task updates
   - [OK] `TaskManagementHandler._handle_update_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id
-  - [MISSING] `TaskManagementHandler.can_handle(self, intent)` - No description
-  - [MISSING] `TaskManagementHandler.get_examples(self)` - No description
-  - [MISSING] `TaskManagementHandler.get_help(self)` - No description
-  - [MISSING] `TaskManagementHandler.handle(self, user_id, parsed_command)` - No description
+  - [OK] `TaskManagementHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
+  - [OK] `TaskManagementHandler.get_examples(self)` - Get example commands for task management.
+  - [OK] `TaskManagementHandler.get_help(self)` - Get help text for task management commands.
+  - [OK] `TaskManagementHandler.handle(self, user_id, parsed_command)` - Handle task management interactions.
 
 #### `communication/command_handlers/profile_handler.py`
 **Functions:**
@@ -1020,20 +1020,20 @@ Returns:
 - [OK] `_handle_profile_stats(self, user_id)` - Handle profile statistics
 - [OK] `_handle_show_profile(self, user_id)` - Handle showing user profile with comprehensive personalization data
 - [OK] `_handle_update_profile(self, user_id, entities)` - Handle comprehensive profile updates
-- [MISSING] `can_handle(self, intent)` - No description
-- [MISSING] `get_examples(self)` - No description
-- [MISSING] `get_help(self)` - No description
-- [MISSING] `handle(self, user_id, parsed_command)` - No description
+- [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
+- [OK] `get_examples(self)` - Get example commands for profile management.
+- [OK] `get_help(self)` - Get help text for profile management commands.
+- [OK] `handle(self, user_id, parsed_command)` - Handle profile management interactions.
 **Classes:**
 - [OK] `ProfileHandler` - Handler for profile management interactions
   - [OK] `ProfileHandler._format_profile_text(self, account_data, context_data, preferences_data)` - Create a clean, readable profile string for channels like Discord.
   - [OK] `ProfileHandler._handle_profile_stats(self, user_id)` - Handle profile statistics
   - [OK] `ProfileHandler._handle_show_profile(self, user_id)` - Handle showing user profile with comprehensive personalization data
   - [OK] `ProfileHandler._handle_update_profile(self, user_id, entities)` - Handle comprehensive profile updates
-  - [MISSING] `ProfileHandler.can_handle(self, intent)` - No description
-  - [MISSING] `ProfileHandler.get_examples(self)` - No description
-  - [MISSING] `ProfileHandler.get_help(self)` - No description
-  - [MISSING] `ProfileHandler.handle(self, user_id, parsed_command)` - No description
+  - [OK] `ProfileHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
+  - [OK] `ProfileHandler.get_examples(self)` - Get example commands for profile management.
+  - [OK] `ProfileHandler.get_help(self)` - Get help text for profile management commands.
+  - [OK] `ProfileHandler.handle(self, user_id, parsed_command)` - Handle profile management interactions.
 
 #### `communication/command_handlers/schedule_handler.py`
 **Functions:**
@@ -1044,10 +1044,10 @@ Returns:
 - [OK] `_handle_schedule_status(self, user_id, entities)` - Show status of schedules
 - [OK] `_handle_show_schedule(self, user_id, entities)` - Show schedule for a specific category or all categories
 - [OK] `_handle_update_schedule(self, user_id, entities)` - Update schedule settings
-- [MISSING] `can_handle(self, intent)` - No description
-- [MISSING] `get_examples(self)` - No description
-- [MISSING] `get_help(self)` - No description
-- [MISSING] `handle(self, user_id, parsed_command)` - No description
+- [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
+- [OK] `get_examples(self)` - Get example commands for schedule management.
+- [OK] `get_help(self)` - Get help text for schedule management commands.
+- [OK] `handle(self, user_id, parsed_command)` - Handle schedule management interactions.
 **Classes:**
 - [OK] `ScheduleManagementHandler` - Handler for schedule management interactions
   - [OK] `ScheduleManagementHandler._handle_add_schedule_period(self, user_id, entities)` - Add a new schedule period with enhanced options
@@ -1057,10 +1057,10 @@ Returns:
   - [OK] `ScheduleManagementHandler._handle_schedule_status(self, user_id, entities)` - Show status of schedules
   - [OK] `ScheduleManagementHandler._handle_show_schedule(self, user_id, entities)` - Show schedule for a specific category or all categories
   - [OK] `ScheduleManagementHandler._handle_update_schedule(self, user_id, entities)` - Update schedule settings
-  - [MISSING] `ScheduleManagementHandler.can_handle(self, intent)` - No description
-  - [MISSING] `ScheduleManagementHandler.get_examples(self)` - No description
-  - [MISSING] `ScheduleManagementHandler.get_help(self)` - No description
-  - [MISSING] `ScheduleManagementHandler.handle(self, user_id, parsed_command)` - No description
+  - [OK] `ScheduleManagementHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
+  - [OK] `ScheduleManagementHandler.get_examples(self)` - Get example commands for schedule management.
+  - [OK] `ScheduleManagementHandler.get_help(self)` - Get help text for schedule management commands.
+  - [OK] `ScheduleManagementHandler.handle(self, user_id, parsed_command)` - Handle schedule management interactions.
 
 #### `communication/command_handlers/shared_types.py`
 **Classes:**
@@ -1099,10 +1099,10 @@ Returns:
 - [OK] `_handle_task_stats(self, user_id, entities)` - Handle task statistics with dynamic time periods
 - [OK] `_handle_update_task(self, user_id, entities)` - Handle task updates
 - [OK] `_handle_update_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id - delegates to shared method.
-- [MISSING] `can_handle(self, intent)` - No description
-- [MISSING] `get_examples(self)` - No description
-- [MISSING] `get_help(self)` - No description
-- [MISSING] `handle(self, user_id, parsed_command)` - No description
+- [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
+- [OK] `get_examples(self)` - Get example commands for task management.
+- [OK] `get_help(self)` - Get help text for task management commands.
+- [OK] `handle(self, user_id, parsed_command)` - Handle task management interactions.
 **Classes:**
 - [OK] `TaskManagementHandler` - Handler for task management interactions
   - [OK] `TaskManagementHandler._find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id.
@@ -1135,10 +1135,10 @@ Returns:
   - [OK] `TaskManagementHandler._handle_task_stats(self, user_id, entities)` - Handle task statistics with dynamic time periods
   - [OK] `TaskManagementHandler._handle_update_task(self, user_id, entities)` - Handle task updates
   - [OK] `TaskManagementHandler._handle_update_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id - delegates to shared method.
-  - [MISSING] `TaskManagementHandler.can_handle(self, intent)` - No description
-  - [MISSING] `TaskManagementHandler.get_examples(self)` - No description
-  - [MISSING] `TaskManagementHandler.get_help(self)` - No description
-  - [MISSING] `TaskManagementHandler.handle(self, user_id, parsed_command)` - No description
+  - [OK] `TaskManagementHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
+  - [OK] `TaskManagementHandler.get_examples(self)` - Get example commands for task management.
+  - [OK] `TaskManagementHandler.get_help(self)` - Get help text for task management commands.
+  - [OK] `TaskManagementHandler.handle(self, user_id, parsed_command)` - Handle task management interactions.
 
 #### `communication/communication_channels/__init__.py`
 

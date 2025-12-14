@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Provide a focused, actionable roadmap for remaining development tools improvements  
 > **Style**: Direct, technical, and concise  
-> **Last Updated**: 2025-12-13
+> **Last Updated**: 2025-12-14
 
 This document is a restructured and condensed version of the original improvement plan, focusing on remaining work and integrating related tasks from TODO.md.
 
@@ -37,6 +37,17 @@ This document is a restructured and condensed version of the original improvemen
 - ✅ **Tool Migration**: Migrated 6 analysis tools to output standard format directly: `analyze_ascii_compliance`, `analyze_heading_numbering`, `analyze_missing_addresses`, `analyze_unconverted_links`, `analyze_path_drift`, and `analyze_unused_imports`
 - ✅ **Legacy Compatibility**: Added proper `# LEGACY COMPATIBILITY:` markers, logging, and removal plan documentation for backward compatibility
 - ✅ **Report Display Improvements**: Fixed docstring coverage display to show registry gaps count, removed redundant "Focus on" modules from watchlist, added clarifying comments about documentation metrics
+- ✅ **Report Format Standardization (2025-12-14)**: 
+  - AI_STATUS.md now shows "Function Docstring Coverage" with missing count and separate "Registry Gaps" metric
+  - AI_PRIORITIES.md includes prioritized example lists for functions and handler classes with ", ... +N" format
+  - consolidated_report.txt consolidates all docstring metrics into Function Patterns section with detailed example lists
+  - Removed duplicate sections and "Regenerate registry entries" conditional text from priorities
+- ✅ **Test Suite Timeout Fix (2025-12-14)**:
+  - Reduced pytest timeout from 30 minutes to 15 minutes (tests complete in ~3-5 minutes)
+  - Reduced outer script timeout from 30 minutes to 20 minutes
+  - Added timeouts to all subprocess calls in `finalize_coverage_outputs()` (combine: 60s, html: 600s, json: 120s)
+  - Added better error messages for timeout diagnosis (deadlocks, hanging tests, resource issues)
+  - Test suite now completes successfully without hanging
 
 **Key Achievements:**
 - 138+ tests across all development tools

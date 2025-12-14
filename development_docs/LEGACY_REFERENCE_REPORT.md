@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-13 04:51:54
+> **Last Generated**: 2025-12-14 05:08:59
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 6
 **Legacy Compatibility Markers Detected**: 35
@@ -128,47 +128,47 @@
   # LEGACY COMPATIBILITY: Handle both standard format (new) and legacy format (old)
   ```
 
-- **Line 3215**: `# LEGACY COMPATIBILITY:`
+- **Line 3218**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Ensure data is in standard format
   ```
 
-- **Line 4306**: `# LEGACY COMPATIBILITY:`
+- **Line 4309**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Convert back to legacy format for backward compatibility with existing code
   ```
 
-- **Line 4320**: `# LEGACY COMPATIBILITY:`
+- **Line 4323**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
   ```
 
-- **Line 4376**: `# LEGACY COMPATIBILITY:`
+- **Line 4379**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
   ```
 
-- **Line 4421**: `# LEGACY COMPATIBILITY:`
+- **Line 4424**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
   ```
 
-- **Line 4465**: `# LEGACY COMPATIBILITY:`
+- **Line 4468**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
   ```
 
-- **Line 4502**: `# LEGACY COMPATIBILITY:`
+- **Line 4505**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
   ```
 
-- **Line 6315**: `# LEGACY COMPATIBILITY:`
+- **Line 6370**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Reading from old file location for backward compatibility
   ```
 
-- **Line 10137**: `# LEGACY COMPATIBILITY:`
+- **Line 10392**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Handle deprecated --fast flag
   ```

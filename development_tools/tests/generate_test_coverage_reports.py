@@ -147,13 +147,26 @@ class TestCoverageReportGenerator:
                 self.coverage_data_file.parent.resolve()
             }
             combine_args = coverage_cmd + ['combine'] + [str(path) for path in combine_dirs]
-            combine_result = subprocess.run(
-                combine_args,
-                capture_output=True,
-                text=True,
-                cwd=self.project_root,
-                env=env
-            )
+            # Add timeout for combine operation (should be fast, but add safety timeout)
+            combine_timeout = 60  # 1 minute should be plenty for combining coverage data
+            try:
+                combine_result = subprocess.run(
+                    combine_args,
+                    capture_output=True,
+                    text=True,
+                    cwd=self.project_root,
+                    env=env,
+                    timeout=combine_timeout
+                )
+            except subprocess.TimeoutExpired:
+                if logger:
+                    logger.warning(f"coverage combine timed out after {combine_timeout} seconds")
+                combine_result = subprocess.CompletedProcess(
+                    combine_args,
+                    returncode=1,
+                    stdout="",
+                    stderr=f"coverage combine timed out after {combine_timeout} seconds"
+                )
             self._write_command_log('coverage_combine', combine_result)
             if combine_result.returncode != 0:
                 stdout_message = (combine_result.stdout or "").strip()
@@ -177,13 +190,27 @@ class TestCoverageReportGenerator:
         self.coverage_html_dir.mkdir(parents=True, exist_ok=True)
         
         html_args = coverage_cmd + ['html', '-d', str(self.coverage_html_dir)]
-        html_result = subprocess.run(
-            html_args,
-            capture_output=True,
-            text=True,
-            cwd=self.project_root,
-            env=env
-        )
+        # Add timeout for HTML generation (10 minutes should be plenty for most codebases)
+        # If it takes longer, there may be an issue with the coverage data
+        html_timeout = 600  # 10 minutes
+        try:
+            html_result = subprocess.run(
+                html_args,
+                capture_output=True,
+                text=True,
+                cwd=self.project_root,
+                env=env,
+                timeout=html_timeout
+            )
+        except subprocess.TimeoutExpired:
+            if logger:
+                logger.warning(f"coverage html timed out after {html_timeout} seconds - HTML generation may be incomplete")
+            html_result = subprocess.CompletedProcess(
+                html_args,
+                returncode=1,
+                stdout="",
+                stderr=f"coverage html timed out after {html_timeout} seconds"
+            )
         self._write_command_log('coverage_html', html_result)
         if html_result.returncode != 0 and logger:
             logger.warning(
@@ -193,13 +220,26 @@ class TestCoverageReportGenerator:
         # Regenerate JSON report after combine to ensure it reflects combined data
         coverage_output = self.project_root / "coverage.json"
         json_args = coverage_cmd + ['json', '-o', str(coverage_output.resolve())]
-        json_result = subprocess.run(
-            json_args,
-            capture_output=True,
-            text=True,
-            cwd=self.project_root,
-            env=env
-        )
+        # Add timeout for JSON generation (should be fast, but add safety timeout)
+        json_timeout = 120  # 2 minutes should be plenty for JSON generation
+        try:
+            json_result = subprocess.run(
+                json_args,
+                capture_output=True,
+                text=True,
+                cwd=self.project_root,
+                env=env,
+                timeout=json_timeout
+            )
+        except subprocess.TimeoutExpired:
+            if logger:
+                logger.warning(f"coverage json timed out after {json_timeout} seconds")
+            json_result = subprocess.CompletedProcess(
+                json_args,
+                returncode=1,
+                stdout="",
+                stderr=f"coverage json timed out after {json_timeout} seconds"
+            )
         if json_result.returncode != 0 and logger:
             logger.warning(f"coverage json exited with {json_result.returncode}: {json_result.stderr.strip()}")
         elif logger:

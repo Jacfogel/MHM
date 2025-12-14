@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-07 01:03:47
+> **Last Generated**: 2025-12-13 22:52:35
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 337
-- **Total Imports Found**: 3841
-- **Dependencies Documented**: 337 (100% coverage)
-- **Standard Library Imports**: 1313 (34.2%)
-- **Third-Party Imports**: 574 (14.9%)
-- **Local Imports**: 1954 (50.9%)
-- **Last Updated**: 2025-12-07
+- **Files Scanned**: 340
+- **Total Imports Found**: 3863
+- **Dependencies Documented**: 340 (100% coverage)
+- **Standard Library Imports**: 1321 (34.2%)
+- **Third-Party Imports**: 577 (14.9%)
+- **Local Imports**: 1965 (50.9%)
+- **Last Updated**: 2025-12-13
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 1313 imports (34.2%)
-- **Third-Party**: 574 imports (14.9%)
-- **Local**: 1954 imports (50.9%)
+- **Standard Library**: 1321 imports (34.2%)
+- **Third-Party**: 577 imports (14.9%)
+- **Local**: 1965 imports (50.9%)
 
 ## Module Dependencies by Directory
 
@@ -5039,6 +5039,9 @@
   - `tests/development_tools/test_audit_status_updates.py`
   - `tests/development_tools/test_documentation_sync_checker.py`
   - `tests/development_tools/test_error_scenarios.py`
+  - `tests/development_tools/test_fix_documentation.py`
+  - `tests/development_tools/test_fix_documentation_addresses.py`
+  - `tests/development_tools/test_fix_documentation_ascii.py`
   - `tests/development_tools/test_generate_function_registry.py`
   - `tests/development_tools/test_generate_module_dependencies.py`
   - `tests/development_tools/test_integration_workflows.py`
@@ -5051,7 +5054,7 @@
   - `tests/development_tools/test_supporting_tools.py`
 
 **Dependency Changes**:
-- Removed: importlib.util, tests/development_tools/test_analysis_tool_validation.py, tests/development_tools/test_analyze_ai_work.py, tests/development_tools/test_analyze_documentation.py, tests/development_tools/test_analyze_missing_addresses.py, tests/development_tools/test_audit_status_updates.py, tests/development_tools/test_documentation_sync_checker.py, tests/development_tools/test_error_scenarios.py, tests/development_tools/test_generate_function_registry.py, tests/development_tools/test_generate_module_dependencies.py, tests/development_tools/test_integration_workflows.py, tests/development_tools/test_legacy_reference_cleanup.py, tests/development_tools/test_output_storage_archiving.py, tests/development_tools/test_path_drift_detection.py, tests/development_tools/test_path_drift_integration.py, tests/development_tools/test_regenerate_coverage_metrics.py, tests/development_tools/test_status_file_timing.py, tests/development_tools/test_supporting_tools.py
+- Removed: importlib.util, tests/development_tools/test_analysis_tool_validation.py, tests/development_tools/test_analyze_ai_work.py, tests/development_tools/test_analyze_documentation.py, tests/development_tools/test_analyze_missing_addresses.py, tests/development_tools/test_audit_status_updates.py, tests/development_tools/test_documentation_sync_checker.py, tests/development_tools/test_error_scenarios.py, tests/development_tools/test_fix_documentation.py, tests/development_tools/test_fix_documentation_addresses.py, tests/development_tools/test_fix_documentation_ascii.py, tests/development_tools/test_generate_function_registry.py, tests/development_tools/test_generate_module_dependencies.py, tests/development_tools/test_integration_workflows.py, tests/development_tools/test_legacy_reference_cleanup.py, tests/development_tools/test_output_storage_archiving.py, tests/development_tools/test_path_drift_detection.py, tests/development_tools/test_path_drift_integration.py, tests/development_tools/test_regenerate_coverage_metrics.py, tests/development_tools/test_status_file_timing.py, tests/development_tools/test_supporting_tools.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5241,6 +5244,67 @@
 **Dependency Changes**:
 - Added: tests.development_tools.conftest
 - Removed: importlib.util, unittest.mock
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_fix_documentation.py`
+- **Purpose**: Test file for fix documentation
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (load_development_tools_module)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+    - `tempfile`
+    - `unittest.mock (MagicMock, patch)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+- Removed: unittest.mock
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_fix_documentation_addresses.py`
+- **Purpose**: Test file for fix documentation addresses
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (load_development_tools_module, test_config_path)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+    - `tempfile`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_fix_documentation_ascii.py`
+- **Purpose**: Test file for fix documentation ascii
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (load_development_tools_module)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+    - `tempfile`
+    - `unittest.mock (patch)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+- Removed: unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5459,7 +5523,6 @@
 
 **Dependency Changes**:
 - Added: tests.development_tools.conftest
-- Removed: unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

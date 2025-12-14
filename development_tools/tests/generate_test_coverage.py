@@ -332,14 +332,39 @@ class CoverageMetricsRegenerator:
             if logger:
                 logger.info(f"Running pytest coverage command: {' '.join(cmd)}")
             
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                cwd=self.project_root,
-                env=env,
-                timeout=1800  # 30 minute timeout for full test suite with coverage
-            )
+            # Use a more reasonable timeout: tests should complete in ~5-10 minutes
+            # If they take longer, there may be a hang or deadlock issue
+            # 15 minutes should be plenty for 3440 tests (previous run took ~3:45)
+            pytest_timeout = 900  # 15 minutes - should be more than enough
+            if logger:
+                logger.info(f"Pytest timeout set to {pytest_timeout // 60} minutes")
+            
+            try:
+                result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    cwd=self.project_root,
+                    env=env,
+                    timeout=pytest_timeout
+                )
+            except subprocess.TimeoutExpired:
+                # Pytest hung or took too long
+                if logger:
+                    logger.error(f"Pytest timed out after {pytest_timeout // 60} minutes - tests may have hung or deadlocked")
+                    logger.error("This could indicate:")
+                    logger.error("  - A deadlock in parallel execution (pytest-xdist)")
+                    logger.error("  - A test that hangs indefinitely")
+                    logger.error("  - Resource contention (file locks, network, etc.)")
+                    logger.error("  - System resource exhaustion")
+                    logger.error("Consider running with --no-parallel to isolate the issue")
+                # Create a mock result to indicate timeout
+                result = subprocess.CompletedProcess(
+                    cmd,
+                    returncode=1,
+                    stdout="",
+                    stderr=f"Pytest timed out after {pytest_timeout // 60} minutes"
+                )
             
             # Log if the command completed too quickly (suspicious)
             if result.returncode is not None and logger:

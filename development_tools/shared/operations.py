@@ -2760,7 +2760,10 @@ class AIToolsService:
         logger.info("Regenerating test coverage metrics...")
         
         try:
-            result = self.run_script('generate_test_coverage', '--update-plan', timeout=1800)  # 30 minute timeout for coverage
+            # Use 20 minute timeout (1200s) - tests should complete in ~5-10 minutes
+            # If they take longer, there may be a hang or deadlock issue
+            # Previous successful run took ~3:45, so 20 minutes provides safety margin
+            result = self.run_script('generate_test_coverage', '--update-plan', timeout=1200)  # 20 minute timeout for coverage
             
             # Track status file modification times after test coverage (for detecting mid-audit writes)
             post_coverage_mtimes = _get_status_file_mtimes(self.project_root)
@@ -5729,8 +5732,21 @@ class AIToolsService:
         missing_docs = None
         missing_files = []
         
-        # If doc_coverage is Unknown, try to calculate from analyze_functions data
-        if doc_coverage == 'Unknown' or doc_coverage is None:
+        # Load from tool data first (most reliable and up-to-date)
+        function_data = self._load_tool_data('analyze_functions', 'functions')
+        if isinstance(function_data, dict):
+            func_details = function_data.get('details', {})
+            func_total = func_details.get('total_functions') or function_data.get('total_functions')
+            func_undocumented = func_details.get('undocumented', 0) or function_data.get('undocumented', 0)
+            
+            if func_total is not None and func_total > 0:
+                func_documented = func_total - func_undocumented
+                coverage_pct = (func_documented / func_total) * 100
+                doc_coverage = f"{coverage_pct:.2f}%"
+                functions_without_docstrings = int(func_undocumented) if func_undocumented else 0
+        
+        # Fallback to cached results if tool data not available
+        if (doc_coverage == 'Unknown' or doc_coverage is None) and functions_without_docstrings is None:
             try:
                 import json
                 results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
@@ -5753,8 +5769,8 @@ class AIToolsService:
                 logger.debug(f"Failed to load doc_coverage from cache in status: {e}")
                 pass
         
-        # If still unknown, try to get from results cache
-        if (doc_coverage == 'Unknown' or doc_coverage is None) and total_functions is not None:
+        # Final fallback to results cache
+        if (doc_coverage == 'Unknown' or doc_coverage is None) and functions_without_docstrings is None and total_functions is not None:
             func_cache = self.results_cache.get('analyze_functions', {})
             if isinstance(func_cache, dict):
                 func_undocumented = func_cache.get('undocumented', 0)
@@ -5765,25 +5781,64 @@ class AIToolsService:
                     functions_without_docstrings = int(func_undocumented)
         
         # Also check registry for missing items (separate metric - registry completeness)
-        try:
-            import json
-            results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
-            if results_file.exists():
-                with open(results_file, 'r', encoding='utf-8') as f:
-                    cached_data = json.load(f)
-                if 'results' in cached_data and 'analyze_function_registry' in cached_data['results']:
-                    func_reg_data = cached_data['results']['analyze_function_registry']
-                    if 'data' in func_reg_data:
-                        cached_metrics = func_reg_data['data']
-                        missing_docs = cached_metrics.get('missing') or cached_metrics.get('missing_docs') or cached_metrics.get('missing_items')
-                        missing_files = cached_metrics.get('missing_files', [])
-        except Exception as e:
-            logger.debug(f"Failed to load registry missing data: {e}")
-            pass
+        # Load from tool data first (most reliable)
+        registry_data = self._load_tool_data('analyze_function_registry', 'functions')
+        missing_docs = None
+        missing_files = []
         
-        doc_line = f"- **Docstring Coverage**: {percent_text(doc_coverage, 2)}"
+        # Try to get missing count from loaded data
+        if isinstance(registry_data, dict):
+            # Check extracted metrics first
+            registry_details = registry_data.get('details', {})
+            missing_docs_raw = registry_details.get('missing_docs') or registry_details.get('missing_items') or registry_data.get('missing_docs') or registry_data.get('missing_items')
+            
+            # If not found, check data.missing structure
+            if not missing_docs_raw:
+                data_section = registry_data.get('data', {})
+                missing_docs_raw = data_section.get('missing', {}) if isinstance(data_section, dict) else {}
+            
+            if isinstance(missing_docs_raw, dict):
+                missing_docs = missing_docs_raw
+                missing_files = missing_docs_raw.get('missing_files', [])
+            elif missing_docs_raw:
+                missing_docs = {'count': to_int(missing_docs_raw) or 0}
         
-        # Show registry gaps count (items missing from registry) in the docstring coverage line
+        # Fallback to cached results file if tool data not available
+        if not missing_docs:
+            try:
+                import json
+                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+                if results_file.exists():
+                    with open(results_file, 'r', encoding='utf-8') as f:
+                        cached_data = json.load(f)
+                    if 'results' in cached_data and 'analyze_function_registry' in cached_data['results']:
+                        func_reg_data = cached_data['results']['analyze_function_registry']
+                        if 'data' in func_reg_data:
+                            cached_metrics = func_reg_data['data']
+                            missing_docs_raw = cached_metrics.get('missing') or cached_metrics.get('missing_docs') or cached_metrics.get('missing_items')
+                            if missing_docs_raw:
+                                if isinstance(missing_docs_raw, dict):
+                                    missing_docs = missing_docs_raw
+                                else:
+                                    missing_docs = {'count': to_int(missing_docs_raw) or 0}
+                            missing_files = cached_metrics.get('missing_files', [])
+            except Exception as e:
+                logger.debug(f"Failed to load registry missing data: {e}")
+                pass
+        
+        # Get missing docstrings count (functions without docstrings)
+        missing_docstrings_count = functions_without_docstrings if functions_without_docstrings else 0
+        
+        # Always show the count, even if 0
+        doc_line = f"- **Function Docstring Coverage**: {percent_text(doc_coverage, 2)}"
+        if missing_docstrings_count > 0:
+            doc_line += f" ({missing_docstrings_count} functions missing docstrings)"
+        else:
+            doc_line += " (0 functions missing docstrings)"
+
+        lines.append(doc_line)
+        
+        # Show registry gaps separately (different metric - registry completeness)
         missing_count = 0
         if missing_docs:
             # Extract count if missing_docs is a dictionary, otherwise use it as-is
@@ -5792,10 +5847,10 @@ class AIToolsService:
             else:
                 missing_count = to_int(missing_docs) or 0
         
-        # Always show registry gaps count (even when 0)
-        doc_line += f" ({missing_count} items missing from registry)"
-
-        lines.append(doc_line)
+        if missing_count > 0:
+            lines.append(f"- **Registry Gaps**: {missing_count} items missing from registry")
+        else:
+            lines.append(f"- **Registry Gaps**: 0 items missing from registry")
 
         if missing_files:
 
@@ -6849,17 +6904,47 @@ class AIToolsService:
             # Fallback to doc_metrics (check details first, then top level)
             doc_coverage_value = doc_metrics_details.get('doc_coverage') or doc_metrics.get('doc_coverage')
 
-        missing_docs_count = to_int(doc_metrics_details.get('missing_docs') or doc_metrics_details.get('missing_items') or doc_metrics.get('missing_docs') or doc_metrics.get('missing_items'))
+        # Get missing docstrings count from analyze_functions (actual code analysis - most accurate)
+        # This counts functions without docstrings in the actual code
+        function_metrics_for_missing = function_metrics  # Use already-loaded function_metrics
+        func_metrics_details_for_missing = function_metrics_for_missing.get('details', {}) if isinstance(function_metrics_for_missing, dict) else {}
+        missing_docstrings_from_functions = func_metrics_details_for_missing.get('undocumented', 0) or function_metrics_for_missing.get('undocumented', 0) if isinstance(function_metrics_for_missing, dict) else 0
+        
+        # Get registry gaps count (different metric - functions missing from registry)
+        # Try multiple paths to find missing_docs count
+        # 1. Check if data.missing exists (raw structure from analyze_function_registry)
+        data_section = doc_metrics.get('data', {}) if isinstance(doc_metrics, dict) else {}
+        missing_from_data = data_section.get('missing', {}) if isinstance(data_section, dict) else {}
+        
+        # 2. Check extracted metrics (from _extract_documentation_metrics)
+        missing_docs_raw = doc_metrics_details.get('missing_docs') or doc_metrics_details.get('missing_items') or doc_metrics.get('missing_docs') or doc_metrics.get('missing_items')
+        
+        # 3. Fall back to data.missing.count if extracted metrics not available
+        if not missing_docs_raw and isinstance(missing_from_data, dict):
+            missing_docs_raw = missing_from_data
+        
+        # Extract count
+        if isinstance(missing_docs_raw, dict):
+            missing_docs_count = missing_docs_raw.get('count', 0)
+        else:
+            missing_docs_count = to_int(missing_docs_raw) or 0
+        
         missing_doc_files = doc_metrics_details.get('missing_files') or doc_metrics.get('missing_files') or self._get_missing_doc_files(limit=5)
         
-        # Calculate missing documentation count from total functions and documented functions
-        total_funcs = metrics.get('total_functions')
-        doc_totals = doc_metrics_details.get('totals') or doc_metrics.get('totals') or {}
-        documented_funcs = doc_totals.get('functions_documented') if isinstance(doc_totals, dict) else None
-        if total_funcs and documented_funcs is not None:
-            missing_docs_calculated = total_funcs - documented_funcs
-            if missing_docs_count is None or missing_docs_count == 0:
-                missing_docs_count = missing_docs_calculated
+        # Use function analysis for missing docstrings count (more accurate than registry)
+        # Registry gaps are a separate metric about registry completeness
+        if missing_docstrings_from_functions and missing_docstrings_from_functions > 0:
+            missing_docs_count_for_priority = missing_docstrings_from_functions
+        else:
+            # Fallback to registry-based calculation if function analysis not available
+            total_funcs = metrics.get('total_functions')
+            doc_totals = doc_metrics_details.get('totals') or doc_metrics.get('totals') or {}
+            documented_funcs = doc_totals.get('functions_documented') if isinstance(doc_totals, dict) else None
+            if total_funcs and documented_funcs is not None:
+                missing_docs_calculated = total_funcs - documented_funcs
+                missing_docs_count_for_priority = missing_docs_calculated if missing_docs_count is None or missing_docs_count == 0 else missing_docs_count
+            else:
+                missing_docs_count_for_priority = missing_docs_count or 0
 
         # Access error metrics - check details first (normalized), then top level (backward compat)
         error_details = error_metrics.get('details', {})
@@ -7082,45 +7167,120 @@ class AIToolsService:
                 bullets=drift_details
             )
 
-        if missing_docs_count and missing_docs_count > 0:
+        if missing_docs_count_for_priority and missing_docs_count_for_priority > 0:
             doc_bullets: List[str] = []
-            # Show first few functions or modules that need documentation
-            if missing_doc_files:
-                doc_bullets.append(
-                    f"Start with: {self._format_list_for_display(list(missing_doc_files)[:3], limit=3)}"
-                )
-            # Try to get examples of undocumented functions
+            # Try to get examples of undocumented functions (prioritized list)
             # Access function_metrics - check details first (normalized), then top level (backward compat)
             function_metrics_details = function_metrics.get('details', {})
             undocumented_examples = function_metrics_details.get('undocumented_examples') or function_metrics.get('undocumented_examples') or []
-            if undocumented_examples and isinstance(undocumented_examples, list):
-                example_names = [ex.get('name', ex) if isinstance(ex, dict) else str(ex) for ex in undocumented_examples[:3]]
-                if example_names:
+            
+            # Also try loading directly from tool data if not in metrics
+            if not undocumented_examples or len(undocumented_examples) == 0:
+                function_data_for_examples = self._load_tool_data('analyze_functions', 'functions')
+                if isinstance(function_data_for_examples, dict):
+                    func_details_for_examples = function_data_for_examples.get('details', {})
+                    undocumented_examples = func_details_for_examples.get('undocumented_examples') or function_data_for_examples.get('undocumented_examples') or []
+            
+            if undocumented_examples and isinstance(undocumented_examples, list) and len(undocumented_examples) > 0:
+                # Sort by complexity if available (prioritize complex functions), otherwise use order
+                sorted_examples = sorted(
+                    undocumented_examples,
+                    key=lambda x: x.get('complexity', 0) if isinstance(x, dict) else 0,
+                    reverse=True
+                )[:5]  # Top 5
+                
+                # Format examples with file paths
+                example_items = []
+                for ex in sorted_examples:
+                    if isinstance(ex, dict):
+                        func_name = ex.get('name', ex.get('function', 'unknown'))
+                        file_path = ex.get('file', '')
+                        if file_path:
+                            file_name = Path(file_path).name
+                            example_items.append(f"{func_name} ({file_name})")
+                        else:
+                            example_items.append(func_name)
+                    else:
+                        example_items.append(str(ex))
+                if example_items:
+                    # Add ", ... +N" format if there are more than 5 total
+                    # Check against full list, not sorted_examples (which is already limited to 5)
+                    total_undocumented = missing_docs_count_for_priority if missing_docs_count_for_priority else len(undocumented_examples)
+                    if total_undocumented > 5:
+                        example_items.append(f"... +{total_undocumented - 5} more")
                     doc_bullets.append(
-                        f"Example functions needing docstrings: {self._format_list_for_display(example_names, limit=3)}"
+                        f"Top functions: {', '.join(example_items)}"
                     )
             doc_bullets.append(
-                "Action: Add docstrings to functions missing them. Regenerate registry entries via `python development_tools/run_development_tools.py docs`."
+                "Action: Add docstrings to functions missing them"
             )
             doc_bullets.append(
                 "Effort: Medium (requires understanding each function's purpose and parameters)"
             )
             doc_bullets.append(
-                "Why this matters: Documentation helps AI collaborators and future developers understand code intent"
+                "Why this matters: Docstrings help AI collaborators and future developers understand code intent"
             )
             # Calculate total and documented for better context
             total_funcs = metrics.get('total_functions')
             doc_totals = doc_metrics_details.get('totals') or doc_metrics.get('totals') or {}
             documented_funcs = doc_totals.get('functions_documented') if isinstance(doc_totals, dict) else None
-            reason_text = f"{missing_docs_count} functions are missing documentation"
+            reason_text = f"{missing_docs_count_for_priority} functions are missing docstrings"
             if total_funcs and documented_funcs is not None:
                 reason_text += f" ({total_funcs} total, {documented_funcs} documented)"
             reason_text += "."
             add_priority(
                 tier=1,  # Tier 1: Critical
-                title="Add documentation to missing functions",
+                title="Add docstrings to missing functions",
                 reason=reason_text,
                 bullets=doc_bullets
+            )
+
+        # Add priority for registry gaps (functions missing from FUNCTION_REGISTRY_DETAIL.md)
+        # This is separate from missing docstrings - these are functions that exist in code but aren't documented in the registry
+        if missing_docs_count and missing_docs_count > 0:
+            registry_bullets: List[str] = []
+            
+            # Show top missing items if available
+            if missing_docs_list and isinstance(missing_docs_list, dict):
+                sorted_files = sorted(
+                    missing_docs_list.items(),
+                    key=lambda x: len(x[1]) if isinstance(x[1], list) else 1,
+                    reverse=True
+                )[:5]
+                
+                if sorted_files:
+                    item_list = []
+                    for file_path, funcs in sorted_files:
+                        func_count = len(funcs) if isinstance(funcs, list) else 1
+                        file_name = Path(file_path).name if file_path else 'Unknown'
+                        if func_count == 1 and isinstance(funcs, list) and funcs:
+                            func_name = funcs[0] if funcs else 'Unknown'
+                            item_list.append(f"{func_name} ({file_name})")
+                        else:
+                            item_list.append(f"{file_name} ({func_count} functions)")
+                    
+                    if len(sorted_files) < len(missing_docs_list):
+                        total_files = len(missing_docs_list)
+                        item_list.append(f"... +{total_files - len(sorted_files)} more")
+                    
+                    if item_list:
+                        registry_bullets.append(f"Top items: {', '.join(item_list)}")
+            
+            registry_bullets.append(
+                "Action: Regenerate registry entries via `python development_tools/run_development_tools.py docs`"
+            )
+            registry_bullets.append(
+                "Effort: Small (automated command regenerates FUNCTION_REGISTRY_DETAIL.md)"
+            )
+            registry_bullets.append(
+                "Why this matters: Registry documentation helps track all functions in the codebase and their relationships"
+            )
+            
+            add_priority(
+                tier=2,  # Tier 2: Important but less critical than missing docstrings
+                title="Update function registry",
+                reason=f"{missing_docs_count} items missing from FUNCTION_REGISTRY_DETAIL.md registry.",
+                bullets=registry_bullets
             )
 
         # Add error handling to missing functions FIRST (before Phase 1/2, as it's more critical)
@@ -7515,17 +7675,21 @@ class AIToolsService:
                                 handler_examples.append(f"{class_name} ({file_path})")
                             else:
                                 handler_examples.append(class_name)
-                        if handler_examples:
-                            handlers_bullets.append(
-                                f"Examples: {self._format_list_for_display(handler_examples, limit=3)}"
-                            )
+                        # Show top handlers without docs (prioritized by method count)
+                        top_handlers = sorted(handlers_no_doc, key=lambda x: x.get('methods', 0), reverse=True)[:5]
+                        handler_list = [f"{h.get('class', 'Unknown')} ({Path(h.get('file', '')).name}, {h.get('methods', 0)} methods)" for h in top_handlers]
+                        if len(handlers_no_doc) > 5:
+                            handler_list.append(f"... +{len(handlers_no_doc) - 5} more")
                         handlers_bullets.append(
-                            "Add docstrings to handler classes to improve code documentation."
+                            f"Top handlers: {', '.join(handler_list)}"
+                        )
+                        handlers_bullets.append(
+                            "Action: Add class-level docstrings to handler classes (e.g., class AccountManagementHandler: \"\"\"Handler for...\"\"\")"
                         )
                         add_priority(
                             tier=1,  # Tier 1: Critical (documentation)
-                            title="Add documentation to handler classes",
-                            reason=f"{len(handlers_no_doc)} handler classes missing documentation.",
+                            title="Add docstrings to handler classes",
+                            reason=f"{len(handlers_no_doc)} handler classes missing class docstrings.",
                             bullets=handlers_bullets
                         )
         
@@ -7953,7 +8117,19 @@ class AIToolsService:
         # Access doc_metrics - check details first (normalized), then top level (backward compat)
         doc_metrics_details = doc_metrics.get('details', {})
         doc_coverage = doc_metrics_details.get('doc_coverage') or doc_metrics.get('doc_coverage', metrics.get('doc_coverage'))
+        
+        # Try multiple paths to find missing_docs count
+        # 1. Check if data.missing exists (raw structure from analyze_function_registry)
+        data_section = doc_metrics.get('data', {}) if isinstance(doc_metrics, dict) else {}
+        missing_from_data = data_section.get('missing', {}) if isinstance(data_section, dict) else {}
+        
+        # 2. Check extracted metrics (from _extract_documentation_metrics)
         missing_docs_raw = doc_metrics_details.get('missing_docs') or doc_metrics_details.get('missing_items') or doc_metrics.get('missing_docs') or doc_metrics.get('missing_items')
+        
+        # 3. Fall back to data.missing.count if extracted metrics not available
+        if not missing_docs_raw and isinstance(missing_from_data, dict):
+            missing_docs_raw = missing_from_data
+        
         # Extract count if missing_docs is a dictionary, otherwise use it as-is
         if isinstance(missing_docs_raw, dict):
             missing_docs_count = missing_docs_raw.get('count', 0)
@@ -8060,6 +8236,24 @@ class AIToolsService:
                     function_metrics['critical_complexity_examples'] = func_result.get('critical_complexity_examples', [])
                 if 'high_complexity_examples' in func_result:
                     function_metrics['high_complexity_examples'] = func_result.get('high_complexity_examples', [])
+        
+        # Get missing docstrings count for consolidated report (initialize early for use in multiple sections)
+        # This comes from analyze_functions (actual code analysis)
+        func_metrics_details_for_undoc = function_metrics.get('details', {}) if isinstance(function_metrics, dict) else {}
+        func_undocumented = func_metrics_details_for_undoc.get('undocumented', 0) or (function_metrics.get('undocumented', 0) if isinstance(function_metrics, dict) else 0)
+        
+        # Also get handler classes count for consolidated report
+        function_patterns_data_for_report = self._load_tool_data('analyze_function_patterns', 'functions')
+        handler_classes_no_doc = 0
+        handler_classes_total = 0
+        if function_patterns_data_for_report and isinstance(function_patterns_data_for_report, dict):
+            if 'details' in function_patterns_data_for_report:
+                handlers = function_patterns_data_for_report['details'].get('handlers', [])
+            else:
+                handlers = function_patterns_data_for_report.get('handlers', [])
+            if handlers:
+                handler_classes_total = len(handlers)
+                handler_classes_no_doc = len([h for h in handlers if not h.get('has_doc', True)])
 
         decision_metrics = self.results_cache.get('decision_support_metrics', {}) or {}
 
@@ -8079,27 +8273,47 @@ class AIToolsService:
         issues_file = self.project_root / issues_file_str if isinstance(issues_file_str, str) else Path(issues_file_str)
 
         # Load missing_docs data from cache if not already loaded
+        # Try to get from tool data first (more reliable)
         if missing_docs_count == 0 and missing_docs_list == {}:
-            try:
-                import json
-                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
-                if results_file.exists():
-                    with open(results_file, 'r', encoding='utf-8') as f:
-                        cached_data = json.load(f)
-                    if 'results' in cached_data and 'analyze_function_registry' in cached_data['results']:
-                        func_reg_data = cached_data['results']['analyze_function_registry']
-                        if 'data' in func_reg_data:
-                            cached_metrics = func_reg_data['data']
-                            missing_docs_raw = cached_metrics.get('missing') or cached_metrics.get('missing_docs') or cached_metrics.get('missing_items')
-                            if missing_docs_raw:
-                                if isinstance(missing_docs_raw, dict):
-                                    missing_docs_count = missing_docs_raw.get('count', 0)
-                                    missing_docs_list = missing_docs_raw.get('files', {})
-                                else:
-                                    missing_docs_count = to_int(missing_docs_raw) or 0
-            except Exception as e:
-                logger.debug(f"Failed to load registry missing data in consolidated report: {e}")
-                pass
+            registry_data_for_report = self._load_tool_data('analyze_function_registry', 'functions')
+            if isinstance(registry_data_for_report, dict):
+                # Check extracted metrics first
+                registry_details_for_report = registry_data_for_report.get('details', {})
+                missing_docs_raw_for_report = registry_details_for_report.get('missing_docs') or registry_details_for_report.get('missing_items') or registry_data_for_report.get('missing_docs') or registry_data_for_report.get('missing_items')
+                
+                # If not found, check data.missing structure
+                if not missing_docs_raw_for_report:
+                    data_section_for_report = registry_data_for_report.get('data', {})
+                    missing_docs_raw_for_report = data_section_for_report.get('missing', {}) if isinstance(data_section_for_report, dict) else {}
+                
+                if isinstance(missing_docs_raw_for_report, dict):
+                    missing_docs_count = missing_docs_raw_for_report.get('count', 0)
+                    missing_docs_list = missing_docs_raw_for_report.get('files', {})
+                elif missing_docs_raw_for_report:
+                    missing_docs_count = to_int(missing_docs_raw_for_report) or 0
+            
+            # Fallback to cached results file if tool data not available
+            if missing_docs_count == 0 and missing_docs_list == {}:
+                try:
+                    import json
+                    results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+                    if results_file.exists():
+                        with open(results_file, 'r', encoding='utf-8') as f:
+                            cached_data = json.load(f)
+                        if 'results' in cached_data and 'analyze_function_registry' in cached_data['results']:
+                            func_reg_data = cached_data['results']['analyze_function_registry']
+                            if 'data' in func_reg_data:
+                                cached_metrics = func_reg_data['data']
+                                missing_docs_raw = cached_metrics.get('missing') or cached_metrics.get('missing_docs') or cached_metrics.get('missing_items')
+                                if missing_docs_raw:
+                                    if isinstance(missing_docs_raw, dict):
+                                        missing_docs_count = missing_docs_raw.get('count', 0)
+                                        missing_docs_list = missing_docs_raw.get('files', {})
+                                    else:
+                                        missing_docs_count = to_int(missing_docs_raw) or 0
+                except Exception as e:
+                    logger.debug(f"Failed to load registry missing data in consolidated report: {e}")
+                    pass
         
         # Recalculate doc_coverage if Unknown (same logic as Documentation Findings section)
         # Do this BEFORE Executive Summary so it's available for display
@@ -8272,44 +8486,7 @@ class AIToolsService:
         lines.append("")
 
         # Documentation Coverage section
-        lines.append("## Documentation Coverage")
-        lines.append(f"- **Docstring Coverage**: {percent_text(doc_coverage, 2)}")
-        # Note: Docstring coverage measures functions with docstrings in code (from analyze_functions)
-        # Registry gaps measures functions missing from FUNCTION_REGISTRY_DETAIL.md (from analyze_function_registry)
-        # These are different metrics: a function can have a docstring but not be in the registry, or vice versa
-        
-        if missing_docs_count > 0:
-            lines.append(f"- **Registry Gaps**: {missing_docs_count} items missing from registry")
-            # Build list of top missing items
-            if missing_docs_list and isinstance(missing_docs_list, dict):
-                # Sort files by number of missing functions (descending)
-                sorted_files = sorted(
-                    missing_docs_list.items(), 
-                    key=lambda x: len(x[1]) if isinstance(x[1], list) else 1, 
-                    reverse=True
-                )[:5]
-                
-                if sorted_files:
-                    item_list = []
-                    for file_path, funcs in sorted_files:
-                        func_count = len(funcs) if isinstance(funcs, list) else 1
-                        file_name = Path(file_path).name if file_path else 'Unknown'
-                        if func_count == 1 and isinstance(funcs, list) and funcs:
-                            func_name = funcs[0] if funcs else 'Unknown'
-                            item_list.append(f"{func_name} ({file_name})")
-                        else:
-                            item_list.append(f"{file_name} ({func_count} functions)")
-                    
-                    if len(sorted_files) < len(missing_docs_list) if isinstance(missing_docs_list, dict) else False:
-                        total_files = len(missing_docs_list)
-                        item_list.append(f"... +{total_files - len(sorted_files)} more")
-                    
-                    if item_list:
-                        lines.append(f"    - **Top items**: {', '.join(item_list)}")
-        else:
-            lines.append(f"- **Registry Gaps**: 0 items missing from registry")
-        
-        lines.append("")
+        # Documentation Coverage section removed - consolidated into Function Patterns section below
 
         # Documentation Status section (consolidated from Documentation Signals and Doc Sync Status)
         lines.append("## Documentation Status")
@@ -9128,9 +9305,9 @@ class AIToolsService:
         lines.append("## Complexity & Refactoring")
         
         # Access function_metrics - check details first (normalized), then top level (backward compat)
-        function_metrics_details = function_metrics.get('details', {})
+        function_metrics_details = function_metrics.get('details', {}) if isinstance(function_metrics, dict) else {}
         def get_function_field(field_name, default=None):
-            return function_metrics_details.get(field_name, function_metrics.get(field_name, default))
+            return function_metrics_details.get(field_name, function_metrics.get(field_name, default) if isinstance(function_metrics, dict) else default)
         
         # Try to load complexity from decision_support if analyze_functions doesn't have it
         high_complexity = get_function_field('high_complexity')
@@ -9255,26 +9432,95 @@ class AIToolsService:
                     function_list.append(f"... +{len(all_examples) - 5} more")
                 lines.append(f"    - **Top functions**: {', '.join(function_list)}")
 
-        undocumented_examples = get_function_field('undocumented_examples', [])
-
-        if undocumented_examples:
-
-            undocumented_items = [
-
-                f"{item['function']} ({item['file']})"
-
-                for item in undocumented_examples[:5]
-
-            ]
-
-            lines.append(f"- **Undocumented Functions**: {', '.join(undocumented_items)}")
-        
         lines.append("")
+
+        # Get undocumented examples for consolidated report detail
+        undocumented_examples = get_function_field('undocumented_examples', [])
         
-        # Add function patterns (handlers without docs)
+        # Also try loading directly from tool data if not available
+        if not undocumented_examples or len(undocumented_examples) == 0:
+            function_data_for_consolidated = self._load_tool_data('analyze_functions', 'functions')
+            if isinstance(function_data_for_consolidated, dict):
+                func_details_for_consolidated = function_data_for_consolidated.get('details', {})
+                undocumented_examples = func_details_for_consolidated.get('undocumented_examples') or function_data_for_consolidated.get('undocumented_examples') or []
+        
+        # Also check if we have the count from earlier calculation
+        if not func_undocumented:
+            func_undocumented = get_function_field('undocumented', 0)
+
+        # Consolidate all docstring coverage into Function Patterns section
+        lines.append("## Function Patterns")
+        
+        # Registry Gaps
+        if missing_docs_count > 0:
+            lines.append(f"- **Registry Gaps**: {missing_docs_count} items missing from registry")
+            # Build list of top missing items
+            if missing_docs_list and isinstance(missing_docs_list, dict):
+                sorted_files = sorted(
+                    missing_docs_list.items(), 
+                    key=lambda x: len(x[1]) if isinstance(x[1], list) else 1, 
+                    reverse=True
+                )[:5]
+                if sorted_files:
+                    item_list = []
+                    for file_path, funcs in sorted_files:
+                        func_count = len(funcs) if isinstance(funcs, list) else 1
+                        file_name = Path(file_path).name if file_path else 'Unknown'
+                        if func_count == 1 and isinstance(funcs, list) and funcs:
+                            func_name = funcs[0] if funcs else 'Unknown'
+                            item_list.append(f"{func_name} ({file_name})")
+                        else:
+                            item_list.append(f"{file_name} ({func_count} functions)")
+                    if len(sorted_files) < len(missing_docs_list) if isinstance(missing_docs_list, dict) else False:
+                        total_files = len(missing_docs_list)
+                        item_list.append(f"... +{total_files - len(sorted_files)} more")
+                    if item_list:
+                        lines.append(f"    - **Top items**: {', '.join(item_list)}")
+        else:
+            lines.append(f"- **Registry Gaps**: 0 items missing from registry")
+        
+        # Function Docstring Coverage
+        # Use func_undocumented calculated earlier, or recalculate if needed
+        if not func_undocumented and total_funcs and doc_coverage:
+            doc_coverage_float = float(doc_coverage.replace('%', '')) if isinstance(doc_coverage, str) else doc_coverage
+            if doc_coverage_float < 100 and total_funcs:
+                func_undocumented = int(total_funcs * (100 - doc_coverage_float) / 100)
+        
+        lines.append(f"- **Function Docstring Coverage**: {percent_text(doc_coverage, 2)}")
+        if func_undocumented and func_undocumented > 0:
+            lines.append(f"   - **Functions Missing Docstrings**: {func_undocumented} functions need docstrings")
+            # Show top functions missing docstrings (prioritized by complexity if available)
+            if undocumented_examples and isinstance(undocumented_examples, list) and len(undocumented_examples) > 0:
+                # Sort by complexity if available (already sorted in analyze_functions, but ensure)
+                sorted_undoc = sorted(
+                    undocumented_examples,
+                    key=lambda x: x.get('complexity', 0) if isinstance(x, dict) else 0,
+                    reverse=True
+                )[:5]
+                func_list = []
+                for item in sorted_undoc:
+                    if isinstance(item, dict):
+                        func_name = item.get('function', item.get('name', 'unknown'))
+                        file_path = item.get('file', '')
+                        if file_path:
+                            file_name = Path(file_path).name
+                            func_list.append(f"{func_name} ({file_name})")
+                        else:
+                            func_list.append(func_name)
+                    else:
+                        func_list.append(str(item))
+                # Use func_undocumented count if available, otherwise use list length
+                total_undoc_count = func_undocumented if func_undocumented else len(undocumented_examples)
+                if total_undoc_count > 5:
+                    func_list.append(f"... +{total_undoc_count - 5} more")
+                if func_list:
+                    lines.append(f"   - **Top functions**: {', '.join(func_list)}")
+        else:
+            lines.append(f"   - **Functions Missing Docstrings**: 0 functions need docstrings")
+        
+        # Handler Classes Docstring Coverage
         function_patterns_data = self._load_tool_data('analyze_function_patterns', 'functions')
         if function_patterns_data and isinstance(function_patterns_data, dict):
-            # Handle both standard format and old format
             if 'details' in function_patterns_data:
                 handlers = function_patterns_data['details'].get('handlers', [])
             else:
@@ -9282,15 +9528,24 @@ class AIToolsService:
             
             if handlers:
                 handlers_no_doc = [h for h in handlers if not h.get('has_doc', True)]
-                if handlers_no_doc:
-                    lines.append("## Function Patterns")
-                    lines.append(f"- **Handler Classes Without Documentation**: {len(handlers_no_doc)} of {len(handlers)} handler classes")
-                    # Show top handlers without docs
-                    top_handlers = sorted(handlers_no_doc, key=lambda x: x.get('methods', 0), reverse=True)[:5]
-                    handler_list = [f"{h.get('class', 'Unknown')} ({Path(h.get('file', '')).name}, {h.get('methods', 0)} methods)" for h in top_handlers]
-                    if len(handlers_no_doc) > 5:
-                        handler_list.append(f"... +{len(handlers_no_doc) - 5} more")
-                    lines.append(f"    - **Top handlers**: {', '.join(handler_list)}")
+                handler_classes_total = len(handlers)
+                handler_classes_no_doc = len(handlers_no_doc)
+                
+                # Calculate coverage percentage
+                if handler_classes_total > 0:
+                    handler_coverage_pct = ((handler_classes_total - handler_classes_no_doc) / handler_classes_total) * 100
+                    lines.append(f"- **Handler Classes Docstring Coverage**: {percent_text(handler_coverage_pct, 0)}")
+                    
+                    if handlers_no_doc:
+                        lines.append(f"   - **Handler Classes Without Class Docstrings**: {handler_classes_no_doc} of {handler_classes_total} handler classes")
+                        # Show top handlers without docs (prioritized by method count)
+                        top_handlers = sorted(handlers_no_doc, key=lambda x: x.get('methods', 0), reverse=True)[:5]
+                        handler_list = [f"{h.get('class', 'Unknown')} ({Path(h.get('file', '')).name}, {h.get('methods', 0)} methods)" for h in top_handlers]
+                        if len(handlers_no_doc) > 5:
+                            handler_list.append(f"... +{len(handlers_no_doc) - 5} more")
+                        lines.append(f"    - **Top handlers**: {', '.join(handler_list)}")
+                    else:
+                        lines.append(f"   - **Handler Classes Without Class Docstrings**: 0 of {handler_classes_total} handler classes (all have class docstrings)")
 
         # Add package exports analysis
         package_exports_data = self._load_tool_data('analyze_package_exports', 'functions')

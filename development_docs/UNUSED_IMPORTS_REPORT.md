@@ -2,25 +2,25 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-13 04:51:52
+> **Last Generated**: 2025-12-14 05:08:56
 > **Source**: `python development_tools/run_development_tools.py unused-imports` - Unused Imports Detection Tool
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 359
-- **Files with Unused Imports**: 137
-- **Total Unused Imports**: 403
+- **Total Files Scanned**: 362
+- **Files with Unused Imports**: 140
+- **Total Unused Imports**: 412
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 114 imports
+- **Obvious Unused**: 116 imports
 - **Type Hints Only**: 2 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 7 imports
 - **Star Imports**: 0 imports
-- **Test Mocking**: 130 imports
+- **Test Mocking**: 131 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 93 imports
+- **Test Infrastructure**: 99 imports
 - **Production Test Mocking**: 3 imports
 - **Ui Imports**: 0 imports
 
@@ -32,7 +32,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 380**: Unused import time
+- **Line 382**: Unused import time
   - Symbol: `unused-import`
 
 ### `communication/communication_channels/discord/webhook_handler.py`
@@ -384,6 +384,20 @@
 **Count**: 1 unused import(s)
 
 - **Line 11**: Unused import stat
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_fix_documentation.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 12**: Unused load_development_tools_module imported from tests.development_tools.conftest
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_fix_documentation_addresses.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 11**: Unused test_config_path imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_generate_function_registry.py`
@@ -811,6 +825,13 @@
 - **Line 11**: Unused patch imported from unittest.mock
   - Symbol: `unused-import`
 - **Line 11**: Unused MagicMock imported from unittest.mock
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_fix_documentation.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 10**: Unused MagicMock imported from unittest.mock
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_output_storage_archiving.py`
@@ -1646,6 +1667,33 @@
 **Count**: 1 unused import(s)
 
 - **Line 10**: Unused import shutil
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_fix_documentation.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 8**: Unused import tempfile
+  - Symbol: `unused-import`
+- **Line 9**: Unused Path imported from pathlib
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_fix_documentation_addresses.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 8**: Unused import tempfile
+  - Symbol: `unused-import`
+- **Line 9**: Unused Path imported from pathlib
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_fix_documentation_ascii.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 8**: Unused import tempfile
+  - Symbol: `unused-import`
+- **Line 9**: Unused Path imported from pathlib
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_generate_function_registry.py`

@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2025-12-13 04:53:01",
+  "last_generated": "2025-12-14 05:09:25",
   "source": "python development_tools/run_development_tools.py audit --quick",
   "audit_tier": 1,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2025-12-13T04:53:01.126203",
+  "timestamp": "2025-12-14T05:09:25.828864",
   "successful": [
     "analyze_functions",
     "analyze_ascii_compliance",
@@ -27,11 +27,19 @@
         "high_complexity": 0,
         "critical_complexity": 0,
         "undocumented": 1,
+        "undocumented_examples": [
+          {
+            "name": "function_without_docstring",
+            "function": "function_without_docstring",
+            "file": "demo_module.py",
+            "complexity": 13
+          }
+        ],
         "handlers": 6,
         "tests": 4,
         "utilities": 0
       },
-      "timestamp": "2025-12-13T04:52:44.389244"
+      "timestamp": "2025-12-14T05:09:07.327327"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -40,7 +48,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-13T04:52:48.903540"
+      "timestamp": "2025-12-14T05:09:13.338739"
     },
     "analyze_documentation": {
       "success": true,
@@ -83,7 +91,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2025-12-13T04:52:54.024256"
+      "timestamp": "2025-12-14T05:09:18.967827"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -92,7 +100,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-13T04:52:50.663573"
+      "timestamp": "2025-12-14T05:09:15.182653"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -110,7 +118,7 @@
         "file_count": 8,
         "total_issues": 8
       },
-      "timestamp": "2025-12-13T04:52:52.372650"
+      "timestamp": "2025-12-14T05:09:17.091652"
     },
     "analyze_path_drift": {
       "success": true,
@@ -119,7 +127,7 @@
         "total_issues": 0,
         "detailed_issues": {}
       },
-      "timestamp": "2025-12-13T04:52:47.254431"
+      "timestamp": "2025-12-14T05:09:11.513240"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -128,12 +136,12 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-13T04:52:54.019797"
+      "timestamp": "2025-12-14T05:09:18.956631"
     },
     "quick_status": {
       "success": true,
       "data": {
-        "timestamp": "2025-12-13T04:52:42.469704",
+        "timestamp": "2025-12-14T05:09:05.225450",
         "system_health": {
           "core_files": {
             "requirements.txt": "OK"
@@ -146,7 +154,7 @@
         },
         "documentation_status": {
           "coverage": "Unknown",
-          "recent_audit": "2025-12-13T04:30:02.060457",
+          "recent_audit": "2025-12-14T05:01:59.578937",
           "key_files": {
             "README.md": "OK",
             "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -159,20 +167,22 @@
         "critical_issues": [],
         "action_items": [],
         "recent_activity": {
-          "last_audit": "2025-12-13T04:30:02.060457",
+          "last_audit": "2025-12-14T05:01:59.578937",
           "recent_changes": [
             "coverage.json",
+            "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
+            "ai_development_docs/AI_FUNCTION_REGISTRY.md",
             "ai_development_docs/AI_CHANGELOG.md",
             "ARCHITECTURE.md"
           ]
         }
       },
-      "timestamp": "2025-12-13T04:52:42.699393"
+      "timestamp": "2025-12-14T05:09:05.486240"
     },
     "system_signals": {
       "success": true,
       "data": {
-        "timestamp": "2025-12-13T04:52:55.733477",
+        "timestamp": "2025-12-14T05:09:20.663372",
         "system_health": {
           "overall_status": "OK",
           "core_files": {
@@ -182,7 +192,7 @@
           "key_directories": {
             ".": "OK"
           },
-          "last_audit": "2025-12-13T04:30:02.114254",
+          "last_audit": "2025-12-14T05:01:59.647710",
           "warnings": [],
           "errors": []
         },
@@ -193,28 +203,26 @@
             ".cursor/plans/standardize_and_streamline_development_tools_8784da3c.plan.md",
             "ARCHITECTURE.md",
             "ai_development_docs/AI_CHANGELOG.md",
-            "coverage.json",
-            "data/conversation_states.json",
-            "data/user_index.json",
-            "data/users/me581649-4533-4f13-9aeb-da8cb64b8342/messages/sent_messages.json",
-            "development_docs/CHANGELOG_DETAIL.md",
-            "development_docs/LEGACY_REFERENCE_REPORT.md",
-            "development_docs/SESSION_SUMMARY_2025-12-07.md",
-            "development_docs/TEST_COVERAGE_REPORT.md",
-            "development_docs/UNUSED_IMPORTS_REPORT.md",
-            "development_tools/.audit_in_progress.lock"
+            "ai_development_docs/AI_FUNCTION_REGISTRY.md",
+            "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
+            "communication/command_handlers/account_handler.py",
+            "communication/command_handlers/analytics_handler.py",
+            "communication/command_handlers/checkin_handler.py",
+            "communication/command_handlers/interaction_handlers.py",
+            "communication/command_handlers/profile_handler.py",
+            "communication/command_handlers/schedule_handler.py",
+            "communication/command_handlers/task_handler.py",
+            "coverage.json"
           ],
           "git_status": "Modified",
           "last_commit": null,
           "uncommitted_changes": true
         },
-        "critical_alerts": [
-          "CRITICAL: Recent errors in logs/errors.log"
-        ],
+        "critical_alerts": [],
         "performance_indicators": {
           "log_file_sizes": {
             "ai.log": "0.0MB",
-            "ai_dev_tools.log": "0.2MB",
+            "ai_dev_tools.log": "0.1MB",
             "app.log": "0.1MB",
             "communication_manager.log": "0.0MB",
             "discord.log": "0.0MB",
@@ -230,7 +238,7 @@
           "memory_usage": "Unknown"
         }
       },
-      "timestamp": "2025-12-13T04:53:01.053459"
+      "timestamp": "2025-12-14T05:09:25.752178"
     }
   }
 }

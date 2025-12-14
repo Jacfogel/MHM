@@ -63,10 +63,12 @@ class TaskManagementHandler(InteractionHandler):
     
     @handle_errors("checking if can handle task intent", default_return=False)
     def can_handle(self, intent: str) -> bool:
+        """Check if this handler can handle the given intent."""
         return intent in ['create_task', 'list_tasks', 'complete_task', 'delete_task', 'update_task', 'task_stats']
     
     @handle_errors("handling task management interaction", default_return=InteractionResponse("I'm having trouble with task management right now. Please try again.", True))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
+        """Handle task management interactions."""
         intent = parsed_command.intent
         entities = parsed_command.entities
         
@@ -982,10 +984,12 @@ class TaskManagementHandler(InteractionHandler):
     
     @handle_errors("getting task help", default_return="Help with task management - create, list, complete, delete, and update tasks")
     def get_help(self) -> str:
+        """Get help text for task management commands."""
         return "Help with task management - create, list, complete, delete, and update tasks"
     
     @handle_errors("getting task examples", default_return=[])
     def get_examples(self) -> List[str]:
+        """Get example commands for task management."""
         return [
             "create task 'Call mom tomorrow'",
             "list tasks",
@@ -1000,10 +1004,12 @@ class CheckinHandler(InteractionHandler):
     
     @handle_errors("checking if can handle checkin intent", default_return=False)
     def can_handle(self, intent: str) -> bool:
+        """Check if this handler can handle the given intent."""
         return intent in ['start_checkin', 'continue_checkin', 'checkin_status']
     
     @handle_errors("handling check-in interaction", default_return=InteractionResponse("I'm having trouble with check-ins right now. Please try again.", True))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
+        """Handle check-in interactions."""
         intent = parsed_command.intent
         entities = parsed_command.entities
         
@@ -1103,10 +1109,12 @@ class CheckinHandler(InteractionHandler):
     
     @handle_errors("getting checkin help", default_return="Help with check-ins - start check-ins and view your status")
     def get_help(self) -> str:
+        """Get help text for check-in commands."""
         return "Help with check-ins - start check-ins and view your status"
     
     @handle_errors("getting checkin examples", default_return=[])
     def get_examples(self) -> List[str]:
+        """Get example commands for check-ins."""
         return [
             "start checkin",
             "checkin status",
@@ -1118,10 +1126,12 @@ class ProfileHandler(InteractionHandler):
     
     @handle_errors("checking if can handle profile intent", default_return=False)
     def can_handle(self, intent: str) -> bool:
+        """Check if this handler can handle the given intent."""
         return intent in ['show_profile', 'update_profile', 'profile_stats']
     
     @handle_errors("handling profile interaction", default_return=InteractionResponse("I'm having trouble with profile management right now. Please try again.", True))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
+        """Handle profile management interactions."""
         intent = parsed_command.intent
         entities = parsed_command.entities
         
@@ -1461,10 +1471,12 @@ class ProfileHandler(InteractionHandler):
     
     @handle_errors("getting profile help", default_return="Help with profile management - view and update your information")
     def get_help(self) -> str:
+        """Get help text for profile management commands."""
         return "Help with profile management - view and update your information"
     
     @handle_errors("getting profile examples", default_return=[])
     def get_examples(self) -> List[str]:
+        """Get example commands for profile management."""
         return [
             "show profile",
             "update name 'Julie'",
@@ -1482,10 +1494,12 @@ class HelpHandler(InteractionHandler):
     
     @handle_errors("checking if can handle help intent", default_return=False)
     def can_handle(self, intent: str) -> bool:
+        """Check if this handler can handle the given intent."""
         return intent in ['help', 'commands', 'examples', 'status', 'messages']
     
     @handle_errors("handling help interaction", default_return=InteractionResponse("I'm having trouble with help right now. Please try again.", True))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
+        """Handle help and command information interactions."""
         intent = parsed_command.intent
         entities = parsed_command.entities
         
@@ -1826,10 +1840,12 @@ class HelpHandler(InteractionHandler):
     
     @handle_errors("getting help help", default_return="Get help and see available commands")
     def get_help(self) -> str:
+        """Get help text for help commands."""
         return "Get help and see available commands"
     
     @handle_errors("getting help examples", default_return=[])
     def get_examples(self) -> List[str]:
+        """Get example commands for help."""
         return [
             "help",
             "help tasks",
@@ -1844,10 +1860,12 @@ class ScheduleManagementHandler(InteractionHandler):
     
     @handle_errors("checking if can handle schedule intent", default_return=False)
     def can_handle(self, intent: str) -> bool:
+        """Check if this handler can handle the given intent."""
         return intent in ['show_schedule', 'update_schedule', 'schedule_status', 'add_schedule_period', 'edit_schedule_period']
     
     @handle_errors("handling schedule management interaction", default_return=InteractionResponse("I'm having trouble with schedule management right now. Please try again.", True))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
+        """Handle schedule management interactions."""
         intent = parsed_command.intent
         entities = parsed_command.entities
         
@@ -2280,10 +2298,12 @@ class ScheduleManagementHandler(InteractionHandler):
     
     @handle_errors("getting schedule help", default_return="Help with schedule management - manage your message, task, and check-in schedules")
     def get_help(self) -> str:
+        """Get help text for schedule management commands."""
         return "Help with schedule management - manage your message, task, and check-in schedules"
     
     @handle_errors("getting schedule examples", default_return=[])
     def get_examples(self) -> List[str]:
+        """Get example commands for schedule management."""
         return [
             "show schedule",
             "show my task schedule",
@@ -2301,10 +2321,12 @@ class AnalyticsHandler(InteractionHandler):
     
     @handle_errors("checking if can handle analytics intent", default_return=False)
     def can_handle(self, intent: str) -> bool:
+        """Check if this handler can handle the given intent."""
         return intent in ['show_analytics', 'mood_trends', 'energy_trends', 'habit_analysis', 'sleep_analysis', 'wellness_score', 'checkin_history', 'completion_rate', 'quant_summary']
     
     @handle_errors("handling analytics interaction", default_return=InteractionResponse("I'm having trouble with analytics right now. Please try again.", True))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
+        """Handle analytics and insights interactions."""
         intent = parsed_command.intent
         entities = parsed_command.entities
         
@@ -2693,10 +2715,12 @@ class AnalyticsHandler(InteractionHandler):
 
     @handle_errors("getting analytics help", default_return="Help with analytics - view analytics and insights about your wellness patterns")
     def get_help(self) -> str:
+        """Get help text for analytics commands."""
         return "Help with analytics - view analytics and insights about your wellness patterns"
     
     @handle_errors("getting analytics examples", default_return=[])
     def get_examples(self) -> List[str]:
+        """Get example commands for analytics."""
         return [
             "show analytics",
             "mood trends",

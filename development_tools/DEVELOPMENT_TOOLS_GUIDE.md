@@ -130,6 +130,11 @@ Pipeline artifacts:
 - Domain-specific JSON: `reports/analysis_detailed_results.json`, `error_handling/error_handling_details.json`, `tests/coverage_dev_tools.json`, `config/analyze_config_results.json`, `imports/.unused_imports_cache.json`
   - `reports/analysis_detailed_results.json` caches complexity metrics, validation results, and system signals for `status` command
   - `AI_PRIORITIES.md` includes complexity refactoring priority when critical/high complexity functions exist
+
+**Report Format Standards**:
+- **AI_STATUS.md**: High-level summary including Function Docstring Coverage (with missing count) and Registry Gaps (separate metrics)
+- **AI_PRIORITIES.md**: Actionable priorities with prioritized example lists (functions and handler classes) using ", ... +N" format when there are more items
+- **consolidated_report.txt**: Comprehensive details including all metrics from AI_STATUS plus detailed example lists in the Function Patterns section
 - Human-facing: [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md), [MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md), [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md), [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)
 - Coverage: `coverage.json` (project root), `tests/coverage_html/` (project root), `development_tools/reports/archive/coverage_artifacts/<timestamp>/`
 - Cached snapshots: `status` loads data from `reports/analysis_detailed_results.json` (complexity, validation, system signals); confirm timestamps before trusting.

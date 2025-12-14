@@ -18,10 +18,12 @@ class CheckinHandler(InteractionHandler):
     
     @handle_errors("checking if can handle check-in", default_return=False)
     def can_handle(self, intent: str) -> bool:
+        """Check if this handler can handle the given intent."""
         return intent in ['start_checkin', 'continue_checkin', 'checkin_status']
     
     @handle_errors("handling check-in interaction", default_return=InteractionResponse("I'm having trouble with check-ins right now. Please try again.", True))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
+        """Handle check-in interactions."""
         intent = parsed_command.intent
         entities = parsed_command.entities
         
@@ -120,10 +122,12 @@ class CheckinHandler(InteractionHandler):
     
     @handle_errors("getting check-in help", default_return="Help with check-ins - start, continue, or check status of check-ins")
     def get_help(self) -> str:
+        """Get help text for check-in commands."""
         return "Help with check-ins - start check-ins and view your status"
     
     @handle_errors("getting check-in examples", default_return=[])
     def get_examples(self) -> List[str]:
+        """Get example commands for check-ins."""
         return [
             "start checkin",
             "checkin status",

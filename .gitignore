@@ -21,21 +21,19 @@ __pycache__/
 # ============================
 .Python
 build/
-develop-eggs/
 dist/
 downloads/
-eggs/
-.eggs/
 lib/
 lib64/
 parts/
 sdist/
 var/
 wheels/
-*.egg-info/
 .installed.cfg
-*.egg
 MANIFEST
+*egg*/
+*.egg-info/
+*.egg
 
 # ============================
 # PyInstaller
@@ -55,15 +53,12 @@ pip-delete-this-directory.txt
 htmlcov/
 .tox/
 .nox/
-.coverage
-tests/.coverage
-.coverage.*
+.coverage*
 coverage.json
+coverage.xml
 coverage_html/
-.coverage_dev_tools
 .cache
 nosetests.xml
-coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
@@ -99,31 +94,26 @@ site/
 # mypy (possible future usage)
 # ============================
 .mypy_cache/
-.dmypy.json
-dmypy.json
+*dmypy.json
 
 # ============================
 # Environments / secrets
 # ============================
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+**/venv*/
+**/env/
+**/ENV/
+**/.venv*
+**/.env*
 !.env.example
 
 # ============================
 # OS generated files
 # ============================
-.DS_Store
-.DS_Store?
+.DS_Store*
 ._*
 .Spotlight-V100
 .Trashes
-ehthumbs.db
-Thumbs.db
+*thumbs.db
 desktop.ini
 
 # ============================
@@ -138,7 +128,9 @@ scripts/
 *.log
 *.log.*
 .last_cache_cleanup
-shutdown_request.flag
+*.flag
+* copy.*
+* copy
 
 # ============================
 # Test data and backups
@@ -153,10 +145,8 @@ archive/
 # Development tools cache and result files
 # ============================
 development_tools/**/jsons/
-development_tools/reports/analysis_detailed_results.json
-development_tools/AI_STATUS.md
-development_tools/AI_PRIORITIES.md
-development_tools/consolidated_report.txt
+development_tools/tests/coverage_dev_tools.json
+*.lock
 
 # ============================
 # IDE files

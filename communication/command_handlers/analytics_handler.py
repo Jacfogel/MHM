@@ -16,10 +16,12 @@ class AnalyticsHandler(InteractionHandler):
     
     @handle_errors("checking if can handle analytics", default_return=False)
     def can_handle(self, intent: str) -> bool:
+        """Check if this handler can handle the given intent."""
         return intent in ['show_analytics', 'mood_trends', 'energy_trends', 'habit_analysis', 'sleep_analysis', 'wellness_score', 'checkin_history', 'checkin_analysis', 'completion_rate', 'task_analytics', 'task_stats', 'quant_summary']
     
     @handle_errors("handling analytics interaction", default_return=InteractionResponse("I'm having trouble with analytics right now. Please try again.", True))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
+        """Handle analytics and insights interactions."""
         intent = parsed_command.intent
         entities = parsed_command.entities
         
@@ -634,10 +636,12 @@ class AnalyticsHandler(InteractionHandler):
     
     @handle_errors("getting analytics help", default_return="Help with analytics - view analytics and insights about your wellness patterns")
     def get_help(self) -> str:
+        """Get help text for analytics commands."""
         return "Help with analytics - view analytics and insights about your wellness patterns"
     
     @handle_errors("getting analytics examples", default_return=[])
     def get_examples(self) -> List[str]:
+        """Get example commands for analytics."""
         return [
             "show analytics",
             "mood trends",

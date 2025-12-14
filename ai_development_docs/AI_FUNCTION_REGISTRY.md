@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-07 01:03:44
+> **Last Generated**: 2025-12-13 22:52:32
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,10 +10,10 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 91.2% [!] GOOD**
+### **Documentation Coverage: 94.7% [!] GOOD**
 - **Total Functions**: 1500
 - **Total Methods**: 1143
-- **Documented**: 2410/2643
+- **Documented**: 2502/2643
 - **Files Scanned**: 107
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -40,7 +40,7 @@ AI Operations Decision Tree:
 |   `-- `user/context_manager.py` - Context for AI (24 functions)
 +-- Command Parsing
 |   +-- `communication/message_processing/command_parser.py` - Natural language parsing (30 functions)
-|   `-- `communication/command_handlers/interaction_handlers.py` - Command handlers (110/158 functions)
+|   `-- `communication/command_handlers/interaction_handlers.py` - Command handlers (158 functions)
 `-- Interaction Management
     `-- `communication/message_processing/interaction_manager.py` - Main interaction flow (37/40 functions)
 ```
@@ -187,16 +187,14 @@ Core System Decision Tree:
 ## [!] **Areas Needing Attention**
 
 ### **High Priority** (Missing Documentation)
-- `communication/command_handlers/interaction_handlers.py` - 48/158 functions undocumented (70% coverage)
 - `core/schemas.py` - 26/32 functions undocumented (19% coverage)
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
 - `core/logger.py` - 16/65 functions undocumented (75% coverage)
 - `core/file_auditor.py` - 14/23 functions undocumented (39% coverage)
 - `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
-- `communication/command_handlers/checkin_handler.py` - 8/14 functions undocumented (43% coverage)
-- `communication/command_handlers/profile_handler.py` - 8/16 functions undocumented (50% coverage)
-- `communication/command_handlers/schedule_handler.py` - 8/22 functions undocumented (64% coverage)
-- `communication/command_handlers/analytics_handler.py` - 8/36 functions undocumented (78% coverage)
+- `ui/dialogs/channel_management_dialog.py` - 6/8 functions undocumented (25% coverage)
+- `ui/widgets/channel_selection_widget.py` - 6/16 functions undocumented (62% coverage)
+- `ui/widgets/category_selection_widget.py` - 4/6 functions undocumented (33% coverage)
 
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
@@ -243,4 +241,4 @@ Most complex functions (may need refactoring):
 - `tasks/` - Task management system (2 files, 21 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: 2025-12-07 01:03:44
+> **Last Updated**: 2025-12-13 22:52:32

@@ -19,6 +19,7 @@ class ProfileHandler(InteractionHandler):
     
     @handle_errors("checking if profile handler can handle intent")
     def can_handle(self, intent: str) -> bool:
+        """Check if this handler can handle the given intent."""
         try:
             return intent in ['show_profile', 'update_profile', 'profile_stats']
         except Exception as e:
@@ -27,6 +28,7 @@ class ProfileHandler(InteractionHandler):
     
     @handle_errors("handling profile interaction", default_return=InteractionResponse("I'm having trouble with profile management right now. Please try again.", True))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
+        """Handle profile management interactions."""
         intent = parsed_command.intent
         entities = parsed_command.entities
         
@@ -380,6 +382,7 @@ class ProfileHandler(InteractionHandler):
     
     @handle_errors("getting profile handler help")
     def get_help(self) -> str:
+        """Get help text for profile management commands."""
         try:
             return "Help with profile management - view and update your information"
         except Exception as e:
@@ -388,6 +391,7 @@ class ProfileHandler(InteractionHandler):
     
     @handle_errors("getting profile handler examples")
     def get_examples(self) -> List[str]:
+        """Get example commands for profile management."""
         try:
             return [
                 "show profile",

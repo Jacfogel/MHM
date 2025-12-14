@@ -1,6 +1,5 @@
 # CHANGELOG_DETAIL.md - Complete Detailed Changelog History
 
-
 > **File**: `development_docs/CHANGELOG_DETAIL.md`
 > **Audience**: Developers and contributors  
 > **Purpose**: Full historical record of project changes  
@@ -39,6 +38,22 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-14 - Standardized Report Format and Fixed Test Suite Timeout **COMPLETED**
+- **Feature**: Standardized report format across all three development tools reports (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.txt) and fixed test suite timeout issues. Updated `AI_STATUS.md` to show "Function Docstring Coverage" with explicit missing count (e.g., "23 functions missing docstrings") and separate "Registry Gaps" metric on different lines. Enhanced `AI_PRIORITIES.md` to include prioritized example lists for functions and handler classes with ", ... +N more" format showing top 5 by complexity. Consolidated all docstring metrics in `consolidated_report.txt` into Function Patterns section with detailed example lists. Removed duplicate sections and conditional "Regenerate registry entries" text from priorities. Updated `analyze_functions.py` to include `undocumented_examples` (top 5 by complexity) in JSON output for consistent access by report generators.
+- **Test Suite Timeout Fix**: Fixed test suite timeout issues during `audit --full` runs. Tests were completing in ~3-5 minutes but script was timing out after 30 minutes. Reduced pytest timeout from 30 minutes to 15 minutes (tests complete in ~3-5 minutes normally). Reduced outer `run_script` timeout from 30 minutes to 20 minutes. Added timeouts to all subprocess calls in `finalize_coverage_outputs()`: `coverage combine` (60s), `coverage html` (600s), `coverage json` (120s). Added better error messages for timeout diagnosis (deadlocks, hanging tests, resource issues).
+- **Documentation Cleanup**: Removed redundant documentation files: `development_docs/SESSION_SUMMARY_2025-12-07.md` (information preserved in improvement plan and changelogs) and `development_docs/DOCUMENTATION_DETECTION_VALIDATION.md` (validation complete, no longer needed).
+- **Impact**: Reports now show consistent, prioritized information with proper context. Test suite completes successfully without hanging, timeouts catch issues faster with better diagnostics. Documentation is cleaner with redundant files removed while preserving all important information in appropriate locations.
+- **Technical Changes**:
+  - **Modified**: `development_tools/shared/operations.py` - Updated report generation methods to show docstring coverage with missing count, separate registry gaps metric, prioritized examples with ", ... +N more" format, consolidated docstring metrics into Function Patterns section
+  - **Modified**: `development_tools/functions/analyze_functions.py` - Added `undocumented_examples` (top 5 by complexity) to JSON output for programmatic access
+  - **Modified**: `development_tools/tests/generate_test_coverage.py` - Reduced pytest timeout from 30 minutes to 15 minutes, added timeout error messages
+  - **Modified**: `development_tools/tests/generate_test_coverage_reports.py` - Added timeouts to all subprocess calls (combine: 60s, html: 600s, json: 120s) with error handling
+  - **Modified**: `development_tools/shared/operations.py` - Reduced outer script timeout from 30 minutes to 20 minutes
+  - **Deleted**: `development_docs/SESSION_SUMMARY_2025-12-07.md` - Redundant with improvement plan and changelogs
+  - **Deleted**: `development_docs/DOCUMENTATION_DETECTION_VALIDATION.md` - Validation complete, no longer needed
+  - **Updated**: `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md` - Added completion notes for report format standardization and test suite timeout fix
+  - **Updated**: `.cursor/plans/development_tools_next_steps_3f22ec88.plan.md` - Marked report format standardization and test suite timeout fix as completed
+
 ### 2025-12-13 - Standardized Tool Output and Improved Report Display **COMPLETED**
 - **Feature**: Standardized tool output formats and improved report display clarity. Migrated 6 analysis tools to output standard format directly: `analyze_ascii_compliance`, `analyze_heading_numbering`, `analyze_missing_addresses`, `analyze_unconverted_links`, `analyze_path_drift`, and `analyze_unused_imports`. Added `run_analysis()` methods returning standard format with `summary`, `files`, and `details` sections. Updated `main()` functions to support `--json` output. Updated `operations.py` to call tools with `--json` flag and parse JSON output. Added backward compatibility handling for legacy formats with proper `# LEGACY COMPATIBILITY:` markers, logging when legacy paths are exercised, and removal plan documentation. Detection patterns already exist in `analyze_legacy_references.py` for `# LEGACY COMPATIBILITY:` markers.
 - **Report Display Improvements**: Fixed docstring coverage display in AI_STATUS.md to always show registry gaps count (format: "98.47% (0 items missing from registry)"). Removed redundant "Focus on" modules list from watchlist section - these modules are now only listed in priorities section where they belong. Added clarifying comments in consolidated report explaining the relationship between docstring coverage (from `analyze_functions`) and registry gaps (from `analyze_function_registry`) - these are different metrics measuring different aspects of documentation completeness: docstring coverage measures functions with docstrings in code, while registry gaps measure functions missing from FUNCTION_REGISTRY_DETAIL.md.
@@ -54,11 +69,11 @@ When adding new changes, follow this format:
 - **Legacy Compatibility**: All backward compatibility code is marked with `# LEGACY COMPATIBILITY:` comments, includes removal plans, detection patterns, and logging when legacy paths are exercised. Removal plan: After all tools are migrated to standard format and all callers updated, remove legacy format handling. Detection: Search for "Legacy format (backward compatibility)" and "Fall back to text parsing for backward compatibility" in affected files.
 
 ### 2025-12-13 - Fixed Overlap Analysis Data Preservation Across Audit Tiers **COMPLETED**
-- **Feature**: Fixed issue where overlap analysis data was lost when running Tier 2 audits after a Tier 3 audit (which includes overlap analysis). Modified `run_analyze_documentation()` in `development_tools/shared/operations.py` to check for cached overlap data before running when `include_overlap=False`, preserve cached overlap data (if present), and merge it into new results after tool execution. Overlap data is preserved in its original location (top level or details section) to maintain format consistency. Updated `development_docs/SESSION_SUMMARY_2025-12-07.md` to document this fix and cleanup of temporary verification files.
+- **Feature**: Fixed issue where overlap analysis data was lost when running Tier 2 audits after a Tier 3 audit (which includes overlap analysis). Modified `run_analyze_documentation()` in `development_tools/shared/operations.py` to check for cached overlap data before running when `include_overlap=False`, preserve cached overlap data (if present), and merge it into new results after tool execution. Overlap data is preserved in its original location (top level or details section) to maintain format consistency. Cleaned up temporary verification files created during debugging.
 - **Impact**: Overlap analysis results from Tier 3 audits now persist across lower-tier audits. Reports correctly show overlap analysis status and data when it exists in cache, only showing "Overlap analysis not run" if there's no cached overlap data. This ensures users can run quick Tier 2 audits without losing valuable overlap analysis data from previous full audits.
 - **Technical Changes**:
   - **Modified**: `development_tools/shared/operations.py` - Enhanced `run_analyze_documentation()` method (lines 339-430) to preserve cached overlap data when running without `--overlap` flag
-  - **Modified**: `development_docs/SESSION_SUMMARY_2025-12-07.md` - Added Section 6 documenting overlap analysis preservation fix and cleanup of temporary verification files
+  - **Deleted**: Temporary verification scripts (`verify_all_metrics.py`, `verify_detailed.py`, `verify_reports.py`) and summary files (`report_verification_summary.md`, `fixes_applied_summary.md`, `comprehensive_verification_report.md`) that were created during debugging but are no longer needed
   - **Deleted**: Temporary verification scripts (`verify_all_metrics.py`, `verify_detailed.py`, `verify_reports.py`) and summary files (`report_verification_summary.md`, `fixes_applied_summary.md`, `comprehensive_verification_report.md`) that were created during debugging but are no longer needed
 
 ### 2025-12-07 - Fixed Report Data Loss Issues After Normalization **COMPLETED**
@@ -66,7 +81,6 @@ When adding new changes, follow this format:
 - **Impact**: All reports now display accurate data. Path drift, doc sync status, error handling metrics, and validation status are all correctly shown. This ensures development tools provide reliable information for decision-making.
 - **Technical Changes**:
   - **Modified**: `development_tools/shared/operations.py` - Updated data access patterns throughout report generators, added helper functions for safe data extraction, fixed variable preservation logic
-  - **Created**: `development_docs/SESSION_SUMMARY_2025-12-07.md` - Detailed session summary document
 
 ### 2025-12-06 - Fix Test Failures: Email User Creation and Account Creation UI **COMPLETED**
 - **Feature**: Fixed two failing tests: `test_email_user_creation` in `tests/behavior/test_utilities_demo.py` and `test_account_creation_real_behavior` in `tests/ui/test_account_creation_ui.py`. Enhanced `verify_email_user_creation__with_test_dir()` in `tests/test_utilities.py` to ensure user index is updated before verification, similar to `create_basic_user__verify_creation()`. Added email parameter extraction from account file if not provided, and explicit index update call before user lookup. This prevents race conditions and ensures the user can be found by `get_user_id_by_identifier()` immediately after creation.

@@ -1,7 +1,7 @@
 {
   "generated_by": "analyze_documentation_sync - Development Tools",
-  "last_generated": "2025-12-13 04:52:54",
-  "timestamp": "2025-12-13T04:52:54.024256",
+  "last_generated": "2025-12-14 05:09:18",
+  "timestamp": "2025-12-14T05:09:18.967827",
   "tool_name": "analyze_documentation_sync",
   "domain": "docs",
   "source": "python development_tools/docs/analyze_documentation_sync.py",

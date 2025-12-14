@@ -737,12 +737,33 @@ def main():
     
     if args.json:
         # Output JSON for programmatic use
+        # Prepare examples for JSON output (top 5 by complexity)
+        undocumented_list = categories.get('undocumented', [])
+        undocumented_examples = []
+        if undocumented_list:
+            # Sort by complexity (descending) and take top 5
+            sorted_undoc = sorted(
+                undocumented_list,
+                key=lambda x: x.get('complexity', 0),
+                reverse=True
+            )[:5]
+            undocumented_examples = [
+                {
+                    'name': func.get('name', 'unknown'),
+                    'function': func.get('name', 'unknown'),
+                    'file': func.get('file', ''),
+                    'complexity': func.get('complexity', 0)
+                }
+                for func in sorted_undoc
+            ]
+        
         metrics = {
             'total_functions': len(all_functions),
             'moderate_complexity': len(categories.get('moderate_complex', [])),
             'high_complexity': len(categories.get('high_complex', [])),
             'critical_complexity': len(categories.get('critical_complex', [])),
-            'undocumented': len(categories.get('undocumented', [])),
+            'undocumented': len(undocumented_list),
+            'undocumented_examples': undocumented_examples,
             'handlers': len(categories.get('handlers', [])),
             'tests': len(categories.get('tests', [])),
             'utilities': len(categories.get('utilities', []))
