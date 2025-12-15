@@ -21,7 +21,8 @@ from collections import defaultdict
 import re
 
 # Add project root to path for core module imports
-project_root = Path(__file__).parent.parent
+# Go up 3 levels: error_handling/ -> development_tools/ -> project root
+project_root = Path(__file__).resolve().parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
@@ -66,27 +67,12 @@ class ErrorHandlingAnalyzer:
             'phase2_total': 0,
             'phase2_by_type': {}
         }
+        
+        # Initialize error_patterns and other attributes needed for analysis
+        self._initialize_patterns()
     
-    def _to_standard_format(self) -> Dict[str, Any]:
-        """Convert results to standard format."""
-        # Calculate files_affected from unique files in missing_error_handling list
-        missing_error_handling = self.results.get('missing_error_handling', [])
-        unique_files = set()
-        for item in missing_error_handling:
-            if isinstance(item, dict) and 'file' in item:
-                unique_files.add(item['file'])
-            elif isinstance(item, str):
-                # Handle case where item is just a file path string
-                unique_files.add(item)
-        
-        return {
-            'summary': {
-                'total_issues': self.results.get('functions_missing_error_handling', 0),
-                'files_affected': len(unique_files)
-            },
-            'details': self.results.copy()
-        }
-        
+    def _initialize_patterns(self):
+        """Initialize error patterns and configuration from external config."""
         # Load error handling configuration from external config
         error_config = config.get_error_handling_config()
         
@@ -146,6 +132,26 @@ class ErrorHandlingAnalyzer:
             'TypeError': 'ValidationError or DataError'
         }
         self.generic_exceptions = error_config.get('generic_exceptions', default_generic_exceptions)
+    
+    def _to_standard_format(self) -> Dict[str, Any]:
+        """Convert results to standard format."""
+        # Calculate files_affected from unique files in missing_error_handling list
+        missing_error_handling = self.results.get('missing_error_handling', [])
+        unique_files = set()
+        for item in missing_error_handling:
+            if isinstance(item, dict) and 'file' in item:
+                unique_files.add(item['file'])
+            elif isinstance(item, str):
+                # Handle case where item is just a file path string
+                unique_files.add(item)
+        
+        return {
+            'summary': {
+                'total_issues': self.results.get('functions_missing_error_handling', 0),
+                'files_affected': len(unique_files)
+            },
+            'details': self.results.copy()
+        }
 
     def analyze_file(self, file_path: Path) -> Dict[str, Any]:
         """Analyze error handling in a single Python file."""
@@ -215,8 +221,10 @@ class ErrorHandlingAnalyzer:
             return file_results
             
         except Exception as e:
+            file_path_str = str(file_path.relative_to(self.project_root))
+            logger.warning(f"Failed to analyze file {file_path_str}: {e}", exc_info=True)
             return {
-                'file_path': str(file_path.relative_to(self.project_root)),
+                'file_path': file_path_str,
                 'error': f"Failed to analyze file: {e}",
                 'functions': [],
                 'classes': [],
@@ -888,15 +896,19 @@ class ErrorHandlingAnalyzer:
 
     def _generate_recommendations(self):
         """Generate recommendations for improving error handling (delegates to generate_error_handling_recommendations)."""
-        # Import recommendation generator
         try:
-            from .generate_error_handling_recommendations import generate_recommendations
-        except ImportError:
-            from development_tools.error_handling.generate_error_handling_recommendations import generate_recommendations
-        
-        # Generate recommendations using the dedicated tool
-        recommendations = generate_recommendations(self.results)
-        self.results['recommendations'] = recommendations
+            # Import recommendation generator
+            try:
+                from .generate_error_handling_recommendations import generate_recommendations
+            except ImportError:
+                from development_tools.error_handling.generate_error_handling_recommendations import generate_recommendations
+            
+            # Generate recommendations using the dedicated tool
+            recommendations = generate_recommendations(self.results)
+            self.results['recommendations'] = recommendations
+        except Exception as e:
+            logger.warning(f"Failed to generate error handling recommendations: {e}", exc_info=True)
+            self.results['recommendations'] = []
 
 def main():
     """Main function for error handling coverage analysis."""
@@ -918,11 +930,15 @@ def main():
         return 1
     
     # Run analysis
-    analyzer = ErrorHandlingAnalyzer(str(project_root))
-    results = analyzer.analyze_project(
-        include_tests=args.include_tests,
-        include_dev_tools=args.include_dev_tools
-    )
+    try:
+        analyzer = ErrorHandlingAnalyzer(str(project_root))
+        results = analyzer.analyze_project(
+            include_tests=args.include_tests,
+            include_dev_tools=args.include_dev_tools
+        )
+    except Exception as e:
+        logger.error(f"Failed to analyze project: {e}", exc_info=True)
+        return 1
     
     # Generate reports using dedicated report generator
     try:
@@ -930,21 +946,23 @@ def main():
     except ImportError:
         from development_tools.error_handling.generate_error_handling_report import ErrorHandlingReportGenerator
     
-    report_generator = ErrorHandlingReportGenerator(results)
-    
-    if args.json:
-        # Output standard format JSON directly
-        import json
-        print(json.dumps(results, indent=2))
-    else:
-        # Print summary (extract details if in standard format)
-        if 'summary' in results and 'details' in results:
-            # Standard format - use details for report generator
-            report_generator = ErrorHandlingReportGenerator(results['details'])
+    try:
+        if args.json:
+            # Output standard format JSON directly
+            import json
+            print(json.dumps(results, indent=2))
         else:
-            # Legacy format
-            report_generator = ErrorHandlingReportGenerator(results)
-        report_generator.print_summary()
+            # Print summary (extract details if in standard format)
+            if 'summary' in results and 'details' in results:
+                # Standard format - use details for report generator
+                report_generator = ErrorHandlingReportGenerator(results['details'])
+            else:
+                # Legacy format
+                report_generator = ErrorHandlingReportGenerator(results)
+            report_generator.print_summary()
+    except Exception as e:
+        logger.error(f"Failed to generate or output report: {e}", exc_info=True)
+        return 1
     
     return 0
 

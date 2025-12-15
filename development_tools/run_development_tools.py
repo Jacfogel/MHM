@@ -31,6 +31,12 @@ except ImportError:
 
 from core.logger import get_component_logger
 
+# Import config module for configuration validation
+try:
+    from . import config
+except ImportError:
+    from development_tools import config
+
 logger = get_component_logger("development_tools")
 
 

@@ -87,6 +87,16 @@ def get_schedule_time_periods(user_id, category):
         # Sort by start_time, but put "ALL" period at the end
         # ERROR_HANDLING_EXCLUDE: Simple nested helper function for sorting
         def sort_key(item):
+            """
+            Generate a sort key for schedule period items.
+            
+            Args:
+                item: Tuple of (period_name, period_data) from schedule periods dict
+            
+            Returns:
+                Tuple of (priority, start_time_obj) where priority determines position
+                (ALL periods get highest priority to appear last)
+            """
             period_name, period_data = item
             if period_name.upper() == "ALL":
                 # Put ALL period at the end by giving it a very high sort value

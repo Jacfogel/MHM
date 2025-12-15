@@ -28,6 +28,14 @@ def get_task_reminder_view(user_id: str, task_id: str, task_title: str) -> Optio
     class TaskReminderView(discord.ui.View):
         # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
         def __init__(self, user_id: str, task_id: str, task_title: str):
+            """
+            Initialize a Discord task reminder view with buttons.
+            
+            Args:
+                user_id: The user's internal user ID
+                task_id: The task ID to display in the reminder
+                task_title: The title of the task to display
+            """
             super().__init__(timeout=None)  # No timeout - buttons persist
             self.user_id = user_id
             self.task_id = task_id

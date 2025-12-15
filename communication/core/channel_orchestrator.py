@@ -1061,6 +1061,7 @@ class CommunicationManager:
         logger.info(f"Total messages received: {len(all_messages)}")
         return all_messages
 
+    @handle_errors("handling message sending", default_return=None)
     def handle_message_sending(self, user_id: str, category: str):
         """
         Handle sending messages for a user and category with improved recipient resolution.

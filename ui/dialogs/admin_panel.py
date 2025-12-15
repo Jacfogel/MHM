@@ -82,7 +82,7 @@ class AdminPanelDialog(QDialog):
         try:
             if not isinstance(data, dict):
                 logger.warning(f"Admin data must be dict, got {type(data)}")
-                raise ValueError("Admin data must be a dictionary")
+                raise DataError("Admin data must be a dictionary")
             
             # TODO: Implement actual data setting
             logger.debug(f"Setting admin panel data (placeholder implementation): {len(data)} items")

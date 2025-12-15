@@ -263,6 +263,9 @@ class CoverageMetricsRegenerator:
         if logger:
             logger.info("Running pytest coverage analysis...")
         
+        # Load coverage configuration from external config
+        coverage_config_data = config.get_external_value('coverage', {})
+        
         try:
             self.archived_directories.clear()
             self.command_logs.clear()
@@ -332,38 +335,92 @@ class CoverageMetricsRegenerator:
             if logger:
                 logger.info(f"Running pytest coverage command: {' '.join(cmd)}")
             
-            # Use a more reasonable timeout: tests should complete in ~5-10 minutes
-            # If they take longer, there may be a hang or deadlock issue
-            # 15 minutes should be plenty for 3440 tests (previous run took ~3:45)
-            pytest_timeout = 900  # 15 minutes - should be more than enough
+            # Get timeout from config, with sensible defaults
+            # Tests may take longer on slower systems or with more tests
+            # Default: 30 minutes (1800 seconds) to allow for legitimate slow runs
+            # Configurable via development_tools_config.json: {"coverage": {"pytest_timeout": 1800}}
+            pytest_timeout = coverage_config_data.get('pytest_timeout', 1800)  # 30 minutes default
             if logger:
                 logger.info(f"Pytest timeout set to {pytest_timeout // 60} minutes")
             
+            # Create log files BEFORE running subprocess so we can see output even if it hangs
+            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+            self.coverage_logs_dir.mkdir(parents=True, exist_ok=True)
+            stdout_log_path = self.coverage_logs_dir / f"pytest_stdout_{timestamp}.log"
+            stderr_log_path = self.coverage_logs_dir / f"pytest_stderr_{timestamp}.log"
+            self.pytest_stdout_log = stdout_log_path
+            self.pytest_stderr_log = stderr_log_path
+            
+            # Redirect output directly to files instead of capturing to avoid buffering/deadlock issues
+            # This allows us to see progress even if the subprocess hangs
             try:
-                result = subprocess.run(
-                    cmd,
-                    capture_output=True,
-                    text=True,
-                    cwd=self.project_root,
-                    env=env,
-                    timeout=pytest_timeout
-                )
+                with open(stdout_log_path, 'w', encoding='utf-8', buffering=1) as stdout_file, \
+                     open(stderr_log_path, 'w', encoding='utf-8', buffering=1) as stderr_file:
+                    result = subprocess.run(
+                        cmd,
+                        stdout=stdout_file,
+                        stderr=stderr_file,
+                        text=True,
+                        cwd=self.project_root,
+                        env=env,
+                        timeout=pytest_timeout
+                    )
+                # Read the captured output for processing
+                result.stdout = stdout_log_path.read_text(encoding='utf-8', errors='ignore')
+                result.stderr = stderr_log_path.read_text(encoding='utf-8', errors='ignore')
             except subprocess.TimeoutExpired:
                 # Pytest hung or took too long
+                # Read log files to check for progress (they should exist since we created them before running)
+                progress_indicator = False
+                stdout_content = ""
+                stderr_content = ""
+                if self.pytest_stdout_log and self.pytest_stdout_log.exists():
+                    try:
+                        stdout_content = self.pytest_stdout_log.read_text(encoding='utf-8', errors='ignore')
+                        # Check for progress indicators (test output, percentages, etc.)
+                        progress_indicator = bool(
+                            'passed' in stdout_content.lower() or
+                            'failed' in stdout_content.lower() or
+                            '[  ' in stdout_content or
+                            '%' in stdout_content or
+                            'TOTAL' in stdout_content or
+                            'bringing up nodes' in stdout_content.lower()
+                        )
+                    except Exception as e:
+                        if logger:
+                            logger.debug(f"Failed to read stdout log: {e}")
+                
+                if self.pytest_stderr_log and self.pytest_stderr_log.exists():
+                    try:
+                        stderr_content = self.pytest_stderr_log.read_text(encoding='utf-8', errors='ignore')
+                    except Exception as e:
+                        if logger:
+                            logger.debug(f"Failed to read stderr log: {e}")
+                
                 if logger:
-                    logger.error(f"Pytest timed out after {pytest_timeout // 60} minutes - tests may have hung or deadlocked")
-                    logger.error("This could indicate:")
-                    logger.error("  - A deadlock in parallel execution (pytest-xdist)")
-                    logger.error("  - A test that hangs indefinitely")
-                    logger.error("  - Resource contention (file locks, network, etc.)")
-                    logger.error("  - System resource exhaustion")
-                    logger.error("Consider running with --no-parallel to isolate the issue")
-                # Create a mock result to indicate timeout
+                    if progress_indicator:
+                        logger.warning(f"Pytest timed out after {pytest_timeout // 60} minutes, but tests were making progress")
+                        logger.warning("Tests may be running slower than expected. Consider increasing timeout in config:")
+                        logger.warning("  development_tools_config.json: {\"coverage\": {\"pytest_timeout\": <seconds>}}")
+                    else:
+                        logger.error(f"Pytest timed out after {pytest_timeout // 60} minutes - tests may have hung or deadlocked")
+                        logger.error("This could indicate:")
+                        logger.error("  - A deadlock in parallel execution (pytest-xdist)")
+                        logger.error("  - A test that hangs indefinitely")
+                        logger.error("  - Resource contention (file locks, network, etc.)")
+                        logger.error("  - System resource exhaustion")
+                        logger.error("Consider running with --no-parallel to isolate the issue")
+                    logger.info(f"Timeout is configurable via development_tools_config.json: {{\"coverage\": {{\"pytest_timeout\": <seconds>}}}}")
+                    if stdout_content:
+                        logger.info(f"Last stdout output (last 500 chars): {stdout_content[-500:]}")
+                    if stderr_content:
+                        logger.info(f"Last stderr output (last 500 chars): {stderr_content[-500:]}")
+                # Create a mock result to indicate timeout, but include any captured output
                 result = subprocess.CompletedProcess(
                     cmd,
                     returncode=1,
-                    stdout="",
-                    stderr=f"Pytest timed out after {pytest_timeout // 60} minutes"
+                    stdout=stdout_content,
+                    stderr=stderr_content or f"Pytest timed out after {pytest_timeout // 60} minutes"
                 )
             
             # Log if the command completed too quickly (suspicious)
@@ -373,7 +430,21 @@ class CoverageMetricsRegenerator:
                     if result.stderr:
                         logger.warning(f"Pytest stderr: {result.stderr[:500]}")
             
-            self._record_pytest_output(result)
+            # Log files were already created and written to above, just update the latest symlinks
+            if logger and self.pytest_stdout_log and self.pytest_stdout_log.exists():
+                stdout_latest = self.coverage_logs_dir / "pytest_stdout.latest.log"
+                stderr_latest = self.coverage_logs_dir / "pytest_stderr.latest.log"
+                try:
+                    if stdout_latest.exists():
+                        stdout_latest.unlink()
+                    if stderr_latest.exists():
+                        stderr_latest.unlink()
+                    stdout_latest.write_text(result.stdout, encoding='utf-8', errors='ignore')
+                    stderr_latest.write_text(result.stderr, encoding='utf-8', errors='ignore')
+                    logger.info(f"Saved pytest output to {self.pytest_stdout_log} and {self.pytest_stderr_log}")
+                except Exception as e:
+                    if logger:
+                        logger.debug(f"Failed to update latest log symlinks: {e}")
             
             # Check if pytest actually ran by looking at log files (pytest with -q may not output to stdout)
             # Also check stdout/stderr for output indicators

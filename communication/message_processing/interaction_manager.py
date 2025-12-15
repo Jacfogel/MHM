@@ -590,8 +590,11 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
 
         def add_suggestion(text: str) -> None:
             """Add a suggestion if it is unique and space remains."""
-            if text and text not in suggestions and len(suggestions) < 5:
-                suggestions.append(text)
+            try:
+                if text and text not in suggestions and len(suggestions) < 5:
+                    suggestions.append(text)
+            except Exception as e:
+                logger.error(f"Error adding suggestion: {e}", exc_info=True)
 
         # Get task-related suggestions if user has tasks
         try:

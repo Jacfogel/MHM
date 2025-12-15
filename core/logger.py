@@ -622,6 +622,15 @@ class HeartbeatWarningFilter(logging.Filter):
     
     # ERROR_HANDLING_EXCLUDE: Logger filter method (infrastructure)
     def filter(self, record):
+        """
+        Filter Discord heartbeat warnings to prevent log spam.
+        
+        Args:
+            record: logging.LogRecord to filter
+        
+        Returns:
+            bool: True if record should be logged, False to suppress
+        """
         # Check if this is a Discord heartbeat warning
         if (record.name == 'discord.gateway' and 
             record.levelno == logging.WARNING and
@@ -675,6 +684,15 @@ class ExcludeLoggerNamesFilter(logging.Filter):
 
     # ERROR_HANDLING_EXCLUDE: Logger filter method (infrastructure)
     def filter(self, record: logging.LogRecord) -> bool:
+        """
+        Filter log records based on excluded prefixes.
+        
+        Args:
+            record: logging.LogRecord to filter
+        
+        Returns:
+            bool: True if record should be logged, False if it matches excluded prefixes
+        """
         name = record.name or ""
         for prefix in self.excluded_prefixes:
             if name.startswith(prefix):

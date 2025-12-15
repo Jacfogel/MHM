@@ -321,7 +321,7 @@ This standard optimizes for AI collaborators who need unambiguous, verifiable pa
 - **Always prefer full paths** when referencing files outside the current directory
 - **Verify paths exist** using file search tools before referencing
 - **Use consistent formatting**: Backticks for file references (e.g., `` `core/service.py` ``)
-- **For code files**: Use full paths (e.g., `development_tools/shared/operations.py`)
+- **For code files**: Use full paths (e.g., `development_tools/shared/service/core.py`)
 - **For documentation files**: Full paths preferred, relative paths acceptable for same-directory references
 
 **Path drift checker behavior:**
@@ -334,12 +334,12 @@ The path drift checker (`development_tools/docs/analyze_path_drift.py`) validate
 **Examples:**
 
 [OK] **Good (full paths)**:
-- `` `development_tools/shared/operations.py` ``
+- `` `development_tools/shared/service/core.py` ``
 - `` `core/config.py` ``
 - `` `tests/TESTING_GUIDE.md` ``
 
 [AVOID] **Avoid (ambiguous short names)**:
-- `` `operations.py` `` (could be `development_tools/shared/operations.py` or another `operations.py`)
+- `` `operations.py` `` (could be `development_tools/shared/service/commands.py` or another `operations.py`)
 - `` `config.py` `` (could be `core/config.py` or `development_tools/config.py`)
 - `` `bot.py` `` without context (could be Discord or email bot)
 
@@ -609,7 +609,7 @@ Typical documentation-related commands include:
 - `trees` - generate directory tree reports that can be referenced from documentation  
 - `status` - print a quick system status summary that can inform high-level docs
 
-The definitive list of commands and their semantics lives in [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md), [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md), and `development_tools/shared/operations.py`. Do not duplicate that full reference here; treat this guide as a routing layer and use the README as the source of truth for command behavior.
+The definitive list of commands and their semantics lives in [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) and [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md). The command handlers are in `development_tools/shared/service/commands.py`. Do not duplicate that full reference here; treat this guide as a routing layer and use the README as the source of truth for command behavior.
 
 ## 6. Resources
 

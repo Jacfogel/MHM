@@ -261,7 +261,7 @@ def load_development_tools_module(module_name: str):
         elif module_file.exists():
             # It's a regular module file
             module_path = module_file
-        full_module_name = f"development_tools.{module_name}"
+            full_module_name = f"development_tools.{module_name}"
         else:
             raise ImportError(f"Module '{module_name}' not found as package ({package_init}) or file ({module_file})")
     else:
@@ -292,6 +292,7 @@ def load_development_tools_module(module_name: str):
     else:
         module.__package__ = "development_tools"
     sys.modules[full_module_name] = module
+    if spec.loader:
         spec.loader.exec_module(module)
     
     return module

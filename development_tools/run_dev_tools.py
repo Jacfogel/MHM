@@ -16,6 +16,12 @@ project_root = Path(__file__).parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
+# Import config module for configuration validation
+try:
+    from development_tools import config
+except ImportError:
+    pass  # Config import is optional for this wrapper script
+
 # Import and run the main function from run_development_tools
 from development_tools.run_development_tools import main
 

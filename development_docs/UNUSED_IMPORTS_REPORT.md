@@ -2,21 +2,21 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-15 02:21:11
+> **Last Generated**: 2025-12-15 05:23:23
 > **Source**: `python development_tools/run_development_tools.py unused-imports` - Unused Imports Detection Tool
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 371
-- **Files with Unused Imports**: 146
-- **Total Unused Imports**: 421
+- **Files with Unused Imports**: 147
+- **Total Unused Imports**: 424
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 125 imports
+- **Obvious Unused**: 126 imports
 - **Type Hints Only**: 2 imports
 - **Re Exports**: 0 imports
-- **Conditional Imports**: 7 imports
+- **Conditional Imports**: 9 imports
 - **Star Imports**: 0 imports
 - **Test Mocking**: 131 imports
 - **Qt Testing**: 54 imports
@@ -361,6 +361,13 @@
 **Count**: 1 unused import(s)
 
 - **Line 13**: Unused WELCOME_TRACKING_FILE imported from communication.core.welcome_manager
+  - Symbol: `unused-import`
+
+### `tests/development_tools/conftest.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 7**: Unused import warnings
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_analysis_tool_validation.py`
@@ -717,6 +724,20 @@
 **Count**: 1 unused import(s)
 
 - **Line 22**: Unused categorize_functions imported from functions.analyze_functions
+  - Symbol: `unused-import`
+
+### `development_tools/run_dev_tools.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 21**: Unused config imported from development_tools
+  - Symbol: `unused-import`
+
+### `development_tools/run_development_tools.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 36**: Unused import config
   - Symbol: `unused-import`
 
 ## Test Mocking

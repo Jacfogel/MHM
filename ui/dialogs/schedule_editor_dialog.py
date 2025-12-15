@@ -166,6 +166,16 @@ class ScheduleEditorDialog(QDialog):
         # Sort widgets: ALL periods at bottom, others by creation order (newest at end, before ALL)
         # ERROR_HANDLING_EXCLUDE: Simple nested helper function for sorting
         def sort_key(widget):
+            """
+            Generate a sort key for period widgets.
+            
+            Args:
+                widget: PeriodRowWidget instance to generate sort key for
+            
+            Returns:
+                Tuple of (priority, sort_value) where priority determines position
+                (ALL periods get highest priority to appear last)
+            """
             period_name = widget.get_period_name()
             if period_name.upper() == "ALL":
                 return (999999, period_name)  # Put ALL at the end

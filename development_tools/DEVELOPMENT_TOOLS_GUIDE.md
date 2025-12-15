@@ -104,13 +104,13 @@ Regardless of command:
 
 The development tools suite uses a modular service architecture. The main `AIToolsService` class is composed from mixin classes located in `development_tools/shared/service/`:
 
-- **`core.py`**: Base `AIToolsService` class with initialization and configuration
-- **`utilities.py`**: `UtilitiesMixin` - Formatting and extraction utility methods
-- **`data_loading.py`**: `DataLoadingMixin` - Data loading and parsing methods
-- **`tool_wrappers.py`**: `ToolWrappersMixin` - Tool execution wrappers and `SCRIPT_REGISTRY`
-- **`audit_orchestration.py`**: `AuditOrchestrationMixin` - Audit workflow and tier management
-- **`report_generation.py`**: `ReportGenerationMixin` - Report generation methods
-- **`commands.py`**: `CommandsMixin` - Command execution methods
+- **`development_tools/shared/service/core.py`**: Base `AIToolsService` class with initialization and configuration
+- **`development_tools/shared/service/utilities.py`**: `UtilitiesMixin` - Formatting and extraction utility methods
+- **`development_tools/shared/service/data_loading.py`**: `DataLoadingMixin` - Data loading and parsing methods
+- **`development_tools/shared/service/tool_wrappers.py`**: `ToolWrappersMixin` - Tool execution wrappers and `SCRIPT_REGISTRY`
+- **`development_tools/shared/service/audit_orchestration.py`**: `AuditOrchestrationMixin` - Audit workflow and tier management
+- **`development_tools/shared/service/report_generation.py`**: `ReportGenerationMixin` - Report generation methods
+- **`development_tools/shared/service/commands.py`**: `CommandsMixin` - Command execution methods
 
 The CLI interface (`COMMAND_REGISTRY` and command handlers) is in `development_tools/shared/cli_interface.py`. For new code, import `AIToolsService` from `development_tools.shared.service` and `COMMAND_REGISTRY` from `development_tools.shared.cli_interface`:
 

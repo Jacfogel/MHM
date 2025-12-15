@@ -456,6 +456,12 @@ class ToolWrappersMixin:
             args.append("--include-dev-tools")
         result = self.run_script("analyze_error_handling", *args)
         output = result.get('output', '')
+        stderr_output = result.get('error', '')
+        # Log errors for debugging
+        if stderr_output and not result.get('success', False):
+            logger.warning(f"analyze_error_handling stderr: {stderr_output[:500]}")  # Log first 500 chars
+            if 'Traceback' in stderr_output or 'Error' in stderr_output:
+                logger.error(f"analyze_error_handling error details:\n{stderr_output}")
         data = None
         if output:
             try:
@@ -473,7 +479,10 @@ class ToolWrappersMixin:
             except json.JSONDecodeError:
                 data = None
         # If JSON parsing failed, try loading from standardized output storage
-        if data is None:
+        # BUT: Only use cached data if the script actually succeeded (returncode == 0)
+        # If the script failed, don't perpetuate stale cached data by saving it back
+        script_succeeded = result.get('success', False) and result.get('returncode') == 0
+        if data is None and script_succeeded:
             try:
                 from ..output_storage import load_tool_result
                 data = load_tool_result('analyze_error_handling', 'error_handling', project_root=self.project_root)
@@ -481,15 +490,21 @@ class ToolWrappersMixin:
                 data = None
         if data is not None:
             result['data'] = data
-            try:
-                save_tool_result('analyze_error_handling', 'error_handling', data, project_root=self.project_root)
-            except Exception as e:
-                logger.warning(f"Failed to save analyze_error_handling result: {e}")
+            # Only save if we got data from the script output (script succeeded)
+            # Don't save cached data back when script failed - that perpetuates stale data
+            if script_succeeded:
+                try:
+                    save_tool_result('analyze_error_handling', 'error_handling', data, project_root=self.project_root)
+                except Exception as e:
+                    logger.warning(f"Failed to save analyze_error_handling result: {e}")
             coverage = data.get('analyze_error_handling') or data.get('error_handling_coverage', 0)
             missing_count = data.get('functions_missing_error_handling', 0)
             result['issues_found'] = coverage < 80 or missing_count > 0
-            result['success'] = True
-            result['error'] = ''
+            # Only mark as successful if script actually succeeded
+            # If we're using cached data from a failed run, keep success=False
+            if script_succeeded:
+                result['success'] = True
+                result['error'] = ''
         else:
             lowered = output.lower() if isinstance(output, str) else ''
             if 'missing error handling' in lowered or 'coverage' in lowered:

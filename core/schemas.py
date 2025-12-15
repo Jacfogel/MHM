@@ -304,6 +304,18 @@ class CategoryScheduleModel(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def _accept_legacy_shape(cls, data: Any):
+        """
+        Accept legacy schedule data format where periods are at top-level.
+        
+        This validator converts legacy schedule data (where periods are directly
+        in the dict) to the new format (where periods are under a 'periods' key).
+        
+        Args:
+            data: Schedule data dict that may be in legacy format
+        
+        Returns:
+            dict: Data in the new format with 'periods' key
+        """
         # NOTE: Pydantic validators should not have try-except blocks.
         # Pydantic handles exceptions internally and will raise ValidationError if needed.
         # This validator performs simple dict checks which cannot raise exceptions.
