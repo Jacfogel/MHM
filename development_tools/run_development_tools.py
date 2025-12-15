@@ -5,6 +5,7 @@
 
 import argparse
 import sys
+import warnings
 from pathlib import Path
 
 # Add project root to path for core module imports
@@ -19,17 +20,13 @@ if str(ai_tools_path) not in sys.path:
 
 # Handle both relative and absolute imports
 try:
-    from .shared.operations import (
-        AIToolsService,
-        COMMAND_REGISTRY,
-    )
+    from .shared.service import AIToolsService
+    from .shared.cli_interface import COMMAND_REGISTRY
     from .shared.common import COMMAND_TIERS
 except ImportError:
     # Fallback for when run as script
-    from development_tools.shared.operations import (
-        AIToolsService,
-        COMMAND_REGISTRY,
-    )
+    from development_tools.shared.service import AIToolsService
+    from development_tools.shared.cli_interface import COMMAND_REGISTRY
     from development_tools.shared.common import COMMAND_TIERS
 
 from core.logger import get_component_logger

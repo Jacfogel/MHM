@@ -4,8 +4,10 @@ import sys
 import shutil
 import tempfile
 import importlib.util
+import warnings
 from pathlib import Path
 import pytest
+
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent.parent
@@ -67,8 +69,50 @@ def load_development_tools_module(module_name: str):
         sys.modules["development_tools.shared"] = shared_module
         shared_spec.loader.exec_module(shared_module)
     
+    # Load service package if needed (after shared)
+    # IMPORTANT: Load service submodules BEFORE __init__.py (since __init__.py imports them)
+    service_init = project_root / "development_tools" / "shared" / "service" / "__init__.py"
+    if service_init.exists() and "development_tools.shared.service" not in sys.modules:
+        # Ensure parent packages exist in sys.modules
+        if "development_tools.shared" not in sys.modules:
+            shared_init = project_root / "development_tools" / "shared" / "__init__.py"
+            if shared_init.exists():
+                shared_spec = importlib.util.spec_from_file_location("development_tools.shared", shared_init)
+                shared_module = importlib.util.module_from_spec(shared_spec)
+                shared_module.__package__ = "development_tools"
+                sys.modules["development_tools.shared"] = shared_module
+                if shared_spec.loader:
+                    shared_spec.loader.exec_module(shared_module)
+        
+        # Create the service package module first (needed for relative imports to work)
+        service_spec = importlib.util.spec_from_file_location("development_tools.shared.service", service_init)
+        service_module = importlib.util.module_from_spec(service_spec)
+        service_module.__package__ = "development_tools.shared.service"
+        service_module.__path__ = [str(project_root / "development_tools" / "shared" / "service")]
+        sys.modules["development_tools.shared.service"] = service_module
+        
+        # Load submodules in dependency order BEFORE executing __init__.py
+        # Load order: utilities (no deps), data_loading (uses utilities), 
+        # tool_wrappers (needs core for SCRIPT_REGISTRY), then core (uses all mixins), then others
+        service_submodules = ["utilities", "data_loading", "tool_wrappers", "audit_orchestration", "report_generation", "commands", "core"]
+        for submod_name in service_submodules:
+            submod_path = project_root / "development_tools" / "shared" / "service" / f"{submod_name}.py"
+            if submod_path.exists():
+                full_submod_name = f"development_tools.shared.service.{submod_name}"
+                if full_submod_name not in sys.modules:
+                    submod_spec = importlib.util.spec_from_file_location(full_submod_name, submod_path)
+                    submod = importlib.util.module_from_spec(submod_spec)
+                    submod.__package__ = "development_tools.shared.service"
+                    sys.modules[full_submod_name] = submod
+                    if submod_spec.loader:
+                        submod_spec.loader.exec_module(submod)
+        
+        # Now execute __init__.py (which imports from the submodules that are now loaded)
+        if service_spec.loader:
+            service_spec.loader.exec_module(service_module)
+    
     # Load required shared modules that tools depend on
-    shared_modules = ["standard_exclusions", "constants", "common"]
+    shared_modules = ["standard_exclusions", "constants", "common", "cli_interface"]
     for svc_name in shared_modules:
         svc_path = project_root / "development_tools" / "shared" / f"{svc_name}.py"
         full_name = f"development_tools.shared.{svc_name}"
@@ -145,12 +189,81 @@ def load_development_tools_module(module_name: str):
         sys.modules["development_tools.docs"] = docs_module
         docs_spec.loader.exec_module(docs_module)
     
+    # Special handling for service package (needs submodules loaded first)
+    if module_name == "shared.service":
+        # Service package is already loaded in fixture setup, just return it
+        if "development_tools.shared.service" in sys.modules:
+            return sys.modules["development_tools.shared.service"]
+        # If not loaded yet, trigger the loading logic from fixture setup
+        # (This should have been loaded already, but handle it just in case)
+        service_init = project_root / "development_tools" / "shared" / "service" / "__init__.py"
+        if service_init.exists():
+            # This will trigger the service package loading in the fixture setup
+            # But we need to ensure it's loaded here too
+            if "development_tools.shared.service" not in sys.modules:
+                # Load using the same logic as fixture setup
+                # (This is a fallback - normally it's loaded earlier)
+                pass  # Will fall through to normal loading below
+    
     # Now load the requested module
-    # Handle dotted module names (e.g., "shared.file_rotation")
+    # Handle dotted module names (e.g., "shared.file_rotation" or "shared.service")
     if "." in module_name:
         parts = module_name.split(".")
-        module_path = project_root / "development_tools" / "/".join(parts[:-1]) / f"{parts[-1]}.py"
+        # Check if it's a package (directory with __init__.py) or a module (file)
+        package_dir = project_root / "development_tools" / "/".join(parts)
+        package_init = package_dir / "__init__.py"
+        module_file = package_dir.with_suffix(".py")
+        
+        if package_init.exists():
+            # It's a package - check if it's the service package (needs special handling)
+            if module_name == "shared.service" and "development_tools.shared.service" not in sys.modules:
+                # Service package needs submodules loaded first - this should have been done in fixture setup
+                # But if we're here, do it now
+                if "development_tools.shared" not in sys.modules:
+                    shared_init = project_root / "development_tools" / "shared" / "__init__.py"
+                    if shared_init.exists():
+                        shared_spec = importlib.util.spec_from_file_location("development_tools.shared", shared_init)
+                        shared_module = importlib.util.module_from_spec(shared_spec)
+                        shared_module.__package__ = "development_tools"
+                        sys.modules["development_tools.shared"] = shared_module
+                        if shared_spec.loader:
+                            shared_spec.loader.exec_module(shared_module)
+                
+                # Create service package module
+                service_spec = importlib.util.spec_from_file_location("development_tools.shared.service", package_init)
+                service_module = importlib.util.module_from_spec(service_spec)
+                service_module.__package__ = "development_tools.shared.service"
+                service_module.__path__ = [str(package_dir)]
+                sys.modules["development_tools.shared.service"] = service_module
+                
+                # Load submodules first
+                service_submodules = ["utilities", "data_loading", "tool_wrappers", "audit_orchestration", "report_generation", "commands", "core"]
+                for submod_name in service_submodules:
+                    submod_path = package_dir / f"{submod_name}.py"
+                    if submod_path.exists():
+                        full_submod_name = f"development_tools.shared.service.{submod_name}"
+                        if full_submod_name not in sys.modules:
+                            submod_spec = importlib.util.spec_from_file_location(full_submod_name, submod_path)
+                            submod = importlib.util.module_from_spec(submod_spec)
+                            submod.__package__ = "development_tools.shared.service"
+                            sys.modules[full_submod_name] = submod
+                            if submod_spec.loader:
+                                submod_spec.loader.exec_module(submod)
+                
+                # Now execute __init__.py
+                if service_spec.loader:
+                    service_spec.loader.exec_module(service_module)
+                return service_module
+            
+            # It's a package - load the __init__.py
+            module_path = package_init
+            full_module_name = f"development_tools.{module_name}"
+        elif module_file.exists():
+            # It's a regular module file
+            module_path = module_file
         full_module_name = f"development_tools.{module_name}"
+        else:
+            raise ImportError(f"Module '{module_name}' not found as package ({package_init}) or file ({module_file})")
     else:
         # Try root first, then check subdirectories
         module_path = project_root / "development_tools" / f"{module_name}.py"
@@ -174,11 +287,12 @@ def load_development_tools_module(module_name: str):
     # Set package correctly based on module location
     if "." in full_module_name:
         # For subdirectory modules like "development_tools.legacy.fix_legacy_references"
+        # or packages like "development_tools.shared.service"
         module.__package__ = ".".join(full_module_name.split(".")[:-1])
     else:
         module.__package__ = "development_tools"
     sys.modules[full_module_name] = module
-    spec.loader.exec_module(module)
+        spec.loader.exec_module(module)
     
     return module
 

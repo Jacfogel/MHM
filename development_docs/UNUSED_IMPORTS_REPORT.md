@@ -2,18 +2,18 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-14 06:18:57
+> **Last Generated**: 2025-12-15 02:21:11
 > **Source**: `python development_tools/run_development_tools.py unused-imports` - Unused Imports Detection Tool
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 362
-- **Files with Unused Imports**: 140
-- **Total Unused Imports**: 412
+- **Total Files Scanned**: 371
+- **Files with Unused Imports**: 146
+- **Total Unused Imports**: 421
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 116 imports
+- **Obvious Unused**: 125 imports
 - **Type Hints Only**: 2 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 7 imports
@@ -187,18 +187,18 @@
 - **Line 12**: Unused import ast
   - Symbol: `unused-import`
 
+### `development_tools/run_development_tools.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 8**: Unused import warnings
+  - Symbol: `unused-import`
+
 ### `development_tools/shared/mtime_cache.py`
 
 **Count**: 1 unused import(s)
 
 - **Line 31**: Unused List imported from typing
-  - Symbol: `unused-import`
-
-### `development_tools/shared/operations.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 111**: Unused load_tool_result imported from output_storage
   - Symbol: `unused-import`
 
 ### `development_tools/shared/output_storage.py`
@@ -208,6 +208,40 @@
 - **Line 11**: Unused import os
   - Symbol: `unused-import`
 - **Line 17**: Unused create_output_file imported from file_rotation
+  - Symbol: `unused-import`
+
+### `development_tools/shared/service/audit_orchestration.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 11**: Unused Any imported from typing
+  - Symbol: `unused-import`
+
+### `development_tools/shared/service/commands.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 8**: Unused Path imported from pathlib
+  - Symbol: `unused-import`
+- **Line 9**: Unused Any imported from typing
+  - Symbol: `unused-import`
+
+### `development_tools/shared/service/core.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 21**: Unused SCRIPT_REGISTRY imported from tool_wrappers
+  - Symbol: `unused-import`
+- **Line 27**: Unused COMMAND_TIERS imported from common
+  - Symbol: `unused-import`
+
+### `development_tools/shared/service/data_loading.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 18**: Unused extract_first_int imported from utilities
+  - Symbol: `unused-import`
+- **Line 18**: Unused create_standard_format_result imported from utilities
   - Symbol: `unused-import`
 
 ### `development_tools/tests/fix_test_markers.py`
@@ -455,11 +489,20 @@
 - **Line 8**: Unused import sys
   - Symbol: `unused-import`
 
-### `tests/development_tools/test_status_file_timing.py`
+### `tests/development_tools/test_run_development_tools.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 18**: Unused demo_project_root imported from tests.development_tools.conftest
+- **Line 10**: Unused import warnings
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_status_file_timing.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 10**: Unused import warnings
+  - Symbol: `unused-import`
+- **Line 21**: Unused demo_project_root imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
 ### `tests/integration/test_task_cleanup_real.py`
@@ -643,9 +686,9 @@
 
 **Count**: 2 unused import(s)
 
-- **Line 26**: Unused summary_block imported from shared.common
+- **Line 25**: Unused summary_block imported from shared.common
   - Symbol: `unused-import`
-- **Line 26**: Unused write_text imported from shared.common
+- **Line 25**: Unused write_text imported from shared.common
   - Symbol: `unused-import`
 
 ### `development_tools/imports/analyze_dependency_patterns.py`

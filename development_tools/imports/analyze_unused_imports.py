@@ -625,7 +625,13 @@ class UnusedImportsChecker:
                 files_to_scan.append(file_path)
         
         # Process cached files first (fast)
+        # CRITICAL: Filter out cached results for files that no longer exist
         for file_path, issues in cached_results.items():
+            # Verify file still exists before processing cached results
+            if not file_path.exists():
+                # File was deleted, skip cached results for it
+                continue
+            
             if issues:
                 try:
                     rel_path = file_path.relative_to(self.project_root)
@@ -929,8 +935,8 @@ def main():
     checker = UnusedImportsChecker(project_root, verbose=args.verbose)
     results = checker.scan_codebase()
     
-    # Generate report
-    if not args.json:
+    # Generate report if --output is provided (regardless of --json flag)
+    if args.output:
         report = checker.generate_report()
         
         # Write report to file
@@ -940,11 +946,15 @@ def main():
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(report)
         
-        print(f"\nReport saved to: {output_path}")
-        print(f"Files scanned: {checker.stats['files_scanned']}")
-        print(f"Files with issues: {checker.stats['files_with_issues']}")
-        print(f"Total unused imports: {checker.stats['total_unused']}")
-    else:
+        # Only print report info if not in JSON mode (to avoid mixing with JSON output)
+        if not args.json:
+            print(f"\nReport saved to: {output_path}")
+            print(f"Files scanned: {checker.stats['files_scanned']}")
+            print(f"Files with issues: {checker.stats['files_with_issues']}")
+            print(f"Total unused imports: {checker.stats['total_unused']}")
+    
+    # Output JSON if --json flag is provided
+    if args.json:
         # Output JSON in standard format for integration
         standard_results = checker.run_analysis()
         print(json.dumps(standard_results, indent=2))

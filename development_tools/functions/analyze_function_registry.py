@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import argparse
 import ast
-import logging
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -34,6 +33,9 @@ except ImportError:
     from development_tools import config
     from development_tools.shared.common import ProjectPaths, ensure_ascii, iter_python_sources, run_cli, summary_block, write_text
 
+# Import component logger
+from core.logger import get_component_logger
+
 # Load external config on module import
 config.load_external_config()
 
@@ -41,7 +43,7 @@ config.load_external_config()
 AUDIT_REGISTRY_CONFIG = config.get_analyze_function_registry_config()
 
 # Set up logging
-logger = logging.getLogger(__name__)
+logger = get_component_logger('development_tools')
 
 PATHS = ProjectPaths()
 # Get registry path from config (default: development_docs/FUNCTION_REGISTRY_DETAIL.md)

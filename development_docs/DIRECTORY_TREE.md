@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-13 22:52:37
+> **Last Generated**: 2025-12-14 20:44:25
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -32,6 +32,8 @@ C:.
 |   run_headless_service.py
 |   run_mhm.py
 |   run_tests.py
+|   test_refactor.ps1
+|   test_refactor_simple.ps1
 |   TODO.md
 |   
 +---.cursor
@@ -50,7 +52,9 @@ C:.
 |   |       triage-issue.md
 |   |       
 |   +---plans
+|   |   |   continue_tool_standard_format_migration_ba924ee0.plan.md
 |   |   |   development_tools_next_steps_3f22ec88.plan.md
+|   |   |   refactor_operations.py_into_modular_structure_057a1721.plan.md
 |   |   |   standardize_analysis_tool_results_format_f3751a36.plan.md
 |   |   |   standardize_and_streamline_development_tools_8784da3c.plan.md
 |   |   |   
@@ -152,17 +156,14 @@ C:.
 +---development_docs
 |       CHANGELOG_DETAIL.md
 |       DIRECTORY_TREE.md
-|       DOCUMENTATION_DETECTION_VALIDATION.md
 |       FUNCTION_REGISTRY_DETAIL.md
 |       LEGACY_REFERENCE_REPORT.md
 |       MODULE_DEPENDENCIES_DETAIL.md
 |       PLANS.md
-|       SESSION_SUMMARY_2025-12-07.md
 |       TEST_COVERAGE_REPORT.md
 |       UNUSED_IMPORTS_REPORT.md
 |       
 +---development_tools
-|   |   .coverage_in_progress.lock
 |   |   AI_DEVELOPMENT_TOOLS_GUIDE.md
 |   |   AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md
 |   |   AI_PRIORITIES.md
@@ -182,8 +183,6 @@ C:.
 |   |   |   |   
 |   |   |   \---archive
     (archived files)
-+---htmlcov
-    (HTML coverage reports)
 +---logs
 |   |   ai.log
 |   |   ai_dev_tools.log

@@ -21,10 +21,10 @@ if str(project_root) not in sys.path:
 
 # Handle both relative and absolute imports
 try:
-    from ..shared.operations import AIToolsService
+    from ..shared.service import AIToolsService
     from ..shared.file_rotation import create_output_file
 except ImportError:
-    from development_tools.shared.operations import AIToolsService
+    from development_tools.shared.service import AIToolsService
     from development_tools.shared.file_rotation import create_output_file
 
 from core.logger import get_component_logger

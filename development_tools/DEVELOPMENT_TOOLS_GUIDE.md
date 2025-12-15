@@ -100,6 +100,27 @@ Regardless of command:
 
 **Portability**: All tools are portable and can be used in other projects. Create a `development_tools_config.json` file in your project root (see `development_tools/development_tools_config.json.example` for a template) to customize paths, exclusions, constants, and other project-specific settings.
 
+### 2.5. Service Architecture
+
+The development tools suite uses a modular service architecture. The main `AIToolsService` class is composed from mixin classes located in `development_tools/shared/service/`:
+
+- **`core.py`**: Base `AIToolsService` class with initialization and configuration
+- **`utilities.py`**: `UtilitiesMixin` - Formatting and extraction utility methods
+- **`data_loading.py`**: `DataLoadingMixin` - Data loading and parsing methods
+- **`tool_wrappers.py`**: `ToolWrappersMixin` - Tool execution wrappers and `SCRIPT_REGISTRY`
+- **`audit_orchestration.py`**: `AuditOrchestrationMixin` - Audit workflow and tier management
+- **`report_generation.py`**: `ReportGenerationMixin` - Report generation methods
+- **`commands.py`**: `CommandsMixin` - Command execution methods
+
+The CLI interface (`COMMAND_REGISTRY` and command handlers) is in `development_tools/shared/cli_interface.py`. For new code, import `AIToolsService` from `development_tools.shared.service` and `COMMAND_REGISTRY` from `development_tools.shared.cli_interface`:
+
+```python
+from development_tools.shared.service import AIToolsService
+from development_tools.shared.cli_interface import COMMAND_REGISTRY
+```
+
+The modular structure provides clear separation of concerns, making the codebase more maintainable and testable. Each module has a single responsibility and can be tested independently.
+
 ---
 
 ## 3. Audit Modes and Outputs
@@ -198,7 +219,8 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 | Tool | Tier | Trust | Notes |
 | --- | --- | --- | --- |
 | run_development_tools.py | core | stable | CLI dispatcher for every development tooling command. Supports `--project-root` and `--config-path` for portability. |
-| shared/operations.py | core | stable | Implements command handlers and shared execution paths. Accepts project-specific config via external config file. |
+| shared/cli_interface.py | core | stable | Implements command handlers and COMMAND_REGISTRY for CLI interface. |
+| shared/service/ | core | stable | Modular service architecture with AIToolsService composed from mixin classes. Accepts project-specific config via external config file. |
 | config/config.py | core | stable | Central configuration for audit contexts, paths, and workflow knobs. Loads from `development_tools_config.json` with generic fallbacks. |
 | shared/standard_exclusions.py | core | stable | Canonical exclusion patterns consumed by all scanners. Loads exclusions from external config. |
 | shared/constants.py | core | stable | Doc pairing metadata, directory maps, and shared enumerations. Loads constants from external config. |

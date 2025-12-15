@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-14 06:18:59
+> **Last Generated**: 2025-12-15 02:21:15
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 6
-**Legacy Compatibility Markers Detected**: 35
+**Legacy Compatibility Markers Detected**: 25
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
-- Legacy compatibility markers remain in 4 file(s) (16 total markers).
+- Legacy compatibility markers remain in 4 file(s) (6 total markers).
 
 ## Recommended Follow-Up
 1. Confirm whether legacy `enabled_fields` payloads are still produced; if not, plan removal and data migration.
@@ -102,6 +102,14 @@
   # LEGACY COMPATIBILITY: Handle both standard format (new) and legacy format (old)
   ```
 
+### development_tools\shared\cli_interface.py
+**Issues Found**: 1
+
+- **Line 63**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Handle deprecated --fast flag
+  ```
+
 ### development_tools\shared\mtime_cache.py
 **Issues Found**: 2
 
@@ -113,64 +121,6 @@
 - **Line 164**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Fallback to legacy file-based saving
-  ```
-
-### development_tools\shared\operations.py
-**Issues Found**: 11
-
-- **Line 927**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Reading from old file location for backward compatibility
-  ```
-
-- **Line 1105**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Handle both standard format (new) and legacy format (old)
-  ```
-
-- **Line 3298**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Ensure data is in standard format
-  ```
-
-- **Line 4417**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Convert back to legacy format for backward compatibility with existing code
-  ```
-
-- **Line 4431**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
-  ```
-
-- **Line 4487**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
-  ```
-
-- **Line 4532**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
-  ```
-
-- **Line 4576**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
-  ```
-
-- **Line 4613**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Fall back to text parsing for backward compatibility
-  ```
-
-- **Line 6573**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Reading from old file location for backward compatibility
-  ```
-
-- **Line 10643**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Handle deprecated --fast flag
   ```
 
 ### tests\fixtures\development_tools_demo\legacy_code.py

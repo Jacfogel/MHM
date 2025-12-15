@@ -15,8 +15,8 @@ from tests.development_tools.conftest import load_development_tools_module, temp
 # Load modules
 path_drift_module = load_development_tools_module("docs.analyze_path_drift")
 PathDriftAnalyzer = path_drift_module.PathDriftAnalyzer
-operations_module = load_development_tools_module("shared.operations")
-AIToolsService = operations_module.AIToolsService
+service_module = load_development_tools_module("shared.service")
+AIToolsService = service_module.AIToolsService
 
 
 class TestPathDriftIntegration:

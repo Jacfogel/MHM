@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-13 22:52:35
+> **Last Generated**: 2025-12-14 20:44:24
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 340
-- **Total Imports**: 3863
-- **Standard Library**: 1321 (34.2%)
+- **Total Imports**: 3866
+- **Standard Library**: 1324 (34.2%)
 - **Third-Party**: 577 (14.9%)
-- **Local Imports**: 1965 (50.9%)
+- **Local Imports**: 1965 (50.8%)
 
 ## Dependency Decision Trees
 
@@ -103,7 +103,7 @@ External libraries provide channel and UI support.
 
 ### Entry Points
 - `tests/ai/run_ai_functionality_tests.py` -> standard library (datetime, glob, logging, os), test_utilities, logger, test_ai_core, test_ai_integration, test_ai_errors (+4 more) (main application entry)
-- `tests/development_tools/test_run_development_tools.py` -> standard library (pathlib, subprocess, sys), third-party (pytest) (main application entry)
+- `tests/development_tools/test_run_development_tools.py` -> standard library (pathlib, subprocess, sys, warnings), third-party (pytest) (main application entry)
 - `tests/ui/test_ui_app_qt_main.py` -> standard library (pathlib, unittest.mock), third-party (PySide6.QtWidgets, pytest), conftest, ui_app_qt, test_utilities (application entry)
 - `run_headless_service.py` -> standard library (sys), headless_service, logger (main application entry)
 - `run_mhm.py` -> standard library (os, pathlib, subprocess, sys), error_handling (main application entry)

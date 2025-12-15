@@ -7,8 +7,11 @@ written once at the end, not during tool execution.
 """
 
 import sys
+import warnings
 from pathlib import Path
 import pytest
+
+# Note: Deprecation warning filters removed - operations.py has been removed
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
@@ -30,8 +33,8 @@ def test_status_files_written_only_at_end_of_audit(demo_project_root):
     3. Confirms no mid-audit writes occur
     """
     # Use conftest helper to load module properly
-    operations_module = load_development_tools_module("shared.operations")
-    AIToolsService = operations_module.AIToolsService
+    service_module = load_development_tools_module("shared.service")
+    AIToolsService = service_module.AIToolsService
     
     project_root = Path(demo_project_root)
     
@@ -92,8 +95,8 @@ def test_status_files_not_written_during_tool_execution(demo_project_root):
     This test runs individual tools and confirms they don't write status files.
     """
     # Use conftest helper to load module properly
-    operations_module = load_development_tools_module("shared.operations")
-    AIToolsService = operations_module.AIToolsService
+    service_module = load_development_tools_module("shared.service")
+    AIToolsService = service_module.AIToolsService
     
     project_root = Path(demo_project_root)
     

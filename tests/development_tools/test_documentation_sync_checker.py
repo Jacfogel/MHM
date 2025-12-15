@@ -284,5 +284,5 @@ class TestIntegration:
         assert summary['status'] in ['PASS', 'FAIL']
         
         # Note: Other checks (path_drift, ascii_compliance, heading_numbering) are now
-        # in separate tools and are called via operations.py during audits
+        # in separate tools and are called via service modules during audits
 

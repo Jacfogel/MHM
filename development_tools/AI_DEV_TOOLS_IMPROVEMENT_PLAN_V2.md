@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Provide a focused, actionable roadmap for remaining development tools improvements  
 > **Style**: Direct, technical, and concise  
-> **Last Updated**: 2025-12-14 (Standard Format Migration Complete)
+> **Last Updated**: 2025-12-14 (Standard Format Migration & Operations Refactoring Complete)
 
 This document is a restructured and condensed version of the original improvement plan, focusing on remaining work and integrating related tasks from TODO.md.
 
@@ -83,6 +83,7 @@ This document is a restructured and condensed version of the original improvemen
 - Three-tier audit system (quick/standard/full)
 - Standardized output storage with domain-organized JSON files
 - **Standardized output format (2025-12-14)**: All 19 analysis tools now output consistent JSON structure with `summary` (total_issues, files_affected, status) and `details` (tool-specific data)
+- **Modular service architecture (2025-12-14)**: Refactored monolithic operations.py into 7 focused service modules with clear separation of concerns
 
 ---
 
@@ -408,22 +409,44 @@ This document is a restructured and condensed version of the original improvemen
 **Files**: All tool modules, `development_tools/TIMING_ANALYSIS.md` (to be created)
 
 #### 6.2 Refactor operations.py
-**Status**: PENDING  
-**Issue**: File is 8000+ lines and risks becoming a "god module."
+**Status**: ✅ COMPLETE (2025-12-14)  
+**Issue**: File was ~11,000 lines and risked becoming a "god module."
 
-**Tasks**:
-- [ ] Analyze current structure and identify logical boundaries:
-  - Audit orchestration methods
-  - Tool wrapper methods (run_analyze_*, run_generate_*, run_fix_*)
-  - Report generation methods
-  - Status and metrics methods
-  - Cache and storage methods
-- [ ] Propose modular structure (e.g., separate modules for audit, reports, tool wrappers)
-- [ ] Create implementation plan with minimal disruption
-- [ ] Consider backward compatibility during refactoring
-- [ ] Document refactoring approach and rationale
+**Completion Summary**:
+- **Refactored**: Successfully split monolithic `operations.py` (~11,000 lines) into 7 modular service modules in `development_tools/shared/service/`:
+  - `core.py` (89 lines) - AIToolsService base class with mixin composition
+  - `utilities.py` (456 lines) - UtilitiesMixin (formatting, extraction methods)
+  - `data_loading.py` (1,156 lines) - DataLoadingMixin (data loading, parsing methods)
+  - `tool_wrappers.py` (1,339 lines) - ToolWrappersMixin (tool execution, SCRIPT_REGISTRY)
+  - `audit_orchestration.py` (724 lines) - AuditOrchestrationMixin (audit workflow, tier management)
+  - `report_generation.py` (3,897 lines) - ReportGenerationMixin (report generation methods)
+  - `commands.py` (740 lines) - CommandsMixin (command execution methods)
+- **CLI Interface Separated**: Moved `COMMAND_REGISTRY` and command handlers to `development_tools/shared/cli_interface.py` for better separation of concerns
+- **Removed**: `operations.py` completely removed (2025-12-14) following AI_LEGACY_REMOVAL_GUIDE.md search-and-close methodology. Verified no active code references using `--find` and `--verify` tools. All imports updated to use new module structure.
+- **Fixed Integration**: 
+  - Added `analyze_test_markers` to Tier 3 (full audit) tools in `audit_orchestration.py`
+  - Fixed `run_test_markers()` to pass `--json` flag and handle exit codes correctly
+  - Fixed remaining import reference in `generate_consolidated_report.py` (updated to import from `service` module)
+- **Test Updates**: Removed deprecation warning filters from test files (`conftest.py`, `test_run_development_tools.py`, `test_status_file_timing.py`)
+- **Success Criteria Met**: 
+  - ✅ All tests pass
+  - ✅ operations.py removed (exceeded <500 line target)
+  - ✅ All modules <2000 lines each (except report_generation.py at 3,897 lines, acceptable for report complexity)
+  - ✅ No functionality changes (verified by test suite)
+  - ✅ Service runs correctly
+  - ✅ External modules (common.py, constants.py, standard_exclusions.py, tool_guide.py) unchanged
+  - ✅ Documentation updated (AI_DEVELOPMENT_TOOLS_GUIDE.md, DEVELOPMENT_TOOLS_GUIDE.md)
 
-**Files**: `development_tools/shared/operations.py`
+**Module Structure**:
+- Used mixin pattern to compose AIToolsService from multiple modules
+- Each module has single responsibility
+- Clear dependency hierarchy: utilities (no deps) → data_loading (uses utilities) → tool_wrappers (uses core) → audit_orchestration (uses tool_wrappers, data_loading) → report_generation (uses data_loading, utilities) → commands (uses all modules)
+
+**Files**: 
+- `development_tools/shared/service/` (7 service modules)
+- `development_tools/shared/cli_interface.py` (CLI interface with COMMAND_REGISTRY)
+- `.cursor/plans/refactor_operations.py_into_modular_structure_057a1721.plan.md` (implementation plan)
+- `development_docs/CHANGELOG_DETAIL.md` (detailed implementation notes)
 
 #### 6.3 Review Shared Utility Modules
 **Status**: PENDING  

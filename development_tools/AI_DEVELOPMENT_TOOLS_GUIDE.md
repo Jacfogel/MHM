@@ -54,6 +54,8 @@ python development_tools/run_development_tools.py help
 
 **Note**: Test marker analysis is automatically run during `audit --full` when coverage is generated. For fixing markers, use `development_tools/tests/fix_test_markers.py` directly.
 
+**Service Architecture**: The tool suite uses a modular service architecture. `AIToolsService` is composed from mixin classes in `development_tools/shared/service/`: `core.py` (base class), `utilities.py` (formatting/extraction), `data_loading.py` (data parsing), `tool_wrappers.py` (tool execution), `audit_orchestration.py` (audit workflow), `report_generation.py` (report generation), and `commands.py` (command handlers). The CLI interface (`COMMAND_REGISTRY` and command handlers) is in `development_tools/shared/cli_interface.py`. Import `AIToolsService` from `development_tools.shared.service` and `COMMAND_REGISTRY` from `development_tools.shared.cli_interface`.
+
 `run_development_tools.py` is the single dispatcher. All commands must:
 - Respect shared configuration (`development_tools/config/config.py` with external config file support)
 - Honor `shared/standard_exclusions.py`
@@ -213,6 +215,7 @@ Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier and
 - **Phase 4 Follow-up (2025-11-27)**: Supporting tools `reports/quick_status.py`, `reports/system_signals.py`, and `shared/file_rotation.py` now have targeted regression tests in `tests/development_tools/test_supporting_tools.py`
 - **Phase 6 Complete (2025-11-28)**: All core tools are now portable via external configuration (`development_tools_config.json`). Tools can be used in other projects with minimal setup.
 - **Standard Format Migration Complete (2025-12-14)**: All 19 analysis tools now output standard format directly. Normalization layer provides backward compatibility. All tests updated to match new format.
+- **Modular Service Architecture Complete (2025-12-14)**: `operations.py` refactored into 7 service modules in `shared/service/` and CLI interface moved to `shared/cli_interface.py`. Legacy facade removed. Import `AIToolsService` from `development_tools.shared.service` and `COMMAND_REGISTRY` from `development_tools.shared.cli_interface`.
 - Preserve the directory structure (`development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) to ease eventual extraction
 - Treat experimental tools cautiously (dry-run first, log outcomes)
 - Keep this guide paired with the human document; update both whenever commands, tiers, or workflows change

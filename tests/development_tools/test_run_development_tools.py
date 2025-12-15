@@ -7,7 +7,10 @@ Smoke tests that verify the CLI runner works correctly with common commands.
 import pytest
 import subprocess
 import sys
+import warnings
 from pathlib import Path
+
+# Note: Deprecation warning filters removed - operations.py has been removed
 
 
 # Get the project root directory
@@ -27,6 +30,7 @@ class TestCLIRunnerSmokeTests:
         if lock_file.exists():
             pytest.skip("Skipping status command test during audit to prevent mid-audit status file writes")
         
+        # Filter deprecation warnings from stderr for comparison
         result = subprocess.run(
             [sys.executable, str(RUNNER_SCRIPT), "status"],
             cwd=str(PROJECT_ROOT),
@@ -34,7 +38,20 @@ class TestCLIRunnerSmokeTests:
             text=True,
             timeout=60  # Increased timeout to handle slow file system operations
         )
-        assert result.returncode == 0, f"status command failed with exit code {result.returncode}\nstdout: {result.stdout}\nstderr: {result.stderr}"
+        
+        # Filter out deprecation warnings from stderr for the assertion message
+        stderr_lines = result.stderr.split('\n')
+        filtered_stderr = [line for line in stderr_lines 
+                          if 'DeprecationWarning' not in line]
+        filtered_stderr_text = '\n'.join(filtered_stderr)
+        
+        # Status command should exit with 0 (deprecation warnings are expected but shouldn't cause failure)
+        assert result.returncode == 0, (
+            f"status command failed with exit code {result.returncode}\n"
+            f"stdout: {result.stdout}\n"
+            f"stderr (filtered): {filtered_stderr_text}\n"
+            f"full stderr: {result.stderr}"
+        )
         # Command should complete successfully (output may go to logs, not stdout/stderr)
 
     @pytest.mark.integration

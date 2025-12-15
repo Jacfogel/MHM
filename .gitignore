@@ -147,6 +147,7 @@ archive/
 development_tools/**/jsons/
 development_tools/tests/coverage_dev_tools.json
 *.lock
+*.backup_*
 
 # ============================
 # IDE files

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-13 22:52:35
+> **Last Generated**: 2025-12-14 20:44:23
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 340
-- **Total Imports Found**: 3863
+- **Total Imports Found**: 3866
 - **Dependencies Documented**: 340 (100% coverage)
-- **Standard Library Imports**: 1321 (34.2%)
+- **Standard Library Imports**: 1324 (34.2%)
 - **Third-Party Imports**: 577 (14.9%)
-- **Local Imports**: 1965 (50.9%)
-- **Last Updated**: 2025-12-13
+- **Local Imports**: 1965 (50.8%)
+- **Last Updated**: 2025-12-14
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 1321 imports (34.2%)
+- **Standard Library**: 1324 imports (34.2%)
 - **Third-Party**: 577 imports (14.9%)
-- **Local**: 1965 imports (50.9%)
+- **Local**: 1965 imports (50.8%)
 
 ## Module Dependencies by Directory
 
@@ -5029,6 +5029,7 @@
     - `shutil`
     - `sys`
     - `tempfile`
+    - `warnings`
   - **Third-party**:
     - `pytest`
 - **Used by**: 
@@ -5483,6 +5484,7 @@
     - `pathlib (Path)`
     - `subprocess`
     - `sys`
+    - `warnings`
   - **Third-party**:
     - `pytest`
 - **Used by**: None (not imported by other modules)
@@ -5517,6 +5519,7 @@
   - **Standard Library**:
     - `pathlib (Path)`
     - `sys`
+    - `warnings`
   - **Third-party**:
     - `pytest`
 - **Used by**: None (not imported by other modules)

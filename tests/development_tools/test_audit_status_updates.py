@@ -13,9 +13,9 @@ from unittest.mock import patch, MagicMock, call
 
 from tests.development_tools.conftest import load_development_tools_module, temp_project_copy
 
-# Load the operations module
-operations_module = load_development_tools_module("shared.operations")
-AIToolsService = operations_module.AIToolsService
+# Load the service module
+service_module = load_development_tools_module("shared.service")
+AIToolsService = service_module.AIToolsService
 
 
 class TestAuditStatusUpdates:
