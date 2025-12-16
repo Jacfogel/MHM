@@ -83,6 +83,7 @@ class DiscordBot(BaseChannel):
         # Ngrok process for webhook tunneling (auto-launched if enabled)
         self._ngrok_process = None
         self._ngrok_pid = None  # Store PID separately in case process reference is lost
+        self._on_ready_fired = False  # Track if on_ready() event has fired
         # Ensure BaseChannel logs for this instance also go to the Discord component log
         self.logger = discord_logger
 
@@ -550,6 +551,20 @@ class DiscordBot(BaseChannel):
                     self._starting = False  # Reset starting flag
                     self._shared__update_connection_status(DiscordConnectionStatus.CONNECTED)
                     logger.info("Discord bot initialized successfully")
+                    
+                    # If on_ready() hasn't fired yet (or won't fire), manually trigger webhook server startup
+                    # This can happen if the bot becomes ready before on_ready() fires, or if on_ready() fails silently
+                    # Wait a moment to see if on_ready() fires naturally
+                    await asyncio.sleep(0.5)  # Give on_ready() a chance to fire
+                    
+                    if hasattr(self, '_on_ready_handler') and self._on_ready_handler:
+                        if not self._on_ready_fired:
+                            discord_logger.warning("Bot is ready but on_ready() hasn't fired - manually triggering webhook server startup")
+                            try:
+                                self.bot.loop.create_task(self._on_ready_handler())
+                            except Exception as e:
+                                discord_logger.warning(f"Failed to manually trigger webhook server startup: {e}", exc_info=True)
+                    
                     return True
                 
                 # Log progress for longer waits
@@ -669,87 +684,102 @@ class DiscordBot(BaseChannel):
         """Register Discord event handlers"""
         if self._events_registered or not self.bot:
             return
+        
+        # Create the on_ready handler function
+        async def _on_ready_internal():
+            # Prevent duplicate execution if already called
+            if self._on_ready_fired:
+                return
+            
+            self._on_ready_fired = True
+            try:
+                # Single consolidated log message
+                logger.info(f"Discord Bot logged in as {self.bot.user}")
+                print(f"Discord Bot is online as {self.bot.user}")
+                
+                # Reset reconnect attempts on successful connection
+                self._reconnect_attempts = 0
+                self._set_status(ChannelStatus.READY)
+                self._shared__update_connection_status(DiscordConnectionStatus.CONNECTED)
+
+                # Sync application (slash) commands
+                @handle_errors("syncing Discord application commands", user_friendly=False, default_return=None)
+                async def _sync_app_cmds():
+                    await self.bot.tree.sync()
+                    logger.info("Discord application commands synced")
+                # Schedule on the bot's loop to ensure proper task context
+                # Store task reference for proper cleanup during shutdown
+                self._sync_task = self.bot.loop.create_task(_sync_app_cmds())
+                
+                # Check for new users who have authorized the app (can now DM us)
+                # This runs periodically to catch users who authorized while bot was offline
+                @handle_errors("checking for new authorized Discord users", user_friendly=False, default_return=None)
+                async def _check_new_authorized_users():
+                    from communication.communication_channels.discord.welcome_handler import (
+                        has_been_welcomed,
+                        mark_as_welcomed,
+                        get_welcome_message
+                    )
+                    
+                    # Get all users who can DM us (have authorized the app)
+                    # Note: We can't directly query this, but we can check when they first DM us
+                    # This is handled in on_message for DMs
+                    discord_logger.debug("Bot ready - will welcome users on Discord app authorization (via webhook) or first interaction")
+                
+                # Schedule the check (non-blocking)
+                self.bot.loop.create_task(_check_new_authorized_users())
+                
+                # Start webhook server for receiving installation events
+                try:
+                    from communication.communication_channels.discord.webhook_server import WebhookServer
+                    from core.config import DISCORD_WEBHOOK_PORT, DISCORD_AUTO_NGROK
+                    
+                    # Auto-launch ngrok if enabled
+                    if DISCORD_AUTO_NGROK:
+                        self._start_ngrok_tunnel(DISCORD_WEBHOOK_PORT)
+                    
+                    self._webhook_server = WebhookServer(port=DISCORD_WEBHOOK_PORT, bot_instance=self)
+                    if self._webhook_server.start():
+                        # Log message is handled by WebhookServer.start() - don't duplicate
+                        if self._ngrok_process:
+                            discord_logger.info(f"ngrok tunnel active - check ngrok web interface at http://127.0.0.1:4040 for public URL")
+                        else:
+                            # Check if ngrok is running externally
+                            ngrok_running = False
+                            try:
+                                for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+                                    try:
+                                        if not proc.info['name']:
+                                            continue
+                                        proc_name = proc.info['name'].lower()
+                                        if 'ngrok' in proc_name:
+                                            cmdline = proc.info.get('cmdline', [])
+                                            if cmdline and 'http' in ' '.join(cmdline).lower():
+                                                if proc.is_running():
+                                                    ngrok_running = True
+                                                    discord_logger.info(f"ngrok tunnel detected (external) - check http://127.0.0.1:4040 for public URL")
+                                                    break
+                                    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                                        continue
+                            except Exception:
+                                pass
+                            
+                            if not ngrok_running:
+                                discord_logger.info(f"Webhook server ready on port {DISCORD_WEBHOOK_PORT} - configure webhook URL in Discord Developer Portal")
+                    else:
+                        discord_logger.warning("Failed to start Discord webhook server")
+                except Exception as e:
+                    discord_logger.warning(f"Could not start webhook server: {e}")
+                    # Non-critical - bot will still work, just won't receive installation events
+            except Exception as e:
+                discord_logger.error(f"Exception in on_ready(): {type(e).__name__}: {e}", exc_info=True)
+                raise  # Re-raise to let @handle_errors decorator handle it
+        
+        # Wrap with error handling decorator
         @self.bot.event
         @handle_errors("Discord bot ready event", user_friendly=False, default_return=None)
         async def on_ready():
-            # Single consolidated log message
-            logger.info(f"Discord Bot logged in as {self.bot.user}")
-            print(f"Discord Bot is online as {self.bot.user}")
-            
-            # Reset reconnect attempts on successful connection
-            self._reconnect_attempts = 0
-            self._set_status(ChannelStatus.READY)
-            self._shared__update_connection_status(DiscordConnectionStatus.CONNECTED)
-
-            # Sync application (slash) commands
-            @handle_errors("syncing Discord application commands", user_friendly=False, default_return=None)
-            async def _sync_app_cmds():
-                await self.bot.tree.sync()
-                logger.info("Discord application commands synced")
-            # Schedule on the bot's loop to ensure proper task context
-            # Store task reference for proper cleanup during shutdown
-            self._sync_task = self.bot.loop.create_task(_sync_app_cmds())
-            
-            # Check for new users who have authorized the app (can now DM us)
-            # This runs periodically to catch users who authorized while bot was offline
-            @handle_errors("checking for new authorized Discord users", user_friendly=False, default_return=None)
-            async def _check_new_authorized_users():
-                from communication.communication_channels.discord.welcome_handler import (
-                    has_been_welcomed,
-                    mark_as_welcomed,
-                    get_welcome_message
-                )
-                
-                # Get all users who can DM us (have authorized the app)
-                # Note: We can't directly query this, but we can check when they first DM us
-                # This is handled in on_message for DMs
-                discord_logger.debug("Bot ready - will welcome users on Discord app authorization (via webhook) or first interaction")
-            
-            # Schedule the check (non-blocking)
-            self.bot.loop.create_task(_check_new_authorized_users())
-            
-            # Start webhook server for receiving installation events
-            try:
-                from communication.communication_channels.discord.webhook_server import WebhookServer
-                from core.config import DISCORD_WEBHOOK_PORT, DISCORD_AUTO_NGROK
-                
-                # Auto-launch ngrok if enabled
-                if DISCORD_AUTO_NGROK:
-                    self._start_ngrok_tunnel(DISCORD_WEBHOOK_PORT)
-                
-                self._webhook_server = WebhookServer(port=DISCORD_WEBHOOK_PORT, bot_instance=self)
-                if self._webhook_server.start():
-                    # Log message is handled by WebhookServer.start() - don't duplicate
-                    if self._ngrok_process:
-                        discord_logger.info(f"ngrok tunnel active - check ngrok web interface at http://127.0.0.1:4040 for public URL")
-                    else:
-                        # Check if ngrok is running externally
-                        ngrok_running = False
-                        try:
-                            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
-                                try:
-                                    if not proc.info['name']:
-                                        continue
-                                    proc_name = proc.info['name'].lower()
-                                    if 'ngrok' in proc_name:
-                                        cmdline = proc.info.get('cmdline', [])
-                                        if cmdline and 'http' in ' '.join(cmdline).lower():
-                                            if proc.is_running():
-                                                ngrok_running = True
-                                                discord_logger.info(f"ngrok tunnel detected (external) - check http://127.0.0.1:4040 for public URL")
-                                                break
-                                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                                    continue
-                        except Exception:
-                            pass
-                        
-                        if not ngrok_running:
-                            discord_logger.info(f"Webhook server ready on port {DISCORD_WEBHOOK_PORT} - configure webhook URL in Discord Developer Portal")
-                else:
-                    discord_logger.warning("Failed to start Discord webhook server")
-            except Exception as e:
-                discord_logger.warning(f"Could not start webhook server: {e}")
-                # Non-critical - bot will still work, just won't receive installation events
+            await _on_ready_internal()
 
         @self.bot.event
         @handle_errors("handling Discord disconnect event", default_return=None)
@@ -1119,7 +1149,18 @@ class DiscordBot(BaseChannel):
                 # Just send a generic error message
                 await message.channel.send("I'm having trouble processing your message right now. Please try again in a moment.")
 
+        # Store reference to the handler so we can call it manually if on_ready() doesn't fire
+        self._on_ready_handler = _on_ready_internal
+        
         self._events_registered = True
+        
+        # If bot is already ready when we register events, on_ready won't fire
+        # So we need to manually trigger the webhook server startup
+        if self.bot and self.bot.is_ready():
+            try:
+                self.bot.loop.create_task(_on_ready_internal())
+            except Exception as e:
+                discord_logger.warning(f"Failed to manually trigger webhook server startup: {e}", exc_info=True)
 
     @handle_errors("registering Discord commands")
     def initialize__register_commands(self):

@@ -10,6 +10,7 @@ import sys
 import traceback
 import logging
 import threading
+import functools
 from typing import Optional, Dict, Any, Callable, List
 from datetime import datetime
 
@@ -632,6 +633,7 @@ def handle_errors(operation: str = None, context: Dict[str, Any] = None,
         import asyncio
         if asyncio.iscoroutinefunction(func):
             # Async wrapper for async functions
+            @functools.wraps(func)
             async def async_wrapper(*args, **kwargs):
                 op_name = operation or func.__name__
                 ctx = context or {}
@@ -665,6 +667,7 @@ def handle_errors(operation: str = None, context: Dict[str, Any] = None,
             return async_wrapper
         else:
             # Regular wrapper for sync functions
+            @functools.wraps(func)
             def wrapper(*args, **kwargs):
                 op_name = operation or func.__name__
                 ctx = context or {}
