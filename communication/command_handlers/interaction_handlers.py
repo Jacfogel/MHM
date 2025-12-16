@@ -607,6 +607,7 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return InteractionResponse("❌ Failed to delete task. Please try again.", True)
 
+    @handle_errors("getting task candidates", user_friendly=False, default_return=[])
     def _get_task_candidates(self, tasks: List[Dict], identifier: str) -> List[Dict]:
         """Return candidate tasks matching identifier by id, number, or name."""
         matches: List[Dict] = []
@@ -627,7 +628,8 @@ class TaskManagementHandler(InteractionHandler):
             n = int(identifier)
             if 1 <= n <= len(tasks):
                 return [tasks[n-1]]
-        except Exception:
+        except ValueError:
+            # Invalid number format - continue to name-based matching
             pass
         # Name-based
         ident = str(identifier).lower().strip()
@@ -706,59 +708,54 @@ class TaskManagementHandler(InteractionHandler):
         period_name = entities.get('period_name', 'this week')
         offset = entities.get('offset', 0)
         
-        try:
-            from core.checkin_analytics import CheckinAnalytics
-            analytics = CheckinAnalytics()
-            
-            # Get task statistics for the specified period
-            task_stats = analytics.get_task_weekly_stats(user_id, days)
-            if 'error' in task_stats:
-                return InteractionResponse(f"You don't have enough check-in data for {period_name} statistics yet. Try completing some check-ins first!", True)
-            
-            # Get overall task stats
-            overall_stats = get_user_task_stats(user_id)
-            
-            response = f"**📊 Task Statistics for {period_name.title()}:**\n\n"
-            
-            # Show habit-based task completion
-            if task_stats:
-                response += "**Daily Habits:**\n"
-                for task_name, stats in task_stats.items():
-                    completion_rate = stats.get('completion_rate', 0)
-                    completed_days = stats.get('completed_days', 0)
-                    total_days = stats.get('total_days', 0)
-                    
-                    # Add emoji based on completion rate
-                    if completion_rate >= 80:
-                        emoji = "🟢"
-                    elif completion_rate >= 60:
-                        emoji = "🟡"
-                    else:
-                        emoji = "🔴"
-                    
-                    response += f"{emoji} **{task_name}:** {completion_rate}% ({completed_days}/{total_days} days)\n"
+        from core.checkin_analytics import CheckinAnalytics
+        analytics = CheckinAnalytics()
+        
+        # Get task statistics for the specified period
+        task_stats = analytics.get_task_weekly_stats(user_id, days)
+        if 'error' in task_stats:
+            return InteractionResponse(f"You don't have enough check-in data for {period_name} statistics yet. Try completing some check-ins first!", True)
+        
+        # Get overall task stats
+        overall_stats = get_user_task_stats(user_id)
+        
+        response = f"**📊 Task Statistics for {period_name.title()}:**\n\n"
+        
+        # Show habit-based task completion
+        if task_stats:
+            response += "**Daily Habits:**\n"
+            for task_name, stats in task_stats.items():
+                completion_rate = stats.get('completion_rate', 0)
+                completed_days = stats.get('completed_days', 0)
+                total_days = stats.get('total_days', 0)
                 
-                response += "\n"
+                # Add emoji based on completion rate
+                if completion_rate >= 80:
+                    emoji = "🟢"
+                elif completion_rate >= 60:
+                    emoji = "🟡"
+                else:
+                    emoji = "🔴"
+                
+                response += f"{emoji} **{task_name}:** {completion_rate}% ({completed_days}/{total_days} days)\n"
             
-            # Show overall task statistics
-            active_tasks = overall_stats.get('active_tasks', 0)
-            completed_tasks = overall_stats.get('completed_tasks', 0)
-            total_tasks = active_tasks + completed_tasks
-            
-            if total_tasks > 0:
-                overall_completion_rate = (completed_tasks / total_tasks) * 100
-                response += f"**Overall Task Progress:**\n"
-                response += f"📋 **Active Tasks:** {active_tasks}\n"
-                response += f"✅ **Completed Tasks:** {completed_tasks}\n"
-                response += f"📊 **Completion Rate:** {overall_completion_rate:.1f}%\n"
-            else:
-                response += "**No tasks found.** Create some tasks to get started!\n"
-            
-            return InteractionResponse(response, True)
-            
-        except Exception as e:
-            logger.error(f"Error showing task statistics for user {user_id}: {e}")
-            return InteractionResponse("I'm having trouble showing your task statistics right now. Please try again.", True)
+            response += "\n"
+        
+        # Show overall task statistics
+        active_tasks = overall_stats.get('active_tasks', 0)
+        completed_tasks = overall_stats.get('completed_tasks', 0)
+        total_tasks = active_tasks + completed_tasks
+        
+        if total_tasks > 0:
+            overall_completion_rate = (completed_tasks / total_tasks) * 100
+            response += f"**Overall Task Progress:**\n"
+            response += f"📋 **Active Tasks:** {active_tasks}\n"
+            response += f"✅ **Completed Tasks:** {completed_tasks}\n"
+            response += f"📊 **Completion Rate:** {overall_completion_rate:.1f}%\n"
+        else:
+            response += "**No tasks found.** Create some tasks to get started!\n"
+        
+        return InteractionResponse(response, True)
     
     def _handle_complete_task__find_task_by_identifier(self, tasks: List[Dict], identifier: str) -> Optional[Dict]:
         """Find a task by number, name, or task_id"""
@@ -1023,6 +1020,7 @@ class CheckinHandler(InteractionHandler):
             return InteractionResponse(f"I don't understand that check-in command. Try: {', '.join(self.get_examples())}", True)
     
     @handle_errors("starting check-in", default_return=InteractionResponse("I'm having trouble starting your check-in. Please try again.", True))
+    @handle_errors("starting check-in", default_return=InteractionResponse("I'm having trouble starting your check-in. Please try again or use /checkin directly.", True))
     def _handle_start_checkin(self, user_id: str) -> InteractionResponse:
         """Handle starting a check-in by delegating to conversation manager"""
         if not is_user_checkins_enabled(user_id):
@@ -1057,15 +1055,8 @@ class CheckinHandler(InteractionHandler):
         # Delegate to conversation manager for proper check-in flow (modern API)
         from communication.message_processing.conversation_flow_manager import conversation_manager
         
-        try:
-            message, completed = conversation_manager.start_checkin(user_id)
-            return InteractionResponse(message, completed)
-        except Exception as e:
-            logger.error(f"Error starting check-in for user {user_id}: {e}")
-            return InteractionResponse(
-                "I'm having trouble starting your check-in. Please try again or use /checkin directly.",
-                True
-            )
+        message, completed = conversation_manager.start_checkin(user_id)
+        return InteractionResponse(message, completed)
     
     @handle_errors("continuing check-in", default_return=InteractionResponse("I'm having trouble continuing your check-in. Please try again.", True))
     def _handle_continue_checkin(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
@@ -1706,137 +1697,129 @@ class HelpHandler(InteractionHandler):
                 True
             )
     
+    @handle_errors("getting status", default_return=InteractionResponse(
+        "I'm up and running! 🌟\n\nI can help you with:\n"
+        "📋 **Tasks**: Create, list, complete, and manage tasks\n"
+        "✅ **Check-ins**: Wellness check-ins\n"
+        "👤 **Profile**: View and update your information\n"
+        "📅 **Schedule**: Manage message schedules\n"
+        "📊 **Analytics**: View wellness insights\n\n"
+        "Just start typing naturally - I'll understand what you want to do!",
+        True
+    ))
     def _handle_status(self, user_id: str) -> InteractionResponse:
         """Handle status request with detailed system information"""
-        try:
-            from tasks.task_management import load_active_tasks
-            from core.response_tracking import is_user_checkins_enabled
-            
-            # Load user data
-            account_result = get_user_data(user_id, 'account')
-            account_data = account_result.get('account', {}) if account_result else {}
-            if not account_data:
-                return InteractionResponse("I'm up and running! 🌟\n\nPlease register first to see your personal status.", True)
-            
-            # Get user info
-            username = account_data.get('internal_username', 'Unknown')
-            features = account_data.get('features', {})
-            
-            # Get active tasks
-            tasks = load_active_tasks(user_id)
-            task_count = len(tasks) if tasks else 0
-            
-            # Check if check-ins are enabled
-            checkins_enabled = is_user_checkins_enabled(user_id)
-            
-            # Build status response
-            response = f"**System Status for {username}** 🌟\n\n"
-            
-            # Account status
-            response += "👤 **Account Status:**\n"
-            response += f"• Username: {username}\n"
-            response += f"• Account: Active ✅\n"
-            response += f"• Timezone: {account_data.get('timezone', 'Not set')}\n\n"
-            
-            # Features status
-            response += "🔧 **Features:**\n"
-            for feature, status in features.items():
-                status_icon = "✅" if status == "enabled" else "❌"
-                response += f"• {feature.replace('_', ' ').title()}: {status_icon}\n"
-            response += "\n"
-            
-            # Current status
-            response += "📊 **Current Status:**\n"
-            response += f"• Active Tasks: {task_count}\n"
-            response += f"• Check-ins: {'Enabled ✅' if checkins_enabled else 'Disabled ❌'}\n"
-            response += f"• System: Running smoothly ✅\n\n"
-            
-            # Quick actions
-            response += "🚀 **Quick Actions:**\n"
-            response += "• 'show my tasks' - View your tasks\n"
-            response += "• 'start checkin' - Begin check-in\n"
-            response += "• 'show profile' - View your profile\n"
-            response += "• 'show schedule' - View your schedules\n"
-            response += "• 'help' - Get help and examples\n\n"
-            
-            response += "Just start typing naturally - I'll understand what you want to do!"
-            
-            return InteractionResponse(response, True)
-            
-        except Exception as e:
-            logger.error(f"Error getting status for user {user_id}: {e}")
-            return InteractionResponse(
-                "I'm up and running! 🌟\n\nI can help you with:\n"
-                "📋 **Tasks**: Create, list, complete, and manage tasks\n"
-                "✅ **Check-ins**: Wellness check-ins\n"
-                "👤 **Profile**: View and update your information\n"
-                "📅 **Schedule**: Manage message schedules\n"
-                "📊 **Analytics**: View wellness insights\n\n"
-                "Just start typing naturally - I'll understand what you want to do!",
-                True
-            )
+        from tasks.task_management import load_active_tasks
+        from core.response_tracking import is_user_checkins_enabled
+        
+        # Load user data
+        account_result = get_user_data(user_id, 'account')
+        account_data = account_result.get('account', {}) if account_result else {}
+        if not account_data:
+            return InteractionResponse("I'm up and running! 🌟\n\nPlease register first to see your personal status.", True)
+        
+        # Get user info
+        username = account_data.get('internal_username', 'Unknown')
+        features = account_data.get('features', {})
+        
+        # Get active tasks
+        tasks = load_active_tasks(user_id)
+        task_count = len(tasks) if tasks else 0
+        
+        # Check if check-ins are enabled
+        checkins_enabled = is_user_checkins_enabled(user_id)
+        
+        # Build status response
+        response = f"**System Status for {username}** 🌟\n\n"
+        
+        # Account status
+        response += "👤 **Account Status:**\n"
+        response += f"• Username: {username}\n"
+        response += f"• Account: Active ✅\n"
+        response += f"• Timezone: {account_data.get('timezone', 'Not set')}\n\n"
+        
+        # Features status
+        response += "🔧 **Features:**\n"
+        for feature, status in features.items():
+            status_icon = "✅" if status == "enabled" else "❌"
+            response += f"• {feature.replace('_', ' ').title()}: {status_icon}\n"
+        response += "\n"
+        
+        # Current status
+        response += "📊 **Current Status:**\n"
+        response += f"• Active Tasks: {task_count}\n"
+        response += f"• Check-ins: {'Enabled ✅' if checkins_enabled else 'Disabled ❌'}\n"
+        response += f"• System: Running smoothly ✅\n\n"
+        
+        # Quick actions
+        response += "🚀 **Quick Actions:**\n"
+        response += "• 'show my tasks' - View your tasks\n"
+        response += "• 'start checkin' - Begin check-in\n"
+        response += "• 'show profile' - View your profile\n"
+        response += "• 'show schedule' - View your schedules\n"
+        response += "• 'help' - Get help and examples\n\n"
+        
+        response += "Just start typing naturally - I'll understand what you want to do!"
+        
+        return InteractionResponse(response, True)
     
+    @handle_errors("getting messages", default_return=InteractionResponse(
+        "**Messages** 📬\n\n"
+        "I can help you with:\n"
+        "• check-ins\n"
+        "• Task reminders\n"
+        "• Motivational messages\n"
+        "• Schedule management\n\n"
+        "Try 'start checkin' to begin a check-in!",
+        True
+    ))
     def _handle_messages(self, user_id: str) -> InteractionResponse:
         """Handle messages request with message history and settings"""
-        try:
-            from core.response_tracking import get_recent_checkins
-            
-            # Load user data
-            account_result = get_user_data(user_id, 'account')
-            account_data = account_result.get('account', {}) if account_result else {}
-            if not account_data:
-                return InteractionResponse("Please register first to view your messages.", True)
-            
-            # Get user info
-            username = account_data.get('internal_username', 'Unknown')
-            
-            # Get recent check-ins (as a proxy for recent messages)
-            recent_checkins = get_recent_checkins(user_id, limit=5)
-            
-            # Build messages response
-            response = f"**Messages for {username}** 📬\n\n"
-            
-            # Message settings
-            response += "📧 **Message Settings:**\n"
-            response += "• Automated Messages: Enabled ✅\n"
-            response += "• Check-ins: Available ✅\n"
-            response += "• Task Reminders: Available ✅\n"
-            response += "• Motivational Messages: Available ✅\n\n"
-            
-            # Recent activity
-            response += "📅 **Recent Activity:**\n"
-            if recent_checkins:
-                response += "Recent check-ins:\n"
-                for checkin in recent_checkins:
-                    date = checkin.get('date', 'Unknown')
-                    response += f"• {date}: Check-in completed ✅\n"
-            else:
-                response += "No recent check-ins found.\n"
-            response += "\n"
-            
-            # Quick actions
-            response += "🚀 **Quick Actions:**\n"
-            response += "• 'start checkin' - Begin check-in\n"
-            response += "• 'show schedule' - View message schedules\n"
-            response += "• 'show analytics' - View message analytics\n"
-            response += "• 'help' - Get help with messages\n\n"
-            
-            response += "Your messages are automatically scheduled and delivered based on your preferences!"
-            
-            return InteractionResponse(response, True)
-            
-        except Exception as e:
-            logger.error(f"Error getting messages for user {user_id}: {e}")
-            return InteractionResponse(
-                "**Messages** 📬\n\n"
-                "I can help you with:\n"
-                "• check-ins\n"
-                "• Task reminders\n"
-                "• Motivational messages\n"
-                "• Schedule management\n\n"
-                "Try 'start checkin' to begin a check-in!",
-                True
-            )
+        from core.response_tracking import get_recent_checkins
+        
+        # Load user data
+        account_result = get_user_data(user_id, 'account')
+        account_data = account_result.get('account', {}) if account_result else {}
+        if not account_data:
+            return InteractionResponse("Please register first to view your messages.", True)
+        
+        # Get user info
+        username = account_data.get('internal_username', 'Unknown')
+        
+        # Get recent check-ins (as a proxy for recent messages)
+        recent_checkins = get_recent_checkins(user_id, limit=5)
+        
+        # Build messages response
+        response = f"**Messages for {username}** 📬\n\n"
+        
+        # Message settings
+        response += "📧 **Message Settings:**\n"
+        response += "• Automated Messages: Enabled ✅\n"
+        response += "• Check-ins: Available ✅\n"
+        response += "• Task Reminders: Available ✅\n"
+        response += "• Motivational Messages: Available ✅\n\n"
+        
+        # Recent activity
+        response += "📅 **Recent Activity:**\n"
+        if recent_checkins:
+            response += "Recent check-ins:\n"
+            for checkin in recent_checkins:
+                date = checkin.get('date', 'Unknown')
+                response += f"• {date}: Check-in completed ✅\n"
+        else:
+            response += "No recent check-ins found.\n"
+        response += "\n"
+        
+        # Quick actions
+        response += "🚀 **Quick Actions:**\n"
+        response += "• 'start checkin' - Begin check-in\n"
+        response += "• 'show schedule' - View message schedules\n"
+        response += "• 'show analytics' - View message analytics\n"
+        response += "• 'help' - Get help with messages\n\n"
+        
+        response += "Your messages are automatically scheduled and delivered based on your preferences!"
+        
+        return InteractionResponse(response, True)
     
     @handle_errors("getting help help", default_return="Get help and see available commands")
     def get_help(self) -> str:
@@ -1887,103 +1870,98 @@ class ScheduleManagementHandler(InteractionHandler):
         """Show schedule for a specific category or all categories"""
         category = entities.get('category', 'all')
         
-        try:
-            from core.schedule_management import get_schedule_time_periods
-            from core.user_management import get_user_categories
+        from core.schedule_management import get_schedule_time_periods
+        from core.user_management import get_user_categories
+        
+        if category == 'all':
+            # Show schedules for all categories
+            categories = get_user_categories(user_id)
+            response = "**Your Current Schedules:**\n\n"
             
-            if category == 'all':
-                # Show schedules for all categories
-                categories = get_user_categories(user_id)
-                response = "**Your Current Schedules:**\n\n"
-                
-                for cat in categories:
-                    periods = get_schedule_time_periods(user_id, cat)
-                    if periods:
-                        response += f"📅 **{cat.title()}:**\n"
-                        for period_name, period_data in periods.items():
-                            start_time = period_data.get('start_time', 'Unknown')
-                            end_time = period_data.get('end_time', 'Unknown')
-                            active = "✅ Active" if period_data.get('active', True) else "❌ Inactive"
-                            response += f"  • {period_name}: {start_time} - {end_time} ({active})\n"
-                        response += "\n"
-                    else:
-                        response += f"📅 **{cat.title()}:** No periods configured\n\n"
-                
-                if not categories:
-                    response += "No categories configured yet."
-            else:
-                # Show schedule for specific category
-                periods = get_schedule_time_periods(user_id, category)
+            for cat in categories:
+                periods = get_schedule_time_periods(user_id, cat)
                 if periods:
-                    response = f"**Schedule for {category.title()}:**\n\n"
+                    response += f"📅 **{cat.title()}:**\n"
                     for period_name, period_data in periods.items():
                         start_time = period_data.get('start_time', 'Unknown')
                         end_time = period_data.get('end_time', 'Unknown')
                         active = "✅ Active" if period_data.get('active', True) else "❌ Inactive"
-                        days = period_data.get('days', ['ALL'])
-                        days_str = ', '.join(days) if days != ['ALL'] else 'All days'
-                        response += f"**{period_name}:**\n"
-                        response += f"  • Time: {start_time} - {end_time}\n"
-                        response += f"  • Days: {days_str}\n"
-                        response += f"  • Status: {active}\n\n"
+                        response += f"  • {period_name}: {start_time} - {end_time} ({active})\n"
+                    response += "\n"
                 else:
-                    response = f"No schedule periods configured for {category.title()}."
+                    response += f"📅 **{cat.title()}:** No periods configured\n\n"
             
-            # Create rich data for Discord embeds
-            rich_data = {
-                'type': 'schedule',
-                'title': f'Schedule for {category.title()}' if category != 'all' else 'Your Current Schedules',
-                'fields': []
-            }
-            
-            if category == 'all':
-                # Add summary fields for all schedules
-                total_periods = 0
-                active_periods = 0
-                for cat in categories:
-                    periods = get_schedule_time_periods(user_id, cat)
-                    total_periods += len(periods)
-                    active_periods += sum(1 for p in periods.values() if p.get('active', True))
-                
-                rich_data['fields'].append({
-                    'name': 'Total Categories',
-                    'value': str(len(categories)),
-                    'inline': True
-                })
-                
-                rich_data['fields'].append({
-                    'name': 'Total Periods',
-                    'value': str(total_periods),
-                    'inline': True
-                })
-                
-                rich_data['fields'].append({
-                    'name': 'Active Periods',
-                    'value': f"{active_periods}/{total_periods}",
-                    'inline': True
-                })
+            if not categories:
+                response += "No categories configured yet."
+        else:
+            # Show schedule for specific category
+            periods = get_schedule_time_periods(user_id, category)
+            if periods:
+                response = f"**Schedule for {category.title()}:**\n\n"
+                for period_name, period_data in periods.items():
+                    start_time = period_data.get('start_time', 'Unknown')
+                    end_time = period_data.get('end_time', 'Unknown')
+                    active = "✅ Active" if period_data.get('active', True) else "❌ Inactive"
+                    days = period_data.get('days', ['ALL'])
+                    days_str = ', '.join(days) if days != ['ALL'] else 'All days'
+                    response += f"**{period_name}:**\n"
+                    response += f"  • Time: {start_time} - {end_time}\n"
+                    response += f"  • Days: {days_str}\n"
+                    response += f"  • Status: {active}\n\n"
             else:
-                # Add fields for specific category
-                periods = get_schedule_time_periods(user_id, category)
-                active_count = sum(1 for p in periods.values() if p.get('active', True))
-                
-                rich_data['fields'].append({
-                    'name': 'Total Periods',
-                    'value': str(len(periods)),
-                    'inline': True
-                })
-                
-                rich_data['fields'].append({
-                    'name': 'Active Periods',
-                    'value': f"{active_count}/{len(periods)}",
-                    'inline': True
-                })
+                response = f"No schedule periods configured for {category.title()}."
+        
+        # Create rich data for Discord embeds
+        rich_data = {
+            'type': 'schedule',
+            'title': f'Schedule for {category.title()}' if category != 'all' else 'Your Current Schedules',
+            'fields': []
+        }
+        
+        if category == 'all':
+            # Add summary fields for all schedules
+            total_periods = 0
+            active_periods = 0
+            for cat in categories:
+                periods = get_schedule_time_periods(user_id, cat)
+                total_periods += len(periods)
+                active_periods += sum(1 for p in periods.values() if p.get('active', True))
             
-            return InteractionResponse(response, True, rich_data=rich_data)
+            rich_data['fields'].append({
+                'name': 'Total Categories',
+                'value': str(len(categories)),
+                'inline': True
+            })
             
-        except Exception as e:
-            logger.error(f"Error showing schedule for user {user_id}: {e}")
-            return InteractionResponse("I'm having trouble showing your schedule right now. Please try again.", True)
+            rich_data['fields'].append({
+                'name': 'Total Periods',
+                'value': str(total_periods),
+                'inline': True
+            })
+            
+            rich_data['fields'].append({
+                'name': 'Active Periods',
+                'value': f"{active_periods}/{total_periods}",
+                'inline': True
+            })
+        else:
+            # Add fields for specific category
+            periods = get_schedule_time_periods(user_id, category)
+            active_count = sum(1 for p in periods.values() if p.get('active', True))
+            
+            rich_data['fields'].append({
+                'name': 'Total Periods',
+                'value': str(len(periods)),
+                'inline': True
+            })
+            
+            rich_data['fields'].append({
+                'name': 'Active Periods',
+                'value': f"{active_count}/{len(periods)}",
+                'inline': True
+            })
+        
+        return InteractionResponse(response, True, rich_data=rich_data)
     
     @handle_errors("updating schedule", default_return=InteractionResponse("I'm having trouble updating your schedule. Please try again.", True))
     def _handle_update_schedule(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
@@ -1997,67 +1975,57 @@ class ScheduleManagementHandler(InteractionHandler):
                 True
             )
         
-        try:
-            from core.schedule_management import get_schedule_time_periods, set_schedule_periods
-            
-            periods = get_schedule_time_periods(user_id, category)
-            
-            if action == 'enable':
-                # Enable all periods
-                for period_name in periods:
-                    periods[period_name]['active'] = True
-                set_schedule_periods(user_id, category, periods)
-                return InteractionResponse(f"✅ All {category} schedule periods have been enabled.", True)
-            
-            elif action == 'disable':
-                # Disable all periods
-                for period_name in periods:
-                    periods[period_name]['active'] = False
-                set_schedule_periods(user_id, category, periods)
-                return InteractionResponse(f"❌ All {category} schedule periods have been disabled.", True)
-            
-            else:
-                return InteractionResponse(
-                    f"I understand you want to update your {category} schedule, but I need more details. "
-                    f"Try 'Enable my {category} schedule' or 'Disable my {category} schedule'",
-                    True
-                )
-                
-        except Exception as e:
-            logger.error(f"Error updating schedule for user {user_id}: {e}")
-            return InteractionResponse("I'm having trouble updating your schedule right now. Please try again.", True)
+        from core.schedule_management import get_schedule_time_periods, set_schedule_periods
+        
+        periods = get_schedule_time_periods(user_id, category)
+        
+        if action == 'enable':
+            # Enable all periods
+            for period_name in periods:
+                periods[period_name]['active'] = True
+            set_schedule_periods(user_id, category, periods)
+            return InteractionResponse(f"✅ All {category} schedule periods have been enabled.", True)
+        
+        elif action == 'disable':
+            # Disable all periods
+            for period_name in periods:
+                periods[period_name]['active'] = False
+            set_schedule_periods(user_id, category, periods)
+            return InteractionResponse(f"❌ All {category} schedule periods have been disabled.", True)
+        
+        else:
+            return InteractionResponse(
+                f"I understand you want to update your {category} schedule, but I need more details. "
+                f"Try 'Enable my {category} schedule' or 'Disable my {category} schedule'",
+                True
+            )
     
     @handle_errors("getting schedule status", default_return=InteractionResponse("I'm having trouble getting your schedule status. Please try again.", True))
     def _handle_schedule_status(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show status of schedules"""
-        try:
-            from core.schedule_management import get_schedule_time_periods
-            from core.user_management import get_user_categories
+        from core.schedule_management import get_schedule_time_periods
+        from core.user_management import get_user_categories
+        
+        categories = get_user_categories(user_id)
+        response = "**Schedule Status:**\n\n"
+        
+        for category in categories:
+            periods = get_schedule_time_periods(user_id, category)
+            active_periods = sum(1 for p in periods.values() if p.get('active', True))
+            total_periods = len(periods)
             
-            categories = get_user_categories(user_id)
-            response = "**Schedule Status:**\n\n"
+            if total_periods == 0:
+                status = "❌ No periods configured"
+            elif active_periods == 0:
+                status = "❌ All periods disabled"
+            elif active_periods == total_periods:
+                status = "✅ All periods active"
+            else:
+                status = f"⚠️ {active_periods}/{total_periods} periods active"
             
-            for category in categories:
-                periods = get_schedule_time_periods(user_id, category)
-                active_periods = sum(1 for p in periods.values() if p.get('active', True))
-                total_periods = len(periods)
-                
-                if total_periods == 0:
-                    status = "❌ No periods configured"
-                elif active_periods == 0:
-                    status = "❌ All periods disabled"
-                elif active_periods == total_periods:
-                    status = "✅ All periods active"
-                else:
-                    status = f"⚠️ {active_periods}/{total_periods} periods active"
-                
-                response += f"📅 **{category.title()}:** {status}\n"
-            
-            return InteractionResponse(response, True)
-            
-        except Exception as e:
-            logger.error(f"Error showing schedule status for user {user_id}: {e}")
-            return InteractionResponse("I'm having trouble checking your schedule status right now. Please try again.", True)
+            response += f"📅 **{category.title()}:** {status}\n"
+        
+        return InteractionResponse(response, True)
     
     @handle_errors("adding schedule period", default_return=InteractionResponse("I'm having trouble adding your schedule period. Please try again.", True))
     def _handle_add_schedule_period(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
@@ -2352,347 +2320,305 @@ class AnalyticsHandler(InteractionHandler):
             return InteractionResponse(f"I don't understand that analytics command. Try: {', '.join(self.get_examples())}", True)
     
     @handle_errors("showing analytics", default_return=InteractionResponse("I'm having trouble showing your analytics. Please try again.", True))
+    @handle_errors("showing analytics", default_return=InteractionResponse("I'm having trouble showing your analytics right now. Please try again.", True))
     def _handle_show_analytics(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show comprehensive analytics overview"""
         days = entities.get('days', 30)
         
-        try:
-            from core.checkin_analytics import CheckinAnalytics
-            analytics = CheckinAnalytics()
-            
-            # Get wellness score
-            wellness_data = analytics.get_wellness_score(user_id, days)
-            if 'error' in wellness_data:
-                return InteractionResponse("You don't have enough check-in data for analytics yet. Try completing some check-ins first!", True)
-            
-            # Get mood trends
-            mood_data = analytics.get_mood_trends(user_id, days)
-            mood_summary = ""
-            if 'error' not in mood_data:
-                avg_mood = mood_data.get('average_mood', 0)
+        from core.checkin_analytics import CheckinAnalytics
+        analytics = CheckinAnalytics()
+        
+        # Get wellness score
+        wellness_data = analytics.get_wellness_score(user_id, days)
+        if 'error' in wellness_data:
+            return InteractionResponse("You don't have enough check-in data for analytics yet. Try completing some check-ins first!", True)
+        
+        # Get mood trends
+        mood_data = analytics.get_mood_trends(user_id, days)
+        mood_summary = ""
+        if 'error' not in mood_data:
+            avg_mood = mood_data.get('average_mood', 0)
             mood_summary = f"Average mood: {avg_mood}/5"
-            
-            # Get habit analysis
-            habit_data = analytics.get_habit_analysis(user_id, days)
-            habit_summary = ""
-            if 'error' not in habit_data:
-                completion_rate = habit_data.get('overall_completion', 0)
-                habit_summary = f"Habit completion: {completion_rate}%"
-            
-            response = f"**📊 Your Wellness Analytics (Last {days} days):**\n\n"
-            response += f"🎯 **Overall Wellness Score:** {wellness_data.get('score', 0)}/100\n"
-            response += f"   Level: {wellness_data.get('level', 'Unknown')}\n\n"
-            
-            if mood_summary:
-                response += f"😊 **Mood:** {mood_summary}\n"
-            if habit_summary:
-                response += f"✅ **Habits:** {habit_summary}\n"
-            
-            # Add recommendations
-            recommendations = wellness_data.get('recommendations', [])
-            if recommendations:
-                response += "\n💡 **Recommendations:**\n"
-                for rec in recommendations[:3]:  # Show top 3
-                    response += f"• {rec}\n"
-            
-            response += "\nTry 'mood trends' or 'habit analysis' for more detailed insights!"
-            
-            return InteractionResponse(response, True)
-            
-        except Exception as e:
-            logger.error(f"Error showing analytics for user {user_id}: {e}")
-            return InteractionResponse("I'm having trouble showing your analytics right now. Please try again.", True)
+        
+        # Get habit analysis
+        habit_data = analytics.get_habit_analysis(user_id, days)
+        habit_summary = ""
+        if 'error' not in habit_data:
+            completion_rate = habit_data.get('overall_completion', 0)
+            habit_summary = f"Habit completion: {completion_rate}%"
+        
+        response = f"**📊 Your Wellness Analytics (Last {days} days):**\n\n"
+        response += f"🎯 **Overall Wellness Score:** {wellness_data.get('score', 0)}/100\n"
+        response += f"   Level: {wellness_data.get('level', 'Unknown')}\n\n"
+        
+        if mood_summary:
+            response += f"😊 **Mood:** {mood_summary}\n"
+        if habit_summary:
+            response += f"✅ **Habits:** {habit_summary}\n"
+        
+        # Add recommendations
+        recommendations = wellness_data.get('recommendations', [])
+        if recommendations:
+            response += "\n💡 **Recommendations:**\n"
+            for rec in recommendations[:3]:  # Show top 3
+                response += f"• {rec}\n"
+        
+        response += "\nTry 'mood trends' or 'habit analysis' for more detailed insights!"
+        
+        return InteractionResponse(response, True)
 
+    @handle_errors("computing quantitative summaries", default_return=InteractionResponse("I'm having trouble computing your quantitative summaries right now. Please try again.", True))
     def _handle_quant_summary(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show per-field quantitative summaries for opted-in fields."""
         days = entities.get('days', 30)
+        from core.checkin_analytics import CheckinAnalytics
+        from core.user_data_handlers import get_user_data
+        analytics = CheckinAnalytics()
+
+        enabled_fields = None
         try:
-            from core.checkin_analytics import CheckinAnalytics
-            from core.user_data_handlers import get_user_data
-            analytics = CheckinAnalytics()
-
+            prefs = get_user_data(user_id, 'preferences') or {}
+            checkin_settings = (prefs.get('preferences') or {}).get('checkin_settings') or {}
+            if isinstance(checkin_settings, dict):
+                # Get enabled fields from questions configuration
+                questions = checkin_settings.get('questions', {})
+                enabled_fields = [key for key, config in questions.items() 
+                                if config.get('enabled', False) and 
+                                config.get('type') in ['scale_1_5', 'number', 'yes_no']]
+        except Exception:
             enabled_fields = None
-            try:
-                prefs = get_user_data(user_id, 'preferences') or {}
-                checkin_settings = (prefs.get('preferences') or {}).get('checkin_settings') or {}
-                if isinstance(checkin_settings, dict):
-                    # Get enabled fields from questions configuration
-                    questions = checkin_settings.get('questions', {})
-                    enabled_fields = [key for key, config in questions.items() 
-                                    if config.get('enabled', False) and 
-                                    config.get('type') in ['scale_1_5', 'number', 'yes_no']]
-            except Exception:
-                enabled_fields = None
 
-            summaries = analytics.get_quantitative_summaries(user_id, days, enabled_fields)
-            if 'error' in summaries:
-                return InteractionResponse("You don't have enough check-in data to compute summaries yet.", True)
+        summaries = analytics.get_quantitative_summaries(user_id, days, enabled_fields)
+        if 'error' in summaries:
+            return InteractionResponse("You don't have enough check-in data to compute summaries yet.", True)
 
-            response = f"**Per-field Quantitative Summaries (Last {days} days):**\n\n"
-            for field, stats in summaries.items():
-                # Determine scale for field
-                scale = self._get_field_scale(field)
-                scale_suffix = f"/{scale}" if scale else ""
-                
-                response += f"• {field.title()}: avg {stats['average']}{scale_suffix} (min {stats['min']}{scale_suffix}, max {stats['max']}{scale_suffix}) over {int(stats['count'])} days\n"
-            return InteractionResponse(response, True)
-        except Exception as e:
-            logger.error(f"Error computing quantitative summaries for user {user_id}: {e}")
-            return InteractionResponse("I'm having trouble computing your quantitative summaries right now. Please try again.", True)
+        response = f"**Per-field Quantitative Summaries (Last {days} days):**\n\n"
+        for field, stats in summaries.items():
+            # Determine scale for field
+            scale = self._get_field_scale(field)
+            scale_suffix = f"/{scale}" if scale else ""
+            
+            response += f"• {field.title()}: avg {stats['average']}{scale_suffix} (min {stats['min']}{scale_suffix}, max {stats['max']}{scale_suffix}) over {int(stats['count'])} days\n"
+        return InteractionResponse(response, True)
     
     @handle_errors("showing mood trends", default_return=InteractionResponse("I'm having trouble showing your mood trends. Please try again.", True))
     def _handle_mood_trends(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show mood trends analysis"""
         days = entities.get('days', 30)
         
-        try:
-            from core.checkin_analytics import CheckinAnalytics
-            analytics = CheckinAnalytics()
-            
-            mood_data = analytics.get_mood_trends(user_id, days)
-            if 'error' in mood_data:
-                return InteractionResponse("You don't have enough mood data for analysis yet. Try completing some check-ins first!", True)
-            
-            response = f"**😊 Mood Trends (Last {days} days):**\n\n"
-            response += f"📈 **Average Mood:** {mood_data.get('average_mood', 0)}/5\n"
-            response += f"📊 **Mood Range:** {mood_data.get('min_mood', 0)} - {mood_data.get('max_mood', 0)}/5\n"
-            response += f"📉 **Trend:** {mood_data.get('trend', 'Stable')}\n\n"
-            
-            # Show mood distribution
-            distribution = mood_data.get('mood_distribution', {})
-            if distribution:
-                response += "**Mood Distribution:**\n"
-                for mood_level, count in distribution.items():
-                    response += f"• {mood_level}: {count} days\n"
-            
-            # Add insights
-            insights = mood_data.get('insights', [])
-            if insights:
-                response += "\n💡 **Insights:**\n"
-                for insight in insights[:2]:  # Show top 2 insights
-                    response += f"• {insight}\n"
-            
-            return InteractionResponse(response, True)
-            
-        except Exception as e:
-            logger.error(f"Error showing mood trends for user {user_id}: {e}")
-            return InteractionResponse("I'm having trouble showing your mood trends right now. Please try again.", True)
+        from core.checkin_analytics import CheckinAnalytics
+        analytics = CheckinAnalytics()
+        
+        mood_data = analytics.get_mood_trends(user_id, days)
+        if 'error' in mood_data:
+            return InteractionResponse("You don't have enough mood data for analysis yet. Try completing some check-ins first!", True)
+        
+        response = f"**😊 Mood Trends (Last {days} days):**\n\n"
+        response += f"📈 **Average Mood:** {mood_data.get('average_mood', 0)}/5\n"
+        response += f"📊 **Mood Range:** {mood_data.get('min_mood', 0)} - {mood_data.get('max_mood', 0)}/5\n"
+        response += f"📉 **Trend:** {mood_data.get('trend', 'Stable')}\n\n"
+        
+        # Show mood distribution
+        distribution = mood_data.get('mood_distribution', {})
+        if distribution:
+            response += "**Mood Distribution:**\n"
+            for mood_level, count in distribution.items():
+                response += f"• {mood_level}: {count} days\n"
+        
+        # Add insights
+        insights = mood_data.get('insights', [])
+        if insights:
+            response += "\n💡 **Insights:**\n"
+            for insight in insights[:2]:  # Show top 2 insights
+                response += f"• {insight}\n"
+        
+        return InteractionResponse(response, True)
     
     @handle_errors("showing energy trends", default_return=InteractionResponse("I'm having trouble showing your energy trends. Please try again.", True))
     def _handle_energy_trends(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show energy trends analysis"""
         days = entities.get('days', 30)
         
-        try:
-            from core.checkin_analytics import CheckinAnalytics
-            analytics = CheckinAnalytics()
-            
-            energy_data = analytics.get_energy_trends(user_id, days)
-            if 'error' in energy_data:
-                return InteractionResponse("You don't have enough energy data for analysis yet. Try completing some check-ins first!", True)
-            
-            response = f"**⚡ Energy Trends (Last {days} days):**\n\n"
-            response += f"📈 **Average Energy:** {energy_data.get('average_energy', 0)}/5\n"
-            response += f"📊 **Energy Range:** {energy_data.get('min_energy', 0)} - {energy_data.get('max_energy', 0)}/5\n"
-            response += f"📉 **Trend:** {energy_data.get('trend', 'Stable')}\n\n"
-            
-            # Show energy distribution
-            distribution = energy_data.get('energy_distribution', {})
-            if distribution:
-                response += "**Energy Distribution:**\n"
-                for energy_level, count in distribution.items():
-                    response += f"• {energy_level}: {count} days\n"
-            
-            # Add insights
-            avg_energy = energy_data.get('average_energy', 0)
-            if avg_energy >= 4:
-                response += "\n💡 **Insight:** Your energy levels have been consistently high!\n"
-            elif avg_energy <= 2:
-                response += "\n💡 **Insight:** Your energy levels have been low - consider rest and self-care.\n"
-            
-            return InteractionResponse(response, True)
-            
-        except Exception as e:
-            logger.error(f"Error showing energy trends for user {user_id}: {e}")
-            return InteractionResponse("I'm having trouble showing your energy trends right now. Please try again.", True)
+        from core.checkin_analytics import CheckinAnalytics
+        analytics = CheckinAnalytics()
+        
+        energy_data = analytics.get_energy_trends(user_id, days)
+        if 'error' in energy_data:
+            return InteractionResponse("You don't have enough energy data for analysis yet. Try completing some check-ins first!", True)
+        
+        response = f"**⚡ Energy Trends (Last {days} days):**\n\n"
+        response += f"📈 **Average Energy:** {energy_data.get('average_energy', 0)}/5\n"
+        response += f"📊 **Energy Range:** {energy_data.get('min_energy', 0)} - {energy_data.get('max_energy', 0)}/5\n"
+        response += f"📉 **Trend:** {energy_data.get('trend', 'Stable')}\n\n"
+        
+        # Show energy distribution
+        distribution = energy_data.get('energy_distribution', {})
+        if distribution:
+            response += "**Energy Distribution:**\n"
+            for energy_level, count in distribution.items():
+                response += f"• {energy_level}: {count} days\n"
+        
+        # Add insights
+        avg_energy = energy_data.get('average_energy', 0)
+        if avg_energy >= 4:
+            response += "\n💡 **Insight:** Your energy levels have been consistently high!\n"
+        elif avg_energy <= 2:
+            response += "\n💡 **Insight:** Your energy levels have been low - consider rest and self-care.\n"
+        
+        return InteractionResponse(response, True)
     
     @handle_errors("showing habit analysis", default_return=InteractionResponse("I'm having trouble showing your habit analysis. Please try again.", True))
     def _handle_habit_analysis(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show habit analysis"""
         days = entities.get('days', 30)
         
-        try:
-            from core.checkin_analytics import CheckinAnalytics
-            analytics = CheckinAnalytics()
-            
-            habit_data = analytics.get_habit_analysis(user_id, days)
-            if 'error' in habit_data:
-                return InteractionResponse("You don't have enough habit data for analysis yet. Try completing some check-ins first!", True)
-            
-            response = f"**✅ Habit Analysis (Last {days} days):**\n\n"
-            response += f"📊 **Overall Completion:** {habit_data.get('overall_completion', 0)}%\n"
-            response += f"🔥 **Current Streak:** {habit_data.get('current_streak', 0)} days\n"
-            response += f"🏆 **Best Streak:** {habit_data.get('best_streak', 0)} days\n\n"
-            
-            # Show individual habits
-            habits = habit_data.get('habits', {})
-            if habits:
-                response += "**Individual Habits:**\n"
-                for habit_name, habit_stats in habits.items():
-                    completion = habit_stats.get('completion_rate', 0)
-                    status = habit_stats.get('status', 'Unknown')
-                    response += f"• {habit_name}: {completion}% ({status})\n"
-            
-            # Add recommendations
-            recommendations = habit_data.get('recommendations', [])
-            if recommendations:
-                response += "\n💡 **Recommendations:**\n"
-                for rec in recommendations[:2]:  # Show top 2
-                    response += f"• {rec}\n"
-            
-            return InteractionResponse(response, True)
-            
-        except Exception as e:
-            logger.error(f"Error showing habit analysis for user {user_id}: {e}")
-            return InteractionResponse("I'm having trouble showing your habit analysis right now. Please try again.", True)
+        from core.checkin_analytics import CheckinAnalytics
+        analytics = CheckinAnalytics()
+        
+        habit_data = analytics.get_habit_analysis(user_id, days)
+        if 'error' in habit_data:
+            return InteractionResponse("You don't have enough habit data for analysis yet. Try completing some check-ins first!", True)
+        
+        response = f"**✅ Habit Analysis (Last {days} days):**\n\n"
+        response += f"📊 **Overall Completion:** {habit_data.get('overall_completion', 0)}%\n"
+        response += f"🔥 **Current Streak:** {habit_data.get('current_streak', 0)} days\n"
+        response += f"🏆 **Best Streak:** {habit_data.get('best_streak', 0)} days\n\n"
+        
+        # Show individual habits
+        habits = habit_data.get('habits', {})
+        if habits:
+            response += "**Individual Habits:**\n"
+            for habit_name, habit_stats in habits.items():
+                completion = habit_stats.get('completion_rate', 0)
+                status = habit_stats.get('status', 'Unknown')
+                response += f"• {habit_name}: {completion}% ({status})\n"
+        
+        # Add recommendations
+        recommendations = habit_data.get('recommendations', [])
+        if recommendations:
+            response += "\n💡 **Recommendations:**\n"
+            for rec in recommendations[:2]:  # Show top 2
+                response += f"• {rec}\n"
+        
+        return InteractionResponse(response, True)
     
     @handle_errors("showing sleep analysis", default_return=InteractionResponse("I'm having trouble showing your sleep analysis. Please try again.", True))
     def _handle_sleep_analysis(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show sleep analysis"""
         days = entities.get('days', 30)
         
-        try:
-            from core.checkin_analytics import CheckinAnalytics
-            analytics = CheckinAnalytics()
-            
-            sleep_data = analytics.get_sleep_analysis(user_id, days)
-            if 'error' in sleep_data:
-                return InteractionResponse("You don't have enough sleep data for analysis yet. Try completing some check-ins with sleep information!", True)
-            
-            response = f"**😴 Sleep Analysis (Last {days} days):**\n\n"
-            response += f"⏰ **Average Hours:** {sleep_data.get('average_hours', 0)} hours\n"
-            response += f"⭐ **Average Quality:** {sleep_data.get('average_quality', 0)}/5\n"
-            response += f"✅ **Good Sleep Days:** {sleep_data.get('good_sleep_days', 0)} days\n"
-            response += f"❌ **Poor Sleep Days:** {sleep_data.get('poor_sleep_days', 0)} days\n\n"
-            
-            # Add consistency info
-            consistency = sleep_data.get('sleep_consistency', 0)
-            response += f"📊 **Sleep Consistency:** {consistency:.1f} (lower = more consistent)\n\n"
-            
-            # Add recommendations
-            recommendations = sleep_data.get('recommendations', [])
-            if recommendations:
-                response += "💡 **Sleep Recommendations:**\n"
-                for rec in recommendations[:2]:  # Show top 2
-                    response += f"• {rec}\n"
-            
-            return InteractionResponse(response, True)
-            
-        except Exception as e:
-            logger.error(f"Error showing sleep analysis for user {user_id}: {e}")
-            return InteractionResponse("I'm having trouble showing your sleep analysis right now. Please try again.", True)
+        from core.checkin_analytics import CheckinAnalytics
+        analytics = CheckinAnalytics()
+        
+        sleep_data = analytics.get_sleep_analysis(user_id, days)
+        if 'error' in sleep_data:
+            return InteractionResponse("You don't have enough sleep data for analysis yet. Try completing some check-ins with sleep information!", True)
+        
+        response = f"**😴 Sleep Analysis (Last {days} days):**\n\n"
+        response += f"⏰ **Average Hours:** {sleep_data.get('average_hours', 0)} hours\n"
+        response += f"⭐ **Average Quality:** {sleep_data.get('average_quality', 0)}/5\n"
+        response += f"✅ **Good Sleep Days:** {sleep_data.get('good_sleep_days', 0)} days\n"
+        response += f"❌ **Poor Sleep Days:** {sleep_data.get('poor_sleep_days', 0)} days\n\n"
+        
+        # Add consistency info
+        consistency = sleep_data.get('sleep_consistency', 0)
+        response += f"📊 **Sleep Consistency:** {consistency:.1f} (lower = more consistent)\n\n"
+        
+        # Add recommendations
+        recommendations = sleep_data.get('recommendations', [])
+        if recommendations:
+            response += "💡 **Sleep Recommendations:**\n"
+            for rec in recommendations[:2]:  # Show top 2
+                response += f"• {rec}\n"
+        
+        return InteractionResponse(response, True)
     
     @handle_errors("showing wellness score", default_return=InteractionResponse("I'm having trouble showing your wellness score. Please try again.", True))
     def _handle_wellness_score(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show wellness score"""
         days = entities.get('days', 30)
         
-        try:
+        from core.checkin_analytics import CheckinAnalytics
+        analytics = CheckinAnalytics()
+        
+        wellness_data = analytics.get_wellness_score(user_id, days)
+        if 'error' in wellness_data:
+            return InteractionResponse("You don't have enough data for a wellness score yet. Try completing some check-ins first!", True)
+        
+        response = f"**🎯 Wellness Score (Last {days} days):**\n\n"
+        response += f"📊 **Overall Score:** {wellness_data.get('score', 0)}/100\n"
+        response += f"📈 **Level:** {wellness_data.get('level', 'Unknown')}\n\n"
+        
+        # Show component scores
+        components = wellness_data.get('components', {})
+        if components:
+            response += "**Component Scores:**\n"
+            # Convert mood and energy from 0-100 back to 1-5 scale for display
             from core.checkin_analytics import CheckinAnalytics
-            analytics = CheckinAnalytics()
-            
-            wellness_data = analytics.get_wellness_score(user_id, days)
-            if 'error' in wellness_data:
-                return InteractionResponse("You don't have enough data for a wellness score yet. Try completing some check-ins first!", True)
-            
-            response = f"**🎯 Wellness Score (Last {days} days):**\n\n"
-            response += f"📊 **Overall Score:** {wellness_data.get('score', 0)}/100\n"
-            response += f"📈 **Level:** {wellness_data.get('level', 'Unknown')}\n\n"
-            
-            # Show component scores
-            components = wellness_data.get('components', {})
-            if components:
-                response += "**Component Scores:**\n"
-                # Convert mood and energy from 0-100 back to 1-5 scale for display
-                from core.checkin_analytics import CheckinAnalytics
-                mood_score_5 = CheckinAnalytics.convert_score_100_to_5(components.get('mood_score', 0))
-                energy_score_5 = CheckinAnalytics.convert_score_100_to_5(components.get('energy_score', 0))
-                response += f"😊 **Mood Score:** {mood_score_5}/5\n"
-                response += f"⚡ **Energy Score:** {energy_score_5}/5\n"
-                response += f"✅ **Habit Score:** {components.get('habit_score', 0)}/100\n"
-                response += f"😴 **Sleep Score:** {components.get('sleep_score', 0)}/100\n\n"
-            
-            # Add recommendations
-            recommendations = wellness_data.get('recommendations', [])
-            if recommendations:
-                response += "💡 **Recommendations:**\n"
-                for rec in recommendations[:3]:  # Show top 3
-                    response += f"• {rec}\n"
-            
-            return InteractionResponse(response, True)
-            
-        except Exception as e:
-            logger.error(f"Error showing wellness score for user {user_id}: {e}")
-            return InteractionResponse("I'm having trouble calculating your wellness score right now. Please try again.", True)
+            mood_score_5 = CheckinAnalytics.convert_score_100_to_5(components.get('mood_score', 0))
+            energy_score_5 = CheckinAnalytics.convert_score_100_to_5(components.get('energy_score', 0))
+            response += f"😊 **Mood Score:** {mood_score_5}/5\n"
+            response += f"⚡ **Energy Score:** {energy_score_5}/5\n"
+            response += f"✅ **Habit Score:** {components.get('habit_score', 0)}/100\n"
+            response += f"😴 **Sleep Score:** {components.get('sleep_score', 0)}/100\n\n"
+        
+        # Add recommendations
+        recommendations = wellness_data.get('recommendations', [])
+        if recommendations:
+            response += "💡 **Recommendations:**\n"
+            for rec in recommendations[:3]:  # Show top 3
+                response += f"• {rec}\n"
+        
+        return InteractionResponse(response, True)
     
     @handle_errors("showing check-in history", default_return=InteractionResponse("I'm having trouble showing your check-in history. Please try again.", True))
     def _handle_checkin_history(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show check-in history"""
         days = entities.get('days', 30)
         
-        try:
-            from core.checkin_analytics import CheckinAnalytics
-            analytics = CheckinAnalytics()
+        from core.checkin_analytics import CheckinAnalytics
+        analytics = CheckinAnalytics()
+        
+        checkin_history = analytics.get_checkin_history(user_id, days)
+        if 'error' in checkin_history:
+            return InteractionResponse("You don't have enough check-in data for history yet. Try completing some check-ins first!", True)
+        
+        response = f"**📅 Check-in History (Last {days} days):**\n\n"
+        for checkin in checkin_history[:5]:  # Show last 5 check-ins
+            date = checkin.get('date', 'Unknown date')
+            mood = checkin.get('mood', 'No mood recorded')
+            energy = checkin.get('energy', 'No energy recorded')
             
-            checkin_history = analytics.get_checkin_history(user_id, days)
-            if 'error' in checkin_history:
-                return InteractionResponse("You don't have enough check-in data for history yet. Try completing some check-ins first!", True)
-            
-            response = f"**📅 Check-in History (Last {days} days):**\n\n"
-            for checkin in checkin_history[:5]:  # Show last 5 check-ins
-                date = checkin.get('date', 'Unknown date')
-                mood = checkin.get('mood', 'No mood recorded')
-                energy = checkin.get('energy', 'No energy recorded')
-                
-                # Display mood and energy together if both are available
-                if energy != 'No energy recorded':
-                    response += f"📅 {date}: 😊 Mood {mood}/5 | ⚡ Energy {energy}/5\n"
-                else:
-                    response += f"📅 {date}: 😊 Mood {mood}/5\n"
-            
-            if len(checkin_history) > 5:
-                response += f"... and {len(checkin_history) - 5} more check-ins\n"
-            
-            return InteractionResponse(response, True)
-            
-        except Exception as e:
-            logger.error(f"Error showing check-in history for user {user_id}: {e}")
-            return InteractionResponse("I'm having trouble showing your check-in history right now. Please try again.", True)
+            # Display mood and energy together if both are available
+            if energy != 'No energy recorded':
+                response += f"📅 {date}: 😊 Mood {mood}/5 | ⚡ Energy {energy}/5\n"
+            else:
+                response += f"📅 {date}: 😊 Mood {mood}/5\n"
+        
+        if len(checkin_history) > 5:
+            response += f"... and {len(checkin_history) - 5} more check-ins\n"
+        
+        return InteractionResponse(response, True)
     
     @handle_errors("showing completion rate", default_return=InteractionResponse("I'm having trouble showing your completion rate. Please try again.", True))
     def _handle_completion_rate(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show completion rate"""
         days = entities.get('days', 30)
         
-        try:
-            from core.checkin_analytics import CheckinAnalytics
-            analytics = CheckinAnalytics()
-            
-            completion_rate = analytics.get_completion_rate(user_id, days)
-            if 'error' in completion_rate:
-                return InteractionResponse("You don't have enough check-in data for completion rate yet. Try completing some check-ins first!", True)
-            
-            response = f"**📊 Completion Rate (Last {days} days):**\n\n"
-            response += f"🎯 **Overall Completion Rate:** {completion_rate.get('rate', 0)}%\n"
-            response += f"📅 **Days Completed:** {completion_rate.get('days_completed', 0)}\n"
-            response += f"📅 **Days Missed:** {completion_rate.get('days_missed', 0)}\n"
-            response += f"📅 **Total Days:** {completion_rate.get('total_days', 0)}\n"
-            
-            return InteractionResponse(response, True)
-            
-        except Exception as e:
-            logger.error(f"Error showing completion rate for user {user_id}: {e}")
-            return InteractionResponse("I'm having trouble calculating your completion rate right now. Please try again.", True)
+        from core.checkin_analytics import CheckinAnalytics
+        analytics = CheckinAnalytics()
+        
+        completion_rate = analytics.get_completion_rate(user_id, days)
+        if 'error' in completion_rate:
+            return InteractionResponse("You don't have enough check-in data for completion rate yet. Try completing some check-ins first!", True)
+        
+        response = f"**📊 Completion Rate (Last {days} days):**\n\n"
+        response += f"🎯 **Overall Completion Rate:** {completion_rate.get('rate', 0)}%\n"
+        response += f"📅 **Days Completed:** {completion_rate.get('days_completed', 0)}\n"
+        response += f"📅 **Days Missed:** {completion_rate.get('days_missed', 0)}\n"
+        response += f"📅 **Total Days:** {completion_rate.get('total_days', 0)}\n"
+        
+        return InteractionResponse(response, True)
     
     @handle_errors("getting field scale", default_return=None)
     def _get_field_scale(self, field: str) -> int:

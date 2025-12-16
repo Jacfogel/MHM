@@ -44,6 +44,7 @@ class DiscordConnectionStatus(enum.Enum):
     UNKNOWN_ERROR = "unknown_error"
 
 class DiscordBot(BaseChannel):
+    @handle_errors("initializing Discord bot", default_return=None)
     def __init__(self, config: ChannelConfig = None):
         # Initialize BaseChannel
         """Initialize the object."""
@@ -83,10 +84,7 @@ class DiscordBot(BaseChannel):
         self._ngrok_process = None
         self._ngrok_pid = None  # Store PID separately in case process reference is lost
         # Ensure BaseChannel logs for this instance also go to the Discord component log
-        try:
-            self.logger = discord_logger
-        except Exception:
-            pass
+        self.logger = discord_logger
 
     @property
     @handle_errors("getting Discord channel type", default_return=ChannelType.ASYNC)
@@ -316,6 +314,7 @@ class DiscordBot(BaseChannel):
                 except Exception as e:
                     logger.error(f"Error during session cleanup: {e}")
 
+    @handle_errors("cleaning up session with timeout", user_friendly=False, default_return=False)
     async def _cleanup_session_with_timeout(self, session) -> bool:
         """Clean up a single session with timeout handling"""
         try:
@@ -572,16 +571,6 @@ class DiscordBot(BaseChannel):
             })
             logger.error(error_msg)
             return False
-            
-        except Exception as e:
-            logger.error(f"Error during Discord bot initialization: {e}")
-            self._set_status(ChannelStatus.ERROR, f"Initialization error: {e}")
-            self._shared__update_connection_status(DiscordConnectionStatus.UNKNOWN_ERROR, {
-                'error': str(e),
-                'error_type': type(e).__name__,
-                'timestamp': time.time()
-            })
-            return False
         finally:
             # Always reset the starting flag, even if initialization fails
             self._starting = False
@@ -619,9 +608,6 @@ class DiscordBot(BaseChannel):
                     await task
                 except asyncio.CancelledError:
                     pass
-                    
-        except Exception as e:
-            logger.error(f"Error in Discord bot main loop: {e}")
         finally:
             # Ensure bot is properly closed
             if not self.bot.is_closed():
@@ -684,6 +670,7 @@ class DiscordBot(BaseChannel):
         if self._events_registered or not self.bot:
             return
         @self.bot.event
+        @handle_errors("Discord bot ready event", user_friendly=False, default_return=None)
         async def on_ready():
             # Single consolidated log message
             logger.info(f"Discord Bot logged in as {self.bot.user}")
@@ -695,41 +682,31 @@ class DiscordBot(BaseChannel):
             self._shared__update_connection_status(DiscordConnectionStatus.CONNECTED)
 
             # Sync application (slash) commands
-            try:
-                async def _sync_app_cmds():
-                    try:
-                        await self.bot.tree.sync()
-                        logger.info("Discord application commands synced")
-                    except Exception as e:
-                        logger.warning(f"Could not sync application commands: {e}")
-                # Schedule on the bot's loop to ensure proper task context
-                # Store task reference for proper cleanup during shutdown
-                self._sync_task = self.bot.loop.create_task(_sync_app_cmds())
-            except Exception as e:
-                logger.debug(f"Failed to schedule app command sync: {e}")
+            @handle_errors("syncing Discord application commands", user_friendly=False, default_return=None)
+            async def _sync_app_cmds():
+                await self.bot.tree.sync()
+                logger.info("Discord application commands synced")
+            # Schedule on the bot's loop to ensure proper task context
+            # Store task reference for proper cleanup during shutdown
+            self._sync_task = self.bot.loop.create_task(_sync_app_cmds())
             
             # Check for new users who have authorized the app (can now DM us)
             # This runs periodically to catch users who authorized while bot was offline
+            @handle_errors("checking for new authorized Discord users", user_friendly=False, default_return=None)
             async def _check_new_authorized_users():
-                try:
-                    from communication.communication_channels.discord.welcome_handler import (
-                        has_been_welcomed,
-                        mark_as_welcomed,
-                        get_welcome_message
-                    )
-                    
-                    # Get all users who can DM us (have authorized the app)
-                    # Note: We can't directly query this, but we can check when they first DM us
-                    # This is handled in on_message for DMs
-                    discord_logger.debug("Bot ready - will welcome users on Discord app authorization (via webhook) or first interaction")
-                except Exception as e:
-                    discord_logger.debug(f"Error checking for new authorized users: {e}")
+                from communication.communication_channels.discord.welcome_handler import (
+                    has_been_welcomed,
+                    mark_as_welcomed,
+                    get_welcome_message
+                )
+                
+                # Get all users who can DM us (have authorized the app)
+                # Note: We can't directly query this, but we can check when they first DM us
+                # This is handled in on_message for DMs
+                discord_logger.debug("Bot ready - will welcome users on Discord app authorization (via webhook) or first interaction")
             
             # Schedule the check (non-blocking)
-            try:
-                self.bot.loop.create_task(_check_new_authorized_users())
-            except Exception as e:
-                discord_logger.debug(f"Failed to schedule authorized user check: {e}")
+            self.bot.loop.create_task(_check_new_authorized_users())
             
             # Start webhook server for receiving installation events
             try:
@@ -824,179 +801,172 @@ class DiscordBot(BaseChannel):
         @handle_errors("handling Discord interaction event", default_return=None)
         async def on_interaction(interaction: discord.Interaction):
             """Handle Discord interactions (slash commands, buttons, etc.)"""
-            try:
-                # Handle button clicks (component interactions)
-                if interaction.type == discord.InteractionType.component:
-                    # Check if this is a welcome message button
-                    if interaction.data and 'custom_id' in interaction.data:
-                        custom_id = interaction.data['custom_id']
-                        if custom_id.startswith('welcome_create_') or custom_id.startswith('welcome_link_'):
-                            # Extract Discord user ID from custom_id
-                            # Format: welcome_create_<discord_user_id> or welcome_link_<discord_user_id>
-                            parts = custom_id.split('_', 2)
-                            if len(parts) >= 3:
-                                discord_user_id = parts[2]
-                                
-                                from communication.communication_channels.discord.account_flow_handler import (
-                                    start_account_creation_flow,
-                                    start_account_linking_flow
-                                )
-                                
-                                # Get Discord username if available
-                                discord_username = interaction.user.name if interaction.user else None
-                                
-                                # Validate interaction type before proceeding
-                                if not isinstance(interaction, discord.Interaction):
-                                    discord_logger.error(f"Invalid interaction type for welcome button: {type(interaction)}")
-                                    await interaction.response.send_message(
-                                        "❌ An error occurred. Please try again.",
-                                        ephemeral=True
-                                    )
-                                    return
-                                
-                                if custom_id.startswith('welcome_create_'):
-                                    await start_account_creation_flow(interaction, discord_user_id, discord_username)
-                                elif custom_id.startswith('welcome_link_'):
-                                    await start_account_linking_flow(interaction, discord_user_id)
-                                return
-                        
-                        # Handle check-in buttons
-                        elif custom_id.startswith('checkin_'):
-                            # Check-in buttons are handled by the view's callback methods
-                            # The view is attached to the message, so discord.py will handle it automatically
-                            # We just need to let it pass through
-                            return
-                        
-                        # Handle task reminder buttons
-                        elif custom_id.startswith('task_'):
-                            # Task reminder buttons are handled by the view's callback methods
-                            # The view is attached to the message, so discord.py will handle it automatically
-                            # We just need to let it pass through
-                            return
-                    
-                    # Let other component interactions fall through to default handling
-                    # (buttons from other parts of the system)
-                    return
-                
-                # Handle application commands (slash commands)
-                if interaction.type == discord.InteractionType.application_command:
-                    discord_user_id = str(interaction.user.id)
-                    command_name = interaction.command.name if hasattr(interaction, 'command') and interaction.command else 'unknown'
-                    discord_logger.debug(f"DISCORD_INTERACTION: user_id={discord_user_id}, command={command_name}")
-                    
-                    # Check if this is a new user who hasn't been welcomed
-                    from communication.communication_channels.discord.welcome_handler import (
-                        has_been_welcomed,
-                        mark_as_welcomed,
-                        get_welcome_message
-                    )
-                    from core.user_management import get_user_id_by_identifier
-                    
-                    internal_user_id = get_user_id_by_identifier(discord_user_id)
-                    
-                    # Special handling for /start command (explicit welcome trigger)
-                    if command_name == 'start' and not internal_user_id:
-                        welcome_msg = get_welcome_message(discord_user_id, is_authorization=True)
-                        try:
-                            # Send welcome DM
-                            await interaction.user.send(welcome_msg)
-                            mark_as_welcomed(discord_user_id)
-                            if not interaction.response.is_done():
-                                await interaction.response.send_message(
-                                    "👋 Welcome! I've sent you setup instructions via DM. Check your direct messages!",
-                                    ephemeral=True
-                                )
-                            discord_logger.info(f"Sent welcome DM to newly authorized Discord user via /start: {discord_user_id}")
-                            return  # Don't process the command further
-                        except discord.Forbidden:
-                            # User has DMs disabled - respond in interaction instead
-                            mark_as_welcomed(discord_user_id)
-                            if not interaction.response.is_done():
-                                await interaction.response.send_message(
-                                    f"👋 Welcome! I see you've authorized MHM. However, I can't send you a direct message.\n\n"
-                                    f"**Your Discord ID:** `{discord_user_id}`\n\n"
-                                    f"**To get started:**\n"
-                                    f"- Create a new account via the MHM application UI with your Discord ID, or\n"
-                                    f"- Ask an administrator to link your Discord ID to an existing account",
-                                    ephemeral=True
-                                )
-                            discord_logger.info(f"Welcomed user {discord_user_id} via /start (DM blocked)")
-                            return
-                        except Exception as e:
-                            discord_logger.warning(f"Error sending welcome DM to {discord_user_id}: {e}")
-                    
-                    # For any other command, check if user needs welcome
-                    if not internal_user_id and not has_been_welcomed(discord_user_id):
-                        # User has authorized the app (they can use slash commands) but hasn't been welcomed
-                        welcome_msg = get_welcome_message(discord_user_id, is_authorization=True)
-                        
-                        try:
-                            # Send welcome DM (non-blocking - don't interfere with command processing)
-                            await interaction.user.send(welcome_msg)
-                            mark_as_welcomed(discord_user_id)
-                            discord_logger.info(f"Sent welcome DM to newly authorized Discord user via interaction: {discord_user_id}")
-                        except discord.Forbidden:
-                            # User has DMs disabled - mark as welcomed but don't interrupt command flow
-                            mark_as_welcomed(discord_user_id)
-                            discord_logger.info(f"User {discord_user_id} has DMs disabled, marked as welcomed")
-                        except Exception as e:
-                            discord_logger.warning(f"Error sending welcome DM to {discord_user_id}: {e}")
+            # Handle button clicks (component interactions)
+            if interaction.type == discord.InteractionType.component:
+                # Check if this is a welcome message button
+                if interaction.data and 'custom_id' in interaction.data:
+                    custom_id = interaction.data['custom_id']
+                    if custom_id.startswith('welcome_create_') or custom_id.startswith('welcome_link_'):
+                        # Extract Discord user ID from custom_id
+                        # Format: welcome_create_<discord_user_id> or welcome_link_<discord_user_id>
+                        parts = custom_id.split('_', 2)
+                        if len(parts) >= 3:
+                            discord_user_id = parts[2]
                             
-            except Exception as e:
-                discord_logger.error(f"Error handling Discord interaction: {e}", exc_info=True)
+                            from communication.communication_channels.discord.account_flow_handler import (
+                                start_account_creation_flow,
+                                start_account_linking_flow
+                            )
+                            
+                            # Get Discord username if available
+                            discord_username = interaction.user.name if interaction.user else None
+                            
+                            # Validate interaction type before proceeding
+                            if not isinstance(interaction, discord.Interaction):
+                                discord_logger.error(f"Invalid interaction type for welcome button: {type(interaction)}")
+                                await interaction.response.send_message(
+                                    "❌ An error occurred. Please try again.",
+                                    ephemeral=True
+                                )
+                                return
+                            
+                            if custom_id.startswith('welcome_create_'):
+                                await start_account_creation_flow(interaction, discord_user_id, discord_username)
+                            elif custom_id.startswith('welcome_link_'):
+                                await start_account_linking_flow(interaction, discord_user_id)
+                            return
+                    
+                    # Handle check-in buttons
+                    elif custom_id.startswith('checkin_'):
+                        # Check-in buttons are handled by the view's callback methods
+                        # The view is attached to the message, so discord.py will handle it automatically
+                        # We just need to let it pass through
+                        return
+                    
+                    # Handle task reminder buttons
+                    elif custom_id.startswith('task_'):
+                        # Task reminder buttons are handled by the view's callback methods
+                        # The view is attached to the message, so discord.py will handle it automatically
+                        # We just need to let it pass through
+                        return
+                
+                # Let other component interactions fall through to default handling
+                # (buttons from other parts of the system)
+                return
+            
+            # Handle application commands (slash commands)
+            if interaction.type == discord.InteractionType.application_command:
+                discord_user_id = str(interaction.user.id)
+                command_name = interaction.command.name if hasattr(interaction, 'command') and interaction.command else 'unknown'
+                discord_logger.debug(f"DISCORD_INTERACTION: user_id={discord_user_id}, command={command_name}")
+                
+                # Check if this is a new user who hasn't been welcomed
+                from communication.communication_channels.discord.welcome_handler import (
+                    has_been_welcomed,
+                    mark_as_welcomed,
+                    get_welcome_message
+                )
+                from core.user_management import get_user_id_by_identifier
+                
+                internal_user_id = get_user_id_by_identifier(discord_user_id)
+                
+                # Special handling for /start command (explicit welcome trigger)
+                if command_name == 'start' and not internal_user_id:
+                    welcome_msg = get_welcome_message(discord_user_id, is_authorization=True)
+                    try:
+                        # Send welcome DM
+                        await interaction.user.send(welcome_msg)
+                        mark_as_welcomed(discord_user_id)
+                        if not interaction.response.is_done():
+                            await interaction.response.send_message(
+                                "👋 Welcome! I've sent you setup instructions via DM. Check your direct messages!",
+                                ephemeral=True
+                            )
+                        discord_logger.info(f"Sent welcome DM to newly authorized Discord user via /start: {discord_user_id}")
+                        return  # Don't process the command further
+                    except discord.Forbidden:
+                        # User has DMs disabled - respond in interaction instead
+                        mark_as_welcomed(discord_user_id)
+                        if not interaction.response.is_done():
+                            await interaction.response.send_message(
+                                f"👋 Welcome! I see you've authorized MHM. However, I can't send you a direct message.\n\n"
+                                f"**Your Discord ID:** `{discord_user_id}`\n\n"
+                                f"**To get started:**\n"
+                                f"- Create a new account via the MHM application UI with your Discord ID, or\n"
+                                f"- Ask an administrator to link your Discord ID to an existing account",
+                                ephemeral=True
+                            )
+                        discord_logger.info(f"Welcomed user {discord_user_id} via /start (DM blocked)")
+                        return
+                    except Exception as e:
+                        discord_logger.warning(f"Error sending welcome DM to {discord_user_id}: {e}")
+                
+                # For any other command, check if user needs welcome
+                if not internal_user_id and not has_been_welcomed(discord_user_id):
+                    # User has authorized the app (they can use slash commands) but hasn't been welcomed
+                    welcome_msg = get_welcome_message(discord_user_id, is_authorization=True)
+                    
+                    try:
+                        # Send welcome DM (non-blocking - don't interfere with command processing)
+                        await interaction.user.send(welcome_msg)
+                        mark_as_welcomed(discord_user_id)
+                        discord_logger.info(f"Sent welcome DM to newly authorized Discord user via interaction: {discord_user_id}")
+                    except discord.Forbidden:
+                        # User has DMs disabled - mark as welcomed but don't interrupt command flow
+                        mark_as_welcomed(discord_user_id)
+                        discord_logger.info(f"User {discord_user_id} has DMs disabled, marked as welcomed")
+                    except Exception as e:
+                        discord_logger.warning(f"Error sending welcome DM to {discord_user_id}: {e}")
 
         @self.bot.event
         @handle_errors("handling Discord guild join event", default_return=None)
         async def on_guild_join(guild):
             """Handle when the bot is added to a new Discord server"""
-            try:
-                discord_logger.info(f"Bot added to server: {guild.name} (ID: {guild.id})")
+            discord_logger.info(f"Bot added to server: {guild.name} (ID: {guild.id})")
+            
+            # Try to find a suitable channel to send welcome message
+            # Prefer system channel, then first text channel the bot can send to
+            welcome_channel = None
+            
+            # Try system channel first (where Discord sends system messages)
+            if guild.system_channel and guild.system_channel.permissions_for(guild.me).send_messages:
+                welcome_channel = guild.system_channel
+                discord_logger.debug(f"Using system channel: {guild.system_channel.name}")
+            else:
+                # Find first text channel the bot can send to
+                for channel in guild.text_channels:
+                    if channel.permissions_for(guild.me).send_messages:
+                        welcome_channel = channel
+                        discord_logger.debug(f"Using text channel: {channel.name}")
+                        break
+            
+            if welcome_channel:
+                welcome_msg = (
+                    f"👋 **Hello {guild.name}!**\n\n"
+                    f"I'm **MHM (Mental Health Manager)**, your mental health assistant bot. "
+                    f"I'm here to help you manage tasks, check-ins, reminders, and provide personalized support.\n\n"
+                    f"**To get started:**\n"
+                    f"1. Send me a message to get your Discord ID\n"
+                    f"2. Create or link a MHM account with that Discord ID\n"
+                    f"3. Start using commands like `/help` to see what I can do!\n\n"
+                    f"**Quick Commands:**\n"
+                    f"- `/help` - See all available commands\n"
+                    f"- `create task [description]` - Create a new task\n"
+                    f"- `show my tasks` - View your tasks\n"
+                    f"- `show my profile` - View your profile (once linked)\n\n"
+                    f"Feel free to ask me anything! I'm here to help. 🚀"
+                )
                 
-                # Try to find a suitable channel to send welcome message
-                # Prefer system channel, then first text channel the bot can send to
-                welcome_channel = None
-                
-                # Try system channel first (where Discord sends system messages)
-                if guild.system_channel and guild.system_channel.permissions_for(guild.me).send_messages:
-                    welcome_channel = guild.system_channel
-                    discord_logger.debug(f"Using system channel: {guild.system_channel.name}")
-                else:
-                    # Find first text channel the bot can send to
-                    for channel in guild.text_channels:
-                        if channel.permissions_for(guild.me).send_messages:
-                            welcome_channel = channel
-                            discord_logger.debug(f"Using text channel: {channel.name}")
-                            break
-                
-                if welcome_channel:
-                    welcome_msg = (
-                        f"👋 **Hello {guild.name}!**\n\n"
-                        f"I'm **MHM (Mental Health Manager)**, your mental health assistant bot. "
-                        f"I'm here to help you manage tasks, check-ins, reminders, and provide personalized support.\n\n"
-                        f"**To get started:**\n"
-                        f"1. Send me a message to get your Discord ID\n"
-                        f"2. Create or link a MHM account with that Discord ID\n"
-                        f"3. Start using commands like `/help` to see what I can do!\n\n"
-                        f"**Quick Commands:**\n"
-                        f"- `/help` - See all available commands\n"
-                        f"- `create task [description]` - Create a new task\n"
-                        f"- `show my tasks` - View your tasks\n"
-                        f"- `show my profile` - View your profile (once linked)\n\n"
-                        f"Feel free to ask me anything! I'm here to help. 🚀"
-                    )
-                    
-                    try:
-                        await welcome_channel.send(welcome_msg)
-                        discord_logger.info(f"Sent welcome message to {guild.name} in channel {welcome_channel.name}")
-                    except Exception as e:
-                        discord_logger.warning(f"Could not send welcome message to {guild.name}: {e}")
-                else:
-                    discord_logger.warning(f"Could not find a suitable channel to send welcome message in {guild.name}")
-                    
-            except Exception as e:
-                discord_logger.error(f"Error handling guild join for {guild.name}: {e}", exc_info=True)
+                try:
+                    await welcome_channel.send(welcome_msg)
+                    discord_logger.info(f"Sent welcome message to {guild.name} in channel {welcome_channel.name}")
+                except Exception as e:
+                    discord_logger.warning(f"Could not send welcome message to {guild.name}: {e}")
+            else:
+                discord_logger.warning(f"Could not find a suitable channel to send welcome message in {guild.name}")
 
         @self.bot.event
+        @handle_errors("handling Discord message", default_return=None)
         async def on_message(message):
             # COMPREHENSIVE LOGGING: Log ALL messages received
             discord_logger.debug(f"DISCORD_MESSAGE_RECEIVED: author_id={message.author.id}, content='{message.content[:100]}', channel={message.channel.id}, guild={message.guild.id if message.guild else 'DM'}")
@@ -1158,98 +1128,85 @@ class DiscordBot(BaseChannel):
             return
 
         # Register dynamic application (slash) commands from the channel-agnostic map
-        try:
-            from communication.message_processing.interaction_manager import get_interaction_manager, handle_user_message
-            im = get_interaction_manager()
-            cmd_defs = im.get_command_definitions()
+        from communication.message_processing.interaction_manager import get_interaction_manager, handle_user_message
+        im = get_interaction_manager()
+        cmd_defs = im.get_command_definitions()
 
-            for cmd in cmd_defs:
-                name = cmd["name"]
-                mapped = cmd["mapped_message"]
-                description = cmd["description"]
+        for cmd in cmd_defs:
+            name = cmd["name"]
+            mapped = cmd["mapped_message"]
+            description = cmd["description"]
 
-                async def _app_cb(interaction: discord.Interaction, _mapped=mapped, _name=name):
-                    discord_user_id = str(interaction.user.id)
-                    internal_user_id = get_user_id_by_identifier(discord_user_id)
-                    if not internal_user_id:
-                        # Welcome message should have been sent by on_interaction handler
-                        # But provide helpful response if they try to use a command
-                        await interaction.response.send_message(
-                            f"Please create or link a MHM account to use this feature. Your Discord ID: `{discord_user_id}`",
-                            ephemeral=True
-                        )
-                        return
-                    try:
-                        response = handle_user_message(internal_user_id, _mapped, "discord")
-                        
-                        # Create embed if rich_data is provided
-                        embed = None
-                        if response.rich_data:
-                            embed = self._create_discord_embed(response.message, response.rich_data)
-                        
-                        # Create view with buttons if suggestions are provided
-                        view = None
-                        if response.suggestions:
-                            view = self._create_action_row(response.suggestions)
-                        
-                        # Send response with embed and/or view
-                        if embed and view:
-                            await interaction.response.send_message(embed=embed, view=view)
-                        elif embed:
-                            await interaction.response.send_message(embed=embed)
-                        elif view:
-                            await interaction.response.send_message(response.message, view=view)
-                        else:
-                            await interaction.response.send_message(response.message)
-                            
-                    except Exception as e:
-                        logger.error(f"Error in app command '{_name}': {e}")
-                        await interaction.response.send_message("I'm having trouble right now. Please try again.")
+            @handle_errors("handling Discord app command", context={"command": name}, default_return=None)
+            async def _app_cb(interaction: discord.Interaction, _mapped=mapped, _name=name):
+                discord_user_id = str(interaction.user.id)
+                internal_user_id = get_user_id_by_identifier(discord_user_id)
+                if not internal_user_id:
+                    # Welcome message should have been sent by on_interaction handler
+                    # But provide helpful response if they try to use a command
+                    await interaction.response.send_message(
+                        f"Please create or link a MHM account to use this feature. Your Discord ID: `{discord_user_id}`",
+                        ephemeral=True
+                    )
+                    return
+                response = handle_user_message(internal_user_id, _mapped, "discord")
+                
+                # Create embed if rich_data is provided
+                embed = None
+                if response.rich_data:
+                    embed = self._create_discord_embed(response.message, response.rich_data)
+                
+                # Create view with buttons if suggestions are provided
+                view = None
+                if response.suggestions:
+                    view = self._create_action_row(response.suggestions)
+                
+                # Send response with embed and/or view
+                if embed and view:
+                    await interaction.response.send_message(embed=embed, view=view)
+                elif embed:
+                    await interaction.response.send_message(embed=embed)
+                elif view:
+                    await interaction.response.send_message(response.message, view=view)
+                else:
+                    await interaction.response.send_message(response.message)
 
-                try:
-                    app_cmd = app_commands.Command(name=name, description=(description or f"{name} command"), callback=_app_cb)
-                    self.bot.tree.add_command(app_cmd)
-                except Exception:
-                    # If already exists, skip silently
-                    pass
-        except Exception as e:
-            logger.debug(f"Dynamic app command registration skipped: {e}")
+            try:
+                app_cmd = app_commands.Command(name=name, description=(description or f"{name} command"), callback=_app_cb)
+                self.bot.tree.add_command(app_cmd)
+            except Exception:
+                # If already exists, skip silently
+                pass
 
         # Dynamically expose a set of native-style classic commands based on the central slash map.
-        try:
-            from communication.message_processing.interaction_manager import get_interaction_manager
-            im = get_interaction_manager()
-            cmd_defs = im.get_command_definitions()
+        from communication.message_processing.interaction_manager import get_interaction_manager
+        im = get_interaction_manager()
+        cmd_defs = im.get_command_definitions()
 
-            for cmd in cmd_defs:
-                name = cmd["name"]
-                mapped = cmd["mapped_message"]
-                # Skip Discord's native classic commands to avoid duplication
-                if name in ["help"]:
-                    continue
+        for cmd in cmd_defs:
+            name = cmd["name"]
+            mapped = cmd["mapped_message"]
+            # Skip Discord's native classic commands to avoid duplication
+            if name in ["help"]:
+                continue
 
-                async def _dynamic(ctx, _mapped=mapped, _name=name):
-                    discord_user_id = str(ctx.author.id)
-                    internal_user_id = get_user_id_by_identifier(discord_user_id)
-                    if not internal_user_id:
-                        await ctx.send("Please register first to use this feature.")
-                        return
-                    try:
-                        from communication.message_processing.interaction_manager import handle_user_message
-                        response = handle_user_message(internal_user_id, _mapped, "discord")
-                        await ctx.send(response.message)
-                    except Exception as e:
-                        logger.error(f"Error in dynamic command '{_name}': {e}")
-                        await ctx.send("I'm having trouble right now. Please try again.")
+            @handle_errors("handling Discord dynamic command", context={"command": name}, default_return=None)
+            async def _dynamic(ctx, _mapped=mapped, _name=name):
+                discord_user_id = str(ctx.author.id)
+                internal_user_id = get_user_id_by_identifier(discord_user_id)
+                if not internal_user_id:
+                    await ctx.send("Please register first to use this feature.")
+                    return
+                from communication.message_processing.interaction_manager import handle_user_message
+                response = handle_user_message(internal_user_id, _mapped, "discord")
+                await ctx.send(response.message)
 
-                # Register as a classic command: users can type !tasks, !profile, etc.
-                try:
-                    self.bot.command(name=name)(_dynamic)
-                except Exception:
-                    # Ignore duplicates if any
-                    pass
-        except Exception as e:
-            logger.debug(f"Dynamic command registration skipped: {e}")
+            # Register as a classic command: users can type !tasks, !profile, etc.
+            try:
+                self.bot.command(name=name)(_dynamic)
+            except Exception:
+                # Ignore duplicates if any
+                pass
 
         self._commands_registered = True
 
@@ -1277,47 +1234,43 @@ class DiscordBot(BaseChannel):
         # Properly close the bot and event loop with enhanced cleanup
         if self.bot:
             async with self.shutdown__session_cleanup_context() as sessions_to_cleanup:
-                try:
-                    # Cancel any pending sync task first
-                    if hasattr(self, '_sync_task') and self._sync_task and not self._sync_task.done():
-                        self._sync_task.cancel()
-                        try:
-                            await asyncio.wait_for(self._sync_task, timeout=2.0)
-                        except (asyncio.CancelledError, asyncio.TimeoutError):
-                            logger.debug("Sync task cancelled or timed out during shutdown")
-                        except Exception as e:
-                            logger.debug(f"Error waiting for sync task cancellation: {e}")
-                    
-                    # Close the bot first
-                    if not self.bot.is_closed():
-                        await self.bot.close()
-                        logger.info("Discord bot closed successfully")
-                    
-                    # Collect all sessions that need cleanup
-                    if hasattr(self.bot, '_HTTP') and self.bot._HTTP:
-                        if hasattr(self.bot._HTTP, '_HTTPClient') and self.bot._HTTP._HTTPClient:
-                            if hasattr(self.bot._HTTP._HTTPClient, '_session') and self.bot._HTTP._HTTPClient._session:
-                                sessions_to_cleanup.append(self.bot._HTTP._HTTPClient._session)
-                    
-                    # Clean up the event loop if it exists
-                    if hasattr(self, '_loop') and self._loop:
-                        await self._cleanup_event_loop_safely(self._loop)
-                    
-                    # Additional cleanup for aiohttp sessions
-                    await self._cleanup_aiohttp_sessions()
-                    
-                    # Stop webhook server
-                    if self._webhook_server:
-                        try:
-                            self._webhook_server.stop()
-                        except Exception as e:
-                            logger.debug(f"Error stopping webhook server: {e}")
-                    
-                    # Stop ngrok tunnel if running
-                    self._stop_ngrok_tunnel()
-                        
-                except Exception as e:
-                    logger.error(f"Error during Discord bot shutdown: {e}")
+                # Cancel any pending sync task first
+                if hasattr(self, '_sync_task') and self._sync_task and not self._sync_task.done():
+                    self._sync_task.cancel()
+                    try:
+                        await asyncio.wait_for(self._sync_task, timeout=2.0)
+                    except (asyncio.CancelledError, asyncio.TimeoutError):
+                        logger.debug("Sync task cancelled or timed out during shutdown")
+                    except Exception as e:
+                        logger.debug(f"Error waiting for sync task cancellation: {e}")
+                
+                # Close the bot first
+                if not self.bot.is_closed():
+                    await self.bot.close()
+                    logger.info("Discord bot closed successfully")
+                
+                # Collect all sessions that need cleanup
+                if hasattr(self.bot, '_HTTP') and self.bot._HTTP:
+                    if hasattr(self.bot._HTTP, '_HTTPClient') and self.bot._HTTP._HTTPClient:
+                        if hasattr(self.bot._HTTP._HTTPClient, '_session') and self.bot._HTTP._HTTPClient._session:
+                            sessions_to_cleanup.append(self.bot._HTTP._HTTPClient._session)
+                
+                # Clean up the event loop if it exists
+                if hasattr(self, '_loop') and self._loop:
+                    await self._cleanup_event_loop_safely(self._loop)
+                
+                # Additional cleanup for aiohttp sessions
+                await self._cleanup_aiohttp_sessions()
+                
+                # Stop webhook server
+                if self._webhook_server:
+                    try:
+                        self._webhook_server.stop()
+                    except Exception as e:
+                        logger.debug(f"Error stopping webhook server: {e}")
+                
+                # Stop ngrok tunnel if running
+                self._stop_ngrok_tunnel()
         
         # Ensure ngrok is stopped even if shutdown had errors
         self._stop_ngrok_tunnel()

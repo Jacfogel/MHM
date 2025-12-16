@@ -344,12 +344,36 @@ class ConversationManager:
 
     @handle_errors("starting messages flow", default_return=("I'm having trouble starting the messages flow.", True))
     def start_messages_flow(self, user_id: str) -> tuple[str, bool]:
+        """
+        Start the messages flow for a user.
+        
+        Initiates the messages management flow by routing the "show messages" command
+        through the interaction manager. Returns the response message and completion status.
+        
+        Args:
+            user_id: The internal user ID to start the messages flow for
+            
+        Returns:
+            tuple[str, bool]: Response message and completion status (always True for this flow)
+        """
         from communication.message_processing.interaction_manager import handle_user_message
         resp = handle_user_message(user_id, "show messages", "discord")
         return (resp.message, True)
 
     @handle_errors("starting analytics flow", default_return=("I'm having trouble starting the analytics flow.", True))
     def start_analytics_flow(self, user_id: str) -> tuple[str, bool]:
+        """
+        Start the analytics flow for a user.
+        
+        Initiates the analytics display flow by routing the "show analytics" command
+        through the interaction manager. Returns the response message and completion status.
+        
+        Args:
+            user_id: The internal user ID to start the analytics flow for
+            
+        Returns:
+            tuple[str, bool]: Response message and completion status (always True for this flow)
+        """
         from communication.message_processing.interaction_manager import handle_user_message
         resp = handle_user_message(user_id, "show analytics", "discord")
         return (resp.message, True)

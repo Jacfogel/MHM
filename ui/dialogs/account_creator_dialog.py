@@ -368,21 +368,19 @@ class AccountCreatorDialog(QDialog):
     
 
     
+    @handle_errors("handling feature toggle", default_return=None)
     def on_feature_toggled(self, checked):
         """Handle feature enablement checkbox toggles."""
-        try:
-            # Get the sender checkbox to determine which feature was toggled
-            sender = self.sender()
-            if not sender:
-                logger.warning("on_feature_toggled called but no sender found")
-                return
-            
-            logger.info(f"Feature toggled: {sender.objectName()} = {checked}")
-            
-            # Update tab visibility based on feature enablement
-            self.update_tab_visibility()
-        except Exception as e:
-            logger.error(f"Error handling feature toggle: {e}")
+        # Get the sender checkbox to determine which feature was toggled
+        sender = self.sender()
+        if not sender:
+            logger.warning("on_feature_toggled called but no sender found")
+            return
+        
+        logger.info(f"Feature toggled: {sender.objectName()} = {checked}")
+        
+        # Update tab visibility based on feature enablement
+        self.update_tab_visibility()
     
     @handle_errors("updating tab visibility")
     def update_tab_visibility(self):

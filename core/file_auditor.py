@@ -32,14 +32,19 @@ except Exception:
     # Fallback to a no-op logger to satisfy static logging checks
     class _DummyLogger:
         def info(self, *args, **kwargs):
+            """No-op info logging for fallback logger."""
             pass
         def warning(self, *args, **kwargs):
+            """No-op warning logging for fallback logger."""
             pass
         def debug(self, *args, **kwargs):
+            """No-op debug logging for fallback logger."""
             pass
         def error(self, *args, **kwargs):
+            """No-op error logging for fallback logger."""
             pass
         def critical(self, *args, **kwargs):
+            """No-op critical logging for fallback logger."""
             pass
     _logger = _DummyLogger()
 

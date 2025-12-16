@@ -1215,44 +1215,41 @@ class CommunicationManager:
             # Default to sending check-in if there's an error
             return True
 
+    @handle_errors("handling scheduled check-in", user_friendly=False, default_return=None)
     def _handle_scheduled_checkin(self, user_id: str, messaging_service: str, recipient: str):
         """
         Handle scheduled check-in messages based on user preferences and frequency.
         """
-        try:
-            prefs_result = get_user_data(user_id, 'preferences', normalize_on_read=True)
-            preferences = prefs_result.get('preferences')
-            if not preferences:
-                logger.error(f"User preferences not found for user {user_id}")
-                return
-            
-            # Check if check-ins are enabled in account features
-            # Get user account data
-            user_data_result = get_user_data(user_id, 'account', normalize_on_read=True)
-            account_data = user_data_result.get('account')
-            if not account_data or account_data.get('features', {}).get('checkins') != 'enabled':
-                logger.debug(f"Check-ins disabled for user {user_id}")
-                return
-            
-            checkin_prefs = preferences.get('checkin_settings', {})
-            
-            # Check frequency and last check-in time
-            frequency = checkin_prefs.get('frequency', 'daily')
-            
-            # If frequency is "none", don't send scheduled check-ins
-            if frequency == 'none':
-                logger.debug(f"Check-in frequency set to 'none' for user {user_id}, skipping scheduled check-in")
-                return
-            
-            # Check if it's time for a check-in based on frequency
-            if self._should_send_checkin_prompt(user_id, checkin_prefs):
-                self._send_checkin_prompt(user_id, messaging_service, recipient)
-                logger.info(f"Sent scheduled check-in prompt to user {user_id}")
-            else:
-                logger.debug(f"Check-in not due yet for user {user_id}")
-                
-        except Exception as e:
-            logger.error(f"Error handling scheduled check-in for user {user_id}: {e}")
+        prefs_result = get_user_data(user_id, 'preferences', normalize_on_read=True)
+        preferences = prefs_result.get('preferences')
+        if not preferences:
+            logger.error(f"User preferences not found for user {user_id}")
+            return
+        
+        # Check if check-ins are enabled in account features
+        # Get user account data
+        user_data_result = get_user_data(user_id, 'account', normalize_on_read=True)
+        account_data = user_data_result.get('account')
+        if not account_data or account_data.get('features', {}).get('checkins') != 'enabled':
+            logger.debug(f"Check-ins disabled for user {user_id}")
+            return
+        
+        checkin_prefs = preferences.get('checkin_settings', {})
+        
+        # Check frequency and last check-in time
+        frequency = checkin_prefs.get('frequency', 'daily')
+        
+        # If frequency is "none", don't send scheduled check-ins
+        if frequency == 'none':
+            logger.debug(f"Check-in frequency set to 'none' for user {user_id}, skipping scheduled check-in")
+            return
+        
+        # Check if it's time for a check-in based on frequency
+        if self._should_send_checkin_prompt(user_id, checkin_prefs):
+            self._send_checkin_prompt(user_id, messaging_service, recipient)
+            logger.info(f"Sent scheduled check-in prompt to user {user_id}")
+        else:
+            logger.debug(f"Check-in not due yet for user {user_id}")
 
     def _send_checkin_prompt(self, user_id: str, messaging_service: str, recipient: str):
         """

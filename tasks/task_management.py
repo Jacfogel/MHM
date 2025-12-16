@@ -37,39 +37,30 @@ def ensure_task_directory(user_id: str) -> bool:
     if not user_id.strip():
         logger.error("Empty user_id provided")
         return False
-    """Ensure the task directory structure exists for a user."""
-    try:
-        if not user_id:
-            logger.error("User ID is required for task directory creation")
-            return False
-            
-        # Get the user directory path using the correct function
-        user_dir = Path(get_user_data_dir(user_id))
-        task_dir = user_dir / 'tasks'
-        
-        # Create the directory if it doesn't exist
-        if not task_dir.exists():
-            task_dir.mkdir(parents=True, exist_ok=True)
-            logger.debug(f"Created task directory for user {user_id}: {task_dir}")
-        
-        # Initialize task files if they don't exist
-        task_files = {
-            'active_tasks': {'tasks': []},
-            'completed_tasks': {'completed_tasks': []},
-            'task_schedules': {'task_schedules': {}}
-        }
-        
-        for filename, default_data in task_files.items():
-            file_path = task_dir / f"{filename}.json"
-            if not file_path.exists():
-                save_json_data(default_data, str(file_path))
-                logger.debug(f"Created {filename}.json for user {user_id}")
-        
-        return True
-        
-    except Exception as e:
-        logger.error(f"Error creating task directory structure for user {user_id}: {e}")
-        return False
+    
+    # Get the user directory path using the correct function
+    user_dir = Path(get_user_data_dir(user_id))
+    task_dir = user_dir / 'tasks'
+    
+    # Create the directory if it doesn't exist
+    if not task_dir.exists():
+        task_dir.mkdir(parents=True, exist_ok=True)
+        logger.debug(f"Created task directory for user {user_id}: {task_dir}")
+    
+    # Initialize task files if they don't exist
+    task_files = {
+        'active_tasks': {'tasks': []},
+        'completed_tasks': {'completed_tasks': []},
+        'task_schedules': {'task_schedules': {}}
+    }
+    
+    for filename, default_data in task_files.items():
+        file_path = task_dir / f"{filename}.json"
+        if not file_path.exists():
+            save_json_data(default_data, str(file_path))
+            logger.debug(f"Created {filename}.json for user {user_id}")
+    
+    return True
 
 @handle_errors("loading active tasks", default_return=[])
 def load_active_tasks(user_id: str) -> List[Dict[str, Any]]:

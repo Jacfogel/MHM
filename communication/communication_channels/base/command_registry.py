@@ -140,14 +140,11 @@ class DiscordCommandRegistry(CommandRegistry):
             return False
         
         # Create Discord command callback
+        @handle_errors("handling Discord command", context={"command": command_def.name}, default_return=None)
         async def discord_command_callback(interaction, *args, **kwargs):
-            try:
-                # Call the original handler
-                result = await command_def.handler(interaction, *args, **kwargs)
-                return result
-            except Exception as e:
-                logger.error(f"Error in Discord command '{command_def.name}': {e}")
-                await interaction.response.send_message("An error occurred while processing your command.")
+            # Call the original handler
+            result = await command_def.handler(interaction, *args, **kwargs)
+            return result
         
         # Register as Discord slash command
         from discord import app_commands

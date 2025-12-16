@@ -17,6 +17,7 @@ import re
 import logging
 from pathlib import Path
 from typing import Dict, Optional, Tuple
+from core.error_handling import handle_errors
 
 # Simple ANSI color codes for terminal output (works in modern PowerShell)
 # Enable ANSI color support in Windows
@@ -82,6 +83,7 @@ def parse_junit_xml(xml_path: str) -> Dict[str, int]:
     
     return results
 
+@handle_errors("running test command", user_friendly=False, default_return={'success': False, 'output': '', 'results': {}, 'duration': 0, 'warnings': '', 'failures': ''})
 def run_command(cmd, description, progress_interval: int = 30, capture_output: bool = True):
     """
     Run a command and return results with periodic progress logs.
@@ -99,161 +101,168 @@ def run_command(cmd, description, progress_interval: int = 30, capture_output: b
 
     start_time = time.time()
     
+    # To preserve pytest's colors, let it write directly to the terminal (no pipe)
+    # Use JUnit XML report to get structured results without capturing output
+    import tempfile
+    with tempfile.NamedTemporaryFile(mode='w+', delete=False, encoding='utf-8', suffix='.xml') as tmp_file:
+        junit_xml_path = tmp_file.name
+    
     try:
-        # To preserve pytest's colors, let it write directly to the terminal (no pipe)
-        # Use JUnit XML report to get structured results without capturing output
-        import tempfile
-        with tempfile.NamedTemporaryFile(mode='w+', delete=False, encoding='utf-8', suffix='.xml') as tmp_file:
-            junit_xml_path = tmp_file.name
+        # Generate JUnit XML report for parsing (doesn't affect colors)
+        cmd_with_junit = cmd + ['--junit-xml', junit_xml_path]
         
-        try:
-            # Generate JUnit XML report for parsing (doesn't affect colors)
-            cmd_with_junit = cmd + ['--junit-xml', junit_xml_path]
-            
-            # Ensure pytest keeps ANSI colors even though we're piping output
-            contains_color_flag = any(opt.startswith('--color') for opt in cmd_with_junit)
-            if not contains_color_flag:
-                cmd_with_junit.append('--color=yes')
-            
-            # Capture output to parse warnings, but also write to terminal to preserve colors
-            # Use a pipe that we can read from AND write to terminal
-            output_queue = queue.Queue()
-            output_lines = []
-            
-            def read_output(pipe, queue_obj):
-                """Read from pipe and put lines in queue, also write to terminal."""
+        # Ensure pytest keeps ANSI colors even though we're piping output
+        contains_color_flag = any(opt.startswith('--color') for opt in cmd_with_junit)
+        if not contains_color_flag:
+            cmd_with_junit.append('--color=yes')
+        
+        # Capture output to parse warnings, but also write to terminal to preserve colors
+        # Use a pipe that we can read from AND write to terminal
+        output_queue = queue.Queue()
+        output_lines = []
+        
+        def read_output(pipe, queue_obj):
+            """Read from pipe and put lines in queue, also write to terminal."""
+            try:
                 for line in iter(pipe.readline, ''):
                     if line:
                         queue_obj.put(line)
                         # Also write to terminal to preserve colors
                         sys.stdout.write(line)
                         sys.stdout.flush()
-                pipe.close()
-            
-            # Let pytest write directly to terminal - this preserves ALL colors
-            # We'll parse warnings from the output if we can capture it
-            process = subprocess.Popen(
-                cmd_with_junit,
-                stdout=subprocess.PIPE,  # Capture for parsing
-                stderr=subprocess.STDOUT,  # Merge stderr into stdout
-                universal_newlines=True,
-                bufsize=1
-            )
-            
-            # Start thread to read output and display it
-            output_thread = threading.Thread(target=read_output, args=(process.stdout, output_queue))
-            output_thread.daemon = True
-            output_thread.start()
-            
-            # Monitor progress while process runs
-            next_tick = start_time + max(1, progress_interval)
-            while process.poll() is None:
-                now = time.time()
-                if now >= next_tick:
-                    elapsed = int(now - start_time)
-                    print(f"[PROGRESS] {description} running for {elapsed}s...")
-                    next_tick += max(1, progress_interval)
-                time.sleep(0.5)
-            
-            # Wait for process to complete
-            process.wait()
-            
-            # Wait for output thread to finish
-            output_thread.join(timeout=1)
-            
-            # Collect all output lines
-            while not output_queue.empty():
+            except Exception as e:
+                # Log error but don't crash - this is a helper thread
+                logger = logging.getLogger("mhm_tests.run_tests")
+                logger.warning(f"Error reading output from pipe: {e}")
+            finally:
                 try:
-                    output_lines.append(output_queue.get_nowait())
-                except queue.Empty:
-                    break
-            
-            output = ''.join(output_lines)
-            output_plain = ANSI_ESCAPE_RE.sub('', output)
-            
-            summary_counts = {}
-            summary_line_matches = re.findall(r'={5,}\s*(.+?)\s*={5,}', output_plain, re.MULTILINE)
-            if summary_line_matches:
-                summary_content = summary_line_matches[-1]
-                count_matches = re.findall(
-                    r'(\d+)\s+(failed|passed|skipped|warnings?|deselected|errors?)',
-                    summary_content,
-                    re.IGNORECASE
-                )
-                for count_str, label in count_matches:
-                    key = label.lower()
-                    if key in ('warning', 'warnings'):
-                        key = 'warnings'
-                    elif key in ('error', 'errors'):
-                        key = 'errors'
-                    summary_counts[key] = int(count_str)
-            
-            # Parse results from JUnit XML
-            results = parse_junit_xml(junit_xml_path)
-            
-            # Ensure expected keys exist
-            results.setdefault('warnings', 0)
-            results.setdefault('deselected', 0)
-            
-            # Update results with parsed summary counts
-            for key, value in summary_counts.items():
-                results[key] = value
-            
-            # Parse warnings/failures details from pytest output
-            warnings_text = ''
-            failures_text = ''
-            
-            # Extract warnings count from pytest output (e.g., "10 warnings in 143.99s")
-            # Look for pattern like "1 failed, 3023 passed, 1 skipped, 10 warnings in 143.99s"
-            warnings_match = re.search(r'(\d+)\s+warnings?\s+in\s+[\d.]+s', output_plain)
-            if not warnings_match:
-                # Also try pattern without "in" (some pytest versions)
-                warnings_match = re.search(r',\s*(\d+)\s+warnings?\s+in', output_plain)
-            if warnings_match:
-                results['warnings'] = int(warnings_match.group(1))
-            
-            # Extract failures from short test summary
-            failures_section = re.search(r'FAILED\s+(.+?)(?=\n\n|\n===|$)', output_plain, re.DOTALL)
-            if failures_section:
-                failures_text = failures_section.group(1).strip()
-            
-            duration = time.time() - start_time
-            
-            # Print status message
-            if process.returncode == 0:
-                print(f"\n{GREEN}[SUCCESS]{RESET} {description} completed successfully in {duration}s")
-            else:
-                print(f"\n{RED}[FAILED]{RESET} {description} failed with exit code {process.returncode} after {duration}s")
-            
-            # Return dict with all information
-            return {
-                'success': process.returncode == 0,
-                'output': output,
-                'results': results,
-                'duration': duration,
-                'warnings': warnings_text,
-                'failures': failures_text
-            }
-        finally:
-            # Clean up temp file
+                    pipe.close()
+                except Exception:
+                    pass  # Ignore errors closing pipe
+        
+        # Let pytest write directly to terminal - this preserves ALL colors
+        # We'll parse warnings from the output if we can capture it
+        process = subprocess.Popen(
+            cmd_with_junit,
+            stdout=subprocess.PIPE,  # Capture for parsing
+            stderr=subprocess.STDOUT,  # Merge stderr into stdout
+            universal_newlines=True,
+            bufsize=1
+        )
+        
+        # Start thread to read output and display it
+        output_thread = threading.Thread(target=read_output, args=(process.stdout, output_queue))
+        output_thread.daemon = True
+        output_thread.start()
+        
+        # Monitor progress while process runs
+        next_tick = start_time + max(1, progress_interval)
+        while process.poll() is None:
+            now = time.time()
+            if now >= next_tick:
+                elapsed = int(now - start_time)
+                print(f"[PROGRESS] {description} running for {elapsed}s...")
+                next_tick += max(1, progress_interval)
+            time.sleep(0.5)
+        
+        # Wait for process to complete
+        process.wait()
+        
+        # Wait for output thread to finish
+        output_thread.join(timeout=1)
+        
+        # Collect all output lines
+        while not output_queue.empty():
             try:
-                if os.path.exists(junit_xml_path):
-                    os.unlink(junit_xml_path)
-            except:
-                pass
-    except Exception as e:
-        total = int(time.time() - start_time)
+                output_lines.append(output_queue.get_nowait())
+            except queue.Empty:
+                break
+        
+        output = ''.join(output_lines)
+        output_plain = ANSI_ESCAPE_RE.sub('', output)
+        
+        summary_counts = {}
+        summary_line_matches = re.findall(r'={5,}\s*(.+?)\s*={5,}', output_plain, re.MULTILINE)
+        if summary_line_matches:
+            summary_content = summary_line_matches[-1]
+            count_matches = re.findall(
+                r'(\d+)\s+(failed|passed|skipped|warnings?|deselected|errors?)',
+                summary_content,
+                re.IGNORECASE
+            )
+            for count_str, label in count_matches:
+                key = label.lower()
+                if key in ('warning', 'warnings'):
+                    key = 'warnings'
+                elif key in ('error', 'errors'):
+                    key = 'errors'
+                summary_counts[key] = int(count_str)
+        
+        # Parse results from JUnit XML
+        results = parse_junit_xml(junit_xml_path)
+        
+        # Ensure expected keys exist
+        results.setdefault('warnings', 0)
+        results.setdefault('deselected', 0)
+        
+        # Update results with parsed summary counts
+        for key, value in summary_counts.items():
+            results[key] = value
+        
+        # Parse warnings/failures details from pytest output
+        warnings_text = ''
+        failures_text = ''
+        
+        # Extract warnings count from pytest output (e.g., "10 warnings in 143.99s")
+        # Look for pattern like "1 failed, 3023 passed, 1 skipped, 10 warnings in 143.99s"
+        warnings_match = re.search(r'(\d+)\s+warnings?\s+in\s+[\d.]+s', output_plain)
+        if not warnings_match:
+            # Also try pattern without "in" (some pytest versions)
+            warnings_match = re.search(r',\s*(\d+)\s+warnings?\s+in', output_plain)
+        if warnings_match:
+            results['warnings'] = int(warnings_match.group(1))
+        
+        # Extract failures from short test summary
+        failures_section = re.search(r'FAILED\s+(.+?)(?=\n\n|\n===|$)', output_plain, re.DOTALL)
+        if failures_section:
+            failures_text = failures_section.group(1).strip()
+        
+        duration = time.time() - start_time
+        
+        # Print status message
+        if process.returncode == 0:
+            print(f"\n{GREEN}[SUCCESS]{RESET} {description} completed successfully in {duration}s")
+        else:
+            print(f"\n{RED}[FAILED]{RESET} {description} failed with exit code {process.returncode} after {duration}s")
+        
+        # Return dict with all information
         return {
-            'success': False,
-            'output': '',
-            'results': {},
-            'duration': total,
-            'warnings': '',
-            'failures': ''
+            'success': process.returncode == 0,
+            'output': output,
+            'results': results,
+            'duration': duration,
+            'warnings': warnings_text,
+            'failures': failures_text
         }
+    finally:
+        # Clean up temp file
+        try:
+            if os.path.exists(junit_xml_path):
+                os.unlink(junit_xml_path)
+        except:
+            pass
 
+@handle_errors("setting up test logger", default_return=None)
 def setup_test_logger():
-    """Set up logger for test duration logging."""
+    """
+    Set up logger for test duration logging.
+    
+    Creates a logger for test run duration logging and ensures the tests/logs
+    directory exists. Returns a configured logger instance.
+    
+    Returns:
+        logging.Logger: Configured logger instance for test runs
+    """
     logger = logging.getLogger("mhm_tests.run_tests")
     logger.setLevel(logging.INFO)
     
@@ -276,6 +285,7 @@ def setup_test_logger():
     
     return logger
 
+@handle_errors("printing combined test summary", default_return=None)
 def print_combined_summary(parallel_results: Optional[Dict], no_parallel_results: Optional[Dict], description: str):
     """
     Print a combined summary of test results from both parallel and serial runs.
@@ -433,6 +443,7 @@ def print_combined_summary(parallel_results: Optional[Dict], no_parallel_results
     print(summary_line)
     print()
 
+@handle_errors("printing test mode information", default_return=None)
 def print_test_mode_info():
     """Print helpful information about test modes."""
     print("\n" + "="*60)
@@ -465,6 +476,7 @@ def print_test_mode_info():
     print("="*60)
 
 
+@handle_errors("running static logging check", default_return=False)
 def run_static_logging_check() -> bool:
     """Run the static logging enforcement script before executing tests."""
     script_path = Path(__file__).parent / "scripts" / "static_checks" / "check_channel_loggers.py"

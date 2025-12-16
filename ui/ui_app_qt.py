@@ -438,19 +438,14 @@ class MHMManagerUI(QMainWindow):
     @handle_errors("updating user index on startup", default_return=None)
     def update_user_index_on_startup(self):
         """Automatically update the user index when the admin panel starts"""
-        try:
-            from core.user_data_manager import rebuild_user_index
-            logger.info("Admin Panel: Updating user index on startup...")
-            
-            success = rebuild_user_index()
-            if success:
-                logger.info("Admin Panel: User index updated successfully on startup")
-            else:
-                logger.warning("Admin Panel: Failed to update user index on startup")
-                
-        except Exception as e:
-            logger.error(f"Admin Panel: Error updating user index on startup: {e}")
-            # Don't show error to user - this is a background maintenance task
+        from core.user_data_manager import rebuild_user_index
+        logger.info("Admin Panel: Updating user index on startup...")
+        
+        success = rebuild_user_index()
+        if success:
+            logger.info("Admin Panel: User index updated successfully on startup")
+        else:
+            logger.warning("Admin Panel: Failed to update user index on startup")
     
     @handle_errors("updating service status", default_return=None)
     def update_service_status(self):
@@ -766,42 +761,37 @@ class MHMManagerUI(QMainWindow):
         if self.service_manager.restart_service():
             self.update_service_status()
     
+    @handle_errors("running full scheduler", default_return=None)
     def run_full_scheduler(self):
         """Run the full scheduler for all users"""
-        try:
-            from core.scheduler import run_full_scheduler_standalone
-            
-            logger.info("UI: Running full scheduler for all users")
-            success = run_full_scheduler_standalone()
-            
-            if success:
-                QMessageBox.information(None, "Scheduler", "Full scheduler started successfully for all users")
-            else:
-                QMessageBox.warning(None, "Scheduler", "Failed to start full scheduler")
-        except Exception as e:
-            logger.error(f"UI: Error running full scheduler: {e}")
-            QMessageBox.critical(None, "Scheduler Error", f"Failed to run full scheduler: {e}")
+        from core.scheduler import run_full_scheduler_standalone
+        
+        logger.info("UI: Running full scheduler for all users")
+        success = run_full_scheduler_standalone()
+        
+        if success:
+            QMessageBox.information(None, "Scheduler", "Full scheduler started successfully for all users")
+        else:
+            QMessageBox.warning(None, "Scheduler", "Failed to start full scheduler")
     
+    @handle_errors("running user scheduler", default_return=None)
     def run_user_scheduler(self):
         """Run scheduler for the selected user"""
         if not self.current_user:
             QMessageBox.warning(None, "Scheduler", "Please select a user first")
             return
         
-        try:
-            from core.scheduler import run_user_scheduler_standalone
-            
-            logger.info(f"UI: Running scheduler for user {self.current_user}")
-            success = run_user_scheduler_standalone(self.current_user)
-            
-            if success:
-                QMessageBox.information(None, "Scheduler", f"User scheduler started successfully for {self.current_user}")
-            else:
-                QMessageBox.warning(None, "Scheduler", f"Failed to start user scheduler for {self.current_user}")
-        except Exception as e:
-            logger.error(f"UI: Error running user scheduler: {e}")
-            QMessageBox.critical(None, "Scheduler Error", f"Failed to run user scheduler: {e}")
+        from core.scheduler import run_user_scheduler_standalone
+        
+        logger.info(f"UI: Running scheduler for user {self.current_user}")
+        success = run_user_scheduler_standalone(self.current_user)
+        
+        if success:
+            QMessageBox.information(None, "Scheduler", f"User scheduler started successfully for {self.current_user}")
+        else:
+            QMessageBox.warning(None, "Scheduler", f"Failed to start user scheduler for {self.current_user}")
     
+    @handle_errors("running category scheduler", default_return=None)
     def run_category_scheduler(self):
         """Run scheduler for the selected user and category"""
         if not self.current_user:
@@ -813,19 +803,15 @@ class MHMManagerUI(QMainWindow):
             QMessageBox.warning(None, "Scheduler", "Please select a category first")
             return
         
-        try:
-            from core.scheduler import run_category_scheduler_standalone
-            
-            logger.info(f"UI: Running category scheduler for user {self.current_user}, category {category}")
-            success = run_category_scheduler_standalone(self.current_user, category)
-            
-            if success:
-                QMessageBox.information(None, "Scheduler", f"Category scheduler started successfully for {self.current_user}, {category}")
-            else:
-                QMessageBox.warning(None, "Scheduler", f"Failed to start category scheduler for {self.current_user}, {category}")
-        except Exception as e:
-            logger.error(f"UI: Error running category scheduler: {e}")
-            QMessageBox.critical(None, "Scheduler Error", f"Failed to run category scheduler: {e}")
+        from core.scheduler import run_category_scheduler_standalone
+        
+        logger.info(f"UI: Running category scheduler for user {self.current_user}, category {category}")
+        success = run_category_scheduler_standalone(self.current_user, category)
+        
+        if success:
+            QMessageBox.information(None, "Scheduler", f"Category scheduler started successfully for {self.current_user}, {category}")
+        else:
+            QMessageBox.warning(None, "Scheduler", f"Failed to start category scheduler for {self.current_user}, {category}")
     
     @handle_errors("refreshing user list", default_return=None)
     def refresh_user_list(self):
@@ -1603,14 +1589,9 @@ class MHMManagerUI(QMainWindow):
             "source": "admin_panel"
         }
         
-        try:
-            with open(request_file, 'w') as f:
-                json.dump(test_request, f, indent=2)
-            logger.info(f"Admin Panel: Test message request file created: {request_file}")
-        except Exception as e:
-            logger.error(f"Failed to create test message request file: {e}")
-            QMessageBox.critical(self, "Error", f"Failed to create test message request file: {str(e)}")
-            return
+        with open(request_file, 'w') as f:
+            json.dump(test_request, f, indent=2)
+        logger.info(f"Admin Panel: Test message request file created: {request_file}")
         
         # Wait briefly for service to process and write response file with actual message
         actual_message = "Message will be selected from your collection"
@@ -1636,13 +1617,10 @@ class MHMManagerUI(QMainWindow):
             time.sleep(0.1)  # Wait 100ms between checks
         
         # Get channel name for dialog
-        try:
-            from core.user_data_handlers import get_user_data
-            prefs_result = get_user_data(self.current_user, 'preferences', normalize_on_read=True)
-            preferences = prefs_result.get('preferences', {})
-            channel_name = preferences.get('channel', {}).get('type', 'unknown')
-        except Exception as e:
-            logger.debug(f"Could not get channel name: {e}")
+        from core.user_data_handlers import get_user_data
+        prefs_result = get_user_data(self.current_user, 'preferences', normalize_on_read=True)
+        preferences = prefs_result.get('preferences', {})
+        channel_name = preferences.get('channel', {}).get('type', 'unknown')
         
         # Truncate message if too long for dialog
         if len(actual_message) > 100:
@@ -1699,73 +1677,68 @@ class MHMManagerUI(QMainWindow):
         
         logger.info(f"Admin Panel: Sending check-in prompt to user {self.current_user}")
         
-        try:
-            # Get user preferences to determine messaging service and recipient
-            from core.user_data_handlers import get_user_data
-            prefs_result = get_user_data(self.current_user, 'preferences', normalize_on_read=True)
-            preferences = prefs_result.get('preferences')
-            
-            if not preferences:
-                QMessageBox.warning(self, "User Configuration Error", 
-                                   f"User preferences not found for {self.current_user}.")
-                return
-            
-            messaging_service = preferences.get('channel', {}).get('type')
-            if not messaging_service:
-                QMessageBox.warning(self, "User Configuration Error", 
-                                   f"No messaging service configured for {self.current_user}.")
-                return
-            
-            # Create check-in prompt request file (same pattern as test messages)
-            # The service will pick this up and send the check-in prompt
-            from datetime import datetime
-            import json
-            import time
-            base_dir = Path(__file__).parent.parent
-            request_file = base_dir / f'checkin_prompt_request_{self.current_user}.flag'
-            
-            checkin_request = {
-                "user_id": self.current_user,
-                "timestamp": datetime.now().isoformat(),
-                "source": "admin_panel"
-            }
-            
-            with open(request_file, 'w') as f:
-                json.dump(checkin_request, f, indent=2)
-            
-            # Wait briefly for service to process and write response file with actual first question
-            first_question = "Check-in questions"
-            response_file = base_dir / f'checkin_prompt_response_{self.current_user}.flag'
-            
-            # Wait up to 3 seconds for the service to process and write the response
-            for _ in range(30):  # Check 30 times over 3 seconds
-                if response_file.exists():
+        # Get user preferences to determine messaging service and recipient
+        from core.user_data_handlers import get_user_data
+        prefs_result = get_user_data(self.current_user, 'preferences', normalize_on_read=True)
+        preferences = prefs_result.get('preferences')
+        
+        if not preferences:
+            QMessageBox.warning(self, "User Configuration Error", 
+                               f"User preferences not found for {self.current_user}.")
+            return
+        
+        messaging_service = preferences.get('channel', {}).get('type')
+        if not messaging_service:
+            QMessageBox.warning(self, "User Configuration Error", 
+                               f"No messaging service configured for {self.current_user}.")
+            return
+        
+        # Create check-in prompt request file (same pattern as test messages)
+        # The service will pick this up and send the check-in prompt
+        from datetime import datetime
+        import json
+        import time
+        base_dir = Path(__file__).parent.parent
+        request_file = base_dir / f'checkin_prompt_request_{self.current_user}.flag'
+        
+        checkin_request = {
+            "user_id": self.current_user,
+            "timestamp": datetime.now().isoformat(),
+            "source": "admin_panel"
+        }
+        
+        with open(request_file, 'w') as f:
+            json.dump(checkin_request, f, indent=2)
+        
+        # Wait briefly for service to process and write response file with actual first question
+        first_question = "Check-in questions"
+        response_file = base_dir / f'checkin_prompt_response_{self.current_user}.flag'
+        
+        # Wait up to 3 seconds for the service to process and write the response
+        for _ in range(30):  # Check 30 times over 3 seconds
+            if response_file.exists():
+                try:
+                    with open(response_file, 'r') as f:
+                        response_data = json.load(f)
+                    first_question = response_data.get('first_question', first_question)
+                    # Clean up response file
                     try:
-                        with open(response_file, 'r') as f:
-                            response_data = json.load(f)
-                        first_question = response_data.get('first_question', first_question)
-                        # Clean up response file
-                        try:
-                            os.remove(response_file)
-                        except Exception:
-                            pass
-                        break
-                    except Exception as e:
-                        logger.debug(f"Could not read check-in response file: {e}")
-                time.sleep(0.1)  # Wait 100ms between checks
-            
-            # Truncate if too long
-            if len(first_question) > 100:
-                first_question = first_question[:97] + "..."
-            
-            QMessageBox.information(self, "Check-in Prompt Sent", 
-                                   f"Check-in prompt sent to {self.current_user} via {messaging_service}.\n\n"
-                                   f"First question: {first_question}")
-            logger.info(f"Admin Panel: Check-in prompt request file created: {request_file}")
-            
-        except Exception as e:
-            logger.error(f"Error sending check-in prompt: {e}")
-            QMessageBox.critical(self, "Error", f"Failed to send check-in prompt: {str(e)}")
+                        os.remove(response_file)
+                    except Exception:
+                        pass
+                    break
+                except Exception as e:
+                    logger.debug(f"Could not read check-in response file: {e}")
+            time.sleep(0.1)  # Wait 100ms between checks
+        
+        # Truncate if too long
+        if len(first_question) > 100:
+            first_question = first_question[:97] + "..."
+        
+        QMessageBox.information(self, "Check-in Prompt Sent", 
+                               f"Check-in prompt sent to {self.current_user} via {messaging_service}.\n\n"
+                               f"First question: {first_question}")
+        logger.info(f"Admin Panel: Check-in prompt request file created: {request_file}")
     
     @handle_errors("sending task reminder", default_return=None)
     def send_task_reminder(self):

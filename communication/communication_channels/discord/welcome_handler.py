@@ -80,6 +80,15 @@ def get_welcome_message_view(discord_user_id: str) -> 'discord.ui.View':
     class WelcomeView(discord.ui.View):
         # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
         def __init__(self, discord_user_id: str):
+            """
+            Initialize the welcome view with account action buttons.
+            
+            Creates a Discord UI view with buttons for creating a new account
+            or linking to an existing account. Buttons persist without timeout.
+            
+            Args:
+                discord_user_id: The Discord user ID for the welcome session
+            """
             super().__init__(timeout=None)  # No timeout - buttons persist
             self.discord_user_id = discord_user_id
         

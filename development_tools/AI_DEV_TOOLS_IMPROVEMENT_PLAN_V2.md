@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Provide a focused, actionable roadmap for remaining development tools improvements  
 > **Style**: Direct, technical, and concise  
-> **Last Updated**: 2025-12-14 (Standard Format Migration & Operations Refactoring Complete)
+> **Last Updated**: 2025-12-16 (Error Handling Analyzer Improvements)
 
 This document is a restructured and condensed version of the original improvement plan, focusing on remaining work and integrating related tasks from TODO.md.
 
@@ -32,6 +32,14 @@ This document is a restructured and condensed version of the original improvemen
 **Priority 2.1 & 2.5 COMPLETED (2025-12-06):**
 - ✅ **Priority 2.1**: Fixed mid-audit status updates - implemented file-based locks for cross-process protection, added coverage lock protection, and test skip checks
 - ✅ **Priority 2.5**: Ensured all tools explicitly save results - updated `analyze_config.py` to use standardized `save_tool_result()` storage (20/20 tools now use standardized storage, 100%)
+
+**Error Handling Analyzer Improvements COMPLETED (2025-12-16):**
+- ✅ **Exclusion Logic Enhancement**: Enhanced `analyze_error_handling.py` to correctly exclude error handling infrastructure functions from Phase 1 candidate detection:
+  - Excluded top-level functions: `handle_errors`, `handle_error`, `safe_file_operation`, `handle_file_error`
+  - Excluded private methods: `_log_error`, `_show_user_error` (and other `_*` methods in `ErrorHandler` class)
+  - Excluded nested decorator functions: `decorator`, `async_wrapper`, `wrapper` (internal implementations of `@handle_errors`)
+- ✅ **Decorator Detection Enhancement**: Improved decorator detection logic to handle attribute access patterns (e.g., `@module.handle_errors`, `@core.error_handling.handle_errors`) in addition to direct imports
+- ✅ **Impact**: Reduced false positives from 80 to 73 Phase 1 candidates by excluding infrastructure functions that implement error handling themselves. Improved accuracy of error handling analysis tool.
 
 **Standard Format Migration COMPLETED (2025-12-13 to 2025-12-14):**
 - ✅ **Tool Migration (Phase 1 - 2025-12-13)**: Migrated 6 analysis tools to output standard format directly: `analyze_ascii_compliance`, `analyze_heading_numbering`, `analyze_missing_addresses`, `analyze_unconverted_links`, `analyze_path_drift`, and `analyze_unused_imports`
@@ -550,12 +558,13 @@ This document is a restructured and condensed version of the original improvemen
   - [ ] Document what constitutes a valid path drift issue
 
 - [ ] **Validate Error Handling Detection**:
-  - [ ] Manually review the 2 functions reported as missing error handling:
+  - [x] Check if exclusion logic is missing edge cases - **COMPLETED (2025-12-16)**: Enhanced exclusion logic to exclude infrastructure functions (`handle_errors`, `handle_error`, private methods, nested decorator functions)
+  - [x] Enhanced decorator detection - **COMPLETED (2025-12-16)**: Improved detection to handle attribute access patterns (e.g., `@module.handle_errors`)
+  - [x] Manually review the 2 functions reported as missing error handling:
     - `handle_message_sending` in `channel_orchestrator.py`
     - `add_suggestion` in `interaction_manager.py`
-  - [ ] Determine if they actually need error handling or are false positives
-  - [ ] Check if exclusion logic is missing edge cases
-  - [ ] Verify Phase 1 candidates (89 functions) are actually candidates
+  - [x] Determine if they actually need error handling or are false positives
+  - [ ] Verify Phase 1 candidates (53 functions remaining) are actually candidates
   - [ ] Sample 10-15 Phase 1 candidates to verify they need decorators
 
 - [ ] **Validate Documentation Detection**:

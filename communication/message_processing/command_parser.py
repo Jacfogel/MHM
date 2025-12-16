@@ -39,13 +39,18 @@ class EnhancedCommandParser:
     
     @handle_errors("initializing enhanced command parser")
     def __init__(self):
-        try:
-            self.ai_chatbot = get_ai_chatbot()
-            self.interaction_handlers = get_all_handlers()
-            
-            # Rule-based patterns for common intents
-            self.intent_patterns = {
-                'create_task': [
+        """
+        Initialize the enhanced command parser.
+        
+        Sets up the parser with AI chatbot integration and interaction handlers,
+        and initializes rule-based intent patterns for common commands.
+        """
+        self.ai_chatbot = get_ai_chatbot()
+        self.interaction_handlers = get_all_handlers()
+        
+        # Rule-based patterns for common intents
+        self.intent_patterns = {
+            'create_task': [
                 r'create\s+(?:a\s+)?task\s+(?:to\s+)?(.+)',
                 r'add\s+(?:a\s+)?task\s+(?:to\s+)?(.+)',
                 r'new\s+task\s+(?:to\s+)?(.+)',
@@ -301,13 +306,10 @@ class EnhancedCommandParser:
             ],
         }
         
-            # Compile patterns for performance
-            self.compiled_patterns = {}
-            for intent, patterns in self.intent_patterns.items():
-                self.compiled_patterns[intent] = [re.compile(pattern, re.IGNORECASE) for pattern in patterns]
-        except Exception as e:
-            logger.error(f"Error initializing enhanced command parser: {e}")
-            raise
+        # Compile patterns for performance
+        self.compiled_patterns = {}
+        for intent, patterns in self.intent_patterns.items():
+            self.compiled_patterns[intent] = [re.compile(pattern, re.IGNORECASE) for pattern in patterns]
     
     
     @handle_errors("parsing command", default_return=ParsingResult(

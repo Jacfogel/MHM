@@ -17,6 +17,7 @@ from core.error_handling import (
 )
 
 
+@handle_errors("resolving Python interpreter", default_return=sys.executable)
 def resolve_python_interpreter(script_dir):
     """
     Return the preferred Python executable for the given project directory.
@@ -42,6 +43,7 @@ def resolve_python_interpreter(script_dir):
     return sys.executable
 
 
+@handle_errors("preparing launch environment", default_return=None)
 def prepare_launch_environment(script_dir):
     """
     Create an environment dict that prefers the project's virtualenv.

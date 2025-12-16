@@ -25,6 +25,19 @@ class PytestContextLogFormatter(logging.Formatter):
     
     @handle_errors("formatting log record")
     def format(self, record):
+        """
+        Format log record with test context prepended when in test mode.
+        
+        Automatically prepends the current test name to log messages during pytest runs
+        to help identify which test generated each log entry. Skips component loggers
+        (those starting with "mhm.") to avoid duplication.
+        
+        Args:
+            record: logging.LogRecord to format
+        
+        Returns:
+            str: Formatted log message with optional test context
+        """
         # Skip adding test context to component loggers
         if record.name.startswith("mhm."):
             return super().format(record)
@@ -162,6 +175,18 @@ class ComponentLogger:
     
     @handle_errors("initializing component logger")
     def __init__(self, component_name: str, log_file_path: str, level: int = logging.INFO):
+        """
+        Initialize a component-specific logger.
+        
+        Sets up a dedicated logger for a specific component with file-based logging,
+        rotation, and error handling. The logger writes to a dedicated log file
+        and optionally to a consolidated errors.log file.
+        
+        Args:
+            component_name: Name of the component (e.g., 'discord', 'ai', 'scheduler')
+            log_file_path: Path to the component's dedicated log file
+            level: Logging level (default: logging.INFO)
+        """
         self.component_name = component_name
         self.log_file_path = log_file_path
         self.level = level
@@ -357,6 +382,19 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
     
     # ERROR_HANDLING_EXCLUDE: Logger infrastructure constructor
     def __init__(self, filename, backup_dir, maxBytes=0, backupCount=0, encoding=None, delay=False, when='midnight', interval=1):
+        """
+        Initialize a rotating file handler that moves rotated files to a backup directory.
+        
+        Args:
+            filename: Path to the log file
+            backup_dir: Directory where rotated log files will be moved
+            maxBytes: Maximum file size before rotation (0 = disabled)
+            backupCount: Number of backup files to keep (0 = unlimited)
+            encoding: File encoding (default: None, uses system default)
+            delay: If True, delay file opening until first write
+            when: Time-based rotation interval ('midnight', 'H', 'D', etc.)
+            interval: Number of intervals between rotations
+        """
         # Ensure log file directory exists BEFORE calling super().__init__() which tries to open the file
         log_file_dir = os.path.dirname(filename)
         if log_file_dir:
@@ -613,6 +651,12 @@ class HeartbeatWarningFilter(logging.Filter):
     
     @handle_errors("initializing test context filter")
     def __init__(self):
+        """
+        Initialize the heartbeat warning filter.
+        
+        Sets up counters and timers for tracking Discord heartbeat warnings
+        to prevent log spam while maintaining visibility of the issue.
+        """
         super().__init__()
         self.heartbeat_warnings = 0
         self.last_warning_time = 0
@@ -679,6 +723,13 @@ class ExcludeLoggerNamesFilter(logging.Filter):
     """
     # ERROR_HANDLING_EXCLUDE: Logger filter constructor (infrastructure)
     def __init__(self, excluded_prefixes: list[str]):
+        """
+        Initialize filter with list of logger name prefixes to exclude.
+        
+        Args:
+            excluded_prefixes: List of logger name prefixes to filter out
+                (e.g., ['discord', 'aiohttp'] to exclude all Discord and aiohttp logs)
+        """
         super().__init__()
         self.excluded_prefixes = excluded_prefixes or []
 
@@ -774,17 +825,42 @@ def get_component_logger(component_name: str) -> ComponentLogger:
             class _DummyLogger:
                 # ERROR_HANDLING_EXCLUDE: Dummy logger constructor (test infrastructure)
                 def __init__(self, name: str):
+                    """
+                    Initialize a dummy logger for test mode.
+                    
+                    Args:
+                        name: Logger name (unused, kept for interface compatibility)
+                    """
                     self.name = name
             class DummyComponentLogger:
                 # ERROR_HANDLING_EXCLUDE: Dummy logger constructor (test infrastructure)
                 def __init__(self, name: str):
+                    """
+                    Initialize a dummy component logger for test mode.
+                    
+                    Provides a no-op logger interface that discards all log messages
+                    to keep test output clean when verbose logging is disabled.
+                    
+                    Args:
+                        name: Component name (e.g., 'discord', 'ai')
+                    """
                     self.component_name = name
                     self.logger = _DummyLogger(f"mhm.{name}")
-                def debug(self, message: str, **kwargs): pass
-                def info(self, message: str, **kwargs): pass
-                def warning(self, message: str, **kwargs): pass
-                def error(self, message: str, **kwargs): pass
-                def critical(self, message: str, **kwargs): pass
+                def debug(self, message: str, **kwargs):
+                    """No-op debug logging for test mode."""
+                    pass
+                def info(self, message: str, **kwargs):
+                    """No-op info logging for test mode."""
+                    pass
+                def warning(self, message: str, **kwargs):
+                    """No-op warning logging for test mode."""
+                    pass
+                def error(self, message: str, **kwargs):
+                    """No-op error logging for test mode."""
+                    pass
+                def critical(self, message: str, **kwargs):
+                    """No-op critical logging for test mode."""
+                    pass
             return DummyComponentLogger(component_name)
     
     # Enforce canonical component names (channels -> communication_manager was migrated)
@@ -1198,57 +1274,52 @@ def cleanup_old_logs(max_total_size_mb=50):
     Returns:
         bool: True if cleanup was performed, False otherwise
     """
-    try:
-        log_info = get_log_file_info()
-        if not log_info:
-            return False
+    log_info = get_log_file_info()
+    if not log_info:
+        return False
+        
+    if log_info['total_size_mb'] <= max_total_size_mb:
+        return False
+        
+    # Get all backup log files sorted by modification time (oldest first)
+    import glob
+    backup_files = []
+    log_paths = _get_log_paths_for_environment()
+    if os.path.exists(log_paths['backup_dir']):
+        backup_pattern = str(Path(log_paths['backup_dir']) / f"{Path(log_paths['main_file']).name}*")
+        backup_files = glob.glob(backup_pattern)
+    
+    log_files_with_time = []
+    
+    for log_file in backup_files:
+        if os.path.exists(log_file):
+            mtime = os.path.getmtime(log_file)
+            log_files_with_time.append((log_file, mtime))
+    
+    # Sort by modification time (oldest first)
+    log_files_with_time.sort(key=lambda x: x[1])
+    
+    # Remove oldest files until we're under the limit
+    removed_count = 0
+    for log_file, _ in log_files_with_time:
+        try:
+            os.remove(log_file)
+            removed_count += 1
+            logging.getLogger(__name__).info(f"Removed old log file: {log_file}")
             
-        if log_info['total_size_mb'] <= max_total_size_mb:
-            return False
-            
-        # Get all backup log files sorted by modification time (oldest first)
-        import glob
-        backup_files = []
-        log_paths = _get_log_paths_for_environment()
-        if os.path.exists(log_paths['backup_dir']):
-            backup_pattern = str(Path(log_paths['backup_dir']) / f"{Path(log_paths['main_file']).name}*")
-            backup_files = glob.glob(backup_pattern)
-        
-        log_files_with_time = []
-        
-        for log_file in backup_files:
-            if os.path.exists(log_file):
-                mtime = os.path.getmtime(log_file)
-                log_files_with_time.append((log_file, mtime))
-        
-        # Sort by modification time (oldest first)
-        log_files_with_time.sort(key=lambda x: x[1])
-        
-        # Remove oldest files until we're under the limit
-        removed_count = 0
-        for log_file, _ in log_files_with_time:
-            try:
-                os.remove(log_file)
-                removed_count += 1
-                logging.getLogger(__name__).info(f"Removed old log file: {log_file}")
+            # Check if we're under the limit now
+            log_info = get_log_file_info()
+            if log_info and log_info['total_size_mb'] <= max_total_size_mb:
+                break
                 
-                # Check if we're under the limit now
-                log_info = get_log_file_info()
-                if log_info and log_info['total_size_mb'] <= max_total_size_mb:
-                    break
-                    
-            except Exception as e:
+        except Exception as e:
                 logging.getLogger(__name__).warning(f"Failed to remove log file {log_file}: {e}")
         
-        if removed_count > 0:
-            logging.getLogger(__name__).info(f"Log cleanup completed: removed {removed_count} files")
-            return True
-            
-        return False
+    if removed_count > 0:
+        logging.getLogger(__name__).info(f"Log cleanup completed: removed {removed_count} files")
+        return True
         
-    except Exception as e:
-        logging.getLogger(__name__).error(f"Error during log cleanup: {e}")
-        return False
+    return False
 
 
 @handle_errors("compressing old logs", default_return=0)

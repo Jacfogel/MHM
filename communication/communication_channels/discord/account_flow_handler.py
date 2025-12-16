@@ -23,6 +23,17 @@ class FeatureSelectionView(discord.ui.View):
     
     # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
     def __init__(self, username: str, discord_user_id: str, timeout: float = 300.0):
+        """
+        Initialize the feature selection view for account creation.
+        
+        Creates a Discord UI view with select menus and buttons for configuring
+        account features (tasks, check-ins, messages, timezone) during account creation.
+        
+        Args:
+            username: The username for the account being created
+            discord_user_id: The Discord user ID of the account creator
+            timeout: View timeout in seconds (default: 300.0)
+        """
         super().__init__(timeout=timeout)
         self.username = username
         self.discord_user_id = discord_user_id
@@ -55,6 +66,15 @@ class TaskFeatureSelect(discord.ui.Select):
     
     # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
     def __init__(self, parent_view: FeatureSelectionView):
+        """
+        Initialize the task management feature select menu.
+        
+        Creates a Discord select menu for enabling or disabling task management
+        features during account creation.
+        
+        Args:
+            parent_view: The parent FeatureSelectionView to update when selection changes
+        """
         options = [
             discord.SelectOption(label="Enable Task Management", value="true", description="Create and manage tasks", default=True),
             discord.SelectOption(label="Disable Task Management", value="false", description="Skip task management features")
@@ -78,6 +98,15 @@ class CheckinFeatureSelect(discord.ui.Select):
     
     # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
     def __init__(self, parent_view: FeatureSelectionView):
+        """
+        Initialize the check-in feature select menu.
+        
+        Creates a Discord select menu for enabling or disabling check-in
+        features during account creation.
+        
+        Args:
+            parent_view: The parent FeatureSelectionView to update when selection changes
+        """
         options = [
             discord.SelectOption(label="Enable Check-ins", value="true", description="Receive regular check-in prompts", default=True),
             discord.SelectOption(label="Disable Check-ins", value="false", description="Skip check-in features")
@@ -101,6 +130,15 @@ class MessageFeatureSelect(discord.ui.Select):
     
     # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
     def __init__(self, parent_view: FeatureSelectionView):
+        """
+        Initialize the automated messages feature select menu.
+        
+        Creates a Discord select menu for enabling or disabling automated
+        messages features during account creation.
+        
+        Args:
+            parent_view: The parent FeatureSelectionView to update when selection changes
+        """
         options = [
             discord.SelectOption(label="Enable Automated Messages", value="true", description="Receive scheduled motivational messages"),
             discord.SelectOption(label="Disable Automated Messages", value="false", description="Skip automated messages", default=True)
@@ -124,6 +162,15 @@ class TimezoneSelect(discord.ui.Select):
     
     # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
     def __init__(self, parent_view: FeatureSelectionView):
+        """
+        Initialize the timezone selection menu.
+        
+        Creates a Discord select menu for choosing the user's timezone during
+        account creation. Limited to 25 options (Discord's maximum).
+        
+        Args:
+            parent_view: The parent FeatureSelectionView to update when selection changes
+        """
         # Get common timezones
         from core.user_management import TIMEZONE_OPTIONS
         options = [
@@ -149,6 +196,15 @@ class CreateAccountButton(discord.ui.Button):
     
     # ERROR_HANDLING_EXCLUDE: Simple constructor that only sets attributes
     def __init__(self, parent_view: FeatureSelectionView):
+        """
+        Initialize the account creation button.
+        
+        Creates a Discord button that finalizes account creation with the
+        selected features when clicked.
+        
+        Args:
+            parent_view: The parent FeatureSelectionView containing the selected features
+        """
         super().__init__(
             label="Create Account",
             style=discord.ButtonStyle.success

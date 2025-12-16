@@ -244,6 +244,11 @@ class ErrorHandlingAnalyzer:
         - Are file auditor logging methods
         - Are part of error handling infrastructure itself
         
+        Note: Phase 1 candidate detection (try-except replacement) has additional exclusions:
+        - Try-except blocks that catch specific exceptions (ValueError, KeyError, etc.)
+        - Try-except blocks in test files
+        - These are handled separately in _analyze_function()
+        
         Args:
             func_node: AST node for the function
             content: Full file content (for context checking)
@@ -298,11 +303,34 @@ class ErrorHandlingAnalyzer:
         # Check for special methods that are part of error handling infrastructure
         # These are in core/error_handling.py and are recovery strategies
         if file_path and 'error_handling.py' in file_path:
+            # Exclude error handling infrastructure functions themselves
+            # These functions implement error handling and shouldn't use @handle_errors decorator
             if func_node.name in ('can_handle', 'recover', '_get_default_data', '_get_user_friendly_message', '__init__'):
                 # Check if this is in a recovery strategy class
                 # Look for class definition before this function
                 if 'errorrecoverystrategy' in func_content_lower or 'recovery' in func_content_lower:
                     return True
+            # Exclude the main error handling functions (they ARE the error handling infrastructure)
+            if func_node.name in ('handle_errors', 'handle_error', 'safe_file_operation', 'handle_file_error'):
+                return True
+            # Exclude private methods of ErrorHandler class (they're part of the infrastructure)
+            # These include _log_error, _show_user_error, etc.
+            # Check if this is a method of ErrorHandler class (methods have 'self' as first param or are in class context)
+            if func_node.name.startswith('_'):
+                # Check if this looks like a class method (has 'self' parameter or is in class context)
+                if func_node.args.args and len(func_node.args.args) > 0:
+                    first_param = func_node.args.args[0]
+                    if isinstance(first_param, ast.arg) and first_param.arg == 'self':
+                        # This is a class method, exclude it if it's in error_handling.py
+                        return True
+                # Also check if ErrorHandler is mentioned in the content (class context)
+                if 'errorhandler' in func_content_lower or 'class errorhandler' in func_content_lower:
+                    return True
+            # Exclude nested functions inside the handle_errors decorator
+            # These implement the decorator itself (decorator, async_wrapper, wrapper)
+            # They're nested inside handle_errors, so they're part of the decorator implementation
+            if func_node.name in ('decorator', 'async_wrapper', 'wrapper'):
+                return True
         
         return False
 
@@ -471,21 +499,33 @@ class ErrorHandlingAnalyzer:
             'func_content': func_content  # Store for Phase 1 analysis
         }
         
-        # Check for try-except blocks
+        # Check for try-except blocks and analyze them
+        try_except_blocks = []
         for node in ast.walk(func_node):
             if isinstance(node, ast.Try):
                 analysis['has_try_except'] = True
                 analysis['has_error_handling'] = True
+                try_except_blocks.append(node)
         
         # Check for error handling decorators
         for decorator in func_node.decorator_list:
+            # Check for @handle_errors (direct name)
             if isinstance(decorator, ast.Name) and decorator.id == 'handle_errors':
                 analysis['has_decorators'] = True
                 analysis['has_error_handling'] = True
             elif isinstance(decorator, ast.Call):
+                # Check for @handle_errors(...) - direct name
                 if isinstance(decorator.func, ast.Name) and decorator.func.id == 'handle_errors':
                     analysis['has_decorators'] = True
                     analysis['has_error_handling'] = True
+                # Check for @module.handle_errors(...) - attribute access
+                elif isinstance(decorator.func, ast.Attribute) and decorator.func.attr == 'handle_errors':
+                    analysis['has_decorators'] = True
+                    analysis['has_error_handling'] = True
+            # Check for @module.handle_errors (attribute without call)
+            elif isinstance(decorator, ast.Attribute) and decorator.attr == 'handle_errors':
+                analysis['has_decorators'] = True
+                analysis['has_error_handling'] = True
         
         # Check for error handling patterns in function content
         for pattern_name, pattern in self.error_patterns.items():
@@ -496,9 +536,53 @@ class ErrorHandlingAnalyzer:
         
         # Determine error handling quality
         # Phase 1: Check if this is a candidate (try-except without decorator)
+        # EXCLUDE patterns that should NOT be replaced with @handle_errors:
+        # 1. Try-except blocks that catch specific exceptions (ValueError, KeyError, discord.Forbidden, etc.)
+        #    - These are intentional and appropriate for specific error handling
+        # 2. Try-except blocks in test files (testing error conditions)
+        # 3. Simple value conversion patterns (int(), strptime()) - these catch ValueError appropriately
+        # 4. Library-specific exceptions (psutil.NoSuchProcess, asyncio.TimeoutError, etc.)
+        has_generic_exception_handler = False
+        is_test_file = file_path and ('test_' in file_path.lower() or '/tests/' in file_path.lower() or '\\tests\\' in file_path.lower())
+        
         if analysis['has_try_except'] and not analysis['has_decorators']:
-            analysis['is_phase1_candidate'] = True
-            analysis['error_handling_quality'] = 'basic'
+            # Exclude test files from Phase 1 replacement (they test error conditions)
+            if is_test_file:
+                analysis['is_phase1_candidate'] = False
+                analysis['error_handling_quality'] = 'good'
+            else:
+                # Check if any try-except block catches generic Exception
+                for try_node in try_except_blocks:
+                    for handler in try_node.handlers:
+                        # Check if handler catches generic Exception or no type specified (which defaults to Exception)
+                        if handler.type is None:
+                            # Bare except: catches everything (including Exception)
+                            has_generic_exception_handler = True
+                            break
+                        elif isinstance(handler.type, ast.Name):
+                            if handler.type.id == 'Exception':
+                                has_generic_exception_handler = True
+                                break
+                        elif isinstance(handler.type, ast.Tuple):
+                            # Check if Exception is in the tuple
+                            for elt in handler.type.elts:
+                                if isinstance(elt, ast.Name) and elt.id == 'Exception':
+                                    has_generic_exception_handler = True
+                                    break
+                            if has_generic_exception_handler:
+                                break
+                    if has_generic_exception_handler:
+                        break
+                
+                # Only mark as Phase 1 candidate if it has generic Exception handlers
+                # Specific exception handlers (ValueError, KeyError, discord.Forbidden, etc.) are appropriate to keep
+                if has_generic_exception_handler:
+                    analysis['is_phase1_candidate'] = True
+                    analysis['error_handling_quality'] = 'basic'
+                else:
+                    # Has try-except but only catches specific exceptions - this is appropriate
+                    analysis['is_phase1_candidate'] = False
+                    analysis['error_handling_quality'] = 'good'
         elif analysis['has_decorators']:
             analysis['is_phase1_candidate'] = False
             analysis['error_handling_quality'] = 'excellent'

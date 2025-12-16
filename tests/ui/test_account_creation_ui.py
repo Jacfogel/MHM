@@ -344,6 +344,7 @@ class TestAccountCreationDialogRealBehavior:
                 assert is_valid, "Multiple categories with valid channel should pass validation"
     
     @pytest.mark.ui
+    @pytest.mark.no_parallel
     def test_account_creation_real_behavior(self, dialog, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test complete account creation workflow with real file operations."""
         # Set up basic required fields
@@ -403,20 +404,31 @@ class TestAccountCreationDialogRealBehavior:
                         
                         with open(account_file, 'w') as f:
                             json.dump(account_data, f, indent=2)
+                            f.flush()
                         with open(prefs_file, 'w') as f:
                             json.dump(preferences_data, f, indent=2)
+                            f.flush()
                         with open(context_file, 'w') as f:
                             json.dump({'preferred_name': ''}, f, indent=2)
+                            f.flush()
                         with open(schedules_file, 'w') as f:
                             json.dump({'periods': []}, f, indent=2)
+                            f.flush()
                         
-                        # Ensure files are flushed
+                        # Ensure files are flushed and directory is visible
+                        # On Windows, we need to ensure the directory is actually created
+                        # and files are written before returning
                         import os as os_module
-                        os_module.sync() if hasattr(os_module, 'sync') else None
+                        if hasattr(os_module, 'sync'):
+                            os_module.sync()
                         
                         # Create messages directory
                         messages_dir = os.path.join(user_dir, 'messages')
                         os.makedirs(messages_dir, exist_ok=True)
+                        
+                        # Verify directory exists before returning (helps with parallel execution)
+                        if not os.path.exists(user_dir):
+                            raise RuntimeError(f"Failed to create user directory: {user_dir}")
                         
                         return True
                     
@@ -437,13 +449,15 @@ class TestAccountCreationDialogRealBehavior:
                     
                     #[OK] VERIFY REAL BEHAVIOR: User directory should be created
                     user_dir = os.path.join(test_data_dir, 'users', created_user_id[0])
-                    # Retry check with small delay to handle file system timing
-                    for attempt in range(5):
+                    # Retry check with longer delays to handle file system timing in parallel execution
+                    # Parallel execution can cause filesystem delays, so we need more retries
+                    max_attempts = 10
+                    for attempt in range(max_attempts):
                         if os.path.exists(user_dir):
                             break
-                        if attempt < 4:
-                            time.sleep(0.05)
-                    assert os.path.exists(user_dir), "User directory should be created"
+                        if attempt < max_attempts - 1:
+                            time.sleep(0.1)  # Longer delay for parallel execution
+                    assert os.path.exists(user_dir), f"User directory should be created: {user_dir} (mock called: {mock_accept.called}, user_id: {created_user_id[0]})"
                     
                     #[OK] VERIFY REAL BEHAVIOR: Required files should be created
                     expected_files = ['account.json', 'preferences.json', 'user_context.json', 'schedules.json']

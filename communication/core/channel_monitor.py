@@ -19,17 +19,13 @@ class ChannelMonitor:
     @handle_errors("initializing channel monitor", default_return=None)
     def __init__(self):
         """Initialize the channel monitor"""
-        try:
-            self._restart_monitor_thread = None
-            self._restart_monitor_running = False
-            self._channel_failure_counts = {}  # Track consecutive failures per channel
-            self._last_restart_attempts = {}   # Track last restart attempt time per channel
-            self._max_consecutive_failures = 3  # Restart after 3 consecutive failures
-            self._restart_cooldown = 300  # 5 minutes between restart attempts
-            self._channels_dict = {}  # Reference to channels for monitoring
-        except Exception as e:
-            logger.error(f"Error initializing channel monitor: {e}")
-            raise
+        self._restart_monitor_thread = None
+        self._restart_monitor_running = False
+        self._channel_failure_counts = {}  # Track consecutive failures per channel
+        self._last_restart_attempts = {}   # Track last restart attempt time per channel
+        self._max_consecutive_failures = 3  # Restart after 3 consecutive failures
+        self._restart_cooldown = 300  # 5 minutes between restart attempts
+        self._channels_dict = {}  # Reference to channels for monitoring
         
     @handle_errors("setting channels for monitoring", default_return=None)
     def set_channels(self, channels_dict: Dict[str, BaseChannel]):
@@ -82,51 +78,46 @@ class ChannelMonitor:
                 logger.error(f"Error in restart monitor loop: {e}")
                 time.sleep(60)  # Continue after error
 
+    @handle_errors("checking and restarting stuck channels", user_friendly=False, default_return=None)
     def _check_and_restart_stuck_channels(self):
         """Check for stuck channels and attempt restarts"""
         for channel_name, channel in self._channels_dict.items():
-            try:
-                # Check if channel is in a failed state
-                if hasattr(channel, 'status') and channel.status == 'failed':
-                    self._attempt_channel_restart(channel_name)
-                elif hasattr(channel, 'is_healthy') and not channel.is_healthy():
-                    self._attempt_channel_restart(channel_name)
-            except Exception as e:
-                logger.error(f"Error checking channel {channel_name}: {e}")
+            # Check if channel is in a failed state
+            if hasattr(channel, 'status') and channel.status == 'failed':
+                self._attempt_channel_restart(channel_name)
+            elif hasattr(channel, 'is_healthy') and not channel.is_healthy():
+                self._attempt_channel_restart(channel_name)
 
+    @handle_errors("attempting channel restart", user_friendly=False, default_return=None)
     def _attempt_channel_restart(self, channel_name: str):
         """Attempt to restart a specific channel"""
-        try:
-            # Check cooldown period
-            last_attempt = self._last_restart_attempts.get(channel_name)
-            if last_attempt and (datetime.now() - last_attempt).total_seconds() < self._restart_cooldown:
-                return
+        # Check cooldown period
+        last_attempt = self._last_restart_attempts.get(channel_name)
+        if last_attempt and (datetime.now() - last_attempt).total_seconds() < self._restart_cooldown:
+            return
+        
+        # Increment failure count
+        self._channel_failure_counts[channel_name] = self._channel_failure_counts.get(channel_name, 0) + 1
+        
+        # Check if we should attempt restart
+        if self._channel_failure_counts[channel_name] >= self._max_consecutive_failures:
+            logger.warning(f"Attempting restart of channel {channel_name} after {self._channel_failure_counts[channel_name]} consecutive failures")
             
-            # Increment failure count
-            self._channel_failure_counts[channel_name] = self._channel_failure_counts.get(channel_name, 0) + 1
+            # Attempt restart
+            channel = self._channels_dict.get(channel_name)
+            if channel and hasattr(channel, 'restart'):
+                try:
+                    channel.restart()
+                    logger.info(f"Successfully restarted channel {channel_name}")
+                    # Reset failure count on successful restart
+                    self._channel_failure_counts[channel_name] = 0
+                except Exception as e:
+                    logger.error(f"Failed to restart channel {channel_name}: {e}")
+            else:
+                logger.warning(f"Channel {channel_name} does not support restart")
             
-            # Check if we should attempt restart
-            if self._channel_failure_counts[channel_name] >= self._max_consecutive_failures:
-                logger.warning(f"Attempting restart of channel {channel_name} after {self._channel_failure_counts[channel_name]} consecutive failures")
-                
-                # Attempt restart
-                channel = self._channels_dict.get(channel_name)
-                if channel and hasattr(channel, 'restart'):
-                    try:
-                        channel.restart()
-                        logger.info(f"Successfully restarted channel {channel_name}")
-                        # Reset failure count on successful restart
-                        self._channel_failure_counts[channel_name] = 0
-                    except Exception as e:
-                        logger.error(f"Failed to restart channel {channel_name}: {e}")
-                else:
-                    logger.warning(f"Channel {channel_name} does not support restart")
-                
-                # Update last attempt time
-                self._last_restart_attempts[channel_name] = datetime.now()
-                
-        except Exception as e:
-            logger.error(f"Error attempting restart of channel {channel_name}: {e}")
+        # Update last attempt time
+        self._last_restart_attempts[channel_name] = datetime.now()
 
     @handle_errors("recording channel failure", default_return=None)
     def record_channel_failure(self, channel_name: str):

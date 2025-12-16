@@ -448,11 +448,13 @@ def extract_classes_from_file(file_path: str) -> List[Dict]:
                             'has_template': method_type != 'regular_function' and not original_docstring
                         })
                 
+                class_docstring = ast.get_docstring(node) or ""
                 classes.append({
                     'name': node.name,
                     'line': node.lineno,
                     'methods': methods,
-                    'docstring': ast.get_docstring(node)
+                    'docstring': class_docstring,
+                    'has_docstring': bool(class_docstring.strip())
                 })
                 
     except Exception as e:

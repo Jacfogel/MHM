@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2025-12-15 05:23:25",
-  "source": "python development_tools/run_development_tools.py audit --full",
-  "audit_tier": 3,
+  "last_generated": "2025-12-16 04:31:25",
+  "source": "python development_tools/run_development_tools.py audit",
+  "audit_tier": 2,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2025-12-15T05:23:25.386585",
+  "timestamp": "2025-12-16T04:31:25.206565",
   "successful": [
     "analyze_functions",
     "analyze_function_patterns",
@@ -38,53 +38,22 @@
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 438,
+          "total_issues": 418,
           "files_affected": 0
         },
         "details": {
           "total_functions": 1490,
-          "moderate_complexity": 154,
+          "moderate_complexity": 153,
           "high_complexity": 138,
-          "critical_complexity": 128,
-          "undocumented": 18,
-          "undocumented_examples": [
-            {
-              "name": "_normalize_days",
-              "function": "_normalize_days",
-              "file": "core\\schemas.py",
-              "complexity": 34
-            },
-            {
-              "name": "_normalize_periods",
-              "function": "_normalize_periods",
-              "file": "core\\schemas.py",
-              "complexity": 34
-            },
-            {
-              "name": "_normalize_flags",
-              "function": "_normalize_flags",
-              "file": "core\\schemas.py",
-              "complexity": 32
-            },
-            {
-              "name": "__init__",
-              "function": "__init__",
-              "file": "communication\\communication_channels\\discord\\account_flow_handler.py",
-              "complexity": 29
-            },
-            {
-              "name": "__init__",
-              "function": "__init__",
-              "file": "core\\logger.py",
-              "complexity": 28
-            }
-          ],
+          "critical_complexity": 127,
+          "undocumented": 0,
+          "undocumented_examples": [],
           "handlers": 836,
           "tests": 60,
           "utilities": 0
         }
       },
-      "timestamp": "2025-12-15T05:19:08.582335"
+      "timestamp": "2025-12-16T04:30:44.856940"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -94,85 +63,85 @@
             "file": "communication/command_handlers/account_handler.py",
             "class": "AccountManagementHandler",
             "methods": 9,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "communication/command_handlers/analytics_handler.py",
             "class": "AnalyticsHandler",
             "methods": 18,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "communication/command_handlers/base_handler.py",
             "class": "InteractionHandler",
             "methods": 7,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "communication/command_handlers/checkin_handler.py",
             "class": "CheckinHandler",
             "methods": 7,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "communication/command_handlers/interaction_handlers.py",
             "class": "InteractionHandler",
             "methods": 4,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "communication/command_handlers/interaction_handlers.py",
             "class": "TaskManagementHandler",
             "methods": 26,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "communication/command_handlers/interaction_handlers.py",
             "class": "CheckinHandler",
             "methods": 7,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "communication/command_handlers/interaction_handlers.py",
             "class": "ProfileHandler",
             "methods": 7,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "communication/command_handlers/interaction_handlers.py",
             "class": "HelpHandler",
             "methods": 9,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "communication/command_handlers/interaction_handlers.py",
             "class": "ScheduleManagementHandler",
             "methods": 11,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "communication/command_handlers/interaction_handlers.py",
             "class": "AnalyticsHandler",
             "methods": 14,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "communication/command_handlers/profile_handler.py",
             "class": "ProfileHandler",
             "methods": 8,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "communication/command_handlers/schedule_handler.py",
             "class": "ScheduleManagementHandler",
             "methods": 11,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "communication/command_handlers/task_handler.py",
             "class": "TaskManagementHandler",
             "methods": 25,
-            "has_doc": false
+            "has_doc": true
           }
         ],
         "managers": [],
@@ -182,7 +151,7 @@
             "file": "core/error_handling.py",
             "class": "SafeFileContext",
             "methods": 3,
-            "has_doc": false
+            "has_doc": true
           }
         ],
         "widgets": [
@@ -202,19 +171,19 @@
             "file": "ui/widgets/checkin_settings_widget.py",
             "class": "CheckinSettingsWidget",
             "methods": 16,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "ui/widgets/period_row_widget.py",
             "class": "PeriodRowWidget",
             "methods": 23,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "ui/widgets/tag_widget.py",
             "class": "TagWidget",
             "methods": 15,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "ui/widgets/task_settings_widget.py",
@@ -226,7 +195,7 @@
             "file": "ui/widgets/user_profile_settings_widget.py",
             "class": "UserProfileSettingsWidget",
             "methods": 14,
-            "has_doc": false
+            "has_doc": true
           }
         ],
         "dialogs": [
@@ -234,13 +203,13 @@
             "file": "ui/dialogs/account_creator_dialog.py",
             "class": "AccountCreatorDialog",
             "methods": 48,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "ui/dialogs/admin_panel.py",
             "class": "AdminPanelDialog",
             "methods": 4,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "ui/dialogs/category_management_dialog.py",
@@ -258,49 +227,49 @@
             "file": "ui/dialogs/checkin_management_dialog.py",
             "class": "CheckinManagementDialog",
             "methods": 6,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "ui/dialogs/message_editor_dialog.py",
             "class": "MessageEditDialog",
             "methods": 5,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "ui/dialogs/message_editor_dialog.py",
             "class": "MessageEditorDialog",
             "methods": 11,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "ui/dialogs/process_watcher_dialog.py",
             "class": "ProcessWatcherDialog",
             "methods": 15,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "ui/dialogs/schedule_editor_dialog.py",
             "class": "ScheduleEditorDialog",
             "methods": 18,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "ui/dialogs/task_completion_dialog.py",
             "class": "TaskCompletionDialog",
             "methods": 8,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "ui/dialogs/task_crud_dialog.py",
             "class": "TaskCrudDialog",
             "methods": 14,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "ui/dialogs/task_edit_dialog.py",
             "class": "TaskEditDialog",
             "methods": 23,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "ui/dialogs/task_management_dialog.py",
@@ -312,13 +281,13 @@
             "file": "ui/dialogs/user_analytics_dialog.py",
             "class": "UserAnalyticsDialog",
             "methods": 15,
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "ui/dialogs/user_profile_dialog.py",
             "class": "UserProfileDialog",
             "methods": 18,
-            "has_doc": false
+            "has_doc": true
           }
         ],
         "validators": [],
@@ -1718,7 +1687,7 @@
           {
             "file": "communication/message_processing/conversation_flow_manager.py",
             "function": "start_messages_flow",
-            "has_doc": false
+            "has_doc": true
           },
           {
             "file": "communication/message_processing/conversation_flow_manager.py",
@@ -2021,7 +1990,7 @@
           }
         ]
       },
-      "timestamp": "2025-12-15T05:19:33.105300"
+      "timestamp": "2025-12-16T04:31:15.353083"
     },
     "analyze_function_registry": {
       "success": true,
@@ -2739,7 +2708,7 @@
                 "name": "get_user_data"
               },
               {
-                "complexity": 2115,
+                "complexity": 2045,
                 "file": "communication/communication_channels/discord/bot.py",
                 "has_docstring": true,
                 "name": "initialize__register_events"
@@ -2751,7 +2720,7 @@
                 "name": "handle_message"
               },
               {
-                "complexity": 1338,
+                "complexity": 1344,
                 "file": "run_tests.py",
                 "has_docstring": true,
                 "name": "print_combined_summary"
@@ -2817,16 +2786,16 @@
                 "name": "generate_response"
               },
               {
+                "complexity": 757,
+                "file": "run_tests.py",
+                "has_docstring": true,
+                "name": "run_command"
+              },
+              {
                 "complexity": 751,
                 "file": "core/service.py",
                 "has_docstring": true,
                 "name": "run_service_loop"
-              },
-              {
-                "complexity": 751,
-                "file": "communication/communication_channels/discord/webhook_handler.py",
-                "has_docstring": true,
-                "name": "handle_application_authorized"
               },
               {
                 "complexity": 742,
@@ -2835,16 +2804,16 @@
                 "name": "_format_profile_text"
               },
               {
-                "complexity": 742,
-                "file": "run_tests.py",
-                "has_docstring": true,
-                "name": "run_command"
-              },
-              {
                 "complexity": 735,
                 "file": "ui/ui_app_qt.py",
                 "has_docstring": true,
                 "name": "refresh_user_list"
+              },
+              {
+                "complexity": 708,
+                "file": "communication/communication_channels/discord/webhook_handler.py",
+                "has_docstring": true,
+                "name": "handle_application_authorized"
               },
               {
                 "complexity": 708,
@@ -2871,12 +2840,6 @@
                 "name": "__init__"
               },
               {
-                "complexity": 691,
-                "file": "run_headless_service.py",
-                "has_docstring": true,
-                "name": "main"
-              },
-              {
                 "complexity": 686,
                 "file": "ui/dialogs/account_creator_dialog.py",
                 "has_docstring": true,
@@ -2889,9 +2852,9 @@
                 "name": "load_existing_data"
               },
               {
-                "complexity": 661,
+                "complexity": 663,
                 "file": "core/logger.py",
-                "has_docstring": false,
+                "has_docstring": true,
                 "name": "__init__"
               },
               {
@@ -2907,6 +2870,12 @@
                 "name": "_handle_task_reminder_followup"
               },
               {
+                "complexity": 651,
+                "file": "run_headless_service.py",
+                "has_docstring": true,
+                "name": "main"
+              },
+              {
                 "complexity": 639,
                 "file": "core/user_data_validation.py",
                 "has_docstring": true,
@@ -2917,12 +2886,6 @@
                 "file": "ui/dialogs/task_edit_dialog.py",
                 "has_docstring": true,
                 "name": "render_reminder_period_row"
-              },
-              {
-                "complexity": 615,
-                "file": "communication/command_handlers/interaction_handlers.py",
-                "has_docstring": true,
-                "name": "_handle_show_schedule"
               },
               {
                 "complexity": 615,
@@ -2943,10 +2906,10 @@
                 "name": "stop_service"
               },
               {
-                "complexity": 596,
-                "file": "communication/communication_channels/email/bot.py",
+                "complexity": 590,
+                "file": "communication/command_handlers/interaction_handlers.py",
                 "has_docstring": true,
-                "name": "_receive_emails_sync"
+                "name": "_handle_show_schedule"
               },
               {
                 "complexity": 584,
@@ -2991,6 +2954,12 @@
                 "name": "create_task"
               },
               {
+                "complexity": 551,
+                "file": "communication/communication_channels/email/bot.py",
+                "has_docstring": true,
+                "name": "_receive_emails_sync"
+              },
+              {
                 "complexity": 544,
                 "file": "core/user_management.py",
                 "has_docstring": true,
@@ -3007,12 +2976,6 @@
                 "file": "ai/context_builder.py",
                 "has_docstring": true,
                 "name": "create_context_prompt"
-              },
-              {
-                "complexity": 516,
-                "file": "communication/communication_channels/discord/bot.py",
-                "has_docstring": true,
-                "name": "initialize__register_commands"
               },
               {
                 "complexity": 515,
@@ -3039,6 +3002,12 @@
                 "name": "_handle_create_task"
               },
               {
+                "complexity": 499,
+                "file": "core/logger.py",
+                "has_docstring": true,
+                "name": "get_component_logger"
+              },
+              {
                 "complexity": 495,
                 "file": "communication/command_handlers/analytics_handler.py",
                 "has_docstring": true,
@@ -3061,12 +3030,6 @@
                 "file": "ui/ui_app_qt.py",
                 "has_docstring": true,
                 "name": "_check_discord_status"
-              },
-              {
-                "complexity": 485,
-                "file": "core/logger.py",
-                "has_docstring": true,
-                "name": "get_component_logger"
               },
               {
                 "complexity": 477,
@@ -3103,6 +3066,12 @@
                 "file": "ui/ui_app_qt.py",
                 "has_docstring": true,
                 "name": "send_task_reminder"
+              },
+              {
+                "complexity": 452,
+                "file": "communication/communication_channels/discord/bot.py",
+                "has_docstring": true,
+                "name": "initialize__register_commands"
               },
               {
                 "complexity": 451,
@@ -3199,12 +3168,6 @@
                 "file": "core/scheduler.py",
                 "has_docstring": true,
                 "name": "schedule_message_at_random_time"
-              },
-              {
-                "complexity": 418,
-                "file": "ui/ui_app_qt.py",
-                "has_docstring": true,
-                "name": "send_checkin_prompt"
               },
               {
                 "complexity": 413,
@@ -3333,6 +3296,12 @@
                 "name": "_select_checkin_questions_with_weighting"
               },
               {
+                "complexity": 386,
+                "file": "ui/ui_app_qt.py",
+                "has_docstring": true,
+                "name": "send_checkin_prompt"
+              },
+              {
                 "complexity": 382,
                 "file": "ui/dialogs/process_watcher_dialog.py",
                 "has_docstring": true,
@@ -3403,12 +3372,6 @@
                 "file": "communication/communication_channels/discord/bot.py",
                 "has_docstring": true,
                 "name": "_check_dns_resolution"
-              },
-              {
-                "complexity": 371,
-                "file": "communication/message_processing/command_parser.py",
-                "has_docstring": false,
-                "name": "__init__"
               },
               {
                 "complexity": 368,
@@ -3483,6 +3446,12 @@
                 "name": "schedule_message_for_period"
               },
               {
+                "complexity": 359,
+                "file": "communication/communication_channels/discord/checkin_view.py",
+                "has_docstring": true,
+                "name": "get_checkin_view"
+              },
+              {
                 "complexity": 358,
                 "file": "communication/communication_channels/discord/bot.py",
                 "has_docstring": true,
@@ -3490,9 +3459,9 @@
               },
               {
                 "complexity": 357,
-                "file": "communication/communication_channels/discord/checkin_view.py",
+                "file": "communication/message_processing/command_parser.py",
                 "has_docstring": true,
-                "name": "get_checkin_view"
+                "name": "__init__"
               },
               {
                 "complexity": 355,
@@ -3535,12 +3504,6 @@
                 "file": "communication/command_handlers/interaction_handlers.py",
                 "has_docstring": true,
                 "name": "_handle_complete_task__find_task_by_identifier"
-              },
-              {
-                "complexity": 344,
-                "file": "communication/command_handlers/interaction_handlers.py",
-                "has_docstring": true,
-                "name": "_handle_task_stats"
               },
               {
                 "complexity": 342,
@@ -3655,6 +3618,12 @@
                 "file": "communication/command_handlers/task_handler.py",
                 "has_docstring": true,
                 "name": "_find_task_by_identifier"
+              },
+              {
+                "complexity": 319,
+                "file": "communication/command_handlers/interaction_handlers.py",
+                "has_docstring": true,
+                "name": "_handle_task_stats"
               },
               {
                 "complexity": 318,
@@ -3844,27 +3813,9 @@
               },
               {
                 "complexity": 297,
-                "file": "core/logger.py",
-                "has_docstring": true,
-                "name": "cleanup_old_logs"
-              },
-              {
-                "complexity": 297,
                 "file": "core/scheduler.py",
                 "has_docstring": true,
                 "name": "schedule_task_reminder_at_time"
-              },
-              {
-                "complexity": 297,
-                "file": "communication/command_handlers/interaction_handlers.py",
-                "has_docstring": true,
-                "name": "_handle_status"
-              },
-              {
-                "complexity": 296,
-                "file": "communication/command_handlers/interaction_handlers.py",
-                "has_docstring": true,
-                "name": "_handle_quant_summary"
               },
               {
                 "complexity": 295,
@@ -3877,12 +3828,6 @@
                 "file": "core/config.py",
                 "has_docstring": true,
                 "name": "print_configuration_report"
-              },
-              {
-                "complexity": 295,
-                "file": "communication/command_handlers/interaction_handlers.py",
-                "has_docstring": true,
-                "name": "_handle_show_analytics"
               },
               {
                 "complexity": 295,
@@ -3901,6 +3846,12 @@
                 "file": "ui/widgets/user_profile_settings_widget.py",
                 "has_docstring": true,
                 "name": "set_checkbox_group"
+              },
+              {
+                "complexity": 293,
+                "file": "communication/command_handlers/interaction_handlers.py",
+                "has_docstring": true,
+                "name": "_get_task_candidates"
               },
               {
                 "complexity": 292,
@@ -3925,9 +3876,27 @@
                 "file": "ui/ui_app_qt.py",
                 "has_docstring": true,
                 "name": "start_service"
+              },
+              {
+                "complexity": 285,
+                "file": "core/message_management.py",
+                "has_docstring": true,
+                "name": "store_sent_message"
+              },
+              {
+                "complexity": 283,
+                "file": "core/scheduler.py",
+                "has_docstring": true,
+                "name": "schedule_new_user"
+              },
+              {
+                "complexity": 282,
+                "file": "core/file_locking.py",
+                "has_docstring": true,
+                "name": "file_lock"
               }
             ],
-            "high_complexity_total": 1079,
+            "high_complexity_total": 1076,
             "undocumented_handlers": [
               {
                 "file": "communication/core/channel_orchestrator.py",
@@ -4073,50 +4042,6 @@
             "undocumented_handlers_total": 35,
             "undocumented_other": [
               {
-                "file": "communication/communication_channels/discord/account_flow_handler.py",
-                "name": "__init__"
-              },
-              {
-                "file": "communication/communication_channels/discord/account_flow_handler.py",
-                "name": "__init__"
-              },
-              {
-                "file": "communication/communication_channels/discord/account_flow_handler.py",
-                "name": "__init__"
-              },
-              {
-                "file": "communication/communication_channels/discord/account_flow_handler.py",
-                "name": "__init__"
-              },
-              {
-                "file": "communication/communication_channels/discord/account_flow_handler.py",
-                "name": "__init__"
-              },
-              {
-                "file": "communication/communication_channels/discord/account_flow_handler.py",
-                "name": "__init__"
-              },
-              {
-                "file": "communication/communication_channels/discord/checkin_view.py",
-                "name": "__init__"
-              },
-              {
-                "file": "communication/communication_channels/discord/welcome_handler.py",
-                "name": "__init__"
-              },
-              {
-                "file": "communication/message_processing/command_parser.py",
-                "name": "__init__"
-              },
-              {
-                "file": "communication/message_processing/conversation_flow_manager.py",
-                "name": "start_analytics_flow"
-              },
-              {
-                "file": "communication/message_processing/conversation_flow_manager.py",
-                "name": "start_messages_flow"
-              },
-              {
                 "file": "communication/message_processing/conversation_flow_manager.py",
                 "name": "start_profile_flow"
               },
@@ -4158,79 +4083,11 @@
               },
               {
                 "file": "core/file_auditor.py",
-                "name": "critical"
-              },
-              {
-                "file": "core/file_auditor.py",
-                "name": "debug"
-              },
-              {
-                "file": "core/file_auditor.py",
-                "name": "error"
-              },
-              {
-                "file": "core/file_auditor.py",
-                "name": "info"
-              },
-              {
-                "file": "core/file_auditor.py",
                 "name": "start_auditor"
               },
               {
                 "file": "core/file_auditor.py",
                 "name": "stop_auditor"
-              },
-              {
-                "file": "core/file_auditor.py",
-                "name": "warning"
-              },
-              {
-                "file": "core/logger.py",
-                "name": "__init__"
-              },
-              {
-                "file": "core/logger.py",
-                "name": "__init__"
-              },
-              {
-                "file": "core/logger.py",
-                "name": "__init__"
-              },
-              {
-                "file": "core/logger.py",
-                "name": "__init__"
-              },
-              {
-                "file": "core/logger.py",
-                "name": "__init__"
-              },
-              {
-                "file": "core/logger.py",
-                "name": "__init__"
-              },
-              {
-                "file": "core/logger.py",
-                "name": "critical"
-              },
-              {
-                "file": "core/logger.py",
-                "name": "debug"
-              },
-              {
-                "file": "core/logger.py",
-                "name": "error"
-              },
-              {
-                "file": "core/logger.py",
-                "name": "format"
-              },
-              {
-                "file": "core/logger.py",
-                "name": "info"
-              },
-              {
-                "file": "core/logger.py",
-                "name": "warning"
               },
               {
                 "file": "core/schedule_management.py",
@@ -4251,18 +4108,6 @@
               {
                 "file": "core/schemas.py",
                 "name": "_normalize_contact"
-              },
-              {
-                "file": "core/schemas.py",
-                "name": "_normalize_days"
-              },
-              {
-                "file": "core/schemas.py",
-                "name": "_normalize_flags"
-              },
-              {
-                "file": "core/schemas.py",
-                "name": "_normalize_periods"
               },
               {
                 "file": "core/schemas.py",
@@ -4313,7 +4158,7 @@
                 "name": "is_blank"
               }
             ],
-            "undocumented_other_total": 60
+            "undocumented_other_total": 29
           },
           "coverage": 93.6,
           "errors": [],
@@ -4339,7 +4184,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2025-12-15T05:19:25.475687"
+      "timestamp": "2025-12-16T04:31:05.555689"
     },
     "analyze_package_exports": {
       "success": true,
@@ -4799,35 +4644,12 @@
                   ],
                   "module_path": "core.logger"
                 },
-                "DataError": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "run_mhm.py",
-                    "core/schedule_management.py",
-                    "communication/communication_channels/base/message_formatter.py",
-                    "ui/dialogs/admin_panel.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.error_handling"
-                },
-                "FileOperationError": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "run_mhm.py",
-                    "core/file_operations.py",
-                    "core/service.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.error_handling"
-                },
                 "handle_errors": {
-                  "import_count": 91,
+                  "import_count": 93,
                   "import_locations": [
+                    "run_headless_service.py",
                     "run_mhm.py",
+                    "run_tests.py",
                     "ai/cache_manager.py",
                     "ai/chatbot.py",
                     "ai/context_builder.py",
@@ -4918,6 +4740,31 @@
                     "ui/widgets/tag_widget.py",
                     "ui/widgets/task_settings_widget.py",
                     "ui/widgets/user_profile_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.error_handling"
+                },
+                "DataError": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "run_mhm.py",
+                    "core/schedule_management.py",
+                    "communication/communication_channels/base/message_formatter.py",
+                    "ui/dialogs/admin_panel.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.error_handling"
+                },
+                "FileOperationError": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "run_mhm.py",
+                    "core/file_operations.py",
+                    "core/service.py"
                   ],
                   "import_types": [
                     "from_import"
@@ -6281,45 +6128,12 @@
                   ],
                   "module_path": "core.logger"
                 },
-                "error_handler": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "run_mhm.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.error_handling"
-                },
-                "DataError": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "run_mhm.py",
-                    "core/schedule_management.py",
-                    "communication/communication_channels/base/message_formatter.py",
-                    "ui/dialogs/admin_panel.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.error_handling"
-                },
-                "FileOperationError": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "run_mhm.py",
-                    "core/file_operations.py",
-                    "core/service.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.error_handling"
-                },
                 "handle_errors": {
-                  "import_count": 91,
+                  "import_count": 93,
                   "import_locations": [
+                    "run_headless_service.py",
                     "run_mhm.py",
+                    "run_tests.py",
                     "ai/cache_manager.py",
                     "ai/chatbot.py",
                     "ai/context_builder.py",
@@ -6410,6 +6224,41 @@
                     "ui/widgets/tag_widget.py",
                     "ui/widgets/task_settings_widget.py",
                     "ui/widgets/user_profile_settings_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.error_handling"
+                },
+                "error_handler": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "run_mhm.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.error_handling"
+                },
+                "DataError": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "run_mhm.py",
+                    "core/schedule_management.py",
+                    "communication/communication_channels/base/message_formatter.py",
+                    "ui/dialogs/admin_panel.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.error_handling"
+                },
+                "FileOperationError": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "run_mhm.py",
+                    "core/file_operations.py",
+                    "core/service.py"
                   ],
                   "import_types": [
                     "from_import"
@@ -7807,6 +7656,46 @@
                   ],
                   "module_path": "core.user_data_validation"
                 },
+                "rebuild_user_index": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.user_data_manager"
+                },
+                "run_full_scheduler_standalone": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.scheduler"
+                },
+                "run_user_scheduler_standalone": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.scheduler"
+                },
+                "run_category_scheduler_standalone": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "ui/ui_app_qt.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "core.scheduler"
+                },
                 "toggle_verbose_logging": {
                   "import_count": 1,
                   "import_locations": [
@@ -7947,16 +7836,6 @@
                   ],
                   "module_path": "core.config"
                 },
-                "rebuild_user_index": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.user_data_manager"
-                },
                 "EMAIL_SMTP_PASSWORD": {
                   "import_count": 2,
                   "import_locations": [
@@ -7967,36 +7846,6 @@
                     "from_import"
                   ],
                   "module_path": "core.config"
-                },
-                "run_full_scheduler_standalone": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.scheduler"
-                },
-                "run_user_scheduler_standalone": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.scheduler"
-                },
-                "run_category_scheduler_standalone": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "ui/ui_app_qt.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "core.scheduler"
                 },
                 "update_user_context": {
                   "import_count": 2,
@@ -9645,16 +9494,6 @@
                   ],
                   "module_path": "communication.message_processing.interaction_manager"
                 },
-                "WebhookServer": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/communication_channels/discord/bot.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "communication.communication_channels.discord.webhook_server"
-                },
                 "has_been_welcomed": {
                   "import_count": 4,
                   "import_locations": [
@@ -9693,6 +9532,16 @@
                     "from_import"
                   ],
                   "module_path": "communication.communication_channels.discord.welcome_handler"
+                },
+                "WebhookServer": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/communication_channels/discord/bot.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "communication.communication_channels.discord.webhook_server"
                 },
                 "start_account_creation_flow": {
                   "import_count": 2,
@@ -11239,7 +11088,7 @@
           }
         }
       },
-      "timestamp": "2025-12-15T05:19:40.668529"
+      "timestamp": "2025-12-16T04:31:24.943692"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -11248,73 +11097,13 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-15T05:19:10.870151"
+      "timestamp": "2025-12-16T04:30:47.843547"
     },
     "analyze_documentation": {
       "success": true,
       "data": {
         "details": {
           "artifacts": [],
-          "consolidation_recommendations": [
-            {
-              "category": "Development Workflow",
-              "files": [
-                "DOCUMENTATION_GUIDE.md",
-                "DEVELOPMENT_WORKFLOW.md",
-                "development_docs/CHANGELOG_DETAIL.md",
-                "development_docs/PLANS.md",
-                "ai_development_docs/AI_SESSION_STARTER.md",
-                "ai_development_docs/AI_ARCHITECTURE.md",
-                "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
-                "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "ai_development_docs/AI_CHANGELOG.md",
-                "ai_development_docs/AI_REFERENCE.md",
-                "ai_development_docs/AI_LOGGING_GUIDE.md",
-                "ai_development_docs/AI_TESTING_GUIDE.md",
-                "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-                "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md",
-                "core/ERROR_HANDLING_GUIDE.md",
-                "logs/LOGGING_GUIDE.md",
-                "tests/TESTING_GUIDE.md",
-                "tests/MANUAL_TESTING_GUIDE.md",
-                "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
-                "tests/MANUAL_DISCORD_TEST_GUIDE.md",
-                "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
-                "communication/COMMUNICATION_GUIDE.md",
-                "communication/communication_channels/discord/DISCORD_GUIDE.md",
-                "scripts/SCRIPTS_GUIDE.md",
-                "ui/UI_GUIDE.md",
-                "ai/SYSTEM_AI_GUIDE.md",
-                "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
-                "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
-              ],
-              "priority": "medium",
-              "similarity_score": 0.19217506523016656,
-              "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
-            },
-            {
-              "category": "Testing",
-              "files": [
-                "ai_development_docs/AI_TESTING_GUIDE.md",
-                "tests/TESTING_GUIDE.md",
-                "tests/MANUAL_TESTING_GUIDE.md",
-                "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md"
-              ],
-              "priority": "medium",
-              "similarity_score": 0.26807322366527847,
-              "suggestion": "Consider consolidating testing documentation into a single TESTING_GUIDE.md"
-            },
-            {
-              "category": "High Section Overlap",
-              "files": [
-                "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
-                "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md"
-              ],
-              "overlap_count": 3,
-              "priority": "medium",
-              "suggestion": "These files share 3 sections - consider consolidating or clearly differentiating their purposes"
-            }
-          ],
           "documents": [
             "ARCHITECTURE.md",
             "DEVELOPMENT_WORKFLOW.md",
@@ -11351,555 +11140,6 @@
             "ui/UI_GUIDE.md"
           ],
           "duplicates": [],
-          "file_purposes": {
-            "ARCHITECTURE.md": {
-              "content_length": 17498,
-              "header_info": "# MHM System Architecture\n\n> **File**: `ARCHITECTURE.md`\n> **Audience**: Human developers building or maintaining the platform  \n> **Purpose**: Explain system design, module responsibilities, and data",
-              "section_count": 9,
-              "sections": [
-                "Introduction",
-                "1. Directory Overview",
-                "2. User Data Model",
-                "2.1. User Data Flow Diagram",
-                "3. Data Handling Patterns",
-                "4. Key Modules and Responsibilities",
-                "5. UI Architecture and Naming Conventions",
-                "6. Channel-Agnostic Architecture",
-                "7. Development Notes"
-              ]
-            },
-            "DEVELOPMENT_WORKFLOW.md": {
-              "content_length": 14260,
-              "header_info": "# Development Workflow Guide\n\n> **File**: `DEVELOPMENT_WORKFLOW.md`  \n> **Audience**: Human developer (beginner programmer)  \n> **Purpose**: Safe development practices and day-to-day procedures  \n> **",
-              "section_count": 32,
-              "sections": [
-                "Introduction",
-                "Quick Reference",
-                "1. Safety First",
-                "1.1. Core Safety Rules",
-                "1.2. Pre-Change Checklist",
-                "2. Virtual Environment Best Practices",
-                "2.1. Why It Matters",
-                "2.2. Common Commands (PowerShell)",
-                "2.3. Troubleshooting",
-                "2.4. Configuration and .env"
-              ]
-            },
-            "DOCUMENTATION_GUIDE.md": {
-              "content_length": 31075,
-              "header_info": "# Documentation Guide\n\n> **File**: `DOCUMENTATION_GUIDE.md`  \n> **Audience**: Developers and contributors  \n> **Purpose**: Organize, author, and maintain project documentation  \n> **Style**: Comprehen",
-              "section_count": 32,
-              "sections": [
-                "Introduction",
-                "Quick Reference",
-                "1. Documentation Categories",
-                "1.1. Human-facing documents",
-                "1.2. AI-facing documents",
-                "1.3. Generated and analytical documentation",
-                "2. Standards and Templates",
-                "2.1. Metadata for `.md` documentation files",
-                "2.2. Metadata for `.mdc` rule files",
-                "2.3. Structure guidelines for human-facing docs"
-              ]
-            },
-            "HOW_TO_RUN.md": {
-              "content_length": 7400,
-              "header_info": "# How to Run MHM\n\n\n> **File**: `HOW_TO_RUN.md`\n> **Audience**: New users and developers setting up the project  \n> **Purpose**: Step-by-step setup and launch instructions  \n> **Style**: Clear, beginne",
-              "section_count": 18,
-              "sections": [
-                "Introduction",
-                "1. Quick Start (Recommended)",
-                "1.1. Step 1: Set up Virtual Environment",
-                "1.2. Step 2: Install Dependencies",
-                "1.3. Step 3: Install the Project in Editable Mode",
-                "1.4. Step 4: Configure Environment (Optional)",
-                "1.5. Step 5: Launch the Application",
-                "2. Alternative Commands",
-                "3. Command Reference (Discord and Chat)",
-                "4. Alternative Launch Methods"
-              ]
-            },
-            "PROJECT_VISION.md": {
-              "content_length": 9684,
-              "header_info": "# MHM Project Vision\n\n\n> **File**: `PROJECT_VISION.md`\n> **Audience**: Human Developer, AI Collaborators, and Future Contributors  \n> **Purpose**: Overarching vision, mission, and long-term direction ",
-              "section_count": 42,
-              "sections": [
-                "Introduction",
-                "1. **Core Vision**",
-                "2. **Mission Statement**",
-                "3. **Core Values**",
-                "3.1. **1. Personalized & Adaptive**",
-                "3.2. **2. Hope-Focused & Supportive**",
-                "3.3. **3. Executive Functioning Support**",
-                "4. **Target Users**",
-                "4.1. **Primary User: You**",
-                "4.2. **Secondary Users: Similar Individuals**"
-              ]
-            },
-            "README.md": {
-              "content_length": 14109,
-              "header_info": "# Mental Health Management (MHM)\n\n> **File**: `README.md`\n> **Audience**: Human developer (beginner-friendly)\n> **Purpose**: High-level overview, navigation, and quick start\n> **Style**: Beginner-frie",
-              "section_count": 17,
-              "sections": [
-                "Introduction",
-                "1. Navigation",
-                "2. Features",
-                "3. Quick Start",
-                "3.1. Headless service commands",
-                "4. Documentation",
-                "5. Architecture",
-                "6. AI Integration (Optional)",
-                "7. Project Structure",
-                "8. License and privacy"
-              ]
-            },
-            "TODO.md": {
-              "content_length": 16043,
-              "header_info": "# TODO.md - MHM Project Tasks\n\n> **File**: `TODO.md`\n> **Audience**: Human Developer (Beginner Programmer) and AI collaborators\n> **Purpose**: Current development priorities and planned improvements  ",
-              "section_count": 9,
-              "sections": [
-                "Introduction",
-                "How to Add New TODOs",
-                "High Priority",
-                "Medium Priority",
-                "User Experience Improvements",
-                "Performance Optimizations",
-                "Low Priority",
-                "Documentation",
-                "Testing"
-              ]
-            },
-            "ai/SYSTEM_AI_GUIDE.md": {
-              "content_length": 17921,
-              "header_info": "# AI System Documentation\n\n> **File**: `ai/SYSTEM_AI_GUIDE.md`\n> **Audience**: Developers and AI collaborators working on MHM's AI system\n> **Purpose**: Explain how the AI subsystem is structured, how",
-              "section_count": 26,
-              "sections": [
-                "Introduction",
-                "1. Overview",
-                "2. High-Level Architecture",
-                "2.1. Core components",
-                "2.2. Request / response flow (simplified)",
-                "3. Entry Points and Modes",
-                "3.1. Main runtime entry points",
-                "3.2. Modes",
-                "3.3. Command parsing integration",
-                "4. Context and Conversation State"
-              ]
-            },
-            "ai_development_docs/AI_ARCHITECTURE.md": {
-              "content_length": 8754,
-              "header_info": "# AI Architecture - Quick Reference\n\n> **File**: `ai_development_docs/AI_ARCHITECTURE.md`  \n> **Pair**: [ARCHITECTURE.md](ARCHITECTURE.md)  \n> **Audience**: AI collaborators and tools  \n> **Purpose**:",
-              "section_count": 8,
-              "sections": [
-                "Introduction",
-                "1. Directory Overview",
-                "2. User Data Model",
-                "3. Data Handling Patterns",
-                "4. Key Modules and Responsibilities",
-                "5. UI Architecture and Naming Conventions",
-                "6. Channel-Agnostic Architecture",
-                "7. Development Notes"
-              ]
-            },
-            "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 136599,
-              "header_info": "# AI Changelog - Brief Summary for AI Context\n\n\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent ch",
-              "section_count": 162,
-              "sections": [
-                "Introduction",
-                "Overview",
-                "How to Update This File",
-                "YYYY-MM-DD - Brief Title **COMPLETED**",
-                "Recent Changes (Most Recent First)",
-                "2025-01-14 - Compliance Review and Refactoring Cleanup **COMPLETED**",
-                "2025-12-14 - Completed operations.py Refactoring and Legacy Removal **COMPLETED**",
-                "2025-12-14 - Completed Standard Format Migration for All Analysis Tools **COMPLETED**",
-                "2025-12-14 - Standardized Report Format and Fixed Test Suite Timeout **COMPLETED**",
-                "2025-12-13 - Standardized Tool Output and Improved Report Display **COMPLETED**"
-              ]
-            },
-            "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
-              "content_length": 12042,
-              "header_info": "# AI Development Workflow Guide\n\n> **File**: `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`  \n> **Pair**: [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md)\n> **Audience**: AI collaborators and tool",
-              "section_count": 12,
-              "sections": [
-                "Introduction",
-                "Quick Reference",
-                "1. Safety First",
-                "2. Virtual Environment Best Practices",
-                "3. Development Process",
-                "4. Testing Strategy",
-                "5. Common Tasks",
-                "6. Emergency Procedures",
-                "7. Learning Resources",
-                "8. Success Tips"
-              ]
-            },
-            "ai_development_docs/AI_DOCUMENTATION_GUIDE.md": {
-              "content_length": 13719,
-              "header_info": "# AI Documentation Guide\n\n> **File**: `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`\n> **Pair**: [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md)\n> **Audience**: AI collaborators and tools\n> **Purpos",
-              "section_count": 19,
-              "sections": [
-                "Introduction",
-                "Quick Reference",
-                "1. Documentation Categories",
-                "1.1. Detailed documentation",
-                "1.2. AI-facing documents",
-                "1.3. Generated and analytical docs",
-                "2. Standards and Templates",
-                "2.1. Heading numbering standard",
-                "2.2. Example marking standards",
-                "2.3. File path reference standards"
-              ]
-            },
-            "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md": {
-              "content_length": 8852,
-              "header_info": "# AI Error Handling Guide\n\n> **File**: `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`  \n> **Pair**: [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md)  \n> **Audience**: AI collaborators and too",
-              "section_count": 12,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Design Principles",
-                "2. Architecture Overview",
-                "3. Usage Patterns",
-                "4. Error Categories and Severity",
-                "5. Error Message Guidelines",
-                "6. Configuration and Integration",
-                "7. Testing Error Handling",
-                "8. Monitoring and Debugging",
-                "9. Legacy and Migration"
-              ]
-            },
-            "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md": {
-              "content_length": 6496,
-              "header_info": "# AI Legacy Code Removal Guide\n\n> **File**: `ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md`\n> **Audience**: AI collaborators and developers cleaning up deprecated code paths\n> **Purpose**: Routing an",
-              "section_count": 8,
-              "sections": [
-                "Introduction",
-                "Quick Reference",
-                "1. Standards",
-                "2. Process",
-                "3. Checklist",
-                "4. Tools",
-                "5. Best Practices",
-                "6. Success Criteria"
-              ]
-            },
-            "ai_development_docs/AI_LOGGING_GUIDE.md": {
-              "content_length": 8089,
-              "header_info": "# AI Logging Guide\n\n> **File**: `ai_development_docs/AI_LOGGING_GUIDE.md`  \n> **Pair**: [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)  \n> **Audience**: AI assistants and automation tools  \n> **Purpose**: ",
-              "section_count": 11,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Scope",
-                "2. Logging Architecture",
-                "3. Log Levels and When to Use Them",
-                "4. Component Log Files and Layout",
-                "5. Configuration (Environment Variables)",
-                "6. Log Rotation, Backups, and Archival",
-                "7. Legacy Compatibility Logging Standard",
-                "8. Maintenance and Cleanup",
-                "9. Best Practices"
-              ]
-            },
-            "ai_development_docs/AI_REFERENCE.md": {
-              "content_length": 3776,
-              "header_info": "# AI Reference - Troubleshooting & System Understanding\n\n\n> **File**: `ai_development_docs/AI_REFERENCE.md`\n> **Purpose**: Troubleshooting patterns and deep system understanding for AI collaborators  ",
-              "section_count": 13,
-              "sections": [
-                "Introduction",
-                "1. Troubleshooting Patterns",
-                "1.1. Documentation appears incomplete",
-                "1.2. Code change introduced failures",
-                "1.3. PowerShell command failed",
-                "1.4. User questions accuracy",
-                "2. Communication Patterns",
-                "3. System Understanding",
-                "3.1. Critical files (do not break)",
-                "3.2. Data flow patterns"
-              ]
-            },
-            "ai_development_docs/AI_SESSION_STARTER.md": {
-              "content_length": 6935,
-              "header_info": "# AI Session Starter\n\n> **File**: `ai_development_docs/AI_SESSION_STARTER.md`\n> **Audience**: AI collaborators working on the MHM codebase and docs\n> **Purpose**: Provide a compact starting point for ",
-              "section_count": 8,
-              "sections": [
-                "Introduction",
-                "1. Starting a Session",
-                "2. Core AI References",
-                "3. Safe Change Rules",
-                "4. Typical Tasks and Where to Look",
-                "4.1. \"Help me edit documentation\"",
-                "4.2. \"Help me refactor or clean up code\"",
-                "4.3. \"Help me understand the system\""
-              ]
-            },
-            "ai_development_docs/AI_TESTING_GUIDE.md": {
-              "content_length": 9792,
-              "header_info": "# AI Testing Guide\n\n> **File**: `ai_development_docs/AI_TESTING_GUIDE.md`  \n> **Pair**: [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)  \n> **Audience**: AI collaborators and tools  \n> **Purpose**: Routing",
-              "section_count": 9,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Scope",
-                "2. Test Layout and Types",
-                "3. Fixtures, Utilities, and Safety",
-                "4. Running Automated Tests",
-                "5. Parallel Execution and Coverage",
-                "6. Writing and Extending Tests",
-                "7. Debugging and Troubleshooting",
-                "8. Manual and Channel-Specific Testing Overview"
-              ]
-            },
-            "communication/COMMUNICATION_GUIDE.md": {
-              "content_length": 11766,
-              "header_info": "# Communication Module - Channel-Agnostic Architecture\n\n> **File**: `communication/COMMUNICATION_GUIDE.md`  \n> **Audience**: Developers and maintainers working on communication channels and message fl",
-              "section_count": 16,
-              "sections": [
-                "Introduction",
-                "1. Core Principle",
-                "2. Architecture Layers",
-                "2.1. High-Level Flow",
-                "2.2. Message Models",
-                "2.3. Message Processing (`communication/message_processing/`)",
-                "2.4. Channel Base and Adapters (`communication/communication_channels/`)",
-                "3. Key Patterns",
-                "3.1. Error Handling Boundaries",
-                "3.2. Logging"
-              ]
-            },
-            "communication/communication_channels/discord/DISCORD_GUIDE.md": {
-              "content_length": 15924,
-              "header_info": "# Discord Channel Guide\n\n> **File**: `communication/communication_channels/discord/DISCORD_GUIDE.md`  \n> **Audience**: Developers and maintainers working on the Discord channel  \n> **Purpose**: Docume",
-              "section_count": 22,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Scope",
-                "2. Discord Channel Architecture",
-                "3. Bot Lifecycle and Connection Management",
-                "3.1. Startup",
-                "3.2. Shutdown and Disconnects",
-                "4. Message and Interaction Flow",
-                "4.1. Messages",
-                "4.2. Reactions and Membership Events",
-                "4.3. UI Views and Button Callbacks"
-              ]
-            },
-            "core/ERROR_HANDLING_GUIDE.md": {
-              "content_length": 17987,
-              "header_info": "# Error Handling Guide\n\n> **File**: `core/ERROR_HANDLING_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on MHM  \n> **Purpose**: Centralized error handling patterns, categories, and i",
-              "section_count": 24,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Design Principles",
-                "2. Architecture Overview",
-                "2.1. Core types and hierarchy",
-                "2.2. Recovery strategies",
-                "2.3. Error handler and helpers",
-                "2.4. Decorators and utilities",
-                "2.5. Integration with logging",
-                "3. Usage Patterns",
-                "3.1. Decorated functions (preferred)"
-              ]
-            },
-            "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 914861,
-              "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 315,
-              "sections": [
-                "Introduction",
-                "Overview",
-                "How to Update This File",
-                "How to Add Changes",
-                "YYYY-MM-DD - Brief Title",
-                "Recent Changes (Most Recent First)",
-                "2025-01-14 - Compliance Review and Refactoring Cleanup **COMPLETED**",
-                "2025-12-14 - Completed operations.py Refactoring and Legacy Removal **COMPLETED**",
-                "2025-12-14 - Completed Standard Format Migration for All Analysis Tools **COMPLETED**",
-                "2025-12-14 - Standardized Report Format and Fixed Test Suite Timeout **COMPLETED**"
-              ]
-            },
-            "development_docs/PLANS.md": {
-              "content_length": 58499,
-              "header_info": "# MHM Development Plans\n\n\n> **File**: `development_docs/PLANS.md`\n> **Audience**: Human Developer & AI Collaborators  \n> **Purpose**: Consolidated development plans (grouped, interdependent work) with",
-              "section_count": 45,
-              "sections": [
-                "Introduction",
-                "[ACTIVE] **Current Active Plans**",
-                "**Test Suite Performance Optimization Plan** **ON HOLD**",
-                "**Error Handling Quality Improvement Plan** **IN PROGRESS**",
-                "**AI Chatbot Actionability Sprint** **IN PROGRESS**",
-                "**Discord App/Bot Capabilities Exploration** **PLANNING**",
-                "**Account Management System Improvements** **MOSTLY COMPLETE**",
-                "**Mood-Aware Support Calibration** **PLANNING**",
-                "**2025-09-16 - High Complexity Function Refactoring - Phase 2** **IN PROGRESS**",
-                "**Message Deduplication Advanced Features**"
-              ]
-            },
-            "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
-              "content_length": 16322,
-              "header_info": "# AI Development Tools Guide\n\n> **File**: `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`  \n> **Audience**: AI collaborators and automated tooling  \n> **Purpose**: Routing and constraints for all AI",
-              "section_count": 11,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Scope",
-                "2. Running the Tool Suite",
-                "3. Audit Modes and Outputs",
-                "3.1. Tier 1: Quick Audit - `audit --quick`",
-                "3.2. Tier 2: Standard Audit - `audit` (default)",
-                "3.3. Tier 3: Full Audit - `audit --full`",
-                "4. Tool Catalog and Tiering",
-                "4.1. Naming Conventions",
-                "5. Operating Standards and Maintenance"
-              ]
-            },
-            "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
-              "content_length": 28139,
-              "header_info": "# Development Tools Guide\n\n> **File**: `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`  \n> **Audience**: Human maintainers and contributors  \n> **Purpose**: Detailed reference for every development too",
-              "section_count": 17,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Scope",
-                "2. Running the Tool Suite",
-                "2.1. Global Options",
-                "2.2. Command Examples",
-                "2.3. Command Summary",
-                "2.4. Entry Point Expectations",
-                "2.5. Service Architecture",
-                "3. Audit Modes and Outputs",
-                "4. Tool Catalog and Tiering"
-              ]
-            },
-            "logs/LOGGING_GUIDE.md": {
-              "content_length": 11151,
-              "header_info": "# Logging Guide\n\n> **File**: `logs/LOGGING_GUIDE.md`  \n> **Audience**: Developers and maintainers  \n> **Purpose**: Describe logging architecture, behavior, and maintenance tasks for MHM  \n> **Style**:",
-              "section_count": 32,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Scope",
-                "2. Logging Architecture",
-                "2.1. Central logger module",
-                "2.2. Component loggers",
-                "2.3. Format",
-                "3. Log Levels and When to Use Them",
-                "3.1. DEBUG",
-                "3.2. INFO",
-                "3.3. WARNING"
-              ]
-            },
-            "scripts/SCRIPTS_GUIDE.md": {
-              "content_length": 6685,
-              "header_info": "# Scripts Directory\n\n\n> **File**: `scripts/SCRIPTS_GUIDE.md`\n> **Audience**: Developers using MHM utility scripts and tools  \n> **Purpose**: Guide for utility scripts, migration tools, and testing scr",
-              "section_count": 14,
-              "sections": [
-                "Introduction",
-                "Quick Reference",
-                "1. Structure",
-                "2. Available Scripts",
-                "2.1. Project Cleanup (`scripts/`)",
-                "2.2. Testing Tools (`testing/`)",
-                "2.3. AI Testing (`testing/ai/`)",
-                "2.4. Debug Tools (`debug/`)",
-                "2.5. Utilities (`utilities/`)",
-                "2.6. Cleanup Tools (`utilities/cleanup/`)"
-              ]
-            },
-            "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md": {
-              "content_length": 10411,
-              "header_info": "# Development Tools Testing Guide\n\n> **File**: `tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on development tools  \n> **Purpose**: Quick reference f",
-              "section_count": 21,
-              "sections": [
-                "Introduction",
-                "1. Quick Start",
-                "2. Test Suite Structure",
-                "3. Prerequisites",
-                "4. Test Fixtures and Isolation",
-                "4.1. Synthetic Demo Project",
-                "4.2. Test Configuration",
-                "4.3. Temporary Project Copies",
-                "5. Critical Safety Rules",
-                "5.1. Never Modify Real Project Files"
-              ]
-            },
-            "tests/MANUAL_DISCORD_TEST_GUIDE.md": {
-              "content_length": 7077,
-              "header_info": "# Manual Discord Testing Guide\n\n> **File**: `tests/MANUAL_DISCORD_TEST_GUIDE.md`  \n> **Audience**: Developers and AI assistants performing manual Discord testing  \n> **Purpose**: Manual testing proced",
-              "section_count": 10,
-              "sections": [
-                "Introduction",
-                "1. Prerequisites",
-                "2. Task Reminder Follow-up Flow Testing",
-                "2.1. Basic Test Scenarios",
-                "2.2. Edge Cases",
-                "3. Verification Commands",
-                "4. Success Criteria",
-                "5. Known Issues to Watch For",
-                "6. Reporting Results",
-                "7. Quick Test Checklist"
-              ]
-            },
-            "tests/MANUAL_TESTING_GUIDE.md": {
-              "content_length": 11513,
-              "header_info": "# Manual Testing Guide\n\n> **File**: `tests/MANUAL_TESTING_GUIDE.md`  \n> **Audience**: Developers and AI assistants performing manual testing  \n> **Purpose**: Canonical manual testing flows and checkli",
-              "section_count": 26,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Scope",
-                "2. Core Manual Flows",
-                "2.1. Application startup and shutdown",
-                "2.2. Basic configuration and environment",
-                "3. UI Manual Testing",
-                "3.1. Layout and visual checks",
-                "3.2. Navigation and interaction",
-                "3.3. Validation and error feedback",
-                "4. Scheduling & Reminder Manual Tests"
-              ]
-            },
-            "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md": {
-              "content_length": 4945,
-              "header_info": "# System AI Functionality Testing Guide\n\n> **File**: `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on MHM AI functionality  \n> **Purpose**: Quick",
-              "section_count": 10,
-              "sections": [
-                "Introduction",
-                "1. Quick Start",
-                "2. Test Suite Structure",
-                "3. Prerequisites",
-                "4. Test Data Scenarios",
-                "5. Logging Behavior",
-                "6. Test Features",
-                "7. Test Categories",
-                "8. Known Issues",
-                "9. Cleanup"
-              ]
-            },
-            "tests/TESTING_GUIDE.md": {
-              "content_length": 22125,
-              "header_info": "# Testing Guide\n\n> **File**: `tests/TESTING_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on MHM  \n> **Purpose**: Comprehensive testing framework focused on real behavior, integrati",
-              "section_count": 36,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Scope",
-                "2. Test Layout and Types",
-                "2.1. Discovery rules",
-                "2.2. Test types",
-                "2.3. Where to put new tests",
-                "3. Fixtures, Utilities, and Safety",
-                "3.1. Shared fixtures and hooks",
-                "3.2. Test utilities and helpers",
-                "3.3. Filesystem safety"
-              ]
-            },
-            "ui/UI_GUIDE.md": {
-              "content_length": 7863,
-              "header_info": "# UI Development Guide\n\n> **File**: `ui/UI_GUIDE.md`  \n> **Audience**: Developers working on MHM UI components  \n> **Purpose**: Guide for UI development, generation, and maintenance  \n> **Style**: Tec",
-              "section_count": 5,
-              "sections": [
-                "Introduction",
-                "Quick Reference",
-                "1. UI Generation",
-                "2. File Structure",
-                "3. Usage Pattern"
-              ]
-            }
-          },
           "missing": [],
           "placeholders": [],
           "section_overlaps": {
@@ -11929,14 +11169,74 @@
               "TODO.md",
               "development_docs/CHANGELOG_DETAIL.md"
             ]
-          }
+          },
+          "consolidation_recommendations": [
+            {
+              "category": "Development Workflow",
+              "files": [
+                "DOCUMENTATION_GUIDE.md",
+                "DEVELOPMENT_WORKFLOW.md",
+                "development_docs/CHANGELOG_DETAIL.md",
+                "development_docs/PLANS.md",
+                "ai_development_docs/AI_SESSION_STARTER.md",
+                "ai_development_docs/AI_ARCHITECTURE.md",
+                "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+                "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "ai_development_docs/AI_CHANGELOG.md",
+                "ai_development_docs/AI_REFERENCE.md",
+                "ai_development_docs/AI_LOGGING_GUIDE.md",
+                "ai_development_docs/AI_TESTING_GUIDE.md",
+                "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+                "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md",
+                "core/ERROR_HANDLING_GUIDE.md",
+                "logs/LOGGING_GUIDE.md",
+                "tests/TESTING_GUIDE.md",
+                "tests/MANUAL_TESTING_GUIDE.md",
+                "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
+                "tests/MANUAL_DISCORD_TEST_GUIDE.md",
+                "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
+                "communication/COMMUNICATION_GUIDE.md",
+                "communication/communication_channels/discord/DISCORD_GUIDE.md",
+                "scripts/SCRIPTS_GUIDE.md",
+                "ui/UI_GUIDE.md",
+                "ai/SYSTEM_AI_GUIDE.md",
+                "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+                "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
+              ],
+              "priority": "medium",
+              "similarity_score": 0.19214831092422713,
+              "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
+            },
+            {
+              "category": "Testing",
+              "files": [
+                "ai_development_docs/AI_TESTING_GUIDE.md",
+                "tests/TESTING_GUIDE.md",
+                "tests/MANUAL_TESTING_GUIDE.md",
+                "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md"
+              ],
+              "priority": "medium",
+              "similarity_score": 0.26807322366527847,
+              "suggestion": "Consider consolidating testing documentation into a single TESTING_GUIDE.md"
+            },
+            {
+              "category": "High Section Overlap",
+              "files": [
+                "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
+                "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md"
+              ],
+              "overlap_count": 3,
+              "priority": "medium",
+              "suggestion": "These files share 3 sections - consider consolidating or clearly differentiating their purposes"
+            }
+          ]
         },
         "summary": {
           "files_affected": 0,
           "total_issues": 0
         }
       },
-      "timestamp": "2025-12-15T05:19:17.807388"
+      "timestamp": "2025-12-16T04:30:56.030050"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -11982,7 +11282,7 @@
           }
         }
       },
-      "timestamp": "2025-12-15T05:19:13.973048"
+      "timestamp": "2025-12-16T04:30:51.672939"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -11991,7 +11291,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-15T05:19:11.684886"
+      "timestamp": "2025-12-16T04:30:48.801497"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -12000,7 +11300,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-15T05:19:13.147282"
+      "timestamp": "2025-12-16T04:30:50.615734"
     },
     "analyze_path_drift": {
       "success": true,
@@ -12009,7 +11309,7 @@
         "total_issues": 0,
         "detailed_issues": {}
       },
-      "timestamp": "2025-12-15T05:19:10.048302"
+      "timestamp": "2025-12-16T04:30:46.878062"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -12018,496 +11318,49 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-15T05:19:13.966003"
+      "timestamp": "2025-12-16T04:30:51.662349"
     },
     "analyze_error_handling": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 7,
-          "files_affected": 2
+          "total_issues": 0,
+          "files_affected": 0
         },
         "details": {
-          "total_functions": 1486,
-          "functions_with_try_except": 666,
-          "functions_with_error_handling": 1479,
-          "functions_with_decorators": 1386,
-          "functions_missing_error_handling": 7,
-          "analyze_error_handling": 99.52893674293405,
+          "total_functions": 1478,
+          "functions_with_try_except": 620,
+          "functions_with_error_handling": 1478,
+          "functions_with_decorators": 1414,
+          "functions_missing_error_handling": 0,
+          "analyze_error_handling": 100.0,
           "error_patterns": {
-            "handle_errors_decorator": 1480,
-            "try_except": 752,
+            "handle_errors_decorator": 1508,
+            "try_except": 705,
             "handle_configuration_error": 4,
             "ValidationError": 16,
             "ConfigurationError": 6,
-            "error_handler_usage": 13,
-            "handle_file_error": 4,
+            "error_handler_usage": 8,
             "handle_communication_error": 5,
             "handle_network_error": 5,
             "handle_validation_error": 2,
             "handle_ai_error": 16,
-            "MHMError": 2,
-            "AIError": 2,
+            "handle_file_error": 3,
+            "DataError": 14,
             "CommunicationError": 2,
             "FileOperationError": 11,
-            "DataError": 14,
-            "safe_file_operation": 1
+            "MHMError": 2,
+            "safe_file_operation": 1,
+            "AIError": 2
           },
-          "missing_error_handling": [
-            {
-              "file": "run_mhm.py",
-              "function": "resolve_python_interpreter",
-              "line": 20,
-              "quality": "none"
-            },
-            {
-              "file": "run_mhm.py",
-              "function": "prepare_launch_environment",
-              "line": 45,
-              "quality": "none"
-            },
-            {
-              "file": "run_tests.py",
-              "function": "setup_test_logger",
-              "line": 255,
-              "quality": "none"
-            },
-            {
-              "file": "run_tests.py",
-              "function": "print_combined_summary",
-              "line": 279,
-              "quality": "none"
-            },
-            {
-              "file": "run_tests.py",
-              "function": "print_test_mode_info",
-              "line": 436,
-              "quality": "none"
-            },
-            {
-              "file": "run_tests.py",
-              "function": "run_static_logging_check",
-              "line": 468,
-              "quality": "none"
-            },
-            {
-              "file": "run_tests.py",
-              "function": "read_output",
-              "line": 123,
-              "quality": "none"
-            }
-          ],
+          "missing_error_handling": [],
           "error_handling_quality": {
-            "excellent": 1386,
-            "basic": 93,
-            "none": 7
+            "excellent": 1414,
+            "basic": 53,
+            "good": 11
           },
-          "recommendations": [
-            "Add error handling to 7 functions",
-            "Replace basic try-except with @handle_errors decorator where appropriate",
-            "Priority: Add error handling to 7 critical functions"
-          ],
+          "recommendations": [],
           "phase1_candidates": [
-            {
-              "file_path": "core\\error_handling.py",
-              "function_name": "handle_errors",
-              "line_start": 619,
-              "line_end": 699,
-              "is_async": false,
-              "operation_type": "user_data",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "core\\error_handling.py",
-              "function_name": "handle_error",
-              "line_start": 443,
-              "line_end": 522,
-              "is_async": false,
-              "operation_type": "network",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "core\\file_locking.py",
-              "function_name": "safe_json_read",
-              "line_start": 211,
-              "line_end": 237,
-              "is_async": false,
-              "operation_type": "file_io",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\command_handlers\\interaction_handlers.py",
-              "function_name": "_get_task_candidates",
-              "line_start": 610,
-              "line_end": 644,
-              "is_async": false,
-              "operation_type": "user_data",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\command_handlers\\interaction_handlers.py",
-              "function_name": "_handle_complete_task__find_task_by_identifier",
-              "line_start": 763,
-              "line_end": 824,
-              "is_async": false,
-              "operation_type": "user_data",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\command_handlers\\interaction_handlers.py",
-              "function_name": "_handle_complete_task__find_most_urgent_task",
-              "line_start": 826,
-              "line_end": 871,
-              "is_async": false,
-              "operation_type": "user_data",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\command_handlers\\interaction_handlers.py",
-              "function_name": "_handle_delete_task__find_task_by_identifier",
-              "line_start": 873,
-              "line_end": 927,
-              "is_async": false,
-              "operation_type": "user_data",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\command_handlers\\interaction_handlers.py",
-              "function_name": "_handle_update_task__find_task_by_identifier",
-              "line_start": 929,
-              "line_end": 983,
-              "is_async": false,
-              "operation_type": "user_data",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\command_handlers\\interaction_handlers.py",
-              "function_name": "_handle_status",
-              "line_start": 1709,
-              "line_end": 1777,
-              "is_async": false,
-              "operation_type": "file_io",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\command_handlers\\interaction_handlers.py",
-              "function_name": "_handle_messages",
-              "line_start": 1779,
-              "line_end": 1839,
-              "is_async": false,
-              "operation_type": "file_io",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\command_handlers\\interaction_handlers.py",
-              "function_name": "_handle_quant_summary",
-              "line_start": 2406,
-              "line_end": 2441,
-              "is_async": false,
-              "operation_type": "user_data",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\core\\channel_monitor.py",
-              "function_name": "_check_and_restart_stuck_channels",
-              "line_start": 85,
-              "line_end": 95,
-              "is_async": false,
-              "operation_type": "user_data",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\core\\channel_monitor.py",
-              "function_name": "_attempt_channel_restart",
-              "line_start": 97,
-              "line_end": 129,
-              "is_async": false,
-              "operation_type": "user_data",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\core\\channel_orchestrator.py",
-              "function_name": "_handle_scheduled_checkin",
-              "line_start": 1218,
-              "line_end": 1255,
-              "is_async": false,
-              "operation_type": "file_io",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\communication_channels\\base\\command_registry.py",
-              "function_name": "discord_command_callback",
-              "line_start": 143,
-              "line_end": 150,
-              "is_async": false,
-              "operation_type": "network",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\communication_channels\\discord\\bot.py",
-              "function_name": "__init__",
-              "line_start": 47,
-              "line_end": 89,
-              "is_async": false,
-              "operation_type": "file_io",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\communication_channels\\discord\\bot.py",
-              "function_name": "_cleanup_session_with_timeout",
-              "line_start": 319,
-              "line_end": 329,
-              "is_async": false,
-              "operation_type": "file_io",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\communication_channels\\discord\\bot.py",
-              "function_name": "on_ready",
-              "line_start": 687,
-              "line_end": 774,
-              "is_async": false,
-              "operation_type": "file_io",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\communication_channels\\discord\\bot.py",
-              "function_name": "on_message",
-              "line_start": 1000,
-              "line_end": 1150,
-              "is_async": false,
-              "operation_type": "file_io",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\communication_channels\\discord\\bot.py",
-              "function_name": "_check_new_authorized_users",
-              "line_start": 713,
-              "line_end": 726,
-              "is_async": false,
-              "operation_type": "file_io",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\communication_channels\\discord\\bot.py",
-              "function_name": "_sync_app_cmds",
-              "line_start": 699,
-              "line_end": 704,
-              "is_async": false,
-              "operation_type": "network",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\communication_channels\\discord\\bot.py",
-              "function_name": "_app_cb",
-              "line_start": 1171,
-              "line_end": 1207,
-              "is_async": false,
-              "operation_type": "network",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\communication_channels\\discord\\bot.py",
-              "function_name": "_dynamic",
-              "line_start": 1231,
-              "line_end": 1243,
-              "is_async": false,
-              "operation_type": "network",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "communication\\communication_channels\\discord\\webhook_handler.py",
-              "function_name": "_send_welcome_dm",
-              "line_start": 148,
-              "line_end": 176,
-              "is_async": false,
-              "operation_type": "network",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "ui\\ui_app_qt.py",
-              "function_name": "run_full_scheduler",
-              "line_start": 769,
-              "line_end": 783,
-              "is_async": false,
-              "operation_type": "user_data",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "ui\\ui_app_qt.py",
-              "function_name": "run_user_scheduler",
-              "line_start": 785,
-              "line_end": 803,
-              "is_async": false,
-              "operation_type": "user_data",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "ui\\ui_app_qt.py",
-              "function_name": "run_category_scheduler",
-              "line_start": 805,
-              "line_end": 828,
-              "is_async": false,
-              "operation_type": "user_data",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "ui\\dialogs\\account_creator_dialog.py",
-              "function_name": "on_feature_toggled",
-              "line_start": 371,
-              "line_end": 385,
-              "is_async": false,
-              "operation_type": "network",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "run_headless_service.py",
-              "function_name": "main",
-              "line_start": 12,
-              "line_end": 128,
-              "is_async": false,
-              "operation_type": "network",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "run_tests.py",
-              "function_name": "run_command",
-              "line_start": 85,
-              "line_end": 253,
-              "is_async": false,
-              "operation_type": "file_io",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "run_tests.py",
-              "function_name": "main",
-              "line_start": 488,
-              "line_end": 793,
-              "is_async": false,
-              "operation_type": "file_io",
-              "is_entry_point": true,
-              "priority": "high"
-            },
-            {
-              "file_path": "core\\error_handling.py",
-              "function_name": "_log_error",
-              "line_start": 524,
-              "line_end": 569,
-              "is_async": false,
-              "operation_type": "file_io",
-              "is_entry_point": false,
-              "priority": "medium"
-            },
-            {
-              "file_path": "core\\error_handling.py",
-              "function_name": "_show_user_error",
-              "line_start": 571,
-              "line_end": 587,
-              "is_async": false,
-              "operation_type": "user_data",
-              "is_entry_point": false,
-              "priority": "medium"
-            },
-            {
-              "file_path": "core\\error_handling.py",
-              "function_name": "decorator",
-              "line_start": 630,
-              "line_end": 698,
-              "is_async": false,
-              "operation_type": "user_data",
-              "is_entry_point": false,
-              "priority": "medium"
-            },
-            {
-              "file_path": "core\\error_handling.py",
-              "function_name": "async_wrapper",
-              "line_start": 635,
-              "line_end": 663,
-              "is_async": false,
-              "operation_type": "user_data",
-              "is_entry_point": false,
-              "priority": "medium"
-            },
-            {
-              "file_path": "core\\error_handling.py",
-              "function_name": "wrapper",
-              "line_start": 668,
-              "line_end": 696,
-              "is_async": false,
-              "operation_type": "user_data",
-              "is_entry_point": false,
-              "priority": "medium"
-            },
-            {
-              "file_path": "core\\file_locking.py",
-              "function_name": "file_lock",
-              "line_start": 23,
-              "line_end": 114,
-              "is_async": false,
-              "operation_type": "file_io",
-              "is_entry_point": false,
-              "priority": "medium"
-            },
-            {
-              "file_path": "core\\file_locking.py",
-              "function_name": "file_lock",
-              "line_start": 121,
-              "line_end": 208,
-              "is_async": false,
-              "operation_type": "file_io",
-              "is_entry_point": false,
-              "priority": "medium"
-            },
-            {
-              "file_path": "core\\response_tracking.py",
-              "function_name": "get_timestamp_for_sorting",
-              "line_start": 85,
-              "line_end": 102,
-              "is_async": false,
-              "operation_type": "file_io",
-              "is_entry_point": false,
-              "priority": "medium"
-            },
-            {
-              "file_path": "core\\scheduler.py",
-              "function_name": "_select_task_for_reminder__calculate_due_date_weight",
-              "line_start": 1002,
-              "line_end": 1036,
-              "is_async": false,
-              "operation_type": "user_data",
-              "is_entry_point": false,
-              "priority": "medium"
-            },
             {
               "file_path": "core\\scheduler.py",
               "function_name": "select_task_for_reminder",
@@ -12589,20 +11442,10 @@
               "priority": "medium"
             },
             {
-              "file_path": "core\\user_management.py",
-              "function_name": "get_timezone_options",
-              "line_start": 1261,
-              "line_end": 1268,
-              "is_async": false,
-              "operation_type": "file_io",
-              "is_entry_point": false,
-              "priority": "medium"
-            },
-            {
               "file_path": "communication\\core\\channel_monitor.py",
               "function_name": "_restart_monitor_loop",
-              "line_start": 75,
-              "line_end": 83,
+              "line_start": 71,
+              "line_end": 79,
               "is_async": false,
               "operation_type": "validation",
               "is_entry_point": true,
@@ -12711,8 +11554,8 @@
             {
               "file_path": "communication\\core\\channel_orchestrator.py",
               "function_name": "_send_checkin_prompt",
-              "line_start": 1257,
-              "line_end": 1309,
+              "line_start": 1254,
+              "line_end": 1306,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12721,8 +11564,8 @@
             {
               "file_path": "communication\\core\\channel_orchestrator.py",
               "function_name": "_send_ai_generated_message",
-              "line_start": 1312,
-              "line_end": 1352,
+              "line_start": 1309,
+              "line_end": 1349,
               "is_async": false,
               "operation_type": "network",
               "is_entry_point": false,
@@ -12731,8 +11574,8 @@
             {
               "file_path": "communication\\core\\channel_orchestrator.py",
               "function_name": "_send_predefined_message",
-              "line_start": 1354,
-              "line_end": 1466,
+              "line_start": 1351,
+              "line_end": 1463,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12801,8 +11644,8 @@
             {
               "file_path": "ui\\ui_app_qt.py",
               "function_name": "load_user_categories",
-              "line_start": 1018,
-              "line_end": 1048,
+              "line_start": 1004,
+              "line_end": 1034,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12811,8 +11654,8 @@
             {
               "file_path": "ui\\ui_app_qt.py",
               "function_name": "view_all_users_summary",
-              "line_start": 2230,
-              "line_end": 2291,
+              "line_start": 2203,
+              "line_end": 2264,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12821,8 +11664,8 @@
             {
               "file_path": "ui\\ui_app_qt.py",
               "function_name": "system_health_check",
-              "line_start": 2293,
-              "line_end": 2393,
+              "line_start": 2266,
+              "line_end": 2366,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12831,8 +11674,8 @@
             {
               "file_path": "ui\\ui_app_qt.py",
               "function_name": "cleanup_old_requests",
-              "line_start": 1657,
-              "line_end": 1665,
+              "line_start": 1635,
+              "line_end": 1643,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12959,6 +11802,16 @@
               "priority": "medium"
             },
             {
+              "file_path": "run_tests.py",
+              "function_name": "read_output",
+              "line_start": 124,
+              "line_end": 141,
+              "is_async": false,
+              "operation_type": "file_io",
+              "is_entry_point": false,
+              "priority": "medium"
+            },
+            {
               "file_path": "core\\backup_manager.py",
               "function_name": "__init__",
               "line_start": 27,
@@ -12981,8 +11834,8 @@
             {
               "file_path": "communication\\core\\channel_monitor.py",
               "function_name": "get_channel_health_status",
-              "line_start": 152,
-              "line_end": 181,
+              "line_start": 143,
+              "line_end": 172,
               "is_async": false,
               "operation_type": "validation",
               "is_entry_point": false,
@@ -13031,30 +11884,23 @@
             {
               "file_path": "run_tests.py",
               "function_name": "parse_junit_xml",
-              "line_start": 35,
-              "line_end": 83,
+              "line_start": 36,
+              "line_end": 84,
               "is_async": false,
               "operation_type": "ui",
               "is_entry_point": false,
               "priority": "low"
             }
           ],
-          "phase1_total": 93,
+          "phase1_total": 53,
           "phase1_by_priority": {
-            "high": 31,
-            "medium": 54,
+            "medium": 45,
             "low": 8
           },
           "phase2_exceptions": [],
           "phase2_total": 0,
           "phase2_by_type": {},
           "worst_modules": [
-            {
-              "module": "root",
-              "coverage": 41.66666666666667,
-              "missing": 7,
-              "total": 12
-            },
             {
               "module": "auto_cleanup.py",
               "coverage": 100.0,
@@ -13078,11 +11924,17 @@
               "coverage": 100.0,
               "missing": 0,
               "total": 14
+            },
+            {
+              "module": "config.py",
+              "coverage": 100.0,
+              "missing": 0,
+              "total": 21
             }
           ]
         }
       },
-      "timestamp": "2025-12-15T05:19:20.402561"
+      "timestamp": "2025-12-16T04:30:59.316020"
     },
     "analyze_test_coverage": {
       "success": true,
@@ -13094,31 +11946,31 @@
         "details": {
           "overall": {
             "coverage": 71.2,
-            "statements": 27108,
-            "covered": 19290,
-            "missed": 7818,
-            "generated": "2025-12-15T05:23:13.092409"
+            "statements": 27048,
+            "covered": 19267,
+            "missed": 7781,
+            "generated": "2025-12-16T03:30:50.215984"
           },
           "modules": [
             {
               "module": "communication",
-              "coverage": 68.4,
-              "missed": 2797
+              "coverage": 68.9,
+              "missed": 2732
             },
             {
               "module": "ui",
               "coverage": 70.4,
-              "missed": 1851
+              "missed": 1848
             },
             {
               "module": "core",
-              "coverage": 71.5,
-              "missed": 2684
+              "coverage": 71.2,
+              "missed": 2710
             },
             {
               "module": "ai",
-              "coverage": 78.6,
-              "missed": 366
+              "coverage": 78.3,
+              "missed": 371
             },
             {
               "module": "tasks",
@@ -13134,13 +11986,13 @@
           "worst_files": [
             {
               "path": "communication/communication_channels/discord/bot.py",
-              "coverage": 45.3,
-              "missing": 659
+              "coverage": 45.5,
+              "missing": 653
             },
             {
               "path": "ui/ui_app_qt.py",
-              "coverage": 48.5,
-              "missing": 730
+              "coverage": 48.7,
+              "missing": 727
             },
             {
               "path": "ui/dialogs/account_creator_dialog.py",
@@ -13148,19 +12000,19 @@
               "missing": 298
             },
             {
-              "path": "communication/command_handlers/interaction_handlers.py",
-              "coverage": 59.5,
-              "missing": 631
+              "path": "communication/core/channel_orchestrator.py",
+              "coverage": 60.2,
+              "missing": 404
             },
             {
-              "path": "communication/core/channel_orchestrator.py",
-              "coverage": 60.1,
-              "missing": 405
+              "path": "core/service.py",
+              "coverage": 60.9,
+              "missing": 273
             }
           ]
         }
       },
-      "timestamp": "2025-12-15T05:23:15.989461"
+      "timestamp": "2025-12-16T03:30:53.639536"
     },
     "analyze_test_markers": {
       "success": true,
@@ -13217,7 +12069,7 @@
           }
         ]
       },
-      "timestamp": "2025-12-15T05:23:17.352306"
+      "timestamp": "2025-12-16T03:30:55.269251"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -13766,9 +12618,8 @@
                 "core.user_data_handlers",
                 "core.response_tracking",
                 "communication.command_handlers.shared_types",
-                "communication.message_processing.conversation_flow_manager",
-                "communication.message_processing.conversation_flow_manager",
                 "core.checkin_analytics",
+                "communication.message_processing.conversation_flow_manager",
                 "tasks.task_management",
                 "core.response_tracking",
                 "core.response_tracking",
@@ -13777,8 +12628,6 @@
                 "core.schedule_management",
                 "core.schedule_management",
                 "core.user_management",
-                "core.schedule_management",
-                "core.schedule_management",
                 "core.checkin_analytics",
                 "core.checkin_analytics",
                 "core.user_data_handlers",
@@ -13788,12 +12637,15 @@
                 "core.checkin_analytics",
                 "core.checkin_analytics",
                 "core.checkin_analytics",
+                "core.checkin_analytics",
+                "communication.message_processing.conversation_flow_manager",
+                "core.schedule_management",
+                "core.schedule_management",
                 "core.checkin_analytics",
                 "communication.command_handlers.account_handler",
                 "communication.command_handlers.account_handler",
                 "core.user_data_handlers",
-                "core.user_data_handlers",
-                "core.checkin_analytics"
+                "core.user_data_handlers"
               ]
             },
             {
@@ -14102,17 +12954,17 @@
                 "core.error_handling",
                 "communication.message_processing.interaction_manager",
                 "communication.message_processing.interaction_manager",
+                "communication.communication_channels.discord.welcome_handler",
                 "communication.communication_channels.discord.webhook_server",
                 "core.config",
                 "communication.communication_channels.discord.welcome_handler",
-                "core.user_data_handlers",
-                "communication.message_processing.interaction_manager",
-                "core.user_data_handlers",
-                "communication.communication_channels.discord.welcome_handler",
-                "communication.communication_channels.discord.welcome_handler",
                 "core.user_management",
+                "communication.communication_channels.discord.welcome_handler",
                 "core.user_data_handlers",
                 "communication.message_processing.interaction_manager",
+                "communication.message_processing.interaction_manager",
+                "core.user_data_handlers",
+                "core.user_data_handlers",
                 "communication.communication_channels.discord.account_flow_handler"
               ]
             },
@@ -14309,18 +13161,20 @@
                 "core.user_data_validation",
                 "core.config",
                 "ui.generated.admin_panel_pyqt",
+                "core.user_data_manager",
+                "core.scheduler",
+                "core.scheduler",
+                "core.scheduler",
+                "core.user_data_handlers",
+                "core.user_data_handlers",
                 "core.logger",
                 "core.config",
                 "core.auto_cleanup",
                 "core.auto_cleanup",
                 "core.config",
                 "core.config",
-                "core.user_data_manager",
                 "core.config",
                 "core.config",
-                "core.scheduler",
-                "core.scheduler",
-                "core.scheduler",
                 "ui.dialogs.account_creator_dialog",
                 "communication.core.channel_orchestrator",
                 "ui.dialogs.channel_management_dialog",
@@ -14333,8 +13187,6 @@
                 "ui.dialogs.user_analytics_dialog",
                 "ui.dialogs.message_editor_dialog",
                 "ui.dialogs.schedule_editor_dialog",
-                "core.user_data_handlers",
-                "core.user_data_handlers",
                 "core.user_data_handlers",
                 "tasks.task_management",
                 "core.scheduler",
@@ -17178,9 +16030,8 @@
                 "core.user_data_handlers",
                 "core.response_tracking",
                 "communication.command_handlers.shared_types",
-                "communication.message_processing.conversation_flow_manager",
-                "communication.message_processing.conversation_flow_manager",
                 "core.checkin_analytics",
+                "communication.message_processing.conversation_flow_manager",
                 "tasks.task_management",
                 "core.response_tracking",
                 "core.response_tracking",
@@ -17189,8 +16040,6 @@
                 "core.schedule_management",
                 "core.schedule_management",
                 "core.user_management",
-                "core.schedule_management",
-                "core.schedule_management",
                 "core.checkin_analytics",
                 "core.checkin_analytics",
                 "core.user_data_handlers",
@@ -17200,12 +16049,15 @@
                 "core.checkin_analytics",
                 "core.checkin_analytics",
                 "core.checkin_analytics",
+                "core.checkin_analytics",
+                "communication.message_processing.conversation_flow_manager",
+                "core.schedule_management",
+                "core.schedule_management",
                 "core.checkin_analytics",
                 "communication.command_handlers.account_handler",
                 "communication.command_handlers.account_handler",
                 "core.user_data_handlers",
-                "core.user_data_handlers",
-                "core.checkin_analytics"
+                "core.user_data_handlers"
               ]
             },
             {
@@ -17358,17 +16210,17 @@
                 "core.error_handling",
                 "communication.message_processing.interaction_manager",
                 "communication.message_processing.interaction_manager",
+                "communication.communication_channels.discord.welcome_handler",
                 "communication.communication_channels.discord.webhook_server",
                 "core.config",
                 "communication.communication_channels.discord.welcome_handler",
-                "core.user_data_handlers",
-                "communication.message_processing.interaction_manager",
-                "core.user_data_handlers",
-                "communication.communication_channels.discord.welcome_handler",
-                "communication.communication_channels.discord.welcome_handler",
                 "core.user_management",
+                "communication.communication_channels.discord.welcome_handler",
                 "core.user_data_handlers",
                 "communication.message_processing.interaction_manager",
+                "communication.message_processing.interaction_manager",
+                "core.user_data_handlers",
+                "core.user_data_handlers",
                 "communication.communication_channels.discord.account_flow_handler"
               ]
             },
@@ -17423,18 +16275,20 @@
                 "core.user_data_validation",
                 "core.config",
                 "ui.generated.admin_panel_pyqt",
+                "core.user_data_manager",
+                "core.scheduler",
+                "core.scheduler",
+                "core.scheduler",
+                "core.user_data_handlers",
+                "core.user_data_handlers",
                 "core.logger",
                 "core.config",
                 "core.auto_cleanup",
                 "core.auto_cleanup",
                 "core.config",
                 "core.config",
-                "core.user_data_manager",
                 "core.config",
                 "core.config",
-                "core.scheduler",
-                "core.scheduler",
-                "core.scheduler",
                 "ui.dialogs.account_creator_dialog",
                 "communication.core.channel_orchestrator",
                 "ui.dialogs.channel_management_dialog",
@@ -17447,8 +16301,6 @@
                 "ui.dialogs.user_analytics_dialog",
                 "ui.dialogs.message_editor_dialog",
                 "ui.dialogs.schedule_editor_dialog",
-                "core.user_data_handlers",
-                "core.user_data_handlers",
                 "core.user_data_handlers",
                 "tasks.task_management",
                 "core.scheduler",
@@ -18871,7 +17723,7 @@
           ]
         }
       },
-      "timestamp": "2025-12-15T05:19:31.547566"
+      "timestamp": "2025-12-16T04:31:13.518996"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -18882,16 +17734,16 @@
         },
         "details": {
           "files_scanned": 340,
-          "total_imports": 3866,
+          "total_imports": 3868,
           "documented_dependencies": 340,
           "standard_library": 1324,
           "third_party": 577,
-          "local_imports": 1965,
+          "local_imports": 1967,
           "missing_files": [],
           "missing_sections": []
         }
       },
-      "timestamp": "2025-12-15T05:19:28.034678"
+      "timestamp": "2025-12-16T04:31:09.221403"
     },
     "analyze_module_imports": {
       "success": true,
@@ -23751,24 +22603,17 @@
                   ]
                 },
                 {
-                  "module": "communication.message_processing.conversation_flow_manager",
-                  "as_name": null,
-                  "imported_items": [
-                    "conversation_manager"
-                  ]
-                },
-                {
-                  "module": "communication.message_processing.conversation_flow_manager",
-                  "as_name": null,
-                  "imported_items": [
-                    "conversation_manager"
-                  ]
-                },
-                {
                   "module": "core.checkin_analytics",
                   "as_name": null,
                   "imported_items": [
                     "CheckinAnalytics"
+                  ]
+                },
+                {
+                  "module": "communication.message_processing.conversation_flow_manager",
+                  "as_name": null,
+                  "imported_items": [
+                    "conversation_manager"
                   ]
                 },
                 {
@@ -23829,6 +22674,83 @@
                   ]
                 },
                 {
+                  "module": "core.checkin_analytics",
+                  "as_name": null,
+                  "imported_items": [
+                    "CheckinAnalytics"
+                  ]
+                },
+                {
+                  "module": "core.checkin_analytics",
+                  "as_name": null,
+                  "imported_items": [
+                    "CheckinAnalytics"
+                  ]
+                },
+                {
+                  "module": "core.user_data_handlers",
+                  "as_name": null,
+                  "imported_items": [
+                    "get_user_data"
+                  ]
+                },
+                {
+                  "module": "core.checkin_analytics",
+                  "as_name": null,
+                  "imported_items": [
+                    "CheckinAnalytics"
+                  ]
+                },
+                {
+                  "module": "core.checkin_analytics",
+                  "as_name": null,
+                  "imported_items": [
+                    "CheckinAnalytics"
+                  ]
+                },
+                {
+                  "module": "core.checkin_analytics",
+                  "as_name": null,
+                  "imported_items": [
+                    "CheckinAnalytics"
+                  ]
+                },
+                {
+                  "module": "core.checkin_analytics",
+                  "as_name": null,
+                  "imported_items": [
+                    "CheckinAnalytics"
+                  ]
+                },
+                {
+                  "module": "core.checkin_analytics",
+                  "as_name": null,
+                  "imported_items": [
+                    "CheckinAnalytics"
+                  ]
+                },
+                {
+                  "module": "core.checkin_analytics",
+                  "as_name": null,
+                  "imported_items": [
+                    "CheckinAnalytics"
+                  ]
+                },
+                {
+                  "module": "core.checkin_analytics",
+                  "as_name": null,
+                  "imported_items": [
+                    "CheckinAnalytics"
+                  ]
+                },
+                {
+                  "module": "communication.message_processing.conversation_flow_manager",
+                  "as_name": null,
+                  "imported_items": [
+                    "conversation_manager"
+                  ]
+                },
+                {
                   "module": "core.schedule_management",
                   "as_name": null,
                   "imported_items": [
@@ -23853,69 +22775,6 @@
                   ]
                 },
                 {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
-                  ]
-                },
-                {
-                  "module": "core.user_data_handlers",
-                  "as_name": null,
-                  "imported_items": [
-                    "get_user_data"
-                  ]
-                },
-                {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
-                  ]
-                },
-                {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
-                  ]
-                },
-                {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
-                  ]
-                },
-                {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
-                  ]
-                },
-                {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
-                  ]
-                },
-                {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
-                  ]
-                },
-                {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
-                  ]
-                },
-                {
                   "module": "communication.command_handlers.account_handler",
                   "as_name": null,
                   "imported_items": [
@@ -23941,13 +22800,6 @@
                   "as_name": null,
                   "imported_items": [
                     "get_user_data"
-                  ]
-                },
-                {
-                  "module": "core.checkin_analytics",
-                  "as_name": null,
-                  "imported_items": [
-                    "CheckinAnalytics"
                   ]
                 }
               ]
@@ -26084,6 +24936,15 @@
                   ]
                 },
                 {
+                  "module": "communication.communication_channels.discord.welcome_handler",
+                  "as_name": null,
+                  "imported_items": [
+                    "has_been_welcomed",
+                    "mark_as_welcomed",
+                    "get_welcome_message"
+                  ]
+                },
+                {
                   "module": "communication.communication_channels.discord.webhook_server",
                   "as_name": null,
                   "imported_items": [
@@ -26108,45 +24969,6 @@
                   ]
                 },
                 {
-                  "module": "core.user_data_handlers",
-                  "as_name": null,
-                  "imported_items": [
-                    "get_user_data"
-                  ]
-                },
-                {
-                  "module": "communication.message_processing.interaction_manager",
-                  "as_name": null,
-                  "imported_items": [
-                    "handle_user_message"
-                  ]
-                },
-                {
-                  "module": "core.user_data_handlers",
-                  "as_name": null,
-                  "imported_items": [
-                    "get_user_data"
-                  ]
-                },
-                {
-                  "module": "communication.communication_channels.discord.welcome_handler",
-                  "as_name": null,
-                  "imported_items": [
-                    "has_been_welcomed",
-                    "mark_as_welcomed",
-                    "get_welcome_message"
-                  ]
-                },
-                {
-                  "module": "communication.communication_channels.discord.welcome_handler",
-                  "as_name": null,
-                  "imported_items": [
-                    "has_been_welcomed",
-                    "mark_as_welcomed",
-                    "get_welcome_message"
-                  ]
-                },
-                {
                   "module": "core.user_management",
                   "as_name": null,
                   "imported_items": [
@@ -26154,10 +24976,19 @@
                   ]
                 },
                 {
+                  "module": "communication.communication_channels.discord.welcome_handler",
+                  "as_name": null,
+                  "imported_items": [
+                    "has_been_welcomed",
+                    "mark_as_welcomed",
+                    "get_welcome_message"
+                  ]
+                },
+                {
                   "module": "core.user_data_handlers",
                   "as_name": null,
                   "imported_items": [
-                    "save_user_data"
+                    "get_user_data"
                   ]
                 },
                 {
@@ -26165,6 +24996,27 @@
                   "as_name": null,
                   "imported_items": [
                     "handle_user_message"
+                  ]
+                },
+                {
+                  "module": "communication.message_processing.interaction_manager",
+                  "as_name": null,
+                  "imported_items": [
+                    "handle_user_message"
+                  ]
+                },
+                {
+                  "module": "core.user_data_handlers",
+                  "as_name": null,
+                  "imported_items": [
+                    "get_user_data"
+                  ]
+                },
+                {
+                  "module": "core.user_data_handlers",
+                  "as_name": null,
+                  "imported_items": [
+                    "save_user_data"
                   ]
                 },
                 {
@@ -26930,27 +25782,6 @@
                   ]
                 },
                 {
-                  "module": "webbrowser",
-                  "as_name": null,
-                  "imported_items": [
-                    "webbrowser"
-                  ]
-                },
-                {
-                  "module": "os",
-                  "as_name": null,
-                  "imported_items": [
-                    "os"
-                  ]
-                },
-                {
-                  "module": "time",
-                  "as_name": null,
-                  "imported_items": [
-                    "time"
-                  ]
-                },
-                {
                   "module": "datetime",
                   "as_name": null,
                   "imported_items": [
@@ -26962,6 +25793,27 @@
                   "as_name": null,
                   "imported_items": [
                     "json"
+                  ]
+                },
+                {
+                  "module": "time",
+                  "as_name": null,
+                  "imported_items": [
+                    "time"
+                  ]
+                },
+                {
+                  "module": "webbrowser",
+                  "as_name": null,
+                  "imported_items": [
+                    "webbrowser"
+                  ]
+                },
+                {
+                  "module": "os",
+                  "as_name": null,
+                  "imported_items": [
+                    "os"
                   ]
                 },
                 {
@@ -27108,6 +25960,48 @@
                   ]
                 },
                 {
+                  "module": "core.user_data_manager",
+                  "as_name": null,
+                  "imported_items": [
+                    "rebuild_user_index"
+                  ]
+                },
+                {
+                  "module": "core.scheduler",
+                  "as_name": null,
+                  "imported_items": [
+                    "run_full_scheduler_standalone"
+                  ]
+                },
+                {
+                  "module": "core.scheduler",
+                  "as_name": null,
+                  "imported_items": [
+                    "run_user_scheduler_standalone"
+                  ]
+                },
+                {
+                  "module": "core.scheduler",
+                  "as_name": null,
+                  "imported_items": [
+                    "run_category_scheduler_standalone"
+                  ]
+                },
+                {
+                  "module": "core.user_data_handlers",
+                  "as_name": null,
+                  "imported_items": [
+                    "get_user_data"
+                  ]
+                },
+                {
+                  "module": "core.user_data_handlers",
+                  "as_name": null,
+                  "imported_items": [
+                    "get_user_data"
+                  ]
+                },
+                {
                   "module": "core.logger",
                   "as_name": null,
                   "imported_items": [
@@ -27164,13 +26058,6 @@
                   ]
                 },
                 {
-                  "module": "core.user_data_manager",
-                  "as_name": null,
-                  "imported_items": [
-                    "rebuild_user_index"
-                  ]
-                },
-                {
                   "module": "core.config",
                   "as_name": null,
                   "imported_items": [
@@ -27185,27 +26072,6 @@
                     "EMAIL_IMAP_SERVER",
                     "EMAIL_SMTP_USERNAME",
                     "EMAIL_SMTP_PASSWORD"
-                  ]
-                },
-                {
-                  "module": "core.scheduler",
-                  "as_name": null,
-                  "imported_items": [
-                    "run_full_scheduler_standalone"
-                  ]
-                },
-                {
-                  "module": "core.scheduler",
-                  "as_name": null,
-                  "imported_items": [
-                    "run_user_scheduler_standalone"
-                  ]
-                },
-                {
-                  "module": "core.scheduler",
-                  "as_name": null,
-                  "imported_items": [
-                    "run_category_scheduler_standalone"
                   ]
                 },
                 {
@@ -27291,20 +26157,6 @@
                   "as_name": null,
                   "imported_items": [
                     "open_schedule_editor"
-                  ]
-                },
-                {
-                  "module": "core.user_data_handlers",
-                  "as_name": null,
-                  "imported_items": [
-                    "get_user_data"
-                  ]
-                },
-                {
-                  "module": "core.user_data_handlers",
-                  "as_name": null,
-                  "imported_items": [
-                    "get_user_data"
                   ]
                 },
                 {
@@ -51716,10 +50568,17 @@
                     "setup_logging",
                     "get_component_logger"
                   ]
+                },
+                {
+                  "module": "core.error_handling",
+                  "as_name": null,
+                  "imported_items": [
+                    "handle_errors"
+                  ]
                 }
               ]
             },
-            "total_imports": 3
+            "total_imports": 4
           },
           "run_mhm.py": {
             "imports": {
@@ -51874,13 +50733,21 @@
                 }
               ],
               "third_party": [],
-              "local": []
+              "local": [
+                {
+                  "module": "core.error_handling",
+                  "as_name": null,
+                  "imported_items": [
+                    "handle_errors"
+                  ]
+                }
+              ]
             },
-            "total_imports": 14
+            "total_imports": 15
           }
         }
       },
-      "timestamp": "2025-12-15T05:19:29.795009"
+      "timestamp": "2025-12-16T04:31:11.371570"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -52341,7 +51208,7 @@
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md"
         }
       },
-      "timestamp": "2025-12-15T05:23:24.481185"
+      "timestamp": "2025-12-16T03:31:10.451574"
     },
     "analyze_config": {
       "success": true,
@@ -52403,7 +51270,7 @@
           }
         }
       },
-      "timestamp": "2025-12-15T05:21:36.728819"
+      "timestamp": "2025-12-16T04:31:02.375730"
     },
     "analyze_ai_work": {
       "success": true,
@@ -52413,20 +51280,20 @@
         "error": "",
         "returncode": 0
       },
-      "timestamp": "2025-12-15T05:19:23.759360"
+      "timestamp": "2025-12-16T04:31:03.304960"
     },
     "decision_support": {
       "success": true,
       "data": {
         "total_functions": 1490,
-        "moderate_complexity": 353,
-        "high_complexity": 376,
-        "critical_complexity": 321,
+        "moderate_complexity": 351,
+        "high_complexity": 380,
+        "critical_complexity": 316,
         "undocumented": 5,
         "decision_support_items": 5,
         "decision_support_sample": [
-          "[COMPLEXITY] Functions needing attention: 1050",
-          "[CRITICAL] Critical Complexity (>199 nodes): 321",
+          "[COMPLEXITY] Functions needing attention: 1047",
+          "[CRITICAL] Critical Complexity (>199 nodes): 316",
           "[DOC] Undocumented Handlers: 5",
           "[DUPE] Duplicate Function Names: 144",
           "- [CRITICAL] Refactor critical complexity functions immediately."
@@ -52542,12 +51409,12 @@
           }
         ]
       },
-      "timestamp": "2025-12-15T05:19:22.196440"
+      "timestamp": "2025-12-16T04:31:01.409184"
     },
     "quick_status": {
       "success": true,
       "data": {
-        "timestamp": "2025-12-15T05:19:06.720575",
+        "timestamp": "2025-12-16T04:30:42.737175",
         "system_health": {
           "core_files": {
             "run_mhm.py": "OK",
@@ -52567,7 +51434,7 @@
         },
         "documentation_status": {
           "coverage": "Unknown",
-          "recent_audit": "2025-12-15T05:17:28.342090",
+          "recent_audit": "2025-12-16T04:14:55.699340",
           "key_files": {
             "README.md": "OK",
             "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -52580,28 +51447,32 @@
         "critical_issues": [],
         "action_items": [],
         "recent_activity": {
-          "last_audit": "2025-12-15T05:17:28.342090",
+          "last_audit": "2025-12-16T04:14:55.699340",
           "recent_changes": [
-            "test_output.json",
+            "tasks/task_management.py",
+            "run_tests.py",
+            "run_mhm.py",
+            "run_headless_service.py",
             "pytest.ini",
             "coverage.json",
             "core/schemas.py",
+            "core/scheduler.py",
             "core/schedule_management.py",
             "core/logger.py",
+            "core/file_auditor.py",
             "communication/message_processing/interaction_manager.py",
-            "communication/core/channel_orchestrator.py",
-            "communication/communication_channels/discord/task_reminder_view.py",
-            "ai_development_docs/AI_CHANGELOG.md",
-            "DOCUMENTATION_GUIDE.md"
+            "communication/message_processing/conversation_flow_manager.py",
+            "communication/message_processing/command_parser.py",
+            "communication/core/channel_orchestrator.py"
           ]
         }
       },
-      "timestamp": "2025-12-15T05:19:06.884246"
+      "timestamp": "2025-12-16T04:30:42.932934"
     },
     "system_signals": {
       "success": true,
       "data": {
-        "timestamp": "2025-12-15T05:19:14.690883",
+        "timestamp": "2025-12-16T04:30:52.558173",
         "system_health": {
           "overall_status": "OK",
           "core_files": {
@@ -52619,7 +51490,7 @@
             "user": "OK",
             "tests": "OK"
           },
-          "last_audit": "2025-12-15T05:17:28.399234",
+          "last_audit": "2025-12-16T04:14:55.759195",
           "warnings": [],
           "errors": []
         },
@@ -52627,19 +51498,19 @@
           "recent_changes": [
             "DOCUMENTATION_GUIDE.md",
             "ai_development_docs/AI_CHANGELOG.md",
+            "communication/command_handlers/interaction_handlers.py",
+            "communication/communication_channels/base/command_registry.py",
+            "communication/communication_channels/discord/account_flow_handler.py",
+            "communication/communication_channels/discord/bot.py",
+            "communication/communication_channels/discord/checkin_view.py",
             "communication/communication_channels/discord/task_reminder_view.py",
+            "communication/communication_channels/discord/webhook_handler.py",
+            "communication/communication_channels/discord/welcome_handler.py",
+            "communication/communication_channels/email/bot.py",
+            "communication/core/channel_monitor.py",
             "communication/core/channel_orchestrator.py",
-            "communication/message_processing/interaction_manager.py",
-            "core/logger.py",
-            "core/schedule_management.py",
-            "core/schemas.py",
-            "coverage.json",
-            "development_docs/TEST_COVERAGE_REPORT.md",
-            "development_tools/.audit_in_progress.lock",
-            "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
-            "development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md",
-            "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
-            "development_tools/ai_work/jsons/analyze_ai_work_results.json"
+            "communication/message_processing/command_parser.py",
+            "communication/message_processing/conversation_flow_manager.py"
           ],
           "git_status": "Modified",
           "last_commit": null,
@@ -52651,9 +51522,9 @@
         "performance_indicators": {
           "log_file_sizes": {
             "ai.log": "0.0MB",
-            "ai_dev_tools.log": "1.2MB",
-            "app.log": "0.7MB",
-            "communication_manager.log": "0.2MB",
+            "ai_dev_tools.log": "0.3MB",
+            "app.log": "0.1MB",
+            "communication_manager.log": "0.0MB",
             "discord.log": "0.0MB",
             "email.log": "0.0MB",
             "errors.log": "0.0MB",
@@ -52667,20 +51538,20 @@
           "memory_usage": "Unknown"
         }
       },
-      "timestamp": "2025-12-15T05:19:17.343464"
+      "timestamp": "2025-12-16T04:30:55.847008"
     },
     "decision_support_metrics": {
       "success": true,
       "data": {
         "total_functions": 1490,
-        "moderate_complexity": 353,
-        "high_complexity": 376,
-        "critical_complexity": 321,
+        "moderate_complexity": 351,
+        "high_complexity": 380,
+        "critical_complexity": 316,
         "undocumented": 5,
         "decision_support_items": 5,
         "decision_support_sample": [
-          "[COMPLEXITY] Functions needing attention: 1050",
-          "[CRITICAL] Critical Complexity (>199 nodes): 321",
+          "[COMPLEXITY] Functions needing attention: 1047",
+          "[CRITICAL] Critical Complexity (>199 nodes): 316",
           "[DOC] Undocumented Handlers: 5",
           "[DUPE] Duplicate Function Names: 144",
           "- [CRITICAL] Refactor critical complexity functions immediately."
@@ -52796,7 +51667,7 @@
           }
         ]
       },
-      "timestamp": "2025-12-15T05:23:25.386585"
+      "timestamp": "2025-12-16T04:31:25.206565"
     }
   }
 }

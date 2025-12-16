@@ -259,15 +259,6 @@ class EmailBot(BaseChannel):
                     mail.logout()
             except Exception:
                 pass
-        except Exception as e:
-            logger.error(f"Error in _receive_emails_sync: {type(e).__name__} - {e}", exc_info=True)
-            # Try to clean up connection if it exists
-            try:
-                if mail:
-                    mail.close()
-                    mail.logout()
-            except Exception:
-                pass
         finally:
             # Reset socket timeout to default
             socket.setdefaulttimeout(None)

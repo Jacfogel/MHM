@@ -145,35 +145,23 @@ def handle_application_authorized(event_data: Dict[str, Any], bot_instance=None)
                 import asyncio
                 
                 # Define the coroutine function (not the coroutine itself yet)
+                @handle_errors("sending welcome DM to newly authorized user", context={"discord_user_id": discord_user_id}, user_friendly=False, default_return=False)
                 async def _send_welcome_dm():
-                    try:
-                        # Small delay to ensure Discord has processed the authorization
-                        # This gives Discord time to establish the relationship
-                        await asyncio.sleep(1)
-                        
-                        # Create view with buttons inside async context (requires event loop)
-                        from communication.communication_channels.discord.welcome_handler import get_welcome_message_view
-                        welcome_view = get_welcome_message_view(discord_user_id)
-                        
-                        user = await bot_instance.bot.fetch_user(int(discord_user_id))
-                        if user:
-                            await user.send(welcome_msg, view=welcome_view)
-                            mark_as_welcomed(discord_user_id, channel_type='discord')
-                            logger.info(f"Sent welcome DM to newly authorized user: {discord_user_id}")
-                            return True
-                    except Exception as e:
-                        error_msg = str(e)
-                        # Check if it's a "Cannot send messages" error (50007)
-                        # This might be due to privacy settings or Discord needing more time
-                        if "50007" in error_msg or "Cannot send messages" in error_msg:
-                            logger.warning(f"Could not send welcome DM to {discord_user_id}: {error_msg}. "
-                                         f"This may be due to user privacy settings or Discord requiring an initial interaction. "
-                                         f"The user will receive a welcome message when they first interact with the bot.")
-                        else:
-                            logger.warning(f"Could not send welcome DM to {discord_user_id}: {error_msg}")
-                        # Don't mark as welcomed if DM failed - let fallback welcome handlers try
-                        # This allows the on_message/on_interaction handlers to send welcome if DM fails
-                        return False
+                    # Small delay to ensure Discord has processed the authorization
+                    # This gives Discord time to establish the relationship
+                    await asyncio.sleep(1)
+                    
+                    # Create view with buttons inside async context (requires event loop)
+                    from communication.communication_channels.discord.welcome_handler import get_welcome_message_view
+                    welcome_view = get_welcome_message_view(discord_user_id)
+                    
+                    user = await bot_instance.bot.fetch_user(int(discord_user_id))
+                    if user:
+                        await user.send(welcome_msg, view=welcome_view)
+                        mark_as_welcomed(discord_user_id, channel_type='discord')
+                        logger.info(f"Sent welcome DM to newly authorized user: {discord_user_id}")
+                        return True
+                    return False
                 
                 # Schedule the coroutine on the bot's event loop from this thread
                 # Create the coroutine only when we're ready to schedule it

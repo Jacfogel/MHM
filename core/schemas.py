@@ -60,6 +60,18 @@ class FeaturesModel(BaseModel):
     @field_validator("automated_messages", "checkins", "task_management", mode="before")
     @classmethod
     def _normalize_flags(cls, v: Any) -> Literal["enabled", "disabled"]:
+        """
+        Normalize feature flag values to "enabled" or "disabled".
+        
+        Converts various input formats (boolean, string variants) to the standard
+        "enabled"/"disabled" literal values using the _coerce_bool helper.
+        
+        Args:
+            v: Input value (bool, str, or other) to normalize
+            
+        Returns:
+            Literal["enabled", "disabled"]: Normalized flag value
+        """
         # NOTE: Pydantic validators should not have try-except blocks.
         # Pydantic handles exceptions internally and will raise ValidationError if needed.
         # Adding try-except here would interfere with Pydantic's validation flow.
@@ -352,6 +364,18 @@ class MessageModel(BaseModel):
     @field_validator("days")
     @classmethod
     def _normalize_days(cls, v: List[str]) -> List[str]:
+        """
+        Normalize days list for message scheduling.
+        
+        Ensures the days list is not empty by defaulting to ["ALL"] if the
+        input list is empty or None.
+        
+        Args:
+            v: List of day strings (may be empty)
+            
+        Returns:
+            List[str]: Normalized days list, defaults to ["ALL"] if empty
+        """
         # NOTE: Pydantic validators should not have try-except blocks.
         # Pydantic handles exceptions internally and will raise ValidationError if needed.
         # This validator performs simple list checks which cannot raise exceptions.
@@ -362,6 +386,18 @@ class MessageModel(BaseModel):
     @field_validator("time_periods")
     @classmethod
     def _normalize_periods(cls, v: List[str]) -> List[str]:
+        """
+        Normalize time periods list for message scheduling.
+        
+        Ensures the time_periods list is not empty by defaulting to ["ALL"] if the
+        input list is empty or None.
+        
+        Args:
+            v: List of time period strings (may be empty)
+            
+        Returns:
+            List[str]: Normalized time periods list, defaults to ["ALL"] if empty
+        """
         # NOTE: Pydantic validators should not have try-except blocks.
         # Pydantic handles exceptions internally and will raise ValidationError if needed.
         # This validator performs simple list checks which cannot raise exceptions.
