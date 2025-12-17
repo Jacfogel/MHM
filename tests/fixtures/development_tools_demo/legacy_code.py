@@ -2,6 +2,8 @@
 Legacy code module for testing legacy reference cleanup.
 
 This module contains legacy patterns that should be detected and cleaned up.
+Note: This file is in tests/fixtures/ and is excluded from main project scans,
+but is intentionally scanned in test contexts to verify legacy detection works.
 """
 
 # LEGACY COMPATIBILITY: This function is kept for backward compatibility

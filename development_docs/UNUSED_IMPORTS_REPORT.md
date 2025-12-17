@@ -2,18 +2,18 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-16 03:31:08
+> **Last Generated**: 2025-12-16 21:00:11
 > **Source**: `python development_tools/run_development_tools.py unused-imports` - Unused Imports Detection Tool
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 371
 - **Files with Unused Imports**: 147
-- **Total Unused Imports**: 424
+- **Total Unused Imports**: 425
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 126 imports
+- **Obvious Unused**: 127 imports
 - **Type Hints Only**: 2 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 9 imports
@@ -196,8 +196,10 @@
 
 ### `development_tools/shared/mtime_cache.py`
 
-**Count**: 1 unused import(s)
+**Count**: 2 unused import(s)
 
+- **Line 29**: Unused import json
+  - Symbol: `unused-import`
 - **Line 31**: Unused List imported from typing
   - Symbol: `unused-import`
 
@@ -459,7 +461,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 8**: Unused import sys
+- **Line 11**: Unused import sys
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_output_storage_archiving.py`
@@ -473,13 +475,13 @@
 
 **Count**: 4 unused import(s)
 
-- **Line 9**: Unused import pytest
+- **Line 12**: Unused import pytest
   - Symbol: `unused-import`
-- **Line 10**: Unused import tempfile
+- **Line 13**: Unused import tempfile
   - Symbol: `unused-import`
-- **Line 11**: Unused import shutil
+- **Line 14**: Unused import shutil
   - Symbol: `unused-import`
-- **Line 12**: Unused Path imported from pathlib
+- **Line 15**: Unused Path imported from pathlib
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_path_drift_integration.py`
@@ -1778,7 +1780,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 9**: Unused Path imported from pathlib
+- **Line 12**: Unused Path imported from pathlib
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_output_storage_archiving.py`

@@ -561,7 +561,11 @@ class DiscordBot(BaseChannel):
                         if not self._on_ready_fired:
                             discord_logger.warning("Bot is ready but on_ready() hasn't fired - manually triggering webhook server startup")
                             try:
-                                self.bot.loop.create_task(self._on_ready_handler())
+                                # Only create task if loop is running and not closed
+                                if hasattr(self.bot, 'loop') and self.bot.loop and not self.bot.loop.is_closed():
+                                    self.bot.loop.create_task(self._on_ready_handler())
+                                else:
+                                    discord_logger.debug("Bot loop not available for manual on_ready trigger")
                             except Exception as e:
                                 discord_logger.warning(f"Failed to manually trigger webhook server startup: {e}", exc_info=True)
                     
@@ -1150,6 +1154,8 @@ class DiscordBot(BaseChannel):
                 await message.channel.send("I'm having trouble processing your message right now. Please try again in a moment.")
 
         # Store reference to the handler so we can call it manually if on_ready() doesn't fire
+        # Store as a callable that creates the coroutine, not the coroutine itself
+        # This prevents unawaited coroutine warnings in test environments
         self._on_ready_handler = _on_ready_internal
         
         self._events_registered = True
@@ -1158,7 +1164,11 @@ class DiscordBot(BaseChannel):
         # So we need to manually trigger the webhook server startup
         if self.bot and self.bot.is_ready():
             try:
-                self.bot.loop.create_task(_on_ready_internal())
+                # Only create task if loop is running and not closed
+                if hasattr(self.bot, 'loop') and self.bot.loop and not self.bot.loop.is_closed():
+                    self.bot.loop.create_task(_on_ready_internal())
+                else:
+                    discord_logger.debug("Bot loop not available for manual on_ready trigger")
             except Exception as e:
                 discord_logger.warning(f"Failed to manually trigger webhook server startup: {e}", exc_info=True)
 
@@ -1256,69 +1266,73 @@ class DiscordBot(BaseChannel):
         """Shutdown Discord bot safely with improved session and event loop management"""
         logger.info("Starting Discord bot shutdown...")
         
-        # Stop ngrok FIRST - don't wait for full bot shutdown
-        # This ensures ngrok stops even if shutdown hangs
-        self._stop_ngrok_tunnel()
-        
-        # Send stop command to Discord thread
         try:
-            self._command_queue.put(("stop", None))
-        except Exception as e:
-            logger.warning(f"Error sending stop command: {e}")
-        
-        # Wait for thread to finish
-        if self.discord_thread and self.discord_thread.is_alive():
-            self.discord_thread.join(timeout=10)
-            if self.discord_thread.is_alive():
-                logger.warning("Discord thread did not stop gracefully")
-        
-        # Properly close the bot and event loop with enhanced cleanup
-        if self.bot:
-            async with self.shutdown__session_cleanup_context() as sessions_to_cleanup:
-                # Cancel any pending sync task first
-                if hasattr(self, '_sync_task') and self._sync_task and not self._sync_task.done():
-                    self._sync_task.cancel()
-                    try:
-                        await asyncio.wait_for(self._sync_task, timeout=2.0)
-                    except (asyncio.CancelledError, asyncio.TimeoutError):
-                        logger.debug("Sync task cancelled or timed out during shutdown")
-                    except Exception as e:
-                        logger.debug(f"Error waiting for sync task cancellation: {e}")
-                
-                # Close the bot first
-                if not self.bot.is_closed():
-                    await self.bot.close()
-                    logger.info("Discord bot closed successfully")
-                
-                # Collect all sessions that need cleanup
-                if hasattr(self.bot, '_HTTP') and self.bot._HTTP:
-                    if hasattr(self.bot._HTTP, '_HTTPClient') and self.bot._HTTP._HTTPClient:
-                        if hasattr(self.bot._HTTP._HTTPClient, '_session') and self.bot._HTTP._HTTPClient._session:
-                            sessions_to_cleanup.append(self.bot._HTTP._HTTPClient._session)
-                
-                # Clean up the event loop if it exists
-                if hasattr(self, '_loop') and self._loop:
-                    await self._cleanup_event_loop_safely(self._loop)
-                
-                # Additional cleanup for aiohttp sessions
-                await self._cleanup_aiohttp_sessions()
-                
-                # Stop webhook server
-                if self._webhook_server:
-                    try:
-                        self._webhook_server.stop()
-                    except Exception as e:
-                        logger.debug(f"Error stopping webhook server: {e}")
-                
-                # Stop ngrok tunnel if running
-                self._stop_ngrok_tunnel()
-        
-        # Ensure ngrok is stopped even if shutdown had errors
-        self._stop_ngrok_tunnel()
-        
-        self._set_status(ChannelStatus.STOPPED)
-        logger.info("Discord bot shutdown completed")
-        return True
+            # Stop ngrok FIRST - don't wait for full bot shutdown
+            # This ensures ngrok stops even if shutdown hangs
+            self._stop_ngrok_tunnel()
+            
+            # Send stop command to Discord thread
+            try:
+                self._command_queue.put(("stop", None))
+            except Exception as e:
+                logger.warning(f"Error sending stop command: {e}")
+            
+            # Wait for thread to finish
+            if self.discord_thread and self.discord_thread.is_alive():
+                self.discord_thread.join(timeout=10)
+                if self.discord_thread.is_alive():
+                    logger.warning("Discord thread did not stop gracefully")
+            
+            # Properly close the bot and event loop with enhanced cleanup
+            if self.bot:
+                async with self.shutdown__session_cleanup_context() as sessions_to_cleanup:
+                    # Cancel any pending sync task first
+                    if hasattr(self, '_sync_task') and self._sync_task and not self._sync_task.done():
+                        self._sync_task.cancel()
+                        try:
+                            await asyncio.wait_for(self._sync_task, timeout=2.0)
+                        except (asyncio.CancelledError, asyncio.TimeoutError):
+                            logger.debug("Sync task cancelled or timed out during shutdown")
+                        except Exception as e:
+                            logger.debug(f"Error waiting for sync task cancellation: {e}")
+                    
+                    # Close the bot first
+                    if not self.bot.is_closed():
+                        await self.bot.close()
+                        logger.info("Discord bot closed successfully")
+                    
+                    # Collect all sessions that need cleanup
+                    if hasattr(self.bot, '_HTTP') and self.bot._HTTP:
+                        if hasattr(self.bot._HTTP, '_HTTPClient') and self.bot._HTTP._HTTPClient:
+                            if hasattr(self.bot._HTTP._HTTPClient, '_session') and self.bot._HTTP._HTTPClient._session:
+                                sessions_to_cleanup.append(self.bot._HTTP._HTTPClient._session)
+                    
+                    # Clean up the event loop if it exists
+                    if hasattr(self, '_loop') and self._loop:
+                        await self._cleanup_event_loop_safely(self._loop)
+                    
+                    # Additional cleanup for aiohttp sessions
+                    await self._cleanup_aiohttp_sessions()
+                    
+                    # Stop webhook server
+                    if self._webhook_server:
+                        try:
+                            self._webhook_server.stop()
+                        except Exception as e:
+                            logger.debug(f"Error stopping webhook server: {e}")
+                    
+                    # Stop ngrok tunnel if running
+                    self._stop_ngrok_tunnel()
+            
+            # Ensure ngrok is stopped even if shutdown had errors
+            self._stop_ngrok_tunnel()
+            
+            return True
+        finally:
+            # Always set status to STOPPED, even if shutdown encountered errors
+            # This ensures tests can verify shutdown was attempted
+            self._set_status(ChannelStatus.STOPPED)
+            logger.info("Discord bot shutdown completed")
 
     @handle_errors("sending Discord message", default_return=False)
     async def send_message(self, recipient: str, message: str, **kwargs) -> bool:

@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-14 20:44:20
+> **Last Generated**: 2025-12-16 20:55:13
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,10 +10,10 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 94.7% [!] GOOD**
+### **Documentation Coverage: 96.2% [OK] EXCELLENT**
 - **Total Functions**: 1500
 - **Total Methods**: 1143
-- **Documented**: 2502/2643
+- **Documented**: 2542/2643
 - **Files Scanned**: 107
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -56,7 +56,7 @@ Communication Decision Tree:
 |   +-- `communication/communication_channels/discord/bot.py` - Discord integration (40 functions)
 |   `-- `communication/communication_channels/email/bot.py` - Email integration (14 functions)
 `-- Conversation Flow
-    `-- `communication/message_processing/conversation_flow_manager.py` - Conversation management (50/58 functions)
+    `-- `communication/message_processing/conversation_flow_manager.py` - Conversation management (54/58 functions)
 ```
 
 ### **[UI] Need UI/User Interface?**
@@ -68,7 +68,7 @@ UI Operations Decision Tree:
 |   +-- `ui/dialogs/account_creator_dialog.py` - Account creation (97/98 functions)
 |   +-- `ui/dialogs/user_profile_dialog.py` - User profiles (38 functions)
 |   +-- `ui/dialogs/task_management_dialog.py` - Task management (4/8 functions)
-|   `-- `ui/dialogs/schedule_editor_dialog.py` - Schedule editing (37/38 functions)
+|   `-- `ui/dialogs/schedule_editor_dialog.py` - Schedule editing (38 functions)
 `-- Widgets
     +-- `ui/widgets/tag_widget.py` - Tag management (30 functions)
     +-- `ui/widgets/task_settings_widget.py` - Task settings (34/36 functions)
@@ -86,10 +86,10 @@ Core System Decision Tree:
 |   +-- `core/file_operations.py` - File I/O (16 functions)
 |   `-- `core/backup_manager.py` - Backup operations (51 functions)
 +-- Logging
-|   `-- `core/logger.py` - Logging system (49/65 functions)
+|   `-- `core/logger.py` - Logging system (65 functions)
 `-- Scheduling
     +-- `core/scheduler.py` - Task scheduling (81/82 functions)
-    `-- `core/schedule_management.py` - Schedule management (14/17 functions)
+    `-- `core/schedule_management.py` - Schedule management (15/17 functions)
 ```
 
 ## [PATTERNS] **Key Function Patterns**
@@ -110,21 +110,21 @@ Core System Decision Tree:
 
 ### **Widget Pattern** (7 found)
 **Purpose**: Reusable UI components
-**Location**: `ui/widgets/category_selection_widget.py`, `ui/widgets/channel_selection_widget.py`, `ui/widgets/checkin_settings_widget.py`
+**Location**: `ui/widgets/checkin_settings_widget.py`, `ui/widgets/period_row_widget.py`, `ui/widgets/tag_widget.py`
 **Pattern**: 
 - Inherit from QWidget
 - Implement `get_*()` and `set_*()` methods
 - Signal-based updates
 
 **Examples**:
-- `CategorySelectionWidget` (ui/widgets/category_selection_widget.py)
-- `ChannelSelectionWidget` (ui/widgets/channel_selection_widget.py)
 - `CheckinSettingsWidget` (ui/widgets/checkin_settings_widget.py)
+- `PeriodRowWidget` (ui/widgets/period_row_widget.py)
+- `TagWidget` (ui/widgets/tag_widget.py)
 - ... and 4 more
 
 ### **Dialog Pattern** (15 found)
 **Purpose**: Modal user interaction windows
-**Location**: `ui/dialogs/account_creator_dialog.py`, `ui/dialogs/admin_panel.py`, `ui/dialogs/category_management_dialog.py`
+**Location**: `ui/dialogs/account_creator_dialog.py`, `ui/dialogs/admin_panel.py`, `ui/dialogs/checkin_management_dialog.py`
 **Pattern**: 
 - Inherit from QDialog
 - Use widgets for data entry
@@ -133,7 +133,7 @@ Core System Decision Tree:
 **Examples**:
 - `AccountCreatorDialog` (ui/dialogs/account_creator_dialog.py)
 - `AdminPanelDialog` (ui/dialogs/admin_panel.py)
-- `CategoryManagementDialog` (ui/dialogs/category_management_dialog.py)
+- `CheckinManagementDialog` (ui/dialogs/checkin_management_dialog.py)
 - ... and 12 more
 
 ### **Context Manager Pattern** (1 found)
@@ -187,10 +187,8 @@ Core System Decision Tree:
 ## [!] **Areas Needing Attention**
 
 ### **High Priority** (Missing Documentation)
-- `core/schemas.py` - 26/32 functions undocumented (19% coverage)
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
-- `core/logger.py` - 16/65 functions undocumented (75% coverage)
-- `core/file_auditor.py` - 14/23 functions undocumented (39% coverage)
+- `core/schemas.py` - 18/32 functions undocumented (44% coverage)
 - `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
 - `ui/dialogs/channel_management_dialog.py` - 6/8 functions undocumented (25% coverage)
 - `ui/widgets/channel_selection_widget.py` - 6/16 functions undocumented (62% coverage)
@@ -220,10 +218,10 @@ Core System Decision Tree:
 ### **Complexity Metrics**
 Most complex functions (may need refactoring):
 1. [OK] `ai/chatbot.py::_create_comprehensive_context_prompt()` - Complexity: 2192
-2. [OK] `core/user_data_handlers.py::get_user_data()` - Complexity: 2130
-3. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2115
+2. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2177
+3. [OK] `core/user_data_handlers.py::get_user_data()` - Complexity: 2130
 4. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 1976
-5. [OK] `run_tests.py::print_combined_summary()` - Complexity: 1338
+5. [OK] `run_tests.py::print_combined_summary()` - Complexity: 1344
 
 
 ### **Pattern Recognition**
@@ -241,4 +239,4 @@ Most complex functions (may need refactoring):
 - `tasks/` - Task management system (2 files, 21 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: 2025-12-14 20:44:20
+> **Last Updated**: 2025-12-16 20:55:13

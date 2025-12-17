@@ -108,40 +108,8 @@ class MtimeFileCache:
             except Exception as e:
                 if logger:
                     logger.warning(f"Failed to load cache from standardized storage: {e}")
-        
-        # LEGACY COMPATIBILITY: Fallback to legacy file-based loading
-        # New standardized storage location: development_tools/{domain}/jsons/.{tool_name}_cache.json
-        # Removal plan: After all tools migrate to standardized storage and old cache files are removed, remove this fallback.
-        # Detection: Search for "cache_file.exists()" and "MtimeFileCache" without tool_name/domain parameters to find legacy usage.
-        if self.cache_file.exists():
-            if logger:
-                logger.debug(f"LEGACY: Loading cache from legacy location: {self.cache_file}")
-            try:
-                with open(self.cache_file, 'r', encoding='utf-8') as f:
-                    loaded_data = json.load(f)
-                    # Migrate old cache format (with 'issues' key) to new format (with 'results' key)
-                    # This handles migration from analyze_unused_imports.py old format
-                    migrated_data = {}
-                    for key, value in loaded_data.items():
-                        if isinstance(value, dict):
-                            # Check if it's old format with 'issues' key
-                            if 'issues' in value and 'results' not in value:
-                                migrated_data[key] = {
-                                    'mtime': value.get('mtime'),
-                                    'results': value.get('issues', [])
-                                }
-                            else:
-                                # Already in new format or has 'results' key
-                                migrated_data[key] = value
-                        else:
-                            # Invalid format, skip
-                            continue
-                    self.cache_data = migrated_data
-                if logger:
-                    logger.debug(f"Loaded cache from {self.cache_file} with {len(self.cache_data)} entries")
-            except Exception as e:
-                if logger:
-                    logger.warning(f"Failed to load cache from {self.cache_file}: {e}")
+                # If standardized storage fails, start with empty cache
+                # Tools will regenerate cache on next run
                 self.cache_data = {}
     
     def save_cache(self) -> None:
@@ -160,22 +128,8 @@ class MtimeFileCache:
             except Exception as e:
                 if logger:
                     logger.warning(f"Failed to save cache to standardized storage: {e}")
-        
-        # LEGACY COMPATIBILITY: Fallback to legacy file-based saving
-        # New standardized storage location: development_tools/{domain}/jsons/.{tool_name}_cache.json
-        # Removal plan: After all tools migrate to standardized storage and old cache files are removed, remove this fallback.
-        # Detection: Search for "cache_file.parent.mkdir" and "MtimeFileCache" without tool_name/domain parameters to find legacy usage.
-        if logger:
-            logger.debug(f"LEGACY: Saving cache to legacy location: {self.cache_file}")
-        try:
-            self.cache_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.cache_file, 'w', encoding='utf-8') as f:
-                json.dump(self.cache_data, f, indent=2)
-            if logger:
-                logger.debug(f"Saved cache to {self.cache_file} with {len(self.cache_data)} entries")
-        except Exception as e:
-            if logger:
-                logger.warning(f"Failed to save cache to {self.cache_file}: {e}")
+                # If standardized storage fails, log warning but don't fall back to legacy
+                # This ensures we fix standardized storage issues rather than silently using legacy paths
     
     def _get_file_cache_key(self, file_path: Path) -> str:
         """Generate cache key for a file (relative path from project root)."""

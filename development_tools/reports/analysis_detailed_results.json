@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2025-12-16 04:31:25",
-  "source": "python development_tools/run_development_tools.py audit",
-  "audit_tier": 2,
+  "last_generated": "2025-12-16 21:00:18",
+  "source": "python development_tools/run_development_tools.py audit --full",
+  "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2025-12-16T04:31:25.206565",
+  "timestamp": "2025-12-16T21:00:18.072972",
   "successful": [
     "analyze_functions",
     "analyze_function_patterns",
@@ -53,7 +53,7 @@
           "utilities": 0
         }
       },
-      "timestamp": "2025-12-16T04:30:44.856940"
+      "timestamp": "2025-12-16T20:55:33.916344"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -1990,7 +1990,7 @@
           }
         ]
       },
-      "timestamp": "2025-12-16T04:31:15.353083"
+      "timestamp": "2025-12-16T20:56:00.792405"
     },
     "analyze_function_registry": {
       "success": true,
@@ -2702,16 +2702,16 @@
                 "name": "_create_comprehensive_context_prompt"
               },
               {
+                "complexity": 2177,
+                "file": "communication/communication_channels/discord/bot.py",
+                "has_docstring": true,
+                "name": "initialize__register_events"
+              },
+              {
                 "complexity": 2130,
                 "file": "core/user_data_handlers.py",
                 "has_docstring": true,
                 "name": "get_user_data"
-              },
-              {
-                "complexity": 2045,
-                "file": "communication/communication_channels/discord/bot.py",
-                "has_docstring": true,
-                "name": "initialize__register_events"
               },
               {
                 "complexity": 1976,
@@ -3669,6 +3669,12 @@
               },
               {
                 "complexity": 312,
+                "file": "core/error_handling.py",
+                "has_docstring": true,
+                "name": "handle_errors"
+              },
+              {
+                "complexity": 312,
                 "file": "core/scheduler.py",
                 "has_docstring": false,
                 "name": "scheduler_loop"
@@ -3795,12 +3801,6 @@
               },
               {
                 "complexity": 298,
-                "file": "core/error_handling.py",
-                "has_docstring": true,
-                "name": "handle_errors"
-              },
-              {
-                "complexity": 298,
                 "file": "ui/dialogs/task_management_dialog.py",
                 "has_docstring": true,
                 "name": "__init__"
@@ -3885,15 +3885,15 @@
               },
               {
                 "complexity": 283,
+                "file": "core/error_handling.py",
+                "has_docstring": false,
+                "name": "decorator"
+              },
+              {
+                "complexity": 283,
                 "file": "core/scheduler.py",
                 "has_docstring": true,
                 "name": "schedule_new_user"
-              },
-              {
-                "complexity": 282,
-                "file": "core/file_locking.py",
-                "has_docstring": true,
-                "name": "file_lock"
               }
             ],
             "high_complexity_total": 1076,
@@ -4184,7 +4184,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2025-12-16T04:31:05.555689"
+      "timestamp": "2025-12-16T20:55:52.733119"
     },
     "analyze_package_exports": {
       "success": true,
@@ -8672,7 +8672,6 @@
                 "_calculate_energy_score",
                 "_check_and_fix_logging__check_recent_activity_timestamps",
                 "_classify_path",
-                "_coerce_bool",
                 "_create_user_files__account_file",
                 "_ensure_default_loaders_once",
                 "_get_audit_directories",
@@ -8680,7 +8679,6 @@
                 "_get_response_log_filename",
                 "_get_user_data__load_account",
                 "_load_data",
-                "_normalize_contact",
                 "_normalize_path",
                 "_parse_timestamp",
                 "_save_user_data__check_cross_file_invariants",
@@ -9765,7 +9763,6 @@
                 "__init__",
                 "__init____setup_event_loop",
                 "__post_init__",
-                "_ai_enhanced_parse",
                 "_attempt_channel_restart",
                 "_augment_suggestions",
                 "_check_dns_resolution",
@@ -9785,13 +9782,10 @@
                 "_route_bang_command",
                 "_save_welcome_tracking",
                 "_set_status",
-                "clear_welcomed_status",
                 "create_channel",
                 "create_embed",
                 "create_interactive_elements",
-                "get_checkin_view",
                 "get_connection_latency",
-                "get_task_reminder_view",
                 "handle_application_authorized"
               ]
             },
@@ -11088,22 +11082,84 @@
           }
         }
       },
-      "timestamp": "2025-12-16T04:31:24.943692"
+      "timestamp": "2025-12-16T20:56:08.905956"
     },
     "analyze_ascii_compliance": {
       "success": true,
       "data": {
-        "files": {},
-        "file_count": 0,
-        "total_issues": 0
+        "files": {
+          "development_docs/CHANGELOG_DETAIL.md": 1
+        },
+        "file_count": 1,
+        "total_issues": 1
       },
-      "timestamp": "2025-12-16T04:30:47.843547"
+      "timestamp": "2025-12-16T20:55:36.366809"
     },
     "analyze_documentation": {
       "success": true,
       "data": {
         "details": {
           "artifacts": [],
+          "consolidation_recommendations": [
+            {
+              "category": "Development Workflow",
+              "files": [
+                "DOCUMENTATION_GUIDE.md",
+                "DEVELOPMENT_WORKFLOW.md",
+                "development_docs/CHANGELOG_DETAIL.md",
+                "development_docs/PLANS.md",
+                "ai_development_docs/AI_SESSION_STARTER.md",
+                "ai_development_docs/AI_ARCHITECTURE.md",
+                "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+                "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "ai_development_docs/AI_CHANGELOG.md",
+                "ai_development_docs/AI_REFERENCE.md",
+                "ai_development_docs/AI_LOGGING_GUIDE.md",
+                "ai_development_docs/AI_TESTING_GUIDE.md",
+                "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+                "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md",
+                "core/ERROR_HANDLING_GUIDE.md",
+                "logs/LOGGING_GUIDE.md",
+                "tests/TESTING_GUIDE.md",
+                "tests/MANUAL_TESTING_GUIDE.md",
+                "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
+                "tests/MANUAL_DISCORD_TEST_GUIDE.md",
+                "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
+                "communication/COMMUNICATION_GUIDE.md",
+                "communication/communication_channels/discord/DISCORD_GUIDE.md",
+                "scripts/SCRIPTS_GUIDE.md",
+                "ui/UI_GUIDE.md",
+                "ai/SYSTEM_AI_GUIDE.md",
+                "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+                "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
+              ],
+              "priority": "medium",
+              "similarity_score": 0.1921134812376242,
+              "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
+            },
+            {
+              "category": "Testing",
+              "files": [
+                "ai_development_docs/AI_TESTING_GUIDE.md",
+                "tests/TESTING_GUIDE.md",
+                "tests/MANUAL_TESTING_GUIDE.md",
+                "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md"
+              ],
+              "priority": "medium",
+              "similarity_score": 0.26807322366527847,
+              "suggestion": "Consider consolidating testing documentation into a single TESTING_GUIDE.md"
+            },
+            {
+              "category": "High Section Overlap",
+              "files": [
+                "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
+                "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md"
+              ],
+              "overlap_count": 3,
+              "priority": "medium",
+              "suggestion": "These files share 3 sections - consider consolidating or clearly differentiating their purposes"
+            }
+          ],
           "documents": [
             "ARCHITECTURE.md",
             "DEVELOPMENT_WORKFLOW.md",
@@ -11140,6 +11196,555 @@
             "ui/UI_GUIDE.md"
           ],
           "duplicates": [],
+          "file_purposes": {
+            "ARCHITECTURE.md": {
+              "content_length": 17498,
+              "header_info": "# MHM System Architecture\n\n> **File**: `ARCHITECTURE.md`\n> **Audience**: Human developers building or maintaining the platform  \n> **Purpose**: Explain system design, module responsibilities, and data",
+              "section_count": 9,
+              "sections": [
+                "Introduction",
+                "1. Directory Overview",
+                "2. User Data Model",
+                "2.1. User Data Flow Diagram",
+                "3. Data Handling Patterns",
+                "4. Key Modules and Responsibilities",
+                "5. UI Architecture and Naming Conventions",
+                "6. Channel-Agnostic Architecture",
+                "7. Development Notes"
+              ]
+            },
+            "DEVELOPMENT_WORKFLOW.md": {
+              "content_length": 14260,
+              "header_info": "# Development Workflow Guide\n\n> **File**: `DEVELOPMENT_WORKFLOW.md`  \n> **Audience**: Human developer (beginner programmer)  \n> **Purpose**: Safe development practices and day-to-day procedures  \n> **",
+              "section_count": 32,
+              "sections": [
+                "Introduction",
+                "Quick Reference",
+                "1. Safety First",
+                "1.1. Core Safety Rules",
+                "1.2. Pre-Change Checklist",
+                "2. Virtual Environment Best Practices",
+                "2.1. Why It Matters",
+                "2.2. Common Commands (PowerShell)",
+                "2.3. Troubleshooting",
+                "2.4. Configuration and .env"
+              ]
+            },
+            "DOCUMENTATION_GUIDE.md": {
+              "content_length": 31075,
+              "header_info": "# Documentation Guide\n\n> **File**: `DOCUMENTATION_GUIDE.md`  \n> **Audience**: Developers and contributors  \n> **Purpose**: Organize, author, and maintain project documentation  \n> **Style**: Comprehen",
+              "section_count": 32,
+              "sections": [
+                "Introduction",
+                "Quick Reference",
+                "1. Documentation Categories",
+                "1.1. Human-facing documents",
+                "1.2. AI-facing documents",
+                "1.3. Generated and analytical documentation",
+                "2. Standards and Templates",
+                "2.1. Metadata for `.md` documentation files",
+                "2.2. Metadata for `.mdc` rule files",
+                "2.3. Structure guidelines for human-facing docs"
+              ]
+            },
+            "HOW_TO_RUN.md": {
+              "content_length": 7400,
+              "header_info": "# How to Run MHM\n\n\n> **File**: `HOW_TO_RUN.md`\n> **Audience**: New users and developers setting up the project  \n> **Purpose**: Step-by-step setup and launch instructions  \n> **Style**: Clear, beginne",
+              "section_count": 18,
+              "sections": [
+                "Introduction",
+                "1. Quick Start (Recommended)",
+                "1.1. Step 1: Set up Virtual Environment",
+                "1.2. Step 2: Install Dependencies",
+                "1.3. Step 3: Install the Project in Editable Mode",
+                "1.4. Step 4: Configure Environment (Optional)",
+                "1.5. Step 5: Launch the Application",
+                "2. Alternative Commands",
+                "3. Command Reference (Discord and Chat)",
+                "4. Alternative Launch Methods"
+              ]
+            },
+            "PROJECT_VISION.md": {
+              "content_length": 9684,
+              "header_info": "# MHM Project Vision\n\n\n> **File**: `PROJECT_VISION.md`\n> **Audience**: Human Developer, AI Collaborators, and Future Contributors  \n> **Purpose**: Overarching vision, mission, and long-term direction ",
+              "section_count": 42,
+              "sections": [
+                "Introduction",
+                "1. **Core Vision**",
+                "2. **Mission Statement**",
+                "3. **Core Values**",
+                "3.1. **1. Personalized & Adaptive**",
+                "3.2. **2. Hope-Focused & Supportive**",
+                "3.3. **3. Executive Functioning Support**",
+                "4. **Target Users**",
+                "4.1. **Primary User: You**",
+                "4.2. **Secondary Users: Similar Individuals**"
+              ]
+            },
+            "README.md": {
+              "content_length": 14109,
+              "header_info": "# Mental Health Management (MHM)\n\n> **File**: `README.md`\n> **Audience**: Human developer (beginner-friendly)\n> **Purpose**: High-level overview, navigation, and quick start\n> **Style**: Beginner-frie",
+              "section_count": 17,
+              "sections": [
+                "Introduction",
+                "1. Navigation",
+                "2. Features",
+                "3. Quick Start",
+                "3.1. Headless service commands",
+                "4. Documentation",
+                "5. Architecture",
+                "6. AI Integration (Optional)",
+                "7. Project Structure",
+                "8. License and privacy"
+              ]
+            },
+            "TODO.md": {
+              "content_length": 16043,
+              "header_info": "# TODO.md - MHM Project Tasks\n\n> **File**: `TODO.md`\n> **Audience**: Human Developer (Beginner Programmer) and AI collaborators\n> **Purpose**: Current development priorities and planned improvements  ",
+              "section_count": 9,
+              "sections": [
+                "Introduction",
+                "How to Add New TODOs",
+                "High Priority",
+                "Medium Priority",
+                "User Experience Improvements",
+                "Performance Optimizations",
+                "Low Priority",
+                "Documentation",
+                "Testing"
+              ]
+            },
+            "ai/SYSTEM_AI_GUIDE.md": {
+              "content_length": 17921,
+              "header_info": "# AI System Documentation\n\n> **File**: `ai/SYSTEM_AI_GUIDE.md`\n> **Audience**: Developers and AI collaborators working on MHM's AI system\n> **Purpose**: Explain how the AI subsystem is structured, how",
+              "section_count": 26,
+              "sections": [
+                "Introduction",
+                "1. Overview",
+                "2. High-Level Architecture",
+                "2.1. Core components",
+                "2.2. Request / response flow (simplified)",
+                "3. Entry Points and Modes",
+                "3.1. Main runtime entry points",
+                "3.2. Modes",
+                "3.3. Command parsing integration",
+                "4. Context and Conversation State"
+              ]
+            },
+            "ai_development_docs/AI_ARCHITECTURE.md": {
+              "content_length": 8754,
+              "header_info": "# AI Architecture - Quick Reference\n\n> **File**: `ai_development_docs/AI_ARCHITECTURE.md`  \n> **Pair**: [ARCHITECTURE.md](ARCHITECTURE.md)  \n> **Audience**: AI collaborators and tools  \n> **Purpose**:",
+              "section_count": 8,
+              "sections": [
+                "Introduction",
+                "1. Directory Overview",
+                "2. User Data Model",
+                "3. Data Handling Patterns",
+                "4. Key Modules and Responsibilities",
+                "5. UI Architecture and Naming Conventions",
+                "6. Channel-Agnostic Architecture",
+                "7. Development Notes"
+              ]
+            },
+            "ai_development_docs/AI_CHANGELOG.md": {
+              "content_length": 140679,
+              "header_info": "# AI Changelog - Brief Summary for AI Context\n\n\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent ch",
+              "section_count": 166,
+              "sections": [
+                "Introduction",
+                "Overview",
+                "How to Update This File",
+                "YYYY-MM-DD - Brief Title **COMPLETED**",
+                "Recent Changes (Most Recent First)",
+                "2025-12-16 - Legacy Reference Cleanup: Complete Removal and Documentation Cleanup **COMPLETED**",
+                "2025-12-16 - Legacy Reference Discovery and Manual Fix Documentation **COMPLETED**",
+                "2025-12-16 - Phase 1 Error Handling: High-Priority Candidates Complete **COMPLETED**",
+                "2025-12-15 - Development Tools Bug Fixes and Improvements **COMPLETED**",
+                "2025-01-14 - Compliance Review and Refactoring Cleanup **COMPLETED**"
+              ]
+            },
+            "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
+              "content_length": 12042,
+              "header_info": "# AI Development Workflow Guide\n\n> **File**: `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`  \n> **Pair**: [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md)\n> **Audience**: AI collaborators and tool",
+              "section_count": 12,
+              "sections": [
+                "Introduction",
+                "Quick Reference",
+                "1. Safety First",
+                "2. Virtual Environment Best Practices",
+                "3. Development Process",
+                "4. Testing Strategy",
+                "5. Common Tasks",
+                "6. Emergency Procedures",
+                "7. Learning Resources",
+                "8. Success Tips"
+              ]
+            },
+            "ai_development_docs/AI_DOCUMENTATION_GUIDE.md": {
+              "content_length": 13719,
+              "header_info": "# AI Documentation Guide\n\n> **File**: `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`\n> **Pair**: [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md)\n> **Audience**: AI collaborators and tools\n> **Purpos",
+              "section_count": 19,
+              "sections": [
+                "Introduction",
+                "Quick Reference",
+                "1. Documentation Categories",
+                "1.1. Detailed documentation",
+                "1.2. AI-facing documents",
+                "1.3. Generated and analytical docs",
+                "2. Standards and Templates",
+                "2.1. Heading numbering standard",
+                "2.2. Example marking standards",
+                "2.3. File path reference standards"
+              ]
+            },
+            "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md": {
+              "content_length": 8852,
+              "header_info": "# AI Error Handling Guide\n\n> **File**: `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`  \n> **Pair**: [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md)  \n> **Audience**: AI collaborators and too",
+              "section_count": 12,
+              "sections": [
+                "Introduction",
+                "1. Purpose and Design Principles",
+                "2. Architecture Overview",
+                "3. Usage Patterns",
+                "4. Error Categories and Severity",
+                "5. Error Message Guidelines",
+                "6. Configuration and Integration",
+                "7. Testing Error Handling",
+                "8. Monitoring and Debugging",
+                "9. Legacy and Migration"
+              ]
+            },
+            "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md": {
+              "content_length": 6496,
+              "header_info": "# AI Legacy Code Removal Guide\n\n> **File**: `ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md`\n> **Audience**: AI collaborators and developers cleaning up deprecated code paths\n> **Purpose**: Routing an",
+              "section_count": 8,
+              "sections": [
+                "Introduction",
+                "Quick Reference",
+                "1. Standards",
+                "2. Process",
+                "3. Checklist",
+                "4. Tools",
+                "5. Best Practices",
+                "6. Success Criteria"
+              ]
+            },
+            "ai_development_docs/AI_LOGGING_GUIDE.md": {
+              "content_length": 8089,
+              "header_info": "# AI Logging Guide\n\n> **File**: `ai_development_docs/AI_LOGGING_GUIDE.md`  \n> **Pair**: [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)  \n> **Audience**: AI assistants and automation tools  \n> **Purpose**: ",
+              "section_count": 11,
+              "sections": [
+                "Introduction",
+                "1. Purpose and Scope",
+                "2. Logging Architecture",
+                "3. Log Levels and When to Use Them",
+                "4. Component Log Files and Layout",
+                "5. Configuration (Environment Variables)",
+                "6. Log Rotation, Backups, and Archival",
+                "7. Legacy Compatibility Logging Standard",
+                "8. Maintenance and Cleanup",
+                "9. Best Practices"
+              ]
+            },
+            "ai_development_docs/AI_REFERENCE.md": {
+              "content_length": 3776,
+              "header_info": "# AI Reference - Troubleshooting & System Understanding\n\n\n> **File**: `ai_development_docs/AI_REFERENCE.md`\n> **Purpose**: Troubleshooting patterns and deep system understanding for AI collaborators  ",
+              "section_count": 13,
+              "sections": [
+                "Introduction",
+                "1. Troubleshooting Patterns",
+                "1.1. Documentation appears incomplete",
+                "1.2. Code change introduced failures",
+                "1.3. PowerShell command failed",
+                "1.4. User questions accuracy",
+                "2. Communication Patterns",
+                "3. System Understanding",
+                "3.1. Critical files (do not break)",
+                "3.2. Data flow patterns"
+              ]
+            },
+            "ai_development_docs/AI_SESSION_STARTER.md": {
+              "content_length": 6935,
+              "header_info": "# AI Session Starter\n\n> **File**: `ai_development_docs/AI_SESSION_STARTER.md`\n> **Audience**: AI collaborators working on the MHM codebase and docs\n> **Purpose**: Provide a compact starting point for ",
+              "section_count": 8,
+              "sections": [
+                "Introduction",
+                "1. Starting a Session",
+                "2. Core AI References",
+                "3. Safe Change Rules",
+                "4. Typical Tasks and Where to Look",
+                "4.1. \"Help me edit documentation\"",
+                "4.2. \"Help me refactor or clean up code\"",
+                "4.3. \"Help me understand the system\""
+              ]
+            },
+            "ai_development_docs/AI_TESTING_GUIDE.md": {
+              "content_length": 9792,
+              "header_info": "# AI Testing Guide\n\n> **File**: `ai_development_docs/AI_TESTING_GUIDE.md`  \n> **Pair**: [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)  \n> **Audience**: AI collaborators and tools  \n> **Purpose**: Routing",
+              "section_count": 9,
+              "sections": [
+                "Introduction",
+                "1. Purpose and Scope",
+                "2. Test Layout and Types",
+                "3. Fixtures, Utilities, and Safety",
+                "4. Running Automated Tests",
+                "5. Parallel Execution and Coverage",
+                "6. Writing and Extending Tests",
+                "7. Debugging and Troubleshooting",
+                "8. Manual and Channel-Specific Testing Overview"
+              ]
+            },
+            "communication/COMMUNICATION_GUIDE.md": {
+              "content_length": 11766,
+              "header_info": "# Communication Module - Channel-Agnostic Architecture\n\n> **File**: `communication/COMMUNICATION_GUIDE.md`  \n> **Audience**: Developers and maintainers working on communication channels and message fl",
+              "section_count": 16,
+              "sections": [
+                "Introduction",
+                "1. Core Principle",
+                "2. Architecture Layers",
+                "2.1. High-Level Flow",
+                "2.2. Message Models",
+                "2.3. Message Processing (`communication/message_processing/`)",
+                "2.4. Channel Base and Adapters (`communication/communication_channels/`)",
+                "3. Key Patterns",
+                "3.1. Error Handling Boundaries",
+                "3.2. Logging"
+              ]
+            },
+            "communication/communication_channels/discord/DISCORD_GUIDE.md": {
+              "content_length": 15924,
+              "header_info": "# Discord Channel Guide\n\n> **File**: `communication/communication_channels/discord/DISCORD_GUIDE.md`  \n> **Audience**: Developers and maintainers working on the Discord channel  \n> **Purpose**: Docume",
+              "section_count": 22,
+              "sections": [
+                "Introduction",
+                "1. Purpose and Scope",
+                "2. Discord Channel Architecture",
+                "3. Bot Lifecycle and Connection Management",
+                "3.1. Startup",
+                "3.2. Shutdown and Disconnects",
+                "4. Message and Interaction Flow",
+                "4.1. Messages",
+                "4.2. Reactions and Membership Events",
+                "4.3. UI Views and Button Callbacks"
+              ]
+            },
+            "core/ERROR_HANDLING_GUIDE.md": {
+              "content_length": 17987,
+              "header_info": "# Error Handling Guide\n\n> **File**: `core/ERROR_HANDLING_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on MHM  \n> **Purpose**: Centralized error handling patterns, categories, and i",
+              "section_count": 24,
+              "sections": [
+                "Introduction",
+                "1. Purpose and Design Principles",
+                "2. Architecture Overview",
+                "2.1. Core types and hierarchy",
+                "2.2. Recovery strategies",
+                "2.3. Error handler and helpers",
+                "2.4. Decorators and utilities",
+                "2.5. Integration with logging",
+                "3. Usage Patterns",
+                "3.1. Decorated functions (preferred)"
+              ]
+            },
+            "development_docs/CHANGELOG_DETAIL.md": {
+              "content_length": 927805,
+              "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
+              "section_count": 319,
+              "sections": [
+                "Introduction",
+                "Overview",
+                "How to Update This File",
+                "How to Add Changes",
+                "YYYY-MM-DD - Brief Title",
+                "Recent Changes (Most Recent First)",
+                "2025-12-16 - Legacy Reference Cleanup: Complete Removal and Documentation Cleanup **COMPLETED**",
+                "2025-12-16 - Legacy Reference Discovery and Manual Fix Guide Creation **COMPLETED**",
+                "2025-12-16 - Phase 1 Error Handling Refactoring: High-Priority Candidates **COMPLETED**",
+                "2025-12-15 - Development Tools Bug Fixes and Improvements **COMPLETED**"
+              ]
+            },
+            "development_docs/PLANS.md": {
+              "content_length": 58499,
+              "header_info": "# MHM Development Plans\n\n\n> **File**: `development_docs/PLANS.md`\n> **Audience**: Human Developer & AI Collaborators  \n> **Purpose**: Consolidated development plans (grouped, interdependent work) with",
+              "section_count": 45,
+              "sections": [
+                "Introduction",
+                "[ACTIVE] **Current Active Plans**",
+                "**Test Suite Performance Optimization Plan** **ON HOLD**",
+                "**Error Handling Quality Improvement Plan** **IN PROGRESS**",
+                "**AI Chatbot Actionability Sprint** **IN PROGRESS**",
+                "**Discord App/Bot Capabilities Exploration** **PLANNING**",
+                "**Account Management System Improvements** **MOSTLY COMPLETE**",
+                "**Mood-Aware Support Calibration** **PLANNING**",
+                "**2025-09-16 - High Complexity Function Refactoring - Phase 2** **IN PROGRESS**",
+                "**Message Deduplication Advanced Features**"
+              ]
+            },
+            "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
+              "content_length": 16322,
+              "header_info": "# AI Development Tools Guide\n\n> **File**: `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`  \n> **Audience**: AI collaborators and automated tooling  \n> **Purpose**: Routing and constraints for all AI",
+              "section_count": 11,
+              "sections": [
+                "Introduction",
+                "1. Purpose and Scope",
+                "2. Running the Tool Suite",
+                "3. Audit Modes and Outputs",
+                "3.1. Tier 1: Quick Audit - `audit --quick`",
+                "3.2. Tier 2: Standard Audit - `audit` (default)",
+                "3.3. Tier 3: Full Audit - `audit --full`",
+                "4. Tool Catalog and Tiering",
+                "4.1. Naming Conventions",
+                "5. Operating Standards and Maintenance"
+              ]
+            },
+            "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
+              "content_length": 28139,
+              "header_info": "# Development Tools Guide\n\n> **File**: `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`  \n> **Audience**: Human maintainers and contributors  \n> **Purpose**: Detailed reference for every development too",
+              "section_count": 17,
+              "sections": [
+                "Introduction",
+                "1. Purpose and Scope",
+                "2. Running the Tool Suite",
+                "2.1. Global Options",
+                "2.2. Command Examples",
+                "2.3. Command Summary",
+                "2.4. Entry Point Expectations",
+                "2.5. Service Architecture",
+                "3. Audit Modes and Outputs",
+                "4. Tool Catalog and Tiering"
+              ]
+            },
+            "logs/LOGGING_GUIDE.md": {
+              "content_length": 11151,
+              "header_info": "# Logging Guide\n\n> **File**: `logs/LOGGING_GUIDE.md`  \n> **Audience**: Developers and maintainers  \n> **Purpose**: Describe logging architecture, behavior, and maintenance tasks for MHM  \n> **Style**:",
+              "section_count": 32,
+              "sections": [
+                "Introduction",
+                "1. Purpose and Scope",
+                "2. Logging Architecture",
+                "2.1. Central logger module",
+                "2.2. Component loggers",
+                "2.3. Format",
+                "3. Log Levels and When to Use Them",
+                "3.1. DEBUG",
+                "3.2. INFO",
+                "3.3. WARNING"
+              ]
+            },
+            "scripts/SCRIPTS_GUIDE.md": {
+              "content_length": 6685,
+              "header_info": "# Scripts Directory\n\n\n> **File**: `scripts/SCRIPTS_GUIDE.md`\n> **Audience**: Developers using MHM utility scripts and tools  \n> **Purpose**: Guide for utility scripts, migration tools, and testing scr",
+              "section_count": 14,
+              "sections": [
+                "Introduction",
+                "Quick Reference",
+                "1. Structure",
+                "2. Available Scripts",
+                "2.1. Project Cleanup (`scripts/`)",
+                "2.2. Testing Tools (`testing/`)",
+                "2.3. AI Testing (`testing/ai/`)",
+                "2.4. Debug Tools (`debug/`)",
+                "2.5. Utilities (`utilities/`)",
+                "2.6. Cleanup Tools (`utilities/cleanup/`)"
+              ]
+            },
+            "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md": {
+              "content_length": 10411,
+              "header_info": "# Development Tools Testing Guide\n\n> **File**: `tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on development tools  \n> **Purpose**: Quick reference f",
+              "section_count": 21,
+              "sections": [
+                "Introduction",
+                "1. Quick Start",
+                "2. Test Suite Structure",
+                "3. Prerequisites",
+                "4. Test Fixtures and Isolation",
+                "4.1. Synthetic Demo Project",
+                "4.2. Test Configuration",
+                "4.3. Temporary Project Copies",
+                "5. Critical Safety Rules",
+                "5.1. Never Modify Real Project Files"
+              ]
+            },
+            "tests/MANUAL_DISCORD_TEST_GUIDE.md": {
+              "content_length": 7077,
+              "header_info": "# Manual Discord Testing Guide\n\n> **File**: `tests/MANUAL_DISCORD_TEST_GUIDE.md`  \n> **Audience**: Developers and AI assistants performing manual Discord testing  \n> **Purpose**: Manual testing proced",
+              "section_count": 10,
+              "sections": [
+                "Introduction",
+                "1. Prerequisites",
+                "2. Task Reminder Follow-up Flow Testing",
+                "2.1. Basic Test Scenarios",
+                "2.2. Edge Cases",
+                "3. Verification Commands",
+                "4. Success Criteria",
+                "5. Known Issues to Watch For",
+                "6. Reporting Results",
+                "7. Quick Test Checklist"
+              ]
+            },
+            "tests/MANUAL_TESTING_GUIDE.md": {
+              "content_length": 11513,
+              "header_info": "# Manual Testing Guide\n\n> **File**: `tests/MANUAL_TESTING_GUIDE.md`  \n> **Audience**: Developers and AI assistants performing manual testing  \n> **Purpose**: Canonical manual testing flows and checkli",
+              "section_count": 26,
+              "sections": [
+                "Introduction",
+                "1. Purpose and Scope",
+                "2. Core Manual Flows",
+                "2.1. Application startup and shutdown",
+                "2.2. Basic configuration and environment",
+                "3. UI Manual Testing",
+                "3.1. Layout and visual checks",
+                "3.2. Navigation and interaction",
+                "3.3. Validation and error feedback",
+                "4. Scheduling & Reminder Manual Tests"
+              ]
+            },
+            "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md": {
+              "content_length": 4945,
+              "header_info": "# System AI Functionality Testing Guide\n\n> **File**: `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on MHM AI functionality  \n> **Purpose**: Quick",
+              "section_count": 10,
+              "sections": [
+                "Introduction",
+                "1. Quick Start",
+                "2. Test Suite Structure",
+                "3. Prerequisites",
+                "4. Test Data Scenarios",
+                "5. Logging Behavior",
+                "6. Test Features",
+                "7. Test Categories",
+                "8. Known Issues",
+                "9. Cleanup"
+              ]
+            },
+            "tests/TESTING_GUIDE.md": {
+              "content_length": 22125,
+              "header_info": "# Testing Guide\n\n> **File**: `tests/TESTING_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on MHM  \n> **Purpose**: Comprehensive testing framework focused on real behavior, integrati",
+              "section_count": 36,
+              "sections": [
+                "Introduction",
+                "1. Purpose and Scope",
+                "2. Test Layout and Types",
+                "2.1. Discovery rules",
+                "2.2. Test types",
+                "2.3. Where to put new tests",
+                "3. Fixtures, Utilities, and Safety",
+                "3.1. Shared fixtures and hooks",
+                "3.2. Test utilities and helpers",
+                "3.3. Filesystem safety"
+              ]
+            },
+            "ui/UI_GUIDE.md": {
+              "content_length": 7863,
+              "header_info": "# UI Development Guide\n\n> **File**: `ui/UI_GUIDE.md`  \n> **Audience**: Developers working on MHM UI components  \n> **Purpose**: Guide for UI development, generation, and maintenance  \n> **Style**: Tec",
+              "section_count": 5,
+              "sections": [
+                "Introduction",
+                "Quick Reference",
+                "1. UI Generation",
+                "2. File Structure",
+                "3. Usage Pattern"
+              ]
+            }
+          },
           "missing": [],
           "placeholders": [],
           "section_overlaps": {
@@ -11169,87 +11774,27 @@
               "TODO.md",
               "development_docs/CHANGELOG_DETAIL.md"
             ]
-          },
-          "consolidation_recommendations": [
-            {
-              "category": "Development Workflow",
-              "files": [
-                "DOCUMENTATION_GUIDE.md",
-                "DEVELOPMENT_WORKFLOW.md",
-                "development_docs/CHANGELOG_DETAIL.md",
-                "development_docs/PLANS.md",
-                "ai_development_docs/AI_SESSION_STARTER.md",
-                "ai_development_docs/AI_ARCHITECTURE.md",
-                "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
-                "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "ai_development_docs/AI_CHANGELOG.md",
-                "ai_development_docs/AI_REFERENCE.md",
-                "ai_development_docs/AI_LOGGING_GUIDE.md",
-                "ai_development_docs/AI_TESTING_GUIDE.md",
-                "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-                "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md",
-                "core/ERROR_HANDLING_GUIDE.md",
-                "logs/LOGGING_GUIDE.md",
-                "tests/TESTING_GUIDE.md",
-                "tests/MANUAL_TESTING_GUIDE.md",
-                "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
-                "tests/MANUAL_DISCORD_TEST_GUIDE.md",
-                "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
-                "communication/COMMUNICATION_GUIDE.md",
-                "communication/communication_channels/discord/DISCORD_GUIDE.md",
-                "scripts/SCRIPTS_GUIDE.md",
-                "ui/UI_GUIDE.md",
-                "ai/SYSTEM_AI_GUIDE.md",
-                "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
-                "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
-              ],
-              "priority": "medium",
-              "similarity_score": 0.19214831092422713,
-              "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
-            },
-            {
-              "category": "Testing",
-              "files": [
-                "ai_development_docs/AI_TESTING_GUIDE.md",
-                "tests/TESTING_GUIDE.md",
-                "tests/MANUAL_TESTING_GUIDE.md",
-                "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md"
-              ],
-              "priority": "medium",
-              "similarity_score": 0.26807322366527847,
-              "suggestion": "Consider consolidating testing documentation into a single TESTING_GUIDE.md"
-            },
-            {
-              "category": "High Section Overlap",
-              "files": [
-                "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
-                "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md"
-              ],
-              "overlap_count": 3,
-              "priority": "medium",
-              "suggestion": "These files share 3 sections - consider consolidating or clearly differentiating their purposes"
-            }
-          ]
+          }
         },
         "summary": {
           "files_affected": 0,
           "total_issues": 0
         }
       },
-      "timestamp": "2025-12-16T04:30:56.030050"
+      "timestamp": "2025-12-16T20:55:44.025280"
     },
     "analyze_documentation_sync": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 0,
+          "total_issues": 1,
           "files_affected": 0,
-          "status": "PASS"
+          "status": "FAIL"
         },
         "details": {
           "paired_doc_issues": 0,
           "path_drift_issues": 0,
-          "ascii_compliance_issues": 0,
+          "ascii_compliance_issues": 1,
           "heading_numbering_issues": 0,
           "missing_address_issues": 0,
           "unconverted_link_issues": 0,
@@ -11261,9 +11806,11 @@
             "detailed_issues": {}
           },
           "ascii_compliance": {
-            "files": {},
-            "file_count": 0,
-            "total_issues": 0
+            "files": {
+              "development_docs/CHANGELOG_DETAIL.md": 1
+            },
+            "file_count": 1,
+            "total_issues": 1
           },
           "heading_numbering": {
             "files": {},
@@ -11282,7 +11829,7 @@
           }
         }
       },
-      "timestamp": "2025-12-16T04:30:51.672939"
+      "timestamp": "2025-12-16T20:55:39.691377"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -11291,7 +11838,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-16T04:30:48.801497"
+      "timestamp": "2025-12-16T20:55:37.265610"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -11300,7 +11847,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-16T04:30:50.615734"
+      "timestamp": "2025-12-16T20:55:38.836632"
     },
     "analyze_path_drift": {
       "success": true,
@@ -11309,7 +11856,7 @@
         "total_issues": 0,
         "detailed_issues": {}
       },
-      "timestamp": "2025-12-16T04:30:46.878062"
+      "timestamp": "2025-12-16T20:55:35.459420"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -11318,7 +11865,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-16T04:30:51.662349"
+      "timestamp": "2025-12-16T20:55:39.689284"
     },
     "analyze_error_handling": {
       "success": true,
@@ -11328,15 +11875,15 @@
           "files_affected": 0
         },
         "details": {
-          "total_functions": 1478,
-          "functions_with_try_except": 620,
-          "functions_with_error_handling": 1478,
+          "total_functions": 1479,
+          "functions_with_try_except": 621,
+          "functions_with_error_handling": 1479,
           "functions_with_decorators": 1414,
           "functions_missing_error_handling": 0,
           "analyze_error_handling": 100.0,
           "error_patterns": {
-            "handle_errors_decorator": 1508,
-            "try_except": 705,
+            "handle_errors_decorator": 1509,
+            "try_except": 706,
             "handle_configuration_error": 4,
             "ValidationError": 16,
             "ConfigurationError": 6,
@@ -11346,21 +11893,31 @@
             "handle_validation_error": 2,
             "handle_ai_error": 16,
             "handle_file_error": 3,
-            "DataError": 14,
-            "CommunicationError": 2,
+            "AIError": 2,
             "FileOperationError": 11,
-            "MHMError": 2,
             "safe_file_operation": 1,
-            "AIError": 2
+            "CommunicationError": 2,
+            "DataError": 14,
+            "MHMError": 2
           },
           "missing_error_handling": [],
           "error_handling_quality": {
             "excellent": 1414,
-            "basic": 53,
+            "basic": 54,
             "good": 11
           },
           "recommendations": [],
           "phase1_candidates": [
+            {
+              "file_path": "communication\\communication_channels\\discord\\bot.py",
+              "function_name": "_on_ready_internal",
+              "line_start": 693,
+              "line_end": 780,
+              "is_async": false,
+              "operation_type": "file_io",
+              "is_entry_point": true,
+              "priority": "high"
+            },
             {
               "file_path": "core\\scheduler.py",
               "function_name": "select_task_for_reminder",
@@ -11834,8 +12391,8 @@
             {
               "file_path": "communication\\core\\channel_monitor.py",
               "function_name": "get_channel_health_status",
-              "line_start": 143,
-              "line_end": 172,
+              "line_start": 156,
+              "line_end": 185,
               "is_async": false,
               "operation_type": "validation",
               "is_entry_point": false,
@@ -11892,8 +12449,9 @@
               "priority": "low"
             }
           ],
-          "phase1_total": 53,
+          "phase1_total": 54,
           "phase1_by_priority": {
+            "high": 1,
             "medium": 45,
             "low": 8
           },
@@ -11934,7 +12492,7 @@
           ]
         }
       },
-      "timestamp": "2025-12-16T04:30:59.316020"
+      "timestamp": "2025-12-16T20:55:46.881147"
     },
     "analyze_test_coverage": {
       "success": true,
@@ -11945,37 +12503,37 @@
         },
         "details": {
           "overall": {
-            "coverage": 71.2,
-            "statements": 27048,
-            "covered": 19267,
-            "missed": 7781,
-            "generated": "2025-12-16T03:30:50.215984"
+            "coverage": 71.6,
+            "statements": 26971,
+            "covered": 19315,
+            "missed": 7656,
+            "generated": "2025-12-16T21:00:00.528614"
           },
           "modules": [
             {
               "module": "communication",
-              "coverage": 68.9,
-              "missed": 2732
+              "coverage": 69.3,
+              "missed": 2692
             },
             {
               "module": "ui",
-              "coverage": 70.4,
-              "missed": 1848
+              "coverage": 70.6,
+              "missed": 1828
             },
             {
               "module": "core",
-              "coverage": 71.2,
-              "missed": 2710
+              "coverage": 71.8,
+              "missed": 2654
             },
             {
               "module": "ai",
-              "coverage": 78.3,
-              "missed": 371
+              "coverage": 78.5,
+              "missed": 367
             },
             {
               "module": "tasks",
-              "coverage": 81.8,
-              "missed": 108
+              "coverage": 82.4,
+              "missed": 103
             },
             {
               "module": "user",
@@ -11986,33 +12544,33 @@
           "worst_files": [
             {
               "path": "communication/communication_channels/discord/bot.py",
-              "coverage": 45.5,
-              "missing": 653
+              "coverage": 46.8,
+              "missing": 636
             },
             {
               "path": "ui/ui_app_qt.py",
-              "coverage": 48.7,
-              "missing": 727
+              "coverage": 49.1,
+              "missing": 709
             },
             {
               "path": "ui/dialogs/account_creator_dialog.py",
-              "coverage": 54.2,
-              "missing": 298
+              "coverage": 54.3,
+              "missing": 296
+            },
+            {
+              "path": "core/file_locking.py",
+              "coverage": 59.4,
+              "missing": 52
             },
             {
               "path": "communication/core/channel_orchestrator.py",
-              "coverage": 60.2,
-              "missing": 404
-            },
-            {
-              "path": "core/service.py",
-              "coverage": 60.9,
-              "missing": 273
+              "coverage": 60.3,
+              "missing": 403
             }
           ]
         }
       },
-      "timestamp": "2025-12-16T03:30:53.639536"
+      "timestamp": "2025-12-16T21:00:04.000121"
     },
     "analyze_test_markers": {
       "success": true,
@@ -12021,19 +12579,19 @@
         "missing": [
           {
             "file": "tests\\development_tools\\test_path_drift_detection.py",
-            "line": 25,
+            "line": 28,
             "name": "test_path_drift_detects_missing_file",
             "type": "function"
           },
           {
             "file": "tests\\development_tools\\test_path_drift_detection.py",
-            "line": 68,
+            "line": 71,
             "name": "test_path_drift_ignores_existing_files",
             "type": "function"
           },
           {
             "file": "tests\\development_tools\\test_path_drift_detection.py",
-            "line": 106,
+            "line": 109,
             "name": "test_path_drift_with_legacy_documentation",
             "type": "function"
           },
@@ -12069,7 +12627,7 @@
           }
         ]
       },
-      "timestamp": "2025-12-16T03:30:55.269251"
+      "timestamp": "2025-12-16T21:00:05.748372"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -12955,15 +13513,15 @@
                 "communication.message_processing.interaction_manager",
                 "communication.message_processing.interaction_manager",
                 "communication.communication_channels.discord.welcome_handler",
-                "communication.communication_channels.discord.webhook_server",
-                "core.config",
-                "communication.communication_channels.discord.welcome_handler",
                 "core.user_management",
                 "communication.communication_channels.discord.welcome_handler",
                 "core.user_data_handlers",
                 "communication.message_processing.interaction_manager",
                 "communication.message_processing.interaction_manager",
                 "core.user_data_handlers",
+                "communication.communication_channels.discord.welcome_handler",
+                "communication.communication_channels.discord.webhook_server",
+                "core.config",
                 "core.user_data_handlers",
                 "communication.communication_channels.discord.account_flow_handler"
               ]
@@ -16211,15 +16769,15 @@
                 "communication.message_processing.interaction_manager",
                 "communication.message_processing.interaction_manager",
                 "communication.communication_channels.discord.welcome_handler",
-                "communication.communication_channels.discord.webhook_server",
-                "core.config",
-                "communication.communication_channels.discord.welcome_handler",
                 "core.user_management",
                 "communication.communication_channels.discord.welcome_handler",
                 "core.user_data_handlers",
                 "communication.message_processing.interaction_manager",
                 "communication.message_processing.interaction_manager",
                 "core.user_data_handlers",
+                "communication.communication_channels.discord.welcome_handler",
+                "communication.communication_channels.discord.webhook_server",
+                "core.config",
                 "core.user_data_handlers",
                 "communication.communication_channels.discord.account_flow_handler"
               ]
@@ -17723,7 +18281,7 @@
           ]
         }
       },
-      "timestamp": "2025-12-16T04:31:13.518996"
+      "timestamp": "2025-12-16T20:55:59.170735"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -17734,16 +18292,16 @@
         },
         "details": {
           "files_scanned": 340,
-          "total_imports": 3868,
+          "total_imports": 3869,
           "documented_dependencies": 340,
-          "standard_library": 1324,
+          "standard_library": 1325,
           "third_party": 577,
           "local_imports": 1967,
           "missing_files": [],
           "missing_sections": []
         }
       },
-      "timestamp": "2025-12-16T04:31:09.221403"
+      "timestamp": "2025-12-16T20:55:55.431045"
     },
     "analyze_module_imports": {
       "success": true,
@@ -18191,6 +18749,13 @@
                   ]
                 },
                 {
+                  "module": "functools",
+                  "as_name": null,
+                  "imported_items": [
+                    "functools"
+                  ]
+                },
+                {
                   "module": "typing",
                   "as_name": null,
                   "imported_items": [
@@ -18416,7 +18981,7 @@
                 }
               ]
             },
-            "total_imports": 36
+            "total_imports": 37
           },
           "core/file_auditor.py": {
             "imports": {
@@ -24945,30 +25510,6 @@
                   ]
                 },
                 {
-                  "module": "communication.communication_channels.discord.webhook_server",
-                  "as_name": null,
-                  "imported_items": [
-                    "WebhookServer"
-                  ]
-                },
-                {
-                  "module": "core.config",
-                  "as_name": null,
-                  "imported_items": [
-                    "DISCORD_WEBHOOK_PORT",
-                    "DISCORD_AUTO_NGROK"
-                  ]
-                },
-                {
-                  "module": "communication.communication_channels.discord.welcome_handler",
-                  "as_name": null,
-                  "imported_items": [
-                    "has_been_welcomed",
-                    "mark_as_welcomed",
-                    "get_welcome_message"
-                  ]
-                },
-                {
                   "module": "core.user_management",
                   "as_name": null,
                   "imported_items": [
@@ -25010,6 +25551,30 @@
                   "as_name": null,
                   "imported_items": [
                     "get_user_data"
+                  ]
+                },
+                {
+                  "module": "communication.communication_channels.discord.welcome_handler",
+                  "as_name": null,
+                  "imported_items": [
+                    "has_been_welcomed",
+                    "mark_as_welcomed",
+                    "get_welcome_message"
+                  ]
+                },
+                {
+                  "module": "communication.communication_channels.discord.webhook_server",
+                  "as_name": null,
+                  "imported_items": [
+                    "WebhookServer"
+                  ]
+                },
+                {
+                  "module": "core.config",
+                  "as_name": null,
+                  "imported_items": [
+                    "DISCORD_WEBHOOK_PORT",
+                    "DISCORD_AUTO_NGROK"
                   ]
                 },
                 {
@@ -50747,7 +51312,7 @@
           }
         }
       },
-      "timestamp": "2025-12-16T04:31:11.371570"
+      "timestamp": "2025-12-16T20:55:57.248872"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -50921,294 +51486,17 @@
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 25,
-          "files_affected": 11
+          "total_issues": 0,
+          "files_affected": 0
         },
         "details": {
-          "findings": {
-            "legacy_compatibility_markers": [
-              [
-                "development_tools\\docs\\analyze_path_drift.py",
-                "#!/usr/bin/env python3\n# TOOL_TIER: core\n# TOOL_PORTABILITY: portable\n\n\"\"\"\nPath Drift Analyzer\n\nThis script checks for path drift between code and documentation. It scans the\ncodebase for file paths and imports, then compares them with paths referenced\nin documentation files. Configuration is loaded from external config file\n(development_tools_config.json) if available, making this tool portable\nacross different projects.\n\nUsage:\n    python docs/analyze_path_drift.py\n\"\"\"\n\nimport re\nimport argparse\nimport sys\nfrom pathlib import Path\nfrom typing import Dict, List, Set, Optional, Any\nfrom collections import defaultdict\n\n# Add project root to path for core module imports\nproject_root = Path(__file__).parent.parent.parent\nif str(project_root) not in sys.path:\n    sys.path.insert(0, str(project_root))\n\nfrom core.logger import get_component_logger\n\n# Handle both relative and absolute imports\nif __name__ != '__main__' and __package__ and '.' in __package__:\n    from .. import config\n    from ..shared.standard_exclusions import should_exclude_file\n    from ..shared.constants import (\n        COMMAND_PATTERNS, COMMON_CLASS_NAMES, COMMON_CODE_PATTERNS,\n        COMMON_FUNCTION_NAMES, COMMON_VARIABLE_NAMES, IGNORED_PATH_PATTERNS,\n        STANDARD_LIBRARY_MODULES, TEMPLATE_PATTERNS, THIRD_PARTY_LIBRARIES,\n        CORE_MODULES\n    )\nelse:\n    from development_tools import config\n    from development_tools.shared.standard_exclusions import should_exclude_file\n    from development_tools.shared.constants import (\n        COMMAND_PATTERNS, COMMON_CLASS_NAMES, COMMON_CODE_PATTERNS,\n        COMMON_FUNCTION_NAMES, COMMON_VARIABLE_NAMES, IGNORED_PATH_PATTERNS,\n        STANDARD_LIBRARY_MODULES, TEMPLATE_PATTERNS, THIRD_PARTY_LIBRARIES,\n        CORE_MODULES\n    )\n\n# Load external config on module import (if not already loaded)\ntry:\n    if hasattr(config, 'load_external_config'):\n        config.load_external_config()\nexcept (AttributeError, ImportError):\n    pass\n\nlogger = get_component_logger(\"development_tools\")\n\n\nclass PathDriftAnalyzer:\n    \"\"\"Analyzes path drift between code and documentation.\"\"\"\n    \n    def __init__(self, project_root: Optional[str] = None, config_path: Optional[str] = None, use_cache: bool = True):\n        \"\"\"\n        Initialize path drift analyzer.\n        \n        Args:\n            project_root: Root directory of the project\n            config_path: Optional path to external config file\n            use_cache: Whether to use mtime-based caching for file analysis\n        \"\"\"\n        # Load external config if provided\n        if config_path:\n            config.load_external_config(config_path)\n        else:\n            config.load_external_config()\n        \n        # Use provided project_root or get from config\n        if project_root:\n            self.project_root = Path(project_root).resolve()\n        else:\n            self.project_root = Path(config.get_project_root()).resolve()\n        \n        # Common path patterns that might drift - improved precision\n        self.path_patterns = [\n            # Only match backtick code that looks like file paths (not code blocks)\n            # Use negative lookahead to avoid matching .md within .mdc or other extensions\n            r'`([a-zA-Z_][a-zA-Z0-9_/]*\\.py)`',\n            r'`([a-zA-Z_][a-zA-Z0-9_/]*\\.md)(?![a-zA-Z0-9])`',  # .md not followed by alphanumeric\n            # Markdown links\n            r'\\[([^\\]]+)\\]\\(([^)]+)\\)',\n            # Python imports - but only in non-code contexts\n            r'from\\s+([a-zA-Z_][a-zA-Z0-9_.]*)\\s+import',\n            r'import\\s+([a-zA-Z_][a-zA-Z0-9_.]*)',\n        ]\n        \n        # Directories to scan for code references - load from config\n        # Use CORE_MODULES from constants (which loads from config) or fall back to scan_directories\n        if CORE_MODULES:\n            self.code_dirs = list(CORE_MODULES)\n        else:\n            # Fall back to scan_directories from config\n            scan_dirs = config.get_scan_directories()\n            self.code_dirs = scan_dirs if scan_dirs else ['core']  # Generic default\n        \n        # Caching - use standardized storage\n        from development_tools.shared.mtime_cache import MtimeFileCache\n        cache_file = self.project_root / \"development_tools\" / \"docs\" / \".path_drift_cache.json\"  # Legacy fallback\n        self.cache = MtimeFileCache(cache_file, self.project_root, use_cache=use_cache,\n                                    tool_name='analyze_path_drift', domain='docs')\n    \n    def _setup_enhanced_filters(self):\n        \"\"\"Setup enhanced filtering patterns to reduce false positives.\"\"\"\n        # Use centralized constants from shared.constants\n        self.stdlib_modules = STANDARD_LIBRARY_MODULES\n        self.third_party_libs = set(THIRD_PARTY_LIBRARIES)\n        self.function_names = set(COMMON_FUNCTION_NAMES)\n        self.class_names = set(COMMON_CLASS_NAMES)\n        self.variable_names = set(COMMON_VARIABLE_NAMES)\n        self.code_patterns = set(COMMON_CODE_PATTERNS)\n        self.ignored_paths = set(IGNORED_PATH_PATTERNS)\n        self.command_patterns = set(COMMAND_PATTERNS)\n        self.template_patterns = set(TEMPLATE_PATTERNS)\n    \n    def _should_skip_path_drift_check(self, doc_file: str) -> bool:\n        \"\"\"Check if a file should be skipped from path drift checking.\n        \n        Skips:\n        - Files with \"PLAN\" in the name (historical context files)\n        - Files in .cursor/plans/ directory\n        - Files in archive directories\n        - Test fixture files (intentional test data, not real documentation issues)\n        \n        Note: Example sections within files are excluded via _is_in_example_context(),\n        not by excluding entire files.\n        \"\"\"\n        doc_file_lower = doc_file.lower()\n        doc_file_path = Path(doc_file)\n        \n        # Skip files with \"PLAN\" in the name (historical context)\n        if 'plan' in doc_file_lower:\n            return True\n        \n        # Skip .cursor/ directory files (plans, rules, etc.)\n        if '.cursor' in doc_file_path.parts:\n            return True\n        \n        # Skip archive directories\n        if 'archive' in doc_file_path.parts:\n            return True\n        \n        # Skip test fixture files (intentional test data, not real documentation issues)\n        # These are in tests/fixtures/ or tests/fixtures/development_tools_demo/\n        if 'tests' in doc_file_path.parts and 'fixtures' in doc_file_path.parts:\n            return True\n        \n        return False\n    \n    def _should_skip_path(self, path: str, doc_file: str) -> bool:\n        \"\"\"Enhanced path filtering to reduce false positives.\"\"\"\n        # Skip URLs and anchors\n        if path.startswith(('http', '#', 'mailto')):\n            return True\n        \n        # Skip Python __future__ feature names (not modules)\n        if path == 'annotations' or path == '__future__':\n            return True\n        \n        # Skip external website references and markdown section headers\n        if path in self.ignored_paths:\n            return True\n        \n        # Skip standard library modules\n        if path in self.stdlib_modules:\n            return True\n        \n        # Skip third-party libraries\n        if path in self.third_party_libs:\n            return True\n        \n        # Skip function names\n        if path in self.function_names:\n            return True\n        \n        # Skip class names\n        if path in self.class_names:\n            return True\n        \n        # Skip variable names and common words\n        if path in self.variable_names:\n            return True\n        \n        # Skip common code patterns\n        if path in self.code_patterns:\n            return True\n        \n        # Skip single words that are clearly not files\n        if len(path.split('.')) == 1 and path.isalpha() and len(path) < 10:\n            return True\n        \n        # Skip Python import patterns that are clearly not files\n        if '.' in path and not path.endswith(('.py', '.md')):\n            # Check if it's a valid Python module pattern\n            parts = path.split('.')\n            if all(part.isidentifier() for part in parts):\n                # This looks like a Python module, not a file\n                return True\n        \n        # Skip command references\n        if any(path.startswith(cmd) for cmd in self.command_patterns):\n            return True\n        \n        # Skip template patterns\n        if any(pattern in path for pattern in self.template_patterns):\n            return True\n        \n        # Skip glob patterns\n        if '*' in path or '?' in path:\n            return True\n        \n        # Skip incomplete patterns\n        if path.endswith('_') or path.startswith('_'):\n            return True\n        \n        # Skip code blocks and method calls\n        if '(' in path and ')' in path:\n            return True\n        \n        # Skip paths that look like method calls or function calls\n        if '.' in path and any(char in path for char in ['(', ')', '=', ' ']):\n            return True\n        \n        # Skip paths that contain Python keywords or operators\n        # Check for whole-word matches only (not substrings)\n        python_keywords = ['def', 'class', 'import', 'from', 'if', 'else', 'for', 'while', 'try', 'except', 'finally', 'with', 'as', 'return', 'yield', 'lambda', 'and', 'or', 'not', 'in', 'is', 'True', 'False', 'None']\n        # Use word boundaries to avoid false positives (e.g., \"in\" in \"nonexistent\")\n        import re\n        for keyword in python_keywords:\n            # Match whole word only, not as substring\n            if re.search(r'\\b' + re.escape(keyword) + r'\\b', path):\n                return True\n        \n        # Skip paths that look like code snippets (contain newlines or are very long)\n        if '\\n' in path or len(path) > 200:\n            return True\n        \n        # Skip paths that contain Python operators\n        if any(op in path for op in ['==', '!=', '<=', '>=', '+=', '-=', '*=', '/=', '%=', '//=', '**=', '&=', '|=', '^=', '<<=', '>>=']):\n            return True\n        \n        return False\n    \n    def _is_likely_code_snippet(self, path: str, line: str) -> bool:\n        \"\"\"Check if a path looks like it's part of a code snippet rather than a file reference.\"\"\"\n        # Skip if it contains method calls\n        if '(' in path and ')' in path:\n            return True\n        \n        # Skip if it contains Python operators\n        if any(op in path for op in ['==', '!=', '<=', '>=', '+=', '-=', '*=', '/=', '%=', '//=', '**=']):\n            return True\n        \n        # Skip if it contains Python keywords\n        python_keywords = ['def', 'class', 'import', 'from', 'if', 'else', 'for', 'while', 'try', 'except', 'finally', 'with', 'as', 'return', 'yield', 'lambda']\n        if any(keyword in path for keyword in python_keywords):\n            return True\n        \n        # Skip if the line looks like code (contains indentation and Python syntax)\n        if line.strip().startswith(('    ', '\\t')) and any(char in line for char in ['(', ')', '=', ':', 'def', 'class', 'import', 'from']):\n            return True\n        \n        # Skip if it's very long (likely a code snippet)\n        if len(path) > 100:\n            return True\n        \n        # Skip if it contains newlines (definitely a code snippet)\n        if '\\n' in path:\n            return True\n        \n        return False\n    \n    def _is_section_header_or_link_text(self, path: str, line: str) -> bool:\n        \"\"\"Check if a path is actually a markdown section header or link text that shouldn't be treated as a file path.\"\"\"\n        # Common section header patterns (title case, multiple words, no file extension)\n        if not path.endswith(('.py', '.md', '.json', '.txt', '.yaml', '.yml', '.toml', '.ini', '.cfg')):\n            # Check if it looks like a section header (title case, spaces, common words)\n            if ' ' in path and path[0].isupper():\n                # Common section header words\n                section_words = [\n                    'overview', 'summary', 'introduction', 'background', 'context',\n                    'recommendations', 'suggestions', 'guidelines', 'best practices',\n                    'implementation', 'status', 'progress', 'analysis', 'review',\n                    'findings', 'conclusion', 'next steps', 'action items', 'todo',\n                    'issues', 'problems', 'solutions', 'approach', 'strategy',\n                    'architecture', 'design', 'structure', 'organization', 'layout'\n                ]\n                path_lower = path.lower()\n                # If it contains section header words and doesn't look like a file path\n                if any(word in path_lower for word in section_words):\n                    # Check if it's in a markdown link pointing to an anchor\n                    if re.search(rf'\\[{re.escape(path)}\\]\\(#', line):\n                        return True\n                    # Check if it's in a numbered list with markdown links\n                    if re.search(rf'^\\d+\\.\\s*\\[{re.escape(path)}\\]\\(#', line):\n                        return True\n        \n        # Skip if it's clearly a section header in a table of contents\n        if re.search(rf'^\\d+\\.\\s*\\[{re.escape(path)}\\]\\(#', line):\n            return True\n        \n        # Skip if it's in a markdown link that points to an anchor (not a file)\n        if re.search(rf'\\[{re.escape(path)}\\]\\(#[^)]+\\)', line):\n            return True\n        \n        return False\n    \n    def _is_in_example_context(self, line: str, lines: List[str], line_num: int) -> bool:\n        \"\"\"\n        Check if a line is in an example context based on documentation standards.\n        \n        Examples must be marked using one of these standards:\n        1. Example markers: [OK], [AVOID], [GOOD], [BAD], [EXAMPLE] at start of section\n        2. Example headings: \"Examples:\", \"Example Usage:\", \"Example Code:\" headings\n        3. Code blocks: Automatically excluded (handled separately)\n        4. Archive references: Lines containing \"archive\" or \"archived\" (for archived file references)\n        5. Example phrases: \"for example\", \"for instance\", \"e.g.\", etc.\n        \n        This method implements the example marking standards defined in DOCUMENTATION_GUIDE.md section 2.6.\n        Uses the same logic as fix_documentation.py for consistency.\n        \"\"\"\n        line_stripped = line.strip()\n        line_lower = line.lower()\n        \n        # Standard 4: Check if line contains \"archive\" or \"archived\" (for archived file references)\n        if 'archive' in line_lower or 'archived' in line_lower:\n            return True\n        \n        # Check for [ARCHIVED] marker (similar to [EXAMPLE])\n        if '[archived]' in line_lower:\n            return True\n        \n        # Standard 5: Check for example phrases in the current line\n        example_phrases = ['for example', 'for instance', 'e.g.,', 'e.g.', 'example:', 'examples:']\n        for phrase in example_phrases:\n            if phrase in line_lower:\n                return True\n        \n        # Standard 1: Check for example markers at the start of the line\n        # These are the official markers per documentation standards\n        example_markers = [\n            r'^\\[OK\\]', r'^\\[AVOID\\]', r'^\\[GOOD\\]', r'^\\[BAD\\]', r'^\\[EXAMPLE\\]',\n        ]\n        for marker in example_markers:\n            if re.match(marker, line_stripped, re.IGNORECASE):\n                return True\n        \n        # Standard 1 & 5 (continued): Check previous lines (up to 10 lines back) for example markers and phrases\n        # This catches cases where [AVOID] or [OK] or [EXAMPLE] or [ARCHIVED] is on a previous line (per standard)\n        for i in range(max(0, line_num - 10), line_num):\n            prev_line = lines[i].strip()\n            prev_line_lower = prev_line.lower()\n            # Check for archive references in previous lines too\n            if 'archive' in prev_line_lower or 'archived' in prev_line_lower:\n                if line_num - i <= 10:  # Within 10 lines of archive reference (extended for [ARCHIVED] sections)\n                    return True\n            # Check for [ARCHIVED] marker in previous lines\n            if '[archived]' in prev_line_lower:\n                if line_num - i <= 10:  # Within 10 lines of [ARCHIVED] marker\n                    return True\n            # Check for example phrases in previous lines\n            for phrase in example_phrases:\n                if phrase in prev_line_lower:\n                    if line_num - i <= 3:  # Within 3 lines of example phrase\n                        return True\n            # Check for example markers in previous lines\n            for marker in example_markers:\n                if re.match(marker, prev_line, re.IGNORECASE):\n                    # If we found a marker, check if current line is part of the example\n                    # (list item, continuation, or within same section)\n                    if line_stripped.startswith(('-', '*', '1.', '2.', '3.', '  ')) or \\\n                       line_num - i <= 10:  # Within 10 lines of the marker (extended for [EXAMPLE] sections)\n                        return True\n        \n        # Standard 2: Check if we're in an \"Examples\" section by looking backwards for section headers\n        # Look back up to 20 lines for section headers (per standard)\n        for i in range(max(0, line_num - 20), line_num):\n            prev_line = lines[i].strip()\n            # Check for \"Examples:\" or \"Example Usage:\" or \"Example Code:\" headings (per standard)\n            if re.match(r'^#+\\s+(Examples?|Example\\s+Usage|Example\\s+Code)', prev_line, re.IGNORECASE):\n                return True\n            # Check for bold \"Examples:\" or \"Example Usage:\" text\n            if re.match(r'^\\*\\*(Examples?|Example\\s+Usage)\\*\\*', prev_line, re.IGNORECASE):\n                return True\n        \n        # Note: Code blocks are handled separately in scan_documentation_paths() by checking in_code_block\n        # This is Standard 3 and doesn't need to be checked here\n        \n        return False\n    \n    def _is_valid_file_reference(self, path: str, source_dir: Path) -> bool:\n        \"\"\"Check if a file reference is valid.\"\"\"\n        # Skip obvious glob patterns\n        if path.startswith('*') or path.endswith('*') or '/*' in path:\n            return True\n        \n        # Skip command references\n        if path.startswith('python ') or path.startswith('pip ') or path.startswith('git '):\n            return True\n        \n        # Skip template patterns\n        if '{' in path and '}' in path:\n            return True\n        \n        # Skip test template patterns\n        if path.startswith('test_<') or path.endswith('>.py'):\n            return True\n        \n        # Check if the file exists\n        file_path = self.project_root / path\n        if file_path.exists():\n            return True\n        \n        # If checking for .md file, also check if .mdc file exists (avoid false positives)\n        if path.endswith('.md'):\n            mdc_path = path[:-2] + 'c'  # Replace .md with .mdc\n            mdc_file = self.project_root / mdc_path\n            if mdc_file.exists():\n                return True  # Valid reference to .mdc file, not a missing .md file\n        \n        # Check relative paths (both ../ paths and same-directory paths)\n        # First check if it's a relative path starting with ../\n        if path.startswith('../'):\n            relative_path = source_dir / path\n            if relative_path.exists():\n                return True\n            \n            # Also check for .mdc variant in relative paths\n            if path.endswith('.md'):\n                mdc_path = path[:-2] + 'c'\n                mdc_relative = source_dir / mdc_path\n                if mdc_relative.exists():\n                    return True\n        else:\n            # For paths without ../, check relative to source file's directory\n            # This handles same-directory references (e.g., config.py in development_tools/)\n            relative_path = source_dir / path\n            if relative_path.exists():\n                return True\n            \n            # Also check for .mdc variant\n            if path.endswith('.md'):\n                mdc_path = path[:-2] + 'c'\n                mdc_relative = source_dir / mdc_path\n                if mdc_relative.exists():\n                    return True\n        \n        return False\n    \n    def _is_valid_module_reference(self, path: str, code_paths: Set[str]) -> bool:\n        \"\"\"Check if a module reference is valid.\"\"\"\n        # Skip if it's a standard library module\n        if path in self.stdlib_modules:\n            return True\n        \n        # Skip if it's a third-party library\n        if path in self.third_party_libs:\n            return True\n        \n        # Skip if it's a function name\n        if path in self.function_names:\n            return True\n        \n        # Skip if it's a class name\n        if path in self.class_names:\n            return True\n        \n        # Skip if it's a variable name\n        if path in self.variable_names:\n            return True\n        \n        # Skip if it's a common code pattern\n        if path in self.code_patterns:\n            return True\n        \n        # Skip valid package-level exports (e.g., CommunicationManager from communication package)\n        # These are valid even if not directly importable via static analysis\n        valid_package_exports = {\n            'CommunicationManager',  # Exported via __getattr__ in communication/__init__.py\n        }\n        if path in valid_package_exports:\n            return True\n        \n        # Check if this path exists in the codebase\n        normalized_path = path.replace('.', '/').replace('\\\\', '/')\n        for code_path in code_paths:\n            if normalized_path in code_path or code_path in normalized_path:\n                return True\n        \n        return False\n    \n    def scan_codebase_paths(self) -> Set[str]:\n        \"\"\"Scan codebase for all file paths and imports.\"\"\"\n        paths = set()\n        \n        for code_dir in self.code_dirs:\n            code_path = self.project_root / code_dir\n            if code_path.exists():\n                for py_file in code_path.rglob(\"*.py\"):\n                    try:\n                        with open(py_file, 'r', encoding='utf-8') as f:\n                            content = f.read()\n                            \n                        # Extract import statements\n                        import_pattern = r'^(?:from\\s+([a-zA-Z_][a-zA-Z0-9_.]*)\\s+import|import\\s+([a-zA-Z_][a-zA-Z0-9_.]*))'\n                        for line in content.split('\\n'):\n                            match = re.match(import_pattern, line.strip())\n                            if match:\n                                module = match.group(1) or match.group(2)\n                                if module and not module.startswith(('os', 'sys', 'pathlib', 'typing')):\n                                    paths.add(module)\n                                    \n                    except Exception as e:\n                        if logger:\n                            logger.warning(f\"Error reading {py_file}: {e}\")\n                        \n        return paths\n    \n    def scan_documentation_paths(self) -> Dict[str, List[str]]:\n        \"\"\"Scan documentation files for path references.\"\"\"\n        # Ensure enhanced filters are set up (needed by filtering methods)\n        if not hasattr(self, 'stdlib_modules'):\n            self._setup_enhanced_filters()\n        \n        doc_paths = defaultdict(list)\n        \n        for md_file in self.project_root.rglob(\"*.md\"):\n            # Skip files that should be excluded\n            # Check path relative to project root to avoid matching parent directory exclusions\n            rel_path = str(md_file.relative_to(self.project_root))\n            if should_exclude_file(rel_path, 'documentation'):\n                continue\n                \n            if md_file.name.startswith('.'):\n                continue\n            \n            # Skip historical changelog files - they contain accurate historical references\n            if 'CHANGELOG_DETAIL.md' in str(md_file) or 'AI_CHANGELOG.md' in str(md_file):\n                continue\n            \n            # Check cache first\n            cached_paths = self.cache.get_cached(md_file)\n            if cached_paths is not None:\n                if cached_paths:\n                    rel_path = str(md_file.relative_to(self.project_root))\n                    doc_paths[rel_path] = cached_paths\n                continue\n                \n            try:\n                with open(md_file, 'r', encoding='utf-8') as f:\n                    content = f.read()\n                    \n                # Extract all path references with context awareness\n                lines = content.split('\\n')\n                in_code_block = False\n                \n                for line_num, line in enumerate(lines):\n                    # Track code block state\n                    if line.strip().startswith('```'):\n                        in_code_block = not in_code_block\n                        continue\n                    \n                    # Skip extraction if we're inside a code block\n                    if in_code_block:\n                        continue\n                    \n                    # Check if this line is in an example context\n                    if self._is_in_example_context(line, lines, line_num):\n                        continue\n                    \n                    # Extract paths from this line\n                    for pattern in self.path_patterns:\n                        matches = re.findall(pattern, line)\n                        for match in matches:\n                            if isinstance(match, tuple):\n                                # Handle regex groups (e.g., markdown links [text](url))\n                                # For markdown links, check if URL part has valid path\n                                if len(match) >= 2:\n                                    link_text = match[0] if match[0] else ''\n                                    url_part = match[1] if match[1] else ''\n                                    \n                                    # Skip if URL part is a valid file reference (has full path or exists)\n                                    if url_part and not url_part.startswith(('http', '#')):\n                                        # Check if URL part is a valid file reference\n                                        source_dir = md_file.parent\n                                        if self._is_valid_file_reference(url_part, source_dir):\n                                            # URL part is valid, skip link text even if it looks like a file path\n                                            # Only process the URL part\n                                            if not self._is_likely_code_snippet(url_part, line):\n                                                if not self._is_section_header_or_link_text(url_part, line):\n                                                    doc_paths[str(md_file.relative_to(self.project_root))].append(url_part)\n                                            continue\n                                        \n                                    # URL part not valid or not a file path, process link text if it looks like a file path\n                                    if link_text and not link_text.startswith(('http', '#')):\n                                        if link_text.endswith(('.py', '.md')) or '/' in link_text or '\\\\' in link_text:\n                                            if not self._is_likely_code_snippet(link_text, line):\n                                                if not self._is_section_header_or_link_text(link_text, line):\n                                                    doc_paths[str(md_file.relative_to(self.project_root))].append(link_text)\n                                else:\n                                    # Single group match, process normally\n                                    for idx, group in enumerate(match):\n                                        if group and not group.startswith(('http', '#')):\n                                            if not self._is_likely_code_snippet(group, line):\n                                                if not self._is_section_header_or_link_text(group, line):\n                                                    doc_paths[str(md_file.relative_to(self.project_root))].append(group)\n                            else:\n                                if match and not match.startswith(('http', '#')):\n                                    # Additional context filtering\n                                    if not self._is_likely_code_snippet(match, line):\n                                        # Skip section headers and common markdown link text\n                                        if not self._is_section_header_or_link_text(match, line):\n                                            doc_paths[str(md_file.relative_to(self.project_root))].append(match)\n                \n                # Cache results for this file\n                rel_path = str(md_file.relative_to(self.project_root))\n                file_paths = doc_paths.get(rel_path, [])\n                self.cache.cache_results(md_file, file_paths)\n                                \n            except Exception as e:\n                if logger:\n                    logger.warning(f\"Error reading {md_file}: {e}\")\n                # Cache empty result for files with errors\n                self.cache.cache_results(md_file, [])\n        \n        # Save cache\n        self.cache.save_cache()\n        \n        return doc_paths\n    \n    def check_path_drift(self) -> Dict[str, List[str]]:\n        \"\"\"\n        Check for path drift between code and documentation.\n        \n        Returns:\n            Dictionary mapping file paths to lists of issues\n        \"\"\"\n        code_paths = self.scan_codebase_paths()\n        doc_paths = self.scan_documentation_paths()\n        \n        drift_issues = defaultdict(list)\n        \n        # Enhanced filtering patterns for false positives\n        self._setup_enhanced_filters()\n        \n        # Files that document legacy patterns (expected to reference old paths)\n        # Use normalized paths (forward slashes) for comparison\n        legacy_documentation_files = {\n            'development_docs/LEGACY_REFERENCE_REPORT.md',\n            'development_docs\\\\LEGACY_REFERENCE_REPORT.md',  # Windows path\n            'development_docs/CHANGELOG_DETAIL.md',  # May contain historical references\n            'development_docs\\\\CHANGELOG_DETAIL.md',  # Windows path\n            'ai_development_docs/AI_CHANGELOG.md',\n            'ai_development_docs\\\\AI_CHANGELOG.md',  # Windows path\n        }\n        \n        # Check if documented paths exist\n        for doc_file, paths in doc_paths.items():\n            # Skip files that shouldn't be checked for path drift\n            if self._should_skip_path_drift_check(doc_file):\n                continue\n            \n            # Get the directory of the source file for relative path resolution\n            source_dir = self.project_root / doc_file\n            if source_dir.is_file():\n                source_dir = source_dir.parent\n            \n            # Skip legacy documentation files - they intentionally reference old paths\n            # Normalize path for comparison (handle both / and \\)\n            normalized_doc_file = doc_file.replace('\\\\', '/')\n            if normalized_doc_file in legacy_documentation_files or doc_file in legacy_documentation_files:\n                continue\n            \n            for path in paths:\n                # Apply enhanced filtering\n                if self._should_skip_path(path, doc_file):\n                    continue\n                \n                # Check if it's a markdown file reference\n                if path.endswith('.md') or path.endswith('.py'):\n                    if self._is_valid_file_reference(path, source_dir):\n                        continue\n                    else:\n                        drift_issues[doc_file].append(f\"Missing file: {path}\")\n                else:\n                    # Check if it's a Python module reference\n                    if self._is_valid_module_reference(path, code_paths):\n                        continue\n                    else:\n                        drift_issues[doc_file].append(f\"Potentially outdated module: {path}\")\n                    \n        return drift_issues\n    \n    def run_analysis(self) -> Dict[str, Any]:\n        \"\"\"\n        Run path drift analysis and return results in standard format.\n        \n        Returns:\n            Dictionary with standard format: 'summary', 'files', and 'details' keys\n        \"\"\"\n        drift_issues = self.check_path_drift()\n        \n        # Convert to structured format\n        files = {}\n        total_issues = 0\n        for doc_file, issues in drift_issues.items():\n            issue_count = len(issues)\n            files[doc_file] = issue_count\n            total_issues += issue_count\n        \n        # Return standard format\n        return {\n            'summary': {\n                'total_issues': total_issues,\n                'files_affected': len(files)\n            },\n            'files': files,\n            'details': {\n                'detailed_issues': dict(drift_issues)  # Keep detailed issues for reference\n            }\n        }\n\n\ndef main():\n    \"\"\"Main entry point.\"\"\"\n    parser = argparse.ArgumentParser(description=\"Check for path drift between code and documentation\")\n    parser.add_argument('--json', action='store_true', help='Output results as JSON')\n    \n    args = parser.parse_args()\n    \n    analyzer = PathDriftAnalyzer()\n    structured_results = analyzer.run_analysis()\n    \n    if args.json:\n        import json\n        print(json.dumps(structured_results, indent=2))\n        return 0\n    \n    # Print results in human-readable format\n    # LEGACY COMPATIBILITY: Handle both standard format (new) and legacy format (old)\n    # Standard format uses 'summary' key; legacy format has 'total_issues' at top level\n    # Removal plan: After all callers are updated to use standard format, remove legacy format handling.\n    # Detection: Search for \"Legacy format (backward compatibility)\" in this file.\n    if 'summary' in structured_results:\n        # Standard format\n        summary = structured_results.get('summary', {})\n        total_issues = summary.get('total_issues', 0)\n        files = structured_results.get('files', {})\n        details = structured_results.get('details', {})\n        results = details.get('detailed_issues', {})\n    else:\n        # Legacy format (backward compatibility)\n        logger.debug(\"analyze_path_drift main: Using legacy format (backward compatibility)\")\n        results = structured_results.get('detailed_issues', {})\n        total_issues = structured_results.get('total_issues', 0)\n        files = structured_results.get('files', {})\n    \n    if results:\n        print(f\"\\nPath Drift Issues:\")\n        print(f\"   Total files with issues: {len(results)}\")\n        print(f\"   Total issues found: {total_issues}\")\n        print(f\"   Top files with most issues:\")\n        sorted_files = sorted(files.items(), key=lambda x: x[1], reverse=True)\n        for doc_file, issue_count in sorted_files[:5]:\n            print(f\"     {doc_file}: {issue_count} issues\")\n    else:\n        print(\"\\nNo path drift issues found!\")\n    \n    return 0 if not results else 1\n\n\nif __name__ == \"__main__\":\n    sys.exit(main())\n\n",
-                [
-                  {
-                    "pattern": "# LEGACY COMPATIBILITY:",
-                    "match": "# LEGACY COMPATIBILITY:",
-                    "line": 751,
-                    "line_content": "# LEGACY COMPATIBILITY: Handle both standard format (new) and legacy format (old)",
-                    "start": 34022,
-                    "end": 34045
-                  }
-                ]
-              ],
-              [
-                "development_tools\\shared\\cli_interface.py",
-                "\"\"\"\nCLI interface for development tools.\n\nContains command handlers and COMMAND_REGISTRY for the command-line interface.\n\"\"\"\n\nimport argparse\nfrom collections import OrderedDict\nfrom dataclasses import dataclass\nfrom typing import Callable, Sequence\n\nfrom core.logger import get_component_logger\n\nlogger = get_component_logger(\"development_tools\")\n\n# Import AIToolsService type for type hints\nfrom typing import TYPE_CHECKING\nif TYPE_CHECKING:\n    from .service.core import AIToolsService\n\n\n@dataclass(frozen=True)\nclass CommandRegistration:\n    \"\"\"Command registration dataclass for CLI interface.\"\"\"\n\n    name: str\n    handler: Callable[[\"AIToolsService\", Sequence[str]], int]\n    help: str\n    description: str = ''\n\n\ndef _print_command_help(parser: argparse.ArgumentParser) -> None:\n    \"\"\"Print command help.\"\"\"\n    parser.print_help()\n    print()\n\n\ndef _audit_command(service: \"AIToolsService\", argv: Sequence[str]) -> int:\n    parser = argparse.ArgumentParser(prog='audit', add_help=False)\n    parser.add_argument('--full', action='store_true', help='Run comprehensive audit (Tier 3 - includes coverage and dependencies).')\n    parser.add_argument('--quick', action='store_true', help='Run quick audit (Tier 1 - core metrics only).')\n    \n    # LEGACY COMPATIBILITY\n    # --fast flag is deprecated in favor of --quick for consistency with tier naming.\n    # Removal plan: Remove --fast flag after one release cycle. Update any scripts/docs using --fast.\n    # Detection: Search for \"--fast\" in scripts, documentation, and usage examples.\n    parser.add_argument('--fast', action='store_true', help='[DEPRECATED] Use --quick instead. Force fast audit (skip coverage).')\n    parser.add_argument('--include-tests', action='store_true', help='Include test files in analysis.')\n    parser.add_argument('--include-dev-tools', action='store_true', help='Include development_tools in analysis.')\n    parser.add_argument('--include-all', action='store_true', help='Include tests and dev tools (equivalent to --include-tests --include-dev-tools).')\n    parser.add_argument('--overlap', action='store_true', help='Include overlap analysis in documentation analysis (section overlaps and consolidation recommendations).')\n\n    if any(arg in ('-h', '--help') for arg in argv):\n        _print_command_help(parser)\n        return 0\n\n    ns = parser.parse_args(list(argv))\n\n    # Determine audit tier based on flags\n    quick_mode = ns.quick\n    full_mode = ns.full\n    \n    # LEGACY COMPATIBILITY: Handle deprecated --fast flag\n    if ns.fast and not ns.quick and not ns.full:\n        quick_mode = True\n        logger.warning(\"LEGACY: --fast flag is deprecated. Use --quick instead.\")\n\n    # Set exclusion configuration\n    service.set_exclusion_config(\n        include_tests=ns.include_tests or ns.include_all,\n        include_dev_tools=ns.include_dev_tools or ns.include_all\n    )\n\n    success = service.run_audit(quick=quick_mode, full=full_mode, include_overlap=ns.overlap)\n    return 0 if success else 1\n\n\ndef _docs_command(service: \"AIToolsService\", argv: Sequence[str]) -> int:\n    if argv:\n        if any(arg not in ('-h', '--help') for arg in argv):\n            print(\"The 'docs' command does not accept additional arguments.\")\n            return 2\n        print(\"Usage: docs\")\n        return 0\n\n    success = service.run_docs()\n    return 0 if success else 1\n\n\ndef _validate_command(service: \"AIToolsService\", argv: Sequence[str]) -> int:\n    if argv:\n        if any(arg not in ('-h', '--help') for arg in argv):\n            print(\"The 'validate' command does not accept additional arguments.\")\n            return 2\n        print(\"Usage: validate\")\n        return 0\n\n    success = service.run_validate()\n    return 0 if success else 1\n\n\ndef _config_command(service: \"AIToolsService\", argv: Sequence[str]) -> int:\n    if argv:\n        if any(arg not in ('-h', '--help') for arg in argv):\n            print(\"The 'config' command does not accept additional arguments.\")\n            return 2\n        print(\"Usage: config\")\n        return 0\n\n    success = service.run_config()\n    return 0 if success else 1\n\n\ndef _workflow_command(service: \"AIToolsService\", argv: Sequence[str]) -> int:\n    parser = argparse.ArgumentParser(prog='workflow', add_help=False)\n    parser.add_argument('task_type', help='Workflow task to execute')\n\n    if any(arg in ('-h', '--help') for arg in argv):\n        _print_command_help(parser)\n        return 0\n\n    if not argv:\n        print(\"Usage: workflow <task_type>\")\n        return 2\n\n    ns = parser.parse_args(list(argv))\n    success = service.run_workflow(ns.task_type)\n    return 0 if success else 1\n\n\n# LEGACY COMPATIBILITY\n# quick-audit command is deprecated in favor of 'audit --quick' for consistency.\n# Removal plan: Remove quick-audit command and _quick_audit_command handler after one release cycle.\n# Detection: Search for \"quick-audit\" in scripts, documentation, and usage examples.\ndef _quick_audit_command(service: \"AIToolsService\", argv: Sequence[str]) -> int:\n    if argv:\n        if any(arg not in ('-h', '--help') for arg in argv):\n            print(\"The 'quick-audit' command does not accept additional arguments.\")\n            print(\"Note: 'quick-audit' is deprecated. Use 'audit --quick' instead.\")\n            return 2\n        print(\"Usage: quick-audit\")\n        print(\"Note: This command is deprecated. Use 'audit --quick' instead.\")\n        return 0\n\n    # LEGACY: quick-audit command - redirect to audit --quick\n    logger.warning(\"LEGACY: 'quick-audit' command is deprecated. Use 'audit --quick' instead.\")\n    success = service.run_audit(quick=True)\n    return 0 if success else 1\n\n\ndef _decision_support_command(service: \"AIToolsService\", argv: Sequence[str]) -> int:\n    if argv:\n        if any(arg not in ('-h', '--help') for arg in argv):\n            print(\"The 'decision-support' command does not accept additional arguments.\")\n            return 2\n        print(\"Usage: decision-support\")\n        return 0\n\n    result = service.run_decision_support()\n    return 0 if (isinstance(result, dict) and result.get('success', False)) or result else 1\n\n\ndef _fix_version_sync_command(service: \"AIToolsService\", argv: Sequence[str]) -> int:\n    parser = argparse.ArgumentParser(prog='version-sync', add_help=False)\n    parser.add_argument('scope', nargs='?', default='docs', help='Scope to sync (docs, core, ai_docs, all).')\n\n    if any(arg in ('-h', '--help') for arg in argv):\n        _print_command_help(parser)\n        return 0\n\n    ns = parser.parse_args(list(argv))\n    success = service.run_version_sync(ns.scope)\n    return 0 if success else 1\n\n\ndef _status_command(service: \"AIToolsService\", argv: Sequence[str]) -> int:\n    if argv:\n        if any(arg not in ('-h', '--help') for arg in argv):\n            print(\"The 'status' command does not accept additional arguments.\")\n            return 2\n        print(\"Usage: status\")\n        return 0\n\n    # run_status() doesn't return a value, it just generates status files\n    # It logs errors but doesn't raise exceptions, so we consider it always successful\n    try:\n        service.run_status()\n        return 0\n    except Exception as e:\n        logger.error(f\"Status command failed: {e}\", exc_info=True)\n        return 1\n\n\ndef _system_signals_command(service: \"AIToolsService\", argv: Sequence[str]) -> int:\n    \"\"\"Handle system-signals command\"\"\"\n    if argv:\n        if any(arg not in ('-h', '--help') for arg in argv):\n            print(\"The 'system-signals' command does not accept additional arguments.\")\n            return 2\n        print(\"Usage: system-signals\")\n        return 0\n\n    success = service.run_system_signals()\n    return 0 if success else 1\n\n\ndef _doc_sync_command(service: \"AIToolsService\", argv: Sequence[str]) -> int:\n    if argv:\n        if any(arg not in ('-h', '--help') for arg in argv):\n            print(\"The 'doc-sync' command does not accept additional arguments.\")\n            return 2\n        print(\"Usage: doc-sync\")\n        return 0\n\n    success = service.run_documentation_sync()\n    return 0 if success else 1\n\n\ndef _doc_fix_command(service: \"AIToolsService\", argv: Sequence[str]) -> int:\n    \"\"\"Handle doc-fix command with options for different fix types.\"\"\"\n    parser = argparse.ArgumentParser(description='Fix documentation issues')\n    parser.add_argument('--add-addresses', action='store_true', help='Add file addresses to documentation files')\n    parser.add_argument('--fix-ascii', action='store_true', help='Fix non-ASCII characters in documentation')\n    parser.add_argument('--number-headings', action='store_true', help='Number H2 and H3 headings in documentation')\n    parser.add_argument('--convert-links', action='store_true', help='Convert file paths to markdown links')\n    parser.add_argument('--all', action='store_true', help='Apply all fix operations')\n    parser.add_argument('--dry-run', action='store_true', help='Show what would be changed without making changes')\n\n    try:\n        args = parser.parse_args(argv)\n    except SystemExit:\n        return 2\n\n    # Determine fix type\n    fix_types = []\n    if args.add_addresses:\n        fix_types.append('add-addresses')\n    if args.fix_ascii:\n        fix_types.append('fix-ascii')\n    if args.number_headings:\n        fix_types.append('number-headings')\n    if args.convert_links:\n        fix_types.append('convert-links')\n\n    if args.all:\n        fix_type = 'all'\n    elif len(fix_types) == 1:\n        fix_type = fix_types[0]\n    elif len(fix_types) > 1:\n        print(\"Error: Can only specify one fix type at a time (or use --all)\")\n        return 2\n    else:\n        # Default to all if nothing specified\n        fix_type = 'all'\n\n    success = service.run_documentation_fix(fix_type=fix_type, dry_run=args.dry_run)\n    return 0 if success else 1\n\n\ndef _coverage_command(service: \"AIToolsService\", argv: Sequence[str]) -> int:\n    if argv:\n        if any(arg not in ('-h', '--help') for arg in argv):\n            print(\"The 'coverage' command does not accept additional arguments.\")\n            return 2\n        print(\"Usage: coverage\")\n        return 0\n\n    success = service.run_coverage_regeneration()\n    return 0 if success else 1\n\n\ndef _legacy_command(service: \"AIToolsService\", argv: Sequence[str]) -> int:\n    if argv:\n        if any(arg not in ('-h', '--help') for arg in argv):\n            print(\"The 'legacy' command does not accept additional arguments.\")\n            return 2\n        print(\"Usage: legacy\")\n        return 0\n\n    success = service.run_legacy_cleanup()\n    return 0 if success else 1\n\n\ndef _unused_imports_command(service: \"AIToolsService\", argv: Sequence[str]) -> int:\n    \"\"\"Handle unused-imports command.\"\"\"\n    if argv:\n        if '-h' in argv or '--help' in argv:\n            print(\"Usage: unused-imports\")\n            return 0\n        \n        if any(arg not in ('-h', '--help') for arg in argv):\n            print(\"The 'unused-imports' command does not accept additional arguments.\")\n            print(\"Usage: unused-imports\")\n            return 2\n\n    success = service.run_unused_imports_report()\n    return 0 if success else 1\n\n\ndef _cleanup_command(service: \"AIToolsService\", argv: Sequence[str]) -> int:\n    \"\"\"Handle cleanup command.\"\"\"\n    parser = argparse.ArgumentParser(prog='cleanup', add_help=False)\n    parser.add_argument('--cache', action='store_true', help='Clean cache directories (__pycache__, .pytest_cache)')\n    parser.add_argument('--test-data', action='store_true', help='Clean test data directories')\n    parser.add_argument('--coverage', action='store_true', help='Clean coverage files and logs')\n    parser.add_argument('--all', action='store_true', help='Clean all categories (default if no specific category specified)')\n    parser.add_argument('--dry-run', action='store_true', help='Show what would be removed without actually removing')\n    \n    if '-h' in argv or '--help' in argv:\n        print(\"Usage: cleanup [--cache] [--test-data] [--coverage] [--all] [--dry-run]\")\n        print(\"  --cache      Clean cache directories (__pycache__, .pytest_cache)\")\n        print(\"  --test-data  Clean test data directories\")\n        print(\"  --coverage   Clean coverage files and logs\")\n        print(\"  --all        Clean all categories (default if no specific category specified)\")\n        print(\"  --dry-run    Show what would be removed without making changes\")\n        return 0\n    \n    try:\n        args, unknown = parser.parse_known_args(argv)\n        if unknown:\n            print(f\"Unknown arguments: {unknown}\")\n            print(\"Usage: cleanup [--cache] [--test-data] [--coverage] [--all] [--dry-run]\")\n            return 2\n    except SystemExit:\n        return 2\n    \n    result = service.run_cleanup(\n        cache=args.cache,\n        test_data=args.test_data,\n        coverage=args.coverage,\n        all_cleanup=args.all,\n        dry_run=args.dry_run\n    )\n    \n    if result.get('success'):\n        data = result.get('data', {})\n        total_removed = data.get('total_removed', 0)\n        total_failed = data.get('total_failed', 0)\n        if args.dry_run:\n            logger.info(f\"DRY RUN: Would remove {total_removed} items\")\n        else:\n            logger.info(f\"Cleanup completed: {total_removed} items removed, {total_failed} failed\")\n        return 0 if total_failed == 0 else 1\n    else:\n        logger.error(f\"Cleanup failed: {result.get('error', 'Unknown error')}\")\n        return 1\n\n\ndef _trees_command(service: \"AIToolsService\", argv: Sequence[str]) -> int:\n    if argv:\n        if any(arg not in ('-h', '--help') for arg in argv):\n            print(\"The 'trees' command does not accept additional arguments.\")\n            return 2\n        print(\"Usage: trees\")\n        return 0\n\n    success = service.generate_directory_trees()\n    return 0 if success else 1\n\n\ndef _show_help_command(service: \"AIToolsService\", argv: Sequence[str]) -> int:\n    service.show_help()\n    return 0\n\n\nCOMMAND_REGISTRY = OrderedDict([\n    ('audit', CommandRegistration('audit', _audit_command, 'Run audit (Tier 2 - standard). Use --quick for Tier 1, --full for Tier 3.')),\n    ('docs', CommandRegistration('docs', _docs_command, 'Regenerate documentation artifacts.')),\n    ('validate', CommandRegistration('validate', _validate_command, 'Validate AI-generated work.')),\n    ('config', CommandRegistration('config', _config_command, 'Check configuration consistency.')),\n    ('workflow', CommandRegistration('workflow', _workflow_command, 'Execute an audit-first workflow task.')),\n    ('quick-audit', CommandRegistration('quick-audit', _quick_audit_command, '[DEPRECATED] Use \"audit --quick\" instead. Run quick audit (Tier 1).')),\n    ('decision-support', CommandRegistration('decision-support', _decision_support_command, 'Generate decision support insights.')),\n    ('version-sync', CommandRegistration('version-sync', _fix_version_sync_command, 'Synchronize version metadata.')),\n    ('status', CommandRegistration('status', _status_command, 'Print quick system status.')),\n    ('system-signals', CommandRegistration('system-signals', _system_signals_command, 'Generate system health and status signals.')),\n    ('doc-sync', CommandRegistration('doc-sync', _doc_sync_command, 'Check documentation synchronisation.')),\n    ('doc-fix', CommandRegistration('doc-fix', _doc_fix_command, 'Fix documentation issues (addresses, ASCII, headings, links).')),\n    ('coverage', CommandRegistration('coverage', _coverage_command, 'Regenerate coverage metrics.')),\n    ('legacy', CommandRegistration('legacy', _legacy_command, 'Scan for legacy references.')),\n    ('unused-imports', CommandRegistration('unused-imports', _unused_imports_command, 'Detect unused imports in codebase.')),\n    ('cleanup', CommandRegistration('cleanup', _cleanup_command, 'Clean up project cache and temporary files.')),\n    ('trees', CommandRegistration('trees', _trees_command, 'Generate directory tree reports.')),\n    ('help', CommandRegistration('help', _show_help_command, 'Show detailed help information.')),\n])\n\n\ndef list_commands() -> Sequence[CommandRegistration]:\n    \"\"\"List all registered commands.\"\"\"\n    return tuple(COMMAND_REGISTRY.values())\n",
-                [
-                  {
-                    "pattern": "# LEGACY COMPATIBILITY:",
-                    "match": "# LEGACY COMPATIBILITY:",
-                    "line": 63,
-                    "line_content": "# LEGACY COMPATIBILITY: Handle deprecated --fast flag",
-                    "start": 2466,
-                    "end": 2489
-                  }
-                ]
-              ],
-              [
-                "development_tools\\shared\\mtime_cache.py",
-                "#!/usr/bin/env python3\n\"\"\"\nMtime-based File Cache Utility\n\nProvides a reusable caching mechanism for file-based analyzers that checks\nfile modification times (mtime) to determine if cached results are still valid.\n\nUsage:\n    from development_tools.shared.mtime_cache import MtimeFileCache\n    \n    cache = MtimeFileCache(\n        cache_file=project_root / \"development_tools\" / \"docs\" / \".my_cache.json\",\n        project_root=project_root,\n        use_cache=True\n    )\n    \n    # Check if file is cached\n    cached_results = cache.get_cached(file_path)\n    if cached_results is not None:\n        # Use cached results\n        return cached_results\n    \n    # Process file and cache results\n    results = process_file(file_path)\n    cache.cache_results(file_path, results)\n    cache.save_cache()\n\"\"\"\n\nimport json\nfrom pathlib import Path\nfrom typing import Dict, List, Optional, Any, TypeVar\n\nT = TypeVar('T')  # Generic type for cached results\n\ntry:\n    from core.logger import get_component_logger\n    logger = get_component_logger(\"development_tools\")\nexcept ImportError:\n    logger = None\n\n\nclass MtimeFileCache:\n    \"\"\"\n    Mtime-based file cache for analyzer results.\n    \n    Caches results keyed by file path, with validation based on file modification time.\n    Only re-processes files that have been modified since the last cache entry.\n    \"\"\"\n    \n    def __init__(\n        self,\n        cache_file: Path,\n        project_root: Path,\n        use_cache: bool = True,\n        tool_name: Optional[str] = None,\n        domain: Optional[str] = None\n    ):\n        \"\"\"\n        Initialize the cache.\n        \n        Args:\n            cache_file: Path to the JSON cache file (legacy - used if tool_name/domain not provided)\n            project_root: Root directory of the project (for relative path generation)\n            use_cache: Whether to use caching (if False, all operations are no-ops)\n            tool_name: Name of the tool (e.g., 'analyze_ascii_compliance') - if provided, uses standardized storage\n            domain: Domain directory (e.g., 'docs') - if provided with tool_name, uses standardized storage\n        \"\"\"\n        self.cache_file = cache_file\n        self.project_root = project_root.resolve()\n        self.use_cache = use_cache\n        self.cache_data: Dict[str, Dict[str, Any]] = {}\n        self.tool_name = tool_name\n        self.domain = domain\n        self.use_standardized_storage = tool_name is not None and domain is not None\n        \n        if self.use_cache:\n            self._load_cache()\n    \n    def _load_cache(self) -> None:\n        \"\"\"Load cache from disk if it exists.\"\"\"\n        if self.use_standardized_storage:\n            # Use standardized storage\n            try:\n                from .output_storage import load_tool_cache\n                loaded_data = load_tool_cache(self.tool_name, self.domain, project_root=self.project_root)\n                if loaded_data:\n                    # load_tool_cache already extracts data from metadata wrapper, so loaded_data is the cache content\n                    # Migrate old cache format (with 'issues' key) to new format (with 'results' key)\n                    migrated_data = {}\n                    for key, value in loaded_data.items():\n                        if isinstance(value, dict):\n                            # Check if it's old format with 'issues' key\n                            if 'issues' in value and 'results' not in value:\n                                migrated_data[key] = {\n                                    'mtime': value.get('mtime'),\n                                    'results': value.get('issues', [])\n                                }\n                            else:\n                                # Already in new format or has 'results' key\n                                migrated_data[key] = value\n                        else:\n                            # Invalid format, skip\n                            continue\n                    self.cache_data = migrated_data\n                    if logger:\n                        logger.debug(f\"Loaded cache from standardized storage ({self.tool_name}) with {len(self.cache_data)} entries\")\n                    return\n            except Exception as e:\n                if logger:\n                    logger.warning(f\"Failed to load cache from standardized storage: {e}\")\n        \n        # LEGACY COMPATIBILITY: Fallback to legacy file-based loading\n        # New standardized storage location: development_tools/{domain}/jsons/.{tool_name}_cache.json\n        # Removal plan: After all tools migrate to standardized storage and old cache files are removed, remove this fallback.\n        # Detection: Search for \"cache_file.exists()\" and \"MtimeFileCache\" without tool_name/domain parameters to find legacy usage.\n        if self.cache_file.exists():\n            if logger:\n                logger.debug(f\"LEGACY: Loading cache from legacy location: {self.cache_file}\")\n            try:\n                with open(self.cache_file, 'r', encoding='utf-8') as f:\n                    loaded_data = json.load(f)\n                    # Migrate old cache format (with 'issues' key) to new format (with 'results' key)\n                    # This handles migration from analyze_unused_imports.py old format\n                    migrated_data = {}\n                    for key, value in loaded_data.items():\n                        if isinstance(value, dict):\n                            # Check if it's old format with 'issues' key\n                            if 'issues' in value and 'results' not in value:\n                                migrated_data[key] = {\n                                    'mtime': value.get('mtime'),\n                                    'results': value.get('issues', [])\n                                }\n                            else:\n                                # Already in new format or has 'results' key\n                                migrated_data[key] = value\n                        else:\n                            # Invalid format, skip\n                            continue\n                    self.cache_data = migrated_data\n                if logger:\n                    logger.debug(f\"Loaded cache from {self.cache_file} with {len(self.cache_data)} entries\")\n            except Exception as e:\n                if logger:\n                    logger.warning(f\"Failed to load cache from {self.cache_file}: {e}\")\n                self.cache_data = {}\n    \n    def save_cache(self) -> None:\n        \"\"\"Save cache to disk.\"\"\"\n        if not self.use_cache:\n            return\n        \n        if self.use_standardized_storage:\n            # Use standardized storage\n            try:\n                from .output_storage import save_tool_cache\n                save_tool_cache(self.tool_name, self.domain, self.cache_data, project_root=self.project_root)\n                if logger:\n                    logger.debug(f\"Saved cache to standardized storage ({self.tool_name}) with {len(self.cache_data)} entries\")\n                return\n            except Exception as e:\n                if logger:\n                    logger.warning(f\"Failed to save cache to standardized storage: {e}\")\n        \n        # LEGACY COMPATIBILITY: Fallback to legacy file-based saving\n        # New standardized storage location: development_tools/{domain}/jsons/.{tool_name}_cache.json\n        # Removal plan: After all tools migrate to standardized storage and old cache files are removed, remove this fallback.\n        # Detection: Search for \"cache_file.parent.mkdir\" and \"MtimeFileCache\" without tool_name/domain parameters to find legacy usage.\n        if logger:\n            logger.debug(f\"LEGACY: Saving cache to legacy location: {self.cache_file}\")\n        try:\n            self.cache_file.parent.mkdir(parents=True, exist_ok=True)\n            with open(self.cache_file, 'w', encoding='utf-8') as f:\n                json.dump(self.cache_data, f, indent=2)\n            if logger:\n                logger.debug(f\"Saved cache to {self.cache_file} with {len(self.cache_data)} entries\")\n        except Exception as e:\n            if logger:\n                logger.warning(f\"Failed to save cache to {self.cache_file}: {e}\")\n    \n    def _get_file_cache_key(self, file_path: Path) -> str:\n        \"\"\"Generate cache key for a file (relative path from project root).\"\"\"\n        try:\n            rel_path = file_path.resolve().relative_to(self.project_root)\n            return str(rel_path).replace('\\\\', '/')\n        except ValueError:\n            # File is outside project root, use absolute path\n            return str(file_path.resolve())\n    \n    def _is_file_cached(self, file_path: Path) -> bool:\n        \"\"\"Check if file results are cached and still valid (mtime matches).\"\"\"\n        if not self.use_cache:\n            return False\n        \n        cache_key = self._get_file_cache_key(file_path)\n        if cache_key not in self.cache_data:\n            return False\n        \n        cached_mtime = self.cache_data[cache_key].get('mtime')\n        if cached_mtime is None:\n            return False\n        \n        try:\n            current_mtime = file_path.stat().st_mtime\n            return current_mtime == cached_mtime\n        except OSError:\n            return False\n    \n    def get_cached(self, file_path: Path) -> Optional[T]:\n        \"\"\"\n        Get cached results for a file if available and still valid.\n        \n        Args:\n            file_path: Path to the file to check\n            \n        Returns:\n            Cached results if available and valid, None otherwise\n        \"\"\"\n        if not self._is_file_cached(file_path):\n            return None\n        \n        cache_key = self._get_file_cache_key(file_path)\n        cached_data = self.cache_data[cache_key].get('results')\n        return cached_data\n    \n    def cache_results(self, file_path: Path, results: T) -> None:\n        \"\"\"\n        Cache results for a file.\n        \n        Args:\n            file_path: Path to the file being cached\n            results: Results to cache (must be JSON-serializable)\n        \"\"\"\n        if not self.use_cache:\n            return\n        \n        try:\n            cache_key = self._get_file_cache_key(file_path)\n            mtime = file_path.stat().st_mtime\n            self.cache_data[cache_key] = {\n                'mtime': mtime,\n                'results': results\n            }\n        except OSError:\n            # File doesn't exist or can't be accessed, skip caching\n            pass\n    \n    def clear_cache(self) -> None:\n        \"\"\"Clear all cached data (in memory only, call save_cache() to persist).\"\"\"\n        self.cache_data = {}\n    \n    def get_cache_stats(self) -> Dict[str, int]:\n        \"\"\"\n        Get statistics about the cache.\n        \n        Returns:\n            Dictionary with cache statistics (total_entries, etc.)\n        \"\"\"\n        return {\n            'total_entries': len(self.cache_data),\n            'cache_file': str(self.cache_file)\n        }\n\n",
-                [
-                  {
-                    "pattern": "# LEGACY COMPATIBILITY:",
-                    "match": "# LEGACY COMPATIBILITY:",
-                    "line": 112,
-                    "line_content": "# LEGACY COMPATIBILITY: Fallback to legacy file-based loading",
-                    "start": 4365,
-                    "end": 4388
-                  },
-                  {
-                    "pattern": "# LEGACY COMPATIBILITY:",
-                    "match": "# LEGACY COMPATIBILITY:",
-                    "line": 164,
-                    "line_content": "# LEGACY COMPATIBILITY: Fallback to legacy file-based saving",
-                    "start": 7203,
-                    "end": 7226
-                  }
-                ]
-              ],
-              [
-                "tests\\fixtures\\development_tools_demo\\legacy_code.py",
-                "\"\"\"\nLegacy code module for testing legacy reference cleanup.\n\nThis module contains legacy patterns that should be detected and cleaned up.\n\"\"\"\n\n# LEGACY COMPATIBILITY: This function is kept for backward compatibility\ndef legacy_function():\n    \"\"\"Legacy function that should be detected.\"\"\"\n    pass\n\n\n# LEGACY COMPATIBILITY: Old import pattern\n# Note: This is commented out to avoid import errors, but the pattern is still detectable\n# from bot.communication import old_module  # noqa: F401\n\n\ndef uses_legacy_pattern():\n    \"\"\"Function that uses legacy patterns.\"\"\"\n    # Reference to old bot directory\n    old_path = \"bot/communication/old_file.py\"\n    return old_path\n\n\nclass LegacyChannelWrapper:\n    \"\"\"Legacy wrapper class.\"\"\"\n    pass\n\n\ndef _create_legacy_channel_access():\n    \"\"\"Legacy channel access function.\"\"\"\n    pass\n\n",
-                [
-                  {
-                    "pattern": "# LEGACY COMPATIBILITY:",
-                    "match": "# LEGACY COMPATIBILITY:",
-                    "line": 7,
-                    "line_content": "# LEGACY COMPATIBILITY: This function is kept for backward compatibility",
-                    "start": 144,
-                    "end": 167
-                  },
-                  {
-                    "pattern": "# LEGACY COMPATIBILITY:",
-                    "match": "# LEGACY COMPATIBILITY:",
-                    "line": 13,
-                    "line_content": "# LEGACY COMPATIBILITY: Old import pattern",
-                    "start": 302,
-                    "end": 325
-                  }
-                ]
-              ]
-            ],
-            "old_bot_directory": [
-              [
-                "tests\\development_tools\\test_legacy_reference_cleanup.py",
-                "\"\"\"\nTests for fix_legacy_references.py.\n\nTests scanning, verification, and safe cleanup operations.\n\"\"\"\n\nimport pytest\nimport sys\nfrom pathlib import Path\n\n# Import helper from conftest\nfrom tests.development_tools.conftest import load_development_tools_module\n\n# Load the modules using the helper\ncleanup_module = load_development_tools_module(\"fix_legacy_references\")\nanalyzer_module = load_development_tools_module(\"analyze_legacy_references\")\nreport_module = load_development_tools_module(\"generate_legacy_reference_report\")\n\nLegacyReferenceFixer = cleanup_module.LegacyReferenceFixer\nLegacyReferenceAnalyzer = analyzer_module.LegacyReferenceAnalyzer\nLegacyReferenceReportGenerator = report_module.LegacyReferenceReportGenerator\n\n\nclass TestLegacyScanning:\n    \"\"\"Test legacy reference scanning.\"\"\"\n    \n    @pytest.mark.unit\n    def test_scan_for_legacy_references_finds_markers(self, demo_project_root):\n        \"\"\"Test that legacy markers are found.\"\"\"\n        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))\n        \n        findings = analyzer.scan_for_legacy_references()\n        \n        # Should find legacy compatibility markers in legacy_code.py\n        if 'legacy_compatibility_markers' in findings:\n            legacy_files = [file_path for file_path, _, _ in findings['legacy_compatibility_markers']]\n            assert any('legacy_code.py' in str(f) for f in legacy_files)\n    \n    @pytest.mark.unit\n    def test_scan_for_legacy_references_respects_preserve_files(self, demo_project_root):\n        \"\"\"Test that preserved files are skipped.\"\"\"\n        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))\n        \n        # Add a preserve pattern that matches our demo project\n        original_preserve = analyzer.preserve_files\n        analyzer.preserve_files = analyzer.preserve_files | {'README.md'}\n        \n        findings = analyzer.scan_for_legacy_references()\n        \n        # README.md should not appear in findings\n        for pattern_type, files in findings.items():\n            for file_path, _, _ in files:\n                assert 'README.md' not in str(file_path)\n        \n        analyzer.preserve_files = original_preserve\n    \n    @pytest.mark.unit\n    def test_should_skip_file_exclusions(self, demo_project_root):\n        \"\"\"Test that excluded files are skipped.\"\"\"\n        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))\n        \n        # Test with a file that should be excluded\n        excluded_file = demo_project_root / \"__pycache__\" / \"test.pyc\"\n        excluded_file.parent.mkdir(exist_ok=True)\n        excluded_file.write_bytes(b\"test\")\n        \n        should_skip = analyzer.should_skip_file(excluded_file)\n        assert should_skip is True\n        \n        # Clean up - remove file and directory if empty\n        excluded_file.unlink()\n        try:\n            excluded_file.parent.rmdir()\n        except OSError:\n            # Directory not empty, that's okay - just remove our test file\n            pass\n\n\nclass TestReferenceFinding:\n    \"\"\"Test finding specific legacy references.\"\"\"\n    \n    @pytest.mark.unit\n    def test_find_all_references_specific_item(self, demo_project_root):\n        \"\"\"Test that specific legacy items are found.\"\"\"\n        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))\n        \n        # Verify the legacy file exists\n        legacy_file = demo_project_root / \"legacy_code.py\"\n        assert legacy_file.exists(), \"legacy_code.py should exist in demo project\"\n        \n        # Verify the item exists in the file\n        content = legacy_file.read_text(encoding='utf-8')\n        assert 'LegacyChannelWrapper' in content, \"LegacyChannelWrapper should exist in legacy_code.py\"\n        \n        # Verify the file is not being skipped\n        assert not analyzer.should_skip_file(legacy_file), \"legacy_code.py should not be skipped\"\n        \n        # Find references to LegacyChannelWrapper\n        # Note: find_all_references searches for the item as a pattern in files\n        references = analyzer.find_all_references('LegacyChannelWrapper')\n        \n        # The function should find the class definition\n        # It searches for patterns like 'class LegacyChannelWrapper', 'LegacyChannelWrapper(', etc.\n        assert len(references) > 0, f\"find_all_references should find LegacyChannelWrapper. Found: {references}\"\n        assert any('legacy_code.py' in file_path for file_path in references.keys()), \\\n            f\"legacy_code.py should be in references. Found: {list(references.keys())}\"\n\n\nclass TestRemovalReadiness:\n    \"\"\"Test removal readiness verification.\"\"\"\n    \n    @pytest.mark.unit\n    def test_verify_removal_readiness_ready(self, demo_project_root):\n        \"\"\"Test that items with no active code references are ready.\"\"\"\n        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))\n        \n        # Test with a non-existent item (should be ready)\n        verification = analyzer.verify_removal_readiness('NonExistentItem12345')\n        \n        # Should be ready (no references found)\n        assert verification['ready_for_removal'] is True\n        assert len(verification['categorized']['active_code']) == 0\n    \n    @pytest.mark.unit\n    def test_verify_removal_readiness_not_ready(self, demo_project_root):\n        \"\"\"Test that items with active code references are not ready.\"\"\"\n        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))\n        \n        # Test with LegacyChannelWrapper which exists in legacy_code.py\n        verification = analyzer.verify_removal_readiness('LegacyChannelWrapper')\n        \n        # Should not be ready (has references)\n        # Note: May be ready if only in legacy_code.py which might be considered legacy itself\n        assert 'ready_for_removal' in verification\n        assert 'references' in verification\n        assert 'recommendations' in verification\n\n\nclass TestCleanupOperations:\n    \"\"\"Test cleanup operations (safe, using copies).\"\"\"\n    \n    @pytest.mark.unit\n    def test_cleanup_legacy_references_dry_run(self, temp_project_copy):\n        \"\"\"Test that dry-run reports planned changes without modifying files.\"\"\"\n        analyzer = LegacyReferenceAnalyzer(str(temp_project_copy))\n        fixer = LegacyReferenceFixer(str(temp_project_copy))\n        \n        # Verify legacy_code.py exists in the copied project\n        legacy_file = temp_project_copy / \"legacy_code.py\"\n        assert legacy_file.exists(), f\"legacy_code.py should exist in {temp_project_copy}\"\n        \n        # Verify the file is not being skipped\n        assert not analyzer.should_skip_file(legacy_file), f\"legacy_code.py should not be skipped\"\n        \n        # Scan for legacy references\n        findings = analyzer.scan_for_legacy_references()\n        \n        # Check if we have any findings\n        has_findings = any(len(files) > 0 for files in findings.values())\n        assert has_findings, f\"No legacy references found. Findings: {dict(findings)}\"\n        \n        # Run cleanup in dry-run mode\n        cleanup_results = fixer.cleanup_legacy_references(findings, dry_run=True)\n        \n        # Should report what would be changed (structure may vary)\n        # The results should be a dict with some indication of what would change\n        assert isinstance(cleanup_results, dict), f\"Expected dict, got {type(cleanup_results)}\"\n        # May have keys like 'files_would_update', 'changes', 'files_updated', etc.\n        assert len(cleanup_results) > 0, \"Cleanup results should not be empty\"\n        \n        # Verify files were NOT actually modified\n        legacy_file = temp_project_copy / \"legacy_code.py\"\n        if legacy_file.exists():\n            original_content = legacy_file.read_text(encoding='utf-8')\n            # Should still contain legacy markers\n            assert 'LEGACY COMPATIBILITY' in original_content\n    \n    @pytest.mark.unit\n    def test_cleanup_legacy_references_actual_cleanup(self, temp_project_copy):\n        \"\"\"Test that actual cleanup modifies files correctly.\"\"\"\n        analyzer = LegacyReferenceAnalyzer(str(temp_project_copy))\n        fixer = LegacyReferenceFixer(str(temp_project_copy))\n        \n        # Verify legacy_code.py exists in the copied project\n        legacy_file = temp_project_copy / \"legacy_code.py\"\n        assert legacy_file.exists(), f\"legacy_code.py should exist in {temp_project_copy}\"\n        \n        # Verify the file is not being skipped\n        assert not analyzer.should_skip_file(legacy_file), f\"legacy_code.py should not be skipped\"\n        \n        # Scan for legacy references\n        findings = analyzer.scan_for_legacy_references()\n        \n        # Check if we have any findings (findings is dict of pattern_type -> list of (file_path, content, matches))\n        has_findings = any(len(files) > 0 for files in findings.values())\n        assert has_findings, f\"No legacy references found. Findings: {dict(findings)}\"\n        \n        # Run cleanup in actual mode (not dry-run)\n        cleanup_results = fixer.cleanup_legacy_references(findings, dry_run=False)\n        \n        # Should return a dict with results structure\n        assert isinstance(cleanup_results, dict)\n        # The results dict should have expected keys (may be empty lists if no changes made)\n        assert 'files_updated' in cleanup_results or 'changes' in cleanup_results or 'errors' in cleanup_results or 'files_would_update' in cleanup_results\n        \n        # Note: Actual cleanup may modify files, but we're using a copy so it's safe\n\n\nclass TestReportGeneration:\n    \"\"\"Test report generation.\"\"\"\n    \n    @pytest.mark.unit\n    def test_generate_cleanup_report_structure(self, demo_project_root):\n        \"\"\"Test that report has expected structure.\"\"\"\n        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))\n        report_gen = LegacyReferenceReportGenerator(str(demo_project_root))\n        \n        findings = analyzer.scan_for_legacy_references()\n        report = report_gen.generate_cleanup_report(findings)\n        \n        # Should have expected sections\n        assert '# Legacy Reference Cleanup Report' in report\n        assert '## Summary' in report or 'Summary' in report\n\n\nclass TestReplacementMappings:\n    \"\"\"Test replacement mappings.\"\"\"\n    \n    @pytest.mark.unit\n    def test_get_replacement_mappings(self, demo_project_root):\n        \"\"\"Test that replacement mappings work correctly.\"\"\"\n        fixer = LegacyReferenceFixer(str(demo_project_root))\n        \n        # Test various replacements\n        test_cases = [\n            ('bot/', 'communication/'),\n            ('from bot.', 'from communication.'),\n            ('import bot.', 'import communication.'),\n        ]\n        \n        for original, expected_start in test_cases:\n            replacement = fixer.get_replacement(original)\n            # Should start with expected replacement\n            assert replacement.startswith(expected_start) or original not in fixer.replacement_mappings\n\n",
-                [
-                  {
-                    "pattern": "bot/",
-                    "match": "bot/",
-                    "line": 236,
-                    "line_content": "('bot/', 'communication/'),",
-                    "start": 10510,
-                    "end": 10514
-                  },
-                  {
-                    "pattern": "from\\s+bot\\.",
-                    "match": "from bot.",
-                    "line": 237,
-                    "line_content": "('from bot.', 'from communication.'),",
-                    "start": 10550,
-                    "end": 10559
-                  },
-                  {
-                    "pattern": "import\\s+bot\\.",
-                    "match": "import bot.",
-                    "line": 238,
-                    "line_content": "('import bot.', 'import communication.'),",
-                    "start": 10600,
-                    "end": 10611
-                  }
-                ]
-              ],
-              [
-                "tests\\development_tools\\test_path_drift_detection.py",
-                "#!/usr/bin/env python3\n\"\"\"\nTest path drift detection functionality.\n\nThis test verifies that path drift detection correctly identifies\ndocumentation references to files that don't exist.\n\"\"\"\n\nimport pytest\nimport tempfile\nimport shutil\nfrom pathlib import Path\n\n# Import helper from conftest\nfrom tests.development_tools.conftest import load_development_tools_module\n\n# Load the module using the helper\npath_drift_module = load_development_tools_module(\"docs.analyze_path_drift\")\nPathDriftAnalyzer = path_drift_module.PathDriftAnalyzer\n\n\nclass TestPathDriftDetection:\n    \"\"\"Test path drift detection.\"\"\"\n    \n    def test_path_drift_detects_missing_file(self, tmp_path):\n        \"\"\"Test that path drift detection finds references to non-existent files.\"\"\"\n        # Create a temporary project structure\n        project_dir = tmp_path / \"test_project\"\n        project_dir.mkdir()\n        \n        # Create a documentation file with a reference to a non-existent file\n        docs_dir = project_dir / \"docs\"\n        docs_dir.mkdir()\n        \n        doc_file = docs_dir / \"README.md\"\n        # Write content without leading spaces to avoid issues with path extraction\n        doc_file.write_text(\n            \"# Test Documentation\\n\\n\"\n            \"This file references a non-existent file: `core/nonexistent_module.py`\\n\\n\"\n            \"Also references: `tests/missing_test.py`\\n\"\n        )\n        \n        # Create analyzer with cache disabled for testing\n        analyzer = PathDriftAnalyzer(project_root=str(project_dir), use_cache=False)\n        \n        # Run path drift check\n        results = analyzer.check_path_drift()\n\n        # Verify that the documentation file is flagged\n        # Normalize path separators for cross-platform compatibility\n        doc_file_str = str(doc_file.relative_to(project_dir)).replace('\\\\', '/')\n        doc_file_win = str(doc_file.relative_to(project_dir))\n        # Check both normalized and original path formats\n        found = doc_file_str in results or doc_file_win in results\n        doc_paths = analyzer.scan_documentation_paths()\n        assert found, f\"Expected {doc_file_str} (or Windows path) to be in drift results. Got: {list(results.keys())}. Doc paths: {dict(doc_paths)}\"\n\n        # Get the key that was actually used (could be either format)\n        result_key = doc_file_str if doc_file_str in results else doc_file_win\n        issues = results[result_key]\n        assert len(issues) > 0, \"Expected at least one path drift issue\"\n        \n        # Check that the non-existent files are mentioned\n        issue_text = ' '.join(issues)\n        assert 'nonexistent_module.py' in issue_text or 'missing_test.py' in issue_text, \\\n            f\"Expected non-existent file to be mentioned in issues: {issues}\"\n    \n    def test_path_drift_ignores_existing_files(self, tmp_path):\n        \"\"\"Test that path drift detection doesn't flag existing files.\"\"\"\n        # Create a temporary project structure\n        project_dir = tmp_path / \"test_project\"\n        project_dir.mkdir()\n        \n        # Create actual files\n        core_dir = project_dir / \"core\"\n        core_dir.mkdir()\n        existing_file = core_dir / \"existing_module.py\"\n        existing_file.write_text(\"# Existing module\")\n        \n        # Create documentation that references the existing file\n        docs_dir = project_dir / \"docs\"\n        docs_dir.mkdir()\n        \n        doc_file = docs_dir / \"README.md\"\n        doc_file.write_text(f\"\"\"\n# Test Documentation\n\nThis file references an existing file: `core/existing_module.py`\n\"\"\")\n        \n        # Create analyzer\n        analyzer = PathDriftAnalyzer(project_root=str(project_dir))\n        \n        # Run path drift check\n        results = analyzer.check_path_drift()\n        \n        # Verify that the documentation file is NOT flagged (or flagged for other reasons only)\n        doc_file_str = str(doc_file.relative_to(project_dir))\n        if doc_file_str in results:\n            # If it's flagged, make sure it's not for the existing file\n            issues = results[doc_file_str]\n            issue_text = ' '.join(issues)\n            assert 'existing_module.py' not in issue_text, \\\n                f\"Existing file should not be flagged: {issues}\"\n    \n    def test_path_drift_with_legacy_documentation(self, tmp_path):\n        \"\"\"Test that path drift detection skips legacy documentation files.\"\"\"\n        # Create a temporary project structure\n        project_dir = tmp_path / \"test_project\"\n        project_dir.mkdir()\n        \n        # Create legacy documentation file\n        dev_docs_dir = project_dir / \"development_docs\"\n        dev_docs_dir.mkdir(parents=True)\n        \n        legacy_file = dev_docs_dir / \"LEGACY_REFERENCE_REPORT.md\"\n        legacy_file.write_text(\"\"\"\n# Legacy Reference Report\n\nThis file intentionally references old paths:\n- `bot/old_module.py` (legacy path)\n- `old_directory/file.py` (historical reference)\n\"\"\")\n        \n        # Create analyzer\n        analyzer = PathDriftAnalyzer(project_root=str(project_dir))\n        \n        # Run path drift check\n        results = analyzer.check_path_drift()\n        \n        # Verify that legacy documentation is skipped\n        legacy_file_str = str(legacy_file.relative_to(project_dir))\n        # Legacy files should be skipped, so they shouldn't appear in results\n        # (or if they do, it should be for non-legacy reasons)\n        if legacy_file_str in results:\n            # If it appears, verify it's not for the legacy paths\n            issues = results[legacy_file_str]\n            issue_text = ' '.join(issues)\n            # Legacy paths should be filtered out\n            assert 'old_module.py' not in issue_text or 'old_directory' not in issue_text, \\\n                f\"Legacy paths should be filtered: {issues}\"\n\n",
-                [
-                  {
-                    "pattern": "bot/",
-                    "match": "bot/",
-                    "line": 121,
-                    "line_content": "- `bot/old_module.py` (legacy path)",
-                    "start": 4841,
-                    "end": 4845
-                  }
-                ]
-              ],
-              [
-                "tests\\fixtures\\development_tools_demo\\legacy_code.py",
-                "\"\"\"\nLegacy code module for testing legacy reference cleanup.\n\nThis module contains legacy patterns that should be detected and cleaned up.\n\"\"\"\n\n# LEGACY COMPATIBILITY: This function is kept for backward compatibility\ndef legacy_function():\n    \"\"\"Legacy function that should be detected.\"\"\"\n    pass\n\n\n# LEGACY COMPATIBILITY: Old import pattern\n# Note: This is commented out to avoid import errors, but the pattern is still detectable\n# from bot.communication import old_module  # noqa: F401\n\n\ndef uses_legacy_pattern():\n    \"\"\"Function that uses legacy patterns.\"\"\"\n    # Reference to old bot directory\n    old_path = \"bot/communication/old_file.py\"\n    return old_path\n\n\nclass LegacyChannelWrapper:\n    \"\"\"Legacy wrapper class.\"\"\"\n    pass\n\n\ndef _create_legacy_channel_access():\n    \"\"\"Legacy channel access function.\"\"\"\n    pass\n\n",
-                [
-                  {
-                    "pattern": "bot/",
-                    "match": "bot/",
-                    "line": 21,
-                    "line_content": "old_path = \"bot/communication/old_file.py\"",
-                    "start": 620,
-                    "end": 624
-                  },
-                  {
-                    "pattern": "from\\s+bot\\.",
-                    "match": "from bot.",
-                    "line": 15,
-                    "line_content": "# from bot.communication import old_module  # noqa: F401",
-                    "start": 437,
-                    "end": 446
-                  }
-                ]
-              ]
-            ],
-            "deprecated_functions": [
-              [
-                "tests\\development_tools\\test_legacy_reference_cleanup.py",
-                "\"\"\"\nTests for fix_legacy_references.py.\n\nTests scanning, verification, and safe cleanup operations.\n\"\"\"\n\nimport pytest\nimport sys\nfrom pathlib import Path\n\n# Import helper from conftest\nfrom tests.development_tools.conftest import load_development_tools_module\n\n# Load the modules using the helper\ncleanup_module = load_development_tools_module(\"fix_legacy_references\")\nanalyzer_module = load_development_tools_module(\"analyze_legacy_references\")\nreport_module = load_development_tools_module(\"generate_legacy_reference_report\")\n\nLegacyReferenceFixer = cleanup_module.LegacyReferenceFixer\nLegacyReferenceAnalyzer = analyzer_module.LegacyReferenceAnalyzer\nLegacyReferenceReportGenerator = report_module.LegacyReferenceReportGenerator\n\n\nclass TestLegacyScanning:\n    \"\"\"Test legacy reference scanning.\"\"\"\n    \n    @pytest.mark.unit\n    def test_scan_for_legacy_references_finds_markers(self, demo_project_root):\n        \"\"\"Test that legacy markers are found.\"\"\"\n        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))\n        \n        findings = analyzer.scan_for_legacy_references()\n        \n        # Should find legacy compatibility markers in legacy_code.py\n        if 'legacy_compatibility_markers' in findings:\n            legacy_files = [file_path for file_path, _, _ in findings['legacy_compatibility_markers']]\n            assert any('legacy_code.py' in str(f) for f in legacy_files)\n    \n    @pytest.mark.unit\n    def test_scan_for_legacy_references_respects_preserve_files(self, demo_project_root):\n        \"\"\"Test that preserved files are skipped.\"\"\"\n        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))\n        \n        # Add a preserve pattern that matches our demo project\n        original_preserve = analyzer.preserve_files\n        analyzer.preserve_files = analyzer.preserve_files | {'README.md'}\n        \n        findings = analyzer.scan_for_legacy_references()\n        \n        # README.md should not appear in findings\n        for pattern_type, files in findings.items():\n            for file_path, _, _ in files:\n                assert 'README.md' not in str(file_path)\n        \n        analyzer.preserve_files = original_preserve\n    \n    @pytest.mark.unit\n    def test_should_skip_file_exclusions(self, demo_project_root):\n        \"\"\"Test that excluded files are skipped.\"\"\"\n        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))\n        \n        # Test with a file that should be excluded\n        excluded_file = demo_project_root / \"__pycache__\" / \"test.pyc\"\n        excluded_file.parent.mkdir(exist_ok=True)\n        excluded_file.write_bytes(b\"test\")\n        \n        should_skip = analyzer.should_skip_file(excluded_file)\n        assert should_skip is True\n        \n        # Clean up - remove file and directory if empty\n        excluded_file.unlink()\n        try:\n            excluded_file.parent.rmdir()\n        except OSError:\n            # Directory not empty, that's okay - just remove our test file\n            pass\n\n\nclass TestReferenceFinding:\n    \"\"\"Test finding specific legacy references.\"\"\"\n    \n    @pytest.mark.unit\n    def test_find_all_references_specific_item(self, demo_project_root):\n        \"\"\"Test that specific legacy items are found.\"\"\"\n        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))\n        \n        # Verify the legacy file exists\n        legacy_file = demo_project_root / \"legacy_code.py\"\n        assert legacy_file.exists(), \"legacy_code.py should exist in demo project\"\n        \n        # Verify the item exists in the file\n        content = legacy_file.read_text(encoding='utf-8')\n        assert 'LegacyChannelWrapper' in content, \"LegacyChannelWrapper should exist in legacy_code.py\"\n        \n        # Verify the file is not being skipped\n        assert not analyzer.should_skip_file(legacy_file), \"legacy_code.py should not be skipped\"\n        \n        # Find references to LegacyChannelWrapper\n        # Note: find_all_references searches for the item as a pattern in files\n        references = analyzer.find_all_references('LegacyChannelWrapper')\n        \n        # The function should find the class definition\n        # It searches for patterns like 'class LegacyChannelWrapper', 'LegacyChannelWrapper(', etc.\n        assert len(references) > 0, f\"find_all_references should find LegacyChannelWrapper. Found: {references}\"\n        assert any('legacy_code.py' in file_path for file_path in references.keys()), \\\n            f\"legacy_code.py should be in references. Found: {list(references.keys())}\"\n\n\nclass TestRemovalReadiness:\n    \"\"\"Test removal readiness verification.\"\"\"\n    \n    @pytest.mark.unit\n    def test_verify_removal_readiness_ready(self, demo_project_root):\n        \"\"\"Test that items with no active code references are ready.\"\"\"\n        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))\n        \n        # Test with a non-existent item (should be ready)\n        verification = analyzer.verify_removal_readiness('NonExistentItem12345')\n        \n        # Should be ready (no references found)\n        assert verification['ready_for_removal'] is True\n        assert len(verification['categorized']['active_code']) == 0\n    \n    @pytest.mark.unit\n    def test_verify_removal_readiness_not_ready(self, demo_project_root):\n        \"\"\"Test that items with active code references are not ready.\"\"\"\n        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))\n        \n        # Test with LegacyChannelWrapper which exists in legacy_code.py\n        verification = analyzer.verify_removal_readiness('LegacyChannelWrapper')\n        \n        # Should not be ready (has references)\n        # Note: May be ready if only in legacy_code.py which might be considered legacy itself\n        assert 'ready_for_removal' in verification\n        assert 'references' in verification\n        assert 'recommendations' in verification\n\n\nclass TestCleanupOperations:\n    \"\"\"Test cleanup operations (safe, using copies).\"\"\"\n    \n    @pytest.mark.unit\n    def test_cleanup_legacy_references_dry_run(self, temp_project_copy):\n        \"\"\"Test that dry-run reports planned changes without modifying files.\"\"\"\n        analyzer = LegacyReferenceAnalyzer(str(temp_project_copy))\n        fixer = LegacyReferenceFixer(str(temp_project_copy))\n        \n        # Verify legacy_code.py exists in the copied project\n        legacy_file = temp_project_copy / \"legacy_code.py\"\n        assert legacy_file.exists(), f\"legacy_code.py should exist in {temp_project_copy}\"\n        \n        # Verify the file is not being skipped\n        assert not analyzer.should_skip_file(legacy_file), f\"legacy_code.py should not be skipped\"\n        \n        # Scan for legacy references\n        findings = analyzer.scan_for_legacy_references()\n        \n        # Check if we have any findings\n        has_findings = any(len(files) > 0 for files in findings.values())\n        assert has_findings, f\"No legacy references found. Findings: {dict(findings)}\"\n        \n        # Run cleanup in dry-run mode\n        cleanup_results = fixer.cleanup_legacy_references(findings, dry_run=True)\n        \n        # Should report what would be changed (structure may vary)\n        # The results should be a dict with some indication of what would change\n        assert isinstance(cleanup_results, dict), f\"Expected dict, got {type(cleanup_results)}\"\n        # May have keys like 'files_would_update', 'changes', 'files_updated', etc.\n        assert len(cleanup_results) > 0, \"Cleanup results should not be empty\"\n        \n        # Verify files were NOT actually modified\n        legacy_file = temp_project_copy / \"legacy_code.py\"\n        if legacy_file.exists():\n            original_content = legacy_file.read_text(encoding='utf-8')\n            # Should still contain legacy markers\n            assert 'LEGACY COMPATIBILITY' in original_content\n    \n    @pytest.mark.unit\n    def test_cleanup_legacy_references_actual_cleanup(self, temp_project_copy):\n        \"\"\"Test that actual cleanup modifies files correctly.\"\"\"\n        analyzer = LegacyReferenceAnalyzer(str(temp_project_copy))\n        fixer = LegacyReferenceFixer(str(temp_project_copy))\n        \n        # Verify legacy_code.py exists in the copied project\n        legacy_file = temp_project_copy / \"legacy_code.py\"\n        assert legacy_file.exists(), f\"legacy_code.py should exist in {temp_project_copy}\"\n        \n        # Verify the file is not being skipped\n        assert not analyzer.should_skip_file(legacy_file), f\"legacy_code.py should not be skipped\"\n        \n        # Scan for legacy references\n        findings = analyzer.scan_for_legacy_references()\n        \n        # Check if we have any findings (findings is dict of pattern_type -> list of (file_path, content, matches))\n        has_findings = any(len(files) > 0 for files in findings.values())\n        assert has_findings, f\"No legacy references found. Findings: {dict(findings)}\"\n        \n        # Run cleanup in actual mode (not dry-run)\n        cleanup_results = fixer.cleanup_legacy_references(findings, dry_run=False)\n        \n        # Should return a dict with results structure\n        assert isinstance(cleanup_results, dict)\n        # The results dict should have expected keys (may be empty lists if no changes made)\n        assert 'files_updated' in cleanup_results or 'changes' in cleanup_results or 'errors' in cleanup_results or 'files_would_update' in cleanup_results\n        \n        # Note: Actual cleanup may modify files, but we're using a copy so it's safe\n\n\nclass TestReportGeneration:\n    \"\"\"Test report generation.\"\"\"\n    \n    @pytest.mark.unit\n    def test_generate_cleanup_report_structure(self, demo_project_root):\n        \"\"\"Test that report has expected structure.\"\"\"\n        analyzer = LegacyReferenceAnalyzer(str(demo_project_root))\n        report_gen = LegacyReferenceReportGenerator(str(demo_project_root))\n        \n        findings = analyzer.scan_for_legacy_references()\n        report = report_gen.generate_cleanup_report(findings)\n        \n        # Should have expected sections\n        assert '# Legacy Reference Cleanup Report' in report\n        assert '## Summary' in report or 'Summary' in report\n\n\nclass TestReplacementMappings:\n    \"\"\"Test replacement mappings.\"\"\"\n    \n    @pytest.mark.unit\n    def test_get_replacement_mappings(self, demo_project_root):\n        \"\"\"Test that replacement mappings work correctly.\"\"\"\n        fixer = LegacyReferenceFixer(str(demo_project_root))\n        \n        # Test various replacements\n        test_cases = [\n            ('bot/', 'communication/'),\n            ('from bot.', 'from communication.'),\n            ('import bot.', 'import communication.'),\n        ]\n        \n        for original, expected_start in test_cases:\n            replacement = fixer.get_replacement(original)\n            # Should start with expected replacement\n            assert replacement.startswith(expected_start) or original not in fixer.replacement_mappings\n\n",
-                [
-                  {
-                    "pattern": "LegacyChannelWrapper",
-                    "match": "LegacyChannelWrapper",
-                    "line": 93,
-                    "line_content": "assert 'LegacyChannelWrapper' in content, \"LegacyChannelWrapper should exist in legacy_code.py\"",
-                    "start": 3609,
-                    "end": 3629
-                  },
-                  {
-                    "pattern": "LegacyChannelWrapper",
-                    "match": "LegacyChannelWrapper",
-                    "line": 93,
-                    "line_content": "assert 'LegacyChannelWrapper' in content, \"LegacyChannelWrapper should exist in legacy_code.py\"",
-                    "start": 3644,
-                    "end": 3664
-                  },
-                  {
-                    "pattern": "LegacyChannelWrapper",
-                    "match": "LegacyChannelWrapper",
-                    "line": 98,
-                    "line_content": "# Find references to LegacyChannelWrapper",
-                    "start": 3889,
-                    "end": 3909
-                  },
-                  {
-                    "pattern": "LegacyChannelWrapper",
-                    "match": "LegacyChannelWrapper",
-                    "line": 100,
-                    "line_content": "references = analyzer.find_all_references('LegacyChannelWrapper')",
-                    "start": 4041,
-                    "end": 4061
-                  },
-                  {
-                    "pattern": "LegacyChannelWrapper",
-                    "match": "LegacyChannelWrapper",
-                    "line": 103,
-                    "line_content": "# It searches for patterns like 'class LegacyChannelWrapper', 'LegacyChannelWrapper(', etc.",
-                    "start": 4176,
-                    "end": 4196
-                  },
-                  {
-                    "pattern": "LegacyChannelWrapper",
-                    "match": "LegacyChannelWrapper",
-                    "line": 103,
-                    "line_content": "# It searches for patterns like 'class LegacyChannelWrapper', 'LegacyChannelWrapper(', etc.",
-                    "start": 4200,
-                    "end": 4220
-                  },
-                  {
-                    "pattern": "LegacyChannelWrapper",
-                    "match": "LegacyChannelWrapper",
-                    "line": 104,
-                    "line_content": "assert len(references) > 0, f\"find_all_references should find LegacyChannelWrapper. Found: {references}\"",
-                    "start": 4299,
-                    "end": 4319
-                  },
-                  {
-                    "pattern": "LegacyChannelWrapper",
-                    "match": "LegacyChannelWrapper",
-                    "line": 129,
-                    "line_content": "# Test with LegacyChannelWrapper which exists in legacy_code.py",
-                    "start": 5431,
-                    "end": 5451
-                  },
-                  {
-                    "pattern": "LegacyChannelWrapper",
-                    "match": "LegacyChannelWrapper",
-                    "line": 130,
-                    "line_content": "verification = analyzer.verify_removal_readiness('LegacyChannelWrapper')",
-                    "start": 5541,
-                    "end": 5561
-                  }
-                ]
-              ],
-              [
-                "tests\\fixtures\\development_tools_demo\\legacy_code.py",
-                "\"\"\"\nLegacy code module for testing legacy reference cleanup.\n\nThis module contains legacy patterns that should be detected and cleaned up.\n\"\"\"\n\n# LEGACY COMPATIBILITY: This function is kept for backward compatibility\ndef legacy_function():\n    \"\"\"Legacy function that should be detected.\"\"\"\n    pass\n\n\n# LEGACY COMPATIBILITY: Old import pattern\n# Note: This is commented out to avoid import errors, but the pattern is still detectable\n# from bot.communication import old_module  # noqa: F401\n\n\ndef uses_legacy_pattern():\n    \"\"\"Function that uses legacy patterns.\"\"\"\n    # Reference to old bot directory\n    old_path = \"bot/communication/old_file.py\"\n    return old_path\n\n\nclass LegacyChannelWrapper:\n    \"\"\"Legacy wrapper class.\"\"\"\n    pass\n\n\ndef _create_legacy_channel_access():\n    \"\"\"Legacy channel access function.\"\"\"\n    pass\n\n",
-                [
-                  {
-                    "pattern": "LegacyChannelWrapper",
-                    "match": "LegacyChannelWrapper",
-                    "line": 25,
-                    "line_content": "class LegacyChannelWrapper:",
-                    "start": 679,
-                    "end": 699
-                  },
-                  {
-                    "pattern": "_create_legacy_channel_access\\(",
-                    "match": "_create_legacy_channel_access(",
-                    "line": 30,
-                    "line_content": "def _create_legacy_channel_access():",
-                    "start": 748,
-                    "end": 778
-                  }
-                ]
-              ]
-            ],
-            "old_import_paths": [
-              [
-                "tests\\fixtures\\development_tools_demo\\legacy_code.py",
-                "\"\"\"\nLegacy code module for testing legacy reference cleanup.\n\nThis module contains legacy patterns that should be detected and cleaned up.\n\"\"\"\n\n# LEGACY COMPATIBILITY: This function is kept for backward compatibility\ndef legacy_function():\n    \"\"\"Legacy function that should be detected.\"\"\"\n    pass\n\n\n# LEGACY COMPATIBILITY: Old import pattern\n# Note: This is commented out to avoid import errors, but the pattern is still detectable\n# from bot.communication import old_module  # noqa: F401\n\n\ndef uses_legacy_pattern():\n    \"\"\"Function that uses legacy patterns.\"\"\"\n    # Reference to old bot directory\n    old_path = \"bot/communication/old_file.py\"\n    return old_path\n\n\nclass LegacyChannelWrapper:\n    \"\"\"Legacy wrapper class.\"\"\"\n    pass\n\n\ndef _create_legacy_channel_access():\n    \"\"\"Legacy channel access function.\"\"\"\n    pass\n\n",
-                [
-                  {
-                    "pattern": "from\\s+bot\\.communication",
-                    "match": "from bot.communication",
-                    "line": 15,
-                    "line_content": "# from bot.communication import old_module  # noqa: F401",
-                    "start": 437,
-                    "end": 459
-                  }
-                ]
-              ]
-            ],
-            "historical_references": [
-              [
-                "tests\\fixtures\\development_tools_demo\\legacy_code.py",
-                "\"\"\"\nLegacy code module for testing legacy reference cleanup.\n\nThis module contains legacy patterns that should be detected and cleaned up.\n\"\"\"\n\n# LEGACY COMPATIBILITY: This function is kept for backward compatibility\ndef legacy_function():\n    \"\"\"Legacy function that should be detected.\"\"\"\n    pass\n\n\n# LEGACY COMPATIBILITY: Old import pattern\n# Note: This is commented out to avoid import errors, but the pattern is still detectable\n# from bot.communication import old_module  # noqa: F401\n\n\ndef uses_legacy_pattern():\n    \"\"\"Function that uses legacy patterns.\"\"\"\n    # Reference to old bot directory\n    old_path = \"bot/communication/old_file.py\"\n    return old_path\n\n\nclass LegacyChannelWrapper:\n    \"\"\"Legacy wrapper class.\"\"\"\n    pass\n\n\ndef _create_legacy_channel_access():\n    \"\"\"Legacy channel access function.\"\"\"\n    pass\n\n",
-                [
-                  {
-                    "pattern": "bot/communication",
-                    "match": "bot/communication",
-                    "line": 21,
-                    "line_content": "old_path = \"bot/communication/old_file.py\"",
-                    "start": 620,
-                    "end": 637
-                  }
-                ]
-              ]
-            ]
-          },
-          "files_with_issues": 11,
-          "legacy_markers": 25,
+          "findings": {},
+          "files_with_issues": 0,
+          "legacy_markers": 0,
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md"
         }
       },
-      "timestamp": "2025-12-16T03:31:10.451574"
+      "timestamp": "2025-12-16T21:00:16.796949"
     },
     "analyze_config": {
       "success": true,
@@ -51270,7 +51558,7 @@
           }
         }
       },
-      "timestamp": "2025-12-16T04:31:02.375730"
+      "timestamp": "2025-12-16T20:58:22.854334"
     },
     "analyze_ai_work": {
       "success": true,
@@ -51280,7 +51568,7 @@
         "error": "",
         "returncode": 0
       },
-      "timestamp": "2025-12-16T04:31:03.304960"
+      "timestamp": "2025-12-16T20:55:50.762736"
     },
     "decision_support": {
       "success": true,
@@ -51409,12 +51697,12 @@
           }
         ]
       },
-      "timestamp": "2025-12-16T04:31:01.409184"
+      "timestamp": "2025-12-16T20:55:49.086052"
     },
     "quick_status": {
       "success": true,
       "data": {
-        "timestamp": "2025-12-16T04:30:42.737175",
+        "timestamp": "2025-12-16T20:55:31.646759",
         "system_health": {
           "core_files": {
             "run_mhm.py": "OK",
@@ -51434,7 +51722,7 @@
         },
         "documentation_status": {
           "coverage": "Unknown",
-          "recent_audit": "2025-12-16T04:14:55.699340",
+          "recent_audit": "2025-12-16T20:31:19.832213",
           "key_files": {
             "README.md": "OK",
             "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -51447,32 +51735,32 @@
         "critical_issues": [],
         "action_items": [],
         "recent_activity": {
-          "last_audit": "2025-12-16T04:14:55.699340",
+          "last_audit": "2025-12-16T20:31:19.832213",
           "recent_changes": [
             "tasks/task_management.py",
             "run_tests.py",
             "run_mhm.py",
             "run_headless_service.py",
-            "pytest.ini",
             "coverage.json",
             "core/schemas.py",
             "core/scheduler.py",
-            "core/schedule_management.py",
             "core/logger.py",
             "core/file_auditor.py",
-            "communication/message_processing/interaction_manager.py",
+            "core/error_handling.py",
             "communication/message_processing/conversation_flow_manager.py",
             "communication/message_processing/command_parser.py",
-            "communication/core/channel_orchestrator.py"
+            "communication/core/channel_orchestrator.py",
+            "communication/core/channel_monitor.py",
+            "communication/communication_channels/email/bot.py"
           ]
         }
       },
-      "timestamp": "2025-12-16T04:30:42.932934"
+      "timestamp": "2025-12-16T20:55:31.858508"
     },
     "system_signals": {
       "success": true,
       "data": {
-        "timestamp": "2025-12-16T04:30:52.558173",
+        "timestamp": "2025-12-16T20:55:40.621113",
         "system_health": {
           "overall_status": "OK",
           "core_files": {
@@ -51490,47 +51778,45 @@
             "user": "OK",
             "tests": "OK"
           },
-          "last_audit": "2025-12-16T04:14:55.759195",
+          "last_audit": "2025-12-16T20:31:19.888676",
           "warnings": [],
           "errors": []
         },
         "recent_activity": {
           "recent_changes": [
-            "DOCUMENTATION_GUIDE.md",
             "ai_development_docs/AI_CHANGELOG.md",
             "communication/command_handlers/interaction_handlers.py",
             "communication/communication_channels/base/command_registry.py",
             "communication/communication_channels/discord/account_flow_handler.py",
             "communication/communication_channels/discord/bot.py",
             "communication/communication_channels/discord/checkin_view.py",
-            "communication/communication_channels/discord/task_reminder_view.py",
             "communication/communication_channels/discord/webhook_handler.py",
             "communication/communication_channels/discord/welcome_handler.py",
             "communication/communication_channels/email/bot.py",
             "communication/core/channel_monitor.py",
             "communication/core/channel_orchestrator.py",
             "communication/message_processing/command_parser.py",
-            "communication/message_processing/conversation_flow_manager.py"
+            "communication/message_processing/conversation_flow_manager.py",
+            "core/error_handling.py",
+            "core/file_auditor.py"
           ],
           "git_status": "Modified",
           "last_commit": null,
           "uncommitted_changes": true
         },
-        "critical_alerts": [
-          "CRITICAL: Recent errors in logs/errors.log"
-        ],
+        "critical_alerts": [],
         "performance_indicators": {
           "log_file_sizes": {
             "ai.log": "0.0MB",
-            "ai_dev_tools.log": "0.3MB",
-            "app.log": "0.1MB",
-            "communication_manager.log": "0.0MB",
+            "ai_dev_tools.log": "0.6MB",
+            "app.log": "0.3MB",
+            "communication_manager.log": "0.1MB",
             "discord.log": "0.0MB",
             "email.log": "0.0MB",
             "errors.log": "0.0MB",
             "file_ops.log": "0.0MB",
             "message.log": "0.0MB",
-            "scheduler.log": "0.0MB",
+            "scheduler.log": "0.2MB",
             "ui.log": "0.0MB",
             "user_activity.log": "0.0MB"
           },
@@ -51538,7 +51824,7 @@
           "memory_usage": "Unknown"
         }
       },
-      "timestamp": "2025-12-16T04:30:55.847008"
+      "timestamp": "2025-12-16T20:55:43.553995"
     },
     "decision_support_metrics": {
       "success": true,
@@ -51667,7 +51953,7 @@
           }
         ]
       },
-      "timestamp": "2025-12-16T04:31:25.206565"
+      "timestamp": "2025-12-16T21:00:18.072972"
     }
   }
 }

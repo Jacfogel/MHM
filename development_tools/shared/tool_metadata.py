@@ -387,7 +387,6 @@ COMMAND_GROUPS = OrderedDict(
             "description": "Daily-safe commands that power the audit-first workflow.",
             "commands": [
                 "audit",
-                "quick-audit",
                 "docs",
                 "doc-sync",
                 "doc-fix",

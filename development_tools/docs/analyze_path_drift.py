@@ -107,7 +107,8 @@ class PathDriftAnalyzer:
         
         # Caching - use standardized storage
         from development_tools.shared.mtime_cache import MtimeFileCache
-        cache_file = self.project_root / "development_tools" / "docs" / ".path_drift_cache.json"  # Legacy fallback
+        # cache_file parameter kept for backward compatibility but not used (standardized storage always used)
+        cache_file = self.project_root / "development_tools" / "docs" / ".path_drift_cache.json"
         self.cache = MtimeFileCache(cache_file, self.project_root, use_cache=use_cache,
                                     tool_name='analyze_path_drift', domain='docs')
     
@@ -748,23 +749,12 @@ def main():
         return 0
     
     # Print results in human-readable format
-    # LEGACY COMPATIBILITY: Handle both standard format (new) and legacy format (old)
-    # Standard format uses 'summary' key; legacy format has 'total_issues' at top level
-    # Removal plan: After all callers are updated to use standard format, remove legacy format handling.
-    # Detection: Search for "Legacy format (backward compatibility)" in this file.
-    if 'summary' in structured_results:
-        # Standard format
-        summary = structured_results.get('summary', {})
-        total_issues = summary.get('total_issues', 0)
-        files = structured_results.get('files', {})
-        details = structured_results.get('details', {})
-        results = details.get('detailed_issues', {})
-    else:
-        # Legacy format (backward compatibility)
-        logger.debug("analyze_path_drift main: Using legacy format (backward compatibility)")
-        results = structured_results.get('detailed_issues', {})
-        total_issues = structured_results.get('total_issues', 0)
-        files = structured_results.get('files', {})
+    # run_analysis() always returns standard format with 'summary', 'files', and 'details' keys
+    summary = structured_results.get('summary', {})
+    total_issues = summary.get('total_issues', 0)
+    files = structured_results.get('files', {})
+    details = structured_results.get('details', {})
+    results = details.get('detailed_issues', {})
     
     if results:
         print(f"\nPath Drift Issues:")

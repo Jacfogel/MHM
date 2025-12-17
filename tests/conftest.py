@@ -77,14 +77,23 @@ warnings.filterwarnings("ignore", message=".*audioop.*", category=DeprecationWar
 warnings.filterwarnings("ignore", message=".*timeout.*deprecated.*", category=DeprecationWarning)
 
 # Additional comprehensive warning suppression
-warnings.filterwarnings("ignore", message=".*audioop.*", category=DeprecationWarning, module="discord.*")
-warnings.filterwarnings("ignore", message=".*timeout.*", category=DeprecationWarning, module="discord.*")
+# Suppress audioop deprecation warning from discord.player (Python 3.13 deprecation)
+# Note: This warning comes from discord library's use of deprecated audioop module
+# It will be fixed when discord.py updates, but we suppress it in tests for now
+warnings.filterwarnings("ignore", message=".*audioop.*deprecated.*", category=DeprecationWarning)
+warnings.filterwarnings("ignore", message=".*audioop.*", category=DeprecationWarning, module="discord.player")
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="discord.player")
+warnings.filterwarnings("ignore", message=".*timeout.*", category=DeprecationWarning, module="discord.*")
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="discord.http")
 
 # Suppress aiohttp client session warnings
 warnings.filterwarnings("ignore", message=".*Unclosed client session.*", category=ResourceWarning)
 warnings.filterwarnings("ignore", message=".*Task was destroyed but it is pending.*", category=RuntimeWarning)
+# Suppress unawaited coroutine warnings from Discord bot event handlers in test environments
+# This is expected when using mocks - the coroutines are created but never executed
+# The coroutine is registered with @bot.event but may not be awaited in test environments
+warnings.filterwarnings("ignore", message=".*coroutine.*_on_ready_internal.*was never awaited.*", category=RuntimeWarning)
+warnings.filterwarnings("ignore", message=".*coroutine.*was never awaited.*", category=RuntimeWarning, module="communication.communication_channels.discord.bot")
 
 # Note: Do not override BASE_DATA_DIR/USER_INFO_DIR_PATH via environment here,
 # as some unit tests assert the library defaults. Session fixtures below

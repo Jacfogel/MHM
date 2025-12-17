@@ -82,11 +82,24 @@ class ChannelMonitor:
     def _check_and_restart_stuck_channels(self):
         """Check for stuck channels and attempt restarts"""
         for channel_name, channel in self._channels_dict.items():
-            # Check if channel is in a failed state
-            if hasattr(channel, 'status') and channel.status == 'failed':
-                self._attempt_channel_restart(channel_name)
-            elif hasattr(channel, 'is_healthy') and not channel.is_healthy():
-                self._attempt_channel_restart(channel_name)
+            try:
+                # Check if channel is in a failed state
+                if hasattr(channel, 'status') and channel.status == 'failed':
+                    self._attempt_channel_restart(channel_name)
+                elif hasattr(channel, 'is_healthy'):
+                    # Wrap is_healthy() call in try/except to handle exceptions gracefully
+                    # This ensures other channels are still processed even if one raises an exception
+                    try:
+                        if not channel.is_healthy():
+                            self._attempt_channel_restart(channel_name)
+                    except Exception as e:
+                        # If is_healthy() raises an exception, treat it as unhealthy
+                        logger.warning(f"Exception checking health of channel {channel_name}: {e}")
+                        self._attempt_channel_restart(channel_name)
+            except Exception as e:
+                # Log error but continue processing other channels
+                logger.error(f"Error checking channel {channel_name}: {e}")
+                continue
 
     @handle_errors("attempting channel restart", user_friendly=False, default_return=None)
     def _attempt_channel_restart(self, channel_name: str):

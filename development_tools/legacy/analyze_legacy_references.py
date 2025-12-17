@@ -103,6 +103,36 @@ class LegacyReferenceAnalyzer:
         if 'analyze_legacy_references.py' in rel_path_str:
             return True
         
+        # Skip test fixtures directory (intentional legacy patterns for testing)
+        # Only skip if the file is in the main project's tests/fixtures directory
+        # Don't skip if it's in a demo/test project (different project_root) - tests need to scan those
+        try:
+            main_project_root = Path('.').resolve()
+            is_main_project = str(self.project_root.resolve()) == str(main_project_root)
+        except (OSError, ValueError):
+            # If we can't resolve paths, assume it's not the main project
+            is_main_project = False
+        
+        if is_main_project and ('tests/fixtures/' in rel_path_str or 'tests\\fixtures\\' in rel_path_str):
+            return True
+        
+        # Check for INTENTIONAL LEGACY marker at the top of the file
+        # Only apply this check for files in the main project (not demo/test projects)
+        # Demo/test projects need their legacy_code.py to be scanned for testing
+        if is_main_project:
+            try:
+                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    # Read first 10 lines to check for marker
+                    first_lines = ''.join(f.readlines()[:10])
+                    if 'INTENTIONAL LEGACY' in first_lines or '# INTENTIONAL LEGACY:' in first_lines:
+                        # Only skip if it's in tests/fixtures directory or is a test file
+                        if ('tests/fixtures/' in rel_path_str or 'tests\\fixtures\\' in rel_path_str or
+                            'test_' in file_path.name or rel_path_str.startswith('tests/')):
+                            return True
+            except (IOError, UnicodeDecodeError):
+                # If we can't read the file, skip it
+                pass
+        
         # Skip generated files
         from development_tools.shared.standard_exclusions import ALL_GENERATED_FILES
         if rel_path_str in ALL_GENERATED_FILES:

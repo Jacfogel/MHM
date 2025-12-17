@@ -39,12 +39,6 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     parser = argparse.ArgumentParser(prog='audit', add_help=False)
     parser.add_argument('--full', action='store_true', help='Run comprehensive audit (Tier 3 - includes coverage and dependencies).')
     parser.add_argument('--quick', action='store_true', help='Run quick audit (Tier 1 - core metrics only).')
-    
-    # LEGACY COMPATIBILITY
-    # --fast flag is deprecated in favor of --quick for consistency with tier naming.
-    # Removal plan: Remove --fast flag after one release cycle. Update any scripts/docs using --fast.
-    # Detection: Search for "--fast" in scripts, documentation, and usage examples.
-    parser.add_argument('--fast', action='store_true', help='[DEPRECATED] Use --quick instead. Force fast audit (skip coverage).')
     parser.add_argument('--include-tests', action='store_true', help='Include test files in analysis.')
     parser.add_argument('--include-dev-tools', action='store_true', help='Include development_tools in analysis.')
     parser.add_argument('--include-all', action='store_true', help='Include tests and dev tools (equivalent to --include-tests --include-dev-tools).')
@@ -59,11 +53,6 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     # Determine audit tier based on flags
     quick_mode = ns.quick
     full_mode = ns.full
-    
-    # LEGACY COMPATIBILITY: Handle deprecated --fast flag
-    if ns.fast and not ns.quick and not ns.full:
-        quick_mode = True
-        logger.warning("LEGACY: --fast flag is deprecated. Use --quick instead.")
 
     # Set exclusion configuration
     service.set_exclusion_config(
@@ -125,26 +114,6 @@ def _workflow_command(service: "AIToolsService", argv: Sequence[str]) -> int:
 
     ns = parser.parse_args(list(argv))
     success = service.run_workflow(ns.task_type)
-    return 0 if success else 1
-
-
-# LEGACY COMPATIBILITY
-# quick-audit command is deprecated in favor of 'audit --quick' for consistency.
-# Removal plan: Remove quick-audit command and _quick_audit_command handler after one release cycle.
-# Detection: Search for "quick-audit" in scripts, documentation, and usage examples.
-def _quick_audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
-    if argv:
-        if any(arg not in ('-h', '--help') for arg in argv):
-            print("The 'quick-audit' command does not accept additional arguments.")
-            print("Note: 'quick-audit' is deprecated. Use 'audit --quick' instead.")
-            return 2
-        print("Usage: quick-audit")
-        print("Note: This command is deprecated. Use 'audit --quick' instead.")
-        return 0
-
-    # LEGACY: quick-audit command - redirect to audit --quick
-    logger.warning("LEGACY: 'quick-audit' command is deprecated. Use 'audit --quick' instead.")
-    success = service.run_audit(quick=True)
     return 0 if success else 1
 
 
@@ -369,7 +338,6 @@ COMMAND_REGISTRY = OrderedDict([
     ('validate', CommandRegistration('validate', _validate_command, 'Validate AI-generated work.')),
     ('config', CommandRegistration('config', _config_command, 'Check configuration consistency.')),
     ('workflow', CommandRegistration('workflow', _workflow_command, 'Execute an audit-first workflow task.')),
-    ('quick-audit', CommandRegistration('quick-audit', _quick_audit_command, '[DEPRECATED] Use "audit --quick" instead. Run quick audit (Tier 1).')),
     ('decision-support', CommandRegistration('decision-support', _decision_support_command, 'Generate decision support insights.')),
     ('version-sync', CommandRegistration('version-sync', _fix_version_sync_command, 'Synchronize version metadata.')),
     ('status', CommandRegistration('status', _status_command, 'Print quick system status.')),

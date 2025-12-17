@@ -1,3 +1,6 @@
+# INTENTIONAL LEGACY: This test file intentionally references legacy patterns
+# (LegacyChannelWrapper, bot/ paths) to verify the legacy detection tools work correctly.
+# These references should NOT be flagged as issues - they are test code.
 """
 Tests for fix_legacy_references.py.
 

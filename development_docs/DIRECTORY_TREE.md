@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-14 20:44:25
+> **Last Generated**: 2025-12-16 20:55:18
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -32,8 +32,6 @@ C:.
 |   run_headless_service.py
 |   run_mhm.py
 |   run_tests.py
-|   test_refactor.ps1
-|   test_refactor_simple.ps1
 |   TODO.md
 |   
 +---.cursor
@@ -183,6 +181,8 @@ C:.
 |   |   |   |   
 |   |   |   \---archive
     (archived files)
++---htmlcov
+    (HTML coverage reports)
 +---logs
 |   |   ai.log
 |   |   ai_dev_tools.log
@@ -229,7 +229,6 @@ C:.
 |   |   fix_non_ascii_chars.py
 |   |   flaky_detector.py
 |   |   generate_phase1_candidates.py
-|   |   generate_phase2_audit.py
 |   |   number_documentation_headings.py
 |   |   replace_try_except_with_decorator.py
 |   |   SCRIPTS_GUIDE.md

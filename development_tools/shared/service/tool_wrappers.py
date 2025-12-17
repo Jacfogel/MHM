@@ -594,20 +594,13 @@ class ToolWrappersMixin:
             from development_tools.docs.analyze_path_drift import PathDriftAnalyzer
             analyzer = PathDriftAnalyzer()
             structured_results = analyzer.run_analysis()
-            if 'summary' in structured_results:
-                summary = structured_results.get('summary', {})
-                data = {
-                    'files': structured_results.get('files', {}),
-                    'total_issues': summary.get('total_issues', 0),
-                    'detailed_issues': structured_results.get('details', {}).get('detailed_issues', {})
-                }
-            else:
-                logger.debug("analyze_path_drift: Using legacy format (backward compatibility)")
-                data = {
-                    'files': structured_results.get('files', {}),
-                    'total_issues': structured_results.get('total_issues', 0),
-                    'detailed_issues': structured_results.get('detailed_issues', {})
-                }
+            # run_analysis() always returns standard format with 'summary', 'files', and 'details' keys
+            summary = structured_results.get('summary', {})
+            data = {
+                'files': structured_results.get('files', {}),
+                'total_issues': summary.get('total_issues', 0),
+                'detailed_issues': structured_results.get('details', {}).get('detailed_issues', {})
+            }
             import io
             import sys
             output_buffer = io.StringIO()

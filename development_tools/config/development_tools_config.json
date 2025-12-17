@@ -311,8 +311,7 @@
       ],
       "deprecated_functions": [
         "LegacyChannelWrapper",
-        "_create_legacy_channel_access\\(",
-        "store_checkin_response\\("
+        "_create_legacy_channel_access\\("
       ],
       "legacy_compatibility_markers": [
         "# LEGACY COMPATIBILITY:"

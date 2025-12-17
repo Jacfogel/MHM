@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-14 20:44:20
+> **Last Generated**: 2025-12-16 20:55:13
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,20 +14,20 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 94.7% [WARNING] NEEDS ATTENTION**
+### **Function Documentation Coverage: 96.2% [OK] COMPLETED**
 - **Files Scanned**: 107
 - **Functions Found**: 1500
 - **Methods Found**: 1143
 - **Classes Found**: 159
 - **Total Items**: 2643
-- **Functions Documented**: 1417
-- **Methods Documented**: 1085
+- **Functions Documented**: 1438
+- **Methods Documented**: 1104
 - **Classes Documented**: 124
-- **Total Documented**: 2502
-- **Template-Generated**: 36
-- **Last Updated**: 2025-12-14
+- **Total Documented**: 2542
+- **Template-Generated**: 4
+- **Last Updated**: 2025-12-16
 
-**Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
+**Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
 **Template Enhancement**: This registry now includes automatic template generation for:
 - **Auto-generated Qt functions** (qtTrId, setupUi, retranslateUi)
@@ -1259,28 +1259,104 @@ Returns:
 
 #### `communication/communication_channels/discord/account_flow_handler.py`
 **Functions:**
-- [OK] `__init__(self, username, discord_user_id, timeout)` - Special Python method
-- [OK] `__init__(self, parent_view)` - Special Python method
-- [OK] `__init__(self, parent_view)` - Special Python method
-- [OK] `__init__(self, parent_view)` - Special Python method
-- [OK] `__init__(self, parent_view)` - Special Python method
-- [OK] `__init__(self, parent_view)` - Special Python method
+- [OK] `__init__(self, username, discord_user_id, timeout)` - Initialize the feature selection view for account creation.
+
+Creates a Discord UI view with select menus and buttons for configuring
+account features (tasks, check-ins, messages, timezone) during account creation.
+
+Args:
+    username: The username for the account being created
+    discord_user_id: The Discord user ID of the account creator
+    timeout: View timeout in seconds (default: 300.0)
+- [OK] `__init__(self, parent_view)` - Initialize the task management feature select menu.
+
+Creates a Discord select menu for enabling or disabling task management
+features during account creation.
+
+Args:
+    parent_view: The parent FeatureSelectionView to update when selection changes
+- [OK] `__init__(self, parent_view)` - Initialize the check-in feature select menu.
+
+Creates a Discord select menu for enabling or disabling check-in
+features during account creation.
+
+Args:
+    parent_view: The parent FeatureSelectionView to update when selection changes
+- [OK] `__init__(self, parent_view)` - Initialize the automated messages feature select menu.
+
+Creates a Discord select menu for enabling or disabling automated
+messages features during account creation.
+
+Args:
+    parent_view: The parent FeatureSelectionView to update when selection changes
+- [OK] `__init__(self, parent_view)` - Initialize the timezone selection menu.
+
+Creates a Discord select menu for choosing the user's timezone during
+account creation. Limited to 25 options (Discord's maximum).
+
+Args:
+    parent_view: The parent FeatureSelectionView to update when selection changes
+- [OK] `__init__(self, parent_view)` - Initialize the account creation button.
+
+Creates a Discord button that finalizes account creation with the
+selected features when clicked.
+
+Args:
+    parent_view: The parent FeatureSelectionView containing the selected features
 **Classes:**
 - [OK] `CheckinFeatureSelect` - Select menu for check-in feature.
-  - [OK] `CheckinFeatureSelect.__init__(self, parent_view)` - Special Python method
+  - [OK] `CheckinFeatureSelect.__init__(self, parent_view)` - Initialize the check-in feature select menu.
+
+Creates a Discord select menu for enabling or disabling check-in
+features during account creation.
+
+Args:
+    parent_view: The parent FeatureSelectionView to update when selection changes
 - [MISSING] `ConfirmLinkModal` - No description
 - [OK] `CreateAccountButton` - Button to finalize account creation.
-  - [OK] `CreateAccountButton.__init__(self, parent_view)` - Special Python method
+  - [OK] `CreateAccountButton.__init__(self, parent_view)` - Initialize the account creation button.
+
+Creates a Discord button that finalizes account creation with the
+selected features when clicked.
+
+Args:
+    parent_view: The parent FeatureSelectionView containing the selected features
 - [MISSING] `CreateAccountModal` - No description
 - [OK] `FeatureSelectionView` - View for selecting account features during creation.
-  - [OK] `FeatureSelectionView.__init__(self, username, discord_user_id, timeout)` - Special Python method
+  - [OK] `FeatureSelectionView.__init__(self, username, discord_user_id, timeout)` - Initialize the feature selection view for account creation.
+
+Creates a Discord UI view with select menus and buttons for configuring
+account features (tasks, check-ins, messages, timezone) during account creation.
+
+Args:
+    username: The username for the account being created
+    discord_user_id: The Discord user ID of the account creator
+    timeout: View timeout in seconds (default: 300.0)
 - [MISSING] `LinkAccountModal` - No description
 - [OK] `MessageFeatureSelect` - Select menu for automated messages feature.
-  - [OK] `MessageFeatureSelect.__init__(self, parent_view)` - Special Python method
+  - [OK] `MessageFeatureSelect.__init__(self, parent_view)` - Initialize the automated messages feature select menu.
+
+Creates a Discord select menu for enabling or disabling automated
+messages features during account creation.
+
+Args:
+    parent_view: The parent FeatureSelectionView to update when selection changes
 - [OK] `TaskFeatureSelect` - Select menu for task management feature.
-  - [OK] `TaskFeatureSelect.__init__(self, parent_view)` - Special Python method
+  - [OK] `TaskFeatureSelect.__init__(self, parent_view)` - Initialize the task management feature select menu.
+
+Creates a Discord select menu for enabling or disabling task management
+features during account creation.
+
+Args:
+    parent_view: The parent FeatureSelectionView to update when selection changes
 - [OK] `TimezoneSelect` - Select menu for timezone selection.
-  - [OK] `TimezoneSelect.__init__(self, parent_view)` - Special Python method
+  - [OK] `TimezoneSelect.__init__(self, parent_view)` - Initialize the timezone selection menu.
+
+Creates a Discord select menu for choosing the user's timezone during
+account creation. Limited to 25 options (Discord's maximum).
+
+Args:
+    parent_view: The parent FeatureSelectionView to update when selection changes
 
 #### `communication/communication_channels/discord/api_client.py`
 **Functions:**
@@ -1386,7 +1462,13 @@ Returns:
 
 #### `communication/communication_channels/discord/checkin_view.py`
 **Functions:**
-- [OK] `__init__(self, user_id)` - Special Python method
+- [OK] `__init__(self, user_id)` - Initialize the check-in view with action buttons.
+
+Creates a Discord UI view with buttons for canceling check-ins,
+skipping questions, and accessing help during the check-in flow.
+
+Args:
+    user_id: The internal user ID for the check-in session
 - [OK] `get_checkin_view(user_id)` - Create a Discord View with buttons for check-in flow.
 
 Args:
@@ -1396,7 +1478,13 @@ Returns:
     discord.ui.View with buttons for check-in actions
 **Classes:**
 - [MISSING] `CheckinView` - No description
-  - [OK] `CheckinView.__init__(self, user_id)` - Special Python method
+  - [OK] `CheckinView.__init__(self, user_id)` - Initialize the check-in view with action buttons.
+
+Creates a Discord UI view with buttons for canceling check-ins,
+skipping questions, and accessing help during the check-in flow.
+
+Args:
+    user_id: The internal user ID for the check-in session
 
 #### `communication/communication_channels/discord/event_handler.py`
 **Functions:**
@@ -1424,7 +1512,12 @@ Returns:
 
 #### `communication/communication_channels/discord/task_reminder_view.py`
 **Functions:**
-- [OK] `__init__(self, user_id, task_id, task_title)` - Special Python method
+- [OK] `__init__(self, user_id, task_id, task_title)` - Initialize a Discord task reminder view with buttons.
+
+Args:
+    user_id: The user's internal user ID
+    task_id: The task ID to display in the reminder
+    task_title: The title of the task to display
 - [OK] `get_task_reminder_view(user_id, task_id, task_title)` - Create a Discord View with buttons for task reminder actions.
 
 Args:
@@ -1436,7 +1529,12 @@ Returns:
     discord.ui.View with buttons for task reminder actions
 **Classes:**
 - [MISSING] `TaskReminderView` - No description
-  - [OK] `TaskReminderView.__init__(self, user_id, task_id, task_title)` - Special Python method
+  - [OK] `TaskReminderView.__init__(self, user_id, task_id, task_title)` - Initialize a Discord task reminder view with buttons.
+
+Args:
+    user_id: The user's internal user ID
+    task_id: The task ID to display in the reminder
+    task_title: The title of the task to display
 
 #### `communication/communication_channels/discord/webhook_handler.py`
 **Functions:**
@@ -1511,7 +1609,13 @@ Args:
 
 #### `communication/communication_channels/discord/welcome_handler.py`
 **Functions:**
-- [OK] `__init__(self, discord_user_id)` - Special Python method
+- [OK] `__init__(self, discord_user_id)` - Initialize the welcome view with account action buttons.
+
+Creates a Discord UI view with buttons for creating a new account
+or linking to an existing account. Buttons persist without timeout.
+
+Args:
+    discord_user_id: The Discord user ID for the welcome session
 - [OK] `clear_welcomed_status(discord_user_id)` - Clear the welcomed status for a Discord user (e.g., when they deauthorize).
 - [OK] `get_welcome_message(discord_user_id, discord_username, is_authorization)` - Get a welcome message for a new Discord user.
 
@@ -1533,7 +1637,13 @@ Returns:
 - [OK] `mark_as_welcomed(discord_user_id)` - Mark a Discord user as having been welcomed.
 **Classes:**
 - [MISSING] `WelcomeView` - No description
-  - [OK] `WelcomeView.__init__(self, discord_user_id)` - Special Python method
+  - [OK] `WelcomeView.__init__(self, discord_user_id)` - Initialize the welcome view with account action buttons.
+
+Creates a Discord UI view with buttons for creating a new account
+or linking to an existing account. Buttons persist without timeout.
+
+Args:
+    discord_user_id: The Discord user ID for the welcome session
 
 #### `communication/communication_channels/email/bot.py`
 **Functions:**
@@ -1875,7 +1985,10 @@ Returns:
 
 #### `communication/message_processing/command_parser.py`
 **Functions:**
-- [OK] `__init__(self)` - Special Python method
+- [OK] `__init__(self)` - Initialize the enhanced command parser.
+
+Sets up the parser with AI chatbot integration and interaction handlers,
+and initializes rule-based intent patterns for common commands.
 - [OK] `_ai_enhanced_parse(self, message, user_id)` - Parse using AI chatbot capabilities
 - [OK] `_calculate_confidence(self, intent, match, message)` - Calculate confidence score for a parsed command
 - [OK] `_extract_entities_from_ai_response(self, ai_response)` - Extract entities from AI response text
@@ -1897,7 +2010,10 @@ Returns:
 - [OK] `parse_command(message)` - Convenience function to parse a command
 **Classes:**
 - [OK] `EnhancedCommandParser` - Enhanced command parser that combines rule-based and AI parsing
-  - [OK] `EnhancedCommandParser.__init__(self)` - Special Python method
+  - [OK] `EnhancedCommandParser.__init__(self)` - Initialize the enhanced command parser.
+
+Sets up the parser with AI chatbot integration and interaction handlers,
+and initializes rule-based intent patterns for common commands.
   - [OK] `EnhancedCommandParser._ai_enhanced_parse(self, message, user_id)` - Parse using AI chatbot capabilities
   - [OK] `EnhancedCommandParser._calculate_confidence(self, intent, match, message)` - Calculate confidence score for a parsed command
   - [OK] `EnhancedCommandParser._extract_entities_from_ai_response(self, ai_response)` - Extract entities from AI response text
@@ -1968,10 +2084,28 @@ Now defaults to contextual chat for all messages unless user is in a specific fl
 or uses a special command.
 - [OK] `restart_checkin(self, user_id)` - Force restart a check-in flow, clearing any existing checkin state.
 This should be used when user explicitly wants to start over.
-- [MISSING] `start_analytics_flow(self, user_id)` - No description
+- [OK] `start_analytics_flow(self, user_id)` - Start the analytics flow for a user.
+
+Initiates the analytics display flow by routing the "show analytics" command
+through the interaction manager. Returns the response message and completion status.
+
+Args:
+    user_id: The internal user ID to start the analytics flow for
+    
+Returns:
+    tuple[str, bool]: Response message and completion status (always True for this flow)
 - [OK] `start_checkin(self, user_id)` - Public method to start a check-in flow for a user.
 This is the proper way to initiate check-ins from external modules.
-- [MISSING] `start_messages_flow(self, user_id)` - No description
+- [OK] `start_messages_flow(self, user_id)` - Start the messages flow for a user.
+
+Initiates the messages management flow by routing the "show messages" command
+through the interaction manager. Returns the response message and completion status.
+
+Args:
+    user_id: The internal user ID to start the messages flow for
+    
+Returns:
+    tuple[str, bool]: Response message and completion status (always True for this flow)
 - [MISSING] `start_profile_flow(self, user_id)` - No description
 - [MISSING] `start_schedule_flow(self, user_id)` - No description
 - [OK] `start_task_reminder_followup(self, user_id, task_id)` - Start a task reminder follow-up flow.
@@ -2028,10 +2162,28 @@ Now defaults to contextual chat for all messages unless user is in a specific fl
 or uses a special command.
   - [OK] `ConversationManager.restart_checkin(self, user_id)` - Force restart a check-in flow, clearing any existing checkin state.
 This should be used when user explicitly wants to start over.
-  - [MISSING] `ConversationManager.start_analytics_flow(self, user_id)` - No description
+  - [OK] `ConversationManager.start_analytics_flow(self, user_id)` - Start the analytics flow for a user.
+
+Initiates the analytics display flow by routing the "show analytics" command
+through the interaction manager. Returns the response message and completion status.
+
+Args:
+    user_id: The internal user ID to start the analytics flow for
+    
+Returns:
+    tuple[str, bool]: Response message and completion status (always True for this flow)
   - [OK] `ConversationManager.start_checkin(self, user_id)` - Public method to start a check-in flow for a user.
 This is the proper way to initiate check-ins from external modules.
-  - [MISSING] `ConversationManager.start_messages_flow(self, user_id)` - No description
+  - [OK] `ConversationManager.start_messages_flow(self, user_id)` - Start the messages flow for a user.
+
+Initiates the messages management flow by routing the "show messages" command
+through the interaction manager. Returns the response message and completion status.
+
+Args:
+    user_id: The internal user ID to start the messages flow for
+    
+Returns:
+    tuple[str, bool]: Response message and completion status (always True for this flow)
   - [MISSING] `ConversationManager.start_profile_flow(self, user_id)` - No description
   - [MISSING] `ConversationManager.start_schedule_flow(self, user_id)` - No description
   - [OK] `ConversationManager.start_task_reminder_followup(self, user_id, task_id)` - Start a task reminder follow-up flow.
@@ -2796,10 +2948,10 @@ Args:
 - [MISSING] `_classify_path(path)` - No description
 - [OK] `_get_audit_directories(self)` - Get configurable audit directories from environment or use defaults.
 - [MISSING] `_split_env_list(value)` - No description
-- [MISSING] `critical(self)` - No description
-- [MISSING] `debug(self)` - No description
-- [MISSING] `error(self)` - No description
-- [MISSING] `info(self)` - No description
+- [OK] `critical(self)` - No-op critical logging for fallback logger.
+- [OK] `debug(self)` - No-op debug logging for fallback logger.
+- [OK] `error(self)` - No-op error logging for fallback logger.
+- [OK] `info(self)` - No-op info logging for fallback logger.
 - [OK] `record_created(path, reason, extra)` - Programmatically record a file creation event.
 
 Safe to call even if auditor disabled. Includes optional stack if FILE_AUDIT_STACK=1.
@@ -2807,7 +2959,7 @@ Safe to call even if auditor disabled. Includes optional stack if FILE_AUDIT_STA
 - [MISSING] `start_auditor()` - No description
 - [OK] `stop(self)` - Stop the file auditor (no-op for now).
 - [MISSING] `stop_auditor()` - No description
-- [MISSING] `warning(self)` - No description
+- [OK] `warning(self)` - No-op warning logging for fallback logger.
 **Classes:**
 - [OK] `FileAuditor` - Auditor for tracking file creation and modification patterns.
   - [OK] `FileAuditor.__init__(self)` - Special Python method
@@ -2815,11 +2967,11 @@ Safe to call even if auditor disabled. Includes optional stack if FILE_AUDIT_STA
   - [OK] `FileAuditor.start(self)` - Start the file auditor (no-op for now).
   - [OK] `FileAuditor.stop(self)` - Stop the file auditor (no-op for now).
 - [MISSING] `_DummyLogger` - No description
-  - [MISSING] `_DummyLogger.critical(self)` - No description
-  - [MISSING] `_DummyLogger.debug(self)` - No description
-  - [MISSING] `_DummyLogger.error(self)` - No description
-  - [MISSING] `_DummyLogger.info(self)` - No description
-  - [MISSING] `_DummyLogger.warning(self)` - No description
+  - [OK] `_DummyLogger.critical(self)` - No-op critical logging for fallback logger.
+  - [OK] `_DummyLogger.debug(self)` - No-op debug logging for fallback logger.
+  - [OK] `_DummyLogger.error(self)` - No-op error logging for fallback logger.
+  - [OK] `_DummyLogger.info(self)` - No-op info logging for fallback logger.
+  - [OK] `_DummyLogger.warning(self)` - No-op warning logging for fallback logger.
 
 #### `core/file_locking.py`
 **Functions:**
@@ -2972,12 +3124,47 @@ Raises:
 
 #### `core/logger.py`
 **Functions:**
-- [OK] `__init__(self, component_name, log_file_path, level)` - Special Python method
-- [OK] `__init__(self, filename, backup_dir, maxBytes, backupCount, encoding, delay, when, interval)` - Special Python method
-- [OK] `__init__(self)` - Special Python method
-- [OK] `__init__(self, excluded_prefixes)` - Special Python method
-- [OK] `__init__(self, name)` - Special Python method
-- [OK] `__init__(self, name)` - Special Python method
+- [OK] `__init__(self, component_name, log_file_path, level)` - Initialize a component-specific logger.
+
+Sets up a dedicated logger for a specific component with file-based logging,
+rotation, and error handling. The logger writes to a dedicated log file
+and optionally to a consolidated errors.log file.
+
+Args:
+    component_name: Name of the component (e.g., 'discord', 'ai', 'scheduler')
+    log_file_path: Path to the component's dedicated log file
+    level: Logging level (default: logging.INFO)
+- [OK] `__init__(self, filename, backup_dir, maxBytes, backupCount, encoding, delay, when, interval)` - Initialize a rotating file handler that moves rotated files to a backup directory.
+
+Args:
+    filename: Path to the log file
+    backup_dir: Directory where rotated log files will be moved
+    maxBytes: Maximum file size before rotation (0 = disabled)
+    backupCount: Number of backup files to keep (0 = unlimited)
+    encoding: File encoding (default: None, uses system default)
+    delay: If True, delay file opening until first write
+    when: Time-based rotation interval ('midnight', 'H', 'D', etc.)
+    interval: Number of intervals between rotations
+- [OK] `__init__(self)` - Initialize the heartbeat warning filter.
+
+Sets up counters and timers for tracking Discord heartbeat warnings
+to prevent log spam while maintaining visibility of the issue.
+- [OK] `__init__(self, excluded_prefixes)` - Initialize filter with list of logger name prefixes to exclude.
+
+Args:
+    excluded_prefixes: List of logger name prefixes to filter out
+        (e.g., ['discord', 'aiohttp'] to exclude all Discord and aiohttp logs)
+- [OK] `__init__(self, name)` - Initialize a dummy logger for test mode.
+
+Args:
+    name: Logger name (unused, kept for interface compatibility)
+- [OK] `__init__(self, name)` - Initialize a dummy component logger for test mode.
+
+Provides a no-op logger interface that discards all log messages
+to keep test output clean when verbose logging is disabled.
+
+Args:
+    name: Component name (e.g., 'discord', 'ai')
 - [OK] `_get_log_paths_for_environment()` - Get appropriate log paths based on the current environment.
 - [OK] `_is_testing_environment()` - Check if we're running in a testing environment.
 - [OK] `_log(self, level, message)` - Internal logging method with structured data support.
@@ -3010,9 +3197,9 @@ Returns:
 Returns:
     int: Number of files compressed and archived
 - [OK] `critical(self, message)` - Log critical message with optional structured data.
-- [MISSING] `critical(self, message)` - No description
+- [OK] `critical(self, message)` - No-op critical logging for test mode.
 - [OK] `debug(self, message)` - Log debug message with optional structured data.
-- [MISSING] `debug(self, message)` - No description
+- [OK] `debug(self, message)` - No-op debug logging for test mode.
 - [OK] `disable_module_logging(module_name)` - Disable debug logging for a specific module.
 
 Args:
@@ -3020,16 +3207,38 @@ Args:
 - [OK] `doRollover(self)` - Do a rollover, as described in __init__().
 - [OK] `ensure_logs_directory()` - Ensure the logs directory structure exists.
 - [OK] `error(self, message)` - Log error message with optional structured data.
-- [MISSING] `error(self, message)` - No description
-- [MISSING] `filter(self, record)` - No description
-- [MISSING] `filter(self, record)` - No description
+- [OK] `error(self, message)` - No-op error logging for test mode.
+- [OK] `filter(self, record)` - Filter Discord heartbeat warnings to prevent log spam.
+
+Args:
+    record: logging.LogRecord to filter
+
+Returns:
+    bool: True if record should be logged, False to suppress
+- [OK] `filter(self, record)` - Filter log records based on excluded prefixes.
+
+Args:
+    record: logging.LogRecord to filter
+
+Returns:
+    bool: True if record should be logged, False if it matches excluded prefixes
 - [OK] `force_restart_logging()` - Force restart the logging system by clearing all handlers and reinitializing.
 
 Useful when logging configuration becomes corrupted or needs to be reset.
 
 Returns:
     bool: True if restart was successful, False otherwise
-- [MISSING] `format(self, record)` - No description
+- [OK] `format(self, record)` - Format log record with test context prepended when in test mode.
+
+Automatically prepends the current test name to log messages during pytest runs
+to help identify which test generated each log entry. Skips component loggers
+(those starting with "mhm.") to avoid duplication.
+
+Args:
+    record: logging.LogRecord to format
+
+Returns:
+    str: Formatted log message with optional test context
 - [OK] `get_component_logger(component_name)` - Get or create a component-specific logger.
 
 Args:
@@ -3057,7 +3266,7 @@ Returns:
 Returns:
     bool: True if verbose mode is enabled
 - [OK] `info(self, message)` - Log info message with optional structured data.
-- [MISSING] `info(self, message)` - No description
+- [OK] `info(self, message)` - No-op info logging for test mode.
 - [OK] `set_console_log_level(level)` - Set the console logging level while keeping file logging at DEBUG.
 
 Args:
@@ -3089,18 +3298,37 @@ File logging always remains at DEBUG level.
 Returns:
     bool: True if verbose mode is now enabled, False if quiet mode
 - [OK] `warning(self, message)` - Log warning message with optional structured data.
-- [MISSING] `warning(self, message)` - No description
+- [OK] `warning(self, message)` - No-op warning logging for test mode.
 **Classes:**
 - [OK] `BackupDirectoryRotatingFileHandler` - Custom rotating file handler that moves rotated files to a backup directory.
 Supports both time-based and size-based rotation.
-  - [OK] `BackupDirectoryRotatingFileHandler.__init__(self, filename, backup_dir, maxBytes, backupCount, encoding, delay, when, interval)` - Special Python method
+  - [OK] `BackupDirectoryRotatingFileHandler.__init__(self, filename, backup_dir, maxBytes, backupCount, encoding, delay, when, interval)` - Initialize a rotating file handler that moves rotated files to a backup directory.
+
+Args:
+    filename: Path to the log file
+    backup_dir: Directory where rotated log files will be moved
+    maxBytes: Maximum file size before rotation (0 = disabled)
+    backupCount: Number of backup files to keep (0 = unlimited)
+    encoding: File encoding (default: None, uses system default)
+    delay: If True, delay file opening until first write
+    when: Time-based rotation interval ('midnight', 'H', 'D', etc.)
+    interval: Number of intervals between rotations
   - [OK] `BackupDirectoryRotatingFileHandler.doRollover(self)` - Do a rollover, as described in __init__().
   - [OK] `BackupDirectoryRotatingFileHandler.shouldRollover(self, record)` - Determine if rollover should occur based on both time and size.
 Prevents rollover for files that are too small or too recently created.
 - [OK] `ComponentLogger` - Component-specific logger that writes to dedicated log files.
 
 Each component gets its own log file with appropriate rotation and formatting.
-  - [OK] `ComponentLogger.__init__(self, component_name, log_file_path, level)` - Special Python method
+  - [OK] `ComponentLogger.__init__(self, component_name, log_file_path, level)` - Initialize a component-specific logger.
+
+Sets up a dedicated logger for a specific component with file-based logging,
+rotation, and error handling. The logger writes to a dedicated log file
+and optionally to a consolidated errors.log file.
+
+Args:
+    component_name: Name of the component (e.g., 'discord', 'ai', 'scheduler')
+    log_file_path: Path to the component's dedicated log file
+    level: Logging level (default: logging.INFO)
   - [OK] `ComponentLogger._log(self, level, message)` - Internal logging method with structured data support.
   - [OK] `ComponentLogger.critical(self, message)` - Log critical message with optional structured data.
   - [OK] `ComponentLogger.debug(self, message)` - Log debug message with optional structured data.
@@ -3108,27 +3336,65 @@ Each component gets its own log file with appropriate rotation and formatting.
   - [OK] `ComponentLogger.info(self, message)` - Log info message with optional structured data.
   - [OK] `ComponentLogger.warning(self, message)` - Log warning message with optional structured data.
 - [MISSING] `DummyComponentLogger` - No description
-  - [OK] `DummyComponentLogger.__init__(self, name)` - Special Python method
-  - [MISSING] `DummyComponentLogger.critical(self, message)` - No description
-  - [MISSING] `DummyComponentLogger.debug(self, message)` - No description
-  - [MISSING] `DummyComponentLogger.error(self, message)` - No description
-  - [MISSING] `DummyComponentLogger.info(self, message)` - No description
-  - [MISSING] `DummyComponentLogger.warning(self, message)` - No description
+  - [OK] `DummyComponentLogger.__init__(self, name)` - Initialize a dummy component logger for test mode.
+
+Provides a no-op logger interface that discards all log messages
+to keep test output clean when verbose logging is disabled.
+
+Args:
+    name: Component name (e.g., 'discord', 'ai')
+  - [OK] `DummyComponentLogger.critical(self, message)` - No-op critical logging for test mode.
+  - [OK] `DummyComponentLogger.debug(self, message)` - No-op debug logging for test mode.
+  - [OK] `DummyComponentLogger.error(self, message)` - No-op error logging for test mode.
+  - [OK] `DummyComponentLogger.info(self, message)` - No-op info logging for test mode.
+  - [OK] `DummyComponentLogger.warning(self, message)` - No-op warning logging for test mode.
 - [OK] `ExcludeLoggerNamesFilter` - Filter to exclude records for specific logger name prefixes.
 Example use: prevent Discord-related logs from going to app.log.
-  - [OK] `ExcludeLoggerNamesFilter.__init__(self, excluded_prefixes)` - Special Python method
-  - [MISSING] `ExcludeLoggerNamesFilter.filter(self, record)` - No description
+  - [OK] `ExcludeLoggerNamesFilter.__init__(self, excluded_prefixes)` - Initialize filter with list of logger name prefixes to exclude.
+
+Args:
+    excluded_prefixes: List of logger name prefixes to filter out
+        (e.g., ['discord', 'aiohttp'] to exclude all Discord and aiohttp logs)
+  - [OK] `ExcludeLoggerNamesFilter.filter(self, record)` - Filter log records based on excluded prefixes.
+
+Args:
+    record: logging.LogRecord to filter
+
+Returns:
+    bool: True if record should be logged, False if it matches excluded prefixes
 - [OK] `HeartbeatWarningFilter` - Filter to suppress excessive Discord heartbeat warnings while keeping track of them.
 
 - Allows first 3 heartbeat warnings to pass through
 - Suppresses subsequent warnings for 10 minutes
 - Logs a summary every hour with total count
-  - [OK] `HeartbeatWarningFilter.__init__(self)` - Special Python method
-  - [MISSING] `HeartbeatWarningFilter.filter(self, record)` - No description
+  - [OK] `HeartbeatWarningFilter.__init__(self)` - Initialize the heartbeat warning filter.
+
+Sets up counters and timers for tracking Discord heartbeat warnings
+to prevent log spam while maintaining visibility of the issue.
+  - [OK] `HeartbeatWarningFilter.filter(self, record)` - Filter Discord heartbeat warnings to prevent log spam.
+
+Args:
+    record: logging.LogRecord to filter
+
+Returns:
+    bool: True if record should be logged, False to suppress
 - [OK] `PytestContextLogFormatter` - Custom formatter that automatically prepends test names to log messages.
-  - [MISSING] `PytestContextLogFormatter.format(self, record)` - No description
+  - [OK] `PytestContextLogFormatter.format(self, record)` - Format log record with test context prepended when in test mode.
+
+Automatically prepends the current test name to log messages during pytest runs
+to help identify which test generated each log entry. Skips component loggers
+(those starting with "mhm.") to avoid duplication.
+
+Args:
+    record: logging.LogRecord to format
+
+Returns:
+    str: Formatted log message with optional test context
 - [MISSING] `_DummyLogger` - No description
-  - [OK] `_DummyLogger.__init__(self, name)` - Special Python method
+  - [OK] `_DummyLogger.__init__(self, name)` - Initialize a dummy logger for test mode.
+
+Args:
+    name: Logger name (unused, kept for interface compatibility)
 
 #### `core/message_analytics.py`
 **Functions:**
@@ -3415,7 +3681,14 @@ Args:
 Returns:
     bool: True if the period was found and updated, False otherwise
 - [OK] `set_schedule_periods(user_id, category, periods_dict)` - Replace all schedule periods for a category with the given dict (period_name: {active, days, start_time, end_time}).
-- [MISSING] `sort_key(item)` - No description
+- [OK] `sort_key(item)` - Generate a sort key for schedule period items.
+
+Args:
+    item: Tuple of (period_name, period_data) from schedule periods dict
+
+Returns:
+    Tuple of (priority, start_time_obj) where priority determines position
+    (ALL periods get highest priority to appear last)
 
 #### `core/schedule_utilities.py`
 **Functions:**
@@ -3639,13 +3912,49 @@ Args:
 
 #### `core/schemas.py`
 **Functions:**
-- [MISSING] `_accept_legacy_shape(cls, data)` - No description
+- [OK] `_accept_legacy_shape(cls, data)` - Accept legacy schedule data format where periods are at top-level.
+
+This validator converts legacy schedule data (where periods are directly
+in the dict) to the new format (where periods are under a 'periods' key).
+
+Args:
+    data: Schedule data dict that may be in legacy format
+
+Returns:
+    dict: Data in the new format with 'periods' key
 - [MISSING] `_coerce_bool(cls, v)` - No description
 - [MISSING] `_normalize_contact(self)` - No description
-- [MISSING] `_normalize_days(cls, v)` - No description
+- [OK] `_normalize_days(cls, v)` - Normalize days list for message scheduling.
+
+Ensures the days list is not empty by defaulting to ["ALL"] if the
+input list is empty or None.
+
+Args:
+    v: List of day strings (may be empty)
+    
+Returns:
+    List[str]: Normalized days list, defaults to ["ALL"] if empty
 - [OK] `_normalize_discord_username(cls, v)` - Normalize Discord username while tolerating empty or legacy values.
-- [MISSING] `_normalize_flags(cls, v)` - No description
-- [MISSING] `_normalize_periods(cls, v)` - No description
+- [OK] `_normalize_flags(cls, v)` - Normalize feature flag values to "enabled" or "disabled".
+
+Converts various input formats (boolean, string variants) to the standard
+"enabled"/"disabled" literal values using the _coerce_bool helper.
+
+Args:
+    v: Input value (bool, str, or other) to normalize
+    
+Returns:
+    Literal["enabled", "disabled"]: Normalized flag value
+- [OK] `_normalize_periods(cls, v)` - Normalize time periods list for message scheduling.
+
+Ensures the time_periods list is not empty by defaulting to ["ALL"] if the
+input list is empty or None.
+
+Args:
+    v: List of time period strings (may be empty)
+    
+Returns:
+    List[str]: Normalized time periods list, defaults to ["ALL"] if empty
 - [MISSING] `_valid_days(cls, v)` - No description
 - [MISSING] `_valid_time(cls, v)` - No description
 - [OK] `_validate_categories(cls, v)` - Validate that all categories are in the allowed list.
@@ -3670,15 +3979,51 @@ Empty strings are allowed (Discord ID is optional).
   - [MISSING] `AccountModel._validate_email(cls, v)` - No description
   - [MISSING] `AccountModel._validate_timezone(cls, v)` - No description
 - [MISSING] `CategoryScheduleModel` - No description
-  - [MISSING] `CategoryScheduleModel._accept_legacy_shape(cls, data)` - No description
+  - [OK] `CategoryScheduleModel._accept_legacy_shape(cls, data)` - Accept legacy schedule data format where periods are at top-level.
+
+This validator converts legacy schedule data (where periods are directly
+in the dict) to the new format (where periods are under a 'periods' key).
+
+Args:
+    data: Schedule data dict that may be in legacy format
+
+Returns:
+    dict: Data in the new format with 'periods' key
 - [MISSING] `ChannelModel` - No description
   - [MISSING] `ChannelModel._normalize_contact(self)` - No description
 - [MISSING] `FeaturesModel` - No description
   - [MISSING] `FeaturesModel._coerce_bool(cls, v)` - No description
-  - [MISSING] `FeaturesModel._normalize_flags(cls, v)` - No description
+  - [OK] `FeaturesModel._normalize_flags(cls, v)` - Normalize feature flag values to "enabled" or "disabled".
+
+Converts various input formats (boolean, string variants) to the standard
+"enabled"/"disabled" literal values using the _coerce_bool helper.
+
+Args:
+    v: Input value (bool, str, or other) to normalize
+    
+Returns:
+    Literal["enabled", "disabled"]: Normalized flag value
 - [MISSING] `MessageModel` - No description
-  - [MISSING] `MessageModel._normalize_days(cls, v)` - No description
-  - [MISSING] `MessageModel._normalize_periods(cls, v)` - No description
+  - [OK] `MessageModel._normalize_days(cls, v)` - Normalize days list for message scheduling.
+
+Ensures the days list is not empty by defaulting to ["ALL"] if the
+input list is empty or None.
+
+Args:
+    v: List of day strings (may be empty)
+    
+Returns:
+    List[str]: Normalized days list, defaults to ["ALL"] if empty
+  - [OK] `MessageModel._normalize_periods(cls, v)` - Normalize time periods list for message scheduling.
+
+Ensures the time_periods list is not empty by defaulting to ["ALL"] if the
+input list is empty or None.
+
+Args:
+    v: List of time period strings (may be empty)
+    
+Returns:
+    List[str]: Normalized time periods list, defaults to ["ALL"] if empty
 - [MISSING] `MessagesFileModel` - No description
 - [MISSING] `PeriodModel` - No description
   - [MISSING] `PeriodModel._valid_days(cls, v)` - No description
@@ -4350,6 +4695,12 @@ Returns:
 - [OK] `run_static_logging_check()` - Run the static logging enforcement script before executing tests.
 - [OK] `setup_test_logger()` - Set up logger for test duration logging.
 
+Creates a logger for test run duration logging and ensures the tests/logs
+directory exists. Returns a configured logger instance.
+
+Returns:
+    logging.Logger: Configured logger instance for test runs
+
 ### `tasks/` - Task Management
 
 #### `tasks/__init__.py`
@@ -4685,7 +5036,14 @@ Args:
 - [OK] `save_schedule(self)` - Save the schedule data.
 - [OK] `set_schedule_data(self, data)` - Set the schedule data.
 - [OK] `setup_functionality(self)` - Setup the functionality and connect signals.
-- [MISSING] `sort_key(widget)` - No description
+- [OK] `sort_key(widget)` - Generate a sort key for period widgets.
+
+Args:
+    widget: PeriodRowWidget instance to generate sort key for
+
+Returns:
+    Tuple of (priority, sort_value) where priority determines position
+    (ALL periods get highest priority to appear last)
 - [OK] `undo_last_delete(self)` - Undo the last deletion.
 **Classes:**
 - [OK] `ScheduleEditorDialog` - Dialog for editing schedules.

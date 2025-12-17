@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# INTENTIONAL LEGACY: This test file intentionally references legacy paths (bot/old_module.py)
+# in test data to verify path drift detection works correctly. These references should NOT
+# be flagged as issues - they are test code.
 """
 Test path drift detection functionality.
 

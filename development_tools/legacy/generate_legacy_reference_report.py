@@ -88,8 +88,9 @@ class LegacyReferenceReportGenerator:
         report_lines.append(f"**Legacy Compatibility Markers Detected**: {total_markers}")
         report_lines.append("")
 
+        # Always include Summary section
+        report_lines.append("## Summary")
         if affected_files:
-            report_lines.append("## Summary")
             report_lines.append("- Scan mode only: no automated fixes were applied.")
 
             legacy_entries = findings.get('legacy_compatibility_markers', [])

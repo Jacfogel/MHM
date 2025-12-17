@@ -69,11 +69,15 @@ class EmailBot(BaseChannel):
             return False
 
         # Test SMTP connection
-        # Use get_running_loop() first, fallback to get_event_loop()
+        # Use get_running_loop() first, fallback to new_event_loop() if no running loop
+        # Note: Since this is an async function, get_running_loop() should always succeed.
+        # The fallback is defensive programming for edge cases.
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
-            loop = asyncio.get_event_loop()
+            # No running loop (shouldn't happen in async context, but handle gracefully)
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
         await loop.run_in_executor(None, self.initialize__test_smtp_connection)
         
         # Test IMAP connection
@@ -112,11 +116,14 @@ class EmailBot(BaseChannel):
             return False
 
         # Run the synchronous email sending in a thread pool
-        # Use get_running_loop() first, fallback to get_event_loop()
+        # Use get_running_loop() first, fallback to new_event_loop() if no running loop
+        # Note: Since this is an async function, get_running_loop() should always succeed.
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
-            loop = asyncio.get_event_loop()
+            # No running loop (shouldn't happen in async context, but handle gracefully)
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
         await loop.run_in_executor(None, self.send_message__send_email_sync, recipient, message, kwargs)
         # Enhanced logging with message content
         message_preview = message[:50] + "..." if len(message) > 50 else message
@@ -146,11 +153,14 @@ class EmailBot(BaseChannel):
             return []
 
         # Run the synchronous email receiving in a thread pool
-        # Use get_running_loop() first, fallback to get_event_loop()
+        # Use get_running_loop() first, fallback to new_event_loop() if no running loop
+        # Note: Since this is an async function, get_running_loop() should always succeed.
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
-            loop = asyncio.get_event_loop()
+            # No running loop (shouldn't happen in async context, but handle gracefully)
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
         
         messages = await loop.run_in_executor(None, self._receive_emails_sync)
         if len(messages) > 0:
@@ -326,11 +336,14 @@ class EmailBot(BaseChannel):
     async def health_check(self) -> bool:
         """Perform health check on email connections"""
         # Test both SMTP and IMAP connections
-        # Use get_running_loop() first, fallback to get_event_loop()
+        # Use get_running_loop() first, fallback to new_event_loop() if no running loop
+        # Note: Since this is an async function, get_running_loop() should always succeed.
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
-            loop = asyncio.get_event_loop()
+            # No running loop (shouldn't happen in async context, but handle gracefully)
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
         await loop.run_in_executor(None, self.initialize__test_smtp_connection)
         await loop.run_in_executor(None, self.initialize__test_imap_connection)
         return True
