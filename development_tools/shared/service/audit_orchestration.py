@@ -383,6 +383,7 @@ class AuditOrchestrationMixin:
         
         tier3_analyze_tools = [
             ('generate_test_coverage', self.run_coverage_regeneration),
+            ('generate_dev_tools_coverage', self.run_dev_tools_coverage),
             ('analyze_test_markers', lambda: self.run_test_markers('check')),
             ('analyze_unused_imports', self.run_unused_imports_report),
             ('analyze_legacy_references', self.run_analyze_legacy_references),

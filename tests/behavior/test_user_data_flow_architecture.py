@@ -415,6 +415,7 @@ class TestNoNestedSaves:
     @pytest.mark.user_management
     @pytest.mark.critical
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_no_nested_saves_update_user_preferences(self, test_data_dir, mock_config):
         """
         Test: update_user_preferences should not call update_user_account (no nested saves).
@@ -466,6 +467,7 @@ class TestNoNestedSaves:
     @pytest.mark.behavior
     @pytest.mark.user_management
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     def test_no_nested_saves_save_user_data(self, test_data_dir, mock_config):
         """
         Test: save_user_data should not trigger nested saves when cross-file invariants update data.

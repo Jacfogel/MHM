@@ -359,8 +359,9 @@ python run_tests.py --coverage
 
 This typically integrates with `pytest-cov` and outputs:
 
-- A `.coverage` file in the project root or under `tests/`.
-- An optional HTML coverage report directory (such as `coverage_html/`).
+- A `.coverage` file in `development_tools/tests/` (configured via `coverage.ini`).
+- Coverage JSON files in `development_tools/tests/jsons/` (`coverage.json` for main project, `coverage_dev_tools.json` for development tools).
+- An optional HTML coverage report directory (such as `development_tools/tests/coverage_html/`).
 
 Interpretation guidelines:
 

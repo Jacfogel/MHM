@@ -4,7 +4,7 @@
 > **Audience**: Project maintainers and developers  
 > **Purpose**: Provide a focused, actionable roadmap for remaining development tools improvements  
 > **Style**: Direct, technical, and concise  
-> **Last Updated**: 2025-12-16 (Error Handling Analyzer Improvements)
+> **Last Updated**: 2025-12-17 (Coverage Analysis Improvements: Serial Test Execution, File Organization, Dev Tools Coverage)
 
 This document is a restructured and condensed version of the original improvement plan, focusing on remaining work and integrating related tasks from TODO.md.
 
@@ -16,7 +16,7 @@ This document is a restructured and condensed version of the original improvemen
 - ✅ **Phase 1**: Tiering system implemented (tool metadata, CLI grouping, documentation)
 - ✅ **Phase 2**: Core infrastructure stabilized (77 tests, consistent logging, error handling)
 - ✅ **Phase 3**: Core analysis tools hardened (55 tests, synthetic fixture project)
-- ✅ **Phase 4**: Experimental tools moved, Tier-2 tools reviewed, dev tools coverage tracking added
+- ✅ **Phase 4**: Experimental tools moved, Tier-2 tools reviewed, dev tools coverage tracking added (now runs as separate evaluation during `audit --full`)
 - ✅ **Phase 5**: Documentation aligned (audit recipes, routing guidance)
 - ✅ **Phase 6**: All tools made portable via external configuration
 - ✅ **Phase 7**: Naming conventions applied, directory reorganization, tool decomposition (20+ focused tools created)
@@ -84,6 +84,14 @@ This document is a restructured and condensed version of the original improvemen
   - Fixed config validation loading to prefer values from nested `summary` in standard format
   - Fixed legacy reference report generation to access findings from `details.findings`
 
+**Coverage Analysis Improvements COMPLETED (2025-12-17):**
+- ✅ **Serial Test Execution**: Enhanced coverage generation to run `no_parallel` tests separately in serial mode and merge their coverage, ensuring all 100+ `no_parallel` tests are included in coverage metrics
+- ✅ **Development Tools Coverage**: Fixed separate development tools coverage evaluation - now runs automatically during `audit --full` as a separate tool in Tier 3, generating `coverage_dev_tools.json` in `development_tools/tests/jsons/`
+- ✅ **File Organization**: Moved `coverage.json` and `coverage_dev_tools.json` to `development_tools/tests/jsons/`, moved `coverage.ini` from root to `development_tools/tests/`, fixed `.coverage` file locations, removed duplicate directories
+- ✅ **Process-Specific File Cleanup**: Added cleanup for process-specific coverage files (`.coverage_parallel.DESKTOP-*.X.*`, `.coverage_no_parallel.DESKTOP-*.X.*`) that are created when multiple processes write to the same coverage file
+- ✅ **Early Termination Detection**: Added detection and logging for incomplete test runs (when output contains only dots with no summary)
+- ✅ **Logging Improvements**: Removed stderr logs and duplicate `.latest.log` files, standardized naming, implemented file rotation, enhanced failure/skip/maxfail logging
+
 **Key Achievements:**
 - 138+ tests across all development tools
 - Domain-based directory structure (`functions/`, `imports/`, `docs/`, `tests/`, etc.)
@@ -139,7 +147,7 @@ This document is a restructured and condensed version of the original improvemen
 **Solution Implemented**:
 - **File-based lock mechanism**: Created `.audit_in_progress.lock` and `.coverage_in_progress.lock` files for cross-process protection
 - **Enhanced `_is_audit_in_progress()` helper**: Checks both in-memory global flag and file-based locks
-- **Coverage lock protection**: Added `.coverage_in_progress.lock` to `run_coverage_regeneration()` and `run_dev_tools_coverage()` to prevent status writes during pytest execution
+- **Coverage lock protection**: Added `.coverage_in_progress.lock` to `run_coverage_regeneration()` and `run_dev_tools_coverage()` to prevent status writes during pytest execution. Development tools coverage now runs as a separate evaluation during `audit --full` (added to Tier 3 tools list).
 - **Test skip protection**: Added skip checks to tests that call `run_status()` or create `AIToolsService` instances during audits
 - **File modification time tracking**: Added mtime tracking to detect and log mid-audit writes for debugging
 
@@ -375,13 +383,13 @@ This document is a restructured and condensed version of the original improvemen
 **Files**: `development_tools/shared/operations.py` (audit workflow)
 
 #### 5.3 Add Test Failure Details to Coverage Logging
-**Status**: PENDING (from TODO.md)  
+**Status**: COMPLETED (2025-12-17)
 **Issue**: Logs show "Coverage data collected successfully, but some tests failed" without details.
 
-**Tasks**:
-- [ ] Add what tests failed to coverage logging
-- [ ] Add whether test coverage quit early
-- [ ] Make it easier to understand what went wrong during coverage collection
+**Solution Implemented**:
+- ✅ Enhanced test failure logging with warnings for failures and maxfail reached, info-level logging for skips, and detailed failure lists
+- ✅ Added early termination detection for incomplete test runs (logs warning when output contains only dots with no summary)
+- ✅ Improved test result parsing to handle quiet mode output and read from log files when stdout is empty
 
 **Files**: `development_tools/tests/generate_test_coverage.py`
 
@@ -723,7 +731,7 @@ This document is a restructured and condensed version of the original improvemen
 #### 7.3 Improve Development Tools Test Coverage
 **Status**: IN PROGRESS  
 **Priority**: HIGH (from AI_PRIORITIES.md)  
-**Issue**: Development tools coverage is 40.2% (target 60%+). Specific modules at 0% coverage.
+**Issue**: Development tools coverage is tracked separately and currently at ~36% (target 60%+). Specific modules at 0% coverage. Development tools coverage now runs automatically during `audit --full` as a separate tool, generating `coverage_dev_tools.json` in `development_tools/tests/jsons/`.
 
 **Progress**:
 - [x] Created `tests/development_tools/test_analyze_documentation.py` - Tests for documentation analysis module

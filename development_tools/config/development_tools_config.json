@@ -281,11 +281,11 @@
       "--maxfail=5"
     ],
     "test_directory": "tests/",
-    "coverage_config": "coverage.ini",
+    "coverage_config": "development_tools/tests/coverage.ini",
     "artifact_directories": {
       "html_output": "htmlcov",
       "archive": "archive/coverage_artifacts",
-      "logs": "development_tools/tests/logs/coverage_regeneration",
+      "logs": "development_tools/tests/logs",
       "dev_tools_html": "development_tools/coverage_html_dev_tools"
     }
   },

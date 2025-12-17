@@ -347,10 +347,12 @@ class DataLoadingMixin:
     
     def _load_coverage_summary(self) -> Optional[Dict[str, Any]]:
         """Load overall and per-module coverage metrics from coverage.json."""
-        # Try project root first, then tests directory
-        coverage_path = self.project_root / "coverage.json"
+        # Check development_tools/tests/jsons first (new location), then fall back to old locations (legacy)
+        coverage_path = self.project_root / "development_tools" / "tests" / "jsons" / "coverage.json"
         if not coverage_path.exists():
             coverage_path = self.project_root / "development_tools" / "tests" / "coverage.json"
+        if not coverage_path.exists():
+            coverage_path = self.project_root / "coverage.json"
         
         # Log data source
         audit_tier = getattr(self, 'current_audit_tier', None)
@@ -502,7 +504,10 @@ class DataLoadingMixin:
     
     def _load_dev_tools_coverage(self) -> None:
         """Load dev tools coverage from JSON file if it exists."""
-        coverage_path = self.project_root / "development_tools" / "tests" / "coverage_dev_tools.json"
+        # Check development_tools/tests/jsons first (new location), then fall back to old location (legacy)
+        coverage_path = self.project_root / "development_tools" / "tests" / "jsons" / "coverage_dev_tools.json"
+        if not coverage_path.exists():
+            coverage_path = self.project_root / "development_tools" / "tests" / "coverage_dev_tools.json"
         if not coverage_path.exists():
             return
         try:

@@ -64,19 +64,23 @@ class TestCoverageReportGenerator:
         if coverage_config is not None:
             self.coverage_config_path = self.project_root / coverage_config
         else:
-            config_coverage_path = coverage_config_data.get('coverage_config', 'coverage.ini')
+            # Check for coverage.ini in development_tools/tests first (new location), then root (legacy)
+            config_coverage_path = coverage_config_data.get('coverage_config', 'development_tools/tests/coverage.ini')
             self.coverage_config_path = self.project_root / config_coverage_path
+            if not self.coverage_config_path.exists():
+                # Fall back to root location for backward compatibility
+                self.coverage_config_path = self.project_root / "coverage.ini"
         
         # Artifact directories (from parameter, config, or defaults)
         if artifact_directories is not None:
             self.coverage_html_dir = Path(artifact_directories.get('html_output', 'tests/coverage_html'))
             self.archive_root = Path(artifact_directories.get('archive', 'development_tools/reports/archive/coverage_artifacts'))
-            self.coverage_logs_dir = Path(artifact_directories.get('logs', 'development_tools/tests/logs/coverage_regeneration'))
+            self.coverage_logs_dir = Path(artifact_directories.get('logs', 'development_tools/tests/logs'))
         else:
             config_dirs = coverage_config_data.get('artifact_directories', {})
             self.coverage_html_dir = Path(config_dirs.get('html_output', 'tests/coverage_html'))
             self.archive_root = Path(config_dirs.get('archive', 'development_tools/reports/archive/coverage_artifacts'))
-            self.coverage_logs_dir = Path(config_dirs.get('logs', 'development_tools/tests/logs/coverage_regeneration'))
+            self.coverage_logs_dir = Path(config_dirs.get('logs', 'development_tools/tests/logs'))
         
         # Ensure directories exist
         self.coverage_html_dir.parent.mkdir(parents=True, exist_ok=True)
@@ -167,7 +171,8 @@ class TestCoverageReportGenerator:
                     stdout="",
                     stderr=f"coverage combine timed out after {combine_timeout} seconds"
                 )
-            self._write_command_log('coverage_combine', combine_result)
+            # No longer creating coverage_combine logs - user only uses stdout logs
+            # self._write_command_log('coverage_combine', combine_result)
             if combine_result.returncode != 0:
                 stdout_message = (combine_result.stdout or "").strip()
                 stderr_message = (combine_result.stderr or "").strip()
@@ -180,7 +185,8 @@ class TestCoverageReportGenerator:
                     )
         else:
             skip_message = "Skipped coverage combine: no shard files detected."
-            self._write_text_log('coverage_combine', skip_message)
+            # No longer creating coverage_combine logs - user only uses stdout logs
+            # self._write_text_log('coverage_combine', skip_message)
             if logger:
                 logger.info(skip_message)
         
@@ -211,14 +217,18 @@ class TestCoverageReportGenerator:
                 stdout="",
                 stderr=f"coverage html timed out after {html_timeout} seconds"
             )
-        self._write_command_log('coverage_html', html_result)
+        # No longer creating coverage_html logs - user only uses stdout logs
+        # self._write_command_log('coverage_html', html_result)
         if html_result.returncode != 0 and logger:
             logger.warning(
                 f"coverage html exited with {html_result.returncode}: {html_result.stderr.strip()}"
             )
         
         # Regenerate JSON report after combine to ensure it reflects combined data
-        coverage_output = self.project_root / "coverage.json"
+        # Use the same location as generate_test_coverage.py (development_tools/tests/jsons/coverage.json)
+        jsons_dir = self.project_root / "development_tools" / "tests" / "jsons"
+        jsons_dir.mkdir(parents=True, exist_ok=True)
+        coverage_output = jsons_dir / "coverage.json"
         json_args = coverage_cmd + ['json', '-o', str(coverage_output.resolve())]
         # Add timeout for JSON generation (should be fast, but add safety timeout)
         json_timeout = 120  # 2 minutes should be plenty for JSON generation
@@ -333,8 +343,13 @@ class TestCoverageReportGenerator:
         # Group log files by base name (e.g., pytest_stdout, coverage_html)
         log_groups = {}
         for log_file in self.coverage_logs_dir.glob("*.log"):
-            # Skip .latest.log files - always keep these
+            # Skip .latest.log files - we no longer create these
             if log_file.name.endswith(".latest.log"):
+                # Remove old .latest.log files
+                try:
+                    log_file.unlink()
+                except Exception:
+                    pass
                 continue
             
             # Extract base name (e.g., "pytest_stdout_20251103-010734.log" -> "pytest_stdout")
@@ -371,23 +386,41 @@ class TestCoverageReportGenerator:
             log_groups[possible_base].append(log_file)
         
         removed_count = 0
-        # For each group, keep only the 2 most recent files (plus the .latest.log)
+        # For each group, keep only the 5 most recent files (archive older ones)
         for base_name, log_files in log_groups.items():
-            if len(log_files) <= 2:
-                continue  # Keep all if we have 2 or fewer
+            if len(log_files) <= 5:
+                continue  # Keep all if we have 5 or fewer
             
             # Sort by modification time (newest first)
             log_files.sort(key=lambda f: f.stat().st_mtime, reverse=True)
-            # Keep only the 2 most recent, remove the rest
-            files_to_remove = log_files[2:]
+            # Keep only the 5 most recent, archive the rest
+            files_to_archive = log_files[5:]
             
-            for log_file in files_to_remove:
+            # Archive older files instead of deleting them
+            archive_dir = self.coverage_logs_dir / "archive"
+            archive_dir.mkdir(parents=True, exist_ok=True)
+            
+            for log_file in files_to_archive:
                 try:
-                    log_file.unlink()
+                    archive_path = archive_dir / log_file.name
+                    shutil.move(str(log_file), str(archive_path))
                     removed_count += 1
                 except Exception as exc:
                     if logger:
-                        logger.warning(f"Unable to remove old log {log_file}: {exc}")
+                        logger.debug(f"Failed to archive {log_file.name}: {exc}")
+            
+            # Clean up archive if it has more than 5 files
+            archived_files = sorted(
+                archive_dir.glob(f"{base_name}_*.log"),
+                key=lambda f: f.stat().st_mtime,
+                reverse=True
+            )
+            if len(archived_files) > 5:
+                for old_file in archived_files[5:]:
+                    try:
+                        old_file.unlink()
+                    except Exception:
+                        pass
         
         if logger and removed_count > 0:
             logger.info(f"Cleaned up {removed_count} old coverage log files")
@@ -396,7 +429,8 @@ class TestCoverageReportGenerator:
         """Persist stdout/stderr for coverage helper commands."""
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         log_path = self.coverage_logs_dir / f"{command_name}_{timestamp}.log"
-        latest_path = self.coverage_logs_dir / f"{command_name}.latest.log"
+        # No longer creating .latest.log files - only timestamped versions
+        # latest_path = self.coverage_logs_dir / f"{command_name}.latest.log"
         
         content_lines = [
             f"# Command: {command_name}",
@@ -410,7 +444,7 @@ class TestCoverageReportGenerator:
         ]
         log_text = "\n".join(content_lines)
         log_path.write_text(log_text, encoding='utf-8', errors='ignore')
-        latest_path.write_text(log_text, encoding='utf-8', errors='ignore')
+        # No longer creating .latest.log files
         
         if logger:
             logger.info(f"Saved {command_name} logs to {log_path}")
@@ -419,10 +453,9 @@ class TestCoverageReportGenerator:
         """Create a simple log file with a message."""
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         log_path = self.coverage_logs_dir / f"{log_name}_{timestamp}.log"
-        latest_path = self.coverage_logs_dir / f"{log_name}.latest.log"
+        # No longer creating .latest.log files
         content = f"# {log_name.replace('_', ' ').title()}\n\n{message}\n"
         log_path.write_text(content, encoding='utf-8', errors='ignore')
-        latest_path.write_text(content, encoding='utf-8', errors='ignore')
 
 
 def main():
