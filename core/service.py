@@ -282,10 +282,23 @@ class MHMService:
             
             # Automatic cache cleanup (only if needed)
             try:
-                from core.auto_cleanup import auto_cleanup_if_needed
+                from core.auto_cleanup import auto_cleanup_if_needed, cleanup_data_directory
                 cleanup_performed = auto_cleanup_if_needed()
                 if cleanup_performed:
                     logger.info("Automatic cache cleanup completed successfully")
+                
+                # Also clean up data directory (runs independently, more frequently)
+                try:
+                    cleanup_data_directory()
+                except Exception as e:
+                    logger.warning(f"Data directory cleanup failed (non-critical): {e}")
+                
+                # Clean up tests/data directory (removes test artifacts)
+                try:
+                    from core.auto_cleanup import cleanup_tests_data_directory
+                    cleanup_tests_data_directory()
+                except Exception as e:
+                    logger.warning(f"Tests data directory cleanup failed (non-critical): {e}")
             except Exception as e:
                 logger.warning(f"Automatic cache cleanup failed (non-critical): {e}")
 

@@ -13,8 +13,9 @@ if available, making this tool portable across different projects.
 
 import sys
 import json
+import subprocess
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 
 # Add project root to path for core module imports
@@ -128,8 +129,92 @@ class SystemSignalsGenerator:
             
         return health
     
+    def _is_meaningful_change(self, file_path: str) -> bool:
+        """
+        Determine if a file change is meaningful (code, docs, config) vs non-meaningful (cache, logs, data).
+        
+        Returns True for meaningful changes, False for non-meaningful changes.
+        """
+        file_path_lower = file_path.lower()
+        path_obj = Path(file_path)
+        
+        # Exclude lock files
+        if file_path.endswith('.lock') or '.audit_in_progress.lock' in file_path:
+            return False
+        
+        # Exclude cache files and directories
+        if '.cache' in file_path_lower or '/cache/' in file_path_lower or '\\cache\\' in file_path_lower:
+            return False
+        
+        # Exclude log files (unless they indicate errors - but we'll exclude all for simplicity)
+        if file_path.endswith('.log') and 'logs/' in file_path_lower:
+            return False
+        
+        # Exclude data files (JSON in data directories, but allow config JSON files)
+        if file_path.endswith('.json'):
+            # Allow config files in root/config directories
+            if 'config/' in file_path_lower or file_path_lower.startswith('config/'):
+                return True
+            # Allow package.json, pyproject.toml companion files
+            if 'package.json' in file_path_lower or 'tsconfig.json' in file_path_lower:
+                return True
+            # Exclude data directory JSON files
+            if '/data/' in file_path_lower or '\\data\\' in file_path_lower:
+                return False
+            # Exclude JSON in user data directories
+            if '/users/' in file_path_lower or '\\users\\' in file_path_lower:
+                return False
+        
+        # Exclude generated files (already handled by should_exclude_file, but be explicit)
+        if should_exclude_file(file_path, context='recent_changes'):
+            return False
+        
+        # Prioritize meaningful file types
+        meaningful_extensions = {'.py', '.md', '.mdc', '.toml', '.ini', '.cfg', '.yaml', '.yml'}
+        if path_obj.suffix.lower() in meaningful_extensions:
+            return True
+        
+        # Allow config files in root or config directories
+        if 'config' in path_obj.parts or path_obj.name in ['requirements.txt', 'setup.py', 'pyproject.toml']:
+            return True
+        
+        # Exclude test artifacts and temporary files
+        if path_obj.name.startswith('.') and path_obj.name != '.gitignore':
+            return False
+        
+        # Default: include other files (but they'll be lower priority)
+        return True
+    
+    def _get_change_significance_score(self, file_path: str) -> int:
+        """
+        Score change significance: higher = more significant.
+        Used for sorting: code > docs > config > other meaningful > non-meaningful.
+        """
+        if not self._is_meaningful_change(file_path):
+            return 0
+        
+        path_obj = Path(file_path)
+        ext = path_obj.suffix.lower()
+        
+        # Code files: highest priority
+        if ext == '.py':
+            return 100
+        
+        # Documentation: high priority
+        if ext in {'.md', '.mdc'}:
+            return 80
+        
+        # Config files: medium-high priority
+        if ext in {'.toml', '.ini', '.cfg', '.yaml', '.yml'}:
+            return 60
+        if 'config' in path_obj.parts or path_obj.name in ['requirements.txt', 'setup.py', 'pyproject.toml']:
+            return 60
+        
+        # Other meaningful files: medium priority
+        return 40
+    
     def _get_recent_activity(self) -> Dict[str, Any]:
-        """Get recent activity indicators"""
+        """Get recent activity indicators using git to detect actual changes."""
         activity = {
             'recent_changes': [],
             'git_status': 'Unknown',
@@ -137,51 +222,8 @@ class SystemSignalsGenerator:
             'uncommitted_changes': False
         }
         
+        # Check git status first
         try:
-            # Get recent file changes (last 24 hours)
-            recent_threshold = self._get_git_recent_threshold()
-            recent_files = []
-            all_files_with_times = []
-            
-            for dir_name in PROJECT_DIRECTORIES:
-                dir_path = self.project_root / dir_name
-                if dir_path.exists():
-                    for file_path in dir_path.rglob('*'):
-                        if file_path.is_file():
-                            rel_path = file_path.relative_to(self.project_root)
-                            rel_path_str = str(rel_path).replace('\\', '/')
-                            if not should_exclude_file(rel_path_str, context='recent_changes'):
-                                try:
-                                    mtime = file_path.stat().st_mtime
-                                    mtime_dt = datetime.fromtimestamp(mtime)
-                                    
-                                    # Store file with timestamp for sorting
-                                    all_files_with_times.append((rel_path_str, mtime_dt))
-                                    
-                                    # Check if within recent threshold
-                                    if mtime_dt >= recent_threshold:
-                                        recent_files.append(rel_path_str)
-                                except (OSError, ValueError):
-                                    continue
-            
-            # If no files within threshold, show 15 most recent files with timestamps
-            if not recent_files and all_files_with_times:
-                # Sort by modification time (most recent first) and take top 15
-                all_files_with_times.sort(key=lambda x: x[1], reverse=True)
-                recent_files = [f"{file_path} ({mtime_dt.strftime('%Y-%m-%d %H:%M')})" 
-                              for file_path, mtime_dt in all_files_with_times[:15]]
-            else:
-                # Sort by modification time (most recent first) and limit
-                recent_files = sorted(set(recent_files))[:15]
-            
-            activity['recent_changes'] = recent_files
-            
-        except Exception as e:
-            activity['recent_changes'] = []
-        
-        # Check git status
-        try:
-            import subprocess
             result = subprocess.run(['git', 'status', '--porcelain'], 
                                   capture_output=True, text=True, cwd=self.project_root)
             if result.returncode == 0:
@@ -189,6 +231,101 @@ class SystemSignalsGenerator:
                 activity['uncommitted_changes'] = bool(result.stdout.strip())
         except Exception:
             activity['git_status'] = 'Unknown'
+        
+        # Get recent changes using git diff and git status
+        try:
+            changed_files = set()
+            
+            # Get uncommitted changes (working directory)
+            try:
+                status_result = subprocess.run(['git', 'status', '--porcelain'], 
+                                             capture_output=True, text=True, cwd=self.project_root)
+                if status_result.returncode == 0:
+                    for line in status_result.stdout.strip().split('\n'):
+                        if line.strip():
+                            # Git status format: "XY filename" where XY is status code
+                            # Extract filename (skip status code)
+                            parts = line.strip().split(None, 1)
+                            if len(parts) >= 2:
+                                file_path = parts[1]
+                                # Handle renamed files (format: "old -> new")
+                                if ' -> ' in file_path:
+                                    file_path = file_path.split(' -> ')[1]
+                                changed_files.add(file_path)
+            except Exception as e:
+                logger.debug(f"Failed to get git status: {e}")
+            
+            # Get files changed in last commit (if any)
+            try:
+                diff_result = subprocess.run(['git', 'diff', '--name-only', 'HEAD~1', 'HEAD'], 
+                                           capture_output=True, text=True, cwd=self.project_root)
+                if diff_result.returncode == 0:
+                    for line in diff_result.stdout.strip().split('\n'):
+                        if line.strip():
+                            changed_files.add(line.strip())
+            except Exception:
+                # If HEAD~1 doesn't exist (new repo), just use HEAD
+                try:
+                    diff_result = subprocess.run(['git', 'diff', '--name-only', 'HEAD'], 
+                                               capture_output=True, text=True, cwd=self.project_root)
+                    if diff_result.returncode == 0:
+                        for line in diff_result.stdout.strip().split('\n'):
+                            if line.strip():
+                                changed_files.add(line.strip())
+                except Exception:
+                    pass
+            
+            # Filter and prioritize meaningful changes
+            meaningful_changes = []
+            for file_path in changed_files:
+                # Normalize path separators
+                file_path_normalized = file_path.replace('\\', '/')
+                
+                # Skip if excluded by standard exclusions
+                if should_exclude_file(file_path_normalized, context='recent_changes'):
+                    continue
+                
+                # Check if meaningful
+                if self._is_meaningful_change(file_path_normalized):
+                    score = self._get_change_significance_score(file_path_normalized)
+                    meaningful_changes.append((file_path_normalized, score))
+            
+            # Sort by significance (highest first), then limit to 10
+            meaningful_changes.sort(key=lambda x: x[1], reverse=True)
+            activity['recent_changes'] = [file_path for file_path, _ in meaningful_changes[:10]]
+            
+            # Fallback: If no git changes found, use mtime-based detection for last 24 hours
+            if not activity['recent_changes']:
+                recent_threshold = datetime.now() - timedelta(hours=24)
+                all_files_with_scores = []
+                
+                for dir_name in PROJECT_DIRECTORIES:
+                    dir_path = self.project_root / dir_name
+                    if dir_path.exists():
+                        for file_path in dir_path.rglob('*'):
+                            if file_path.is_file():
+                                rel_path = file_path.relative_to(self.project_root)
+                                rel_path_str = str(rel_path).replace('\\', '/')
+                                
+                                if not should_exclude_file(rel_path_str, context='recent_changes'):
+                                    if self._is_meaningful_change(rel_path_str):
+                                        try:
+                                            mtime = file_path.stat().st_mtime
+                                            mtime_dt = datetime.fromtimestamp(mtime)
+                                            
+                                            if mtime_dt >= recent_threshold:
+                                                score = self._get_change_significance_score(rel_path_str)
+                                                all_files_with_scores.append((rel_path_str, score, mtime_dt))
+                                        except (OSError, ValueError):
+                                            continue
+                
+                # Sort by score (highest first), then by mtime (most recent first), limit to 10
+                all_files_with_scores.sort(key=lambda x: (x[1], x[2]), reverse=True)
+                activity['recent_changes'] = [file_path for file_path, _, _ in all_files_with_scores[:10]]
+            
+        except Exception as e:
+            logger.debug(f"Error getting recent activity: {e}")
+            activity['recent_changes'] = []
         
         return activity
     

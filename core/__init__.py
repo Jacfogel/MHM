@@ -224,6 +224,8 @@ from .auto_cleanup import (
     should_run_cleanup,
     perform_cleanup,
     auto_cleanup_if_needed,
+    cleanup_data_directory,
+    cleanup_tests_data_directory,
     archive_old_messages_for_all_users,
     get_cleanup_status,
 )
@@ -469,6 +471,8 @@ __all__ = [
     'should_run_cleanup',
     'perform_cleanup',
     'auto_cleanup_if_needed',
+    'cleanup_data_directory',
+    'cleanup_tests_data_directory',
     'archive_old_messages_for_all_users',
     'get_cleanup_status',
     # Backup manager (public API)

@@ -72,7 +72,12 @@ class TestAccountHandlerBehavior:
         existing_user_id = get_user_id_by_identifier(discord_user_id)
         if existing_user_id:
             from core.user_management import remove_user
+            from core.user_data_manager import rebuild_user_index
             remove_user(existing_user_id)
+            rebuild_user_index()  # Rebuild index to ensure user is removed
+            # Wait a moment for file system to sync
+            import time
+            time.sleep(0.1)
         
         parsed_command = ParsedCommand(
             intent='create_account',

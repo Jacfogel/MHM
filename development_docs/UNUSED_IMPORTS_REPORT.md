@@ -2,25 +2,25 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-17 02:56:35
+> **Last Generated**: 2025-12-17 05:27:29
 > **Source**: `python development_tools/run_development_tools.py unused-imports` - Unused Imports Detection Tool
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 371
-- **Files with Unused Imports**: 147
-- **Total Unused Imports**: 425
+- **Total Files Scanned**: 372
+- **Files with Unused Imports**: 148
+- **Total Unused Imports**: 427
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 127 imports
+- **Obvious Unused**: 128 imports
 - **Type Hints Only**: 2 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 9 imports
 - **Star Imports**: 0 imports
 - **Test Mocking**: 131 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 99 imports
+- **Test Infrastructure**: 100 imports
 - **Production Test Mocking**: 3 imports
 - **Ui Imports**: 0 imports
 
@@ -489,6 +489,13 @@
 **Count**: 1 unused import(s)
 
 - **Line 13**: Unused temp_project_copy imported from tests.development_tools.conftest
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_path_drift_verification_comprehensive.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 11**: Unused temp_project_copy imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_regenerate_coverage_metrics.py`
@@ -1799,6 +1806,13 @@
 - **Line 9**: Unused import tempfile
   - Symbol: `unused-import`
 - **Line 10**: Unused Path imported from pathlib
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_path_drift_verification_comprehensive.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 9**: Unused Path imported from pathlib
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_regenerate_coverage_metrics.py`

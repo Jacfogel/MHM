@@ -358,6 +358,17 @@ class SchedulerManager:
         schedule.every().day.at("03:00").do(self.cleanup_orphaned_task_reminders)
         logger.info("Scheduled daily orphaned task reminder cleanup at 03:00")
         
+        # Schedule data directory cleanup at 04:00 daily (after backups and reminders)
+        try:
+            from core.auto_cleanup import cleanup_data_directory, cleanup_tests_data_directory
+            schedule.every().day.at("04:00").do(cleanup_data_directory)
+            logger.info("Scheduled daily data directory cleanup at 04:00")
+            # Also clean up tests/data directory
+            schedule.every().day.at("04:05").do(cleanup_tests_data_directory)
+            logger.info("Scheduled daily tests data directory cleanup at 04:05")
+        except Exception as e:
+            logger.warning(f"Failed to schedule data directory cleanup: {e}")
+        
         # Log job count after daily job scheduling
         active_jobs = len(schedule.jobs)
         logger.info(f"Full daily scheduler complete: {active_jobs} total active jobs scheduled")

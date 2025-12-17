@@ -66,7 +66,7 @@ class CoverageMetricsRegenerator:
     
     def __init__(self, project_root: str = ".", parallel: bool = True, num_workers: Optional[str] = None,
                  pytest_command: Optional[List[str]] = None, coverage_config: Optional[str] = None,
-                 artifact_directories: Optional[Dict[str, str]] = None):
+                 artifact_directories: Optional[Dict[str, str]] = None, maxfail: Optional[int] = None):
         """
         Initialize coverage metrics regenerator.
         
@@ -80,11 +80,19 @@ class CoverageMetricsRegenerator:
                             If None, loads from config or uses default.
             artifact_directories: Optional dict with keys: html_output, archive, logs, dev_tools_html.
                                 If None, loads from config or uses defaults.
+            maxfail: Optional maximum number of test failures before stopping (default: 10).
+                    If None, loads from config or uses default of 10.
         """
         self.project_root = Path(project_root).resolve()
         
         # Load coverage configuration from external config
         coverage_config_data = config.get_external_value('coverage', {})
+        
+        # Get maxfail threshold (from parameter, config, or default)
+        if maxfail is not None:
+            self.maxfail = maxfail
+        else:
+            self.maxfail = coverage_config_data.get('maxfail', 10)
         
         # Pytest command (from parameter, config, or default)
         if pytest_command is not None:
@@ -98,12 +106,24 @@ class CoverageMetricsRegenerator:
                 self.pytest_command = [sys.executable, '-m', 'pytest']
         
         # Pytest base arguments (from config or default)
-        self.pytest_base_args = coverage_config_data.get('pytest_base_args', [
+        # Replace --maxfail in base args if present, otherwise add it
+        base_args = coverage_config_data.get('pytest_base_args', [
             '--cov-report=term-missing',
             '--tb=line',
             '-q',
-            '--maxfail=5'
+            '--maxfail=10'
         ])
+        # Update maxfail in base args if it exists, otherwise add it
+        self.pytest_base_args = []
+        maxfail_added = False
+        for arg in base_args:
+            if arg.startswith('--maxfail='):
+                self.pytest_base_args.append(f'--maxfail={self.maxfail}')
+                maxfail_added = True
+            else:
+                self.pytest_base_args.append(arg)
+        if not maxfail_added:
+            self.pytest_base_args.append(f'--maxfail={self.maxfail}')
         
         # Test directory (from config or default)
         self.test_directory = coverage_config_data.get('test_directory', 'tests/')
@@ -334,7 +354,7 @@ class CoverageMetricsRegenerator:
                     f'--cov-config={self.coverage_config_path.relative_to(self.project_root)}',
                     '--tb=line',  # Use line format for cleaner parallel output
                     '-q',  # Quiet mode - reduces output noise
-                    '--maxfail=5',
+                    f'--maxfail={self.maxfail}',
                     'tests/'
                 ])
             else:
@@ -346,7 +366,7 @@ class CoverageMetricsRegenerator:
                     f'--cov-config={self.coverage_config_path.relative_to(self.project_root)}',
                     '--tb=line',
                     '-q',
-                    '--maxfail=5',
+                    f'--maxfail={self.maxfail}',
                     'tests/'
                 ])
             
@@ -665,7 +685,7 @@ class CoverageMetricsRegenerator:
                     f'--cov-config={self.coverage_config_path.relative_to(self.project_root)}',
                     '--tb=line',
                     '-q',
-                    '--maxfail=5',
+                    f'--maxfail={self.maxfail}',
                     'tests/'
                 ]
                 

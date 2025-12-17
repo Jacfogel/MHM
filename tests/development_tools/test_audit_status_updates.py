@@ -258,9 +258,26 @@ class TestAuditStatusUpdates:
             return tool_func
         
         # Mock all tools with specific results
-        service.run_analyze_functions = MagicMock(side_effect=mock_tool('analyze_functions'))
-        service.run_analyze_documentation_sync = MagicMock(side_effect=mock_tool('analyze_documentation_sync'))
-        service.run_system_signals = MagicMock(side_effect=mock_tool('system_signals'))
+        # Create wrapper functions that store results in cache
+        def mock_with_cache(tool_name):
+            """Create mock tool that stores result in cache."""
+            def tool_func(*args, **kwargs):
+                result = mock_tool(tool_name)(*args, **kwargs)
+                # Store in results_cache so status generation can access it
+                if not hasattr(service, 'results_cache'):
+                    service.results_cache = {}
+                if isinstance(result, dict) and 'data' in result:
+                    service.results_cache[tool_name] = result['data']
+                # Track that this tool was run
+                if not hasattr(service, '_tools_run_in_current_tier'):
+                    service._tools_run_in_current_tier = set()
+                service._tools_run_in_current_tier.add(tool_name)
+                return result
+            return tool_func
+        
+        service.run_analyze_functions = MagicMock(side_effect=mock_with_cache('analyze_functions'))
+        service.run_analyze_documentation_sync = MagicMock(side_effect=mock_with_cache('analyze_documentation_sync'))
+        service.run_system_signals = MagicMock(side_effect=mock_with_cache('system_signals'))
         service.run_analyze_documentation = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
         service.run_analyze_error_handling = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
         service.run_decision_support = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})

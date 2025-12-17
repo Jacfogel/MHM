@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
-Automated Python cache cleanup module.
+Automated cleanup module for Python cache and data directory.
 Tracks when cleanup was last performed and only runs if more than 30 days have passed.
+
+Also provides data directory cleanup (backups, requests, archives) that can run
+independently and more frequently.
 """
 
 import os
@@ -225,6 +228,263 @@ def perform_cleanup(root_path='.'):
     
     return True
 
+@handle_errors("cleaning up old backup files", default_return=False)
+def cleanup_old_backup_files():
+    """
+    Clean up old backup files from data/backups directory.
+    Uses same retention policy as BackupManager (30 days by default, max 10 files).
+    """
+    try:
+        from core.config import get_backups_dir
+        backup_dir = Path(get_backups_dir())
+        
+        if not backup_dir.exists():
+            return True
+        
+        # Get retention settings (same as BackupManager)
+        try:
+            backup_retention_days = int(os.getenv("BACKUP_RETENTION_DAYS", "30"))
+        except Exception:
+            backup_retention_days = 30
+        max_backups = 10
+        
+        # Gather .zip backups with mtime
+        backup_files = []
+        now_ts = time.time()
+        
+        for file_path in backup_dir.iterdir():
+            if file_path.is_file() and file_path.suffix == '.zip':
+                try:
+                    mtime = file_path.stat().st_mtime
+                    backup_files.append((str(file_path), mtime))
+                except Exception:
+                    continue
+        
+        if not backup_files:
+            return True
+        
+        removed_count = 0
+        
+        # Age-based retention: remove files older than retention_days
+        age_cutoff = now_ts - (backup_retention_days * 24 * 3600)
+        for file_path, mtime in list(backup_files):
+            if mtime < age_cutoff:
+                try:
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                        logger.info(f"Removed old backup file (> {backup_retention_days}d): {file_path}")
+                        backup_files.remove((file_path, mtime))
+                        removed_count += 1
+                except Exception as e:
+                    logger.warning(f"Failed to remove old backup {file_path}: {e}")
+        
+        # Count-based retention: keep newest max_backups
+        backup_files.sort(key=lambda x: x[1], reverse=True)
+        for file_path, _ in backup_files[max_backups:]:
+            try:
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    logger.info(f"Removed old backup file (>{max_backups} backups): {file_path}")
+                    removed_count += 1
+            except Exception as e:
+                logger.warning(f"Failed to remove old backup {file_path}: {e}")
+        
+        if removed_count > 0:
+            logger.info(f"Backup cleanup: removed {removed_count} old backup file(s)")
+        
+        return True
+    except Exception as e:
+        logger.warning(f"Backup cleanup failed (non-critical): {e}")
+        return False
+
+@handle_errors("cleaning up old request files", default_return=False)
+def cleanup_old_request_files():
+    """
+    Clean up old request files from data/requests directory.
+    Removes request files older than 7 days.
+    """
+    try:
+        from core.config import BASE_DATA_DIR
+        requests_dir = Path(BASE_DATA_DIR) / "requests"
+        
+        if not requests_dir.exists():
+            return True
+        
+        # Remove request files older than 7 days
+        request_retention_days = 7
+        age_cutoff = time.time() - (request_retention_days * 24 * 3600)
+        removed_count = 0
+        
+        for file_path in requests_dir.iterdir():
+            if file_path.is_file():
+                try:
+                    mtime = file_path.stat().st_mtime
+                    if mtime < age_cutoff:
+                        os.remove(file_path)
+                        logger.info(f"Removed old request file (> {request_retention_days}d): {file_path.name}")
+                        removed_count += 1
+                except Exception as e:
+                    logger.warning(f"Failed to remove old request file {file_path}: {e}")
+        
+        if removed_count > 0:
+            logger.info(f"Request cleanup: removed {removed_count} old request file(s)")
+        
+        return True
+    except Exception as e:
+        logger.warning(f"Request cleanup failed (non-critical): {e}")
+        return False
+
+@handle_errors("cleaning up old message archives", default_return=False)
+def cleanup_old_message_archives():
+    """
+    Clean up old message archive files from user directories.
+    Removes archive files older than 90 days (archives are already compressed).
+    """
+    try:
+        from core.config import BASE_DATA_DIR
+        from core.user_data_handlers import get_all_user_ids
+        
+        user_ids = get_all_user_ids()
+        if not user_ids:
+            return True
+        
+        # Remove archive files older than 90 days
+        archive_retention_days = 90
+        age_cutoff = time.time() - (archive_retention_days * 24 * 3600)
+        removed_count = 0
+        
+        for user_id in user_ids:
+            try:
+                user_dir = Path(BASE_DATA_DIR) / "users" / user_id / "messages" / "archives"
+                if not user_dir.exists():
+                    continue
+                
+                for archive_file in user_dir.iterdir():
+                    if archive_file.is_file() and archive_file.name.startswith("sent_messages_archive_"):
+                        try:
+                            mtime = archive_file.stat().st_mtime
+                            if mtime < age_cutoff:
+                                os.remove(archive_file)
+                                logger.debug(f"Removed old message archive (> {archive_retention_days}d): {archive_file.name}")
+                                removed_count += 1
+                        except Exception as e:
+                            logger.warning(f"Failed to remove old archive {archive_file}: {e}")
+            except Exception as e:
+                logger.warning(f"Failed to clean archives for user {user_id}: {e}")
+        
+        if removed_count > 0:
+            logger.info(f"Archive cleanup: removed {removed_count} old message archive file(s)")
+        
+        return True
+    except Exception as e:
+        logger.warning(f"Archive cleanup failed (non-critical): {e}")
+        return False
+
+@handle_errors("cleaning up tests data directory", default_return=False)
+def cleanup_tests_data_directory():
+    """
+    Clean up temporary files and directories in tests/data/ directory.
+    Removes tmp_* directories, test JSON files, and other test artifacts.
+    This is separate from production data cleanup.
+    """
+    try:
+        # Find project root by looking for tests/data directory
+        # Start from current file location and walk up to find project root
+        current_file = Path(__file__).resolve()
+        project_root = current_file.parent.parent  # core/auto_cleanup.py -> core -> project_root
+        tests_data_dir = project_root / "tests" / "data"
+        
+        # If that doesn't exist, try relative to BASE_DATA_DIR
+        if not tests_data_dir.exists():
+            from core.config import BASE_DATA_DIR
+            if BASE_DATA_DIR:
+                base_path = Path(BASE_DATA_DIR).resolve()
+                # If BASE_DATA_DIR is already tests/data, use it directly
+                if base_path.name == "data" and base_path.parent.name == "tests":
+                    tests_data_dir = base_path
+                else:
+                    # Otherwise, try to find tests/data relative to BASE_DATA_DIR
+                    potential_tests_data = base_path.parent.parent / "tests" / "data"
+                    if potential_tests_data.exists():
+                        tests_data_dir = potential_tests_data
+        
+        if not tests_data_dir.exists():
+            return True
+        
+        removed_dirs = 0
+        removed_files = 0
+        
+        # Remove tmp* directories directly in tests/data (but not the "tmp" directory itself)
+        # Matches: tmp_*, tmp*, pytest-of-*
+        for item in tests_data_dir.iterdir():
+            try:
+                if item.is_dir():
+                    # Match tmp_*, tmp* (but not just "tmp"), and pytest-of-*
+                    if (item.name.startswith("tmp_") or 
+                        (item.name.startswith("tmp") and item.name != "tmp") or
+                        item.name.startswith("pytest-of-")):
+                        shutil.rmtree(item, ignore_errors=True)
+                        removed_dirs += 1
+                elif item.is_file():
+                    # Clean up test JSON files
+                    if item.suffix == ".json":
+                        test_json_patterns = ["test_", ".tmp_", "welcome_tracking.json"]
+                        if any(item.name.startswith(pattern) for pattern in test_json_patterns):
+                            item.unlink(missing_ok=True)
+                            removed_files += 1
+                    # Clean up .last_cache_cleanup file
+                    elif item.name == ".last_cache_cleanup":
+                        item.unlink(missing_ok=True)
+                        removed_files += 1
+            except Exception as e:
+                logger.debug(f"Failed to remove {item}: {e}")
+        
+        if removed_dirs > 0 or removed_files > 0:
+            logger.info(f"Tests data cleanup: removed {removed_dirs} directory(ies) and {removed_files} file(s)")
+        
+        return True
+    except Exception as e:
+        logger.warning(f"Tests data cleanup failed (non-critical): {e}")
+        return False
+
+@handle_errors("cleaning up data directory", default_return=False)
+def cleanup_data_directory():
+    """
+    Clean up old files in the data directory (backups, requests, archives).
+    This can be called independently of the full auto_cleanup cycle.
+    Returns True if cleanup was performed, False otherwise.
+    """
+    logger.info("Starting data directory cleanup...")
+    
+    results = {
+        'backups': False,
+        'requests': False,
+        'archives': False
+    }
+    
+    try:
+        results['backups'] = cleanup_old_backup_files()
+    except Exception as e:
+        logger.warning(f"Backup cleanup failed: {e}")
+    
+    try:
+        results['requests'] = cleanup_old_request_files()
+    except Exception as e:
+        logger.warning(f"Request cleanup failed: {e}")
+    
+    try:
+        results['archives'] = cleanup_old_message_archives()
+    except Exception as e:
+        logger.warning(f"Archive cleanup failed: {e}")
+    
+    success = any(results.values())
+    if success:
+        logger.info("Data directory cleanup completed")
+    else:
+        logger.debug("Data directory cleanup: no files to clean")
+    
+    return success
+
 @handle_errors("auto cleanup if needed", default_return=False)
 def auto_cleanup_if_needed(root_path='.', interval_days=DEFAULT_CLEANUP_INTERVAL_DAYS):
     """
@@ -241,6 +501,22 @@ def auto_cleanup_if_needed(root_path='.', interval_days=DEFAULT_CLEANUP_INTERVAL
             archive_old_messages_for_all_users()
         except Exception as e:
             logger.warning(f"Message archiving failed during cleanup (non-critical): {e}")
+        
+        # Clean up data directory files (backups, requests, archives)
+        try:
+            cleanup_old_backup_files()
+        except Exception as e:
+            logger.warning(f"Backup cleanup failed during auto cleanup (non-critical): {e}")
+        
+        try:
+            cleanup_old_request_files()
+        except Exception as e:
+            logger.warning(f"Request cleanup failed during auto cleanup (non-critical): {e}")
+        
+        try:
+            cleanup_old_message_archives()
+        except Exception as e:
+            logger.warning(f"Archive cleanup failed during auto cleanup (non-critical): {e}")
         
         update_cleanup_timestamp()
         return True

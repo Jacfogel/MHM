@@ -175,15 +175,25 @@ This document is a restructured and condensed version of the original improvemen
 **Note**: Some tests intentionally skip during audits to prevent mid-audit writes. This is expected behavior and may slightly affect coverage metrics during `audit --full` runs, but ensures status file integrity.
 
 #### 2.2 Verify Path Drift Detection
-**Status**: NEEDS VERIFICATION  
+**Status**: ✅ COMPLETE (2025-12-17)  
 **Issue**: Code structure suggests integration is correct, but needs testing with actual issues.
 
-**Tasks**:
-- [ ] Test with known path drift issues to confirm detection actually finds them
-- [ ] Verify path validation (`_validate_referenced_paths()`) correctly identifies missing/broken paths
-- [ ] Confirm path drift issues appear correctly in both AI_STATUS.md and consolidated_report.txt when issues exist
+**Implementation**:
+- ✅ Created comprehensive test suite (`test_path_drift_verification_comprehensive.py`) with 6 test cases
+- ✅ Verified detection of missing Python and Markdown file references
+- ✅ Verified path validation (`_is_valid_file_reference()`) correctly identifies missing/broken paths
+- ✅ Confirmed path drift issues appear correctly in both AI_STATUS.md and consolidated_report.txt
+- ✅ Tested with actual broken path reference - detected correctly and appeared in status reports
+- ✅ All 6 comprehensive tests pass
 
-**Files**: `development_tools/docs/analyze_path_drift.py`, `development_tools/shared/operations.py`
+**Verification Results**:
+- Direct analysis correctly detects broken path references
+- Issues appear in `AI_STATUS.md` as "Path Drift: NEEDS ATTENTION (X issues)"
+- Issues appear in `consolidated_report.txt` with file names and counts
+- Path validation handles relative paths, existing files, and edge cases correctly
+- Integration with audit workflow verified
+
+**Files**: `development_tools/docs/analyze_path_drift.py`, `development_tools/shared/operations.py`, `tests/development_tools/test_path_drift_verification_comprehensive.py`
 
 #### 2.3 Verify Standardized Storage Archiving
 **Status**: NEEDS VERIFICATION  
@@ -341,15 +351,25 @@ This document is a restructured and condensed version of the original improvemen
 **Files**: `development_tools/reports/system_signals.py`
 
 #### 4.6 Improve Recent Changes Detection
-**Status**: PENDING  
+**Status**: ✅ COMPLETE (2025-12-17)  
 **Issue**: Current implementation doesn't identify meaningful changes well.
 
-**Tasks**:
-- [ ] Investigate the logic for determining recent changes list in AI_STATUS.md
-- [ ] Improve detection to identify meaningful changes (not just file modifications)
-- [ ] Make recent changes list more accurate and useful
+**Implementation**:
+- ✅ Enhanced `_get_recent_activity()` in `system_signals.py` to use git diff instead of mtime
+- ✅ Added `_is_meaningful_change()` helper to filter non-meaningful files (cache, logs, data, lock files)
+- ✅ Added `_get_change_significance_score()` to prioritize changes (code > docs > config > other)
+- ✅ Limited to 10 most meaningful changes (down from 15)
+- ✅ Uses `git status --porcelain` and `git diff` to detect actual changes
+- ✅ Falls back to mtime-based detection if git unavailable
+- ✅ Prioritizes `.py`, `.md`, `.mdc`, and config files over generated/cache files
 
-**Files**: `development_tools/shared/operations.py` (recent changes logic)
+**Results**:
+- Recent changes now show meaningful code/documentation/config changes
+- Non-meaningful changes (cache, logs, data files) are filtered out
+- List is more accurate and useful for understanding project activity
+- Changes sorted by significance (code files appear first)
+
+**Files**: `development_tools/reports/system_signals.py`
 
 **Note**: "Review and Consolidate Audit Command Types" from TODO.md is **COMPLETED** (M10.2.5) - audit commands consolidated into three-tier structure (quick/standard/full).
 
@@ -394,13 +414,26 @@ This document is a restructured and condensed version of the original improvemen
 **Files**: `development_tools/tests/generate_test_coverage.py`
 
 #### 5.4 Adjust Test Failure Threshold for Early Quit
-**Status**: PENDING (from TODO.md)  
+**Status**: ✅ COMPLETE (2025-12-17)  
 **Issue**: Threshold is 5, which seems too low and may cause premature termination.
 
-**Tasks**:
-- [ ] Review current threshold (5 failures)
-- [ ] Adjust threshold to prevent premature termination
-- [ ] Allow more complete data collection even with some test failures
+**Implementation**:
+- ✅ Increased default threshold from 5 to 10 failures
+- ✅ Made threshold configurable via `maxfail` parameter in `CoverageMetricsRegenerator.__init__()`
+- ✅ Loads from config: `coverage_config_data.get('maxfail', 10)`
+- ✅ Updated all test execution commands to use `self.maxfail` instead of hardcoded `--maxfail=5`
+- ✅ Updated locations:
+  - `pytest_base_args` default (line 105)
+  - Parallel test execution (line 337)
+  - Serial test execution (line 349)
+  - No-parallel test execution (line 668)
+- ✅ Dev tools coverage already uses 10 (unchanged)
+
+**Results**:
+- Allows more complete data collection even with some test failures
+- Prevents premature termination on minor failures
+- Still stops on widespread failures appropriately
+- Configurable via `development_tools_config.json` if needed
 
 **Files**: `development_tools/tests/generate_test_coverage.py`
 

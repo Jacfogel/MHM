@@ -1243,7 +1243,7 @@ def prune_test_artifacts_before_and_after_session():
             except Exception:
                 pass
         
-        # Remove any pytest-of-* directories (pytest creates these when using tmpdir fixtures)
+        # Remove any pytest-of-* and tmp_* directories (pytest creates these when using tmpdir fixtures)
         import glob
         pytest_pattern = str(data_dir / "pytest-of-*")
         pytest_dirs = glob.glob(pytest_pattern)
@@ -1252,6 +1252,34 @@ def prune_test_artifacts_before_and_after_session():
             if stray_path.exists():
                 shutil.rmtree(stray_path, ignore_errors=True)
                 # Don't log cleanup operations - focus on test results
+        
+        # Remove tmp* directories directly in tests/data (but not the "tmp" directory itself)
+        # Matches: tmp_*, tmp* (but not just "tmp"), pytest-of-*
+        for item in data_dir.iterdir():
+            try:
+                if item.is_dir():
+                    if (item.name.startswith("tmp_") or 
+                        (item.name.startswith("tmp") and item.name != "tmp") or
+                        item.name.startswith("pytest-of-")):
+                        shutil.rmtree(item, ignore_errors=True)
+                        # Don't log cleanup operations - focus on test results
+                elif item.is_file() and item.name == ".last_cache_cleanup":
+                    item.unlink(missing_ok=True)
+                    # Don't log cleanup operations - focus on test results
+            except Exception:
+                pass
+        
+        # Clean up test JSON files (test_*.json, .tmp_*.json, welcome_tracking.json)
+        test_json_patterns = ["test_", ".tmp_", "welcome_tracking.json"]
+        for item in data_dir.iterdir():
+            try:
+                if item.is_file() and item.suffix == ".json":
+                    if any(item.name.startswith(pattern) for pattern in test_json_patterns):
+                        item.unlink(missing_ok=True)
+                        # Don't log cleanup operations - focus on test results
+            except Exception:
+                pass
+        
         tmp_dir = data_dir / "tmp"
         if tmp_dir.exists():
             for child in tmp_dir.iterdir():
@@ -1286,18 +1314,34 @@ def prune_test_artifacts_before_and_after_session():
         )
         # Don't log cleanup operations - focus on test results (removed logging to prevent hangs)
 
-    # Session-end purge: flags, tmp children, and pytest-of-* directories
+    # Session-end purge: flags, tmp children, pytest-of-* directories, and tmp_* directories
     try:
         data_dir = project_root_path / "tests" / "data"
         
         # Remove pytest-of-* directories (pytest creates these when using tmpdir fixtures)
+        # Also remove tmp* directories (created when TMPDIR is set to tests/data)
+        # Matches: tmp_*, tmp* (but not just "tmp"), pytest-of-*
         # Use direct directory iteration instead of glob for Windows compatibility
         if data_dir.exists():
             for item in data_dir.iterdir():
                 try:
-                    if item.is_dir() and item.name.startswith("pytest-of-"):
-                        shutil.rmtree(item, ignore_errors=True)
-                        # Don't log cleanup operations - focus on test results
+                    if item.is_dir():
+                        if (item.name.startswith("pytest-of-") or 
+                            item.name.startswith("tmp_") or
+                            (item.name.startswith("tmp") and item.name != "tmp")):
+                            shutil.rmtree(item, ignore_errors=True)
+                            # Don't log cleanup operations - focus on test results
+                    elif item.is_file():
+                        # Clean up test JSON files (test_*.json, .tmp_*.json, welcome_tracking.json)
+                        if item.suffix == ".json":
+                            test_json_patterns = ["test_", ".tmp_", "welcome_tracking.json"]
+                            if any(item.name.startswith(pattern) for pattern in test_json_patterns):
+                                item.unlink(missing_ok=True)
+                                # Don't log cleanup operations - focus on test results
+                        # Clean up .last_cache_cleanup file
+                        elif item.name == ".last_cache_cleanup":
+                            item.unlink(missing_ok=True)
+                            # Don't log cleanup operations - focus on test results
                 except Exception:
                     pass
         
@@ -2432,15 +2476,28 @@ def cleanup_test_users_after_session():
         except Exception:
             pass
     
-    # Clean up pytest-of-* directories (pytest creates these when using tmpdir fixtures)
+    # Clean up pytest-of-* and tmp* directories (pytest creates these when using tmpdir fixtures)
+    # Matches: tmp_*, tmp* (but not just "tmp"), pytest-of-*
     # Use direct directory iteration instead of glob for Windows compatibility
     try:
         if os.path.exists(test_data_dir):
             for item in os.listdir(test_data_dir):
                 item_path = os.path.join(test_data_dir, item)
                 try:
-                    if os.path.isdir(item_path) and item.startswith("pytest-of-"):
-                        shutil.rmtree(item_path, ignore_errors=True)
+                    if os.path.isdir(item_path):
+                        if (item.startswith("pytest-of-") or 
+                            item.startswith("tmp_") or
+                            (item.startswith("tmp") and item != "tmp")):
+                            shutil.rmtree(item_path, ignore_errors=True)
+                    elif os.path.isfile(item_path):
+                        # Clean up test JSON files (test_*.json, .tmp_*.json, welcome_tracking.json)
+                        if item.endswith(".json"):
+                            test_json_patterns = ["test_", ".tmp_", "welcome_tracking.json"]
+                            if any(item.startswith(pattern) for pattern in test_json_patterns):
+                                os.remove(item_path)
+                        # Clean up .last_cache_cleanup file
+                        elif item == ".last_cache_cleanup":
+                            os.remove(item_path)
                 except Exception:
                     pass
     except Exception:
@@ -2480,14 +2537,27 @@ def cleanup_test_users_after_session():
     
     # Clean up other test artifacts according to cleanup standards
     try:
-        # Remove pytest temporary directories (pytest-of-* directories created by pytest's tmpdir plugin)
+        # Remove pytest temporary directories (pytest-of-* and tmp* directories created by pytest's tmpdir plugin)
+        # Matches: tmp_*, tmp* (but not just "tmp"), pytest-of-*
         # Use direct directory iteration instead of glob for Windows compatibility
         if os.path.exists(test_data_dir):
             for item in os.listdir(test_data_dir):
                 item_path = os.path.join(test_data_dir, item)
                 try:
-                    if os.path.isdir(item_path) and item.startswith("pytest-of-"):
-                        shutil.rmtree(item_path, ignore_errors=True)
+                    if os.path.isdir(item_path):
+                        if (item.startswith("pytest-of-") or 
+                            item.startswith("tmp_") or
+                            (item.startswith("tmp") and item != "tmp")):
+                            shutil.rmtree(item_path, ignore_errors=True)
+                    elif os.path.isfile(item_path):
+                        # Clean up test JSON files (test_*.json, .tmp_*.json, welcome_tracking.json)
+                        if item.endswith(".json"):
+                            test_json_patterns = ["test_", ".tmp_", "welcome_tracking.json"]
+                            if any(item.startswith(pattern) for pattern in test_json_patterns):
+                                os.remove(item_path)
+                        # Clean up .last_cache_cleanup file
+                        elif item == ".last_cache_cleanup":
+                            os.remove(item_path)
                 except Exception:
                     pass
         
