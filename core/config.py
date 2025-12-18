@@ -141,7 +141,7 @@ TEST_DATA_DIR = os.getenv('TEST_DATA_DIR')  # Test data directory (defaults to t
 # Logging Configuration
 LOG_LEVEL = os.getenv('LOG_LEVEL', 'WARNING').upper()  # Default to WARNING for quiet operation
 LOG_MAX_BYTES = int(os.getenv('LOG_MAX_BYTES', '5242880'))  # 5MB default
-LOG_BACKUP_COUNT = int(os.getenv('LOG_BACKUP_COUNT', '5'))  # Keep 5 backup files
+LOG_BACKUP_COUNT = int(os.getenv('LOG_BACKUP_COUNT', '7'))  # Keep 7 backup files (standardized for consistency)
 LOG_COMPRESS_BACKUPS = os.getenv('LOG_COMPRESS_BACKUPS', 'false').lower() == 'true'  # Compress old logs
 
 # New organized logging structure

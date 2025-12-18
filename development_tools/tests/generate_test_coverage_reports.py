@@ -255,6 +255,12 @@ class TestCoverageReportGenerator:
         elif logger:
             logger.debug(f"Regenerated coverage.json after combine")
         
+        # Rotate coverage.json after regeneration
+        if coverage_output.exists():
+            from development_tools.shared.file_rotation import FileRotator
+            rotator = FileRotator(base_dir=str(jsons_dir))
+            rotator.rotate_file(str(coverage_output), max_versions=5)
+        
         self._cleanup_coverage_shards()
         self._archive_legacy_html_dirs()
         self._cleanup_shutdown_flag()

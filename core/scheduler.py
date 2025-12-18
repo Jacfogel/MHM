@@ -1518,6 +1518,17 @@ class SchedulerManager:
                 
                 if backup_path:
                     logger.info(f"Weekly backup completed successfully: {backup_path}")
+                    
+                    # Check backup health
+                    backups = backup_manager.list_backups()
+                    if backups:
+                        latest_backup = backups[0]
+                        backup_time = datetime.fromisoformat(latest_backup['created_at'])
+                        days_old = (datetime.now() - backup_time).days
+                        backup_size_mb = latest_backup.get('file_size', 0) / (1024 * 1024)
+                        logger.info(f"Backup health: Latest backup is {days_old} days old, size: {backup_size_mb:.2f} MB")
+                    else:
+                        logger.warning("No backups found after creation - backup health check failed")
                 else:
                     logger.error("Weekly backup failed - no backup path returned")
             

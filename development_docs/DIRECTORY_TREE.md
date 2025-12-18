@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-16 20:55:18
+> **Last Generated**: 2025-12-18 03:46:19
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -11,18 +11,14 @@
 Folder PATH listing
 Volume serial number is 5EAC-07BC
 C:.
-|   .coverage_dev_tools
 |   .cursorignore
 |   .env
 |   .env.example
 |   .gitattributes
 |   .gitignore
 |   ARCHITECTURE.md
-|   coverage.ini
-|   coverage.json
 |   DEVELOPMENT_WORKFLOW.md
 |   DOCUMENTATION_GUIDE.md
-|   error_handling_details.json
 |   HOW_TO_RUN.md
 |   PROJECT_VISION.md
 |   pyproject.toml
@@ -55,6 +51,7 @@ C:.
 |   |   |   refactor_operations.py_into_modular_structure_057a1721.plan.md
 |   |   |   standardize_analysis_tool_results_format_f3751a36.plan.md
 |   |   |   standardize_and_streamline_development_tools_8784da3c.plan.md
+|   |   |   unified_backup_and_archive_system_ec839a57.plan.md
 |   |   |   
 |   |   \---archive
     (archived files)
@@ -78,19 +75,22 @@ C:.
 |   \---__pycache__
     (Python cache files)
 +---ai_development_docs
-|       AI_ARCHITECTURE.md
-|       AI_CHANGELOG.md
-|       AI_DEVELOPMENT_WORKFLOW.md
-|       AI_DOCUMENTATION_GUIDE.md
-|       AI_ERROR_HANDLING_GUIDE.md
-|       AI_FUNCTION_REGISTRY.md
-|       AI_LEGACY_REMOVAL_GUIDE.md
-|       AI_LOGGING_GUIDE.md
-|       AI_MODULE_DEPENDENCIES.md
-|       AI_REFERENCE.md
-|       AI_SESSION_STARTER.md
-|       AI_TESTING_GUIDE.md
-|       
+|   |   AI_ARCHITECTURE.md
+|   |   AI_BACKUP_GUIDE.md
+|   |   AI_CHANGELOG.md
+|   |   AI_DEVELOPMENT_WORKFLOW.md
+|   |   AI_DOCUMENTATION_GUIDE.md
+|   |   AI_ERROR_HANDLING_GUIDE.md
+|   |   AI_FUNCTION_REGISTRY.md
+|   |   AI_LEGACY_REMOVAL_GUIDE.md
+|   |   AI_LOGGING_GUIDE.md
+|   |   AI_MODULE_DEPENDENCIES.md
+|   |   AI_REFERENCE.md
+|   |   AI_SESSION_STARTER.md
+|   |   AI_TESTING_GUIDE.md
+|   |   
+|   \---archive
+    (archived files)
 +---archive
     (archived files)
 +---communication
@@ -145,22 +145,26 @@ C:.
 +---data
 |   |   .last_cache_cleanup
 |   |   conversation_states.json
-|   |   discord_welcome_tracking.json
 |   |   user_index.json
 |   |   welcome_tracking.json
 |   |   
 |   +---backups
     (backup files)
 +---development_docs
-|       CHANGELOG_DETAIL.md
-|       DIRECTORY_TREE.md
-|       FUNCTION_REGISTRY_DETAIL.md
-|       LEGACY_REFERENCE_REPORT.md
-|       MODULE_DEPENDENCIES_DETAIL.md
-|       PLANS.md
-|       TEST_COVERAGE_REPORT.md
-|       UNUSED_IMPORTS_REPORT.md
-|       
+|   |   BACKUP_AUDIT_REPORT.md
+|   |   BACKUP_SYSTEM.md
+|   |   CHANGELOG_DETAIL.md
+|   |   DIRECTORY_TREE.md
+|   |   FUNCTION_REGISTRY_DETAIL.md
+|   |   LEGACY_REFERENCE_REPORT.md
+|   |   MODULE_DEPENDENCIES_DETAIL.md
+|   |   PLANS.md
+|   |   RESTORE_GUIDE.md
+|   |   TEST_COVERAGE_REPORT.md
+|   |   UNUSED_IMPORTS_REPORT.md
+|   |   
+|   \---archive
+    (archived files)
 +---development_tools
 |   |   AI_DEVELOPMENT_TOOLS_GUIDE.md
 |   |   AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md
@@ -224,6 +228,7 @@ C:.
 |   |   cleanup_unused_imports.py
 |   |   cleanup_windows_tasks.py
 |   |   comprehensive_file_analysis.py
+|   |   create_project_snapshot.py
 |   |   demo_dynamic_checkin.py
 |   |   find_tests_missing_category_markers.py
 |   |   fix_non_ascii_chars.py

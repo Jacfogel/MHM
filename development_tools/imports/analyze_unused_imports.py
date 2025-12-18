@@ -939,12 +939,13 @@ def main():
     if args.output:
         report = checker.generate_report()
         
-        # Write report to file
+        # Write report to file with rotation
+        from development_tools.shared.file_rotation import create_output_file
         output_path = project_root / args.output
         output_path.parent.mkdir(parents=True, exist_ok=True)
         
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(report)
+        create_output_file(str(output_path), report, rotate=True, max_versions=7,
+                          project_root=project_root)
         
         # Only print report info if not in JSON mode (to avoid mixing with JSON output)
         if not args.json:

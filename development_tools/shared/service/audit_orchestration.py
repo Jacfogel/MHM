@@ -412,14 +412,19 @@ class AuditOrchestrationMixin:
                         if not data and result.get('output'):
                             try:
                                 data = json.loads(result.get('output', ''))
-                            except (json.JSONDecodeError, TypeError):
+                                logger.debug(f"Extracted data from {tool_name} output via JSON parsing")
+                            except (json.JSONDecodeError, TypeError) as e:
+                                logger.debug(f"Failed to parse {tool_name} output as JSON: {e}")
                                 pass
                         if data:
                             try:
                                 domain = _get_domain_from_tool_name(tool_name, self.project_root)
                                 save_tool_result(tool_name, domain, data, project_root=self.project_root)
+                                logger.debug(f"Saved {tool_name} result via audit orchestration (domain: {domain})")
                             except Exception as e:
-                                logger.debug(f"Failed to save {tool_name} result: {e}")
+                                logger.warning(f"Failed to save {tool_name} result via audit orchestration: {e}")
+                        else:
+                            logger.debug(f"{tool_name} completed successfully but no data extracted (result.get('data')={result.get('data')}, has_output={bool(result.get('output'))})")
                 else:
                     failed.append(tool_name)
                     logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
@@ -648,7 +653,7 @@ class AuditOrchestrationMixin:
                     if trimmed:
                         logger.info(f"   Trimmed {trimmed} old changelog entries")
                     if archive_created:
-                        logger.info("   Created archive: ai_development_docs/AI_CHANGELOG_ARCHIVE.md")
+                        logger.info("   Created archive: development_tools/reports/archive/AI_CHANGELOG_ARCHIVE.md")
             except Exception as exc:
                 logger.warning(f"   Changelog check/trim failed: {exc}")
         else:

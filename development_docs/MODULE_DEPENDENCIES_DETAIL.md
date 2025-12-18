@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-16 20:55:16
+> **Last Generated**: 2025-12-18 03:46:17
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 340
-- **Total Imports Found**: 3869
-- **Dependencies Documented**: 340 (100% coverage)
-- **Standard Library Imports**: 1325 (34.2%)
-- **Third-Party Imports**: 577 (14.9%)
-- **Local Imports**: 1967 (50.8%)
-- **Last Updated**: 2025-12-16
+- **Files Scanned**: 341
+- **Total Imports Found**: 3883
+- **Dependencies Documented**: 341 (100% coverage)
+- **Standard Library Imports**: 1327 (34.2%)
+- **Third-Party Imports**: 578 (14.9%)
+- **Local Imports**: 1978 (50.9%)
+- **Last Updated**: 2025-12-18
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 1325 imports (34.2%)
-- **Third-Party**: 577 imports (14.9%)
-- **Local**: 1967 imports (50.8%)
+- **Standard Library**: 1327 imports (34.2%)
+- **Third-Party**: 578 imports (14.9%)
+- **Local**: 1978 imports (50.9%)
 
 ## Module Dependencies by Directory
 
@@ -1275,7 +1275,7 @@
 - **Purpose**: Core system module for __init__
 - **Dependencies**: 
   - **Third-party**:
-    - `auto_cleanup (archive_old_messages_for_all_users, auto_cleanup_if_needed, get_cleanup_status, get_last_cleanup_timestamp, perform_cleanup, should_run_cleanup, update_cleanup_timestamp)`
+    - `auto_cleanup (archive_old_messages_for_all_users, auto_cleanup_if_needed, cleanup_data_directory, cleanup_tests_data_directory, get_cleanup_status, get_last_cleanup_timestamp, perform_cleanup, should_run_cleanup, update_cleanup_timestamp)`
     - `backup_manager (BackupManager)`
     - `checkin_analytics (CheckinAnalytics)`
     - `checkin_dynamic_manager (DynamicCheckinManager, dynamic_checkin_manager)`
@@ -1308,7 +1308,7 @@
 - **Purpose**: Automatic cache cleanup and maintenance
 - **Dependencies**: 
   - **Local**:
-    - `core.config (BASE_DATA_DIR)` (NEW)
+    - `core.config (BASE_DATA_DIR, get_backups_dir)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger, setup_logging)` (NEW)
     - `core.message_management (archive_old_messages)` (NEW)
@@ -1322,6 +1322,7 @@
     - `sys`
     - `time`
 - **Used by**: 
+  - `core/scheduler.py`
   - `core/service.py`
   - `tests/behavior/test_auto_cleanup_behavior.py`
   - `tests/unit/test_auto_cleanup_paths.py`
@@ -2068,6 +2069,7 @@
 - **Dependencies**: 
   - **Local**:
     - `communication.core.channel_orchestrator (CommunicationManager)` (NEW)
+    - `core.auto_cleanup (cleanup_data_directory, cleanup_tests_data_directory)` (NEW)
     - `core.backup_manager (backup_manager)` (NEW)
     - `core.config (BASE_DATA_DIR, get_user_data_dir)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
@@ -2102,7 +2104,7 @@
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: communication.core.channel_orchestrator, core.backup_manager, core.config, core.error_handling, core.logger, core.schedule_management, core.scheduler, core.service_utilities, core.user_data_handlers, tasks.task_management, user.user_context
+- Added: communication.core.channel_orchestrator, core.auto_cleanup, core.backup_manager, core.config, core.error_handling, core.logger, core.schedule_management, core.scheduler, core.service_utilities, core.user_data_handlers, tasks.task_management, user.user_context
 - Removed: core/scheduler.py, core/service.py, tests/behavior/test_scheduler_behavior.py, tests/behavior/test_scheduler_coverage_expansion.py, tests/conftest.py, tests/integration/test_orphaned_reminder_cleanup.py, tests/integration/test_task_cleanup_real.py, tests/integration/test_task_reminder_integration.py, tests/test_isolation.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2148,7 +2150,7 @@
   - **Local**:
     - `communication.core.channel_orchestrator (CommunicationManager)` (NEW)
     - `communication.message_processing.conversation_flow_manager (conversation_manager)` (NEW)
-    - `core.auto_cleanup (auto_cleanup_if_needed)` (NEW)
+    - `core.auto_cleanup (auto_cleanup_if_needed, cleanup_data_directory, cleanup_tests_data_directory)` (NEW)
     - `core.config (LOG_MAIN_FILE, USER_INFO_DIR_PATH, get_user_data_dir, print_configuration_report, validate_and_raise_if_invalid)` (NEW)
     - `core.error_handling (FileOperationError, handle_errors)` (NEW)
     - `core.file_auditor (start_auditor, stop_auditor)` (NEW)
@@ -3058,7 +3060,7 @@
     - `communication.command_handlers.shared_types (ParsedCommand)` (NEW)
     - `core.user_data_handlers (get_user_data, update_user_account)` (NEW)
     - `core.user_data_manager (delete_user_completely, rebuild_user_index)` (NEW)
-    - `core.user_management (get_user_id_by_identifier, remove_user)` (NEW)
+    - `core.user_management (get_user_id_by_identifier)` (NEW)
     - `tests.test_utilities (TestUserFactory)` (NEW)
   - **Standard Library**:
     - `time`
@@ -5057,6 +5059,7 @@
   - `tests/development_tools/test_output_storage_archiving.py`
   - `tests/development_tools/test_path_drift_detection.py`
   - `tests/development_tools/test_path_drift_integration.py`
+  - `tests/development_tools/test_path_drift_verification_comprehensive.py`
   - `tests/development_tools/test_regenerate_coverage_metrics.py`
   - `tests/development_tools/test_status_file_timing.py`
   - `tests/development_tools/test_supporting_tools.py`
@@ -5457,6 +5460,24 @@
 **Dependency Changes**:
 - Added: tests.development_tools.conftest
 - Removed: unittest.mock
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_path_drift_verification_comprehensive.py`
+- **Purpose**: Test file for path drift verification comprehensive
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (load_development_tools_module, temp_project_copy)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

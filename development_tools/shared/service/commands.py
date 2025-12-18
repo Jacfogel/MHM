@@ -312,15 +312,16 @@ class CommandsMixin:
                 try:
                     coverage_data = self._load_coverage_summary()
                     if coverage_data:
+                        logger.debug(f"Loaded coverage data: overall={coverage_data.get('overall', {}).get('percent_covered', 'N/A')}%, modules={len(coverage_data.get('modules', {}))}")
                         from ..result_format import normalize_to_standard_format
                         from ..output_storage import save_tool_result
                         # coverage_data from _load_coverage_summary() has 'overall', 'modules', 'worst_files'
                         # This matches the format expected by normalize_to_standard_format for analyze_test_coverage
                         standard_format = normalize_to_standard_format('analyze_test_coverage', coverage_data)
                         save_tool_result('analyze_test_coverage', 'tests', standard_format, project_root=self.project_root)
-                        logger.debug("Saved analyze_test_coverage results to standardized storage")
+                        logger.info(f"Saved analyze_test_coverage results to standardized storage (coverage: {coverage_data.get('overall', {}).get('percent_covered', 'N/A')}%)")
                     else:
-                        logger.debug("No coverage data available to save (coverage.json may not exist yet)")
+                        logger.warning("No coverage data available to save - _load_coverage_summary() returned None (coverage.json may not exist or be empty)")
                 except Exception as save_error:
                     logger.warning(f"Failed to save analyze_test_coverage results: {save_error}")
                     import traceback

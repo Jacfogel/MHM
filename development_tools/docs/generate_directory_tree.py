@@ -160,11 +160,12 @@ class DirectoryTreeGenerator:
         
         final_content = header + processed_lines + footer
         
-        # Write to file
+        # Write to file with rotation
+        from development_tools.shared.file_rotation import create_output_file
         output_path = self.project_root / output_file
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write('\n'.join(final_content))
+        create_output_file(str(output_path), '\n'.join(final_content), rotate=True, max_versions=7,
+                          project_root=self.project_root)
             
         if logger:
             logger.info(f"Directory tree generated: {output_path}")

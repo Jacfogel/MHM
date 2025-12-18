@@ -15,10 +15,11 @@ Use this to decide which doc to open or reference.
 - Project overview and philosophy: [README.md](README.md)
 - Environment setup and run commands: [HOW_TO_RUN.md](HOW_TO_RUN.md) (Quick Start, Troubleshooting)
 - Development workflow and safe changes: [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)
-- Logging, testing, and error handling:
+- Logging, testing, error handling, and backups:
   - Logging: [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md)
   - Testing: [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md)
   - Error handling: [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md)
+  - Backups: [AI_BACKUP_GUIDE.md](ai_development_docs/AI_BACKUP_GUIDE.md)
 - Documentation system and sync rules:
   - This doc: AI_DOCUMENTATION_GUIDE.md (routing rules and doc classes)
   - Detailed behavior: [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md), section 1. "Documentation Categories" and section 3. "Documentation Synchronization Checklist"
@@ -58,7 +59,7 @@ Key examples:
 [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md), [AI_REFERENCE.md](ai_development_docs/AI_REFERENCE.md),  
 [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md), [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md),  
 [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md), [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md),  
-AI_DOCUMENTATION_GUIDE.md.
+[AI_BACKUP_GUIDE.md](ai_development_docs/AI_BACKUP_GUIDE.md), AI_DOCUMENTATION_GUIDE.md.
 
 ### 1.3. Generated and analytical docs
 
@@ -181,9 +182,10 @@ Treat these as synchronized pairs:
 - [ARCHITECTURE.md](ARCHITECTURE.md) <-> `AI_ARCHITECTURE.md`  
 - [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) <-> `AI_DOCUMENTATION_GUIDE.md`  
 - [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) <-> `AI_CHANGELOG.md`  
-- [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) <-> `AI_LOGGING_GUIDE.md`  
-- [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) <-> `AI_TESTING_GUIDE.md`  
+- [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) <-> `AI_LOGGING_GUIDE.md`
+- [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) <-> `AI_TESTING_GUIDE.md`
 - [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) <-> `AI_ERROR_HANDLING_GUIDE.md`
+- [BACKUP_GUIDE.md](development_docs/BACKUP_GUIDE.md) <-> `AI_BACKUP_GUIDE.md`
 
 ### 3.2. Hard rules
 

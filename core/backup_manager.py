@@ -64,7 +64,7 @@ class BackupManager:
     
     @handle_errors("creating zip file", default_return=None)
     def _create_backup__create_zip_file(self, backup_path: str, backup_name: str, 
-                                       include_users: bool, include_config: bool, include_logs: bool) -> None:
+                                       include_users: bool, include_config: bool, include_logs: bool, include_code: bool = False) -> None:
         """Create the backup zip file with all specified components."""
         # Ensure backup directory exists before creating zip
         os.makedirs(self.backup_dir, exist_ok=True)
@@ -82,7 +82,11 @@ class BackupManager:
             if include_logs:
                 self._backup_log_files(zipf)
             
-            self._create_backup_manifest(zipf, backup_name, include_users, include_config, include_logs)
+            # Backup project code (optional, for full project backups)
+            if include_code:
+                self._backup_project_code(zipf)
+            
+            self._create_backup_manifest(zipf, backup_name, include_users, include_config, include_logs, include_code)
     
     @handle_errors("cleaning up old backups", default_return=None)
     def _create_backup__cleanup_old_backups(self) -> None:
@@ -94,7 +98,8 @@ class BackupManager:
                      backup_name: Optional[str] = None,
                      include_users: bool = True,
                      include_config: bool = True,
-                     include_logs: bool = False) -> Optional[str]:
+                     include_logs: bool = False,
+                     include_code: bool = False) -> Optional[str]:
         """
         Create a comprehensive backup with validation.
         
@@ -121,6 +126,10 @@ class BackupManager:
         if not isinstance(include_logs, bool):
             logger.error(f"Invalid include_logs: {include_logs}")
             return None
+            
+        if not isinstance(include_code, bool):
+            logger.error(f"Invalid include_code: {include_code}")
+            return None
         """
         Create a comprehensive backup of the system.
         
@@ -129,18 +138,36 @@ class BackupManager:
             include_users: Whether to include user data
             include_config: Whether to include configuration files
             include_logs: Whether to include log files
+            include_code: Whether to include project code (Python files, etc.)
         
         Returns:
             Path to the backup file, or None if failed
         """
         backup_name, backup_path = self._create_backup__setup_backup(backup_name)
         
-        self._create_backup__create_zip_file(backup_path, backup_name, include_users, include_config, include_logs)
+        self._create_backup__create_zip_file(backup_path, backup_name, include_users, include_config, include_logs, include_code)
         
         # Verify backup file was actually created before proceeding
         if not os.path.exists(backup_path):
             logger.error(f"Backup file was not created at {backup_path}")
             return None
+        
+        # Verify backup integrity
+        is_valid, errors = self.validate_backup(backup_path)
+        if not is_valid:
+            logger.error(f"Backup verification failed: {errors}")
+            # Don't delete the backup - it might still be useful, but log the errors
+            logger.warning(f"Backup created but verification found issues: {backup_path}")
+        else:
+            logger.info(f"Backup verified successfully: {backup_path}")
+        
+        # Get backup size for logging
+        try:
+            backup_size = os.path.getsize(backup_path)
+            backup_size_mb = backup_size / (1024 * 1024)
+            logger.info(f"Backup size: {backup_size_mb:.2f} MB")
+        except Exception as e:
+            logger.debug(f"Could not get backup size: {e}")
         
         self._create_backup__cleanup_old_backups()
         
@@ -204,13 +231,65 @@ class BackupManager:
         
         logger.debug("Log files backed up successfully")
     
+    @handle_errors("backing up project code")
+    def _backup_project_code(self, zipf: zipfile.ZipFile) -> None:
+        """Backup project code files (Python files, configs, etc.)."""
+        import core.config as config
+        project_root = Path(config.BASE_DATA_DIR).parent if hasattr(config, 'BASE_DATA_DIR') else Path('.')
+        
+        # Directories to include
+        code_directories = [
+            'core',
+            'communication',
+            'ai',
+            'ui',
+            'tasks',
+            'user',
+            'development_tools',
+            'scripts',
+            'resources',
+            'styles'
+        ]
+        
+        # Files to include at root
+        root_files = [
+            'requirements.txt',
+            'pyproject.toml',
+            'README.md',
+            'HOW_TO_RUN.md',
+            'ARCHITECTURE.md',
+            'DEVELOPMENT_WORKFLOW.md',
+            'PROJECT_VISION.md',
+            '.env.example'
+        ]
+        
+        # Add root files
+        for root_file in root_files:
+            file_path = project_root / root_file
+            if file_path.exists() and file_path.is_file():
+                zipf.write(str(file_path), f"code/{root_file}")
+        
+        # Add code directories (Python files only to keep size manageable)
+        for code_dir in code_directories:
+            dir_path = project_root / code_dir
+            if dir_path.exists() and dir_path.is_dir():
+                for py_file in dir_path.rglob('*.py'):
+                    # Skip test files and generated files
+                    if 'test' in str(py_file) or 'generated' in str(py_file):
+                        continue
+                    arcname = f"code/{py_file.relative_to(project_root)}"
+                    zipf.write(str(py_file), arcname)
+        
+        logger.debug("Project code backed up successfully")
+    
     @handle_errors("creating backup manifest")
     def _create_backup_manifest(self, 
                                zipf: zipfile.ZipFile, 
                                backup_name: str,
                                include_users: bool,
                                include_config: bool,
-                               include_logs: bool) -> None:
+                               include_logs: bool,
+                               include_code: bool = False) -> None:
         """Create a manifest file describing the backup contents."""
         manifest = {
             "backup_name": backup_name,
@@ -218,7 +297,8 @@ class BackupManager:
             "includes": {
                 "users": include_users,
                 "config": include_config,
-                "logs": include_logs
+                "logs": include_logs,
+                "code": include_code
             },
             "system_info": {
                 "total_users": len(get_all_user_ids()),

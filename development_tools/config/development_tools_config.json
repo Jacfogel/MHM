@@ -34,6 +34,7 @@
   "fix_version_sync": {
     "ai_docs": [
       "ai_development_docs/AI_ARCHITECTURE.md",
+      "ai_development_docs/AI_BACKUP_GUIDE.md",
       "ai_development_docs/AI_CHANGELOG.md",
       "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
       "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
@@ -43,6 +44,7 @@
     ],
     "docs": [
       "README.md",
+      "development_docs/BACKUP_GUIDE.md",
       "development_docs/CHANGELOG_DETAIL.md",
       "TODO.md",
       "DEVELOPMENT_WORKFLOW.md",

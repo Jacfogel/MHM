@@ -143,6 +143,27 @@ When adding new tasks, follow this format:
   - Test data cleanup (tests/test_utilities.py, test fixtures)
   - Temporary file cleanup patterns
 
+**Investigate Development Tools Not Saving Results**
+- *What it means*: Investigate why `analyze_unused_imports` and `analyze_test_coverage` tools are not updating their result files during full audits. Files exist but haven't been modified since before the fix (12/14 and 12/17). Added logging to diagnose data extraction failures - need to run full audit and check logs to see why saves aren't happening.
+- *Why it helps*: Ensures all development tools properly save and rotate their results, maintaining backup history
+- *Estimated effort*: Small/Medium
+- *Subtasks*:
+  - [ ] Run full audit and check logs for "Saved analyze_unused_imports results" or "Failed to save" messages
+  - [ ] Check if JSON parsing is failing for analyze_unused_imports (look for "Failed to parse JSON output" warnings)
+  - [ ] Check if coverage data is being loaded for analyze_test_coverage (look for "No coverage data available" warnings)
+  - [ ] Verify save_tool_result() is being called with valid data
+  - [ ] Fix any data extraction or save issues found
+
+**Investigate Pytest Log Rotation**
+- *What it means*: Investigate why pytest log files aren't rotating properly. Currently have 10 files in main dir and 2 in archive (12 total) when max_versions is set to 7. Updated max_versions from 5 to 7 and improved logging - need to verify rotation is working correctly on next coverage run.
+- *Why it helps*: Ensures test logs are properly archived and old logs are cleaned up, preventing disk space issues
+- *Estimated effort*: Small
+- *Subtasks*:
+  - [ ] Run test coverage generation and verify logs rotate correctly
+  - [ ] Check logs for rotation messages ("Rotating pytest_*_stdout logs: X total, keeping 7, processing Y")
+  - [ ] Verify total log count stays at 7 after rotation
+  - [ ] Fix rotation logic if files aren't being moved/deleted correctly
+
 **Note**: Development tools related tasks have been moved to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md) for centralized planning and tracking. See that document for all development tools improvements, enhancements, and maintenance tasks.
 
 

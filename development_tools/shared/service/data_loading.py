@@ -347,12 +347,13 @@ class DataLoadingMixin:
     
     def _load_coverage_summary(self) -> Optional[Dict[str, Any]]:
         """Load overall and per-module coverage metrics from coverage.json."""
-        # Check development_tools/tests/jsons first (new location), then fall back to old locations (legacy)
+        # Check development_tools/tests/jsons first (new location), then fall back to old location (legacy)
         coverage_path = self.project_root / "development_tools" / "tests" / "jsons" / "coverage.json"
         if not coverage_path.exists():
+            # Fallback to old location (development_tools/tests/coverage.json) for backward compatibility
             coverage_path = self.project_root / "development_tools" / "tests" / "coverage.json"
-        if not coverage_path.exists():
-            coverage_path = self.project_root / "coverage.json"
+        # Note: Removed project root fallback - coverage.json is always in development_tools/tests/jsons/
+        # If not found there, it doesn't exist (coverage hasn't been run yet)
         
         # Log data source
         audit_tier = getattr(self, 'current_audit_tier', None)
@@ -362,7 +363,8 @@ class DataLoadingMixin:
             else:
                 logger.info(f"[DATA SOURCE] coverage_summary: loaded from {coverage_path.name} (cached)")
         else:
-            logger.warning(f"[DATA SOURCE] coverage_summary: not found at {coverage_path} (using empty fallback)")
+            # This is expected if coverage hasn't been run yet - use DEBUG instead of WARNING
+            logger.debug(f"[DATA SOURCE] coverage_summary: not found at {coverage_path.relative_to(self.project_root)} (coverage not yet generated, using empty fallback)")
             return None
         try:
             with coverage_path.open('r', encoding='utf-8') as handle:

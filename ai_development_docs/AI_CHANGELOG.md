@@ -36,6 +36,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-18 - Unified Backup and Archive System Implementation **COMPLETED**
+- **Plan Execution**: Created and executed plan `.cursor/plans/unified_backup_and_archive_system_ec839a57.plan.md` to unify backup, rotation, and archiving systems.
+- **Standardization**: Fixed log rotation inconsistency (all now use 7 backups), standardized tool results retention (7 versions), consolidated test logs (7 total), added rotation to all generated docs and coverage JSON files.
+- **Enhancements**: Added backup verification, health monitoring, project-wide backup support, and project snapshot script. Extended BackupManager with `include_code` parameter.
+- **Documentation**: Consolidated into paired docs `BACKUP_GUIDE.md`/`AI_BACKUP_GUIDE.md` following standards (identical H2 headings 1-10). Registered in documentation guides and config. Added comprehensive restore procedures.
+- **Troubleshooting**: Added logging for data extraction failures, specific DLL_NOT_FOUND error handling for pytest, improved rotation logging. Created TODO tasks for investigating two tools not saving and pytest log rotation.
+- **Files**: Modified 20+ files across core/, development_tools/, created 3 new files (BACKUP_GUIDE.md, AI_BACKUP_GUIDE.md, create_project_snapshot.py), deleted 3 old files. All systems now use unified retention policies.
+
 ### 2025-12-17 - Code Comment Cleanup and Development Tools Fixes **COMPLETED**
 - **Comment Cleanup**: Removed 61 redundant comments across codebase (core/, ai/, communication/, ui/) that restated obvious operations. Kept valuable comments (TEMPORARY markers, workarounds, intentional placeholders).
 - **Development Tools**: Fixed import error in `run_development_tools.py`, syntax error in `file_operations.py`, documentation path drift, and `doc-fix` argument mismatch (`--fix-all` -> `--all`). Enhanced error handling to show return codes when errors are empty.

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-16 20:55:13
+> **Last Generated**: 2025-12-18 03:46:15
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 96.2% [OK] COMPLETED**
 - **Files Scanned**: 107
-- **Functions Found**: 1500
-- **Methods Found**: 1143
+- **Functions Found**: 1506
+- **Methods Found**: 1144
 - **Classes Found**: 159
-- **Total Items**: 2643
-- **Functions Documented**: 1438
-- **Methods Documented**: 1104
+- **Total Items**: 2650
+- **Functions Documented**: 1444
+- **Methods Documented**: 1105
 - **Classes Documented**: 124
-- **Total Documented**: 2542
+- **Total Documented**: 2549
 - **Template-Generated**: 4
-- **Last Updated**: 2025-12-16
+- **Last Updated**: 2025-12-18
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (518)
+### **Core System Functions** (524)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (428)
@@ -2359,6 +2359,18 @@ This runs alongside the cache cleanup to maintain message file sizes.
 - [OK] `auto_cleanup_if_needed(root_path, interval_days)` - Main function to check if cleanup is needed and perform it if so.
 Returns True if cleanup was performed, False if not needed.
 - [OK] `calculate_cache_size(pycache_dirs, pyc_files)` - Calculate total size of cache files.
+- [OK] `cleanup_data_directory()` - Clean up old files in the data directory (backups, requests, archives).
+This can be called independently of the full auto_cleanup cycle.
+Returns True if cleanup was performed, False otherwise.
+- [OK] `cleanup_old_backup_files()` - Clean up old backup files from data/backups directory.
+Uses same retention policy as BackupManager (30 days by default, max 10 files).
+- [OK] `cleanup_old_message_archives()` - Clean up old message archive files from user directories.
+Removes archive files older than 90 days (archives are already compressed).
+- [OK] `cleanup_old_request_files()` - Clean up old request files from data/requests directory.
+Removes request files older than 7 days.
+- [OK] `cleanup_tests_data_directory()` - Clean up temporary files and directories in tests/data/ directory.
+Removes tmp_* directories, test JSON files, and other test artifacts.
+This is separate from production data cleanup.
 - [OK] `find_pyc_files(root_path)` - Find all .pyc files recursively.
 - [OK] `find_pycache_dirs(root_path)` - Find all __pycache__ directories recursively.
 - [OK] `get_cleanup_status()` - Get information about the cleanup status.
@@ -2375,12 +2387,13 @@ Sets up backup directory, maximum backup count, and ensures backup directory exi
 - [OK] `_add_directory_to_zip(self, zipf, directory, zip_path)` - Recursively add a directory to the zip file.
 - [OK] `_backup_config_files(self, zipf)` - Backup configuration files.
 - [OK] `_backup_log_files(self, zipf)` - Backup log files.
+- [OK] `_backup_project_code(self, zipf)` - Backup project code files (Python files, configs, etc.).
 - [OK] `_backup_user_data(self, zipf)` - Backup all user data directories.
 - [OK] `_cleanup_old_backups(self)` - Remove old backups by count and age retention policy.
 - [OK] `_create_backup__cleanup_old_backups(self)` - Clean up old backups by count and age.
-- [OK] `_create_backup__create_zip_file(self, backup_path, backup_name, include_users, include_config, include_logs)` - Create the backup zip file with all specified components.
+- [OK] `_create_backup__create_zip_file(self, backup_path, backup_name, include_users, include_config, include_logs, include_code)` - Create the backup zip file with all specified components.
 - [OK] `_create_backup__setup_backup(self, backup_name)` - Setup backup name and path parameters.
-- [OK] `_create_backup_manifest(self, zipf, backup_name, include_users, include_config, include_logs)` - Create a manifest file describing the backup contents.
+- [OK] `_create_backup_manifest(self, zipf, backup_name, include_users, include_config, include_logs, include_code)` - Create a manifest file describing the backup contents.
 - [OK] `_get_backup_info(self, backup_path)` - Get information about a specific backup.
 - [OK] `_restore_config_files(self, zipf)` - Restore configuration files from backup.
 - [OK] `_restore_user_data(self, zipf)` - Restore user data from backup.
@@ -2398,7 +2411,7 @@ Args:
 
 Returns:
     Path to the backup file, or None if failed
-- [OK] `create_backup(self, backup_name, include_users, include_config, include_logs)` - Create a comprehensive backup with validation.
+- [OK] `create_backup(self, backup_name, include_users, include_config, include_logs, include_code)` - Create a comprehensive backup with validation.
 
 Returns:
     Optional[str]: Path to backup file, None if failed
@@ -2439,12 +2452,13 @@ Sets up backup directory, maximum backup count, and ensures backup directory exi
   - [OK] `BackupManager._add_directory_to_zip(self, zipf, directory, zip_path)` - Recursively add a directory to the zip file.
   - [OK] `BackupManager._backup_config_files(self, zipf)` - Backup configuration files.
   - [OK] `BackupManager._backup_log_files(self, zipf)` - Backup log files.
+  - [OK] `BackupManager._backup_project_code(self, zipf)` - Backup project code files (Python files, configs, etc.).
   - [OK] `BackupManager._backup_user_data(self, zipf)` - Backup all user data directories.
   - [OK] `BackupManager._cleanup_old_backups(self)` - Remove old backups by count and age retention policy.
   - [OK] `BackupManager._create_backup__cleanup_old_backups(self)` - Clean up old backups by count and age.
-  - [OK] `BackupManager._create_backup__create_zip_file(self, backup_path, backup_name, include_users, include_config, include_logs)` - Create the backup zip file with all specified components.
+  - [OK] `BackupManager._create_backup__create_zip_file(self, backup_path, backup_name, include_users, include_config, include_logs, include_code)` - Create the backup zip file with all specified components.
   - [OK] `BackupManager._create_backup__setup_backup(self, backup_name)` - Setup backup name and path parameters.
-  - [OK] `BackupManager._create_backup_manifest(self, zipf, backup_name, include_users, include_config, include_logs)` - Create a manifest file describing the backup contents.
+  - [OK] `BackupManager._create_backup_manifest(self, zipf, backup_name, include_users, include_config, include_logs, include_code)` - Create a manifest file describing the backup contents.
   - [OK] `BackupManager._get_backup_info(self, backup_path)` - Get information about a specific backup.
   - [OK] `BackupManager._restore_config_files(self, zipf)` - Restore configuration files from backup.
   - [OK] `BackupManager._restore_user_data(self, zipf)` - Restore user data from backup.
@@ -2453,7 +2467,7 @@ Sets up backup directory, maximum backup count, and ensures backup directory exi
   - [OK] `BackupManager._validate_backup__validate_content_requirements(self, zipf, errors)` - Validate that backup contains required content.
   - [OK] `BackupManager._validate_backup__validate_manifest(self, zipf, errors)` - Validate the backup manifest file.
   - [OK] `BackupManager._validate_backup__validate_zip_file(self, backup_path)` - Validate zip file integrity and contents.
-  - [OK] `BackupManager.create_backup(self, backup_name, include_users, include_config, include_logs)` - Create a comprehensive backup with validation.
+  - [OK] `BackupManager.create_backup(self, backup_name, include_users, include_config, include_logs, include_code)` - Create a comprehensive backup with validation.
 
 Returns:
     Optional[str]: Path to backup file, None if failed

@@ -124,6 +124,16 @@ class ErrorHandlingReportGenerator:
             'timestamp': timestamp_iso,
             'error_handling_results': self.results
         }
+        
+        # Use rotation system for archiving
+        from development_tools.shared.file_rotation import FileRotator
+        
+        # Rotate existing file if it exists
+        if output_path.exists():
+            rotator = FileRotator(base_dir=str(output_path.parent))
+            rotator.rotate_file(str(output_path), max_versions=5)
+        
+        # Write new file
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(report_data, f, indent=2)
         logger.info(f"Error handling coverage report written to {output_path}")

@@ -416,8 +416,8 @@ class CoverageMetricsRegenerator:
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             self.coverage_logs_dir.mkdir(parents=True, exist_ok=True)
             
-            # Rotate old log files before creating new ones (keep last 5)
-            self._rotate_log_files('pytest_parallel_stdout', max_versions=5)
+            # Rotate old log files before creating new ones (keep last 7, standardized retention)
+            self._rotate_log_files('pytest_parallel_stdout', max_versions=7)
             
             stdout_log_path = self.coverage_logs_dir / f"pytest_parallel_stdout_{timestamp}.log"
             self.pytest_stdout_log = stdout_log_path  # Keep variable name for backward compatibility
@@ -695,8 +695,8 @@ class CoverageMetricsRegenerator:
                 no_parallel_env['COVERAGE_FILE'] = str(no_parallel_coverage_file.resolve())
                 
                 # Create log file for no_parallel run (only stdout, stderr merged)
-                # Rotate old log files before creating new ones
-                self._rotate_log_files('pytest_no_parallel_stdout', max_versions=5)
+                # Rotate old log files before creating new ones (keep last 7, standardized retention)
+                self._rotate_log_files('pytest_no_parallel_stdout', max_versions=7)
                 no_parallel_stdout_log = self.coverage_logs_dir / f"pytest_no_parallel_stdout_{timestamp}.log"
                 
                 # Log the full command for debugging (consistent with parallel run)
@@ -749,7 +749,14 @@ class CoverageMetricsRegenerator:
                         logger.warning(f"No_parallel test run appears to have stopped early - log contains only {len(output_stripped)} progress dots with no summary")
                         logger.warning(f"Return code: {no_parallel_result.returncode}, Output length: {len(no_parallel_output)} chars")
                         if no_parallel_result.returncode != 0:
-                            logger.warning(f"Pytest exited with non-zero code {no_parallel_result.returncode} - check log for errors: {no_parallel_stdout_log}")
+                            # Check for specific Windows error codes
+                            if no_parallel_result.returncode == 3221226505:  # 0xC0000135 STATUS_DLL_NOT_FOUND
+                                logger.error(f"Pytest crashed with Windows error 0xC0000135 (STATUS_DLL_NOT_FOUND) - missing DLL required by Python or dependencies")
+                                logger.error(f"This usually indicates: missing system DLL, corrupted Python installation, or PATH issues")
+                                logger.error(f"Check log for details: {no_parallel_stdout_log}")
+                                logger.error(f"Troubleshooting: verify Python installation, check PATH, try reinstalling pytest/dependencies")
+                            else:
+                                logger.warning(f"Pytest exited with non-zero code {no_parallel_result.returncode} - check log for errors: {no_parallel_stdout_log}")
                             # Try to extract any error message from the output
                             if no_parallel_output:
                                 lines = no_parallel_output.split('\n')
@@ -940,6 +947,12 @@ class CoverageMetricsRegenerator:
                             if json_result.returncode == 0:
                                 if logger:
                                     logger.info("Regenerated coverage.json from combined coverage data")
+                            
+                            # Rotate coverage.json after regeneration
+                            if coverage_output.exists():
+                                from development_tools.shared.file_rotation import FileRotator
+                                rotator = FileRotator(base_dir=str(coverage_output.parent))
+                                rotator.rotate_file(str(coverage_output), max_versions=5)
                                 # Reload coverage data from the regenerated JSON
                                 if coverage_output.exists():
                                     if self.analyzer:
@@ -1048,6 +1061,12 @@ class CoverageMetricsRegenerator:
             if not coverage_data and coverage_output.exists():
                 if self.analyzer:
                     coverage_data = self.analyzer.load_coverage_json(coverage_output)
+                    
+                    # Rotate coverage_dev_tools.json after loading
+                    if coverage_output.exists():
+                        from development_tools.shared.file_rotation import FileRotator
+                        rotator = FileRotator(base_dir=str(coverage_output.parent))
+                        rotator.rotate_file(str(coverage_output), max_versions=5)
             
             if self.analyzer:
                 overall_coverage = self.analyzer.extract_overall_coverage(result.stdout)
@@ -1309,47 +1328,67 @@ class CoverageMetricsRegenerator:
         
         return results
     
-    def _rotate_log_files(self, base_name: str, max_versions: int = 5) -> None:
-        """Rotate log files, keeping only the last max_versions copies in archive."""
+    def _rotate_log_files(self, base_name: str, max_versions: int = 7) -> None:
+        """Rotate log files, keeping only the last max_versions copies total (consolidated)."""
         try:
             from development_tools.shared.file_rotation import FileRotator
             
-            # Find all log files matching the base name pattern
-            log_files = sorted(
+            # Find all log files matching the base name pattern (both in main dir and archive)
+            main_log_files = sorted(
                 self.coverage_logs_dir.glob(f"{base_name}_*.log"),
                 key=lambda p: p.stat().st_mtime,
                 reverse=True
             )
             
-            # If we have more than max_versions, archive the oldest ones
-            if len(log_files) > max_versions:
-                archive_dir = self.coverage_logs_dir / "archive"
-                archive_dir.mkdir(parents=True, exist_ok=True)
-                
-                # Move oldest files to archive
-                files_to_archive = log_files[max_versions:]
-                for log_file in files_to_archive:
-                    try:
-                        archive_path = archive_dir / log_file.name
-                        shutil.move(str(log_file), str(archive_path))
-                        if logger:
-                            logger.debug(f"Archived log file: {log_file.name}")
-                    except Exception as e:
-                        if logger:
-                            logger.debug(f"Failed to archive {log_file.name}: {e}")
-                
-                # Clean up archive if it has more than max_versions
+            archive_dir = self.coverage_logs_dir / "archive"
+            archived_files = []
+            if archive_dir.exists():
                 archived_files = sorted(
                     archive_dir.glob(f"{base_name}_*.log"),
                     key=lambda p: p.stat().st_mtime,
                     reverse=True
                 )
-                if len(archived_files) > max_versions:
-                    for old_file in archived_files[max_versions:]:
-                        try:
-                            old_file.unlink()
-                        except Exception:
-                            pass
+            
+            # Combine all files and sort by modification time (newest first)
+            all_files = [(f, f.stat().st_mtime) for f in main_log_files] + \
+                       [(f, f.stat().st_mtime) for f in archived_files]
+            all_files.sort(key=lambda x: x[1], reverse=True)
+            
+            # Keep only the newest max_versions files total
+            if len(all_files) > max_versions:
+                # Move files beyond max_versions to archive, then clean up excess
+                archive_dir.mkdir(parents=True, exist_ok=True)
+                
+                files_to_keep = all_files[:max_versions]  # Keep newest max_versions
+                files_to_process = all_files[max_versions:]  # Process files beyond limit
+                
+                if logger:
+                    logger.info(f"Rotating {base_name} logs: {len(all_files)} total, keeping {max_versions}, processing {len(files_to_process)}")
+                
+                for file_path, _ in files_to_process:
+                    try:
+                        # If file is in main directory, move to archive
+                        if file_path.parent == self.coverage_logs_dir:
+                            archive_path = archive_dir / file_path.name
+                            if not archive_path.exists():
+                                shutil.move(str(file_path), str(archive_path))
+                                if logger:
+                                    logger.info(f"Archived log file: {file_path.name}")
+                            else:
+                                # File already exists in archive, delete the duplicate
+                                file_path.unlink()
+                                if logger:
+                                    logger.debug(f"Removed duplicate log file: {file_path.name}")
+                        # If file is already in archive and beyond limit, delete it
+                        elif file_path.parent == archive_dir:
+                            file_path.unlink()
+                            if logger:
+                                logger.info(f"Removed old archived log: {file_path.name}")
+                    except Exception as e:
+                        if logger:
+                            logger.warning(f"Failed to process {file_path.name}: {e}")
+                if logger:
+                    logger.info(f"Log rotation complete for {base_name}: {len(files_to_keep)} files kept")
         except ImportError:
             # FileRotator not available, skip rotation
             if logger:
@@ -1406,13 +1445,12 @@ class CoverageMetricsRegenerator:
 """
         
         if not self.coverage_plan_file.exists():
-            # Create new file with standard header
+            # Create new file with standard header and rotation
+            from development_tools.shared.file_rotation import create_output_file
             try:
-                with open(self.coverage_plan_file, 'w', encoding='utf-8') as f:
-                    f.write(standard_header)
-                    f.write("## Current Status\n\n")
-                    f.write(coverage_summary)
-                    f.write("\n")
+                content = standard_header + "## Current Status\n\n" + coverage_summary + "\n"
+                create_output_file(str(self.coverage_plan_file), content, rotate=True, max_versions=7,
+                                  project_root=self.project_root)
                 if logger:
                     logger.info(f"Created coverage plan with standard header: {self.coverage_plan_file}")
                 return True
@@ -1527,8 +1565,10 @@ class CoverageMetricsRegenerator:
                     )
             
             # Write updated content
-            with open(self.coverage_plan_file, 'w', encoding='utf-8') as plan_file:
-                plan_file.write(updated_content)
+            # Use rotation system for archiving
+            from development_tools.shared.file_rotation import create_output_file
+            create_output_file(str(self.coverage_plan_file), updated_content, rotate=True, max_versions=7,
+                              project_root=self.project_root)
                 
             if logger:
                 logger.info(f"Updated coverage plan: {self.coverage_plan_file}")

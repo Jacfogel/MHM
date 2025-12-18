@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-16 20:55:13
+> **Last Generated**: 2025-12-18 03:46:15
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 96.2% [OK] EXCELLENT**
-- **Total Functions**: 1500
-- **Total Methods**: 1143
-- **Documented**: 2542/2643
+- **Total Functions**: 1506
+- **Total Methods**: 1144
+- **Documented**: 2549/2650
 - **Files Scanned**: 107
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -84,7 +84,7 @@ Core System Decision Tree:
 |   `-- `core/error_handling.py` - Error management (60/62 functions)
 +-- File Operations
 |   +-- `core/file_operations.py` - File I/O (16 functions)
-|   `-- `core/backup_manager.py` - Backup operations (51 functions)
+|   `-- `core/backup_manager.py` - Backup operations (53 functions)
 +-- Logging
 |   `-- `core/logger.py` - Logging system (65 functions)
 `-- Scheduling
@@ -231,7 +231,7 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (26 files, 774 functions)
+- `core/` - System utilities and data management (26 files, 781 functions)
 - `communication/` - Communication channels and message processing (37 files, 818 functions)
 - `ai/` - AI chatbot functionality (7 files, 189 functions)
 - `ui/` - User interface components (28 files, 765 functions)
@@ -239,4 +239,4 @@ Most complex functions (may need refactoring):
 - `tasks/` - Task management system (2 files, 21 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: 2025-12-16 20:55:13
+> **Last Updated**: 2025-12-18 03:46:15

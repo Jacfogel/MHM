@@ -1032,15 +1032,16 @@ def update_function_registry():
     logger.info("[GEN] Generating AI_FUNCTION_REGISTRY.md content...")
     ai_content = generate_ai_function_registry_content(actual_functions)
     
-    # Write DETAIL file
+    # Write DETAIL file with rotation
+    from development_tools.shared.file_rotation import create_output_file
     detail_path = Path(__file__).parent.parent.parent / 'development_docs' / 'FUNCTION_REGISTRY_DETAIL.md'
-    with open(detail_path, 'w', encoding='utf-8') as f:
-        f.write(detail_content)
+    create_output_file(str(detail_path), detail_content, rotate=True, max_versions=7, 
+                      project_root=Path(__file__).parent.parent.parent)
     
-    # Write AI file
+    # Write AI file with rotation
     ai_path = Path(__file__).parent.parent.parent / 'ai_development_docs' / 'AI_FUNCTION_REGISTRY.md'
-    with open(ai_path, 'w', encoding='utf-8') as f:
-        f.write(ai_content)
+    create_output_file(str(ai_path), ai_content, rotate=True, max_versions=7,
+                      project_root=Path(__file__).parent.parent.parent)
     
     # Calculate statistics
     total_files = len(actual_functions)

@@ -386,7 +386,8 @@ def check_changelog_entry_count(max_entries=15):
 def trim_ai_changelog_entries(days_to_keep=30, max_entries=15):
     """Trim AI_CHANGELOG.md entries older than N days and limit total entries."""
     changelog_path = "ai_development_docs/AI_CHANGELOG.md"
-    archive_path = "development_tools/archive/AI_CHANGELOG_ARCHIVE.md"
+    # Archive goes to reports/archive (consistent with other development_tools archives)
+    archive_path = "development_tools/reports/archive/AI_CHANGELOG_ARCHIVE.md"
 
     if not os.path.exists(changelog_path):
         return []
@@ -764,7 +765,7 @@ if __name__ == "__main__":
             else:
                 logger.info(f"Changelog trimmed: {result['trimmed_entries']} entries archived, {result['kept_entries']} entries kept")
                 if result['archive_created']:
-                    logger.info(f"Archive created: ai_development_docs/AI_CHANGELOG_ARCHIVE.md")
+                    logger.info(f"Archive created: development_tools/reports/archive/AI_CHANGELOG_ARCHIVE.md")
         elif command == "check":
             max_entries = 15
             for arg in sys.argv:

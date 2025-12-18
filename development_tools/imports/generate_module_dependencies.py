@@ -642,17 +642,19 @@ def update_module_dependencies(local_prefixes: Optional[Tuple[str, ...]] = None)
     # Preserve manual enhancements
     final_detail_content, preserved_enhancements = preserve_manual_enhancements(existing_content, detail_content)
     
-    # Write the DETAIL file
+    # Write the DETAIL file with rotation
+    from development_tools.shared.file_rotation import create_output_file
+    project_root = Path(__file__).parent.parent.parent
     try:
-        with open(detail_path, 'w', encoding='utf-8') as f:
-            f.write(final_detail_content)
+        create_output_file(str(detail_path), final_detail_content, rotate=True, max_versions=7,
+                          project_root=project_root)
         
-        # Write the AI file
+        # Write the AI file with rotation
         # Script is at: development_tools/imports/generate_module_dependencies.py
         # So we need to go up 2 levels to get to project root
-        ai_path = Path(__file__).parent.parent.parent / 'ai_development_docs' / 'AI_MODULE_DEPENDENCIES.md'
-        with open(ai_path, 'w', encoding='utf-8') as f:
-            f.write(ai_content)
+        ai_path = project_root / 'ai_development_docs' / 'AI_MODULE_DEPENDENCIES.md'
+        create_output_file(str(ai_path), ai_content, rotate=True, max_versions=7,
+                          project_root=project_root)
         
         logger.info(ensure_ascii(f"[SUCCESS] Both module dependency files updated successfully!"))
         logger.info(ensure_ascii(f"[FILES] Generated:"))

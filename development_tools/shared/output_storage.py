@@ -77,7 +77,7 @@ def _get_project_root() -> Path:
 
 
 def save_tool_result(tool_name: str, domain: Optional[str] = None, data: Dict[str, Any] = None, 
-                     archive_count: int = 5, project_root: Optional[Path] = None) -> Path:
+                     archive_count: int = 7, project_root: Optional[Path] = None) -> Path:
     """
     Save tool result to domain-specific JSON file with automatic archiving.
     
@@ -85,7 +85,7 @@ def save_tool_result(tool_name: str, domain: Optional[str] = None, data: Dict[st
         tool_name: Name of the tool (e.g., 'analyze_functions')
         domain: Domain directory (e.g., 'functions'). If None, inferred from tool_name
         data: Data to save (dict)
-        archive_count: Number of archive versions to keep (default: 5)
+        archive_count: Number of archive versions to keep (default: 7, standardized retention)
         project_root: Project root directory. If None, auto-detected
         
     Returns:
@@ -142,10 +142,13 @@ def save_tool_result(tool_name: str, domain: Optional[str] = None, data: Dict[st
     
     # Write new file
     result_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(result_file, 'w', encoding='utf-8') as f:
-        json.dump(result_data, f, indent=2)
-    
-    logger.debug(f"Saved tool result: {result_file}")
+    try:
+        with open(result_file, 'w', encoding='utf-8') as f:
+            json.dump(result_data, f, indent=2)
+        logger.info(f"Saved tool result: {result_file} (archive_count={archive_count}, data_size={len(str(result_data))} chars)")
+    except Exception as e:
+        logger.error(f"Failed to write tool result file {result_file}: {e}")
+        raise
     return result_file
 
 

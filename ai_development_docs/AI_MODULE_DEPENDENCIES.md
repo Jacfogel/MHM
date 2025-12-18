@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-16 20:55:17
+> **Last Generated**: 2025-12-18 03:46:18
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 340
-- **Total Imports**: 3869
-- **Standard Library**: 1325 (34.2%)
-- **Third-Party**: 577 (14.9%)
-- **Local Imports**: 1967 (50.8%)
+- **Files Scanned**: 341
+- **Total Imports**: 3883
+- **Standard Library**: 1327 (34.2%)
+- **Third-Party**: 578 (14.9%)
+- **Local Imports**: 1978 (50.9%)
 
 ## Dependency Decision Trees
 
@@ -129,7 +129,7 @@ External libraries provide channel and UI support.
 - `core/user_management.py` -> 40 local dependencies (heavy coupling)
 
 ### Third-Party Risks
-- `tests/conftest.py` -> pytest (191 modules use this)
+- `tests/conftest.py` -> pytest (192 modules use this)
 - `ui/ui_app_qt.py` -> PySide6.QtWidgets (81 modules use this)
 - `ui/ui_app_qt.py` -> PySide6.QtCore (63 modules use this)
 - `ui/ui_app_qt.py` -> PySide6.QtGui (36 modules use this)

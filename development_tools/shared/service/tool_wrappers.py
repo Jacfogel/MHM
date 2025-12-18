@@ -883,8 +883,13 @@ class ToolWrappersMixin:
         if output:
             try:
                 data = json.loads(output)
-            except json.JSONDecodeError:
+                logger.debug(f"Successfully parsed JSON output from analyze_unused_imports ({len(str(data))} chars)")
+            except json.JSONDecodeError as e:
+                logger.warning(f"Failed to parse JSON output from analyze_unused_imports: {e}")
+                logger.debug(f"Output preview (first 500 chars): {output[:500]}")
                 data = None
+        else:
+            logger.warning(f"analyze_unused_imports returned empty output (returncode: {result.get('returncode')})")
         if data is not None:
             result['data'] = data
             self.results_cache['analyze_unused_imports'] = data
@@ -894,12 +899,13 @@ class ToolWrappersMixin:
             result['error'] = ''
             try:
                 save_tool_result('analyze_unused_imports', 'imports', data, project_root=self.project_root)
-                logger.debug(f"Saved analyze_unused_imports results to standardized storage")
+                logger.info(f"Saved analyze_unused_imports results to standardized storage (total_unused: {total_unused})")
             except Exception as e:
                 logger.warning(f"Failed to save analyze_unused_imports result: {e}")
                 import traceback
                 logger.debug(f"Traceback: {traceback.format_exc()}")
         else:
+            logger.warning(f"analyze_unused_imports: No data extracted, skipping save_tool_result()")
             lowered = output.lower() if isinstance(output, str) else ''
             if 'unused import' in lowered:
                 result['issues_found'] = True

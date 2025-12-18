@@ -28,10 +28,11 @@ This section helps you choose the right documentation file quickly and safely.
   See [ARCHITECTURE.md](ARCHITECTURE.md) for module layout, data handling patterns, and UI architecture.  
   For an AI-optimized summary, see [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md).
 
-- **Logging, testing, and error handling**  
+- **Logging, testing, error handling, and backups**  
   - Logging: [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) and [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md)  
   - Testing: [TESTING_GUIDE.md](tests/TESTING_GUIDE.md), [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), and [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md)  
-  - Error handling: [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) and [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md)
+  - Error handling: [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) and [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md)  
+  - Backups: [BACKUP_GUIDE.md](development_docs/BACKUP_GUIDE.md) and [AI_BACKUP_GUIDE.md](ai_development_docs/AI_BACKUP_GUIDE.md)
 
 - **AI collaboration and rules**  
   - Session constraints and guardrails: [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md)  
@@ -79,6 +80,9 @@ Examples:
 
 - **[ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md)**  
   Error handling architecture, patterns, recovery strategies, and error logging practices.
+
+- **[BACKUP_GUIDE.md](development_docs/BACKUP_GUIDE.md)**  
+  Backup, rotation, archiving systems, and restore procedures.
 
 - **[PROJECT_VISION.md](PROJECT_VISION.md)**  
   Longer-term goals, values, and direction of the project.
@@ -406,9 +410,10 @@ The following pairs must be kept in sync:
 
 Specialized guides:
 
-- [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) <-> [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md)  
-- [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) <-> [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)  
+- [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) <-> [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md)
+- [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) <-> [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)
 - [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) <-> [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md)
+- [BACKUP_GUIDE.md](development_docs/BACKUP_GUIDE.md) <-> [AI_BACKUP_GUIDE.md](ai_development_docs/AI_BACKUP_GUIDE.md)
 - [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) <-> [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)
 
 Rules for paired docs:

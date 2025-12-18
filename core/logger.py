@@ -277,12 +277,19 @@ class ComponentLogger:
             os.makedirs(log_file_dir, exist_ok=True)
         
         # Create file handler with rotation to backup directory
+        # Use consistent backupCount from config (standardized to 7 for all loggers)
+        import core.config as config
+        backup_count = getattr(config, 'LOG_BACKUP_COUNT', 7)
+        # Ensure minimum of 7 for component loggers to match main logger behavior
+        if backup_count < 7:
+            backup_count = 7
+        
         file_handler = BackupDirectoryRotatingFileHandler(
             log_file_path,
             backup_dir=log_paths['backup_dir'],
             when='midnight',
             interval=1,
-            backupCount=7,  # Keep 7 days of logs
+            backupCount=backup_count,  # Keep consistent number of backups
             encoding='utf-8'
         )
         
@@ -319,12 +326,18 @@ class ComponentLogger:
                 except Exception:
                     pass
 
+            # Use consistent backupCount from config
+            import core.config as config
+            backup_count = getattr(config, 'LOG_BACKUP_COUNT', 7)
+            if backup_count < 7:
+                backup_count = 7
+
             errors_handler = BackupDirectoryRotatingFileHandler(
                 errors_log_path,
                 backup_dir=errors_backup_dir,
                 when='midnight',
                 interval=1,
-                backupCount=7,
+                backupCount=backup_count,
                 encoding='utf-8'
             )
             errors_handler.suffix = "%Y-%m-%d"

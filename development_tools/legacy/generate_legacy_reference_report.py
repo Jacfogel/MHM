@@ -156,8 +156,10 @@ class LegacyReferenceReportGenerator:
         # Ensure parent directory exists
         output_file.parent.mkdir(parents=True, exist_ok=True)
         
-        with open(output_file, 'w', encoding='utf-8') as f:
-            f.write(report)
+        # Use rotation system for archiving
+        from development_tools.shared.file_rotation import create_output_file
+        create_output_file(str(output_file), report, rotate=True, max_versions=7,
+                          project_root=self.project_root)
         
         if logger:
             logger.info(f"Legacy reference report saved: {output_file}")
