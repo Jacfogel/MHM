@@ -30,7 +30,6 @@ class ChannelManagementDialog(QDialog):
             if w:
                 w.setParent(None)
         layout.addWidget(self.channel_widget)
-        # Load user account to set groupbox checked state
         channel_enabled = False
         if self.user_id:
             try:
@@ -38,7 +37,6 @@ class ChannelManagementDialog(QDialog):
                 account = user_data_result.get('account') or {}
                 features = account.get('features', {})
                 channel_enabled = features.get('automated_messages') == 'enabled'
-                # Load user data and prepopulate fields
                 prefs_result = get_user_data(self.user_id, 'preferences')
                 prefs = prefs_result.get('preferences') or {}
                 channel = prefs.get('channel', {}).get('type', 'email')
@@ -113,10 +111,8 @@ class ChannelManagementDialog(QDialog):
             elif channel == 'Discord':
                 chat_id = contact_info['discord_id']
             
-            # Save chat_id to account
             account['chat_id'] = chat_id
             
-            # Remove any old 'settings' block from preferences
             if 'settings' in prefs.get('channel', {}):
                 del prefs['channel']['settings']
             # Remove any direct contact info from preferences
@@ -124,11 +120,9 @@ class ChannelManagementDialog(QDialog):
                 if key in prefs:
                     del prefs[key]
             
-            # Save all contact info to account/profile (including empty fields to clear them)
             account['email'] = contact_info['email'] if contact_info['email'] else ''
             account['discord_user_id'] = contact_info['discord_id'] if contact_info['discord_id'] else ''
             
-            # Save timezone to account
             account['timezone'] = timezone
             # Save both using the channel-specific function to avoid overwriting schedules
             update_channel_preferences(self.user_id, prefs)

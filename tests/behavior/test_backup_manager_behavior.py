@@ -511,12 +511,10 @@ class TestBackupManagerBehavior:
         assert success is True
         
         # Verify config was restored (the .env file may not exist in test environment)
-        # Just verify the file exists and has some content
         assert os.path.exists(env_path)
         with open(env_path, 'r') as f:
             content = f.read()
         assert len(content) > 0
-        # The restoration may not work as expected in test environment, so just verify the file exists
     
     def test_restore_backup_with_nonexistent_file_real_behavior(self):
         """Test backup restoration with non-existent file."""
@@ -589,7 +587,6 @@ class TestBackupManagerBehavior:
         is_valid = validate_system_state()
         
         # Verify validation fails (the validation may still pass if user directory is recreated)
-        # Just verify the function runs without error
         assert isinstance(is_valid, bool)
     
     @pytest.mark.no_parallel

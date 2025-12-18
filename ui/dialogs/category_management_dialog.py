@@ -39,7 +39,6 @@ class CategoryManagementDialog(QDialog):
             # Connect Save/Cancel
             self.ui.buttonBox_save_cancel.accepted.connect(self.save_category_settings)
             self.ui.buttonBox_save_cancel.rejected.connect(self.reject)
-            # Load user's current categories
             self.load_user_category_data()
         except Exception as e:
             logger.error(f"Error initializing category management dialog: {e}")
@@ -49,7 +48,6 @@ class CategoryManagementDialog(QDialog):
     def load_user_category_data(self):
         """Load user's current category settings"""
         try:
-            # Load user account to check if automated messages are enabled
             user_data_result = get_user_data(self.user_id, 'account')
             account = user_data_result.get('account') or {}
             features = account.get('features', {})
@@ -58,7 +56,6 @@ class CategoryManagementDialog(QDialog):
             # Set groupbox checkbox state
             self.ui.groupBox_enable_automated_messages.setChecked(messages_enabled)
             
-            # Load user preferences
             prefs_result = get_user_data(self.user_id, 'preferences')
             prefs = prefs_result.get('preferences') or {}
             current_categories = prefs.get('categories', [])

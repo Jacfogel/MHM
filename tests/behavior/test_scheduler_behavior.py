@@ -457,6 +457,3 @@ class TestTaskReminderFunctions:
             
             # Should not raise any exceptions
             schedule_all_task_reminders(user_id)
-    
-    # Task reminder cleanup tests removed - function no longer exists
-    # Task reminders are now managed consistently with other jobs 

@@ -162,7 +162,7 @@ def get_user_data(
                 logger.debug(f"Index check failed for user {user_id}: {index_error}")
                 # If index check fails, fall back to file-based checks below
         # For auto_create=True, check if user directory exists
-        # If directory exists, always allow loaders to proceed (index is just a cache)
+        # If directory exists, always allow loaders to proceed
         # If directory doesn't exist, only return empty if user is truly nonexistent (not in index)
         elif auto_create is True:
             from core.config import get_user_data_dir as _get_user_data_dir
@@ -486,7 +486,7 @@ def _save_user_data__validate_input(user_id: str, data_updates: Dict[str, Dict[s
         logger.warning("save_user_data called with empty data_updates")
         return False, {}, []
     
-    # Initialize result structure - every requested data_type gets an entry that defaults to False
+    # Every requested data_type gets an entry that defaults to False
     result: Dict[str, bool] = {dt: False for dt in data_updates}
     
     # Validate data types
@@ -571,7 +571,7 @@ def _save_user_data__validate_data(user_id: str, data_updates: Dict[str, Dict[st
                     pass
             # For preferences, be more lenient - Pydantic validation errors might be non-critical
             if not ok and dt == "preferences":
-                # Check if errors are just warnings (like invalid categories that get filtered)
+                # Check if errors are warnings (like invalid categories that get filtered)
                 # If the merged data will still be valid after normalization, allow it
                 try:
                     from core.schemas import validate_preferences_dict
@@ -795,7 +795,6 @@ def _save_user_data__save_single_type(user_id: str, dt: str, updates: Dict[str, 
         
         logger.debug(f"Save {dt}: updates={updates}, merged={updated}")
         
-        # Save the data
         from core.file_operations import save_json_data
         from core.config import get_user_file_path
         
@@ -1009,7 +1008,7 @@ def save_user_data(
     - Atomic operations (all succeed or all fail)
     - No nested saves
     """
-    # Validate input parameters and initialize result structure
+    # Validate input parameters
     is_valid, result, invalid_types = _save_user_data__validate_input(user_id, data_updates)
     if not is_valid:
         return result
@@ -1341,8 +1340,7 @@ def update_user_preferences(user_id: str, updates: Dict[str, Any], *, auto_creat
                     except Exception as e:
                         logger.error(f"Error creating message files for user {user_id} after category update: {e}")
                 # When categories exist, ensure automated_messages feature is enabled for discoverability
-                # Note: This will be handled by cross-file invariants in save_user_data() two-phase approach
-                # No need to call update_user_account here - it will be handled automatically
+                # Handled by cross-file invariants in save_user_data() two-phase approach
                 pass
         except Exception as err:
             logger.warning(f"Category bookkeeping skipped for user {user_id} due to import error: {err}")

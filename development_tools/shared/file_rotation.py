@@ -53,7 +53,7 @@ class FileRotator:
             
         file_path = Path(file_path)
         
-        # If file doesn't exist, just return the path
+        # If file doesn't exist, return the path
         if not file_path.exists():
             return str(file_path)
         

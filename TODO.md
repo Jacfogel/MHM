@@ -239,6 +239,17 @@ When adding new tasks, follow this format:
 - *Why it helps*: Reduces confusion and improves the reliability of AI-assisted development
 - *Estimated effort*: Medium
 
+**Complete core.user_management Retirement**
+- *What it means*: Fully retire `core.user_management` module by moving remaining functionality to `core.user_data_handlers` and updating all imports. Currently `core.user_data_handlers` re-exports from `core.user_management` as a temporary measure.
+- *Why it helps*: Simplifies codebase structure, removes legacy module, consolidates user data handling in one place
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Identify all remaining functionality in `core.user_management` that needs to be moved
+  - [ ] Move implementation to `core.user_data_handlers` 
+  - [ ] Update all imports from `core.user_management` to `core.user_data_handlers`
+  - [ ] Remove `core.user_management` module
+  - [ ] Update comments in `core.user_data_handlers` that reference the retirement
+
 **Review Communication Module Architecture**
 - *What it means*: Review all modules in `communication/` directory to ensure they follow channel-agnostic architecture principles
 - *Why it helps*: Ensures consistency, reduces duplication, and makes it easier to add new communication channels

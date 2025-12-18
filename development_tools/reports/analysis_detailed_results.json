@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2025-12-17 05:27:44",
+  "last_generated": "2025-12-17 18:30:54",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2025-12-17T05:27:44.708404",
+  "timestamp": "2025-12-17T18:30:54.027643",
   "successful": [
     "analyze_functions",
     "analyze_function_patterns",
@@ -54,7 +54,7 @@
           "utilities": 0
         }
       },
-      "timestamp": "2025-12-17T05:19:28.325506"
+      "timestamp": "2025-12-17T18:23:45.452282"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -1996,7 +1996,7 @@
           }
         ]
       },
-      "timestamp": "2025-12-17T05:19:52.465866"
+      "timestamp": "2025-12-17T18:24:07.085723"
     },
     "analyze_function_registry": {
       "success": true,
@@ -4229,7 +4229,7 @@
           "total_issues": 5
         }
       },
-      "timestamp": "2025-12-17T05:19:44.365754"
+      "timestamp": "2025-12-17T18:23:59.664164"
     },
     "analyze_package_exports": {
       "success": true,
@@ -11191,18 +11191,16 @@
           }
         }
       },
-      "timestamp": "2025-12-17T05:20:00.448824"
+      "timestamp": "2025-12-17T18:24:14.005234"
     },
     "analyze_ascii_compliance": {
       "success": true,
       "data": {
-        "files": {
-          "development_docs/CHANGELOG_DETAIL.md": 1
-        },
-        "file_count": 1,
-        "total_issues": 1
+        "files": {},
+        "file_count": 0,
+        "total_issues": 0
       },
-      "timestamp": "2025-12-17T05:19:30.943550"
+      "timestamp": "2025-12-17T18:23:47.713111"
     },
     "analyze_documentation": {
       "success": true,
@@ -11243,7 +11241,7 @@
                 "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.19199925341126103,
+              "similarity_score": 0.1919769501763577,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -11408,7 +11406,7 @@
               ]
             },
             "TODO.md": {
-              "content_length": 16043,
+              "content_length": 16863,
               "header_info": "# TODO.md - MHM Project Tasks\n\n> **File**: `TODO.md`\n> **Audience**: Human Developer (Beginner Programmer) and AI collaborators\n> **Purpose**: Current development priorities and planned improvements  ",
               "section_count": 9,
               "sections": [
@@ -11456,20 +11454,20 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 144538,
+              "content_length": 145371,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n\n\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent ch",
-              "section_count": 168,
+              "section_count": 169,
               "sections": [
                 "Introduction",
                 "Overview",
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2025-12-17 - Code Comment Cleanup and Development Tools Fixes **COMPLETED**",
                 "2025-12-17 - Data Directory Cleanup and Development Tools Improvements **COMPLETED**",
                 "2025-12-17 - Coverage Analysis Improvements: Serial Test Execution, Logging, File Organization, and Dev Tools Coverage **COMPLETED**",
                 "2025-12-16 - Legacy Reference Cleanup: Complete Removal and Documentation Cleanup **COMPLETED**",
-                "2025-12-16 - Legacy Reference Discovery and Manual Fix Documentation **COMPLETED**",
-                "2025-12-16 - Phase 1 Error Handling: High-Priority Candidates Complete **COMPLETED**"
+                "2025-12-16 - Legacy Reference Discovery and Manual Fix Documentation **COMPLETED**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -11655,9 +11653,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 938131,
+              "content_length": 942442,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 321,
+              "section_count": 322,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -11665,10 +11663,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2025-12-17 - Code Comment Cleanup and Development Tools Fixes **COMPLETED**",
                 "2025-12-17 - Data Directory Cleanup and Development Tools Improvements **COMPLETED**",
                 "2025-12-17 - Coverage Analysis Improvements: Serial Test Execution, Logging, File Organization, Dev Tools Coverage, and Cleanup **COMPLETED**",
-                "2025-12-16 - Legacy Reference Cleanup: Complete Removal and Documentation Cleanup **COMPLETED**",
-                "2025-12-16 - Legacy Reference Discovery and Manual Fix Guide Creation **COMPLETED**"
+                "2025-12-16 - Legacy Reference Cleanup: Complete Removal and Documentation Cleanup **COMPLETED**"
               ]
             },
             "development_docs/PLANS.md": {
@@ -11890,36 +11888,44 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2025-12-17T05:19:36.321973"
+      "timestamp": "2025-12-17T18:23:52.279249"
     },
     "analyze_documentation_sync": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 1,
-          "files_affected": 0,
+          "total_issues": 3,
+          "files_affected": 1,
           "status": "FAIL"
         },
         "details": {
           "paired_doc_issues": 0,
-          "path_drift_issues": 0,
-          "ascii_compliance_issues": 1,
+          "path_drift_issues": 3,
+          "ascii_compliance_issues": 0,
           "heading_numbering_issues": 0,
           "missing_address_issues": 0,
           "unconverted_link_issues": 0,
-          "path_drift_files": [],
+          "path_drift_files": [
+            "development_docs\\OUTDATED_REFERENCE_AUDIT.md"
+          ],
           "paired_docs": {},
           "path_drift": {
-            "files": {},
-            "total_issues": 0,
-            "detailed_issues": {}
+            "files": {
+              "development_docs\\OUTDATED_REFERENCE_AUDIT.md": 3
+            },
+            "total_issues": 3,
+            "detailed_issues": {
+              "development_docs\\OUTDATED_REFERENCE_AUDIT.md": [
+                "Potentially outdated module: old_module",
+                "Missing file: analyze_documentation.py",
+                "Missing file: error_handling_coverage.py"
+              ]
+            }
           },
           "ascii_compliance": {
-            "files": {
-              "development_docs/CHANGELOG_DETAIL.md": 1
-            },
-            "file_count": 1,
-            "total_issues": 1
+            "files": {},
+            "file_count": 0,
+            "total_issues": 0
           },
           "heading_numbering": {
             "files": {},
@@ -11938,7 +11944,7 @@
           }
         }
       },
-      "timestamp": "2025-12-17T05:19:34.715944"
+      "timestamp": "2025-12-17T18:23:50.932359"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -11947,7 +11953,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-17T05:19:32.015092"
+      "timestamp": "2025-12-17T18:23:48.583891"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -11956,16 +11962,24 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-17T05:19:33.610159"
+      "timestamp": "2025-12-17T18:23:49.906523"
     },
     "analyze_path_drift": {
       "success": true,
       "data": {
-        "files": {},
-        "total_issues": 0,
-        "detailed_issues": {}
+        "files": {
+          "development_docs\\OUTDATED_REFERENCE_AUDIT.md": 3
+        },
+        "total_issues": 3,
+        "detailed_issues": {
+          "development_docs\\OUTDATED_REFERENCE_AUDIT.md": [
+            "Potentially outdated module: old_module",
+            "Missing file: analyze_documentation.py",
+            "Missing file: error_handling_coverage.py"
+          ]
+        }
       },
-      "timestamp": "2025-12-17T05:19:30.029240"
+      "timestamp": "2025-12-17T18:23:46.851779"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -11974,7 +11988,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-17T05:19:34.698001"
+      "timestamp": "2025-12-17T18:23:50.927891"
     },
     "analyze_error_handling": {
       "success": true,
@@ -11996,18 +12010,18 @@
             "handle_configuration_error": 4,
             "ValidationError": 16,
             "ConfigurationError": 6,
-            "handle_communication_error": 5,
             "error_handler_usage": 8,
+            "handle_communication_error": 5,
             "handle_network_error": 5,
             "handle_validation_error": 2,
             "handle_ai_error": 16,
-            "FileOperationError": 11,
-            "MHMError": 2,
-            "handle_file_error": 3,
             "AIError": 2,
+            "MHMError": 2,
             "DataError": 14,
             "CommunicationError": 2,
-            "safe_file_operation": 1
+            "safe_file_operation": 1,
+            "handle_file_error": 3,
+            "FileOperationError": 11
           },
           "missing_error_handling": [],
           "error_handling_quality": {
@@ -12120,8 +12134,8 @@
             {
               "file_path": "communication\\core\\channel_orchestrator.py",
               "function_name": "_initialize_channel_with_retry",
-              "line_start": 415,
-              "line_end": 459,
+              "line_start": 410,
+              "line_end": 454,
               "is_async": false,
               "operation_type": "network",
               "is_entry_point": false,
@@ -12130,8 +12144,8 @@
             {
               "file_path": "communication\\core\\channel_orchestrator.py",
               "function_name": "_initialize_channel_with_retry_sync",
-              "line_start": 604,
-              "line_end": 654,
+              "line_start": 599,
+              "line_end": 649,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12140,8 +12154,8 @@
             {
               "file_path": "communication\\core\\channel_orchestrator.py",
               "function_name": "send_message",
-              "line_start": 656,
-              "line_end": 746,
+              "line_start": 651,
+              "line_end": 741,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12150,8 +12164,8 @@
             {
               "file_path": "communication\\core\\channel_orchestrator.py",
               "function_name": "_check_logging_health",
-              "line_start": 748,
-              "line_end": 773,
+              "line_start": 743,
+              "line_end": 768,
               "is_async": false,
               "operation_type": "network",
               "is_entry_point": false,
@@ -12160,8 +12174,8 @@
             {
               "file_path": "communication\\core\\channel_orchestrator.py",
               "function_name": "send_message_sync",
-              "line_start": 775,
-              "line_end": 866,
+              "line_start": 770,
+              "line_end": 861,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12170,8 +12184,8 @@
             {
               "file_path": "communication\\core\\channel_orchestrator.py",
               "function_name": "broadcast_message",
-              "line_start": 868,
-              "line_end": 895,
+              "line_start": 863,
+              "line_end": 890,
               "is_async": false,
               "operation_type": "network",
               "is_entry_point": false,
@@ -12180,8 +12194,8 @@
             {
               "file_path": "communication\\core\\channel_orchestrator.py",
               "function_name": "_shutdown_all_async",
-              "line_start": 942,
-              "line_end": 952,
+              "line_start": 937,
+              "line_end": 947,
               "is_async": false,
               "operation_type": "network",
               "is_entry_point": false,
@@ -12190,8 +12204,8 @@
             {
               "file_path": "communication\\core\\channel_orchestrator.py",
               "function_name": "_shutdown_sync",
-              "line_start": 1002,
-              "line_end": 1041,
+              "line_start": 997,
+              "line_end": 1036,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12200,8 +12214,8 @@
             {
               "file_path": "communication\\core\\channel_orchestrator.py",
               "function_name": "receive_messages",
-              "line_start": 1043,
-              "line_end": 1062,
+              "line_start": 1038,
+              "line_end": 1057,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12210,8 +12224,8 @@
             {
               "file_path": "communication\\core\\channel_orchestrator.py",
               "function_name": "_should_send_checkin_prompt",
-              "line_start": 1192,
-              "line_end": 1216,
+              "line_start": 1187,
+              "line_end": 1211,
               "is_async": false,
               "operation_type": "network",
               "is_entry_point": false,
@@ -12220,8 +12234,8 @@
             {
               "file_path": "communication\\core\\channel_orchestrator.py",
               "function_name": "_send_checkin_prompt",
-              "line_start": 1254,
-              "line_end": 1306,
+              "line_start": 1249,
+              "line_end": 1301,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12230,8 +12244,8 @@
             {
               "file_path": "communication\\core\\channel_orchestrator.py",
               "function_name": "_send_ai_generated_message",
-              "line_start": 1309,
-              "line_end": 1349,
+              "line_start": 1304,
+              "line_end": 1344,
               "is_async": false,
               "operation_type": "network",
               "is_entry_point": false,
@@ -12240,8 +12254,8 @@
             {
               "file_path": "communication\\core\\channel_orchestrator.py",
               "function_name": "_send_predefined_message",
-              "line_start": 1351,
-              "line_end": 1463,
+              "line_start": 1346,
+              "line_end": 1458,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12310,8 +12324,8 @@
             {
               "file_path": "ui\\ui_app_qt.py",
               "function_name": "load_user_categories",
-              "line_start": 1004,
-              "line_end": 1034,
+              "line_start": 999,
+              "line_end": 1029,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12320,8 +12334,8 @@
             {
               "file_path": "ui\\ui_app_qt.py",
               "function_name": "view_all_users_summary",
-              "line_start": 2203,
-              "line_end": 2264,
+              "line_start": 2198,
+              "line_end": 2259,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12330,8 +12344,8 @@
             {
               "file_path": "ui\\ui_app_qt.py",
               "function_name": "system_health_check",
-              "line_start": 2266,
-              "line_end": 2366,
+              "line_start": 2261,
+              "line_end": 2361,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12340,8 +12354,8 @@
             {
               "file_path": "ui\\ui_app_qt.py",
               "function_name": "cleanup_old_requests",
-              "line_start": 1635,
-              "line_end": 1643,
+              "line_start": 1630,
+              "line_end": 1638,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12351,7 +12365,7 @@
               "file_path": "ui\\dialogs\\channel_management_dialog.py",
               "function_name": "__init__",
               "line_start": 16,
-              "line_end": 65,
+              "line_end": 63,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12361,7 +12375,7 @@
               "file_path": "ui\\dialogs\\task_crud_dialog.py",
               "function_name": "refresh_active_tasks",
               "line_start": 109,
-              "line_end": 147,
+              "line_end": 146,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12370,8 +12384,8 @@
             {
               "file_path": "ui\\dialogs\\task_crud_dialog.py",
               "function_name": "refresh_completed_tasks",
-              "line_start": 149,
-              "line_end": 186,
+              "line_start": 148,
+              "line_end": 184,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12380,8 +12394,8 @@
             {
               "file_path": "ui\\dialogs\\task_crud_dialog.py",
               "function_name": "update_statistics",
-              "line_start": 188,
-              "line_end": 200,
+              "line_start": 186,
+              "line_end": 198,
               "is_async": false,
               "operation_type": "user_data",
               "is_entry_point": false,
@@ -12390,8 +12404,8 @@
             {
               "file_path": "ui\\dialogs\\task_crud_dialog.py",
               "function_name": "add_new_task",
-              "line_start": 212,
-              "line_end": 221,
+              "line_start": 210,
+              "line_end": 219,
               "is_async": false,
               "operation_type": "user_data",
               "is_entry_point": false,
@@ -12400,8 +12414,8 @@
             {
               "file_path": "ui\\dialogs\\task_crud_dialog.py",
               "function_name": "edit_selected_task",
-              "line_start": 223,
-              "line_end": 244,
+              "line_start": 221,
+              "line_end": 242,
               "is_async": false,
               "operation_type": "user_data",
               "is_entry_point": false,
@@ -12410,8 +12424,8 @@
             {
               "file_path": "ui\\dialogs\\task_crud_dialog.py",
               "function_name": "complete_selected_task",
-              "line_start": 246,
-              "line_end": 279,
+              "line_start": 244,
+              "line_end": 277,
               "is_async": false,
               "operation_type": "user_data",
               "is_entry_point": false,
@@ -12420,8 +12434,8 @@
             {
               "file_path": "ui\\dialogs\\task_crud_dialog.py",
               "function_name": "delete_selected_task",
-              "line_start": 281,
-              "line_end": 311,
+              "line_start": 279,
+              "line_end": 309,
               "is_async": false,
               "operation_type": "user_data",
               "is_entry_point": false,
@@ -12430,8 +12444,8 @@
             {
               "file_path": "ui\\dialogs\\task_crud_dialog.py",
               "function_name": "restore_selected_task",
-              "line_start": 313,
-              "line_end": 345,
+              "line_start": 311,
+              "line_end": 343,
               "is_async": false,
               "operation_type": "user_data",
               "is_entry_point": false,
@@ -12440,8 +12454,8 @@
             {
               "file_path": "ui\\dialogs\\task_crud_dialog.py",
               "function_name": "delete_completed_task",
-              "line_start": 347,
-              "line_end": 377,
+              "line_start": 345,
+              "line_end": 375,
               "is_async": false,
               "operation_type": "user_data",
               "is_entry_point": false,
@@ -12450,8 +12464,8 @@
             {
               "file_path": "ai\\chatbot.py",
               "function_name": "test_system_prompt_integration",
-              "line_start": 1180,
-              "line_end": 1202,
+              "line_start": 1174,
+              "line_end": 1196,
               "is_async": false,
               "operation_type": "file_io",
               "is_entry_point": false,
@@ -12460,8 +12474,8 @@
             {
               "file_path": "ai\\conversation_history.py",
               "function_name": "_cleanup_old_sessions",
-              "line_start": 384,
-              "line_end": 396,
+              "line_start": 382,
+              "line_end": 393,
               "is_async": false,
               "operation_type": "user_data",
               "is_entry_point": false,
@@ -12490,8 +12504,8 @@
             {
               "file_path": "core\\config.py",
               "function_name": "validate_and_raise_if_invalid",
-              "line_start": 560,
-              "line_end": 597,
+              "line_start": 558,
+              "line_end": 595,
               "is_async": false,
               "operation_type": "validation",
               "is_entry_point": false,
@@ -12510,8 +12524,8 @@
             {
               "file_path": "communication\\core\\channel_orchestrator.py",
               "function_name": "get_channel_status",
-              "line_start": 897,
-              "line_end": 906,
+              "line_start": 892,
+              "line_end": 901,
               "is_async": false,
               "operation_type": "configuration",
               "is_entry_point": false,
@@ -12520,8 +12534,8 @@
             {
               "file_path": "communication\\core\\channel_orchestrator.py",
               "function_name": "health_check_all",
-              "line_start": 917,
-              "line_end": 931,
+              "line_start": 912,
+              "line_end": 926,
               "is_async": false,
               "operation_type": "validation",
               "is_entry_point": false,
@@ -12601,7 +12615,7 @@
           ]
         }
       },
-      "timestamp": "2025-12-17T05:19:38.986982"
+      "timestamp": "2025-12-17T18:23:54.782274"
     },
     "analyze_test_coverage": {
       "success": true,
@@ -12614,30 +12628,30 @@
           "overall": {
             "coverage": 72.8,
             "statements": 27173,
-            "covered": 19773,
-            "missed": 7400,
-            "generated": "2025-12-17T05:25:54.428367"
+            "covered": 19784,
+            "missed": 7389,
+            "generated": "2025-12-17T18:29:24.796698"
           },
           "modules": [
             {
               "module": "communication",
-              "coverage": 69.6,
-              "missed": 2667
+              "coverage": 69.7,
+              "missed": 2656
             },
             {
               "module": "ui",
               "coverage": 72.5,
-              "missed": 1710
+              "missed": 1714
             },
             {
               "module": "core",
-              "coverage": 73.5,
-              "missed": 2548
+              "coverage": 73.6,
+              "missed": 2538
             },
             {
               "module": "ai",
-              "coverage": 78.9,
-              "missed": 360
+              "coverage": 78.6,
+              "missed": 366
             },
             {
               "module": "tasks",
@@ -12658,8 +12672,8 @@
             },
             {
               "path": "ui/ui_app_qt.py",
-              "coverage": 51.0,
-              "missing": 682
+              "coverage": 50.8,
+              "missing": 686
             },
             {
               "path": "core/file_locking.py",
@@ -12672,14 +12686,14 @@
               "missing": 403
             },
             {
-              "path": "communication/message_processing/interaction_manager.py",
-              "coverage": 60.8,
-              "missing": 204
+              "path": "core/service.py",
+              "coverage": 61.0,
+              "missing": 276
             }
           ]
         }
       },
-      "timestamp": "2025-12-17T05:25:57.268124"
+      "timestamp": "2025-12-17T18:29:27.469296"
     },
     "analyze_test_markers": {
       "success": true,
@@ -12736,15 +12750,15 @@
           }
         ]
       },
-      "timestamp": "2025-12-17T05:27:20.610241"
+      "timestamp": "2025-12-17T18:30:42.409014"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "overall": {
           "overall_coverage": 36.1,
-          "total_statements": 18092,
-          "total_missed": 11568
+          "total_statements": 18104,
+          "total_missed": 11565
         },
         "modules": {
           "development_tools\\__init__.py": {
@@ -12998,13 +13012,14 @@
           },
           "development_tools\\docs\\analyze_ascii_compliance.py": {
             "statements": 106,
-            "missed": 46,
-            "coverage": 57,
+            "missed": 47,
+            "coverage": 56,
             "missing_lines": [
               "27",
               "35",
               "41",
               "42",
+              "143",
               "163",
               "176",
               "177",
@@ -13048,7 +13063,7 @@
               "271",
               "273"
             ],
-            "covered": 60
+            "covered": 59
           },
           "development_tools\\docs\\analyze_documentation.py": {
             "statements": 300,
@@ -13340,7 +13355,7 @@
           },
           "development_tools\\docs\\analyze_missing_addresses.py": {
             "statements": 129,
-            "missed": 55,
+            "missed": 56,
             "coverage": 57,
             "missing_lines": [
               "26",
@@ -13354,6 +13369,7 @@
               "93",
               "94",
               "123",
+              "128",
               "135",
               "136",
               "137",
@@ -13399,12 +13415,12 @@
               "253",
               "255"
             ],
-            "covered": 74
+            "covered": 73
           },
           "development_tools\\docs\\analyze_path_drift.py": {
             "statements": 381,
-            "missed": 131,
-            "coverage": 66,
+            "missed": 114,
+            "coverage": 70,
             "missing_lines": [
               "28",
               "43",
@@ -13419,9 +13435,6 @@
               "174",
               "186",
               "190",
-              "207",
-              "208",
-              "210",
               "214",
               "218",
               "222",
@@ -13470,26 +13483,14 @@
               "444",
               "445",
               "458",
-              "465",
               "466",
-              "469",
               "470",
-              "473",
               "474",
-              "477",
               "478",
-              "481",
               "482",
-              "485",
               "486",
-              "490",
-              "493",
               "494",
-              "497",
-              "498",
-              "499",
               "500",
-              "502",
               "525",
               "526",
               "527",
@@ -13510,9 +13511,7 @@
               "633",
               "634",
               "636",
-              "699",
               "700",
-              "702",
               "738",
               "739",
               "741",
@@ -13538,7 +13537,7 @@
               "768",
               "770"
             ],
-            "covered": 250
+            "covered": 267
           },
           "development_tools\\docs\\analyze_unconverted_links.py": {
             "statements": 280,
@@ -14289,7 +14288,7 @@
           },
           "development_tools\\docs\\fix_version_sync.py": {
             "statements": 410,
-            "missed": 340,
+            "missed": 339,
             "coverage": 17,
             "missing_lines": [
               "21",
@@ -14381,7 +14380,6 @@
               "225",
               "230",
               "231",
-              "250",
               "257",
               "258",
               "270",
@@ -14633,7 +14631,7 @@
               "730",
               "731"
             ],
-            "covered": 70
+            "covered": 71
           },
           "development_tools\\docs\\generate_directory_tree.py": {
             "statements": 82,
@@ -18243,7 +18241,7 @@
           },
           "development_tools\\legacy\\analyze_legacy_references.py": {
             "statements": 286,
-            "missed": 114,
+            "missed": 115,
             "coverage": 60,
             "missing_lines": [
               "27",
@@ -18266,6 +18264,7 @@
               "131",
               "132",
               "134",
+              "139",
               "155",
               "158",
               "161",
@@ -18361,7 +18360,7 @@
               "537",
               "538"
             ],
-            "covered": 172
+            "covered": 171
           },
           "development_tools\\legacy\\fix_legacy_references.py": {
             "statements": 160,
@@ -18836,8 +18835,8 @@
           },
           "development_tools\\reports\\system_signals.py": {
             "statements": 281,
-            "missed": 163,
-            "coverage": 42,
+            "missed": 166,
+            "coverage": 41,
             "missing_lines": [
               "24",
               "34",
@@ -18858,6 +18857,7 @@
               "143",
               "147",
               "151",
+              "157",
               "160",
               "163",
               "166",
@@ -18865,6 +18865,8 @@
               "179",
               "183",
               "194",
+              "209",
+              "211",
               "232",
               "233",
               "253",
@@ -19003,7 +19005,7 @@
               "481",
               "483"
             ],
-            "covered": 118
+            "covered": 115
           },
           "development_tools\\run_dev_tools.py": {
             "statements": 10,
@@ -19024,17 +19026,28 @@
             "covered": 0
           },
           "development_tools\\run_development_tools.py": {
-            "statements": 82,
-            "missed": 5,
-            "coverage": 94,
+            "statements": 86,
+            "missed": 16,
+            "coverage": 81,
             "missing_lines": [
-              "19",
-              "129",
-              "130",
-              "131",
-              "132"
+              "22",
+              "24",
+              "25",
+              "26",
+              "27",
+              "28",
+              "29",
+              "36",
+              "37",
+              "38",
+              "39",
+              "41",
+              "132",
+              "133",
+              "134",
+              "135"
             ],
-            "covered": 77
+            "covered": 70
           },
           "development_tools\\shared\\__init__.py": {
             "statements": 3,
@@ -19966,8 +19979,8 @@
           },
           "development_tools\\shared\\service\\audit_orchestration.py": {
             "statements": 508,
-            "missed": 219,
-            "coverage": 57,
+            "missed": 215,
+            "coverage": 58,
             "missing_lines": [
               "47",
               "48",
@@ -20162,10 +20175,6 @@
               "651",
               "652",
               "653",
-              "668",
-              "669",
-              "670",
-              "671",
               "672",
               "673",
               "674",
@@ -20177,10 +20186,10 @@
               "693",
               "696",
               "697",
-              "708",
-              "709",
-              "710",
-              "711",
+              "713",
+              "714",
+              "715",
+              "716",
               "717",
               "718",
               "731",
@@ -20189,11 +20198,11 @@
               "737",
               "738"
             ],
-            "covered": 289
+            "covered": 293
           },
           "development_tools\\shared\\service\\commands.py": {
-            "statements": 531,
-            "missed": 387,
+            "statements": 539,
+            "missed": 395,
             "coverage": 27,
             "missing_lines": [
               "24",
@@ -20348,93 +20357,92 @@
               "275",
               "277",
               "278",
-              "282",
+              "279",
+              "280",
+              "281",
               "283",
               "284",
               "285",
               "286",
               "287",
-              "288",
-              "289",
-              "290",
+              "291",
               "292",
+              "293",
+              "294",
+              "295",
+              "296",
               "297",
               "298",
               "299",
-              "303",
-              "304",
-              "305",
+              "301",
               "306",
               "307",
-              "310",
-              "311",
+              "308",
               "312",
+              "313",
               "314",
               "315",
               "316",
-              "317",
-              "318",
+              "319",
               "320",
-              "322",
+              "321",
               "323",
+              "324",
               "325",
               "326",
               "327",
-              "328",
               "329",
-              "333",
+              "331",
+              "332",
               "334",
               "335",
               "336",
               "337",
-              "339",
-              "340",
+              "338",
+              "342",
+              "343",
+              "344",
               "345",
               "346",
-              "347",
               "348",
               "349",
-              "350",
-              "352",
-              "353",
+              "354",
+              "355",
               "356",
               "357",
-              "360",
+              "358",
+              "359",
               "361",
-              "364",
-              "380",
-              "384",
+              "362",
+              "365",
+              "366",
+              "369",
+              "370",
+              "373",
               "389",
-              "391",
-              "395",
-              "396",
-              "397",
+              "393",
               "398",
-              "399",
-              "403",
+              "400",
               "404",
+              "405",
+              "406",
+              "407",
               "408",
-              "409",
-              "410",
-              "411",
               "412",
               "413",
-              "414",
-              "415",
-              "416",
               "417",
               "418",
+              "419",
               "420",
+              "421",
               "422",
+              "423",
+              "424",
+              "425",
               "426",
               "427",
-              "428",
               "429",
-              "430",
               "431",
-              "432",
-              "433",
-              "434",
               "435",
               "436",
               "437",
@@ -20449,68 +20457,68 @@
               "446",
               "447",
               "448",
+              "449",
               "450",
               "451",
               "452",
               "453",
               "454",
               "455",
+              "456",
               "457",
+              "459",
+              "460",
               "461",
               "462",
               "463",
               "464",
-              "465",
-              "467",
-              "468",
+              "466",
+              "470",
+              "471",
               "472",
               "473",
               "474",
-              "475",
               "476",
-              "478",
-              "479",
+              "477",
+              "481",
+              "482",
+              "483",
               "484",
+              "485",
+              "487",
               "488",
-              "489",
-              "490",
+              "493",
               "497",
               "498",
               "499",
-              "500",
-              "501",
-              "502",
-              "504",
-              "505",
+              "506",
+              "507",
+              "508",
               "509",
               "510",
               "511",
-              "512",
+              "513",
               "514",
-              "525",
-              "536",
-              "537",
-              "538",
-              "539",
+              "518",
+              "519",
+              "520",
+              "521",
+              "523",
+              "534",
               "545",
               "546",
               "547",
               "548",
-              "549",
-              "550",
-              "551",
-              "552",
-              "553",
               "554",
+              "555",
+              "556",
+              "557",
               "558",
               "559",
               "560",
               "561",
               "562",
               "563",
-              "564",
-              "565",
-              "566",
               "567",
               "568",
               "569",
@@ -20518,71 +20526,80 @@
               "571",
               "572",
               "573",
+              "574",
+              "575",
+              "576",
               "577",
               "578",
               "579",
-              "583",
-              "584",
-              "585",
-              "589",
-              "590",
-              "591",
-              "603",
-              "610",
-              "611",
-              "613",
-              "631",
-              "632",
-              "633",
-              "634",
-              "635",
-              "636",
-              "637",
-              "638",
-              "639",
+              "580",
+              "581",
+              "582",
+              "586",
+              "587",
+              "588",
+              "592",
+              "593",
+              "594",
+              "598",
+              "599",
+              "600",
+              "612",
+              "619",
+              "620",
+              "622",
+              "640",
               "641",
-              "659",
-              "660",
-              "661",
-              "662",
-              "663",
-              "664",
-              "665",
-              "666",
-              "667",
+              "642",
+              "643",
+              "644",
+              "645",
+              "646",
+              "647",
+              "648",
+              "650",
+              "668",
               "669",
-              "687",
-              "688",
-              "689",
-              "690",
-              "691",
-              "692",
-              "693",
-              "694",
-              "695",
+              "670",
+              "671",
+              "672",
+              "673",
+              "674",
+              "675",
+              "676",
+              "678",
+              "696",
               "697",
-              "715",
-              "716",
-              "717",
-              "718",
-              "719",
-              "720",
-              "721",
-              "722",
-              "723",
+              "698",
+              "699",
+              "700",
+              "701",
+              "702",
+              "703",
+              "704",
+              "706",
+              "724",
               "725",
-              "736",
-              "737",
-              "738",
-              "739",
-              "740",
-              "741",
-              "742",
-              "743",
-              "744",
+              "726",
+              "727",
+              "728",
+              "729",
+              "730",
+              "731",
+              "732",
+              "734",
               "745",
               "746",
-              "747"
+              "747",
+              "748",
+              "749",
+              "750",
+              "751",
+              "752",
+              "753",
+              "754",
+              "755",
+              "756"
             ],
             "covered": 144
           },
@@ -21267,8 +21284,8 @@
           },
           "development_tools\\shared\\service\\report_generation.py": {
             "statements": 2788,
-            "missed": 1441,
-            "coverage": 48,
+            "missed": 1435,
+            "coverage": 49,
             "missing_lines": [
               "29",
               "31",
@@ -21390,8 +21407,6 @@
               "568",
               "576",
               "577",
-              "585",
-              "586",
               "589",
               "590",
               "591",
@@ -21589,10 +21604,6 @@
               "1057",
               "1073",
               "1078",
-              "1086",
-              "1087",
-              "1088",
-              "1089",
               "1104",
               "1111",
               "1118",
@@ -22712,7 +22723,7 @@
               "3903",
               "3904"
             ],
-            "covered": 1347
+            "covered": 1353
           },
           "development_tools\\shared\\service\\tool_wrappers.py": {
             "statements": 746,
@@ -24916,7 +24927,7 @@
         "output_file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_tools\\tests\\jsons\\coverage_dev_tools.json",
         "html_dir": null
       },
-      "timestamp": "2025-12-17T05:27:19.227825"
+      "timestamp": "2025-12-17T18:30:41.140176"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -30591,7 +30602,7 @@
           ]
         }
       },
-      "timestamp": "2025-12-17T05:19:50.779243"
+      "timestamp": "2025-12-17T18:24:05.607001"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -30614,7 +30625,7 @@
           ]
         }
       },
-      "timestamp": "2025-12-17T05:19:47.130741"
+      "timestamp": "2025-12-17T18:24:02.160436"
     },
     "analyze_module_imports": {
       "success": true,
@@ -63725,7 +63736,7 @@
           }
         }
       },
-      "timestamp": "2025-12-17T05:19:48.944623"
+      "timestamp": "2025-12-17T18:24:03.813846"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -63909,7 +63920,7 @@
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md"
         }
       },
-      "timestamp": "2025-12-17T05:27:43.822512"
+      "timestamp": "2025-12-17T18:30:53.133053"
     },
     "analyze_config": {
       "success": true,
@@ -63971,7 +63982,7 @@
           }
         }
       },
-      "timestamp": "2025-12-17T05:26:04.059191"
+      "timestamp": "2025-12-17T18:30:25.125805"
     },
     "analyze_ai_work": {
       "success": true,
@@ -63981,7 +63992,7 @@
         "error": "",
         "returncode": 0
       },
-      "timestamp": "2025-12-17T05:19:42.533431"
+      "timestamp": "2025-12-17T18:23:57.944859"
     },
     "decision_support": {
       "success": true,
@@ -64110,12 +64121,12 @@
           }
         ]
       },
-      "timestamp": "2025-12-17T05:19:40.788906"
+      "timestamp": "2025-12-17T18:23:56.376802"
     },
     "quick_status": {
       "success": true,
       "data": {
-        "timestamp": "2025-12-17T05:19:26.361479",
+        "timestamp": "2025-12-17T18:23:43.690561",
         "system_health": {
           "core_files": {
             "run_mhm.py": "OK",
@@ -64135,7 +64146,7 @@
         },
         "documentation_status": {
           "coverage": "Unknown",
-          "recent_audit": "2025-12-17T04:45:58.806598",
+          "recent_audit": "2025-12-17T18:01:18.734969",
           "key_files": {
             "README.md": "OK",
             "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -64148,32 +64159,32 @@
         "critical_issues": [],
         "action_items": [],
         "recent_activity": {
-          "last_audit": "2025-12-17T04:45:58.806598",
+          "last_audit": "2025-12-17T18:01:18.734969",
           "recent_changes": [
-            "tasks/task_management.py",
-            "run_tests.py",
-            "run_headless_service.py",
+            "core/user_management.py",
+            "core/user_data_validation.py",
+            "core/user_data_manager.py",
             "core/user_data_handlers.py",
             "core/service.py",
             "core/scheduler.py",
+            "core/response_tracking.py",
+            "core/message_management.py",
+            "core/message_analytics.py",
             "core/logger.py",
+            "core/file_operations.py",
             "core/error_handling.py",
-            "core/auto_cleanup.py",
-            "core/__init__.py",
-            "communication/message_processing/command_parser.py",
-            "communication/core/channel_orchestrator.py",
-            "communication/core/channel_monitor.py",
-            "communication/communication_channels/email/bot.py",
-            "communication/communication_channels/discord/webhook_handler.py"
+            "core/config.py",
+            "core/checkin_dynamic_manager.py",
+            "core/checkin_analytics.py"
           ]
         }
       },
-      "timestamp": "2025-12-17T05:19:26.557568"
+      "timestamp": "2025-12-17T18:23:43.858974"
     },
     "system_signals": {
       "success": true,
       "data": {
-        "timestamp": "2025-12-17T05:19:35.650926",
+        "timestamp": "2025-12-17T18:23:51.704084",
         "system_health": {
           "overall_status": "OK",
           "core_files": {
@@ -64191,40 +64202,42 @@
             "user": "OK",
             "tests": "OK"
           },
-          "last_audit": "2025-12-17T04:45:58.869623",
+          "last_audit": "2025-12-17T18:01:18.802171",
           "warnings": [],
           "errors": []
         },
         "recent_activity": {
           "recent_changes": [
+            "ui/dialogs/task_crud_dialog.py",
+            "core/backup_manager.py",
             "development_tools/reports/system_signals.py",
-            "core/auto_cleanup.py",
-            "development_tools/tests/generate_test_coverage.py",
-            "development_tools/shared/service/audit_orchestration.py",
-            "tests/behavior/test_user_data_flow_architecture.py",
-            "development_tools/shared/service/data_loading.py",
-            "tests/development_tools/test_path_drift_verification_comprehensive.py",
-            "core/__init__.py",
-            "development_tools/tests/generate_test_coverage_reports.py",
-            "core/service.py"
+            "ai/context_builder.py",
+            "tests/development_tools/test_run_development_tools.py",
+            "development_tools/shared/service/commands.py",
+            "core/service.py",
+            "communication/communication_channels/discord/api_client.py",
+            "ui/dialogs/category_management_dialog.py",
+            "ui/widgets/tag_widget.py"
           ],
           "git_status": "Modified",
           "last_commit": null,
           "uncommitted_changes": true
         },
-        "critical_alerts": [],
+        "critical_alerts": [
+          "CRITICAL: Recent errors in logs/errors.log"
+        ],
         "performance_indicators": {
           "log_file_sizes": {
             "ai.log": "0.0MB",
-            "ai_dev_tools.log": "0.2MB",
-            "app.log": "0.1MB",
+            "ai_dev_tools.log": "0.3MB",
+            "app.log": "0.2MB",
             "communication_manager.log": "0.0MB",
             "discord.log": "0.0MB",
             "email.log": "0.0MB",
             "errors.log": "0.0MB",
             "file_ops.log": "0.0MB",
             "message.log": "0.0MB",
-            "scheduler.log": "0.0MB",
+            "scheduler.log": "0.1MB",
             "ui.log": "0.0MB",
             "user_activity.log": "0.0MB"
           },
@@ -64232,7 +64245,7 @@
           "memory_usage": "Unknown"
         }
       },
-      "timestamp": "2025-12-17T05:19:35.804874"
+      "timestamp": "2025-12-17T18:23:51.873094"
     },
     "decision_support_metrics": {
       "success": true,
@@ -64361,7 +64374,7 @@
           }
         ]
       },
-      "timestamp": "2025-12-17T05:27:44.708404"
+      "timestamp": "2025-12-17T18:30:54.027643"
     }
   }
 }

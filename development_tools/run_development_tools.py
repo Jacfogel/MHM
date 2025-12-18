@@ -8,34 +8,37 @@ import sys
 import warnings
 from pathlib import Path
 
-# Add project root to path for core module imports
-project_root = Path(__file__).parent.parent
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
+# Add project root to path FIRST - this allows development_tools to be imported as a package
+project_root = Path(__file__).resolve().parent.parent
+project_root_str = str(project_root)
+if project_root_str not in sys.path:
+    sys.path.insert(0, project_root_str)
 
-# Add development_tools to path for relative imports when run as script
-ai_tools_path = Path(__file__).parent
-if str(ai_tools_path) not in sys.path:
-    sys.path.insert(0, str(ai_tools_path))
-
-# Handle both relative and absolute imports
+# Now we can import development_tools as a package
 try:
-    from .shared.service import AIToolsService
-    from .shared.cli_interface import COMMAND_REGISTRY
-    from .shared.common import COMMAND_TIERS
-except ImportError:
-    # Fallback for when run as script
     from development_tools.shared.service import AIToolsService
     from development_tools.shared.cli_interface import COMMAND_REGISTRY
     from development_tools.shared.common import COMMAND_TIERS
+except ImportError as e:
+    # Provide helpful error message
+    print(f"Import error: {e}")
+    print("Make sure you're running this from the project root directory.")
+    print("Current working directory:", Path.cwd())
+    print("Project root:", project_root)
+    print("Python path:", sys.path[:3])  # Show first 3 entries
+    raise
 
 from core.logger import get_component_logger
 
 # Import config module for configuration validation
 try:
-    from . import config
-except ImportError:
     from development_tools import config
+except ImportError:
+    try:
+        from . import config
+    except ImportError:
+        # Config is optional, so we can continue without it
+        config = None
 
 logger = get_component_logger("development_tools")
 

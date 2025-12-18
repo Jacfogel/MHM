@@ -51,7 +51,6 @@ class CheckinAnalytics:
         if not mood_data:
             return {"error": "No valid mood data found"}
         
-        # Calculate statistics
         moods = [d['mood'] for d in mood_data]
         avg_mood = statistics.mean(moods)
         mood_std = statistics.stdev(moods) if len(moods) > 1 else 0
@@ -121,7 +120,6 @@ class CheckinAnalytics:
         if not energy_data:
             return {"error": "No valid energy data found"}
         
-        # Calculate statistics
         energies = [d['energy'] for d in energy_data]
         avg_energy = statistics.mean(energies)
         energy_std = statistics.stdev(energies) if len(energies) > 1 else 0
@@ -243,7 +241,6 @@ class CheckinAnalytics:
         if not sleep_data:
             return {"error": "No valid sleep data found"}
         
-        # Calculate sleep statistics
         hours = [d['hours'] for d in sleep_data if 'hours' in d]
         quality = [d['quality'] for d in sleep_data if 'quality' in d]
         
@@ -304,13 +301,12 @@ class CheckinAnalytics:
                 "data_completeness": (len(checkins) / days) * 100
             }
         
-        # Calculate component scores
         mood_score = self._calculate_mood_score(checkins)
         energy_score = self._calculate_energy_score(checkins)
         habit_score = self._calculate_habit_score(checkins)
         sleep_score = self._calculate_sleep_score(checkins)
         
-        # Calculate overall score (weighted average: mood 30%, energy 20%, habits 30%, sleep 20%)
+        # Weighted average: mood 30%, energy 20%, habits 30%, sleep 20%
         overall_score = (mood_score * 0.3) + (energy_score * 0.2) + (habit_score * 0.3) + (sleep_score * 0.2)
         
         return {

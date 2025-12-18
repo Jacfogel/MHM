@@ -176,7 +176,6 @@ class DiscordEventHandler:
     async def _handle_user_message(self, message: discord.Message, context: EventContext):
         """Handle user message through the interaction manager"""
         try:
-            # Get internal user ID
             discord_user_id = str(message.author.id)
             internal_user_id = get_user_id_by_identifier(discord_user_id)
             
@@ -204,7 +203,6 @@ class DiscordEventHandler:
     async def _send_response(self, channel: discord.TextChannel, response):
         """Send a response to a Discord channel"""
         try:
-            # Create embed if rich_data is provided
             embed = None
             if hasattr(response, 'rich_data') and response.rich_data:
                 from communication.communication_channels.base.rich_formatter import get_rich_formatter

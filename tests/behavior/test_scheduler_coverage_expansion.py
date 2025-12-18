@@ -779,9 +779,6 @@ class TestCleanupOperations:
                 # Verify the remaining job is not for the test user/category
                 remaining_job = jobs_list[0]
                 assert remaining_job.job_func.keywords['user_id'] == 'other-user'
-    
-    # Task reminder cleanup tests removed - function no longer exists
-    # Task reminders are now managed consistently with other jobs
 
 class TestStandaloneFunctions:
     """Test standalone scheduler functions."""
@@ -801,9 +798,6 @@ class TestStandaloneFunctions:
             
             # Verify side effect
             mock_tasks_enabled.assert_called_once_with(user_id)
-    
-    # Task reminder cleanup tests removed - function no longer exists
-    # Task reminders are now managed consistently with other jobs
     
     @pytest.mark.behavior
     @pytest.mark.scheduler

@@ -6,7 +6,6 @@ from datetime import datetime
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-# Removed store_chat_interaction import - this function is for check-ins/chat pairs, not generic chat history
 
 # Route conversation history logs to AI component
 history_logger = get_component_logger('ai_conversation')
@@ -88,7 +87,6 @@ class ConversationHistory:
             self._sessions[user_id].append(session)
             self._active_sessions[user_id] = session
             
-            # Clean up old sessions
             self._cleanup_old_sessions(user_id)
             
             logger.debug(f"Started conversation session {session_id} for user {user_id}")
@@ -386,7 +384,6 @@ class ConversationHistory:
         try:
             sessions = self._sessions.get(user_id, [])
             if len(sessions) > self.max_sessions_per_user:
-                # Remove oldest sessions
                 sessions_to_remove = len(sessions) - self.max_sessions_per_user
                 sessions[:sessions_to_remove] = []
                 

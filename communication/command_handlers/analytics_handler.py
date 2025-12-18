@@ -197,7 +197,6 @@ class AnalyticsHandler(InteractionHandler):
                 prefs = get_user_data(user_id, 'preferences') or {}
                 checkin_settings = (prefs.get('preferences') or {}).get('checkin_settings') or {}
                 if isinstance(checkin_settings, dict):
-                    # Get enabled fields from questions configuration
                     questions = checkin_settings.get('questions', {})
                     enabled_fields = [key for key, config in questions.items() 
                                     if config.get('enabled', False) and 
@@ -513,7 +512,6 @@ class AnalyticsHandler(InteractionHandler):
             active_tasks = load_active_tasks(user_id)
             completed_tasks = load_completed_tasks(user_id)
             
-            # Get task analytics from check-in data
             analytics = CheckinAnalytics()
             task_weekly_stats = analytics.get_task_weekly_stats(user_id, days)
             

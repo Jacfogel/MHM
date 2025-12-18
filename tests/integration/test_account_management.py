@@ -450,7 +450,3 @@ def test_account_management_integration():
     except Exception as e:
         logging.getLogger("mhm_tests").error(f"Integration testing failed: {e}")
         assert False, f"Integration testing failed: {e}"
-
-# Note: This file contains pytest test functions that should be run with pytest
-# The main() function has been removed as it's not compatible with pytest
-# Run tests with: python -m pytest tests/integration/test_account_management.py 

@@ -80,7 +80,6 @@ class MessageAnalytics:
             except Exception:
                 pass
         
-        # Calculate averages
         total_messages = len(messages)
         avg_per_day = total_messages / days if days > 0 else 0
         avg_per_category = {cat: count / days for cat, count in category_counts.items()} if days > 0 else {}

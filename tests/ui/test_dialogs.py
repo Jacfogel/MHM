@@ -344,7 +344,3 @@ def test_dialog_instantiation(monkeypatch):
         assert False, f"Dialog instantiation testing failed: {e}"
     finally:
         pass
-
-# Note: This file contains pytest test functions that should be run with pytest
-# The main() function has been removed as it's not compatible with pytest
-# Run tests with: python -m pytest tests/ui/test_dialogs.py 

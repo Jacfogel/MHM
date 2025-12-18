@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-17 - Code Comment Cleanup and Development Tools Fixes **COMPLETED**
+- **Comment Cleanup**: Removed 61 redundant comments across codebase (core/, ai/, communication/, ui/) that restated obvious operations. Kept valuable comments (TEMPORARY markers, workarounds, intentional placeholders).
+- **Development Tools**: Fixed import error in `run_development_tools.py`, syntax error in `file_operations.py`, documentation path drift, and `doc-fix` argument mismatch (`--fix-all` -> `--all`). Enhanced error handling to show return codes when errors are empty.
+- **Files**: Modified 25+ files removing redundant comments, fixed 4 development tools issues. Updated `OUTDATED_REFERENCE_AUDIT.md` with cleanup status.
+- **Impact**: Cleaner codebase, working development tools, resolved documentation issues, better error messages.
+
 ### 2025-12-17 - Data Directory Cleanup and Development Tools Improvements **COMPLETED**
 - **Data Directory Cleanup**: Added `cleanup_data_directory()` for production data (30-day backups, 7-day requests, 90-day archives) and `cleanup_tests_data_directory()` for test artifacts (`tmp*` dirs, `pytest-of-*`, test JSON files, `.last_cache_cleanup`). Both run on startup and daily via scheduler. Fixed 267+ `tmp*` directories accumulating in `tests/data/`.
 - **Path Drift Detection Verification**: Created comprehensive test suite (6 tests) verifying detection of missing Python/Markdown references, path validation, and integration with status reports. All tests pass.

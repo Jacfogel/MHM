@@ -174,7 +174,6 @@ class DynamicListContainer(QWidget):
                     # Temporarily disconnect the trigger row's signal to prevent recursion
                     trigger_row.value_changed.disconnect()
                     
-                    # Uncheck the trigger row (the duplicate that was just checked)
                     trigger_row.set_checked(False)
                     
                     # Show warning once, only when user finishes editing/ toggling duplicate row

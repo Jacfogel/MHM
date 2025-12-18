@@ -66,7 +66,7 @@ class TestFileAuditorUtilities:
     
     def test_classify_path_user_data(self):
         """Test classifying user data paths."""
-        assert _classify_path("data/users/user123/profile.json") == "user_data"
+        assert _classify_path("data/users/user123/account.json") == "user_data"
         assert _classify_path("data/users/") == "user_data"
     
     def test_classify_path_other(self):
@@ -280,7 +280,7 @@ class TestRecordCreated:
             ("tests/data/test.json", "tests"),
             ("logs/app.log", "logs"),
             ("flags/shutdown.flag", "flags"),
-            ("data/users/user123/profile.json", "user_data"),
+            ("data/users/user123/account.json", "user_data"),
             ("config/settings.json", "other")
         ]
         

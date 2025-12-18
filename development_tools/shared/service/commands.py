@@ -260,8 +260,8 @@ class CommandsMixin:
         if dry_run:
             args.append('--dry-run')
         if fix_type == 'all':
-            args.append('--fix-all')
-        elif fix_type == 'ascii':
+            args.append('--all')
+        elif fix_type == 'ascii' or fix_type == 'fix-ascii':
             args.append('--fix-ascii')
         elif fix_type == 'number-headings':
             args.append('--number-headings')
@@ -274,7 +274,16 @@ class CommandsMixin:
             logger.info("Documentation fix completed!")
             return True
         else:
-            logger.error(f"Documentation fix failed: {result['error']}")
+            error_msg = result.get('error', '').strip()
+            returncode = result.get('returncode')
+            if not error_msg:
+                if returncode is not None:
+                    error_msg = f"Script exited with code {returncode}"
+                else:
+                    error_msg = "Unknown error (no error message or return code)"
+            logger.error(f"Documentation fix failed: {error_msg}")
+            if result.get('output'):
+                logger.debug(f"Script output: {result['output'][:200]}")
             return False
     
     def run_coverage_regeneration(self):

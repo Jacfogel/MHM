@@ -70,8 +70,6 @@ class EmailBot(BaseChannel):
 
         # Test SMTP connection
         # Use get_running_loop() first, fallback to new_event_loop() if no running loop
-        # Note: Since this is an async function, get_running_loop() should always succeed.
-        # The fallback is defensive programming for edge cases.
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
@@ -117,7 +115,6 @@ class EmailBot(BaseChannel):
 
         # Run the synchronous email sending in a thread pool
         # Use get_running_loop() first, fallback to new_event_loop() if no running loop
-        # Note: Since this is an async function, get_running_loop() should always succeed.
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
@@ -154,7 +151,6 @@ class EmailBot(BaseChannel):
 
         # Run the synchronous email receiving in a thread pool
         # Use get_running_loop() first, fallback to new_event_loop() if no running loop
-        # Note: Since this is an async function, get_running_loop() should always succeed.
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
@@ -337,7 +333,6 @@ class EmailBot(BaseChannel):
         """Perform health check on email connections"""
         # Test both SMTP and IMAP connections
         # Use get_running_loop() first, fallback to new_event_loop() if no running loop
-        # Note: Since this is an async function, get_running_loop() should always succeed.
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:

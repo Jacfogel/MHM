@@ -85,7 +85,6 @@ class AccountManagementHandler(InteractionHandler):
         messages_enabled = entities.get('messages_enabled', False)
         timezone = entities.get('timezone', 'America/Regina')
         
-        # Create the account
         try:
             # Categories should be empty list initially (user can add categories later via UI)
             # The messages_enabled flag will be used to set automated_messages feature
@@ -274,7 +273,6 @@ class AccountManagementHandler(InteractionHandler):
                     completed=False
                 )
             
-            # Update user index
             try:
                 update_user_index(pending['user_id'])
             except Exception as index_error:
@@ -408,7 +406,6 @@ def _send_confirmation_code(user_id: str, confirmation_code: str, channel_type: 
         channel_identifier: Channel-specific identifier (Discord user ID, etc.) - used for message context only
     """
     try:
-        # Get user's email address (confirmation codes are always sent via email for security)
         user_data_result = get_user_data(user_id, 'account')
         account_data = user_data_result.get('account', {})
         

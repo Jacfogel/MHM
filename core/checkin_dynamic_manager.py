@@ -30,7 +30,6 @@ class DynamicCheckinManager:
             # Get the path to the default_checkin directory
             resources_dir = Path(__file__).parent.parent / "resources" / "default_checkin"
             
-            # Load questions data
             questions_file = resources_dir / "questions.json"
             if questions_file.exists():
                 self.questions_data = load_json_data(str(questions_file))
@@ -39,7 +38,6 @@ class DynamicCheckinManager:
                 logger.error(f"Questions file not found: {questions_file}")
                 return False
             
-            # Load responses data
             responses_file = resources_dir / "responses.json"
             if responses_file.exists():
                 self.responses_data = load_json_data(str(responses_file))

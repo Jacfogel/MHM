@@ -80,7 +80,6 @@ def determine_file_path(file_type, identifier):
         logger.error(f"Invalid identifier: {identifier}")
         return ""
     if file_type == 'users':
-        # New structure: return account file path
         return get_user_file_path(identifier, 'account')
     elif file_type == 'messages':
         # New structure: data/users/{user_id}/messages/{category}.json
@@ -101,7 +100,6 @@ def determine_file_path(file_type, identifier):
             user_dir = Path(get_user_data_dir(identifier))
             path = user_dir / 'schedules.json'
     elif file_type == 'sent_messages':
-        # Sent messages are now stored in user directories
         return get_user_file_path(identifier, 'sent_messages')
     elif file_type == 'default_messages':
         path = Path(DEFAULT_MESSAGES_DIR_PATH) / f"{identifier}.json"
@@ -326,22 +324,15 @@ def create_user_files(user_id, categories, user_preferences=None):
     # Always use a dict for user_prefs to avoid NoneType errors
     user_prefs = user_preferences or {}
     
-    # Determine which features are enabled
     tasks_enabled, checkins_enabled = _create_user_files__determine_feature_enablement(user_prefs)
     
-    # Create core user files
     _create_user_files__account_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled)
     _create_user_files__preferences_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled)
     _create_user_files__context_file(user_id, user_prefs)
     _create_user_files__schedules_file(user_id, categories, user_prefs, tasks_enabled, checkins_enabled)
-    
-    # Create log files
     _create_user_files__log_files(user_id)
-    
-    # Create sent messages file
     _create_user_files__sent_messages_file(user_id)
     
-    # Create task files if enabled
     if tasks_enabled:
         _create_user_files__task_files(user_id)
     
@@ -353,7 +344,6 @@ def create_user_files(user_id, categories, user_preferences=None):
     if categories:
         _create_user_files__message_files(user_id, categories)
     
-    # Auto-update message references and user index
     _create_user_files__update_user_references(user_id)
                 
     logger.info(f"Successfully created all user files for user {user_id}")
@@ -402,7 +392,6 @@ def _create_user_files__account_file(user_id, user_prefs, categories, tasks_enab
         
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
-        # Get actual user data from user_preferences if available
         internal_username = user_prefs.get('internal_username', "")
         chat_id = user_prefs.get('chat_id', "")
         phone = user_prefs.get('phone', "")
@@ -411,7 +400,6 @@ def _create_user_files__account_file(user_id, user_prefs, categories, tasks_enab
         discord_username = user_prefs.get('discord_username', "")
         timezone = user_prefs.get('timezone', "")
         
-        # Determine chat_id based on channel type
         channel = user_prefs.get('channel', {})
         channel_type = channel.get('type', 'email')
         if channel_type == 'email':
@@ -502,7 +490,6 @@ def _create_user_files__context_file(user_id, user_prefs):
         
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
-        # Get actual personalization data if available
         personalization_data = user_prefs.get('personalization_data', {})
         
         # Get custom fields with proper nesting
@@ -630,7 +617,6 @@ def _create_user_files__sent_messages_file(user_id):
 def _create_user_files__task_files(user_id):
     """Create task files if tasks are enabled."""
     try:
-        # Get user directory path using the correct function
         user_dir = Path(get_user_data_dir(user_id))
         tasks_dir = user_dir / 'tasks'
         

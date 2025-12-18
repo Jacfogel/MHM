@@ -226,8 +226,6 @@ class TaskSettingsWidget(QWidget):
         recurring_settings = settings.get('recurring_settings', {})
         self.set_recurring_task_settings(recurring_settings)
 
-    # Removed set_statistics method; stats are now set in the dialog, not the widget.
-
     @handle_errors("getting statistics")
     def get_statistics(self):
         """Get real task statistics for the user."""

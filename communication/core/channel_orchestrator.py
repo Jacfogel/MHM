@@ -112,7 +112,6 @@ class CommunicationManager:
                     try:
                         self._main_loop = asyncio.get_running_loop()
                     except RuntimeError:
-                        # No running loop, create new one instead of using deprecated get_event_loop()
                         self._main_loop = asyncio.new_event_loop()
                         asyncio.set_event_loop(self._main_loop)
                     self._event_loop = self._main_loop
@@ -348,9 +347,6 @@ class CommunicationManager:
         except Exception as e:
             logger.error(f"Error sending email response to {recipient_email}: {e}")
 
-    # Old restart monitor methods removed - now handled by ChannelMonitor
-    # Old retry loop methods removed - now handled by RetryManager
-
     @handle_errors("initializing channels from config", default_return=False)
     def initialize_channels_from_config(self, channel_configs: Dict[str, ChannelConfig] = None):
         """
@@ -376,7 +372,6 @@ class CommunicationManager:
             try:
                 loop = asyncio.get_running_loop()
             except RuntimeError:
-                # No running loop, create new one instead of using deprecated get_event_loop()
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
         except RuntimeError:

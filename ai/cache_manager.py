@@ -105,7 +105,6 @@ class ResponseCache:
         if not self.access_times:
             return
         
-        # Sort by access time and remove oldest 20%
         items_to_remove = max(1, len(self.cache) // 5)
         sorted_items = sorted(self.access_times.items(), key=lambda x: x[1])
         

@@ -148,7 +148,6 @@ class UserProfileSettingsWidget(QWidget):
     def populate_timezones(self):
         """Populate the timezone combo box with options and enable selection."""
         try:
-            # Timezone functionality moved to channel selection widget
             pass
         except Exception as e:
             logger.error(f"Error populating timezones: {e}")

@@ -97,26 +97,21 @@ class TestCommandParserCoverageExpansionPhase3Simple:
         """Test _extract_task_entities with basic input"""
         entities = self.parser._extract_task_entities("Create a task to call mom")
         assert isinstance(entities, dict)
-        # The actual implementation might not extract title in this simple case
-        # Just verify it returns a dict
 
     def test_extract_task_entities_with_priority(self):
         """Test _extract_task_entities with priority keywords"""
         entities = self.parser._extract_task_entities("Create a high priority task to call mom")
         assert isinstance(entities, dict)
-        # Just verify it returns a dict
 
     def test_extract_task_entities_with_due_date(self):
         """Test _extract_task_entities with due date"""
         entities = self.parser._extract_task_entities("Create a task to call mom due tomorrow")
         assert isinstance(entities, dict)
-        # Just verify it returns a dict
 
     def test_extract_task_entities_complex(self):
         """Test _extract_task_entities with complex input"""
         entities = self.parser._extract_task_entities("Create a high priority task to call mom due tomorrow")
         assert isinstance(entities, dict)
-        # Just verify it returns a dict
 
     def test_extract_task_entities_no_match(self):
         """Test _extract_task_entities with no matching patterns"""
@@ -144,25 +139,21 @@ class TestCommandParserCoverageExpansionPhase3Simple:
         """Test _extract_update_entities with priority"""
         entities = self.parser._extract_update_entities("update priority high")
         assert isinstance(entities, dict)
-        # Just verify it returns a dict
 
     def test_extract_update_entities_due_date(self):
         """Test _extract_update_entities with due date"""
         entities = self.parser._extract_update_entities("update due date tomorrow")
         assert isinstance(entities, dict)
-        # Just verify it returns a dict
 
     def test_extract_update_entities_due_short(self):
         """Test _extract_update_entities with short due format"""
         entities = self.parser._extract_update_entities("update due tomorrow")
         assert isinstance(entities, dict)
-        # Just verify it returns a dict
 
     def test_extract_update_entities_complex(self):
         """Test _extract_update_entities with multiple entities"""
         entities = self.parser._extract_update_entities("update priority medium due date next week")
         assert isinstance(entities, dict)
-        # Just verify it returns a dict
 
     def test_extract_update_entities_no_match(self):
         """Test _extract_update_entities with no matching patterns"""

@@ -24,7 +24,6 @@ from core.config import (
     AI_MAX_RESPONSE_LENGTH, AI_MAX_RESPONSE_WORDS, AI_MAX_RESPONSE_TOKENS, AI_MIN_RESPONSE_LENGTH,
     AI_CHAT_TEMPERATURE, AI_COMMAND_TEMPERATURE, AI_CLARIFICATION_TEMPERATURE,
 )
-# Legacy import removed - using get_user_data() instead
 from core.response_tracking import get_recent_responses, store_chat_interaction
 from core.user_data_handlers import get_user_data
 from user.context_manager import user_context_manager
@@ -212,7 +211,6 @@ class AIChatBotSingleton:
         """
         prompt_lower = user_prompt.lower()
         
-        # Get user context
         context_result = get_user_data(user_id, 'context')
         user_context = context_result.get('context') if context_result else {}
         
@@ -224,7 +222,7 @@ class AIChatBotSingleton:
         
         # Analyze user's actual check-in data for meaningful responses
         if user_id:
-            recent_data = get_recent_responses(user_id, limit=10)  # Get more data for analysis
+            recent_data = get_recent_responses(user_id, limit=10)
             
             if recent_data:
                 # Analyze breakfast patterns
@@ -409,7 +407,6 @@ class AIChatBotSingleton:
         """
         # Try to get recent user data for basic personalization
         recent_data = get_recent_responses(user_id, limit=5)
-        # Get user context
         context_result = get_user_data(user_id, 'context')
         user_context = context_result.get('context')
         user_name = user_context.get('preferred_name', '') if user_context else ''
@@ -439,13 +436,11 @@ class AIChatBotSingleton:
     @handle_errors("optimizing prompt", default_return=[{"role": "system", "content": "You are a supportive wellness assistant. Keep responses helpful, encouraging, and conversational."}, {"role": "user", "content": "Hello"}])
     def _optimize_prompt(self, user_prompt: str, context: Optional[str] = None) -> list:
         """Create optimized messages array for LM Studio API."""
-        # Create system message using the centralized prompt loader
         system_message = {
             "role": "system",
             "content": prompt_manager.get_prompt('wellness')
         }
         
-        # Create user message with optional context
         if context and len(context) < 200:  # Only include context if it's reasonable size
             user_content = f"Context: {context}\n\nQuestion: {user_prompt}"
         else:
@@ -461,7 +456,6 @@ class AIChatBotSingleton:
     @handle_errors("creating comprehensive context prompt", default_return=[{"role": "system", "content": "You are a supportive wellness assistant. Keep responses helpful, encouraging, and conversational."}, {"role": "user", "content": "Hello"}])
     def _create_comprehensive_context_prompt(self, user_id: str, user_prompt: str) -> list:
         """Create a comprehensive context prompt with all user data for LM Studio."""
-        # Get comprehensive user context
         context = user_context_manager.get_ai_context(user_id, include_conversation_history=True)
         
         # Build detailed context string with all available data

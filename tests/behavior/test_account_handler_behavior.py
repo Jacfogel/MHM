@@ -71,9 +71,8 @@ class TestAccountHandlerBehavior:
         discord_user_id = "111222333444555666"
         existing_user_id = get_user_id_by_identifier(discord_user_id)
         if existing_user_id:
-            from core.user_management import remove_user
-            from core.user_data_manager import rebuild_user_index
-            remove_user(existing_user_id)
+            from core.user_data_manager import delete_user_completely, rebuild_user_index
+            delete_user_completely(existing_user_id, create_backup=False)
             rebuild_user_index()  # Rebuild index to ensure user is removed
             # Wait a moment for file system to sync
             import time
@@ -119,8 +118,8 @@ class TestAccountHandlerBehavior:
         discord_user_id = "999888777666555444"
         existing_user_id = get_user_id_by_identifier(discord_user_id)
         if existing_user_id:
-            from core.user_management import remove_user
-            remove_user(existing_user_id)
+            from core.user_data_manager import delete_user_completely
+            delete_user_completely(existing_user_id, create_backup=False)
         
         parsed_command = ParsedCommand(
             intent='create_account',
@@ -168,8 +167,8 @@ class TestAccountHandlerBehavior:
         discord_user_id = "888777666555444333"
         existing_user_id = get_user_id_by_identifier(discord_user_id)
         if existing_user_id:
-            from core.user_management import remove_user
-            remove_user(existing_user_id)
+            from core.user_data_manager import delete_user_completely
+            delete_user_completely(existing_user_id, create_backup=False)
         
         # Create account without feature selection parameters (backward compatibility)
         parsed_command = ParsedCommand(

@@ -946,7 +946,7 @@ def setup_logging():
     
     # Check if logging is already set up properly
     if root_logger.hasHandlers():
-        # Logging already set up, just return
+        # Logging already set up
         return
     
     # Get log level from environment

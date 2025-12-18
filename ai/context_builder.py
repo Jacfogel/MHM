@@ -82,7 +82,6 @@ class ContextBuilder:
         try:
             logger.debug(f"Building context for user {user_id}, include_conversation_history={include_conversation_history}")
             
-            # Get comprehensive user context from context manager
             context = user_context_manager.get_ai_context(
                 user_id, 
                 include_conversation_history=include_conversation_history
@@ -92,7 +91,6 @@ class ContextBuilder:
             recent_checkins = get_recent_responses(user_id, limit=10)
             logger.debug(f"Retrieved {len(recent_checkins)} recent check-ins for user {user_id}")
             
-            # Get user profile and context data
             profile_result = get_user_data(user_id, 'profile')
             context_result = get_user_data(user_id, 'context')
             
@@ -391,7 +389,6 @@ class ContextBuilder:
             context_data = self.build_user_context(user_id, include_conversation_history=False)
             analysis = self.analyze_context(context_data)
             
-            # Get user's task-related preferences
             user_context = context_data.user_context
             task_preferences = []
             

@@ -64,7 +64,6 @@ class UserDataManager:
             logger.error(f"User {user_id} not found: user directory does not exist")
             return False
         
-        # Load user profile
         # Retry in case of race conditions with file writes in parallel execution
         import time
         user_info = None
@@ -94,7 +93,6 @@ class UserDataManager:
         features = account_data.get('features', {})
         automated_messages_enabled = features.get('automated_messages', 'disabled') == 'enabled'
         
-        # Get user's categories
         # Retry in case of race conditions
         prefs_result = None
         categories = []
@@ -129,7 +127,6 @@ class UserDataManager:
                     "last_modified": None
                 }
         
-        # Log the message references but don't save to profile.json (legacy file)
         logger.info(f"Updated message references for user {user_id}: {list(message_refs.keys())}")
         return True
     
@@ -362,7 +359,6 @@ class UserDataManager:
         except Exception as e:
             logger.warning(f"Error getting message files for user {user_id}: {e}")
         
-        # Update user index (remove from index even if directory doesn't exist)
         try:
             self.remove_from_index(user_id)
         except Exception as e:
@@ -495,14 +491,12 @@ class UserDataManager:
     def _get_user_data_summary__process_message_files(self, user_id: str, summary: Dict[str, Any]) -> None:
         """Process message files for all user categories."""
         try:
-            # Get user categories
             prefs_result = get_user_data(user_id, 'preferences')
             categories = prefs_result.get('preferences', {}).get('categories', [])
             
             # Ensure message files exist
             self._get_user_data_summary__ensure_message_files(user_id, categories)
             
-            # Get existing message files
             message_files = self.get_user_message_files(user_id)
             
             # Process enabled category message files
@@ -521,7 +515,6 @@ class UserDataManager:
                 return
                 
             from core.message_management import ensure_user_message_files
-            # This will check which files are missing and create them
             result = ensure_user_message_files(user_id, categories)
             if result["success"]:
                 logger.info(f"Message files validation for user {user_id}: checked {result['files_checked']} categories, created {result['files_created']} files, directory_created={result['directory_created']}")
@@ -714,10 +707,8 @@ class UserDataManager:
             # Use file locking for user_index.json to prevent race conditions in parallel execution
             from core.file_locking import safe_json_read, safe_json_write
             
-            # Load existing index with file locking
             index_data = safe_json_read(self.index_file, default={"last_updated": None})
             
-            # Get user account for identifiers
             # Retry in case of race conditions in parallel execution (e.g., account file just created)
             user_data_result = None
             user_account = {}
@@ -751,7 +742,6 @@ class UserDataManager:
                     logger.warning(f"No internal_username found for user {user_id} after {max_retries} attempts (account keys: {list(user_account.keys())})")
                 return False
             
-            # Update flat lookup mappings for fast O(1) user ID resolution
             # Each identifier type maps directly to UUID for instant lookup
             # Simple username mapping (most common lookup)
             if internal_username not in index_data or index_data[internal_username] == user_id:
@@ -768,7 +758,6 @@ class UserDataManager:
             # Add metadata
             index_data["last_updated"] = datetime.now().isoformat()
             
-            # Save updated index with file locking
             # Retry write operation in case of temporary lock contention
             max_write_retries = 3
             write_retry_delay = 0.15
@@ -842,7 +831,6 @@ class UserDataManager:
             if phone and f"phone:{phone}" in index_data:
                 del index_data[f"phone:{phone}"]
             
-            # Update metadata
             index_data["last_updated"] = datetime.now().isoformat()
             
             # Save updated index with file locking
@@ -879,7 +867,6 @@ class UserDataManager:
         try:
             logger.info("Starting full user index rebuild...")
             
-            # Get all user IDs
             user_ids = get_all_user_ids()
             if not user_ids:
                 logger.warning("No users found during index rebuild")
@@ -890,7 +877,6 @@ class UserDataManager:
             from core.file_locking import safe_json_write
             import time
             
-            # Initialize flat lookup structure
             index_data = {
                 "last_updated": datetime.now().isoformat()
             }
@@ -905,7 +891,7 @@ class UserDataManager:
                 if not user_id:
                     continue
                     
-                # Get user account for identifiers with retries for race conditions
+                # Retries for race conditions
                 user_account = {}
                 for attempt in range(max_retries):
                     try:
@@ -947,7 +933,7 @@ class UserDataManager:
                 
                 successful_count += 1
             
-            # Save rebuilt index with file locking (retry on failure)
+            # Retry on failure
             max_write_retries = 3
             write_retry_delay = 0.15
             write_success = False
@@ -969,7 +955,7 @@ class UserDataManager:
                 logger.info(f"Rebuilt user index with {successful_count} users (skipped {failed_count} users)")
                 return True
             elif failed_count > 0:
-                # All users failed - this is a real problem
+                # All users failed
                 logger.error(f"Failed to index any users during rebuild ({failed_count} users failed)")
                 return False
             else:
@@ -1015,14 +1001,12 @@ class UserDataManager:
         if not query.strip():
             return []
         
-        # Get all user IDs
         user_ids = get_all_user_ids()
         if not user_ids:
             return []
 
         matches = []
         
-        # Search through each user's account data
         for user_id in user_ids:
             user_data_result = get_user_data(user_id, 'account')
             user_account = user_data_result.get('account') or {}

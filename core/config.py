@@ -59,7 +59,6 @@ else:
     BASE_DATA_DIR = os.getenv('BASE_DATA_DIR', 'data')
 
 # Paths - Updated for better organization
-# LOG_FILE_PATH environment variable removed - using LOG_MAIN_FILE directly
 USER_INFO_DIR_PATH = _normalize_path(os.getenv('USER_INFO_DIR_PATH', str(Path(BASE_DATA_DIR) / 'users')))
 # Fix: Use forward slashes for cross-platform compatibility and avoid path normalization issues
 DEFAULT_MESSAGES_DIR_PATH = os.getenv('DEFAULT_MESSAGES_DIR_PATH', 'resources/default_messages')
@@ -446,7 +445,6 @@ def validate_file_organization_settings() -> Tuple[bool, List[str], List[str]]:
         errors = []
         warnings = []
         
-        # These are boolean settings, so just check they're valid
         if not isinstance(AUTO_CREATE_USER_DIRS, bool):
             errors.append("AUTO_CREATE_USER_DIRS must be a boolean value")
         

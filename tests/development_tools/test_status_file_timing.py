@@ -11,8 +11,6 @@ import warnings
 from pathlib import Path
 import pytest
 
-# Note: Deprecation warning filters removed - operations.py has been removed
-
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:

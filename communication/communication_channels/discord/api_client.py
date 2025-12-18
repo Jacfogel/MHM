@@ -69,7 +69,6 @@ class DiscordAPIClient:
             # Rate limiting
             await self._rate_limit_check()
             
-            # Get the channel or user
             channel = await self._get_channel_or_user(recipient)
             if not channel:
                 logger.error(f"Could not find Discord channel or user with ID {recipient}")
@@ -123,7 +122,6 @@ class DiscordAPIClient:
             # Rate limiting
             await self._rate_limit_check()
             
-            # Get the user
             user = self.bot.get_user(int(user_id))
             if not user:
                 logger.error(f"Could not find Discord user with ID {user_id}")
@@ -164,7 +162,6 @@ class DiscordAPIClient:
             if channel and isinstance(channel, discord.TextChannel):
                 return channel
             
-            # Try to get as user
             user = self.bot.get_user(int(recipient))
             if user:
                 return user

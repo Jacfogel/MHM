@@ -10,8 +10,6 @@ import sys
 import warnings
 from pathlib import Path
 
-# Note: Deprecation warning filters removed - operations.py has been removed
-
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent

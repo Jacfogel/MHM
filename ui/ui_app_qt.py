@@ -552,7 +552,7 @@ class MHMManagerUI(QMainWindow):
                                 except ValueError:
                                     pass
                         
-                        # Look for recent activity (more reliable indicator than just initialization)
+                        # Look for recent activity
                         if any(indicator in line for indicator in activity_indicators):
                             timestamp_match = re.search(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})', line)
                             if timestamp_match and last_activity_time is None:
@@ -570,12 +570,10 @@ class MHMManagerUI(QMainWindow):
                     # If we found an initialization, check if shutdown happened after it
                     if last_init_time:
                         # Check if initialization is recent (within last hour) to handle improper shutdowns
-                        # If initialization is very old and service was restarted, channel might not be running
                         time_since_init = (datetime.now() - last_init_time).total_seconds()
                         
                         if last_shutdown_time is None or last_shutdown_time < last_init_time:
                             # Initialized and not shut down (or shutdown was before initialization)
-                            # But if initialization is very old (>1 hour), be cautious - might be stale
                             if time_since_init < 3600:  # Within last hour
                                 return True
                             # Old initialization - check if service PID suggests a restart
@@ -673,12 +671,10 @@ class MHMManagerUI(QMainWindow):
                     # If we found an initialization, check if shutdown happened after it
                     if last_init_time:
                         # Check if initialization is recent (within last hour) to handle improper shutdowns
-                        # If initialization is very old and service was restarted, channel might not be running
                         time_since_init = (datetime.now() - last_init_time).total_seconds()
                         
                         if last_shutdown_time is None or last_shutdown_time < last_init_time:
                             # Initialized and not shut down (or shutdown was before initialization)
-                            # But if initialization is very old (>1 hour), be cautious - might be stale
                             if time_since_init < 3600:  # Within last hour
                                 return True
                             # Old initialization - check if service PID suggests a restart
@@ -958,7 +954,6 @@ class MHMManagerUI(QMainWindow):
         # Validate user_display
         # Empty strings are expected during combo box refresh, so handle gracefully
         if not user_display:
-            # Empty string during refresh is normal, just return silently
             return None
             
         if not isinstance(user_display, str):
@@ -2381,7 +2376,6 @@ For detailed setup instructions, see the ui/UI_GUIDE.md file.
         """
         """Shutdown any UI-created components gracefully"""
         logger.info("Shutting down admin panel.")
-        # Admin panel no longer creates its own communication manager
         logger.debug("Admin panel cleanup complete - no communication channels to stop.")
         logger.info("Admin panel shutdown complete.")
 

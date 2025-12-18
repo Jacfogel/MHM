@@ -466,8 +466,6 @@ class AccountCreatorDialog(QDialog):
             """)
             profile_button.setToolTip("Profile has been configured. Click to edit.")
     
-    # Removed populate_timezones as timezone is now handled by channel widget
-    
     @handle_errors("validating input", default_return=(False, "Validation failed"))
     def validate_input(self) -> tuple[bool, str]:
         """Validate the input and return (is_valid, error_message)."""

@@ -222,7 +222,6 @@ class TagWidget(QWidget):
         try:
             # Handle case where user_id is None (during account creation)
             if not self.user_id:
-                # During account creation, just update local list
                 index = self.available_tags.index(old_tag)
                 self.available_tags[index] = new_tag
                 self.refresh_tag_list()

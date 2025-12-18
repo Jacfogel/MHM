@@ -172,7 +172,6 @@ def add_message(user_id, category, message_data, index=None):
         pass
     save_json_data(data, str(file_path))
     
-    # Update user index
     try:
         from core.user_data_manager import update_user_index
         update_user_index(user_id)
@@ -201,7 +200,7 @@ def edit_message(user_id, category, message_id, updated_data):
 
     # Use new user-specific message file structure
     user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
-    user_messages_dir.mkdir(parents=True, exist_ok=True)  # Ensure directory exists
+    user_messages_dir.mkdir(parents=True, exist_ok=True)
     file_path = user_messages_dir / f"{category}.json"
     
     data = load_json_data(str(file_path))
@@ -222,7 +221,6 @@ def edit_message(user_id, category, message_id, updated_data):
         pass
     save_json_data(data, str(file_path))
     
-    # Update user index
     try:
         from core.user_data_manager import update_user_index
         update_user_index(user_id)
@@ -250,7 +248,6 @@ def update_message(user_id, category, message_id, new_message_data):
         return
 
     file_path = determine_file_path('messages', f'{category}/{user_id}')
-    # Ensure the directory exists
     Path(file_path).parent.mkdir(parents=True, exist_ok=True)
     data = load_json_data(file_path)
     
@@ -306,7 +303,6 @@ def delete_message(user_id, category, message_id):
         data = {'messages': []}
     save_json_data(data, str(file_path))
     
-    # Update user index
     try:
         from core.user_data_manager import update_user_index
         update_user_index(user_id)
@@ -365,11 +361,9 @@ def get_recent_messages(user_id: str, category: Optional[str] = None, limit: int
                     if category_value:
                         message["category"] = category_value
 
-        # Use new chronological structure - handle both old and new formats
         if 'messages' in normalized_data:
             messages = normalized_data['messages']
         else:
-            # Fallback for old format or empty structure
             logger.debug(f"No 'messages' key found in normalized data for user {user_id}, using empty list")
             messages = []
         
@@ -470,7 +464,6 @@ def store_sent_message(user_id: str, category: str, message_id: str, message: st
         data['metadata']['total_messages'] = len(messages)
         data['metadata']['last_updated'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
-        # Save updated data
         save_json_data(data, file_path)
         
         logger.debug(f"Stored sent message for user {user_id}, category {category}")
@@ -510,7 +503,6 @@ def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
         # Calculate cutoff date
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_to_keep)
         
-        # Separate old and new messages
         messages = data['messages']
         active_messages = []
         archived_messages = []
@@ -598,7 +590,6 @@ def _parse_timestamp(timestamp_str: str) -> datetime:
         except ValueError:
             continue
     
-    # If no format matches, return min timestamp
     return datetime.min.replace(tzinfo=timezone.utc)
 
 
@@ -630,7 +621,6 @@ def create_message_file_from_defaults(user_id: str, category: str) -> bool:
         formatted_messages = []
         for message in default_messages:
             if isinstance(message, dict):
-                # Already in correct format, just ensure it has all required fields
                 if 'message' not in message:
                     logger.warning(f"Default message missing 'message' field: {message}")
                     continue

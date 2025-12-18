@@ -82,7 +82,6 @@ class BackupManager:
             if include_logs:
                 self._backup_log_files(zipf)
             
-            # Create backup manifest
             self._create_backup_manifest(zipf, backup_name, include_users, include_config, include_logs)
     
     @handle_errors("cleaning up old backups", default_return=None)
@@ -134,10 +133,8 @@ class BackupManager:
         Returns:
             Path to the backup file, or None if failed
         """
-        # Setup backup parameters
         backup_name, backup_path = self._create_backup__setup_backup(backup_name)
         
-        # Create the backup zip file
         self._create_backup__create_zip_file(backup_path, backup_name, include_users, include_config, include_logs)
         
         # Verify backup file was actually created before proceeding
@@ -145,7 +142,6 @@ class BackupManager:
             logger.error(f"Backup file was not created at {backup_path}")
             return None
         
-        # Clean up old backups (only after verifying new backup exists)
         self._create_backup__cleanup_old_backups()
         
         logger.info(f"Backup created successfully: {backup_path}")
@@ -425,7 +421,6 @@ class BackupManager:
             safety_backup = self.create_backup("pre_restore_safety_backup")
             
             with zipfile.ZipFile(backup_path, 'r') as zipf:
-                # Restore user data
                 if restore_users:
                     try:
                         self._restore_user_data(zipf)
@@ -433,7 +428,6 @@ class BackupManager:
                         logger.error(f"Failed to restore user data: {e}")
                         raise
                 
-                # Restore configuration
                 if restore_config:
                     try:
                         self._restore_config_files(zipf)

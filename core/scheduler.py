@@ -1655,5 +1655,3 @@ def process_category_schedule(user_id: str, category: str):
     scheduler_manager.schedule_daily_message_job(user_id, category)
     
     logger.info(f"Processed schedule for user {user_id}, category {category}")
-
-# Removed unnecessary wrapper functions - use get_user_data() directly

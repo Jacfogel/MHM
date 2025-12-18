@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-17 05:27:29
+> **Last Generated**: 2025-12-17 18:30:48
 > **Source**: `python development_tools/run_development_tools.py unused-imports` - Unused Imports Detection Tool
 
 ## Summary Statistics
@@ -32,7 +32,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 382**: Unused import time
+- **Line 380**: Unused import time
   - Symbol: `unused-import`
 
 ### `communication/communication_channels/discord/webhook_handler.py`
@@ -518,7 +518,7 @@
 
 - **Line 10**: Unused import warnings
   - Symbol: `unused-import`
-- **Line 21**: Unused demo_project_root imported from tests.development_tools.conftest
+- **Line 19**: Unused demo_project_root imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
 ### `tests/integration/test_task_cleanup_real.py`
@@ -746,7 +746,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 36**: Unused import config
+- **Line 35**: Unused config imported from development_tools
   - Symbol: `unused-import`
 
 ## Test Mocking

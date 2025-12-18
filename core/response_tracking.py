@@ -28,7 +28,6 @@ def store_user_response(user_id: str, response_data: dict, response_type: str = 
     """
     Store user response data in appropriate file structure.
     """
-    # New structure: store in appropriate log file
     if response_type == "checkin":
         log_file = get_user_file_path(user_id, 'checkins')
     elif response_type == "chat_interaction":
@@ -36,17 +35,13 @@ def store_user_response(user_id: str, response_data: dict, response_type: str = 
     else:
         log_file = get_user_file_path(user_id, f'{response_type}_log')
     
-    # Load existing data
     existing_data = load_json_data(log_file) or []
     
-    # Add timestamp if not present
     if 'timestamp' not in response_data:
         response_data['timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
-    # Append new response
     existing_data.append(response_data)
     
-    # Save updated data
     save_json_data(existing_data, log_file)
     logger.debug(f"Stored {response_type} response for user {user_id}")
 
@@ -80,7 +75,6 @@ def get_recent_responses(user_id: str, response_type: str = "checkin", limit: in
     
     data = load_json_data(log_file) or []
     
-    # Return most recent responses (sorted by timestamp descending)
     if data:
         def get_timestamp_for_sorting(item):
             """Convert timestamp to float for consistent sorting"""
@@ -144,8 +138,6 @@ def get_recent_chat_interactions(user_id: str, limit: int = 10):
 
 
 
-# Removed unnecessary wrapper function - use get_user_data() directly
-
 @handle_errors("checking if user checkins enabled", default_return=False)
 def is_user_checkins_enabled(user_id: str) -> bool:
     """Check if check-ins are enabled for a user."""
@@ -156,8 +148,6 @@ def is_user_checkins_enabled(user_id: str) -> bool:
     
     return user_account.get('features', {}).get('checkins') == 'enabled'
 
-# Removed unnecessary wrapper function - use get_user_data() directly
-
 @handle_errors("getting user info for tracking", default_return={})
 def get_user_info_for_tracking(user_id: str) -> Dict[str, Any]:
     """Get user information for response tracking."""
@@ -166,7 +156,6 @@ def get_user_info_for_tracking(user_id: str) -> Dict[str, Any]:
         user_account = user_data_result.get('account')
         prefs_result = get_user_data(user_id, 'preferences')
         user_preferences = prefs_result.get('preferences')
-        # Get user context
         context_result = get_user_data(user_id, 'context')
         user_context = context_result.get('context')
         
@@ -190,14 +179,12 @@ def get_user_info_for_tracking(user_id: str) -> Dict[str, Any]:
 def track_user_response(user_id: str, category: str, response_data: Dict[str, Any]):
     """Track a user's response to a message."""
     try:
-        # Get user info using new functions
         user_data_result = get_user_data(user_id, 'account')
         user_account = user_data_result.get('account')
         if not user_account:
             logger.error(f"User account not found for tracking: {user_id}")
             return
         
-        # Store the response data based on category
         if category == "checkin":
             store_user_response(user_id, response_data, "checkin")
         elif category == "chat_interaction":

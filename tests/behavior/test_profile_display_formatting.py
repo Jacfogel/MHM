@@ -160,8 +160,6 @@ class TestProfileDisplayFormatting:
         assert message.count("**Your Profile:**") == 1
         # Account Features may not be present in basic user data
         
-        # Verify no emoji formatting artifacts (since we removed the dead code)
-        # The old dead code had emojis like 👤, 🎭, 📧, etc.
         emoji_artifacts = ["👤", "🎭", "📧", "📊", "🏥", "💊", "⚠️", "🎯", "💕", "📝", "✅", "📋"]
         for emoji in emoji_artifacts:
             assert emoji not in message, f"Found emoji artifact {emoji} in profile response - dead code may not be fully removed"

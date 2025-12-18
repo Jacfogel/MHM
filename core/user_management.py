@@ -1169,7 +1169,7 @@ def get_user_data_with_metadata(user_id: str, data_types: Union[str, List[str]] 
     return get_user_data(user_id, data_types, include_metadata=True)
 
 # ============================================================================
-# PERSONALIZATION UTILITY FUNCTIONS (Moved from personalization_management)
+# PERSONALIZATION UTILITY FUNCTIONS
 # ============================================================================
 
 # Predefined options for various personalization fields

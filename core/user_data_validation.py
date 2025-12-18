@@ -1,12 +1,8 @@
 """
 User Data Validation utilities for MHM.
 This module centralizes all rules for validating user account, preferences,
-context, and schedules data.  It supersedes the old core.validation helpers.
+context, and schedules data.
 """
-
-# NOTE: This file is largely copied from the former core.validation.py and
-# augmented; the old path now re-exports these symbols for backward
-# compatibility.
 
 import re
 import os
@@ -18,7 +14,7 @@ logger = get_component_logger('main')
 validation_logger = get_component_logger('user_activity')
 
 # ---------------------------------------------------------------------------
-# Primitive validators retained from old validation.py
+# Primitive validators
 # ---------------------------------------------------------------------------
 
 @handle_errors("validating email", default_return=False)
@@ -165,7 +161,6 @@ def validate_user_update(user_id: str, data_type: str, updates: Dict[str, Any]) 
         # This function is kept for backward compatibility but delegates to Pydantic
         from core.schemas import validate_account_dict
         try:
-            # For updates, we need to merge with existing data to get a complete account
             # This maintains backward compatibility with the old validation approach
             try:
                 from core.user_data_handlers import get_user_data
@@ -205,7 +200,6 @@ def validate_user_update(user_id: str, data_type: str, updates: Dict[str, Any]) 
         # This function is kept for backward compatibility but delegates to Pydantic
         from core.schemas import validate_preferences_dict
         try:
-            # For updates, we need to merge with existing data to get complete preferences
             # Retry in case of race conditions with file reads in parallel execution
             import time
             current_preferences = {}
@@ -220,7 +214,6 @@ def validate_user_update(user_id: str, data_type: str, updates: Dict[str, Any]) 
                 if attempt < 2:
                     time.sleep(0.05)  # Brief delay before retry
             
-            # Merge updates with current preferences for validation
             merged_preferences = current_preferences.copy() if isinstance(current_preferences, dict) else {}
             merged_preferences.update(updates)
             
@@ -251,14 +244,12 @@ def validate_user_update(user_id: str, data_type: str, updates: Dict[str, Any]) 
         # This function is kept for backward compatibility but delegates to Pydantic
         from core.schemas import validate_schedules_dict
         try:
-            # For updates, we need to merge with existing data to get complete schedules
             try:
                 from core.user_data_handlers import get_user_data
                 current_schedules = get_user_data(user_id, 'schedules').get('schedules', {})
             except Exception:
                 current_schedules = {}
             
-            # Merge updates with current schedules for validation
             merged_schedules = current_schedules.copy()
             merged_schedules.update(updates)
             
@@ -384,7 +375,7 @@ def validate_new_user_data(user_id: str, data_updates: Dict[str, Dict[str, Any]]
         if invalid:
             errors.append(f"Invalid categories: {invalid}")
     
-    # Channel type validation - moved from account to preferences where it actually belongs
+    # Channel type validation
     channel = prefs.get('channel')
     if not isinstance(channel, dict) or not channel.get('type'):
         errors.append("channel.type is required for new user creation")
@@ -399,7 +390,7 @@ def validate_new_user_data(user_id: str, data_updates: Dict[str, Dict[str, Any]]
     return len(errors) == 0, errors
 
 # ---------------------------------------------------------------------------
-# PERSONALIZATION VALIDATOR (moved from core.user_management)
+# PERSONALIZATION VALIDATOR
 # ---------------------------------------------------------------------------
 
 

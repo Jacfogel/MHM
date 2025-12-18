@@ -1061,15 +1061,6 @@ def setup_consolidated_test_logging():
     # Clean up any individual log files that were created before consolidated mode was enabled
     _cleanup_individual_log_files()
     
-    # Note: We no longer consolidate from app.log/errors.log because all component loggers
-    # now write directly to test_consolidated.log via environment variables
-    # This eliminates duplicate log entries and simplifies the logging system
-
-
-# REMOVED: cap_component_log_sizes_on_start fixture
-# This was causing individual file rotation which conflicts with SessionLogRotationManager
-# The SessionLogRotationManager handles all rotation consistently at session start/end
-
 # --- HOUSEKEEPING: Prune old test artifacts to keep repo tidy ---
 def _cleanup_test_log_files():
     """Clean up excessive test log files to prevent accumulation."""
@@ -1411,9 +1402,6 @@ def session_log_rotation_check():
     This ensures rotation only occurs between test runs, never during an active session.
     """
     yield
-    
-    # Note: We no longer consolidate from app.log/errors.log because all component loggers
-    # write directly to test_consolidated.log. This eliminates duplicate log entries.
 
 @pytest.fixture(scope="session", autouse=True)
 def isolate_logging():
@@ -1599,10 +1587,6 @@ def ensure_mock_config_applied(mock_config, test_data_dir):
 
     assert os.path.samefile(core.config.BASE_DATA_DIR, test_data_dir)
     yield
-
-
-# REMOVED: redirect_tempdir fixture - conflicts with force_test_data_directory
-# The session-scoped force_test_data_directory fixture handles temp directory redirection globally
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -2404,7 +2388,7 @@ def cleanup_test_users_after_session():
         pass  # Ignore errors during cleanup
     
     # Only clean up test directories, NEVER real user data
-    for base_dir in ["tests/data/users"]:  # Removed "data/users" - NEVER touch real user data
+    for base_dir in ["tests/data/users"]:
         abs_dir = os.path.abspath(base_dir)
         if os.path.exists(abs_dir):
             for item in os.listdir(abs_dir):
