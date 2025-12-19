@@ -935,6 +935,12 @@ def main():
     checker = UnusedImportsChecker(project_root, verbose=args.verbose)
     results = checker.scan_codebase()
     
+    # Output JSON first if --json flag is provided (before report generation to avoid mixing output)
+    if args.json:
+        # Output JSON in standard format for integration
+        standard_results = checker.run_analysis()
+        print(json.dumps(standard_results, indent=2))
+    
     # Generate report if --output is provided (regardless of --json flag)
     if args.output:
         report = checker.generate_report()
@@ -953,12 +959,6 @@ def main():
             print(f"Files scanned: {checker.stats['files_scanned']}")
             print(f"Files with issues: {checker.stats['files_with_issues']}")
             print(f"Total unused imports: {checker.stats['total_unused']}")
-    
-    # Output JSON if --json flag is provided
-    if args.json:
-        # Output JSON in standard format for integration
-        standard_results = checker.run_analysis()
-        print(json.dumps(standard_results, indent=2))
     
     return 0
 

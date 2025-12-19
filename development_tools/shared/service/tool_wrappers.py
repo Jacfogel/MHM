@@ -881,19 +881,59 @@ class ToolWrappersMixin:
         output = result.get('output', '')
         data = None
         if output:
-            try:
-                data = json.loads(output)
-                logger.debug(f"Successfully parsed JSON output from analyze_unused_imports ({len(str(data))} chars)")
-            except json.JSONDecodeError as e:
-                logger.warning(f"Failed to parse JSON output from analyze_unused_imports: {e}")
-                logger.debug(f"Output preview (first 500 chars): {output[:500]}")
-                data = None
+            # Try to find JSON in output (may be mixed with other text)
+            # JSON is printed first, so look for the first complete JSON object
+            output_lines = output.strip().split('\n')
+            json_start = None
+            
+            # Find the start of JSON (first line with '{')
+            for i, line in enumerate(output_lines):
+                stripped = line.strip()
+                if stripped.startswith('{'):
+                    json_start = i
+                    logger.debug(f"Found JSON start at line {i}: {stripped[:50]}...")
+                    break
+            
+            if json_start is not None:
+                # Find the matching closing brace by counting braces
+                # Start with 1 because we found the opening brace
+                brace_count = 1
+                json_end = None
+                for i in range(json_start + 1, len(output_lines)):
+                    line = output_lines[i]
+                    brace_count += line.count('{') - line.count('}')
+                    if brace_count == 0:
+                        json_end = i + 1
+                        logger.debug(f"Found JSON end at line {i+1}, total lines: {json_end - json_start}")
+                        break
+                
+                if json_end is not None:
+                    json_output = '\n'.join(output_lines[json_start:json_end])
+                    try:
+                        data = json.loads(json_output)
+                        logger.info(f"Successfully parsed JSON output from analyze_unused_imports ({len(str(data))} chars, {len(json_output)} chars raw)")
+                    except json.JSONDecodeError as e:
+                        logger.warning(f"Failed to parse JSON output from analyze_unused_imports: {e}")
+                        logger.debug(f"JSON section preview (first 500 chars): {json_output[:500]}")
+                        data = None
+                else:
+                    logger.warning(f"analyze_unused_imports: Found JSON start at line {json_start} but couldn't find matching closing brace (searched {len(output_lines) - json_start} lines, brace_count ended at {brace_count})")
+            else:
+                # Try parsing entire output as JSON (fallback)
+                try:
+                    data = json.loads(output)
+                    logger.debug(f"Successfully parsed JSON output from analyze_unused_imports ({len(str(data))} chars)")
+                except json.JSONDecodeError as e:
+                    logger.warning(f"Failed to parse JSON output from analyze_unused_imports: {e}")
+                    logger.debug(f"Output preview (first 500 chars): {output[:500]}")
+                    data = None
         else:
             logger.warning(f"analyze_unused_imports returned empty output (returncode: {result.get('returncode')})")
         if data is not None:
             result['data'] = data
             self.results_cache['analyze_unused_imports'] = data
-            total_unused = data.get('total_unused', 0)
+            # Extract total_unused from standard format (summary.total_issues)
+            total_unused = data.get('summary', {}).get('total_issues', 0) if isinstance(data, dict) and 'summary' in data else data.get('total_unused', 0)
             result['issues_found'] = total_unused > 0
             result['success'] = True
             result['error'] = ''
@@ -1698,112 +1738,5 @@ class ToolWrappersMixin:
                 'returncode': 1
 
             }
-
-    
-
-    def run_analyze_unused_imports(self) -> Dict:
-
-        """Run analyze_unused_imports with structured JSON handling and report generation."""
-
-        script_path = Path(__file__).resolve().parent.parent.parent / 'imports' / 'analyze_unused_imports.py'
-
-        # Run with both --json and --output to generate the report
-
-        report_path = 'development_docs/UNUSED_IMPORTS_REPORT.md'
-
-        cmd = [sys.executable, str(script_path), '--json', '--output', report_path]
-
-        try:
-
-            result_proc = subprocess.run(
-
-                cmd,
-
-                capture_output=True,
-
-                text=True,
-
-                cwd=str(self.project_root),
-
-                timeout=600
-
-            )
-
-            result = {
-
-                'success': result_proc.returncode == 0,
-
-                'output': result_proc.stdout,
-
-                'error': result_proc.stderr,
-
-                'returncode': result_proc.returncode
-
-            }
-
-        except subprocess.TimeoutExpired:
-
-            return {
-
-                'success': False,
-
-                'output': '',
-
-                'error': 'Unused imports checker timed out after 10 minutes',
-
-                'returncode': None,
-
-                'issues_found': False
-
-            }
-
-        output = result.get('output', '')
-
-        data = None
-
-        if output:
-
-            try:
-
-                data = json.loads(output)
-
-            except json.JSONDecodeError:
-
-                data = None
-
-        if data is not None:
-
-            result['data'] = data
-
-            self.results_cache['analyze_unused_imports'] = data
-            total_unused = data.get('total_unused', 0)
-
-            result['issues_found'] = total_unused > 0
-
-            result['success'] = True
-
-            result['error'] = ''
-
-            try:
-
-                save_tool_result('analyze_unused_imports', 'imports', data, project_root=self.project_root)
-
-            except Exception as e:
-
-                logger.debug(f"Failed to save analyze_unused_imports result: {e}")
-
-        else:
-
-            lowered = output.lower() if isinstance(output, str) else ''
-
-            if 'unused import' in lowered:
-
-                result['issues_found'] = True
-
-                result['success'] = True
-
-                result['error'] = ''
-
-        return result
 
 

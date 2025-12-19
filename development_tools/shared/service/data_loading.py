@@ -352,6 +352,20 @@ class DataLoadingMixin:
         if not coverage_path.exists():
             # Fallback to old location (development_tools/tests/coverage.json) for backward compatibility
             coverage_path = self.project_root / "development_tools" / "tests" / "coverage.json"
+        
+        # If main file doesn't exist, check archive for most recent coverage.json (may have been rotated)
+        if not coverage_path.exists():
+            archive_dir = self.project_root / "development_tools" / "tests" / "jsons" / "archive"
+            if archive_dir.exists():
+                archived_files = sorted(
+                    archive_dir.glob("coverage_*.json"),
+                    key=lambda p: p.stat().st_mtime,
+                    reverse=True
+                )
+                if archived_files:
+                    coverage_path = archived_files[0]
+                    logger.debug(f"[DATA SOURCE] coverage_summary: using archived file {coverage_path.name} (main file was rotated)")
+        
         # Note: Removed project root fallback - coverage.json is always in development_tools/tests/jsons/
         # If not found there, it doesn't exist (coverage hasn't been run yet)
         

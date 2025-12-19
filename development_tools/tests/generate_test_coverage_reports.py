@@ -229,6 +229,23 @@ class TestCoverageReportGenerator:
         jsons_dir = self.project_root / "development_tools" / "tests" / "jsons"
         jsons_dir.mkdir(parents=True, exist_ok=True)
         coverage_output = jsons_dir / "coverage.json"
+        
+        # Archive the old coverage.json BEFORE creating the new one (to keep current file in main directory)
+        archive_dir = jsons_dir / "archive"
+        archive_dir.mkdir(parents=True, exist_ok=True)
+        if coverage_output.exists():
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+            archive_name = f"coverage_{timestamp}.json"
+            archive_path = archive_dir / archive_name
+            shutil.move(str(coverage_output), str(archive_path))
+            if logger:
+                logger.debug(f"Archived old coverage.json to {archive_name}")
+            
+            # Clean up old archives to keep only 7 versions (current + 6 archived = 7 total)
+            from development_tools.shared.file_rotation import FileRotator
+            rotator = FileRotator(base_dir=str(jsons_dir))
+            rotator._cleanup_old_versions("coverage", max_versions=6)  # Keep 6 archived (current is separate)
+        
         json_args = coverage_cmd + ['json', '-o', str(coverage_output.resolve())]
         # Add timeout for JSON generation (should be fast, but add safety timeout)
         json_timeout = 120  # 2 minutes should be plenty for JSON generation
@@ -254,12 +271,6 @@ class TestCoverageReportGenerator:
             logger.warning(f"coverage json exited with {json_result.returncode}: {json_result.stderr.strip()}")
         elif logger:
             logger.debug(f"Regenerated coverage.json after combine")
-        
-        # Rotate coverage.json after regeneration
-        if coverage_output.exists():
-            from development_tools.shared.file_rotation import FileRotator
-            rotator = FileRotator(base_dir=str(jsons_dir))
-            rotator.rotate_file(str(coverage_output), max_versions=5)
         
         self._cleanup_coverage_shards()
         self._archive_legacy_html_dirs()

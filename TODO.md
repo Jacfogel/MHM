@@ -132,37 +132,50 @@ When adding new tasks, follow this format:
   - API documentation
   - Configuration documentation
 
-**Standardize Backup, Rotation, Archive, and Cleanup Approaches**
+**Standardize Backup, Rotation, Archive, and Cleanup Approaches** - **MOSTLY COMPLETE**
 - *What it means*: Review data, log and file backup, rotation, archive, cleanup approaches throughout the codebase and standardize them (including tests and development_tools)
 - *Why it helps*: Ensures consistent behavior, reduces code duplication, and makes maintenance easier
-- *Estimated effort*: Medium
-- *Areas to review*:
-  - Log rotation and cleanup (core/logger.py, development_tools)
-  - Backup creation and management (core/backup_manager.py, tests)
-  - File archiving (core/auto_cleanup.py, development_tools)
-  - Test data cleanup (tests/test_utilities.py, test fixtures)
-  - Temporary file cleanup patterns
+- *Estimated effort*: Medium (mostly complete, small items remain)
+- *Completed*:
+  - ✅ Log rotation standardized: All loggers now use consistent 7-backup retention (core/logger.py, development_tools)
+  - ✅ Backup system enhanced: Added verification, health monitoring, project-wide backup support (core/backup_manager.py, core/scheduler.py)
+  - ✅ File archiving standardized: Development tools use consistent 7-version retention, coverage JSON uses 5 versions (development_tools/shared/output_storage.py, development_tools/shared/file_rotation.py)
+  - ✅ Generated documentation backups: All generated docs now maintain 7 versions with automatic rotation
+  - ✅ Pytest log rotation: Fixed and standardized to 7 versions (development_tools/tests/generate_test_coverage.py)
+  - ✅ Documentation consolidated: Created paired BACKUP_GUIDE.md and AI_BACKUP_GUIDE.md following standards
+- *Remaining areas*:
+  - Test data cleanup patterns (tests/test_utilities.py, test fixtures) - review and standardize if needed
+  - Temporary file cleanup patterns - review and standardize if needed
 
-**Investigate Development Tools Not Saving Results**
-- *What it means*: Investigate why `analyze_unused_imports` and `analyze_test_coverage` tools are not updating their result files during full audits. Files exist but haven't been modified since before the fix (12/14 and 12/17). Added logging to diagnose data extraction failures - need to run full audit and check logs to see why saves aren't happening.
+**Investigate Development Tools Not Saving Results** ✅ COMPLETE
+- *What it means*: Investigate why `analyze_unused_imports` and `analyze_test_coverage` tools are not updating their result files during full audits. Files exist but haven't been modified since before the fix (12/14 and 12/17).
 - *Why it helps*: Ensures all development tools properly save and rotate their results, maintaining backup history
 - *Estimated effort*: Small/Medium
-- *Subtasks*:
-  - [ ] Run full audit and check logs for "Saved analyze_unused_imports results" or "Failed to save" messages
-  - [ ] Check if JSON parsing is failing for analyze_unused_imports (look for "Failed to parse JSON output" warnings)
-  - [ ] Check if coverage data is being loaded for analyze_test_coverage (look for "No coverage data available" warnings)
-  - [ ] Verify save_tool_result() is being called with valid data
-  - [ ] Fix any data extraction or save issues found
+- *Status*: ✅ **COMPLETE** - All issues fixed and verified:
+  - ✅ Fixed `analyze_unused_imports`: 
+    - Changed to extract `total_unused` from `summary.total_issues` in standard format (was looking for top-level `total_unused`)
+    - Reordered output so JSON is printed FIRST before report generation (prevents mixing with other output)
+    - Enhanced JSON parsing to handle mixed output by finding JSON blocks with proper brace counting
+    - **Root cause**: Duplicate function definition at line 1744 was overriding the fixed version at line 853 - removed duplicate
+  - ✅ Fixed `analyze_test_coverage`: 
+    - Changed logging to use `coverage` field instead of `percent_covered` (field name mismatch)
+    - Modified `_load_coverage_summary()` to check archive directory if main file was rotated (coverage.json gets rotated before loading)
+  - ✅ Both tools now properly save results during full audits (verified with test script)
+  - [x] Check if coverage data is being loaded for analyze_test_coverage (look for "No coverage data available" warnings)
+  - [x] Verify save_tool_result() is being called with valid data
+  - [x] Fix any data extraction or save issues found
 
-**Investigate Pytest Log Rotation**
-- *What it means*: Investigate why pytest log files aren't rotating properly. Currently have 10 files in main dir and 2 in archive (12 total) when max_versions is set to 7. Updated max_versions from 5 to 7 and improved logging - need to verify rotation is working correctly on next coverage run.
+**Investigate Pytest Log Rotation** ✅ COMPLETE
+- *What it means*: Investigate why pytest log files aren't rotating properly. Had 10 files in main dir and 2 in archive (12 total) when max_versions was set to 7.
 - *Why it helps*: Ensures test logs are properly archived and old logs are cleaned up, preventing disk space issues
 - *Estimated effort*: Small
-- *Subtasks*:
-  - [ ] Run test coverage generation and verify logs rotate correctly
-  - [ ] Check logs for rotation messages ("Rotating pytest_*_stdout logs: X total, keeping 7, processing Y")
-  - [ ] Verify total log count stays at 7 after rotation
-  - [ ] Fix rotation logic if files aren't being moved/deleted correctly
+- *Status*: ✅ **COMPLETE** - Fixed rotation logic and verified:
+  - Changed `max_versions` from 7 to 8 (1 current + 7 archived = 8 total per log type)
+  - Rewrote `_rotate_log_files()` to move ALL files from main to archive before creating new ones
+  - Ensures exactly 1 file stays in main (newest, created after rotation) and up to 7 files in archive
+  - Enhanced rotation with proper timestamp handling, verification steps, and cleanup of excess files
+  - ✅ Verified working: Currently 1 file per type in main + 7 files per type in archive (14 total = 7 parallel + 7 no_parallel)
+  - ✅ Both tools (`analyze_unused_imports` and `analyze_test_coverage`) now properly save results during full audits
 
 **Note**: Development tools related tasks have been moved to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md) for centralized planning and tracking. See that document for all development tools improvements, enhancements, and maintenance tasks.
 

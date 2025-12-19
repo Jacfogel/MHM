@@ -416,8 +416,8 @@ class CoverageMetricsRegenerator:
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             self.coverage_logs_dir.mkdir(parents=True, exist_ok=True)
             
-            # Rotate old log files before creating new ones (keep last 7, standardized retention)
-            self._rotate_log_files('pytest_parallel_stdout', max_versions=7)
+            # Rotate old log files before creating new ones (keep 1 current + 7 archived = 8 total)
+            self._rotate_log_files('pytest_parallel_stdout', max_versions=8)
             
             stdout_log_path = self.coverage_logs_dir / f"pytest_parallel_stdout_{timestamp}.log"
             self.pytest_stdout_log = stdout_log_path  # Keep variable name for backward compatibility
@@ -695,8 +695,8 @@ class CoverageMetricsRegenerator:
                 no_parallel_env['COVERAGE_FILE'] = str(no_parallel_coverage_file.resolve())
                 
                 # Create log file for no_parallel run (only stdout, stderr merged)
-                # Rotate old log files before creating new ones (keep last 7, standardized retention)
-                self._rotate_log_files('pytest_no_parallel_stdout', max_versions=7)
+                # Rotate old log files before creating new ones (keep 1 current + 7 archived = 8 total)
+                self._rotate_log_files('pytest_no_parallel_stdout', max_versions=8)
                 no_parallel_stdout_log = self.coverage_logs_dir / f"pytest_no_parallel_stdout_{timestamp}.log"
                 
                 # Log the full command for debugging (consistent with parallel run)
@@ -931,6 +931,22 @@ class CoverageMetricsRegenerator:
                     
                     # Regenerate coverage JSON from combined data
                     if self.coverage_data_file.exists():
+                        # Archive old coverage.json BEFORE regenerating (to keep current file in main directory)
+                        archive_dir = coverage_output.parent / "archive"
+                        archive_dir.mkdir(parents=True, exist_ok=True)
+                        if coverage_output.exists():
+                            timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+                            archive_name = f"coverage_{timestamp}.json"
+                            archive_path = archive_dir / archive_name
+                            shutil.move(str(coverage_output), str(archive_path))
+                            if logger:
+                                logger.debug(f"Archived old coverage.json to {archive_name}")
+                            
+                            # Clean up old archives to keep only 6 versions (current + 6 archived = 7 total)
+                            from development_tools.shared.file_rotation import FileRotator
+                            rotator = FileRotator(base_dir=str(coverage_output.parent))
+                            rotator._cleanup_old_versions("coverage", max_versions=6)  # Keep 6 archived (current is separate)
+                        
                         json_cmd = [
                             sys.executable, '-m', 'coverage', 'json',
                             '-o', str(coverage_output),
@@ -947,12 +963,7 @@ class CoverageMetricsRegenerator:
                             if json_result.returncode == 0:
                                 if logger:
                                     logger.info("Regenerated coverage.json from combined coverage data")
-                            
-                            # Rotate coverage.json after regeneration
-                            if coverage_output.exists():
-                                from development_tools.shared.file_rotation import FileRotator
-                                rotator = FileRotator(base_dir=str(coverage_output.parent))
-                                rotator.rotate_file(str(coverage_output), max_versions=5)
+                                
                                 # Reload coverage data from the regenerated JSON
                                 if coverage_output.exists():
                                     if self.analyzer:
@@ -1354,41 +1365,82 @@ class CoverageMetricsRegenerator:
                        [(f, f.stat().st_mtime) for f in archived_files]
             all_files.sort(key=lambda x: x[1], reverse=True)
             
-            # Keep only the newest max_versions files total
-            if len(all_files) > max_versions:
-                # Move files beyond max_versions to archive, then clean up excess
-                archive_dir.mkdir(parents=True, exist_ok=True)
-                
-                files_to_keep = all_files[:max_versions]  # Keep newest max_versions
-                files_to_process = all_files[max_versions:]  # Process files beyond limit
-                
-                if logger:
-                    logger.info(f"Rotating {base_name} logs: {len(all_files)} total, keeping {max_versions}, processing {len(files_to_process)}")
-                
-                for file_path, _ in files_to_process:
+            # Strategy: Keep 1 file in main (newest), max_versions-1 in archive
+            # max_versions=8 means: 1 current + 7 archived = 8 total
+            archive_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Separate files by location
+            main_files = [f for f, _ in all_files if f.parent == self.coverage_logs_dir]
+            archive_files = [f for f, _ in all_files if f.parent == archive_dir]
+            
+            # Sort by modification time (newest first)
+            main_files.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+            archive_files.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+            
+            if logger:
+                logger.info(f"Rotating {base_name} logs: {len(main_files)} in main, {len(archive_files)} in archive (target: 1 main + {max_versions-1} archive)")
+            
+            # Step 1: Move ALL files from main to archive (new file will be created after rotation)
+            # This ensures only the new file (created after rotation) remains in main
+            if len(main_files) > 0:
+                for file_path in main_files:
                     try:
-                        # If file is in main directory, move to archive
-                        if file_path.parent == self.coverage_logs_dir:
-                            archive_path = archive_dir / file_path.name
-                            if not archive_path.exists():
-                                shutil.move(str(file_path), str(archive_path))
-                                if logger:
-                                    logger.info(f"Archived log file: {file_path.name}")
-                            else:
-                                # File already exists in archive, delete the duplicate
-                                file_path.unlink()
-                                if logger:
-                                    logger.debug(f"Removed duplicate log file: {file_path.name}")
-                        # If file is already in archive and beyond limit, delete it
-                        elif file_path.parent == archive_dir:
+                        # Use original filename (it already has timestamp)
+                        archive_path = archive_dir / file_path.name
+                        if not archive_path.exists():
+                            shutil.move(str(file_path), str(archive_path))
+                            if logger:
+                                logger.debug(f"Archived log file: {file_path.name}")
+                        else:
+                            # Archive file already exists, delete the duplicate from main
                             file_path.unlink()
                             if logger:
-                                logger.info(f"Removed old archived log: {file_path.name}")
+                                logger.debug(f"Removed duplicate log file: {file_path.name}")
                     except Exception as e:
                         if logger:
-                            logger.warning(f"Failed to process {file_path.name}: {e}")
-                if logger:
-                    logger.info(f"Log rotation complete for {base_name}: {len(files_to_keep)} files kept")
+                            logger.warning(f"Failed to archive {file_path.name}: {e}")
+            
+            # Step 2: Ensure archive has at most max_versions-1 files (since 1 is in main)
+            max_archived = max_versions - 1  # Keep 7 archived files when max_versions=8
+            final_archive = sorted(
+                archive_dir.glob(f"{base_name}_*.log") if archive_dir.exists() else [],
+                key=lambda p: p.stat().st_mtime,
+                reverse=True
+            )
+            
+            if len(final_archive) > max_archived:
+                files_to_delete = final_archive[max_archived:]
+                for file_path in files_to_delete:
+                    try:
+                        file_path.unlink()
+                        if logger:
+                            logger.debug(f"Removed old archived log: {file_path.name}")
+                    except Exception as e:
+                        if logger:
+                            logger.warning(f"Failed to remove old archive {file_path.name}: {e}")
+            
+            # Verify final count
+            final_main = list(self.coverage_logs_dir.glob(f"{base_name}_*.log"))
+            final_archive = list(archive_dir.glob(f"{base_name}_*.log")) if archive_dir.exists() else []
+            final_total = len(final_main) + len(final_archive)
+            
+            if logger:
+                logger.info(f"Log rotation complete for {base_name}: {final_total} files total ({len(final_main)} in main, {len(final_archive)} in archive)")
+            
+            # Final safety check: if we still have too many, delete oldest
+            if len(final_main) > 1:
+                # Keep only newest in main
+                main_sorted = sorted(final_main, key=lambda p: p.stat().st_mtime, reverse=True)
+                for old_file in main_sorted[1:]:
+                    try:
+                        old_file.unlink()
+                        if logger:
+                            logger.debug(f"Removed excess main log: {old_file.name}")
+                    except Exception as e:
+                        if logger:
+                            logger.warning(f"Failed to remove excess main file {old_file.name}: {e}")
+            elif logger:
+                logger.debug(f"No rotation needed for {base_name}: {len(all_files)} files (max: {max_versions})")
         except ImportError:
             # FileRotator not available, skip rotation
             if logger:

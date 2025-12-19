@@ -308,18 +308,21 @@ class CommandsMixin:
                 logger.info("Test coverage regeneration completed!")
                 
                 # Save coverage results to standardized storage
-                # Load coverage data and convert to standard format
+                # Load coverage data (will check archive if main file was rotated)
                 try:
                     coverage_data = self._load_coverage_summary()
                     if coverage_data:
-                        logger.debug(f"Loaded coverage data: overall={coverage_data.get('overall', {}).get('percent_covered', 'N/A')}%, modules={len(coverage_data.get('modules', {}))}")
+                        # _load_coverage_summary() returns 'coverage' not 'percent_covered'
+                        overall_coverage = coverage_data.get('overall', {}).get('coverage', 'N/A')
+                        modules_count = len(coverage_data.get('modules', []))
+                        logger.debug(f"Loaded coverage data: overall={overall_coverage}%, modules={modules_count}")
                         from ..result_format import normalize_to_standard_format
                         from ..output_storage import save_tool_result
                         # coverage_data from _load_coverage_summary() has 'overall', 'modules', 'worst_files'
                         # This matches the format expected by normalize_to_standard_format for analyze_test_coverage
                         standard_format = normalize_to_standard_format('analyze_test_coverage', coverage_data)
                         save_tool_result('analyze_test_coverage', 'tests', standard_format, project_root=self.project_root)
-                        logger.info(f"Saved analyze_test_coverage results to standardized storage (coverage: {coverage_data.get('overall', {}).get('percent_covered', 'N/A')}%)")
+                        logger.info(f"Saved analyze_test_coverage results to standardized storage (coverage: {overall_coverage}%)")
                     else:
                         logger.warning("No coverage data available to save - _load_coverage_summary() returned None (coverage.json may not exist or be empty)")
                 except Exception as save_error:

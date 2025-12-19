@@ -36,6 +36,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-18 - Development Tools Result Saving and Log Rotation Fixes **COMPLETED**
+- Fixed `analyze_unused_imports` and `analyze_test_coverage` not saving results during audits - removed duplicate function definition overriding fixed version, enhanced JSON parsing with brace counting for mixed output, fixed coverage field name mismatch.
+- Fixed pytest log rotation - changed max_versions to 8 (1 current + 7 archived), rewrote rotation to move all files from main to archive before creating new ones, ensuring exactly 1 in main + 7 in archive per log type.
+- Both tools now properly save results, test logs rotate correctly maintaining 7 historical versions. Verified: result files updated today, log rotation working (1 main + 7 archive per type).
+
 ### 2025-12-18 - Unified Backup and Archive System Implementation **COMPLETED**
 - **Plan Execution**: Created and executed plan `.cursor/plans/unified_backup_and_archive_system_ec839a57.plan.md` to unify backup, rotation, and archiving systems.
 - **Standardization**: Fixed log rotation inconsistency (all now use 7 backups), standardized tool results retention (7 versions), consolidated test logs (7 total), added rotation to all generated docs and coverage JSON files.
