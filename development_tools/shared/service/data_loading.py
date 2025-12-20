@@ -54,7 +54,7 @@ class DataLoadingMixin:
             cached_data = self.results_cache.get(tool_name)
             if cached_data and isinstance(cached_data, dict):
                 if log_source:
-                    logger.info(f"[DATA SOURCE] {tool_name}: loaded from current audit run (Tier {audit_tier})")
+                    logger.debug(f"[DATA SOURCE] {tool_name}: loaded from current audit run (Tier {audit_tier})")
                 # Normalize before returning
                 from ..result_format import normalize_to_standard_format
                 normalized = normalize_to_standard_format(tool_name, cached_data)
@@ -68,7 +68,7 @@ class DataLoadingMixin:
             stored_data = load_tool_result(tool_name, domain, project_root=self.project_root, normalize=True)
             if stored_data and isinstance(stored_data, dict):
                 if log_source:
-                    logger.info(f"[DATA SOURCE] {tool_name}: loaded from standardized storage (cached)")
+                    logger.debug(f"[DATA SOURCE] {tool_name}: loaded from standardized storage (cached)")
                 # Do NOT store in results_cache - this is cached data, not from current audit run
                 return stored_data
         except Exception as e:
@@ -88,7 +88,7 @@ class DataLoadingMixin:
                     if 'data' in tool_data:
                         data = tool_data['data']
                         if log_source:
-                            logger.info(f"[DATA SOURCE] {tool_name}: loaded from central aggregation file (cached)")
+                            logger.debug(f"[DATA SOURCE] {tool_name}: loaded from central aggregation file (cached)")
                         # Normalize before returning
                         from ..result_format import normalize_to_standard_format
                         normalized = normalize_to_standard_format(tool_name, data)
@@ -97,7 +97,7 @@ class DataLoadingMixin:
                     else:
                         # Some tools store data directly without 'data' wrapper
                         if log_source:
-                            logger.info(f"[DATA SOURCE] {tool_name}: loaded from central aggregation file (cached, direct)")
+                            logger.debug(f"[DATA SOURCE] {tool_name}: loaded from central aggregation file (cached, direct)")
                         # Normalize before returning
                         from ..result_format import normalize_to_standard_format
                         normalized = normalize_to_standard_format(tool_name, tool_data)
@@ -373,9 +373,9 @@ class DataLoadingMixin:
         audit_tier = getattr(self, 'current_audit_tier', None)
         if coverage_path.exists():
             if audit_tier == 3:
-                logger.info(f"[DATA SOURCE] coverage_summary: loaded from {coverage_path.name} (current Tier 3 audit)")
+                logger.debug(f"[DATA SOURCE] coverage_summary: loaded from {coverage_path.name} (current Tier 3 audit)")
             else:
-                logger.info(f"[DATA SOURCE] coverage_summary: loaded from {coverage_path.name} (cached)")
+                logger.debug(f"[DATA SOURCE] coverage_summary: loaded from {coverage_path.name} (cached)")
         else:
             # This is expected if coverage hasn't been run yet - use DEBUG instead of WARNING
             logger.debug(f"[DATA SOURCE] coverage_summary: not found at {coverage_path.relative_to(self.project_root)} (coverage not yet generated, using empty fallback)")
@@ -455,9 +455,9 @@ class DataLoadingMixin:
             if config_file.exists():
                 audit_tier = getattr(self, 'current_audit_tier', None)
                 if audit_tier == 2 or audit_tier == 3:
-                    logger.info(f"[DATA SOURCE] config_validation_summary: loaded from {config_file.name} (current Tier {audit_tier} audit)")
+                    logger.debug(f"[DATA SOURCE] config_validation_summary: loaded from {config_file.name} (current Tier {audit_tier} audit)")
                 else:
-                    logger.info(f"[DATA SOURCE] config_validation_summary: loaded from {config_file.name} (cached)")
+                    logger.debug(f"[DATA SOURCE] config_validation_summary: loaded from {config_file.name} (cached)")
                 with open(config_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     # Handle standard format (summary/details) and legacy formats

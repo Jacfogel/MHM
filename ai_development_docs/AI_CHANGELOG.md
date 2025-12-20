@@ -36,6 +36,20 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-20 - Development Tools Logging Standardization and Cleanup **COMPLETED**
+- Standardized all 27 development tools to use consistent action-verb logging ("Analyzing...", "Generating...", "Running...") instead of generic "Running..." messages for better clarity.
+- Fixed critical `IndentationError` in `generate_test_coverage.py` that prevented test coverage generation from running.
+- Fixed data size mismatch in `run_analyze_function_patterns` - now returns `standard_format` to match saved data (was saving standard_format but returning raw patterns, causing 66 char discrepancy).
+- Removed redundant logs (duplicate "Generating test coverage...", duplicate save confirmations) and demoted verbose operational logs (file rotation, pytest commands) to DEBUG level.
+- Fixed duplicate `generate_test_coverage_reports` call and corrected log levels (path validation findings now INFO instead of WARNING).
+- Added three improvement tasks to plan: rename system_signals, consider consolidating coverage tools, investigate quick_status placement.
+
+### 2025-12-20 - Development Tools Reporting Fixes and TODO Sync Improvements **COMPLETED**
+- Fixed TODO sync detection to properly recognize `✅ COMPLETE` format and avoid false positives from "Complete" in task titles. Removed 3 completed TODO entries already documented in changelogs.
+- Fixed data loading discrepancy: `AI_PRIORITIES.md` was using registry file coverage instead of code docstring data, causing inconsistent metrics. Both reports now use `analyze_functions` data consistently.
+- Added Function Docstring Coverage to Documentation Status section in consolidated report, ensuring it's always visible even at 100% coverage.
+- Fixed ASCII compliance issue in TODO.md. All documentation now passes compliance checks.
+
 ### 2025-12-18 - Development Tools Result Saving and Log Rotation Fixes **COMPLETED**
 - Fixed `analyze_unused_imports` and `analyze_test_coverage` not saving results during audits - removed duplicate function definition overriding fixed version, enhanced JSON parsing with brace counting for mixed output, fixed coverage field name mismatch.
 - Fixed pytest log rotation - changed max_versions to 8 (1 current + 7 archived), rewrote rotation to move all files from main to archive before creating new ones, ensuring exactly 1 in main + 7 in archive per log type.

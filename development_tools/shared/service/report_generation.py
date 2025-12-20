@@ -1253,6 +1253,8 @@ class ReportGenerationMixin:
         if doc_coverage_value is None or doc_coverage_value == 'Unknown':
             doc_coverage_value = doc_metrics_details.get('doc_coverage') or doc_metrics.get('doc_coverage')
         
+        # Use analyze_functions for missing docstrings (checks code docstrings)
+        # NOT analyze_function_registry (checks registry file coverage - different metric)
         function_metrics_for_missing = function_metrics
         func_metrics_details_for_missing = function_metrics_for_missing.get('details', {}) if isinstance(function_metrics_for_missing, dict) else {}
         missing_docstrings_from_functions = func_metrics_details_for_missing.get('undocumented', 0) or function_metrics_for_missing.get('undocumented', 0) if isinstance(function_metrics_for_missing, dict) else 0
@@ -1271,15 +1273,29 @@ class ReportGenerationMixin:
         
         missing_doc_files = doc_metrics_details.get('missing_files') or doc_metrics.get('missing_files') or self._get_missing_doc_files(limit=5)
         
-        if missing_docstrings_from_functions and missing_docstrings_from_functions > 0:
+        # Use analyze_functions data for missing docstrings (code docstrings, not registry file)
+        # Calculate from function_metrics, not doc_metrics (registry)
+        if missing_docstrings_from_functions is not None and missing_docstrings_from_functions >= 0:
             missing_docs_count_for_priority = missing_docstrings_from_functions
         else:
-            total_funcs = metrics.get('total_functions')
-            doc_totals = doc_metrics_details.get('totals') or doc_metrics.get('totals') or {}
-            documented_funcs = doc_totals.get('functions_documented') if isinstance(doc_totals, dict) else None
-            if total_funcs and documented_funcs is not None:
-                missing_docs_calculated = total_funcs - documented_funcs
-                missing_docs_count_for_priority = missing_docs_calculated if missing_docs_count is None or missing_docs_count == 0 else missing_docs_count
+            # Fallback: calculate from function_metrics if undocumented count not available
+            func_total = func_metrics_details_for_missing.get('total_functions') or function_metrics_for_missing.get('total_functions') if isinstance(function_metrics_for_missing, dict) else None
+            if func_total and func_total > 0:
+                # Try to get documented count from function_metrics
+                func_documented = func_metrics_details_for_missing.get('documented', 0) or function_metrics_for_missing.get('documented', 0) if isinstance(function_metrics_for_missing, dict) else None
+                if func_documented is not None:
+                    missing_docs_calculated = func_total - func_documented
+                    missing_docs_count_for_priority = missing_docs_calculated
+                else:
+                    # Last resort: use registry data (but this measures registry file, not code docstrings)
+                    total_funcs = metrics.get('total_functions')
+                    doc_totals = doc_metrics_details.get('totals') or doc_metrics.get('totals') or {}
+                    documented_funcs = doc_totals.get('functions_documented') if isinstance(doc_totals, dict) else None
+                    if total_funcs and documented_funcs is not None:
+                        missing_docs_calculated = total_funcs - documented_funcs
+                        missing_docs_count_for_priority = missing_docs_calculated if missing_docs_count is None or missing_docs_count == 0 else missing_docs_count
+                    else:
+                        missing_docs_count_for_priority = missing_docs_count or 0
             else:
                 missing_docs_count_for_priority = missing_docs_count or 0
         
@@ -1554,13 +1570,13 @@ class ReportGenerationMixin:
                 "Why this matters: Docstrings help AI collaborators and future developers understand code intent"
             )
             # Calculate total and documented for better context
-            total_funcs = metrics.get('total_functions')
-            doc_totals = doc_metrics_details.get('totals') or doc_metrics.get('totals') or {}
-            documented_funcs = doc_totals.get('functions_documented') if isinstance(doc_totals, dict) else None
-            reason_text = f"{missing_docs_count_for_priority} functions are missing docstrings"
-            if total_funcs and documented_funcs is not None:
-                reason_text += f" ({total_funcs} total, {documented_funcs} documented)"
-            reason_text += "."
+            # Use analyze_functions data (code docstrings), not registry data
+            total_funcs = func_metrics_details_for_missing.get('total_functions') or function_metrics_for_missing.get('total_functions') if isinstance(function_metrics_for_missing, dict) else metrics.get('total_functions')
+            if total_funcs and missing_docs_count_for_priority is not None:
+                documented_funcs = total_funcs - missing_docs_count_for_priority
+                reason_text = f"{missing_docs_count_for_priority} functions are missing docstrings ({total_funcs} total, {documented_funcs} documented)."
+            else:
+                reason_text = f"{missing_docs_count_for_priority} functions are missing docstrings."
             add_priority(
                 tier=1,  # Tier 1: Critical
                 title="Add docstrings to missing functions",
@@ -2919,6 +2935,25 @@ class ReportGenerationMixin:
             else:
                 lines.append("**TODO.md Status** CLEAN")
                 lines.append("  - 0 completed entries detected")
+            
+            # Function Docstring Coverage
+            # Use function_metrics already loaded at start of function (line 1232)
+            func_metrics_details_for_docstatus = function_metrics.get('details', {}) if isinstance(function_metrics, dict) else {}
+            total_funcs_docstatus = func_metrics_details_for_docstatus.get('total_functions') or function_metrics.get('total_functions') if isinstance(function_metrics, dict) else None
+            undocumented_funcs_docstatus = func_metrics_details_for_docstatus.get('undocumented', 0) or function_metrics.get('undocumented', 0) if isinstance(function_metrics, dict) else 0
+            
+            if total_funcs_docstatus and total_funcs_docstatus > 0:
+                documented_funcs_docstatus = total_funcs_docstatus - undocumented_funcs_docstatus
+                coverage_pct_docstatus = (documented_funcs_docstatus / total_funcs_docstatus) * 100
+                if undocumented_funcs_docstatus > 0:
+                    lines.append("**Function Docstring Coverage** FAIL")
+                    lines.append(f"  - {undocumented_funcs_docstatus} functions missing docstrings ({coverage_pct_docstatus:.2f}% coverage)")
+                else:
+                    lines.append("**Function Docstring Coverage** CLEAN")
+                    lines.append(f"  - 0 functions missing docstrings ({coverage_pct_docstatus:.2f}% coverage)")
+            else:
+                lines.append("**Function Docstring Coverage** UNKNOWN")
+                lines.append("  - Function data not available")
         
         lines.append("")
         

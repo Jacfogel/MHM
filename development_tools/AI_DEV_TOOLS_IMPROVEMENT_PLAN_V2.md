@@ -350,7 +350,93 @@ This document is a restructured and condensed version of the original improvemen
 
 **Files**: `development_tools/reports/system_signals.py`
 
-#### 4.6 Improve Recent Changes Detection
+#### 4.6 Rename system_signals to analyze_system_signals
+**Status**: PENDING  
+**Issue**: Tool is named `system_signals` but should follow naming convention `analyze_*` for consistency with other analysis tools.
+
+**Tasks**:
+- [ ] Update `SCRIPT_REGISTRY` entry in `tool_wrappers.py`
+- [ ] Update all references in `audit_orchestration.py` (Tier 1 tools)
+- [ ] Update `run_system_signals` method name in `commands.py` to `run_analyze_system_signals`
+- [ ] Rename file: `development_tools/reports/system_signals.py` → `development_tools/reports/analyze_system_signals.py`
+- [ ] Update function/class names within the file
+- [ ] Update any external references or documentation
+- [ ] Update logging messages to use "Analyzing system signals..." format
+- [ ] Verify all tests still pass after rename
+
+**Files**: 
+- `development_tools/shared/service/tool_wrappers.py` (SCRIPT_REGISTRY)
+- `development_tools/shared/service/audit_orchestration.py` (Tier 1 tools)
+- `development_tools/shared/service/commands.py` (run_system_signals method)
+- `development_tools/reports/system_signals.py` (file to rename)
+
+**Note**: This is a coordinated refactoring that requires updating all references simultaneously.
+
+#### 4.7 Consider Consolidating or Renaming generate_test_coverage.py
+**Status**: PENDING  
+**Issue**: `generate_test_coverage.py` orchestrates pytest execution and coverage collection, while `analyze_test_coverage.py` provides pure analysis. Current separation may not align with user expectations or tool naming patterns.
+
+**Analysis**:
+- `generate_test_coverage.py` (CoverageMetricsRegenerator): Orchestrates pytest execution, manages coverage data collection, generates HTML reports, updates TEST_COVERAGE_REPORT.md
+- `analyze_test_coverage.py` (TestCoverageAnalyzer): Pure analysis tool that parses coverage output and analyzes coverage data
+- Current separation follows good architecture (execution vs analysis), but naming may be confusing
+
+**Tasks**:
+- [ ] Review current architecture and usage patterns
+- [ ] Consider consolidation options:
+  - Option A: Keep separate but rename `generate_test_coverage.py` → `run_test_coverage.py` (emphasizes execution)
+  - Option B: Consolidate into `analyze_test_coverage.py` (single tool for all coverage operations)
+- [ ] Evaluate pros/cons of each approach:
+  - Option A: Maintains separation of concerns, allows analyzing existing data without running tests
+  - Option B: Single tool, but mixes execution with analysis, loses ability to analyze without running tests
+- [ ] Make recommendation based on analysis
+- [ ] If renaming: Update all references, SCRIPT_REGISTRY, documentation
+- [ ] If consolidating: Merge functionality, update tests, ensure backward compatibility
+
+**Files**: 
+- `development_tools/tests/generate_test_coverage.py`
+- `development_tools/tests/analyze_test_coverage.py`
+- `development_tools/shared/service/tool_wrappers.py` (SCRIPT_REGISTRY)
+- `development_tools/shared/service/commands.py` (run_coverage_regeneration)
+- `development_tools/shared/service/audit_orchestration.py` (Tier 3 tools)
+
+**Detailed Analysis**:
+- **Comparison with Other Tools**: Similar patterns exist (e.g., `analyze_functions.py` + `generate_function_registry.py`, `analyze_error_handling.py` + `generate_error_handling_report.py`, `analyze_legacy_references.py` + `generate_legacy_reference_report.py`) where analysis tools are separate from generators
+- **Key Difference**: `generate_test_coverage.py` executes tests (runs pytest) and manages test execution, making it more of a "runner" or "orchestrator" than a pure generator
+- **Recommendation**: Keep separate but consider renaming `generate_test_coverage.py` → `run_test_coverage.py` to emphasize execution. Current separation is good architecture - allows running tests and generating coverage vs. analyzing existing coverage data without running tests
+
+#### 4.8 Investigate quick_status Placement in Audit Workflow
+**Status**: PENDING  
+**Issue**: `quick_status` runs at the beginning of Tier 1 (and presumably other audit tiers). Need to evaluate if this placement makes sense, provides value, or if it should run at the end of the audit or not at all.
+
+**Current Behavior**:
+- `quick_status` runs first in Tier 1 tools
+- Generates JSON status output with current project state
+- May capture state before other tools have run
+
+**Questions to Investigate**:
+- [ ] What value does running `quick_status` at the beginning provide?
+- [ ] Does it capture useful baseline state before other tools run?
+- [ ] Would running it at the end provide more value (capturing final state after all analysis)?
+- [ ] Should it run at all during audits, or only when explicitly requested?
+- [ ] Does it duplicate information that's already captured by other tools?
+- [ ] How does it differ from the status reports generated at audit end (AI_STATUS.md, etc.)?
+
+**Tasks**:
+- [ ] Review `quick_status` output and compare with final status reports
+- [ ] Evaluate if beginning-of-audit state is useful vs. end-of-audit state
+- [ ] Check if `quick_status` data is used by other tools or reports
+- [ ] Determine optimal placement (beginning, end, or remove from audit workflow)
+- [ ] If moving to end: Update audit orchestration to run after all tools complete
+- [ ] If removing: Update audit workflow, ensure it can still be run standalone
+- [ ] Document rationale for final placement decision
+
+**Files**: 
+- `development_tools/reports/quick_status.py`
+- `development_tools/shared/service/audit_orchestration.py` (Tier 1 tools)
+- `development_tools/shared/service/report_generation.py` (status report generation)
+
+#### 4.9 Improve Recent Changes Detection
 **Status**: ✅ COMPLETE (2025-12-17)  
 **Issue**: Current implementation doesn't identify meaningful changes well.
 

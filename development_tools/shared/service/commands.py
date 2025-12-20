@@ -78,10 +78,10 @@ class CommandsMixin:
     
     def run_validate(self):
         """Validate AI-generated work (simple command)"""
-        logger.info("Starting validation...")
-        logger.info("Validating AI work...")
+        logger.info("Analyzing AI work...")
         logger.info("=" * 50)
-        result = self.run_script('analyze_ai_work')
+        # Use --json flag to prevent multiline print output from being captured
+        result = self.run_script('analyze_ai_work', '--json')
         if result['success']:
             self.validation_results = result
             try:
@@ -110,8 +110,7 @@ class CommandsMixin:
     
     def run_config(self):
         """Check configuration consistency (simple command)"""
-        logger.info("Starting configuration check...")
-        logger.info("Checking configuration...")
+        logger.info("Running analyze_config...")
         logger.info("=" * 50)
         result = self.run_script('analyze_config')
         if result['success']:
@@ -179,7 +178,7 @@ class CommandsMixin:
     
     def run_dev_tools_coverage(self) -> Dict:
         """Run coverage analysis specifically for development_tools directory."""
-        logger.info("Starting development tools coverage analysis...")
+        logger.info("Generating dev tools coverage...")
         from .audit_orchestration import _AUDIT_LOCK_FILE
         coverage_lock_file = self.project_root / 'development_tools' / '.coverage_in_progress.lock'
         try:
@@ -192,6 +191,12 @@ class CommandsMixin:
             result = self.run_script('generate_test_coverage', '--dev-tools-only')
             if result['success']:
                 self._load_dev_tools_coverage()
+                # Save results to standardized storage
+                if hasattr(self, 'dev_tools_coverage_results') and self.dev_tools_coverage_results:
+                    try:
+                        save_tool_result('generate_dev_tools_coverage', 'tests', self.dev_tools_coverage_results, project_root=self.project_root)
+                    except Exception as e:
+                        logger.warning(f"Failed to save generate_dev_tools_coverage result: {e}")
                 return {
                     'success': True,
                     'data': self.dev_tools_coverage_results
@@ -288,7 +293,7 @@ class CommandsMixin:
     
     def run_coverage_regeneration(self):
         """Regenerate test coverage data"""
-        logger.info("Regenerating test coverage...")
+        logger.info("Generating test coverage...")
         logger.info("=" * 50)
         from .audit_orchestration import _AUDIT_LOCK_FILE
         coverage_lock_file = self.project_root / 'development_tools' / '.coverage_in_progress.lock'
@@ -305,7 +310,6 @@ class CommandsMixin:
             # a bit more time for script overhead and pytest execution
             result = self.run_script('generate_test_coverage', '--update-plan', timeout=1200)
             if result['success']:
-                logger.info("Test coverage regeneration completed!")
                 
                 # Save coverage results to standardized storage
                 # Load coverage data (will check archive if main file was rotated)
@@ -329,6 +333,7 @@ class CommandsMixin:
                     logger.warning(f"Failed to save analyze_test_coverage results: {save_error}")
                     import traceback
                     logger.debug(f"Traceback: {traceback.format_exc()}")
+                
                 
                 return True
             else:
@@ -378,7 +383,7 @@ class CommandsMixin:
     
     def run_system_signals(self):
         """Run system signals analysis"""
-        logger.info("Running system signals analysis...")
+        logger.info("Analyzing system signals...")
         logger.info("=" * 50)
         result = self.run_script('system_signals', '--json')
         if result['success']:
@@ -418,7 +423,7 @@ class CommandsMixin:
     
     def run_test_markers(self, action: str = 'check', dry_run: bool = False) -> Dict:
         """Run test markers analysis or fix"""
-        logger.info(f"Running test markers: {action}")
+        logger.info(f"Analyzing test markers: {action}")
         logger.info("=" * 50)
         args = []
         if action == 'check':
@@ -471,7 +476,7 @@ class CommandsMixin:
     
     def run_unused_imports_report(self):
         """Run unused imports analysis"""
-        logger.info("Running unused imports analysis...")
+        logger.info("Analyzing unused imports...")
         logger.info("=" * 50)
         result = self.run_analyze_unused_imports()
         if result.get('success'):
@@ -520,7 +525,8 @@ class CommandsMixin:
     def validate_work(self, work_type: str, work_data: Dict) -> Dict:
         """Validate the work before presenting"""
         logger.info("Validating work...")
-        result = self.run_script('analyze_ai_work')
+        # Use --json flag to prevent multiline print output from being captured
+        result = self.run_script('analyze_ai_work', '--work-type', work_type, '--json')
         if result['success']:
             return self.validate_audit_results({'output': result['output']})
         else:
@@ -608,7 +614,7 @@ class CommandsMixin:
         all_results = {}
         
         # Run paired documentation sync
-        logger.info("Running paired documentation synchronization checks...")
+        # Note: analyze_documentation_sync.py logs this message itself, so we don't duplicate it here
         result = self.run_script('analyze_documentation_sync', *args)
         if result.get('output') or result.get('success'):
             all_results['paired_docs'] = self._parse_documentation_sync_output(result.get('output', ''))
@@ -616,7 +622,7 @@ class CommandsMixin:
             logger.warning(f"analyze_documentation_sync failed: {result.get('error', 'Unknown error')}")
         
         # Run path drift analysis
-        logger.info("Running path drift analysis...")
+        logger.info("  - Analyzing path drift...")
         result = self.run_analyze_path_drift()
         if result.get('data'):
             all_results['path_drift'] = result.get('data', {})
@@ -626,7 +632,7 @@ class CommandsMixin:
             logger.warning(f"analyze_path_drift failed: {result.get('error', 'Unknown error')}")
         
         # Run ASCII compliance check
-        logger.info("Running ASCII compliance check...")
+        logger.info("  - Analyzing ASCII compliance...")
         result = self.run_script('analyze_ascii_compliance', '--json')
         # Track this sub-tool as run
         if hasattr(self, '_tools_run_in_current_tier'):
@@ -654,7 +660,7 @@ class CommandsMixin:
                 logger.warning(f"analyze_ascii_compliance failed: {result.get('error', 'Unknown error')}")
         
         # Run heading numbering check
-        logger.info("Running heading numbering check...")
+        logger.info("  - Analyzing heading numbering...")
         result = self.run_script('analyze_heading_numbering', '--json')
         # Track this sub-tool as run
         if hasattr(self, '_tools_run_in_current_tier'):
@@ -682,7 +688,7 @@ class CommandsMixin:
                 logger.warning(f"analyze_heading_numbering failed: {result.get('error', 'Unknown error')}")
         
         # Run missing addresses check
-        logger.info("Running missing addresses check...")
+        logger.info("  - Analyzing missing addresses...")
         result = self.run_script('analyze_missing_addresses', '--json')
         # Track this sub-tool as run
         if hasattr(self, '_tools_run_in_current_tier'):
@@ -710,7 +716,7 @@ class CommandsMixin:
                 logger.warning(f"analyze_missing_addresses failed: {result.get('error', 'Unknown error')}")
         
         # Run unconverted links check
-        logger.info("Running unconverted links check...")
+        logger.info("  - Analyzing unconverted links...")
         result = self.run_script('analyze_unconverted_links', '--json')
         # Track this sub-tool as run
         if hasattr(self, '_tools_run_in_current_tier'):

@@ -255,7 +255,7 @@ class AuditOrchestrationMixin:
         
         # Handle quick_status separately
         try:
-            logger.info("  - Running quick_status...")
+            # Note: quick_status logs its own execution ("Generating JSON status output")
             quick_status_result = self.run_script('quick_status', 'json')
             if quick_status_result.get('success'):
                 self.status_results = quick_status_result
@@ -284,7 +284,7 @@ class AuditOrchestrationMixin:
         
         for tool_name, tool_func in tier1_tools:
             try:
-                logger.info(f"  - Running {tool_name}...")
+                # Note: Tools log their own execution, so no need to log here
                 result = tool_func()
                 if isinstance(result, dict):
                     success = result.get('success', False)
@@ -295,12 +295,8 @@ class AuditOrchestrationMixin:
                 if success:
                     successful.append(tool_name)
                     self._tools_run_in_current_tier.add(tool_name)
-                    if isinstance(result, dict) and 'data' in result:
-                        try:
-                            domain = _get_domain_from_tool_name(tool_name, self.project_root)
-                            save_tool_result(tool_name, domain, result['data'], project_root=self.project_root)
-                        except Exception as e:
-                            logger.debug(f"Failed to save {tool_name} result: {e}")
+                    # Note: Tools save their own results, so no need to save here
+                    # Removed duplicate save_tool_result call to prevent duplicate logging
                 else:
                     failed.append(tool_name)
                     logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
@@ -337,7 +333,7 @@ class AuditOrchestrationMixin:
         
         for tool_name, tool_func in tier2_tools:
             try:
-                logger.info(f"  - Running {tool_name}...")
+                # Note: Tools log their own execution, so no need to log here
                 result = tool_func()
                 if isinstance(result, dict):
                     success = result.get('success', False)
@@ -348,19 +344,8 @@ class AuditOrchestrationMixin:
                 if success:
                     successful.append(tool_name)
                     self._tools_run_in_current_tier.add(tool_name)
-                    if isinstance(result, dict):
-                        data = result.get('data')
-                        if not data and result.get('output'):
-                            try:
-                                data = json.loads(result.get('output', ''))
-                            except (json.JSONDecodeError, TypeError):
-                                pass
-                        if data:
-                            try:
-                                domain = _get_domain_from_tool_name(tool_name, self.project_root)
-                                save_tool_result(tool_name, domain, data, project_root=self.project_root)
-                            except Exception as e:
-                                logger.debug(f"Failed to save {tool_name} result: {e}")
+                    # Note: Tools save their own results, so no need to save here
+                    # Removed duplicate save_tool_result call to prevent duplicate logging
                 else:
                     failed.append(tool_name)
                     logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
@@ -396,7 +381,7 @@ class AuditOrchestrationMixin:
         
         for tool_name, tool_func in tier3_analyze_tools:
             try:
-                logger.info(f"  - Running {tool_name}...")
+                # Note: Tools log their own execution, so no need to log here
                 result = tool_func()
                 if isinstance(result, dict):
                     success = result.get('success', False)
@@ -407,24 +392,8 @@ class AuditOrchestrationMixin:
                 if success:
                     successful.append(tool_name)
                     self._tools_run_in_current_tier.add(tool_name)
-                    if isinstance(result, dict):
-                        data = result.get('data')
-                        if not data and result.get('output'):
-                            try:
-                                data = json.loads(result.get('output', ''))
-                                logger.debug(f"Extracted data from {tool_name} output via JSON parsing")
-                            except (json.JSONDecodeError, TypeError) as e:
-                                logger.debug(f"Failed to parse {tool_name} output as JSON: {e}")
-                                pass
-                        if data:
-                            try:
-                                domain = _get_domain_from_tool_name(tool_name, self.project_root)
-                                save_tool_result(tool_name, domain, data, project_root=self.project_root)
-                                logger.debug(f"Saved {tool_name} result via audit orchestration (domain: {domain})")
-                            except Exception as e:
-                                logger.warning(f"Failed to save {tool_name} result via audit orchestration: {e}")
-                        else:
-                            logger.debug(f"{tool_name} completed successfully but no data extracted (result.get('data')={result.get('data')}, has_output={bool(result.get('output'))})")
+                    # Note: Tools save their own results, so no need to save here
+                    # Removed duplicate save_tool_result call to prevent duplicate logging
                 else:
                     failed.append(tool_name)
                     logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
@@ -435,7 +404,7 @@ class AuditOrchestrationMixin:
         
         for tool_name, tool_func in tier3_report_tools:
             try:
-                logger.info(f"  - Running {tool_name}...")
+                # Note: Tools log their own execution, so no need to log here
                 result = tool_func()
                 if isinstance(result, dict):
                     success = result.get('success', False)
@@ -657,7 +626,7 @@ class AuditOrchestrationMixin:
             except Exception as exc:
                 logger.warning(f"   Changelog check/trim failed: {exc}")
         else:
-            logger.info("   Changelog check: Tooling unavailable (skipping trim)")
+            logger.warning("   Changelog check: Tooling unavailable (skipping trim)")
     
     def _validate_referenced_paths(self) -> None:
         """Validate that all referenced paths in documentation exist."""
@@ -672,8 +641,8 @@ class AuditOrchestrationMixin:
                 logger.info(f"   Path validation: {message}")
             elif status == 'fail':
                 issues = result.get('issues_found', 'unknown') if isinstance(result, dict) else 'unknown'
-                logger.warning(f"   Path validation failed: {message}")
-                logger.warning(f"   Found {issues} path issues")
+                logger.info(f"   Path validation: {message}")
+                logger.info(f"   Found {issues} path issues")
         except Exception as exc:
             logger.warning(f"   Path validation failed: {exc}")
             self.path_validation_result = None
@@ -715,7 +684,7 @@ class AuditOrchestrationMixin:
                     self.docs_sync_summary = {}
                 self.docs_sync_summary['ascii_issues'] = 0
             else:
-                logger.warning(f"   ASCII compliance: Found {total_issues} non-ASCII characters in {files_with_issues} files")
+                logger.info(f"   ASCII compliance: Found {total_issues} non-ASCII characters in {files_with_issues} files")
                 if not hasattr(self, 'docs_sync_summary') or not self.docs_sync_summary:
                     self.docs_sync_summary = {}
                 self.docs_sync_summary['ascii_issues'] = files_with_issues

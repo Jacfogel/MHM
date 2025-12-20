@@ -75,7 +75,7 @@ class FileRotator:
         
         # Log the rotation
         if logger:
-            logger.info(f"Rotated file {file_path} to {archive_path}")
+            logger.debug(f"Rotated file {file_path} to {archive_path}")
         
         # Clean up old versions if we have too many
         self._cleanup_old_versions(file_path.stem, max_versions)

@@ -294,11 +294,15 @@ def sync_todo_with_changelog():
             
             # Only flag entries where completion marker is in the header line
             if is_header_line:
-                # Look for lines with COMPLETED, completed, DONE, or done markers
-                if re.search(r'\*\*.*\*\*.*\*\*COMPLETED\*\*', line, re.IGNORECASE) or \
-                   re.search(r'\*\*.*\*\*.*\*\*DONE\*\*', line, re.IGNORECASE) or \
-                   (re.search(r'COMPLETED', line, re.IGNORECASE) and line.strip().startswith(('**', '##', '###'))) or \
-                   (re.search(r'DONE', line, re.IGNORECASE) and line.strip().startswith(('**', '##', '###'))):
+                # Look for lines with completion markers AFTER the task title:
+                # - ✅ COMPLETE or ✅ COMPLETED (with checkmark emoji - always after title)
+                # - **COMPLETE** or **COMPLETED** (in bold after task title)
+                # - COMPLETE/COMPLETED/DONE after closing ** of task title (to avoid matching "Complete" in title)
+                # Pattern: **Task Title** [optional dash/space] COMPLETE/COMPLETED/DONE
+                if re.search(r'✅\s*(COMPLETE|COMPLETED|DONE)', line, re.IGNORECASE) or \
+                   re.search(r'\*\*.*\*\*.*\*\*(COMPLETE|COMPLETED|DONE)\*\*', line, re.IGNORECASE) or \
+                   (line.strip().startswith('**') and re.search(r'\*\*[^*]+\*\*.*\b(COMPLETE|COMPLETED|DONE)\b', line, re.IGNORECASE)) or \
+                   (line.strip().startswith(('##', '###')) and re.search(r'\b(COMPLETE|COMPLETED|DONE)\b', line, re.IGNORECASE)):
                     
                     # Extract the task title and context
                     task_title = line.strip()

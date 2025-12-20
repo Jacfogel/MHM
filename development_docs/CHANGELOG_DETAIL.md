@@ -38,6 +38,38 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-20 - Development Tools Logging Standardization and Cleanup **COMPLETED**
+- **Logging Standardization**: Standardized all 27 development tools to use consistent action-verb logging format ("Analyzing...", "Generating...", "Running...") instead of generic "Running..." messages. Tools now log their specific action (e.g., "Analyzing documentation...", "Generating test coverage report...", "Running quick status...") for better clarity and consistency.
+- **Critical Bug Fix**: Fixed `IndentationError` in `generate_test_coverage.py` at line 1673 that was preventing test coverage generation from running. The error was caused by incorrect indentation in the `else:` block.
+- **Data Size Mismatch Fix**: Fixed `run_analyze_function_patterns` in `tool_wrappers.py` to return `standard_format` instead of raw patterns data. Previously, the function saved `standard_format` (66 chars smaller) but returned raw patterns, causing orchestration to save different data than what was logged. Now both the saved data and returned data match.
+- **Redundant Log Removal**: Removed duplicate logging statements:
+  - Removed duplicate "Generating test coverage..." log from `generate_test_coverage.py` (caller already logs it)
+  - Removed duplicate "Running pytest coverage analysis..." logs (replaced with comments noting caller logs)
+  - Removed duplicate "Saved analyze_unused_imports results..." log (save_tool_result already logs saves)
+- **Verbose Log Demotion**: Demoted verbose operational logs to DEBUG level:
+  - File rotation logs ("Rotated file...") → DEBUG
+  - Pytest command logs ("Running pytest coverage command...") → DEBUG
+  - No-parallel test execution logs → DEBUG
+  - Dev tools coverage command logs → DEBUG
+- **Duplicate Call Fix**: Fixed `generate_test_coverage_reports` being called twice (once in `commands.py` after `generate_test_coverage`, once in Tier 3 report tools). Removed the call from `commands.py` so it only runs once in the Tier 3 report tools section.
+- **Log Level Fixes**: Changed path validation findings from WARNING to INFO level (they're tool findings, not failures).
+- **Improvement Plan Updates**: Added three tasks to `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md`:
+  - Task 4.6: Rename `system_signals` to `analyze_system_signals` for consistency
+  - Task 4.7: Consider consolidating or renaming `generate_test_coverage.py` and `analyze_test_coverage.py`
+  - Task 4.8: Investigate `quick_status` placement in audit workflow (beginning vs end vs not at all)
+- **Cleanup**: Deleted temporary audit documents (`TOOL_CONSOLIDATION_ANALYSIS.md`, `TOOL_LOGGING_AUDIT.md`, `TOOL_LOGGING_VERIFICATION.md`, `TOOL_RESULT_SAVING_AUDIT.md`) and incorporated relevant information into the improvement plan.
+- **Files Modified**: `development_tools/shared/service/tool_wrappers.py`, `development_tools/shared/service/commands.py`, `development_tools/shared/service/audit_orchestration.py`, `development_tools/tests/generate_test_coverage.py`, `development_tools/shared/file_rotation.py`, `development_tools/docs/analyze_documentation_sync.py`, `development_tools/legacy/analyze_legacy_references.py`, `development_tools/reports/quick_status.py`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md`.
+- **Impact**: All tools now have consistent, clear logging that uses action verbs. Audit logs are cleaner with less redundancy. Test coverage generation works correctly. All 27 tools verified to log their execution and result saving properly.
+
+### 2025-12-20 - Development Tools Reporting Fixes and TODO Sync Improvements **COMPLETED**
+- **TODO Sync Detection Fix**: Fixed `sync_todo_with_changelog()` in `development_tools/docs/fix_version_sync.py` to properly detect completed TODO entries. Updated regex patterns to match `✅ COMPLETE` format (with checkmark emoji) and `**COMPLETE**` patterns, while avoiding false positives from "Complete" in task titles. Pattern now matches completion markers after task title closing `**` to prevent matching titles like "Complete core.user_management Retirement".
+- **Completed TODO Cleanup**: Removed 3 completed TODO entries from `TODO.md` (lines 135, 150, 168) that were already documented in changelogs: "Standardize Backup, Rotation, Archive, and Cleanup Approaches", "Investigate Development Tools Not Saving Results", and "Investigate Pytest Log Rotation".
+- **ASCII Compliance Fix**: Fixed ASCII compliance issue in `TODO.md` by running `python development_tools/run_development_tools.py doc-fix --fix-ascii`. All documentation files now pass ASCII compliance checks.
+- **Data Loading Discrepancy Fix**: Fixed critical data loading issue where `AI_PRIORITIES.md` was using `analyze_function_registry` data (registry file coverage) instead of `analyze_functions` data (code docstrings) for missing docstring counts. Updated `development_tools/shared/service/report_generation.py` to consistently use `analyze_functions` data for both `AI_STATUS.md` and `AI_PRIORITIES.md`, ensuring both reports show the same docstring coverage metrics. Fixed fallback logic to prefer function metrics over registry metrics.
+- **Consolidated Report Enhancement**: Added Function Docstring Coverage to Documentation Status section in `consolidated_report.txt`. Coverage now appears in Documentation Status alongside other metrics (Path Drift, ASCII Compliance, etc.), showing status even when coverage is 100% (CLEAN with coverage percentage). Previously only appeared in Function Patterns section.
+- **Files Modified**: `development_tools/docs/fix_version_sync.py` (enhanced completion detection patterns), `TODO.md` (removed 3 completed entries), `development_tools/shared/service/report_generation.py` (fixed data source for priorities, added docstring coverage to consolidated report).
+- **Impact**: TODO sync now correctly detects all completed entries for cleanup. Both status reports show consistent docstring coverage metrics. Consolidated report provides complete documentation status overview including docstring coverage. All fixes verified - TODO sync detects 3 completed entries, ASCII compliance passes, reports show consistent data.
+
 ### 2025-12-18 - Development Tools Result Saving and Log Rotation Fixes **COMPLETED**
 - **Development Tools Not Saving Results**: Fixed `analyze_unused_imports` and `analyze_test_coverage` tools not updating result files during full audits. Root cause was duplicate function definition in `development_tools/shared/service/tool_wrappers.py` (line 1744) overriding the fixed version at line 853. Removed duplicate and enhanced JSON parsing to handle mixed output by finding JSON blocks with proper brace counting. Fixed `analyze_test_coverage` field name mismatch (`percent_covered` -> `coverage`) and modified `_load_coverage_summary()` to check archive directory if main file was rotated. Both tools now properly save results during full audits.
 - **Pytest Log Rotation**: Fixed pytest log files not rotating correctly (had 10 files in main + 2 in archive when max_versions=7). Changed `max_versions` from 7 to 8 (1 current + 7 archived = 8 total per log type). Rewrote `_rotate_log_files()` in `development_tools/tests/generate_test_coverage.py` to move ALL files from main to archive before creating new ones, ensuring exactly 1 file stays in main (newest) and up to 7 files in archive. Enhanced rotation with proper timestamp handling, verification steps, and cleanup of excess files. Verified working: 1 file per type in main + 7 files per type in archive (14 total = 7 parallel + 7 no_parallel).

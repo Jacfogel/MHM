@@ -193,7 +193,7 @@ class LegacyReferenceAnalyzer:
     def scan_for_legacy_references(self) -> Dict[str, List[Tuple[str, str, List[Dict[str, Any]]]]]:
         """Scan the codebase for legacy references."""
         if logger:
-            logger.info("Scanning for legacy references...")
+            logger.info("Analyzing legacy references...")
         
         findings = defaultdict(list)
         

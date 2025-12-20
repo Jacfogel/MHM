@@ -401,7 +401,7 @@ class CoverageMetricsRegenerator:
             
             # Log the full command for debugging (single log entry instead of truncated + full)
             if logger:
-                logger.info(f"Running pytest coverage command: {' '.join(cmd)}")
+                logger.debug(f"Running pytest coverage command: {' '.join(cmd)}")
             
             # Get timeout from config, with sensible defaults
             # Tests may take longer on slower systems or with more tests
@@ -673,7 +673,7 @@ class CoverageMetricsRegenerator:
             no_parallel_test_results = {'passed_count': 0, 'failed_count': 0, 'skipped_count': 0, 'test_summary': ''}
             if self.parallel and pytest_ran:
                 if logger:
-                    logger.info("Running no_parallel tests separately in serial mode...")
+                    logger.debug("Running no_parallel tests separately in serial mode...")
                 
                 # Create command for no_parallel tests (serial execution, no parallel flags)
                 no_parallel_cmd = [
@@ -701,8 +701,8 @@ class CoverageMetricsRegenerator:
                 
                 # Log the full command for debugging (consistent with parallel run)
                 if logger:
-                    logger.info(f"Running no_parallel tests: {' '.join(no_parallel_cmd)}")
-                    logger.info(f"No_parallel tests timeout set to {pytest_timeout // 60} minutes")
+                    logger.debug(f"Running no_parallel tests: {' '.join(no_parallel_cmd)}")
+                    logger.debug(f"No_parallel tests timeout set to {pytest_timeout // 60} minutes")
                 
                 try:
                     with open(no_parallel_stdout_log, 'w', encoding='utf-8', buffering=1) as stdout_file:
@@ -1048,7 +1048,7 @@ class CoverageMetricsRegenerator:
             ]
             
             if logger:
-                logger.info(f"Running dev tools coverage command: {' '.join(cmd[:5])} ...")
+                logger.debug(f"Running dev tools coverage command: {' '.join(cmd[:5])} ...")
             
             env = os.environ.copy()
             # Set COVERAGE_FILE to absolute path to ensure files are created in the correct location
@@ -1378,7 +1378,7 @@ class CoverageMetricsRegenerator:
             archive_files.sort(key=lambda p: p.stat().st_mtime, reverse=True)
             
             if logger:
-                logger.info(f"Rotating {base_name} logs: {len(main_files)} in main, {len(archive_files)} in archive (target: 1 main + {max_versions-1} archive)")
+                logger.debug(f"Rotating {base_name} logs: {len(main_files)} in main, {len(archive_files)} in archive (target: 1 main + {max_versions-1} archive)")
             
             # Step 1: Move ALL files from main to archive (new file will be created after rotation)
             # This ensures only the new file (created after rotation) remains in main
@@ -1425,7 +1425,7 @@ class CoverageMetricsRegenerator:
             final_total = len(final_main) + len(final_archive)
             
             if logger:
-                logger.info(f"Log rotation complete for {base_name}: {final_total} files total ({len(final_main)} in main, {len(final_archive)} in archive)")
+                logger.debug(f"Log rotation complete for {base_name}: {final_total} files total ({len(final_main)} in main, {len(final_archive)} in archive)")
             
             # Final safety check: if we still have too many, delete oldest
             if len(final_main) > 1:
@@ -1639,7 +1639,6 @@ class CoverageMetricsRegenerator:
     def run(self, update_plan: bool = False, dev_tools_only: bool = False) -> Dict[str, any]:
         """Run the coverage metrics regeneration."""
         if dev_tools_only:
-            logger.info("Starting development tools coverage analysis...")
             # Run dev tools coverage analysis only
             coverage_results = self.run_dev_tools_coverage()
             
@@ -1670,7 +1669,7 @@ class CoverageMetricsRegenerator:
             
             return coverage_results
         else:
-            logger.info("Starting coverage metrics regeneration...")
+            logger.info("Generating test coverage...")
             
             # Run coverage analysis
             coverage_results = self.run_coverage_analysis()
