@@ -19,6 +19,7 @@ logger = process_logger
 class ProcessWatcherDialog(QDialog):
     """Dialog for monitoring Python processes and their associations."""
     
+    # ERROR_HANDLING_EXCLUDE: Dialog constructor - errors should propagate so caller knows initialization failed
     def __init__(self, parent=None):
         """
         Initialize the ProcessWatcherDialog.
@@ -26,19 +27,15 @@ class ProcessWatcherDialog(QDialog):
         Args:
             parent: Parent widget for the dialog
         """
-        try:
-            super().__init__(parent)
-            self.setWindowTitle("Process Watcher - Python Processes")
-            self.setModal(False)  # Allow multiple instances
-            self.resize(1000, 700)
-            self.setup_ui()
-            self.setup_timer()
-            # Initial refresh to populate the tables
-            self.refresh_processes()
-            logger.debug("Process watcher dialog initialized successfully")
-        except Exception as e:
-            logger.error(f"Error initializing process watcher dialog: {e}")
-            raise
+        super().__init__(parent)
+        self.setWindowTitle("Process Watcher - Python Processes")
+        self.setModal(False)  # Allow multiple instances
+        self.resize(1000, 700)
+        self.setup_ui()
+        self.setup_timer()
+        # Initial refresh to populate the tables
+        self.refresh_processes()
+        logger.debug("Process watcher dialog initialized successfully")
     
     @handle_errors("setting up process watcher UI")
     def setup_ui(self):
@@ -440,13 +437,10 @@ class ProcessWatcherDialog(QDialog):
             logger.error(f"Error showing process details: {e}")
             self.process_details_text.setPlainText(f"Error: {e}")
     
+    @handle_errors("closing process watcher dialog", user_friendly=False, default_return=None)
     def closeEvent(self, event):
         """Handle dialog close event."""
-        try:
-            if hasattr(self, 'refresh_timer'):
-                self.refresh_timer.stop()
-            logger.debug("Process watcher dialog closed")
-            event.accept()
-        except Exception as e:
-            logger.error(f"Error closing process watcher dialog: {e}")
-            event.accept()
+        if hasattr(self, 'refresh_timer'):
+            self.refresh_timer.stop()
+        logger.debug("Process watcher dialog closed")
+        event.accept()

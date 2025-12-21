@@ -73,10 +73,12 @@ class TestScheduleManagement:
             assert periods["morning"]["start_time"] == "09:00"
             assert periods["morning"]["end_time"] == "11:00"
 
-            set_schedule_period_active(user_id, category, "morning", False)
+            result = set_schedule_period_active(user_id, category, "morning", False)
+            assert result is True, "set_schedule_period_active should return True when period exists"
             # Clear cache after setting active to ensure we read fresh data
             clear_schedule_periods_cache(user_id, category)
             periods = get_schedule_time_periods(user_id, category)
+            assert periods and "morning" in periods, f"Period 'morning' should exist in periods. Got: {periods}"
             assert periods["morning"]["active"] is False
 
             delete_schedule_period(category, "morning")

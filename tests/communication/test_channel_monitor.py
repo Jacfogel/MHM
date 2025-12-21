@@ -365,10 +365,17 @@ class TestChannelMonitor:
             channel_monitor.start_restart_monitor()
             channel_monitor._restart_monitor_thread.join(timeout=1)
 
+        #[OK] VERIFY REAL BEHAVIOR: Should call check function even when it raises exception
         mock_check.assert_called_once()
+        
+        #[OK] VERIFY REAL BEHAVIOR: Loop should continue after exception (sleep should be called)
         mock_sleep.assert_called_once()
-        error_calls = [call for call in mock_logger.error.call_args_list if "Monitor error" in call.args[0]]
-        assert error_calls, "Expected monitor loop error to be logged"
+        
+        #[OK] VERIFY REAL BEHAVIOR: Exception should be logged at loop level when it escapes decorator
+        # (e.g., when method is patched in tests, bypassing the decorator)
+        error_calls = [call for call in mock_logger.error.call_args_list 
+                      if "Exception in restart monitor loop" in str(call)]
+        assert error_calls, "Expected exception to be logged at loop level"
     
     def test_channel_monitor_threading_safety(self, channel_monitor):
         """Test channel monitor threading safety."""

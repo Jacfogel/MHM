@@ -769,14 +769,28 @@ class CoverageMetricsRegenerator:
                 
                 no_parallel_test_results = self._parse_pytest_test_results(no_parallel_output)
                 
+                # Check if output was empty - this indicates tests didn't run or output wasn't captured
+                if not no_parallel_output or (not no_parallel_test_results.get('total_tests', 0) and no_parallel_result.returncode != 0):
+                    if logger:
+                        logger.warning(f"No_parallel tests produced no output - subprocess may have failed silently")
+                        logger.warning(f"Return code: {no_parallel_result.returncode}, Log file exists: {no_parallel_stdout_log.exists()}, Log size: {no_parallel_stdout_log.stat().st_size if no_parallel_stdout_log.exists() else 0} bytes")
+                        if no_parallel_stdout_log.exists():
+                            log_content = no_parallel_stdout_log.read_text(encoding='utf-8', errors='ignore')
+                            if log_content:
+                                logger.warning(f"Log file has {len(log_content)} chars but parser found no tests")
+                            else:
+                                logger.warning(f"Log file is empty - subprocess may not have started or output was not captured")
+                
                 # Combine test results
                 test_results['passed_count'] += no_parallel_test_results.get('passed_count', 0)
                 test_results['failed_count'] += no_parallel_test_results.get('failed_count', 0)
                 test_results['skipped_count'] += no_parallel_test_results.get('skipped_count', 0)
                 
                 if logger:
-                    if no_parallel_result.returncode == 0:
+                    if no_parallel_result.returncode == 0 and no_parallel_test_results.get('total_tests', 0) > 0:
                         logger.info(f"No_parallel tests completed: {no_parallel_test_results.get('passed_count', 0)} passed, {no_parallel_test_results.get('failed_count', 0)} failed, {no_parallel_test_results.get('skipped_count', 0)} skipped")
+                    elif no_parallel_result.returncode == 0 and no_parallel_test_results.get('total_tests', 0) == 0:
+                        logger.warning(f"No_parallel tests exited with code 0 but no tests were found in output - possible issue with test collection or output capture")
                     else:
                         logger.warning(f"No_parallel tests had failures: {no_parallel_test_results.get('failed_count', 0)} failed, {no_parallel_test_results.get('passed_count', 0)} passed, {no_parallel_test_results.get('skipped_count', 0)} skipped")
                     

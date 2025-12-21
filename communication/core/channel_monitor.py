@@ -68,15 +68,19 @@ class ChannelMonitor:
             logger.error(f"Error stopping restart monitor: {e}")
             raise
 
+    @handle_errors("restart monitor loop", user_friendly=False, default_return=None)
     def _restart_monitor_loop(self):
         """Main restart monitor loop that checks channel health"""
         while self._restart_monitor_running:
+            # Call decorated function - decorator handles errors, but we catch any that escape
+            # to ensure loop continues (e.g., when method is patched in tests)
             try:
                 self._check_and_restart_stuck_channels()
-                time.sleep(60)  # Check every minute
-            except Exception as e:
-                logger.error(f"Error in restart monitor loop: {e}")
-                time.sleep(60)  # Continue after error
+            except Exception:
+                # If exception escapes decorator (e.g., in tests with patched methods),
+                # log it and continue loop
+                logger.error("Exception in restart monitor loop (caught at loop level)", exc_info=True)
+            time.sleep(60)  # Check every minute
 
     @handle_errors("checking and restarting stuck channels", user_friendly=False, default_return=None)
     def _check_and_restart_stuck_channels(self):
@@ -153,10 +157,12 @@ class ChannelMonitor:
             logger.error(f"Error recording channel success for {channel_name}: {e}")
             raise
 
+    @handle_errors("getting channel health status", user_friendly=False, default_return={})
     def get_channel_health_status(self) -> Dict[str, Any]:
         """Get health status for all monitored channels"""
         status = {}
         for channel_name, channel in self._channels_dict.items():
+            # Per-item error handling: continue processing other channels even if one fails
             try:
                 channel_status = {
                     'name': channel_name,

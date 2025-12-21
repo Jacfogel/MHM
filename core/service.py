@@ -698,13 +698,11 @@ class MHMService:
         except Exception as e:
             logger.debug(f"Could not write response file: {e}")
 
+    @handle_errors("cleaning up test message request file", user_friendly=False, default_return=None)
     def _check_test_message_requests__cleanup_request_file(self, request_file, filename):
         """Clean up a processed request file."""
-        try:
-            os.remove(request_file)
-            logger.info(f"Processed test message request: {filename}")
-        except Exception as cleanup_error:
-            logger.warning(f"Could not remove request file {filename}: {cleanup_error}")
+        os.remove(request_file)
+        logger.info(f"Processed test message request: {filename}")
 
     @handle_errors("cleaning up problematic test message request file", user_friendly=False, default_return=None)
     def _check_test_message_requests__handle_processing_error(self, request_file, filename, error):
@@ -714,6 +712,7 @@ class MHMService:
         os.remove(request_file)
         logger.debug(f"Removed problematic request file: {filename}")
 
+    @handle_errors("checking test message requests", default_return=None)
     def check_test_message_requests(self):
         """Check for and process test message request files from admin panel"""
         base_dir = self._check_test_message_requests__get_base_directory()
@@ -722,18 +721,14 @@ class MHMService:
         for request_file in request_files:
             filename = os.path.basename(request_file)
             
-            try:
-                # Parse and validate the request
-                request_data = self._check_test_message_requests__parse_request_file(request_file)
-                
-                if self._check_test_message_requests__validate_request_data(request_data, filename):
-                    self._check_test_message_requests__process_valid_request(request_data)
-                
-                # Clean up the request file
-                self._check_test_message_requests__cleanup_request_file(request_file, filename)
-                
-            except Exception as e:
-                self._check_test_message_requests__handle_processing_error(request_file, filename, e)
+            # Parse and validate the request
+            request_data = self._check_test_message_requests__parse_request_file(request_file)
+            
+            if self._check_test_message_requests__validate_request_data(request_data, filename):
+                self._check_test_message_requests__process_valid_request(request_data)
+            
+            # Clean up the request file
+            self._check_test_message_requests__cleanup_request_file(request_file, filename)
     
     @handle_errors("checking check-in prompt requests")
     def check_checkin_prompt_requests(self):
@@ -865,15 +860,12 @@ class MHMService:
         """Check if a filename matches the test message request file pattern."""
         return filename.startswith('test_message_request_') and filename.endswith('.flag')
     
+    @handle_errors("removing test message request file", user_friendly=False, default_return=False)
     def _cleanup_test_message_requests__remove_request_file(self, request_file, filename):
         """Remove a single test message request file with proper error handling."""
-        try:
-            os.remove(request_file)
-            logger.info(f"Cleanup: Removed test message request file: {filename}")
-            return True
-        except Exception as e:
-            logger.warning(f"Could not remove test message request file {filename}: {e}")
-            return False
+        os.remove(request_file)
+        logger.info(f"Cleanup: Removed test message request file: {filename}")
+        return True
 
     @handle_errors("cleaning up test message requests")
     def cleanup_test_message_requests(self):
@@ -954,13 +946,11 @@ class MHMService:
         else:
             logger.error("Scheduler manager not available for reschedule")
 
+    @handle_errors("cleaning up reschedule request file", user_friendly=False, default_return=None)
     def _check_reschedule_requests__cleanup_request_file(self, request_file, filename):
         """Clean up a processed request file."""
-        try:
-            os.remove(request_file)
-            logger.info(f"Processed reschedule request: {filename}")
-        except Exception as cleanup_error:
-            logger.warning(f"Could not remove request file {filename}: {cleanup_error}")
+        os.remove(request_file)
+        logger.info(f"Processed reschedule request: {filename}")
 
     @handle_errors("cleaning up problematic reschedule request file", user_friendly=False, default_return=None)
     def _check_reschedule_requests__handle_processing_error(self, request_file, filename, error):
@@ -970,6 +960,7 @@ class MHMService:
         os.remove(request_file)
         logger.debug(f"Removed problematic request file: {filename}")
 
+    @handle_errors("checking reschedule requests", default_return=None)
     def check_reschedule_requests(self):
         """Check for and process reschedule request files from UI"""
         base_dir = self._check_reschedule_requests__get_base_directory()
@@ -978,18 +969,14 @@ class MHMService:
         for request_file in request_files:
             filename = os.path.basename(request_file)
             
-            try:
-                # Parse and validate the request
-                request_data = self._check_reschedule_requests__parse_request_file(request_file)
-                
-                if self._check_reschedule_requests__validate_request_data(request_data, filename):
-                    self._check_reschedule_requests__process_valid_request(request_data)
-                
-                # Clean up the request file
-                self._check_reschedule_requests__cleanup_request_file(request_file, filename)
-                
-            except Exception as e:
-                self._check_reschedule_requests__handle_processing_error(request_file, filename, e)
+            # Parse and validate the request
+            request_data = self._check_reschedule_requests__parse_request_file(request_file)
+            
+            if self._check_reschedule_requests__validate_request_data(request_data, filename):
+                self._check_reschedule_requests__process_valid_request(request_data)
+            
+            # Clean up the request file
+            self._check_reschedule_requests__cleanup_request_file(request_file, filename)
 
     @handle_errors("cleaning up reschedule requests")
     def cleanup_reschedule_requests(self):

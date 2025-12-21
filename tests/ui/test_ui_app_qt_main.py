@@ -681,13 +681,14 @@ class TestMHMManagerUI:
                         # Verify webbrowser.open was called
                         mock_open.assert_called_once()
     
-    def test_open_process_watcher_opens_dialog(self):
+    def test_open_process_watcher_opens_dialog(self, qapp):
         """Test that open_process_watcher opens dialog."""
         from ui.ui_app_qt import MHMManagerUI
         
         with patch('ui.ui_app_qt.Ui_ui_app_mainwindow') as mock_ui:
             with patch('ui.ui_app_qt.QTimer') as mock_timer:
                 with patch('ui.ui_app_qt.Path') as mock_path:
+                    # Patch at the source module - the import happens inside open_process_watcher
                     with patch('ui.dialogs.process_watcher_dialog.ProcessWatcherDialog') as mock_dialog:
                         mock_ui_instance = Mock()
                         mock_ui.return_value = mock_ui_instance
@@ -1038,7 +1039,7 @@ class TestMHMManagerUI:
                         # Verify warning was shown
                         mock_msgbox.warning.assert_called_once()
     
-    def test_run_category_scheduler_requires_user_and_category(self):
+    def test_run_category_scheduler_requires_user_and_category(self, qapp):
         """Test that run_category_scheduler requires user and category."""
         from ui.ui_app_qt import MHMManagerUI
         

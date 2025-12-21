@@ -24,6 +24,7 @@ backup_logger = get_component_logger('main')
 class BackupManager:
     """Manages automatic backups and rollback operations."""
     
+    @handle_errors("initializing backup manager", default_return=None)
     def __init__(self):
         """
         Initialize the BackupManager with default settings.
@@ -35,9 +36,10 @@ class BackupManager:
         self.ensure_backup_directory()
         # Keep last 10 backups by default; also enforce age-based retention
         self.max_backups = 10
+        # Parse backup retention days from environment, default to 30 if invalid
         try:
             self.backup_retention_days = int(os.getenv("BACKUP_RETENTION_DAYS", "30"))
-        except Exception:
+        except (ValueError, TypeError):
             self.backup_retention_days = 30
     
     @handle_errors("ensuring backup directory exists", default_return=False)

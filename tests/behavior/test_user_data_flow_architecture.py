@@ -122,15 +122,17 @@ class TestCrossFileInvariants:
     @pytest.mark.behavior
     @pytest.mark.user_management
     @pytest.mark.file_io
+    @pytest.mark.no_parallel  # Sensitive to file system state and cross-file invariants during parallel execution
     def test_cross_file_invariant_account_not_in_original_update(self, test_data_dir, mock_config):
         """
         Test: When only preferences are updated and invariant requires account update,
         account should be added to merged_data and written in Phase 2.
         """
+        import uuid
         from core.user_data_handlers import save_user_data, get_user_data
         
-        # Arrange: Create user with messages disabled
-        user_id = 'test-invariant-account-added'
+        # Arrange: Create user with messages disabled - use unique ID to avoid conflicts in parallel execution
+        user_id = f'test-invariant-account-added-{uuid.uuid4().hex[:8]}'
         account_data = TestUserDataFactory.create_account_data(
             user_id=user_id,
             internal_username='testuser',
@@ -154,18 +156,45 @@ class TestCrossFileInvariants:
         # Check the actual file contents instead to verify the invariant worked
         
         # Verify account was updated
-        # Retry in case of race conditions with file writes in parallel execution
+        # The invariant should have updated account.features.automated_messages to 'enabled'
+        # when preferences with categories were saved. However, during parallel execution,
+        # file writes may not be immediately visible, so we need to retry with cache clearing.
         import time
+        from core.user_management import clear_user_caches
+        
+        # Wait a moment for file writes to complete and clear cache
+        time.sleep(0.2)  # Allow file system to sync
+        clear_user_caches(user_id)
+        
         final_data = {}
-        for attempt in range(5):
-            final_data = get_user_data(user_id, 'all')
-            if final_data and 'account' in final_data and 'preferences' in final_data:
-                break
-            if attempt < 4:
-                time.sleep(0.1)  # Brief delay before retry
-        assert final_data and 'account' in final_data, f"Account data should be loaded for user {user_id}"
-        assert final_data['account']['features']['automated_messages'] == 'enabled', \
-            "Account should be updated by cross-file invariant even though it wasn't in original update"
+        max_attempts = 20  # More retries for parallel execution
+        for attempt in range(max_attempts):
+            try:
+                # Clear cache every few attempts to avoid stale data
+                if attempt > 0 and attempt % 4 == 0:
+                    clear_user_caches(user_id)
+                    time.sleep(0.1)  # Brief delay after cache clear
+                
+                final_data = get_user_data(user_id, 'all')
+                if final_data and 'account' in final_data and 'preferences' in final_data:
+                    # Verify the invariant worked - account should have automated_messages enabled
+                    if final_data['account'].get('features', {}).get('automated_messages') == 'enabled':
+                        break
+            except Exception as e:
+                # Continue retrying on exceptions
+                pass
+            if attempt < max_attempts - 1:
+                time.sleep(0.4)  # Longer delay for parallel execution and file system sync
+        
+        # Verify account data was loaded
+        assert final_data and 'account' in final_data, \
+            f"Account data should be loaded for user {user_id}. Final data keys: {list(final_data.keys()) if final_data else 'empty'}"
+        
+        # Verify the invariant was applied - automated_messages should be enabled
+        account_features = final_data['account'].get('features', {})
+        assert account_features.get('automated_messages') == 'enabled', \
+            f"Account should be updated by cross-file invariant when preferences have categories. " \
+            f"Account features: {account_features}, Preferences categories: {final_data.get('preferences', {}).get('categories', [])}"
 
 
 class TestProcessingOrder:

@@ -33,6 +33,7 @@ RESET = '\033[0m'
 
 ANSI_ESCAPE_RE = re.compile(r'\x1b\[[0-9;]*m')
 
+@handle_errors("parsing JUnit XML report", user_friendly=False, default_return={'passed': 0, 'failed': 0, 'skipped': 0, 'warnings': 0, 'errors': 0, 'total': 0, 'deselected': 0})
 def parse_junit_xml(xml_path: str) -> Dict[str, int]:
     """
     Parse JUnit XML report to extract test statistics.
@@ -52,6 +53,8 @@ def parse_junit_xml(xml_path: str) -> Dict[str, int]:
     if not os.path.exists(xml_path):
         return results
     
+    # Parse XML - errors are handled by decorator, but we catch parsing errors
+    # to return empty results gracefully
     try:
         tree = ET.parse(xml_path)
         root = tree.getroot()
@@ -77,8 +80,9 @@ def parse_junit_xml(xml_path: str) -> Dict[str, int]:
             results['errors'] = int(root.get('errors', 0))
             results['skipped'] = int(root.get('skipped', 0))
             results['passed'] = results['total'] - results['failed'] - results['errors'] - results['skipped']
-    except Exception:
-        # If parsing fails, return empty results
+    except (ET.ParseError, ValueError, AttributeError):
+        # If parsing fails (malformed XML, invalid values, etc.), return empty results
+        # Other exceptions are handled by decorator
         pass
     
     return results
@@ -121,6 +125,7 @@ def run_command(cmd, description, progress_interval: int = 30, capture_output: b
         output_queue = queue.Queue()
         output_lines = []
         
+        @handle_errors("reading output from pipe", user_friendly=False, default_return=None)
         def read_output(pipe, queue_obj):
             """Read from pipe and put lines in queue, also write to terminal."""
             try:
@@ -130,10 +135,6 @@ def run_command(cmd, description, progress_interval: int = 30, capture_output: b
                         # Also write to terminal to preserve colors
                         sys.stdout.write(line)
                         sys.stdout.flush()
-            except Exception as e:
-                # Log error but don't crash - this is a helper thread
-                logger = logging.getLogger("mhm_tests.run_tests")
-                logger.warning(f"Error reading output from pipe: {e}")
             finally:
                 try:
                     pipe.close()

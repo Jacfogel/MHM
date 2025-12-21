@@ -38,6 +38,14 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-21 - Phase 1 Error Handling Decorator Migration Complete **COMPLETED**
+- **Phase 1 Completion**: Successfully applied `@handle_errors` decorator to all 54 identified functions across the codebase, replacing basic try-except blocks with centralized error handling. Functions updated include: 1 high-priority function in `bot.py` (`_on_ready_internal`), 45 medium-priority functions across multiple modules (`scheduler.py`, `service.py`, `user_management.py`, `channel_monitor.py`, `channel_orchestrator.py`, `interaction_manager.py`, `task_crud_dialog.py`, `ui_app_qt.py`, `channel_management_dialog.py`, `chatbot.py`, `conversation_history.py`, `run_tests.py`, `backup_manager.py`, `process_watcher_dialog.py`), and additional low-priority functions.
+- **Test Updates**: Updated tests to work with decorator behavior, including `test_core_service_coverage_expansion.py` and `test_channel_monitor.py` to assert error handling through the centralized system rather than specific log messages. Fixed `test_run_category_scheduler_requires_user_and_category` by adding `qapp` fixture for UI tests.
+- **Test Stability**: Fixed parallel execution issues by marking `test_cross_file_invariant_account_not_in_original_update` with `@pytest.mark.no_parallel` to prevent file system contention. Improved `test_schedule_period_lifecycle` with better assertions to handle decorator default return values.
+- **Exclusions**: Added `# ERROR_HANDLING_EXCLUDE` comment to `validate_and_raise_if_invalid` in `core/config.py` since it intentionally raises exceptions that should propagate to callers.
+- **Validation**: All tests passing (3602 passed, 1 skipped, 0 failed). Error handling analysis shows 0 Phase 1 candidates remaining, confirming complete migration.
+- **Impact**: Centralized error handling provides consistent logging and recovery patterns across the codebase, improving maintainability and debugging capabilities.
+
 ### 2025-12-21 - Unused Imports Tool Decomposition and Test Coverage Completion **COMPLETED**
 - **Tool Decomposition**: Successfully decomposed `analyze_unused_imports.py` into separate analysis (`analyze_unused_imports.py`) and report generation (`generate_unused_imports_report.py`) components following naming conventions. Analysis tool now only performs analysis and saves results to standardized storage, while report generator loads from storage and creates markdown reports.
 - **Service Integration**: Updated service architecture to support both tools: added `run_generate_unused_imports_report()` to `tool_wrappers.py`, `run_unused_imports_report()` command handler, integrated into Tier 3 audit workflow, and added CLI command `unused-imports-report`.
@@ -55,10 +63,10 @@ When adding new changes, follow this format:
   - Removed duplicate "Running pytest coverage analysis..." logs (replaced with comments noting caller logs)
   - Removed duplicate "Saved analyze_unused_imports results..." log (save_tool_result already logs saves)
 - **Verbose Log Demotion**: Demoted verbose operational logs to DEBUG level:
-  - File rotation logs ("Rotated file...") → DEBUG
-  - Pytest command logs ("Running pytest coverage command...") → DEBUG
-  - No-parallel test execution logs → DEBUG
-  - Dev tools coverage command logs → DEBUG
+  - File rotation logs ("Rotated file...") -> DEBUG
+  - Pytest command logs ("Running pytest coverage command...") -> DEBUG
+  - No-parallel test execution logs -> DEBUG
+  - Dev tools coverage command logs -> DEBUG
 - **Duplicate Call Fix**: Fixed `generate_test_coverage_reports` being called twice (once in `commands.py` after `generate_test_coverage`, once in Tier 3 report tools). Removed the call from `commands.py` so it only runs once in the Tier 3 report tools section.
 - **Log Level Fixes**: Changed path validation findings from WARNING to INFO level (they're tool findings, not failures).
 - **Improvement Plan Updates**: Added three tasks to `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md`:
@@ -70,7 +78,7 @@ When adding new changes, follow this format:
 - **Impact**: All tools now have consistent, clear logging that uses action verbs. Audit logs are cleaner with less redundancy. Test coverage generation works correctly. All 27 tools verified to log their execution and result saving properly.
 
 ### 2025-12-20 - Development Tools Reporting Fixes and TODO Sync Improvements **COMPLETED**
-- **TODO Sync Detection Fix**: Fixed `sync_todo_with_changelog()` in `development_tools/docs/fix_version_sync.py` to properly detect completed TODO entries. Updated regex patterns to match `✅ COMPLETE` format (with checkmark emoji) and `**COMPLETE**` patterns, while avoiding false positives from "Complete" in task titles. Pattern now matches completion markers after task title closing `**` to prevent matching titles like "Complete core.user_management Retirement".
+- **TODO Sync Detection Fix**: Fixed `sync_todo_with_changelog()` in `development_tools/docs/fix_version_sync.py` to properly detect completed TODO entries. Updated regex patterns to match `[OK] COMPLETE` format (with checkmark emoji) and `**COMPLETE**` patterns, while avoiding false positives from "Complete" in task titles. Pattern now matches completion markers after task title closing `**` to prevent matching titles like "Complete core.user_management Retirement".
 - **Completed TODO Cleanup**: Removed 3 completed TODO entries from `TODO.md` (lines 135, 150, 168) that were already documented in changelogs: "Standardize Backup, Rotation, Archive, and Cleanup Approaches", "Investigate Development Tools Not Saving Results", and "Investigate Pytest Log Rotation".
 - **ASCII Compliance Fix**: Fixed ASCII compliance issue in `TODO.md` by running `python development_tools/run_development_tools.py doc-fix --fix-ascii`. All documentation files now pass ASCII compliance checks.
 - **Data Loading Discrepancy Fix**: Fixed critical data loading issue where `AI_PRIORITIES.md` was using `analyze_function_registry` data (registry file coverage) instead of `analyze_functions` data (code docstrings) for missing docstring counts. Updated `development_tools/shared/service/report_generation.py` to consistently use `analyze_functions` data for both `AI_STATUS.md` and `AI_PRIORITIES.md`, ensuring both reports show the same docstring coverage metrics. Fixed fallback logic to prefer function metrics over registry metrics.

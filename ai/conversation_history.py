@@ -379,18 +379,15 @@ class ConversationHistory:
             logger.error(f"Error getting conversation summary for user {user_id}: {e}")
             return "Error generating conversation summary."
     
+    @handle_errors("cleaning up old sessions", user_friendly=False, default_return=None)
     def _cleanup_old_sessions(self, user_id: str):
         """Clean up old sessions for a user"""
-        try:
-            sessions = self._sessions.get(user_id, [])
-            if len(sessions) > self.max_sessions_per_user:
-                sessions_to_remove = len(sessions) - self.max_sessions_per_user
-                sessions[:sessions_to_remove] = []
-                
-                logger.debug(f"Cleaned up {sessions_to_remove} old sessions for user {user_id}")
-                
-        except Exception as e:
-            logger.error(f"Error cleaning up old sessions for user {user_id}: {e}")
+        sessions = self._sessions.get(user_id, [])
+        if len(sessions) > self.max_sessions_per_user:
+            sessions_to_remove = len(sessions) - self.max_sessions_per_user
+            sessions[:sessions_to_remove] = []
+            
+            logger.debug(f"Cleaned up {sessions_to_remove} old sessions for user {user_id}")
     
     @handle_errors("getting conversation statistics", default_return={})
     def get_statistics(self, user_id: str) -> Dict[str, Any]:

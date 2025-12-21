@@ -504,6 +504,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
         
         return response
     
+    @handle_errors("getting help response", default_return=InteractionResponse("I'm here to help! Try asking about tasks, check-ins, or your profile.", True))
     def _get_help_response(self, user_id: str, message: str) -> InteractionResponse:
         """Get a help response when command parsing fails"""
         # Try to provide contextual help based on the message
@@ -582,19 +583,18 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
         
         return commands
     
+    @handle_errors("getting user suggestions", default_return=[])
     def get_user_suggestions(self, user_id: str, context: str = "") -> list:
         """Get personalized suggestions for the user"""
         from datetime import datetime
 
         suggestions = []
 
+        @handle_errors("adding suggestion", default_return=None)
         def add_suggestion(text: str) -> None:
             """Add a suggestion if it is unique and space remains."""
-            try:
-                if text and text not in suggestions and len(suggestions) < 5:
-                    suggestions.append(text)
-            except Exception as e:
-                logger.error(f"Error adding suggestion: {e}", exc_info=True)
+            if text and text not in suggestions and len(suggestions) < 5:
+                suggestions.append(text)
 
         # Get task-related suggestions if user has tasks
         try:
@@ -603,17 +603,15 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
             tasks = load_active_tasks(user_id) or []
             now = datetime.now()
 
+            @handle_errors("parsing due date", default_return=None)
             def parse_due(task: dict) -> datetime | None:
                 due_date = task.get("due_date")
                 due_time = task.get("due_time")
                 if not due_date:
                     return None
-                try:
-                    if due_time:
-                        return datetime.strptime(f"{due_date} {due_time}", "%Y-%m-%d %H:%M")
-                    return datetime.strptime(due_date, "%Y-%m-%d")
-                except Exception:
-                    return None
+                if due_time:
+                    return datetime.strptime(f"{due_date} {due_time}", "%Y-%m-%d %H:%M")
+                return datetime.strptime(due_date, "%Y-%m-%d")
 
             if tasks:
                 dated_tasks = [(task, parse_due(task)) for task in tasks]
@@ -849,31 +847,29 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
         
         return None
 
+    @handle_errors("augmenting suggestions")
     def _augment_suggestions(self, parsed_command: ParsedCommand, response: InteractionResponse) -> InteractionResponse:
-        try:
-            if response.completed:
-                return response
-            msg = (response.message or "").lower()
-            suggestions: List[str] = []
-            if "multiple matching tasks" in msg:
-                suggestions = ["list tasks", "cancel"]
-            elif "confirm delete" in msg:
-                suggestions = ["confirm delete", "cancel"]
-            elif "did you want to complete this task" in msg:
-                suggestions = ["complete task 1", "cancel"]
-            elif "what would you like to update for" in msg:
-                if parsed_command.intent == "edit_schedule_period":
-                    suggestions = ["from 9am to 11am", "active off"]
-                else:
-                    suggestions = ["due date tomorrow", "priority high"]
-            elif parsed_command.intent in ["update_task", "complete_task", "delete_task"] and "which task" in msg:
-                suggestions = ["list tasks", "cancel"]
-            # Cap at 2
-            if suggestions:
-                response.suggestions = suggestions[:2]
+        if response.completed:
             return response
-        except Exception:
-            return response
+        msg = (response.message or "").lower()
+        suggestions: List[str] = []
+        if "multiple matching tasks" in msg:
+            suggestions = ["list tasks", "cancel"]
+        elif "confirm delete" in msg:
+            suggestions = ["confirm delete", "cancel"]
+        elif "did you want to complete this task" in msg:
+            suggestions = ["complete task 1", "cancel"]
+        elif "what would you like to update for" in msg:
+            if parsed_command.intent == "edit_schedule_period":
+                suggestions = ["from 9am to 11am", "active off"]
+            else:
+                suggestions = ["due date tomorrow", "priority high"]
+        elif parsed_command.intent in ["update_task", "complete_task", "delete_task"] and "which task" in msg:
+            suggestions = ["list tasks", "cancel"]
+        # Cap at 2
+        if suggestions:
+            response.suggestions = suggestions[:2]
+        return response
 
 # Global instance
 _interaction_manager_instance = None

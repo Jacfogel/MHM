@@ -359,24 +359,21 @@ class MHMManagerUI(QMainWindow):
         # Load and apply the QSS theme
         self.load_theme()
         
+    @handle_errors("loading theme", user_friendly=False, default_return=None)
     def load_theme(self):
         """Load and apply the QSS theme from the styles directory"""
-        try:
-            # Path to the QSS theme file
-            theme_path = Path(__file__).parent.parent / 'styles' / 'admin_theme.qss'
+        # Path to the QSS theme file
+        theme_path = Path(__file__).parent.parent / 'styles' / 'admin_theme.qss'
+        
+        if theme_path.exists():
+            with open(theme_path, 'r', encoding='utf-8') as f:
+                theme_content = f.read()
             
-            if theme_path.exists():
-                with open(theme_path, 'r', encoding='utf-8') as f:
-                    theme_content = f.read()
-                
-                # Apply the theme to the application
-                self.setStyleSheet(theme_content)
-                logger.info(f"QSS theme loaded successfully from: {theme_path}")
-            else:
-                logger.warning(f"QSS theme file not found: {theme_path}")
-                
-        except Exception as e:
-            logger.error(f"Failed to load QSS theme: {e}")
+            # Apply the theme to the application
+            self.setStyleSheet(theme_content)
+            logger.info(f"QSS theme loaded successfully from: {theme_path}")
+        else:
+            logger.warning(f"QSS theme file not found: {theme_path}")
         
     @handle_errors("connecting UI signals", default_return=None)
     def connect_signals(self):
@@ -996,37 +993,33 @@ class MHMManagerUI(QMainWindow):
             QMessageBox.warning(self, "Error", f"Failed to load user: {e}")
             self.disable_content_management()
     
+    @handle_errors("loading user categories", user_friendly=False, default_return=None)
     def load_user_categories(self, user_id):
         """Load categories for the selected user"""
-        try:
-            # Load user preferences
-            prefs_result = get_user_data(user_id, 'preferences')
-            prefs = prefs_result.get('preferences') or {}
-            if prefs and 'categories' in prefs:
-                categories = prefs['categories']
-                # Handle both list and dictionary formats
-                if isinstance(categories, dict):
-                    self.current_user_categories = list(categories.keys())
-                elif isinstance(categories, list):
-                    self.current_user_categories = categories
-                else:
-                    self.current_user_categories = []
+        # Load user preferences
+        prefs_result = get_user_data(user_id, 'preferences')
+        prefs = prefs_result.get('preferences') or {}
+        if prefs and 'categories' in prefs:
+            categories = prefs['categories']
+            # Handle both list and dictionary formats
+            if isinstance(categories, dict):
+                self.current_user_categories = list(categories.keys())
+            elif isinstance(categories, list):
+                self.current_user_categories = categories
             else:
                 self.current_user_categories = []
-            
-            # Update category combo box
-            self.ui.comboBox_user_categories.clear()
-            self.ui.comboBox_user_categories.addItem("Select a category...")
-            
-            for category in self.current_user_categories:
-                # Store the original category name as data, display the formatted name
-                # Replace underscores with spaces before applying title_case
-                formatted_category = _shared__title_case(category.replace('_', ' '))
-                self.ui.comboBox_user_categories.addItem(formatted_category, category)
-                
-        except Exception as e:
-            logger.error(f"Error loading user categories: {e}")
+        else:
             self.current_user_categories = []
+        
+        # Update category combo box
+        self.ui.comboBox_user_categories.clear()
+        self.ui.comboBox_user_categories.addItem("Select a category...")
+        
+        for category in self.current_user_categories:
+            # Store the original category name as data, display the formatted name
+            # Replace underscores with spaces before applying title_case
+            formatted_category = _shared__title_case(category.replace('_', ' '))
+            self.ui.comboBox_user_categories.addItem(formatted_category, category)
     
     @handle_errors("handling category selection", default_return=None)
     def on_category_selected(self, category):
@@ -1627,15 +1620,13 @@ class MHMManagerUI(QMainWindow):
         
         # Optional: Clean up old request files after a short delay
         import threading
+        @handle_errors("cleaning up old request file", user_friendly=False, default_return=None)
         def cleanup_old_requests():
             import time
             time.sleep(300)  # Wait 5 minutes
-            try:
-                if os.path.exists(request_file):
-                    os.remove(request_file)
-                    logger.debug(f"Cleaned up old request file: {request_file}")
-            except Exception as cleanup_error:
-                logger.warning(f"Could not clean up request file: {cleanup_error}")
+            if os.path.exists(request_file):
+                os.remove(request_file)
+                logger.debug(f"Cleaned up old request file: {request_file}")
         
         cleanup_thread = threading.Thread(target=cleanup_old_requests, daemon=True)
         cleanup_thread.start()
@@ -2195,170 +2186,162 @@ For detailed setup instructions, see the ui/UI_GUIDE.md file.
         
         help_window.exec()
     
+    @handle_errors("viewing all users summary", user_friendly=True, default_return=None)
     def view_all_users_summary(self):
         """Show a summary of all users in the system."""
-        try:
-            user_ids = get_all_user_ids()
+        user_ids = get_all_user_ids()
+        
+        # Create summary window
+        summary_window = QDialog(self)
+        summary_window.setWindowTitle("All Users Summary")
+        summary_window.setModal(True)
+        summary_window.resize(600, 400)
+        
+        layout = QVBoxLayout(summary_window)
+        
+        title_label = QLabel("All Users Summary")
+        title_label.setFont(QFont("Arial", 14, QFont.Weight.Bold))
+        layout.addWidget(title_label)
+        
+        # Create scrollable text area
+        text_widget = QTextEdit()
+        text_widget.setReadOnly(True)
+        layout.addWidget(text_widget)
+        
+        if not user_ids:
+            text_widget.setPlainText("No users found in the system.\n")
+        else:
+            summary_text = f"Total users: {len(user_ids)}\n\n"
             
-            # Create summary window
-            summary_window = QDialog(self)
-            summary_window.setWindowTitle("All Users Summary")
-            summary_window.setModal(True)
-            summary_window.resize(600, 400)
+            for user_id in user_ids:
+                # Get user account
+                user_data_result = get_user_data(user_id, 'account')
+                user_account = user_data_result.get('account')
+                # Get user context
+                context_result = get_user_data(user_id, 'context')
+                user_context = context_result.get('context')
+                if user_account:
+                    username = user_account.get('internal_username', 'Unknown')
+                    preferred_name = user_context.get('preferred_name', '') if user_context else ''
+                    prefs_result = get_user_data(user_id, 'preferences')
+                    prefs = prefs_result.get('preferences', {})
+                    categories = prefs.get('categories', [])
+                    messaging_service = prefs.get('channel', {}).get('type', 'Unknown')
+                    
+                    summary_text += f"User: {username}"
+                    if preferred_name:
+                        summary_text += f" ({preferred_name})"
+                    summary_text += f"\n"
+                    summary_text += f"  ID: {user_id}\n"
+                    summary_text += f"  Service: {messaging_service}\n"
+                    summary_text += f"  Categories: {', '.join(categories) if categories else 'None'}\n"
+                    summary_text += "\n"
             
-            layout = QVBoxLayout(summary_window)
-            
-            title_label = QLabel("All Users Summary")
-            title_label.setFont(QFont("Arial", 14, QFont.Weight.Bold))
-            layout.addWidget(title_label)
-            
-            # Create scrollable text area
-            text_widget = QTextEdit()
-            text_widget.setReadOnly(True)
-            layout.addWidget(text_widget)
-            
-            if not user_ids:
-                text_widget.setPlainText("No users found in the system.\n")
-            else:
-                summary_text = f"Total users: {len(user_ids)}\n\n"
-                
-                for user_id in user_ids:
-                    # Get user account
-                    user_data_result = get_user_data(user_id, 'account')
-                    user_account = user_data_result.get('account')
-                    # Get user context
-                    context_result = get_user_data(user_id, 'context')
-                    user_context = context_result.get('context')
-                    if user_account:
-                        username = user_account.get('internal_username', 'Unknown')
-                        preferred_name = user_context.get('preferred_name', '') if user_context else ''
-                        prefs_result = get_user_data(user_id, 'preferences')
-                        prefs = prefs_result.get('preferences', {})
-                        categories = prefs.get('categories', [])
-                        messaging_service = prefs.get('channel', {}).get('type', 'Unknown')
-                        
-                        summary_text += f"User: {username}"
-                        if preferred_name:
-                            summary_text += f" ({preferred_name})"
-                        summary_text += f"\n"
-                        summary_text += f"  ID: {user_id}\n"
-                        summary_text += f"  Service: {messaging_service}\n"
-                        summary_text += f"  Categories: {', '.join(categories) if categories else 'None'}\n"
-                        summary_text += "\n"
-                
-                text_widget.setPlainText(summary_text)
-            
-            close_button = QPushButton("Close")
-            close_button.clicked.connect(summary_window.accept)
-            layout.addWidget(close_button)
-            
-            summary_window.exec()
-            
-        except Exception as e:
-            logger.error(f"Failed to show users summary: {e}")
-            QMessageBox.critical(self, "Error", f"Failed to load users summary: {e}")
+            text_widget.setPlainText(summary_text)
+        
+        close_button = QPushButton("Close")
+        close_button.clicked.connect(summary_window.accept)
+        layout.addWidget(close_button)
+        
+        summary_window.exec()
     
+    @handle_errors("performing system health check", user_friendly=True, default_return=None)
     def system_health_check(self):
         """Perform a basic system health check."""
-        try:
-            # Create health check window
-            health_window = QDialog(self)
-            health_window.setWindowTitle("System Health Check")
-            health_window.setModal(True)
-            health_window.resize(500, 400)
-            
-            layout = QVBoxLayout(health_window)
-            
-            title_label = QLabel("System Health Check")
-            title_label.setFont(QFont("Arial", 14, QFont.Weight.Bold))
-            layout.addWidget(title_label)
-            
-            # Create scrollable text area
-            text_widget = QTextEdit()
-            text_widget.setReadOnly(True)
-            layout.addWidget(text_widget)
-            
-            # Perform checks
-            text_widget.append("Running system health checks...\n\n")
-            
-            # Check service status
-            is_running, pid = self.service_manager.is_service_running()
-            text_widget.append(f"✓ Service Status: {'Running' if is_running else 'Stopped'}")
-            if is_running:
-                text_widget.append(f" (PID: {pid})")
-            text_widget.append("\n")
-            
-            # Check Discord connectivity status if service is running
-            if is_running:
-                try:
-                    # Import communication manager to check Discord status
-                    from communication.core.channel_orchestrator import CommunicationManager
-                    comm_manager = CommunicationManager()
-                    discord_status = comm_manager.get_discord_connectivity_status()
-                    
-                    if discord_status:
-                        connection_status = discord_status.get('connection_status', 'unknown')
-                        if connection_status == 'connected':
-                            latency = discord_status.get('latency', 'unknown')
-                            guild_count = discord_status.get('guild_count', 'unknown')
-                            text_widget.append(f"✓ Discord Status: Connected (Latency: {latency}s, Guilds: {guild_count})\n")
-                        else:
-                            text_widget.append(f"⚠ Discord Status: {connection_status.title()}\n")
-                            
-                            # Show detailed error information
-                            detailed_errors = discord_status.get('detailed_errors', {})
-                            if detailed_errors:
-                                for error_type, error_info in detailed_errors.items():
-                                    error_msg = error_info.get('error_message', 'Unknown error')
-                                    text_widget.append(f"  - {error_type.title()}: {error_msg}\n")
-                    else:
-                        text_widget.append("? Discord Status: Unable to check\n")
-                except Exception as e:
-                    text_widget.append(f"? Discord Status: Error checking status - {e}\n")
-            else:
-                text_widget.append("? Discord Status: Service not running\n")
-            
-            # Check user count
-            user_ids = get_all_user_ids()
-            text_widget.append(f"✓ Total Users: {len(user_ids)}\n")
-            
-            # Check data directories
-            required_dirs = [core.config.BASE_DATA_DIR, core.config.USER_INFO_DIR_PATH]
-            for dir_path in required_dirs:
-                exists = os.path.exists(dir_path)
-                status = "✓" if exists else "✗"
-                text_widget.append(f"{status} Directory {dir_path}: {'Exists' if exists else 'Missing'}\n")
-            
-            # Check for common issues
-            text_widget.append("\nChecking for common issues...\n")
-            
-            # Check for orphaned message files
-            if os.path.exists(core.config.USER_INFO_DIR_PATH):
-                orphaned_files = 0
-                for root, dirs, files in os.walk(core.config.USER_INFO_DIR_PATH):
-                    for file in files:
-                        if file.endswith('.json'):
-                            # Extract user_id from filename
-                            user_id = file.replace('.json', '')
-                            if user_id not in user_ids:
-                                orphaned_files += 1
+        # Create health check window
+        health_window = QDialog(self)
+        health_window.setWindowTitle("System Health Check")
+        health_window.setModal(True)
+        health_window.resize(500, 400)
+        
+        layout = QVBoxLayout(health_window)
+        
+        title_label = QLabel("System Health Check")
+        title_label.setFont(QFont("Arial", 14, QFont.Weight.Bold))
+        layout.addWidget(title_label)
+        
+        # Create scrollable text area
+        text_widget = QTextEdit()
+        text_widget.setReadOnly(True)
+        layout.addWidget(text_widget)
+        
+        # Perform checks
+        text_widget.append("Running system health checks...\n\n")
+        
+        # Check service status
+        is_running, pid = self.service_manager.is_service_running()
+        text_widget.append(f"✓ Service Status: {'Running' if is_running else 'Stopped'}")
+        if is_running:
+            text_widget.append(f" (PID: {pid})")
+        text_widget.append("\n")
+        
+        # Check Discord connectivity status if service is running
+        if is_running:
+            try:
+                # Import communication manager to check Discord status
+                from communication.core.channel_orchestrator import CommunicationManager
+                comm_manager = CommunicationManager()
+                discord_status = comm_manager.get_discord_connectivity_status()
                 
-                if orphaned_files == 0:
-                    text_widget.append("✓ No orphaned message files found\n")
+                if discord_status:
+                    connection_status = discord_status.get('connection_status', 'unknown')
+                    if connection_status == 'connected':
+                        latency = discord_status.get('latency', 'unknown')
+                        guild_count = discord_status.get('guild_count', 'unknown')
+                        text_widget.append(f"✓ Discord Status: Connected (Latency: {latency}s, Guilds: {guild_count})\n")
+                    else:
+                        text_widget.append(f"⚠ Discord Status: {connection_status.title()}\n")
+                        
+                        # Show detailed error information
+                        detailed_errors = discord_status.get('detailed_errors', {})
+                        if detailed_errors:
+                            for error_type, error_info in detailed_errors.items():
+                                error_msg = error_info.get('error_message', 'Unknown error')
+                                text_widget.append(f"  - {error_type.title()}: {error_msg}\n")
                 else:
-                    text_widget.append(f"⚠ Found {orphaned_files} orphaned message files\n")
+                    text_widget.append("? Discord Status: Unable to check\n")
+            except Exception as e:
+                text_widget.append(f"? Discord Status: Error checking status - {e}\n")
+        else:
+            text_widget.append("? Discord Status: Service not running\n")
+        
+        # Check user count
+        user_ids = get_all_user_ids()
+        text_widget.append(f"✓ Total Users: {len(user_ids)}\n")
+        
+        # Check data directories
+        required_dirs = [core.config.BASE_DATA_DIR, core.config.USER_INFO_DIR_PATH]
+        for dir_path in required_dirs:
+            exists = os.path.exists(dir_path)
+            status = "✓" if exists else "✗"
+            text_widget.append(f"{status} Directory {dir_path}: {'Exists' if exists else 'Missing'}\n")
+        
+        # Check for common issues
+        text_widget.append("\nChecking for common issues...\n")
+        
+        # Check for orphaned message files
+        if os.path.exists(core.config.USER_INFO_DIR_PATH):
+            orphaned_files = 0
+            for root, dirs, files in os.walk(core.config.USER_INFO_DIR_PATH):
+                for file in files:
+                    if file.endswith('.json'):
+                        # Extract user_id from filename
+                        user_id = file.replace('.json', '')
+                        if user_id not in user_ids:
+                            orphaned_files += 1
             
-            text_widget.append("\nHealth check complete.\n")
-            
-            close_button = QPushButton("Close")
-            close_button.clicked.connect(health_window.accept)
-            layout.addWidget(close_button)
-            
-            health_window.exec()
-            
-        except Exception as e:
-            logger.error(f"Failed to perform health check: {e}")
-            QMessageBox.critical(self, "Error", f"Failed to perform health check: {e}")
+            if orphaned_files == 0:
+                text_widget.append("✓ No orphaned message files found\n")
+            else:
+                text_widget.append(f"⚠ Found {orphaned_files} orphaned message files\n")
+        
+        text_widget.append("\nHealth check complete.\n")
+        
+        close_button = QPushButton("Close")
+        close_button.clicked.connect(health_window.accept)
+        layout.addWidget(close_button)
+        
+        health_window.exec()
 
     @handle_errors("handling window close event", default_return=None)
     def closeEvent(self, event):

@@ -1171,6 +1171,7 @@ Additional Instructions:
         prompt_manager.reload_custom_prompt()
         logger.info("System prompt reloaded via AI chatbot")
     
+    @handle_errors("testing system prompt integration", user_friendly=False, default_return={})
     def test_system_prompt_integration(self) -> dict:
         """
         Test the system prompt integration and return status information.

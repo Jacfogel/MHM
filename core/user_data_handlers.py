@@ -884,6 +884,12 @@ def _save_user_data__check_cross_file_invariants(
         if preferences_data:
             categories_list = preferences_data.get("categories", [])
             if isinstance(categories_list, list) and len(categories_list) > 0:
+                # Ensure account_data exists - if not loaded, try to load it (with auto_create=False to avoid creating new users)
+                if not account_data:
+                    account_result = get_user_data(user_id, 'account', auto_create=False)
+                    account_data = account_result.get('account', {})
+                
+                # Only apply invariant if account_data exists (user was created before)
                 if account_data:
                     feats = dict(account_data.get('features', {})) if isinstance(account_data.get('features'), dict) else {}
                     if feats.get('automated_messages') != 'enabled':

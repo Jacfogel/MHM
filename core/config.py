@@ -555,6 +555,8 @@ def validate_all_configuration() -> Dict[str, any]:
             'summary': 'Configuration validation failed'
         }
 
+# ERROR_HANDLING_EXCLUDE: This function intentionally raises ConfigValidationError exceptions
+# that should propagate to callers for proper error handling, not be caught by decorator
 def validate_and_raise_if_invalid() -> List[str]:
     """Validate configuration and raise ConfigValidationError if invalid.
     

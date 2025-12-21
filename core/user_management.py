@@ -1232,6 +1232,7 @@ TIMEZONE_OPTIONS = [
 _PRESETS_CACHE: Dict[str, List[str]] | None = None
 
 
+@handle_errors("loading presets JSON", default_return=PREDEFINED_OPTIONS)
 def _load_presets_json() -> Dict[str, List[str]]:
     """Load presets from resources/presets.json (cached)."""
     global _PRESETS_CACHE
@@ -1246,9 +1247,6 @@ def _load_presets_json() -> Dict[str, List[str]]:
     except FileNotFoundError:
         logger.warning("presets.json not found – falling back to hard-coded options")
         _PRESETS_CACHE = PREDEFINED_OPTIONS  # fallback
-    except Exception as e:
-        logger.error(f"Failed loading presets.json: {e}")
-        _PRESETS_CACHE = PREDEFINED_OPTIONS
     return _PRESETS_CACHE
 
 

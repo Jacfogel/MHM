@@ -407,6 +407,7 @@ class CommunicationManager:
         
         return len(self._channels_dict) > 0
 
+    @handle_errors("initializing channel with retry", user_friendly=False, default_return=False)
     async def _initialize_channel_with_retry(self, channel: BaseChannel, config: ChannelConfig) -> bool:
         """Initialize a channel with retry logic"""
         retry_delay = config.retry_delay
@@ -596,6 +597,7 @@ class CommunicationManager:
         
         return len(self._channels_dict) > 0
 
+    @handle_errors("initializing channel with retry (sync)", user_friendly=False, default_return=False)
     def _initialize_channel_with_retry_sync(self, channel: BaseChannel, config: ChannelConfig) -> bool:
         """Synchronous version of channel initialization with retry logic"""
         retry_delay = config.retry_delay
@@ -648,6 +650,7 @@ class CommunicationManager:
         logger.error(f"Failed to initialize {channel.config.name} after {config.max_retries} attempts")
         return False
 
+    @handle_errors("sending message", default_return=False)
     async def send_message(self, channel_name: str, recipient: str, message: str, **kwargs) -> bool:
         """Send message via specified channel using unified interface"""
         logger.debug(f"Preparing to send message to {recipient} via {channel_name}")
@@ -740,6 +743,7 @@ class CommunicationManager:
             handle_communication_error(e, channel_name, f"message send to {recipient}", kwargs.get('user_id'))
             return False
 
+    @handle_errors("checking logging health", user_friendly=False, default_return=False)
     def _check_logging_health(self):
         """
         Check if logging is still working and recover if needed.
@@ -767,6 +771,7 @@ class CommunicationManager:
                 return True
             return False
 
+    @handle_errors("sending message (sync)", default_return=False)
     def send_message_sync(self, channel_name: str, recipient: str, message: str, **kwargs) -> bool:
         """Synchronous wrapper with logging health check"""
         # Check logging health periodically
@@ -860,6 +865,7 @@ class CommunicationManager:
                 )
             return False
 
+    @handle_errors("broadcasting message", default_return={})
     async def broadcast_message(self, recipients: Dict[str, str], message: str) -> Dict[str, bool]:
         """Send message to multiple channels"""
         logger.debug(f"Broadcasting message to {len(recipients)} channels")
@@ -889,15 +895,12 @@ class CommunicationManager:
         logger.info(f"Broadcast completed: {successful}/{len(recipients)} channels successful")
         return results
 
+    @handle_errors("getting channel status", user_friendly=False, default_return=None)
     async def get_channel_status(self, channel_name: str) -> Optional[ChannelStatus]:
         """Get status of a specific channel"""
         channel = self._channels_dict.get(channel_name)
         if channel:
-            try:
-                return await channel.get_status()
-            except Exception as e:
-                logger.error(f"Error getting status for channel {channel_name}: {e}")
-                return None
+            return await channel.get_status()
         return None
 
     @handle_errors("getting all channel statuses", default_return={})
@@ -909,12 +912,14 @@ class CommunicationManager:
                 statuses[name] = await channel.get_status()
         return statuses
 
+    @handle_errors("performing health check on all channels", user_friendly=False, default_return={})
     async def health_check_all(self) -> Dict[str, Any]:
         """Perform health check on all channels"""
         health_results = {}
         
         for name, channel in self._channels_dict.items():
             if channel:
+                # Per-item error handling: continue processing other channels even if one fails
                 try:
                     health_results[name] = await channel.get_health_status()
                 except Exception as e:
@@ -934,6 +939,7 @@ class CommunicationManager:
                 return discord_channel.get_health_status()
         return None
 
+    @handle_errors("shutting down all channels (async)", user_friendly=False, default_return=None)
     async def _shutdown_all_async(self):
         """Async method to shutdown all channels"""
         for name, channel in list(self._channels_dict.items()):
@@ -994,6 +1000,7 @@ class CommunicationManager:
             # Final fallback
             self._shutdown_sync()
 
+    @handle_errors("shutting down all channels (sync)", user_friendly=False, default_return=None)
     def _shutdown_sync(self):
         """
         Synchronous shutdown method for all channels.
@@ -1035,6 +1042,7 @@ class CommunicationManager:
         
         logger.info("CommunicationManager shutdown complete")
 
+    @handle_errors("receiving messages", default_return=[])
     async def receive_messages(self) -> List[Dict[str, Any]]:
         """Receive messages from all communication channels"""
         logger.debug("Receiving messages from all communication channels.")
@@ -1184,6 +1192,7 @@ class CommunicationManager:
             logger.error(f"Unknown messaging service: {messaging_service}")
             return None
 
+    @handle_errors("determining if check-in prompt should be sent", default_return=True)
     def _should_send_checkin_prompt(self, user_id: str, checkin_prefs: dict) -> bool:
         """
         Determine if it's time to send a check-in prompt based on user preferences.
@@ -1246,6 +1255,7 @@ class CommunicationManager:
         else:
             logger.debug(f"Check-in not due yet for user {user_id}")
 
+    @handle_errors("sending check-in prompt", default_return=None)
     def _send_checkin_prompt(self, user_id: str, messaging_service: str, recipient: str):
         """
         Send a check-in prompt message to start the check-in flow.
@@ -1301,6 +1311,7 @@ class CommunicationManager:
             logger.error(f"Error sending check-in prompt to user {user_id}: {e}")
             # Preserve conversation state to allow retry after recovery
 
+    @handle_errors("sending AI-generated message", default_return=(False, None))
     def _send_ai_generated_message(self, user_id: str, category: str, messaging_service: str, recipient: str) -> tuple[bool, str | None]:
         """
         Send an AI-generated personalized message using contextual AI.
@@ -1343,6 +1354,7 @@ class CommunicationManager:
             logger.error(f"Error sending AI-generated message for user {user_id}: {e}")
             return False, None
 
+    @handle_errors("sending predefined message", default_return=(False, None))
     def _send_predefined_message(self, user_id: str, category: str, messaging_service: str, recipient: str) -> tuple[bool, str | None]:
         """
         Send a pre-defined message from the user's message library with deduplication.

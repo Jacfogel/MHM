@@ -48,67 +48,60 @@ class SchedulerManager:
         """
         Starts the daily scheduler in a separate thread that handles all users.
         """
+        @handle_errors("scheduler loop", default_return=None)
         def scheduler_loop():
-            try:
-                # Clear all accumulated jobs first to prevent job accumulation
-                self.clear_all_accumulated_jobs()
-                
-                # Schedule daily log archival at 02:00
-                schedule.every().day.at("02:00").do(self.perform_daily_log_archival)
-                logger.info("Scheduled new daily job for log archival at 02:00")
-                
-                # Schedule a single full daily scheduler job at 01:00 to handle complete system initialization
-                # This ensures checkins, task reminders, full cleanup, and weekly backups (if needed) happen daily
-                schedule.every().day.at("01:00").do(self.run_full_daily_scheduler)
-                logger.info("Scheduled full daily scheduler job at 01:00 (includes checkins, task reminders, cleanup, and backup check)")
-                
-                # Schedule messages for all users immediately on startup (one-time only)
-                self.schedule_all_users_immediately()
-                
-                # Log job count after daily job scheduling
-                active_jobs = len(schedule.jobs)
-                logger.info(f"Daily job scheduling complete: {active_jobs} total active jobs scheduled")
-            except Exception as e:
-                logger.error(f"Error scheduling daily jobs: {e}")
-                raise
+            # Clear all accumulated jobs first to prevent job accumulation
+            self.clear_all_accumulated_jobs()
+            
+            # Schedule daily log archival at 02:00
+            schedule.every().day.at("02:00").do(self.perform_daily_log_archival)
+            logger.info("Scheduled new daily job for log archival at 02:00")
+            
+            # Schedule a single full daily scheduler job at 01:00 to handle complete system initialization
+            # This ensures checkins, task reminders, full cleanup, and weekly backups (if needed) happen daily
+            schedule.every().day.at("01:00").do(self.run_full_daily_scheduler)
+            logger.info("Scheduled full daily scheduler job at 01:00 (includes checkins, task reminders, cleanup, and backup check)")
+            
+            # Schedule messages for all users immediately on startup (one-time only)
+            self.schedule_all_users_immediately()
+            
+            # Log job count after daily job scheduling
+            active_jobs = len(schedule.jobs)
+            logger.info(f"Daily job scheduling complete: {active_jobs} total active jobs scheduled")
     
-            try:
-                loop_count = 0
-                while not self._stop_event.is_set():  # Check for stop signal
-                    schedule.run_pending()
-                    loop_count += 1
-                    
-                    # Log every 60 iterations (60 minutes) for diagnostic purposes
-                    if loop_count % 60 == 0:
-                        active_jobs = len(schedule.jobs)
-                        # Only log if there are actually jobs scheduled - don't log 0 jobs
-                        if active_jobs > 0:
-                            # Count different types of jobs for more meaningful logging
-                            system_jobs = 0
-                            user_message_jobs = 0
-                            task_jobs = 0
-                            
-                            for job in schedule.jobs:
-                                if hasattr(job.job_func, 'func'):
-                                    if job.job_func.func == self.perform_daily_log_archival:
-                                        system_jobs += 1
-                                    elif job.job_func.func == self.run_full_daily_scheduler:
-                                        system_jobs += 1
-                                    elif job.job_func.func == self.handle_sending_scheduled_message:
-                                        user_message_jobs += 1
-                                    elif job.job_func.func == self.handle_task_reminder:
-                                        task_jobs += 1
-                            
-                            logger.info(f"Scheduler running: {active_jobs} total jobs ({system_jobs} system, {user_message_jobs} message, {task_jobs} task)")
+            loop_count = 0
+            while not self._stop_event.is_set():  # Check for stop signal
+                schedule.run_pending()
+                loop_count += 1
+                
+                # Log every 60 iterations (60 minutes) for diagnostic purposes
+                if loop_count % 60 == 0:
+                    active_jobs = len(schedule.jobs)
+                    # Only log if there are actually jobs scheduled - don't log 0 jobs
+                    if active_jobs > 0:
+                        # Count different types of jobs for more meaningful logging
+                        system_jobs = 0
+                        user_message_jobs = 0
+                        task_jobs = 0
                         
-                    # Use wait instead of sleep to allow immediate shutdown
-                    # Use shorter timeout to allow responsive shutdown
-                    if self._stop_event.wait(timeout=10):  # Wait 10 seconds or until stop signal
-                        break
-                logger.info("Scheduler loop stopped gracefully.")
-            except Exception as e:
-                logger.error(f"Error in scheduler loop: {e}")
-                raise
+                        for job in schedule.jobs:
+                            if hasattr(job.job_func, 'func'):
+                                if job.job_func.func == self.perform_daily_log_archival:
+                                    system_jobs += 1
+                                elif job.job_func.func == self.run_full_daily_scheduler:
+                                    system_jobs += 1
+                                elif job.job_func.func == self.handle_sending_scheduled_message:
+                                    user_message_jobs += 1
+                                elif job.job_func.func == self.handle_task_reminder:
+                                    task_jobs += 1
+                        
+                        logger.info(f"Scheduler running: {active_jobs} total jobs ({system_jobs} system, {user_message_jobs} message, {task_jobs} task)")
+                    
+                # Use wait instead of sleep to allow immediate shutdown
+                # Use shorter timeout to allow responsive shutdown
+                if self._stop_event.wait(timeout=10):  # Wait 10 seconds or until stop signal
+                    break
+            logger.info("Scheduler loop stopped gracefully.")
 
         self._stop_event.clear()  # Ensure stop event is reset
         self.scheduler_thread = threading.Thread(target=scheduler_loop)
@@ -1117,6 +1110,7 @@ class SchedulerManager:
         # Fallback to last task if something went wrong
         return task_weights[-1][0] if task_weights else random.choice(incomplete_tasks)
 
+    @handle_errors("selecting task for reminder", default_return=None)
     def select_task_for_reminder(self, incomplete_tasks: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Select a task for reminder using priority-based and due date proximity weighting.
@@ -1127,30 +1121,23 @@ class SchedulerManager:
         Returns:
             Selected task dictionary
         """
-        try:
-            from datetime import datetime
-            
-            # Handle edge cases
-            edge_case_result = self._select_task_for_reminder__handle_edge_cases(incomplete_tasks)
-            if edge_case_result != "PROCEED":
-                return edge_case_result
-            
-            # Calculate weights for each task
-            today = datetime.now().date()
-            task_weights = self._select_task_for_reminder__calculate_task_weights(incomplete_tasks, today)
-            
-            # Select task based on weights
-            selected_task = self._select_task_for_reminder__select_task_by_weight(task_weights, incomplete_tasks)
-            
-            logger.debug(f"Selected task '{selected_task.get('title', 'Unknown')}' with priority '{selected_task.get('priority', 'medium')}' and due date '{selected_task.get('due_date', 'None')}'")
-            
-            return selected_task
-            
-        except Exception as e:
-            logger.error(f"Error selecting task for reminder: {e}")
-            # Fallback to random selection
-            import random
-            return random.choice(incomplete_tasks) if incomplete_tasks else None
+        from datetime import datetime
+        
+        # Handle edge cases
+        edge_case_result = self._select_task_for_reminder__handle_edge_cases(incomplete_tasks)
+        if edge_case_result != "PROCEED":
+            return edge_case_result
+        
+        # Calculate weights for each task
+        today = datetime.now().date()
+        task_weights = self._select_task_for_reminder__calculate_task_weights(incomplete_tasks, today)
+        
+        # Select task based on weights
+        selected_task = self._select_task_for_reminder__select_task_by_weight(task_weights, incomplete_tasks)
+        
+        logger.debug(f"Selected task '{selected_task.get('title', 'Unknown')}' with priority '{selected_task.get('priority', 'medium')}' and due date '{selected_task.get('due_date', 'None')}'")
+        
+        return selected_task
 
     @handle_errors("getting random time within task period")
     def get_random_time_within_task_period(self, start_time, end_time):

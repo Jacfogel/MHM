@@ -32,7 +32,8 @@ class ChannelManagementDialog(QDialog):
         layout.addWidget(self.channel_widget)
         channel_enabled = False
         if self.user_id:
-            try:
+            @handle_errors("loading user channel data", user_friendly=False, default_return=None)
+            def load_user_channel_data():
                 user_data_result = get_user_data(self.user_id, 'account')
                 account = user_data_result.get('account') or {}
                 features = account.get('features', {})
@@ -55,8 +56,8 @@ class ChannelManagementDialog(QDialog):
                 elif channel_lc == 'discord':
                     value = discord_id
                 self.channel_widget.set_selected_channel(channel_cap, value)
-            except Exception as e:
-                get_component_logger('ui').error(f"Exception in load_user_channel_data: {e}")
+            
+            load_user_channel_data()
         
         # Connect Save/Cancel
         self.ui.buttonBox_save_cancel.accepted.connect(self.save_channel_settings)

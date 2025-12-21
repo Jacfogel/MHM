@@ -36,6 +36,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-21 - Phase 1 Error Handling Decorator Migration Complete **COMPLETED**
+- Completed Phase 1 error handling migration: applied `@handle_errors` decorator to all 54 identified functions (1 high-priority, 45 medium-priority, plus low-priority) across `bot.py`, `scheduler.py`, `service.py`, `channel_monitor.py`, `channel_orchestrator.py`, UI dialogs, and other modules.
+- Updated tests to work with decorator behavior and fixed parallel execution issues by marking sensitive tests with `@pytest.mark.no_parallel`. Added `# ERROR_HANDLING_EXCLUDE` to `validate_and_raise_if_invalid` in `core/config.py` since it intentionally propagates exceptions.
+- All tests passing (3602 passed, 1 skipped, 0 failed). Error handling analysis confirms 0 Phase 1 candidates remaining.
+
 ### 2025-12-21 - Unused Imports Tool Decomposition and Test Coverage Completion **COMPLETED**
 - Decomposed `analyze_unused_imports.py` into separate analysis and report generation tools following naming conventions (`generate_unused_imports_report.py`).
 - Created comprehensive test suite (10 tests) for report generation covering initialization, report creation, file rotation, and integration.
@@ -52,7 +57,7 @@ Guidelines:
 - Added three improvement tasks to plan: rename system_signals, consider consolidating coverage tools, investigate quick_status placement.
 
 ### 2025-12-20 - Development Tools Reporting Fixes and TODO Sync Improvements **COMPLETED**
-- Fixed TODO sync detection to properly recognize `✅ COMPLETE` format and avoid false positives from "Complete" in task titles. Removed 3 completed TODO entries already documented in changelogs.
+- Fixed TODO sync detection to properly recognize `[OK] COMPLETE` format and avoid false positives from "Complete" in task titles. Removed 3 completed TODO entries already documented in changelogs.
 - Fixed data loading discrepancy: `AI_PRIORITIES.md` was using registry file coverage instead of code docstring data, causing inconsistent metrics. Both reports now use `analyze_functions` data consistently.
 - Added Function Docstring Coverage to Documentation Status section in consolidated report, ensuring it's always visible even at 100% coverage.
 - Fixed ASCII compliance issue in TODO.md. All documentation now passes compliance checks.
