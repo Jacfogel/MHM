@@ -569,33 +569,31 @@ class TestTaskManagementDialogRealBehavior:
         mock_period.get_period_data.return_value = {'name': 'morning'}
         dialog.task_widget.period_widgets = [mock_period]
         
+        # Set up initial state: ensure task_management is disabled initially
+        from core.user_data_handlers import get_user_data, update_user_account
+        initial_account = get_user_data(test_user, 'account').get('account', {})
+        if 'features' not in initial_account:
+            initial_account['features'] = {}
+        initial_account['features']['task_management'] = 'disabled'
+        update_user_account(test_user, {'account': initial_account})
+        
         with patch.object(dialog.task_widget, 'get_task_settings', return_value=valid_settings):
             with patch('ui.dialogs.task_management_dialog.validate_schedule_periods', return_value=(True, [])):
                 with patch('ui.dialogs.task_management_dialog.QMessageBox'):
-                    with patch('ui.dialogs.task_management_dialog.get_user_data') as mock_get_data:
-                        with patch('ui.dialogs.task_management_dialog.setup_default_task_tags'):
-                            with patch.object(dialog.task_widget, 'save_recurring_task_settings'):
-                                mock_get_data.return_value = {
-                                    'account': {
-                                        'features': {
-                                            'task_management': 'disabled'
-                                        }
-                                    }
-                                }
-                                
-                                # Act - Save settings
-                                dialog.save_task_settings()
-                                
-                                # Create new dialog instance to simulate reload
-                                new_dialog = TaskManagementDialog(parent=None, user_id=test_user)
-                                
-                                # Assert - Verify data persists
-                                from core.user_data_handlers import get_user_data
-                                persisted_data = get_user_data(test_user, 'account')
-                                
-                                assert 'features' in persisted_data.get('account', {}), \
-                                    "Account should have features after reload"
-                                assert persisted_data['account']['features'].get('task_management') == 'enabled', \
-                                    "Task management should remain enabled after reload"
+                    with patch('ui.dialogs.task_management_dialog.setup_default_task_tags'):
+                        with patch.object(dialog.task_widget, 'save_recurring_task_settings'):
+                            # Act - Save settings (this will read real data, update it, and save)
+                            dialog.save_task_settings()
+                            
+                            # Create new dialog instance to simulate reload
+                            new_dialog = TaskManagementDialog(parent=None, user_id=test_user)
+                            
+                            # Assert - Verify data persists (use real function)
+                            persisted_data = get_user_data(test_user, 'account')
+                            
+                            assert 'features' in persisted_data.get('account', {}), \
+                                "Account should have features after reload"
+                            assert persisted_data['account']['features'].get('task_management') == 'enabled', \
+                                "Task management should remain enabled after reload"
 
 

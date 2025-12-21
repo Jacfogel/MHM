@@ -474,8 +474,8 @@ class CommandsMixin:
         
         return result
     
-    def run_unused_imports_report(self):
-        """Run unused imports analysis"""
+    def run_unused_imports(self):
+        """Run unused imports analysis (analysis only)"""
         logger.info("Analyzing unused imports...")
         logger.info("=" * 50)
         result = self.run_analyze_unused_imports()
@@ -483,6 +483,16 @@ class CommandsMixin:
             logger.info("Unused imports analysis completed!")
         else:
             logger.warning(f"Unused imports analysis completed with issues: {result.get('error', 'Unknown error')}")
+        return result
+    
+    def run_unused_imports_report(self):
+        """Run unused imports report generation (generates markdown report from analysis results)"""
+        logger.info("=" * 50)
+        result = self.run_generate_unused_imports_report()
+        if result.get('success'):
+            logger.info("Unused imports report generated successfully!")
+        else:
+            logger.warning(f"Unused imports report generation completed with issues: {result.get('error', 'Unknown error')}")
         return result
     
     def generate_directory_trees(self):

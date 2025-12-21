@@ -36,6 +36,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-21 - Unused Imports Tool Decomposition and Test Coverage Completion **COMPLETED**
+- Decomposed `analyze_unused_imports.py` into separate analysis and report generation tools following naming conventions (`generate_unused_imports_report.py`).
+- Created comprehensive test suite (10 tests) for report generation covering initialization, report creation, file rotation, and integration.
+- Fixed audit orchestration bug where Tier 3 was calling report generator instead of analysis tool, and fixed report generator to correctly detect full findings data.
+- Fixed UI test `test_save_task_settings_persists_after_reload` to use real file operations for proper behavior validation.
+- All tests passing: 3593 passed, 0 failed.
+
 ### 2025-12-20 - Development Tools Logging Standardization and Cleanup **COMPLETED**
 - Standardized all 27 development tools to use consistent action-verb logging ("Analyzing...", "Generating...", "Running...") instead of generic "Running..." messages for better clarity.
 - Fixed critical `IndentationError` in `generate_test_coverage.py` that prevented test coverage generation from running.

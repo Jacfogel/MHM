@@ -370,13 +370,14 @@ class AuditOrchestrationMixin:
             ('generate_test_coverage', self.run_coverage_regeneration),
             ('generate_dev_tools_coverage', self.run_dev_tools_coverage),
             ('analyze_test_markers', lambda: self.run_test_markers('check')),
-            ('analyze_unused_imports', self.run_unused_imports_report),
+            ('analyze_unused_imports', self.run_unused_imports),
             ('analyze_legacy_references', self.run_analyze_legacy_references),
         ]
         
         tier3_report_tools = [
             ('generate_legacy_reference_report', self.run_generate_legacy_reference_report),
             ('generate_test_coverage_reports', self.run_generate_test_coverage_reports),
+            ('generate_unused_imports_report', self.run_generate_unused_imports_report),
         ]
         
         for tool_name, tool_func in tier3_analyze_tools:

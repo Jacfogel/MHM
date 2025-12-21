@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2025-12-20 04:39:56",
+  "last_generated": "2025-12-21 01:00:18",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2025-12-20T04:39:56.769037",
+  "timestamp": "2025-12-21T01:00:18.202728",
   "successful": [
     "analyze_functions",
     "analyze_function_patterns",
@@ -54,7 +54,7 @@
           "utilities": 0
         }
       },
-      "timestamp": "2025-12-20T04:31:26.639592"
+      "timestamp": "2025-12-21T00:50:13.871502"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -2002,7 +2002,7 @@
           ]
         }
       },
-      "timestamp": "2025-12-20T04:31:53.028584"
+      "timestamp": "2025-12-21T00:50:39.353250"
     },
     "analyze_function_registry": {
       "success": true,
@@ -4196,7 +4196,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2025-12-20T04:31:43.962045"
+      "timestamp": "2025-12-21T00:50:30.275509"
     },
     "analyze_package_exports": {
       "success": true,
@@ -11164,13 +11164,13 @@
       "success": true,
       "data": {
         "files": {
-          "development_docs/CHANGELOG_DETAIL.md": 1,
+          "development_docs/CHANGELOG_DETAIL.md": 2,
           "ai_development_docs/AI_CHANGELOG.md": 1
         },
         "file_count": 2,
-        "total_issues": 2
+        "total_issues": 3
       },
-      "timestamp": "2025-12-20T04:31:29.315211"
+      "timestamp": "2025-12-21T00:50:16.637228"
     },
     "analyze_documentation": {
       "success": true,
@@ -11211,7 +11211,7 @@
                 "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.19184973326389937,
+              "similarity_score": 0.19181572936829988,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -11376,7 +11376,7 @@
               ]
             },
             "TODO.md": {
-              "content_length": 16176,
+              "content_length": 17240,
               "header_info": "# TODO.md - MHM Project Tasks\n\n> **File**: `TODO.md`\n> **Audience**: Human Developer (Beginner Programmer) and AI collaborators\n> **Purpose**: Current development priorities and planned improvements  ",
               "section_count": 9,
               "sections": [
@@ -11424,20 +11424,20 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 148184,
+              "content_length": 149969,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n\n\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent ch",
-              "section_count": 172,
+              "section_count": 174,
               "sections": [
                 "Introduction",
                 "Overview",
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2025-12-21 - Unused Imports Tool Decomposition and Test Coverage Completion **COMPLETED**",
+                "2025-12-20 - Development Tools Logging Standardization and Cleanup **COMPLETED**",
                 "2025-12-20 - Development Tools Reporting Fixes and TODO Sync Improvements **COMPLETED**",
                 "2025-12-18 - Development Tools Result Saving and Log Rotation Fixes **COMPLETED**",
-                "2025-12-18 - Unified Backup and Archive System Implementation **COMPLETED**",
-                "2025-12-17 - Code Comment Cleanup and Development Tools Fixes **COMPLETED**",
-                "2025-12-17 - Data Directory Cleanup and Development Tools Improvements **COMPLETED**"
+                "2025-12-18 - Unified Backup and Archive System Implementation **COMPLETED**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -11623,9 +11623,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 953641,
+              "content_length": 959004,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 325,
+              "section_count": 327,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -11633,10 +11633,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2025-12-21 - Unused Imports Tool Decomposition and Test Coverage Completion **COMPLETED**",
+                "2025-12-20 - Development Tools Logging Standardization and Cleanup **COMPLETED**",
                 "2025-12-20 - Development Tools Reporting Fixes and TODO Sync Improvements **COMPLETED**",
-                "2025-12-18 - Development Tools Result Saving and Log Rotation Fixes **COMPLETED**",
-                "2025-12-18 - Unified Backup and Archive System Implementation **COMPLETED**",
-                "2025-12-17 - Code Comment Cleanup and Development Tools Fixes **COMPLETED**"
+                "2025-12-18 - Development Tools Result Saving and Log Rotation Fixes **COMPLETED**"
               ]
             },
             "development_docs/PLANS.md": {
@@ -11657,7 +11657,7 @@
               ]
             },
             "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
-              "content_length": 16397,
+              "content_length": 16547,
               "header_info": "# AI Development Tools Guide\n\n> **File**: `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`  \n> **Audience**: AI collaborators and automated tooling  \n> **Purpose**: Routing and constraints for all AI",
               "section_count": 11,
               "sections": [
@@ -11674,7 +11674,7 @@
               ]
             },
             "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
-              "content_length": 28249,
+              "content_length": 28777,
               "header_info": "# Development Tools Guide\n\n> **File**: `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`  \n> **Audience**: Human maintainers and contributors  \n> **Purpose**: Detailed reference for every development too",
               "section_count": 17,
               "sections": [
@@ -11858,20 +11858,20 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2025-12-20T04:31:34.729584"
+      "timestamp": "2025-12-21T00:50:22.152241"
     },
     "analyze_documentation_sync": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 2,
+          "total_issues": 3,
           "files_affected": 0,
           "status": "FAIL"
         },
         "details": {
           "paired_doc_issues": 0,
           "path_drift_issues": 0,
-          "ascii_compliance_issues": 2,
+          "ascii_compliance_issues": 3,
           "heading_numbering_issues": 0,
           "missing_address_issues": 0,
           "unconverted_link_issues": 0,
@@ -11884,11 +11884,11 @@
           },
           "ascii_compliance": {
             "files": {
-              "development_docs/CHANGELOG_DETAIL.md": 1,
+              "development_docs/CHANGELOG_DETAIL.md": 2,
               "ai_development_docs/AI_CHANGELOG.md": 1
             },
             "file_count": 2,
-            "total_issues": 2
+            "total_issues": 3
           },
           "heading_numbering": {
             "files": {},
@@ -11907,7 +11907,7 @@
           }
         }
       },
-      "timestamp": "2025-12-20T04:31:32.933289"
+      "timestamp": "2025-12-21T00:50:20.519985"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -11916,7 +11916,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-20T04:31:30.314490"
+      "timestamp": "2025-12-21T00:50:17.526114"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -11925,7 +11925,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-20T04:31:31.932509"
+      "timestamp": "2025-12-21T00:50:19.076791"
     },
     "analyze_path_drift": {
       "success": true,
@@ -11934,7 +11934,7 @@
         "total_issues": 0,
         "detailed_issues": {}
       },
-      "timestamp": "2025-12-20T04:31:28.327341"
+      "timestamp": "2025-12-21T00:50:15.765608"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -11943,7 +11943,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-20T04:31:32.927181"
+      "timestamp": "2025-12-21T00:50:20.512859"
     },
     "analyze_error_handling": {
       "success": true,
@@ -11965,18 +11965,18 @@
             "handle_configuration_error": 4,
             "ValidationError": 16,
             "ConfigurationError": 6,
-            "error_handler_usage": 8,
             "handle_communication_error": 5,
+            "error_handler_usage": 8,
             "handle_network_error": 5,
             "handle_validation_error": 2,
             "handle_ai_error": 16,
             "DataError": 14,
+            "handle_file_error": 3,
             "CommunicationError": 2,
             "FileOperationError": 11,
-            "safe_file_operation": 1,
             "AIError": 2,
             "MHMError": 2,
-            "handle_file_error": 3
+            "safe_file_operation": 1
           },
           "missing_error_handling": [],
           "error_handling_quality": {
@@ -12570,7 +12570,7 @@
           ]
         }
       },
-      "timestamp": "2025-12-20T04:31:38.028966"
+      "timestamp": "2025-12-21T00:50:24.871378"
     },
     "analyze_test_coverage": {
       "success": true,
@@ -12581,32 +12581,32 @@
         },
         "details": {
           "overall": {
-            "coverage": 71.6,
+            "coverage": 72.7,
             "statements": 27224,
-            "covered": 19490,
-            "missed": 7734,
-            "generated": "2025-12-20T04:37:29.146152"
+            "covered": 19797,
+            "missed": 7427,
+            "generated": "2025-12-21T00:57:31.473425"
           },
           "modules": [
             {
               "module": "communication",
-              "coverage": 67.5,
-              "missed": 2850
+              "coverage": 69.7,
+              "missed": 2655
             },
             {
               "module": "ui",
               "coverage": 72.5,
-              "missed": 1714
+              "missed": 1709
             },
             {
               "module": "core",
-              "coverage": 72.6,
-              "missed": 2649
+              "coverage": 73.2,
+              "missed": 2588
             },
             {
               "module": "ai",
-              "coverage": 76.2,
-              "missed": 406
+              "coverage": 78.9,
+              "missed": 360
             },
             {
               "module": "tasks",
@@ -12621,34 +12621,34 @@
           ],
           "worst_files": [
             {
-              "path": "communication/command_handlers/task_handler.py",
-              "coverage": 30.2,
-              "missing": 261
-            },
-            {
-              "path": "core/schedule_utilities.py",
-              "coverage": 36.1,
-              "missing": 39
-            },
-            {
               "path": "communication/communication_channels/discord/bot.py",
               "coverage": 46.8,
               "missing": 636
             },
             {
               "path": "ui/ui_app_qt.py",
-              "coverage": 50.8,
-              "missing": 686
+              "coverage": 51.0,
+              "missing": 682
+            },
+            {
+              "path": "core/file_locking.py",
+              "coverage": 59.4,
+              "missing": 52
+            },
+            {
+              "path": "communication/core/channel_orchestrator.py",
+              "coverage": 60.3,
+              "missing": 403
             },
             {
               "path": "core/service.py",
-              "coverage": 53.8,
-              "missing": 327
+              "coverage": 61.0,
+              "missing": 276
             }
           ]
         }
       },
-      "timestamp": "2025-12-20T04:37:32.586215"
+      "timestamp": "2025-12-21T00:57:34.848031"
     },
     "analyze_test_markers": {
       "success": true,
@@ -12705,15 +12705,15 @@
           }
         ]
       },
-      "timestamp": "2025-12-20T04:39:10.532483"
+      "timestamp": "2025-12-21T00:59:11.184766"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "overall": {
-          "overall_coverage": 34.5,
-          "total_statements": 18181,
-          "total_missed": 11907
+          "overall_coverage": 34.8,
+          "total_statements": 18334,
+          "total_missed": 11951
         },
         "modules": {
           "development_tools\\__init__.py": {
@@ -12865,7 +12865,7 @@
           },
           "development_tools\\config\\config.py": {
             "statements": 308,
-            "missed": 85,
+            "missed": 87,
             "coverage": 72,
             "missing_lines": [
               "44",
@@ -12876,8 +12876,10 @@
               "58",
               "59",
               "60",
+              "73",
               "83",
               "296",
+              "299",
               "310",
               "319",
               "333",
@@ -12954,7 +12956,7 @@
               "728",
               "729"
             ],
-            "covered": 223
+            "covered": 221
           },
           "development_tools\\docs\\__init__.py": {
             "statements": 0,
@@ -17541,8 +17543,8 @@
             "covered": 150
           },
           "development_tools\\imports\\analyze_unused_imports.py": {
-            "statements": 474,
-            "missed": 474,
+            "statements": 380,
+            "missed": 380,
             "coverage": 0,
             "missing_lines": [
               "20",
@@ -17554,90 +17556,90 @@
               "26",
               "27",
               "28",
-              "29",
+              "31",
               "32",
               "33",
               "34",
               "35",
-              "36",
+              "38",
               "39",
               "40",
               "41",
               "42",
               "43",
-              "44",
-              "46",
-              "49",
-              "52",
+              "45",
+              "48",
+              "51",
+              "53",
               "54",
-              "55",
-              "57",
-              "59",
-              "67",
+              "56",
+              "58",
+              "66",
+              "75",
               "76",
               "77",
               "78",
               "79",
               "80",
-              "81",
-              "83",
+              "82",
+              "84",
               "85",
               "86",
               "87",
-              "88",
-              "91",
+              "90",
+              "93",
               "94",
-              "95",
+              "98",
               "99",
               "100",
-              "101",
-              "103",
+              "102",
+              "105",
               "106",
               "107",
-              "108",
+              "110",
               "111",
               "112",
-              "113",
+              "116",
               "117",
               "118",
               "119",
-              "120",
-              "124",
-              "129",
-              "132",
-              "135",
-              "148",
-              "156",
+              "123",
+              "128",
+              "131",
+              "134",
+              "147",
+              "155",
+              "158",
               "159",
               "160",
               "161",
               "162",
-              "163",
+              "165",
               "166",
               "167",
-              "168",
+              "170",
               "171",
-              "172",
+              "174",
               "175",
-              "176",
+              "178",
               "179",
-              "180",
-              "182",
-              "184",
-              "186",
+              "181",
+              "183",
+              "185",
+              "188",
               "189",
               "190",
-              "191",
-              "193",
-              "195",
+              "192",
+              "194",
+              "197",
               "198",
               "199",
               "200",
-              "201",
-              "203",
-              "205",
-              "207",
-              "214",
+              "202",
+              "204",
+              "206",
+              "213",
+              "222",
               "223",
               "224",
               "225",
@@ -17645,10 +17647,10 @@
               "227",
               "228",
               "229",
-              "230",
-              "232",
+              "231",
+              "234",
               "235",
-              "236",
+              "237",
               "238",
               "239",
               "240",
@@ -17656,369 +17658,275 @@
               "242",
               "243",
               "244",
-              "245",
-              "247",
+              "246",
+              "248",
               "249",
               "250",
               "251",
               "252",
-              "253",
+              "255",
               "256",
-              "257",
+              "259",
               "260",
-              "261",
+              "263",
               "264",
               "265",
-              "266",
+              "267",
               "268",
               "269",
-              "270",
+              "272",
               "273",
-              "274",
+              "276",
               "277",
               "278",
               "279",
-              "280",
+              "282",
               "283",
               "284",
               "285",
-              "286",
+              "288",
               "289",
               "290",
               "291",
-              "292",
+              "294",
               "295",
               "296",
               "297",
-              "298",
+              "300",
               "301",
               "302",
               "303",
-              "304",
+              "307",
               "308",
               "309",
               "310",
               "311",
-              "312",
-              "317",
+              "316",
+              "319",
               "320",
-              "321",
-              "325",
-              "328",
+              "324",
+              "327",
+              "335",
               "336",
-              "337",
+              "339",
               "340",
-              "341",
-              "343",
+              "342",
+              "353",
               "354",
-              "355",
-              "357",
+              "356",
+              "358",
               "359",
               "360",
               "361",
-              "362",
-              "364",
+              "363",
+              "371",
               "372",
-              "373",
-              "376",
+              "375",
+              "378",
               "379",
-              "380",
+              "382",
               "383",
-              "384",
-              "386",
-              "388",
+              "385",
+              "387",
+              "390",
               "391",
               "392",
-              "393",
+              "395",
               "396",
-              "397",
+              "398",
               "399",
               "400",
               "401",
-              "402",
+              "405",
               "406",
               "407",
-              "408",
-              "411",
-              "422",
-              "424",
+              "410",
+              "421",
+              "423",
+              "429",
               "430",
               "431",
               "432",
-              "433",
+              "436",
               "437",
               "438",
-              "439",
-              "441",
-              "443",
+              "440",
+              "442",
+              "445",
               "446",
               "447",
-              "448",
-              "451",
-              "457",
-              "459",
+              "450",
+              "456",
+              "458",
+              "471",
               "472",
               "473",
               "474",
-              "475",
-              "477",
-              "479",
+              "476",
+              "478",
+              "481",
               "482",
               "483",
               "484",
-              "485",
-              "487",
+              "486",
+              "489",
               "490",
-              "491",
+              "493",
               "494",
-              "495",
-              "498",
-              "504",
+              "497",
+              "503",
+              "506",
               "507",
               "508",
-              "509",
-              "511",
-              "513",
+              "510",
+              "512",
+              "515",
               "516",
-              "517",
-              "520",
-              "522",
-              "524",
+              "519",
+              "521",
+              "523",
+              "538",
               "539",
               "540",
               "541",
-              "542",
+              "544",
               "545",
               "546",
               "547",
               "548",
-              "549",
-              "552",
+              "551",
+              "554",
               "555",
               "556",
               "557",
-              "558",
-              "560",
-              "562",
+              "559",
+              "561",
+              "564",
               "565",
-              "566",
-              "569",
-              "580",
+              "568",
+              "579",
+              "581",
               "582",
               "583",
               "584",
-              "585",
+              "588",
               "589",
               "590",
               "591",
-              "592",
+              "594",
               "595",
               "596",
               "597",
-              "598",
-              "600",
-              "602",
+              "599",
+              "601",
+              "603",
               "604",
-              "605",
+              "606",
               "607",
               "608",
-              "609",
+              "610",
               "611",
               "612",
-              "613",
+              "615",
               "616",
-              "617",
+              "618",
               "619",
               "620",
               "621",
               "622",
-              "623",
-              "625",
-              "629",
-              "631",
-              "633",
+              "624",
+              "628",
+              "630",
+              "632",
+              "634",
               "635",
               "636",
               "637",
               "638",
               "639",
-              "640",
-              "642",
+              "641",
+              "643",
               "644",
               "645",
-              "646",
-              "648",
-              "656",
+              "647",
+              "655",
+              "658",
               "659",
-              "660",
-              "663",
+              "662",
+              "665",
               "666",
-              "667",
-              "670",
+              "669",
+              "671",
               "672",
-              "673",
-              "675",
-              "677",
-              "679",
-              "681",
-              "684",
+              "674",
+              "676",
+              "678",
+              "680",
+              "683",
+              "685",
               "686",
               "687",
               "688",
               "689",
-              "690",
+              "691",
               "692",
               "693",
-              "694",
-              "696",
-              "704",
-              "707",
+              "695",
+              "703",
+              "706",
+              "708",
               "709",
               "710",
               "711",
               "712",
               "713",
-              "714",
+              "715",
               "716",
-              "717",
-              "719",
-              "724",
-              "726",
-              "728",
-              "729",
-              "730",
-              "731",
-              "732",
-              "733",
-              "734",
-              "735",
+              "718",
+              "723",
+              "725",
+              "736",
               "738",
               "739",
               "740",
               "741",
-              "742",
               "743",
-              "746",
-              "747",
-              "748",
-              "749",
-              "750",
-              "751",
+              "745",
+              "753",
               "754",
+              "757",
+              "758",
               "759",
               "760",
               "761",
               "762",
+              "763",
               "764",
-              "765",
-              "766",
-              "769",
-              "770",
-              "771",
-              "772",
-              "773",
-              "774",
-              "775",
-              "776",
-              "777",
-              "778",
-              "779",
-              "780",
-              "781",
-              "782",
-              "783",
-              "784",
-              "785",
+              "767",
               "786",
-              "787",
               "788",
               "789",
-              "792",
               "793",
-              "794",
-              "796",
-              "797",
-              "798",
-              "799",
+              "795",
               "800",
-              "801",
               "803",
-              "804",
-              "805",
-              "806",
-              "807",
+              "808",
               "810",
               "811",
-              "812",
               "813",
-              "814",
               "815",
-              "816",
-              "817",
               "818",
-              "819",
-              "820",
               "821",
               "822",
-              "824",
-              "826",
+              "825",
+              "827",
               "828",
-              "839",
-              "841",
-              "842",
-              "843",
-              "844",
-              "846",
-              "848",
-              "856",
-              "857",
-              "860",
-              "861",
-              "862",
-              "863",
-              "864",
-              "865",
-              "866",
-              "867",
-              "870",
-              "887",
-              "889",
-              "890",
-              "894",
-              "896",
-              "901",
-              "904",
-              "907",
-              "908",
-              "909",
-              "910",
-              "911",
-              "912",
-              "914",
-              "920",
-              "922",
-              "923",
-              "925",
-              "927",
-              "929",
-              "932",
-              "935",
-              "936",
-              "939",
-              "941",
-              "942",
-              "945",
-              "946",
-              "949",
-              "950",
-              "951",
-              "953",
-              "957",
-              "958",
-              "959",
-              "960",
-              "961",
-              "963"
+              "831",
+              "832",
+              "833",
+              "834",
+              "835",
+              "837"
             ],
             "covered": 0
           },
@@ -18204,6 +18112,69 @@
             ],
             "covered": 188
           },
+          "development_tools\\imports\\generate_unused_imports_report.py": {
+            "statements": 166,
+            "missed": 55,
+            "coverage": 67,
+            "missing_lines": [
+              "31",
+              "40",
+              "41",
+              "42",
+              "43",
+              "49",
+              "50",
+              "103",
+              "178",
+              "180",
+              "182",
+              "185",
+              "186",
+              "187",
+              "188",
+              "189",
+              "190",
+              "191",
+              "192",
+              "233",
+              "234",
+              "236",
+              "239",
+              "241",
+              "243",
+              "246",
+              "247",
+              "249",
+              "252",
+              "254",
+              "255",
+              "256",
+              "257",
+              "259",
+              "260",
+              "263",
+              "266",
+              "267",
+              "268",
+              "271",
+              "272",
+              "275",
+              "276",
+              "279",
+              "280",
+              "285",
+              "288",
+              "289",
+              "291",
+              "295",
+              "296",
+              "297",
+              "298",
+              "299",
+              "301"
+            ],
+            "covered": 111
+          },
           "development_tools\\legacy\\__init__.py": {
             "statements": 0,
             "missed": 0,
@@ -18213,7 +18184,7 @@
           },
           "development_tools\\legacy\\analyze_legacy_references.py": {
             "statements": 286,
-            "missed": 115,
+            "missed": 114,
             "coverage": 60,
             "missing_lines": [
               "27",
@@ -18236,7 +18207,6 @@
               "131",
               "132",
               "134",
-              "139",
               "155",
               "158",
               "161",
@@ -18332,7 +18302,7 @@
               "537",
               "538"
             ],
-            "covered": 171
+            "covered": 172
           },
           "development_tools\\legacy\\fix_legacy_references.py": {
             "statements": 160,
@@ -19029,9 +18999,9 @@
             "covered": 3
           },
           "development_tools\\shared\\cli_interface.py": {
-            "statements": 232,
-            "missed": 176,
-            "coverage": 24,
+            "statements": 245,
+            "missed": 188,
+            "coverage": 23,
             "missing_lines": [
               "19",
               "34",
@@ -19167,22 +19137,18 @@
               "263",
               "265",
               "266",
-              "271",
+              "267",
               "272",
               "273",
               "274",
               "275",
-              "276",
+              "277",
               "278",
               "279",
               "280",
-              "281",
               "282",
               "283",
               "284",
-              "285",
-              "287",
-              "288",
               "289",
               "290",
               "291",
@@ -19190,27 +19156,43 @@
               "293",
               "294",
               "296",
-              "304",
+              "297",
+              "298",
+              "299",
+              "300",
+              "301",
+              "302",
+              "303",
               "305",
               "306",
               "307",
               "308",
               "309",
+              "310",
               "311",
               "312",
               "314",
-              "315",
-              "319",
-              "320",
-              "321",
               "322",
               "323",
               "324",
+              "325",
               "326",
               "327",
-              "358"
+              "329",
+              "330",
+              "332",
+              "333",
+              "337",
+              "338",
+              "339",
+              "340",
+              "341",
+              "342",
+              "344",
+              "345",
+              "377"
             ],
-            "covered": 56
+            "covered": 57
           },
           "development_tools\\shared\\common.py": {
             "statements": 91,
@@ -20080,26 +20062,25 @@
               "367",
               "369",
               "377",
-              "382",
               "383",
-              "385",
+              "384",
               "386",
               "387",
               "388",
               "389",
-              "391",
+              "390",
               "392",
               "393",
               "394",
-              "398",
+              "395",
               "399",
               "400",
               "401",
               "402",
               "403",
-              "405",
+              "404",
               "406",
-              "408",
+              "407",
               "409",
               "410",
               "411",
@@ -20109,61 +20090,61 @@
               "415",
               "416",
               "417",
-              "419",
-              "421",
+              "418",
+              "420",
               "422",
               "423",
               "424",
-              "426",
+              "425",
               "427",
               "428",
               "429",
               "430",
               "431",
-              "433",
+              "432",
               "434",
-              "436",
-              "438",
-              "442",
+              "435",
+              "437",
+              "439",
               "443",
               "444",
               "445",
               "446",
-              "448",
-              "450",
+              "447",
+              "449",
               "451",
-              "457",
+              "452",
               "458",
-              "464",
+              "459",
               "465",
-              "471",
+              "466",
               "472",
               "473",
-              "479",
+              "474",
               "480",
-              "486",
+              "481",
               "487",
               "488",
-              "494",
+              "489",
               "495",
               "496",
-              "510",
-              "519",
-              "523",
-              "525",
+              "497",
+              "511",
+              "520",
+              "524",
               "526",
               "527",
-              "530",
+              "528",
               "531",
               "532",
-              "539",
+              "533",
               "540",
-              "559",
-              "564",
-              "579",
-              "600",
-              "608",
-              "617",
+              "541",
+              "560",
+              "565",
+              "580",
+              "601",
+              "609",
               "618",
               "619",
               "620",
@@ -20174,40 +20155,41 @@
               "625",
               "626",
               "627",
-              "642",
+              "628",
               "643",
               "644",
               "645",
               "646",
               "647",
               "648",
-              "655",
+              "649",
               "656",
               "657",
               "658",
-              "663",
-              "667",
-              "670",
+              "659",
+              "664",
+              "668",
               "671",
-              "682",
+              "672",
               "683",
               "684",
               "685",
-              "689",
-              "691",
+              "686",
+              "690",
               "692",
-              "705",
-              "709",
+              "693",
+              "706",
               "710",
               "711",
-              "712"
+              "712",
+              "713"
             ],
             "covered": 263
           },
           "development_tools\\shared\\service\\commands.py": {
-            "statements": 543,
-            "missed": 404,
-            "coverage": 26,
+            "statements": 550,
+            "missed": 410,
+            "coverage": 25,
             "missing_lines": [
               "24",
               "25",
@@ -20497,41 +20479,40 @@
               "491",
               "492",
               "493",
-              "494",
+              "495",
               "496",
-              "497",
+              "500",
+              "501",
               "502",
+              "503",
+              "504",
               "506",
               "507",
-              "508",
-              "515",
+              "512",
               "516",
               "517",
               "518",
-              "519",
-              "520",
-              "522",
-              "523",
+              "525",
+              "526",
               "527",
+              "528",
               "529",
               "530",
-              "531",
+              "532",
               "533",
-              "544",
-              "555",
-              "556",
-              "557",
-              "558",
-              "564",
+              "537",
+              "539",
+              "540",
+              "541",
+              "543",
+              "554",
               "565",
               "566",
               "567",
               "568",
-              "569",
-              "570",
-              "571",
-              "572",
-              "573",
+              "574",
+              "575",
+              "576",
               "577",
               "578",
               "579",
@@ -20539,82 +20520,89 @@
               "581",
               "582",
               "583",
-              "584",
-              "585",
-              "586",
               "587",
               "588",
               "589",
               "590",
               "591",
               "592",
+              "593",
+              "594",
+              "595",
               "596",
               "597",
               "598",
+              "599",
+              "600",
+              "601",
               "602",
-              "603",
-              "604",
+              "606",
+              "607",
               "608",
-              "609",
-              "610",
-              "622",
-              "629",
-              "630",
+              "612",
+              "613",
+              "614",
+              "618",
+              "619",
+              "620",
               "632",
-              "650",
-              "651",
-              "652",
-              "653",
-              "654",
-              "655",
-              "656",
-              "657",
-              "658",
+              "639",
+              "640",
+              "642",
               "660",
-              "678",
-              "679",
-              "680",
-              "681",
-              "682",
-              "683",
-              "684",
-              "685",
-              "686",
+              "661",
+              "662",
+              "663",
+              "664",
+              "665",
+              "666",
+              "667",
+              "668",
+              "670",
               "688",
-              "706",
-              "707",
-              "708",
-              "709",
-              "710",
-              "711",
-              "712",
-              "713",
-              "714",
+              "689",
+              "690",
+              "691",
+              "692",
+              "693",
+              "694",
+              "695",
+              "696",
+              "698",
               "716",
-              "734",
-              "735",
-              "736",
-              "737",
-              "738",
-              "739",
-              "740",
-              "741",
-              "742",
+              "717",
+              "718",
+              "719",
+              "720",
+              "721",
+              "722",
+              "723",
+              "724",
+              "726",
               "744",
-              "755",
-              "756",
-              "757",
-              "758",
-              "759",
-              "760",
-              "761",
-              "762",
-              "763",
-              "764",
+              "745",
+              "746",
+              "747",
+              "748",
+              "749",
+              "750",
+              "751",
+              "752",
+              "754",
               "765",
-              "766"
+              "766",
+              "767",
+              "768",
+              "769",
+              "770",
+              "771",
+              "772",
+              "773",
+              "774",
+              "775",
+              "776"
             ],
-            "covered": 139
+            "covered": 140
           },
           "development_tools\\shared\\service\\core.py": {
             "statements": 45,
@@ -21358,7 +21346,7 @@
           },
           "development_tools\\shared\\service\\report_generation.py": {
             "statements": 2806,
-            "missed": 1614,
+            "missed": 1619,
             "coverage": 42,
             "missing_lines": [
               "29",
@@ -21741,9 +21729,14 @@
               "1057",
               "1073",
               "1078",
+              "1086",
+              "1087",
+              "1088",
+              "1089",
               "1104",
               "1118",
               "1123",
+              "1131",
               "1132",
               "1133",
               "1136",
@@ -22976,22 +22969,21 @@
               "3938",
               "3939"
             ],
-            "covered": 1192
+            "covered": 1187
           },
           "development_tools\\shared\\service\\tool_wrappers.py": {
-            "statements": 760,
-            "missed": 615,
-            "coverage": 19,
+            "statements": 821,
+            "missed": 674,
+            "coverage": 18,
             "missing_lines": [
-              "68",
-              "75",
-              "95",
+              "69",
+              "76",
               "96",
-              "105",
+              "97",
               "106",
               "107",
               "108",
-              "111",
+              "109",
               "112",
               "113",
               "114",
@@ -23005,9 +22997,9 @@
               "122",
               "123",
               "124",
-              "128",
+              "125",
               "129",
-              "131",
+              "130",
               "132",
               "133",
               "134",
@@ -23016,10 +23008,10 @@
               "137",
               "138",
               "139",
-              "141",
+              "140",
               "142",
               "143",
-              "145",
+              "144",
               "146",
               "147",
               "148",
@@ -23027,7 +23019,7 @@
               "150",
               "151",
               "152",
-              "154",
+              "153",
               "155",
               "156",
               "157",
@@ -23041,13 +23033,13 @@
               "165",
               "166",
               "167",
-              "169",
+              "168",
               "170",
               "171",
               "172",
               "173",
               "174",
-              "178",
+              "175",
               "179",
               "180",
               "181",
@@ -23078,13 +23070,13 @@
               "206",
               "207",
               "208",
-              "210",
+              "209",
               "211",
               "212",
               "213",
               "214",
               "215",
-              "219",
+              "216",
               "220",
               "221",
               "222",
@@ -23093,7 +23085,7 @@
               "225",
               "226",
               "227",
-              "234",
+              "228",
               "235",
               "236",
               "237",
@@ -23106,23 +23098,23 @@
               "244",
               "245",
               "246",
-              "253",
-              "255",
-              "262",
+              "247",
+              "254",
+              "256",
               "263",
               "264",
-              "266",
+              "265",
               "267",
               "268",
               "269",
               "270",
               "271",
               "272",
-              "276",
+              "273",
               "277",
               "278",
               "279",
-              "284",
+              "280",
               "285",
               "286",
               "287",
@@ -23143,30 +23135,30 @@
               "302",
               "303",
               "304",
-              "310",
+              "305",
               "311",
-              "313",
-              "318",
+              "312",
+              "314",
               "319",
               "320",
-              "342",
+              "321",
               "343",
               "344",
-              "368",
+              "345",
               "369",
               "370",
-              "397",
+              "371",
               "398",
               "399",
-              "417",
-              "421",
-              "423",
+              "400",
+              "418",
+              "422",
               "424",
               "425",
-              "452",
+              "426",
               "453",
               "454",
-              "461",
+              "455",
               "462",
               "463",
               "464",
@@ -23174,7 +23166,7 @@
               "466",
               "467",
               "468",
-              "470",
+              "469",
               "471",
               "472",
               "473",
@@ -23190,10 +23182,10 @@
               "483",
               "484",
               "485",
-              "487",
+              "486",
               "488",
               "489",
-              "493",
+              "490",
               "494",
               "495",
               "496",
@@ -23202,7 +23194,7 @@
               "499",
               "500",
               "501",
-              "504",
+              "502",
               "505",
               "506",
               "507",
@@ -23210,22 +23202,22 @@
               "509",
               "510",
               "511",
-              "514",
+              "512",
               "515",
               "516",
-              "518",
+              "517",
               "519",
               "520",
               "521",
               "522",
               "523",
-              "527",
+              "524",
               "528",
               "529",
               "530",
               "531",
               "532",
-              "554",
+              "533",
               "555",
               "556",
               "557",
@@ -23234,25 +23226,25 @@
               "560",
               "561",
               "562",
-              "569",
+              "563",
               "570",
-              "572",
+              "571",
               "573",
               "574",
               "575",
               "576",
               "577",
-              "585",
-              "591",
+              "578",
+              "586",
               "592",
               "593",
-              "602",
+              "594",
               "603",
               "604",
               "605",
-              "607",
+              "606",
               "608",
-              "613",
+              "609",
               "614",
               "615",
               "616",
@@ -23266,15 +23258,15 @@
               "624",
               "625",
               "626",
-              "628",
+              "627",
               "629",
-              "631",
+              "630",
               "632",
               "633",
               "634",
               "635",
               "636",
-              "643",
+              "637",
               "644",
               "645",
               "646",
@@ -23291,12 +23283,12 @@
               "657",
               "658",
               "659",
-              "664",
-              "672",
+              "660",
+              "665",
               "673",
               "674",
               "675",
-              "677",
+              "676",
               "678",
               "679",
               "680",
@@ -23315,64 +23307,64 @@
               "693",
               "694",
               "695",
-              "697",
+              "696",
               "698",
               "699",
-              "703",
-              "705",
+              "700",
+              "704",
               "706",
               "707",
-              "710",
+              "708",
               "711",
               "712",
               "713",
               "714",
               "715",
-              "717",
+              "716",
               "718",
-              "726",
+              "719",
               "727",
               "728",
               "729",
-              "731",
+              "730",
               "732",
               "733",
               "734",
               "735",
               "736",
-              "738",
-              "740",
-              "742",
+              "737",
+              "739",
+              "741",
               "743",
               "744",
               "745",
               "746",
-              "754",
+              "747",
               "755",
               "756",
               "757",
-              "759",
-              "765",
+              "758",
+              "760",
               "766",
               "767",
               "768",
               "769",
               "770",
-              "776",
+              "771",
               "777",
               "778",
               "779",
               "780",
               "781",
-              "795",
+              "782",
               "796",
-              "798",
+              "797",
               "799",
               "800",
-              "807",
+              "801",
               "808",
               "809",
-              "818",
+              "810",
               "819",
               "820",
               "821",
@@ -23382,21 +23374,21 @@
               "825",
               "826",
               "827",
-              "830",
-              "842",
+              "828",
+              "831",
               "843",
               "844",
               "845",
-              "847",
-              "849",
+              "846",
+              "848",
               "850",
               "851",
-              "853",
-              "860",
+              "852",
+              "854",
               "861",
               "862",
-              "871",
-              "873",
+              "863",
+              "872",
               "874",
               "875",
               "876",
@@ -23462,60 +23454,101 @@
               "967",
               "968",
               "969",
-              "1171",
-              "1173",
-              "1191",
-              "1203",
-              "1205",
-              "1207",
-              "1249",
-              "1251",
-              "1275",
-              "1277",
-              "1279",
-              "1281",
-              "1283",
-              "1285",
-              "1287",
-              "1303",
-              "1305",
+              "973",
+              "974",
+              "975",
+              "977",
+              "978",
+              "985",
+              "991",
+              "992",
+              "994",
+              "995",
+              "996",
+              "1002",
+              "1003",
+              "1004",
+              "1010",
+              "1014",
+              "1016",
+              "1018",
+              "1020",
+              "1022",
+              "1024",
+              "1026",
+              "1028",
+              "1030",
+              "1032",
+              "1034",
+              "1036",
+              "1038",
+              "1040",
+              "1042",
+              "1044",
+              "1046",
+              "1048",
+              "1050",
+              "1054",
+              "1056",
+              "1058",
+              "1061",
+              "1063",
+              "1065",
+              "1067",
+              "1069",
+              "1071",
+              "1073",
+              "1075",
+              "1077",
+              "1079",
+              "1081",
+              "1083",
+              "1085",
+              "1087",
+              "1089",
+              "1091",
+              "1093",
+              "1097",
+              "1099",
+              "1101",
+              "1103",
+              "1105",
+              "1107",
+              "1211",
+              "1213",
+              "1231",
+              "1243",
+              "1245",
+              "1247",
+              "1289",
+              "1291",
+              "1315",
+              "1317",
+              "1319",
               "1321",
               "1323",
               "1325",
               "1327",
-              "1329",
-              "1331",
-              "1333",
-              "1335",
-              "1337",
-              "1339",
-              "1341",
               "1343",
               "1345",
-              "1347",
-              "1349",
-              "1351",
-              "1353",
+              "1361",
               "1363",
+              "1365",
+              "1367",
+              "1369",
+              "1371",
+              "1373",
+              "1375",
+              "1377",
               "1379",
               "1381",
               "1383",
               "1385",
+              "1387",
               "1389",
               "1391",
               "1393",
-              "1395",
-              "1397",
-              "1399",
-              "1401",
               "1403",
-              "1405",
-              "1407",
-              "1409",
-              "1411",
-              "1413",
-              "1415",
-              "1417",
               "1419",
               "1421",
               "1423",
@@ -23523,83 +23556,102 @@
               "1429",
               "1431",
               "1433",
+              "1435",
+              "1437",
+              "1439",
+              "1441",
               "1443",
               "1445",
               "1447",
+              "1449",
+              "1451",
               "1453",
               "1455",
               "1457",
               "1459",
               "1461",
               "1463",
-              "1467",
+              "1465",
               "1469",
+              "1471",
+              "1473",
+              "1483",
               "1485",
               "1487",
-              "1489",
-              "1491",
+              "1493",
               "1495",
               "1497",
               "1499",
               "1501",
               "1503",
-              "1505",
+              "1507",
               "1509",
-              "1513",
-              "1517",
-              "1519",
-              "1521",
-              "1523",
               "1525",
+              "1527",
+              "1529",
+              "1531",
+              "1535",
+              "1537",
+              "1539",
               "1541",
               "1543",
               "1545",
-              "1547",
-              "1551",
+              "1549",
+              "1553",
+              "1557",
+              "1559",
+              "1561",
               "1563",
               "1565",
-              "1567",
-              "1569",
-              "1571",
-              "1573",
+              "1581",
+              "1583",
               "1585",
               "1587",
-              "1589",
               "1591",
-              "1593",
-              "1595",
-              "1616",
-              "1617",
-              "1619",
-              "1620",
-              "1621",
-              "1628",
+              "1603",
+              "1605",
+              "1607",
+              "1609",
+              "1611",
+              "1613",
+              "1625",
+              "1627",
               "1629",
-              "1630",
-              "1643",
-              "1645",
-              "1647",
-              "1649",
-              "1651",
-              "1653",
-              "1655",
+              "1631",
+              "1633",
+              "1635",
+              "1656",
               "1657",
               "1659",
-              "1665",
+              "1660",
+              "1661",
+              "1668",
+              "1669",
+              "1670",
+              "1683",
+              "1685",
+              "1687",
               "1689",
               "1691",
               "1693",
               "1695",
+              "1697",
               "1699",
-              "1703",
               "1705",
-              "1707",
-              "1711",
-              "1725",
-              "1727",
-              "1729"
+              "1729",
+              "1731",
+              "1733",
+              "1735",
+              "1739",
+              "1743",
+              "1745",
+              "1747",
+              "1751",
+              "1765",
+              "1767",
+              "1769"
             ],
-            "covered": 145
+            "covered": 147
           },
           "development_tools\\shared\\service\\utilities.py": {
             "statements": 363,
@@ -23992,12 +24044,12 @@
             "missed": 6,
             "coverage": 77,
             "missing_lines": [
-              "427",
-              "428",
-              "429",
+              "434",
               "435",
-              "441",
-              "447"
+              "436",
+              "442",
+              "448",
+              "454"
             ],
             "covered": 20
           },
@@ -25224,7 +25276,7 @@
         "output_file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_tools\\tests\\jsons\\coverage_dev_tools.json",
         "html_dir": null
       },
-      "timestamp": "2025-12-20T04:39:08.973609"
+      "timestamp": "2025-12-21T00:59:09.644826"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -28129,6 +28181,12 @@
               ]
             },
             {
+              "file": "tests/development_tools/test_generate_unused_imports_report.py",
+              "dependencies": [
+                "pytest"
+              ]
+            },
+            {
               "file": "tests/development_tools/test_integration_workflows.py",
               "dependencies": [
                 "pytest"
@@ -30926,27 +30984,30 @@
           ]
         }
       },
-      "timestamp": "2025-12-20T04:31:51.158008"
+      "timestamp": "2025-12-21T00:50:37.579454"
     },
     "analyze_module_dependencies": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 0,
+          "total_issues": 2,
           "files_affected": 0
         },
         "details": {
-          "files_scanned": 341,
-          "total_imports": 3883,
+          "files_scanned": 342,
+          "total_imports": 3892,
           "documented_dependencies": 341,
-          "standard_library": 1327,
-          "third_party": 578,
-          "local_imports": 1978,
+          "standard_library": 1334,
+          "third_party": 579,
+          "local_imports": 1979,
+          "missing_dependencies": 1,
           "missing_files": [],
-          "missing_sections": []
+          "missing_sections": [
+            "tests/development_tools/test_generate_unused_imports_report.py"
+          ]
         }
       },
-      "timestamp": "2025-12-20T04:31:46.992082"
+      "timestamp": "2025-12-21T00:50:33.215379"
     },
     "analyze_module_imports": {
       "success": true,
@@ -54378,6 +54439,54 @@
             },
             "total_imports": 14
           },
+          "tests/development_tools/test_generate_unused_imports_report.py": {
+            "imports": {
+              "standard_library": [
+                {
+                  "module": "json",
+                  "as_name": null,
+                  "imported_items": [
+                    "json"
+                  ]
+                },
+                {
+                  "module": "pathlib",
+                  "as_name": null,
+                  "imported_items": [
+                    "Path"
+                  ]
+                },
+                {
+                  "module": "unittest.mock",
+                  "as_name": null,
+                  "imported_items": [
+                    "patch",
+                    "MagicMock"
+                  ]
+                }
+              ],
+              "third_party": [
+                {
+                  "module": "pytest",
+                  "as_name": null,
+                  "imported_items": [
+                    "pytest"
+                  ]
+                }
+              ],
+              "local": [
+                {
+                  "module": "tests.development_tools.conftest",
+                  "as_name": null,
+                  "imported_items": [
+                    "load_development_tools_module",
+                    "temp_project_copy"
+                  ]
+                }
+              ]
+            },
+            "total_imports": 5
+          },
           "tests/development_tools/test_integration_workflows.py": {
             "imports": {
               "standard_library": [
@@ -54481,10 +54590,38 @@
                   ]
                 },
                 {
+                  "module": "shutil",
+                  "as_name": null,
+                  "imported_items": [
+                    "shutil"
+                  ]
+                },
+                {
+                  "module": "threading",
+                  "as_name": null,
+                  "imported_items": [
+                    "threading"
+                  ]
+                },
+                {
+                  "module": "platform",
+                  "as_name": null,
+                  "imported_items": [
+                    "platform"
+                  ]
+                },
+                {
                   "module": "logging",
                   "as_name": null,
                   "imported_items": [
                     "logging"
+                  ]
+                },
+                {
+                  "module": "shutil",
+                  "as_name": null,
+                  "imported_items": [
+                    "shutil"
                   ]
                 }
               ],
@@ -54508,7 +54645,7 @@
                 }
               ]
             },
-            "total_imports": 7
+            "total_imports": 11
           },
           "tests/development_tools/test_path_drift_detection.py": {
             "imports": {
@@ -58573,7 +58710,8 @@
                   "module": "core.user_data_handlers",
                   "as_name": null,
                   "imported_items": [
-                    "get_user_data"
+                    "get_user_data",
+                    "update_user_account"
                   ]
                 },
                 {
@@ -64072,14 +64210,14 @@
           }
         }
       },
-      "timestamp": "2025-12-20T04:31:49.017035"
+      "timestamp": "2025-12-21T00:50:35.278679"
     },
     "analyze_unused_imports": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 428,
-          "files_affected": 148,
+          "total_issues": 435,
+          "files_affected": 150,
           "status": "CRITICAL"
         },
         "files": {
@@ -64099,13 +64237,15 @@
           "development_tools/functions/analyze_package_exports.py": 1,
           "development_tools/functions/generate_function_registry.py": 2,
           "development_tools/imports/analyze_module_dependencies.py": 3,
-          "development_tools/imports/analyze_unused_imports.py": 1,
+          "development_tools/imports/analyze_unused_imports.py": 2,
           "development_tools/imports/generate_module_dependencies.py": 3,
+          "development_tools/imports/generate_unused_imports_report.py": 2,
           "development_tools/reports/decision_support.py": 2,
           "development_tools/run_development_tools.py": 2,
           "development_tools/shared/mtime_cache.py": 2,
           "development_tools/shared/output_storage.py": 2,
           "development_tools/shared/service/audit_orchestration.py": 2,
+          "development_tools/shared/service/commands.py": 2,
           "development_tools/shared/service/core.py": 2,
           "development_tools/shared/service/data_loading.py": 2,
           "development_tools/tests/fix_test_markers.py": 3,
@@ -64134,7 +64274,7 @@
           "tests/development_tools/test_generate_function_registry.py": 2,
           "tests/development_tools/test_generate_module_dependencies.py": 2,
           "tests/development_tools/test_legacy_reference_cleanup.py": 2,
-          "tests/development_tools/test_output_storage_archiving.py": 4,
+          "tests/development_tools/test_output_storage_archiving.py": 3,
           "tests/development_tools/test_path_drift_detection.py": 4,
           "tests/development_tools/test_path_drift_integration.py": 3,
           "tests/development_tools/test_path_drift_verification_comprehensive.py": 2,
@@ -64159,7 +64299,7 @@
           "tests/unit/test_rich_formatter.py": 1,
           "tests/unit/test_user_data_manager.py": 6,
           "tests/unit/test_user_preferences.py": 7,
-          "development_tools/shared/service/commands.py": 2,
+          "tests/development_tools/test_generate_unused_imports_report.py": 5,
           "communication/communication_channels/discord/account_flow_handler.py": 1,
           "development_tools/docs/fix_documentation_links.py": 1,
           "development_tools/functions/analyze_function_registry.py": 2,
@@ -64191,7 +64331,6 @@
           "tests/ui/test_message_editor_dialog.py": 4,
           "tests/ui/test_process_watcher_dialog.py": 4,
           "tests/ui/test_task_crud_dialog.py": 2,
-          "tests/ui/test_task_management_dialog.py": 4,
           "tests/ui/test_task_settings_widget.py": 6,
           "tests/ui/test_ui_app_qt_main.py": 1,
           "tests/ui/test_ui_button_verification.py": 2,
@@ -64216,6 +64355,8 @@
           "tests/unit/test_user_context.py": 2,
           "tests/unit/test_user_data_handlers.py": 1,
           "tests/unit/test_user_management.py": 3,
+          "tests/ui/test_task_management_dialog.py": 4,
+          "development_tools/tests/generate_test_coverage.py": 1,
           "tests/ai/test_ai_core.py": 1,
           "tests/ai/test_context_includes_recent_messages.py": 1,
           "tests/behavior/test_checkin_expiry_semantics.py": 1,
@@ -64228,27 +64369,3097 @@
           "tests/ui/test_dialogs.py": 1,
           "tests/unit/test_file_locking.py": 1,
           "tests/unit/test_scripts_exclusion_policy.py": 1,
-          "development_tools/tests/generate_test_coverage.py": 1,
           "communication/core/channel_orchestrator.py": 1,
           "communication/core/factory.py": 2
         },
         "details": {
+          "findings": {
+            "obvious_unused": [
+              {
+                "file": "communication/command_handlers/account_handler.py",
+                "line": 380,
+                "column": 0,
+                "message": "Unused import time",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "communication/communication_channels/discord/webhook_handler.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused import hmac",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "communication/communication_channels/discord/webhook_handler.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused import hashlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "communication/communication_channels/discord/webhook_handler.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused import os",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "communication/communication_channels/discord/webhook_server.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused Optional imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "communication/communication_channels/discord/webhook_server.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused Callable imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "communication/communication_channels/discord/webhook_server.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused verify_webhook_signature imported from communication.communication_channels.discord.webhook_handler",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "communication/communication_channels/discord/webhook_server.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused EVENT_APPLICATION_AUTHORIZED imported from communication.communication_channels.discord.webhook_handler",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "communication/communication_channels/discord/welcome_handler.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused Optional imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "communication/core/welcome_manager.py",
+                "line": 7,
+                "column": 0,
+                "message": "Unused import os",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "core/file_locking.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused Callable imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "core/file_locking.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused Any imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "core/message_analytics.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused datetime imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "core/message_analytics.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused timedelta imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "core/message_analytics.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused List imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "core/schedule_management.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused DataError imported from core.error_handling",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "core/scheduler.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused Optional imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "core/user_data_manager.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused save_json_data imported from core.file_operations",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/config/analyze_config.py",
+                "line": 15,
+                "column": 0,
+                "message": "Unused import json",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/config/analyze_config.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused datetime imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/error_handling/analyze_error_handling.py",
+                "line": 15,
+                "column": 0,
+                "message": "Unused import json",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/error_handling/analyze_error_handling.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused import os",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/functions/analyze_function_patterns.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused List imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/functions/analyze_package_exports.py",
+                "line": 26,
+                "column": 0,
+                "message": "Unused Optional imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/functions/generate_function_registry.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused import ast",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/functions/generate_function_registry.py",
+                "line": 17,
+                "column": 0,
+                "message": "Unused Any imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/imports/analyze_module_dependencies.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused import ast",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/imports/analyze_module_dependencies.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused Optional imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/imports/analyze_unused_imports.py",
+                "line": 27,
+                "column": 0,
+                "message": "Unused datetime imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/imports/analyze_unused_imports.py",
+                "line": 28,
+                "column": 0,
+                "message": "Unused partial imported from functools",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/imports/generate_module_dependencies.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused Any imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/imports/generate_module_dependencies.py",
+                "line": 32,
+                "column": 4,
+                "message": "Unused analyze_dependency_patterns imported from analyze_dependency_patterns",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/imports/generate_unused_imports_report.py",
+                "line": 24,
+                "column": 0,
+                "message": "Unused List imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/imports/generate_unused_imports_report.py",
+                "line": 24,
+                "column": 0,
+                "message": "Unused Optional imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/reports/decision_support.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused import ast",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/run_development_tools.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused import warnings",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/shared/mtime_cache.py",
+                "line": 29,
+                "column": 0,
+                "message": "Unused import json",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/shared/mtime_cache.py",
+                "line": 31,
+                "column": 0,
+                "message": "Unused List imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/shared/output_storage.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused import os",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/shared/output_storage.py",
+                "line": 17,
+                "column": 0,
+                "message": "Unused create_output_file imported from file_rotation",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/shared/service/audit_orchestration.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused Any imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/shared/service/audit_orchestration.py",
+                "line": 18,
+                "column": 0,
+                "message": "Unused _get_domain_from_tool_name imported from output_storage",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/shared/service/commands.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/shared/service/commands.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused Any imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/shared/service/core.py",
+                "line": 21,
+                "column": 0,
+                "message": "Unused SCRIPT_REGISTRY imported from tool_wrappers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/shared/service/core.py",
+                "line": 27,
+                "column": 0,
+                "message": "Unused COMMAND_TIERS imported from common",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/shared/service/data_loading.py",
+                "line": 18,
+                "column": 0,
+                "message": "Unused extract_first_int imported from utilities",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/shared/service/data_loading.py",
+                "line": 18,
+                "column": 0,
+                "message": "Unused create_standard_format_result imported from utilities",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/tests/fix_test_markers.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused import re",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/tests/fix_test_markers.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused List imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/tests/fix_test_markers.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused Tuple imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/tests/generate_test_coverage_reports.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused Any imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "run_mhm.py",
+                "line": 15,
+                "column": 0,
+                "message": "Unused error_handler imported from core.error_handling",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "run_mhm.py",
+                "line": 15,
+                "column": 0,
+                "message": "Unused DataError imported from core.error_handling",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "run_mhm.py",
+                "line": 15,
+                "column": 0,
+                "message": "Unused FileOperationError imported from core.error_handling",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "run_tests.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused Tuple imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_communication_manager_behavior.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused BotInitializationError imported from communication.core.channel_orchestrator",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_communication_manager_behavior.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused MessageSendError imported from communication.core.channel_orchestrator",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_conversation_flow_manager_behavior.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused CHECKIN_START imported from communication.message_processing.conversation_flow_manager",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_conversation_flow_manager_behavior.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused CHECKIN_COMPLETE imported from communication.message_processing.conversation_flow_manager",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_discord_checkin_retry_behavior.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused call imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_discord_checkin_retry_behavior.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused import asyncio",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_discord_task_reminder_followup.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused timedelta imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_discord_task_reminder_followup.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused ParsedCommand imported from communication.command_handlers.shared_types",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_discord_task_reminder_followup.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused create_task imported from tasks.task_management",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_discord_task_reminder_followup.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused get_task_by_id imported from tasks.task_management",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_task_cleanup_bug.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused complete_task imported from tasks.task_management",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_task_reminder_followup_behavior.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused ConversationManager imported from communication.message_processing.conversation_flow_manager",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_task_reminder_followup_behavior.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused FLOW_NONE imported from communication.message_processing.conversation_flow_manager",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_task_reminder_followup_behavior.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused ParsedCommand imported from communication.command_handlers.shared_types",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_task_reminder_followup_behavior.py",
+                "line": 20,
+                "column": 0,
+                "message": "Unused load_active_tasks imported from tasks.task_management",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_user_data_flow_architecture.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused call imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_webhook_server_behavior.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused HTTPServer imported from http.server",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_webhook_server_behavior.py",
+                "line": 15,
+                "column": 0,
+                "message": "Unused BytesIO imported from io",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_welcome_manager_behavior.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused WELCOME_TRACKING_FILE imported from communication.core.welcome_manager",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/conftest.py",
+                "line": 7,
+                "column": 0,
+                "message": "Unused import warnings",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_analysis_tool_validation.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused demo_project_root imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_analysis_tool_validation.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused test_config_path imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_analyze_ai_work.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused demo_project_root imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_analyze_documentation.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused demo_project_root imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_analyze_missing_addresses.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused demo_project_root imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_analyze_missing_addresses.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused test_config_path imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_audit_status_updates.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused call imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_audit_status_updates.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_documentation_sync_checker.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused import sys",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_documentation_sync_checker.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused defaultdict imported from collections",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_error_scenarios.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused import stat",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_fix_documentation.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused load_development_tools_module imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_fix_documentation_addresses.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused test_config_path imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_generate_function_registry.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused import sys",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_generate_module_dependencies.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused import sys",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_legacy_reference_cleanup.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused import sys",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_output_storage_archiving.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_path_drift_detection.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused import pytest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_path_drift_detection.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused import tempfile",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_path_drift_detection.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused import shutil",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_path_drift_detection.py",
+                "line": 15,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_path_drift_integration.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_path_drift_verification_comprehensive.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_regenerate_coverage_metrics.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused import sys",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_run_development_tools.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused import warnings",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_status_file_timing.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused import warnings",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_status_file_timing.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused demo_project_root imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_task_cleanup_real.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused timedelta imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_task_cleanup_real_bug_verification.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused delete_task imported from tasks.task_management",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_task_cleanup_real_bug_verification.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused update_task imported from tasks.task_management",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_task_cleanup_silent_failure.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused timedelta imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_task_cleanup_silent_failure.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused delete_task imported from tasks.task_management",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_task_reminder_integration.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused call imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_task_reminder_integration.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused get_task_by_id imported from tasks.task_management",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_task_reminder_integration.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused TaskManagementHandler imported from communication.command_handlers.task_handler",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_task_reminder_integration.py",
+                "line": 17,
+                "column": 0,
+                "message": "Unused ParsedCommand imported from communication.command_handlers.shared_types",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_task_reminder_integration.py",
+                "line": 17,
+                "column": 0,
+                "message": "Unused InteractionResponse imported from communication.command_handlers.shared_types",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/test_error_handling_improvements.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused MHMError imported from core.error_handling",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_signal_handler_integration.py",
+                "line": 20,
+                "column": 0,
+                "message": "Unused QCheckBox imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_ai_chatbot_helpers.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused AIChatBotSingleton imported from ai.chatbot",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_command_registry.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused AsyncMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_command_registry.py",
+                "line": 22,
+                "column": 0,
+                "message": "Unused import discord",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_config.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused import core.config",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_discord_api_client.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused import asyncio",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_discord_event_handler.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused import asyncio",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_discord_event_handler.py",
+                "line": 21,
+                "column": 0,
+                "message": "Unused import discord",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_email_bot_body_extraction.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused import email",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_logger_unit.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused _get_log_paths_for_environment imported from core.logger",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_message_formatter.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused MessageFormatter imported from communication.communication_channels.base.message_formatter",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_prompt_manager.py",
+                "line": 23,
+                "column": 0,
+                "message": "Unused AI_SYSTEM_PROMPT_PATH imported from core.config",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_prompt_manager.py",
+                "line": 23,
+                "column": 0,
+                "message": "Unused AI_USE_CUSTOM_PROMPT imported from core.config",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_rich_formatter.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused RichFormatter imported from communication.communication_channels.base.rich_formatter",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_user_data_manager.py",
+                "line": 22,
+                "column": 0,
+                "message": "Unused delete_user_completely imported from core.user_data_manager",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_user_preferences.py",
+                "line": 20,
+                "column": 0,
+                "message": "Unused update_user_preferences imported from core.user_data_handlers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_user_preferences.py",
+                "line": 21,
+                "column": 0,
+                "message": "Unused set_schedule_period_active imported from core.schedule_management",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_user_preferences.py",
+                "line": 21,
+                "column": 0,
+                "message": "Unused is_schedule_period_active imported from core.schedule_management",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_generate_unused_imports_report.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
+              }
+            ],
+            "type_hints_only": [
+              {
+                "file": "communication/communication_channels/discord/account_flow_handler.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused Optional imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "communication/core/welcome_manager.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused Optional imported from typing",
+                "symbol": "unused-import"
+              }
+            ],
+            "re_exports": [],
+            "conditional_imports": [
+              {
+                "file": "development_tools/docs/fix_documentation_links.py",
+                "line": 33,
+                "column": 4,
+                "message": "Unused ALL_GENERATED_FILES imported from shared.standard_exclusions",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/functions/analyze_function_registry.py",
+                "line": 25,
+                "column": 4,
+                "message": "Unused summary_block imported from shared.common",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/functions/analyze_function_registry.py",
+                "line": 25,
+                "column": 4,
+                "message": "Unused write_text imported from shared.common",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/imports/analyze_dependency_patterns.py",
+                "line": 23,
+                "column": 4,
+                "message": "Unused ensure_ascii imported from shared.common",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/imports/analyze_module_dependencies.py",
+                "line": 27,
+                "column": 4,
+                "message": "Unused should_exclude_file imported from shared.standard_exclusions",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/imports/generate_module_dependencies.py",
+                "line": 24,
+                "column": 4,
+                "message": "Unused scan_all_python_files imported from analyze_module_imports",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/reports/decision_support.py",
+                "line": 22,
+                "column": 4,
+                "message": "Unused categorize_functions imported from functions.analyze_functions",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/run_dev_tools.py",
+                "line": 21,
+                "column": 4,
+                "message": "Unused config imported from development_tools",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "development_tools/run_development_tools.py",
+                "line": 35,
+                "column": 4,
+                "message": "Unused config imported from development_tools",
+                "symbol": "unused-import"
+              }
+            ],
+            "star_imports": [],
+            "test_mocking": [
+              {
+                "file": "tests/ai/test_ai_functionality_manual.py",
+                "line": 18,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ai/test_ai_functionality_manual.py",
+                "line": 24,
+                "column": 0,
+                "message": "Unused get_user_data imported from core.user_data_handlers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ai/test_cache_manager.py",
+                "line": 7,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_base_handler_behavior.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused patch imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_base_handler_behavior.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_checkin_handler_behavior.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_communication_manager_behavior.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_interaction_handlers_behavior.py",
+                "line": 18,
+                "column": 0,
+                "message": "Unused get_user_data imported from core.user_data_handlers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_interaction_handlers_behavior.py",
+                "line": 18,
+                "column": 0,
+                "message": "Unused save_user_data imported from core.user_data_handlers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_logger_coverage_expansion.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused mock_open imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_message_router_behavior.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused patch imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_message_router_behavior.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_profile_handler_behavior.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_schedule_handler_behavior.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_scheduler_coverage_expansion.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused get_user_data imported from core.user_data_handlers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_scheduler_coverage_expansion.py",
+                "line": 21,
+                "column": 0,
+                "message": "Unused get_user_categories imported from core.user_management",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_task_handler_behavior.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_user_data_flow_architecture.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_webhook_server_behavior.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_welcome_handler_behavior.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/core/test_file_auditor.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/core/test_message_management.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/core/test_message_management.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused load_default_messages imported from core.message_management",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/core/test_schedule_utilities.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_analyze_ai_work.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused patch imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_analyze_ai_work.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_fix_documentation.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_output_storage_archiving.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused patch imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_regenerate_coverage_metrics.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_task_cleanup_real_bug_verification.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_task_cleanup_silent_failure.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused patch imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_task_cleanup_silent_failure.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_user_creation.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused update_user_account imported from core.user_data_handlers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_user_creation.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused update_user_schedules imported from core.user_data_handlers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_user_creation.py",
+                "line": 28,
+                "column": 0,
+                "message": "Unused validate_schedule_periods__validate_time_format imported from core.user_data_validation",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/test_error_handling_improvements.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused patch imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/test_error_handling_improvements.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/test_error_handling_improvements.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused DataError imported from core.error_handling",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/test_error_handling_improvements.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused FileOperationError imported from core.error_handling",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/test_utilities.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused create_new_user imported from core.user_management",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/test_utilities.py",
+                "line": 20,
+                "column": 0,
+                "message": "Unused save_user_data imported from core.user_data_handlers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/test_utilities.py",
+                "line": 21,
+                "column": 0,
+                "message": "Unused ensure_user_directory imported from core.file_operations",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_account_creation_ui.py",
+                "line": 21,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_account_creation_ui.py",
+                "line": 33,
+                "column": 0,
+                "message": "Unused create_user_files imported from core.file_operations",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_account_creation_ui.py",
+                "line": 33,
+                "column": 0,
+                "message": "Unused get_user_file_path imported from core.file_operations",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_account_creation_ui.py",
+                "line": 34,
+                "column": 0,
+                "message": "Unused is_valid_email imported from core.user_data_validation",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_account_creation_ui.py",
+                "line": 34,
+                "column": 0,
+                "message": "Unused validate_schedule_periods__validate_time_format imported from core.user_data_validation",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_account_creator_dialog_validation.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused patch imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_category_management_dialog.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_category_management_dialog.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_channel_management_dialog_coverage_expansion.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused get_user_data imported from core.user_data_handlers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_channel_management_dialog_coverage_expansion.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused update_channel_preferences imported from core.user_data_handlers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_channel_management_dialog_coverage_expansion.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused update_user_account imported from core.user_data_handlers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_channel_management_dialog_coverage_expansion.py",
+                "line": 17,
+                "column": 0,
+                "message": "Unused is_valid_email imported from core.user_data_validation",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_channel_management_dialog_coverage_expansion.py",
+                "line": 17,
+                "column": 0,
+                "message": "Unused is_valid_phone imported from core.user_data_validation",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_behavior.py",
+                "line": 23,
+                "column": 0,
+                "message": "Unused patch imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_behavior.py",
+                "line": 23,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_behavior.py",
+                "line": 23,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_behavior.py",
+                "line": 32,
+                "column": 0,
+                "message": "Unused save_user_data imported from core.user_data_handlers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_behavior.py",
+                "line": 33,
+                "column": 0,
+                "message": "Unused create_user_files imported from core.file_operations",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_behavior.py",
+                "line": 33,
+                "column": 0,
+                "message": "Unused get_user_file_path imported from core.file_operations",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_coverage_expansion.py",
+                "line": 26,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_coverage_expansion.py",
+                "line": 26,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_coverage_expansion.py",
+                "line": 35,
+                "column": 0,
+                "message": "Unused save_user_data imported from core.user_data_handlers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_coverage_expansion.py",
+                "line": 35,
+                "column": 0,
+                "message": "Unused get_user_data imported from core.user_data_handlers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_coverage_expansion.py",
+                "line": 36,
+                "column": 0,
+                "message": "Unused create_user_files imported from core.file_operations",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_coverage_expansion.py",
+                "line": 37,
+                "column": 0,
+                "message": "Unused get_schedule_time_periods imported from core.schedule_management",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_coverage_expansion.py",
+                "line": 37,
+                "column": 0,
+                "message": "Unused set_schedule_periods imported from core.schedule_management",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_message_editor_dialog.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_process_watcher_dialog.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_signal_handler_integration.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused patch imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_signal_handler_integration.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_task_crud_dialog.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_task_settings_widget.py",
+                "line": 18,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_task_settings_widget.py",
+                "line": 18,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_ui_app_qt_main.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_ui_button_verification.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_ui_button_verification.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused patch imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_ui_components_headless.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused patch imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_ui_widgets_coverage_expansion.py",
+                "line": 22,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_ui_widgets_coverage_expansion.py",
+                "line": 22,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_user_analytics_dialog.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_user_profile_dialog_coverage_expansion.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior.py",
+                "line": 24,
+                "column": 0,
+                "message": "Unused patch imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior.py",
+                "line": 24,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior.py",
+                "line": 24,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior.py",
+                "line": 33,
+                "column": 0,
+                "message": "Unused save_user_data imported from core.user_data_handlers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior.py",
+                "line": 33,
+                "column": 0,
+                "message": "Unused get_user_data imported from core.user_data_handlers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior.py",
+                "line": 34,
+                "column": 0,
+                "message": "Unused create_user_files imported from core.file_operations",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior.py",
+                "line": 34,
+                "column": 0,
+                "message": "Unused get_user_file_path imported from core.file_operations",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior_simple.py",
+                "line": 15,
+                "column": 0,
+                "message": "Unused patch imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior_simple.py",
+                "line": 15,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_admin_panel.py",
+                "line": 17,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_admin_panel.py",
+                "line": 17,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_ai_chatbot_helpers.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_ai_chatbot_helpers.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_channel_orchestrator.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_checkin_management_dialog.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_checkin_view.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_checkin_view.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_command_parser_helpers.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_communication_core_init.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused patch imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_communication_core_init.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_communication_init.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused patch imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_communication_init.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_email_bot_body_extraction.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_enhanced_checkin_responses.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_file_operations.py",
+                "line": 20,
+                "column": 0,
+                "message": "Unused FileOperationError imported from core.error_handling",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_interaction_handlers_helpers.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_interaction_handlers_helpers.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_logger_unit.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_logger_unit.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused mock_open imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_message_formatter.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_message_formatter.py",
+                "line": 20,
+                "column": 0,
+                "message": "Unused DataError imported from core.error_handling",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_prompt_manager.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_prompt_manager.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_recurring_tasks.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused _create_next_recurring_task_instance imported from tasks.task_management",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_ui_management.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_user_context.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_user_context.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_user_data_handlers.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_user_data_manager.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_user_data_manager.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_user_data_manager.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused mock_open imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_user_management.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused patch imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_user_management.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused update_user_account imported from core.user_data_handlers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_user_management.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused update_user_context imported from core.user_data_handlers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_user_preferences.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused Mock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_user_preferences.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_user_preferences.py",
+                "line": 20,
+                "column": 0,
+                "message": "Unused get_user_data imported from core.user_data_handlers",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_generate_unused_imports_report.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused patch imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_generate_unused_imports_report.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_task_management_dialog.py",
+                "line": 18,
+                "column": 0,
+                "message": "Unused MagicMock imported from unittest.mock",
+                "symbol": "unused-import"
+              }
+            ],
+            "qt_testing": [
+              {
+                "file": "tests/ui/test_account_creation_ui.py",
+                "line": 24,
+                "column": 0,
+                "message": "Unused QWidget imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_account_creation_ui.py",
+                "line": 24,
+                "column": 0,
+                "message": "Unused QMessageBox imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_account_creation_ui.py",
+                "line": 25,
+                "column": 0,
+                "message": "Unused Qt imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_account_creation_ui.py",
+                "line": 25,
+                "column": 0,
+                "message": "Unused QTimer imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_category_management_dialog.py",
+                "line": 17,
+                "column": 0,
+                "message": "Unused QMessageBox imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_category_management_dialog.py",
+                "line": 18,
+                "column": 0,
+                "message": "Unused Qt imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_category_management_dialog.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused QTest imported from PySide6.QtTest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_behavior.py",
+                "line": 26,
+                "column": 0,
+                "message": "Unused QWidget imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_behavior.py",
+                "line": 26,
+                "column": 0,
+                "message": "Unused QMessageBox imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_behavior.py",
+                "line": 26,
+                "column": 0,
+                "message": "Unused QDialog imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_behavior.py",
+                "line": 27,
+                "column": 0,
+                "message": "Unused Qt imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_behavior.py",
+                "line": 27,
+                "column": 0,
+                "message": "Unused QTimer imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_coverage_expansion.py",
+                "line": 29,
+                "column": 0,
+                "message": "Unused QWidget imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_coverage_expansion.py",
+                "line": 30,
+                "column": 0,
+                "message": "Unused Qt imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_coverage_expansion.py",
+                "line": 30,
+                "column": 0,
+                "message": "Unused QTimer imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_coverage_expansion.py",
+                "line": 31,
+                "column": 0,
+                "message": "Unused QTest imported from PySide6.QtTest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_message_editor_dialog.py",
+                "line": 17,
+                "column": 0,
+                "message": "Unused QTableWidgetItem imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_message_editor_dialog.py",
+                "line": 18,
+                "column": 0,
+                "message": "Unused Qt imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_message_editor_dialog.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused QTest imported from PySide6.QtTest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_process_watcher_dialog.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused Qt imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_process_watcher_dialog.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused QTimer imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_process_watcher_dialog.py",
+                "line": 20,
+                "column": 0,
+                "message": "Unused QTest imported from PySide6.QtTest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_signal_handler_integration.py",
+                "line": 20,
+                "column": 0,
+                "message": "Unused QLineEdit imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_signal_handler_integration.py",
+                "line": 21,
+                "column": 0,
+                "message": "Unused Qt imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_signal_handler_integration.py",
+                "line": 22,
+                "column": 0,
+                "message": "Unused QTest imported from PySide6.QtTest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_task_crud_dialog.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused QTableWidgetItem imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_task_settings_widget.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused QWidget imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_task_settings_widget.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused QMessageBox imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_task_settings_widget.py",
+                "line": 20,
+                "column": 0,
+                "message": "Unused Qt imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_task_settings_widget.py",
+                "line": 21,
+                "column": 0,
+                "message": "Unused QTest imported from PySide6.QtTest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_ui_widgets_coverage_expansion.py",
+                "line": 26,
+                "column": 0,
+                "message": "Unused QWidget imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_ui_widgets_coverage_expansion.py",
+                "line": 26,
+                "column": 0,
+                "message": "Unused QListWidgetItem imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_ui_widgets_coverage_expansion.py",
+                "line": 26,
+                "column": 0,
+                "message": "Unused QInputDialog imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_ui_widgets_coverage_expansion.py",
+                "line": 27,
+                "column": 0,
+                "message": "Unused QTimer imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_ui_widgets_coverage_expansion.py",
+                "line": 28,
+                "column": 0,
+                "message": "Unused QTest imported from PySide6.QtTest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_user_analytics_dialog.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused Qt imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_user_analytics_dialog.py",
+                "line": 20,
+                "column": 0,
+                "message": "Unused QTest imported from PySide6.QtTest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_user_profile_dialog_coverage_expansion.py",
+                "line": 18,
+                "column": 0,
+                "message": "Unused QTest imported from PySide6.QtTest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior.py",
+                "line": 27,
+                "column": 0,
+                "message": "Unused QMessageBox imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior.py",
+                "line": 27,
+                "column": 0,
+                "message": "Unused QDialog imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior.py",
+                "line": 28,
+                "column": 0,
+                "message": "Unused Qt imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior.py",
+                "line": 28,
+                "column": 0,
+                "message": "Unused QTimer imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior.py",
+                "line": 29,
+                "column": 0,
+                "message": "Unused QTest imported from PySide6.QtTest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior_simple.py",
+                "line": 16,
+                "column": 0,
+                "message": "Unused QWidget imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior_simple.py",
+                "line": 17,
+                "column": 0,
+                "message": "Unused Qt imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior_simple.py",
+                "line": 18,
+                "column": 0,
+                "message": "Unused QTest imported from PySide6.QtTest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_admin_panel.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused Qt imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_admin_panel.py",
+                "line": 20,
+                "column": 0,
+                "message": "Unused QTest imported from PySide6.QtTest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_checkin_management_dialog.py",
+                "line": 20,
+                "column": 0,
+                "message": "Unused QMessageBox imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_checkin_management_dialog.py",
+                "line": 21,
+                "column": 0,
+                "message": "Unused Qt imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_checkin_management_dialog.py",
+                "line": 22,
+                "column": 0,
+                "message": "Unused QTest imported from PySide6.QtTest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_task_management_dialog.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused QMessageBox imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_task_management_dialog.py",
+                "line": 20,
+                "column": 0,
+                "message": "Unused Qt imported from PySide6.QtCore",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_task_management_dialog.py",
+                "line": 21,
+                "column": 0,
+                "message": "Unused QTest imported from PySide6.QtTest",
+                "symbol": "unused-import"
+              }
+            ],
+            "test_infrastructure": [
+              {
+                "file": "development_tools/tests/generate_test_coverage.py",
+                "line": 17,
+                "column": 0,
+                "message": "Unused import json",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ai/test_ai_core.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused import time",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ai/test_context_includes_recent_messages.py",
+                "line": 1,
+                "column": 0,
+                "message": "Unused import os",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_checkin_expiry_semantics.py",
+                "line": 1,
+                "column": 0,
+                "message": "Unused import os",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_checkin_handler_behavior.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused datetime imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_communication_manager_behavior.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused import time",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_conversation_flow_manager_behavior.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused import json",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_conversation_flow_manager_behavior.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused import os",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_conversation_flow_manager_behavior.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused datetime imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_discord_checkin_retry_behavior.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused datetime imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_discord_task_reminder_followup.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused datetime imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_headless_service_behavior.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused import os",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_headless_service_behavior.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused import json",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_headless_service_behavior.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_headless_service_behavior.py",
+                "line": 18,
+                "column": 0,
+                "message": "Unused TestUserFactory imported from tests.test_utilities",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_task_error_handling.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused import json",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_task_error_handling.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused import os",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_user_data_flow_architecture.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused import json",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_webhook_server_behavior.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused import threading",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/behavior/test_welcome_manager_behavior.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused import os",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/communication/test_retry_manager.py",
+                "line": 6,
+                "column": 0,
+                "message": "Unused import time",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/communication/test_retry_manager.py",
+                "line": 7,
+                "column": 0,
+                "message": "Unused import threading",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/core/test_message_management.py",
+                "line": 7,
+                "column": 0,
+                "message": "Unused import json",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/core/test_message_management.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused datetime imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/core/test_schedule_utilities.py",
+                "line": 7,
+                "column": 0,
+                "message": "Unused time imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/debug_file_paths.py",
+                "line": 1,
+                "column": 0,
+                "message": "Unused import pytest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_analyze_ai_work.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused import tempfile",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_analyze_ai_work.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_analyze_documentation.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused import tempfile",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_analyze_missing_addresses.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused import tempfile",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_analyze_missing_addresses.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_documentation_sync_checker.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_error_scenarios.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused import shutil",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_fix_documentation.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused import tempfile",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_fix_documentation.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_fix_documentation_addresses.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused import tempfile",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_fix_documentation_addresses.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_fix_documentation_ascii.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused import tempfile",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_fix_documentation_ascii.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_generate_function_registry.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_generate_module_dependencies.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_legacy_reference_cleanup.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_output_storage_archiving.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_path_drift_integration.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused import tempfile",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_path_drift_integration.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_path_drift_verification_comprehensive.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_regenerate_coverage_metrics.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_account_management.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused import time",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_account_management.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused import tempfile",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_task_cleanup_real.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused datetime imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_task_cleanup_silent_failure.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused datetime imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_task_reminder_integration.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused import time",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_user_creation.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused import json",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_user_creation.py",
+                "line": 15,
+                "column": 0,
+                "message": "Unused import tempfile",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/integration/test_user_creation.py",
+                "line": 17,
+                "column": 0,
+                "message": "Unused datetime imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/test_error_handling_improvements.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/test_utilities.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused import tempfile",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/test_utilities.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_account_creation_ui.py",
+                "line": 20,
+                "column": 0,
+                "message": "Unused import shutil",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_account_creation_ui.py",
+                "line": 23,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_account_creation_ui.py",
+                "line": 36,
+                "column": 0,
+                "message": "Unused CategorySelectionWidget imported from ui.widgets.category_selection_widget",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_account_creation_ui.py",
+                "line": 37,
+                "column": 0,
+                "message": "Unused ChannelSelectionWidget imported from ui.widgets.channel_selection_widget",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_account_creation_ui.py",
+                "line": 38,
+                "column": 0,
+                "message": "Unused TaskSettingsWidget imported from ui.widgets.task_settings_widget",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_account_creation_ui.py",
+                "line": 39,
+                "column": 0,
+                "message": "Unused CheckinSettingsWidget imported from ui.widgets.checkin_settings_widget",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_behavior.py",
+                "line": 22,
+                "column": 0,
+                "message": "Unused import shutil",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_behavior.py",
+                "line": 24,
+                "column": 0,
+                "message": "Unused datetime imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_behavior.py",
+                "line": 24,
+                "column": 0,
+                "message": "Unused time imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_behavior.py",
+                "line": 39,
+                "column": 0,
+                "message": "Unused open_schedule_editor imported from ui.dialogs.schedule_editor_dialog",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_behavior.py",
+                "line": 40,
+                "column": 0,
+                "message": "Unused TaskEditDialog imported from ui.dialogs.task_edit_dialog",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_behavior.py",
+                "line": 41,
+                "column": 0,
+                "message": "Unused TaskCrudDialog imported from ui.dialogs.task_crud_dialog",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_behavior.py",
+                "line": 42,
+                "column": 0,
+                "message": "Unused TaskCompletionDialog imported from ui.dialogs.task_completion_dialog",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_coverage_expansion.py",
+                "line": 25,
+                "column": 0,
+                "message": "Unused import shutil",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_coverage_expansion.py",
+                "line": 27,
+                "column": 0,
+                "message": "Unused datetime imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_coverage_expansion.py",
+                "line": 27,
+                "column": 0,
+                "message": "Unused time imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_coverage_expansion.py",
+                "line": 28,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_coverage_expansion.py",
+                "line": 40,
+                "column": 0,
+                "message": "Unused TaskCrudDialog imported from ui.dialogs.task_crud_dialog",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialog_coverage_expansion.py",
+                "line": 43,
+                "column": 0,
+                "message": "Unused TestDataFactory imported from tests.test_utilities",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_dialogs.py",
+                "line": 15,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_ui_widgets_coverage_expansion.py",
+                "line": 23,
+                "column": 0,
+                "message": "Unused datetime imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_user_analytics_dialog.py",
+                "line": 17,
+                "column": 0,
+                "message": "Unused datetime imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_user_profile_dialog_coverage_expansion.py",
+                "line": 11,
+                "column": 0,
+                "message": "Unused import os",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_user_profile_dialog_coverage_expansion.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused import tempfile",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_user_profile_dialog_coverage_expansion.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused datetime imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_user_profile_dialog_coverage_expansion.py",
+                "line": 21,
+                "column": 0,
+                "message": "Unused TestDataFactory imported from tests.test_utilities",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior.py",
+                "line": 22,
+                "column": 0,
+                "message": "Unused import tempfile",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior.py",
+                "line": 23,
+                "column": 0,
+                "message": "Unused import shutil",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior.py",
+                "line": 25,
+                "column": 0,
+                "message": "Unused datetime imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior.py",
+                "line": 25,
+                "column": 0,
+                "message": "Unused time imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/ui/test_widget_behavior.py",
+                "line": 35,
+                "column": 0,
+                "message": "Unused TestUserDataFactory imported from tests.test_utilities",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_file_locking.py",
+                "line": 14,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_file_operations.py",
+                "line": 10,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_logger_unit.py",
+                "line": 12,
+                "column": 0,
+                "message": "Unused import json",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_prompt_manager.py",
+                "line": 17,
+                "column": 0,
+                "message": "Unused import os",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_prompt_manager.py",
+                "line": 18,
+                "column": 0,
+                "message": "Unused import tempfile",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_prompt_manager.py",
+                "line": 20,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_scripts_exclusion_policy.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused import os",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_user_data_manager.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_user_data_manager.py",
+                "line": 20,
+                "column": 0,
+                "message": "Unused datetime imported from datetime",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/unit/test_user_preferences.py",
+                "line": 17,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_generate_unused_imports_report.py",
+                "line": 8,
+                "column": 0,
+                "message": "Unused import json",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_generate_unused_imports_report.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              }
+            ],
+            "production_test_mocking": [
+              {
+                "file": "communication/core/channel_orchestrator.py",
+                "line": 19,
+                "column": 0,
+                "message": "Unused determine_file_path imported from core.file_operations",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "communication/core/factory.py",
+                "line": 5,
+                "column": 0,
+                "message": "Unused get_available_channels imported from core.config",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "communication/core/factory.py",
+                "line": 5,
+                "column": 0,
+                "message": "Unused get_channel_class_mapping imported from core.config",
+                "symbol": "unused-import"
+              }
+            ],
+            "ui_imports": []
+          },
+          "stats": {
+            "files_scanned": 374,
+            "files_with_issues": 150,
+            "total_unused": 435,
+            "cache_hits": 372,
+            "cache_misses": 0
+          },
           "by_category": {
-            "obvious_unused": 129,
+            "obvious_unused": 133,
             "type_hints_only": 2,
             "re_exports": 0,
             "conditional_imports": 9,
             "star_imports": 0,
-            "test_mocking": 131,
+            "test_mocking": 133,
             "qt_testing": 54,
-            "test_infrastructure": 100,
+            "test_infrastructure": 101,
             "production_test_mocking": 3,
             "ui_imports": 0
           },
-          "files_scanned": 372
+          "files_scanned": 374
         }
       },
-      "timestamp": "2025-12-20T04:39:19.761619"
+      "timestamp": "2025-12-21T00:59:22.619438"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -64264,7 +67475,7 @@
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md"
         }
       },
-      "timestamp": "2025-12-20T04:39:55.591305"
+      "timestamp": "2025-12-21T01:00:16.323559"
     },
     "analyze_config": {
       "success": true,
@@ -64326,7 +67537,7 @@
           }
         }
       },
-      "timestamp": "2025-12-20T04:37:40.470131"
+      "timestamp": "2025-12-21T00:59:00.253358"
     },
     "analyze_ai_work": {
       "success": true,
@@ -64341,7 +67552,7 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2025-12-20T04:31:41.932298"
+      "timestamp": "2025-12-21T00:50:28.413764"
     },
     "decision_support": {
       "success": true,
@@ -64470,12 +67681,12 @@
           }
         ]
       },
-      "timestamp": "2025-12-20T04:31:40.008574"
+      "timestamp": "2025-12-21T00:50:26.640707"
     },
     "quick_status": {
       "success": true,
       "data": {
-        "timestamp": "2025-12-20T04:31:24.427848",
+        "timestamp": "2025-12-21T00:50:10.829630",
         "system_health": {
           "core_files": {
             "run_mhm.py": "OK",
@@ -64495,7 +67706,7 @@
         },
         "documentation_status": {
           "coverage": "Unknown",
-          "recent_audit": "2025-12-20T04:18:22.670050",
+          "recent_audit": "2025-12-20T23:58:00.284051",
           "key_files": {
             "README.md": "OK",
             "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -64508,26 +67719,19 @@
         "critical_issues": [],
         "action_items": [],
         "recent_activity": {
-          "last_audit": "2025-12-20T04:18:22.670050",
+          "last_audit": "2025-12-20T23:58:00.284051",
           "recent_changes": [
-            "test_report.md",
-            "core/scheduler.py",
-            "core/logger.py",
-            "core/config.py",
-            "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
             "ai_development_docs/AI_CHANGELOG.md",
-            "ai_development_docs/AI_BACKUP_GUIDE.md",
-            "TODO.md",
-            "DOCUMENTATION_GUIDE.md"
+            "TODO.md"
           ]
         }
       },
-      "timestamp": "2025-12-20T04:31:24.662624"
+      "timestamp": "2025-12-21T00:50:11.185088"
     },
     "system_signals": {
       "success": true,
       "data": {
-        "timestamp": "2025-12-20T04:31:33.818904",
+        "timestamp": "2025-12-21T00:50:21.411392",
         "system_health": {
           "overall_status": "OK",
           "core_files": {
@@ -64545,35 +67749,33 @@
             "user": "OK",
             "tests": "OK"
           },
-          "last_audit": "2025-12-20T04:18:22.740649",
+          "last_audit": "2025-12-20T23:58:00.360587",
           "warnings": [],
           "errors": []
         },
         "recent_activity": {
           "recent_changes": [
-            "development_tools/tests/generate_test_coverage.py",
-            "development_tools/shared/service/report_generation.py",
-            "development_tools/shared/service/audit_orchestration.py",
-            "development_tools/reports/quick_status.py",
+            "tests/ui/test_task_management_dialog.py",
             "development_tools/legacy/analyze_legacy_references.py",
-            "development_tools/shared/service/data_loading.py",
-            "development_tools/docs/fix_version_sync.py",
-            "development_tools/shared/file_rotation.py",
+            "development_tools/shared/service/tool_wrappers.py",
+            "development_tools/shared/service/audit_orchestration.py",
+            "tests/behavior/test_auto_cleanup_behavior.py",
             "development_tools/docs/analyze_documentation_sync.py",
-            "development_tools/imports/analyze_unused_imports.py"
+            "tests/development_tools/test_output_storage_archiving.py",
+            "development_tools/shared/service/commands.py",
+            "development_tools/shared/tool_metadata.py",
+            "development_tools/docs/fix_version_sync.py"
           ],
           "git_status": "Modified",
           "last_commit": null,
           "uncommitted_changes": true
         },
-        "critical_alerts": [
-          "CRITICAL: Recent errors in logs/errors.log"
-        ],
+        "critical_alerts": [],
         "performance_indicators": {
           "log_file_sizes": {
             "ai.log": "0.0MB",
-            "ai_dev_tools.log": "0.2MB",
-            "app.log": "0.1MB",
+            "ai_dev_tools.log": "0.3MB",
+            "app.log": "0.2MB",
             "communication_manager.log": "0.0MB",
             "discord.log": "0.0MB",
             "email.log": "0.0MB",
@@ -64588,7 +67790,7 @@
           "memory_usage": "Unknown"
         }
       },
-      "timestamp": "2025-12-20T04:31:34.054172"
+      "timestamp": "2025-12-21T00:50:21.631629"
     },
     "decision_support_metrics": {
       "success": true,
@@ -64717,7 +67919,7 @@
           }
         ]
       },
-      "timestamp": "2025-12-20T04:39:56.769037"
+      "timestamp": "2025-12-21T01:00:18.202728"
     }
   }
 }

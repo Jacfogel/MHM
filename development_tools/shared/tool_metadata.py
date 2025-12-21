@@ -321,6 +321,13 @@ _TOOLS: Dict[str, ToolInfo] = {
         trust="partial",
         description="AST-based unused import detector (can be noisy).",
     ),
+    "generate_unused_imports_report": ToolInfo(
+        name="generate_unused_imports_report",
+        path="development_tools/imports/generate_unused_imports_report.py",
+        tier="supporting",
+        trust="partial",
+        description="Generates markdown report from unused imports analysis results.",
+    ),
     "quick_status": ToolInfo(
         name="quick_status",
         path="development_tools/reports/quick_status.py",

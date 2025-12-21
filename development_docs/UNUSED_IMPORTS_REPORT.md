@@ -2,25 +2,25 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-20 04:39:19
-> **Source**: `python development_tools/run_development_tools.py unused-imports` - Unused Imports Detection Tool
+> **Last Generated**: 2025-12-21 01:00:18
+> **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 372
-- **Files with Unused Imports**: 148
-- **Total Unused Imports**: 428
+- **Total Files Scanned**: 374
+- **Files with Unused Imports**: 150
+- **Total Unused Imports**: 435
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 129 imports
+- **Obvious Unused**: 133 imports
 - **Type Hints Only**: 2 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 9 imports
 - **Star Imports**: 0 imports
-- **Test Mocking**: 131 imports
+- **Test Mocking**: 133 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 100 imports
+- **Test Infrastructure**: 101 imports
 - **Production Test Mocking**: 3 imports
 - **Ui Imports**: 0 imports
 
@@ -166,9 +166,11 @@
 
 ### `development_tools/imports/analyze_unused_imports.py`
 
-**Count**: 1 unused import(s)
+**Count**: 2 unused import(s)
 
-- **Line 29**: Unused partial imported from functools
+- **Line 27**: Unused datetime imported from datetime
+  - Symbol: `unused-import`
+- **Line 28**: Unused partial imported from functools
   - Symbol: `unused-import`
 
 ### `development_tools/imports/generate_module_dependencies.py`
@@ -178,6 +180,15 @@
 - **Line 11**: Unused Any imported from typing
   - Symbol: `unused-import`
 - **Line 32**: Unused analyze_dependency_patterns imported from analyze_dependency_patterns
+  - Symbol: `unused-import`
+
+### `development_tools/imports/generate_unused_imports_report.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 24**: Unused List imported from typing
+  - Symbol: `unused-import`
+- **Line 24**: Unused Optional imported from typing
   - Symbol: `unused-import`
 
 ### `development_tools/reports/decision_support.py`
@@ -457,6 +468,13 @@
 **Count**: 1 unused import(s)
 
 - **Line 8**: Unused import sys
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_generate_unused_imports_report.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 12**: Unused temp_project_copy imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_legacy_reference_cleanup.py`
@@ -906,6 +924,15 @@
 
 **Count**: 1 unused import(s)
 
+- **Line 10**: Unused MagicMock imported from unittest.mock
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_generate_unused_imports_report.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 10**: Unused patch imported from unittest.mock
+  - Symbol: `unused-import`
 - **Line 10**: Unused MagicMock imported from unittest.mock
   - Symbol: `unused-import`
 
@@ -1785,6 +1812,15 @@
 - **Line 9**: Unused Path imported from pathlib
   - Symbol: `unused-import`
 
+### `tests/development_tools/test_generate_unused_imports_report.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 8**: Unused import json
+  - Symbol: `unused-import`
+- **Line 9**: Unused Path imported from pathlib
+  - Symbol: `unused-import`
+
 ### `tests/development_tools/test_legacy_reference_cleanup.py`
 
 **Count**: 1 unused import(s)
@@ -1794,10 +1830,8 @@
 
 ### `tests/development_tools/test_output_storage_archiving.py`
 
-**Count**: 2 unused import(s)
+**Count**: 1 unused import(s)
 
-- **Line 8**: Unused import json
-  - Symbol: `unused-import`
 - **Line 10**: Unused Path imported from pathlib
   - Symbol: `unused-import`
 

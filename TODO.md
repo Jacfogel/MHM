@@ -222,6 +222,17 @@ When adding new tasks, follow this format:
   - [ ] Ensure job runs before test steps and fails the pipeline on violations
   - [ ] Document the check in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) (contributor notes)
 
+**Investigate Intermittent Test Failures**
+- *What it means*: Investigate and fix two test failures that appear intermittently: `test_comprehensive_context_includes_recent_sent_messages_and_checkin_status` (AI context test) and `test_full_account_lifecycle_real_behavior` (account creation integration test). These failures may be related to timing, race conditions, or test isolation issues.
+- *Why it helps*: Ensures test suite reliability and prevents false negatives that can mask real issues
+- *Estimated effort*: Small/Medium
+- *Subtasks*:
+  - [ ] Investigate `test_comprehensive_context_includes_recent_sent_messages_and_checkin_status` failure (assertion that "Recent automated messages sent to them:" is in content)
+  - [ ] Investigate `test_full_account_lifecycle_real_behavior` failure (assertion that preferences categories persist after account-only save)
+  - [ ] Check for timing/race condition issues in test setup or teardown
+  - [ ] Verify test isolation and data cleanup between test runs
+  - [ ] Add retry logic or fix root cause if identified
+
 
 **Improve AI Terminal Interaction Reliability**
 - *What it means*: Investigate why AI assistants often misinterpret PowerShell output or make incorrect assumptions

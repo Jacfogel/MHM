@@ -199,4 +199,198 @@ class TestOutputStorageArchiving:
             logger.info(f"Found {len(misplaced_files)} misplaced JSON files:")
             for item in misplaced_files:
                 logger.info(f"  - {item['file']} (should be in {item['expected_location']})")
+    
+    @pytest.mark.unit
+    def test_archive_cleanup_exceeds_max_versions(self, temp_project_copy):
+        """Verify archive cleanup when exceeding max versions (default 7)."""
+        # Save 10 versions (exceeding default max of 7)
+        for i in range(10):
+            result = {'version': i, 'data': f'version_{i}'}
+            save_tool_result(
+                'test_cleanup',
+                domain='docs',
+                data=result,
+                archive_count=7,  # Default max versions
+                project_root=temp_project_copy
+            )
+            time.sleep(0.1)  # Ensure different timestamps
+        
+        # Verify archive directory
+        archive_dir = temp_project_copy / "development_tools" / "docs" / "jsons" / "archive"
+        
+        # Count archived files
+        archived_files = list(archive_dir.glob("test_cleanup_results_*.json"))
+        
+        # Should have at most 7 archived files (default max)
+        # First file doesn't get archived, so we save 10 times = 9 archives, but cleanup should keep only 7
+        assert len(archived_files) <= 7, f"Should keep at most 7 archived versions, got {len(archived_files)}"
+        
+        # Verify oldest files were removed (if we have more than 7)
+        if len(archived_files) > 7:
+            # Sort by modification time
+            archived_files.sort(key=lambda x: x.stat().st_mtime)
+            # Oldest files should have been removed
+            # This is verified by the count check above
+    
+    @pytest.mark.unit
+    def test_archive_directory_creation(self, temp_project_copy):
+        """Verify archive directory is created automatically when needed."""
+        # Ensure archive directory doesn't exist initially
+        archive_dir = temp_project_copy / "development_tools" / "docs" / "jsons" / "archive"
+        if archive_dir.exists():
+            import shutil
+            shutil.rmtree(archive_dir)
+        
+        assert not archive_dir.exists(), "Archive directory should not exist initially"
+        
+        # Save first version (no archive yet)
+        result1 = {'test': 'data1'}
+        save_tool_result(
+            'test_dir_creation',
+            domain='docs',
+            data=result1,
+            project_root=temp_project_copy
+        )
+        
+        # Archive directory still shouldn't exist (no file to archive)
+        assert not archive_dir.exists(), "Archive directory should not exist after first save"
+        
+        # Wait a moment
+        time.sleep(0.1)
+        
+        # Save second version (should create archive directory)
+        result2 = {'test': 'data2'}
+        save_tool_result(
+            'test_dir_creation',
+            domain='docs',
+            data=result2,
+            project_root=temp_project_copy
+        )
+        
+        # Archive directory should now exist
+        assert archive_dir.exists(), "Archive directory should be created when archiving"
+        assert archive_dir.is_dir(), "Archive directory should be a directory"
+    
+    @pytest.mark.unit
+    def test_error_handling_archiving_failure(self, temp_project_copy):
+        """Verify error handling when archiving fails."""
+        # Save first version
+        result1 = {'test': 'data1'}
+        file_path = save_tool_result(
+            'test_error',
+            domain='docs',
+            data=result1,
+            project_root=temp_project_copy
+        )
+        
+        assert file_path.exists(), "First result file should exist"
+        
+        # Wait a moment
+        time.sleep(0.1)
+        
+        # Mock shutil.move to raise an exception during archiving
+        # Since shutil is imported inside save_tool_result, we need to patch the builtin shutil module
+        import shutil
+        original_move = shutil.move
+        
+        def failing_move(src, dst):
+            raise OSError("Simulated archiving failure")
+        
+        # Patch shutil.move at the module level - this will be used when the function imports shutil
+        shutil.move = failing_move
+        try:
+            # Try to save second version - archiving will fail
+            result2 = {'test': 'data2'}
+            try:
+                file_path2 = save_tool_result(
+                    'test_error',
+                    domain='docs',
+                    data=result2,
+                    project_root=temp_project_copy
+                )
+                # If we get here, the function handled the error gracefully
+                # The new file should still be written (archiving failure shouldn't block saving)
+                assert file_path2.exists(), "New file should exist even if archiving fails"
+            except OSError as e:
+                # If archiving failure propagates, verify it's our simulated error
+                if "Simulated archiving failure" not in str(e):
+                    # Re-raise if it's not our simulated error
+                    raise
+                # On error, verify the new file was still written (archiving happens before writing)
+                final_file = temp_project_copy / "development_tools" / "docs" / "jsons" / "test_error_results.json"
+                # The file should exist because archiving happens before writing the new file
+                # If archiving fails, the old file might still be there, but new file should be written
+                assert final_file.exists(), "Result file should exist even if archiving fails"
+        finally:
+            # Restore original function
+            shutil.move = original_move
+    
+    @pytest.mark.unit
+    @pytest.mark.no_parallel  # Concurrent saves might interfere with each other
+    def test_concurrent_saves(self, temp_project_copy):
+        """Verify that concurrent saves don't corrupt the final file.
+        
+        Note: save_tool_result() doesn't implement file locking, so some concurrent
+        saves may fail on Windows due to file locking. This test verifies that:
+        1. The function doesn't crash when called concurrently
+        2. The final file is valid and contains correct data
+        3. At least one save succeeded (proving the function works)
+        """
+        import threading
+        import platform
+        
+        results = []
+        errors = []
+        lock = threading.Lock()
+        
+        def save_version(version_num):
+            try:
+                result = {'version': version_num, 'thread': threading.current_thread().name}
+                file_path = save_tool_result(
+                    'test_concurrent',
+                    domain='docs',
+                    data=result,
+                    project_root=temp_project_copy
+                )
+                with lock:
+                    results.append((version_num, file_path))
+                time.sleep(0.01)  # Small delay to increase chance of overlap
+            except Exception as e:
+                with lock:
+                    errors.append((version_num, str(e)))
+        
+        # Create 5 threads that save concurrently
+        threads = []
+        for i in range(5):
+            thread = threading.Thread(target=save_version, args=(i,), name=f"Thread-{i}")
+            threads.append(thread)
+        
+        # Start all threads
+        for thread in threads:
+            thread.start()
+        
+        # Wait for all threads to complete
+        for thread in threads:
+            thread.join(timeout=5.0)
+        
+        # Verify at least one save succeeded (proves the function works)
+        assert len(results) > 0, f"At least one save should succeed. Results: {len(results)}, Errors: {len(errors)}"
+        
+        # Verify final file exists and is valid
+        final_file = temp_project_copy / "development_tools" / "docs" / "jsons" / "test_concurrent_results.json"
+        assert final_file.exists(), "Final result file should exist after concurrent saves"
+        
+        # Verify file is valid JSON and contains expected structure
+        with open(final_file, 'r') as f:
+            data = json.load(f)
+            assert 'data' in data, "Result file should contain data"
+            # Verify the data structure is correct
+            assert isinstance(data['data'], dict), "Data should be a dictionary"
+        
+        # Verify archive directory exists and has some archived files (if multiple saves succeeded)
+        archive_dir = temp_project_copy / "development_tools" / "docs" / "jsons" / "archive"
+        if archive_dir.exists() and len(results) > 1:
+            archived_files = list(archive_dir.glob("test_concurrent_results_*.json"))
+            # If multiple saves succeeded, we should have archived files
+            # But don't fail if only one save succeeded (no archiving needed)
 

@@ -54,6 +54,7 @@ python development_tools/run_development_tools.py status
 python development_tools/run_development_tools.py legacy
 python development_tools/run_development_tools.py coverage
 python development_tools/run_development_tools.py unused-imports
+python development_tools/run_development_tools.py unused-imports-report
 python development_tools/run_development_tools.py config
 ```
 
@@ -75,7 +76,8 @@ python development_tools/run_development_tools.py config
 - `system-signals` - generates system health and status signals.
 - `validate` - validates AI-generated work (lightweight structural validation).
 - `decision-support` - generates decision support insights.
-- `unused-imports` - runs the AST-based unused import detection tool.
+- `unused-imports` - runs the AST-based unused import detection tool (analysis only).
+- `unused-imports-report` - generates unused imports report from analysis results.
 - `workflow` - executes an audit-first workflow task.
 - `trees` - generates directory tree reports.
 - `cleanup` - cleans up project cache files, temporary directories, and artifacts.
@@ -145,6 +147,7 @@ The modular structure provides clear separation of concerns, making the codebase
 - Legacy reference scanning
 - Module dependency analysis
 - Improvement opportunity reports (LEGACY_REFERENCE_REPORT.md, TEST_COVERAGE_REPORT.md, UNUSED_IMPORTS_REPORT.md)
+  - Report generation tools: `generate_legacy_reference_report`, `generate_test_coverage_reports`, `generate_unused_imports_report`
 
 Pipeline artifacts:
 - AI-facing (root): [AI_STATUS.md](development_tools/AI_STATUS.md), `AI_PRIORITIES.md`, `consolidated_report.txt`
@@ -256,7 +259,8 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 | analyze_package_exports.py | supporting | partial | Confirms package export declarations match filesystem reality. |
 | analyze_config.py | supporting | partial | Detects configuration drift and missing values across tools. |
 | analyze_ai_work.py | supporting | partial | Lightweight structural validator; advisory results only. |
-| analyze_unused_imports.py | supporting | partial | AST-based unused import detector (tune noise thresholds). |
+| analyze_unused_imports.py | supporting | partial | AST-based unused import detector (analysis only, no report generation). |
+| generate_unused_imports_report.py | supporting | partial | Generates markdown report from unused imports analysis results. Extracted from analyze_unused_imports.py (2025-12-18) to follow naming conventions. |
 | quick_status.py | supporting | advisory | Cached status snapshot that depends on the latest audit run. |
 | system_signals.py | supporting | advisory | Collects OS/process health signals for consolidated reports. |
 | decision_support.py | supporting | advisory | Aggregates metrics into improvement priorities. |

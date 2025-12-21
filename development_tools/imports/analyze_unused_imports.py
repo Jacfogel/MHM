@@ -24,7 +24,6 @@ import json
 import multiprocessing
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
-from collections import defaultdict
 from datetime import datetime
 from functools import partial
 
@@ -721,108 +720,6 @@ class UnusedImportsChecker:
             'stats': self.stats,
         }
     
-    def generate_report(self) -> str:
-        """Generate a detailed markdown report."""
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        
-        lines = []
-        lines.append("# Unused Imports Report")
-        lines.append("")
-        lines.append("> **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`")
-        lines.append("> **Generated**: This file is auto-generated. Do not edit manually.")
-        lines.append(f"> **Last Generated**: {timestamp}")
-        lines.append("> **Source**: `python development_tools/run_development_tools.py unused-imports` - Unused Imports Detection Tool")
-        lines.append("")
-        
-        # Summary statistics
-        lines.append("## Summary Statistics")
-        lines.append("")
-        lines.append(f"- **Total Files Scanned**: {self.stats['files_scanned']}")
-        lines.append(f"- **Files with Unused Imports**: {self.stats['files_with_issues']}")
-        lines.append(f"- **Total Unused Imports**: {self.stats['total_unused']}")
-        lines.append("")
-        
-        # Category breakdown
-        lines.append("## Breakdown by Category")
-        lines.append("")
-        for category, items in self.findings.items():
-            category_name = category.replace('_', ' ').title()
-            lines.append(f"- **{category_name}**: {len(items)} imports")
-        lines.append("")
-        
-        # Detailed findings by category
-        category_order = [
-            'obvious_unused', 'type_hints_only', 're_exports', 'conditional_imports', 'star_imports',
-            'test_mocking', 'qt_testing', 'test_infrastructure', 'production_test_mocking', 'ui_imports'
-        ]
-        
-        for category in category_order:
-            items = self.findings[category]
-            if not items:
-                continue
-            
-            category_name = category.replace('_', ' ').title()
-            lines.append(f"## {category_name}")
-            lines.append("")
-            
-            # Add recommendation for each category
-            if category == 'obvious_unused':
-                lines.append("**Recommendation**: These imports can likely be safely removed.")
-            elif category == 'type_hints_only':
-                lines.append("**Recommendation**: Consider using `TYPE_CHECKING` guard for these imports.")
-            elif category == 're_exports':
-                lines.append("**Recommendation**: Review if these are intentional re-exports in `__init__.py` files.")
-            elif category == 'conditional_imports':
-                lines.append("**Recommendation**: Review carefully - these may be for optional dependencies.")
-            elif category == 'star_imports':
-                lines.append("**Recommendation**: Star imports can hide unused imports - consider explicit imports.")
-            elif category == 'test_mocking':
-                lines.append("**Recommendation**: These imports are required for test mocking with `@patch` decorators and `patch.object()` calls.")
-            elif category == 'qt_testing':
-                lines.append("**Recommendation**: These Qt imports are required for UI testing and signal handling.")
-            elif category == 'test_infrastructure':
-                lines.append("**Recommendation**: These imports are required for test infrastructure (fixtures, data creation, etc.).")
-            elif category == 'production_test_mocking':
-                lines.append("**Recommendation**: These imports are required in production code for test mocking. Keep them.")
-            elif category == 'ui_imports':
-                lines.append("**Recommendation**: These Qt imports are required for UI functionality. Keep them.")
-            lines.append("")
-            
-            # Group by file
-            by_file = defaultdict(list)
-            for item in items:
-                by_file[item['file']].append(item)
-            
-            for file_path in sorted(by_file.keys()):
-                file_items = by_file[file_path]
-                lines.append(f"### `{file_path}`")
-                lines.append("")
-                lines.append(f"**Count**: {len(file_items)} unused import(s)")
-                lines.append("")
-                
-                for item in sorted(file_items, key=lambda x: x['line']):
-                    lines.append(f"- **Line {item['line']}**: {item['message']}")
-                    if item.get('symbol'):
-                        lines.append(f"  - Symbol: `{item['symbol']}`")
-                lines.append("")
-        
-        # Recommendations
-        lines.append("## Overall Recommendations")
-        lines.append("")
-        lines.append("1. **Obvious Unused**: Review and remove obvious unused imports to improve code cleanliness")
-        lines.append("2. **Type Hints**: For type hint imports, consider using `from __future__ import annotations` and `TYPE_CHECKING` (note: the word \"annotations\" here refers to the Python `__future__` feature name, not a module to import)")
-        lines.append("3. **Re-exports**: Verify `__init__.py` imports are intentional re-exports")
-        lines.append("4. **Conditional Imports**: Be cautious with conditional imports - they may be handling optional dependencies")
-        lines.append("5. **Star Imports**: Consider replacing star imports with explicit imports for better clarity")
-        lines.append("6. **Test Mocking**: Keep imports required for `@patch` decorators and `patch.object()` calls")
-        lines.append("7. **Qt Testing**: Keep Qt imports required for UI testing and signal handling")
-        lines.append("8. **Test Infrastructure**: Keep imports required for test fixtures and data creation")
-        lines.append("9. **Production Test Mocking**: Keep imports in production code that are mocked by tests")
-        lines.append("10. **UI Imports**: Keep Qt imports required for UI functionality")
-        lines.append("")
-        
-        return '\n'.join(lines)
-    
     def get_summary_data(self) -> Dict:
         """Get summary data for integration with AI tools."""
         return {
@@ -866,7 +763,7 @@ class UnusedImportsChecker:
                         files[file_path] = 0
                     files[file_path] += 1
         
-        # Return standard format
+        # Return standard format with full findings for report generation
         return {
             'summary': {
                 'total_issues': self.stats['total_unused'],
@@ -875,6 +772,8 @@ class UnusedImportsChecker:
             },
             'files': files,
             'details': {
+                'findings': self.findings,  # Full findings for detailed reports
+                'stats': self.stats,  # Full stats for report generation
                 'by_category': {
                     category: len(items)
                     for category, items in self.findings.items()
@@ -900,28 +799,15 @@ def execute(project_root: Optional[str] = None, config_path: Optional[str] = Non
     )
     results = checker.scan_codebase()
     
-    # Generate report
-    report = checker.generate_report()
-    
-    # Write report if output path provided
-    output_path = kwargs.get('output', None)
-    if output_path:
-        output_file = root_path / output_path
-        output_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(output_file, 'w', encoding='utf-8') as f:
-            f.write(report)
-    
+    # Return analysis results only (report generation is now separate)
     return {
         'results': results,
-        'report': report,
         'stats': checker.stats
     }
 
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description='Detect unused imports in codebase')
-    parser.add_argument('--output', default='development_docs/UNUSED_IMPORTS_REPORT.md',
-                       help='Output report path')
     parser.add_argument('--json', action='store_true',
                        help='Output JSON data to stdout')
     parser.add_argument('--verbose', '-v', action='store_true',
@@ -935,30 +821,18 @@ def main():
     checker = UnusedImportsChecker(project_root, verbose=args.verbose)
     results = checker.scan_codebase()
     
-    # Output JSON first if --json flag is provided (before report generation to avoid mixing output)
+    # Output JSON if --json flag is provided
     if args.json:
         # Output JSON in standard format for integration
         standard_results = checker.run_analysis()
         print(json.dumps(standard_results, indent=2))
-    
-    # Generate report if --output is provided (regardless of --json flag)
-    if args.output:
-        report = checker.generate_report()
-        
-        # Write report to file with rotation
-        from development_tools.shared.file_rotation import create_output_file
-        output_path = project_root / args.output
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        create_output_file(str(output_path), report, rotate=True, max_versions=7,
-                          project_root=project_root)
-        
-        # Only print report info if not in JSON mode (to avoid mixing with JSON output)
-        if not args.json:
-            print(f"\nReport saved to: {output_path}")
-            print(f"Files scanned: {checker.stats['files_scanned']}")
-            print(f"Files with issues: {checker.stats['files_with_issues']}")
-            print(f"Total unused imports: {checker.stats['total_unused']}")
+    else:
+        # Print summary if not in JSON mode
+        print(f"\nFiles scanned: {checker.stats['files_scanned']}")
+        print(f"Files with issues: {checker.stats['files_with_issues']}")
+        print(f"Total unused imports: {checker.stats['total_unused']}")
+        print("\nNote: To generate a detailed report, run:")
+        print("  python development_tools/run_development_tools.py unused-imports-report")
     
     return 0
 

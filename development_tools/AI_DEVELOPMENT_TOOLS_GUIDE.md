@@ -47,7 +47,8 @@ python development_tools/run_development_tools.py help
 - `doc-fix` - Fix documentation issues (addresses, ASCII, headings, links)
 - `legacy` - Scan for legacy references
 - `coverage` - Regenerate coverage metrics
-- `unused-imports` - Detect unused imports
+- `unused-imports` - Detect unused imports (analysis only)
+- `unused-imports-report` - Generate unused imports report from analysis results
 - `config` - Check configuration consistency
 
 **Additional commands**: `quick-audit` (deprecated - use `audit --quick`), `system-signals`, `validate`, `decision-support`, `workflow`, `trees`, `cleanup`, `version-sync` (experimental)
@@ -98,7 +99,7 @@ python development_tools/run_development_tools.py help
   - Report generators:
     - `generate_legacy_reference_report` -> `development_docs/LEGACY_REFERENCE_REPORT.md`
     - `generate_test_coverage_reports` -> `development_docs/TEST_COVERAGE_REPORT.md`
-    - `analyze_unused_imports` -> `development_docs/UNUSED_IMPORTS_REPORT.md`
+    - `generate_unused_imports_report` -> `development_docs/UNUSED_IMPORTS_REPORT.md`
 - **Use case**: Comprehensive analysis, pre-release checks, periodic deep audits
 
 **Note**: All three tiers update the same output files:
@@ -192,7 +193,7 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 
 **Tool Categories**:
 - **Documentation & structure**: `docs/analyze_documentation_sync.py` [OK] (paired doc sync only), `docs/analyze_path_drift.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_heading_numbering.py`, `docs/analyze_missing_addresses.py`, `docs/analyze_unconverted_links.py`, `docs/generate_directory_tree.py`, `docs/fix_documentation.py` [OK] (dispatcher), `docs/fix_documentation_addresses.py`, `docs/fix_documentation_ascii.py`, `docs/fix_documentation_headings.py`, `docs/fix_documentation_links.py`, `functions/generate_function_registry.py` [OK], `functions/analyze_function_patterns.py`, `imports/generate_module_dependencies.py` [OK] (orchestrator), `imports/analyze_module_imports.py` (extracted 2025-12-02), `imports/analyze_dependency_patterns.py` (extracted 2025-12-02), `docs/analyze_documentation.py`
-- **Quality, validation, coverage**: `tests/generate_test_coverage.py` [OK], `tests/analyze_test_coverage.py`, `tests/generate_test_coverage_reports.py`, `ai_work/analyze_ai_work.py`, `imports/analyze_unused_imports.py`, `error_handling/analyze_error_handling.py`, `error_handling/generate_error_handling_report.py`, `error_handling/generate_error_handling_recommendations.py`
+- **Quality, validation, coverage**: `tests/generate_test_coverage.py` [OK], `tests/analyze_test_coverage.py`, `tests/generate_test_coverage_reports.py`, `ai_work/analyze_ai_work.py`, `imports/analyze_unused_imports.py`, `imports/generate_unused_imports_report.py`, `error_handling/analyze_error_handling.py`, `error_handling/generate_error_handling_report.py`, `error_handling/generate_error_handling_recommendations.py`
 - **Legacy, versioning, signals**: `legacy/fix_legacy_references.py` [OK], `reports/system_signals.py`, `reports/quick_status.py`, `docs/fix_version_sync.py` (experimental)
 - **Decision & utilities**: `reports/decision_support.py`, `functions/analyze_functions.py`, `functions/generate_function_docstrings.py` (experimental), `config/analyze_config.py`, `shared/file_rotation.py`, `functions/analyze_*` helpers, `shared/tool_guide.py`
 

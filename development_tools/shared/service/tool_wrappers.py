@@ -50,6 +50,7 @@ SCRIPT_REGISTRY = {
     'generate_test_coverage_reports': 'tests/generate_test_coverage_reports.py',
     'analyze_test_markers': 'tests/analyze_test_markers.py',
     'analyze_unused_imports': 'imports/analyze_unused_imports.py',
+    'generate_unused_imports_report': 'imports/generate_unused_imports_report.py',
     'analyze_ai_work': 'ai_work/analyze_ai_work.py',
     'fix_version_sync': 'docs/fix_version_sync.py',
     'fix_documentation': 'docs/fix_documentation.py',
@@ -867,11 +868,10 @@ class ToolWrappersMixin:
             }
     
     def run_analyze_unused_imports(self) -> Dict:
-        """Run analyze_unused_imports with structured JSON handling and report generation."""
+        """Run analyze_unused_imports with structured JSON handling (analysis only)."""
         script_path = Path(__file__).resolve().parent.parent.parent / 'imports' / 'analyze_unused_imports.py'
-        # Run with both --json and --output to generate the report
-        report_path = 'development_docs/UNUSED_IMPORTS_REPORT.md'
-        cmd = [sys.executable, str(script_path), '--json', '--output', report_path]
+        # Run with --json flag only (report generation is now separate)
+        cmd = [sys.executable, str(script_path), '--json']
         try:
             result_proc = subprocess.run(
                 cmd,
@@ -967,10 +967,50 @@ class ToolWrappersMixin:
                 result['success'] = True
                 result['error'] = ''
         return result
-
-
+    
+    def run_generate_unused_imports_report(self) -> Dict:
+        """Run generate_unused_imports_report to generate markdown report from analysis results."""
+        logger.info("Generating unused imports report...")
+        script_path = Path(__file__).resolve().parent.parent.parent / 'imports' / 'generate_unused_imports_report.py'
+        cmd = [sys.executable, str(script_path)]
+        
+        try:
+            result_proc = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                cwd=str(self.project_root),
+                timeout=60
+            )
+            result = {
+                'success': result_proc.returncode == 0,
+                'output': result_proc.stdout,
+                'error': result_proc.stderr,
+                'returncode': result_proc.returncode
+            }
+            if result['success']:
+                logger.info("Unused imports report generated successfully")
+            else:
+                logger.warning(f"Unused imports report generation completed with issues: {result.get('error', 'Unknown error')}")
+        except subprocess.TimeoutExpired:
+            return {
+                'success': False,
+                'output': '',
+                'error': 'Unused imports report generation timed out after 1 minute',
+                'returncode': None
+            }
+        except Exception as e:
+            logger.error(f"Error generating unused imports report: {e}", exc_info=True)
+            return {
+                'success': False,
+                'error': str(e),
+                'output': '',
+                'returncode': 1
+            }
+        return result
+    
+    def run_analyze_error_handling(self) -> Dict:
         """Run analyze_error_handling with structured JSON handling."""
-
         args = ["--json"]
 
         if self.exclusion_config.get('include_tests', False):

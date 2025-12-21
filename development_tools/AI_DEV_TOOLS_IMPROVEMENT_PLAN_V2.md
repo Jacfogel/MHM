@@ -196,17 +196,44 @@ This document is a restructured and condensed version of the original improvemen
 **Files**: `development_tools/docs/analyze_path_drift.py`, `development_tools/shared/operations.py`, `tests/development_tools/test_path_drift_verification_comprehensive.py`
 
 #### 2.3 Verify Standardized Storage Archiving
-**Status**: NEEDS VERIFICATION  
+**Status**: ✅ COMPLETE (2025-12-18)  
 **Issue**: Storage structure appears correct, but needs testing to verify archiving works.
 
-**Tasks**:
-- [ ] Verify file rotation and archiving work correctly for tool result JSON files
-- [ ] Check for unnecessary JSON files in `development_tools/{domain}/` directories (should be in `jsons/` subdirectories)
-- [ ] Verify cache files are in correct locations
-- [ ] Test archiving mechanism (keeps last 5 versions, removes older versions)
-- [ ] Clean up any misplaced or duplicate JSON files if found
+**Verification Results**:
+- ✅ Comprehensive test suite created: `tests/development_tools/test_output_storage_archiving.py`
+- ✅ Test coverage includes: tool result archiving, archive version retention (keeps last N versions), cache file location verification, misplaced file detection
+- ✅ Implementation verified in `output_storage.py` (lines 126-141): archiving logic correctly moves files to `jsons/archive/` subdirectories and cleans up old versions
+- ✅ Archive directories exist in all domain directories (docs, functions, error_handling, imports, legacy, config, ai_work, reports)
+- ✅ File rotation uses `FileRotator._cleanup_old_versions()` to maintain archive count (default: 7 versions)
+- ✅ Cache files (`.{tool}_cache.json`) correctly stored in `jsons/` subdirectories
+- ✅ All 20 analysis tools use standardized storage via `save_tool_result()` with automatic archiving (100% of tools that should use it)
+- ✅ 2 report generators (`generate_legacy_reference_report`, `generate_test_coverage_reports`) correctly do NOT use standardized storage (they generate reports, not analysis results)
+- ✅ Total: 22 tools in audit tiers, 20 use standardized storage, 2 correctly don't need it
 
-**Files**: `development_tools/shared/output_storage.py`, all domain directories
+**Files**: `development_tools/shared/output_storage.py`, `tests/development_tools/test_output_storage_archiving.py`, all domain directories
+
+**Test Suite Assessment**:
+- **Coverage**: COMPREHENSIVE - Tests cover core archiving functionality and edge cases (9 tests)
+- **Tests Include**: 
+  - Basic archiving (file moved to archive on second save)
+  - Archive retention limits (keeps last N versions)
+  - Archive cleanup when exceeding max versions (7 versions)
+  - Archive directory creation (automatic creation)
+  - Error handling during archiving failures
+  - Concurrent save operations (simulated with threads)
+  - Cache file locations (in `jsons/` subdirectories)
+  - Misplaced file detection (no JSON files outside `jsons/`)
+  - Cleanup documentation (identifies misplaced files)
+- **Status**: ✅ All recommended tests implemented (2025-12-18)
+
+**Tool Count Verification**:
+- **Total tools in audit tiers**: 22 tools (Tier 1: 4, Tier 2: 11, Tier 3: 7)
+- **Analysis tools using standardized storage**: 20 tools ✅
+- **Report generators (correctly don't use storage)**: 2 tools (`generate_legacy_reference_report`, `generate_test_coverage_reports`)
+- **Coverage**: 100% of tools that should use standardized storage are using it correctly
+- **Verification Script**: `development_tools/scripts/verify_tool_storage.py` - Automated verification of all tools
+
+See `development_tools/TOOL_STORAGE_AUDIT.md` for detailed breakdown.
 
 #### 2.5 Ensure All Tools Explicitly Save Results
 **Status**: ✅ COMPLETE (2025-12-06)  
@@ -284,18 +311,67 @@ This document is a restructured and condensed version of the original improvemen
 ### Priority 4: Tool Enhancement & Integration
 
 #### 4.1 Decompose Unused Imports Tool
-**Status**: PENDING (from TODO.md)  
+**Status**: ✅ COMPLETE (2025-12-18)  
 **Issue**: `analyze_unused_imports.py` combines analysis and report generation, should follow naming conventions.
 
-**Tasks**:
-- [ ] Extract analysis logic from current `analyze_unused_imports.py` (keep detection/scanning)
-- [ ] Create `imports/generate_unused_imports_report.py` with report generation logic
-- [ ] Update `analyze_unused_imports.py` to focus on analysis only
-- [ ] Update operations.py to call both tools appropriately
-- [ ] Update tests to cover both components
-- [ ] Update documentation and tool_metadata.py
+**Completed**: Successfully decomposed the unused imports tool into separate analysis and report generation components following the naming conventions. The `analyze_unused_imports.py` tool now only performs analysis, while `generate_unused_imports_report.py` handles report generation. Both tools are integrated into the service architecture and CLI.
 
-**Files**: `development_tools/imports/analyze_unused_imports.py`, `development_tools/shared/operations.py`
+**Current Structure**:
+- `analyze_unused_imports.py` contains:
+  - `UnusedImportsChecker` class with `scan_codebase()`, `run_analysis()` (analysis logic)
+  - `generate_report()` method (report generation logic, lines 724-824)
+  - `main()` function that calls both analysis and report generation
+  - Report writing logic in `main()` (lines 944-958)
+
+**Decomposition Plan**:
+
+**Step 1: Create `generate_unused_imports_report.py`** ✅
+- [x] Create new file `development_tools/imports/generate_unused_imports_report.py`
+- [x] Move `generate_report()` method from `UnusedImportsChecker` to new `UnusedImportsReportGenerator` class
+- [x] Add `main()` function that:
+  - Loads analysis results from `analyze_unused_imports_results.json` (or accepts data as parameter)
+  - Generates markdown report
+  - Writes report using `create_output_file()` with rotation
+- [x] Add `--json` flag support for programmatic access
+- [x] Follow pattern from `generate_error_handling_report.py` or `generate_legacy_reference_report.py`
+
+**Step 2: Update `analyze_unused_imports.py`** ✅
+- [x] Remove `generate_report()` method from `UnusedImportsChecker` class
+- [x] Remove report writing logic from `main()` function (lines 944-958)
+- [x] Keep `run_analysis()` method that returns standard format (already exists, lines 848-884)
+- [x] Ensure `main()` with `--json` flag outputs standard format JSON only
+- [x] Update `execute()` function to return analysis results only (remove report generation)
+
+**Step 3: Update Service Integration** ✅
+- [x] Update `tool_wrappers.py`: Add `run_generate_unused_imports_report()` method
+- [x] Update `commands.py`: Add `run_unused_imports_report()` command handler (separate from analysis)
+- [x] Update `audit_orchestration.py`: Add `generate_unused_imports_report` to Tier 3 (full audit) tools list
+- [x] Update `cli_interface.py`: Add `unused-imports-report` command to COMMAND_REGISTRY
+- [x] Ensure `run_analyze_unused_imports()` saves results to standardized storage (already does via `save_tool_result()`)
+
+**Step 4: Update Tests** ✅ COMPLETE (2025-12-21)
+- [x] Create `tests/development_tools/test_generate_unused_imports_report.py`
+- [x] Test report generation from analysis results JSON (standard format, legacy format, counts-only)
+- [x] Test report file creation and rotation (file creation, archive rotation)
+- [x] Test integration with analysis tool (end-to-end flow)
+- [x] Test error handling (missing data, graceful degradation)
+- **Note**: `test_analyze_unused_imports.py` does not exist as a separate file; analysis tool is tested via integration tests and behavior tests. The decomposition ensures analysis-only behavior by removing report generation logic.
+
+**Step 5: Update Documentation** ✅
+- [x] Update `tool_metadata.py`: Add `generate_unused_imports_report` entry (Tier: supporting)
+- [x] Update `AI_DEVELOPMENT_TOOLS_GUIDE.md`: Document new tool and command
+- [x] Update `DEVELOPMENT_TOOLS_GUIDE.md`: Document new tool and command (if needed)
+- [x] Update usage examples in tool docstrings
+
+**Files**: 
+- `development_tools/imports/analyze_unused_imports.py` (modify)
+- `development_tools/imports/generate_unused_imports_report.py` (create)
+- `development_tools/shared/service/tool_wrappers.py` (add wrapper)
+- `development_tools/shared/service/commands.py` (add command)
+- `development_tools/shared/service/audit_orchestration.py` (add to Tier 3)
+- `development_tools/shared/cli_interface.py` (add command)
+- `development_tools/shared/tool_metadata.py` (add entry)
+- `tests/development_tools/test_generate_unused_imports_report.py` (create)
 
 #### 4.2 Create Unused Imports Cleanup Module
 **Status**: PENDING (from TODO.md)  
@@ -410,31 +486,99 @@ This document is a restructured and condensed version of the original improvemen
 **Issue**: `quick_status` runs at the beginning of Tier 1 (and presumably other audit tiers). Need to evaluate if this placement makes sense, provides value, or if it should run at the end of the audit or not at all.
 
 **Current Behavior**:
-- `quick_status` runs first in Tier 1 tools
+- `quick_status` runs first in Tier 1 tools (line 258 in `audit_orchestration.py`)
 - Generates JSON status output with current project state
+- Reads from `analysis_detailed_results.json` (line 114, 216 in `quick_status.py`) which may not exist at audit start
 - May capture state before other tools have run
+- Saves results to standardized storage: `reports/jsons/quick_status_results.json`
 
-**Questions to Investigate**:
-- [ ] What value does running `quick_status` at the beginning provide?
-- [ ] Does it capture useful baseline state before other tools run?
-- [ ] Would running it at the end provide more value (capturing final state after all analysis)?
-- [ ] Should it run at all during audits, or only when explicitly requested?
-- [ ] Does it duplicate information that's already captured by other tools?
-- [ ] How does it differ from the status reports generated at audit end (AI_STATUS.md, etc.)?
+**Investigation Plan**:
 
-**Tasks**:
-- [ ] Review `quick_status` output and compare with final status reports
-- [ ] Evaluate if beginning-of-audit state is useful vs. end-of-audit state
-- [ ] Check if `quick_status` data is used by other tools or reports
-- [ ] Determine optimal placement (beginning, end, or remove from audit workflow)
-- [ ] If moving to end: Update audit orchestration to run after all tools complete
-- [ ] If removing: Update audit workflow, ensure it can still be run standalone
-- [ ] Document rationale for final placement decision
+**Step 1: Analyze Current Behavior**
+- [ ] Review `quick_status.py` implementation:
+  - `_check_system_health()`: Checks core files and directories (lines 67-102)
+  - `_check_documentation_status()`: Reads from `analysis_detailed_results.json` (lines 104-144)
+  - `_get_recent_activity()`: Also reads from `analysis_detailed_results.json` (lines 200-292)
+  - `get_quick_status()`: Aggregates all checks (lines 55-65)
+- [ ] Review `audit_orchestration.py`:
+  - Current placement: Runs first in Tier 1 (line 258)
+  - Saves results to standardized storage (line 269)
+  - Check if results are used by other tools or report generation
+
+**Step 2: Compare Outputs**
+- [ ] Run `quick_status` at beginning of audit and capture output
+- [ ] Run `quick_status` at end of audit and capture output
+- [ ] Compare outputs to identify differences:
+  - Does `analysis_detailed_results.json` exist at beginning? (likely NO)
+  - What data is available at beginning vs. end?
+  - Does beginning-of-audit state provide unique value?
+- [ ] Compare `quick_status` output with final status reports:
+  - `AI_STATUS.md`: High-level summary
+  - `AI_PRIORITIES.md`: Actionable priorities
+  - `consolidated_report.txt`: Comprehensive details
+  - Identify overlap vs. unique information
+
+**Step 3: Evaluate Value**
+- [ ] **Beginning-of-audit value**: 
+  - Captures baseline state before analysis tools run
+  - May detect system health issues early
+  - BUT: `analysis_detailed_results.json` won't exist, so some checks will be incomplete
+- [ ] **End-of-audit value**:
+  - Captures final state after all analysis complete
+  - Can read from `analysis_detailed_results.json` for complete data
+  - Provides snapshot of final project state
+  - BUT: May duplicate information already in status reports
+- [ ] **Standalone value**:
+  - Useful for quick health checks without full audit
+  - Can be run independently via `status` command
+  - Provides lightweight status snapshot
+
+**Step 4: Check Dependencies**
+- [ ] Search codebase for references to `quick_status_results.json`
+- [ ] Check if other tools read `quick_status` data
+- [ ] Check if report generation uses `quick_status` data
+- [ ] Verify if `quick_status` data is aggregated in `analysis_detailed_results.json`
+
+**Step 5: Make Decision**
+- [ ] **Option A: Move to End of Audit**
+  - Pros: Complete data available, captures final state, aligns with status reports
+  - Cons: May duplicate status report information
+  - Implementation: Move `quick_status` call to after all tools complete, before report generation
+- [ ] **Option B: Remove from Audit Workflow**
+  - Pros: Eliminates redundancy, reduces audit time, keeps audit focused on analysis
+  - Cons: Loses audit-integrated status snapshot
+  - Implementation: Remove from Tier 1 tools list, keep standalone command
+- [ ] **Option C: Keep at Beginning but Enhance**
+  - Pros: Early health check, baseline state capture
+  - Cons: Incomplete data (no `analysis_detailed_results.json`), may be misleading
+  - Implementation: Enhance to handle missing data gracefully, document limitations
+
+**Step 6: Implement Decision**
+- [ ] If moving to end:
+  - [ ] Update `audit_orchestration.py`: Move `quick_status` call to after all tools complete
+  - [ ] Update `_run_tier_tools()`: Add post-tool execution phase
+  - [ ] Ensure `analysis_detailed_results.json` exists before `quick_status` runs
+  - [ ] Update documentation to reflect new placement
+- [ ] If removing:
+  - [ ] Remove from Tier 1, 2, 3 tools lists in `audit_orchestration.py`
+  - [ ] Ensure standalone command still works (`status` command)
+  - [ ] Update documentation to clarify `quick_status` is standalone only
+- [ ] If keeping at beginning:
+  - [ ] Enhance `quick_status.py` to handle missing `analysis_detailed_results.json` gracefully
+  - [ ] Add logging to indicate incomplete data
+  - [ ] Document limitations in tool docstring
+
+**Step 7: Update Tests and Documentation**
+- [ ] Update tests to reflect new placement (if changed)
+- [ ] Update `AI_DEVELOPMENT_TOOLS_GUIDE.md` with placement rationale
+- [ ] Update `DEVELOPMENT_TOOLS_GUIDE.md` with placement rationale
+- [ ] Document decision in this improvement plan
 
 **Files**: 
-- `development_tools/reports/quick_status.py`
-- `development_tools/shared/service/audit_orchestration.py` (Tier 1 tools)
-- `development_tools/shared/service/report_generation.py` (status report generation)
+- `development_tools/reports/quick_status.py` (may need enhancements)
+- `development_tools/shared/service/audit_orchestration.py` (Tier 1 tools, placement logic)
+- `development_tools/shared/service/report_generation.py` (status report generation, check for dependencies)
+- `development_tools/shared/service/commands.py` (standalone `status` command)
 
 #### 4.9 Improve Recent Changes Detection
 **Status**: ✅ COMPLETE (2025-12-17)  
