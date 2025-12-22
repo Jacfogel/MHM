@@ -69,37 +69,38 @@ python development_tools/run_development_tools.py help
 ## 3. Audit Modes and Outputs
 
 ### 3.1. Tier 1: Quick Audit - `audit --quick`
-- **Duration**: ~30-60 seconds
-- **Tools**: Core metrics only
-  - `analyze_functions` - Function discovery and complexity metrics
-  - `analyze_documentation_sync` - Documentation synchronization status
-  - `system_signals` - System health signals
-  - `quick_status` - Quick system status snapshot
+- **Duration**: ~5-10 seconds (with parallel execution)
+- **Tools**: All tools ≤2s execution time
+  - **Core tools**: `system_signals`, `quick_status`
+  - **Quick checks**: `analyze_documentation`, `analyze_config`, `analyze_ai_work`
+  - **Module imports**: `analyze_module_imports`, `analyze_dependency_patterns`
+  - **Function analysis**: `analyze_function_patterns`, `decision_support`, `analyze_function_registry`
+- **Execution**: Tools run in parallel where possible, with dependency-aware grouping
 - **Use case**: Fast health check, pre-commit validation
 
 ### 3.2. Tier 2: Standard Audit - `audit` (default)
-- **Duration**: ~2-5 minutes
-- **Tools**: Everything in Tier 1 PLUS:
-  - `analyze_documentation` - Documentation quality analysis
-  - `analyze_error_handling` - Error handling coverage
-  - `decision_support` - Complexity insights and recommendations
-  - `analyze_config` - Configuration validation
-  - `analyze_ai_work` - AI work validation
-  - `analyze_function_registry` - Function registry validation
-  - `analyze_module_dependencies` - Module dependency validation
+- **Duration**: ~15-25 seconds (with parallel execution)
+- **Tools**: All tools >2s but ≤10s execution time
+  - **Function discovery**: `analyze_functions` (required by dependent tools)
+  - **Quality checks**: `analyze_error_handling`, `analyze_package_exports`
+  - **Documentation sync**: `analyze_documentation_sync` (includes multiple sub-tools)
+  - **Module dependencies**: `analyze_module_dependencies` (depends on `analyze_module_imports` from Tier 1)
+  - **Unused imports**: `analyze_unused_imports`, `generate_unused_imports_report`
+- **Execution**: Tools run in parallel where possible, with dependency-aware grouping
 - **Use case**: Standard quality checks, daily development workflow
 
 ### 3.3. Tier 3: Full Audit - `audit --full`
-- **Duration**: ~10-30 minutes (depends on test suite)
-- **Tools**: Everything in Tier 1 & 2 PLUS:
-  - `generate_test_coverage` - Full test coverage regeneration
-  - `analyze_unused_imports` - Unused import detection
-  - `analyze_legacy_references` - Legacy code scanning
-  - `analyze_module_dependencies` - Full dependency analysis
-  - Report generators:
-    - `generate_legacy_reference_report` -> `development_docs/LEGACY_REFERENCE_REPORT.md`
-    - `generate_test_coverage_reports` -> `development_docs/TEST_COVERAGE_REPORT.md`
-    - `generate_unused_imports_report` -> `development_docs/UNUSED_IMPORTS_REPORT.md`
+- **Duration**: ~9-10 minutes (coverage tools dominate at ~460s)
+- **Tools**: Everything in Tier 1 & 2 PLUS tools >10s (or groups containing tools >10s):
+  - **Coverage group** (runs sequentially, ~460s):
+    - `generate_test_coverage` - Full test coverage regeneration (~365s, >10s)
+    - `generate_dev_tools_coverage` - Dev tools test coverage (~94s, >10s)
+    - `analyze_test_markers` - Test marker analysis (~2s, but part of coverage group)
+    - `generate_test_coverage_reports` - Coverage report generation (~0s, but part of coverage group)
+  - **Legacy group** (runs in parallel with coverage group):
+    - `analyze_legacy_references` - Legacy code scanning (~62s, >10s)
+    - `generate_legacy_reference_report` - Legacy report generation (~1s, but part of legacy group)
+- **Execution**: Coverage group runs first (sequential), legacy group runs in parallel
 - **Use case**: Comprehensive analysis, pre-release checks, periodic deep audits
 
 **Note**: All three tiers update the same output files:
@@ -206,7 +207,11 @@ Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier and
 ## 5. Operating Standards and Maintenance
 
 - Use shared infrastructure: `shared/standard_exclusions.py`, `shared/constants.py`, `config/config.py`, `shared/mtime_cache.py`
-- **Caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. Currently used by: `imports/analyze_unused_imports.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_missing_addresses.py`
+- **Caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. Currently used by: `imports/analyze_unused_imports.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_missing_addresses.py`, `legacy/analyze_legacy_references.py`
+- **Parallel Execution**: Tools run in parallel where possible, with dependency-aware grouping:
+  - **Tier 2**: Independent tools run in parallel; dependent groups (module imports, function patterns, decision support, function registry) run sequentially within groups but in parallel with each other
+  - **Tier 3**: Coverage group runs sequentially; legacy and unused imports groups run in parallel with each other (tools within each group run sequentially)
+  - **Tool Dependencies**: Some tools must stay together due to dependencies (see tool dependency notes in audit orchestration)
 - **Output Format**: All analysis tools output standard format JSON with `summary` (total_issues, files_affected, status) and `details` (tool-specific data). Use `--json` flag when running tools standalone to get standard format output.
 - Never hardcode project paths; derive them from configuration helpers
 - Keep tools isolated from MHM business logic

@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-21 - Audit Tier Reorganization Based on Execution Times **COMPLETED**
+- Reorganized audit tiers based on execution time thresholds: Tier 1 (≤2s), Tier 2 (>2s but ≤10s), Tier 3 (>10s). Tier 1 now has 7 tools, Tier 2 has 10 tools, Tier 3 has 6 tools.
+- All tool dependencies respected during reorganization. Parallel execution verified working correctly in Tier 2 and Tier 3.
+- Fixed failing test `test_no_json_files_in_domain_root` by adding `tool_timings.json` to known exceptions.
+- Updated documentation to reflect new tier assignments. Better tier distribution makes standard audits more useful.
+
 ### 2025-12-21 - Phase 1 Error Handling Decorator Migration Complete **COMPLETED**
 - Completed Phase 1 error handling migration: applied `@handle_errors` decorator to all 54 identified functions (1 high-priority, 45 medium-priority, plus low-priority) across `bot.py`, `scheduler.py`, `service.py`, `channel_monitor.py`, `channel_orchestrator.py`, UI dialogs, and other modules.
 - Updated tests to work with decorator behavior and fixed parallel execution issues by marking sensitive tests with `@pytest.mark.no_parallel`. Added `# ERROR_HANDLING_EXCLUDE` to `validate_and_raise_if_invalid` in `core/config.py` since it intentionally propagates exceptions.

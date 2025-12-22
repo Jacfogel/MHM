@@ -6,6 +6,7 @@ and managing audit state.
 """
 
 import json
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
@@ -83,6 +84,8 @@ class AuditOrchestrationMixin:
         _AUDIT_IN_PROGRESS_GLOBAL = True
         # Track which tools were actually run in this audit tier
         self._tools_run_in_current_tier = set()
+        # Track timing for each tool
+        self._tool_timings = {}
         
         # Create file-based lock
         if _AUDIT_LOCK_FILE is None:
@@ -213,6 +216,14 @@ class AuditOrchestrationMixin:
             logger.info("=" * 50)
             if success:
                 logger.info(f"Completed {operation_name} successfully!")
+                # Log timing summary
+                if self._tool_timings:
+                    total_time = sum(self._tool_timings.values())
+                    logger.info(f"Total tool execution time: {total_time:.2f}s")
+                    # Log slowest tools
+                    sorted_timings = sorted(self._tool_timings.items(), key=lambda x: x[1], reverse=True)
+                    if len(sorted_timings) > 0:
+                        logger.info(f"Slowest tools: {', '.join(f'{name} ({time:.2f}s)' for name, time in sorted_timings[:5])}")
                 logger.info(f"* AI Status: {ai_status_file}")
                 logger.info(f"* AI Priorities: {ai_priorities_file}")
                 logger.info(f"* Consolidated Report: {consolidated_file}")
@@ -229,6 +240,9 @@ class AuditOrchestrationMixin:
             # Clear results_cache to prevent stale data from being used in next audit
             if hasattr(self, 'results_cache'):
                 self.results_cache = {}
+            # Save timing data for analysis
+            if hasattr(self, '_tool_timings') and self._tool_timings:
+                self._save_timing_data(tier)
             _AUDIT_IN_PROGRESS_GLOBAL = False
             if _AUDIT_LOCK_FILE and _AUDIT_LOCK_FILE.exists():
                 try:
@@ -243,20 +257,48 @@ class AuditOrchestrationMixin:
         return self.run_audit(quick=True)
     
     def _run_quick_audit_tools(self) -> bool:
-        """Run Tier 1 tools: Quick audit (core metrics only)."""
+        """Run Tier 1 tools: Quick audit (core metrics only, ≤2s per tool).
+        
+        Note: Tools moved here based on execution time (≤2s) while respecting dependencies.
+        """
         successful = []
         failed = []
         
-        tier1_tools = [
-            ('analyze_functions', self.run_analyze_functions),
-            ('analyze_documentation_sync', self.run_analyze_documentation_sync),
-            ('system_signals', self.run_system_signals),
+        # Core Tier 1 tools (≤2s)
+        tier1_core_tools = [
+            ('system_signals', self.run_system_signals),  # 1.07s
         ]
         
-        # Handle quick_status separately
+        # Independent tools (≤2s)
+        tier1_independent_tools = [
+            ('analyze_documentation', lambda: self.run_analyze_documentation(include_overlap=getattr(self, '_include_overlap', False))),  # 0.21s
+            ('analyze_config', lambda: self.run_script('analyze_config')),  # 0.93s
+            ('analyze_ai_work', self.run_validate),  # 0.95s
+        ]
+        
+        # Dependent groups (all tools ≤2s)
+        tier1_dependent_groups = [
+            # Function patterns group: depends on analyze_functions (runs in Tier 2)
+            [
+                ('analyze_function_patterns', self.run_analyze_function_patterns),  # 1.79s
+            ],
+            # Decision support group: depends on analyze_functions (runs in Tier 2)
+            [
+                ('decision_support', self.run_decision_support),  # 1.96s
+            ],
+        ]
+        
+        tier1_tools = tier1_core_tools
+        
+        # Handle quick_status separately (runs first)
         try:
+            # Time quick_status execution
+            start_time = time.time()
             # Note: quick_status logs its own execution ("Generating JSON status output")
             quick_status_result = self.run_script('quick_status', 'json')
+            elapsed_time = time.time() - start_time
+            self._tool_timings['quick_status'] = elapsed_time
+            logger.debug(f"  - quick_status completed in {elapsed_time:.2f}s")
             if quick_status_result.get('success'):
                 self.status_results = quick_status_result
                 output = quick_status_result.get('output', '')
@@ -282,10 +324,16 @@ class AuditOrchestrationMixin:
             failed.append('quick_status')
             logger.error(f"  - quick_status failed: {exc}")
         
-        for tool_name, tool_func in tier1_tools:
+        # Run core tools first (analyze_functions must run before dependent tools)
+        for tool_name, tool_func in tier1_core_tools:
             try:
+                # Time tool execution
+                start_time = time.time()
                 # Note: Tools log their own execution, so no need to log here
                 result = tool_func()
+                elapsed_time = time.time() - start_time
+                self._tool_timings[tool_name] = elapsed_time
+                logger.debug(f"  - {tool_name} completed in {elapsed_time:.2f}s")
                 if isinstance(result, dict):
                     success = result.get('success', False)
                     if 'data' in result:
@@ -304,6 +352,52 @@ class AuditOrchestrationMixin:
                 failed.append(tool_name)
                 logger.error(f"  - {tool_name} failed: {exc}", exc_info=True)
                 logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
+        
+        # Run independent tools and dependent groups in parallel
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        
+        def run_tool_group(group_tools):
+            """Run a group of tools sequentially and return results."""
+            group_results = {}
+            for tool_name, tool_func in group_tools:
+                try:
+                    result, elapsed_time = self._run_tool_with_timing(tool_name, tool_func)
+                    group_results[tool_name] = (result, elapsed_time)
+                except Exception as exc:
+                    logger.error(f"  - {tool_name} failed: {exc}", exc_info=True)
+                    group_results[tool_name] = ({'success': False, 'error': str(exc)}, 0.0)
+            return group_results
+        
+        # Combine independent tools (as single-tool groups) and dependent groups
+        all_groups = [[(name, func)] for name, func in tier1_independent_tools] + tier1_dependent_groups
+        max_workers = min(4, len(all_groups))
+        
+        logger.debug(f"Running Tier 1 additional tools: {len(tier1_independent_tools)} independent + {len(tier1_dependent_groups)} groups with {max_workers} parallel workers...")
+        
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_group = {
+                executor.submit(run_tool_group, group): i
+                for i, group in enumerate(all_groups)
+            }
+            
+            for future in as_completed(future_to_group):
+                group_results = future.result()
+                for tool_name, (result, elapsed_time) in group_results.items():
+                    self._tool_timings[tool_name] = elapsed_time
+                    logger.debug(f"  - {tool_name} completed in {elapsed_time:.2f}s")
+                    if isinstance(result, dict):
+                        success = result.get('success', False)
+                        if 'data' in result:
+                            self._extract_key_info(tool_name, result)
+                    else:
+                        success = bool(result)
+                    
+                    if success:
+                        successful.append(tool_name)
+                        self._tools_run_in_current_tier.add(tool_name)
+                    else:
+                        failed.append(tool_name)
+                        logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
         
         if failed:
             logger.warning(f"Tier 1 completed with {len(failed)} failure(s): {', '.join(failed)}")
@@ -313,45 +407,92 @@ class AuditOrchestrationMixin:
         return len(failed) == 0
     
     def _run_standard_audit_tools(self) -> bool:
-        """Run Tier 2 tools: Standard audit (quality checks)."""
+        """Run Tier 2 tools: Standard audit (quality checks, >2s but ≤10s per tool).
+        
+        Note: Tools moved here based on execution time (>2s but ≤10s) while respecting dependencies.
+        """
         successful = []
         failed = []
         
-        tier2_tools = [
-            ('analyze_documentation', lambda: self.run_analyze_documentation(include_overlap=getattr(self, '_include_overlap', False))),
-            ('analyze_error_handling', self.run_analyze_error_handling),
-            ('decision_support', self.run_decision_support),
-            ('analyze_config', lambda: self.run_script('analyze_config')),
-            ('analyze_ai_work', self.run_validate),
-            ('analyze_function_registry', self.run_analyze_function_registry),
-            ('analyze_module_dependencies', self.run_analyze_module_dependencies),
-            ('analyze_module_imports', self.run_analyze_module_imports),
-            ('analyze_dependency_patterns', self.run_analyze_dependency_patterns),
-            ('analyze_function_patterns', self.run_analyze_function_patterns),
-            ('analyze_package_exports', self.run_analyze_package_exports),
+        # Independent tools (>2s but ≤10s)
+        tier2_independent_tools = [
+            ('analyze_functions', self.run_analyze_functions),  # 3.41s
+            ('analyze_error_handling', self.run_analyze_error_handling),  # 3.06s
+            ('analyze_package_exports', self.run_analyze_package_exports),  # 9.06s
         ]
         
-        for tool_name, tool_func in tier2_tools:
-            try:
-                # Note: Tools log their own execution, so no need to log here
-                result = tool_func()
-                if isinstance(result, dict):
-                    success = result.get('success', False)
-                    if 'data' in result:
-                        self._extract_key_info(tool_name, result)
-                else:
-                    success = bool(result)
-                if success:
-                    successful.append(tool_name)
-                    self._tools_run_in_current_tier.add(tool_name)
-                    # Note: Tools save their own results, so no need to save here
-                    # Removed duplicate save_tool_result call to prevent duplicate logging
-                else:
-                    failed.append(tool_name)
-                    logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
-            except Exception as exc:
+        # Dependent groups (>2s but ≤10s)
+        tier2_dependent_groups = [
+            # Module imports group: analyze_module_imports → analyze_dependency_patterns, analyze_module_dependencies
+            [
+                ('analyze_module_imports', self.run_analyze_module_imports),  # 2.18s
+                ('analyze_dependency_patterns', self.run_analyze_dependency_patterns),  # 2.03s
+                ('analyze_module_dependencies', self.run_analyze_module_dependencies),  # 5.94s
+            ],
+            # Function registry group: analyze_function_registry validates generate_function_registry output
+            [
+                ('analyze_function_registry', self.run_analyze_function_registry),  # 2.12s
+            ],
+            # Documentation sync group: includes multiple sub-tools
+            [
+                ('analyze_documentation_sync', self.run_analyze_documentation_sync),  # 7.70s
+            ],
+            # Unused imports group: moved from Tier 3 (both ≤10s)
+            [
+                ('analyze_unused_imports', self.run_unused_imports),  # 7.82s
+                ('generate_unused_imports_report', self.run_generate_unused_imports_report),  # 0.98s
+            ],
+        ]
+        
+        # Run independent tools and dependent groups in parallel
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        
+        def run_tool_group(group_tools):
+            """Run a group of tools sequentially and return results."""
+            group_results = {}
+            for tool_name, tool_func in group_tools:
+                try:
+                    result, elapsed_time = self._run_tool_with_timing(tool_name, tool_func)
+                    group_results[tool_name] = (result, elapsed_time)
+                except Exception as exc:
+                    logger.error(f"  - {tool_name} failed: {exc}", exc_info=True)
+                    group_results[tool_name] = ({'success': False, 'error': str(exc)}, 0.0)
+            return group_results
+        
+        # Combine independent tools (as single-tool groups) and dependent groups
+        all_groups = [[(name, func)] for name, func in tier2_independent_tools] + tier2_dependent_groups
+        max_workers = min(4, len(all_groups))
+        
+        logger.debug(f"Running Tier 2 tools: {len(tier2_independent_tools)} independent + {len(tier2_dependent_groups)} groups with {max_workers} parallel workers...")
+        
+        all_results = {}
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_group = {
+                executor.submit(run_tool_group, group): i
+                for i, group in enumerate(all_groups)
+            }
+            
+            for future in as_completed(future_to_group):
+                group_results = future.result()
+                for tool_name, (result, elapsed_time) in group_results.items():
+                    all_results[tool_name] = result
+                    self._tool_timings[tool_name] = elapsed_time
+                    logger.debug(f"  - {tool_name} completed in {elapsed_time:.2f}s")
+        
+        # Process results
+        for tool_name, result in all_results.items():
+            if isinstance(result, dict):
+                success = result.get('success', False)
+                if 'data' in result:
+                    self._extract_key_info(tool_name, result)
+            else:
+                success = bool(result)
+            
+            if success:
+                successful.append(tool_name)
+                self._tools_run_in_current_tier.add(tool_name)
+            else:
                 failed.append(tool_name)
-                logger.error(f"  - {tool_name} failed: {exc}", exc_info=True)
                 logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
         
         if failed:
@@ -361,29 +502,56 @@ class AuditOrchestrationMixin:
         
         return len(failed) == 0
     
+    def _run_tool_with_timing(self, tool_name: str, tool_func) -> tuple:
+        """Run a tool and return (result, elapsed_time) tuple."""
+        start_time = time.time()
+        try:
+            result = tool_func()
+            elapsed_time = time.time() - start_time
+            return result, elapsed_time
+        except Exception as e:
+            elapsed_time = time.time() - start_time
+            raise
+    
     def _run_full_audit_tools(self) -> bool:
-        """Run Tier 3 tools: Full audit (comprehensive analysis)."""
+        """Run Tier 3 tools: Full audit (comprehensive analysis, >10s per tool or groups with >10s tools).
+        
+        Note: Tools moved here based on execution time (>10s) while respecting dependencies:
+        - Coverage group: generate_test_coverage (365.45s) and generate_dev_tools_coverage (94.23s) are >10s, so entire group stays in Tier 3
+        - Legacy group: analyze_legacy_references (62.11s) is >10s, so entire group stays in Tier 3
+        """
         successful = []
         failed = []
         
-        tier3_analyze_tools = [
-            ('generate_test_coverage', self.run_coverage_regeneration),
-            ('generate_dev_tools_coverage', self.run_dev_tools_coverage),
-            ('analyze_test_markers', lambda: self.run_test_markers('check')),
-            ('analyze_unused_imports', self.run_unused_imports),
-            ('analyze_legacy_references', self.run_analyze_legacy_references),
+        # Coverage tool group - must run together (dependencies)
+        # generate_test_coverage (365.45s) and generate_dev_tools_coverage (94.23s) are >10s, so entire group stays in Tier 3
+        tier3_coverage_group = [
+            ('generate_test_coverage', self.run_coverage_regeneration),  # 365.45s
+            ('generate_dev_tools_coverage', self.run_dev_tools_coverage),  # 94.23s
+            ('analyze_test_markers', lambda: self.run_test_markers('check')),  # 1.57s
+            ('generate_test_coverage_reports', self.run_generate_test_coverage_reports),  # 0.00s
         ]
         
-        tier3_report_tools = [
-            ('generate_legacy_reference_report', self.run_generate_legacy_reference_report),
-            ('generate_test_coverage_reports', self.run_generate_test_coverage_reports),
-            ('generate_unused_imports_report', self.run_generate_unused_imports_report),
+        # Legacy group - analyze_legacy_references (62.11s) is >10s, so entire group stays in Tier 3
+        tier3_legacy_group = [
+            ('analyze_legacy_references', self.run_analyze_legacy_references),  # 62.11s
+            ('generate_legacy_reference_report', self.run_generate_legacy_reference_report),  # 0.96s
         ]
         
-        for tool_name, tool_func in tier3_analyze_tools:
+        # Independent groups that can run in parallel with each other
+        tier3_parallel_groups = [
+            tier3_legacy_group,
+        ]
+        
+        # Run coverage group sequentially (they depend on each other)
+        logger.debug("Running coverage tool group (sequential)...")
+        for tool_name, tool_func in tier3_coverage_group:
             try:
-                # Note: Tools log their own execution, so no need to log here
+                start_time = time.time()
                 result = tool_func()
+                elapsed_time = time.time() - start_time
+                self._tool_timings[tool_name] = elapsed_time
+                logger.debug(f"  - {tool_name} completed in {elapsed_time:.2f}s")
                 if isinstance(result, dict):
                     success = result.get('success', False)
                     if 'data' in result:
@@ -393,8 +561,6 @@ class AuditOrchestrationMixin:
                 if success:
                     successful.append(tool_name)
                     self._tools_run_in_current_tier.add(tool_name)
-                    # Note: Tools save their own results, so no need to save here
-                    # Removed duplicate save_tool_result call to prevent duplicate logging
                 else:
                     failed.append(tool_name)
                     logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
@@ -403,33 +569,47 @@ class AuditOrchestrationMixin:
                 logger.error(f"  - {tool_name} failed: {exc}", exc_info=True)
                 logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
         
-        for tool_name, tool_func in tier3_report_tools:
-            try:
-                # Note: Tools log their own execution, so no need to log here
-                result = tool_func()
-                if isinstance(result, dict):
-                    success = result.get('success', False)
-                    error_msg = result.get('error', '')
-                    returncode = result.get('returncode')
-                    if not success:
-                        if error_msg:
-                            logger.error(f"  - {tool_name} failed: {error_msg}")
-                        elif returncode is not None:
-                            logger.error(f"  - {tool_name} failed with return code {returncode}")
+        # Run independent tool groups in parallel (each group runs its tools sequentially)
+        if tier3_parallel_groups:
+            from concurrent.futures import ThreadPoolExecutor, as_completed
+            
+            logger.debug(f"Running {len(tier3_parallel_groups)} independent tool groups in parallel...")
+            
+            def run_tool_group(group_tools):
+                """Run a group of tools sequentially and return results."""
+                group_results = {}
+                for tool_name, tool_func in group_tools:
+                    try:
+                        result, elapsed_time = self._run_tool_with_timing(tool_name, tool_func)
+                        group_results[tool_name] = (result, elapsed_time)
+                    except Exception as exc:
+                        logger.error(f"  - {tool_name} failed: {exc}", exc_info=True)
+                        group_results[tool_name] = ({'success': False, 'error': str(exc)}, 0.0)
+                return group_results
+            
+            with ThreadPoolExecutor(max_workers=len(tier3_parallel_groups)) as executor:
+                future_to_group = {
+                    executor.submit(run_tool_group, group): i
+                    for i, group in enumerate(tier3_parallel_groups)
+                }
+                
+                for future in as_completed(future_to_group):
+                    group_results = future.result()
+                    for tool_name, (result, elapsed_time) in group_results.items():
+                        self._tool_timings[tool_name] = elapsed_time
+                        logger.debug(f"  - {tool_name} completed in {elapsed_time:.2f}s")
+                        if isinstance(result, dict):
+                            success = result.get('success', False)
+                            if 'data' in result:
+                                self._extract_key_info(tool_name, result)
                         else:
-                            logger.error(f"  - {tool_name} failed: Unknown error")
-                else:
-                    success = bool(result)
-                if success:
-                    successful.append(tool_name)
-                    self._tools_run_in_current_tier.add(tool_name)
-                else:
-                    failed.append(tool_name)
-                    logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
-            except Exception as exc:
-                failed.append(tool_name)
-                logger.error(f"  - {tool_name} failed: {exc}", exc_info=True)
-                logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
+                            success = bool(result)
+                        if success:
+                            successful.append(tool_name)
+                            self._tools_run_in_current_tier.add(tool_name)
+                        else:
+                            failed.append(tool_name)
+                            logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
         
         if failed:
             logger.warning(f"Tier 3 completed with {len(failed)} failure(s): {', '.join(failed)}")
@@ -691,6 +871,46 @@ class AuditOrchestrationMixin:
                 self.docs_sync_summary['ascii_issues'] = files_with_issues
         except Exception as exc:
             logger.warning(f"   ASCII compliance check failed: {exc}")
+    
+    def _save_timing_data(self, tier: int) -> None:
+        """Save timing data to a JSON file for analysis."""
+        try:
+            timing_file = self.project_root / 'development_tools' / 'reports' / 'tool_timings.json'
+            timing_file.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Load existing timing data
+            existing_data = {}
+            if timing_file.exists():
+                try:
+                    with open(timing_file, 'r', encoding='utf-8') as f:
+                        existing_data = json.load(f)
+                except (json.JSONDecodeError, OSError):
+                    existing_data = {}
+            
+            # Add new timing entry
+            timestamp = datetime.now().isoformat()
+            tier_name = {1: 'quick', 2: 'standard', 3: 'full'}.get(tier, 'unknown')
+            
+            if 'runs' not in existing_data:
+                existing_data['runs'] = []
+            
+            existing_data['runs'].append({
+                'timestamp': timestamp,
+                'tier': tier_name,
+                'tier_number': tier,
+                'tool_timings': self._tool_timings.copy(),
+                'total_time': sum(self._tool_timings.values())
+            })
+            
+            # Keep only last 50 runs
+            if len(existing_data['runs']) > 50:
+                existing_data['runs'] = existing_data['runs'][-50:]
+            
+            # Save updated timing data
+            with open(timing_file, 'w', encoding='utf-8') as f:
+                json.dump(existing_data, f, indent=2)
+        except Exception as e:
+            logger.debug(f"Failed to save timing data: {e}")
     
     def _sync_todo_with_changelog(self) -> None:
         """Sync TODO.md with AI_CHANGELOG.md to move completed entries."""

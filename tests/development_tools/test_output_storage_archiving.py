@@ -138,6 +138,7 @@ class TestOutputStorageArchiving:
         # These are central aggregation files or special configuration files
         known_exceptions = [
             'analysis_detailed_results.json',  # Central aggregation file in reports/
+            'tool_timings.json',  # Tool timing data file in reports/
         ]
         
         misplaced_files = []

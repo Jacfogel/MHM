@@ -47,7 +47,7 @@ logger = get_component_logger("development_tools")
 class LegacyReferenceAnalyzer:
     """Analyzes codebase for legacy references (portable across projects)."""
     
-    def __init__(self, project_root: str = ".", legacy_tokens: Dict[str, List[str]] = None):
+    def __init__(self, project_root: str = ".", legacy_tokens: Dict[str, List[str]] = None, use_cache: bool = True):
         """
         Initialize legacy reference analyzer.
         
@@ -55,8 +55,10 @@ class LegacyReferenceAnalyzer:
             project_root: Root directory of the project
             legacy_tokens: Optional dict of legacy pattern categories and their regex patterns.
                           If None, loads from config or uses generic defaults.
+            use_cache: Whether to use mtime-based caching for file scans (default: True)
         """
         self.project_root = Path(project_root).resolve()
+        self.use_cache = use_cache
         
         # Load legacy configuration from external config
         legacy_config = config.get_external_value('legacy_cleanup', {})
@@ -88,6 +90,25 @@ class LegacyReferenceAnalyzer:
         # File extensions to skip entirely
         skip_exts = legacy_config.get('skip_extensions', ['.md', '.txt', '.json', '.log'])
         self.skip_extensions = set(skip_exts) if isinstance(skip_exts, list) else skip_exts
+        
+        # Initialize caching
+        if self.use_cache:
+            try:
+                from development_tools.shared.mtime_cache import MtimeFileCache
+                cache_file = self.project_root / "development_tools" / "legacy" / ".analyze_legacy_references_cache.json"
+                self.cache = MtimeFileCache(
+                    cache_file=cache_file,
+                    project_root=self.project_root,
+                    use_cache=True,
+                    tool_name='analyze_legacy_references',
+                    domain='legacy'
+                )
+            except ImportError:
+                logger.warning("MtimeFileCache not available, caching disabled")
+                self.use_cache = False
+                self.cache = None
+        else:
+            self.cache = None
     
     def should_skip_file(self, file_path: Path) -> bool:
         """Check if a file should be skipped from scanning."""
@@ -196,42 +217,101 @@ class LegacyReferenceAnalyzer:
             logger.info("Analyzing legacy references...")
         
         findings = defaultdict(list)
+        cache_stats = {'hits': 0, 'misses': 0}
         
         # Scan Python files
         for py_file in self.project_root.rglob("*.py"):
             if self.should_skip_file(py_file):
                 continue
-                
-            try:
-                with open(py_file, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                    
-                file_findings = self.analyze_file_content(py_file, content)
-                for pattern_type, matches in file_findings.items():
+            
+            # Check cache first
+            cached_result = None
+            if self.use_cache and self.cache:
+                cached_result = self.cache.get_cached(py_file)
+            
+            if cached_result is not None:
+                cache_stats['hits'] += 1
+                # Cached result is a dict with pattern_type -> matches
+                for pattern_type, matches in cached_result.items():
                     if matches:
-                        findings[pattern_type].append((str(py_file.relative_to(self.project_root)), content, matches))
+                        # Need to read content for the tuple format
+                        try:
+                            with open(py_file, 'r', encoding='utf-8') as f:
+                                content = f.read()
+                            findings[pattern_type].append((str(py_file.relative_to(self.project_root)), content, matches))
+                        except Exception:
+                            # If we can't read the file, skip it
+                            pass
+            else:
+                cache_stats['misses'] += 1
+                try:
+                    with open(py_file, 'r', encoding='utf-8') as f:
+                        content = f.read()
                         
-            except Exception as e:
-                if logger:
-                    logger.warning(f"Error reading {py_file}: {e}")
+                    file_findings = self.analyze_file_content(py_file, content)
+                    
+                    # Cache the results
+                    if self.use_cache and self.cache:
+                        self.cache.cache_results(py_file, file_findings)
+                    
+                    for pattern_type, matches in file_findings.items():
+                        if matches:
+                            findings[pattern_type].append((str(py_file.relative_to(self.project_root)), content, matches))
+                            
+                except Exception as e:
+                    if logger:
+                        logger.warning(f"Error reading {py_file}: {e}")
         
         # Scan Markdown files
         for md_file in self.project_root.rglob("*.md"):
             if self.should_skip_file(md_file):
                 continue
-                
-            try:
-                with open(md_file, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                    
-                file_findings = self.analyze_file_content(md_file, content)
-                for pattern_type, matches in file_findings.items():
+            
+            # Check cache first
+            cached_result = None
+            if self.use_cache and self.cache:
+                cached_result = self.cache.get_cached(md_file)
+            
+            if cached_result is not None:
+                cache_stats['hits'] += 1
+                # Cached result is a dict with pattern_type -> matches
+                for pattern_type, matches in cached_result.items():
                     if matches:
-                        findings[pattern_type].append((str(md_file.relative_to(self.project_root)), content, matches))
+                        # Need to read content for the tuple format
+                        try:
+                            with open(md_file, 'r', encoding='utf-8') as f:
+                                content = f.read()
+                            findings[pattern_type].append((str(md_file.relative_to(self.project_root)), content, matches))
+                        except Exception:
+                            # If we can't read the file, skip it
+                            pass
+            else:
+                cache_stats['misses'] += 1
+                try:
+                    with open(md_file, 'r', encoding='utf-8') as f:
+                        content = f.read()
                         
-            except Exception as e:
-                if logger:
-                    logger.warning(f"Error reading {md_file}: {e}")
+                    file_findings = self.analyze_file_content(md_file, content)
+                    
+                    # Cache the results
+                    if self.use_cache and self.cache:
+                        self.cache.cache_results(md_file, file_findings)
+                    
+                    for pattern_type, matches in file_findings.items():
+                        if matches:
+                            findings[pattern_type].append((str(md_file.relative_to(self.project_root)), content, matches))
+                            
+                except Exception as e:
+                    if logger:
+                        logger.warning(f"Error reading {md_file}: {e}")
+        
+        # Save cache
+        if self.use_cache and self.cache:
+            self.cache.save_cache()
+            if logger and (cache_stats['hits'] > 0 or cache_stats['misses'] > 0):
+                total = cache_stats['hits'] + cache_stats['misses']
+                hit_rate = (cache_stats['hits'] / total * 100) if total > 0 else 0
+                logger.debug(f"Legacy reference cache: {cache_stats['hits']}/{total} hits ({hit_rate:.1f}% hit rate)")
         
         return findings
     

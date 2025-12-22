@@ -38,6 +38,15 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-21 - Audit Tier Reorganization Based on Execution Times **COMPLETED**
+- **Tier Reorganization**: Reorganized audit tiers based on execution time thresholds to better distribute tools across tiers. New thresholds: Tier 1 (≤2s per tool), Tier 2 (>2s but ≤10s per tool), Tier 3 (>10s per tool or groups containing tools >10s). This ensures Tier 2 has a meaningful set of tools for standard audits.
+- **Tier Distribution**: Tier 1 now contains 7 tools (quick_status, system_signals, analyze_documentation, analyze_config, analyze_ai_work, analyze_function_patterns, decision_support). Tier 2 now contains 10 tools (analyze_functions, analyze_error_handling, analyze_package_exports, module imports group, function registry, documentation sync, unused imports group). Tier 3 contains 6 tools (coverage group, legacy group).
+- **Dependencies Respected**: All tool dependencies were respected during reorganization (coverage group, legacy group, unused imports group, module imports group, function discovery group).
+- **Parallel Execution**: Verified parallel execution working correctly in Tier 2 and Tier 3, with dependency-aware grouping ensuring dependent tools run sequentially within parallel groups.
+- **Test Fix**: Fixed failing test `test_no_json_files_in_domain_root` by adding `tool_timings.json` to known exceptions list (intentionally placed in `reports/` directory similar to `analysis_detailed_results.json`).
+- **Documentation Updates**: Updated `AI_DEVELOPMENT_TOOLS_GUIDE.md` and `DEVELOPMENT_TOOLS_GUIDE.md` to reflect new tier assignments and execution times.
+- **Impact**: Better tier distribution makes standard audits more useful while keeping quick audits fast. Tier 2 now provides meaningful quality checks in ~15-25 seconds.
+
 ### 2025-12-21 - Phase 1 Error Handling Decorator Migration Complete **COMPLETED**
 - **Phase 1 Completion**: Successfully applied `@handle_errors` decorator to all 54 identified functions across the codebase, replacing basic try-except blocks with centralized error handling. Functions updated include: 1 high-priority function in `bot.py` (`_on_ready_internal`), 45 medium-priority functions across multiple modules (`scheduler.py`, `service.py`, `user_management.py`, `channel_monitor.py`, `channel_orchestrator.py`, `interaction_manager.py`, `task_crud_dialog.py`, `ui_app_qt.py`, `channel_management_dialog.py`, `chatbot.py`, `conversation_history.py`, `run_tests.py`, `backup_manager.py`, `process_watcher_dialog.py`), and additional low-priority functions.
 - **Test Updates**: Updated tests to work with decorator behavior, including `test_core_service_coverage_expansion.py` and `test_channel_monitor.py` to assert error handling through the centralized system rather than specific log messages. Fixed `test_run_category_scheduler_requires_user_and_category` by adding `qapp` fixture for UI tests.
