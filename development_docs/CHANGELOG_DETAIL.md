@@ -38,8 +38,14 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-22 - Priority Generation Enhancements and Documentation Fixes **COMPLETED**
+- **Priority Generation**: Enhanced `AI_PRIORITIES.md` generation to include test markers and unused imports as priority items. Test markers appear as Tier 3 priority with details about affected files. Unused imports appear as Tier 1/2 priority (based on count) with category breakdown and top files. Removed test markers from Quick Wins to avoid duplication.
+- **ASCII Compliance Fix**: Fixed 4 ASCII compliance issues by replacing non-ASCII `≤` characters with `<=` in `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, `development_docs/CHANGELOG_DETAIL.md`, and `ai_development_docs/AI_CHANGELOG.md`.
+- **Path Drift Fix**: Fixed false positive in path drift analyzer by adding "extraction" and other common English words to the skip list in `analyze_path_drift.py`. The analyzer was incorrectly flagging the word "extraction" in documentation text as a potentially outdated module reference.
+- **Impact**: AI_PRIORITIES.md now provides complete visibility into test markers and unused imports issues. All documentation quality issues (ASCII compliance, path drift) are resolved. Test markers and unused imports are properly prioritized for action.
+
 ### 2025-12-21 - Audit Tier Reorganization Based on Execution Times **COMPLETED**
-- **Tier Reorganization**: Reorganized audit tiers based on execution time thresholds to better distribute tools across tiers. New thresholds: Tier 1 (≤2s per tool), Tier 2 (>2s but ≤10s per tool), Tier 3 (>10s per tool or groups containing tools >10s). This ensures Tier 2 has a meaningful set of tools for standard audits.
+- **Tier Reorganization**: Reorganized audit tiers based on execution time thresholds to better distribute tools across tiers. New thresholds: Tier 1 (<=2s per tool), Tier 2 (>2s but <=10s per tool), Tier 3 (>10s per tool or groups containing tools >10s). This ensures Tier 2 has a meaningful set of tools for standard audits.
 - **Tier Distribution**: Tier 1 now contains 7 tools (quick_status, system_signals, analyze_documentation, analyze_config, analyze_ai_work, analyze_function_patterns, decision_support). Tier 2 now contains 10 tools (analyze_functions, analyze_error_handling, analyze_package_exports, module imports group, function registry, documentation sync, unused imports group). Tier 3 contains 6 tools (coverage group, legacy group).
 - **Dependencies Respected**: All tool dependencies were respected during reorganization (coverage group, legacy group, unused imports group, module imports group, function discovery group).
 - **Parallel Execution**: Verified parallel execution working correctly in Tier 2 and Tier 3, with dependency-aware grouping ensuring dependent tools run sequentially within parallel groups.

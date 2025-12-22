@@ -198,7 +198,9 @@ class PathDriftAnalyzer:
             return True
         
         # Skip single words that are clearly not files
-        if len(path.split('.')) == 1 and path.isalpha() and len(path) < 10:
+        # Also skip common English words that might be mistaken for module names
+        common_words = {'extraction', 'utility', 'methods', 'module', 'package', 'function', 'class', 'variable', 'constant', 'helper', 'service', 'tool', 'analysis', 'report', 'generation', 'loading', 'wrappers', 'orchestration', 'commands', 'data', 'config', 'shared', 'development', 'tools', 'documentation', 'compliance', 'drift', 'sync', 'missing', 'addresses', 'links', 'heading', 'numbering', 'unconverted', 'ascii', 'path', 'legacy', 'references', 'coverage', 'test', 'markers', 'imports', 'unused', 'functions', 'registry', 'dependencies', 'patterns', 'error', 'handling', 'exports', 'package', 'module', 'imports', 'decision', 'support', 'system', 'signals', 'quick', 'status', 'documentation', 'validation', 'work', 'ai', 'patterns', 'function', 'registry', 'validation'}
+        if len(path.split('.')) == 1 and path.isalpha() and (len(path) < 10 or path.lower() in common_words):
             return True
         
         # Skip Python import patterns that are clearly not files

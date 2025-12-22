@@ -1244,6 +1244,8 @@ class ReportGenerationMixin:
         heading_data = self._load_tool_data('analyze_heading_numbering', 'docs')
         missing_addresses_data = self._load_tool_data('analyze_missing_addresses', 'docs')
         unconverted_links_data = self._load_tool_data('analyze_unconverted_links', 'docs')
+        test_markers_data = self._load_tool_data('analyze_test_markers', 'tests')
+        unused_imports_data = self._load_tool_data('analyze_unused_imports', 'imports')
         
         section_overlaps = analyze_data.get('section_overlaps', {})
         consolidation_recs = analyze_data.get('consolidation_recommendations', [])
@@ -1971,6 +1973,142 @@ class ReportGenerationMixin:
                             reason=f"{len(handlers_no_doc)} handler classes missing class docstrings.",
                             bullets=handlers_bullets
                         )
+        
+        # Test markers priority
+        if test_markers_data and isinstance(test_markers_data, dict):
+            # Handle both standard format (with summary/details) and legacy format (direct keys)
+            if 'summary' in test_markers_data:
+                summary = test_markers_data.get('summary', {})
+                missing_count = summary.get('total_issues', 0)
+                details = test_markers_data.get('details', {})
+                missing_list = details.get('missing', [])
+            else:
+                # Legacy format or direct data structure
+                missing_count = test_markers_data.get('missing_count', 0)
+                missing_list = test_markers_data.get('missing', [])
+                # Also check if data is wrapped in 'data' key
+                if not missing_count and 'data' in test_markers_data:
+                    data_wrapper = test_markers_data.get('data', {})
+                    if isinstance(data_wrapper, dict):
+                        missing_count = data_wrapper.get('missing_count', 0)
+                        missing_list = data_wrapper.get('missing', [])
+            
+            # Use missing_count if available, otherwise count from missing_list
+            actual_count = missing_count if missing_count > 0 else (len(missing_list) if missing_list else 0)
+            
+            if actual_count > 0:
+                test_markers_bullets: List[str] = []
+                
+                # Get top files with missing markers if available
+                if missing_list and isinstance(missing_list, list):
+                    from collections import defaultdict
+                    files_with_missing = defaultdict(list)
+                    for item in missing_list:
+                        if isinstance(item, dict):
+                            file_path = item.get('file', '')
+                            test_name = item.get('name', '')
+                            if file_path:
+                                files_with_missing[file_path].append(test_name)
+                    
+                    if files_with_missing:
+                        sorted_files = sorted(
+                            files_with_missing.items(),
+                            key=lambda x: len(x[1]),
+                            reverse=True
+                        )[:5]
+                        file_list = []
+                        for file_path, tests in sorted_files:
+                            test_count = len(tests)
+                            file_name = Path(file_path).name if file_path else 'Unknown'
+                            file_list.append(f"{file_name} ({test_count} tests)")
+                        if len(sorted_files) < len(files_with_missing):
+                            file_list.append(f"... +{len(files_with_missing) - len(sorted_files)} more files")
+                        test_markers_bullets.append(f"Top files: {self._format_list_for_display(file_list, limit=5)}")
+                
+                test_markers_bullets.append(
+                    "Action: Add pytest category markers to tests missing them"
+                )
+                test_markers_bullets.append(
+                    "Effort: Small (run automated fix tool or add markers manually)"
+                )
+                test_markers_bullets.append(
+                    "Why this matters: Category markers help organize tests and enable selective test execution"
+                )
+                test_markers_bullets.append(
+                    "Command: `python development_tools/tests/fix_test_markers.py`"
+                )
+                
+                add_priority(
+                    tier=3,  # Tier 3: Medium priority (test organization)
+                    title="Add pytest category markers to tests",
+                    reason=f"{actual_count} tests are missing pytest category markers.",
+                    bullets=test_markers_bullets
+                )
+        
+        # Unused imports priority
+        if unused_imports_data and isinstance(unused_imports_data, dict):
+            summary = unused_imports_data.get('summary', {})
+            details = unused_imports_data.get('details', {})
+            total_unused = summary.get('total_issues', 0) or unused_imports_data.get('total_unused', 0)
+            files_with_issues = summary.get('files_affected', 0) or unused_imports_data.get('files_with_issues', 0)
+            
+            if total_unused and total_unused > 0:
+                unused_bullets: List[str] = []
+                
+                # Get category breakdown
+                by_category = details.get('by_category') or unused_imports_data.get('by_category', {})
+                obvious_unused = by_category.get('obvious_unused', 0) if isinstance(by_category, dict) else 0
+                type_only = by_category.get('type_hints_only', 0) if isinstance(by_category, dict) else 0
+                
+                if obvious_unused and obvious_unused > 0:
+                    unused_bullets.append(f"{obvious_unused} obvious removals (safe to delete)")
+                if type_only and type_only > 0:
+                    unused_bullets.append(f"{type_only} type-only imports (consider TYPE_CHECKING guard)")
+                
+                # Get top files if available
+                files_dict = unused_imports_data.get('files', {})
+                if files_dict and isinstance(files_dict, dict):
+                    sorted_files = sorted(
+                        files_dict.items(),
+                        key=lambda x: len(x[1]) if isinstance(x[1], list) else 1,
+                        reverse=True
+                    )[:5]
+                    if sorted_files:
+                        file_list = []
+                        for file_path, imports in sorted_files:
+                            import_count = len(imports) if isinstance(imports, list) else 1
+                            file_name = Path(file_path).name if file_path else 'Unknown'
+                            file_list.append(f"{file_name} ({import_count} imports)")
+                        if len(sorted_files) < len(files_dict):
+                            file_list.append(f"... +{len(files_dict) - len(sorted_files)} more files")
+                        unused_bullets.append(f"Top files: {self._format_list_for_display(file_list, limit=5)}")
+                
+                unused_bullets.append(
+                    "Action: Review and remove unused imports, starting with obvious removals"
+                )
+                unused_bullets.append(
+                    "Effort: Small to Medium (review each import, remove safe ones, refactor type-only imports)"
+                )
+                unused_bullets.append(
+                    "Why this matters: Unused imports add noise, slow imports, and can hide real dependencies"
+                )
+                
+                # Check if there's a detailed report
+                unused_imports_report_path = self.project_root / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
+                if unused_imports_report_path.exists():
+                    unused_bullets.append(
+                        f"Detailed Report: [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)"
+                    )
+                
+                # Determine tier based on severity
+                tier = 1 if total_unused > 100 else 2  # Critical if >100, High otherwise
+                
+                add_priority(
+                    tier=tier,
+                    title="Remove unused imports",
+                    reason=f"{total_unused} unused imports across {files_with_issues} files (CRITICAL status).",
+                    bullets=unused_bullets
+                )
         
         # Complexity refactoring priority
         if critical_complex and critical_complex > 0:

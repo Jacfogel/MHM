@@ -127,14 +127,14 @@ The modular structure provides clear separation of concerns, making the codebase
 
 ## 3. Audit Modes and Outputs
 
-**Tier 1: Quick Audit (`audit --quick`)** collects all tools ≤2s execution time:
+**Tier 1: Quick Audit (`audit --quick`)** collects all tools <=2s execution time:
 - **Core metrics**: System health, quick status
 - **Quick checks**: Documentation analysis, config validation, AI work validation
 - **Module imports**: Module import extraction, dependency patterns
 - **Function analysis**: Function patterns, decision support, function registry validation
 - **Duration**: ~5-10 seconds (with parallel execution)
 
-**Tier 2: Standard Audit (`audit`, default)** includes all tools >2s but ≤10s execution time:
+**Tier 2: Standard Audit (`audit`, default)** includes all tools >2s but <=10s execution time:
 - **Function discovery**: Function discovery and complexity metrics (required by dependent tools)
 - **Quality checks**: Error handling coverage, package export validation
 - **Documentation sync**: Documentation synchronization (includes multiple sub-tools)
@@ -286,7 +286,7 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 - **Parallel Execution**: Tools run in parallel where possible to reduce audit time:
   - **Tier 2**: Independent tools (5 tools) run in parallel; dependent groups run sequentially within groups but in parallel with each other
   - **Tier 3**: Coverage group runs sequentially (~450s); legacy and unused imports groups run in parallel with each other
-  - **Tool Dependencies**: Some tools must run together due to dependencies (e.g., analysis → report, imports → patterns/dependencies). See `development_tools/shared/service/audit_orchestration.py` for dependency groupings.
+  - **Tool Dependencies**: Some tools must run together due to dependencies (e.g., analysis -> report, imports -> patterns/dependencies). See `development_tools/shared/service/audit_orchestration.py` for dependency groupings.
 - **Output Format Standardization (2025-12-14)**: All 19 analysis tools now output JSON in a standardized structure with `summary` (total_issues, files_affected, status) and `details` (tool-specific data). This enables consistent data aggregation and simplified report generation. Tools support `--json` flag for direct standard format output. The normalization layer in `shared/result_format.py` provides backward compatibility for any legacy formats.
 - When adding or relocating tools, update:
   - `shared/tool_metadata.py`

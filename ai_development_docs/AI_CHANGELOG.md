@@ -36,8 +36,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-22 - Priority Generation Enhancements and Documentation Fixes **COMPLETED**
+- Enhanced AI_PRIORITIES.md generation to include test markers (Tier 3 priority) and unused imports (Tier 1/2 priority) with detailed breakdowns. Removed test markers from Quick Wins to avoid duplication.
+- Fixed ASCII compliance issues (replaced ≤ with <= in 4 files) and path drift false positive (added "extraction" to skip list). All documentation quality checks now pass.
+- AI_PRIORITIES.md now provides complete visibility into all actionable issues with proper prioritization.
+
 ### 2025-12-21 - Audit Tier Reorganization Based on Execution Times **COMPLETED**
-- Reorganized audit tiers based on execution time thresholds: Tier 1 (≤2s), Tier 2 (>2s but ≤10s), Tier 3 (>10s). Tier 1 now has 7 tools, Tier 2 has 10 tools, Tier 3 has 6 tools.
+- Reorganized audit tiers based on execution time thresholds: Tier 1 (<=2s), Tier 2 (>2s but <=10s), Tier 3 (>10s). Tier 1 now has 7 tools, Tier 2 has 10 tools, Tier 3 has 6 tools.
 - All tool dependencies respected during reorganization. Parallel execution verified working correctly in Tier 2 and Tier 3.
 - Fixed failing test `test_no_json_files_in_domain_root` by adding `tool_timings.json` to known exceptions.
 - Updated documentation to reflect new tier assignments. Better tier distribution makes standard audits more useful.

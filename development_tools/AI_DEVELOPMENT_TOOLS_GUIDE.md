@@ -70,7 +70,7 @@ python development_tools/run_development_tools.py help
 
 ### 3.1. Tier 1: Quick Audit - `audit --quick`
 - **Duration**: ~5-10 seconds (with parallel execution)
-- **Tools**: All tools ≤2s execution time
+- **Tools**: All tools <=2s execution time
   - **Core tools**: `system_signals`, `quick_status`
   - **Quick checks**: `analyze_documentation`, `analyze_config`, `analyze_ai_work`
   - **Module imports**: `analyze_module_imports`, `analyze_dependency_patterns`
@@ -80,7 +80,7 @@ python development_tools/run_development_tools.py help
 
 ### 3.2. Tier 2: Standard Audit - `audit` (default)
 - **Duration**: ~15-25 seconds (with parallel execution)
-- **Tools**: All tools >2s but ≤10s execution time
+- **Tools**: All tools >2s but <=10s execution time
   - **Function discovery**: `analyze_functions` (required by dependent tools)
   - **Quality checks**: `analyze_error_handling`, `analyze_package_exports`
   - **Documentation sync**: `analyze_documentation_sync` (includes multiple sub-tools)
