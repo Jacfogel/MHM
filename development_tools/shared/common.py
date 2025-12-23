@@ -9,7 +9,7 @@ import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterable, Iterator, Sequence, Tuple, Dict, Any
+from typing import Callable, Iterable, Iterator, Sequence, Tuple, Dict, Any, Optional
 
 from development_tools.shared.standard_exclusions import (
     get_exclusions,
@@ -17,21 +17,76 @@ from development_tools.shared.standard_exclusions import (
 )
 from development_tools.shared.tool_metadata import COMMAND_GROUPS
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+# Import config for project root and paths
+try:
+    from .. import config
+except ImportError:
+    # Fallback for when run as standalone script
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+    from development_tools import config
+
+# Load external config on module import (if not already loaded)
+try:
+    if hasattr(config, 'load_external_config'):
+        config.load_external_config()
+except (AttributeError, ImportError):
+    pass
+
+# Get project root from config (config-driven, portable)
+def _get_project_root() -> Path:
+    """Get project root from config."""
+    try:
+        return Path(config.get_project_root())
+    except (AttributeError, ImportError, TypeError):
+        # Fallback to path calculation if config not available
+        return Path(__file__).resolve().parents[2]
+
+PROJECT_ROOT = _get_project_root()
 
 # Command tier grouping for `help`
 COMMAND_TIERS = COMMAND_GROUPS
 
 
-@dataclass(frozen=True)
 class ProjectPaths:
-    """Convenience accessor for common project directories."""
-
-    root: Path = PROJECT_ROOT
-    docs: Path = PROJECT_ROOT / "ai_development_docs"
-    dev_docs: Path = PROJECT_ROOT / "development_docs"
-    data: Path = PROJECT_ROOT / "data"
-    tests: Path = PROJECT_ROOT / "tests"
+    """Convenience accessor for common project directories.
+    
+    Paths are loaded from config for portability. Falls back to defaults if config not available.
+    """
+    
+    def __init__(self, root: Optional[Path] = None):
+        """Initialize ProjectPaths with config-driven paths.
+        
+        Args:
+            root: Optional project root path. If None, uses config.get_project_root()
+        """
+        # Get project root
+        if root is not None:
+            project_root = Path(root)
+        else:
+            try:
+                project_root = Path(config.get_project_root())
+            except (AttributeError, ImportError, TypeError):
+                # Fallback to path calculation if config not available
+                project_root = Path(__file__).resolve().parents[2]
+        
+        # Get paths from config
+        try:
+            paths_config = config.get_paths_config()
+            self.root = project_root
+            self.docs = project_root / paths_config.get('ai_docs_dir', 'ai_development_docs')
+            self.dev_docs = project_root / paths_config.get('development_docs_dir', 'development_docs')
+            self.data = project_root / paths_config.get('data_dir', 'data')
+            # Note: tests_dir not in paths_config, use default
+            self.tests = project_root / "tests"
+        except (AttributeError, ImportError, TypeError, KeyError):
+            # Fallback to defaults if config not available
+            self.root = project_root
+            self.docs = project_root / "ai_development_docs"
+            self.dev_docs = project_root / "development_docs"
+            self.data = project_root / "data"
+            self.tests = project_root / "tests"
 
 
 def ensure_ascii(text: str) -> str:
@@ -57,46 +112,30 @@ def load_text(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
 
 
-def setup_ai_tools_imports():
-    """Setup imports for AI tools - handles both relative and absolute imports cleanly."""
-    import sys
-    from pathlib import Path
+def iter_python_sources(directories: Sequence[Path | str], *, tool_type: str = "analysis", context: str = "development", project_root: Optional[Path] = None) -> Iterator[Path]:
+    """Yield Python source files from the provided directories using standard exclusions.
     
-    # Add project root to path for core module imports
-    project_root = Path(__file__).parent.parent.parent
-    if str(project_root) not in sys.path:
-        sys.path.insert(0, str(project_root))
+    Args:
+        directories: Directories to search (Path objects or strings relative to project_root)
+        tool_type: Type of tool for exclusion filtering
+        context: Context for exclusion filtering
+        project_root: Optional project root path. If None, uses config.get_project_root()
+    """
+    # Get project root from config if not provided
+    if project_root is None:
+        try:
+            project_root = Path(config.get_project_root())
+        except (AttributeError, ImportError, TypeError):
+            project_root = PROJECT_ROOT
     
-    return project_root
-
-
-def safe_import(relative_import, absolute_import):
-    """Safely import modules, trying relative first, then absolute."""
-    try:
-        return __import__(relative_import, fromlist=[''])
-    except ImportError:
-        return __import__(absolute_import, fromlist=[''])
-
-
-def iter_python_sources(directories: Sequence[Path | str], *, tool_type: str = "analysis", context: str = "development") -> Iterator[Path]:
-    """Yield Python source files from the provided directories using standard exclusions."""
     base_exclusions = get_exclusions(tool_type, context)
     for directory in directories:
-        base_path = PROJECT_ROOT / directory if isinstance(directory, str) else directory
+        base_path = project_root / directory if isinstance(directory, str) else directory
         if not base_path.exists():
             continue
         for path in base_path.rglob("*.py"):
             if should_exclude_file(str(path), tool_type=tool_type, context=context):
                 continue
-            yield path
-
-
-def iter_markdown_files(directories: Sequence[Path | str]) -> Iterator[Path]:
-    for directory in directories:
-        base_path = PROJECT_ROOT / directory if isinstance(directory, str) else directory
-        if not base_path.exists():
-            continue
-        for path in base_path.rglob("*.md"):
             yield path
 
 

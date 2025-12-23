@@ -319,9 +319,23 @@ def run_tool_with_guidance(tool_name):
         print(f"   - {key}: {description}")
     print()
     
-    # Run the tool
+    # Run the tool - use SCRIPT_REGISTRY if available, otherwise fall back to hardcoded path
     try:
-        result = subprocess.run([sys.executable, f"development_tools/{tool_name}"], 
+        from .tool_wrappers import SCRIPT_REGISTRY
+        script_rel_path = SCRIPT_REGISTRY.get(tool_name)
+        if script_rel_path:
+            # Use path from registry (relative to development_tools/)
+            script_path = Path(__file__).resolve().parent.parent / script_rel_path
+            tool_cmd = [sys.executable, str(script_path)]
+        else:
+            # Fallback to hardcoded path if not in registry
+            tool_cmd = [sys.executable, f"development_tools/{tool_name}"]
+    except (ImportError, AttributeError):
+        # Fallback if SCRIPT_REGISTRY not available
+        tool_cmd = [sys.executable, f"development_tools/{tool_name}"]
+    
+    try:
+        result = subprocess.run(tool_cmd, 
                               capture_output=True, text=True, timeout=60)
         
         print("Tool Output:")

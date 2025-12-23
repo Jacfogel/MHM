@@ -30,6 +30,12 @@ class ReportGenerationMixin:
         else:
             return Path(report_path) if not isinstance(report_path, Path) else report_path
     
+    def _get_results_file_path(self) -> Path:
+        """Get the results file path from config."""
+        # Default matches development_tools_config.json for backward compatibility
+        results_file_path = (self.audit_config or {}).get('results_file', 'development_tools/reports/analysis_detailed_results.json')
+        return self._resolve_report_path(results_file_path)
+    
     def _generate_ai_status_document(self) -> str:
         """Generate AI-optimized status document."""
         # Log data source context
@@ -206,7 +212,7 @@ class ReportGenerationMixin:
         if total_functions == 'Unknown' or moderate == 'Unknown':
             try:
                 import json
-                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+                results_file = self._get_results_file_path()
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
@@ -269,7 +275,7 @@ class ReportGenerationMixin:
         if (doc_coverage == 'Unknown' or doc_coverage is None) and functions_without_docstrings is None:
             try:
                 import json
-                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+                results_file = self._get_results_file_path()
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
@@ -328,7 +334,7 @@ class ReportGenerationMixin:
         if not missing_docs:
             try:
                 import json
-                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+                results_file = self._get_results_file_path()
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
@@ -377,7 +383,8 @@ class ReportGenerationMixin:
         if not error_metrics or error_coverage == 'Unknown':
             try:
                 import json
-                results_file = Path("development_tools/reports/analysis_detailed_results.json")
+                # Get results file path from config
+                results_file = self._get_results_file_path()
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
@@ -416,7 +423,8 @@ class ReportGenerationMixin:
         if not doc_sync_summary:
             try:
                 import json
-                results_file = Path("development_tools/reports/analysis_detailed_results.json")
+                # Get results file path from config
+                results_file = self._get_results_file_path()
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
@@ -797,7 +805,8 @@ class ReportGenerationMixin:
             # Try to load cached error handling data
             try:
                 import json
-                results_file = Path("development_tools/reports/analysis_detailed_results.json")
+                # Get results file path from config
+                results_file = self._get_results_file_path()
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
@@ -1092,7 +1101,7 @@ class ReportGenerationMixin:
             signals_loaded = False
             try:
                 import json
-                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+                results_file = self._get_results_file_path()
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
@@ -2402,7 +2411,7 @@ class ReportGenerationMixin:
             if not validation_output:
                 try:
                     import json
-                    results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+                    results_file = self._get_results_file_path()
                     if results_file.exists():
                         with open(results_file, 'r', encoding='utf-8') as f:
                             cached_data = json.load(f)
@@ -2655,7 +2664,7 @@ class ReportGenerationMixin:
         if moderate == 'Unknown' or high == 'Unknown':
             try:
                 import json
-                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+                results_file = self._get_results_file_path()
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
@@ -3561,7 +3570,7 @@ class ReportGenerationMixin:
         if high_complexity == 'Unknown' or high_complexity is None:
             try:
                 import json
-                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+                results_file = self._get_results_file_path()
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
@@ -3958,7 +3967,7 @@ class ReportGenerationMixin:
         else:
             try:
                 import json
-                results_file = self.project_root / "development_tools" / "reports" / "analysis_detailed_results.json"
+                results_file = self._get_results_file_path()
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
@@ -4003,15 +4012,43 @@ class ReportGenerationMixin:
         # Reference Files
         lines.append("## Reference Files")
         
-        issues_file_str = getattr(self, 'audit_config', {}).get('issues_file', 'development_tools/critical_issues.txt')
+        # Default to generic path relative to project root (no development_tools/ assumption)
+        issues_file_str = getattr(self, 'audit_config', {}).get('issues_file', 'critical_issues.txt')
         issues_file = self.project_root / issues_file_str if isinstance(issues_file_str, str) else Path(issues_file_str)
         if issues_file.exists():
             rel_path = issues_file.relative_to(self.project_root)
             lines.append(f"- Critical issues summary: [{rel_path.as_posix()}]({rel_path.as_posix()})")
         
-        lines.append("- Latest AI status: [AI_STATUS.md](development_tools/AI_STATUS.md)")
-        lines.append("- Current AI priorities: [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md)")
-        lines.append("- Detailed JSON results: [analysis_detailed_results.json](development_tools/reports/analysis_detailed_results.json)")
+        # Get status file paths from config for links
+        try:
+            from .. import config
+            status_config = config.get_status_config()
+            status_files_config = status_config.get('status_files', {})
+            # Use default from STATUS config if status_files_config is empty (matches default config)
+            if not status_files_config:
+                # Fallback to default STATUS config values for backward compatibility
+                from ..config.config import STATUS
+                status_files_config = STATUS.get('status_files', {})
+            ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')
+            ai_priorities_path = status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
+            results_file_path = (self.audit_config or {}).get('results_file', 'development_tools/reports/analysis_detailed_results.json')
+        except (ImportError, AttributeError, KeyError):
+            # Fallback to default STATUS config values for backward compatibility
+            try:
+                from ..config.config import STATUS
+                status_files_default = STATUS.get('status_files', {})
+                ai_status_path = status_files_default.get('ai_status', 'development_tools/AI_STATUS.md')
+                ai_priorities_path = status_files_default.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
+                results_file_path = 'development_tools/reports/analysis_detailed_results.json'
+            except (ImportError, AttributeError):
+                # Last resort fallback
+                ai_status_path = 'development_tools/AI_STATUS.md'
+                ai_priorities_path = 'development_tools/AI_PRIORITIES.md'
+                results_file_path = 'development_tools/reports/analysis_detailed_results.json'
+        
+        lines.append(f"- Latest AI status: [AI_STATUS.md]({ai_status_path})")
+        lines.append(f"- Current AI priorities: [AI_PRIORITIES.md]({ai_priorities_path})")
+        lines.append(f"- Detailed JSON results: [analysis_detailed_results.json]({results_file_path})")
         
         legacy_report = self.project_root / 'development_docs' / 'LEGACY_REFERENCE_REPORT.md'
         if legacy_report.exists():

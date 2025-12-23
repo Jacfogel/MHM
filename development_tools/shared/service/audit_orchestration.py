@@ -28,11 +28,37 @@ _AUDIT_LOCK_FILE = None
 
 def _get_status_file_mtimes(project_root: Path) -> Dict[str, float]:
     """Get modification times for all status files."""
-    status_files = {
-        'AI_STATUS.md': project_root / 'development_tools' / 'AI_STATUS.md',
-        'AI_PRIORITIES.md': project_root / 'development_tools' / 'AI_PRIORITIES.md',
-        'consolidated_report.txt': project_root / 'development_tools' / 'consolidated_report.txt'
-    }
+    # Get status file paths from config
+    try:
+        from .. import config
+        status_config = config.get_status_config()
+        status_files_config = status_config.get('status_files', {})
+        # Use default from STATUS config if status_files_config is empty (matches default config)
+        if not status_files_config:
+            from ..config.config import STATUS
+            status_files_config = STATUS.get('status_files', {})
+        status_files = {
+            'AI_STATUS.md': project_root / status_files_config.get('ai_status', 'development_tools/AI_STATUS.md'),
+            'AI_PRIORITIES.md': project_root / status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md'),
+            'consolidated_report.txt': project_root / status_files_config.get('consolidated_report', 'development_tools/consolidated_report.txt')
+        }
+    except (ImportError, AttributeError, KeyError):
+        # Fallback to default STATUS config values for backward compatibility
+        try:
+            from ..config.config import STATUS
+            status_files_default = STATUS.get('status_files', {})
+            status_files = {
+                'AI_STATUS.md': project_root / status_files_default.get('ai_status', 'development_tools/AI_STATUS.md'),
+                'AI_PRIORITIES.md': project_root / status_files_default.get('ai_priorities', 'development_tools/AI_PRIORITIES.md'),
+                'consolidated_report.txt': project_root / status_files_default.get('consolidated_report', 'development_tools/consolidated_report.txt')
+            }
+        except (ImportError, AttributeError):
+            # Last resort fallback
+            status_files = {
+                'AI_STATUS.md': project_root / 'development_tools' / 'AI_STATUS.md',
+                'AI_PRIORITIES.md': project_root / 'development_tools' / 'AI_PRIORITIES.md',
+                'consolidated_report.txt': project_root / 'development_tools' / 'consolidated_report.txt'
+            }
     mtimes = {}
     for name, path in status_files.items():
         if path.exists():
@@ -48,9 +74,21 @@ def _is_audit_in_progress(project_root: Path) -> bool:
     if _AUDIT_IN_PROGRESS_GLOBAL:
         return True
     if _AUDIT_LOCK_FILE is None:
-        _AUDIT_LOCK_FILE = project_root / 'development_tools' / '.audit_in_progress.lock'
+        # Use generic path relative to project root (no development_tools/ assumption)
+        try:
+            from .. import config
+            lock_file_path = config.get_external_value('paths.audit_lock_file', '.audit_in_progress.lock')
+            _AUDIT_LOCK_FILE = project_root / lock_file_path
+        except (ImportError, AttributeError):
+            _AUDIT_LOCK_FILE = project_root / '.audit_in_progress.lock'
     audit_lock_exists = _AUDIT_LOCK_FILE.exists()
-    coverage_lock_file = project_root / 'development_tools' / '.coverage_in_progress.lock'
+    # Use generic path relative to project root (no development_tools/ assumption)
+    try:
+        from .. import config
+        coverage_lock_path = config.get_external_value('paths.coverage_lock_file', '.coverage_in_progress.lock')
+        coverage_lock_file = project_root / coverage_lock_path
+    except (ImportError, AttributeError):
+        coverage_lock_file = project_root / '.coverage_in_progress.lock'
     coverage_lock_exists = coverage_lock_file.exists()
     lock_exists = audit_lock_exists or coverage_lock_exists
     if lock_exists:
@@ -60,6 +98,26 @@ def _is_audit_in_progress(project_root: Path) -> bool:
 
 class AuditOrchestrationMixin:
     """Mixin class providing audit orchestration methods to AIToolsService."""
+    
+    def _get_audit_lock_file_path(self) -> Path:
+        """Get audit lock file path (configurable via config, defaults to .audit_in_progress.lock relative to project root)."""
+        try:
+            from .. import config
+            # Default to generic path relative to project root (no development_tools/ assumption)
+            lock_file_path = config.get_external_value('paths.audit_lock_file', '.audit_in_progress.lock')
+            return self.project_root / lock_file_path
+        except (ImportError, AttributeError):
+            return self.project_root / 'development_tools' / '.audit_in_progress.lock'
+    
+    def _get_coverage_lock_file_path(self) -> Path:
+        """Get coverage lock file path (configurable via config, defaults to .coverage_in_progress.lock relative to project root)."""
+        try:
+            from .. import config
+            # Default to generic path relative to project root (no development_tools/ assumption)
+            lock_file_path = config.get_external_value('paths.coverage_lock_file', '.coverage_in_progress.lock')
+            return self.project_root / lock_file_path
+        except (ImportError, AttributeError):
+            return self.project_root / 'development_tools' / '.coverage_in_progress.lock'
     
     def run_audit(self, quick: bool = False, full: bool = False, include_overlap: bool = False):
         """Run audit workflow with three-tier structure."""
@@ -89,7 +147,7 @@ class AuditOrchestrationMixin:
         
         # Create file-based lock
         if _AUDIT_LOCK_FILE is None:
-            _AUDIT_LOCK_FILE = self.project_root / 'development_tools' / '.audit_in_progress.lock'
+            _AUDIT_LOCK_FILE = self._get_audit_lock_file_path()
         try:
             _AUDIT_LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
             _AUDIT_LOCK_FILE.touch()
@@ -169,26 +227,53 @@ class AuditOrchestrationMixin:
             
             try:
                 # Generate status documents
+                # Get status file paths from config
+                try:
+                    from .. import config
+                    status_config = config.get_status_config()
+                    status_files_config = status_config.get('status_files', {})
+                    # Use default from STATUS config if status_files_config is empty (matches default config)
+                    if not status_files_config:
+                        # Fallback to default STATUS config values for backward compatibility
+                        from ..config.config import STATUS
+                        status_files_config = STATUS.get('status_files', {})
+                    ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')
+                    ai_priorities_path = status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
+                    consolidated_report_path = status_files_config.get('consolidated_report', 'development_tools/consolidated_report.txt')
+                except (ImportError, AttributeError, KeyError):
+                    # Fallback to default STATUS config values for backward compatibility
+                    try:
+                        from ..config.config import STATUS
+                        status_files_default = STATUS.get('status_files', {})
+                        ai_status_path = status_files_default.get('ai_status', 'development_tools/AI_STATUS.md')
+                        ai_priorities_path = status_files_default.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
+                        consolidated_report_path = status_files_default.get('consolidated_report', 'development_tools/consolidated_report.txt')
+                    except (ImportError, AttributeError):
+                        # Last resort fallback
+                        ai_status_path = 'development_tools/AI_STATUS.md'
+                        ai_priorities_path = 'development_tools/AI_PRIORITIES.md'
+                        consolidated_report_path = 'development_tools/consolidated_report.txt'
+                
                 try:
                     ai_status = self._generate_ai_status_document()
                 except Exception as e:
                     logger.warning(f"Error generating AI_STATUS document: {e}")
                     ai_status = "# AI Status\n\nError generating status document."
-                ai_status_file = create_output_file("development_tools/AI_STATUS.md", ai_status, project_root=self.project_root)
+                ai_status_file = create_output_file(ai_status_path, ai_status, project_root=self.project_root)
                 
                 try:
                     ai_priorities = self._generate_ai_priorities_document()
                 except Exception as e:
                     logger.warning(f"Error generating AI_PRIORITIES document: {e}")
                     ai_priorities = "# AI Priorities\n\nError generating priorities document."
-                ai_priorities_file = create_output_file("development_tools/AI_PRIORITIES.md", ai_priorities, project_root=self.project_root)
+                ai_priorities_file = create_output_file(ai_priorities_path, ai_priorities, project_root=self.project_root)
                 
                 try:
                     consolidated_report = self._generate_consolidated_report()
                 except Exception as e:
                     logger.warning(f"Error generating consolidated report: {e}")
                     consolidated_report = "Error generating consolidated report."
-                consolidated_file = create_output_file("development_tools/consolidated_report.txt", consolidated_report, project_root=self.project_root)
+                consolidated_file = create_output_file(consolidated_report_path, consolidated_report, project_root=self.project_root)
                 
                 post_final_mtimes = _get_status_file_mtimes(self.project_root)
                 for file_name, mtime in post_final_mtimes.items():

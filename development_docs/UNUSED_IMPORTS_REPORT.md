@@ -2,18 +2,18 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-22 04:04:41
+> **Last Generated**: 2025-12-23 06:13:15
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 374
-- **Files with Unused Imports**: 150
-- **Total Unused Imports**: 435
+- **Files with Unused Imports**: 151
+- **Total Unused Imports**: 436
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 133 imports
+- **Obvious Unused**: 134 imports
 - **Type Hints Only**: 2 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 9 imports
@@ -203,6 +203,13 @@
 **Count**: 1 unused import(s)
 
 - **Line 8**: Unused import warnings
+  - Symbol: `unused-import`
+
+### `development_tools/shared/common.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 10**: Unused dataclass imported from dataclasses
   - Symbol: `unused-import`
 
 ### `development_tools/shared/mtime_cache.py`

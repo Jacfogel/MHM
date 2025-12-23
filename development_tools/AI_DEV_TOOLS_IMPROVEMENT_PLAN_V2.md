@@ -757,43 +757,101 @@ See `development_tools/TOOL_STORAGE_AUDIT.md` for detailed breakdown.
 - `development_docs/CHANGELOG_DETAIL.md` (detailed implementation notes)
 
 #### 6.3 Review Shared Utility Modules
-**Status**: PENDING  
-**Issue**: Need to review if shared utilities are still needed or should be consolidated.
+**Status**: ✅ COMPLETE (2025-12-23)  
+**Issue**: Need to review if shared utilities are still needed or should be consolidated after portability conversion.
 
-**Tasks**:
-- [ ] Review `development_tools/shared/common.py`:
-  - Document current role and responsibilities
-  - Assess if it's still needed after portability work
-  - Determine if it should be merged, split, or kept as-is
-- [ ] Review `development_tools/shared/constants.py`:
-  - Verify it's not duplicating functionality from `config.py`
-  - Assess if constants should be in config instead
-- [ ] Review `development_tools/shared/standard_exclusions.py`:
-  - Verify it's not duplicating functionality from `config.py` exclusion config
-  - Assess if exclusions should be fully in config
-- [ ] Document findings and recommendations
+**Completion Summary**:
+- ✅ **Comprehensive Review Completed**: Reviewed all shared utility and service modules (common.py, constants.py, standard_exclusions.py, config.py, plus all service modules)
+- ✅ **High Priority Fixes Implemented (2025-12-23)**:
+  - Updated `common.py` to use `config.get_project_root()` and `config.get_paths_config()` for all paths
+  - Updated `ProjectPaths` class to be config-driven (loads paths from config, falls back to defaults)
+  - Updated `iter_python_sources()` to accept optional `project_root` parameter and use config
+  - Removed 3 unused functions: `setup_ai_tools_imports()`, `safe_import()`, `iter_markdown_files()`
+  - Added `get_status_config()` to `config.py` for status file paths
+  - Updated `audit_orchestration.py` and `commands.py` to use `config.get_status_config()['status_files']` for status file paths
+- ✅ **Architecture Assessment**: Current architecture is sound with clear separation of concerns, proper config integration, appropriate module sizes
 
-**Files**: `development_tools/shared/common.py`, `development_tools/shared/constants.py`, `development_tools/shared/standard_exclusions.py`, `development_tools/config/config.py`
+**Key Findings**:
+
+1. **common.py** (now config-driven):
+   - ✅ Updated to use `config.get_project_root()` instead of hardcoded path calculation
+   - ✅ `ProjectPaths` class now uses `config.get_paths_config()` for all directory paths
+   - ✅ `iter_python_sources()` now accepts optional `project_root` parameter and uses config
+   - ✅ Removed 3 unused functions (legacy from portability work)
+   - ✅ Well-structured utility functions remain (ensure_ascii, write_json, write_text, load_text, run_cli, summary_block)
+
+2. **constants.py** (328 lines, used by 16 files):
+   - ✅ Well-structured with clear separation: project-specific constants (loaded from config) vs generic constants (hardcoded)
+   - ✅ Proper config integration via `config.get_constants_config()`
+   - ✅ Helper functions (`is_standard_library_module`, `is_local_module`) are domain-specific and appropriately located
+   - ✅ No duplication with config.py (different purposes: constants.py = constant definitions, config.py = config loader)
+
+3. **standard_exclusions.py** (383 lines, used by 22 files - most widely used):
+   - ✅ Well-structured exclusion patterns (universal, tool-specific, context-specific, generated files)
+   - ✅ Proper config integration via `config.get_exclusions_config()`
+   - ✅ Complex logic (pattern matching, fnmatch) appropriately contained
+   - ⚠️ Minor overlap with `config.py` FILE_PATTERNS.exclude_patterns (7 patterns, low impact, different use cases - FILE_PATTERNS is minimal fallback)
+
+4. **config.py** (758 lines, used by 52+ files):
+   - ✅ Serves appropriate role as central configuration loader
+   - ✅ Provides `get_constants_config()`, `get_exclusions_config()`, `get_status_config()`, `get_paths_config()` for proper integration
+   - ✅ External config loading (`development_tools_config.json`) works correctly
+   - ✅ FILE_PATTERNS.exclude_patterns is minimal fallback (7 patterns), standard_exclusions.py is authoritative (30+ patterns)
+
+5. **Service Modules** (audit_orchestration.py, commands.py, report_generation.py):
+   - ✅ Updated to use `config.get_status_config()['status_files']` for status file paths (AI_STATUS.md, AI_PRIORITIES.md, consolidated_report.txt)
+   - ⚠️ **Remaining**: Some hardcoded report file paths in `report_generation.py` (e.g., `development_tools/reports/analysis_detailed_results.json`) - could use `config.get_quick_audit_config()['results_file']` but most already have fallback logic
+   - ⚠️ **Remaining**: `tool_guide.py` has hardcoded "development_tools/" prefix (line 324) - low priority
+
+**Architecture Assessment**:
+- ✅ **Current architecture is sound**: Clear separation of concerns, proper config integration, appropriate module sizes
+- ✅ **High priority portability issues resolved**: All critical hardcoded paths now use config
+- ✅ **No major refactoring needed**: Current structure works well with minimal duplication
+
+**Optional Enhancements (Low Priority) - ✅ COMPLETE (2025-12-23)**:
+1. ✅ **Report file paths**: Updated `report_generation.py` to use `_get_results_file_path()` helper method that loads from `config.get_quick_audit_config()['results_file']` - all 8 instances updated
+2. ✅ **Tool guide path**: Updated `tool_guide.py` to use `SCRIPT_REGISTRY` from `tool_wrappers.py` for tool paths - falls back to hardcoded path if registry not available
+3. ✅ **Lock file paths**: Added `_get_audit_lock_file_path()` and `_get_coverage_lock_file_path()` helper methods in `audit_orchestration.py` - configurable via `config.get_external_value('paths.audit_lock_file', ...)` with sensible defaults
+
+**Assessment**: ✅ All optional enhancements completed. All hardcoded paths now use config-driven helpers with fallback defaults for portability.
+
+**Additional Fix (2025-12-23)**: ✅ **Windows DLL Error Fix**: Fixed pytest subprocess execution on Windows that was causing `STATUS_DLL_NOT_FOUND` (0xC0000135) errors during no_parallel test execution. Added `_ensure_python_path_in_env()` helper method to ensure PATH includes Python executable's directory for all subprocess calls. Applied to all 4 subprocess execution points (parallel pytest, no_parallel pytest, coverage combine, dev tools coverage). All 147 no_parallel tests now complete successfully.
+
+**Files Modified**: 
+- `development_tools/shared/common.py` (updated to use config, removed unused functions)
+- `development_tools/config/config.py` (added `get_status_config()`)
+- `development_tools/shared/service/audit_orchestration.py` (updated to use config for status files, added lock file helper methods)
+- `development_tools/shared/service/commands.py` (updated to use config for status files and lock files)
+- `development_tools/shared/service/report_generation.py` (updated to use config for results file paths via helper method)
+- `development_tools/shared/tool_guide.py` (updated to use SCRIPT_REGISTRY for tool paths)
+- `development_tools/tests/generate_test_coverage.py` (added Windows PATH fix for subprocess execution)
 
 #### 6.4 Remove Legacy Code Using Search-and-Close Methodology
-**Status**: PENDING  
+**Status**: ✅ COMPLETE (2025-12-22)  
 **Issue**: Found 28 legacy markers across 5 files (per LEGACY_REFERENCE_REPORT.md). Legacy compatibility markers in 3 files (9 total).
 
+**Completion Summary**:
+- ✅ **operations.py**: File completely removed on 2025-12-14 (per CHANGELOG_DETAIL.md). All 5 LEGACY COMPATIBILITY markers removed with file deletion. File no longer exists in codebase.
+- ✅ **mtime_cache.py**: Legacy cache fallback code removed on 2025-12-16 (per CHANGELOG_DETAIL.md lines 154-158). All 2 LEGACY COMPATIBILITY markers removed. Legacy file-based cache loading and saving fallbacks removed since all tools use standardized storage.
+- ✅ **legacy_code.py**: Test fixture with 2 intentional LEGACY COMPATIBILITY markers (for testing legacy detection). Properly excluded from main project scans via legacy analyzer configuration. Markers are intentional and should remain.
+- ✅ **Legacy Reference Report**: Shows 0 legacy compatibility markers detected, 0 files with issues (verified 2025-12-22).
+- ✅ **Documentation**: All removals documented in CHANGELOG_DETAIL.md. Search-and-close methodology followed per AI_LEGACY_REMOVAL_GUIDE.md.
+
 **Tasks**:
-- [ ] Review `ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md` for search-and-close methodology
-- [ ] Review `development_docs/LEGACY_REFERENCE_REPORT.md` for specific findings:
-  - `development_tools/shared/operations.py`: 5 LEGACY COMPATIBILITY markers (legacy result loading, deprecated flags)
-  - `development_tools/shared/mtime_cache.py`: 2 LEGACY COMPATIBILITY markers (legacy file-based caching)
-  - `tests/fixtures/development_tools_demo/legacy_code.py`: 2 LEGACY COMPATIBILITY markers (test fixture - may be intentional)
-- [ ] For each legacy code block:
+- [x] Review `ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md` for search-and-close methodology
+- [x] Review `development_docs/LEGACY_REFERENCE_REPORT.md` for specific findings:
+  - `development_tools/shared/operations.py`: 5 LEGACY COMPATIBILITY markers (legacy result loading, deprecated flags) - **REMOVED** (file deleted)
+  - `development_tools/shared/mtime_cache.py`: 2 LEGACY COMPATIBILITY markers (legacy file-based caching) - **REMOVED** (legacy fallback code removed)
+  - `tests/fixtures/development_tools_demo/legacy_code.py`: 2 LEGACY COMPATIBILITY markers (test fixture - intentional for testing)
+- [x] For each legacy code block:
   - Verify all references have been updated
   - Confirm no active usage of legacy paths/patterns
   - Check logs for legacy usage warnings
   - Remove legacy code if safe to do so
   - Update removal plan documentation
-- [ ] Note: Test fixture legacy code may be intentional for testing purposes
+- [x] Note: Test fixture legacy code confirmed intentional for testing purposes
 
-**Files**: `development_tools/shared/operations.py`, `development_tools/shared/mtime_cache.py`, `development_docs/LEGACY_REFERENCE_REPORT.md`, `ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md`
+**Files**: `development_tools/shared/operations.py` (removed), `development_tools/shared/mtime_cache.py` (legacy markers removed), `development_docs/LEGACY_REFERENCE_REPORT.md` (shows 0 issues), `ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md` (methodology followed)
 
 ---
 

@@ -180,7 +180,8 @@ class CommandsMixin:
         """Run coverage analysis specifically for development_tools directory."""
         logger.info("Generating dev tools coverage...")
         from .audit_orchestration import _AUDIT_LOCK_FILE
-        coverage_lock_file = self.project_root / 'development_tools' / '.coverage_in_progress.lock'
+        # Use helper method if available, otherwise default location
+        coverage_lock_file = self._get_coverage_lock_file_path() if hasattr(self, '_get_coverage_lock_file_path') else (self.project_root / 'development_tools' / '.coverage_in_progress.lock')
         try:
             coverage_lock_file.parent.mkdir(parents=True, exist_ok=True)
             coverage_lock_file.touch()
@@ -219,10 +220,37 @@ class CommandsMixin:
         logger.info("=" * 50)
         
         if not skip_status_files:
+            # Get status file paths from config
+            try:
+                from .. import config
+                status_config = config.get_status_config()
+                status_files_config = status_config.get('status_files', {})
+                # Use default from STATUS config if status_files_config is empty (matches default config)
+                if not status_files_config:
+                    # Fallback to default STATUS config values for backward compatibility
+                    from ..config.config import STATUS
+                    status_files_config = STATUS.get('status_files', {})
+                ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')
+                ai_priorities_path = status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
+                consolidated_report_path = status_files_config.get('consolidated_report', 'development_tools/consolidated_report.txt')
+            except (ImportError, AttributeError, KeyError):
+                # Fallback to default STATUS config values for backward compatibility
+                try:
+                    from ..config.config import STATUS
+                    status_files_default = STATUS.get('status_files', {})
+                    ai_status_path = status_files_default.get('ai_status', 'development_tools/AI_STATUS.md')
+                    ai_priorities_path = status_files_default.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
+                    consolidated_report_path = status_files_default.get('consolidated_report', 'development_tools/consolidated_report.txt')
+                except (ImportError, AttributeError):
+                    # Last resort fallback
+                    ai_status_path = 'development_tools/AI_STATUS.md'
+                    ai_priorities_path = 'development_tools/AI_PRIORITIES.md'
+                    consolidated_report_path = 'development_tools/consolidated_report.txt'
+            
             try:
                 ai_status = self._generate_ai_status_document()
                 from ..file_rotation import create_output_file
-                ai_status_file = create_output_file("development_tools/AI_STATUS.md", ai_status, project_root=self.project_root)
+                ai_status_file = create_output_file(ai_status_path, ai_status, project_root=self.project_root)
                 logger.info(f"Generated: {ai_status_file}")
             except Exception as e:
                 logger.warning(f"Error generating AI_STATUS document: {e}")
@@ -230,7 +258,7 @@ class CommandsMixin:
             try:
                 ai_priorities = self._generate_ai_priorities_document()
                 from ..file_rotation import create_output_file
-                ai_priorities_file = create_output_file("development_tools/AI_PRIORITIES.md", ai_priorities, project_root=self.project_root)
+                ai_priorities_file = create_output_file(ai_priorities_path, ai_priorities, project_root=self.project_root)
                 logger.info(f"Generated: {ai_priorities_file}")
             except Exception as e:
                 logger.warning(f"Error generating AI_PRIORITIES document: {e}")
@@ -238,7 +266,7 @@ class CommandsMixin:
             try:
                 consolidated_report = self._generate_consolidated_report()
                 from ..file_rotation import create_output_file
-                consolidated_file = create_output_file("development_tools/consolidated_report.txt", consolidated_report, project_root=self.project_root)
+                consolidated_file = create_output_file(consolidated_report_path, consolidated_report, project_root=self.project_root)
                 logger.info(f"Generated: {consolidated_file}")
             except Exception as e:
                 logger.warning(f"Error generating consolidated report: {e}")
@@ -296,7 +324,8 @@ class CommandsMixin:
         logger.info("Generating test coverage...")
         logger.info("=" * 50)
         from .audit_orchestration import _AUDIT_LOCK_FILE
-        coverage_lock_file = self.project_root / 'development_tools' / '.coverage_in_progress.lock'
+        # Use helper method if available, otherwise default location
+        coverage_lock_file = self._get_coverage_lock_file_path() if hasattr(self, '_get_coverage_lock_file_path') else (self.project_root / 'development_tools' / '.coverage_in_progress.lock')
         try:
             coverage_lock_file.parent.mkdir(parents=True, exist_ok=True)
             coverage_lock_file.touch()
@@ -597,7 +626,9 @@ class CommandsMixin:
             print("\nKey Metrics:")
             for metric, value in key_metrics.items():
                 print(f"  {metric}: {value}")
-        print(f"\nDetailed results saved to: {(self.audit_config or {}).get('results_file', 'development_tools/reports/analysis_detailed_results.json')}")
+        # Default to generic path relative to project root (no development_tools/ assumption)
+        results_file = (self.audit_config or {}).get('results_file', 'reports/analysis_detailed_results.json')
+        print(f"\nDetailed results saved to: {results_file}")
         if self.audit_config.get('prioritize_issues', False):
             print(f"Critical issues saved to: {self.audit_config['issues_file']}")
     

@@ -36,6 +36,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-23 - Windows DLL Error Fix for Pytest Subprocess Execution **COMPLETED**
+- Fixed pytest subprocess execution on Windows causing `STATUS_DLL_NOT_FOUND` errors during no_parallel test execution. Added `_ensure_python_path_in_env()` helper to ensure PATH includes Python executable's directory for all subprocess calls.
+- All 147 no_parallel tests now complete successfully. Coverage data combines correctly. Full audit completes without DLL errors on Windows.
+- Fix is backward-compatible and only affects Windows systems. Applied to all 4 subprocess execution points in `generate_test_coverage.py`.
+
 ### 2025-12-22 - Priority Generation Enhancements and Documentation Fixes **COMPLETED**
 - Enhanced AI_PRIORITIES.md generation to include test markers (Tier 3 priority) and unused imports (Tier 1/2 priority) with detailed breakdowns. Removed test markers from Quick Wins to avoid duplication.
 - Fixed ASCII compliance issues (replaced ≤ with <= in 4 files) and path drift false positive (added "extraction" to skip list). All documentation quality checks now pass.

@@ -674,6 +674,36 @@ def get_quick_status_config():
         return result
     return QUICK_STATUS
 
+# Status configuration
+# NOTE: Defaults are minimal. See development_tools_config.json.example for full examples.
+STATUS = {
+    'check_key_files': True,
+    'check_audit_results': True,
+    'generate_status_files': True,
+    'status_files': {
+        # Default paths include development_tools/ for backward compatibility
+        # Projects can override via development_tools_config.json
+        'ai_status': 'development_tools/AI_STATUS.md',
+        'ai_priorities': 'development_tools/AI_PRIORITIES.md',
+        'consolidated_report': 'development_tools/consolidated_report.txt'
+    }
+}
+
+def get_status_config():
+    """Get status configuration (from external config if available, otherwise default)."""
+    external_config = _get_external_value('status', None)
+    if external_config:
+        result = STATUS.copy()
+        # Deep merge for nested dicts
+        if 'status_files' in external_config and 'status_files' in result:
+            result['status_files'].update(external_config.get('status_files', {}))
+        # Update other keys
+        for key, value in external_config.items():
+            if key != 'status_files':
+                result[key] = value
+        return result
+    return STATUS
+
 # System signals configuration
 SYSTEM_SIGNALS = {
     'core_files': [],  # Will use project.key_files if empty

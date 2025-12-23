@@ -262,6 +262,31 @@ class CoverageMetricsRegenerator:
         self.coverage_data_file.parent.mkdir(parents=True, exist_ok=True)
         self.coverage_html_dir.parent.mkdir(parents=True, exist_ok=True)
 
+    def _ensure_python_path_in_env(self, env: Dict[str, str]) -> Dict[str, str]:
+        """Ensure PATH includes Python executable's directory for Windows DLL resolution.
+        
+        On Windows, subprocesses may fail with STATUS_DLL_NOT_FOUND (0xC0000135) if PATH
+        doesn't include the Python executable's directory. This helper ensures PATH is
+        set correctly for subprocess execution.
+        
+        Args:
+            env: Environment dictionary (typically from os.environ.copy())
+            
+        Returns:
+            Modified environment dictionary with PATH updated if needed
+        """
+        if sys.platform == 'win32':
+            python_exe = Path(sys.executable)
+            python_dir = str(python_exe.parent)
+            current_path = env.get('PATH', '')
+            
+            # Add Python directory to PATH if not already present
+            if python_dir not in current_path:
+                # Prepend to ensure Python DLLs are found first
+                env['PATH'] = f"{python_dir};{current_path}" if current_path else python_dir
+        
+        return env
+
     def _migrate_legacy_logs(self) -> None:
         """Move legacy coverage logs from the old location into the new directory."""
         legacy_dir = self.project_root / "logs" / "coverage_regeneration"
@@ -393,6 +418,8 @@ class CoverageMetricsRegenerator:
                 no_parallel_coverage_file = self.coverage_data_file.parent / ".coverage_no_parallel"
             
             env = os.environ.copy()
+            # Ensure PATH includes Python executable's directory for Windows DLL resolution
+            env = self._ensure_python_path_in_env(env)
             if self.parallel:
                 # Use absolute path to ensure coverage.py uses our specified location
                 env['COVERAGE_FILE'] = str(parallel_coverage_file.resolve())
@@ -692,6 +719,8 @@ class CoverageMetricsRegenerator:
                 # Use separate coverage data file for no_parallel tests
                 # Use absolute path to ensure coverage.py uses our specified location
                 no_parallel_env = os.environ.copy()
+                # Ensure PATH includes Python executable's directory for Windows DLL resolution
+                no_parallel_env = self._ensure_python_path_in_env(no_parallel_env)
                 no_parallel_env['COVERAGE_FILE'] = str(no_parallel_coverage_file.resolve())
                 
                 # Create log file for no_parallel run (only stdout, stderr merged)
@@ -876,6 +905,8 @@ class CoverageMetricsRegenerator:
                         # Use coverage combine to merge the coverage data files
                         # Set COVERAGE_FILE to the final combined file location
                         combine_env = os.environ.copy()
+                        # Ensure PATH includes Python executable's directory for Windows DLL resolution
+                        combine_env = self._ensure_python_path_in_env(combine_env)
                         combine_env['COVERAGE_FILE'] = str(self.coverage_data_file.resolve())
                         
                         combine_cmd = [
@@ -1065,6 +1096,8 @@ class CoverageMetricsRegenerator:
                 logger.debug(f"Running dev tools coverage command: {' '.join(cmd[:5])} ...")
             
             env = os.environ.copy()
+            # Ensure PATH includes Python executable's directory for Windows DLL resolution
+            env = self._ensure_python_path_in_env(env)
             # Set COVERAGE_FILE to absolute path to ensure files are created in the correct location
             env['COVERAGE_FILE'] = str(self.dev_tools_coverage_data_file.resolve())
             if dev_cov_config and dev_cov_config.exists():

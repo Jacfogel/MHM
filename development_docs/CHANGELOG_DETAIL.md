@@ -38,6 +38,13 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-23 - Windows DLL Error Fix for Pytest Subprocess Execution **COMPLETED**
+- **Windows Subprocess Fix**: Fixed pytest subprocess execution on Windows that was causing `STATUS_DLL_NOT_FOUND` (0xC0000135) errors during no_parallel test execution. The issue occurred because subprocesses on Windows couldn't find Python DLLs when PATH didn't include the Python executable's directory.
+- **Implementation**: Added `_ensure_python_path_in_env()` helper method in `generate_test_coverage.py` that detects Windows (`sys.platform == 'win32'`) and ensures PATH includes the Python executable's directory. Applied to all 4 subprocess execution points: parallel pytest execution, no_parallel pytest execution, coverage combine, and dev tools coverage.
+- **Results**: All 147 no_parallel tests now complete successfully. Coverage data from parallel and no_parallel runs combines correctly. Full audit (`audit --full`) completes without DLL errors. Fix is backward-compatible and only affects Windows systems.
+- **Files Modified**: `development_tools/tests/generate_test_coverage.py` (added `_ensure_python_path_in_env()` helper, updated 4 subprocess calls)
+- **Impact**: Resolves critical Windows compatibility issue that was preventing no_parallel tests from running during full audits. All test coverage collection now works correctly on Windows.
+
 ### 2025-12-22 - Priority Generation Enhancements and Documentation Fixes **COMPLETED**
 - **Priority Generation**: Enhanced `AI_PRIORITIES.md` generation to include test markers and unused imports as priority items. Test markers appear as Tier 3 priority with details about affected files. Unused imports appear as Tier 1/2 priority (based on count) with category breakdown and top files. Removed test markers from Quick Wins to avoid duplication.
 - **ASCII Compliance Fix**: Fixed 4 ASCII compliance issues by replacing non-ASCII `≤` characters with `<=` in `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, `development_docs/CHANGELOG_DETAIL.md`, and `ai_development_docs/AI_CHANGELOG.md`.
