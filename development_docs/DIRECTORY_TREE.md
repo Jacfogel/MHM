@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-18 03:46:19
+> **Last Generated**: 2025-12-24 02:43:23
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -28,6 +28,7 @@ C:.
 |   run_headless_service.py
 |   run_mhm.py
 |   run_tests.py
+|   test_report.md
 |   TODO.md
 |   
 +---.cursor
@@ -46,12 +47,7 @@ C:.
 |   |       triage-issue.md
 |   |       
 |   +---plans
-|   |   |   continue_tool_standard_format_migration_ba924ee0.plan.md
-|   |   |   development_tools_next_steps_3f22ec88.plan.md
-|   |   |   refactor_operations.py_into_modular_structure_057a1721.plan.md
-|   |   |   standardize_analysis_tool_results_format_f3751a36.plan.md
-|   |   |   standardize_and_streamline_development_tools_8784da3c.plan.md
-|   |   |   unified_backup_and_archive_system_ec839a57.plan.md
+|   |   |   review_shared_utility_modules_e4e53381.plan.md
 |   |   |   
 |   |   \---archive
     (archived files)
@@ -151,21 +147,21 @@ C:.
 |   +---backups
     (backup files)
 +---development_docs
-|   |   BACKUP_AUDIT_REPORT.md
-|   |   BACKUP_SYSTEM.md
+|   |   BACKUP_GUIDE.md
 |   |   CHANGELOG_DETAIL.md
 |   |   DIRECTORY_TREE.md
 |   |   FUNCTION_REGISTRY_DETAIL.md
 |   |   LEGACY_REFERENCE_REPORT.md
 |   |   MODULE_DEPENDENCIES_DETAIL.md
 |   |   PLANS.md
-|   |   RESTORE_GUIDE.md
 |   |   TEST_COVERAGE_REPORT.md
 |   |   UNUSED_IMPORTS_REPORT.md
 |   |   
 |   \---archive
     (archived files)
 +---development_tools
+|   |   .audit_in_progress.lock
+|   |   .coverage_in_progress.lock
 |   |   AI_DEVELOPMENT_TOOLS_GUIDE.md
 |   |   AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md
 |   |   AI_PRIORITIES.md

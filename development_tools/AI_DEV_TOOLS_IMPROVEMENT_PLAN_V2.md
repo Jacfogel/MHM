@@ -1081,7 +1081,7 @@ See `development_tools/TOOL_STORAGE_AUDIT.md` for detailed breakdown.
 #### 7.3 Improve Development Tools Test Coverage
 **Status**: IN PROGRESS  
 **Priority**: HIGH (from AI_PRIORITIES.md)  
-**Issue**: Development tools coverage is tracked separately and currently at ~36% (target 60%+). Specific modules at 0% coverage. Development tools coverage now runs automatically during `audit --full` as a separate tool, generating `coverage_dev_tools.json` in `development_tools/tests/jsons/`.
+**Issue**: Development tools coverage is tracked separately and currently at 42.6% (target 60%+). Specific modules at 0% coverage. Development tools coverage now runs automatically during `audit --full` as a separate tool, generating `coverage_dev_tools.json` in `development_tools/tests/jsons/`.
 
 **Progress**:
 - [x] Created `tests/development_tools/test_analyze_documentation.py` - Tests for documentation analysis module
@@ -1096,6 +1096,15 @@ See `development_tools/TOOL_STORAGE_AUDIT.md` for detailed breakdown.
 - [x] Created `tests/development_tools/test_path_drift_integration.py` - Path drift integration tests
 - [x] Created `tests/development_tools/test_output_storage_archiving.py` - Storage archiving verification
 - [x] Created `tests/development_tools/test_status_file_timing.py` - Status file timing verification
+- [x] Created `tests/development_tools/test_analyze_error_handling.py` - Tests for error handling analysis module (23 tests, 0% → covered)
+- [x] Created `tests/development_tools/test_analyze_function_registry.py` - Tests for function registry analysis (15 tests, 0% → covered)
+- [x] Created `tests/development_tools/test_analyze_module_dependencies.py` - Tests for module dependencies analysis (17 tests, 0% → covered)
+- [x] Created `tests/development_tools/test_analyze_unused_imports.py` - Tests for unused imports checker (19 tests, 0% → covered)
+- [x] Created `tests/development_tools/test_decision_support.py` - Tests for decision support module (21 tests, 0% → covered)
+- [x] Created `tests/development_tools/test_generate_directory_tree.py` - Tests for directory tree generation (15 tests, 0% → covered)
+- [x] Created `tests/development_tools/test_generate_error_handling_recommendations.py` - Tests for error handling recommendations (15 tests, 0% → covered)
+- [x] Created `tests/development_tools/test_generate_error_handling_report.py` - Tests for error handling report generation (15 tests, 0% → covered)
+- [x] Created `tests/development_tools/test_generate_function_docstrings.py` - Tests for function docstring generation (28 tests, 0% → covered)
 - [ ] **Still needed**: `tests/development_tools/test_analyze_ai_work.py` - Tests for AI work validation module (0.0%, missing 206 lines)
 
 **Tasks**:
@@ -1103,7 +1112,7 @@ See `development_tools/TOOL_STORAGE_AUDIT.md` for detailed breakdown.
 - [x] Add behavior tests for `analyze_documentation.py` using synthetic fixture project
 - [x] Add behavior tests for `analyze_missing_addresses.py` using synthetic fixture project
 - [ ] Add behavior tests for `analyze_ai_work.py` using synthetic fixture project
-- [ ] Target 60%+ coverage for development tools overall (currently 40.2%)
+- [ ] Target 60%+ coverage for development tools overall (currently 42.6%, up from 34.7% - added 168 tests across 9 modules this session)
 - [ ] Strengthen tests in `tests/development_tools/` for fragile helpers
 - [ ] Update all development tools tests to use `test_config.json` fixture instead of default config
 - [x] Ensure tests use `test_config_path` fixture from `conftest.py` to allow analyzers to process fixture files
@@ -1113,7 +1122,16 @@ See `development_tools/TOOL_STORAGE_AUDIT.md` for detailed breakdown.
 - `development_tools/ai_work/analyze_ai_work.py` (still needs tests)
 - `development_tools/docs/analyze_documentation.py` ✅ (has tests)
 - `development_tools/docs/analyze_missing_addresses.py` ✅ (has tests)
-- `tests/development_tools/` (test files created)
+- `development_tools/error_handling/analyze_error_handling.py` ✅ (has tests - 23 tests)
+- `development_tools/functions/analyze_function_registry.py` ✅ (has tests - 15 tests)
+- `development_tools/imports/analyze_module_dependencies.py` ✅ (has tests - 17 tests)
+- `development_tools/imports/analyze_unused_imports.py` ✅ (has tests - 19 tests)
+- `development_tools/reports/decision_support.py` ✅ (has tests - 21 tests)
+- `development_tools/docs/generate_directory_tree.py` ✅ (has tests - 15 tests)
+- `development_tools/error_handling/generate_error_handling_recommendations.py` ✅ (has tests - 15 tests)
+- `development_tools/error_handling/generate_error_handling_report.py` ✅ (has tests - 15 tests)
+- `development_tools/functions/generate_function_docstrings.py` ✅ (has tests - 28 tests)
+- `tests/development_tools/` (test files created - 168 total tests across 9 new test files this session)
 - `tests/development_tools/test_config.json` ✅ (created)
 - `tests/fixtures/development_tools_demo/docs/analysis_validation/` ✅ (created)
 

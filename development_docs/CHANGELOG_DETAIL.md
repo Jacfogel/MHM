@@ -38,6 +38,23 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-24 - Development Tools Test Coverage Expansion **COMPLETED**
+- **Test Coverage Expansion**: Added comprehensive test suites for nine development tools modules that previously had 0% or low coverage. Created 168 new tests across nine test files covering initialization, core functionality, error handling, edge cases, and integration scenarios.
+- **Test Files Created**: 
+  - `test_analyze_error_handling.py` (23 tests) - Error handling analysis functionality
+  - `test_analyze_function_registry.py` (15 tests) - Function registry analysis and audit
+  - `test_analyze_module_dependencies.py` (17 tests) - Module dependency analysis and circular dependency detection
+  - `test_analyze_unused_imports.py` (19 tests) - Unused imports detection and categorization
+  - `test_decision_support.py` (21 tests) - Decision support dashboard and complexity analysis
+  - `test_generate_directory_tree.py` (15 tests) - Directory tree generation and placeholder replacement
+  - `test_generate_error_handling_recommendations.py` (15 tests) - Error handling recommendation generation
+  - `test_generate_error_handling_report.py` (15 tests) - Error handling report generation
+  - `test_generate_function_docstrings.py` (28 tests) - Function docstring generation and insertion
+- **Multiprocessing Mock Fix**: Fixed test hangs in `test_analyze_unused_imports.py` by properly mocking `multiprocessing.Pool`. The `scan_codebase()` method uses multiprocessing to spawn separate processes that call `subprocess.run()` directly, which bypasses standard mocks. Solution: Mock `multiprocessing.Pool` to prevent actual process spawning and subprocess calls during tests.
+- **Test Fixes**: Resolved multiple test failures including incorrect method names, improper subprocess patching (targeted module-specific `subprocess.run` instead of global), incomplete mocking of file system operations, and removed `print()` statements to comply with test policy.
+- **Coverage Improvement**: Development tools test coverage increased from 34.7% to 42.6% (6506 → 7987 of 18741 statements covered, +1481 statements). All 168 new tests pass successfully. Full test suite completes in ~5.5 minutes with 3770 passed, 1 skipped, 0 failed.
+- **Impact**: Significantly improves development tools test coverage, bringing it closer to the 60%+ target. All tests are fully isolated with proper mocking, preventing real subprocess calls or file system access during test execution.
+
 ### 2025-12-23 - Windows DLL Error Fix for Pytest Subprocess Execution **COMPLETED**
 - **Windows Subprocess Fix**: Fixed pytest subprocess execution on Windows that was causing `STATUS_DLL_NOT_FOUND` (0xC0000135) errors during no_parallel test execution. The issue occurred because subprocesses on Windows couldn't find Python DLLs when PATH didn't include the Python executable's directory.
 - **Implementation**: Added `_ensure_python_path_in_env()` helper method in `generate_test_coverage.py` that detects Windows (`sys.platform == 'win32'`) and ensures PATH includes the Python executable's directory. Applied to all 4 subprocess execution points: parallel pytest execution, no_parallel pytest execution, coverage combine, and dev tools coverage.

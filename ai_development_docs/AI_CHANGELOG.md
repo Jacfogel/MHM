@@ -36,6 +36,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-24 - Development Tools Test Coverage Expansion **COMPLETED**
+- Added 168 new tests across 9 test files for development tools modules that previously had 0% or low coverage: error handling analysis, function registry, module dependencies, unused imports, decision support, directory tree generation, error handling recommendations/reports, and function docstring generation.
+- Fixed test hangs by mocking `multiprocessing.Pool` in `test_analyze_unused_imports.py` to prevent actual subprocess calls during parallel file processing tests.
+- Development tools test coverage increased from 34.7% to 42.6% (6506 → 7987 of 18741 statements, +1481 statements). All 168 tests pass. Progress toward 60%+ target.
+
 ### 2025-12-23 - Windows DLL Error Fix for Pytest Subprocess Execution **COMPLETED**
 - Fixed pytest subprocess execution on Windows causing `STATUS_DLL_NOT_FOUND` errors during no_parallel test execution. Added `_ensure_python_path_in_env()` helper to ensure PATH includes Python executable's directory for all subprocess calls.
 - All 147 no_parallel tests now complete successfully. Coverage data combines correctly. Full audit completes without DLL errors on Windows.
