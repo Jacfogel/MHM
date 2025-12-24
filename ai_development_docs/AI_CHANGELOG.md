@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-24 - Development Tools Test Coverage Expansion (Phase 2) **COMPLETED**
+- Added 150+ new tests across 8 test files for development tools modules: ASCII compliance, function analysis, heading numbering, unconverted links, documentation fixes, and project cleanup. Fixed test hangs by replacing expensive directory scans with targeted single-file tests and proper mocking.
+- Enhanced UI test thread safety by stopping all background threads (channel monitor, email polling, retry manager) and patching thread starters to prevent crashes during parallel execution. Fixed method name errors in thread patching.
+- Increased pytest timeout from 10 minutes to 12 minutes to account for coverage collection overhead. Enhanced coverage file handling to gracefully combine shard files when main coverage file is missing due to timeout.
+- Development tools test coverage increased from 42.6% to 46.4% (7987 → 8688 statements covered, +701). Total of 260+ tests across 17 test files. **Note**: Skipped test count increased from 1 to 3 (2 intentional, 1 to be investigated).
+
 ### 2025-12-24 - Development Tools Test Coverage Expansion **COMPLETED**
 - Added 168 new tests across 9 test files for development tools modules that previously had 0% or low coverage: error handling analysis, function registry, module dependencies, unused imports, decision support, directory tree generation, error handling recommendations/reports, and function docstring generation.
 - Fixed test hangs by mocking `multiprocessing.Pool` in `test_analyze_unused_imports.py` to prevent actual subprocess calls during parallel file processing tests.

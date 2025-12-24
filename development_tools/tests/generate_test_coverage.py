@@ -431,10 +431,11 @@ class CoverageMetricsRegenerator:
                 logger.debug(f"Running pytest coverage command: {' '.join(cmd)}")
             
             # Get timeout from config, with sensible defaults
-            # Tests may take longer on slower systems or with more tests
-            # Default: 10 minutes (600 seconds) to allow for legitimate slow runs
-            # Configurable via development_tools_config.json: {"coverage": {"pytest_timeout": 600}}
-            pytest_timeout = coverage_config_data.get('pytest_timeout', 600)  # 10 minutes default
+            # Coverage collection adds overhead, so tests take longer than normal runs
+            # Normal test runs take ~5 minutes, with coverage they may take 7-10 minutes
+            # Default: 12 minutes (720 seconds) to allow for coverage overhead and system variations
+            # Configurable via development_tools_config.json: {"coverage": {"pytest_timeout": 720}}
+            pytest_timeout = coverage_config_data.get('pytest_timeout', 720)  # 12 minutes default
             if logger:
                 logger.info(f"Pytest timeout set to {pytest_timeout // 60} minutes")
             
@@ -883,6 +884,11 @@ class CoverageMetricsRegenerator:
                             files_to_combine.append(project_root_coverage_parallel)
                             if logger:
                                 logger.debug(f"Copied parallel coverage file from {parallel_coverage_file} to {project_root_coverage_parallel}")
+                        elif parallel_shard_files:
+                            # If main parallel coverage file doesn't exist (e.g., due to timeout),
+                            # but shard files exist, we can still combine using shard files
+                            if logger:
+                                logger.info(f"Parallel coverage file not found (may have timed out), but {len(parallel_shard_files)} shard files exist - will combine shard files")
                         else:
                             if logger:
                                 logger.warning(f"Parallel coverage file not found: {parallel_coverage_file}")

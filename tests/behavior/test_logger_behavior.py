@@ -97,6 +97,11 @@ class TestLoggerVerbosityBehavior:
     def test_verbose_mode_toggle_real_behavior(self, temp_log_dir):
         """REAL BEHAVIOR TEST: Test verbose mode toggle functionality."""
         #[OK] VERIFY REAL BEHAVIOR: Initial state is quiet
+        # Reset verbose mode state before test to ensure clean state
+        # Import directly to access the module-level variable
+        import core.logger as logger_module
+        logger_module._verbose_mode = False
+        
         with patch.dict(os.environ, {'LOG_MAIN_FILE': str(temp_log_dir / "test.log"), 'VERBOSE_LOGS': '0'}):
             # Ensure a clean logger init to avoid cross-test state
             try:
@@ -107,7 +112,7 @@ class TestLoggerVerbosityBehavior:
             except Exception:
                 pass
             initial_mode = get_verbose_mode()
-            assert initial_mode in (False, 0), "Initial verbose mode should be False"
+            assert initial_mode in (False, 0), f"Initial verbose mode should be False, but got {initial_mode}"
             
             #[OK] VERIFY REAL BEHAVIOR: Toggle to verbose
             verbose_enabled = toggle_verbose_logging()

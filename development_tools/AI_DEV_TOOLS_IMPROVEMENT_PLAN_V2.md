@@ -1105,6 +1105,14 @@ See `development_tools/TOOL_STORAGE_AUDIT.md` for detailed breakdown.
 - [x] Created `tests/development_tools/test_generate_error_handling_recommendations.py` - Tests for error handling recommendations (15 tests, 0% → covered)
 - [x] Created `tests/development_tools/test_generate_error_handling_report.py` - Tests for error handling report generation (15 tests, 0% → covered)
 - [x] Created `tests/development_tools/test_generate_function_docstrings.py` - Tests for function docstring generation (28 tests, 0% → covered)
+- [x] Created `tests/development_tools/test_analyze_ascii_compliance.py` - Tests for ASCII compliance analysis (15+ tests, 0% → covered)
+- [x] Created `tests/development_tools/test_analyze_functions.py` - Tests for function discovery and categorization (50+ tests, 0% → covered)
+- [x] Created `tests/development_tools/test_analyze_heading_numbering.py` - Tests for heading numbering analysis (15+ tests, 0% → covered)
+- [x] Created `tests/development_tools/test_analyze_unconverted_links.py` - Tests for unconverted link detection (15+ tests, 0% → covered)
+- [x] Created `tests/development_tools/test_fix_documentation_headings.py` - Tests for heading numbering fixes (15+ tests, 0% → covered)
+- [x] Created `tests/development_tools/test_fix_documentation_links.py` - Tests for link conversion fixes (15+ tests, 0% → covered)
+- [x] Created `tests/development_tools/test_fix_project_cleanup.py` - Tests for project cleanup functionality (20+ tests, 0% → covered)
+- [x] Created `tests/development_tools/test_generate_consolidated_report.py` - Tests for consolidated report generation (10+ tests, 0% → covered)
 - [ ] **Still needed**: `tests/development_tools/test_analyze_ai_work.py` - Tests for AI work validation module (0.0%, missing 206 lines)
 
 **Tasks**:
@@ -1112,7 +1120,8 @@ See `development_tools/TOOL_STORAGE_AUDIT.md` for detailed breakdown.
 - [x] Add behavior tests for `analyze_documentation.py` using synthetic fixture project
 - [x] Add behavior tests for `analyze_missing_addresses.py` using synthetic fixture project
 - [ ] Add behavior tests for `analyze_ai_work.py` using synthetic fixture project
-- [ ] Target 60%+ coverage for development tools overall (currently 42.6%, up from 34.7% - added 168 tests across 9 modules this session)
+- [ ] Target 60%+ coverage for development tools overall (currently 46.4%, up from 34.7% - added 260+ tests across 17 modules total)
+- [ ] **Investigate skipped test increase**: Number of skipped tests increased by 1 (from 1 to 2 skipped). Need to identify which test is being skipped and why. This may indicate a test isolation issue or a test that needs to be fixed.
 - [ ] Strengthen tests in `tests/development_tools/` for fragile helpers
 - [ ] Update all development tools tests to use `test_config.json` fixture instead of default config
 - [x] Ensure tests use `test_config_path` fixture from `conftest.py` to allow analyzers to process fixture files
@@ -1131,7 +1140,7 @@ See `development_tools/TOOL_STORAGE_AUDIT.md` for detailed breakdown.
 - `development_tools/error_handling/generate_error_handling_recommendations.py` ✅ (has tests - 15 tests)
 - `development_tools/error_handling/generate_error_handling_report.py` ✅ (has tests - 15 tests)
 - `development_tools/functions/generate_function_docstrings.py` ✅ (has tests - 28 tests)
-- `tests/development_tools/` (test files created - 168 total tests across 9 new test files this session)
+- `tests/development_tools/` (test files created - 260+ total tests across 17 test files: 9 from previous session, 8 new files this session)
 - `tests/development_tools/test_config.json` ✅ (created)
 - `tests/fixtures/development_tools_demo/docs/analysis_validation/` ✅ (created)
 

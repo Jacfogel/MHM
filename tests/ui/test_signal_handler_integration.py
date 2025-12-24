@@ -34,20 +34,66 @@ def qapp():
 class TestAccountCreatorDialogSignalHandlers:
     """Test signal handlers in AccountCreatorDialog accept correct parameters."""
     
+    @pytest.fixture(autouse=True)
+    def stop_channel_monitor_threads(self):
+        """Stop any running channel monitor threads to prevent crashes during UI tests."""
+        from unittest.mock import patch
+        
+        # Stop any existing channel monitor threads before test
+        try:
+            from communication.core.channel_orchestrator import CommunicationManager
+            # If singleton exists, stop its channel monitor and other background threads
+            if CommunicationManager._instance is not None:
+                instance = CommunicationManager._instance
+                if hasattr(instance, 'channel_monitor'):
+                    instance.channel_monitor.stop_restart_monitor()
+                # Stop email polling loop if it exists
+                if hasattr(instance, '_email_polling_thread') and instance._email_polling_thread:
+                    if hasattr(instance, 'stop_all__stop_email_polling'):
+                        instance.stop_all__stop_email_polling()
+                # Stop retry manager if it exists
+                if hasattr(instance, 'retry_manager') and hasattr(instance.retry_manager, 'stop_retry_thread'):
+                    instance.retry_manager.stop_retry_thread()
+        except Exception:
+            # Ignore errors - components might not exist
+            pass
+        
+        # Patch all thread starters to prevent new threads from starting
+        with patch('communication.core.channel_monitor.ChannelMonitor.start_restart_monitor'), \
+             patch('communication.core.channel_orchestrator.CommunicationManager.start_all__start_email_polling'), \
+             patch('communication.core.retry_manager.RetryManager.start_retry_thread'):
+            yield
+        
+        # Cleanup after test
+        try:
+            if CommunicationManager._instance is not None:
+                instance = CommunicationManager._instance
+                if hasattr(instance, 'channel_monitor'):
+                    instance.channel_monitor.stop_restart_monitor()
+                if hasattr(instance, '_email_polling_thread') and instance._email_polling_thread:
+                    if hasattr(instance, 'stop_all__stop_email_polling'):
+                        instance.stop_all__stop_email_polling()
+                if hasattr(instance, 'retry_manager') and hasattr(instance.retry_manager, 'stop_retry_thread'):
+                    instance.retry_manager.stop_retry_thread()
+        except Exception:
+            pass
+    
     @pytest.fixture
     def dialog(self, qapp, test_data_dir, mock_config):
         """Create account creation dialog for testing."""
         from ui.dialogs.account_creator_dialog import AccountCreatorDialog
-        from unittest.mock import Mock
+        from unittest.mock import Mock, patch
         
-        # Create a mock communication manager
-        mock_comm_manager = Mock()
-        mock_comm_manager.get_active_channels.return_value = ['email', 'discord']
-        
-        dialog = AccountCreatorDialog(parent=None, communication_manager=mock_comm_manager)
-        yield dialog
-        dialog.close()
-        dialog.deleteLater()
+        # Patch channel monitor to prevent threads from starting
+        with patch('communication.core.channel_monitor.ChannelMonitor.start_restart_monitor'):
+            # Create a mock communication manager
+            mock_comm_manager = Mock()
+            mock_comm_manager.get_active_channels.return_value = ['email', 'discord']
+            
+            dialog = AccountCreatorDialog(parent=None, communication_manager=mock_comm_manager)
+            yield dialog
+            dialog.close()
+            dialog.deleteLater()
     
     @pytest.mark.ui
     @pytest.mark.user_management
@@ -229,6 +275,50 @@ class TestDynamicListFieldSignalHandlers:
 class TestUISignalConnectionIntegrity:
     """Test that signal connections are properly set up and handlers work."""
     
+    @pytest.fixture(autouse=True)
+    def stop_channel_monitor_threads(self):
+        """Stop any running channel monitor threads to prevent crashes during UI tests."""
+        from unittest.mock import patch
+        
+        # Stop any existing channel monitor threads before test
+        try:
+            from communication.core.channel_orchestrator import CommunicationManager
+            # If singleton exists, stop its channel monitor and other background threads
+            if CommunicationManager._instance is not None:
+                instance = CommunicationManager._instance
+                if hasattr(instance, 'channel_monitor'):
+                    instance.channel_monitor.stop_restart_monitor()
+                # Stop email polling loop if it exists
+                if hasattr(instance, '_email_polling_thread') and instance._email_polling_thread:
+                    if hasattr(instance, 'stop_all__stop_email_polling'):
+                        instance.stop_all__stop_email_polling()
+                # Stop retry manager if it exists
+                if hasattr(instance, 'retry_manager') and hasattr(instance.retry_manager, 'stop_retry_thread'):
+                    instance.retry_manager.stop_retry_thread()
+        except Exception:
+            # Ignore errors - components might not exist
+            pass
+        
+        # Patch all thread starters to prevent new threads from starting
+        with patch('communication.core.channel_monitor.ChannelMonitor.start_restart_monitor'), \
+             patch('communication.core.channel_orchestrator.CommunicationManager.start_all__start_email_polling'), \
+             patch('communication.core.retry_manager.RetryManager.start_retry_thread'):
+            yield
+        
+        # Cleanup after test
+        try:
+            if CommunicationManager._instance is not None:
+                instance = CommunicationManager._instance
+                if hasattr(instance, 'channel_monitor'):
+                    instance.channel_monitor.stop_restart_monitor()
+                if hasattr(instance, '_email_polling_thread') and instance._email_polling_thread:
+                    if hasattr(instance, 'stop_all__stop_email_polling'):
+                        instance.stop_all__stop_email_polling()
+                if hasattr(instance, 'retry_manager') and hasattr(instance.retry_manager, 'stop_retry_thread'):
+                    instance.retry_manager.stop_retry_thread()
+        except Exception:
+            pass
+    
     @pytest.mark.ui
     @pytest.mark.regression
     @pytest.mark.critical
@@ -240,6 +330,7 @@ class TestUISignalConnectionIntegrity:
         """
         from ui.dialogs.account_creator_dialog import AccountCreatorDialog
         from communication.core.channel_orchestrator import CommunicationManager
+        from unittest.mock import patch
         
         # Capture any exceptions that occur during signal handling
         exceptions_caught = []
@@ -253,9 +344,11 @@ class TestUISignalConnectionIntegrity:
         
         try:
             from unittest.mock import Mock
-            mock_comm_manager = Mock()
-            mock_comm_manager.get_active_channels.return_value = ['email', 'discord']
-            dialog = AccountCreatorDialog(parent=None, communication_manager=mock_comm_manager)
+            # Patch channel monitor to prevent threads from starting
+            with patch('communication.core.channel_monitor.ChannelMonitor.start_restart_monitor'):
+                mock_comm_manager = Mock()
+                mock_comm_manager.get_active_channels.return_value = ['email', 'discord']
+                dialog = AccountCreatorDialog(parent=None, communication_manager=mock_comm_manager)
             
             # Trigger signals that should call handlers
             dialog.ui.lineEdit_username.setText("testuser")
@@ -274,8 +367,8 @@ class TestUISignalConnectionIntegrity:
                     pytest.fail(
                         f"Signal handlers raised TypeError (likely signature mismatch): {signature_errors}"
                     )
-            dialog.close()
-            dialog.deleteLater()
+                dialog.close()
+                dialog.deleteLater()
         finally:
             sys.excepthook = original_excepthook
     
