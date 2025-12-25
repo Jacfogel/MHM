@@ -136,6 +136,7 @@ class TestUtilitiesDemo:
         # Verify cleanup worked
         assert not os.path.exists(test_dir)
     
+    @pytest.mark.no_parallel
     def test_multiple_user_types_in_single_test(self, test_data_dir):
         """Test creating multiple different user types in a single test."""
         # Create different types of users
@@ -549,6 +550,7 @@ class TestUtilitiesDemo:
         
         logging.getLogger("mhm_tests").info("All edge case scenarios tested successfully")
     
+    @pytest.mark.no_parallel
     def test_user_data_consistency(self, test_data_dir):
         """Test that all user types produce consistent data structures."""
         from tests.test_utilities import TestUserFactory

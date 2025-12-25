@@ -254,22 +254,38 @@ class ReportGenerationMixin:
         else:
             lines.append(f"- **Total Functions**: {total_functions} (Moderate: {moderate}, High: {high}, Critical: {critical})")
         
-        # Use analyze_functions for docstring coverage
+        # Use registry data for accurate docstring coverage (includes handlers)
+        # Registry data is more accurate because it includes all functions, not just non-handlers
         doc_coverage = metrics.get('doc_coverage', 'Unknown')
         functions_without_docstrings = None
         missing_docs = None
         missing_files = []
         
-        function_data = self._load_tool_data('analyze_functions', 'functions')
-        if isinstance(function_data, dict):
-            func_details = function_data.get('details', {})
-            func_total = func_details.get('total_functions') or function_data.get('total_functions')
-            func_undocumented = func_details.get('undocumented', 0) or function_data.get('undocumented', 0)
-            if func_total is not None and func_total > 0:
-                func_documented = func_total - func_undocumented
-                coverage_pct = (func_documented / func_total) * 100
-                doc_coverage = f"{coverage_pct:.2f}%"
-                functions_without_docstrings = int(func_undocumented) if func_undocumented else 0
+        # First, try to get coverage from registry (most accurate)
+        registry_data = self._load_tool_data('analyze_function_registry', 'functions')
+        if isinstance(registry_data, dict):
+            registry_details = registry_data.get('details', {})
+            # Check for coverage percentage directly
+            registry_coverage = registry_details.get('coverage')
+            if registry_coverage is not None:
+                doc_coverage = f"{registry_coverage:.2f}%"
+                # Calculate undocumented count from registry data
+                undocumented_handlers = registry_details.get('undocumented_handlers_total', 0)
+                undocumented_other = registry_details.get('undocumented_other_total', 0)
+                functions_without_docstrings = undocumented_handlers + undocumented_other
+        
+        # Fallback to analyze_functions if registry data not available
+        if doc_coverage == 'Unknown' or functions_without_docstrings is None:
+            function_data = self._load_tool_data('analyze_functions', 'functions')
+            if isinstance(function_data, dict):
+                func_details = function_data.get('details', {})
+                func_total = func_details.get('total_functions') or function_data.get('total_functions')
+                func_undocumented = func_details.get('undocumented', 0) or function_data.get('undocumented', 0)
+                if func_total is not None and func_total > 0:
+                    func_documented = func_total - func_undocumented
+                    coverage_pct = (func_documented / func_total) * 100
+                    doc_coverage = f"{coverage_pct:.2f}%"
+                    functions_without_docstrings = int(func_undocumented) if func_undocumented else 0
         
         # Fallback to cached results
         if (doc_coverage == 'Unknown' or doc_coverage is None) and functions_without_docstrings is None:
@@ -313,22 +329,24 @@ class ReportGenerationMixin:
                     doc_coverage = f"{coverage_pct:.2f}%"
                     functions_without_docstrings = int(func_undocumented)
         
-        # Check registry for missing items
-        registry_data = self._load_tool_data('analyze_function_registry', 'functions')
-        missing_docs = None
-        missing_files = []
-        
-        if isinstance(registry_data, dict):
-            registry_details = registry_data.get('details', {})
-            missing_docs_raw = registry_details.get('missing_docs') or registry_details.get('missing_items') or registry_data.get('missing_docs') or registry_data.get('missing_items')
-            if not missing_docs_raw:
-                data_section = registry_data.get('data', {})
-                missing_docs_raw = data_section.get('missing', {}) if isinstance(data_section, dict) else {}
-            if isinstance(missing_docs_raw, dict):
-                missing_docs = missing_docs_raw
-                missing_files = missing_docs_raw.get('missing_files', [])
-            elif missing_docs_raw:
-                missing_docs = {'count': to_int(missing_docs_raw) or 0}
+        # Check registry for missing items (if not already loaded above)
+        if not isinstance(registry_data, dict) or missing_docs is None:
+            if not isinstance(registry_data, dict):
+                registry_data = self._load_tool_data('analyze_function_registry', 'functions')
+            missing_docs = None
+            missing_files = []
+            
+            if isinstance(registry_data, dict):
+                registry_details = registry_data.get('details', {})
+                missing_docs_raw = registry_details.get('missing_docs') or registry_details.get('missing_items') or registry_data.get('missing_docs') or registry_data.get('missing_items')
+                if not missing_docs_raw:
+                    data_section = registry_data.get('data', {})
+                    missing_docs_raw = data_section.get('missing', {}) if isinstance(data_section, dict) else {}
+                if isinstance(missing_docs_raw, dict):
+                    missing_docs = missing_docs_raw
+                    missing_files = missing_docs_raw.get('missing_files', [])
+                elif missing_docs_raw:
+                    missing_docs = {'count': to_int(missing_docs_raw) or 0}
         
         # Fallback to cached results
         if not missing_docs:
@@ -2373,8 +2391,15 @@ class ReportGenerationMixin:
         
         watch_list: List[str] = []
         doc_coverage_float = to_float(doc_coverage_value) if doc_coverage_value is not None else None
-        if doc_coverage_float is not None and doc_coverage_float < 90:
-            watch_list.append(f"Documentation coverage sits at {percent_text(doc_coverage_value, 2)} (target 90%).")
+        # Get documentation coverage threshold from config (defaults to 80.0 if not found)
+        try:
+            from ... import config
+            validation_config = config.get_validation_config()
+            doc_threshold = validation_config.get('documentation_coverage_threshold', 80.0)
+        except (ImportError, AttributeError):
+            doc_threshold = 80.0  # Default fallback
+        if doc_coverage_float is not None and doc_coverage_float < doc_threshold:
+            watch_list.append(f"Documentation coverage sits at {percent_text(doc_coverage_value, 2)} (target {doc_threshold}%).")
         if coverage_overall:
             coverage_pct = coverage_overall.get('coverage', 0)
             target = 80
@@ -4021,13 +4046,13 @@ class ReportGenerationMixin:
         
         # Get status file paths from config for links
         try:
-            from .. import config
+            from ... import config
             status_config = config.get_status_config()
             status_files_config = status_config.get('status_files', {})
             # Use default from STATUS config if status_files_config is empty (matches default config)
             if not status_files_config:
                 # Fallback to default STATUS config values for backward compatibility
-                from ..config.config import STATUS
+                from ...config.config import STATUS
                 status_files_config = STATUS.get('status_files', {})
             ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')
             ai_priorities_path = status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
@@ -4035,7 +4060,7 @@ class ReportGenerationMixin:
         except (ImportError, AttributeError, KeyError):
             # Fallback to default STATUS config values for backward compatibility
             try:
-                from ..config.config import STATUS
+                from ...config.config import STATUS
                 status_files_default = STATUS.get('status_files', {})
                 ai_status_path = status_files_default.get('ai_status', 'development_tools/AI_STATUS.md')
                 ai_priorities_path = status_files_default.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')

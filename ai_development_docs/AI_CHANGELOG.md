@@ -36,6 +36,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-24 - Analysis Logic Validation and False Negative Detection **COMPLETED**
+- Created comprehensive false negative detection test suite (5 tests) to verify analysis tools correctly detect known issues. All tests passing, confirming error handling, documentation, and path drift detection work correctly.
+- Fixed Qt threading crash during audit test execution by skipping cleanup thread creation in test environment. Full audit now completes successfully (~5.5 minutes) instead of timing out after 12 minutes with fatal exceptions.
+
 ### 2025-12-24 - Development Tools Test Coverage Expansion (Phase 2) **COMPLETED**
 - Added 150+ new tests across 8 test files for development tools modules: ASCII compliance, function analysis, heading numbering, unconverted links, documentation fixes, and project cleanup. Fixed test hangs by replacing expensive directory scans with targeted single-file tests and proper mocking.
 - Enhanced UI test thread safety by stopping all background threads (channel monitor, email polling, retry manager) and patching thread starters to prevent crashes during parallel execution. Fixed method name errors in thread patching.

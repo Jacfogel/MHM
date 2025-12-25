@@ -272,6 +272,45 @@ class ErrorHandlingAnalyzer:
         if func_name in special_methods:
             return True
         
+        # Exclude very simple constructors that only call super().__init__() and maybe 1-2 simple assignments
+        # These are typically minimal UI constructors that don't need error handling decorators
+        # More complex constructors (with conditionals, loops, method calls, etc.) should have error handling
+        if func_name == '__init__':
+            try:
+                body_nodes = func_node.body
+                # Only exclude if very simple (3 or fewer statements)
+                if len(body_nodes) <= 3:
+                    has_super_init = False
+                    simple_assignments = 0
+                    has_complex_logic = False
+                    
+                    for node in body_nodes:
+                        # Check for super().__init__() call
+                        if isinstance(node, ast.Expr) and isinstance(node.value, ast.Call):
+                            call = node.value
+                            # Check for super().__init__() pattern
+                            if isinstance(call.func, ast.Call):
+                                if isinstance(call.func.func, ast.Name) and call.func.func.id == 'super':
+                                    has_super_init = True
+                        # Check for simple assignments (self.attr = value)
+                        elif isinstance(node, ast.Assign):
+                            # Only count if it's a simple attribute assignment
+                            if all(isinstance(t, ast.Attribute) and isinstance(t.value, ast.Name) and t.value.id == 'self' 
+                                   for t in node.targets):
+                                simple_assignments += 1
+                            else:
+                                has_complex_logic = True
+                        # Any other node type indicates complexity
+                        else:
+                            has_complex_logic = True
+                    
+                    # Exclude only if: has super().__init__(), only simple assignments, no complex logic
+                    if has_super_init and not has_complex_logic and simple_assignments <= 2:
+                        return True
+            except Exception:
+                # If analysis fails, don't exclude (safer to include)
+                pass
+        
         # Exclude logger methods (these are logging infrastructure)
         if func_name in ('debug', 'info', 'warning', 'error', 'critical', 'log', 'exception'):
             # Check if this is in a logger class or file_auditor

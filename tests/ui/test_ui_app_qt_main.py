@@ -586,7 +586,7 @@ class TestMHMManagerUI:
                     mock_ui_instance.pushButton_run_user_scheduler.setEnabled.assert_called_once_with(True)
                     mock_ui_instance.groupBox_category_actions.setEnabled.assert_called_once_with(True)
     
-    def test_disable_content_management_disables_buttons(self):
+    def test_disable_content_management_disables_buttons(self, qapp):
         """Test that disable_content_management disables buttons."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -599,13 +599,52 @@ class TestMHMManagerUI:
                     mock_timer.return_value = mock_timer_instance
                     mock_path.return_value.exists.return_value = True
                     
+                    # Mock all button widgets that disable_content_management accesses
+                    mock_ui_instance.pushButton_communication_settings = Mock()
+                    mock_ui_instance.pushButton_personalization = Mock()
+                    mock_ui_instance.pushButton_category_management = Mock()
+                    mock_ui_instance.pushButton_checkin_settings = Mock()
+                    mock_ui_instance.pushButton_task_management = Mock()
+                    mock_ui_instance.pushButton_task_crud = Mock()
+                    mock_ui_instance.pushButton_user_analytics = Mock()
+                    mock_ui_instance.pushButton_run_user_scheduler = Mock()
+                    mock_ui_instance.groupBox_category_actions = Mock()
+                    mock_ui_instance.groupBox_user_actions = Mock()
+                    mock_ui_instance.comboBox_user_categories = Mock()
+                    
                     ui = MHMManagerUI()
+                    
+                    # Reset mocks after initialization (initialize_ui calls disable_content_management)
+                    # This clears the calls from initialization so we can test disable_content_management cleanly
+                    mock_ui_instance.pushButton_communication_settings.setEnabled.reset_mock()
+                    mock_ui_instance.pushButton_personalization.setEnabled.reset_mock()
+                    mock_ui_instance.pushButton_category_management.setEnabled.reset_mock()
+                    mock_ui_instance.pushButton_checkin_settings.setEnabled.reset_mock()
+                    mock_ui_instance.pushButton_task_management.setEnabled.reset_mock()
+                    mock_ui_instance.pushButton_task_crud.setEnabled.reset_mock()
+                    mock_ui_instance.pushButton_user_analytics.setEnabled.reset_mock()
+                    mock_ui_instance.pushButton_run_user_scheduler.setEnabled.reset_mock()
+                    mock_ui_instance.groupBox_category_actions.setEnabled.reset_mock()
+                    mock_ui_instance.groupBox_user_actions.setEnabled.reset_mock()
+                    mock_ui_instance.comboBox_user_categories.clear.reset_mock()
+                    mock_ui_instance.comboBox_user_categories.addItem.reset_mock()
                     
                     # Test disable_content_management
                     ui.disable_content_management()
                     
-                    # Verify method completes without error
-                    assert True
+                    # Verify all buttons were disabled (after reset, should only be called once with False)
+                    mock_ui_instance.pushButton_communication_settings.setEnabled.assert_called_once_with(False)
+                    mock_ui_instance.pushButton_personalization.setEnabled.assert_called_once_with(False)
+                    mock_ui_instance.pushButton_category_management.setEnabled.assert_called_once_with(False)
+                    mock_ui_instance.pushButton_checkin_settings.setEnabled.assert_called_once_with(False)
+                    mock_ui_instance.pushButton_task_management.setEnabled.assert_called_once_with(False)
+                    mock_ui_instance.pushButton_task_crud.setEnabled.assert_called_once_with(False)
+                    mock_ui_instance.pushButton_user_analytics.setEnabled.assert_called_once_with(False)
+                    mock_ui_instance.pushButton_run_user_scheduler.setEnabled.assert_called_once_with(False)
+                    mock_ui_instance.groupBox_category_actions.setEnabled.assert_called_once_with(False)
+                    mock_ui_instance.groupBox_user_actions.setEnabled.assert_called_once_with(False)
+                    mock_ui_instance.comboBox_user_categories.clear.assert_called_once()
+                    mock_ui_instance.comboBox_user_categories.addItem.assert_called_once_with("Select a category...")
     
     @pytest.mark.no_parallel
     def test_update_user_index_on_startup_calls_rebuild(self, qapp):

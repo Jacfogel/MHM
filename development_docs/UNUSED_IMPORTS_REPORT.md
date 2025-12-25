@@ -2,25 +2,25 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-24 06:52:40
+> **Last Generated**: 2025-12-24 20:17:23
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 391
-- **Files with Unused Imports**: 168
-- **Total Unused Imports**: 489
+- **Total Files Scanned**: 392
+- **Files with Unused Imports**: 169
+- **Total Unused Imports**: 494
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 165 imports
+- **Obvious Unused**: 168 imports
 - **Type Hints Only**: 2 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 9 imports
 - **Star Imports**: 0 imports
-- **Test Mocking**: 144 imports
+- **Test Mocking**: 145 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 112 imports
+- **Test Infrastructure**: 113 imports
 - **Production Test Mocking**: 3 imports
 - **Ui Imports**: 0 imports
 
@@ -532,6 +532,17 @@
 **Count**: 1 unused import(s)
 
 - **Line 11**: Unused import stat
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_false_negative_detection.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 14**: Unused import argparse
+  - Symbol: `unused-import`
+- **Line 18**: Unused demo_project_root imported from tests.development_tools.conftest
+  - Symbol: `unused-import`
+- **Line 18**: Unused test_config_path imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_fix_documentation.py`
@@ -1110,6 +1121,13 @@
 **Count**: 1 unused import(s)
 
 - **Line 10**: Unused MagicMock imported from unittest.mock
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_false_negative_detection.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 16**: Unused patch imported from unittest.mock
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_fix_documentation.py`
@@ -2014,6 +2032,13 @@
 **Count**: 1 unused import(s)
 
 - **Line 10**: Unused import shutil
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_false_negative_detection.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 15**: Unused Path imported from pathlib
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_fix_documentation.py`

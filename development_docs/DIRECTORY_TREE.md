@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-24 06:52:11
+> **Last Generated**: 2025-12-24 20:16:29
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -48,6 +48,7 @@ C:.
 |   |       
 |   +---plans
 |   |   |   review_shared_utility_modules_e4e53381.plan.md
+|   |   |   validate_analysis_logic_and_issue_detection_accuracy_e79bbf5e.plan.md
 |   |   |   
 |   |   \---archive
     (archived files)
@@ -181,6 +182,8 @@ C:.
 |   |   |   |   
 |   |   |   \---archive
     (archived files)
++---htmlcov
+    (HTML coverage reports)
 +---logs
 |   |   ai.log
 |   |   ai_dev_tools.log
