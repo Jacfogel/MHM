@@ -5,7 +5,6 @@
 
 import argparse
 import sys
-import warnings
 from pathlib import Path
 
 # Add project root to path FIRST - this allows development_tools to be imported as a package

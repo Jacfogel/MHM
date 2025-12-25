@@ -115,6 +115,7 @@ class TestCheckinHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.checkins
     @pytest.mark.file_io
+    @pytest.mark.no_parallel
     @patch('communication.message_processing.conversation_flow_manager.conversation_manager.start_checkin')
     @patch('communication.command_handlers.checkin_handler.get_recent_checkins')
     @patch('communication.command_handlers.checkin_handler.is_user_checkins_enabled')

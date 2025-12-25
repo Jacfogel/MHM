@@ -7,8 +7,7 @@ Provides insights and analysis from sent message data to help users
 understand message frequency, patterns, and delivery effectiveness.
 """
 
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 from collections import defaultdict
 from core.logger import get_component_logger
 from core.message_management import get_recent_messages

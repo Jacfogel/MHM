@@ -12,9 +12,7 @@ import sys
 import os
 import subprocess
 from pathlib import Path
-from core.error_handling import (
-    error_handler, DataError, FileOperationError, handle_errors
-)
+from core.error_handling import handle_errors
 
 
 @handle_errors("resolving Python interpreter", default_return=sys.executable)

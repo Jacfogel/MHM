@@ -2,25 +2,25 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-25 01:14:31
+> **Last Generated**: 2025-12-25 04:05:36
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 395
-- **Files with Unused Imports**: 171
-- **Total Unused Imports**: 499
+- **Files with Unused Imports**: 129
+- **Total Unused Imports**: 377
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 172 imports
-- **Type Hints Only**: 2 imports
+- **Obvious Unused**: 56 imports
+- **Type Hints Only**: 1 imports
 - **Re Exports**: 0 imports
-- **Conditional Imports**: 9 imports
+- **Conditional Imports**: 1 imports
 - **Star Imports**: 0 imports
 - **Test Mocking**: 145 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 114 imports
+- **Test Infrastructure**: 117 imports
 - **Production Test Mocking**: 3 imports
 - **Ui Imports**: 0 imports
 
@@ -28,368 +28,18 @@
 
 **Recommendation**: These imports can likely be safely removed.
 
-### `communication/command_handlers/account_handler.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 380**: Unused import time
-  - Symbol: `unused-import`
-
-### `communication/communication_channels/discord/webhook_handler.py`
-
-**Count**: 3 unused import(s)
-
-- **Line 9**: Unused import hmac
-  - Symbol: `unused-import`
-- **Line 10**: Unused import hashlib
-  - Symbol: `unused-import`
-- **Line 11**: Unused import os
-  - Symbol: `unused-import`
-
-### `communication/communication_channels/discord/webhook_server.py`
-
-**Count**: 4 unused import(s)
-
-- **Line 9**: Unused Optional imported from typing
-  - Symbol: `unused-import`
-- **Line 9**: Unused Callable imported from typing
-  - Symbol: `unused-import`
-- **Line 12**: Unused verify_webhook_signature imported from communication.communication_channels.discord.webhook_handler
-  - Symbol: `unused-import`
-- **Line 12**: Unused EVENT_APPLICATION_AUTHORIZED imported from communication.communication_channels.discord.webhook_handler
-  - Symbol: `unused-import`
-
-### `communication/communication_channels/discord/welcome_handler.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 8**: Unused Optional imported from typing
-  - Symbol: `unused-import`
-
-### `communication/core/welcome_manager.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 7**: Unused import os
-  - Symbol: `unused-import`
-
-### `core/file_locking.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 13**: Unused Callable imported from typing
-  - Symbol: `unused-import`
-- **Line 13**: Unused Any imported from typing
-  - Symbol: `unused-import`
-
-### `core/message_analytics.py`
-
-**Count**: 3 unused import(s)
-
-- **Line 10**: Unused datetime imported from datetime
-  - Symbol: `unused-import`
-- **Line 10**: Unused timedelta imported from datetime
-  - Symbol: `unused-import`
-- **Line 11**: Unused List imported from typing
-  - Symbol: `unused-import`
-
-### `core/schedule_management.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 16**: Unused DataError imported from core.error_handling
-  - Symbol: `unused-import`
-
-### `core/scheduler.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 11**: Unused Optional imported from typing
-  - Symbol: `unused-import`
-
-### `core/user_data_manager.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 19**: Unused save_json_data imported from core.file_operations
-  - Symbol: `unused-import`
-
-### `development_tools/config/analyze_config.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 15**: Unused import json
-  - Symbol: `unused-import`
-- **Line 16**: Unused datetime imported from datetime
-  - Symbol: `unused-import`
-
-### `development_tools/error_handling/analyze_error_handling.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 15**: Unused import json
-  - Symbol: `unused-import`
-- **Line 16**: Unused import os
-  - Symbol: `unused-import`
-
-### `development_tools/functions/analyze_function_patterns.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 14**: Unused List imported from typing
-  - Symbol: `unused-import`
-
-### `development_tools/functions/analyze_package_exports.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 26**: Unused Optional imported from typing
-  - Symbol: `unused-import`
-
-### `development_tools/functions/generate_function_registry.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 13**: Unused import ast
-  - Symbol: `unused-import`
-- **Line 17**: Unused Any imported from typing
-  - Symbol: `unused-import`
-
-### `development_tools/imports/analyze_module_dependencies.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 9**: Unused import ast
-  - Symbol: `unused-import`
-- **Line 13**: Unused Optional imported from typing
-  - Symbol: `unused-import`
-
-### `development_tools/imports/analyze_unused_imports.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 27**: Unused datetime imported from datetime
-  - Symbol: `unused-import`
-- **Line 28**: Unused partial imported from functools
-  - Symbol: `unused-import`
-
 ### `development_tools/imports/generate_module_dependencies.py`
 
-**Count**: 2 unused import(s)
-
-- **Line 11**: Unused Any imported from typing
-  - Symbol: `unused-import`
-- **Line 32**: Unused analyze_dependency_patterns imported from analyze_dependency_patterns
-  - Symbol: `unused-import`
-
-### `development_tools/imports/generate_unused_imports_report.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 24**: Unused List imported from typing
-  - Symbol: `unused-import`
-- **Line 24**: Unused Optional imported from typing
-  - Symbol: `unused-import`
-
-### `development_tools/reports/decision_support.py`
-
 **Count**: 1 unused import(s)
 
-- **Line 12**: Unused import ast
-  - Symbol: `unused-import`
-
-### `development_tools/run_development_tools.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 8**: Unused import warnings
-  - Symbol: `unused-import`
-
-### `development_tools/shared/common.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 10**: Unused dataclass imported from dataclasses
-  - Symbol: `unused-import`
-
-### `development_tools/shared/mtime_cache.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 29**: Unused import json
-  - Symbol: `unused-import`
-- **Line 31**: Unused List imported from typing
-  - Symbol: `unused-import`
-
-### `development_tools/shared/output_storage.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 11**: Unused import os
-  - Symbol: `unused-import`
-- **Line 17**: Unused create_output_file imported from file_rotation
-  - Symbol: `unused-import`
-
-### `development_tools/shared/service/audit_orchestration.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 12**: Unused Any imported from typing
-  - Symbol: `unused-import`
-- **Line 19**: Unused _get_domain_from_tool_name imported from output_storage
-  - Symbol: `unused-import`
-
-### `development_tools/shared/service/commands.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 8**: Unused Path imported from pathlib
-  - Symbol: `unused-import`
-- **Line 9**: Unused Any imported from typing
-  - Symbol: `unused-import`
-
-### `development_tools/shared/service/core.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 21**: Unused SCRIPT_REGISTRY imported from tool_wrappers
-  - Symbol: `unused-import`
-- **Line 27**: Unused COMMAND_TIERS imported from common
-  - Symbol: `unused-import`
-
-### `development_tools/shared/service/data_loading.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 18**: Unused extract_first_int imported from utilities
-  - Symbol: `unused-import`
-- **Line 18**: Unused create_standard_format_result imported from utilities
-  - Symbol: `unused-import`
-
-### `development_tools/tests/fix_test_markers.py`
-
-**Count**: 3 unused import(s)
-
-- **Line 12**: Unused import re
-  - Symbol: `unused-import`
-- **Line 14**: Unused List imported from typing
-  - Symbol: `unused-import`
-- **Line 14**: Unused Tuple imported from typing
-  - Symbol: `unused-import`
-
-### `development_tools/tests/generate_test_coverage_reports.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 19**: Unused Any imported from typing
-  - Symbol: `unused-import`
-
-### `run_mhm.py`
-
-**Count**: 3 unused import(s)
-
-- **Line 15**: Unused error_handler imported from core.error_handling
-  - Symbol: `unused-import`
-- **Line 15**: Unused DataError imported from core.error_handling
-  - Symbol: `unused-import`
-- **Line 15**: Unused FileOperationError imported from core.error_handling
-  - Symbol: `unused-import`
-
-### `run_tests.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 19**: Unused Tuple imported from typing
-  - Symbol: `unused-import`
-
-### `tests/behavior/test_communication_manager_behavior.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 12**: Unused BotInitializationError imported from communication.core.channel_orchestrator
-  - Symbol: `unused-import`
-- **Line 12**: Unused MessageSendError imported from communication.core.channel_orchestrator
-  - Symbol: `unused-import`
-
-### `tests/behavior/test_conversation_flow_manager_behavior.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 16**: Unused CHECKIN_START imported from communication.message_processing.conversation_flow_manager
-  - Symbol: `unused-import`
-- **Line 16**: Unused CHECKIN_COMPLETE imported from communication.message_processing.conversation_flow_manager
-  - Symbol: `unused-import`
-
-### `tests/behavior/test_discord_checkin_retry_behavior.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 11**: Unused call imported from unittest.mock
-  - Symbol: `unused-import`
-- **Line 12**: Unused import asyncio
-  - Symbol: `unused-import`
-
-### `tests/behavior/test_discord_task_reminder_followup.py`
-
-**Count**: 4 unused import(s)
-
-- **Line 9**: Unused timedelta imported from datetime
-  - Symbol: `unused-import`
-- **Line 12**: Unused ParsedCommand imported from communication.command_handlers.shared_types
-  - Symbol: `unused-import`
-- **Line 13**: Unused create_task imported from tasks.task_management
-  - Symbol: `unused-import`
-- **Line 13**: Unused get_task_by_id imported from tasks.task_management
-  - Symbol: `unused-import`
-
-### `tests/behavior/test_task_cleanup_bug.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 12**: Unused complete_task imported from tasks.task_management
-  - Symbol: `unused-import`
-
-### `tests/behavior/test_task_reminder_followup_behavior.py`
-
-**Count**: 4 unused import(s)
-
-- **Line 12**: Unused ConversationManager imported from communication.message_processing.conversation_flow_manager
-  - Symbol: `unused-import`
-- **Line 12**: Unused FLOW_NONE imported from communication.message_processing.conversation_flow_manager
-  - Symbol: `unused-import`
-- **Line 19**: Unused ParsedCommand imported from communication.command_handlers.shared_types
-  - Symbol: `unused-import`
-- **Line 20**: Unused load_active_tasks imported from tasks.task_management
-  - Symbol: `unused-import`
-
-### `tests/behavior/test_user_data_flow_architecture.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 11**: Unused call imported from unittest.mock
+- **Line 45**: Unused analyze_dependency_patterns imported from development_tools.imports.analyze_dependency_patterns
   - Symbol: `unused-import`
 
 ### `tests/behavior/test_webhook_server_behavior.py`
 
-**Count**: 2 unused import(s)
-
-- **Line 14**: Unused HTTPServer imported from http.server
-  - Symbol: `unused-import`
-- **Line 15**: Unused BytesIO imported from io
-  - Symbol: `unused-import`
-
-### `tests/behavior/test_welcome_manager_behavior.py`
-
 **Count**: 1 unused import(s)
 
-- **Line 13**: Unused WELCOME_TRACKING_FILE imported from communication.core.welcome_manager
-  - Symbol: `unused-import`
-
-### `tests/development_tools/conftest.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 7**: Unused import warnings
+- **Line 14**: Unused BytesIO imported from io
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_analysis_tool_validation.py`
@@ -399,19 +49,6 @@
 - **Line 12**: Unused demo_project_root imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 - **Line 12**: Unused test_config_path imported from tests.development_tools.conftest
-  - Symbol: `unused-import`
-
-### `tests/development_tools/test_analysis_validation_framework.py`
-
-**Count**: 4 unused import(s)
-
-- **Line 18**: Unused Dict imported from typing
-  - Symbol: `unused-import`
-- **Line 18**: Unused List imported from typing
-  - Symbol: `unused-import`
-- **Line 18**: Unused Any imported from typing
-  - Symbol: `unused-import`
-- **Line 20**: Unused demo_project_root imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_analyze_ai_work.py`
@@ -439,13 +76,11 @@
 
 ### `tests/development_tools/test_analyze_error_handling.py`
 
-**Count**: 3 unused import(s)
+**Count**: 2 unused import(s)
 
-- **Line 9**: Unused import ast
+- **Line 12**: Unused demo_project_root imported from tests.development_tools.conftest
   - Symbol: `unused-import`
-- **Line 13**: Unused demo_project_root imported from tests.development_tools.conftest
-  - Symbol: `unused-import`
-- **Line 13**: Unused test_config_path imported from tests.development_tools.conftest
+- **Line 12**: Unused test_config_path imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_analyze_function_registry.py`
@@ -515,10 +150,8 @@
 
 ### `tests/development_tools/test_audit_status_updates.py`
 
-**Count**: 2 unused import(s)
+**Count**: 1 unused import(s)
 
-- **Line 12**: Unused call imported from unittest.mock
-  - Symbol: `unused-import`
 - **Line 14**: Unused temp_project_copy imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
@@ -531,31 +164,13 @@
 - **Line 12**: Unused test_config_path imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
-### `tests/development_tools/test_documentation_sync_checker.py`
+### `tests/development_tools/test_false_negative_detection.py`
 
 **Count**: 2 unused import(s)
 
-- **Line 9**: Unused import sys
+- **Line 17**: Unused demo_project_root imported from tests.development_tools.conftest
   - Symbol: `unused-import`
-- **Line 11**: Unused defaultdict imported from collections
-  - Symbol: `unused-import`
-
-### `tests/development_tools/test_error_scenarios.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 11**: Unused import stat
-  - Symbol: `unused-import`
-
-### `tests/development_tools/test_false_negative_detection.py`
-
-**Count**: 3 unused import(s)
-
-- **Line 14**: Unused import argparse
-  - Symbol: `unused-import`
-- **Line 18**: Unused demo_project_root imported from tests.development_tools.conftest
-  - Symbol: `unused-import`
-- **Line 18**: Unused test_config_path imported from tests.development_tools.conftest
+- **Line 17**: Unused test_config_path imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_fix_documentation.py`
@@ -563,13 +178,6 @@
 **Count**: 1 unused import(s)
 
 - **Line 12**: Unused load_development_tools_module imported from tests.development_tools.conftest
-  - Symbol: `unused-import`
-
-### `tests/development_tools/test_fix_documentation_addresses.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 11**: Unused test_config_path imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_fix_documentation_headings.py`
@@ -595,10 +203,8 @@
 
 ### `tests/development_tools/test_generate_consolidated_report.py`
 
-**Count**: 2 unused import(s)
+**Count**: 1 unused import(s)
 
-- **Line 10**: Unused call imported from unittest.mock
-  - Symbol: `unused-import`
 - **Line 12**: Unused temp_project_copy imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
@@ -631,13 +237,6 @@
 - **Line 8**: Unused import sys
   - Symbol: `unused-import`
 
-### `tests/development_tools/test_generate_module_dependencies.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 8**: Unused import sys
-  - Symbol: `unused-import`
-
 ### `tests/development_tools/test_generate_unused_imports_report.py`
 
 **Count**: 1 unused import(s)
@@ -645,31 +244,11 @@
 - **Line 12**: Unused temp_project_copy imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
-### `tests/development_tools/test_legacy_reference_cleanup.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 11**: Unused import sys
-  - Symbol: `unused-import`
-
 ### `tests/development_tools/test_output_storage_archiving.py`
 
 **Count**: 1 unused import(s)
 
 - **Line 13**: Unused temp_project_copy imported from tests.development_tools.conftest
-  - Symbol: `unused-import`
-
-### `tests/development_tools/test_path_drift_detection.py`
-
-**Count**: 4 unused import(s)
-
-- **Line 12**: Unused import pytest
-  - Symbol: `unused-import`
-- **Line 13**: Unused import tempfile
-  - Symbol: `unused-import`
-- **Line 14**: Unused import shutil
-  - Symbol: `unused-import`
-- **Line 15**: Unused Path imported from pathlib
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_path_drift_integration.py`
@@ -686,81 +265,11 @@
 - **Line 11**: Unused temp_project_copy imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
-### `tests/development_tools/test_regenerate_coverage_metrics.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 8**: Unused import sys
-  - Symbol: `unused-import`
-
-### `tests/development_tools/test_run_development_tools.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 10**: Unused import warnings
-  - Symbol: `unused-import`
-
 ### `tests/development_tools/test_status_file_timing.py`
 
-**Count**: 2 unused import(s)
-
-- **Line 10**: Unused import warnings
-  - Symbol: `unused-import`
-- **Line 19**: Unused demo_project_root imported from tests.development_tools.conftest
-  - Symbol: `unused-import`
-
-### `tests/integration/test_task_cleanup_real.py`
-
 **Count**: 1 unused import(s)
 
-- **Line 12**: Unused timedelta imported from datetime
-  - Symbol: `unused-import`
-
-### `tests/integration/test_task_cleanup_real_bug_verification.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 16**: Unused delete_task imported from tasks.task_management
-  - Symbol: `unused-import`
-- **Line 16**: Unused update_task imported from tasks.task_management
-  - Symbol: `unused-import`
-
-### `tests/integration/test_task_cleanup_silent_failure.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 10**: Unused timedelta imported from datetime
-  - Symbol: `unused-import`
-- **Line 13**: Unused delete_task imported from tasks.task_management
-  - Symbol: `unused-import`
-
-### `tests/integration/test_task_reminder_integration.py`
-
-**Count**: 5 unused import(s)
-
-- **Line 8**: Unused call imported from unittest.mock
-  - Symbol: `unused-import`
-- **Line 12**: Unused get_task_by_id imported from tasks.task_management
-  - Symbol: `unused-import`
-- **Line 16**: Unused TaskManagementHandler imported from communication.command_handlers.task_handler
-  - Symbol: `unused-import`
-- **Line 17**: Unused ParsedCommand imported from communication.command_handlers.shared_types
-  - Symbol: `unused-import`
-- **Line 17**: Unused InteractionResponse imported from communication.command_handlers.shared_types
-  - Symbol: `unused-import`
-
-### `tests/test_error_handling_improvements.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 16**: Unused MHMError imported from core.error_handling
-  - Symbol: `unused-import`
-
-### `tests/ui/test_signal_handler_integration.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 20**: Unused QCheckBox imported from PySide6.QtWidgets
+- **Line 18**: Unused demo_project_root imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
 ### `tests/unit/test_ai_chatbot_helpers.py`
@@ -772,10 +281,8 @@
 
 ### `tests/unit/test_command_registry.py`
 
-**Count**: 2 unused import(s)
+**Count**: 1 unused import(s)
 
-- **Line 13**: Unused AsyncMock imported from unittest.mock
-  - Symbol: `unused-import`
 - **Line 22**: Unused import discord
   - Symbol: `unused-import`
 
@@ -786,43 +293,6 @@
 - **Line 10**: Unused import core.config
   - Symbol: `unused-import`
 
-### `tests/unit/test_discord_api_client.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 13**: Unused import asyncio
-  - Symbol: `unused-import`
-
-### `tests/unit/test_discord_event_handler.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 12**: Unused import asyncio
-  - Symbol: `unused-import`
-- **Line 21**: Unused import discord
-  - Symbol: `unused-import`
-
-### `tests/unit/test_email_bot_body_extraction.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 9**: Unused import email
-  - Symbol: `unused-import`
-
-### `tests/unit/test_logger_unit.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 16**: Unused _get_log_paths_for_environment imported from core.logger
-  - Symbol: `unused-import`
-
-### `tests/unit/test_message_formatter.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 14**: Unused MessageFormatter imported from communication.communication_channels.base.message_formatter
-  - Symbol: `unused-import`
-
 ### `tests/unit/test_prompt_manager.py`
 
 **Count**: 2 unused import(s)
@@ -830,13 +300,6 @@
 - **Line 23**: Unused AI_SYSTEM_PROMPT_PATH imported from core.config
   - Symbol: `unused-import`
 - **Line 23**: Unused AI_USE_CUSTOM_PROMPT imported from core.config
-  - Symbol: `unused-import`
-
-### `tests/unit/test_rich_formatter.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 14**: Unused RichFormatter imported from communication.communication_channels.base.rich_formatter
   - Symbol: `unused-import`
 
 ### `tests/unit/test_user_data_manager.py`
@@ -861,80 +324,22 @@
 
 **Recommendation**: Consider using `TYPE_CHECKING` guard for these imports.
 
-### `communication/communication_channels/discord/account_flow_handler.py`
+### `communication/core/welcome_manager.py`
 
 **Count**: 1 unused import(s)
 
 - **Line 9**: Unused Optional imported from typing
   - Symbol: `unused-import`
 
-### `communication/core/welcome_manager.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 10**: Unused Optional imported from typing
-  - Symbol: `unused-import`
-
 ## Conditional Imports
 
 **Recommendation**: Review carefully - these may be for optional dependencies.
-
-### `development_tools/docs/fix_documentation_links.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 33**: Unused ALL_GENERATED_FILES imported from shared.standard_exclusions
-  - Symbol: `unused-import`
-
-### `development_tools/functions/analyze_function_registry.py`
-
-**Count**: 2 unused import(s)
-
-- **Line 25**: Unused summary_block imported from shared.common
-  - Symbol: `unused-import`
-- **Line 25**: Unused write_text imported from shared.common
-  - Symbol: `unused-import`
-
-### `development_tools/imports/analyze_dependency_patterns.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 23**: Unused ensure_ascii imported from shared.common
-  - Symbol: `unused-import`
-
-### `development_tools/imports/analyze_module_dependencies.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 27**: Unused should_exclude_file imported from shared.standard_exclusions
-  - Symbol: `unused-import`
-
-### `development_tools/imports/generate_module_dependencies.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 24**: Unused scan_all_python_files imported from analyze_module_imports
-  - Symbol: `unused-import`
-
-### `development_tools/reports/decision_support.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 22**: Unused categorize_functions imported from functions.analyze_functions
-  - Symbol: `unused-import`
-
-### `development_tools/run_dev_tools.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 21**: Unused config imported from development_tools
-  - Symbol: `unused-import`
 
 ### `development_tools/run_development_tools.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 35**: Unused config imported from development_tools
+- **Line 34**: Unused config imported from development_tools
   - Symbol: `unused-import`
 
 ## Test Mocking
@@ -1092,9 +497,9 @@
 
 **Count**: 2 unused import(s)
 
-- **Line 11**: Unused patch imported from unittest.mock
+- **Line 10**: Unused patch imported from unittest.mock
   - Symbol: `unused-import`
-- **Line 11**: Unused MagicMock imported from unittest.mock
+- **Line 10**: Unused MagicMock imported from unittest.mock
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_analyze_function_registry.py`
@@ -1140,7 +545,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 16**: Unused patch imported from unittest.mock
+- **Line 15**: Unused patch imported from unittest.mock
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_fix_documentation.py`
@@ -1184,7 +589,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 11**: Unused MagicMock imported from unittest.mock
+- **Line 10**: Unused MagicMock imported from unittest.mock
   - Symbol: `unused-import`
 
 ### `tests/integration/test_task_cleanup_real_bug_verification.py`
@@ -1510,7 +915,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 13**: Unused MagicMock imported from unittest.mock
+- **Line 12**: Unused MagicMock imported from unittest.mock
   - Symbol: `unused-import`
 
 ### `tests/unit/test_enhanced_checkin_responses.py`
@@ -1551,7 +956,7 @@
 
 - **Line 12**: Unused MagicMock imported from unittest.mock
   - Symbol: `unused-import`
-- **Line 20**: Unused DataError imported from core.error_handling
+- **Line 19**: Unused DataError imported from core.error_handling
   - Symbol: `unused-import`
 
 ### `tests/unit/test_prompt_manager.py`
@@ -1884,7 +1289,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 13**: Unused datetime imported from datetime
+- **Line 12**: Unused datetime imported from datetime
   - Symbol: `unused-import`
 
 ### `tests/behavior/test_discord_task_reminder_followup.py`
@@ -2037,7 +1442,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 10**: Unused Path imported from pathlib
+- **Line 9**: Unused Path imported from pathlib
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_error_scenarios.py`
@@ -2058,7 +1463,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 15**: Unused Path imported from pathlib
+- **Line 14**: Unused Path imported from pathlib
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_fix_documentation.py`
@@ -2127,7 +1532,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 9**: Unused Path imported from pathlib
+- **Line 8**: Unused Path imported from pathlib
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_generate_unused_imports_report.py`
@@ -2143,7 +1548,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 12**: Unused Path imported from pathlib
+- **Line 11**: Unused Path imported from pathlib
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_output_storage_archiving.py`
@@ -2151,6 +1556,17 @@
 **Count**: 1 unused import(s)
 
 - **Line 10**: Unused Path imported from pathlib
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_path_drift_detection.py`
+
+**Count**: 3 unused import(s)
+
+- **Line 13**: Unused import tempfile
+  - Symbol: `unused-import`
+- **Line 14**: Unused import shutil
+  - Symbol: `unused-import`
+- **Line 15**: Unused Path imported from pathlib
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_path_drift_integration.py`
@@ -2173,7 +1589,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 10**: Unused Path imported from pathlib
+- **Line 9**: Unused Path imported from pathlib
   - Symbol: `unused-import`
 
 ### `tests/integration/test_account_management.py`

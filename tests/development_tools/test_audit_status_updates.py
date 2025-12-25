@@ -9,7 +9,7 @@ import os
 import time
 import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock
 
 from tests.development_tools.conftest import load_development_tools_module, temp_project_copy
 

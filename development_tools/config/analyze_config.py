@@ -12,8 +12,6 @@ import re
 import sys
 from pathlib import Path
 from typing import Dict, List
-import json
-from datetime import datetime
 
 # Add project root to path for core module imports
 # Script is at: development_tools/config/analyze_config.py
@@ -79,8 +77,25 @@ class ConfigValidator:
                 'uses_config_functions': False,
                 'hardcoded_values': [],
                 'config_functions_used': [],
-                'issues': []
+                'issues': [],
+                'is_wrapper_script': False
             }
+            
+            # Check if this is a wrapper script (just imports and calls main() from another module)
+            # Wrapper scripts don't need config since they delegate to the actual implementation
+            wrapper_patterns = [
+                r'from\s+[\w\.]+\s+import\s+main',
+                r'import\s+[\w\.]+\s+as\s+.*main',
+                r'sys\.exit\(main\(\)\)',
+                r'Shorthand alias|wrapper script|convenient.*name',
+            ]
+            is_wrapper = any(re.search(pattern, content, re.IGNORECASE) for pattern in wrapper_patterns)
+            
+            # If it's a wrapper script and doesn't use config functions, skip config import check
+            if is_wrapper:
+                analysis['is_wrapper_script'] = True
+                # Wrapper scripts are exempt from config import requirement
+                analysis['imports_config'] = True  # Mark as OK to skip recommendation
             
             # Check for config import
             if 'import config' in content or 'from config import' in content:
@@ -243,6 +258,10 @@ class ConfigValidator:
         
         # Tool-specific recommendations
         for tool_name, analysis in tools_analysis.items():
+            # Skip wrapper scripts - they don't need config since they delegate to other modules
+            if analysis.get('is_wrapper_script', False):
+                continue
+            
             # Check if tool doesn't import config
             if not analysis['imports_config']:
                 rec = f"Update {tool_name} to import config module"
@@ -372,6 +391,12 @@ class ConfigValidator:
         # Tool analysis
         logger.info(f"TOOL ANALYSIS:")
         for tool_name, analysis in tools_analysis.items():
+            # Skip wrapper scripts in the report - they don't need config
+            if analysis.get('is_wrapper_script', False):
+                status = "OK"
+                logger.info(f"   {status} {tool_name} (wrapper script)")
+                continue
+            
             # Status logic: OK if imports config and no issues, WARN if has issues or doesn't import config (recommendation), FAIL only for critical issues
             if analysis['imports_config'] and not analysis['issues']:
                 status = "OK"

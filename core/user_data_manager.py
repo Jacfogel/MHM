@@ -16,7 +16,7 @@ from core.logger import get_component_logger
 from core.config import (
     get_user_file_path, get_user_data_dir, BASE_DATA_DIR, get_backups_dir
 )
-from core.file_operations import load_json_data, save_json_data, get_user_file_path, get_user_data_dir
+from core.file_operations import load_json_data, get_user_file_path, get_user_data_dir
 from core.user_data_handlers import get_user_data
 from core.user_data_handlers import get_all_user_ids
 from core.schemas import validate_messages_file_dict

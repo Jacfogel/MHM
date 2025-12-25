@@ -10,11 +10,10 @@ Configuration is loaded from external config file (development_tools_config.json
 if available, making this tool portable across different projects.
 """
 
-import ast
 import sys
 import os
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List
 from datetime import datetime
 
 # Ensure we can import from development_tools

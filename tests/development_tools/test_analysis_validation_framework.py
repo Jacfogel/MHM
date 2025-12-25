@@ -15,9 +15,8 @@ This framework:
 import pytest
 import json
 from pathlib import Path
-from typing import Dict, List, Any
 
-from tests.development_tools.conftest import load_development_tools_module, demo_project_root
+from tests.development_tools.conftest import load_development_tools_module
 
 # Get project root
 project_root = Path(__file__).parent.parent.parent

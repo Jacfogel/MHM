@@ -6,9 +6,7 @@ and heading numbering validation.
 """
 
 import pytest
-import sys
 from pathlib import Path
-from collections import defaultdict
 
 # Import helper from conftest
 from tests.development_tools.conftest import load_development_tools_module

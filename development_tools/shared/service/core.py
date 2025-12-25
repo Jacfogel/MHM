@@ -18,13 +18,10 @@ from ... import config
 # Import mixins
 from .utilities import UtilitiesMixin
 from .data_loading import DataLoadingMixin
-from .tool_wrappers import ToolWrappersMixin, SCRIPT_REGISTRY
+from .tool_wrappers import ToolWrappersMixin
 from .audit_orchestration import AuditOrchestrationMixin
 from .report_generation import ReportGenerationMixin
 from .commands import CommandsMixin
-
-# Import COMMAND_TIERS from common (preserve existing dependency)
-from ..common import COMMAND_TIERS
 
 
 class AIToolsService(

@@ -990,14 +990,13 @@ class TestUserDataManagerCoverageExpansion:
             "internal_username": self.user_id,
             "enabled_features": ["messages"],
             "message_files": []
-        }), \
-        patch('core.user_data_manager.save_json_data') as mock_save:
+        }):
             
             result = user_data_manager.update_message_references(self.user_id)
             
-            # Verify function was called (may not always call save_json_data)
+            # Verify function completed successfully
+            # Note: update_message_references doesn't call save_json_data, it just builds references
             assert result is True
-            # Just verify the function completed successfully
     
     @pytest.mark.behavior
     def test_export_user_data_real_behavior(self, user_data_manager, test_path_factory):

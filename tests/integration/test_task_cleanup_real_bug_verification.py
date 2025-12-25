@@ -14,7 +14,7 @@ from unittest.mock import patch, MagicMock
 import schedule
 
 from tasks.task_management import (
-    create_task, complete_task, delete_task, update_task,
+    create_task, complete_task,
     cleanup_task_reminders, schedule_task_reminders
 )
 from tests.test_utilities import TestUserFactory

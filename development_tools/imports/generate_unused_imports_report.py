@@ -21,7 +21,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Dict, Any
 from datetime import datetime
 from collections import defaultdict
 

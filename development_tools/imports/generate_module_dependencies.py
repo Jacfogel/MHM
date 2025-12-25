@@ -8,7 +8,7 @@ Orchestrates import analysis, pattern analysis, and content generation.
 """
 
 from pathlib import Path
-from typing import Dict, List, Any, Tuple, Optional
+from typing import Dict, List, Tuple, Optional
 from datetime import datetime
 import sys
 
@@ -23,15 +23,13 @@ if __name__ != '__main__' and __package__ and '.' in __package__:
     from .. import config
     from .analyze_module_imports import (
         ModuleImportAnalyzer,
-        scan_all_python_files,
         find_reverse_dependencies,
         analyze_dependency_changes,
         infer_module_purpose,
         format_import_details
     )
     from .analyze_dependency_patterns import (
-        DependencyPatternAnalyzer,
-        analyze_dependency_patterns
+        DependencyPatternAnalyzer
     )
     from ..shared.common import ensure_ascii
 else:
@@ -39,7 +37,6 @@ else:
     from development_tools import config
     from development_tools.imports.analyze_module_imports import (
         ModuleImportAnalyzer,
-        scan_all_python_files,
         find_reverse_dependencies,
         analyze_dependency_changes,
         infer_module_purpose,

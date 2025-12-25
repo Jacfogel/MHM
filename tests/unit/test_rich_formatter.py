@@ -12,7 +12,6 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 from communication.communication_channels.base.rich_formatter import (
-    RichFormatter,
     DiscordRichFormatter,
     EmailRichFormatter,
     get_rich_formatter

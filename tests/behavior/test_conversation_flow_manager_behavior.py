@@ -18,9 +18,7 @@ from communication.message_processing.conversation_flow_manager import (
     conversation_manager,
     FLOW_NONE,
     FLOW_CHECKIN,
-    CHECKIN_START,
-    CHECKIN_MOOD,
-    CHECKIN_COMPLETE
+    CHECKIN_MOOD
 )
 from communication.core.channel_orchestrator import CommunicationManager
 from tests.test_utilities import TestUserFactory

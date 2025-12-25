@@ -19,10 +19,7 @@ if str(project_root) not in sys.path:
 from core.logger import get_component_logger
 
 # Handle both relative and absolute imports
-if __name__ != '__main__' and __package__ and '.' in __package__:
-    from ..shared.common import ensure_ascii
-else:
-    from development_tools.shared.common import ensure_ascii
+# Note: ensure_ascii is imported but not used in this module
 
 # Load external config on module import
 if __name__ != '__main__' and __package__ and '.' in __package__:

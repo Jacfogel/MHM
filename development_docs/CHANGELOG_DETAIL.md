@@ -38,6 +38,16 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-25 - Unused Imports Cleanup and Test Stability Improvements **COMPLETED**
+- **Unused Imports Reduction**: Removed 122 unused imports across 42 files, reducing total from 499 unused imports across 171 files to 377 unused imports across 129 files (24% reduction in imports, 25% reduction in affected files). Focused on "obvious unused" category from `UNUSED_IMPORTS_REPORT.md`.
+- **Production Code Cleanup**: Removed unused imports from key production files including `communication/command_handlers/account_handler.py`, `communication/communication_channels/discord/webhook_handler.py`, `core/file_locking.py`, `core/message_analytics.py`, `core/schedule_management.py`, `core/scheduler.py`, `core/user_data_manager.py`, `run_mhm.py`, and `run_tests.py`.
+- **Development Tools Cleanup**: Removed unused imports from 20+ development tools files including config analyzers, error handling analyzers, function pattern analyzers, import analyzers, and shared utilities.
+- **Test Files Cleanup**: Removed unused imports from 50+ test files across unit, integration, behavior, and UI test suites. Fixed one incorrect removal (restored `timedelta` import in `tests/integration/test_task_reminder_integration.py` that was actually used).
+- **Test Stability**: Fixed test failure in `tests/ui/test_signal_handler_integration.py::test_dynamic_list_field_signals_dont_raise` by adding `@pytest.mark.no_parallel` marker to prevent channel monitor thread conflicts during parallel execution.
+- **Config Validator Enhancement**: Improved `development_tools/config/analyze_config.py` to detect wrapper scripts (based on `TOOL_TIER: core` and import/call patterns) and exclude them from config import recommendations, fixing false positive for `run_dev_tools.py`.
+- **Test Results**: All tests passing (3963 passed, 1 skipped, 0 failed). Full test suite runs successfully in both parallel and serial modes.
+- **Impact**: Codebase is significantly cleaner with 122 fewer unused imports. Improved test stability by identifying and fixing threading conflicts. Config validator now correctly handles wrapper scripts. Remaining work: 377 unused imports across 129 files (56 obvious removals, 1 type-only import with TYPE_CHECKING guard, plus test mocking and infrastructure imports that should be kept).
+
 ### 2025-12-24 - Validation Framework Expansion and Test Quality Improvements **COMPLETED**
 - **Validation Framework Expansion**: Expanded analysis validation framework from 8 to 14 tests by adding 6 new test classes covering function counting accuracy, threshold validation, and recommendation quality. All tests now passing (previously 2 skipped due to import errors).
 - **Function Counting Accuracy Tests**: Added `TestFunctionCountingAccuracy` class (2 tests) verifying canonical metrics prioritize `analyze_functions` and both tools use `scan_all_functions` method consistently.

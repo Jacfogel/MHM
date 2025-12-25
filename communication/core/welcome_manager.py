@@ -4,7 +4,6 @@ Channel-Agnostic Welcome Manager
 Handles welcome messages and onboarding tracking across all channels.
 """
 
-import os
 import json
 from pathlib import Path
 from typing import Optional, Dict, Any

@@ -8,8 +8,7 @@ Verifies:
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock, call
-import asyncio
+from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
 
 from tests.test_utilities import TestUserFactory, TestDataManager

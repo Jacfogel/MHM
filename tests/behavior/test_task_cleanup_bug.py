@@ -9,7 +9,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
 
-from tasks.task_management import create_task, complete_task, cleanup_task_reminders
+from tasks.task_management import create_task, cleanup_task_reminders
 from tests.test_utilities import TestUserFactory
 
 

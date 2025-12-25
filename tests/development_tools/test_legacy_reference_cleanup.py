@@ -8,7 +8,6 @@ Tests scanning, verification, and safe cleanup operations.
 """
 
 import pytest
-import sys
 from pathlib import Path
 
 # Import helper from conftest

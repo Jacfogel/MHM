@@ -9,7 +9,6 @@ Tests for communication/communication_channels/discord/event_handler.py:
 """
 
 import pytest
-import asyncio
 from unittest.mock import patch, MagicMock, AsyncMock
 
 from communication.communication_channels.discord.event_handler import (
@@ -18,7 +17,6 @@ from communication.communication_channels.discord.event_handler import (
     DiscordEventHandler,
     get_discord_event_handler
 )
-import discord
 
 
 class TestEventType:

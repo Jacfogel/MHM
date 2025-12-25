@@ -7,7 +7,6 @@ Smoke tests that verify the CLI runner works correctly with common commands.
 import pytest
 import subprocess
 import sys
-import warnings
 from pathlib import Path
 
 

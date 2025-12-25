@@ -10,7 +10,7 @@ Tests for communication/communication_channels/base/command_registry.py:
 """
 
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, MagicMock
 
 from communication.communication_channels.base.command_registry import (
     CommandDefinition,

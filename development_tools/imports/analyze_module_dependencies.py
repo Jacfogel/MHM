@@ -6,11 +6,10 @@ Audit script to verify MODULE_DEPENDENCIES_DETAIL.md completeness and accuracy.
 Scans all .py files and extracts import information for comparison.
 """
 
-import ast
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 # Add project root to path for core module imports
 # Script is at: development_tools/imports/analyze_module_dependencies.py
@@ -24,12 +23,10 @@ if str(project_root) not in sys.path:
 if __name__ != '__main__' and __package__ and '.' in __package__:
     # Running as part of a package, use relative imports
     from .. import config
-    from ..shared.standard_exclusions import should_exclude_file
     from .analyze_module_imports import ModuleImportAnalyzer
 else:
     # Running directly or not as a package, use absolute imports
     from development_tools import config
-    from development_tools.shared.standard_exclusions import should_exclude_file
     from development_tools.imports.analyze_module_imports import ModuleImportAnalyzer
 
 from core.logger import get_component_logger

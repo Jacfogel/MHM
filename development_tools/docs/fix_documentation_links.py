@@ -30,12 +30,10 @@ from core.logger import get_component_logger
 try:
     from .. import config
     from ..shared.constants import DEFAULT_DOCS
-    from ..shared.standard_exclusions import ALL_GENERATED_FILES
     from .analyze_unconverted_links import UnconvertedLinkAnalyzer
 except ImportError:
     from development_tools import config
     from development_tools.shared.constants import DEFAULT_DOCS
-    from development_tools.shared.standard_exclusions import ALL_GENERATED_FILES
     from development_tools.docs.analyze_unconverted_links import UnconvertedLinkAnalyzer
 
 # Ensure external config is loaded

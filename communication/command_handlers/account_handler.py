@@ -377,7 +377,6 @@ class AccountManagementHandler(InteractionHandler):
 # Module-level utilities for account management
 import secrets
 import string
-import time
 
 # Store pending account operations (confirmation codes, etc.)
 # Format: {channel_identifier: {operation_type: str, username: str, user_id: str, confirmation_code: str, timestamp: float}}

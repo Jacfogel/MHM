@@ -22,6 +22,7 @@ path_drift_module = load_development_tools_module("docs.analyze_path_drift")
 PathDriftAnalyzer = path_drift_module.PathDriftAnalyzer
 
 
+@pytest.mark.unit
 class TestPathDriftDetection:
     """Test path drift detection."""
     

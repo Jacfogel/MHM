@@ -8,7 +8,6 @@ and other edge cases.
 import json
 import os
 import shutil
-import stat
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 

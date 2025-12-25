@@ -12,8 +12,6 @@ This script analyzes error handling patterns across the codebase to identify:
 """
 
 import ast
-import json
-import os
 import sys
 from pathlib import Path
 from typing import Dict, List, Any, Optional

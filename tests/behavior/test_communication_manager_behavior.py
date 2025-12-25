@@ -9,7 +9,7 @@ from unittest.mock import patch, Mock, MagicMock
 import threading
 import time
 
-from communication.core.channel_orchestrator import CommunicationManager, BotInitializationError, MessageSendError
+from communication.core.channel_orchestrator import CommunicationManager
 from communication.communication_channels.base.base_channel import ChannelStatus
 from tests.test_utilities import TestUserFactory
 

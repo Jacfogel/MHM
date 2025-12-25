@@ -26,9 +26,8 @@ Usage:
     cache.save_cache()
 """
 
-import json
 from pathlib import Path
-from typing import Dict, List, Optional, Any, TypeVar
+from typing import Dict, Optional, Any, TypeVar
 
 T = TypeVar('T')  # Generic type for cached results
 

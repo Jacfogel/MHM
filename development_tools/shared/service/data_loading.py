@@ -15,7 +15,7 @@ from core.logger import get_component_logger
 logger = get_component_logger("development_tools")
 
 # Import utilities for helper functions
-from .utilities import extract_first_int, create_standard_format_result
+# Note: Uses self._create_standard_format_result method instead of imported function
 
 
 class DataLoadingMixin:

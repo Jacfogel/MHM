@@ -6,7 +6,6 @@ decorator detection, phase 1/2 candidate detection, and standard format output.
 """
 
 import pytest
-import ast
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 

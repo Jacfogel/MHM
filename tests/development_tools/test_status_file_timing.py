@@ -7,7 +7,6 @@ written once at the end, not during tool execution.
 """
 
 import sys
-import warnings
 from pathlib import Path
 import pytest
 

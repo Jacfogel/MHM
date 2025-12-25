@@ -23,7 +23,7 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Set
 
 # Add project root to path
 # Script is at: development_tools/functions/analyze_package_exports.py

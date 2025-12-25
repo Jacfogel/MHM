@@ -12,7 +12,6 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 from communication.communication_channels.base.message_formatter import (
-    MessageFormatter,
     TextMessageFormatter,
     EmailMessageFormatter,
     get_message_formatter

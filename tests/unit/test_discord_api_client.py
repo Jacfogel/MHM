@@ -10,7 +10,6 @@ Tests for communication/communication_channels/discord/api_client.py:
 """
 
 import pytest
-import asyncio
 from unittest.mock import patch, MagicMock, AsyncMock
 
 from communication.communication_channels.discord.api_client import (

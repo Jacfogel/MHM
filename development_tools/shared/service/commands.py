@@ -5,8 +5,7 @@ Contains methods for executing various CLI commands (docs, validate, config, etc
 """
 
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from core.logger import get_component_logger
 

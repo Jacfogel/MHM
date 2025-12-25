@@ -5,7 +5,6 @@ Tests coverage analysis, parsing, HTML generation, and artifact management.
 """
 
 import pytest
-import sys
 import json
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock

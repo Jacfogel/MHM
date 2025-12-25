@@ -9,9 +9,8 @@ This tool performs the fixing operation (add_markers) extracted from analyze_tes
 """
 
 import sys
-import re
 from pathlib import Path
-from typing import List, Tuple, Dict, Optional
+from typing import Dict, Optional
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent

@@ -8,7 +8,7 @@ import random
 import subprocess
 import os  # Needed for test mocking (os.path.exists)
 from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 
 from core.user_data_handlers import get_all_user_ids
 from core.schedule_management import get_schedule_time_periods

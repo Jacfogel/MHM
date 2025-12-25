@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-25 - Unused Imports Cleanup and Test Stability Improvements **COMPLETED**
+- Removed 122 unused imports across 42 files, reducing total from 499 unused imports (171 files) to 377 unused imports (129 files) - 24% reduction in imports, 25% reduction in affected files.
+- Cleaned up production code, development tools, and test files. Fixed one incorrect removal (restored `timedelta` in test_task_reminder_integration.py). Enhanced config validator to detect wrapper scripts and exclude false positives.
+- Fixed test stability issue by marking `test_dynamic_list_field_signals_dont_raise` as `@pytest.mark.no_parallel` to prevent channel monitor thread conflicts. All tests passing (3963 passed, 1 skipped, 0 failed).
+- Remaining work: 377 unused imports (56 obvious removals, 1 type-only import with TYPE_CHECKING guard, plus test mocking/infrastructure imports to keep).
+
 ### 2025-12-24 - Validation Framework Expansion and Test Quality Improvements **COMPLETED**
 - Expanded analysis validation framework from 8 to 14 tests, adding coverage for function counting accuracy, threshold validation, and recommendation quality. Fixed 2 skipped tests by using proper module loading helper.
 - Added pytest markers to all 23 validation tests for selective execution. Fixed ASCII compliance issues (2 files). All 34 validation tests passing (15 exclusion utilities + 14 validation framework + 5 false negative detection).

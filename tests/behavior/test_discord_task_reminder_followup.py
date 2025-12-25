@@ -6,11 +6,10 @@ Tests the complete Discord flow for task creation with reminder follow-up.
 
 import pytest
 from unittest.mock import patch, MagicMock
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from communication.message_processing.interaction_manager import InteractionManager
-from communication.command_handlers.shared_types import ParsedCommand
-from tasks.task_management import create_task, get_task_by_id, load_active_tasks
+from tasks.task_management import load_active_tasks
 from communication.message_processing.conversation_flow_manager import conversation_manager, FLOW_TASK_REMINDER
 from tests.test_utilities import TestUserFactory
 

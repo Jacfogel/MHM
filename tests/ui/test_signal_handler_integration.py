@@ -17,7 +17,7 @@ ensure_qt_runtime()
 
 import pytest
 from unittest.mock import patch, MagicMock
-from PySide6.QtWidgets import QApplication, QLineEdit, QCheckBox
+from PySide6.QtWidgets import QApplication, QLineEdit
 from PySide6.QtCore import Qt
 from PySide6.QtTest import QTest
 
@@ -374,6 +374,7 @@ class TestUISignalConnectionIntegrity:
     
     @pytest.mark.ui
     @pytest.mark.regression
+    @pytest.mark.no_parallel
     def test_dynamic_list_field_signals_dont_raise(self, qapp):
         """Test that DynamicListField signal handlers don't raise exceptions."""
         from ui.widgets.dynamic_list_field import DynamicListField

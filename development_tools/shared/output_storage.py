@@ -8,13 +8,12 @@ with automatic archiving and rotation support.
 """
 
 import json
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional, Any
 
 from core.logger import get_component_logger
-from .file_rotation import create_output_file, FileRotator
+from .file_rotation import FileRotator
 
 logger = get_component_logger("development_tools")
 

@@ -6,14 +6,11 @@ HTTP server to receive Discord webhook events for user-installable apps.
 
 import json
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from typing import Optional, Callable
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from communication.communication_channels.discord.webhook_handler import (
-    verify_webhook_signature,
     parse_webhook_event,
-    handle_webhook_event,
-    EVENT_APPLICATION_AUTHORIZED
+    handle_webhook_event
 )
 
 logger = get_component_logger('discord')

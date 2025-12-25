@@ -24,6 +24,7 @@ def base_account_data():
     }
 
 
+@pytest.mark.unit
 def test_validate_account_dict_coerces_features_and_normalizes_email(base_account_data):
     normalized, errors = validate_account_dict(base_account_data)
 
@@ -36,6 +37,7 @@ def test_validate_account_dict_coerces_features_and_normalizes_email(base_accoun
     }
 
 
+@pytest.mark.unit
 def test_validate_account_dict_reports_errors_when_required_fields_missing(base_account_data):
     incomplete = copy.deepcopy(base_account_data)
     incomplete.pop("user_id")
@@ -48,6 +50,7 @@ def test_validate_account_dict_reports_errors_when_required_fields_missing(base_
     assert normalized["features"]["task_management"] == "disabled"
 
 
+@pytest.mark.unit
 def test_validate_preferences_dict_retains_original_on_error():
     # Invalid category should trigger a validation error and return original payload
     prefs = {
@@ -62,6 +65,7 @@ def test_validate_preferences_dict_retains_original_on_error():
     assert normalized == prefs
 
 
+@pytest.mark.unit
 def test_validate_schedules_dict_normalizes_days_and_times():
     schedules = {
         "motivational": {
@@ -92,6 +96,7 @@ def test_validate_schedules_dict_normalizes_days_and_times():
     assert periods["evening"]["end_time"] == "00:00"
 
 
+@pytest.mark.unit
 def test_validate_messages_file_dict_filters_invalid_entries():
     data = {
         "messages": [

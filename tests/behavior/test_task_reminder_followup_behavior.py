@@ -10,14 +10,11 @@ from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
 
 from communication.message_processing.conversation_flow_manager import (
-    ConversationManager,
     conversation_manager,
-    FLOW_TASK_REMINDER,
-    FLOW_NONE
+    FLOW_TASK_REMINDER
 )
 from communication.command_handlers.task_handler import TaskManagementHandler
-from communication.command_handlers.shared_types import ParsedCommand
-from tasks.task_management import create_task, get_task_by_id, load_active_tasks
+from tasks.task_management import create_task, get_task_by_id
 from tests.test_utilities import TestUserFactory
 
 

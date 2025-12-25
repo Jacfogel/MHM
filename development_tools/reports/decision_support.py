@@ -9,7 +9,6 @@ Highlights high-complexity functions, undocumented handlers, duplicate names, an
 
 import sys
 from pathlib import Path
-import ast
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent
@@ -19,7 +18,7 @@ if str(project_root) not in sys.path:
 # Handle both relative and absolute imports
 try:
     from . import config
-    from ..functions.analyze_functions import scan_all_functions, categorize_functions
+    from ..functions.analyze_functions import scan_all_functions
 except ImportError:
     import sys
     from pathlib import Path
@@ -28,7 +27,7 @@ except ImportError:
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
     from development_tools import config
-    from development_tools.functions.analyze_functions import scan_all_functions, categorize_functions
+    from development_tools.functions.analyze_functions import scan_all_functions
 
 from core.logger import get_component_logger
 

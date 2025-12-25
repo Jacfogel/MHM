@@ -22,7 +22,7 @@ if str(project_root) not in sys.path:
 # Handle both relative and absolute imports
 try:
     from .. import config  # Go up one level from functions/ to development_tools/
-    from ..shared.common import ProjectPaths, ensure_ascii, iter_python_sources, run_cli, summary_block, write_text
+    from ..shared.common import ProjectPaths, ensure_ascii, iter_python_sources, run_cli
 except ImportError:
     import sys
     from pathlib import Path
@@ -31,7 +31,7 @@ except ImportError:
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
     from development_tools import config
-    from development_tools.shared.common import ProjectPaths, ensure_ascii, iter_python_sources, run_cli, summary_block, write_text
+    from development_tools.shared.common import ProjectPaths, ensure_ascii, iter_python_sources, run_cli
 
 # Import component logger
 from core.logger import get_component_logger

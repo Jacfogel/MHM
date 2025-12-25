@@ -4,7 +4,6 @@ import sys
 import shutil
 import tempfile
 import importlib.util
-import warnings
 from pathlib import Path
 import pytest
 

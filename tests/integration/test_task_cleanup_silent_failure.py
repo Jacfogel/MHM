@@ -7,10 +7,10 @@ because exceptions are caught.
 
 import pytest
 from unittest.mock import patch, MagicMock
-from datetime import datetime, timedelta
+from datetime import datetime
 import logging
 
-from tasks.task_management import cleanup_task_reminders, complete_task, delete_task
+from tasks.task_management import cleanup_task_reminders, complete_task
 from tests.test_utilities import TestUserFactory
 
 

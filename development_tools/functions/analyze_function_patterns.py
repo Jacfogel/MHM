@@ -11,7 +11,7 @@ if available, making this tool portable across different projects.
 
 import sys
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, Any
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent

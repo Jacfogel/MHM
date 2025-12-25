@@ -13,7 +13,7 @@ from core.user_data_handlers import get_user_data
 
 from core.service_utilities import create_reschedule_request
 from user.user_context import UserContext
-from core.error_handling import handle_errors, ValidationError, DataError
+from core.error_handling import handle_errors, ValidationError
 
 logger = get_component_logger('scheduler')
 schedule_logger = get_component_logger('main')

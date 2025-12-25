@@ -16,7 +16,7 @@ import queue
 import re
 import logging
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional
 from core.error_handling import handle_errors
 
 # Simple ANSI color codes for terminal output (works in modern PowerShell)

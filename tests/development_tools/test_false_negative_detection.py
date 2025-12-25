@@ -11,7 +11,6 @@ Test fixtures contain intentional issues that should be detected:
 """
 
 import pytest
-import argparse
 from pathlib import Path
 from unittest.mock import patch
 

@@ -14,8 +14,7 @@ from communication.core.welcome_manager import (
     has_been_welcomed,
     mark_as_welcomed,
     clear_welcomed_status,
-    get_welcome_message,
-    WELCOME_TRACKING_FILE
+    get_welcome_message
 )
 
 pytestmark = pytest.mark.no_parallel

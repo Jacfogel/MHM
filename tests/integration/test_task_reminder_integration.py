@@ -5,16 +5,14 @@ Tests the complete flow from task creation through reminder scheduling to delive
 """
 
 import pytest
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
 import time
 
 from tasks.task_management import (
     create_task, complete_task, delete_task, update_task,
-    load_active_tasks, get_task_by_id
+    load_active_tasks
 )
-from communication.command_handlers.task_handler import TaskManagementHandler
-from communication.command_handlers.shared_types import ParsedCommand, InteractionResponse
 from tests.test_utilities import TestUserFactory
 
 

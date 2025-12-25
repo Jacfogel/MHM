@@ -5,7 +5,6 @@ Tests import extraction, dependency analysis, and manual enhancement preservatio
 """
 
 import pytest
-import sys
 from pathlib import Path
 
 # Import helper from conftest

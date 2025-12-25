@@ -27,7 +27,6 @@ from core.logger import (
     compress_old_logs,
     cleanup_old_archives,
     clear_log_file_locks,
-    _get_log_paths_for_environment
 )
 
 
