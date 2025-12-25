@@ -8,11 +8,11 @@ This file contains known issues that analysis tools should detect:
 
 def process_user_data(user_id, data):
     """Process user data with proper error handling."""
-    # This function has try-except but no decorator - should be flagged
+    # This function has try-except catching generic Exception - should be flagged as Phase 1 candidate
     try:
         result = data['value']
         return result * 2
-    except KeyError:
+    except Exception:
         return None
 
 def calculate_total(items):

@@ -36,6 +36,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-24 - Validation Framework Expansion and Test Quality Improvements **COMPLETED**
+- Expanded analysis validation framework from 8 to 14 tests, adding coverage for function counting accuracy, threshold validation, and recommendation quality. Fixed 2 skipped tests by using proper module loading helper.
+- Added pytest markers to all 23 validation tests for selective execution. Fixed ASCII compliance issues (2 files). All 34 validation tests passing (15 exclusion utilities + 14 validation framework + 5 false negative detection).
+- Full test suite: 3964 passed, 1 skipped (intentional), 0 failed. Validation framework now comprehensively verifies analysis tool accuracy.
+
 ### 2025-12-24 - Analysis Logic Validation and False Negative Detection **COMPLETED**
 - Created comprehensive false negative detection test suite (5 tests) to verify analysis tools correctly detect known issues. All tests passing, confirming error handling, documentation, and path drift detection work correctly.
 - Fixed Qt threading crash during audit test execution by skipping cleanup thread creation in test environment. Full audit now completes successfully (~5.5 minutes) instead of timing out after 12 minutes with fatal exceptions.
@@ -44,12 +49,12 @@ Guidelines:
 - Added 150+ new tests across 8 test files for development tools modules: ASCII compliance, function analysis, heading numbering, unconverted links, documentation fixes, and project cleanup. Fixed test hangs by replacing expensive directory scans with targeted single-file tests and proper mocking.
 - Enhanced UI test thread safety by stopping all background threads (channel monitor, email polling, retry manager) and patching thread starters to prevent crashes during parallel execution. Fixed method name errors in thread patching.
 - Increased pytest timeout from 10 minutes to 12 minutes to account for coverage collection overhead. Enhanced coverage file handling to gracefully combine shard files when main coverage file is missing due to timeout.
-- Development tools test coverage increased from 42.6% to 46.4% (7987 → 8688 statements covered, +701). Total of 260+ tests across 17 test files. **Note**: Skipped test count increased from 1 to 3 (2 intentional, 1 to be investigated).
+- Development tools test coverage increased from 42.6% to 46.4% (7987 -> 8688 statements covered, +701). Total of 260+ tests across 17 test files. **Note**: Skipped test count increased from 1 to 3 (2 intentional, 1 to be investigated).
 
 ### 2025-12-24 - Development Tools Test Coverage Expansion **COMPLETED**
 - Added 168 new tests across 9 test files for development tools modules that previously had 0% or low coverage: error handling analysis, function registry, module dependencies, unused imports, decision support, directory tree generation, error handling recommendations/reports, and function docstring generation.
 - Fixed test hangs by mocking `multiprocessing.Pool` in `test_analyze_unused_imports.py` to prevent actual subprocess calls during parallel file processing tests.
-- Development tools test coverage increased from 34.7% to 42.6% (6506 → 7987 of 18741 statements, +1481 statements). All 168 tests pass. Progress toward 60%+ target.
+- Development tools test coverage increased from 34.7% to 42.6% (6506 -> 7987 of 18741 statements, +1481 statements). All 168 tests pass. Progress toward 60%+ target.
 
 ### 2025-12-23 - Windows DLL Error Fix for Pytest Subprocess Execution **COMPLETED**
 - Fixed pytest subprocess execution on Windows causing `STATUS_DLL_NOT_FOUND` errors during no_parallel test execution. Added `_ensure_python_path_in_env()` helper to ensure PATH includes Python executable's directory for all subprocess calls.
@@ -58,7 +63,7 @@ Guidelines:
 
 ### 2025-12-22 - Priority Generation Enhancements and Documentation Fixes **COMPLETED**
 - Enhanced AI_PRIORITIES.md generation to include test markers (Tier 3 priority) and unused imports (Tier 1/2 priority) with detailed breakdowns. Removed test markers from Quick Wins to avoid duplication.
-- Fixed ASCII compliance issues (replaced ≤ with <= in 4 files) and path drift false positive (added "extraction" to skip list). All documentation quality checks now pass.
+- Fixed ASCII compliance issues (replaced <= with <= in 4 files) and path drift false positive (added "extraction" to skip list). All documentation quality checks now pass.
 - AI_PRIORITIES.md now provides complete visibility into all actionable issues with proper prioritization.
 
 ### 2025-12-21 - Audit Tier Reorganization Based on Execution Times **COMPLETED**

@@ -2,25 +2,25 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-24 20:17:23
+> **Last Generated**: 2025-12-25 01:14:31
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 392
-- **Files with Unused Imports**: 169
-- **Total Unused Imports**: 494
+- **Total Files Scanned**: 395
+- **Files with Unused Imports**: 171
+- **Total Unused Imports**: 499
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 168 imports
+- **Obvious Unused**: 172 imports
 - **Type Hints Only**: 2 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 9 imports
 - **Star Imports**: 0 imports
 - **Test Mocking**: 145 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 113 imports
+- **Test Infrastructure**: 114 imports
 - **Production Test Mocking**: 3 imports
 - **Ui Imports**: 0 imports
 
@@ -399,6 +399,19 @@
 - **Line 12**: Unused demo_project_root imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 - **Line 12**: Unused test_config_path imported from tests.development_tools.conftest
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_analysis_validation_framework.py`
+
+**Count**: 4 unused import(s)
+
+- **Line 18**: Unused Dict imported from typing
+  - Symbol: `unused-import`
+- **Line 18**: Unused List imported from typing
+  - Symbol: `unused-import`
+- **Line 18**: Unused Any imported from typing
+  - Symbol: `unused-import`
+- **Line 20**: Unused demo_project_root imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_analyze_ai_work.py`
@@ -2032,6 +2045,13 @@
 **Count**: 1 unused import(s)
 
 - **Line 10**: Unused import shutil
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_exclusion_utilities.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 9**: Unused Path imported from pathlib
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_false_negative_detection.py`

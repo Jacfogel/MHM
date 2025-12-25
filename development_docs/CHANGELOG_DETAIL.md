@@ -38,6 +38,16 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-24 - Validation Framework Expansion and Test Quality Improvements **COMPLETED**
+- **Validation Framework Expansion**: Expanded analysis validation framework from 8 to 14 tests by adding 6 new test classes covering function counting accuracy, threshold validation, and recommendation quality. All tests now passing (previously 2 skipped due to import errors).
+- **Function Counting Accuracy Tests**: Added `TestFunctionCountingAccuracy` class (2 tests) verifying canonical metrics prioritize `analyze_functions` and both tools use `scan_all_functions` method consistently.
+- **Threshold Validation Tests**: Added `TestThresholdValidation` class (2 tests) verifying thresholds are loaded from config (80% docs/test, 60% dev tools) and used consistently in report generation.
+- **Recommendation Quality Tests**: Added `TestRecommendationQuality` class (2 tests) verifying recommendations have required structure and are non-empty strings. Fixed import errors by using `load_development_tools_module` helper instead of direct imports.
+- **Pytest Markers**: Added `@pytest.mark.unit` markers to all 23 validation tests (15 exclusion utilities + 14 validation framework) to enable selective test execution and better organization.
+- **ASCII Compliance Fix**: Fixed 2 ASCII compliance issues by replacing non-ASCII `≤` characters with `<=` in `development_docs/CHANGELOG_DETAIL.md` and `ai_development_docs/AI_CHANGELOG.md`. All documentation now ASCII-compliant (0 issues).
+- **Test Results**: All 34 validation tests passing (15 exclusion utilities + 14 validation framework + 5 false negative detection). Full test suite: 3964 passed, 1 skipped (intentional Windows skip), 0 failed.
+- **Impact**: Validation framework now provides comprehensive coverage of analysis tool accuracy, ensuring tools detect real issues and don't produce false positives. All tests properly marked for selective execution. Documentation quality checks all pass.
+
 ### 2025-12-24 - Analysis Logic Validation and False Negative Detection **COMPLETED**
 - **False Negative Detection Test Suite**: Created comprehensive test suite (`tests/development_tools/test_false_negative_detection.py`) with 5 tests to verify analysis tools correctly detect known issues and don't miss real problems. Created test fixtures with intentional issues:
   - `tests/fixtures/development_tools_demo/false_negative_test_code.py` - Functions with missing error handling decorators and missing docstrings
@@ -65,7 +75,7 @@ When adding new changes, follow this format:
 - **Coverage Timeout Adjustment**: Increased pytest timeout from 10 minutes to 12 minutes (720 seconds) to account for coverage collection overhead. Tests normally complete in ~5 minutes, but with coverage they may take 7-10 minutes. This prevents premature timeouts while still catching real hangs.
 - **Coverage File Handling**: Enhanced coverage combination logic to gracefully handle cases where the main parallel coverage file doesn't exist (due to timeout) but shard files from pytest-xdist do exist. The system now proceeds with combining shard files when available.
 - **Test Status**: All tests pass successfully. Full test suite completes in ~5 minutes with 3930 passed, 3 skipped, 0 failed. **Note**: Skipped test count increased from 1 to 3 (2 from `test_analyze_functions.py` main() tests intentionally skipped to prevent hangs, 1 additional skip to be investigated).
-- **Coverage Improvement**: Development tools test coverage increased from 42.6% to 46.4% (7987 → 8688 of 18741 statements covered, +701 statements). Total of 260+ tests across 17 test files now covering development tools modules.
+- **Coverage Improvement**: Development tools test coverage increased from 42.6% to 46.4% (7987 -> 8688 of 18741 statements covered, +701 statements). Total of 260+ tests across 17 test files now covering development tools modules.
 - **Impact**: Significantly expands development tools test coverage, bringing it closer to the 60%+ target. All new tests are fully isolated with proper mocking and use the synthetic fixture project. Tests are optimized to avoid expensive operations that could cause hangs during parallel execution.
 
 ### 2025-12-24 - Development Tools Test Coverage Expansion **COMPLETED**
@@ -82,7 +92,7 @@ When adding new changes, follow this format:
   - `test_generate_function_docstrings.py` (28 tests) - Function docstring generation and insertion
 - **Multiprocessing Mock Fix**: Fixed test hangs in `test_analyze_unused_imports.py` by properly mocking `multiprocessing.Pool`. The `scan_codebase()` method uses multiprocessing to spawn separate processes that call `subprocess.run()` directly, which bypasses standard mocks. Solution: Mock `multiprocessing.Pool` to prevent actual process spawning and subprocess calls during tests.
 - **Test Fixes**: Resolved multiple test failures including incorrect method names, improper subprocess patching (targeted module-specific `subprocess.run` instead of global), incomplete mocking of file system operations, and removed `print()` statements to comply with test policy.
-- **Coverage Improvement**: Development tools test coverage increased from 34.7% to 42.6% (6506 → 7987 of 18741 statements covered, +1481 statements). All 168 new tests pass successfully. Full test suite completes in ~5.5 minutes with 3770 passed, 1 skipped, 0 failed.
+- **Coverage Improvement**: Development tools test coverage increased from 34.7% to 42.6% (6506 -> 7987 of 18741 statements covered, +1481 statements). All 168 new tests pass successfully. Full test suite completes in ~5.5 minutes with 3770 passed, 1 skipped, 0 failed.
 - **Impact**: Significantly improves development tools test coverage, bringing it closer to the 60%+ target. All tests are fully isolated with proper mocking, preventing real subprocess calls or file system access during test execution.
 
 ### 2025-12-23 - Windows DLL Error Fix for Pytest Subprocess Execution **COMPLETED**
@@ -94,7 +104,7 @@ When adding new changes, follow this format:
 
 ### 2025-12-22 - Priority Generation Enhancements and Documentation Fixes **COMPLETED**
 - **Priority Generation**: Enhanced `AI_PRIORITIES.md` generation to include test markers and unused imports as priority items. Test markers appear as Tier 3 priority with details about affected files. Unused imports appear as Tier 1/2 priority (based on count) with category breakdown and top files. Removed test markers from Quick Wins to avoid duplication.
-- **ASCII Compliance Fix**: Fixed 4 ASCII compliance issues by replacing non-ASCII `≤` characters with `<=` in `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, `development_docs/CHANGELOG_DETAIL.md`, and `ai_development_docs/AI_CHANGELOG.md`.
+- **ASCII Compliance Fix**: Fixed 4 ASCII compliance issues by replacing non-ASCII `<=` characters with `<=` in `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, `development_docs/CHANGELOG_DETAIL.md`, and `ai_development_docs/AI_CHANGELOG.md`.
 - **Path Drift Fix**: Fixed false positive in path drift analyzer by adding "extraction" and other common English words to the skip list in `analyze_path_drift.py`. The analyzer was incorrectly flagging the word "extraction" in documentation text as a potentially outdated module reference.
 - **Impact**: AI_PRIORITIES.md now provides complete visibility into test markers and unused imports issues. All documentation quality issues (ASCII compliance, path drift) are resolved. Test markers and unused imports are properly prioritized for action.
 

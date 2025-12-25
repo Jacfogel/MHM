@@ -12,6 +12,11 @@ from .standard_exclusions import (
     get_analysis_exclusions,
     get_documentation_exclusions,
 )
+from .exclusion_utilities import (
+    is_auto_generated_code,
+    is_special_python_method,
+    is_test_function,
+)
 from .constants import (
     is_local_module,
     is_standard_library_module,
@@ -24,6 +29,10 @@ __all__ = [
     'get_coverage_exclusions',
     'get_analysis_exclusions',
     'get_documentation_exclusions',
+    # Function/code exclusion utilities
+    'is_auto_generated_code',
+    'is_special_python_method',
+    'is_test_function',
     # Module classification
     'is_local_module',
     'is_standard_library_module',

@@ -27,9 +27,19 @@ from core.logger import get_component_logger
 try:
     from .. import config  # Go up one level from functions/ to development_tools/
     from ..shared.standard_exclusions import should_exclude_file
+    from ..shared.exclusion_utilities import (
+        is_auto_generated_code,
+        is_special_python_method,
+        is_test_function,
+    )
 except ImportError:
     from development_tools import config
     from development_tools.shared.standard_exclusions import should_exclude_file
+    from development_tools.shared.exclusion_utilities import (
+        is_auto_generated_code,
+        is_special_python_method,
+        is_test_function,
+    )
 
 # Ensure external config is loaded
 config.load_external_config()
@@ -60,108 +70,8 @@ HIGH_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get('high_complexity_threshold', 100
 CRITICAL_COMPLEXITY = FUNCTION_DISCOVERY_CONFIG.get('critical_complexity_threshold', 200)
 
 
-@handle_errors("checking if code is auto-generated", default_return=False)
-def is_auto_generated_code(file_path: str, func_name: str) -> bool:
-    """
-    Determine if a function is in auto-generated code that should be excluded from complexity analysis.
-    
-    Args:
-        file_path: Path to the file containing the function
-        func_name: Name of the function
-        
-    Returns:
-        True if the function should be excluded from complexity analysis
-    """
-    # Exclude PyQt auto-generated files
-    if 'generated' in file_path and '_pyqt.py' in file_path:
-        return True
-    
-    # Exclude specific auto-generated function patterns
-    auto_generated_patterns = {
-        'setupUi',  # PyQt UI setup functions
-        'retranslateUi',  # PyQt translation functions
-        'setup_ui',  # Alternative PyQt setup
-        'retranslate_ui',  # Alternative PyQt translation
-    }
-    
-    if func_name in auto_generated_patterns:
-        return True
-    
-    # Exclude files in generated directories
-    if '/generated/' in file_path or '\\generated\\' in file_path:
-        return True
-    
-    # Exclude files with auto-generated patterns in name
-    auto_generated_file_patterns = [
-        '_pyqt.py',  # PyQt generated files
-        '_ui.py',    # UI generated files
-        '_generated.py',  # Explicitly generated files
-        '_auto.py',  # Auto-generated files
-    ]
-    
-    for pattern in auto_generated_file_patterns:
-        if file_path.endswith(pattern):
-            return True
-    
-    # Exclude functions with auto-generated naming patterns
-    auto_generated_func_patterns = [
-        'setup_ui_',  # UI setup functions
-        'retranslate_ui_',  # UI translation functions
-        '_generated_',  # Functions with generated in name
-        '_auto_',  # Functions with auto in name
-    ]
-    
-    for pattern in auto_generated_func_patterns:
-        if pattern in func_name:
-            return True
-    
-    return False
-
-
-@handle_errors("checking if method is special Python method", default_return=False)
-def is_special_python_method(func_name: str, complexity: int) -> bool:
-    """
-    Determine if a function is a special Python method that should be excluded from undocumented count.
-    
-    Args:
-        func_name: Name of the function
-        complexity: Complexity score of the function
-        
-    Returns:
-        True if the function should be excluded from undocumented count
-    """
-    # Special methods that should be excluded from undocumented count
-    special_methods = {
-        '__new__',  # Singleton patterns
-        '__post_init__',  # Dataclass post-init
-        '__repr__',  # String representation
-        '__str__',  # String conversion
-        '__hash__',  # Hashing
-        '__eq__',  # Equality comparison
-        '__lt__', '__le__', '__gt__', '__ge__',  # Comparison methods
-        '__len__',  # Length
-        '__bool__',  # Boolean conversion
-        '__call__',  # Callable
-        '__getitem__', '__setitem__', '__delitem__',  # Item access
-        '__iter__', '__next__',  # Iteration
-        '__contains__',  # Membership testing
-        '__add__', '__sub__', '__mul__', '__truediv__',  # Arithmetic
-        '__radd__', '__rsub__', '__rmul__', '__rtruediv__',  # Reverse arithmetic
-        '__iadd__', '__isub__', '__imul__', '__itruediv__',  # In-place arithmetic
-    }
-    
-    # Context manager methods (these should be documented)
-    context_methods = {'__enter__', '__exit__'}
-    
-    # Simple __init__ methods (complexity < 20) can be excluded
-    if func_name == '__init__' and complexity < 20:
-        return True
-    
-    # Exclude special methods but not context managers
-    if func_name in special_methods and func_name not in context_methods:
-        return True
-    
-    return False
+# Note: is_auto_generated_code, is_special_python_method, and is_test_function
+# are now imported from shared.exclusion_utilities for consistency across tools.
 
 
 @handle_errors("extracting decorator documentation", default_return="")
@@ -306,7 +216,7 @@ def extract_functions(file_path: str) -> List[Dict]:
                 ]
                 complexity = len(list(ast.walk(node)))
                 is_handler = any(k in name.lower() for k in HANDLER_KEYWORDS)
-                is_test = any(k in name.lower() for k in TEST_KEYWORDS)
+                is_test = is_test_function(name, file_path)
                 is_special = is_special_python_method(name, complexity)
                 
                 functions.append({

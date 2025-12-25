@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2025-12-24 20:18:17",
+  "last_generated": "2025-12-25 01:16:39",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2025-12-24T20:18:17.874713",
+  "timestamp": "2025-12-25T01:16:39.519004",
   "successful": [
     "analyze_functions",
     "analyze_function_patterns",
@@ -164,7 +164,7 @@
           ]
         }
       },
-      "timestamp": "2025-12-24T20:10:25.672170"
+      "timestamp": "2025-12-25T01:05:34.452351"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -2117,7 +2117,7 @@
           ]
         }
       },
-      "timestamp": "2025-12-24T20:10:23.145938"
+      "timestamp": "2025-12-25T01:05:29.517076"
     },
     "analyze_function_registry": {
       "success": true,
@@ -21949,7 +21949,7 @@
           "total_issues": 2797
         }
       },
-      "timestamp": "2025-12-24T20:10:27.639302"
+      "timestamp": "2025-12-25T01:05:37.177576"
     },
     "analyze_package_exports": {
       "success": true,
@@ -28916,14 +28916,11 @@
     "analyze_ascii_compliance": {
       "success": true,
       "data": {
-        "files": {
-          "development_docs/CHANGELOG_DETAIL.md": 2,
-          "ai_development_docs/AI_CHANGELOG.md": 2
-        },
-        "file_count": 2,
-        "total_issues": 4
+        "files": {},
+        "file_count": 0,
+        "total_issues": 0
       },
-      "timestamp": "2025-12-24T20:10:31.957274"
+      "timestamp": "2025-12-25T01:05:41.916467"
     },
     "analyze_documentation": {
       "success": true,
@@ -28964,7 +28961,7 @@
                 "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.19168125750811993,
+              "similarity_score": 0.1916708071253776,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -29177,20 +29174,20 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 154339,
+              "content_length": 154884,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n\n\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent ch",
-              "section_count": 180,
+              "section_count": 181,
               "sections": [
                 "Introduction",
                 "Overview",
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2025-12-24 - Analysis Logic Validation and False Negative Detection **COMPLETED**",
                 "2025-12-24 - Development Tools Test Coverage Expansion (Phase 2) **COMPLETED**",
                 "2025-12-24 - Development Tools Test Coverage Expansion **COMPLETED**",
                 "2025-12-23 - Windows DLL Error Fix for Pytest Subprocess Execution **COMPLETED**",
-                "2025-12-22 - Priority Generation Enhancements and Documentation Fixes **COMPLETED**",
-                "2025-12-21 - Audit Tier Reorganization Based on Execution Times **COMPLETED**"
+                "2025-12-22 - Priority Generation Enhancements and Documentation Fixes **COMPLETED**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -29376,9 +29373,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 971891,
+              "content_length": 973724,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 333,
+              "section_count": 334,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -29386,10 +29383,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2025-12-24 - Analysis Logic Validation and False Negative Detection **COMPLETED**",
                 "2025-12-24 - Development Tools Test Coverage Expansion (Phase 2) **COMPLETED**",
                 "2025-12-24 - Development Tools Test Coverage Expansion **COMPLETED**",
-                "2025-12-23 - Windows DLL Error Fix for Pytest Subprocess Execution **COMPLETED**",
-                "2025-12-22 - Priority Generation Enhancements and Documentation Fixes **COMPLETED**"
+                "2025-12-23 - Windows DLL Error Fix for Pytest Subprocess Execution **COMPLETED**"
               ]
             },
             "development_docs/PLANS.md": {
@@ -29611,20 +29608,20 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2025-12-24T20:10:21.966020"
+      "timestamp": "2025-12-25T01:05:29.258972"
     },
     "analyze_documentation_sync": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 4,
+          "total_issues": 0,
           "files_affected": 0,
-          "status": "FAIL"
+          "status": "PASS"
         },
         "details": {
           "paired_doc_issues": 0,
           "path_drift_issues": 0,
-          "ascii_compliance_issues": 4,
+          "ascii_compliance_issues": 0,
           "heading_numbering_issues": 0,
           "missing_address_issues": 0,
           "unconverted_link_issues": 0,
@@ -29636,12 +29633,9 @@
             "detailed_issues": {}
           },
           "ascii_compliance": {
-            "files": {
-              "development_docs/CHANGELOG_DETAIL.md": 2,
-              "ai_development_docs/AI_CHANGELOG.md": 2
-            },
-            "file_count": 2,
-            "total_issues": 4
+            "files": {},
+            "file_count": 0,
+            "total_issues": 0
           },
           "heading_numbering": {
             "files": {},
@@ -29660,7 +29654,7 @@
           }
         }
       },
-      "timestamp": "2025-12-24T20:10:35.899780"
+      "timestamp": "2025-12-25T01:05:47.223668"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -29669,7 +29663,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-24T20:10:32.947195"
+      "timestamp": "2025-12-25T01:05:43.274104"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -29678,7 +29672,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-24T20:10:34.692334"
+      "timestamp": "2025-12-25T01:05:45.388614"
     },
     "analyze_path_drift": {
       "success": true,
@@ -29687,7 +29681,7 @@
         "total_issues": 0,
         "detailed_issues": {}
       },
-      "timestamp": "2025-12-24T20:10:30.601304"
+      "timestamp": "2025-12-25T01:05:40.516138"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -29696,7 +29690,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2025-12-24T20:10:35.734199"
+      "timestamp": "2025-12-25T01:05:47.083957"
     },
     "analyze_error_handling": {
       "success": true,
@@ -29718,18 +29712,18 @@
             "handle_configuration_error": 4,
             "ConfigurationError": 6,
             "ValidationError": 15,
-            "error_handler_usage": 8,
             "handle_communication_error": 4,
+            "error_handler_usage": 8,
             "handle_network_error": 5,
             "handle_validation_error": 2,
             "handle_ai_error": 16,
             "handle_file_error": 3,
             "AIError": 2,
-            "FileOperationError": 11,
-            "CommunicationError": 2,
-            "safe_file_operation": 1,
+            "DataError": 14,
             "MHMError": 2,
-            "DataError": 14
+            "safe_file_operation": 1,
+            "CommunicationError": 2,
+            "FileOperationError": 11
           },
           "missing_error_handling": [
             {
@@ -29788,7 +29782,7 @@
           ]
         }
       },
-      "timestamp": "2025-12-24T20:10:26.597655"
+      "timestamp": "2025-12-25T01:05:35.098884"
     },
     "analyze_test_coverage": {
       "success": true,
@@ -29799,17 +29793,17 @@
         },
         "details": {
           "overall": {
-            "coverage": 73.0,
+            "coverage": 72.8,
             "statements": 27168,
-            "covered": 19839,
-            "missed": 7329,
-            "generated": "2025-12-24T20:16:21.167434"
+            "covered": 19776,
+            "missed": 7392,
+            "generated": "2025-12-25T01:12:57.584803"
           },
           "modules": [
             {
               "module": "communication",
-              "coverage": 69.9,
-              "missed": 2644
+              "coverage": 69.8,
+              "missed": 2652
             },
             {
               "module": "ui",
@@ -29818,13 +29812,13 @@
             },
             {
               "module": "core",
-              "coverage": 73.6,
-              "missed": 2538
+              "coverage": 73.2,
+              "missed": 2582
             },
             {
               "module": "ai",
-              "coverage": 79.0,
-              "missed": 358
+              "coverage": 78.4,
+              "missed": 369
             },
             {
               "module": "tasks",
@@ -29849,24 +29843,24 @@
               "missing": 680
             },
             {
+              "path": "core/file_locking.py",
+              "coverage": 59.4,
+              "missing": 52
+            },
+            {
               "path": "communication/core/channel_orchestrator.py",
-              "coverage": 60.8,
-              "missing": 402
+              "coverage": 60.7,
+              "missing": 403
             },
             {
               "path": "ui/widgets/checkin_settings_widget.py",
               "coverage": 61.3,
               "missing": 67
-            },
-            {
-              "path": "core/service.py",
-              "coverage": 61.5,
-              "missing": 268
             }
           ]
         }
       },
-      "timestamp": "2025-12-24T20:16:24.156824"
+      "timestamp": "2025-12-25T01:13:01.072522"
     },
     "analyze_test_markers": {
       "success": true,
@@ -29923,15 +29917,15 @@
           }
         ]
       },
-      "timestamp": "2025-12-24T20:18:13.098649"
+      "timestamp": "2025-12-25T01:15:35.510597"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "overall": {
-          "overall_coverage": 46.4,
-          "total_statements": 18784,
-          "total_missed": 10066
+          "overall_coverage": 46.6,
+          "total_statements": 18812,
+          "total_missed": 10037
         },
         "modules": {
           "development_tools\\__init__.py": {
@@ -30145,13 +30139,14 @@
           },
           "development_tools\\docs\\analyze_ascii_compliance.py": {
             "statements": 106,
-            "missed": 39,
-            "coverage": 63,
+            "missed": 40,
+            "coverage": 62,
             "missing_lines": [
               "27",
               "35",
               "41",
               "42",
+              "143",
               "163",
               "176",
               "177",
@@ -30188,7 +30183,7 @@
               "271",
               "273"
             ],
-            "covered": 67
+            "covered": 66
           },
           "development_tools\\docs\\analyze_documentation.py": {
             "statements": 300,
@@ -30482,7 +30477,7 @@
           },
           "development_tools\\docs\\analyze_missing_addresses.py": {
             "statements": 129,
-            "missed": 55,
+            "missed": 56,
             "coverage": 57,
             "missing_lines": [
               "26",
@@ -30496,6 +30491,7 @@
               "93",
               "94",
               "123",
+              "128",
               "135",
               "136",
               "137",
@@ -30541,12 +30537,12 @@
               "253",
               "255"
             ],
-            "covered": 74
+            "covered": 73
           },
           "development_tools\\docs\\analyze_path_drift.py": {
             "statements": 382,
-            "missed": 137,
-            "coverage": 64,
+            "missed": 126,
+            "coverage": 67,
             "missing_lines": [
               "28",
               "43",
@@ -30561,8 +30557,6 @@
               "174",
               "186",
               "190",
-              "194",
-              "204",
               "209",
               "210",
               "212",
@@ -30579,7 +30573,6 @@
               "275",
               "279",
               "283",
-              "292",
               "294",
               "302",
               "304",
@@ -30589,12 +30582,9 @@
               "310",
               "314",
               "318",
-              "341",
               "345",
               "351",
               "360",
-              "369",
-              "370",
               "373",
               "374",
               "378",
@@ -30608,9 +30598,6 @@
               "417",
               "421",
               "433",
-              "438",
-              "439",
-              "440",
               "443",
               "444",
               "445",
@@ -30641,11 +30628,9 @@
               "528",
               "529",
               "549",
-              "553",
               "574",
               "575",
               "579",
-              "583",
               "611",
               "612",
               "613",
@@ -30686,7 +30671,7 @@
               "770",
               "772"
             ],
-            "covered": 245
+            "covered": 256
           },
           "development_tools\\docs\\analyze_unconverted_links.py": {
             "statements": 280,
@@ -31861,99 +31846,99 @@
             "covered": 373
           },
           "development_tools\\functions\\analyze_functions.py": {
-            "statements": 361,
+            "statements": 336,
             "missed": 87,
-            "coverage": 76,
+            "coverage": 74,
             "missing_lines": [
               "21",
-              "30",
-              "31",
-              "32",
-              "116",
-              "187",
-              "188",
-              "191",
-              "192",
-              "193",
-              "194",
-              "195",
-              "196",
-              "197",
+              "35",
+              "36",
+              "37",
+              "38",
+              "97",
+              "98",
+              "101",
+              "102",
+              "103",
+              "104",
+              "105",
+              "106",
+              "107",
+              "119",
+              "123",
+              "135",
+              "147",
+              "150",
+              "151",
+              "152",
+              "153",
+              "155",
+              "161",
+              "163",
+              "165",
               "209",
-              "213",
-              "225",
-              "237",
-              "240",
-              "241",
-              "242",
-              "243",
-              "245",
-              "251",
-              "253",
-              "255",
-              "299",
-              "325",
-              "326",
-              "460",
-              "461",
+              "235",
+              "236",
+              "370",
+              "371",
+              "382",
+              "395",
+              "425",
+              "441",
               "472",
+              "475",
+              "478",
+              "479",
+              "481",
+              "484",
               "485",
-              "515",
-              "531",
-              "562",
-              "565",
+              "486",
+              "487",
+              "490",
+              "491",
+              "492",
+              "493",
+              "495",
+              "498",
+              "499",
+              "500",
+              "501",
+              "502",
+              "504",
+              "505",
+              "508",
+              "510",
+              "511",
+              "513",
+              "547",
+              "553",
+              "556",
+              "567",
               "568",
               "569",
               "571",
+              "573",
               "574",
               "575",
               "576",
-              "577",
+              "579",
               "580",
               "581",
-              "582",
-              "583",
-              "585",
+              "584",
+              "587",
               "588",
               "589",
               "590",
               "591",
-              "592",
-              "594",
-              "595",
-              "598",
-              "600",
-              "601",
-              "603",
-              "637",
-              "643",
-              "646",
+              "617",
+              "618",
+              "623",
+              "624",
+              "648",
               "657",
-              "658",
-              "659",
-              "661",
-              "663",
-              "664",
-              "665",
-              "666",
-              "669",
-              "670",
-              "671",
-              "674",
-              "677",
-              "678",
-              "679",
-              "680",
-              "681",
-              "707",
-              "708",
-              "713",
-              "714",
-              "738",
-              "747",
-              "752"
+              "662"
             ],
-            "covered": 274
+            "covered": 249
           },
           "development_tools\\functions\\analyze_package_exports.py": {
             "statements": 308,
@@ -33569,8 +33554,8 @@
           },
           "development_tools\\legacy\\analyze_legacy_references.py": {
             "statements": 336,
-            "missed": 156,
-            "coverage": 54,
+            "missed": 157,
+            "coverage": 53,
             "missing_lines": [
               "27",
               "35",
@@ -33597,6 +33582,7 @@
               "152",
               "153",
               "155",
+              "160",
               "176",
               "179",
               "182",
@@ -33729,7 +33715,7 @@
               "617",
               "618"
             ],
-            "covered": 180
+            "covered": 179
           },
           "development_tools\\legacy\\fix_legacy_references.py": {
             "statements": 160,
@@ -34305,11 +34291,11 @@
             "covered": 70
           },
           "development_tools\\shared\\__init__.py": {
-            "statements": 3,
+            "statements": 4,
             "missed": 0,
             "coverage": 100,
             "missing_lines": [],
-            "covered": 3
+            "covered": 4
           },
           "development_tools\\shared\\cli_interface.py": {
             "statements": 245,
@@ -34597,6 +34583,16 @@
               "296"
             ],
             "covered": 83
+          },
+          "development_tools\\shared\\exclusion_utilities.py": {
+            "statements": 52,
+            "missed": 2,
+            "coverage": 96,
+            "missing_lines": [
+              "41",
+              "42"
+            ],
+            "covered": 50
           },
           "development_tools\\shared\\file_rotation.py": {
             "statements": 149,
@@ -35341,11 +35337,11 @@
               "933",
               "936",
               "937",
-              "948",
-              "949",
               "950",
-              "951",
+              "953",
+              "954",
               "955",
+              "956",
               "957",
               "958",
               "972",
@@ -35959,8 +35955,8 @@
           },
           "development_tools\\shared\\service\\data_loading.py": {
             "statements": 835,
-            "missed": 694,
-            "coverage": 17,
+            "missed": 671,
+            "coverage": 20,
             "missing_lines": [
               "74",
               "75",
@@ -35983,30 +35979,8 @@
               "161",
               "162",
               "163",
-              "167",
-              "171",
-              "175",
-              "179",
-              "180",
-              "181",
-              "182",
-              "183",
-              "186",
-              "187",
-              "188",
-              "189",
-              "191",
-              "192",
               "194",
-              "195",
               "196",
-              "197",
-              "198",
-              "199",
-              "200",
-              "201",
-              "202",
-              "205",
               "206",
               "207",
               "208",
@@ -36019,7 +35993,6 @@
               "215",
               "216",
               "217",
-              "220",
               "221",
               "222",
               "223",
@@ -36657,7 +36630,7 @@
               "1190",
               "1193"
             ],
-            "covered": 141
+            "covered": 164
           },
           "development_tools\\shared\\service\\report_generation.py": {
             "statements": 2924,
@@ -40609,7 +40582,7 @@
         "output_file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_tools\\tests\\jsons\\coverage_dev_tools.json",
         "html_dir": null
       },
-      "timestamp": "2025-12-24T20:18:11.779314"
+      "timestamp": "2025-12-25T01:15:33.767029"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -43436,6 +43409,12 @@
               ]
             },
             {
+              "file": "tests/development_tools/test_analysis_validation_framework.py",
+              "dependencies": [
+                "pytest"
+              ]
+            },
+            {
               "file": "tests/development_tools/test_analyze_ai_work.py",
               "dependencies": [
                 "pytest"
@@ -43533,6 +43512,12 @@
             },
             {
               "file": "tests/development_tools/test_error_scenarios.py",
+              "dependencies": [
+                "pytest"
+              ]
+            },
+            {
+              "file": "tests/development_tools/test_exclusion_utilities.py",
               "dependencies": [
                 "pytest"
               ]
@@ -45774,6 +45759,19 @@
               ]
             },
             {
+              "file": "tests/development_tools/test_analysis_validation_framework.py",
+              "import_count": 7,
+              "modules": [
+                "tests.development_tools.conftest",
+                "development_tools.shared.standard_exclusions",
+                "development_tools.shared.service.data_loading",
+                "development_tools.shared.service",
+                "development_tools.shared.service.report_generation",
+                "development_tools.shared.service",
+                "development_tools"
+              ]
+            },
+            {
               "file": "tests/development_tools/test_generate_function_registry.py",
               "import_count": 14,
               "modules": [
@@ -46434,25 +46432,26 @@
           ]
         }
       },
-      "timestamp": "2025-12-24T20:10:28.433596"
+      "timestamp": "2025-12-25T01:05:37.778840"
     },
     "analyze_module_dependencies": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 40,
+          "total_issues": 44,
           "files_affected": 0
         },
         "details": {
-          "files_scanned": 361,
-          "total_imports": 3994,
+          "files_scanned": 363,
+          "total_imports": 4011,
           "documented_dependencies": 341,
-          "standard_library": 1395,
-          "third_party": 598,
-          "local_imports": 2001,
-          "missing_dependencies": 20,
+          "standard_library": 1402,
+          "third_party": 600,
+          "local_imports": 2009,
+          "missing_dependencies": 22,
           "missing_files": [],
           "missing_sections": [
+            "tests/development_tools/test_analysis_validation_framework.py",
             "tests/development_tools/test_analyze_ascii_compliance.py",
             "tests/development_tools/test_analyze_error_handling.py",
             "tests/development_tools/test_analyze_function_registry.py",
@@ -46462,6 +46461,7 @@
             "tests/development_tools/test_analyze_unconverted_links.py",
             "tests/development_tools/test_analyze_unused_imports.py",
             "tests/development_tools/test_decision_support.py",
+            "tests/development_tools/test_exclusion_utilities.py",
             "tests/development_tools/test_false_negative_detection.py",
             "tests/development_tools/test_fix_documentation_headings.py",
             "tests/development_tools/test_fix_documentation_links.py",
@@ -46476,7 +46476,7 @@
           ]
         }
       },
-      "timestamp": "2025-12-24T20:10:32.007259"
+      "timestamp": "2025-12-25T01:05:42.167470"
     },
     "analyze_module_imports": {
       "success": true,
@@ -69035,6 +69035,118 @@
             },
             "total_imports": 8
           },
+          "tests/development_tools/test_analysis_validation_framework.py": {
+            "imports": {
+              "standard_library": [
+                {
+                  "module": "json",
+                  "as_name": null,
+                  "imported_items": [
+                    "json"
+                  ]
+                },
+                {
+                  "module": "pathlib",
+                  "as_name": null,
+                  "imported_items": [
+                    "Path"
+                  ]
+                },
+                {
+                  "module": "typing",
+                  "as_name": null,
+                  "imported_items": [
+                    "Dict",
+                    "List",
+                    "Any"
+                  ]
+                },
+                {
+                  "module": "inspect",
+                  "as_name": null,
+                  "imported_items": [
+                    "inspect"
+                  ]
+                },
+                {
+                  "module": "json",
+                  "as_name": null,
+                  "imported_items": [
+                    "json"
+                  ]
+                },
+                {
+                  "module": "pathlib",
+                  "as_name": null,
+                  "imported_items": [
+                    "Path"
+                  ]
+                }
+              ],
+              "third_party": [
+                {
+                  "module": "pytest",
+                  "as_name": null,
+                  "imported_items": [
+                    "pytest"
+                  ]
+                }
+              ],
+              "local": [
+                {
+                  "module": "tests.development_tools.conftest",
+                  "as_name": null,
+                  "imported_items": [
+                    "load_development_tools_module",
+                    "demo_project_root"
+                  ]
+                },
+                {
+                  "module": "development_tools.shared.standard_exclusions",
+                  "as_name": null,
+                  "imported_items": [
+                    "should_exclude_file"
+                  ]
+                },
+                {
+                  "module": "development_tools.shared.service.data_loading",
+                  "as_name": null,
+                  "imported_items": [
+                    "DataLoadingMixin"
+                  ]
+                },
+                {
+                  "module": "development_tools.shared.service",
+                  "as_name": null,
+                  "imported_items": [
+                    "AIToolsService"
+                  ]
+                },
+                {
+                  "module": "development_tools.shared.service.report_generation",
+                  "as_name": null,
+                  "imported_items": [
+                    "ReportGenerationMixin"
+                  ]
+                },
+                {
+                  "module": "development_tools.shared.service",
+                  "as_name": null,
+                  "imported_items": [
+                    "AIToolsService"
+                  ]
+                },
+                {
+                  "module": "development_tools",
+                  "as_name": null,
+                  "imported_items": [
+                    "config"
+                  ]
+                }
+              ]
+            },
+            "total_imports": 14
+          },
           "tests/development_tools/test_analyze_ai_work.py": {
             "imports": {
               "standard_library": [
@@ -70004,6 +70116,38 @@
               ]
             },
             "total_imports": 15
+          },
+          "tests/development_tools/test_exclusion_utilities.py": {
+            "imports": {
+              "standard_library": [
+                {
+                  "module": "pathlib",
+                  "as_name": null,
+                  "imported_items": [
+                    "Path"
+                  ]
+                }
+              ],
+              "third_party": [
+                {
+                  "module": "pytest",
+                  "as_name": null,
+                  "imported_items": [
+                    "pytest"
+                  ]
+                }
+              ],
+              "local": [
+                {
+                  "module": "tests.development_tools.conftest",
+                  "as_name": null,
+                  "imported_items": [
+                    "load_development_tools_module"
+                  ]
+                }
+              ]
+            },
+            "total_imports": 3
           },
           "tests/development_tools/test_false_negative_detection.py": {
             "imports": {
@@ -80647,14 +80791,14 @@
           }
         }
       },
-      "timestamp": "2025-12-24T20:10:26.159414"
+      "timestamp": "2025-12-25T01:05:34.597287"
     },
     "analyze_unused_imports": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 494,
-          "files_affected": 169,
+          "total_issues": 499,
+          "files_affected": 171,
           "status": "CRITICAL"
         },
         "files": {
@@ -80701,6 +80845,7 @@
           "tests/behavior/test_welcome_manager_behavior.py": 2,
           "tests/development_tools/conftest.py": 1,
           "tests/development_tools/test_analysis_tool_validation.py": 2,
+          "tests/development_tools/test_analysis_validation_framework.py": 4,
           "tests/development_tools/test_analyze_ai_work.py": 5,
           "tests/development_tools/test_analyze_ascii_compliance.py": 2,
           "tests/development_tools/test_analyze_documentation.py": 2,
@@ -80819,6 +80964,7 @@
           "tests/behavior/test_task_error_handling.py": 2,
           "tests/communication/test_retry_manager.py": 2,
           "tests/debug_file_paths.py": 1,
+          "tests/development_tools/test_exclusion_utilities.py": 1,
           "tests/development_tools/test_fix_documentation_ascii.py": 2,
           "tests/development_tools/test_generate_error_handling_recommendations.py": 1,
           "tests/integration/test_account_management.py": 2,
@@ -81382,6 +81528,34 @@
                 "line": 12,
                 "column": 0,
                 "message": "Unused test_config_path imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_analysis_validation_framework.py",
+                "line": 18,
+                "column": 0,
+                "message": "Unused Dict imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_analysis_validation_framework.py",
+                "line": 18,
+                "column": 0,
+                "message": "Unused List imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_analysis_validation_framework.py",
+                "line": 18,
+                "column": 0,
+                "message": "Unused Any imported from typing",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_analysis_validation_framework.py",
+                "line": 20,
+                "column": 0,
+                "message": "Unused demo_project_root imported from tests.development_tools.conftest",
                 "symbol": "unused-import"
               },
               {
@@ -83770,6 +83944,13 @@
                 "symbol": "unused-import"
               },
               {
+                "file": "tests/development_tools/test_exclusion_utilities.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused Path imported from pathlib",
+                "symbol": "unused-import"
+              },
+              {
                 "file": "tests/development_tools/test_false_negative_detection.py",
                 "line": 15,
                 "column": 0,
@@ -84307,28 +84488,28 @@
             "ui_imports": []
           },
           "stats": {
-            "files_scanned": 392,
-            "files_with_issues": 169,
-            "total_unused": 494,
-            "cache_hits": 391,
+            "files_scanned": 395,
+            "files_with_issues": 171,
+            "total_unused": 499,
+            "cache_hits": 395,
             "cache_misses": 0
           },
           "by_category": {
-            "obvious_unused": 168,
+            "obvious_unused": 172,
             "type_hints_only": 2,
             "re_exports": 0,
             "conditional_imports": 9,
             "star_imports": 0,
             "test_mocking": 145,
             "qt_testing": 54,
-            "test_infrastructure": 113,
+            "test_infrastructure": 114,
             "production_test_mocking": 3,
             "ui_imports": 0
           },
-          "files_scanned": 392
+          "files_scanned": 395
         }
       },
-      "timestamp": "2025-12-24T20:10:35.360636"
+      "timestamp": "2025-12-25T01:05:40.081564"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -84344,7 +84525,7 @@
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md"
         }
       },
-      "timestamp": "2025-12-24T20:18:16.895420"
+      "timestamp": "2025-12-25T01:16:38.223224"
     },
     "analyze_config": {
       "success": true,
@@ -84406,7 +84587,7 @@
           }
         }
       },
-      "timestamp": "2025-12-24T20:17:59.962691"
+      "timestamp": "2025-12-25T01:13:35.322697"
     },
     "analyze_ai_work": {
       "success": true,
@@ -84421,7 +84602,7 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2025-12-24T20:10:22.392398"
+      "timestamp": "2025-12-25T01:05:28.473230"
     },
     "decision_support": {
       "success": true,
@@ -84550,12 +84731,12 @@
           }
         ]
       },
-      "timestamp": "2025-12-24T20:10:23.822183"
+      "timestamp": "2025-12-25T01:05:31.258896"
     },
     "quick_status": {
       "success": true,
       "data": {
-        "timestamp": "2025-12-24T20:10:20.279569",
+        "timestamp": "2025-12-25T01:05:25.547603",
         "system_health": {
           "core_files": {
             "run_mhm.py": "OK",
@@ -84575,7 +84756,7 @@
         },
         "documentation_status": {
           "coverage": "Unknown",
-          "recent_audit": "2025-12-24T20:01:48.233695",
+          "recent_audit": "2025-12-24T23:30:42.117402",
           "key_files": {
             "README.md": "OK",
             "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -84588,18 +84769,18 @@
         "critical_issues": [],
         "action_items": [],
         "recent_activity": {
-          "last_audit": "2025-12-24T20:01:48.233695",
+          "last_audit": "2025-12-24T23:30:42.117402",
           "recent_changes": [
             "ai_development_docs/AI_CHANGELOG.md"
           ]
         }
       },
-      "timestamp": "2025-12-24T20:10:20.462316"
+      "timestamp": "2025-12-25T01:05:25.862410"
     },
     "system_signals": {
       "success": true,
       "data": {
-        "timestamp": "2025-12-24T20:10:21.225777",
+        "timestamp": "2025-12-25T01:05:26.822429",
         "system_health": {
           "overall_status": "OK",
           "core_files": {
@@ -84617,22 +84798,22 @@
             "user": "OK",
             "tests": "OK"
           },
-          "last_audit": "2025-12-24T20:01:48.301681",
+          "last_audit": "2025-12-24T23:30:42.234657",
           "warnings": [],
           "errors": []
         },
         "recent_activity": {
           "recent_changes": [
-            "tests/development_tools/test_fix_documentation_links.py",
-            "tests/development_tools/test_false_negative_detection.py",
+            "development_tools/shared/__init__.py",
+            "development_tools/shared/exclusion_utilities.py",
+            "development_tools/error_handling/analyze_error_handling.py",
+            "tests/behavior/test_utilities_demo.py",
+            "development_tools/functions/analyze_functions.py",
             "ui/ui_app_qt.py",
+            "tests/development_tools/test_false_negative_detection.py",
+            "tests/ui/test_ui_app_qt_main.py",
             "tests/behavior/test_scheduler_coverage_expansion.py",
-            "tests/behavior/test_logger_behavior.py",
-            "tests/development_tools/test_analyze_heading_numbering.py",
-            "tests/development_tools/test_fix_project_cleanup.py",
-            "tests/development_tools/test_analyze_ascii_compliance.py",
-            "development_tools/tests/generate_test_coverage.py",
-            "development_tools/error_handling/analyze_error_handling.py"
+            "tests/development_tools/test_exclusion_utilities.py"
           ],
           "git_status": "Modified",
           "last_commit": null,
@@ -84642,9 +84823,9 @@
         "performance_indicators": {
           "log_file_sizes": {
             "ai.log": "0.0MB",
-            "ai_dev_tools.log": "0.2MB",
+            "ai_dev_tools.log": "0.3MB",
             "app.log": "0.2MB",
-            "communication_manager.log": "0.0MB",
+            "communication_manager.log": "0.1MB",
             "discord.log": "0.0MB",
             "email.log": "0.0MB",
             "errors.log": "0.0MB",
@@ -84658,7 +84839,7 @@
           "memory_usage": "Unknown"
         }
       },
-      "timestamp": "2025-12-24T20:10:21.395249"
+      "timestamp": "2025-12-25T01:05:27.040805"
     },
     "decision_support_metrics": {
       "success": true,
@@ -84787,7 +84968,7 @@
           }
         ]
       },
-      "timestamp": "2025-12-24T20:18:17.874713"
+      "timestamp": "2025-12-25T01:16:39.519004"
     }
   }
 }

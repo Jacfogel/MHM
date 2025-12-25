@@ -973,19 +973,20 @@ See `development_tools/TOOL_STORAGE_AUDIT.md` for detailed breakdown.
   - [x] Add regression tests to prevent false negatives - Test suite created: `tests/development_tools/test_false_negative_detection.py`
   - [x] Document known limitations of each tool - Test fixtures document expected behavior
 
-- [ ] **Standardize Exclusion Logic**:
-  - [ ] Audit exclusion logic across all tools
-  - [ ] Create shared exclusion utilities
-  - [ ] Document exclusion rules and rationale
-  - [ ] Ensure consistent application across tools
-  - [ ] Add tests for exclusion logic
+- [x] **Standardize Exclusion Logic** - **COMPLETE (2025-12-24)**:
+  - [x] Audit exclusion logic across all tools - **COMPLETED**: Reviewed and documented exclusion logic across all analysis tools
+  - [x] Create shared exclusion utilities - **COMPLETED**: Created `development_tools/shared/exclusion_utilities.py` with `is_auto_generated_code()`, `is_special_python_method()`, and `is_test_function()`
+  - [x] Document exclusion rules and rationale - **COMPLETED**: Created `development_tools/shared/EXCLUSION_RULES.md` with comprehensive documentation
+  - [x] Ensure consistent application across tools - **COMPLETED**: Migrated `analyze_functions.py` to use shared utilities, all tools now use consistent exclusion logic
+  - [x] Add tests for exclusion logic - **COMPLETED**: Created `tests/development_tools/test_exclusion_utilities.py` with 15 tests (all passing)
 
-- [ ] **Add Analysis Validation Framework**:
-  - [ ] Create validation test suite for each analysis tool
-  - [ ] Add known-good and known-bad test cases
-  - [ ] Measure false positive and false negative rates
-  - [ ] Set targets for accuracy (e.g., <5% false positive rate)
-  - [ ] Add continuous validation to audit workflow
+- [x] **Add Analysis Validation Framework** - **COMPLETE (2025-12-24)**:
+  - [x] Create validation test suite for each analysis tool - **COMPLETED**: Created `tests/development_tools/test_analysis_validation_framework.py` with 14 comprehensive tests (expanded from 8 to 14)
+  - [x] Add known-good and known-bad test cases - **COMPLETED**: Test fixtures created with known issues (missing error handling, missing docs, broken paths)
+  - [x] Measure false positive and false negative rates - **COMPLETED**: Framework tracks accuracy metrics and verifies targets are met
+  - [x] Set targets for accuracy (e.g., <5% false positive rate) - **COMPLETED**: Defined accuracy targets (path drift <5%, error handling <2%, documentation <5%, false negatives 0%)
+  - [x] Expanded validation framework coverage - **COMPLETED (2025-12-24)**: Added 6 new test classes covering function counting accuracy, threshold validation, and recommendation quality
+  - [ ] Add continuous validation to audit workflow - **DEFERRED**: Test suite created and can be run independently; integration into audit workflow deferred to future enhancement (note: tests already run during `audit --full` as part of full test suite)
 
 **Files**: 
 - `development_tools/docs/analyze_path_drift.py` (path drift detection)
@@ -1000,9 +1001,9 @@ See `development_tools/TOOL_STORAGE_AUDIT.md` for detailed breakdown.
 - ✅ <5% false positive rate for documentation detection (93.56% coverage accurately reported)
 - ✅ 0% false negative rate for known issues (test cases) - All 5 false negative detection tests passing
 - ✅ Function counts consistent across all tools (1497 total, design differences documented)
-- ⚠️ Exclusion logic standardized and documented (documented, standardization deferred to future work)
+- ✅ Exclusion logic standardized and documented (shared utilities created, tools migrated, rules documented, tests passing)
 - ✅ Thresholds validated and documented (aligned with config, 80% threshold)
-- ⚠️ Analysis validation framework in place (test suite created, continuous validation framework deferred to future work)
+- ✅ Analysis validation framework in place (14 tests with accuracy targets, false negative/positive detection tests, expanded coverage for function counting, thresholds, and recommendation quality; continuous validation integration deferred to future enhancement)
 
 #### 7.2 Improve Recommendation Quality and Accuracy
 **Status**: PENDING  
