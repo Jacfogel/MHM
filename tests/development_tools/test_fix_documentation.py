@@ -5,11 +5,8 @@ Tests the documentation fix dispatcher that orchestrates all fix operations.
 """
 
 import pytest
-import tempfile
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-
-from tests.development_tools.conftest import load_development_tools_module
 
 
 class TestFixDocumentation:

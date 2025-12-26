@@ -22,6 +22,7 @@ import subprocess
 import argparse
 import json
 import multiprocessing
+import re
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 
@@ -282,6 +283,12 @@ class UnusedImportsChecker:
                     logger.debug(f"Qt testing import detected: {import_name} in {file_path}")
                 return 'qt_testing'
             
+            # Check for pytest fixture imports
+            if self._is_pytest_fixture_import(file_path, import_name, import_line, file_content):
+                if logger:
+                    logger.debug(f"Pytest fixture import detected: {import_name} in {file_path}")
+                return 'test_infrastructure'
+            
             # Check for test infrastructure imports
             if self._is_test_infrastructure_import(file_path, import_name, file_content):
                 if logger:
@@ -504,6 +511,56 @@ class UnusedImportsChecker:
             if logger:
                 logger.debug(f"UI import detected: {import_name} in {file_path_str}")
             return True
+        
+        return False
+    
+    def _is_pytest_fixture_import(self, file_path: Path, import_name: str, import_line: str, file_content: str) -> bool:
+        """Check if import is a pytest fixture imported from conftest."""
+        # Check if it's a test file
+        file_path_str = str(file_path)
+        if not ('test' in file_path_str or 'tests/' in file_path_str):
+            return False
+        
+        # Check if import is from conftest
+        if 'conftest' not in import_line:
+            return False
+        
+        # Common pytest fixture names (can be extended)
+        common_fixture_names = [
+            'demo_project_root', 'test_config_path', 'temp_project_copy',
+            'load_development_tools_module', 'test_user', 'test_user_id',
+            'test_data_dir', 'temp_dir', 'mock_bot', 'mock_channel',
+            'isolation_manager', 'test_factory', 'test_data_factory',
+            'test_user_factory', 'test_user_data_factory'
+        ]
+        
+        # Check if it's a known fixture name
+        if import_name in common_fixture_names:
+            # Check if used as function parameter (pytest fixture pattern)
+            # Look for function definitions with this name as a parameter
+            # Pattern: def test_something(self, fixture_name, ...) or def test_something(fixture_name, ...)
+            fixture_param_pattern = re.compile(
+                r'def\s+\w+\([^)]*\b' + re.escape(import_name) + r'\b[^)]*\)',
+                re.MULTILINE
+            )
+            if fixture_param_pattern.search(file_content):
+                if self.verbose:
+                    print(f"DEBUG: Pytest fixture pattern found for {import_name} in {file_path_str}")
+                return True
+        
+        # Also check if the import line explicitly imports from conftest
+        # and the name is used as a parameter anywhere in the file
+        if 'conftest' in import_line:
+            # Look for any function parameter usage
+            # More flexible pattern: any function with this as a parameter
+            any_param_pattern = re.compile(
+                r'def\s+\w+\([^)]*\b' + re.escape(import_name) + r'\b[^)]*\)',
+                re.MULTILINE
+            )
+            if any_param_pattern.search(file_content):
+                if self.verbose:
+                    print(f"DEBUG: Conftest import used as parameter for {import_name} in {file_path_str}")
+                return True
         
         return False
     

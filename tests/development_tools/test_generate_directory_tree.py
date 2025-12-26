@@ -6,9 +6,8 @@ placeholder replacement, and file output.
 """
 
 import pytest
-import subprocess
 from pathlib import Path
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock
 
 from tests.development_tools.conftest import load_development_tools_module, demo_project_root, test_config_path
 

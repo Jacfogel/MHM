@@ -20,7 +20,6 @@ from unittest.mock import Mock, patch, mock_open, MagicMock
 from pathlib import Path
 
 from ai.prompt_manager import PromptManager, PromptTemplate, get_prompt_manager
-from core.config import AI_SYSTEM_PROMPT_PATH, AI_USE_CUSTOM_PROMPT
 
 
 @pytest.mark.unit

@@ -11,7 +11,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch, MagicMock, mock_open
 
-from tests.development_tools.conftest import load_development_tools_module, demo_project_root, test_config_path
+from tests.development_tools.conftest import load_development_tools_module, test_config_path
 
 # Load the module
 unused_imports_module = load_development_tools_module("imports.analyze_unused_imports")

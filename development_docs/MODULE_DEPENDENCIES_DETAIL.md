@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-18 03:46:17
+> **Last Generated**: 2025-12-26 05:27:27
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 341
-- **Total Imports Found**: 3883
-- **Dependencies Documented**: 341 (100% coverage)
-- **Standard Library Imports**: 1327 (34.2%)
-- **Third-Party Imports**: 578 (14.9%)
-- **Local Imports**: 1978 (50.9%)
-- **Last Updated**: 2025-12-18
+- **Files Scanned**: 366
+- **Total Imports Found**: 3990
+- **Dependencies Documented**: 366 (100% coverage)
+- **Standard Library Imports**: 1384 (34.7%)
+- **Third-Party Imports**: 600 (15.0%)
+- **Local Imports**: 2006 (50.3%)
+- **Last Updated**: 2025-12-26
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 1327 imports (34.2%)
-- **Third-Party**: 578 imports (14.9%)
-- **Local**: 1978 imports (50.9%)
+- **Standard Library**: 1384 imports (34.7%)
+- **Third-Party**: 600 imports (15.0%)
+- **Local**: 2006 imports (50.3%)
 
 ## Module Dependencies by Directory
 
@@ -292,7 +292,6 @@
     - `asyncio`
     - `secrets`
     - `string`
-    - `time`
     - `typing (Any, Dict, List, Optional)`
 - **Used by**: 
   - `communication/command_handlers/account_handler.py`
@@ -501,7 +500,6 @@
   - `tests/behavior/test_command_parser_coverage_expansion_phase3_simple.py`
   - `tests/behavior/test_communication_interaction_manager_behavior.py`
   - `tests/behavior/test_discord_automation_complete.py`
-  - `tests/behavior/test_discord_task_reminder_followup.py`
   - `tests/behavior/test_interaction_handlers_behavior.py`
   - `tests/behavior/test_interaction_handlers_coverage_expansion.py`
   - `tests/behavior/test_profile_display_formatting.py`
@@ -509,8 +507,6 @@
   - `tests/behavior/test_schedule_handler_behavior.py`
   - `tests/behavior/test_task_error_handling.py`
   - `tests/behavior/test_task_handler_behavior.py`
-  - `tests/behavior/test_task_reminder_followup_behavior.py`
-  - `tests/integration/test_task_reminder_integration.py`
 
 **Dependency Changes**:
 - Removed: communication/command_handlers/account_handler.py, communication/command_handlers/analytics_handler.py, communication/command_handlers/base_handler.py, communication/command_handlers/checkin_handler.py, communication/command_handlers/interaction_handlers.py, communication/command_handlers/profile_handler.py, communication/command_handlers/schedule_handler.py, communication/communication_channels/discord/account_flow_handler.py, communication/message_processing/command_parser.py, communication/message_processing/interaction_manager.py, tests/behavior/test_account_handler_behavior.py, tests/behavior/test_analytics_handler_behavior.py, tests/behavior/test_base_handler_behavior.py, tests/behavior/test_checkin_handler_behavior.py, tests/behavior/test_command_discovery_help.py, tests/behavior/test_command_parser_coverage_expansion_phase3_simple.py, tests/behavior/test_communication_interaction_manager_behavior.py, tests/behavior/test_discord_automation_complete.py, tests/behavior/test_discord_task_reminder_followup.py, tests/behavior/test_interaction_handlers_behavior.py, tests/behavior/test_interaction_handlers_coverage_expansion.py, tests/behavior/test_profile_display_formatting.py, tests/behavior/test_profile_handler_behavior.py, tests/behavior/test_schedule_handler_behavior.py, tests/behavior/test_task_error_handling.py, tests/behavior/test_task_handler_behavior.py, tests/behavior/test_task_reminder_followup_behavior.py, tests/integration/test_task_reminder_integration.py
@@ -539,7 +535,6 @@
   - `tests/behavior/test_task_error_handling.py`
   - `tests/behavior/test_task_handler_behavior.py`
   - `tests/behavior/test_task_reminder_followup_behavior.py`
-  - `tests/integration/test_task_reminder_integration.py`
 
 **Dependency Changes**:
 - Added: communication.message_processing.conversation_flow_manager, core.checkin_analytics, core.error_handling, core.logger, tasks.task_management
@@ -665,8 +660,6 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.user_management (TIMEZONE_OPTIONS)` (NEW)
-  - **Standard Library**:
-    - `typing (Optional)`
   - **Third-party**:
     - `discord`
 - **Used by**: 
@@ -837,10 +830,7 @@
   - **Standard Library**:
     - `asyncio`
     - `concurrent.futures (Future)`
-    - `hashlib`
-    - `hmac`
     - `json`
-    - `os`
     - `typing (Any, Dict, Optional)`
 - **Used by**: 
   - `communication/communication_channels/discord/webhook_server.py`
@@ -858,7 +848,7 @@
 - **Purpose**: Communication channel implementation for webhook_server
 - **Dependencies**: 
   - **Local**:
-    - `communication.communication_channels.discord.webhook_handler (EVENT_APPLICATION_AUTHORIZED, handle_webhook_event, parse_webhook_event, verify_webhook_signature)` (NEW)
+    - `communication.communication_channels.discord.webhook_handler (handle_webhook_event, parse_webhook_event)` (NEW)
     - `core.config (DISCORD_PUBLIC_KEY)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
@@ -866,7 +856,6 @@
     - `http.server (BaseHTTPRequestHandler, HTTPServer)`
     - `json`
     - `threading`
-    - `typing (Callable, Optional)`
   - **Third-party**:
     - `nacl.exceptions (BadSignatureError)`
     - `nacl.signing (VerifyKey)`
@@ -891,7 +880,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
   - **Standard Library**:
-    - `typing (Optional, TYPE_CHECKING)`
+    - `typing (TYPE_CHECKING)`
   - **Third-party**:
     - `discord`
 - **Used by**: 
@@ -1093,9 +1082,8 @@
   - **Standard Library**:
     - `datetime`
     - `json`
-    - `os`
     - `pathlib (Path)`
-    - `typing (Any, Dict, Optional)`
+    - `typing (Any, Dict)`
 - **Used by**: 
   - `communication/communication_channels/discord/webhook_handler.py`
   - `communication/communication_channels/discord/welcome_handler.py`
@@ -1330,7 +1318,7 @@
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.logger, core.message_management, core.user_data_handlers
-- Removed: core/service.py, tests/behavior/test_auto_cleanup_behavior.py, tests/unit/test_auto_cleanup_paths.py, ui/ui_app_qt.py
+- Removed: core/scheduler.py, core/service.py, tests/behavior/test_auto_cleanup_behavior.py, tests/unit/test_auto_cleanup_paths.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Automatic cache cleanup and maintenance
@@ -1491,7 +1479,6 @@
   - `tests/unit/test_cleanup.py`
   - `tests/unit/test_config.py`
   - `tests/unit/test_file_operations.py`
-  - `tests/unit/test_prompt_manager.py`
   - `tests/unit/test_user_management.py`
   - `ui/dialogs/account_creator_dialog.py`
   - `ui/dialogs/schedule_editor_dialog.py`
@@ -1591,6 +1578,7 @@
   - `run_tests.py`
   - `tasks/task_management.py`
   - `tests/behavior/test_error_handling_coverage_expansion_phase3_final.py`
+  - `tests/development_tools/test_audit_tier_e2e_verification.py`
   - `tests/test_error_handling_improvements.py`
   - `tests/unit/test_admin_panel.py`
   - `tests/unit/test_error_categorization.py`
@@ -1675,7 +1663,7 @@
     - `sys`
     - `tempfile`
     - `time`
-    - `typing (Any, Callable, Optional)`
+    - `typing (Optional)`
 - **Used by**: 
   - `core/user_data_manager.py`
   - `core/user_management.py`
@@ -1855,6 +1843,7 @@
   - `tests/behavior/test_logger_coverage_expansion_phase3_simple.py`
   - `tests/behavior/test_observability_logging.py`
   - `tests/conftest.py`
+  - `tests/development_tools/test_audit_tier_e2e_verification.py`
   - `tests/unit/test_cleanup.py`
   - `tests/unit/test_logger_unit.py`
   - `tests/unit/test_logging_components.py`
@@ -1903,8 +1892,7 @@
     - `core.message_management (get_recent_messages)` (NEW)
   - **Standard Library**:
     - `collections (defaultdict)`
-    - `datetime (datetime, timedelta)`
-    - `typing (Dict, List, Optional)`
+    - `typing (Dict, Optional)`
 - **Used by**: 
   - `tests/behavior/test_message_analytics_behavior.py`
 
@@ -2004,7 +1992,7 @@
 - **Purpose**: Schedule management and time period handling
 - **Dependencies**: 
   - **Local**:
-    - `core.error_handling (DataError, ValidationError, handle_errors)` (NEW)
+    - `core.error_handling (ValidationError, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.service_utilities (create_reschedule_request)` (NEW)
     - `core.user_data_handlers (get_user_data, update_user_schedules)` (NEW)
@@ -2024,7 +2012,6 @@
   - `tests/behavior/test_schedule_management_behavior.py`
   - `tests/ui/test_dialog_coverage_expansion.py`
   - `tests/unit/test_schedule_management.py`
-  - `tests/unit/test_user_preferences.py`
   - `ui/dialogs/category_management_dialog.py`
   - `ui/dialogs/checkin_management_dialog.py`
   - `ui/dialogs/schedule_editor_dialog.py`
@@ -2087,7 +2074,7 @@
     - `subprocess`
     - `threading`
     - `time`
-    - `typing (Any, Dict, List, Optional)`
+    - `typing (Any, Dict, List)`
   - **Third-party**:
     - `pytz`
     - `schedule`
@@ -2356,7 +2343,7 @@
     - `core.config (BASE_DATA_DIR, get_backups_dir, get_user_data_dir, get_user_file_path)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.file_locking (safe_json_read, safe_json_write)` (NEW)
-    - `core.file_operations (get_user_data_dir, get_user_file_path, load_json_data, save_json_data)` (NEW)
+    - `core.file_operations (get_user_data_dir, get_user_file_path, load_json_data)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.message_management (ensure_user_message_files)` (NEW)
     - `core.response_tracking (get_recent_checkins, get_recent_responses)` (NEW)
@@ -2507,6 +2494,7 @@
   - `tests/behavior/test_service_behavior.py`
   - `tests/behavior/test_task_suggestion_relevance.py`
   - `tests/behavior/test_user_context_behavior.py`
+  - `tests/behavior/test_user_data_flow_architecture.py`
   - `tests/behavior/test_user_management_coverage_expansion.py`
   - `tests/behavior/test_utilities_demo.py`
   - `tests/behavior/test_webhook_handler_behavior.py`
@@ -2562,7 +2550,7 @@
 - **Purpose**: Main entry point for the application
 - **Dependencies**: 
   - **Local**:
-    - `core.error_handling (DataError, FileOperationError, error_handler, handle_errors)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
   - **Standard Library**:
     - `os`
     - `pathlib (Path)`
@@ -2609,7 +2597,7 @@
     - `tempfile`
     - `threading`
     - `time`
-    - `typing (Dict, Optional, Tuple)`
+    - `typing (Dict, Optional)`
     - `xml.etree.ElementTree`
 - **Used by**: None (not imported by other modules)
 
@@ -3499,7 +3487,7 @@
 - **Dependencies**: 
   - **Local**:
     - `communication.communication_channels.base.base_channel (ChannelStatus)` (NEW)
-    - `communication.core.channel_orchestrator (BotInitializationError, CommunicationManager, MessageSendError)` (NEW)
+    - `communication.core.channel_orchestrator (CommunicationManager)` (NEW)
     - `tests.test_utilities (TestUserFactory)` (NEW)
   - **Standard Library**:
     - `threading`
@@ -3615,7 +3603,7 @@
 - **Dependencies**: 
   - **Local**:
     - `communication.core.channel_orchestrator (CommunicationManager)` (NEW)
-    - `communication.message_processing.conversation_flow_manager (CHECKIN_COMPLETE, CHECKIN_MOOD, CHECKIN_START, ConversationManager, FLOW_CHECKIN, FLOW_NONE, conversation_manager)` (NEW)
+    - `communication.message_processing.conversation_flow_manager (CHECKIN_MOOD, ConversationManager, FLOW_CHECKIN, FLOW_NONE, conversation_manager)` (NEW)
     - `tests.test_utilities (TestUserFactory)` (NEW)
   - **Standard Library**:
     - `datetime`
@@ -3762,10 +3750,9 @@
     - `core.user_data_handlers (get_user_data, save_user_data)` (NEW)
     - `tests.test_utilities (TestDataManager, TestUserFactory)` (NEW)
   - **Standard Library**:
-    - `asyncio`
     - `datetime (datetime, timedelta)`
     - `time`
-    - `unittest.mock (MagicMock, Mock, call, patch)`
+    - `unittest.mock (MagicMock, Mock, patch)`
   - **Third-party**:
     - `pytest`
 - **Used by**: None (not imported by other modules)
@@ -3782,20 +3769,19 @@
 - **Purpose**: Behavior tests for discord task reminder followup
 - **Dependencies**: 
   - **Local**:
-    - `communication.command_handlers.shared_types (ParsedCommand)` (NEW)
     - `communication.message_processing.conversation_flow_manager (FLOW_TASK_REMINDER, conversation_manager)` (NEW)
     - `communication.message_processing.interaction_manager (InteractionManager)` (NEW)
-    - `tasks.task_management (create_task, get_task_by_id, load_active_tasks)` (NEW)
+    - `tasks.task_management (load_active_tasks)` (NEW)
     - `tests.test_utilities (TestUserFactory)` (NEW)
   - **Standard Library**:
-    - `datetime (datetime, timedelta)`
+    - `datetime`
     - `unittest.mock (MagicMock, patch)`
   - **Third-party**:
     - `pytest`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: communication.command_handlers.shared_types, communication.message_processing.conversation_flow_manager, communication.message_processing.interaction_manager, tasks.task_management, tests.test_utilities
+- Added: communication.message_processing.conversation_flow_manager, communication.message_processing.interaction_manager, tasks.task_management, tests.test_utilities
 - Removed: unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3966,7 +3952,7 @@
 - **Purpose**: Behavior tests for logger behavior
 - **Dependencies**: 
   - **Local**:
-    - `core.logger (BackupDirectoryRotatingFileHandler, cleanup_old_logs, disable_module_logging, force_restart_logging, get_log_file_info, get_log_level_from_env, get_logger, get_verbose_mode, set_console_log_level, set_verbose_mode, setup_logging, suppress_noisy_logging, toggle_verbose_logging)` (NEW)
+    - `core.logger (BackupDirectoryRotatingFileHandler, cleanup_old_logs, core.logger, disable_module_logging, force_restart_logging, get_log_file_info, get_log_level_from_env, get_logger, get_verbose_mode, set_console_log_level, set_verbose_mode, setup_logging, suppress_noisy_logging, toggle_verbose_logging)` (NEW)
   - **Standard Library**:
     - `logging`
     - `os`
@@ -4417,7 +4403,7 @@
 - **Purpose**: Behavior tests for task cleanup bug
 - **Dependencies**: 
   - **Local**:
-    - `tasks.task_management (cleanup_task_reminders, complete_task, create_task)` (NEW)
+    - `tasks.task_management (cleanup_task_reminders, create_task)` (NEW)
     - `tests.test_utilities (TestUserFactory)` (NEW)
   - **Standard Library**:
     - `datetime (datetime, timedelta)`
@@ -4528,10 +4514,9 @@
 - **Purpose**: Behavior tests for task reminder followup behavior
 - **Dependencies**: 
   - **Local**:
-    - `communication.command_handlers.shared_types (ParsedCommand)` (NEW)
     - `communication.command_handlers.task_handler (TaskManagementHandler)` (NEW)
-    - `communication.message_processing.conversation_flow_manager (ConversationManager, FLOW_NONE, FLOW_TASK_REMINDER, conversation_manager)` (NEW)
-    - `tasks.task_management (create_task, get_task_by_id, load_active_tasks)` (NEW)
+    - `communication.message_processing.conversation_flow_manager (FLOW_TASK_REMINDER, conversation_manager)` (NEW)
+    - `tasks.task_management (create_task, get_task_by_id)` (NEW)
     - `tests.test_utilities (TestUserFactory)` (NEW)
   - **Standard Library**:
     - `datetime (datetime, timedelta)`
@@ -4541,7 +4526,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: communication.command_handlers.shared_types, communication.command_handlers.task_handler, communication.message_processing.conversation_flow_manager, tasks.task_management, tests.test_utilities
+- Added: communication.command_handlers.task_handler, communication.message_processing.conversation_flow_manager, tasks.task_management, tests.test_utilities
 - Removed: unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -4635,19 +4620,21 @@
   - **Local**:
     - `core.config (get_user_data_dir)` (NEW)
     - `core.user_data_handlers (get_user_data, save_user_data, update_user_preferences)` (NEW)
+    - `core.user_management (clear_user_caches)` (NEW)
     - `tests.test_utilities (TestUserDataFactory, TestUserFactory)` (NEW)
   - **Standard Library**:
     - `glob`
     - `json`
     - `os`
     - `time`
-    - `unittest.mock (MagicMock, call, patch)`
+    - `unittest.mock (MagicMock, patch)`
+    - `uuid`
   - **Third-party**:
     - `pytest`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core.config, core.user_data_handlers, tests.test_utilities
+- Added: core.config, core.user_data_handlers, core.user_management, tests.test_utilities
 - Removed: unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -4737,7 +4724,6 @@
   - **Local**:
     - `communication.communication_channels.discord.webhook_server (DiscordWebhookHandler, WebhookServer)` (NEW)
   - **Standard Library**:
-    - `http.server (HTTPServer)`
     - `io (BytesIO)`
     - `json`
     - `socket`
@@ -4782,7 +4768,7 @@
 - **Purpose**: Behavior tests for welcome manager behavior
 - **Dependencies**: 
   - **Local**:
-    - `communication.core.welcome_manager (WELCOME_TRACKING_FILE, clear_welcomed_status, get_welcome_message, has_been_welcomed, mark_as_welcomed)` (NEW)
+    - `communication.core.welcome_manager (clear_welcomed_status, get_welcome_message, has_been_welcomed, mark_as_welcomed)` (NEW)
   - **Standard Library**:
     - `json`
     - `os`
@@ -5032,28 +5018,52 @@
 #### `tests/development_tools/conftest.py`
 - **Purpose**: Test file for conftest
 - **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.test_verification_summary (print_verification_summary)` (NEW)
   - **Standard Library**:
     - `importlib.util`
     - `pathlib (Path)`
     - `shutil`
     - `sys`
     - `tempfile`
-    - `warnings`
   - **Third-party**:
     - `pytest`
 - **Used by**: 
   - `tests/development_tools/test_analysis_tool_validation.py`
+  - `tests/development_tools/test_analysis_validation_framework.py`
   - `tests/development_tools/test_analyze_ai_work.py`
+  - `tests/development_tools/test_analyze_ascii_compliance.py`
   - `tests/development_tools/test_analyze_documentation.py`
+  - `tests/development_tools/test_analyze_error_handling.py`
+  - `tests/development_tools/test_analyze_function_registry.py`
+  - `tests/development_tools/test_analyze_functions.py`
+  - `tests/development_tools/test_analyze_heading_numbering.py`
   - `tests/development_tools/test_analyze_missing_addresses.py`
+  - `tests/development_tools/test_analyze_module_dependencies.py`
+  - `tests/development_tools/test_analyze_unconverted_links.py`
+  - `tests/development_tools/test_analyze_unused_imports.py`
   - `tests/development_tools/test_audit_status_updates.py`
+  - `tests/development_tools/test_audit_tier_comprehensive.py`
+  - `tests/development_tools/test_audit_tier_e2e_verification.py`
+  - `tests/development_tools/test_decision_support.py`
   - `tests/development_tools/test_documentation_sync_checker.py`
   - `tests/development_tools/test_error_scenarios.py`
+  - `tests/development_tools/test_exclusion_utilities.py`
+  - `tests/development_tools/test_false_negative_detection.py`
   - `tests/development_tools/test_fix_documentation.py`
   - `tests/development_tools/test_fix_documentation_addresses.py`
   - `tests/development_tools/test_fix_documentation_ascii.py`
+  - `tests/development_tools/test_fix_documentation_headings.py`
+  - `tests/development_tools/test_fix_documentation_links.py`
+  - `tests/development_tools/test_fix_project_cleanup.py`
+  - `tests/development_tools/test_generate_consolidated_report.py`
+  - `tests/development_tools/test_generate_directory_tree.py`
+  - `tests/development_tools/test_generate_error_handling_recommendations.py`
+  - `tests/development_tools/test_generate_error_handling_report.py`
+  - `tests/development_tools/test_generate_function_docstrings.py`
   - `tests/development_tools/test_generate_function_registry.py`
   - `tests/development_tools/test_generate_module_dependencies.py`
+  - `tests/development_tools/test_generate_unused_imports_report.py`
   - `tests/development_tools/test_integration_workflows.py`
   - `tests/development_tools/test_legacy_reference_cleanup.py`
   - `tests/development_tools/test_output_storage_archiving.py`
@@ -5065,7 +5075,8 @@
   - `tests/development_tools/test_supporting_tools.py`
 
 **Dependency Changes**:
-- Removed: importlib.util, tests/development_tools/test_analysis_tool_validation.py, tests/development_tools/test_analyze_ai_work.py, tests/development_tools/test_analyze_documentation.py, tests/development_tools/test_analyze_missing_addresses.py, tests/development_tools/test_audit_status_updates.py, tests/development_tools/test_documentation_sync_checker.py, tests/development_tools/test_error_scenarios.py, tests/development_tools/test_fix_documentation.py, tests/development_tools/test_fix_documentation_addresses.py, tests/development_tools/test_fix_documentation_ascii.py, tests/development_tools/test_generate_function_registry.py, tests/development_tools/test_generate_module_dependencies.py, tests/development_tools/test_integration_workflows.py, tests/development_tools/test_legacy_reference_cleanup.py, tests/development_tools/test_output_storage_archiving.py, tests/development_tools/test_path_drift_detection.py, tests/development_tools/test_path_drift_integration.py, tests/development_tools/test_regenerate_coverage_metrics.py, tests/development_tools/test_status_file_timing.py, tests/development_tools/test_supporting_tools.py
+- Added: tests.development_tools.test_verification_summary
+- Removed: importlib.util, tests/development_tools/test_analysis_tool_validation.py, tests/development_tools/test_analyze_ai_work.py, tests/development_tools/test_analyze_documentation.py, tests/development_tools/test_analyze_missing_addresses.py, tests/development_tools/test_audit_status_updates.py, tests/development_tools/test_documentation_sync_checker.py, tests/development_tools/test_error_scenarios.py, tests/development_tools/test_fix_documentation.py, tests/development_tools/test_fix_documentation_addresses.py, tests/development_tools/test_fix_documentation_ascii.py, tests/development_tools/test_generate_function_registry.py, tests/development_tools/test_generate_module_dependencies.py, tests/development_tools/test_integration_workflows.py, tests/development_tools/test_legacy_reference_cleanup.py, tests/development_tools/test_output_storage_archiving.py, tests/development_tools/test_path_drift_detection.py, tests/development_tools/test_path_drift_integration.py, tests/development_tools/test_path_drift_verification_comprehensive.py, tests/development_tools/test_regenerate_coverage_metrics.py, tests/development_tools/test_status_file_timing.py, tests/development_tools/test_supporting_tools.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5092,6 +5103,31 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `tests/development_tools/test_analysis_validation_framework.py`
+- **Purpose**: Test file for analysis validation framework
+- **Dependencies**: 
+  - **Local**:
+    - `development_tools (config)` (NEW)
+    - `development_tools.shared.service (AIToolsService)` (NEW)
+    - `development_tools.shared.service.data_loading (DataLoadingMixin)` (NEW)
+    - `development_tools.shared.service.report_generation (ReportGenerationMixin)` (NEW)
+    - `development_tools.shared.standard_exclusions (should_exclude_file)` (NEW)
+    - `tests.development_tools.conftest (load_development_tools_module)` (NEW)
+  - **Standard Library**:
+    - `inspect`
+    - `json`
+    - `pathlib (Path)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: development_tools, development_tools.shared.service, development_tools.shared.service.data_loading, development_tools.shared.service.report_generation, development_tools.shared.standard_exclusions, tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `tests/development_tools/test_analyze_ai_work.py`
 - **Purpose**: Test file for analyze ai work
 - **Dependencies**: 
@@ -5108,6 +5144,24 @@
 **Dependency Changes**:
 - Added: tests.development_tools.conftest
 - Removed: unittest.mock
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_analyze_ascii_compliance.py`
+- **Purpose**: Test file for analyze ascii compliance
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (demo_project_root, load_development_tools_module, test_config_path)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5135,6 +5189,86 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `tests/development_tools/test_analyze_error_handling.py`
+- **Purpose**: Test file for analyze error handling
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (demo_project_root, load_development_tools_module, test_config_path)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+    - `unittest.mock (MagicMock, patch)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_analyze_function_registry.py`
+- **Purpose**: Test file for analyze function registry
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (demo_project_root, load_development_tools_module, test_config_path)` (NEW)
+  - **Standard Library**:
+    - `argparse (Namespace)`
+    - `ast`
+    - `pathlib (Path)`
+    - `unittest.mock (MagicMock, patch)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_analyze_functions.py`
+- **Purpose**: Test file for analyze functions
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (demo_project_root, load_development_tools_module, test_config_path)` (NEW)
+  - **Standard Library**:
+    - `ast`
+    - `io (StringIO)`
+    - `pathlib (Path)`
+    - `sys`
+    - `unittest.mock (MagicMock, patch)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_analyze_heading_numbering.py`
+- **Purpose**: Test file for analyze heading numbering
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (demo_project_root, load_development_tools_module, test_config_path)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `tests/development_tools/test_analyze_missing_addresses.py`
 - **Purpose**: Test file for analyze missing addresses
 - **Dependencies**: 
@@ -5154,6 +5288,66 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `tests/development_tools/test_analyze_module_dependencies.py`
+- **Purpose**: Test file for analyze module dependencies
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (demo_project_root, load_development_tools_module)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+    - `tempfile`
+    - `unittest.mock (MagicMock, mock_open, patch)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_analyze_unconverted_links.py`
+- **Purpose**: Test file for analyze unconverted links
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (demo_project_root, load_development_tools_module, test_config_path)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_analyze_unused_imports.py`
+- **Purpose**: Test file for analyze unused imports
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (load_development_tools_module, test_config_path)` (NEW)
+  - **Standard Library**:
+    - `json`
+    - `pathlib (Path)`
+    - `subprocess`
+    - `tempfile`
+    - `unittest.mock (MagicMock, mock_open, patch)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `tests/development_tools/test_audit_status_updates.py`
 - **Purpose**: Test file for audit status updates
 - **Dependencies**: 
@@ -5162,8 +5356,9 @@
   - **Standard Library**:
     - `os`
     - `pathlib (Path)`
+    - `re`
     - `time`
-    - `unittest.mock (MagicMock, call, patch)`
+    - `unittest.mock (MagicMock, patch)`
   - **Third-party**:
     - `pytest`
 - **Used by**: None (not imported by other modules)
@@ -5171,6 +5366,53 @@
 **Dependency Changes**:
 - Added: tests.development_tools.conftest
 - Removed: unittest.mock
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_audit_tier_comprehensive.py`
+- **Purpose**: Test file for audit tier comprehensive
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (load_development_tools_module, temp_project_copy)` (NEW)
+  - **Standard Library**:
+    - `importlib.util`
+    - `json`
+    - `pathlib (Path)`
+    - `sys`
+    - `time`
+    - `unittest.mock (MagicMock, patch)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_audit_tier_e2e_verification.py`
+- **Purpose**: Test file for audit tier e2e verification
+- **Dependencies**: 
+  - **Local**:
+    - `core.error_handling` (NEW)
+    - `core.logger` (NEW)
+    - `tests.development_tools.conftest (load_development_tools_module, temp_project_copy)` (NEW)
+  - **Standard Library**:
+    - `importlib.util`
+    - `json`
+    - `pathlib (Path)`
+    - `sys`
+    - `time`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: core.error_handling, core.logger, tests.development_tools.conftest
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5213,15 +5455,32 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `tests/development_tools/test_decision_support.py`
+- **Purpose**: Test file for decision support
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (load_development_tools_module)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+    - `unittest.mock (MagicMock, patch)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `tests/development_tools/test_documentation_sync_checker.py`
 - **Purpose**: Test file for documentation sync checker
 - **Dependencies**: 
   - **Local**:
     - `tests.development_tools.conftest (load_development_tools_module)` (NEW)
   - **Standard Library**:
-    - `collections (defaultdict)`
     - `pathlib (Path)`
-    - `sys`
   - **Third-party**:
     - `pytest`
 - **Used by**: None (not imported by other modules)
@@ -5244,7 +5503,6 @@
     - `os`
     - `pathlib (Path)`
     - `shutil`
-    - `stat`
     - `subprocess`
     - `sys`
     - `unittest.mock (MagicMock, patch)`
@@ -5260,6 +5518,43 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `tests/development_tools/test_exclusion_utilities.py`
+- **Purpose**: Test file for exclusion utilities
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (load_development_tools_module)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_false_negative_detection.py`
+- **Purpose**: Test file for false negative detection
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (demo_project_root, load_development_tools_module, test_config_path)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+    - `unittest.mock (patch)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `tests/development_tools/test_fix_documentation.py`
 - **Purpose**: Test file for fix documentation
 - **Dependencies**: 
@@ -5267,7 +5562,6 @@
     - `tests.development_tools.conftest (load_development_tools_module)` (NEW)
   - **Standard Library**:
     - `pathlib (Path)`
-    - `tempfile`
     - `unittest.mock (MagicMock, patch)`
   - **Third-party**:
     - `pytest`
@@ -5285,7 +5579,7 @@
 - **Purpose**: Test file for fix documentation addresses
 - **Dependencies**: 
   - **Local**:
-    - `tests.development_tools.conftest (load_development_tools_module, test_config_path)` (NEW)
+    - `tests.development_tools.conftest (load_development_tools_module)` (NEW)
   - **Standard Library**:
     - `pathlib (Path)`
     - `tempfile`
@@ -5321,6 +5615,162 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `tests/development_tools/test_fix_documentation_headings.py`
+- **Purpose**: Test file for fix documentation headings
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (load_development_tools_module, temp_project_copy)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+    - `unittest.mock (patch)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_fix_documentation_links.py`
+- **Purpose**: Test file for fix documentation links
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (load_development_tools_module, temp_project_copy)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+    - `unittest.mock (patch)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_fix_project_cleanup.py`
+- **Purpose**: Test file for fix project cleanup
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (load_development_tools_module, temp_project_copy)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+    - `tempfile`
+    - `time`
+    - `unittest.mock (MagicMock, patch)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_generate_consolidated_report.py`
+- **Purpose**: Test file for generate consolidated report
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (load_development_tools_module, temp_project_copy)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+    - `unittest.mock (MagicMock, patch)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_generate_directory_tree.py`
+- **Purpose**: Test file for generate directory tree
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (demo_project_root, load_development_tools_module, test_config_path)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+    - `unittest.mock (MagicMock, patch)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_generate_error_handling_recommendations.py`
+- **Purpose**: Test file for generate error handling recommendations
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (load_development_tools_module)` (NEW)
+  - **Standard Library**:
+    - `json`
+    - `pathlib (Path)`
+    - `unittest.mock (mock_open, patch)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_generate_error_handling_report.py`
+- **Purpose**: Test file for generate error handling report
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (load_development_tools_module)` (NEW)
+  - **Standard Library**:
+    - `json`
+    - `pathlib (Path)`
+    - `unittest.mock (MagicMock, mock_open, patch)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_generate_function_docstrings.py`
+- **Purpose**: Test file for generate function docstrings
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (demo_project_root, load_development_tools_module, test_config_path)` (NEW)
+  - **Standard Library**:
+    - `pathlib (Path)`
+    - `unittest.mock (MagicMock, patch)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `tests/development_tools/test_generate_function_registry.py`
 - **Purpose**: Test file for generate function registry
 - **Dependencies**: 
@@ -5351,13 +5801,32 @@
     - `tests.development_tools.conftest (load_development_tools_module)` (NEW)
   - **Standard Library**:
     - `pathlib (Path)`
-    - `sys`
   - **Third-party**:
     - `pytest`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
 - Added: development_tools.config, development_tools.shared, tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_generate_unused_imports_report.py`
+- **Purpose**: Test file for generate unused imports report
+- **Dependencies**: 
+  - **Local**:
+    - `tests.development_tools.conftest (load_development_tools_module, temp_project_copy)` (NEW)
+  - **Standard Library**:
+    - `json`
+    - `pathlib (Path)`
+    - `unittest.mock (MagicMock, patch)`
+  - **Third-party**:
+    - `pytest`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: tests.development_tools.conftest
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5389,7 +5858,6 @@
     - `tests.development_tools.conftest (load_development_tools_module)` (NEW)
   - **Standard Library**:
     - `pathlib (Path)`
-    - `sys`
   - **Third-party**:
     - `pytest`
 - **Used by**: None (not imported by other modules)
@@ -5410,6 +5878,9 @@
     - `json`
     - `logging`
     - `pathlib (Path)`
+    - `platform`
+    - `shutil`
+    - `threading`
     - `time`
     - `unittest.mock (patch)`
   - **Third-party**:
@@ -5491,7 +5962,6 @@
   - **Standard Library**:
     - `json`
     - `pathlib (Path)`
-    - `sys`
     - `unittest.mock (MagicMock, Mock, patch)`
   - **Third-party**:
     - `pytest`
@@ -5512,7 +5982,6 @@
     - `pathlib (Path)`
     - `subprocess`
     - `sys`
-    - `warnings`
   - **Third-party**:
     - `pytest`
 - **Used by**: None (not imported by other modules)
@@ -5547,7 +6016,6 @@
   - **Standard Library**:
     - `pathlib (Path)`
     - `sys`
-    - `warnings`
   - **Third-party**:
     - `pytest`
 - **Used by**: None (not imported by other modules)
@@ -5575,6 +6043,16 @@
 
 **Dependency Changes**:
 - Added: tests.development_tools.conftest
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/development_tools/test_verification_summary.py`
+- **Purpose**: Test file for verification summary
+- **Dependencies**: None (no imports)
+- **Used by**: 
+  - `tests/development_tools/conftest.py`
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -5616,6 +6094,17 @@
   - **Third-party**:
     - `demo_module (DemoClass, simple_function)`
     - `pytest`
+- **Used by**: None (not imported by other modules)
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `tests/fixtures/development_tools_demo/false_negative_test_code.py`
+- **Purpose**: Test file for false negative code
+- **Dependencies**: 
+  - **Third-party**:
+    - `requests`
 - **Used by**: None (not imported by other modules)
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -5720,7 +6209,7 @@
     - `tasks.task_management (complete_task, create_task, delete_task, get_task_by_id, load_active_tasks, load_completed_tasks, update_task)` (NEW)
     - `tests.test_utilities (TestUserFactory)` (NEW)
   - **Standard Library**:
-    - `datetime (datetime, timedelta)`
+    - `datetime`
     - `json`
     - `pathlib (Path)`
     - `unittest.mock (MagicMock, patch)`
@@ -5740,7 +6229,7 @@
 - **Purpose**: Integration tests for task cleanup real bug verification
 - **Dependencies**: 
   - **Local**:
-    - `tasks.task_management (cleanup_task_reminders, complete_task, create_task, delete_task, schedule_task_reminders, update_task)` (NEW)
+    - `tasks.task_management (cleanup_task_reminders, complete_task, create_task, schedule_task_reminders)` (NEW)
     - `tests.test_utilities (TestUserFactory)` (NEW)
   - **Standard Library**:
     - `datetime (datetime, timedelta)`
@@ -5762,10 +6251,10 @@
 - **Purpose**: Integration tests for task cleanup silent failure
 - **Dependencies**: 
   - **Local**:
-    - `tasks.task_management (cleanup_task_reminders, complete_task, create_task, delete_task)` (NEW)
+    - `tasks.task_management (cleanup_task_reminders, complete_task, create_task)` (NEW)
     - `tests.test_utilities (TestUserFactory)` (NEW)
   - **Standard Library**:
-    - `datetime (datetime, timedelta)`
+    - `datetime`
     - `logging`
     - `unittest.mock (MagicMock, patch)`
   - **Third-party**:
@@ -5784,22 +6273,20 @@
 - **Purpose**: Integration tests for task reminder integration
 - **Dependencies**: 
   - **Local**:
-    - `communication.command_handlers.shared_types (InteractionResponse, ParsedCommand)` (NEW)
-    - `communication.command_handlers.task_handler (TaskManagementHandler)` (NEW)
     - `communication.core.channel_orchestrator (CommunicationManager)` (NEW)
     - `core.scheduler (SchedulerManager)` (NEW)
-    - `tasks.task_management (complete_task, create_task, delete_task, get_task_by_id, load_active_tasks, update_task)` (NEW)
+    - `tasks.task_management (complete_task, create_task, delete_task, load_active_tasks, update_task)` (NEW)
     - `tests.test_utilities (TestUserFactory)` (NEW)
   - **Standard Library**:
     - `datetime (datetime, timedelta)`
     - `time`
-    - `unittest.mock (MagicMock, call, patch)`
+    - `unittest.mock (MagicMock, patch)`
   - **Third-party**:
     - `pytest`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: communication.command_handlers.shared_types, communication.command_handlers.task_handler, communication.core.channel_orchestrator, core.scheduler, tasks.task_management, tests.test_utilities
+- Added: communication.core.channel_orchestrator, core.scheduler, tasks.task_management, tests.test_utilities
 - Removed: unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -5862,7 +6349,7 @@
     - `communication.core.channel_orchestrator (CommunicationManager)` (NEW)
     - `communication.message_processing.message_router (MessageRouter)` (NEW)
     - `core.backup_manager (BackupManager)` (NEW)
-    - `core.error_handling (DataError, FileOperationError, MHMError, handle_errors)` (NEW)
+    - `core.error_handling (DataError, FileOperationError, handle_errors)` (NEW)
     - `core.file_operations (load_json_data, save_json_data, verify_file_access)` (NEW)
     - `core.user_data_handlers (get_user_data, save_user_data)` (NEW)
     - `core.user_data_manager (UserDataManager)` (NEW)
@@ -6321,7 +6808,7 @@
   - **Third-party**:
     - `PySide6.QtCore (Qt)`
     - `PySide6.QtTest (QTest)`
-    - `PySide6.QtWidgets (QApplication, QCheckBox, QLineEdit)`
+    - `PySide6.QtWidgets (QApplication, QLineEdit)`
     - `pytest`
 - **Used by**: None (not imported by other modules)
 
@@ -6359,7 +6846,7 @@
 - **Purpose**: UI tests for task management dialog
 - **Dependencies**: 
   - **Local**:
-    - `core.user_data_handlers (get_user_data)` (NEW)
+    - `core.user_data_handlers (get_user_data, update_user_account)` (NEW)
     - `tests.conftest (ensure_qt_runtime)` (NEW)
     - `tests.test_utilities (TestUserFactory)` (NEW)
     - `ui.dialogs.task_management_dialog (TaskManagementDialog)` (NEW)
@@ -6699,7 +7186,7 @@
 - **Purpose**: Unit tests for ai chatbot helpers
 - **Dependencies**: 
   - **Local**:
-    - `ai.chatbot (AIChatBotSingleton, get_ai_chatbot)` (NEW)
+    - `ai.chatbot (get_ai_chatbot)` (NEW)
   - **Standard Library**:
     - `unittest.mock (MagicMock, Mock, patch)`
   - **Third-party**:
@@ -6887,9 +7374,8 @@
   - **Local**:
     - `communication.communication_channels.base.command_registry (CommandDefinition, CommandRegistry, DiscordCommandRegistry, EmailCommandRegistry, get_command_registry)` (NEW)
   - **Standard Library**:
-    - `unittest.mock (AsyncMock, MagicMock, patch)`
+    - `unittest.mock (MagicMock, patch)`
   - **Third-party**:
-    - `discord`
     - `pytest`
 - **Used by**: None (not imported by other modules)
 
@@ -6946,7 +7432,7 @@
 - **Purpose**: Unit tests for config
 - **Dependencies**: 
   - **Local**:
-    - `core.config (BASE_DATA_DIR, ConfigValidationError, DEFAULT_MESSAGES_DIR_PATH, USER_INFO_DIR_PATH, core.config, validate_ai_configuration, validate_all_configuration, validate_and_raise_if_invalid, validate_communication_channels, validate_core_paths, validate_environment_variables, validate_file_organization_settings, validate_logging_configuration, validate_scheduler_configuration)` (NEW)
+    - `core.config (BASE_DATA_DIR, ConfigValidationError, DEFAULT_MESSAGES_DIR_PATH, USER_INFO_DIR_PATH, validate_ai_configuration, validate_all_configuration, validate_and_raise_if_invalid, validate_communication_channels, validate_core_paths, validate_environment_variables, validate_file_organization_settings, validate_logging_configuration, validate_scheduler_configuration)` (NEW)
   - **Standard Library**:
     - `os`
     - `unittest.mock (patch)`
@@ -6968,7 +7454,6 @@
   - **Local**:
     - `communication.communication_channels.discord.api_client (DiscordAPIClient, MessageData, SendMessageOptions, get_discord_api_client)` (NEW)
   - **Standard Library**:
-    - `asyncio`
     - `time`
     - `unittest.mock (AsyncMock, MagicMock, patch)`
   - **Third-party**:
@@ -6990,10 +7475,8 @@
   - **Local**:
     - `communication.communication_channels.discord.event_handler (DiscordEventHandler, EventContext, EventType, get_discord_event_handler)` (NEW)
   - **Standard Library**:
-    - `asyncio`
     - `unittest.mock (AsyncMock, MagicMock, patch)`
   - **Third-party**:
-    - `discord`
     - `pytest`
 - **Used by**: None (not imported by other modules)
 
@@ -7011,7 +7494,6 @@
   - **Local**:
     - `communication.communication_channels.email.bot (EmailBot)` (NEW)
   - **Standard Library**:
-    - `email`
     - `email.mime.base (MIMEBase)`
     - `email.mime.multipart (MIMEMultipart)`
     - `email.mime.text (MIMEText)`
@@ -7190,7 +7672,7 @@
 - **Purpose**: Unit tests for logger unit
 - **Dependencies**: 
   - **Local**:
-    - `core.logger (BackupDirectoryRotatingFileHandler, ComponentLogger, ExcludeLoggerNamesFilter, HeartbeatWarningFilter, PytestContextLogFormatter, _get_log_paths_for_environment, _is_testing_environment, apply_test_context_formatter_to_all_loggers, cleanup_old_archives, clear_log_file_locks, compress_old_logs, ensure_logs_directory, get_component_logger, setup_third_party_error_logging)` (NEW)
+    - `core.logger (BackupDirectoryRotatingFileHandler, ComponentLogger, ExcludeLoggerNamesFilter, HeartbeatWarningFilter, PytestContextLogFormatter, _is_testing_environment, apply_test_context_formatter_to_all_loggers, cleanup_old_archives, clear_log_file_locks, compress_old_logs, ensure_logs_directory, get_component_logger, setup_third_party_error_logging)` (NEW)
     - `tests.test_utilities (TestLogPathMocks)` (NEW)
   - **Standard Library**:
     - `json`
@@ -7236,7 +7718,7 @@
 - **Purpose**: Unit tests for message formatter
 - **Dependencies**: 
   - **Local**:
-    - `communication.communication_channels.base.message_formatter (EmailMessageFormatter, MessageFormatter, TextMessageFormatter, get_message_formatter)` (NEW)
+    - `communication.communication_channels.base.message_formatter (EmailMessageFormatter, TextMessageFormatter, get_message_formatter)` (NEW)
     - `core.error_handling (DataError)` (NEW)
   - **Standard Library**:
     - `unittest.mock (MagicMock, patch)`
@@ -7283,7 +7765,6 @@
 - **Dependencies**: 
   - **Local**:
     - `ai.prompt_manager (PromptManager, PromptTemplate, ai.prompt_manager, get_prompt_manager)` (NEW)
-    - `core.config (AI_SYSTEM_PROMPT_PATH, AI_USE_CUSTOM_PROMPT)` (NEW)
   - **Standard Library**:
     - `os`
     - `pathlib (Path)`
@@ -7294,7 +7775,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: ai.prompt_manager, core.config
+- Added: ai.prompt_manager
 - Removed: unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -7326,7 +7807,7 @@
 - **Purpose**: Unit tests for rich formatter
 - **Dependencies**: 
   - **Local**:
-    - `communication.communication_channels.base.rich_formatter (DiscordRichFormatter, EmailRichFormatter, RichFormatter, get_rich_formatter)` (NEW)
+    - `communication.communication_channels.base.rich_formatter (DiscordRichFormatter, EmailRichFormatter, get_rich_formatter)` (NEW)
   - **Standard Library**:
     - `builtins`
     - `datetime`
@@ -7527,7 +8008,7 @@
 - **Dependencies**: 
   - **Local**:
     - `core.user_data_handlers (get_user_data)` (NEW)
-    - `core.user_data_manager (UserDataManager, backup_user_data, build_user_index, delete_user_completely, export_user_data, get_all_user_summaries, get_user_analytics_summary, get_user_data_summary, get_user_info_for_data_manager, get_user_summary, rebuild_user_index, update_message_references, update_user_index)` (NEW)
+    - `core.user_data_manager (UserDataManager, backup_user_data, build_user_index, export_user_data, get_all_user_summaries, get_user_analytics_summary, get_user_data_summary, get_user_info_for_data_manager, get_user_summary, rebuild_user_index, update_message_references, update_user_index)` (NEW)
     - `core.user_management (get_user_id_by_identifier)` (NEW)
     - `tests.test_utilities (TestUserFactory)` (NEW)
   - **Standard Library**:
@@ -7582,8 +8063,7 @@
 - **Purpose**: Unit tests for user preferences
 - **Dependencies**: 
   - **Local**:
-    - `core.schedule_management (is_schedule_period_active, set_schedule_period_active)` (NEW)
-    - `core.user_data_handlers (get_user_data, update_user_preferences)` (NEW)
+    - `core.user_data_handlers (get_user_data)` (NEW)
     - `user.user_preferences (UserPreferences)` (NEW)
   - **Standard Library**:
     - `pathlib (Path)`
@@ -7593,7 +8073,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core.schedule_management, core.user_data_handlers, user.user_preferences
+- Added: core.user_data_handlers, user.user_preferences
 - Removed: unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->

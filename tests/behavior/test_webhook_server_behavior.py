@@ -11,7 +11,6 @@ import threading
 import time
 import socket
 from unittest.mock import patch, MagicMock, Mock
-from io import BytesIO
 from communication.communication_channels.discord.webhook_server import (
     DiscordWebhookHandler,
     WebhookServer

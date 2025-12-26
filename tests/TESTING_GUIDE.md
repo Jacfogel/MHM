@@ -4,8 +4,8 @@
 > **Audience**: Developers and AI assistants working on MHM  
 > **Purpose**: Comprehensive testing framework focused on real behavior, integration scenarios, and side-effect verification  
 > **Style**: Technical, comprehensive, actionable  
-> **Pair**: [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)  
-> This document is paired with [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) and any changes must consider both docs.
+> **Pair**: [AI_TESTING_GUIDE.md](../ai_development_docs/AI_TESTING_GUIDE.md)  
+> This document is paired with [AI_TESTING_GUIDE.md](../ai_development_docs/AI_TESTING_GUIDE.md) and any changes must consider both docs.
 
 ---
 
@@ -30,7 +30,7 @@ Use this guide whenever you:
 - Touch any integration (Discord, email, future channels).
 - Need to understand how tests should behave in CI or local runs.
 
-The paired AI doc ([AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)) provides a routing-first, constraint-focused view for AI tools and automated assistance. This human-facing guide is the canonical source for detailed behavior, rationale, and examples.
+The paired AI doc ([AI_TESTING_GUIDE.md](../ai_development_docs/AI_TESTING_GUIDE.md)) provides a routing-first, constraint-focused view for AI tools and automated assistance. This human-facing guide is the canonical source for detailed behavior, rationale, and examples.
 
 ---
 
@@ -193,7 +193,7 @@ If the Windows Task Scheduler becomes polluted during development (for example, 
 
 ### 3.5. Logging in tests
 
-Tests should integrate cleanly with the logging system described in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) (see section 2. "Logging Architecture" in that guide).
+Tests should integrate cleanly with the logging system described in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) (see section 2. "Logging Architecture" in that guide).
 
 Patterns:
 
@@ -494,7 +494,7 @@ pytest -m "" tests/development_tools/
 - When investigating audit tier issues that don't appear in orchestration tests.
 - To verify actual tool output and correctness.
 
-**Note**: E2E tests require the codebase to be in a valid state and may modify test directories. They are separate from the fast orchestration tests in `test_audit_tier_comprehensive.py` which verify control flow and structure using mocks.
+**Note**: E2E tests require the codebase to be in a valid state and may modify test directories. They are separate from the fast orchestration tests in `tests/development_tools/test_audit_tier_comprehensive.py` which verify control flow and structure using mocks.
 
 ---
 
@@ -507,7 +507,7 @@ When tests fail, use a consistent process to narrow down the cause.
 First, inspect logs and other artifacts produced during the test run:
 
 - Test logs (for example, `test_run.log`, `test_consolidated.log`).
-- Component logs under `logs/` if logging is enabled for tests (see `logs/LOGGING_GUIDE.md`, especially section 4. "Component Log Files and Layout").
+- Component logs under `logs/` if logging is enabled for tests (see `../logs/LOGGING_GUIDE.md`, especially section 4. "Component Log Files and Layout").
 - Coverage reports (if running with `--coverage`) to see which paths were actually exercised.
 
 Often, test failures will be accompanied by logged exceptions or warnings that make root cause obvious.
@@ -536,8 +536,8 @@ Then:
 
 For error handling and logging details:
 
-- See section 2. "Architecture Overview" and section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
-- See [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) (especially section 2. "Logging Architecture" and section 4. "Component Log Files and Layout").
+- See section 2. "Architecture Overview" and section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md).
+- See [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) (especially section 2. "Logging Architecture" and section 4. "Component Log Files and Layout").
 
 Align tests with those patterns:
 
@@ -603,7 +603,7 @@ For AI conversation behavior, routing, and functionality tests, use:
   - Section 6. "Test Features".
   - Section 7. "Test Categories".
 
-For a system-level view of the AI behavior these tests exercise, see [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md).
+For a system-level view of the AI behavior these tests exercise, see [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md).
 
 Run these tests when:
 

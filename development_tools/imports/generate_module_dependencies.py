@@ -43,8 +43,7 @@ else:
         format_import_details
     )
     from development_tools.imports.analyze_dependency_patterns import (
-        DependencyPatternAnalyzer,
-        analyze_dependency_patterns
+        DependencyPatternAnalyzer
     )
     from development_tools.shared.common import ensure_ascii
 

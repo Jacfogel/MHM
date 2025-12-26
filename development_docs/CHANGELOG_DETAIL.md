@@ -38,6 +38,13 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-26 - Unused Imports Cleanup Completion and Documentation Quality Fixes **COMPLETED**
+- **Unused Imports Cleanup**: Removed 59 "Obvious Unused" imports, reducing from 59 to 0 in that category. Total unused imports reduced from 415 to 356 across 126 files. Cleaned up imports from production code (`communication/core/welcome_manager.py`, `development_tools/imports/generate_module_dependencies.py`, `development_tools/run_development_tools.py`) and test files.
+- **Pytest Fixture Detection Enhancement**: Enhanced `development_tools/imports/analyze_unused_imports.py` to correctly identify pytest fixtures imported from `conftest` files. Added `_is_pytest_fixture_import()` method that detects fixtures used as function parameters, preventing false positives. This improved categorization moved many imports from "Obvious Unused" to "Test Infrastructure" category.
+- **ASCII Compliance Fix**: Fixed remaining ASCII compliance issue in `development_docs/CHANGELOG_DETAIL.md` by replacing non-ASCII character (U+2264) in line 65 with plain text. All documentation now ASCII-compliant (0 issues verified).
+- **Documentation Path Drift Fix**: Fixed broken path references in `tests/TESTING_GUIDE.md` by correcting relative paths for `LOGGING_GUIDE.md`, `ERROR_HANDLING_GUIDE.md`, and `test_audit_tier_comprehensive.py`. All documentation paths now correctly resolved (0 path drift issues verified).
+- **Impact**: Codebase cleanup complete with all "Obvious Unused" imports removed. Enhanced unused imports analyzer now correctly categorizes pytest fixtures, reducing false positives. All documentation quality checks (ASCII compliance, path drift) now pass. Remaining unused imports (356 total) are appropriately categorized as test mocking, Qt testing, or test infrastructure imports that should be kept.
+
 ### 2025-12-25 - Enhanced Audit Tier E2E Testing to Verify All 23 Tools **COMPLETED**
 - **E2E Test Enhancement**: Enhanced `tests/development_tools/test_audit_tier_e2e_verification.py` to verify all 23 tools execute, not just a sample. Previously only verified 3-4 sample tools per tier; now verifies complete tool sets: Tier 1 (7 tools), Tier 2 (17 tools: 7 Tier 1 + 10 Tier 2), Tier 3 (23 tools: all tiers).
 - **Test Assertions**: Updated all three E2E tests to check for complete tool lists with appropriate failure thresholds (allows 1-5 failures on demo project where some tools may fail fast). Tier 1 verifies at least 5 of 7 tools, Tier 2 verifies at least 7 of 10 Tier 2 tools (plus all Tier 1), Tier 3 verifies at least 18 of 23 total tools.
@@ -62,7 +69,7 @@ When adding new changes, follow this format:
 - **Threshold Validation Tests**: Added `TestThresholdValidation` class (2 tests) verifying thresholds are loaded from config (80% docs/test, 60% dev tools) and used consistently in report generation.
 - **Recommendation Quality Tests**: Added `TestRecommendationQuality` class (2 tests) verifying recommendations have required structure and are non-empty strings. Fixed import errors by using `load_development_tools_module` helper instead of direct imports.
 - **Pytest Markers**: Added `@pytest.mark.unit` markers to all 23 validation tests (15 exclusion utilities + 14 validation framework) to enable selective test execution and better organization.
-- **ASCII Compliance Fix**: Fixed 2 ASCII compliance issues by replacing non-ASCII `≤` characters with `<=` in `development_docs/CHANGELOG_DETAIL.md` and `ai_development_docs/AI_CHANGELOG.md`. All documentation now ASCII-compliant (0 issues).
+- **ASCII Compliance Fix**: Fixed 2 ASCII compliance issues by replacing non-ASCII characters with `<=` in `development_docs/CHANGELOG_DETAIL.md` and `ai_development_docs/AI_CHANGELOG.md`. All documentation now ASCII-compliant (0 issues).
 - **Test Results**: All 34 validation tests passing (15 exclusion utilities + 14 validation framework + 5 false negative detection). Full test suite: 3964 passed, 1 skipped (intentional Windows skip), 0 failed.
 - **Impact**: Validation framework now provides comprehensive coverage of analysis tool accuracy, ensuring tools detect real issues and don't produce false positives. All tests properly marked for selective execution. Documentation quality checks all pass.
 

@@ -5,7 +5,6 @@ Tests function extraction, scanning, categorization, and file generation.
 """
 
 import pytest
-import sys
 from pathlib import Path
 
 # Import helper from conftest

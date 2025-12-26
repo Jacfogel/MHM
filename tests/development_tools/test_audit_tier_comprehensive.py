@@ -36,13 +36,12 @@ a clear summary of what was verified, or run:
 """
 
 import json
-import os
 import sys
 import time
 import importlib.util
 import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock
 
 # Ensure core modules are available before loading development_tools modules
 # This is necessary because development_tools modules import core modules

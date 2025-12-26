@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-18 03:46:15
+> **Last Generated**: 2025-12-26 05:27:24
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 96.2% [OK] COMPLETED**
 - **Files Scanned**: 107
-- **Functions Found**: 1506
+- **Functions Found**: 1507
 - **Methods Found**: 1144
 - **Classes Found**: 159
-- **Total Items**: 2650
+- **Total Items**: 2651
 - **Functions Documented**: 1444
 - **Methods Documented**: 1105
 - **Classes Documented**: 124
 - **Total Documented**: 2549
 - **Template-Generated**: 4
-- **Last Updated**: 2025-12-18
+- **Last Updated**: 2025-12-26
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -45,7 +45,7 @@ Core system utilities, configuration, error handling, and data management functi
 ### **Communication Functions** (428)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (390)
+### **User Interface Functions** (391)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (32)
@@ -4924,6 +4924,7 @@ Args:
 **Functions:**
 - [OK] `__init__(self, parent, user_id)` - Initialize the object.
 - [MISSING] `get_selected_channel(self)` - No description
+- [MISSING] `load_user_channel_data()` - No description
 - [MISSING] `save_channel_settings(self)` - No description
 - [MISSING] `set_selected_channel(self, channel, value)` - No description
 **Classes:**

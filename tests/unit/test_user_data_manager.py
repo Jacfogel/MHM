@@ -24,7 +24,6 @@ from core.user_data_manager import (
     update_message_references,
     backup_user_data,
     export_user_data,
-    delete_user_completely,
     get_user_data_summary,
     update_user_index,
     rebuild_user_index,

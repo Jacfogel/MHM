@@ -29,16 +29,6 @@ except ImportError as e:
 
 from core.logger import get_component_logger
 
-# Import config module for configuration validation
-try:
-    from development_tools import config
-except ImportError:
-    try:
-        from . import config
-    except ImportError:
-        # Config is optional, so we can continue without it
-        config = None
-
 logger = get_component_logger("development_tools")
 
 

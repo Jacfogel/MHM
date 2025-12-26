@@ -666,8 +666,11 @@ as- [x] Create E2E tests that verify all 23 tools execute (not just orchestratio
 - [ ] Demote verbose enhancement messages to DEBUG level
 - [ ] Demote "needs_enhancement" warnings to DEBUG level
 - [ ] Consolidate related log messages to reduce redundancy
+- [ ] **Review verbose logging in config validation and package auditing**: Some tools (e.g., `analyze_config.py`) log excessive detail at INFO level (full configuration validation report, tool analysis details, package auditing details). Investigate whether these details are included in generated reports/files before changing logging levels. Consider demoting detailed output to DEBUG level if details are available elsewhere.
+- [ ] **Replace print statements with proper logging**: Audit all development tools files for `print()` statements (47 files found). Replace with appropriate logger calls (INFO/DEBUG/WARNING) or remove if redundant with logging. Ensure no important information is lost in transition.
+- [ ] **Add "Top offenders" list to Quick Wins section**: Enhance Quick Wins section in AI_PRIORITIES.md to include "Top offenders:" list for ASCII compliance issues (similar to how other issues show top files). Update `report_generation.py::_generate_ai_priorities_document()` to include top files when ASCII issues are present.
 
-**Files**: All development tools files, especially `development_tools/shared/operations.py`
+**Files**: All development tools files, especially `development_tools/shared/operations.py`, `development_tools/config/analyze_config.py`, `development_tools/shared/service/audit_orchestration.py`, `development_tools/shared/service/report_generation.py` (Quick Wins section)
 
 #### 5.2 Improve Console Output During Audit Runs
 **Status**: PENDING (from TODO.md)  
@@ -1059,6 +1062,12 @@ as- [x] Create E2E tests that verify all 23 tools execute (not just orchestratio
 **Priority**: HIGH  
 **Issue**: Recommendations have quality issues: redundancy, lack of specificity, inconsistent ordering, and potential false positives.
 
+**Additional Issues Identified**:
+- **Unused Imports Recommendation Review**: AI_PRIORITIES.md (lines 11-16) recommends removing 356 unused imports, but many of these should remain (test mocking, Qt testing, test infrastructure, production test mocking). The recommendation is misleading and should be updated to only recommend removing truly unused imports (currently 0 in "Obvious Unused" category). Need to review recommendation generation logic to ensure it respects categorization and doesn't recommend removing imports that are intentionally kept.
+- **Validation Warnings**: Several validation warnings need investigation:
+  - "Only 60/82 manual enhancements found in written file" - Need to investigate why manual enhancements count doesn't match
+  - "needs_enhancement" and "new_module" warnings for test files - Need to understand what triggers these and whether they're actionable or should be filtered
+
 **Quality Issues Identified**:
 
 1. **Config Validation Recommendations - Redundancy**:
@@ -1092,6 +1101,12 @@ as- [x] Create E2E tests that verify all 23 tools execute (not just orchestratio
    - Impact: Wasted effort on non-issues
 
 **Tasks**:
+- [ ] **Review Unused Imports Recommendations**:
+  - [ ] Review `_generate_ai_priorities_document()` logic for unused imports recommendations
+  - [ ] Ensure recommendations only suggest removing imports from "Obvious Unused" category (currently 0)
+  - [ ] Update recommendation text to clarify that test mocking, Qt testing, and test infrastructure imports should be kept
+  - [ ] Verify recommendation respects categorization from `UNUSED_IMPORTS_REPORT.md`
+  - [ ] Test that recommendation doesn't appear when "Obvious Unused" count is 0
 - [ ] **Fix Config Validation Recommendation Redundancy**:
   - [ ] Review `analyze_config.py::generate_recommendations()` logic
   - [ ] Consolidate duplicate recommendations (same issue, different wording)
@@ -1256,14 +1271,23 @@ as- [x] Create E2E tests that verify all 23 tools execute (not just orchestratio
 
 #### 7.7 Investigate Changelog Trim Tooling Unavailability
 **Status**: PENDING (from TODO.md)  
-**Issue**: Changelog check reports "Tooling unavailable (skipping trim)".
+**Priority**: HIGH  
+**Issue**: Changelog check reports "Tooling unavailable (skipping trim)" during audit runs. This indicates the changelog trim functionality is not working correctly.
 
-**Tasks**:
-- [ ] Investigate why changelog trim tooling is unavailable
-- [ ] Handle with care to avoid accidentally losing changelog information
-- [ ] Ensure changelog maintenance tooling works correctly
+**Investigation Plan**:
+- [ ] Review `audit_orchestration.py::_check_and_trim_changelog_entries()` implementation (lines 876-895)
+- [ ] Check why `changelog_manager` import fails or is None
+- [ ] Verify `ai_development_docs.changelog_manager` module exists and has `trim_change_log()` method
+- [ ] Check if import path is correct or if module needs to be created
+- [ ] Test changelog trim functionality independently via `fix_version_sync.py trim` command
+- [ ] Ensure trim functionality works correctly without losing changelog information
+- [ ] Fix import or implementation issue causing "Tooling unavailable" warning
+- [ ] Add proper error handling and logging for trim failures
 
-**Files**: Changelog-related tools
+**Files**: 
+- `development_tools/shared/service/audit_orchestration.py` (lines 876-895)
+- `development_tools/docs/fix_version_sync.py` (trim functionality)
+- `ai_development_docs/changelog_manager.py` (if exists, or needs to be created)
 
 #### 7.8 Verify Critical Issues File Creation
 **Status**: PENDING (from TODO.md)  
@@ -1275,6 +1299,37 @@ as- [x] Create E2E tests that verify all 23 tools execute (not just orchestratio
 - [ ] Fix if the claim is false
 
 **Files**: `development_tools/shared/operations.py` (critical issues generation)
+
+#### 7.10 Investigate Validation Warnings and Enhancement Flags
+**Status**: PENDING  
+**Priority**: MEDIUM  
+**Issue**: Several validation warnings appear during audit runs that need investigation and action.
+
+**Warnings Identified**:
+1. **Manual Enhancements Count Mismatch**: "Only 60/82 manual enhancements found in written file"
+   - Need to investigate why count doesn't match expected value
+   - Check if some enhancements are being filtered or not written
+   - Verify enhancement detection and writing logic
+
+2. **"needs_enhancement" and "new_module" Warnings**: 
+   - Examples: `test_analyze_ai_work.py (needs_enhancement)`, `test_analyze_ascii_compliance.py (new_module)`
+   - Need to understand what triggers these flags
+   - Determine if these are actionable or should be filtered for test files
+   - Check if these warnings are appropriate for development tools test files
+
+**Tasks**:
+- [ ] Investigate manual enhancements count mismatch:
+  - [ ] Review enhancement detection logic
+  - [ ] Check enhancement writing logic
+  - [ ] Verify if some enhancements are intentionally filtered
+  - [ ] Fix count mismatch or update expected count
+- [ ] Investigate "needs_enhancement" and "new_module" warnings:
+  - [ ] Review what triggers these flags in validation logic
+  - [ ] Determine if test files should be excluded from these checks
+  - [ ] Check if warnings are appropriate or should be demoted to DEBUG level
+  - [ ] Update validation logic if needed to filter test files appropriately
+
+**Files**: Validation and enhancement detection logic (likely in `analyze_ai_work.py` or report generation)
 
 #### 7.9 Investigate Version Sync Functionality
 **Status**: PENDING (from TODO.md)  

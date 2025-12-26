@@ -17,8 +17,7 @@ from unittest.mock import Mock, patch, MagicMock
 from pathlib import Path
 
 from user.user_preferences import UserPreferences
-from core.user_data_handlers import get_user_data, update_user_preferences
-from core.schedule_management import set_schedule_period_active, is_schedule_period_active
+from core.user_data_handlers import get_user_data
 
 
 @pytest.mark.unit

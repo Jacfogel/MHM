@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-18 03:46:15
+> **Last Generated**: 2025-12-26 05:27:24
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -11,9 +11,9 @@
 ## [*] **Current Status**
 
 ### **Documentation Coverage: 96.2% [OK] EXCELLENT**
-- **Total Functions**: 1506
+- **Total Functions**: 1507
 - **Total Methods**: 1144
-- **Documented**: 2549/2650
+- **Documented**: 2549/2651
 - **Files Scanned**: 107
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -190,7 +190,7 @@ Core System Decision Tree:
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
 - `core/schemas.py` - 18/32 functions undocumented (44% coverage)
 - `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
-- `ui/dialogs/channel_management_dialog.py` - 6/8 functions undocumented (25% coverage)
+- `ui/dialogs/channel_management_dialog.py` - 7/9 functions undocumented (22% coverage)
 - `ui/widgets/channel_selection_widget.py` - 6/16 functions undocumented (62% coverage)
 - `ui/widgets/category_selection_widget.py` - 4/6 functions undocumented (33% coverage)
 
@@ -218,7 +218,7 @@ Core System Decision Tree:
 ### **Complexity Metrics**
 Most complex functions (may need refactoring):
 1. [OK] `ai/chatbot.py::_create_comprehensive_context_prompt()` - Complexity: 2192
-2. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2177
+2. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2158
 3. [OK] `core/user_data_handlers.py::get_user_data()` - Complexity: 2130
 4. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 1976
 5. [OK] `run_tests.py::print_combined_summary()` - Complexity: 1344
@@ -234,9 +234,9 @@ Most complex functions (may need refactoring):
 - `core/` - System utilities and data management (26 files, 781 functions)
 - `communication/` - Communication channels and message processing (37 files, 818 functions)
 - `ai/` - AI chatbot functionality (7 files, 189 functions)
-- `ui/` - User interface components (28 files, 765 functions)
+- `ui/` - User interface components (28 files, 766 functions)
 - `user/` - User context and preferences (4 files, 64 functions)
 - `tasks/` - Task management system (2 files, 21 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: 2025-12-18 03:46:15
+> **Last Updated**: 2025-12-26 05:27:24

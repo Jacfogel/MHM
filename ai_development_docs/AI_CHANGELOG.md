@@ -36,6 +36,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-26 - Unused Imports Cleanup Completion and Documentation Quality Fixes **COMPLETED**
+- Removed 59 "Obvious Unused" imports (reduced from 59 to 0 in that category). Enhanced `analyze_unused_imports.py` to detect pytest fixtures imported from conftest files, preventing false positives.
+- Fixed ASCII compliance issue in CHANGELOG_DETAIL.md (replaced non-ASCII character). Fixed documentation path drift in tests/TESTING_GUIDE.md (corrected relative paths). All documentation quality checks now pass (0 issues).
+- Total unused imports: 356 across 126 files (down from 415). Remaining imports are appropriately categorized as test mocking, Qt testing, or test infrastructure imports that should be kept.
+
 ### 2025-12-25 - Enhanced Audit Tier E2E Testing to Verify All 23 Tools **COMPLETED**
 - Enhanced E2E tests to verify all 23 tools execute (was only checking 3-4 sample tools per tier). Tier 1 verifies 7 tools, Tier 2 verifies 17 tools, Tier 3 verifies all 23 tools.
 - Updated verification summary to document complete tool coverage. All 3 E2E tests pass (~52s). Tests allow 1-5 failures on demo project where some tools may fail fast.

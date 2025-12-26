@@ -19,7 +19,6 @@ from communication.communication_channels.base.command_registry import (
     EmailCommandRegistry,
     get_command_registry
 )
-import discord
 
 
 class TestCommandDefinition:

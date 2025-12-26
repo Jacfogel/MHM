@@ -6,7 +6,7 @@ Tests for ai/chatbot.py focusing on helper methods and utility functions.
 
 import pytest
 from unittest.mock import Mock, patch, MagicMock
-from ai.chatbot import AIChatBotSingleton, get_ai_chatbot
+from ai.chatbot import get_ai_chatbot
 
 
 @pytest.fixture(scope="module")

@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-18 03:46:18
+> **Last Generated**: 2025-12-26 05:27:27
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -12,11 +12,11 @@
 ## Current Status
 
 ### Dependency Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 341
-- **Total Imports**: 3883
-- **Standard Library**: 1327 (34.2%)
-- **Third-Party**: 578 (14.9%)
-- **Local Imports**: 1978 (50.9%)
+- **Files Scanned**: 366
+- **Total Imports**: 3990
+- **Standard Library**: 1384 (34.7%)
+- **Third-Party**: 600 (15.0%)
+- **Local Imports**: 2006 (50.3%)
 
 ## Dependency Decision Trees
 
@@ -38,7 +38,7 @@ AI System Dependencies:
   - user/context_manager.py <- standard library (datetime, typing), logger, user_data_handlers, response_tracking, message_management, schedule_utilities (+2 more)
   - user/user_context.py <- standard library (threading), logger, user_data_handlers, error_handling, schedule_utilities
 - Command Processing
-  - communication/command_handlers/account_handler.py <- standard library (asyncio, secrets, string, time), logger, error_handling, user_management, user_data_handlers, user_data_manager (+4 more)
+  - communication/command_handlers/account_handler.py <- standard library (asyncio, secrets, string, typing), logger, error_handling, user_management, user_data_handlers, user_data_manager (+4 more)
   - communication/command_handlers/analytics_handler.py <- standard library (collections, typing), logger, error_handling, base_handler, shared_types, checkin_analytics (+3 more)
   - communication/command_handlers/base_handler.py <- standard library (abc, typing), shared_types, logger, error_handling
 - Communication Integration
@@ -52,11 +52,11 @@ Communication Dependencies:
   - communication/core/factory.py <- standard library (importlib, typing), base_channel, logger, error_handling, config
   - communication/communication_channels/base/base_channel.py <- standard library (abc, dataclasses, enum, typing), logger, error_handling
 - Specific Channels
-  - communication/communication_channels/discord/account_flow_handler.py <- standard library (typing), third-party (discord), logger, error_handling, shared_types, account_handler, user_management
+  - communication/communication_channels/discord/account_flow_handler.py <- third-party (discord), logger, error_handling, shared_types, account_handler, user_management
   - communication/communication_channels/discord/api_client.py <- standard library (asyncio, dataclasses, time, typing), third-party (discord), logger, error_handling
 - Conversation Flow
   - communication/message_processing/conversation_flow_manager.py <- standard library (datetime, json, os, pathlib), chatbot, logger, user_data_handlers, response_tracking, error_handling (+9 more)
-  - communication/communication_channels/discord/account_flow_handler.py <- standard library (typing), third-party (discord), logger, error_handling, shared_types, account_handler, user_management
+  - communication/communication_channels/discord/account_flow_handler.py <- third-party (discord), logger, error_handling, shared_types, account_handler, user_management
 
 ### Need UI Dependencies?
 UI Dependencies:
@@ -103,7 +103,7 @@ External libraries provide channel and UI support.
 
 ### Entry Points
 - `tests/ai/run_ai_functionality_tests.py` -> standard library (datetime, glob, logging, os), test_utilities, logger, test_ai_core, test_ai_integration, test_ai_errors (+4 more) (main application entry)
-- `tests/development_tools/test_run_development_tools.py` -> standard library (pathlib, subprocess, sys, warnings), third-party (pytest) (main application entry)
+- `tests/development_tools/test_run_development_tools.py` -> standard library (pathlib, subprocess, sys), third-party (pytest) (main application entry)
 - `tests/ui/test_ui_app_qt_main.py` -> standard library (pathlib, unittest.mock), third-party (PySide6.QtWidgets, pytest), conftest, ui_app_qt, test_utilities (application entry)
 - `run_headless_service.py` -> standard library (sys), headless_service, logger, error_handling (main application entry)
 - `run_mhm.py` -> standard library (os, pathlib, subprocess, sys), error_handling (main application entry)
@@ -115,7 +115,7 @@ External libraries provide channel and UI support.
 
 ### Communication Flow
 - __init__: communication/__init__.py <- third-party (command_handlers.analytics_handler, command_handlers.base_handler, command_handlers.interaction_handlers), retry_manager, channel_orchestrator, factory, channel_monitor
-- account_handler: communication/command_handlers/account_handler.py <- standard library (asyncio, secrets, string, time), logger, error_handling, user_management, user_data_handlers, user_data_manager (+4 more)
+- account_handler: communication/command_handlers/account_handler.py <- standard library (asyncio, secrets, string, typing), logger, error_handling, user_management, user_data_handlers, user_data_manager (+4 more)
 - analytics_handler: communication/command_handlers/analytics_handler.py <- standard library (collections, typing), logger, error_handling, base_handler, shared_types, checkin_analytics (+3 more)
 
 
@@ -129,11 +129,11 @@ External libraries provide channel and UI support.
 - `core/user_management.py` -> 40 local dependencies (heavy coupling)
 
 ### Third-Party Risks
-- `tests/conftest.py` -> pytest (192 modules use this)
+- `tests/conftest.py` -> pytest (215 modules use this)
 - `ui/ui_app_qt.py` -> PySide6.QtWidgets (81 modules use this)
 - `ui/ui_app_qt.py` -> PySide6.QtCore (63 modules use this)
 - `ui/ui_app_qt.py` -> PySide6.QtGui (36 modules use this)
-- `communication/communication_channels/base/command_registry.py` -> discord (16 modules use this)
+- `tests/ui/test_account_creation_ui.py` -> PySide6.QtTest (16 modules use this)
 
 ### Circular Dependencies to Monitor
 - `core/config.py` <-> `core/logger.py`
