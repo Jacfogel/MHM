@@ -24,6 +24,9 @@ def test_no_print_calls_in_tests():
                 # Skip standalone test runners (AI functionality tests, scripts, etc.)
                 if name in ['run_ai_functionality_tests.py', 'test_ai_functionality_manual.py']:
                     continue
+                # Skip utility scripts that are meant to be run standalone (not pytest tests)
+                if name == 'test_verification_summary.py':
+                    continue
                 # Skip scripts directory
                 if 'scripts' in dirpath:
                     continue

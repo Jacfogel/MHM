@@ -410,6 +410,7 @@ Recommended pattern (subject to alignment with the actual `pytest.ini`):
 - **Resource markers**:
   - `asyncio` (async tests).
   - `no_parallel` (cannot be parallelized; see section 5.2).
+s  - `e2e` (end-to-end tests with real tool execution; slow, excluded from regular runs; see section 6.5).
 
 - **Quality markers**:
   - `critical` (core flows).
@@ -465,6 +466,35 @@ Follow these guidelines:
 - When known gaps exist:
   - Add TODOs in the tests or issues in your tracker.
   - Reference those gaps when appropriate so they are not forgotten.
+
+### 6.5. End-to-end (E2E) tests
+
+End-to-end tests marked with `@pytest.mark.e2e` run real audits with actual tool execution (no mocks). These tests are:
+
+- **Slow**: Tier 3 E2E tests can take ~9-10 minutes due to coverage generation.
+- **Excluded by default**: The `e2e` marker is excluded from regular test runs via `pytest.ini` configuration.
+- **For verification**: Use these tests to verify actual audit tier execution before releases or when investigating issues.
+
+**Running E2E tests**:
+
+```bash
+# Run all E2E tests
+pytest -m e2e tests/development_tools/test_audit_tier_e2e_verification.py
+
+# Run specific E2E test
+pytest -m e2e tests/development_tools/test_audit_tier_e2e_verification.py::TestAuditTierE2E::test_tier1_e2e
+
+# Run all tests including E2E (override default exclusion)
+pytest -m "" tests/development_tools/
+```
+
+**When to use E2E tests**:
+
+- Before releases to verify audit tiers work with real codebase analysis.
+- When investigating audit tier issues that don't appear in orchestration tests.
+- To verify actual tool output and correctness.
+
+**Note**: E2E tests require the codebase to be in a valid state and may modify test directories. They are separate from the fast orchestration tests in `test_audit_tier_comprehensive.py` which verify control flow and structure using mocks.
 
 ---
 

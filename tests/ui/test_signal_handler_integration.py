@@ -322,6 +322,7 @@ class TestUISignalConnectionIntegrity:
     @pytest.mark.ui
     @pytest.mark.regression
     @pytest.mark.critical
+    @pytest.mark.no_parallel
     def test_signal_handlers_dont_raise_on_signal_emission(self, qapp, test_data_dir, mock_config):
         """Test that signal handlers don't raise exceptions when signals fire.
         

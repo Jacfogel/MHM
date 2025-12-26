@@ -171,9 +171,15 @@ os.environ['BASE_DATA_DIR'] = str(tests_data_dir)
 
 # Import core modules for testing (after logging isolation is set up)
 # Force core config paths to tests/data early so all modules see test isolation
-import core.config as _core_config
-_core_config.BASE_DATA_DIR = str(tests_data_dir)
-_core_config.USER_INFO_DIR_PATH = str(tests_data_dir / 'users')
+# Note: This import may fail for development tools tests that don't need core modules
+try:
+    import core.config as _core_config
+    _core_config.BASE_DATA_DIR = str(tests_data_dir)
+    _core_config.USER_INFO_DIR_PATH = str(tests_data_dir / 'users')
+except (ImportError, ModuleNotFoundError):
+    # Core modules not available (e.g., in development tools tests)
+    # This is expected and safe to ignore for tests that don't use core functionality
+    _core_config = None
 
 # CRITICAL: Re-initialize UserDataManager module-level instance if it was already imported
 # This ensures the module-level instance uses the test directory
@@ -229,14 +235,23 @@ def verify_user_data_loader_registry():
 
 # Ensure import order and perform a single default loader registration at session start
 @pytest.fixture(scope="session", autouse=True)
-def initialize_loader_import_order():
+def initialize_loader_import_order(request):
     """Import core.user_management before core.user_data_handlers and register loaders once.
 
     This ensures both modules share the same USER_DATA_LOADERS dict and that required
     loaders are present without relying on the data shim.
+    
+    Skip this fixture for development tools tests that don't have core modules available.
     """
     import importlib
-    import core.user_management as um
+    
+    # Try to import core modules - skip if not available (e.g., development tools tests)
+    try:
+        import core.user_management as um
+    except (ImportError, ModuleNotFoundError):
+        # Core modules not available (e.g., in development tools test environment)
+        yield
+        return
     um = importlib.reload(um)
     try:
         import core.user_data_handlers as udh
@@ -409,7 +424,16 @@ def setup_qmessagebox_patches():
 setup_qmessagebox_patches()
 
 # Import the formatter from core.logger instead of duplicating it
-from core.logger import PytestContextLogFormatter
+# Note: This import may fail for development tools tests that don't need core modules
+try:
+    from core.logger import PytestContextLogFormatter
+except (ImportError, ModuleNotFoundError):
+    # Core modules not available (e.g., in development tools tests)
+    # Define a minimal formatter for tests that don't use core.logger
+    class PytestContextLogFormatter(logging.Formatter):
+        """Minimal formatter for tests that don't have core.logger available."""
+        def __init__(self, fmt=None, datefmt=None):
+            super().__init__(fmt=fmt, datefmt=datefmt)
 
 # Global flag to prevent multiple test logging setups
 _test_logging_setup_done = False
@@ -901,9 +925,15 @@ def setup_consolidated_test_logging():
 
     # Create handler for test execution logs (with test context)
     test_handler = logging.FileHandler(str(test_run_log_file), mode='a', encoding='utf-8')
-    from core.logger import PytestContextLogFormatter
-    test_formatter = PytestContextLogFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
-                                        datefmt='%Y-%m-%d %H:%M:%S')
+    try:
+        from core.logger import PytestContextLogFormatter
+        test_formatter = PytestContextLogFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
+                                            datefmt='%Y-%m-%d %H:%M:%S')
+    except (ImportError, ModuleNotFoundError):
+        # Core modules not available (e.g., in development tools tests)
+        # Use standard formatter instead
+        test_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
+                                          datefmt='%Y-%m-%d %H:%M:%S')
     test_handler.setFormatter(test_formatter)
 
     # CRITICAL: Ensure root logger has a valid level FIRST (child loggers inherit from root)
@@ -2901,6 +2931,9 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "no_parallel: mark test as must not run under pytest-xdist parallel execution"
     )
+    config.addinivalue_line(
+        "markers", "e2e: End-to-end tests with real tool execution (slow, excluded from regular runs)"
+    )
 
 def pytest_sessionstart(session):
     """Log test session start."""
@@ -3208,6 +3241,9 @@ def cleanup_communication_manager():
                 CommunicationManager._instance.stop_all()
                 CommunicationManager._instance = None
                 test_logger.debug("CommunicationManager cleanup completed")
+        except (ImportError, ModuleNotFoundError):
+            # Silently skip if core/communication modules aren't available (e.g., development tools tests)
+            pass
         except Exception as e:
             cleanup_error[0] = e
         finally:
@@ -3229,6 +3265,9 @@ def cleanup_conversation_manager():
     try:
         from communication.message_processing.conversation_flow_manager import conversation_manager
         conversation_manager.clear_all_states()
+    except (ImportError, ModuleNotFoundError):
+        # Silently skip if core/communication modules aren't available (e.g., development tools tests)
+        pass
     except Exception as e:
         test_logger.warning(f"Error clearing conversation manager state: {e}")
     
@@ -3238,6 +3277,9 @@ def cleanup_conversation_manager():
     try:
         from communication.message_processing.conversation_flow_manager import conversation_manager
         conversation_manager.clear_all_states()
+    except (ImportError, ModuleNotFoundError):
+        # Silently skip if core/communication modules aren't available (e.g., development tools tests)
+        pass
     except Exception as e:
         test_logger.warning(f"Error clearing conversation manager state: {e}")
 
@@ -3316,5 +3358,8 @@ def cleanup_communication_threads():
                     CommunicationManager._instance.stop_all()
             except Exception:
                 pass  # Ignore errors during cleanup
+    except (ImportError, ModuleNotFoundError):
+        # Silently skip if core/communication modules aren't available (e.g., development tools tests)
+        pass
     except Exception:
-        pass  # Ignore import errors
+        pass  # Ignore other errors

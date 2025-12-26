@@ -359,9 +359,11 @@ class CoverageMetricsRegenerator:
             
             # Add parallel execution if enabled
             if self.parallel:
-                # Exclude no_parallel tests from parallel execution (they should run separately in serial mode)
+                # Exclude no_parallel and e2e tests from parallel execution
+                # no_parallel tests run separately in serial mode
+                # e2e tests are slow and excluded from regular runs (per pytest.ini)
                 # This matches the behavior in run_tests.py to prevent flaky failures
-                cmd.extend(['-m', 'not no_parallel'])
+                cmd.extend(['-m', 'not (no_parallel or e2e)'])
                 cmd.extend(['-n', self.num_workers])
                 # Use loadscope distribution to group tests by file/class for better isolation
                 # This reduces race conditions by keeping related tests together
@@ -706,7 +708,7 @@ class CoverageMetricsRegenerator:
                 # Create command for no_parallel tests (serial execution, no parallel flags)
                 no_parallel_cmd = [
                     sys.executable, '-m', 'pytest',
-                    '-m', 'no_parallel',  # Only run tests marked with no_parallel
+                    '-m', 'no_parallel and not e2e',  # Only run tests marked with no_parallel, but exclude e2e
                     *cov_args,
                     '--cov-report=term-missing',
                     # Don't write JSON for no_parallel run - we'll combine coverage data files and regenerate JSON
@@ -1087,6 +1089,7 @@ class CoverageMetricsRegenerator:
             dev_cov_config = self.dev_tools_coverage_config_path if self.dev_tools_coverage_config_path.exists() else self.coverage_config_path
             cmd = [
                 sys.executable, '-m', 'pytest',
+                '-m', 'not e2e',  # Exclude e2e tests (slow, excluded from regular runs per pytest.ini)
                 '--cov=development_tools',
                 '--cov-report=term-missing',
                 f'--cov-report=json:{coverage_output_abs}',

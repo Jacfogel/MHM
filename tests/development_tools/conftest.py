@@ -7,6 +7,83 @@ import importlib.util
 from pathlib import Path
 import pytest
 
+# Override core-dependent fixtures from parent conftest.py with no-op versions
+# These fixtures are not needed for development tools tests which don't use core modules
+
+@pytest.fixture(scope="session", autouse=True)
+def initialize_loader_import_order():
+    """No-op override: development tools tests don't need core user data loader initialization."""
+    yield
+
+@pytest.fixture(scope="session", autouse=True)
+def register_user_data_loaders_session():
+    """No-op override: development tools tests don't need core user data loader registration."""
+    yield
+
+@pytest.fixture(scope="session", autouse=True)
+def verify_user_data_loader_registry():
+    """No-op override: development tools tests don't need core user data loader verification."""
+    yield
+
+@pytest.fixture(scope="session", autouse=True)
+def shim_get_user_data_to_invoke_loaders():
+    """No-op override: development tools tests don't need core user data shim."""
+    yield
+
+@pytest.fixture(scope="session", autouse=True)
+def verify_required_loaders_present():
+    """No-op override: development tools tests don't need core user data loader verification."""
+    yield
+
+@pytest.fixture(scope="function", autouse=True)
+def mock_config():
+    """No-op override: development tools tests don't need core.config mocking."""
+    yield
+
+@pytest.fixture(scope="function", autouse=True)
+def ensure_mock_config_applied():
+    """No-op override: development tools tests don't need core.config verification."""
+    yield
+
+@pytest.fixture(scope="function", autouse=True)
+def fix_user_data_loaders():
+    """No-op override: development tools tests don't need core user data loader fixes."""
+    yield
+
+@pytest.fixture(scope="function", autouse=True)
+def clear_user_caches_between_tests():
+    """No-op override: development tools tests don't need core user cache clearing."""
+    yield
+
+@pytest.fixture(scope="function", autouse=True)
+def cleanup_conversation_manager():
+    """No-op override: development tools tests don't need conversation manager cleanup."""
+    yield
+
+@pytest.fixture(scope="function", autouse=True)
+def cleanup_communication_threads():
+    """No-op override: development tools tests don't need communication thread cleanup."""
+    yield
+
+@pytest.fixture(scope="session", autouse=True)
+def cleanup_communication_manager():
+    """No-op override: development tools tests don't need CommunicationManager cleanup."""
+    yield
+
+def pytest_sessionfinish(session, exitstatus):
+    """Print verification summary after development tools audit tier tests complete."""
+    # Only print summary if we're running audit tier tests
+    audit_tier_tests = [
+        'test_audit_tier_comprehensive.py',
+        'test_audit_tier_e2e_verification.py'
+    ]
+    if any(test_file in str(item.fspath) for item in session.items for test_file in audit_tier_tests):
+        try:
+            from tests.development_tools.test_verification_summary import print_verification_summary
+            print_verification_summary()
+        except Exception:
+            pass  # Don't fail if summary can't be printed
+
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent.parent

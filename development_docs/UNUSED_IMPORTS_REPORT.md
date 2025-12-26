@@ -2,25 +2,25 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-25 04:05:36
+> **Last Generated**: 2025-12-26 01:48:28
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 395
-- **Files with Unused Imports**: 129
-- **Total Unused Imports**: 377
+- **Total Files Scanned**: 398
+- **Files with Unused Imports**: 131
+- **Total Unused Imports**: 381
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 56 imports
+- **Obvious Unused**: 59 imports
 - **Type Hints Only**: 1 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 1 imports
 - **Star Imports**: 0 imports
 - **Test Mocking**: 145 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 117 imports
+- **Test Infrastructure**: 118 imports
 - **Production Test Mocking**: 3 imports
 - **Ui Imports**: 0 imports
 
@@ -153,6 +153,22 @@
 **Count**: 1 unused import(s)
 
 - **Line 14**: Unused temp_project_copy imported from tests.development_tools.conftest
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_audit_tier_comprehensive.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 45**: Unused call imported from unittest.mock
+  - Symbol: `unused-import`
+- **Line 86**: Unused temp_project_copy imported from tests.development_tools.conftest
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_audit_tier_e2e_verification.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 45**: Unused temp_project_copy imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_decision_support.py`
@@ -1429,6 +1445,13 @@
 - **Line 10**: Unused import tempfile
   - Symbol: `unused-import`
 - **Line 11**: Unused Path imported from pathlib
+  - Symbol: `unused-import`
+
+### `tests/development_tools/test_audit_tier_comprehensive.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 39**: Unused import os
   - Symbol: `unused-import`
 
 ### `tests/development_tools/test_decision_support.py`
