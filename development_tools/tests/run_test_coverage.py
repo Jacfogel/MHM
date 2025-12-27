@@ -2,14 +2,19 @@
 # TOOL_TIER: core
 
 """
-Test Coverage Metrics Regenerator (Portable)
+Test Coverage Execution Tool (Portable)
 
-This script regenerates test coverage metrics and updates coverage plans.
+This script orchestrates pytest execution with coverage collection and generates
+coverage data files. It runs the actual test suite and collects coverage metrics.
+
+NOTE: This tool EXECUTES tests and GENERATES coverage data. For pure analysis of
+existing coverage data, use analyze_test_coverage.py instead.
+
 It is configurable via development_tools_config.json to work with any project's
 test setup and coverage configuration.
 
 Usage:
-    python tests/generate_test_coverage.py [--update-plan] [--output-file]
+    python tests/run_test_coverage.py [--output-file]
 """
 
 import argparse
@@ -46,12 +51,12 @@ except ImportError:
 # Import decomposed coverage analysis and report generation tools
 try:
     from development_tools.tests.analyze_test_coverage import TestCoverageAnalyzer
-    from development_tools.tests.generate_test_coverage_reports import TestCoverageReportGenerator
+    from development_tools.tests.generate_test_coverage_report import TestCoverageReportGenerator
 except ImportError:
     # Fallback for relative imports
     try:
         from .analyze_test_coverage import TestCoverageAnalyzer
-        from .generate_test_coverage_reports import TestCoverageReportGenerator
+        from .generate_test_coverage_report import TestCoverageReportGenerator
     except ImportError:
         TestCoverageAnalyzer = None
         TestCoverageReportGenerator = None
@@ -62,7 +67,15 @@ config.load_external_config()
 logger = get_component_logger("development_tools")
 
 class CoverageMetricsRegenerator:
-    """Regenerates test coverage metrics (portable across projects)."""
+    """
+    Executes test suite with coverage collection and regenerates coverage metrics.
+    
+    This class orchestrates pytest execution to run tests and collect coverage data.
+    It does NOT analyze coverage data - for analysis, use TestCoverageAnalyzer
+    from analyze_test_coverage.py.
+    
+    Portable across projects via external configuration.
+    """
     
     def __init__(self, project_root: str = ".", parallel: bool = True, num_workers: Optional[str] = None,
                  pytest_command: Optional[List[str]] = None, coverage_config: Optional[str] = None,
@@ -156,7 +169,6 @@ class CoverageMetricsRegenerator:
                 }
         
         # Set up paths from artifact directories
-        self.coverage_plan_file = self.project_root / "development_docs" / "TEST_COVERAGE_REPORT.md"
         self.coverage_data_file: Path = self.project_root / ".coverage"
         self.coverage_html_dir: Path = self.project_root / self.artifact_dirs.get('html_output', 'htmlcov')
         self.coverage_logs_dir: Path = self.project_root / self.artifact_dirs.get('logs', 'development_tools/tests/logs')
@@ -210,11 +222,11 @@ class CoverageMetricsRegenerator:
         report_generator_class = TestCoverageReportGenerator
         if report_generator_class is None:
             try:
-                from development_tools.tests.generate_test_coverage_reports import TestCoverageReportGenerator as ReportGeneratorClass
+                from development_tools.tests.generate_test_coverage_report import TestCoverageReportGenerator as ReportGeneratorClass
                 report_generator_class = ReportGeneratorClass
             except ImportError:
                 try:
-                    from .generate_test_coverage_reports import TestCoverageReportGenerator as ReportGeneratorClass
+                    from .generate_test_coverage_report import TestCoverageReportGenerator as ReportGeneratorClass
                     report_generator_class = ReportGeneratorClass
                 except ImportError:
                     report_generator_class = None
@@ -1538,155 +1550,6 @@ class CoverageMetricsRegenerator:
             logger.warning("Using fallback coverage summary generation - report generator not available")
         return f"Overall Coverage: {overall_data.get('overall_coverage', 0):.1f}%"
     
-    def update_coverage_plan(self, coverage_summary: str) -> bool:
-        """Update the TEST_COVERAGE_REPORT.md with new metrics."""
-        generated_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        
-        # Standard generated header
-        standard_header = f"""# Test Coverage Report
-
-> **File**: `development_docs/TEST_COVERAGE_REPORT.md`
-> **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: {generated_timestamp}
-> **Source**: `python development_tools/tests/generate_test_coverage.py --update-plan` - Coverage Metrics Regenerator
-
-"""
-        
-        if not self.coverage_plan_file.exists():
-            # Create new file with standard header and rotation
-            from development_tools.shared.file_rotation import create_output_file
-            try:
-                content = standard_header + "## Current Status\n\n" + coverage_summary + "\n"
-                create_output_file(str(self.coverage_plan_file), content, rotate=True, max_versions=7,
-                                  project_root=self.project_root)
-                if logger:
-                    logger.info(f"Created coverage plan with standard header: {self.coverage_plan_file}")
-                return True
-            except Exception as e:
-                if logger:
-                    logger.error(f"Error creating coverage plan: {e}")
-                return False
-            
-        try:
-            with open(self.coverage_plan_file, 'r', encoding='utf-8') as f:
-                content = f.read()
-            
-            # Check if file has standard generated header
-            # LEGACY COMPATIBILITY
-            # Accept both TEST_COVERAGE_REPORT.md (new) and TEST_COVERAGE_EXPANSION_PLAN.md (old) in header check.
-            # New standardized filename: TEST_COVERAGE_REPORT.md
-            # Removal plan: After one release cycle, remove check for TEST_COVERAGE_EXPANSION_PLAN.md in header.
-            # Detection: Search for "TEST_COVERAGE_EXPANSION_PLAN.md" in header checks.
-            has_standard_header = (
-                ('> **File**: `development_docs/TEST_COVERAGE_REPORT.md`' in content or '> **File**: `development_docs/TEST_COVERAGE_EXPANSION_PLAN.md`' in content) and
-                '> **Generated**: This file is auto-generated' in content and
-                ('> **Source**:' in content or '> **Generated by**: generate_test_coverage.py' in content)
-            )
-            if 'TEST_COVERAGE_EXPANSION_PLAN.md' in content and 'TEST_COVERAGE_REPORT.md' not in content:
-                logger.debug("LEGACY: Detected old filename TEST_COVERAGE_EXPANSION_PLAN.md in header (new name: TEST_COVERAGE_REPORT.md)")
-            
-            # Find and replace the current status section
-            section_header = "## Current Status"
-            current_status_pattern = r'(## Current Status.*?)(?=\n## |\Z)'
-            
-            new_status_section = f"{section_header}\n\n{coverage_summary}\n"
-            
-            if has_standard_header:
-                # File has standard header - just update the status section and timestamp
-                if re.search(current_status_pattern, content, re.DOTALL):
-                    updated_content = re.sub(
-                        current_status_pattern,
-                        lambda _: new_status_section,
-                        content,
-                        flags=re.DOTALL
-                    )
-                else:
-                    # Add status section after header
-                    header_end = content.find('\n## ')
-                    if header_end == -1:
-                        header_end = len(content)
-                    updated_content = content[:header_end] + '\n\n' + new_status_section + content[header_end:]
-                
-                # Update the last generated timestamp
-                timestamp_pattern = r'(> \*\*Last Generated\*\*: ).*'
-                if re.search(timestamp_pattern, updated_content):
-                    updated_content = re.sub(
-                        timestamp_pattern,
-                        lambda match: f"{match.group(1)}{generated_timestamp}",
-                        updated_content
-                    )
-                else:
-                    # If timestamp not found, add it after the Source line
-                    source_pattern = r'(> \*\*Source\*\*:.*\n)'
-                    if re.search(source_pattern, updated_content):
-                        updated_content = re.sub(
-                            source_pattern,
-                            lambda match: f"{match.group(1)}> **Last Generated**: {generated_timestamp}\n",
-                            updated_content
-                        )
-                
-                # Remove duplicate headers - if we have multiple header sections, keep only the first one
-                # Pattern: header section starts with "# Test Coverage Report" and ends before "## Current Status"
-                header_pattern = r'(# Test Coverage Report.*?> \*\*Last Generated\*\*:.*?\n\n)'
-                matches = list(re.finditer(header_pattern, updated_content, re.DOTALL))
-                if len(matches) > 1:
-                    # Keep only the first header, remove the rest
-                    first_header_end = matches[0].end()
-                    # Find where the second header starts
-                    second_header_start = matches[1].start()
-                    # Remove everything from first header end to second header start, but keep the content after
-                    updated_content = updated_content[:first_header_end] + updated_content[second_header_start:]
-                    # Now remove any remaining duplicate headers
-                    while True:
-                        new_matches = list(re.finditer(header_pattern, updated_content, re.DOTALL))
-                        if len(new_matches) <= 1:
-                            break
-                        # Remove second header
-                        updated_content = updated_content[:new_matches[0].end()] + updated_content[new_matches[1].end():]
-            else:
-                # File doesn't have standard header - replace with standard header
-                # Find the title
-                title_match = re.search(r'^# Test Coverage Expansion Plan.*?\n', content, re.MULTILINE)
-                if title_match:
-                    # Replace everything from title to first section with standard header
-                    title_end = title_match.end()
-                    first_section_match = re.search(r'\n## ', content[title_end:])
-                    if first_section_match:
-                        section_start = title_end + first_section_match.start()
-                        updated_content = standard_header + content[section_start:]
-                    else:
-                        updated_content = standard_header + content[title_end:]
-                else:
-                    # No title found, prepend standard header
-                    updated_content = standard_header + content
-                
-                # Ensure status section exists
-                if '## Current Status' not in updated_content:
-                    updated_content = updated_content.rstrip() + '\n\n' + new_status_section
-                else:
-                    # Replace existing status section
-                    updated_content = re.sub(
-                        current_status_pattern,
-                        lambda _: new_status_section,
-                        updated_content,
-                        flags=re.DOTALL
-                    )
-            
-            # Write updated content
-            # Use rotation system for archiving
-            from development_tools.shared.file_rotation import create_output_file
-            create_output_file(str(self.coverage_plan_file), updated_content, rotate=True, max_versions=7,
-                              project_root=self.project_root)
-                
-            if logger:
-                logger.info(f"Updated coverage plan: {self.coverage_plan_file}")
-            return True
-            
-        except Exception as e:
-            if logger:
-                logger.error(f"Error updating coverage plan: {e}")
-            return False
-    
     def get_current_timestamp(self) -> str:
         """Get current timestamp in the format used by the plan."""
         from datetime import datetime
@@ -1757,22 +1620,20 @@ class CoverageMetricsRegenerator:
             # Print summary (headers removed - added by consolidated report)
             print(coverage_summary)
             
-            # Update plan if requested
+            # Note: --update-plan flag is deprecated. TEST_COVERAGE_REPORT.md is now generated
+            # by the generate_test_coverage_report tool, which runs after this tool in audit orchestration.
             if update_plan:
-                success = self.update_coverage_plan(coverage_summary)
-                if success:
-                    print("\n* Coverage plan updated successfully!")
-                else:
-                    print("\n* Failed to update coverage plan")
+                logger.warning("--update-plan flag is deprecated. TEST_COVERAGE_REPORT.md is now generated by generate_test_coverage_report tool.")
+                print("\n* Note: TEST_COVERAGE_REPORT.md will be generated by generate_test_coverage_report tool (runs after coverage execution)")
             
             return coverage_results
 
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="Regenerate test coverage metrics")
+    parser = argparse.ArgumentParser(description="Run test coverage execution and collect coverage data")
     parser.add_argument('--update-plan', action='store_true', 
-                       help='Update TEST_COVERAGE_REPORT.md with new metrics')
+                       help='[DEPRECATED] TEST_COVERAGE_REPORT.md is now generated by generate_test_coverage_report tool. This flag does nothing.')
     parser.add_argument('--output-file', help='Output file for coverage report (optional)')
     parser.add_argument('--no-parallel', action='store_true',
                        help='Disable parallel test execution (parallel enabled by default)')

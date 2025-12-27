@@ -134,6 +134,9 @@ class AuditOrchestrationMixin:
             tier = 2
             operation_name = "audit (Tier 2 - standard)"
         
+        # Print to console for user visibility (regardless of log level)
+        print(f"Starting {operation_name}...")
+        print("=" * 50)
         logger.info(f"Starting {operation_name}...")
         logger.info("=" * 50)
         
@@ -165,6 +168,7 @@ class AuditOrchestrationMixin:
         success = True
         try:
             # Tier 1: Quick audit tools
+            print("Running Tier 1 tools (quick audit)...")
             logger.info("Running Tier 1 tools (quick audit)...")
             tier1_success = self._run_quick_audit_tools()
             if not tier1_success:
@@ -172,6 +176,7 @@ class AuditOrchestrationMixin:
             
             # Tier 2: Standard audit tools
             if tier >= 2:
+                print("Running Tier 2 tools (standard audit)...")
                 logger.info("Running Tier 2 tools (standard audit)...")
                 tier2_success = self._run_standard_audit_tools()
                 if not tier2_success:
@@ -179,11 +184,13 @@ class AuditOrchestrationMixin:
             
             # Tier 3: Full audit tools
             if tier >= 3:
+                print("Running Tier 3 tools (full audit)...")
                 logger.info("Running Tier 3 tools (full audit)...")
                 tier3_success = self._run_full_audit_tools()
                 if not tier3_success:
                     success = False
         except Exception as e:
+            print(f"ERROR: Error during audit execution: {e}")
             logger.error(f"Error during audit execution: {e}", exc_info=True)
             success = False
         
@@ -298,23 +305,34 @@ class AuditOrchestrationMixin:
             except Exception as e:
                 logger.warning(f"ASCII compliance check failed (non-blocking): {e}")
             
+            print("=" * 50)
             logger.info("=" * 50)
             if success:
+                print(f"Completed {operation_name} successfully!")
                 logger.info(f"Completed {operation_name} successfully!")
                 # Log timing summary
                 if self._tool_timings:
                     total_time = sum(self._tool_timings.values())
-                    logger.info(f"Total tool execution time: {total_time:.2f}s")
+                    timing_msg = f"Total tool execution time: {total_time:.2f}s"
+                    print(f"  {timing_msg}")
+                    logger.info(timing_msg)
                     # Log slowest tools
                     sorted_timings = sorted(self._tool_timings.items(), key=lambda x: x[1], reverse=True)
                     if len(sorted_timings) > 0:
-                        logger.info(f"Slowest tools: {', '.join(f'{name} ({time:.2f}s)' for name, time in sorted_timings[:5])}")
+                        slowest_msg = f"Slowest tools: {', '.join(f'{name} ({time:.2f}s)' for name, time in sorted_timings[:5])}"
+                        print(f"  {slowest_msg}")
+                        logger.info(slowest_msg)
+                print(f"  * AI Status: {ai_status_file}")
+                print(f"  * AI Priorities: {ai_priorities_file}")
+                print(f"  * Consolidated Report: {consolidated_file}")
                 logger.info(f"* AI Status: {ai_status_file}")
                 logger.info(f"* AI Priorities: {ai_priorities_file}")
                 logger.info(f"* Consolidated Report: {consolidated_file}")
             else:
+                print(f"Completed {operation_name} with some errors")
                 logger.warning(f"Completed {operation_name} with some errors")
         except Exception as e:
+            print(f"ERROR: Error generating status files: {e}")
             logger.error(f"Error generating status files: {e}", exc_info=True)
             success = False
         finally:
@@ -351,7 +369,7 @@ class AuditOrchestrationMixin:
         
         # Core Tier 1 tools (≤2s)
         tier1_core_tools = [
-            ('system_signals', self.run_system_signals),  # 1.07s
+            ('analyze_system_signals', self.run_analyze_system_signals),  # 1.07s
         ]
         
         # Independent tools (≤2s)
@@ -374,40 +392,6 @@ class AuditOrchestrationMixin:
         ]
         
         tier1_tools = tier1_core_tools
-        
-        # Handle quick_status separately (runs first)
-        try:
-            # Time quick_status execution
-            start_time = time.time()
-            # Note: quick_status logs its own execution ("Generating JSON status output")
-            quick_status_result = self.run_script('quick_status', 'json')
-            elapsed_time = time.time() - start_time
-            self._tool_timings['quick_status'] = elapsed_time
-            logger.debug(f"  - quick_status completed in {elapsed_time:.2f}s")
-            if quick_status_result.get('success'):
-                self.status_results = quick_status_result
-                output = quick_status_result.get('output', '')
-                if output:
-                    try:
-                        parsed = json.loads(output)
-                        self.status_summary = parsed
-                        quick_status_result['data'] = parsed
-                        try:
-                            save_tool_result('quick_status', 'reports', parsed, project_root=self.project_root)
-                        except Exception as e:
-                            logger.debug(f"Failed to save quick_status result: {e}")
-                        successful.append('quick_status')
-                        self._tools_run_in_current_tier.add('quick_status')
-                    except json.JSONDecodeError:
-                        logger.warning("  - quick_status output could not be parsed as JSON")
-                        failed.append('quick_status')
-                else:
-                    failed.append('quick_status')
-            else:
-                failed.append('quick_status')
-        except Exception as exc:
-            failed.append('quick_status')
-            logger.error(f"  - quick_status failed: {exc}")
         
         # Run core tools first (analyze_functions must run before dependent tools)
         for tool_name, tool_func in tier1_core_tools:
@@ -483,6 +467,41 @@ class AuditOrchestrationMixin:
                     else:
                         failed.append(tool_name)
                         logger.warning(f"[TOOL FAILURE] {tool_name} execution failed - reports may use cached/fallback data")
+        
+        # Run quick_status at the end of Tier 1 (after other tools have run and potentially created results)
+        # This allows it to use fresh data from the current audit run, but it still works gracefully if data is missing
+        try:
+            # Time quick_status execution
+            start_time = time.time()
+            # Note: quick_status logs its own execution ("Generating JSON status output")
+            quick_status_result = self.run_script('quick_status', 'json')
+            elapsed_time = time.time() - start_time
+            self._tool_timings['quick_status'] = elapsed_time
+            logger.debug(f"  - quick_status completed in {elapsed_time:.2f}s")
+            if quick_status_result.get('success'):
+                self.status_results = quick_status_result
+                output = quick_status_result.get('output', '')
+                if output:
+                    try:
+                        parsed = json.loads(output)
+                        self.status_summary = parsed
+                        quick_status_result['data'] = parsed
+                        try:
+                            save_tool_result('quick_status', 'reports', parsed, project_root=self.project_root)
+                        except Exception as e:
+                            logger.debug(f"Failed to save quick_status result: {e}")
+                        successful.append('quick_status')
+                        self._tools_run_in_current_tier.add('quick_status')
+                    except json.JSONDecodeError:
+                        logger.warning("  - quick_status output could not be parsed as JSON")
+                        failed.append('quick_status')
+                else:
+                    failed.append('quick_status')
+            else:
+                failed.append('quick_status')
+        except Exception as exc:
+            failed.append('quick_status')
+            logger.error(f"  - quick_status failed: {exc}")
         
         if failed:
             logger.warning(f"Tier 1 completed with {len(failed)} failure(s): {', '.join(failed)}")
@@ -602,19 +621,19 @@ class AuditOrchestrationMixin:
         """Run Tier 3 tools: Full audit (comprehensive analysis, >10s per tool or groups with >10s tools).
         
         Note: Tools moved here based on execution time (>10s) while respecting dependencies:
-        - Coverage group: generate_test_coverage (365.45s) and generate_dev_tools_coverage (94.23s) are >10s, so entire group stays in Tier 3
+        - Coverage group: run_test_coverage (365.45s) and generate_dev_tools_coverage (94.23s) are >10s, so entire group stays in Tier 3
         - Legacy group: analyze_legacy_references (62.11s) is >10s, so entire group stays in Tier 3
         """
         successful = []
         failed = []
         
         # Coverage tool group - must run together (dependencies)
-        # generate_test_coverage (365.45s) and generate_dev_tools_coverage (94.23s) are >10s, so entire group stays in Tier 3
+        # run_test_coverage (365.45s) and generate_dev_tools_coverage (94.23s) are >10s, so entire group stays in Tier 3
         tier3_coverage_group = [
-            ('generate_test_coverage', self.run_coverage_regeneration),  # 365.45s
+            ('run_test_coverage', self.run_coverage_regeneration),  # 365.45s
             ('generate_dev_tools_coverage', self.run_dev_tools_coverage),  # 94.23s
             ('analyze_test_markers', lambda: self.run_test_markers('check')),  # 1.57s
-            ('generate_test_coverage_reports', self.run_generate_test_coverage_reports),  # 0.00s
+            ('generate_test_coverage_report', self.run_generate_test_coverage_report),  # ~5s
         ]
         
         # Legacy group - analyze_legacy_references (62.11s) is >10s, so entire group stays in Tier 3
@@ -728,6 +747,15 @@ class AuditOrchestrationMixin:
                 }
             
             if hasattr(self, 'system_signals') and self.system_signals:
+                # Store with new key
+                cached_data['results']['analyze_system_signals'] = {
+                    'success': True,
+                    'data': self.system_signals,
+                    'timestamp': datetime.now().isoformat()
+                }
+                # LEGACY COMPATIBILITY: Also store with old key for backward compatibility
+                # Removal plan: Remove 'system_signals' key storage after 2025-03-01 if no references found
+                # Detection pattern: "system_signals" in cached_data['results']
                 cached_data['results']['system_signals'] = {
                     'success': True,
                     'data': self.system_signals,

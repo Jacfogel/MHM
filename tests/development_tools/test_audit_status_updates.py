@@ -67,6 +67,8 @@ class TestAuditStatusUpdates:
         # Patch tool execution methods
         service.run_analyze_functions = MagicMock(side_effect=mock_run_tool)
         service.run_analyze_documentation_sync = MagicMock(side_effect=mock_run_tool)
+        service.run_analyze_system_signals = MagicMock(side_effect=mock_run_tool)
+        # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
         service.run_system_signals = MagicMock(side_effect=mock_run_tool)
         service.run_analyze_documentation = MagicMock(side_effect=mock_run_tool)
         service.run_analyze_error_handling = MagicMock(side_effect=mock_run_tool)
@@ -154,6 +156,8 @@ class TestAuditStatusUpdates:
         # Mock all tools
         service.run_analyze_functions = MagicMock(side_effect=mock_analyze_functions)
         service.run_analyze_documentation_sync = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
+        service.run_analyze_system_signals = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
+        # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
         service.run_system_signals = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
         
         # Mock data loading to return the mock function data
@@ -239,6 +243,8 @@ class TestAuditStatusUpdates:
         
         service.run_analyze_functions = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
         service.run_analyze_documentation_sync = MagicMock(side_effect=mock_doc_sync)
+        service.run_analyze_system_signals = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
+        # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
         service.run_system_signals = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
         
         # Patch _generate_ai_status_document to capture doc sync status
@@ -284,7 +290,8 @@ class TestAuditStatusUpdates:
         mock_results = {
             'analyze_functions': {'total_functions': 150, 'high_complexity': 15},
             'analyze_documentation_sync': {'status': 'GOOD', 'total_pairs': 20},
-            'system_signals': {'overall_status': 'OK'}
+            'analyze_system_signals': {'overall_status': 'OK'},  # Use new name
+            'system_signals': {'overall_status': 'OK'}  # Legacy name for compatibility
         }
         
         def mock_tool(tool_name):
@@ -317,6 +324,9 @@ class TestAuditStatusUpdates:
         
         service.run_analyze_functions = MagicMock(side_effect=mock_with_cache('analyze_functions'))
         service.run_analyze_documentation_sync = MagicMock(side_effect=mock_with_cache('analyze_documentation_sync'))
+        # Use analyze_system_signals (renamed from system_signals)
+        service.run_analyze_system_signals = MagicMock(side_effect=mock_with_cache('analyze_system_signals'))
+        # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
         service.run_system_signals = MagicMock(side_effect=mock_with_cache('system_signals'))
         service.run_analyze_documentation = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
         service.run_analyze_error_handling = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})

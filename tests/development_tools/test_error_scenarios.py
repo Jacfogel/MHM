@@ -122,7 +122,7 @@ class TestMissingFileHandling:
     @pytest.mark.unit
     def test_coverage_handles_missing_coverage_data(self, demo_project_root):
         """CoverageMetricsRegenerator should handle missing data gracefully."""
-        coverage = load_development_tools_module("generate_test_coverage")
+        coverage = load_development_tools_module("run_test_coverage")
         regenerator = coverage.CoverageMetricsRegenerator(str(demo_project_root))
 
         # parse_coverage_output moved to TestCoverageAnalyzer during Batch 3 decomposition
@@ -224,7 +224,7 @@ class TestNetworkAndExternalErrorHandling:
     def test_coverage_handles_pytest_failure(self, demo_project_root):
         """Coverage metrics should report pytest failures without crashing."""
         import subprocess
-        coverage = load_development_tools_module("generate_test_coverage")
+        coverage = load_development_tools_module("run_test_coverage")
         regenerator = coverage.CoverageMetricsRegenerator(str(demo_project_root))
 
         # Patch subprocess.run globally - all modules import from the same subprocess module

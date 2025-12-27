@@ -338,10 +338,10 @@ class TestAuditTierE2E:
         ]
         # Tier 3 tools (6 total)
         tier3_all_tools = [
-            'generate_test_coverage',
+            'run_test_coverage',
             'generate_dev_tools_coverage',
             'analyze_test_markers',
-            'generate_test_coverage_reports',
+            'generate_test_coverage_report',
             'analyze_legacy_references',
             'generate_legacy_reference_report'
         ]
@@ -376,7 +376,7 @@ class TestAuditTierE2E:
         # Tier 2 tools should be present
         tier2_tools = ['analyze_functions', 'analyze_error_handling']
         # Tier 3 tools should be present
-        tier3_tools = ['generate_test_coverage', 'analyze_legacy_references']
+        tier3_tools = ['run_test_coverage', 'analyze_legacy_references']
         
         found_tier1 = [tool for tool in tier1_tools if tool in analysis_data['results']]
         found_tier2 = [tool for tool in tier2_tools if tool in analysis_data['results']]
@@ -388,8 +388,8 @@ class TestAuditTierE2E:
         # For Tier 3, verify that at least one Tier 3 tool was attempted
         # Note: Coverage tools may fail fast on demo project (no tests to cover),
         # but legacy analysis should still run
-        all_tier3_tools = ['generate_test_coverage', 'generate_dev_tools_coverage', 
-                          'analyze_test_markers', 'generate_test_coverage_reports',
+        all_tier3_tools = ['run_test_coverage', 'generate_dev_tools_coverage', 
+                          'analyze_test_markers', 'generate_test_coverage_report',
                           'analyze_legacy_references', 'generate_legacy_reference_report']
         attempted_tier3 = [tool for tool in all_tier3_tools if tool in analysis_data['results']]
         

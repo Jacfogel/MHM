@@ -132,7 +132,7 @@ When adding new tasks, follow this format:
   - API documentation
   - Configuration documentation
 
-**Note**: Development tools related tasks have been moved to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md) for centralized planning and tracking. See that document for all development tools improvements, enhancements, and maintenance tasks.
+**Note**: Development tools related tasks have been moved to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md) for centralized planning and tracking. See that document for all development tools improvements, enhancements, and maintenance tasks.
 
 
 ### User Experience Improvements

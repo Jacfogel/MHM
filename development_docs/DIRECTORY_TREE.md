@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-26 05:37:46
+> **Last Generated**: 2025-12-27 05:31:11
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -28,7 +28,6 @@ C:.
 |   run_headless_service.py
 |   run_mhm.py
 |   run_tests.py
-|   test_report.md
 |   TODO.md
 |   
 +---.cursor
@@ -47,6 +46,7 @@ C:.
 |   |       triage-issue.md
 |   |       
 |   +---plans
+|   |   |   development_tools_improvements_100d5451.plan.md
 |   |   |   review_shared_utility_modules_e4e53381.plan.md
 |   |   |   validate_analysis_logic_and_issue_detection_accuracy_e79bbf5e.plan.md
 |   |   |   
@@ -164,7 +164,7 @@ C:.
 |   |   .audit_in_progress.lock
 |   |   .coverage_in_progress.lock
 |   |   AI_DEVELOPMENT_TOOLS_GUIDE.md
-|   |   AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md
+|   |   AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md
 |   |   AI_PRIORITIES.md
 |   |   AI_STATUS.md
 |   |   consolidated_report.txt
@@ -182,6 +182,8 @@ C:.
 |   |   |   |   
 |   |   |   \---archive
     (archived files)
++---htmlcov
+    (HTML coverage reports)
 +---logs
 |   |   ai.log
 |   |   ai_dev_tools.log

@@ -118,6 +118,8 @@ class TestAuditTierIndependence:
         
         # Mock Tier 1 tools
         service.run_script = MagicMock(side_effect=lambda name, *args, **kwargs: {'success': True, 'output': '{}', 'data': {}})
+        service.run_analyze_system_signals = MagicMock(side_effect=mock_tool('analyze_system_signals'))
+        # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
         service.run_system_signals = MagicMock(side_effect=mock_tool('system_signals'))
         service.run_analyze_documentation = MagicMock(side_effect=mock_tool('analyze_documentation'))
         service.run_analyze_config = MagicMock(side_effect=mock_tool('analyze_config'))
@@ -131,7 +133,7 @@ class TestAuditTierIndependence:
         service.run_analyze_documentation_sync = MagicMock(side_effect=mock_tool('analyze_documentation_sync'))
         
         # Mock Tier 3 tools (should NOT be called)
-        service.run_coverage_regeneration = MagicMock(side_effect=mock_tool('generate_test_coverage'))
+        service.run_coverage_regeneration = MagicMock(side_effect=mock_tool('run_test_coverage'))
         service.run_analyze_legacy_references = MagicMock(side_effect=mock_tool('analyze_legacy_references'))
         
         # Mock report generation
@@ -144,7 +146,8 @@ class TestAuditTierIndependence:
             result = service.run_audit(quick=True)
         
         # Verify Tier 1 tools were called
-        assert 'system_signals' in tools_called, "Tier 1 tool system_signals should be called"
+        # Note: run_system_signals is a legacy wrapper for run_analyze_system_signals
+        assert 'system_signals' in tools_called or 'analyze_system_signals' in tools_called, "Tier 1 tool analyze_system_signals should be called"
         assert 'analyze_documentation' in tools_called, "Tier 1 tool analyze_documentation should be called"
         
         # Verify Tier 2 tools were NOT called
@@ -152,7 +155,7 @@ class TestAuditTierIndependence:
         assert 'analyze_error_handling' not in tools_called, "Tier 2 tool analyze_error_handling should NOT be called in Tier 1"
         
         # Verify Tier 3 tools were NOT called
-        assert 'generate_test_coverage' not in tools_called, "Tier 3 tool generate_test_coverage should NOT be called in Tier 1"
+        assert 'run_test_coverage' not in tools_called, "Tier 3 tool run_test_coverage should NOT be called in Tier 1"
         assert 'analyze_legacy_references' not in tools_called, "Tier 3 tool analyze_legacy_references should NOT be called in Tier 1"
         
         assert result, "Quick audit should complete successfully"
@@ -174,6 +177,8 @@ class TestAuditTierIndependence:
         
         # Mock all tools
         service.run_script = MagicMock(side_effect=lambda name, *args, **kwargs: {'success': True, 'output': '{}', 'data': {}})
+        service.run_analyze_system_signals = MagicMock(side_effect=mock_tool('analyze_system_signals'))
+        # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
         service.run_system_signals = MagicMock(side_effect=mock_tool('system_signals'))
         service.run_analyze_documentation = MagicMock(side_effect=mock_tool('analyze_documentation'))
         service.run_analyze_config = MagicMock(side_effect=mock_tool('analyze_config'))
@@ -192,7 +197,7 @@ class TestAuditTierIndependence:
         service.run_generate_unused_imports_report = MagicMock(side_effect=mock_tool('generate_unused_imports_report'))
         
         # Mock Tier 3 tools (should NOT be called)
-        service.run_coverage_regeneration = MagicMock(side_effect=mock_tool('generate_test_coverage'))
+        service.run_coverage_regeneration = MagicMock(side_effect=mock_tool('run_test_coverage'))
         service.run_analyze_legacy_references = MagicMock(side_effect=mock_tool('analyze_legacy_references'))
         
         # Mock report generation
@@ -205,14 +210,15 @@ class TestAuditTierIndependence:
             result = service.run_audit(quick=False, full=False)
         
         # Verify Tier 1 tools were called
-        assert 'system_signals' in tools_called, "Tier 1 tool system_signals should be called"
+        # Note: run_system_signals is a legacy wrapper for run_analyze_system_signals
+        assert 'system_signals' in tools_called or 'analyze_system_signals' in tools_called, "Tier 1 tool analyze_system_signals should be called"
         
         # Verify Tier 2 tools were called
         assert 'analyze_functions' in tools_called, "Tier 2 tool analyze_functions should be called"
         assert 'analyze_error_handling' in tools_called, "Tier 2 tool analyze_error_handling should be called"
         
         # Verify Tier 3 tools were NOT called
-        assert 'generate_test_coverage' not in tools_called, "Tier 3 tool generate_test_coverage should NOT be called in Tier 2"
+        assert 'run_test_coverage' not in tools_called, "Tier 3 tool run_test_coverage should NOT be called in Tier 2"
         assert 'analyze_legacy_references' not in tools_called, "Tier 3 tool analyze_legacy_references should NOT be called in Tier 2"
         
         assert result, "Standard audit should complete successfully"
@@ -234,6 +240,8 @@ class TestAuditTierIndependence:
         
         # Mock all tools
         service.run_script = MagicMock(side_effect=lambda name, *args, **kwargs: {'success': True, 'output': '{}', 'data': {}})
+        service.run_analyze_system_signals = MagicMock(side_effect=mock_tool('analyze_system_signals'))
+        # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
         service.run_system_signals = MagicMock(side_effect=mock_tool('system_signals'))
         service.run_analyze_documentation = MagicMock(side_effect=mock_tool('analyze_documentation'))
         service.run_analyze_config = MagicMock(side_effect=mock_tool('analyze_config'))
@@ -250,10 +258,10 @@ class TestAuditTierIndependence:
         service.run_analyze_package_exports = MagicMock(side_effect=mock_tool('analyze_package_exports'))
         service.run_unused_imports = MagicMock(side_effect=mock_tool('analyze_unused_imports'))
         service.run_generate_unused_imports_report = MagicMock(side_effect=mock_tool('generate_unused_imports_report'))
-        service.run_coverage_regeneration = MagicMock(side_effect=mock_tool('generate_test_coverage'))
+        service.run_coverage_regeneration = MagicMock(side_effect=mock_tool('run_test_coverage'))
         service.run_dev_tools_coverage = MagicMock(side_effect=mock_tool('generate_dev_tools_coverage'))
         service.run_test_markers = MagicMock(side_effect=mock_tool('analyze_test_markers'))
-        service.run_generate_test_coverage_reports = MagicMock(side_effect=mock_tool('generate_test_coverage_reports'))
+        service.run_generate_test_coverage_report = MagicMock(side_effect=mock_tool('generate_test_coverage_report'))
         service.run_analyze_legacy_references = MagicMock(side_effect=mock_tool('analyze_legacy_references'))
         service.run_generate_legacy_reference_report = MagicMock(side_effect=mock_tool('generate_legacy_reference_report'))
         
@@ -267,13 +275,14 @@ class TestAuditTierIndependence:
             result = service.run_audit(quick=False, full=True)
         
         # Verify Tier 1 tools were called
-        assert 'system_signals' in tools_called, "Tier 1 tool system_signals should be called"
+        # Note: run_system_signals is a legacy wrapper for run_analyze_system_signals
+        assert 'system_signals' in tools_called or 'analyze_system_signals' in tools_called, "Tier 1 tool analyze_system_signals should be called"
         
         # Verify Tier 2 tools were called
         assert 'analyze_functions' in tools_called, "Tier 2 tool analyze_functions should be called"
         
         # Verify Tier 3 tools were called
-        assert 'generate_test_coverage' in tools_called, "Tier 3 tool generate_test_coverage should be called"
+        assert 'run_test_coverage' in tools_called, "Tier 3 tool run_test_coverage should be called"
         assert 'analyze_legacy_references' in tools_called, "Tier 3 tool analyze_legacy_references should be called"
         
         assert result, "Full audit should complete successfully"
@@ -306,6 +315,8 @@ class TestAuditTierInheritance:
             return {'success': True, 'output': '{}', 'data': {}}
         
         service.run_script = MagicMock(side_effect=mock_run_script)
+        service.run_analyze_system_signals = MagicMock(side_effect=mock_tool('analyze_system_signals'))
+        # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
         service.run_system_signals = MagicMock(side_effect=mock_tool('system_signals'))
         service.run_analyze_documentation = MagicMock(side_effect=mock_tool('analyze_documentation'))
         service.run_validate = MagicMock(side_effect=mock_tool('analyze_ai_work'))
@@ -332,7 +343,8 @@ class TestAuditTierInheritance:
             service.run_audit(quick=False, full=False)
         
         # Verify Tier 1 tools were called
-        assert 'system_signals' in tools_called, "Tier 1 tool system_signals should be called in Tier 2"
+        # Note: run_system_signals is a legacy wrapper for run_analyze_system_signals
+        assert 'system_signals' in tools_called or 'analyze_system_signals' in tools_called, "Tier 1 tool analyze_system_signals should be called in Tier 2"
         assert 'analyze_documentation' in tools_called, "Tier 1 tool analyze_documentation should be called in Tier 2"
         assert 'analyze_config' in script_calls, "Tier 1 tool analyze_config should be called in Tier 2 (via run_script)"
     
@@ -353,6 +365,8 @@ class TestAuditTierInheritance:
         
         # Mock all tools
         service.run_script = MagicMock(side_effect=lambda name, *args, **kwargs: {'success': True, 'output': '{}', 'data': {}})
+        service.run_analyze_system_signals = MagicMock(side_effect=mock_tool('analyze_system_signals'))
+        # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
         service.run_system_signals = MagicMock(side_effect=mock_tool('system_signals'))
         service.run_analyze_documentation = MagicMock(side_effect=mock_tool('analyze_documentation'))
         service.run_analyze_config = MagicMock(side_effect=mock_tool('analyze_config'))
@@ -369,10 +383,10 @@ class TestAuditTierInheritance:
         service.run_analyze_package_exports = MagicMock(side_effect=mock_tool('analyze_package_exports'))
         service.run_unused_imports = MagicMock(side_effect=mock_tool('analyze_unused_imports'))
         service.run_generate_unused_imports_report = MagicMock(side_effect=mock_tool('generate_unused_imports_report'))
-        service.run_coverage_regeneration = MagicMock(side_effect=mock_tool('generate_test_coverage'))
+        service.run_coverage_regeneration = MagicMock(side_effect=mock_tool('run_test_coverage'))
         service.run_dev_tools_coverage = MagicMock(side_effect=mock_tool('generate_dev_tools_coverage'))
         service.run_test_markers = MagicMock(side_effect=mock_tool('analyze_test_markers'))
-        service.run_generate_test_coverage_reports = MagicMock(side_effect=mock_tool('generate_test_coverage_reports'))
+        service.run_generate_test_coverage_report = MagicMock(side_effect=mock_tool('generate_test_coverage_report'))
         service.run_analyze_legacy_references = MagicMock(side_effect=mock_tool('analyze_legacy_references'))
         service.run_generate_legacy_reference_report = MagicMock(side_effect=mock_tool('generate_legacy_reference_report'))
         
@@ -386,7 +400,8 @@ class TestAuditTierInheritance:
             service.run_audit(quick=False, full=True)
         
         # Verify Tier 1 tools were called
-        assert 'system_signals' in tools_called, "Tier 1 tool system_signals should be called in Tier 3"
+        # Note: run_system_signals is a legacy wrapper for run_analyze_system_signals
+        assert 'system_signals' in tools_called or 'analyze_system_signals' in tools_called, "Tier 1 tool analyze_system_signals should be called in Tier 3"
         assert 'analyze_documentation' in tools_called, "Tier 1 tool analyze_documentation should be called in Tier 3"
         
         # Verify Tier 2 tools were called
@@ -394,7 +409,8 @@ class TestAuditTierInheritance:
         assert 'analyze_error_handling' in tools_called, "Tier 2 tool analyze_error_handling should be called in Tier 3"
         
         # Verify Tier 3 tools were called
-        assert 'generate_test_coverage' in tools_called, "Tier 3 tool generate_test_coverage should be called in Tier 3"
+        assert 'run_test_coverage' in tools_called, "Tier 3 tool run_test_coverage should be called in Tier 3"
+        assert 'generate_test_coverage_report' in tools_called, "Tier 3 tool generate_test_coverage_report should be called in Tier 3"
         assert 'analyze_legacy_references' in tools_called, "Tier 3 tool analyze_legacy_references should be called in Tier 3"
 
 
@@ -417,6 +433,8 @@ class TestAuditOutputFiles:
             return {'success': True, 'output': '{}', 'data': {}}
         
         service.run_script = MagicMock(side_effect=lambda name, *args, **kwargs: {'success': True, 'output': '{}', 'data': {}})
+        service.run_analyze_system_signals = MagicMock(side_effect=mock_tool)
+        # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
         service.run_system_signals = MagicMock(side_effect=mock_tool)
         service.run_analyze_documentation = MagicMock(side_effect=mock_tool)
         service.run_analyze_config = MagicMock(side_effect=mock_tool)
@@ -472,6 +490,8 @@ class TestAuditOutputFiles:
             return {'success': True, 'output': '{}', 'data': {}}
         
         service.run_script = MagicMock(side_effect=lambda name, *args, **kwargs: {'success': True, 'output': '{}', 'data': {}})
+        service.run_analyze_system_signals = MagicMock(side_effect=mock_tool)
+        # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
         service.run_system_signals = MagicMock(side_effect=mock_tool)
         service.run_analyze_documentation = MagicMock(side_effect=mock_tool)
         service.run_analyze_config = MagicMock(side_effect=mock_tool)
@@ -530,6 +550,8 @@ class TestAuditOutputFiles:
             return {'success': True, 'output': '{}', 'data': {}}
         
         service.run_script = MagicMock(side_effect=lambda name, *args, **kwargs: {'success': True, 'output': '{}', 'data': {}})
+        service.run_analyze_system_signals = MagicMock(side_effect=mock_tool)
+        # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
         service.run_system_signals = MagicMock(side_effect=mock_tool)
         service.run_analyze_documentation = MagicMock(side_effect=mock_tool)
         service.run_analyze_config = MagicMock(side_effect=mock_tool)
@@ -816,12 +838,14 @@ class TestStandaloneToolExecution:
         # Mock multiple tools
         service.run_analyze_functions = MagicMock(return_value={'success': True, 'data': {}})
         service.run_analyze_documentation = MagicMock(return_value={'success': True, 'data': {}})
+        service.run_analyze_system_signals = MagicMock(return_value={'success': True, 'data': {}})
+        # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
         service.run_system_signals = MagicMock(return_value={'success': True, 'data': {}})
         
         # Run tools independently
         result1 = service.run_analyze_functions()
         result2 = service.run_analyze_documentation()
-        result3 = service.run_system_signals()
+        result3 = service.run_analyze_system_signals()
         
         # Verify all tools executed
         assert result1['success'], "First tool should execute"
@@ -831,5 +855,5 @@ class TestStandaloneToolExecution:
         # Verify all tools were called
         service.run_analyze_functions.assert_called_once()
         service.run_analyze_documentation.assert_called_once()
-        service.run_system_signals.assert_called_once()
+        service.run_analyze_system_signals.assert_called_once()
 

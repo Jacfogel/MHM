@@ -1,5 +1,5 @@
 """
-Tests for generate_test_coverage.py.
+Tests for run_test_coverage.py.
 
 Tests coverage analysis, parsing, HTML generation, and artifact management.
 """
@@ -14,9 +14,9 @@ from tests.development_tools.conftest import load_development_tools_module
 
 # Load the modules using the helper
 # During Batch 3 decomposition, methods were moved to separate classes
-coverage_module = load_development_tools_module("generate_test_coverage")
+coverage_module = load_development_tools_module("run_test_coverage")
 analyze_coverage_module = load_development_tools_module("analyze_test_coverage")
-report_generator_module = load_development_tools_module("generate_test_coverage_reports")
+report_generator_module = load_development_tools_module("generate_test_coverage_report")
 
 CoverageMetricsRegenerator = coverage_module.CoverageMetricsRegenerator
 TestCoverageAnalyzer = analyze_coverage_module.TestCoverageAnalyzer
@@ -206,6 +206,9 @@ directory = htmlcov
     @pytest.mark.unit
     def test_cleanup_coverage_shards(self, demo_project_root, temp_coverage_dir):
         """Test that coverage shard files are cleaned up."""
+        from unittest.mock import patch, MagicMock
+        from subprocess import CompletedProcess
+        
         regenerator = CoverageMetricsRegenerator(str(demo_project_root))
         
         # Ensure report_generator is initialized (should always be available after Batch 3 decomposition)
@@ -218,10 +221,22 @@ directory = htmlcov
         shard2.write_text("test", encoding='utf-8')
         
         try:
-            # _cleanup_coverage_shards moved to TestCoverageReportGenerator during Batch 3 decomposition
-            regenerator.report_generator._cleanup_coverage_shards()
+            # Mock subprocess.run to avoid actually running coverage commands in tests
+            # The cleanup happens after combine, so we just need to mock combine to succeed
+            with patch('subprocess.run') as mock_run:
+                # Mock combine command to succeed
+                mock_run.return_value = CompletedProcess(
+                    args=['python', '-m', 'coverage', 'combine'],
+                    returncode=0,
+                    stdout='',
+                    stderr=''
+                )
+                
+                # Cleanup is now done in finalize_coverage_outputs() which combines and removes shards
+                # Call finalize_coverage_outputs to test cleanup functionality
+                regenerator.report_generator.finalize_coverage_outputs()
             
-            # Shards should be removed
+            # Shards should be removed after finalize_coverage_outputs
             assert not shard1.exists()
             assert not shard2.exists()
         finally:
@@ -298,9 +313,11 @@ class TestCoveragePlanUpdate:
             'overall_coverage': 75.0
         }
         
-        # generate_coverage_summary moved to TestCoverageReportGenerator during Batch 3 decomposition
+        # generate_coverage_summary and update_coverage_plan moved to TestCoverageReportGenerator during Batch 3 decomposition
         summary = regenerator.report_generator.generate_coverage_summary(coverage_data, overall_data)
-        success = regenerator.update_coverage_plan(summary)
+        # Update the report generator's coverage plan file path
+        regenerator.report_generator.coverage_plan_file = regenerator.coverage_plan_file
+        success = regenerator.report_generator.update_coverage_plan(summary)
         
         # Should update the file
         assert success is True

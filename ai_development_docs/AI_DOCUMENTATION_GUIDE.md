@@ -109,7 +109,7 @@ When suggesting new docs or edits:
 
 **Format:**
 - **Full paths (preferred)**: `development_tools/config/config.py`, `core/service.py`
-- **Short names (acceptable only when directory is 100% obvious)**: In [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V2.md), `development_tools/config/config.py` should still be used (full paths preferred)
+- **Short names (acceptable only when directory is 100% obvious)**: In [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md), `development_tools/config/config.py` should still be used (full paths preferred)
 - **Relative paths (use sparingly)**: `../README.md` (from `ai_development_docs/`), `AI_LOGGING_GUIDE.md` (same directory)
 
 **Best practices:**

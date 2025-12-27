@@ -202,9 +202,9 @@ _TOOLS: Dict[str, ToolInfo] = {
         trust="stable",
         description="Generates markdown reports from legacy reference analysis results.",
     ),
-    "generate_test_coverage": ToolInfo(
-        name="generate_test_coverage",
-        path="development_tools/tests/generate_test_coverage.py",
+    "run_test_coverage": ToolInfo(
+        name="run_test_coverage",
+        path="development_tools/tests/run_test_coverage.py",
         tier="core",
         trust="stable",
         description="Runs pytest coverage and manages coverage artifacts.",
@@ -216,9 +216,9 @@ _TOOLS: Dict[str, ToolInfo] = {
         trust="stable",
         description="Analyzes test coverage data from pytest/coverage output.",
     ),
-    "generate_test_coverage_reports": ToolInfo(
-        name="generate_test_coverage_reports",
-        path="development_tools/tests/generate_test_coverage_reports.py",
+    "generate_test_coverage_report": ToolInfo(
+        name="generate_test_coverage_report",
+        path="development_tools/tests/generate_test_coverage_report.py",
         tier="core",
         trust="stable",
         description="Generates coverage reports (JSON, HTML, summary) from analysis results.",

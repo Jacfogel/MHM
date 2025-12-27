@@ -1088,9 +1088,30 @@ class ReportGenerationMixin:
         
         if hasattr(self, 'system_signals') and self.system_signals:
             system_health = self.system_signals.get('system_health', {})
-            overall_status = system_health.get('overall_status')
-            if overall_status:
-                lines.append(f"- **System Health**: {overall_status}")
+            overall_status = system_health.get('overall_status', 'OK')
+            lines.append(f"- **System Health**: {overall_status}")
+            
+            # Add audit freshness (consolidated - don't show redundant last_audit)
+            audit_freshness = system_health.get('audit_freshness')
+            if audit_freshness:
+                lines.append(f"  - Audit data: {audit_freshness}")
+            
+            # Add test coverage status (doc sync is redundant - already shown in Snapshot and Documentation Signals)
+            test_coverage_status = system_health.get('test_coverage_status')
+            if test_coverage_status and test_coverage_status != 'Unknown':
+                lines.append(f"  - Test coverage: {test_coverage_status}")
+            
+            # Show actual warnings/critical issues (not just counts)
+            severity_levels = system_health.get('severity_levels', {})
+            if severity_levels:
+                critical_issues = severity_levels.get('CRITICAL', [])
+                warnings = severity_levels.get('WARNING', [])
+                if critical_issues:
+                    for issue in critical_issues[:2]:  # Show first 2 critical issues
+                        lines.append(f"  - Critical: {issue}")
+                if warnings:
+                    for warning in warnings[:2]:  # Show first 2 warnings
+                        lines.append(f"  - Warning: {warning}")
             
             missing_core = [
                 name for name, state in (system_health.get('core_files') or {}).items()
@@ -1100,10 +1121,6 @@ class ReportGenerationMixin:
                 lines.append(f"- **Core File Issues**: {self._format_list_for_display(missing_core, limit=3)}")
             
             recent_activity = self.system_signals.get('recent_activity', {})
-            last_audit = recent_activity.get('last_audit')
-            if last_audit:
-                lines.append(f"- **Last Audit**: {last_audit}")
-            
             recent_changes = recent_activity.get('recent_changes') or []
             if recent_changes:
                 lines.append(f"- **Recent Changes**: {self._format_list_for_display(recent_changes, limit=3)}")
@@ -1123,8 +1140,18 @@ class ReportGenerationMixin:
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
-                    if 'results' in cached_data and 'system_signals' in cached_data['results']:
-                        signals_data = cached_data['results']['system_signals']
+                    # LEGACY COMPATIBILITY: Check for both new and old key names
+                    # Removal plan: Remove 'system_signals' key check after 2025-03-01 if no references found
+                    # Detection pattern: "system_signals" in cached_data['results']
+                    signals_data = None
+                    if 'results' in cached_data:
+                        if 'analyze_system_signals' in cached_data['results']:
+                            signals_data = cached_data['results']['analyze_system_signals']
+                        elif 'system_signals' in cached_data['results']:
+                            logger.debug("LEGACY: Using 'system_signals' key from cached data - migrate to 'analyze_system_signals'")
+                            signals_data = cached_data['results']['system_signals']
+                    
+                    if signals_data:
                         if 'data' in signals_data:
                             system_signals = signals_data['data']
                         else:
@@ -1133,9 +1160,30 @@ class ReportGenerationMixin:
                         if system_signals:
                             signals_loaded = True
                             system_health = system_signals.get('system_health', {})
-                            overall_status = system_health.get('overall_status')
-                            if overall_status:
-                                lines.append(f"- **System Health**: {overall_status}")
+                            overall_status = system_health.get('overall_status', 'OK')
+                            lines.append(f"- **System Health**: {overall_status}")
+                            
+                            # Add audit freshness (consolidated - don't show redundant last_audit)
+                            audit_freshness = system_health.get('audit_freshness')
+                            if audit_freshness:
+                                lines.append(f"  - Audit data: {audit_freshness}")
+                            
+                            # Add test coverage status (doc sync is redundant - already shown in Snapshot and Documentation Signals)
+                            test_coverage_status = system_health.get('test_coverage_status')
+                            if test_coverage_status and test_coverage_status != 'Unknown':
+                                lines.append(f"  - Test coverage: {test_coverage_status}")
+                            
+                            # Show actual warnings/critical issues (not just counts)
+                            severity_levels = system_health.get('severity_levels', {})
+                            if severity_levels:
+                                critical_issues = severity_levels.get('CRITICAL', [])
+                                warnings = severity_levels.get('WARNING', [])
+                                if critical_issues:
+                                    for issue in critical_issues[:2]:  # Show first 2 critical issues
+                                        lines.append(f"  - Critical: {issue}")
+                                if warnings:
+                                    for warning in warnings[:2]:  # Show first 2 warnings
+                                        lines.append(f"  - Warning: {warning}")
                             
                             missing_core = [
                                 name for name, state in (system_health.get('core_files') or {}).items()
@@ -1145,10 +1193,6 @@ class ReportGenerationMixin:
                                 lines.append(f"- **Core File Issues**: {self._format_list_for_display(missing_core, limit=3)}")
                             
                             recent_activity = system_signals.get('recent_activity', {})
-                            last_audit = recent_activity.get('last_audit')
-                            if last_audit:
-                                lines.append(f"- **Last Audit**: {last_audit}")
-                            
                             recent_changes = recent_activity.get('recent_changes') or []
                             if recent_changes:
                                 lines.append(f"- **Recent Changes**: {self._format_list_for_display(recent_changes, limit=3)}")
@@ -3996,40 +4040,69 @@ class ReportGenerationMixin:
                 if results_file.exists():
                     with open(results_file, 'r', encoding='utf-8') as f:
                         cached_data = json.load(f)
-                    if 'results' in cached_data and 'system_signals' in cached_data['results']:
-                        signals_result = cached_data['results']['system_signals']
+                    # LEGACY COMPATIBILITY: Check for both new and old key names
+                    # Removal plan: Remove 'system_signals' key check after 2025-03-01 if no references found
+                    # Detection pattern: "system_signals" in cached_data['results']
+                    signals_result = None
+                    if 'results' in cached_data:
+                        if 'analyze_system_signals' in cached_data['results']:
+                            signals_result = cached_data['results']['analyze_system_signals']
+                        elif 'system_signals' in cached_data['results']:
+                            logger.debug("LEGACY: Using 'system_signals' key from cached data - migrate to 'analyze_system_signals'")
+                            signals_result = cached_data['results']['system_signals']
+                    
+                    if signals_result:
                         if 'data' in signals_result:
                             system_signals_data = signals_result['data']
             except Exception as e:
                 logger.debug(f"Failed to load system signals from cache: {e}")
         
+        # Extract system health from system_signals_data
+        system_health = None
         if system_signals_data and isinstance(system_signals_data, dict):
-            overall_status = system_signals_data.get('overall_status', 'Unknown')
-            if overall_status and overall_status != 'Unknown':
-                lines.append(f"- **System Health**: {overall_status}")
-            else:
-                lines.append("- **System Health**: OK")
-            
-            recent_activity = system_signals_data.get('recent_activity', {})
-            recent_changes = recent_activity.get('recent_changes') or [] if isinstance(recent_activity, dict) else []
-            if recent_changes and isinstance(recent_changes, list):
-                changes_str = self._format_list_for_display(recent_changes, limit=3)
-                lines.append(f"- **Recent Changes**: {changes_str}")
+            system_health = system_signals_data.get('system_health', {})
         elif hasattr(self, 'system_signals') and self.system_signals:
-            system_health = self.system_signals.get('system_health', {}) if isinstance(self.system_signals, dict) else {}
-            overall_status = system_health.get('overall_status') if isinstance(system_health, dict) else None
-            if overall_status:
-                lines.append(f"- **System Health**: {overall_status}")
-            else:
-                lines.append("- **System Health**: OK")
+            if isinstance(self.system_signals, dict):
+                system_health = self.system_signals.get('system_health', {})
+        
+        if system_health and isinstance(system_health, dict):
+            overall_status = system_health.get('overall_status', 'OK')
+            lines.append(f"- **System Health**: {overall_status}")
             
-            recent_activity = self.system_signals.get('recent_activity', {}) if isinstance(self.system_signals, dict) else {}
+            # Add audit freshness (consolidated - single line, not redundant)
+            audit_freshness = system_health.get('audit_freshness')
+            if audit_freshness:
+                lines.append(f"  - Audit data: {audit_freshness}")
+            
+            # Add test coverage status if available
+            test_coverage_status = system_health.get('test_coverage_status')
+            if test_coverage_status and test_coverage_status != 'Unknown':
+                lines.append(f"  - Test coverage: {test_coverage_status}")
+            
+            # Documentation sync status is shown in Documentation Signals section, not here
+            
+            # Show actual warnings/critical issues with details (not just counts)
+            severity_levels = system_health.get('severity_levels', {})
+            if severity_levels:
+                critical_issues = severity_levels.get('CRITICAL', [])
+                warnings = severity_levels.get('WARNING', [])
+                if critical_issues:
+                    lines.append(f"  - Critical issues ({len(critical_issues)}):")
+                    for issue in critical_issues:
+                        lines.append(f"    * {issue}")
+                if warnings:
+                    lines.append(f"  - Warnings ({len(warnings)}):")
+                    for warning in warnings:
+                        lines.append(f"    * {warning}")
+            
+            # Add recent activity
+            recent_activity = system_signals_data.get('recent_activity', {}) if system_signals_data else (self.system_signals.get('recent_activity', {}) if hasattr(self, 'system_signals') and self.system_signals else {})
             recent_changes = recent_activity.get('recent_changes') or [] if isinstance(recent_activity, dict) else []
             if recent_changes and isinstance(recent_changes, list):
                 changes_str = self._format_list_for_display(recent_changes, limit=3)
                 lines.append(f"- **Recent Changes**: {changes_str}")
         else:
-            lines.append("- **System Health**: OK")
+            lines.append("- **System Health**: OK (data unavailable)")
             lines.append("- **Recent Changes**: Data unavailable (run `system-signals` command)")
         
         lines.append("")

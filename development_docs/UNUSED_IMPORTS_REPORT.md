@@ -2,18 +2,18 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-26 05:36:22
+> **Last Generated**: 2025-12-27 05:30:05
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 398
-- **Files with Unused Imports**: 126
-- **Total Unused Imports**: 356
+- **Total Files Scanned**: 399
+- **Files with Unused Imports**: 127
+- **Total Unused Imports**: 357
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 0 imports
+- **Obvious Unused**: 1 imports
 - **Type Hints Only**: 0 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 0 imports
@@ -23,6 +23,17 @@
 - **Test Infrastructure**: 154 imports
 - **Production Test Mocking**: 3 imports
 - **Ui Imports**: 0 imports
+
+## Obvious Unused
+
+**Recommendation**: These imports can likely be safely removed.
+
+### `development_tools/tests/generate_test_coverage_report.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 20**: Unused List imported from typing
+  - Symbol: `unused-import`
 
 ## Test Mocking
 
@@ -914,11 +925,11 @@
 
 **Recommendation**: These imports are required for test infrastructure (fixtures, data creation, etc.).
 
-### `development_tools/tests/generate_test_coverage.py`
+### `development_tools/tests/run_test_coverage.py`
 
 **Count**: 1 unused import(s)
 
-- **Line 17**: Unused import json
+- **Line 22**: Unused import json
   - Symbol: `unused-import`
 
 ### `tests/ai/test_ai_core.py`

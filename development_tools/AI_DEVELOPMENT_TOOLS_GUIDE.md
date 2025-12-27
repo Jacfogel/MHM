@@ -93,10 +93,10 @@ python development_tools/run_development_tools.py help
 - **Duration**: ~9-10 minutes (coverage tools dominate at ~460s)
 - **Tools**: Everything in Tier 1 & 2 PLUS tools >10s (or groups containing tools >10s):
   - **Coverage group** (runs sequentially, ~460s):
-    - `generate_test_coverage` - Full test coverage regeneration (~365s, >10s)
+    - `run_test_coverage` - Full test coverage execution (~365s, >10s)
     - `generate_dev_tools_coverage` - Dev tools test coverage (~94s, >10s)
     - `analyze_test_markers` - Test marker analysis (~2s, but part of coverage group)
-    - `generate_test_coverage_reports` - Coverage report generation (~0s, but part of coverage group)
+    - `generate_test_coverage_report` - Coverage report generation (~5s, generates TEST_COVERAGE_REPORT.md, HTML, JSON)
   - **Legacy group** (runs in parallel with coverage group):
     - `analyze_legacy_references` - Legacy code scanning (~62s, >10s)
     - `generate_legacy_reference_report` - Legacy report generation (~1s, but part of legacy group)
@@ -172,7 +172,7 @@ All tools follow a 3-prefix naming system:
 - **`analyze_*`** - Finding + assessing (read-only examination, validation, detection)
   - Examples: `analyze_functions.py`, `analyze_documentation.py`, `analyze_error_handling.py`
 - **`generate_*`** - Making artifacts (create/recreate documentation, registries, reports)
-  - Examples: `generate_function_registry.py`, `generate_test_coverage.py`, `generate_module_dependencies.py`
+  - Examples: `generate_function_registry.py`, `run_test_coverage.py`, `generate_module_dependencies.py`
 - **`fix_*`** - Cleanup/repair (removal, cleanup operations)
   - Examples: `fix_legacy_references.py`, `fix_version_sync.py`, `fix_project_cleanup.py`
 - **No prefix** - Reporting/utility tools (descriptive names)
@@ -194,7 +194,7 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 
 **Tool Categories**:
 - **Documentation & structure**: `docs/analyze_documentation_sync.py` [OK] (paired doc sync only), `docs/analyze_path_drift.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_heading_numbering.py`, `docs/analyze_missing_addresses.py`, `docs/analyze_unconverted_links.py`, `docs/generate_directory_tree.py`, `docs/fix_documentation.py` [OK] (dispatcher), `docs/fix_documentation_addresses.py`, `docs/fix_documentation_ascii.py`, `docs/fix_documentation_headings.py`, `docs/fix_documentation_links.py`, `functions/generate_function_registry.py` [OK], `functions/analyze_function_patterns.py`, `imports/generate_module_dependencies.py` [OK] (orchestrator), `imports/analyze_module_imports.py` (extracted 2025-12-02), `imports/analyze_dependency_patterns.py` (extracted 2025-12-02), `docs/analyze_documentation.py`
-- **Quality, validation, coverage**: `tests/generate_test_coverage.py` [OK], `tests/analyze_test_coverage.py`, `tests/generate_test_coverage_reports.py`, `ai_work/analyze_ai_work.py`, `imports/analyze_unused_imports.py`, `imports/generate_unused_imports_report.py`, `error_handling/analyze_error_handling.py`, `error_handling/generate_error_handling_report.py`, `error_handling/generate_error_handling_recommendations.py`
+- **Quality, validation, coverage**: `tests/run_test_coverage.py` [OK], `tests/analyze_test_coverage.py`, `tests/generate_test_coverage_report.py`, `ai_work/analyze_ai_work.py`, `imports/analyze_unused_imports.py`, `imports/generate_unused_imports_report.py`, `error_handling/analyze_error_handling.py`, `error_handling/generate_error_handling_report.py`, `error_handling/generate_error_handling_recommendations.py`
 - **Legacy, versioning, signals**: `legacy/fix_legacy_references.py` [OK], `reports/system_signals.py`, `reports/quick_status.py`, `docs/fix_version_sync.py` (experimental)
 - **Decision & utilities**: `reports/decision_support.py`, `functions/analyze_functions.py`, `functions/generate_function_docstrings.py` (experimental), `config/analyze_config.py`, `shared/file_rotation.py`, `functions/analyze_*` helpers, `shared/tool_guide.py`
 

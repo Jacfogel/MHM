@@ -2,8 +2,14 @@
 # TOOL_TIER: core
 
 """
-analyze_test_coverage.py
-Analyzes test coverage data from pytest/coverage output.
+Test Coverage Analysis Tool
+
+Analyzes test coverage data from pytest/coverage output. This tool provides
+pure analysis of existing coverage data - it does NOT run tests or generate
+coverage data.
+
+NOTE: This tool ANALYZES existing coverage data. To run tests and generate
+coverage data, use generate_test_coverage.py (which orchestrates pytest execution).
 
 Configuration is loaded from external config file (development_tools_config.json)
 if available, making this tool portable across different projects.
@@ -253,8 +259,8 @@ class TestCoverageAnalyzer:
         
         if coverage_json_path and coverage_json_path.exists():
             # Use JSON file (preferred)
-            coverage_data = self._load_coverage_json(coverage_json_path)
-            overall_data = self._extract_overall_from_json(coverage_json_path)
+            coverage_data = self.load_coverage_json(coverage_json_path)
+            overall_data = self.extract_overall_from_json(coverage_json_path)
         elif coverage_output:
             # Parse text output
             coverage_data = self.parse_coverage_output(coverage_output)
