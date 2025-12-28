@@ -21,6 +21,7 @@ import json
 import logging
 import warnings
 import time
+import re
 from pathlib import Path
 from unittest.mock import Mock, patch
 from datetime import datetime
@@ -535,7 +536,35 @@ class SessionLogRotationManager:
         self.max_size_bytes = max_size_mb * 1024 * 1024
         self.log_files = []
         self.rotation_needed = False
-        self.last_rotation_check = None
+        self.last_rotation_check = self._load_last_rotation_time()
+    
+    def _get_rotation_state_file(self):
+        """Get the path to the file that stores last rotation time."""
+        rotation_state_file = Path(os.environ.get('LOG_BACKUP_DIR', 'tests/logs/backups')) / '.last_rotation'
+        return rotation_state_file
+    
+    def _load_last_rotation_time(self):
+        """Load the last rotation time from persistent storage."""
+        rotation_state_file = self._get_rotation_state_file()
+        try:
+            if rotation_state_file.exists():
+                with open(rotation_state_file, 'r', encoding='utf-8') as f:
+                    timestamp_str = f.read().strip()
+                    if timestamp_str:
+                        return datetime.fromisoformat(timestamp_str)
+        except (OSError, ValueError) as e:
+            test_logger.debug(f"Could not load last rotation time: {e}")
+        return None
+    
+    def _save_last_rotation_time(self, timestamp):
+        """Save the last rotation time to persistent storage."""
+        rotation_state_file = self._get_rotation_state_file()
+        try:
+            rotation_state_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(rotation_state_file, 'w', encoding='utf-8') as f:
+                f.write(timestamp.isoformat())
+        except OSError as e:
+            test_logger.debug(f"Could not save last rotation time: {e}")
         
     def register_log_file(self, file_path):
         """Register a log file for session-based rotation monitoring.
@@ -550,22 +579,43 @@ class SessionLogRotationManager:
                 self.log_files.append(abs_path)
     
     def check_rotation_needed(self):
-        """Check if any log file exceeds the size limit or if time-based rotation is needed."""
+        """Check if any log file exceeds the size limit or if time-based rotation is needed.
+        
+        This method checks rotation conditions but does NOT update last_rotation_check.
+        The timestamp is only updated after rotation actually completes in rotate_all_logs().
+        """
         from datetime import datetime, timedelta
         
-        # Check time-based rotation (daily rotation for test logs)
         now = datetime.now()
-        if self.last_rotation_check is None:
-            self.last_rotation_check = now
-            # Don't rotate on first check - just initialize the timestamp
-            # Check size-based rotation instead
-        # Rotate if it's been more than 24 hours since last rotation
-        elif (now - self.last_rotation_check) > timedelta(hours=24):
-            self.rotation_needed = True
-            test_logger.info(f"Time-based rotation needed (last rotation: {self.last_rotation_check})")
-            return True
         
-        # Check size-based rotation (only if time-based didn't trigger)
+        # Check time-based rotation (daily rotation for test logs)
+        if self.last_rotation_check is not None:
+            # We have a previous rotation timestamp - check elapsed time
+            time_since_last = now - self.last_rotation_check
+            if time_since_last > timedelta(hours=24):
+                self.rotation_needed = True
+                test_logger.info(f"Time-based rotation needed (last rotation: {self.last_rotation_check}, elapsed: {time_since_last})")
+                return True
+        else:
+            # First time checking - use the oldest log entry timestamp to determine if rotation is needed
+            # This handles the case where logs are old but we've never rotated before
+            # File modification time is unreliable because it gets updated on every write
+            for log_file in self.log_files:
+                try:
+                    if os.path.exists(log_file):
+                        # Try to parse the header timestamp to find when logs actually started
+                        oldest_timestamp = self._get_oldest_log_timestamp(log_file)
+                        if oldest_timestamp:
+                            time_since_oldest = now - oldest_timestamp
+                            if time_since_oldest > timedelta(hours=24):
+                                self.rotation_needed = True
+                                test_logger.info(f"Time-based rotation needed (log file {log_file} has entries from {oldest_timestamp}, {time_since_oldest} old, no previous rotation)")
+                                return True
+                except (OSError, FileNotFoundError) as e:
+                    test_logger.debug(f"Could not check oldest log timestamp for {log_file}: {e}")
+                    continue
+        
+        # Check size-based rotation
         for log_file in self.log_files:
             try:
                 if os.path.exists(log_file):
@@ -578,7 +628,42 @@ class SessionLogRotationManager:
             except (OSError, FileNotFoundError) as e:
                 test_logger.debug(f"Could not check size for {log_file}: {e}")
                 continue
+        
         return False
+    
+    def _get_oldest_log_timestamp(self, log_file: str):
+        """Extract the oldest timestamp from a log file by checking the header or first log entry.
+        
+        Returns the datetime of the oldest entry, or None if it can't be determined.
+        """
+        try:
+            with open(log_file, 'r', encoding='utf-8') as f:
+                # Read first few lines to find header or first log entry
+                for i, line in enumerate(f):
+                    if i > 20:  # Don't read too far
+                        break
+                    
+                    # Check for header timestamp: "# TEST RUN STARTED: YYYY-MM-DD HH:MM:SS"
+                    if 'TEST RUN STARTED:' in line:
+                        try:
+                            # Extract timestamp from header
+                            match = re.search(r'(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})', line)
+                            if match:
+                                timestamp_str = match.group(1)
+                                return datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
+                        except (ValueError, AttributeError):
+                            pass
+                    
+                    # Check for log entry timestamp: "YYYY-MM-DD HH:MM:SS - ..."
+                    if re.match(r'^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}', line):
+                        try:
+                            timestamp_str = line[:19]  # First 19 chars are "YYYY-MM-DD HH:MM:SS"
+                            return datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
+                        except ValueError:
+                            pass
+        except (OSError, FileNotFoundError, UnicodeDecodeError):
+            pass
+        return None
     
     def _write_log_header(self, log_file: str, timestamp: str):
         """Write a formatted header to a log file during rotation.
@@ -635,6 +720,10 @@ class SessionLogRotationManager:
         """
         # Check if rotation is needed first
         if not self.check_rotation_needed():
+            # If no rotation needed, initialize last_rotation_check on first call
+            # This prevents time-based rotation from triggering immediately on next check
+            if self.last_rotation_check is None:
+                self.last_rotation_check = datetime.now()
             return
             
         test_logger.info(f"Starting {rotation_context} log rotation for all log files")
@@ -645,62 +734,107 @@ class SessionLogRotationManager:
         backup_dir = Path(os.environ.get('LOG_BACKUP_DIR', 'tests/logs/backups'))
         backup_dir.mkdir(parents=True, exist_ok=True)
         
+        rotated_files = []
+        failed_files = []
+        
         for log_file in self.log_files:
             try:
-                if os.path.exists(log_file) and os.path.getsize(log_file) > 0:
-                    # Create backup filename with timestamp
-                    log_filename = Path(log_file).name
-                    backup_filename = f"{log_filename}.{timestamp}.bak"
-                    backup_file = backup_dir / backup_filename
-                    
-                    # Handle Windows file locking by copying instead of moving
-                    # Add retry logic with timeout to prevent hanging
-                    import time
-                    max_retries = 3
-                    retry_delay = 0.1
-                    rotation_success = False
-                    
+                if not os.path.exists(log_file):
+                    test_logger.debug(f"Skipping {log_file} - file does not exist")
+                    continue
+                
+                file_size = os.path.getsize(log_file)
+                if file_size == 0:
+                    test_logger.debug(f"Skipping {log_file} - file is empty")
+                    continue
+                
+                # Create backup filename with timestamp
+                log_filename = Path(log_file).name
+                backup_filename = f"{log_filename}.{timestamp}.bak"
+                backup_file = backup_dir / backup_filename
+                
+                # Handle Windows file locking by copying instead of moving
+                # Add retry logic with timeout to prevent hanging
+                import time
+                max_retries = 5  # Increased retries
+                retry_delay = 0.2  # Longer delay between retries
+                rotation_success = False
+                
+                for attempt in range(max_retries):
+                    try:
+                        # Try to move first (faster and atomic)
+                        shutil.move(log_file, backup_file)
+                        # Verify backup was created and has content
+                        if backup_file.exists():
+                            backup_size = backup_file.stat().st_size
+                            if backup_size > 0:
+                                test_logger.info(f"Rotated {log_file} ({file_size} bytes) to {backup_file} ({backup_size} bytes)")
+                                rotation_success = True
+                                rotated_files.append(log_file)
+                                break
+                            else:
+                                test_logger.warning(f"Move succeeded but backup file is empty: {backup_file}")
+                        else:
+                            test_logger.warning(f"Move succeeded but backup file is missing: {backup_file}")
+                    except (OSError, PermissionError) as move_error:
+                        if attempt < max_retries - 1:
+                            time.sleep(retry_delay)
+                            continue
+                        # If move fails after retries, try copy method
+                        try:
+                            test_logger.warning(f"Move failed for {log_file} due to file locking, using copy method: {move_error}")
+                            # Read entire file first to ensure we get all content
+                            with open(log_file, 'rb') as src:
+                                with open(backup_file, 'wb') as dst:
+                                    shutil.copyfileobj(src, dst)
+                            # Verify backup was created and has content
+                            if backup_file.exists():
+                                backup_size = backup_file.stat().st_size
+                                if backup_size > 0:
+                                    test_logger.info(f"Copied {log_file} ({file_size} bytes) to {backup_file} ({backup_size} bytes)")
+                                    rotation_success = True
+                                    rotated_files.append(log_file)
+                                    break
+                                else:
+                                    test_logger.warning(f"Copy succeeded but backup file is empty: {backup_file}")
+                            else:
+                                test_logger.warning(f"Copy succeeded but backup file is missing: {backup_file}")
+                        except (OSError, PermissionError) as copy_error:
+                            test_logger.warning(f"Copy also failed for {log_file}: {copy_error}")
+                            failed_files.append((log_file, str(copy_error)))
+                            continue
+                
+                if rotation_success:
+                    # Truncate the original file and write formatted header
+                    # Add retry for header writing too
                     for attempt in range(max_retries):
                         try:
-                            # Try to move first (faster)
-                            shutil.move(log_file, backup_file)
-                            test_logger.info(f"Rotated {log_file} to {backup_file}")
-                            rotation_success = True
+                            self._write_log_header(log_file, timestamp_display)
+                            if attempt > 0:
+                                test_logger.info(f"Truncated {log_file} after copy")
                             break
-                        except (OSError, PermissionError) as move_error:
+                        except (OSError, PermissionError) as header_error:
                             if attempt < max_retries - 1:
                                 time.sleep(retry_delay)
                                 continue
-                            # If move fails after retries, try copy method
-                            try:
-                                test_logger.warning(f"Move failed for {log_file} due to file locking, using copy method: {move_error}")
-                                shutil.copy2(log_file, backup_file)
-                                test_logger.info(f"Copied {log_file} to {backup_file}")
-                                rotation_success = True
-                            except (OSError, PermissionError) as copy_error:
-                                test_logger.warning(f"Copy also failed for {log_file}: {copy_error} - skipping rotation for this file")
-                                continue
-                    
-                    if rotation_success:
-                        # Truncate the original file and write formatted header
-                        # Add retry for header writing too
-                        for attempt in range(max_retries):
-                            try:
-                                self._write_log_header(log_file, timestamp_display)
-                                if attempt > 0:
-                                    test_logger.info(f"Truncated {log_file} after copy")
-                                break
-                            except (OSError, PermissionError) as header_error:
-                                if attempt < max_retries - 1:
-                                    time.sleep(retry_delay)
-                                    continue
-                                test_logger.warning(f"Failed to write header to {log_file}: {header_error}")
+                            test_logger.warning(f"Failed to write header to {log_file}: {header_error}")
+                else:
+                    failed_files.append((log_file, "Rotation failed after all retries"))
                         
             except (OSError, FileNotFoundError) as e:
                 test_logger.warning(f"Failed to rotate {log_file}: {e}")
+                failed_files.append((log_file, str(e)))
+        
+        # Log summary
+        if rotated_files:
+            test_logger.info(f"Successfully rotated {len(rotated_files)} log file(s): {', '.join(Path(f).name for f in rotated_files)}")
+        if failed_files:
+            test_logger.warning(f"Failed to rotate {len(failed_files)} log file(s): {', '.join(f'{Path(f).name} ({err})' for f, err in failed_files)}")
         
         self.rotation_needed = False
-        self.last_rotation_check = datetime.now()
+        rotation_time = datetime.now()
+        self.last_rotation_check = rotation_time
+        self._save_last_rotation_time(rotation_time)
         test_logger.info(f"{rotation_context.capitalize()} log rotation completed")
 
 # Helper function for writing log headers
@@ -846,16 +980,107 @@ def setup_consolidated_test_logging():
     
     consolidated_log_file.parent.mkdir(exist_ok=True)
 
-    # Register both log files with session rotation manager BEFORE checking rotation
-    session_rotation_manager.register_log_file(str(consolidated_log_file))
-    session_rotation_manager.register_log_file(str(test_run_log_file))
-    
-    # Check for rotation BEFORE writing headers (rotation will create backups and write headers to new files)
+    # CRITICAL: Only rotate in the main process, not in worker processes
+    # Workers use per-worker log files that get consolidated later
+    # Rotation should only happen on the main log files (test_run.log, test_consolidated.log)
     rotation_happened = False
-    if session_rotation_manager.check_rotation_needed():
-        session_rotation_manager.rotate_all_logs(rotation_context="session start")
-        rotation_happened = True
-        test_logger.info("Performed automatic log rotation at session start")
+    
+    # Only check rotation in main process (not in workers)
+    # Workers use per-worker files that don't need rotation
+    if not is_parallel:
+        # Register both log files with session rotation manager BEFORE checking rotation
+        session_rotation_manager.register_log_file(str(consolidated_log_file))
+        session_rotation_manager.register_log_file(str(test_run_log_file))
+        
+        # Check for rotation BEFORE writing headers (rotation will create backups and write headers to new files)
+        # CRITICAL: Only rotate if files are safe to rotate (not locked, not being written to)
+        rotation_needed = session_rotation_manager.check_rotation_needed()
+    else:
+        rotation_needed = False
+    
+    if rotation_needed and not is_parallel:
+        # Check if files are safe to rotate (not locked by active handlers)
+        # We can only safely rotate if no handlers are currently writing to the files
+        files_safe_to_rotate = True
+        
+        for log_file in session_rotation_manager.log_files:
+            if os.path.exists(log_file):
+                # Try to open the file in exclusive mode to check if it's locked
+                try:
+                    # On Windows, opening in 'r+b' mode will fail if file is locked
+                    with open(log_file, 'r+b') as f:
+                        f.seek(0, 2)  # Seek to end
+                        f.flush()
+                except (OSError, PermissionError) as e:
+                    test_logger.warning(f"Cannot rotate {log_file} - file is locked (likely still being written to): {e}")
+                    files_safe_to_rotate = False
+                    break
+        
+        if files_safe_to_rotate:
+            # Close any existing handlers that might be writing to these files
+            # This prevents "file in use" errors during rotation
+            loggers_to_check = [
+                test_logger,
+                logging.getLogger('mhm'),
+                logging.getLogger('mhm.error_handler'),
+                logging.getLogger('mhm_tests'),
+                logging.getLogger('mhm_tests.run_tests'),
+                logging.root,
+            ]
+            
+            # Also check all existing loggers
+            for logger_name in logging.Logger.manager.loggerDict:
+                loggers_to_check.append(logging.getLogger(logger_name))
+            
+            handlers_closed = 0
+            for logger in loggers_to_check:
+                for handler in list(logger.handlers):
+                    if isinstance(handler, logging.FileHandler):
+                        try:
+                            handler.flush()
+                            handler.close()
+                            logger.removeHandler(handler)
+                            handlers_closed += 1
+                        except Exception:
+                            pass
+            
+            if handlers_closed > 0:
+                test_logger.debug(f"Closed {handlers_closed} file handlers before rotation")
+            
+            # Short delay to ensure Windows releases file handles
+            time.sleep(0.2)
+            
+            # Attempt rotation with timeout to prevent hanging
+            # Use threading to ensure rotation doesn't block test execution
+            import threading
+            rotation_complete = threading.Event()
+            rotation_error = [None]
+            rotation_success = [False]
+            
+            def do_rotation():
+                try:
+                    session_rotation_manager.rotate_all_logs(rotation_context="session start")
+                    rotation_success[0] = True
+                    test_logger.info("Performed automatic log rotation at session start")
+                except Exception as e:
+                    rotation_error[0] = e
+                    test_logger.warning(f"Log rotation failed: {e}")
+                finally:
+                    rotation_complete.set()
+            
+            rotation_thread = threading.Thread(target=do_rotation, daemon=True)
+            rotation_thread.start()
+            
+            # Wait up to 5 seconds for rotation to complete (non-blocking)
+            if rotation_complete.wait(timeout=5.0):
+                if rotation_error[0]:
+                    test_logger.warning(f"Log rotation completed with errors: {rotation_error[0]}")
+                elif rotation_success[0]:
+                    rotation_happened = True
+            else:
+                test_logger.warning("Log rotation timed out after 5 seconds - continuing without rotation (logs will rotate on next run)")
+        else:
+            test_logger.info("Skipping log rotation - files are locked (likely from previous session still cleaning up)")
     
     # Ensure test_run.log exists so rotation manager can write headers to it
     if not test_run_log_file.exists():
@@ -3171,34 +3396,11 @@ def pytest_sessionfinish(session, exitstatus):
     if not os.environ.get('PYTEST_XDIST_WORKER'):
         _consolidate_worker_logs()
     
-    # Check for log rotation AFTER consolidation (consolidation can make files huge)
-    # CRITICAL: Only rotate if files are actually large, and use non-blocking approach
-    # Log rotation can hang if files are locked by logging handlers
-    # Use a timeout to prevent hanging
-    if not os.environ.get('PYTEST_XDIST_WORKER'):
-        if session_rotation_manager.check_rotation_needed():
-            # Use threading timeout to prevent hanging on Windows
-            import threading
-            rotation_complete = threading.Event()
-            rotation_error = [None]
-            
-            def do_rotation():
-                try:
-                    session_rotation_manager.rotate_all_logs(rotation_context="session end")
-                    test_logger.debug("Performed automatic log rotation at session end")
-                except Exception as e:
-                    rotation_error[0] = e
-                finally:
-                    rotation_complete.set()
-            
-            rotation_thread = threading.Thread(target=do_rotation, daemon=True)
-            rotation_thread.start()
-            
-            # Wait up to 10 seconds for rotation to complete
-            if not rotation_complete.wait(timeout=10.0):
-                test_logger.warning("Log rotation timed out after 10 seconds, skipping")
-            elif rotation_error[0]:
-                test_logger.warning(f"Error during log rotation: {rotation_error[0]}")
+    # NOTE: Log rotation only happens at session START in setup_consolidated_test_logging.
+    # We do NOT rotate at session end because:
+    # 1. File handlers are still active and writing, causing corruption
+    # 2. Rotation at session start (before logging begins) is safer
+    # 3. Consolidation happens here, but rotation should wait until next session start
 
 def pytest_runtest_logreport(report):
     """Log individual test results."""

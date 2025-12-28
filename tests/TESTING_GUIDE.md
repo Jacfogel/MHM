@@ -195,11 +195,50 @@ If the Windows Task Scheduler becomes polluted during development (for example, 
 
 Tests should integrate cleanly with the logging system described in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) (see section 2. "Logging Architecture" in that guide).
 
-Patterns:
+#### Test log files
+
+The test logging system uses two main log files:
+
+- **`test_run.log`**: Test execution and framework logs from the `mhm_tests` logger
+  - Contains: Test failures (ERROR), warnings (WARNING), skips (WARNING), execution details (INFO at level 1+), debug info (DEBUG at level 2)
+  - Location: `tests/logs/test_run.log`
+- **`test_consolidated.log`**: Component logs from application components (Discord, AI, scheduler, etc.)
+  - Contains: Component errors (ERROR), warnings (WARNING), info messages (INFO at level 2), debug messages (DEBUG at level 2)
+  - Location: `tests/logs/test_consolidated.log`
+
+#### TEST_VERBOSE_LOGS environment variable
+
+The `TEST_VERBOSE_LOGS` environment variable controls logging verbosity:
+
+- **Level 0 (default)**: Test logger WARNING, component loggers WARNING (failures/warnings/skips only)
+- **Level 1**: Test logger INFO, component loggers WARNING (adds test execution details)
+- **Level 2**: Test logger DEBUG, component loggers DEBUG (full debug output including component logs)
+
+Set with: `TEST_VERBOSE_LOGS=0` (default), `TEST_VERBOSE_LOGS=1`, or `TEST_VERBOSE_LOGS=2`
+
+#### Log rotation
+
+Test logs are rotated based on:
+- **Size**: 2MB per log file (lower than production 5MB for more frequent rotation)
+- **Time**: Daily rotation (24 hours since last rotation)
+
+Rotation occurs at session start and session end (if rotation needed). Rotated logs are moved to `tests/logs/backups/` with timestamp suffixes (`.YYYYMMDD_HHMMSS.bak`).
+
+#### Parallel execution logging
+
+In parallel execution mode (pytest-xdist):
+- Per-worker log files are created (`test_consolidated_gw0.log`, `test_run_gw0.log`, etc.)
+- Worker logs are consolidated into main log files at session end
+- Large worker logs (>50MB) are truncated to last 50MB before consolidation
+
+#### Patterns
 
 - Use test fixtures to configure log handlers that write to test-specific log files (for example, `test_run.log`, `test_consolidated.log`).
 - When debugging a failing test, those test logs are often the first place to look.
 - Do not reconfigure logging in each test module unless absolutely necessary; prefer centralized configuration via `tests/conftest.py`.
+- Check `test_run.log` first for test failures and execution details.
+- Check `test_consolidated.log` for component errors and warnings.
+- Set `TEST_VERBOSE_LOGS=1` to see test execution details, or `TEST_VERBOSE_LOGS=2` for full debug output.
 
 ---
 

@@ -38,6 +38,27 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-28 - Fix Test Log Rotation Issues **COMPLETED**
+- **Log Rotation Fix**: Fixed test log rotation functionality that was creating truncated backups (only 7 lines) and failing to rotate `test_consolidated.log`. Implemented robust rotation logic that only runs in the main process (not worker processes), includes file locking checks, uses non-blocking rotation with timeout, and employs retry logic with `shutil.copyfileobj` for Windows file locking issues.
+- **Technical Changes**: Modified `tests/conftest.py`:
+  - Added check to only rotate in main process (workers use per-worker log files that get consolidated later)
+  - Added file locking verification before rotation attempts
+  - Implemented non-blocking rotation in separate thread with 5-second timeout to prevent hanging
+  - Enhanced file copying with retry logic and proper error handling
+  - Improved time-based rotation detection using log file header timestamps instead of file modification time
+- **Results**: Both log files now rotate correctly with complete backups:
+  - `test_run.log` backups: ~0.89 MB (928,074 bytes) - complete
+  - `test_consolidated.log` backups: ~0.45 MB (472,596 bytes) - complete
+  - Rotation triggers correctly based on size (2MB limit) or time (24 hours)
+- **Documentation**: Updated `tests/TESTING_GUIDE.md` and `ai_development_docs/AI_TESTING_GUIDE.md` with test logging information (section 3.5 in TESTING_GUIDE.md, section 3 in AI_TESTING_GUIDE.md).
+- **Impact**: Prevents log files from growing unbounded, ensures proper log management, and enables easier debugging with complete log history preserved in backups.
+
+### 2025-12-27 - Repository Cleanup: Untrack Files That Should Be Ignored **COMPLETED**
+- **Repository Cleanup**: Investigated and untracked files that were previously committed but should be ignored per `.gitignore`. Found and removed from git tracking: 13 files in `archive/` directory, 8 files in `scripts/` directory, and 20 files in `.cursor/` directory (41 total files). All files remain on disk but are no longer tracked by git.
+- **Security Audit**: Conducted comprehensive check for sensitive data (API keys, passwords, tokens) in tracked files and git history. Verified no actual secrets were found - all matches were false positives (documentation mentioning keywords, scripts importing from `core.config` environment variables, and `.env.example` with placeholders). Git history search confirmed no actual credentials were committed.
+- **Verification**: Used `git check-ignore` to verify no remaining tracked files match `.gitignore` patterns. All violations have been resolved. Files remain in git history from previous commits, but since no actual secrets were found, history rewriting is not necessary.
+- **Impact**: Repository is now clean and compliant with `.gitignore` rules. Future changes to `archive/`, `scripts/`, and `.cursor/` directories will not appear in git status. Prevents accidental exposure of sensitive information and maintains repository cleanliness.
+
 ### 2025-12-27 - Coverage Tools Refactoring Completion and Bug Fixes **COMPLETED**
 - **Coverage Tool Refactoring Completion**: Completed Option E implementation from improvement plan section 2.7. Fixed critical bugs preventing `generate_test_coverage_report` from executing: corrected method name mismatch (`_load_coverage_json` -> `load_coverage_json`, `_extract_overall_from_json` -> `extract_overall_from_json`) in `analyze_test_coverage.py`, and fixed relative import issues in `generate_test_coverage_report.py` to work when run as standalone script.
 - **File Cleanup**: Deleted old files after verification: `development_tools/tests/generate_test_coverage.py`, `development_tools/tests/generate_test_coverage_reports.py`, and `development_tools/tests/COVERAGE_TOOLS_ANALYSIS.md`. Updated documentation references in `DEVELOPMENT_TOOLS_GUIDE.md` and `tests/TESTING_GUIDE.md` to use new file names (`run_test_coverage.py`, `generate_test_coverage_report.py`).

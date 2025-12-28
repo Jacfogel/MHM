@@ -85,6 +85,13 @@ Use existing helpers:
 - Isolation helpers (for example, `tests/test_isolation.py`) for:
   - Any test that might interact with system-like APIs or Task Scheduler.
 
+Test logging:
+
+- Two main log files: `test_run.log` (test execution) and `test_consolidated.log` (component logs).
+- `TEST_VERBOSE_LOGS` controls verbosity: 0=WARNING only, 1=INFO for tests, 2=DEBUG for all.
+- Logs rotate at 2MB size or 24-hour intervals (session start/end).
+- In parallel mode, per-worker logs are consolidated at session end.
+
 Scheduler rules:
 
 - Always mock scheduler integrations that would create or modify tasks (for example, `scheduler_manager.set_wake_timer` and related calls).

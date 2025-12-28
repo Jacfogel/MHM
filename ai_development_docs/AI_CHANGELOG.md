@@ -36,6 +36,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-28 - Fix Test Log Rotation Issues **COMPLETED**
+- Fixed test log rotation that was creating truncated backups and failing to rotate `test_consolidated.log`. Implemented robust rotation with file locking checks, non-blocking timeout, and retry logic for Windows file locking issues.
+- Rotation now only runs in main process (not workers), uses log file header timestamps for time-based detection, and creates complete backups (~0.89 MB for test_run.log, ~0.45 MB for test_consolidated.log).
+- Updated test logging documentation in TESTING_GUIDE.md and AI_TESTING_GUIDE.md with rotation behavior details.
+
+### 2025-12-27 - Repository Cleanup: Untrack Files That Should Be Ignored **COMPLETED**
+- Untracked 41 files that were previously committed but should be ignored per `.gitignore`: 13 files in `archive/`, 8 files in `scripts/`, and 20 files in `.cursor/`. All files remain on disk but are no longer tracked.
+- Conducted security audit for sensitive data (API keys, passwords, tokens) in tracked files and git history. Verified no actual secrets found - all matches were false positives (documentation, environment variable imports, placeholders).
+- Verified no remaining tracked files match `.gitignore` patterns. Repository is now clean and compliant. Files remain in git history but no history rewriting needed since no secrets were found.
+
 ### 2025-12-27 - Coverage Tools Refactoring Completion and Bug Fixes **COMPLETED**
 - Fixed critical bugs in coverage tools: corrected method name mismatches in `analyze_test_coverage.py` and fixed relative import issues in `generate_test_coverage_report.py`. Full audit now completes successfully with all coverage tools working.
 - Deleted old files (`generate_test_coverage.py`, `generate_test_coverage_reports.py`, `COVERAGE_TOOLS_ANALYSIS.md`) and updated documentation references. Updated improvement plan to mark sections 2.4-2.7 as complete.

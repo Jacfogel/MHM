@@ -229,6 +229,8 @@ When adding new tasks, follow this format:
 - *Subtasks*:
   - [ ] Investigate `test_comprehensive_context_includes_recent_sent_messages_and_checkin_status` failure (assertion that "Recent automated messages sent to them:" is in content)
   - [ ] Investigate `test_full_account_lifecycle_real_behavior` failure (assertion that preferences categories persist after account-only save)
+  tests/ui/test_category_management_dialog.py::TestCategoryManagementDialogRealBehavior::test_save_category_settings_persists_to_disk - AssertionError: Saved categories should match selected categories (order ma...
+  tests/behavior/test_webhook_handler_behavior.py::TestWebhookHandlerBehavior::test_handle_webhook_event_routes_application_deauthorized - AssertionError: User should be welcomed
   - [ ] Check for timing/race condition issues in test setup or teardown
   - [ ] Verify test isolation and data cleanup between test runs
   - [ ] Add retry logic or fix root cause if identified
@@ -275,28 +277,11 @@ When adding new tasks, follow this format:
 - *Why it helps*: Ensures all report links are clickable and functional in the editor
 - *Estimated effort*: Small
 
-**Investigate test log rotation not working**
-- *What it means*: Test log rotation functionality appears to not be working correctly. Need to investigate why log files are not being rotated as expected.
-- *Why it helps*: Prevents log files from growing too large and ensures proper log management
-- *Estimated effort*: Small/Medium
-
 **Investigate what shows up in test logs, what doesn't, and why**
 - *What it means*: Review test logging behavior to understand what information appears in test logs, what information is missing, and why certain information may not be logged. This includes understanding log levels, filtering, and output redirection.
 - *Why it helps*: Improves debugging capabilities and ensures important test information is captured
 - *Estimated effort*: Medium
 
-**Investigate files on GitHub that shouldn't be tracked**
-- *What it means*: Check the repository for files that were previously tracked and committed to GitHub, but are now in .gitignore or otherwise no longer tracked. These files may still exist in the repository history and should be removed if they contain sensitive data, are outdated, or shouldn't be public.
-- *Why it helps*: Ensures repository cleanliness, prevents accidental exposure of sensitive information, and removes outdated files from git history
-- *Estimated effort*: Small/Medium
-- *Subtasks*:
-  - [ ] Review .gitignore to identify patterns of files that should not be tracked
-  - [ ] Use `git ls-files` to find currently tracked files
-  - [ ] Compare with .gitignore patterns to find files that should be untracked
-  - [ ] Check git history for files that were committed but are now ignored
-  - [ ] Identify any sensitive files (API keys, passwords, tokens) that may have been committed
-  - [ ] Remove or clean up any files that shouldn't be in the repository
-  - [ ] Consider using `git filter-branch` or BFG Repo-Cleaner if sensitive data needs to be removed from history
 
 
 
