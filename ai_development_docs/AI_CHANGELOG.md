@@ -36,6 +36,25 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-31 - DIRECTORY_TREE.md Regeneration Fix **COMPLETED**
+- Fixed `DIRECTORY_TREE.md` being regenerated during test runs by correcting test isolation in `test_main_integration_demo_project` - test now properly patches config module where it's imported
+- Improved safeguard logging in `file_rotation.py` with more aggressive DIRECTORY_TREE detection patterns
+- Added temporary test timestamp logging (DEBUG level) for debugging test execution timing
+- Files: `tests/development_tools/test_generate_directory_tree.py`, `development_tools/shared/file_rotation.py`, `tests/conftest.py`, `tests/development_tools/conftest.py`
+
+### 2025-12-31 - Pyright Error Fixes, Legacy Compatibility Markers, and Complementary Tools Evaluation **COMPLETED**
+- Fixed multiple Pyright type checking errors: unbound variable in `core/service.py`, None checks in `ai/chatbot.py` and `ai/context_builder.py`, Optional type hints for dataclass fields, missing tool_name parameters in `data_loading.py`, Path vs str type annotations in `file_rotation.py`
+- Updated `run_cleanup()` method signature to accept `coverage`, `all_cleanup`, and `dry_run` parameters to match CLI interface, with proper `# LEGACY COMPATIBILITY:` markers and logging
+- Added detection patterns to `development_tools_config.json` for legacy parameter cleanup tracking
+- Added investigation tasks to `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md` for duplicate function declarations that need proper investigation (generate_dependency_report, tool_wrappers methods)
+- Added TODO items for evaluating complementary development tools (ruff, radon, pydeps, bandit, pip-audit, vulture, pre-commit) to determine if they should replace or complement existing development tools
+- Files: `core/service.py`, `ai/chatbot.py`, `ai/context_builder.py`, `ai/conversation_history.py`, `development_tools/shared/service/data_loading.py`, `development_tools/shared/file_rotation.py`, `development_tools/shared/service/commands.py`, `development_tools/config/development_tools_config.json`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`, `TODO.md`
+
+### 2025-12-31 - Config Validation and Function Metrics Standardization **COMPLETED**
+- Fixed config validation false positives by detecting entry point scripts that delegate config to `AIToolsService`. Standardized function metrics by having both `analyze_functions` and `decision_support` use shared `categorize_functions()` logic.
+- Fixed Qt crash in UI tests and updated test data for decision support tests. Documentation sync now passes with 0 issues, path validation shows all paths valid.
+- Config validation shows 0 recommendations, function metrics are consistent across tools, test coverage at 72.9%.
+
 ### 2025-12-31 - Test Coverage Calculation Fix **COMPLETED**
 - Fixed test coverage calculation that was incorrectly reporting 37-45% instead of ~72-73%. Enhanced shard file detection for pytest-xdist workers and added fallback to use `.coverage` when shard files are auto-combined.
 - Added validation to detect unexpectedly low coverage and log diagnostic information. Fixed `test_central_aggregation_includes_all_tool_results` test failure.

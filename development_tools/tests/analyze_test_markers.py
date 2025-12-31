@@ -50,8 +50,17 @@ class TestMarkerAnalyzer:
         
         for test_file in self.test_dir.rglob('test_*.py'):
             if test_file.is_file():
+                # Skip AI test files if requested
                 if exclude_ai and ('ai/test_ai' in str(test_file) or 'test_ai' in test_file.name):
                     continue
+                
+                # Skip temporary test files in tests/data/ (pytest temporary directories)
+                file_str = str(test_file).replace('\\', '/')
+                if '/tests/data/' in file_str or file_str.startswith('tests/data/'):
+                    # Exclude pytest temporary directories
+                    if 'pytest-tmp-' in file_str or 'pytest-of-' in file_str:
+                        continue
+                
                 test_files.append(test_file)
         
         return sorted(test_files)

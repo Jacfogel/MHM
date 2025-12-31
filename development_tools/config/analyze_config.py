@@ -78,21 +78,42 @@ class ConfigValidator:
                 'hardcoded_values': [],
                 'config_functions_used': [],
                 'issues': [],
-                'is_wrapper_script': False
+                'is_wrapper_script': False,
+                'is_entry_point_script': False
             }
+            
+            # Check if this is an entry point script (creates AIToolsService instances) FIRST
+            # Entry point scripts don't need config imports since AIToolsService handles config internally
+            # This check must come before wrapper detection because entry points also call sys.exit(main())
+            entry_point_patterns = [
+                r'AIToolsService\s*\(',
+                r'=\s*AIToolsService\s*\(',
+            ]
+            is_entry_point = any(re.search(pattern, content) for pattern in entry_point_patterns)
             
             # Check if this is a wrapper script (just imports and calls main() from another module)
             # Wrapper scripts don't need config since they delegate to the actual implementation
-            wrapper_patterns = [
-                r'from\s+[\w\.]+\s+import\s+main',
-                r'import\s+[\w\.]+\s+as\s+.*main',
-                r'sys\.exit\(main\(\)\)',
-                r'Shorthand alias|wrapper script|convenient.*name',
-            ]
-            is_wrapper = any(re.search(pattern, content, re.IGNORECASE) for pattern in wrapper_patterns)
+            # Only check if not already identified as entry point
+            is_wrapper = False
+            if not is_entry_point:
+                wrapper_patterns = [
+                    r'from\s+[\w\.]+\s+import\s+main',
+                    r'import\s+[\w\.]+\s+as\s+.*main',
+                    r'Shorthand alias|wrapper script|convenient.*name',
+                ]
+                # Only check sys.exit(main()) if it also imports main from another module
+                # Entry point scripts also use sys.exit(main()) but create AIToolsService
+                if re.search(r'from\s+[\w\.]+\s+import\s+main', content, re.IGNORECASE):
+                    wrapper_patterns.append(r'sys\.exit\(main\(\)\)')
+                is_wrapper = any(re.search(pattern, content, re.IGNORECASE) for pattern in wrapper_patterns)
             
-            # If it's a wrapper script and doesn't use config functions, skip config import check
-            if is_wrapper:
+            # If it's an entry point script or wrapper script, skip config import check
+            if is_entry_point:
+                analysis['is_entry_point_script'] = True
+                # Entry point scripts are exempt from config import requirement
+                # AIToolsService handles all config internally
+                analysis['imports_config'] = True  # Mark as OK to skip recommendation
+            elif is_wrapper:
                 analysis['is_wrapper_script'] = True
                 # Wrapper scripts are exempt from config import requirement
                 analysis['imports_config'] = True  # Mark as OK to skip recommendation
@@ -262,6 +283,10 @@ class ConfigValidator:
             if analysis.get('is_wrapper_script', False):
                 continue
             
+            # Skip entry point scripts - they don't need config since AIToolsService handles config internally
+            if analysis.get('is_entry_point_script', False):
+                continue
+            
             # Check if tool doesn't import config
             if not analysis['imports_config']:
                 rec = f"Update {tool_name} to import config module"
@@ -395,6 +420,12 @@ class ConfigValidator:
             if analysis.get('is_wrapper_script', False):
                 status = "OK"
                 logger.info(f"   {status} {tool_name} (wrapper script)")
+                continue
+            
+            # Skip entry point scripts in the report - they don't need config (AIToolsService handles it)
+            if analysis.get('is_entry_point_script', False):
+                status = "OK"
+                logger.info(f"   {status} {tool_name} (entry point script)")
                 continue
             
             # Status logic: OK if imports config and no issues, WARN if has issues or doesn't import config (recommendation), FAIL only for critical issues

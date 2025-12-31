@@ -54,10 +54,15 @@ class TestDirectoryTreeGenerator:
         assert generator.project_root == Path(tmp_path).resolve()
         
         # Test that it can also be initialized without project_root (uses config)
-        # This will use the real project root from config, which is acceptable for this test
+        # This will use the real project root from config
         generator2 = DirectoryTreeGenerator()
         assert generator2.project_root.exists()
         assert generator2.docs_dir == "development_docs"
+        # NOTE: If you call generator2.generate_directory_tree() here, it will be automatically
+        # blocked by the safeguard in generate_directory_tree() because:
+        # 1. It would write to the real project (not a test directory)
+        # 2. We're in a test environment (MHM_TESTING=1)
+        # Tests should use tmp_path or demo_project_root to actually test generation.
     
     @pytest.mark.unit
     @patch('subprocess.run')
@@ -287,15 +292,31 @@ class TestMainFunction:
     
     @pytest.mark.integration
     def test_main_integration_demo_project(self, demo_project_root, test_config_path):
-        """Test main function with demo project (integration test)."""
+        """Test main function with demo project (integration test).
+        
+        NOTE: This test uses demo_project_root (a fixture directory) to avoid
+        writing to the real project directory during test coverage runs.
+        The safeguard in generate_directory_tree() allows generation to test directories
+        (like demo_project_root), so this test will actually generate the file if the
+        tree command is available.
+        
+        IMPORTANT: This test patches config.get_project_root() to ensure it uses
+        demo_project_root instead of the real project root. If the patch fails, the
+        safeguard in create_output_file() should still prevent writes to the real project.
+        """
         # This test may fail if tree command is not available on the system
         # That's okay - it's an integration test
         try:
             with patch('sys.argv', ['generate_directory_tree.py']):
-                # Use demo project root
-                with patch('development_tools.config.config.get_project_root', return_value=str(demo_project_root)):
+                # Patch the config module that's actually imported in generate_directory_tree.py
+                # The module imports config as 'from development_tools import config'
+                # So we need to patch it where it's used, not where it's defined
+                # Also patch it in the config module itself as a fallback
+                with patch.object(directory_tree_module.config, 'get_project_root', return_value=str(demo_project_root)), \
+                     patch('development_tools.config.config.get_project_root', return_value=str(demo_project_root)):
                     result = main()
                     # Result may be 0 or 1 depending on whether tree command exists
+                    # Since demo_project_root is a test directory, generation will proceed
                     assert result in [0, 1]
         except Exception:
             # If tree command doesn't exist, that's expected

@@ -8,7 +8,7 @@ from tasks.task_management import get_user_task_stats
 from core.ui_management import (
     load_period_widgets_for_category, collect_period_data_from_widgets
 )
-from core.user_data_handlers import update_user_preferences
+from core.user_data_handlers import get_user_data, update_user_preferences
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_component_logger
 

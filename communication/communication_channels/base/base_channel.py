@@ -27,7 +27,7 @@ class ChannelConfig:
     retry_delay: float = 1.0
     backoff_multiplier: float = 2.0
     timeout: float = 30.0
-    custom_settings: Dict[str, Any] = None
+    custom_settings: Optional[Dict[str, Any]] = None
 
     @handle_errors("post-initializing channel config")
     def __post_init__(self):

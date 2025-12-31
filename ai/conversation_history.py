@@ -17,7 +17,7 @@ class ConversationMessage:
     role: str  # "user" or "assistant"
     content: str
     timestamp: datetime
-    metadata: Dict[str, Any] = None
+    metadata: Optional[Dict[str, Any]] = None
     
     @handle_errors("post-initializing conversation message", default_return=None)
     def __post_init__(self):
@@ -32,8 +32,8 @@ class ConversationSession:
     user_id: str
     start_time: datetime
     end_time: Optional[datetime] = None
-    messages: List[ConversationMessage] = None
-    metadata: Dict[str, Any] = None
+    messages: Optional[List[ConversationMessage]] = None
+    metadata: Optional[Dict[str, Any]] = None
     
     @handle_errors("post-initializing conversation session", default_return=None)
     def __post_init__(self):
@@ -152,10 +152,12 @@ class ConversationHistory:
             )
             
             # Add to session
+            if session.messages is None:
+                session.messages = []
             session.messages.append(message)
             
             # Clean up if too many messages
-            if len(session.messages) > self.max_messages_per_session:
+            if session.messages and len(session.messages) > self.max_messages_per_session:
                 # Keep only the most recent messages
                 session.messages = session.messages[-self.max_messages_per_session:]
             
@@ -191,6 +193,8 @@ class ConversationHistory:
             
             # Add messages from all sessions
             for session in sessions:
+                if session.messages is None:
+                    continue
                 for message in session.messages:
                     msg_dict = {
                         "role": message.role,
@@ -411,6 +415,8 @@ class ConversationHistory:
             assistant_messages = 0
             
             for session in sessions:
+                if session.messages is None:
+                    continue
                 for message in session.messages:
                     if message.role == "user":
                         user_messages += 1

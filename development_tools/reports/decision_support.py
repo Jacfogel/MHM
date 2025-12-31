@@ -18,7 +18,7 @@ if str(project_root) not in sys.path:
 # Handle both relative and absolute imports
 try:
     from . import config
-    from ..functions.analyze_functions import scan_all_functions
+    from ..functions.analyze_functions import scan_all_functions, categorize_functions
 except ImportError:
     import sys
     from pathlib import Path
@@ -27,7 +27,7 @@ except ImportError:
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
     from development_tools import config
-    from development_tools.functions.analyze_functions import scan_all_functions
+    from development_tools.functions.analyze_functions import scan_all_functions, categorize_functions
 
 from core.logger import get_component_logger
 
@@ -47,18 +47,21 @@ HANDLER_KEYWORDS = FUNCTION_DISCOVERY_CONFIG.get('handler_keywords', ['handle', 
 def find_complexity_functions(functions):
     """Find functions by complexity level.
     
+    Uses the same categorization logic as analyze_functions for consistency.
     Excludes test functions from complexity counts.
     Test functions are tracked separately and should not inflate complexity metrics.
     
-    Note: Handler functions are NOT excluded - keyword-based detection is too broad
-    and catches many utility functions that should be included in complexity metrics.
+    Note: This function now uses categorize_functions() from analyze_functions to ensure
+    consistent counting across both tools.
     """
-    # Filter out test functions only - they should be tracked separately, not in complexity counts
-    non_test_functions = [f for f in functions if not f.get('is_test', False)]
+    # Use the same categorization logic as analyze_functions for consistency
+    categories = categorize_functions(functions)
     
-    moderate = [f for f in non_test_functions if f['complexity'] >= MODERATE_COMPLEXITY and f['complexity'] < HIGH_COMPLEXITY]
-    high = [f for f in non_test_functions if f['complexity'] >= HIGH_COMPLEXITY and f['complexity'] < CRITICAL_COMPLEXITY]
-    critical = [f for f in non_test_functions if f['complexity'] >= CRITICAL_COMPLEXITY]
+    # Extract complexity categories (these already exclude tests)
+    moderate = categories.get('moderate_complex', [])
+    high = categories.get('high_complex', [])
+    critical = categories.get('critical_complex', [])
+    
     return moderate, high, critical
 
 def find_undocumented_handlers(functions):
@@ -74,13 +77,20 @@ def find_duplicate_names(functions):
 def print_dashboard(functions):
     # Print dashboard to stdout so it's visible when run directly
     print("=== AI DECISION SUPPORT DASHBOARD ===")
-    moderate_complex, high_complex, critical_complex = find_complexity_functions(functions)
+    
+    # Use the same categorization logic as analyze_functions for consistency
+    categories = categorize_functions(functions)
+    moderate_complex = categories.get('moderate_complex', [])
+    high_complex = categories.get('high_complex', [])
+    critical_complex = categories.get('critical_complex', [])
+    
     undocumented_handlers = find_undocumented_handlers(functions)
     duplicates = find_duplicate_names(functions)
     
     # Output parseable metrics for extraction by operations.py
     # Use print() to ensure output is captured by subprocess (print goes to stdout)
     # These lines must appear in stdout for _extract_decision_insights to parse them
+    # Total functions includes all functions (same as analyze_functions for consistency)
     print(f"Total functions: {len(functions)}")
     print(f"Moderate complexity: {len(moderate_complex)}")
     print(f"High complexity: {len(high_complex)}")

@@ -9,7 +9,7 @@ import os
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 from core.logger import get_component_logger
 
@@ -33,7 +33,7 @@ class FileRotator:
         self.rotation_suffix = "%Y-%m-%d_%H%M%S"  # Timestamp format
         self._rotation_counter = 0  # Counter to ensure unique filenames
     
-    def rotate_file(self, file_path: str, max_versions: int = None) -> str:
+    def rotate_file(self, file_path: Union[str, Path], max_versions: int = None) -> str:
         """
         Rotate a file by backing up existing versions and creating a new one.
         
@@ -131,7 +131,7 @@ class FileRotator:
         return filtered_files
 
 
-def create_output_file(file_path: str, content: str, rotate: bool = True, max_versions: int = None, project_root: Optional[Path] = None) -> Path:
+def create_output_file(file_path: Union[str, Path], content: str, rotate: bool = True, max_versions: int = None, project_root: Optional[Path] = None) -> Path:
     """
     Create an output file with optional rotation.
     
@@ -145,9 +145,241 @@ def create_output_file(file_path: str, content: str, rotate: bool = True, max_ve
     Returns:
         Path object pointing to the created file
     """
-    # Check if this is a status file write during audit (defensive check)
+    # Initialize logger early for debugging
+    from core.logger import get_component_logger
+    logger = get_component_logger("development_tools")
+    
+    # Check if this is a status file or static documentation file write during audit/test (defensive check)
     file_name = Path(file_path).name if isinstance(file_path, (str, Path)) else str(file_path)
+    file_path_str = str(file_path)
+    
+    # Log ALL file writes to see what's happening (temporary debugging)
+    # Check multiple ways to catch DIRECTORY_TREE writes
+    is_directory_tree = (
+        'DIRECTORY_TREE' in file_name.upper() or 
+        'DIRECTORY_TREE' in file_path_str.upper() or
+        file_name.upper() == 'DIRECTORY_TREE.MD' or
+        'directory_tree.md' in file_path_str.lower()
+    )
+    if is_directory_tree:
+        logger.warning(f"[SAFEGUARD-DEBUG] create_output_file called for DIRECTORY_TREE: file_path={file_path}, file_name={file_name}, project_root={project_root}, type(file_path)={type(file_path)}")
     status_files = ['AI_STATUS.md', 'AI_PRIORITIES.md', 'consolidated_report.txt']
+    # Static documentation files that should only be generated via 'docs' command, not during audits
+    static_docs_files = ['DIRECTORY_TREE.md', 'FUNCTION_REGISTRY_DETAIL.md', 'MODULE_DEPENDENCIES_DETAIL.md']
+    
+    # Resolve the full output path to check if we're writing to real project or test directory
+    resolved_path = file_path
+    if isinstance(file_path, str):
+        resolved_path = Path(file_path)
+    elif not isinstance(resolved_path, Path):
+        resolved_path = Path(str(resolved_path))
+    
+    # Resolve relative paths against project_root if provided
+    if project_root is not None:
+        project_root_path = Path(project_root) if not isinstance(project_root, Path) else project_root
+        if not resolved_path.is_absolute():
+            resolved_path = project_root_path / resolved_path
+    try:
+        resolved_path = resolved_path.resolve()
+    except (OSError, RuntimeError):
+        # If resolve fails, use as-is (but ensure it's a Path object)
+        if not isinstance(resolved_path, Path):
+            resolved_path = Path(str(resolved_path))
+    
+    # Check if we're writing to a test directory (should allow) or real project (should protect)
+    def _is_test_directory(path: Path) -> bool:
+        """Check if path is within a test directory."""
+        path_str = str(path).replace('\\', '/')
+        test_indicators = [
+            '/tests/', '/test/', '/tmp/', '/temp/', '/pytest-', '/pytest_of_',
+            'tests/data/', 'tests/fixtures/', 'tests/temp/', 'demo_project'
+        ]
+        return any(indicator in path_str for indicator in test_indicators)
+    
+    # Get the real project root from config to check if we're writing to it
+    is_real_project = False
+    resolved_path_resolved = resolved_path  # Initialize for use in audit check
+    try:
+        from ..config import config
+        real_project_root = Path(config.get_project_root()).resolve()
+        # Ensure resolved_path is a Path object
+        if not isinstance(resolved_path, Path):
+            resolved_path = Path(str(resolved_path))
+        # Check if output is within real project AND not in a test directory
+        # Use resolved_path.parents to check if real_project_root is an ancestor
+        try:
+            resolved_path_resolved = resolved_path.resolve()
+        except (OSError, RuntimeError):
+            resolved_path_resolved = resolved_path
+        
+        is_real_project = (
+            (real_project_root in resolved_path_resolved.parents or 
+             resolved_path_resolved.parent == real_project_root or
+             str(resolved_path_resolved).startswith(str(real_project_root)))
+            and not _is_test_directory(resolved_path_resolved)
+        )
+    except (AttributeError, ImportError, Exception) as e:
+        # If we can't determine real project root, check if it's a test directory
+        # If not a test directory, assume we are writing to real project (safe default)
+        try:
+            if not isinstance(resolved_path, Path):
+                resolved_path = Path(str(resolved_path))
+            resolved_path_resolved = resolved_path  # Ensure it's defined
+            is_real_project = not _is_test_directory(resolved_path)
+        except Exception:
+            # If all checks fail, default to protecting (safe default)
+            is_real_project = True
+    
+    # Check static documentation files (should not be regenerated during audits or tests on real project)
+    # Log at INFO level to ensure visibility (DEBUG may be filtered)
+    # Always log when we're checking static docs (even if condition fails, so we can debug)
+    if file_name in static_docs_files:
+        logger.info(f"[SAFEGUARD] Checking static doc file: {file_name}, is_real_project: {is_real_project}, resolved_path: {resolved_path_resolved}")
+        # ALWAYS check for audit lock files when dealing with static docs, regardless of is_real_project
+        # This is a safety measure - if we're writing a static doc, we should check if audit is in progress
+        # The path detection might fail, but lock file detection is more reliable
+        check_project_root_for_lock = None
+        if project_root is not None:
+            check_project_root_for_lock = Path(project_root) if not isinstance(project_root, Path) else project_root
+        else:
+            try:
+                check_project_root_for_lock = resolved_path_resolved.parent
+                # Walk up to find project root
+                current = check_project_root_for_lock
+                for _ in range(5):
+                    if (current / '.git').exists() or (current / 'pyproject.toml').exists() or (current / 'setup.py').exists():
+                        check_project_root_for_lock = current
+                        break
+                    if current.parent == current:
+                        break
+                    current = current.parent
+            except Exception:
+                pass
+        
+        if check_project_root_for_lock:
+            try:
+                check_project_root_for_lock = Path(check_project_root_for_lock).resolve()
+                # Check for lock files directly
+                lock_files = [
+                    check_project_root_for_lock / '.audit_in_progress.lock',
+                    check_project_root_for_lock / '.coverage_in_progress.lock',
+                    check_project_root_for_lock / '.coverage_dev_tools_in_progress.lock'
+                ]
+                logger.info(f"[SAFEGUARD] Checking lock files in: {check_project_root_for_lock}")
+                for lock_file in lock_files:
+                    exists = lock_file.exists()
+                    logger.info(f"[SAFEGUARD] Lock file {lock_file.name}: {'EXISTS' if exists else 'NOT FOUND'}")
+                    if exists:
+                        logger.warning(f"[SAFEGUARD] BLOCKING {file_name}: Found audit/coverage lock file: {lock_file}")
+                        raise RuntimeError(f"Cannot write {file_name} during audit - static documentation should only be generated via 'docs' command")
+            except RuntimeError:
+                raise
+            except Exception as e:
+                logger.warning(f"[SAFEGUARD] Error checking lock files: {e}")
+    
+    if file_name in static_docs_files and is_real_project:
+        
+        # Check if audit is in progress - try multiple methods to be robust
+        audit_in_progress = False
+        check_project_root = None
+        try:
+            # Determine project root for audit check
+            if project_root is not None:
+                check_project_root = Path(project_root) if not isinstance(project_root, Path) else project_root
+            else:
+                # Try to infer from resolved_path
+                try:
+                    check_project_root = resolved_path_resolved.parent
+                    # Walk up to find project root (look for common markers like .git, pyproject.toml, etc.)
+                    current = check_project_root
+                    for _ in range(5):  # Limit depth to avoid infinite loops
+                        if (current / '.git').exists() or (current / 'pyproject.toml').exists() or (current / 'setup.py').exists():
+                            check_project_root = current
+                            break
+                        if current.parent == current:  # Reached filesystem root
+                            break
+                        current = current.parent
+                except Exception as e:
+                    logger.debug(f"Failed to infer project root from path: {e}")
+                    pass
+            
+            if check_project_root:
+                try:
+                    check_project_root = Path(check_project_root).resolve()
+                    logger.debug(f"Using check_project_root: {check_project_root}")
+                except (OSError, RuntimeError) as e:
+                    logger.debug(f"Failed to resolve check_project_root: {e}")
+                    pass
+                
+                # Method 0: Direct file-based check (most reliable for subprocesses)
+                # Check for lock files directly without imports
+                try:
+                    lock_files = [
+                        check_project_root / '.audit_in_progress.lock',
+                        check_project_root / '.coverage_in_progress.lock',
+                        check_project_root / '.coverage_dev_tools_in_progress.lock'
+                    ]
+                    # Also try config-based paths
+                    try:
+                        from ..config import config
+                        audit_lock_path = config.get_external_value('paths.audit_lock_file', '.audit_in_progress.lock')
+                        coverage_lock_path = config.get_external_value('paths.coverage_lock_file', '.coverage_in_progress.lock')
+                        lock_files.extend([
+                            check_project_root / audit_lock_path,
+                            check_project_root / coverage_lock_path
+                        ])
+                    except (ImportError, AttributeError):
+                        pass
+                    
+                    logger.info(f"[SAFEGUARD] Checking lock files in: {check_project_root}")
+                    for lock_file in lock_files:
+                        exists = lock_file.exists()
+                        logger.info(f"[SAFEGUARD] Lock file {lock_file.name}: {'EXISTS' if exists else 'NOT FOUND'}")
+                        if exists:
+                            audit_in_progress = True
+                            logger.warning(f"[SAFEGUARD] Found audit/coverage lock file: {lock_file}")
+                            break
+                except Exception as e:
+                    logger.warning(f"[SAFEGUARD] File-based lock check failed: {e}", exc_info=True)
+                
+                # Method 1: Try direct import (works if in same process)
+                if not audit_in_progress:
+                    try:
+                        from .service.audit_orchestration import _is_audit_in_progress
+                        audit_in_progress = _is_audit_in_progress(check_project_root)
+                        logger.info(f"[SAFEGUARD] Direct import check: audit_in_progress={audit_in_progress}")
+                    except (ImportError, AttributeError) as e:
+                        logger.info(f"[SAFEGUARD] Direct import failed: {e}, trying sys.modules")
+                        # Method 2: Try checking sys.modules
+                        import sys
+                        if 'development_tools.shared.service.audit_orchestration' in sys.modules:
+                            audit_module = sys.modules['development_tools.shared.service.audit_orchestration']
+                            if hasattr(audit_module, '_is_audit_in_progress'):
+                                audit_in_progress = audit_module._is_audit_in_progress(check_project_root)
+                                logger.info(f"[SAFEGUARD] sys.modules check: audit_in_progress={audit_in_progress}")
+                        else:
+                            logger.info("[SAFEGUARD] audit_orchestration module not in sys.modules")
+            else:
+                logger.warning(f"[SAFEGUARD] No check_project_root determined for {file_name}")
+        except Exception as e:
+            # If check fails, log but don't block (defensive - don't break if we can't check)
+            logger.warning(f"[SAFEGUARD] Failed to check audit status for {file_name}: {e}", exc_info=True)
+            audit_in_progress = False
+        
+        if audit_in_progress:
+            logger.warning(f"[SAFEGUARD] BLOCKING {file_name} generation: Audit in progress. Use 'docs' command to regenerate static documentation.")
+            raise RuntimeError(f"Cannot write {file_name} during audit - static documentation should only be generated via 'docs' command")
+        else:
+            logger.info(f"[SAFEGUARD] Allowing {file_name} generation (audit not in progress)")
+        
+        # Check if we're in a test environment (should not write to real project)
+        if os.environ.get('MHM_TESTING') == '1' or os.environ.get('PYTEST_CURRENT_TEST'):
+            from core.logger import get_component_logger
+            logger = get_component_logger("development_tools")
+            logger.debug(f"Skipping {file_name} generation: Test environment detected and writing to real project. Tests should use temporary directories.")
+            raise RuntimeError(f"Cannot write {file_name} during tests to real project - use temporary directories for testing")
+    
+    # Check status files (existing logic)
     if file_name in status_files:
         # Check if audit is in progress by looking for the global flag in operations module
         try:

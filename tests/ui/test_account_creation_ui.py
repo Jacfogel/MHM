@@ -54,6 +54,54 @@ def qapp():
 class TestAccountCreationDialogRealBehavior:
     """Test account creation dialog with real behavior verification."""
     
+    @pytest.fixture(autouse=True)
+    def stop_channel_monitor_threads(self):
+        """Stop any running channel monitor threads to prevent crashes during UI tests.
+        
+        This fixture prevents Windows access violations that can occur when background
+        threads from CommunicationManager interfere with Qt's event processing.
+        """
+        from unittest.mock import patch
+        
+        # Stop any existing channel monitor threads before test
+        try:
+            from communication.core.channel_orchestrator import CommunicationManager
+            # If singleton exists, stop its channel monitor and other background threads
+            if CommunicationManager._instance is not None:
+                instance = CommunicationManager._instance
+                if hasattr(instance, 'channel_monitor'):
+                    instance.channel_monitor.stop_restart_monitor()
+                # Stop email polling loop if it exists
+                if hasattr(instance, '_email_polling_thread') and instance._email_polling_thread:
+                    if hasattr(instance, 'stop_all__stop_email_polling'):
+                        instance.stop_all__stop_email_polling()
+                # Stop retry manager if it exists
+                if hasattr(instance, 'retry_manager') and hasattr(instance.retry_manager, 'stop_retry_thread'):
+                    instance.retry_manager.stop_retry_thread()
+        except Exception:
+            # Ignore errors - components might not exist
+            pass
+        
+        # Patch all thread starters to prevent new threads from starting
+        with patch('communication.core.channel_monitor.ChannelMonitor.start_restart_monitor'), \
+             patch('communication.core.channel_orchestrator.CommunicationManager.start_all__start_email_polling'), \
+             patch('communication.core.retry_manager.RetryManager.start_retry_thread'):
+            yield
+        
+        # Cleanup after test
+        try:
+            if CommunicationManager._instance is not None:
+                instance = CommunicationManager._instance
+                if hasattr(instance, 'channel_monitor'):
+                    instance.channel_monitor.stop_restart_monitor()
+                if hasattr(instance, '_email_polling_thread') and instance._email_polling_thread:
+                    if hasattr(instance, 'stop_all__stop_email_polling'):
+                        instance.stop_all__stop_email_polling()
+                if hasattr(instance, 'retry_manager') and hasattr(instance.retry_manager, 'stop_retry_thread'):
+                    instance.retry_manager.stop_retry_thread()
+        except Exception:
+            pass
+    
     @pytest.fixture
     def dialog(self, qapp, test_data_dir, mock_config):
         """Create account creation dialog for testing."""

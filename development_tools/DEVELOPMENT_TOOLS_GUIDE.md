@@ -18,6 +18,8 @@ Use this guide when you need:
 
 The machine-readable metadata lives in `development_tools/shared/tool_metadata.py` and is surfaced to AI collaborators through the paired guide.
 
+**Note on Tool Relationships**: These development tools are complementary to other quality tools (Pyright for type checking, ruff/bandit for security/style). They focus on project-specific analysis (error handling patterns, documentation sync, legacy tracking) that no existing tools provide. See [TODO.md](../../TODO.md) for evaluation tasks for complementary tools.
+
 ---
 
 ## 2. Running the Tool Suite

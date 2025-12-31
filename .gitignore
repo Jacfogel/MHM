@@ -133,13 +133,18 @@ scripts/
 * copy
 
 # ============================
-# Test data and backups
+# Backups and test data
 # ============================
+archive/
 tests/data/
 tests/logs/
 tests/ai/results/
 tests/fixtures/development_tools_demo/development_tools
-archive/
+# Exclude generated files in test fixtures (these are created during test runs)
+tests/fixtures/development_tools_demo/development_docs
+tests/fixtures/development_tools_demo/AI_STATUS.md
+tests/fixtures/development_tools_demo/AI_PRIORITIES.md
+tests/fixtures/development_tools_demo/consolidated_report.txt
 
 # ============================
 # Development tools cache and result files

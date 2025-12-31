@@ -5,7 +5,9 @@ import shutil
 import tempfile
 import importlib.util
 from pathlib import Path
+from datetime import datetime
 import pytest
+import logging
 
 # Override core-dependent fixtures from parent conftest.py with no-op versions
 # These fixtures are not needed for development tools tests which don't use core modules
@@ -69,6 +71,53 @@ def cleanup_communication_threads():
 def cleanup_communication_manager():
     """No-op override: development tools tests don't need CommunicationManager cleanup."""
     yield
+
+# Track test start times for duration calculation (for debugging)
+_dev_tools_test_start_times = {}
+
+def pytest_runtest_setup(item):
+    """Log when a development_tools test starts with timestamp (DEBUG level only)."""
+    test_id = item.nodeid
+    start_time = datetime.now()
+    _dev_tools_test_start_times[test_id] = start_time
+    timestamp = start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]  # Include milliseconds
+    # Use DEBUG level to reduce log noise - only visible with TEST_VERBOSE_LOGS=2
+    try:
+        from tests.conftest import test_logger
+        test_logger.debug(f"[DEV-TOOLS-TEST-START] {timestamp} - {test_id}")
+    except ImportError:
+        # Fallback if parent conftest logger not available
+        logger = logging.getLogger("mhm_tests")
+        logger.debug(f"[DEV-TOOLS-TEST-START] {timestamp} - {test_id}")
+
+def pytest_runtest_teardown(item, nextitem):
+    """Log when a development_tools test ends with timestamp and duration (DEBUG level only)."""
+    test_id = item.nodeid
+    end_time = datetime.now()
+    timestamp = end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]  # Include milliseconds
+    
+    # Calculate duration if we have start time
+    duration = None
+    if test_id in _dev_tools_test_start_times:
+        start_time = _dev_tools_test_start_times[test_id]
+        duration_seconds = (end_time - start_time).total_seconds()
+        duration = f"{duration_seconds:.3f}s"
+        del _dev_tools_test_start_times[test_id]
+    
+    # Use DEBUG level to reduce log noise - only visible with TEST_VERBOSE_LOGS=2
+    try:
+        from tests.conftest import test_logger
+        if duration:
+            test_logger.debug(f"[DEV-TOOLS-TEST-END] {timestamp} - {test_id} (duration: {duration})")
+        else:
+            test_logger.debug(f"[DEV-TOOLS-TEST-END] {timestamp} - {test_id}")
+    except ImportError:
+        # Fallback if parent conftest logger not available
+        logger = logging.getLogger("mhm_tests")
+        if duration:
+            logger.debug(f"[DEV-TOOLS-TEST-END] {timestamp} - {test_id} (duration: {duration})")
+        else:
+            logger.debug(f"[DEV-TOOLS-TEST-END] {timestamp} - {test_id}")
 
 def pytest_sessionfinish(session, exitstatus):
     """Print verification summary after development tools audit tier tests complete."""

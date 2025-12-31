@@ -3412,25 +3412,58 @@ def pytest_sessionfinish(session, exitstatus):
     # 2. Rotation at session start (before logging begins) is safer
     # 3. Consolidation happens here, but rotation should wait until next session start
 
+# Track test start times for duration calculation (for debugging)
+_test_start_times = {}
+
+def pytest_runtest_setup(item):
+    """Log when a test starts with timestamp (DEBUG level only)."""
+    test_id = item.nodeid
+    start_time = datetime.now()
+    _test_start_times[test_id] = start_time
+    timestamp = start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]  # Include milliseconds
+    # Use DEBUG level to reduce log noise - only visible with TEST_VERBOSE_LOGS=2
+    test_logger.debug(f"[TEST-START] {timestamp} - {test_id}")
+
+def pytest_runtest_teardown(item, nextitem):
+    """Log when a test ends with timestamp and duration (DEBUG level only)."""
+    test_id = item.nodeid
+    end_time = datetime.now()
+    timestamp = end_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]  # Include milliseconds
+    
+    # Calculate duration if we have start time
+    duration = None
+    if test_id in _test_start_times:
+        start_time = _test_start_times[test_id]
+        duration_seconds = (end_time - start_time).total_seconds()
+        duration = f"{duration_seconds:.3f}s"
+        del _test_start_times[test_id]
+    
+    # Use DEBUG level to reduce log noise - only visible with TEST_VERBOSE_LOGS=2
+    if duration:
+        test_logger.debug(f"[TEST-END] {timestamp} - {test_id} (duration: {duration})")
+    else:
+        test_logger.debug(f"[TEST-END] {timestamp} - {test_id}")
+
 def pytest_runtest_logreport(report):
-    """Log individual test results."""
+    """Log individual test results with timestamps."""
     if report.when == 'call':
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]  # Include milliseconds
         # Only log PASSED tests when verbose mode is enabled (to reduce log noise)
         verbose_logs = os.getenv("TEST_VERBOSE_LOGS", "0")
         if report.passed:
             # Only log passed tests at DEBUG level (level 2) to avoid I/O overhead
             # Level 1 and 0: don't log passed tests - focus on failures, warnings, and skips
             if verbose_logs == "2":
-                test_logger.debug(f"PASSED: {report.nodeid}")
+                test_logger.debug(f"[TEST-RESULT] {timestamp} - PASSED: {report.nodeid}")
             # Don't log passed tests at other levels - they're not interesting
         elif report.failed:
             # Always log failures - these are important
-            test_logger.error(f"FAILED: {report.nodeid}")
+            test_logger.error(f"[TEST-RESULT] {timestamp} - FAILED: {report.nodeid}")
             if report.longrepr:
                 test_logger.error(f"Error details: {report.longrepr}")
         elif report.skipped:
             # Always log skips - these might indicate issues
-            test_logger.warning(f"SKIPPED: {report.nodeid}")
+            test_logger.warning(f"[TEST-RESULT] {timestamp} - SKIPPED: {report.nodeid}")
 
 @pytest.fixture(scope="session", autouse=True)
 def cleanup_communication_manager():

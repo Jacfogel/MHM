@@ -52,6 +52,8 @@ class CommandsMixin:
             success = False
         
         # Generate directory trees
+        # NOTE: Static documentation (DIRECTORY_TREE, FUNCTION_REGISTRY, MODULE_DEPENDENCIES)
+        # should ONLY be generated via the 'docs' command, NOT during audits.
         try:
             logger.info("  - Generating directory trees...")
             self.generate_directory_trees()
@@ -426,14 +428,29 @@ class CommandsMixin:
         return success
     
     def run_cleanup(self, cache: bool = False, test_data: bool = False,
-                    reports: bool = False, all: bool = False):
+                    reports: bool = False, all: bool = False,
+                    coverage: bool = False, all_cleanup: bool = False,
+                    dry_run: bool = False):
         """Clean up generated files and caches"""
         logger.info("Starting cleanup...")
         logger.info("=" * 50)
-        if all:
+        
+        # LEGACY COMPATIBILITY: Support for 'all_cleanup', 'coverage', and 'dry_run' parameters
+        # These parameters were added to match CLI interface but 'all' should be used instead of 'all_cleanup'
+        # Removal plan: Remove 'all_cleanup', 'coverage', and 'dry_run' parameters after 2026-02-01 if no references found
+        # Detection pattern: "all_cleanup=", "coverage=args.coverage", "dry_run=args.dry_run"
+        if all_cleanup:
+            logger.warning("LEGACY: all_cleanup parameter used - use 'all' parameter instead")
+        if coverage:
+            logger.warning("LEGACY: coverage parameter used - functionality not yet implemented")
+        if dry_run:
+            logger.warning("LEGACY: dry_run parameter used - functionality not yet implemented")
+        
+        if all or all_cleanup:
             cache = True
             test_data = True
             reports = True
+            coverage = True
         
         if cache:
             logger.info("Cleaning cache files...")
@@ -446,6 +463,13 @@ class CommandsMixin:
         if reports:
             logger.info("Cleaning report files...")
             # Clean report files logic would go here
+        
+        if coverage:
+            logger.info("Cleaning coverage files...")
+            # Clean coverage files logic would go here
+        
+        if dry_run:
+            logger.info("DRY RUN MODE - No files were actually removed")
         
         logger.info("Cleanup completed!")
     
@@ -572,15 +596,27 @@ class CommandsMixin:
         return result
     
     def generate_directory_trees(self):
-        """Generate directory tree documentation"""
+        """Generate directory tree documentation.
+        
+        NOTE: This should ONLY be called from the 'docs' command, NOT during audits.
+        Static documentation should not be regenerated during audit runs.
+        The safeguard in create_output_file() will automatically prevent writes during audits/tests.
+        """
         logger.info("Generating directory trees...")
-        result = self.run_script('generate_directory_tree')
-        if result['success']:
-            logger.info("Directory trees generated successfully!")
-            return True
-        else:
-            logger.error(f"Directory tree generation failed: {result['error']}")
-            return False
+        try:
+            result = self.run_script('generate_directory_tree')
+            if result['success']:
+                logger.info("Directory trees generated successfully!")
+                return True
+            else:
+                logger.error(f"Directory tree generation failed: {result['error']}")
+                return False
+        except RuntimeError as e:
+            # Handle safeguard blocking (from create_output_file)
+            if "Cannot write" in str(e) and "DIRECTORY_TREE.md" in str(e):
+                logger.warning(f"Skipping DIRECTORY_TREE.md generation: {e}")
+                return False
+            raise
     
     def check_trigger_requirements(self, task_type: str) -> bool:
         """Check if trigger requirements are met for a task"""

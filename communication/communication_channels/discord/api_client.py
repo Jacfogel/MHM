@@ -21,8 +21,8 @@ class MessageData:
     user_id: str
     message_id: str
     timestamp: float
-    attachments: List[str] = None
-    embeds: List[Dict[str, Any]] = None
+    attachments: Optional[List[str]] = None
+    embeds: Optional[List[Dict[str, Any]]] = None
 
 @dataclass
 class SendMessageOptions:

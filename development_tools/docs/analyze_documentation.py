@@ -78,6 +78,8 @@ def extract_sections(content: str, heading_patterns: Optional[List[str]] = None)
     sections: Dict[str, str] = {}
     current = 'Introduction'
     buffer: List[str] = []
+    # Ensure heading_patterns is not None (should be guaranteed by line 76, but type checker needs help)
+    assert heading_patterns is not None, "heading_patterns should be set by default"
     for line in content.splitlines():
         matched = False
         for pattern in heading_patterns:

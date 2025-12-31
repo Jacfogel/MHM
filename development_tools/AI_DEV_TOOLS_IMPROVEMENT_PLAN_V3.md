@@ -85,44 +85,29 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 
 ### Stage 2: Tool Enhancements & Consistency
 
-#### 2.1 Create Unused Imports Cleanup Module
+#### 2.1 Fix Config Validation Issues
+**Status**: COMPLETE ✅  
+**Effort**: Small  
+**Issue**: 4 config validation recommendations identified (run_development_tools.py and run_dev_tools.py don't import config module).
+
+**Implementation Complete (2025-12-31)**:
+- ✅ **Investigation**: Confirmed that `AIToolsService` handles all config internally (imports config in `core.py` line 16)
+- ✅ **Decision**: Entry point scripts that create `AIToolsService` instances don't need config imports
+- ✅ **Implementation**: Updated validation logic to detect entry point scripts (files that create `AIToolsService` instances)
+- ✅ **Updated**: `_analyze_tool_config_usage()` to mark entry point scripts as exempt from config import requirement
+- ✅ **Updated**: Recommendation generation to skip entry point scripts
+- ✅ **Updated**: Logging/reporting to show entry point scripts as "OK (entry point script)"
+- ✅ **Additional Fix**: Fixed Qt crash in `test_account_creation_real_behavior` by adding `stop_channel_monitor_threads` fixture
+- ✅ **Test Updates**: Updated `test_decision_support.py` tests to include required fields for `categorize_functions()`
+
+**Files**: `development_tools/config/analyze_config.py` (validation logic updated), `tests/ui/test_account_creation_ui.py` (crash fix), `tests/development_tools/test_decision_support.py` (test updates)
+
+#### 2.2 Investigate "Symbol: unused-import" bullet points
 **Status**: PENDING  
-**Issue**: Need cleanup functionality with categorization and cleanup recommendations.
+**Effort**: Small  
+**Description**: Check if these serve a purpose or are redundant noise in `UNUSED_IMPORTS_REPORT.md`.
 
-**Tasks**:
-- [ ] Create categorization logic (missing error handling, missing logging, type hints, utilities, safe to remove)
-- [ ] Add category-based reporting to unused imports analysis
-- [ ] Create `imports/fix_unused_imports.py` for cleanup operations
-- [ ] Add cleanup recommendation generation to unused imports report
-- [ ] Consider `--categorize` flag for unused imports checker
-
-**Files**: `development_tools/imports/analyze_unused_imports.py`, `development_tools/imports/fix_unused_imports.py` (to be created)
-
-#### 2.2 Enhance Documentation Overlap Analysis
-**Status**: PENDING  
-**Issue**: Currently reports section overlaps but may not provide actionable insights. Specific consolidation opportunities: Development Workflow (27 files), Testing (3 files).
-
-**Tasks**:
-- [ ] Review identified consolidation opportunities
-- [ ] Create consolidation plan for identified file groups
-- [ ] Enhance to provide actionable insights beyond section overlaps
-- [ ] Improve detection of actual issues vs. false positives
-
-**Files**: `development_tools/docs/analyze_documentation.py`
-
-#### 2.3 Enhance AI Work Validation
-**Status**: PENDING  
-**Issue**: Currently reports "GOOD - keep current standards" but may not provide actionable insights.
-
-**Tasks**:
-- [ ] Investigate what AI Work Validation currently looks for
-- [ ] Enhance to provide actionable insights beyond status messages
-- [ ] Add specific recommendations for maintaining code quality standards
-- [ ] Ensure it doesn't duplicate logic from domain-specific tools
-
-**Files**: `development_tools/ai_work/analyze_ai_work.py`
-
-#### 2.4 Enhance System Health Analysis
+#### 2.3 Enhance System Health Analysis
 **Status**: COMPLETE ✅  
 **Issue**: Currently reports "OK" but may not provide actionable insights.
 
@@ -262,23 +247,38 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 - [ ] Document naming convention: `generate_*` should create artifacts (typically `.md` files), not modify code
 
 **Files**: `development_tools/error_handling/generate_error_handling_recommendations.py`, `development_tools/error_handling/analyze_error_handling.py`, `development_tools/functions/generate_function_docstrings.py`
+
+#### 2.9 Investigate Caching to Accelerate Test Coverage Generation
 **Status**: PENDING  
 **Priority**: MEDIUM  
-**Issue**: 
-- `generate_test_coverage.py` orchestrates pytest execution, while `analyze_test_coverage.py` provides pure analysis. Naming may be confusing.
-- `generate_test_coverage.py` and `generate_test_coverage_reports.py` are too similarly named and could cause confusion.
+**Issue**: Test coverage generation can be time-consuming, especially for large codebases. Caching could potentially accelerate coverage collection by reusing coverage data when source files haven't changed.
 
 **Tasks**:
-- [ ] Review current architecture and usage patterns
-- [ ] Evaluate naming similarity between `generate_test_coverage.py` and `generate_test_coverage_reports.py`
-- [ ] Consider renaming options:
-  - `generate_test_coverage.py` → `run_test_coverage.py` (emphasizes execution)
-  - `generate_test_coverage_reports.py` → `generate_test_coverage_report.py` (singular, matches other report generators)
-  - Alternative: Consolidate report generation into `analyze_test_coverage.py`
-- [ ] Evaluate pros/cons of renaming vs. consolidation
-- [ ] Make recommendation and implement if approved
+- [ ] Investigate current test coverage generation workflow in `run_test_coverage.py`
+- [ ] Identify opportunities for caching:
+  - [ ] Cache coverage data per file/module based on file hash or modification time
+  - [ ] Cache test execution results when source files haven't changed
+  - [ ] Cache coverage analysis results (from `analyze_test_coverage.py`)
+- [ ] Evaluate caching strategies:
+  - [ ] File-level caching (per-file coverage data)
+  - [ ] Module-level caching (per-module coverage aggregation)
+  - [ ] Test-level caching (per-test coverage data)
+- [ ] Consider cache invalidation strategies:
+  - [ ] File modification time checks
+  - [ ] Source file hash comparison
+  - [ ] Dependency tracking (if imports change, invalidate dependent modules)
+- [ ] Assess performance benefits vs. complexity:
+  - [ ] Measure current coverage generation time
+  - [ ] Estimate potential time savings with caching
+  - [ ] Evaluate cache storage requirements
+- [ ] Design cache storage mechanism:
+  - [ ] Determine cache location (e.g., `development_tools/tests/.coverage_cache/`)
+  - [ ] Choose cache format (JSON, pickle, SQLite, etc.)
+  - [ ] Implement cache versioning to handle tool changes
+- [ ] Implement proof-of-concept if benefits are significant
+- [ ] Document caching strategy and usage
 
-**Files**: `development_tools/tests/generate_test_coverage.py`, `development_tools/tests/analyze_test_coverage.py`, `development_tools/tests/generate_test_coverage_reports.py`
+**Files**: `development_tools/tests/run_test_coverage.py`, `development_tools/tests/analyze_test_coverage.py`, `development_tools/tests/generate_test_coverage_report.py`
 
 ---
 
@@ -314,18 +314,19 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 **Files**: `development_tools/shared/service/audit_orchestration.py` (lines 137-138, 168, 175, 182, 301-314)
 
 #### 3.3 Standardize Function Counting and Complexity Metrics
-**Status**: PENDING  
+**Status**: COMPLETE ✅  
 **Issue**: Different tools report different numbers (analyze_functions: 153/138/128 vs decision_support: 352/376/321).
 
-**Tasks**:
-- [ ] Compare function counting methods in `analyze_functions` vs `decision_support`
-- [ ] Compare complexity calculation methods
-- [ ] Determine which method is more accurate/appropriate
-- [ ] Standardize all tools to use the chosen method
-- [ ] Update `_get_canonical_metrics()` to use single source of truth
-- [ ] Document the standardized approach
+**Implementation Complete (2025-12-31)**:
+- ✅ **Investigation**: Both tools use `scan_all_functions()` from `analyze_functions`, but used different categorization logic
+- ✅ **Root Cause**: `decision_support` had its own `find_complexity_functions()` that filtered functions differently than `analyze_functions`'s `categorize_functions()`
+- ✅ **Standardization**: Updated `decision_support` to use `categorize_functions()` from `analyze_functions` for consistency
+- ✅ **Updated**: `print_dashboard()` in `decision_support.py` now uses `categorize_functions()` directly
+- ✅ **Updated**: `find_complexity_functions()` now uses `categorize_functions()` internally for consistency
+- ✅ **Updated**: `_get_canonical_metrics()` comments to clarify that `analyze_functions` is the single source of truth
+- ✅ **Result**: Both tools now use the same categorization logic, ensuring consistent metrics
 
-**Files**: `development_tools/functions/analyze_functions.py`, `development_tools/reports/decision_support.py`
+**Files**: `development_tools/reports/decision_support.py`, `development_tools/shared/service/data_loading.py`
 
 #### 3.4 Standardize Error Handling Coverage Metrics
 **Status**: PENDING (needs verification with non-zero missing functions)  
@@ -353,20 +354,7 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 
 ### Stage 4: Investigation & Cleanup Tasks
 
-#### 4.1 Automate TODO Sync Cleanup
-**Status**: PENDING  
-**Issue**: 3 completed entries in TODO.md need review. Functionality exists but could be improved.
-
-**Tasks**:
-- [ ] Review current TODO sync implementation
-- [ ] Enhance detection to better identify completed entries
-- [ ] Add automated cleanup option (with dry-run mode)
-- [ ] Improve reporting of what needs manual review vs. auto-cleaned
-- [ ] Document TODO sync workflow and best practices
-
-**Files**: `development_tools/docs/fix_version_sync.py`
-
-#### 4.2 Investigate Changelog Trim Tooling
+#### 4.1 Investigate Changelog Trim Tooling
 **Status**: PENDING  
 **Priority**: HIGH  
 **Issue**: Changelog check reports "Tooling unavailable (skipping trim)" during audit runs.
@@ -380,7 +368,7 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 
 **Files**: `development_tools/shared/service/audit_orchestration.py`, `development_tools/docs/fix_version_sync.py`
 
-#### 4.3 Investigate Validation Warnings
+#### 4.2 Investigate Validation Warnings
 **Status**: PENDING  
 **Issue**: Several validation warnings need investigation:
 - "Only 60/82 manual enhancements found in written file"
@@ -394,7 +382,7 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 
 **Files**: Validation and enhancement detection logic (likely in `analyze_ai_work.py` or report generation)
 
-#### 4.4 Verify Critical Issues File Creation
+#### 4.3 Verify Critical Issues File Creation
 **Status**: PENDING (needs decision on resolution approach)  
 **Issue**: Console claims "Critical issues saved to: development_tools/critical_issues.txt" but need to verify.
 
@@ -415,7 +403,7 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 
 **Files**: `development_tools/shared/service/report_generation.py` (lines 4041-4045, 4101-4116), `development_tools/shared/service/commands.py` (line 632)
 
-#### 4.5 Investigate Version Sync Functionality
+#### 4.4 Investigate Version Sync Functionality
 **Status**: PENDING  
 **Issue**: Need to understand what version_sync does and what files it covers.
 
@@ -426,7 +414,7 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 
 **Files**: `development_tools/docs/fix_version_sync.py`
 
-#### 4.6 Investigate development_tools/scripts/ Directory and tool_timings.json Location
+#### 4.5 Investigate development_tools/scripts/ Directory and tool_timings.json Location
 **Status**: PENDING  
 **Priority**: MEDIUM  
 **Issue**: 
@@ -448,7 +436,7 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 
 **Files**: `development_tools/scripts/measure_tool_timings.py`, `development_tools/scripts/verify_tool_storage.py`, `development_tools/shared/service/audit_orchestration.py` (line 991: `_save_timing_data()`)
 
-#### 4.7 Investigate System Signals Purpose and Redundant Documentation Sync Statement
+#### 4.6 Investigate System Signals Purpose and Redundant Documentation Sync Statement
 **Status**: PENDING  
 **Priority**: MEDIUM  
 **Issue**: 
@@ -470,7 +458,7 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 
 **Files**: `development_tools/reports/analyze_system_signals.py`, `development_tools/shared/service/report_generation.py` (System Signals sections), `development_tools/consolidated_report.txt`
 
-#### 4.8 Add Dependency Patterns to AI_PRIORITIES.md and AI_STATUS.md
+#### 4.7 Add Dependency Patterns to AI_PRIORITIES.md and AI_STATUS.md
 **Status**: PENDING  
 **Priority**: MEDIUM  
 **Issue**: Dependency Patterns section exists in `consolidated_report.txt` (lines 90-92) but is missing from `AI_PRIORITIES.md` and `AI_STATUS.md`.
@@ -487,33 +475,36 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 
 **Files**: `development_tools/shared/service/report_generation.py`, `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/consolidated_report.txt`
 
-#### 4.9 Investigate DIRECTORY_TREE.md Regeneration During Audits
-**Status**: PENDING  
+#### 4.8 Investigate DIRECTORY_TREE.md Regeneration During Audits
+**Status**: RESOLVED (2025-12-31)  
 **Priority**: MEDIUM  
 **Issue**: `DIRECTORY_TREE.md` appears to have been regenerated during the last full audit, but it should only be generated by the `docs` command, not during audits.
 
-**Tasks**:
-- [ ] Review audit orchestration to identify where `generate_directory_tree` is being called
-- [ ] Check if `generate_directory_tree` is incorrectly included in audit tiers
-- [ ] Verify `docs` command properly generates `DIRECTORY_TREE.md`
-- [ ] Remove `generate_directory_tree` from audit workflow if present
-- [ ] Ensure `DIRECTORY_TREE.md` is only generated via `python development_tools/run_development_tools.py docs`
-- [ ] Document that static documentation (DIRECTORY_TREE, FUNCTION_REGISTRY, MODULE_DEPENDENCIES) should not be regenerated during audits
+**Root Cause**: Using test timestamp logging, identified that `test_main_integration_demo_project` in `tests/development_tools/test_generate_directory_tree.py` was regenerating `DIRECTORY_TREE.md` at 07:24:23 during test runs. The test was attempting to patch `development_tools.config.config.get_project_root` to return `demo_project_root`, but `generate_directory_tree.py` imports config as `from development_tools import config`, so the patch target was incorrect. This caused the test to use the real project root instead of the test fixture directory, leading to file regeneration in the real project.
 
-**Files**: `development_tools/shared/service/audit_orchestration.py`, `development_tools/shared/service/commands.py` (line 535: `generate_directory_trees()`), `development_tools/docs/generate_directory_tree.py`
+**Resolution**: Fixed test isolation by correcting the config patch target:
+1. Updated `test_main_integration_demo_project` to patch `directory_tree_module.config.get_project_root` (where config is actually imported in the module) instead of `development_tools.config.config.get_project_root`
+2. Added fallback patch to `development_tools.config.config.get_project_root` for additional safety
+3. Improved safeguard logging in `development_tools/shared/file_rotation.py` with more aggressive DIRECTORY_TREE detection (case-insensitive, multiple pattern checks)
+4. Added test timestamp logging hooks (at DEBUG level) to help identify test execution timing issues in the future
 
-#### 4.10 Investigate and Fix Missing Error Handling Information in AI_STATUS
-**Status**: PENDING  
+The test now properly uses `demo_project_root` fixture and will not write to the real project directory. Existing safeguards in `create_output_file()` provide additional protection if test isolation fails.
+
+**Files**: `tests/development_tools/test_generate_directory_tree.py`, `development_tools/shared/file_rotation.py`, `tests/conftest.py`, `tests/development_tools/conftest.py`
+
+#### 4.9 Investigate and Fix Missing Error Handling Information in AI_STATUS
+**Status**: RESOLVED (2025-12-31)  
 **Priority**: MEDIUM  
 **Issue**: AI_STATUS.md shows only the header `## Error Handling` but no content below it. Error handling information should be displayed but appears to be missing.
 
-**Tasks**:
-- [ ] Review `report_generation.py` to identify where error handling information is generated for AI_STATUS.md
-- [ ] Check if error handling data is being collected but not written to AI_STATUS.md
-- [ ] Verify error handling data exists in `analysis_detailed_results.json`
-- [ ] Compare error handling section in `consolidated_report.txt` vs `AI_STATUS.md` to identify discrepancy
-- [ ] Fix report generation logic to properly include error handling information in AI_STATUS.md
-- [ ] Verify error handling section displays correctly after fix
+**Root Cause**: The report generation logic in `report_generation.py` line 780 had a condition `if missing_error_handlers is not None and missing_error_handlers > 0:` which prevented any content from being displayed when `missing_error_handlers` was 0 (perfect coverage). Additionally, `decorated` was being read from the wrong location (should use `get_error_field()` helper to access from `details` in standard format).
+
+**Resolution**: Fixed `development_tools/shared/service/report_generation.py` lines 780-792 to:
+- Always show missing error handling count (even when 0)
+- Use `get_error_field()` helper to correctly access `functions_with_decorators` from standard format data
+- Display error handling coverage and functions with error handling when available
+
+The Error Handling section now displays complete information matching consolidated_report.txt.
 
 **Files**: `development_tools/shared/service/report_generation.py`, `development_tools/AI_STATUS.md`, `development_tools/consolidated_report.txt`, `development_tools/reports/analysis_detailed_results.json`
 
@@ -537,7 +528,7 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 
 **Files**: `development_tools/tests/run_test_coverage.py`, `development_tools/tests/analyze_test_coverage.py`, `development_tools/shared/service/report_generation.py`, `development_tools/AI_STATUS.md`, `development_docs/TEST_COVERAGE_REPORT.md`
 
-#### 4.12 Investigate htmlcov/ Directory Recreation
+#### 4.11 Investigate htmlcov/ Directory Recreation
 **Status**: PENDING  
 **Priority**: MEDIUM  
 **Issue**: `htmlcov/` directory keeps being recreated as an empty top-level directory. This suggests coverage HTML report generation is being triggered but not completing, or cleanup is removing files but not the directory.
@@ -570,7 +561,7 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 
 **Files**: `pytest.ini`, `tests/conftest.py`, `development_tools/tests/run_test_coverage.py`, `.gitignore`, `.coverage`, `development_tools/tests/.coverage`
 
-#### 4.14 Investigate Coverage File Creation in development_tools/tests/
+#### 4.13 Investigate Coverage File Creation in development_tools/tests/
 **Status**: PENDING  
 **Priority**: MEDIUM  
 **Issue**: Coverage data files (`.coverage_dev_tools.*`, `.coverage_parallel.*`) are being created in `development_tools/tests/` instead of in `tests/` like before. This suggests a change in working directory or coverage configuration.
@@ -588,6 +579,53 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 
 **Files**: `development_tools/tests/run_test_coverage.py`, `pytest.ini`, `tests/conftest.py`, `.gitignore`, `development_tools/tests/.coverage*`
 
+#### 4.14 Investigate and Verify Pyright "Duplicate Declaration" Fixes
+**Status**: PENDING  
+**Priority**: HIGH  
+**Issue**: Pyright reports "duplicate declaration" errors for several functions/variables. Initial fixes were attempted but reverted - full investigation needed to determine if these are true duplicates or serve different purposes.
+
+**Current State (2025-12-31)**:
+1. **`analyze_module_dependencies.py`**: TWO `generate_dependency_report()` functions exist:
+   - First function (line 124): Uses `logger.info()`, simpler implementation, focuses on logging
+   - Second function (line 384): Uses `print()`, includes `enhancement_status` tracking, more comprehensive
+   - **User feedback**: Should use loggers not print, needs proper investigation
+2. **`report_generation.py`**: Renamed second `complexity_bullets` variable to `high_complexity_bullets` (line 2256). These are in different code paths (`if critical_complex` vs `elif high_complex`), so NOT true duplicates - rename was correct.
+3. **`run_test_coverage.py`**: Renamed second `FakeResult` class to `FakeResultException` (line 1353). These are in different exception handlers (`TimeoutExpired` vs general `Exception`), so NOT true duplicates - rename was correct.
+4. **`tool_wrappers.py`**: Multiple duplicate method declarations exist:
+   - First set (lines 460-842): More complete error handling (stderr logging, `script_succeeded` checks)
+   - Second set (lines 1037+): Simpler implementations, less error handling
+   - **User feedback**: Edit was undone, full investigation appropriate
+
+**Investigation Tasks**:
+- [ ] **Investigate `generate_dependency_report()` duplicates**: 
+  - [ ] Compare both implementations (line 124 vs line 384) to identify differences
+  - [ ] Determine if both are needed or if one should be removed/merged
+  - [ ] If keeping one: Update to use loggers instead of print() as per user preference
+  - [ ] If merging: Combine best features (logger-based output + enhancement_status tracking)
+  - [ ] Check git history to understand why both exist
+  - [ ] Document decision and rationale
+- [ ] **Verify `complexity_bullets` rename**: Confirmed separate code paths - no further action needed.
+- [ ] **Verify `FakeResult` rename**: Confirmed separate exception handlers - no further action needed.
+- [ ] **Investigate `tool_wrappers.py` duplicate methods**: 
+  - [ ] Compare all duplicate method pairs:
+    - [ ] `run_analyze_error_handling()` (line 460 vs 1037) - first has stderr logging and `script_succeeded` checks
+    - [ ] `run_analyze_documentation_sync()` (line 526 vs 1136)
+    - [ ] `run_analyze_path_drift()` (line 601 vs 1286)
+    - [ ] `run_generate_legacy_reference_report()` (line 702 vs 1502)
+    - [ ] `run_analyze_legacy_references()` (line 842 vs 1674)
+  - [ ] Determine if duplicates are truly identical or serve different purposes
+  - [ ] If identical: Remove second set completely
+  - [ ] If different: Merge best features or document why both are needed
+  - [ ] Clean up any orphaned code
+
+**Files**: 
+- `development_tools/imports/analyze_module_dependencies.py`
+- `development_tools/shared/service/report_generation.py`
+- `development_tools/tests/run_test_coverage.py`
+- `development_tools/shared/service/tool_wrappers.py`
+
+**Risk**: Medium - Duplicate code may indicate missing functionality or code that needs consolidation.
+
 ---
 
 ### Stage 5: Future Enhancements (Low Priority)
@@ -602,32 +640,79 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 **Effort**: Medium  
 **Description**: Consolidated report should contain at least as much detail as `AI_STATUS.md`, ideally more.
 
-#### 5.3 Fix Config Validation Issues
-**Status**: PENDING (needs decision on resolution approach)  
-**Effort**: Small  
-**Issue**: 4 config validation recommendations identified (run_development_tools.py and run_dev_tools.py don't import config module).
-
-**Verification (2025-12-26)**:
-- ✅ **CONFIRMED**: 
-  - `run_development_tools.py`: No config import found
-  - `run_dev_tools.py`: Line 19 explicitly says "Note: config import removed as it's not used in this wrapper script"
-- ⚠️ **Note**: `run_dev_tools.py` is a wrapper that imports from `run_development_tools.py`, so may not need config import itself
-- ⚠️ **Question**: Do these files actually need to import config, or is the validation rule too strict?
-
-**Decision Needed**:
-- [ ] Determine if these files actually need config import (or if validation rule should be updated)
-- [ ] If files need config: Add imports to both files
-- [ ] If validation rule is wrong: Update validation to exclude entry point scripts or wrapper scripts
-- [ ] Consider: Should entry point scripts be excluded from config validation requirements?
-
-**Files**: `development_tools/run_development_tools.py` (no config import), `development_tools/run_dev_tools.py` (line 19: config import removed), `development_tools/config/analyze_config.py` (validation logic)
-
-#### 5.4 Investigate "Symbol: unused-import" bullet points
+#### 5.3 Create Unused Imports Cleanup Module
 **Status**: PENDING  
-**Effort**: Small  
-**Description**: Check if these serve a purpose or are redundant noise in `UNUSED_IMPORTS_REPORT.md`.
+**Issue**: Need cleanup functionality with categorization and cleanup recommendations.
 
-#### 5.5 Create New Tools to Fill Identified Gaps
+**Tasks**:
+- [ ] Create categorization logic (missing error handling, missing logging, type hints, utilities, safe to remove)
+- [ ] Add category-based reporting to unused imports analysis
+- [ ] Create `imports/fix_unused_imports.py` for cleanup operations
+- [ ] Add cleanup recommendation generation to unused imports report
+- [ ] Consider `--categorize` flag for unused imports checker
+
+**Files**: `development_tools/imports/analyze_unused_imports.py`, `development_tools/imports/fix_unused_imports.py` (to be created)
+
+#### 5.4 Enhance Documentation Overlap Analysis
+**Status**: PENDING  
+**Issue**: Currently reports section overlaps but may not provide actionable insights. Specific consolidation opportunities: Development Workflow (27 files), Testing (3 files).
+
+**Tasks**:
+- [ ] Review identified consolidation opportunities
+- [ ] Create consolidation plan for identified file groups
+- [ ] Enhance to provide actionable insights beyond section overlaps
+- [ ] Improve detection of actual issues vs. false positives
+
+**Files**: `development_tools/docs/analyze_documentation.py`
+
+#### 5.5 Enhance AI Work Validation
+**Status**: PENDING  
+**Issue**: Currently reports "GOOD - keep current standards" but may not provide actionable insights.
+
+**Tasks**:
+- [ ] Investigate what AI Work Validation currently looks for
+- [ ] Enhance to provide actionable insights beyond status messages
+- [ ] Add specific recommendations for maintaining code quality standards
+- [ ] Ensure it doesn't duplicate logic from domain-specific tools
+
+**Files**: `development_tools/ai_work/analyze_ai_work.py`
+
+#### 5.6 Automate TODO Sync Cleanup
+**Status**: PENDING  
+**Issue**: 3 completed entries in TODO.md need review. Functionality exists but could be improved.
+
+**Tasks**:
+- [ ] Review current TODO sync implementation
+- [ ] Enhance detection to better identify completed entries
+- [ ] Add automated cleanup option (with dry-run mode)
+- [ ] Improve reporting of what needs manual review vs. auto-cleaned
+- [ ] Document TODO sync workflow and best practices
+
+**Files**: `development_tools/docs/fix_version_sync.py`
+
+#### 5.7 Investigate Legacy Reference Count Discrepancy
+**Status**: RESOLVED (2025-12-31)  
+**Effort**: Small  
+**Issue**: Legacy reference report shows fewer issues than before (7 files/20 markers vs 8 files/28 markers previously). No legacy code was removed, so count should not have decreased.
+
+**Root Cause**: The 8th file was a temporary test fixture (`tests/data/tmp*/demo_project/legacy_code.py`) that was being included in earlier scans but is now correctly excluded. The legacy scanner correctly excludes `tests/data/` directory per standard exclusions.
+
+**Resolution**: This is correct behavior - temporary test fixture files should not be counted in legacy reference reports. The count decrease reflects improved exclusion logic, not a bug. No action needed.
+
+**Files**: `development_tools/legacy/analyze_legacy_references.py`, `development_docs/LEGACY_REFERENCE_REPORT.md`
+
+#### 5.8 Address Missing Category Markers Trend
+**Status**: RESOLVED (2025-12-31)  
+**Effort**: Medium  
+**Issue**: Missing category markers count is increasing (316 → 332 tests) despite not making many test changes. This suggests either new tests are being added without markers, or detection is improving.
+
+**Root Cause**: The test marker analyzer was including temporary pytest files in `tests/data/pytest-tmp-*` directories. These are temporary files created during parallel test execution and should be excluded from marker analysis, just like they are excluded from legacy reference scanning.
+
+**Resolution**: Updated `development_tools/tests/analyze_test_markers.py` to exclude temporary pytest files in `tests/data/` directory (specifically `pytest-tmp-*` and `pytest-of-*` patterns). The analyzer now correctly skips these temporary files, matching the exclusion behavior of the legacy reference scanner.
+
+**Files**: `development_tools/tests/analyze_test_markers.py`, `development_tools/tests/fix_test_markers.py`
+
+#### 5.9 Create New Tools to Fill Identified Gaps
 **Status**: PENDING  
 **Effort**: Large  
 **Description**: Implement new tools based on gap analysis (29 gaps identified across 6 domains).
@@ -657,10 +742,13 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 3. **Standardize Logging (Stage 3.1)** - Improves developer experience
 
 ### Short Term (Next 2 Weeks)
-1. Create unused imports cleanup module (Stage 2.1)
-3. Enhance tool analysis capabilities (Stage 2.2-2.4)
-4. Standardize metrics (Stage 3.3-3.4)
-5. Investigate and fix validation warnings (Stage 4.2-4.3)
+1. ✅ Fix Config Validation Issues (Stage 2.1) - COMPLETE
+2. ✅ Standardize Function Metrics (Stage 3.3) - COMPLETE
+3. Investigate "Symbol: unused-import" bullet points (Stage 2.2) - Small effort
+4. Investigate Legacy Reference Count Discrepancy (Stage 5.7) - Small effort, needs investigation
+5. Enhance tool analysis capabilities (Stage 2.3-2.8)
+6. Standardize metrics (Stage 3.4)
+7. Investigate and fix validation warnings (Stage 4.1-4.2)
 
 ### Medium Term (Next Month)
 1. Complete tool enhancements (Stage 2)
@@ -670,7 +758,12 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 
 ### Long Term (Future)
 1. Future enhancements (Stage 5)
-2. New tool creation based on gap analysis (Stage 5.5)
+2. Create unused imports cleanup module (Stage 5.3) - Moved to lower priority
+3. Enhance Documentation Overlap Analysis (Stage 5.4) - Moved to lower priority
+4. Enhance AI Work Validation (Stage 5.5) - Moved to lower priority
+5. Automate TODO Sync Cleanup (Stage 5.6) - Moved to lower priority
+6. Address Missing Category Markers Trend (Stage 5.8) - Monitor and address
+7. New tool creation based on gap analysis (Stage 5.9)
 
 ---
 

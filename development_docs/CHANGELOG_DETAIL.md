@@ -38,6 +38,61 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-31 - DIRECTORY_TREE.md Regeneration Fix and Test Isolation Improvements **COMPLETED**
+- **Issue Resolution**: Fixed `DIRECTORY_TREE.md` being regenerated during test runs by correcting test isolation in `test_main_integration_demo_project`. The test was patching the wrong config module path, causing it to use the real project root instead of the test fixture directory.
+- **Technical Changes**:
+  - Fixed `test_main_integration_demo_project` in `tests/development_tools/test_generate_directory_tree.py` to properly patch `directory_tree_module.config.get_project_root` (where config is actually imported) instead of `development_tools.config.config.get_project_root`
+  - Added fallback patch to ensure test isolation even if primary patch fails
+  - Improved safeguard logging in `development_tools/shared/file_rotation.py` with more aggressive DIRECTORY_TREE detection (case-insensitive, multiple pattern checks)
+  - Added temporary test timestamp logging hooks (demoted to DEBUG level) to help identify test execution timing issues
+- **Impact**: Prevents unwanted regeneration of static documentation during test runs. Test now properly uses `demo_project_root` fixture instead of real project directory.
+- **Files**: `tests/development_tools/test_generate_directory_tree.py`, `development_tools/shared/file_rotation.py`, `tests/conftest.py`, `tests/development_tools/conftest.py`
+
+### 2025-12-31 - Pyright Error Fixes and Legacy Compatibility Markers **COMPLETED**
+- **Pyright Type Checking Fixes**: Fixed multiple Pyright type checking errors identified during codebase analysis. Addressed real runtime bugs including unbound variables, missing None checks, incorrect type annotations, and parameter mismatches.
+- **Technical Changes**:
+  - Fixed unbound variable in `core/service.py` `get_scheduler_manager()` by safely accessing global `service` variable
+  - Added None checks in `ai/chatbot.py` for `avg_mood` and `avg_energy` before numerical comparisons
+  - Added `Optional` type hints to dataclass fields in `ai/context_builder.py`, `ai/conversation_history.py`, and communication channel base classes
+  - Fixed `None` subscript errors in `ai/context_builder.py` by adding `if profile and` checks before accessing dictionary items
+  - Fixed `None` iterable errors in `ai/conversation_history.py` by adding `if session.messages is None: continue` checks
+  - Fixed missing `tool_name` parameter in `normalize_to_standard_format()` calls in `development_tools/shared/service/data_loading.py` (4 instances)
+  - Updated `file_rotation.py` type annotations to accept `Union[str, Path]` instead of just `str` for file path parameters
+  - Updated `run_cleanup()` method signature in `development_tools/shared/service/commands.py` to accept `coverage`, `all_cleanup`, and `dry_run` parameters to match CLI interface
+  - Renamed duplicate variables: `complexity_bullets` → `high_complexity_bullets` in `report_generation.py` (separate code paths), `FakeResult` → `FakeResultException` in `run_test_coverage.py` (separate exception handlers)
+- **Legacy Compatibility Markers**: Added proper `# LEGACY COMPATIBILITY:` markers to `run_cleanup()` method parameters with logging when legacy paths are exercised. Added detection patterns to `development_tools_config.json` for automated legacy cleanup tracking. Removal plan: Remove `all_cleanup`, `coverage`, and `dry_run` parameters after 2026-02-01 if no references found.
+- **Investigation Tasks**: Added section 4.14 to `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md` for investigating duplicate function declarations that need proper analysis:
+  - `generate_dependency_report()` exists twice in `analyze_module_dependencies.py` (needs investigation to determine if both needed or should be merged, and to convert print() to logger usage)
+  - Multiple duplicate methods in `tool_wrappers.py` (needs full investigation to compare implementations and determine if duplicates should be removed or merged)
+- **Complementary Tools Evaluation**: Added comprehensive TODO items in `TODO.md` for evaluating complementary development tools to determine if they should replace or complement existing custom development tools:
+  - **ruff**: Fast linter/formatter (10-100x faster than pylint) - evaluate for unused imports detection
+  - **radon**: Complexity analysis - evaluate for complementing `analyze_functions.py` complexity tracking
+  - **pydeps**: Dependency graph generation - evaluate for complementing `analyze_module_dependencies.py`
+  - **bandit**: Security vulnerability scanner (HIGH PRIORITY - project handles user data and credentials)
+  - **pip-audit**: Dependency vulnerability scanner (HIGH PRIORITY - project has 15+ dependencies)
+  - **vulture**: Dead code detection (optional - finds unused functions/classes)
+  - **pre-commit**: Git hooks for automated quality checks (optional - workflow tool)
+  - All tools verified for Cursor IDE compatibility (ruff and bandit have VS Code extensions)
+- **Files Modified**: `core/service.py`, `ai/chatbot.py`, `ai/context_builder.py`, `ai/conversation_history.py`, `communication/communication_channels/base/base_channel.py`, `communication/communication_channels/base/command_registry.py`, `communication/communication_channels/discord/api_client.py`, `communication/communication_channels/discord/event_handler.py`, `development_tools/shared/service/data_loading.py`, `development_tools/shared/file_rotation.py`, `development_tools/shared/service/commands.py`, `development_tools/shared/service/report_generation.py`, `development_tools/tests/run_test_coverage.py`, `development_tools/config/development_tools_config.json`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`, `TODO.md`
+- **Impact**: Fixed real runtime bugs that could cause crashes (None access, unbound variables). Improved type safety and code quality. Legacy compatibility code properly marked for future cleanup. Investigation tasks documented for remaining duplicate declarations. Roadmap established for evaluating complementary tools that may improve development workflow efficiency and security.
+
+### 2025-12-31 - Config Validation and Function Metrics Standardization **COMPLETED**
+- **Config Validation Fix**: Fixed false positive recommendations for entry point scripts (`run_development_tools.py`, `run_dev_tools.py`) that don't need direct config imports. These scripts create `AIToolsService` instances which handle config internally. Updated validation logic to detect entry point scripts (files that create `AIToolsService` instances) and exempt them from config import requirements.
+- **Function Metrics Standardization**: Standardized function counting and complexity metrics between `analyze_functions` and `decision_support` tools. Both now use `categorize_functions()` from `analyze_functions.py` as the single source of truth, ensuring consistent metrics across all reports.
+- **Technical Changes**:
+  - Updated `development_tools/config/analyze_config.py` to detect entry point scripts before wrapper script detection
+  - Modified `_analyze_tool_config_usage()` to mark entry point scripts as exempt from config import requirement
+  - Updated recommendation generation and logging to show entry point scripts as "OK (entry point script)"
+  - Modified `development_tools/reports/decision_support.py` to use `categorize_functions()` directly instead of custom categorization logic
+  - Updated `find_complexity_functions()` and `print_dashboard()` to use shared categorization logic
+  - Updated `development_tools/shared/service/data_loading.py` comments to clarify `analyze_functions` as single source of truth
+  - Fixed `tests/development_tools/test_decision_support.py` test data to include required fields (`is_handler`, `is_special`, `docstring`)
+  - Fixed Qt crash in `tests/ui/test_account_creation_ui.py` by adding `stop_channel_monitor_threads` fixture to `TestAccountCreationDialogRealBehavior` class
+- **Documentation Updates**:
+  - Updated `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md` with completion status for Stage 2.1 and Stage 3.3
+  - Added investigation tasks for legacy reference count discrepancy (Stage 5.7) and missing category markers trend (Stage 5.8)
+- **Impact**: Config validation now correctly identifies entry point scripts (0 false positives), and function metrics are consistent across all tools. Documentation sync issues resolved (PASS - 0 total issues), path validation shows all paths valid. Test coverage improved to 72.9%.
+
 ### 2025-12-31 - Test Coverage Calculation Fix and Shard File Detection **COMPLETED**
 - **Coverage Calculation Fix**: Fixed test coverage calculation that was incorrectly reporting 37-45% instead of the expected ~72-73%. The issue was that pytest-xdist workers were creating shard files (`.coverage_parallel.worker0`, etc.) but they weren't being found and combined correctly.
 - **Technical Changes**:

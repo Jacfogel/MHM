@@ -777,11 +777,19 @@ class ReportGenerationMixin:
         lines.append("## Error Handling")
         
         if error_metrics:
-            if missing_error_handlers is not None and missing_error_handlers > 0:
+            # Always show missing error handling count (even if 0)
+            if missing_error_handlers is not None:
                 lines.append(f"- **Missing Error Handling**: {missing_error_handlers} functions lack protections")
-            decorated = error_metrics.get('functions_with_decorators')
+            # Get decorator count from details (standard format) or top-level (legacy format)
+            decorated = get_error_field('functions_with_decorators')
             if decorated is not None:
                 lines.append(f"- **@handle_errors Usage**: {decorated} functions already use the decorator")
+            # Show error handling coverage if available
+            if error_coverage is not None:
+                lines.append(f"- **Error Handling Coverage**: {error_coverage:.1f}%")
+            # Show functions with error handling if available
+            if error_with_handling is not None:
+                lines.append(f"- **Functions with Error Handling**: {error_with_handling}")
             
             # Phase 1: Candidates for decorator replacement
             # Use helper to access from details or top level
@@ -2245,7 +2253,7 @@ class ReportGenerationMixin:
                 bullets=complexity_bullets
             )
         elif high_complex and high_complex > 0:
-            complexity_bullets: List[str] = []
+            high_complexity_bullets: List[str] = []
             if high_examples:
                 sorted_examples = sorted(
                     high_examples[:10],
@@ -2264,14 +2272,14 @@ class ReportGenerationMixin:
                     else:
                         example_names.append(str(ex))
                 if example_names:
-                    complexity_bullets.append(
+                    high_complexity_bullets.append(
                         f"Highest complexity: {self._format_list_for_display(example_names, limit=3)}"
                     )
             add_priority(
                 tier=3,  # Tier 3: Medium
                 title="Refactor high-complexity functions",
                 reason=f"{high_complex} high-complexity functions (100-199 nodes) should be simplified.",
-                bullets=complexity_bullets
+                bullets=high_complexity_bullets
             )
         
         lines.append("## Immediate Focus (Ranked)")

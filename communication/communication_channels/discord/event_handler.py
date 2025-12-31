@@ -34,8 +34,8 @@ class EventContext:
     channel_id: Optional[str] = None
     guild_id: Optional[str] = None
     message_id: Optional[str] = None
-    timestamp: float = None
-    data: Dict[str, Any] = None
+    timestamp: Optional[float] = None
+    data: Optional[Dict[str, Any]] = None
     
     @handle_errors("post-initializing Discord event handler", default_return=None)
     def __post_init__(self):

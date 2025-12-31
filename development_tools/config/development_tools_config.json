@@ -317,6 +317,11 @@
       ],
       "legacy_compatibility_markers": [
         "# LEGACY COMPATIBILITY:"
+      ],
+      "legacy_parameters": [
+        "all_cleanup=",
+        "coverage=args.coverage",
+        "dry_run=args.dry_run"
       ]
     },
     "replacement_mappings": {

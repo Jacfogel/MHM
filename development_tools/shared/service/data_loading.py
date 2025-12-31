@@ -135,14 +135,17 @@ class DataLoadingMixin:
         if audit_totals is None or not isinstance(audit_totals, dict):
             audit_totals = {}
 
-        # PRIORITY: Always use analyze_functions first (most accurate)
+        # PRIORITY: Always use analyze_functions as single source of truth (most accurate and consistent)
+        # decision_support now uses the same categorization logic, so metrics should match
+        # But we prioritize analyze_functions to ensure consistency
         total_functions = None
 
-        # First priority: analyze_functions (most accurate)
+        # First priority: analyze_functions (single source of truth)
         if fd_metrics:
             total_functions = fd_metrics.get('total_functions')
 
-        # Second priority: decision_support
+        # Second priority: decision_support (should match analyze_functions now, but kept as fallback)
+        # Note: decision_support now uses categorize_functions() from analyze_functions, so metrics should be consistent
         if total_functions is None:
             total_functions = ds_metrics.get('total_functions')
 
@@ -162,6 +165,7 @@ class DataLoadingMixin:
             if registry_total is not None and isinstance(registry_total, int) and registry_total > 100:
                 total_functions = registry_total
 
+        # Complexity metrics: prioritize analyze_functions (single source of truth)
         moderate = fd_metrics.get('moderate_complexity')
         if moderate is None:
             moderate = ds_metrics.get('moderate_complexity')
@@ -855,7 +859,7 @@ class DataLoadingMixin:
             try:
                 parsed = json.loads(output)
                 from ..result_format import normalize_to_standard_format
-                return normalize_to_standard_format(parsed)
+                return normalize_to_standard_format("analyze_ascii_compliance", parsed)
             except (json.JSONDecodeError, ValueError):
                 pass
         # Fall back to text parsing if JSON parsing failed
@@ -928,7 +932,7 @@ class DataLoadingMixin:
             try:
                 parsed = json.loads(output)
                 from ..result_format import normalize_to_standard_format
-                return normalize_to_standard_format(parsed)
+                return normalize_to_standard_format("analyze_missing_addresses", parsed)
             except (json.JSONDecodeError, ValueError):
                 pass
         # Fall back to text parsing if JSON parsing failed
@@ -957,7 +961,7 @@ class DataLoadingMixin:
             try:
                 parsed = json.loads(output)
                 from ..result_format import normalize_to_standard_format
-                return normalize_to_standard_format(parsed)
+                return normalize_to_standard_format("analyze_unconverted_links", parsed)
             except (json.JSONDecodeError, ValueError):
                 pass
         # Fall back to text parsing if JSON parsing failed

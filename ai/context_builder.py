@@ -17,11 +17,11 @@ logger = context_logger
 @dataclass
 class ContextData:
     """Structured context data for AI interactions"""
-    user_profile: Dict[str, Any] = None
-    user_context: Dict[str, Any] = None
-    recent_checkins: List[Dict[str, Any]] = None
-    conversation_history: List[Dict[str, Any]] = None
-    current_time: datetime = None
+    user_profile: Optional[Dict[str, Any]] = None
+    user_context: Optional[Dict[str, Any]] = None
+    recent_checkins: Optional[List[Dict[str, Any]]] = None
+    conversation_history: Optional[List[Dict[str, Any]]] = None
+    current_time: Optional[datetime] = None
     
     @handle_errors("post-initializing context data", default_return=None)
     def __post_init__(self):
@@ -47,7 +47,7 @@ class ContextAnalysis:
     mood_trend: str = "stable"
     energy_trend: str = "stable"
     overall_wellness_score: float = 0.0
-    insights: List[str] = None
+    insights: Optional[List[str]] = None
     
     @handle_errors("post-initializing context analysis", default_return=None)
     def __post_init__(self):
@@ -138,11 +138,11 @@ class ContextBuilder:
             breakfast_rate = (breakfast_count / total_entries) * 100 if total_entries > 0 else 0
             
             # Analyze mood trends
-            moods = [entry.get('mood') for entry in recent_checkins if entry.get('mood') is not None]
+            moods = [float(entry.get('mood')) for entry in recent_checkins if entry.get('mood') is not None]
             avg_mood = sum(moods) / len(moods) if moods else None
             
             # Analyze energy trends
-            energies = [entry.get('energy') for entry in recent_checkins if entry.get('energy') is not None]
+            energies = [float(entry.get('energy')) for entry in recent_checkins if entry.get('energy') is not None]
             avg_energy = sum(energies) / len(energies) if energies else None
             
             # Analyze teeth brushing
@@ -312,10 +312,10 @@ class ContextBuilder:
             
             # User profile information
             profile = context_data.user_profile
-            if profile.get('preferred_name'):
+            if profile and profile.get('preferred_name'):
                 context_parts.append(f"User's name: {profile['preferred_name']}")
                 logger.debug(f"Added user name to context: {profile['preferred_name']}")
-            if profile.get('active_categories'):
+            if profile and profile.get('active_categories'):
                 context_parts.append(f"Interests: {', '.join(profile['active_categories'])}")
                 logger.debug(f"Added user interests to context: {profile['active_categories']}")
             

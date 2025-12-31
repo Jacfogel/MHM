@@ -17,8 +17,8 @@ class CommandDefinition:
     name: str
     description: str
     handler: Callable
-    aliases: List[str] = None
-    permissions: List[str] = None
+    aliases: Optional[List[str]] = None
+    permissions: Optional[List[str]] = None
     cooldown: float = 0.0
     enabled: bool = True
     
@@ -47,12 +47,13 @@ class CommandRegistry(ABC):
             self._commands[command_def.name] = command_def
             
             # Register aliases
-            for alias in command_def.aliases:
-                if alias in self._aliases:
-                    logger.warning(f"Alias '{alias}' already registered for '{self._aliases[alias]}', overwriting with '{command_def.name}'")
-                self._aliases[alias] = command_def.name
+            if command_def.aliases:
+                for alias in command_def.aliases:
+                    if alias in self._aliases:
+                        logger.warning(f"Alias '{alias}' already registered for '{self._aliases[alias]}', overwriting with '{command_def.name}'")
+                    self._aliases[alias] = command_def.name
             
-            logger.debug(f"Registered command '{command_def.name}' with {len(command_def.aliases)} aliases")
+            logger.debug(f"Registered command '{command_def.name}' with {len(command_def.aliases or [])} aliases")
             return True
             
         except Exception as e:

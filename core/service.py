@@ -1068,12 +1068,12 @@ def get_scheduler_manager():
     """Get the scheduler manager instance from the global service.
     Safely handle cases where the global 'service' symbol may not be defined yet.
     """
-    try:
-        global service
-    except NameError:
-        return None
-    if 'service' in globals() and service and hasattr(service, 'scheduler_manager'):
-        return service.scheduler_manager
+    # Check if service exists in globals before accessing it
+    global_vars = globals()
+    if 'service' in global_vars:
+        service_instance = global_vars['service']
+        if service_instance and hasattr(service_instance, 'scheduler_manager'):
+            return service_instance.scheduler_manager
     return None
 
 @handle_errors("main service function")

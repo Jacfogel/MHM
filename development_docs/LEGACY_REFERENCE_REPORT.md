@@ -2,49 +2,22 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-31 02:36:06
+> **Last Generated**: 2025-12-31 07:13:01
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 8
-**Legacy Compatibility Markers Detected**: 28
+**Total Files with Issues**: 7
+**Legacy Compatibility Markers Detected**: 24
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
-- Legacy compatibility markers remain in 8 file(s) (22 total markers).
+- Legacy compatibility markers remain in 7 file(s) (21 total markers).
 
 ## Recommended Follow-Up
 1. Confirm whether legacy `enabled_fields` payloads are still produced; if not, plan removal and data migration.
 2. Add regression tests covering analytics handler flows and user data migrations before deleting markers.
 3. Track the cleanup effort and rerun `python development_tools/run_development_tools.py legacy --clean --dry-run` until this report returns zero issues.
 
-## Deprecated Functions
-**Files Affected**: 1
-
-### tests\data\tmplgig3zdw\demo_project\legacy_code.py
-**Issues Found**: 2
-
-- **Line 27**: `LegacyChannelWrapper`
-  ```
-  class LegacyChannelWrapper:
-  ```
-
-- **Line 32**: `_create_legacy_channel_access(`
-  ```
-  def _create_legacy_channel_access():
-  ```
-
-## Historical References
-**Files Affected**: 1
-
-### tests\data\tmplgig3zdw\demo_project\legacy_code.py
-**Issues Found**: 1
-
-- **Line 23**: `bot/communication`
-  ```
-  old_path = "bot/communication/old_file.py"
-  ```
-
 ## Legacy Compatibility Markers
-**Files Affected**: 8
+**Files Affected**: 7
 
 ### development_tools\reports\analyze_system_signals.py
 **Issues Found**: 1
@@ -63,9 +36,14 @@
   ```
 
 ### development_tools\shared\service\commands.py
-**Issues Found**: 1
+**Issues Found**: 2
 
-- **Line 492**: `# LEGACY COMPATIBILITY:`
+- **Line 438**: `# LEGACY COMPATIBILITY:`
+  ```
+  # LEGACY COMPATIBILITY: Support for 'all_cleanup', 'coverage', and 'dry_run' parameters
+  ```
+
+- **Line 516**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Wrapper for backward compatibility with tests and existing code
   ```
@@ -73,27 +51,14 @@
 ### development_tools\shared\service\report_generation.py
 **Issues Found**: 2
 
-- **Line 1143**: `# LEGACY COMPATIBILITY:`
+- **Line 1151**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Check for both new and old key names
   ```
 
-- **Line 4043**: `# LEGACY COMPATIBILITY:`
+- **Line 4051**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Check for both new and old key names
-  ```
-
-### tests\data\tmplgig3zdw\demo_project\legacy_code.py
-**Issues Found**: 2
-
-- **Line 9**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: This function is kept for backward compatibility
-  ```
-
-- **Line 15**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Old import pattern
   ```
 
 ### tests\development_tools\test_audit_status_updates.py
@@ -180,29 +145,23 @@
   # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
   ```
 
-## Old Bot Directory
+## Legacy Parameters
 **Files Affected**: 1
 
-### tests\data\tmplgig3zdw\demo_project\legacy_code.py
-**Issues Found**: 2
+### development_tools\shared\service\commands.py
+**Issues Found**: 3
 
-- **Line 17**: `from bot.`
+- **Line 441**: `all_cleanup=`
   ```
-  # from bot.communication import old_module  # noqa: F401
-  ```
-
-- **Line 23**: `bot/`
-  ```
-  old_path = "bot/communication/old_file.py"
+  # Detection pattern: "all_cleanup=", "coverage=args.coverage", "dry_run=args.dry_run"
   ```
 
-## Old Import Paths
-**Files Affected**: 1
-
-### tests\data\tmplgig3zdw\demo_project\legacy_code.py
-**Issues Found**: 1
-
-- **Line 17**: `from bot.communication`
+- **Line 441**: `coverage=args.coverage`
   ```
-  # from bot.communication import old_module  # noqa: F401
+  # Detection pattern: "all_cleanup=", "coverage=args.coverage", "dry_run=args.dry_run"
+  ```
+
+- **Line 441**: `dry_run=args.dry_run`
+  ```
+  # Detection pattern: "all_cleanup=", "coverage=args.coverage", "dry_run=args.dry_run"
   ```

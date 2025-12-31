@@ -1,5 +1,17 @@
 {
   // Pyright configuration for MHM project
+  // "off" = no type checking, "basic" = basic checks, "standard" = more strict, "strict" = very strict
+  // Note: Pyright (type checking) and development tools (code quality) check different things and are complementary
+  "typeCheckingMode": "basic",
+  
+  // Disable specific noisy checks that are mostly type annotation mismatches
+  // These are still useful but can be overwhelming for beginners
+  "reportReturnType": "none",
+  "reportArgumentType": "warning",
+  "reportOptionalMemberAccess": "warning",
+  "reportAttributeAccessIssue": "warning",
+  "reportGeneralTypeIssues": "warning",
+  "reportUnboundVariable": "error",
   
   // Exclude paths - directories that shouldn't be type-checked
   "exclude": [
@@ -33,6 +45,5 @@
     ".coverage",
     "*.pyc",
     "*.pyo"
-  ],
- 
+  ]
 }

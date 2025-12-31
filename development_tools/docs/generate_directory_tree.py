@@ -75,6 +75,10 @@ class DirectoryTreeGenerator:
         """
         Generate a directory tree for documentation with placeholders for certain directories.
         
+        NOTE: This tool should ONLY be run via the 'docs' command, NOT during audits.
+        Static documentation (DIRECTORY_TREE, FUNCTION_REGISTRY, MODULE_DEPENDENCIES)
+        should not be regenerated during audit runs.
+        
         Args:
             output_file: Optional output file path. If None, uses default from config.
             
@@ -161,11 +165,21 @@ class DirectoryTreeGenerator:
         final_content = header + processed_lines + footer
         
         # Write to file with rotation
+        # NOTE: create_output_file() will automatically block writes to DIRECTORY_TREE.md
+        # during audits or tests (when writing to real project, not test directories)
         from development_tools.shared.file_rotation import create_output_file
         output_path = self.project_root / output_file
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        create_output_file(str(output_path), '\n'.join(final_content), rotate=True, max_versions=7,
-                          project_root=self.project_root)
+        try:
+            create_output_file(str(output_path), '\n'.join(final_content), rotate=True, max_versions=7,
+                              project_root=self.project_root)
+        except RuntimeError as e:
+            # Handle safeguard blocking (from create_output_file)
+            if "Cannot write" in str(e) and "DIRECTORY_TREE.md" in str(e):
+                if logger:
+                    logger.warning(f"Skipping DIRECTORY_TREE.md generation: {e}")
+                return ""
+            raise
             
         if logger:
             logger.info(f"Directory tree generated: {output_path}")

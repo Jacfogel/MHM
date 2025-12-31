@@ -286,9 +286,15 @@ class AIChatBotSingleton:
                     if 'breakfast' in prompt_lower:
                         return (f"{name_prefix}You ate breakfast {breakfast_count}/{total_entries} times ({breakfast_rate:.0f}%).")
                     elif 'mood' in prompt_lower:
-                        return (f"{name_prefix}Your average mood was {avg_mood:.1f}/5 - {'positive' if avg_mood >= 4 else 'neutral' if avg_mood >= 3 else 'challenging'}.")
+                        if avg_mood is not None:
+                            return (f"{name_prefix}Your average mood was {avg_mood:.1f}/5 - {'positive' if avg_mood >= 4 else 'neutral' if avg_mood >= 3 else 'challenging'}.")
+                        else:
+                            return (f"{name_prefix}I don't have enough mood data to calculate an average yet.")
                     elif 'energy' in prompt_lower:
-                        return (f"{name_prefix}Your average energy was {avg_energy:.1f}/5 - {'high' if avg_energy >= 4 else 'moderate' if avg_energy >= 3 else 'low'}.")
+                        if avg_energy is not None:
+                            return (f"{name_prefix}Your average energy was {avg_energy:.1f}/5 - {'high' if avg_energy >= 4 else 'moderate' if avg_energy >= 3 else 'low'}.")
+                        else:
+                            return (f"{name_prefix}I don't have enough energy data to calculate an average yet.")
         
         # Handle error/connection issues - should ask user to try again
         if any(word in prompt_lower for word in ['connection', 'connection error', 'network', 'api error', 'timeout']):

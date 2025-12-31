@@ -1350,11 +1350,11 @@ class CoverageMetricsRegenerator:
                 with open(dev_tools_stdout_log, 'w', encoding='utf-8', errors='replace') as log_file:
                     log_file.write(f"ERROR: Exception running pytest: {e}\n")
                 # Create a fake result object for error handling
-                class FakeResult:
+                class FakeResultException:
                     returncode = 1
                     stdout = f"ERROR: Exception running pytest: {e}\n"
                     stderr = ""
-                result = FakeResult()
+                result = FakeResultException()
             
             if logger:
                 log_size = dev_tools_stdout_log.stat().st_size if dev_tools_stdout_log.exists() else 0

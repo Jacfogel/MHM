@@ -134,6 +134,65 @@ When adding new tasks, follow this format:
 
 **Note**: Development tools related tasks have been moved to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md) for centralized planning and tracking. See that document for all development tools improvements, enhancements, and maintenance tasks.
 
+**Evaluate and Integrate Complementary Development Tools**
+- *What it means*: Learn about and test ruff, radon, pydeps, bandit, and pip-audit to determine if they should replace or complement parts of the development tools suite
+- *Why it helps*: These tools may be faster or more mature than custom implementations, and security tools (bandit, pip-audit) fill a critical gap since the project handles user data and credentials
+- *Estimated effort*: Medium
+- *Cursor IDE Compatibility*: All tools are compatible - ruff and bandit have VS Code extensions (Cursor is VS Code-based), others work via command-line or pre-commit hooks
+- *Reference*: See [EXISTING_TOOLS_COMPARISON.md](development_docs/EXISTING_TOOLS_COMPARISON.md) and [COMPLEMENTARY_TOOLS_GUIDE.md](development_docs/COMPLEMENTARY_TOOLS_GUIDE.md) for detailed comparisons
+- *Subtasks*:
+  - [ ] **Learn about and try ruff** - Install ruff, test it on the codebase, compare speed/results with current `analyze_unused_imports.py` (pylint-based)
+    - [ ] Install ruff: `pip install ruff`
+    - [ ] Install Ruff VS Code extension in Cursor (optional but recommended for real-time feedback)
+    - [ ] Run ruff to find unused imports: `ruff check . --select F401`
+    - [ ] Compare results with current unused imports tool (357 unused imports found)
+    - [ ] Test auto-fix capability: `ruff check --fix .`
+    - [ ] Measure performance difference (ruff is 10-100x faster than pylint)
+    - [ ] Determine if ruff should replace or complement `analyze_unused_imports.py`
+  - [ ] **Learn about and try radon** - Install radon, test complexity analysis, compare with current `analyze_functions.py` complexity tracking
+    - [ ] Install radon: `pip install radon`
+    - [ ] Run complexity analysis: `radon cc . --min B`
+    - [ ] Compare complexity metrics with current tool (131 critical-complexity functions tracked)
+    - [ ] Test maintainability index: `radon mi .`
+    - [ ] Determine if radon should complement `analyze_functions.py` (keep your tool for docstring/pattern tracking, use radon for complexity)
+  - [ ] **Learn about and try pydeps** - Install pydeps, test dependency graph generation, compare with current `analyze_module_dependencies.py`
+    - [ ] Install pydeps: `pip install pydeps`
+    - [ ] Generate dependency graph for core module: `pydeps core/ --max-bacon=2`
+    - [ ] Compare visualization quality with current dependency analysis
+    - [ ] Test on communication and other modules
+    - [ ] Determine if pydeps should complement `analyze_module_dependencies.py` (use pydeps for graphs, keep your tool for pattern analysis)
+  - [ ] **Learn about and try bandit** - Install bandit, test security scanning (HIGH PRIORITY - project handles user data and credentials)
+    - [ ] Install bandit: `pip install bandit`
+    - [ ] Install Bandit VS Code extension in Cursor (optional but recommended for real-time security feedback)
+    - [ ] Run security scan: `bandit -r core/ communication/ -f json -o bandit-report.json`
+    - [ ] Review findings for hardcoded secrets, SQL injection risks, insecure random, etc.
+    - [ ] Determine if bandit should be added to development tools workflow (recommended: add to Tier 1 quick audit)
+    - [ ] Configure bandit to exclude false positives (test files, development tools, etc.)
+  - [ ] **Learn about and try pip-audit** - Install pip-audit, test dependency vulnerability scanning (HIGH PRIORITY - project has 15+ dependencies)
+    - [ ] Install pip-audit: `pip install pip-audit`
+    - [ ] Run dependency check: `pip-audit --requirement requirements.txt --format json`
+    - [ ] Review findings for known CVEs in dependencies
+    - [ ] Determine if pip-audit should be added to development tools workflow (recommended: add to Tier 1 quick audit)
+    - [ ] Set up regular checks (before deployments, in CI/CD if applicable)
+  - [ ] **Make integration decision** - Based on testing, decide whether to:
+    - Replace tools entirely (if significantly better)
+    - Use alongside existing tools (if complementary)
+    - Keep existing tools (if they're better for your workflow)
+  - [ ] **If integrating**: Add selected tools to development tools workflow (update `development_tools/shared/service/tool_wrappers.py` or create new wrappers)
+  - [ ] **If integrating**: Update `requirements.txt` with new tool dependencies
+  - [ ] **If integrating**: Install VS Code extensions in Cursor for tools that support them (ruff, bandit)
+  - [ ] **If integrating**: Update documentation (AI_DEVELOPMENT_TOOLS_GUIDE.md, DEVELOPMENT_TOOLS_GUIDE.md) to reflect tool changes
+  - [ ] **Optional: Learn about vulture** - Dead code detection (finds unused functions/classes, not just imports)
+    - [ ] Install vulture: `pip install vulture`
+    - [ ] Run dead code scan: `vulture . --min-confidence 80 --exclude tests/`
+    - [ ] Review findings (can be noisy with false positives)
+    - [ ] Determine if useful for occasional cleanup runs (not in every audit)
+  - [ ] **Optional: Learn about pre-commit** - Git hooks for automated quality checks
+    - [ ] Install pre-commit: `pip install pre-commit`
+    - [ ] Create `.pre-commit-config.yaml` with hooks for ruff, bandit, etc.
+    - [ ] Test hooks: `pre-commit run --all-files`
+    - [ ] Determine if pre-commit adds value or is too complex for current workflow
+
 
 ### User Experience Improvements
 
