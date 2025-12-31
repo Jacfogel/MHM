@@ -3064,6 +3064,16 @@ def pytest_collection_modifyitems(config, items):
         if not any(item.iter_markers()):
             item.add_marker(pytest.mark.unit)
 
+def pytest_ignore_collect(collection_path, config):
+    """Ignore temp directories created by parallel coverage runs to prevent collection errors."""
+    path_str = str(collection_path)
+    # Ignore temp directories created by coverage runs
+    if 'pytest-tmp-' in path_str or 'pytest-of-' in path_str:
+        # Only ignore if it's under tests/data (our temp directory location)
+        if 'tests' + os.sep + 'data' in path_str:
+            return True
+    return None  # Let other ignore rules handle it
+
 def pytest_configure(config):
     """Configure pytest for MHM testing and suppress collection warnings for development tools implementation classes."""
     # Suppress PytestCollectionWarning for development tools implementation classes

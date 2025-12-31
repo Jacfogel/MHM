@@ -143,17 +143,18 @@ The modular structure provides clear separation of concerns, making the codebase
 - **Duration**: ~15-25 seconds (with parallel execution)
 
 **Tier 3: Full Audit (`audit --full`)** includes everything in Tier 1 & 2 plus tools >10s (or groups containing tools >10s):
-- **Coverage group** (runs sequentially, ~460s total):
+- **Coverage tools** (run in parallel, ~365s max):
   - Full pytest execution with coverage regeneration (~365s, >10s)
-  - Dev tools test coverage (~94s, >10s)
-  - Test marker analysis (~2s, but part of coverage group)
-  - Coverage report generation (~0s, but part of coverage group)
-- **Legacy group** (runs in parallel with coverage group):
+  - Dev tools test coverage (~94s, >10s, runs in parallel with main tests)
+- **Coverage-dependent tools** (run sequentially after coverage completes, ~7s):
+  - Test marker analysis (~2s, requires coverage data from both test suites)
+  - Coverage report generation (~5s, requires coverage data from both test suites)
+- **Legacy group** (runs in parallel with coverage tools):
   - Legacy reference scanning (~62s, >10s)
   - Legacy reference report generation (~1s, but part of legacy group)
 - Improvement opportunity reports (LEGACY_REFERENCE_REPORT.md, TEST_COVERAGE_REPORT.md, UNUSED_IMPORTS_REPORT.md)
 
-**Performance**: Total full audit time: ~9-10 minutes (coverage tools dominate at ~460s)
+**Performance**: Total full audit time: ~6-7 minutes (coverage tools run in parallel, reducing total time from ~460s to ~365s)
 
 Pipeline artifacts:
 - AI-facing (root): [AI_STATUS.md](development_tools/AI_STATUS.md), `AI_PRIORITIES.md`, `consolidated_report.txt`
@@ -285,8 +286,8 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 - **Caching Infrastructure**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The utility handles cache loading, saving, and validation automatically. Currently used by: `analyze_unused_imports.py`, `analyze_ascii_compliance.py`, `analyze_missing_addresses.py`, `analyze_legacy_references.py`. Other analyzers that scan files (e.g., `analyze_path_drift.py`, `analyze_unconverted_links.py`, `analyze_heading_numbering.py`) could benefit from this utility as well.
 - **Parallel Execution**: Tools run in parallel where possible to reduce audit time:
   - **Tier 2**: Independent tools (5 tools) run in parallel; dependent groups run sequentially within groups but in parallel with each other
-  - **Tier 3**: Coverage group runs sequentially (~450s); legacy and unused imports groups run in parallel with each other
-  - **Tool Dependencies**: Some tools must run together due to dependencies (e.g., analysis -> report, imports -> patterns/dependencies). See `development_tools/shared/service/audit_orchestration.py` for dependency groupings.
+  - **Tier 3**: Coverage tools (main tests and dev tools tests) run in parallel (~365s max); legacy group runs in parallel with coverage tools; coverage-dependent tools (marker analysis, report generation) run sequentially after coverage completes
+  - **Tool Dependencies**: Some tools must run together due to dependencies (e.g., analysis -> report, imports -> patterns/dependencies). Coverage-dependent tools require data from both test suites, so they run after coverage completes. See `development_tools/shared/service/audit_orchestration.py` for dependency groupings.
 - **Output Format Standardization (2025-12-14)**: All 19 analysis tools now output JSON in a standardized structure with `summary` (total_issues, files_affected, status) and `details` (tool-specific data). This enables consistent data aggregation and simplified report generation. Tools support `--json` flag for direct standard format output. The normalization layer in `shared/result_format.py` provides backward compatibility for any legacy formats.
 - When adding or relocating tools, update:
   - `shared/tool_metadata.py`

@@ -38,6 +38,38 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-31 - Test Coverage Calculation Fix and Shard File Detection **COMPLETED**
+- **Coverage Calculation Fix**: Fixed test coverage calculation that was incorrectly reporting 37-45% instead of the expected ~72-73%. The issue was that pytest-xdist workers were creating shard files (`.coverage_parallel.worker0`, etc.) but they weren't being found and combined correctly.
+- **Technical Changes**:
+  - Updated `development_tools/tests/run_test_coverage.py` to properly detect shard files created by pytest-xdist workers
+  - Added fallback logic to use `.coverage` file when shard files are auto-combined by pytest-cov
+  - Enhanced shard file detection to search for both `.coverage_parallel.worker*` and `.coverage.worker*` patterns
+  - Added validation to detect unexpectedly low coverage (<50%) and log diagnostic information
+  - Improved logging to show all `.coverage*` files found in the coverage directory for debugging
+  - Fixed `test_central_aggregation_includes_all_tool_results` test by ensuring mocked tools save results and all required domain `jsons/` directories are created
+- **Impact**: Coverage now correctly reports ~72-73% instead of the incorrect 37-45%, ensuring accurate test coverage metrics in audit reports. The validation warning helps catch future issues early.
+
+### 2025-12-30 - Parallel Test Coverage Execution and Logging Improvements **COMPLETED**
+- **Parallel Execution**: Implemented parallel execution of main test coverage and dev tools test coverage to accelerate full audit runs. Main coverage and dev tools coverage now run concurrently using `ThreadPoolExecutor`, reducing total audit time from ~460s to ~365s (saving ~95 seconds per full audit).
+- **Technical Changes**:
+  - Modified `development_tools/shared/service/audit_orchestration.py` to run coverage tools in parallel groups (`tier3_coverage_main_group` and `tier3_coverage_dev_tools_group`)
+  - Added separate lock files (`.coverage_in_progress.lock` and `.coverage_dev_tools_in_progress.lock`) to prevent conflicts during parallel execution
+  - Updated `_is_audit_in_progress()` to check both lock files
+  - Added unique pytest temp directories for each process (`pytest-tmp-main_*`, `pytest-tmp-dev_tools_*`, `pytest-tmp-no_parallel_*`) to prevent import file mismatch errors
+  - Added `pytest_ignore_collect` hook in `tests/conftest.py` to filter out pytest temp directories during test collection
+  - Added `--ignore` flags to all pytest commands to exclude temp directories
+  - Updated `pytest.ini` to include pytest temp directory patterns in `collect_ignore`
+- **Logging Improvements**:
+  - Added stdout logging for dev tools coverage (previously missing)
+  - Added log rotation for dev tools stdout logs (keeps 8 versions like other pytest logs)
+  - Improved error handling with timeout and exception handling for dev tools coverage subprocess
+- **Exclusion Logic**:
+  - Added pytest temp directory patterns (`pytest-tmp-*`, `pytest-of-*`) to `standard_exclusions.py`
+  - Updated parsing functions (`extract_functions`, `extract_functions_from_file`, `extract_classes_from_file`, `extract_imports_from_file`) to skip pytest temp directories before parsing, preventing parsing errors from appearing in development tools logs
+  - Fixed exclusion logic to only exclude pytest-specific temp directories, not all `tests/data/` directories (allows test fixtures and `tmp_path` fixtures to work)
+- **Documentation Updates**: Updated `AI_DEVELOPMENT_TOOLS_GUIDE.md` and `DEVELOPMENT_TOOLS_GUIDE.md` to reflect parallel execution of coverage tools in Tier 3.
+- **Results**: Full audit now completes ~95 seconds faster, all three pytest stdout logs are generated and rotated properly, and parsing errors from pytest temp directories no longer appear in development tools logs.
+
 ### 2025-12-28 - Fix Test Log Rotation Issues **COMPLETED**
 - **Log Rotation Fix**: Fixed test log rotation functionality that was creating truncated backups (only 7 lines) and failing to rotate `test_consolidated.log`. Implemented robust rotation logic that only runs in the main process (not worker processes), includes file locking checks, uses non-blocking rotation with timeout, and employs retry logic with `shutil.copyfileobj` for Windows file locking issues.
 - **Technical Changes**: Modified `tests/conftest.py`:

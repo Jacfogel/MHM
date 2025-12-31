@@ -1,0 +1,38 @@
+{
+  // Pyright configuration for MHM project
+  
+  // Exclude paths - directories that shouldn't be type-checked
+  "exclude": [
+    "**/__pycache__",
+    "**/node_modules",
+    "**/.pytest_cache",
+    "**/.venv",
+    "**/venv",
+    "logs",
+    "logs/**",
+    "resources",
+    "resources/**",
+    "archive",
+    "archive/**",
+    "development_docs",
+    "development_docs/**",
+    "ai_development_docs",
+    "ai_development_docs/**",
+    "styles",
+    "styles/**",
+    "tests/logs",
+    "tests/logs/**",
+    "tests/data",
+    "tests/data/**",
+    "tests/temp",
+    "tests/temp/**",
+    "tests/fixtures",
+    "tests/fixtures/**",
+    ".git",
+    ".pytest_cache",
+    ".coverage",
+    "*.pyc",
+    "*.pyo"
+  ],
+ 
+}

@@ -246,9 +246,22 @@ class ProjectCleanup:
         if not test_data_dir.exists():
             return removed, failed
         
-        # Remove pytest-of-* directories
-        pytest_dirs = list(test_data_dir.glob("pytest-of-*"))
-        for dir_path in pytest_dirs:
+        # Remove pytest-of-* directories (created by pytest's tmpdir plugin)
+        pytest_of_dirs = list(test_data_dir.glob("pytest-of-*"))
+        for dir_path in pytest_of_dirs:
+            success, message = self.remove_path(dir_path, dry_run)
+            if success:
+                removed += 1
+                if not dry_run:
+                    logger.info(f"  {message}")
+            else:
+                failed += 1
+                if not dry_run:
+                    logger.warning(f"  {message}")
+        
+        # Remove pytest-tmp-* directories (created during parallel test execution)
+        pytest_tmp_dirs = list(test_data_dir.glob("pytest-tmp-*"))
+        for dir_path in pytest_tmp_dirs:
             success, message = self.remove_path(dir_path, dry_run)
             if success:
                 removed += 1

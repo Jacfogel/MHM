@@ -145,7 +145,12 @@ class TestCleanupOperations:
     def test_cleanup_legacy_references_dry_run(self, temp_project_copy):
         """Test that dry-run reports planned changes without modifying files."""
         analyzer = LegacyReferenceAnalyzer(str(temp_project_copy))
-        fixer = LegacyReferenceFixer(str(temp_project_copy))
+        # Provide replacement mappings so cleanup actually makes changes
+        replacement_mappings = {
+            'LEGACY COMPATIBILITY': 'MODERN COMPATIBILITY',
+            'legacy': 'modern'
+        }
+        fixer = LegacyReferenceFixer(str(temp_project_copy), replacement_mappings=replacement_mappings)
         
         # Verify legacy_code.py exists in the copied project
         legacy_file = temp_project_copy / "legacy_code.py"
@@ -168,7 +173,9 @@ class TestCleanupOperations:
         # The results should be a dict with some indication of what would change
         assert isinstance(cleanup_results, dict), f"Expected dict, got {type(cleanup_results)}"
         # May have keys like 'files_would_update', 'changes', 'files_updated', etc.
-        assert len(cleanup_results) > 0, "Cleanup results should not be empty"
+        # Note: defaultdict is empty if no keys accessed, so check if it has any keys OR if it's a regular dict
+        assert len(cleanup_results) > 0 or any(key in cleanup_results for key in ['files_would_update', 'changes', 'files_updated', 'errors']), \
+            f"Cleanup results should not be empty. Got: {cleanup_results}"
         
         # Verify files were NOT actually modified
         legacy_file = temp_project_copy / "legacy_code.py"
@@ -181,7 +188,12 @@ class TestCleanupOperations:
     def test_cleanup_legacy_references_actual_cleanup(self, temp_project_copy):
         """Test that actual cleanup modifies files correctly."""
         analyzer = LegacyReferenceAnalyzer(str(temp_project_copy))
-        fixer = LegacyReferenceFixer(str(temp_project_copy))
+        # Provide replacement mappings so cleanup actually makes changes
+        replacement_mappings = {
+            'LEGACY COMPATIBILITY': 'MODERN COMPATIBILITY',
+            'legacy': 'modern'
+        }
+        fixer = LegacyReferenceFixer(str(temp_project_copy), replacement_mappings=replacement_mappings)
         
         # Verify legacy_code.py exists in the copied project
         legacy_file = temp_project_copy / "legacy_code.py"
@@ -203,7 +215,9 @@ class TestCleanupOperations:
         # Should return a dict with results structure
         assert isinstance(cleanup_results, dict)
         # The results dict should have expected keys (may be empty lists if no changes made)
-        assert 'files_updated' in cleanup_results or 'changes' in cleanup_results or 'errors' in cleanup_results or 'files_would_update' in cleanup_results
+        # Note: defaultdict is empty if no keys accessed, so check if it has any keys OR if it's a regular dict
+        assert len(cleanup_results) > 0 or any(key in cleanup_results for key in ['files_updated', 'changes', 'errors', 'files_would_update']), \
+            f"Cleanup results should have expected keys. Got: {cleanup_results}"
         
         # Note: Actual cleanup may modify files, but we're using a copy so it's safe
 

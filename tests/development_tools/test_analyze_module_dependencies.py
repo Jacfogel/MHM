@@ -55,16 +55,33 @@ class TestScanAllPythonFiles:
     """Test scanning all Python files in project."""
     
     @pytest.mark.unit
-    def test_scan_all_python_files_demo_project(self, demo_project_root):
+    def test_scan_all_python_files_demo_project(self, demo_project_root, monkeypatch):
         """Test scanning demo project."""
-        with patch('development_tools.imports.analyze_module_dependencies.Path') as mock_path:
-            mock_path.return_value.parent.parent.parent = demo_project_root.parent.parent.parent
-            
-            results = scan_all_python_files()
-            
-            assert isinstance(results, dict)
-            # Should find at least demo_module.py
-            assert any('demo_module' in key for key in results.keys())
+        import development_tools.config as config_module
+        from development_tools.shared import standard_exclusions
+        
+        def mock_get_project_root():
+            return demo_project_root
+        
+        def mock_get_scan_directories():
+            return ['.']
+        
+        # Mock should_exclude_file to not exclude demo project files
+        original_should_exclude = standard_exclusions.should_exclude_file
+        def mock_should_exclude_file(file_path, tool_type, context='production'):
+            if 'development_tools_demo' in file_path:
+                return False
+            return original_should_exclude(file_path, tool_type, context)
+        
+        monkeypatch.setattr(config_module, 'get_project_root', mock_get_project_root)
+        monkeypatch.setattr(config_module, 'get_scan_directories', mock_get_scan_directories)
+        monkeypatch.setattr(standard_exclusions, 'should_exclude_file', mock_should_exclude_file)
+        
+        results = scan_all_python_files()
+        
+        assert isinstance(results, dict)
+        # Should find at least demo_module.py
+        assert any('demo_module' in key for key in results.keys())
 
 
 class TestParseModuleDependencies:

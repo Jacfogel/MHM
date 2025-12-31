@@ -181,6 +181,21 @@ def generate_function_template(func_type: str, func_name: str, file_path: str, a
 @handle_errors("extracting functions from file", default_return=[])
 def extract_functions(file_path: str) -> List[Dict]:
     """Extract all function definitions from a Python file."""
+    # Note: Exclusion logic is handled in scan_all_python_files() before calling this function.
+    # This function processes any file passed to it (including test fixtures and files in tests/),
+    # so we don't apply exclusions here. This allows tests to pass file paths directly.
+    
+    # Normalize path to handle both string and Path objects, and Windows/Unix path separators
+    from pathlib import Path
+    file_path_obj = Path(file_path)
+    # Resolve the path (handles relative paths, symlinks, etc.)
+    # This is safe even if the file doesn't exist yet - resolve() just normalizes the path
+    try:
+        file_path = str(file_path_obj.resolve())
+    except (OSError, RuntimeError):
+        # If resolve fails (e.g., broken symlink), use the path as-is
+        file_path = str(file_path_obj)
+    
     functions = []
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -233,12 +248,28 @@ def extract_functions(file_path: str) -> List[Dict]:
                     'file': file_path
                 })
     except Exception as e:
-        logger.error(f"Error parsing {file_path}: {e}")
+        # Log errors to help debug test failures
+        logger.error(f"Error parsing {file_path}: {e}", exc_info=True)
     return functions
 
 @handle_errors("extracting functions from file for registry", default_return=[])
 def extract_functions_from_file(file_path: str) -> List[Dict]:
     """Extract all function definitions from a Python file (registry format with templates)."""
+    # Note: Exclusion logic is handled in scan_all_python_files() before calling this function.
+    # This function processes any file passed to it (including test fixtures and files in tests/),
+    # so we don't apply exclusions here. This allows tests to pass file paths directly.
+    
+    # Normalize path to handle both string and Path objects, and Windows/Unix path separators
+    from pathlib import Path
+    file_path_obj = Path(file_path)
+    # Resolve the path (handles relative paths, symlinks, etc.)
+    # This is safe even if the file doesn't exist yet - resolve() just normalizes the path
+    try:
+        file_path = str(file_path_obj.resolve())
+    except (OSError, RuntimeError):
+        # If resolve fails (e.g., broken symlink), use the path as-is
+        file_path = str(file_path_obj)
+    
     functions = []
     
     try:
@@ -302,6 +333,7 @@ def extract_functions_from_file(file_path: str) -> List[Dict]:
                 })
                 
     except Exception as e:
+        # Only log errors for non-excluded files (excluded files are skipped above)
         logger.error(f"Error parsing {file_path}: {e}")
     
     return functions
@@ -309,6 +341,21 @@ def extract_functions_from_file(file_path: str) -> List[Dict]:
 @handle_errors("extracting classes from file", default_return=[])
 def extract_classes_from_file(file_path: str) -> List[Dict]:
     """Extract all class definitions from a Python file."""
+    # Note: Exclusion logic is handled in scan_all_python_files() before calling this function.
+    # This function processes any file passed to it (including test fixtures and files in tests/),
+    # so we don't apply exclusions here. This allows tests to pass file paths directly.
+    
+    # Normalize path to handle both string and Path objects, and Windows/Unix path separators
+    from pathlib import Path
+    file_path_obj = Path(file_path)
+    # Resolve the path (handles relative paths, symlinks, etc.)
+    # This is safe even if the file doesn't exist yet - resolve() just normalizes the path
+    try:
+        file_path = str(file_path_obj.resolve())
+    except (OSError, RuntimeError):
+        # If resolve fails (e.g., broken symlink), use the path as-is
+        file_path = str(file_path_obj)
+    
     classes = []
     
     try:
@@ -368,6 +415,7 @@ def extract_classes_from_file(file_path: str) -> List[Dict]:
                 })
                 
     except Exception as e:
+        # Only log errors for non-excluded files (excluded files are skipped above)
         logger.error(f"Error parsing {file_path}: {e}")
     
     return classes

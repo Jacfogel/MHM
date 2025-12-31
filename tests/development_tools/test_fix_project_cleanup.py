@@ -288,6 +288,12 @@ class TestProjectCleanup:
         """Test cleaning up test temp dirs when directory doesn't exist."""
         cleanup = ProjectCleanup(project_root=temp_project_copy)
         
+        # Ensure the directory doesn't exist
+        test_data_dir = temp_project_copy / "tests" / "data"
+        if test_data_dir.exists():
+            import shutil
+            shutil.rmtree(test_data_dir)
+        
         removed, failed = cleanup.cleanup_test_temp_dirs(dry_run=False)
         
         assert removed == 0, "Should remove nothing if directory doesn't exist"
@@ -300,9 +306,9 @@ class TestProjectCleanup:
         
         # Create test data directory with pytest temp dirs
         test_data = temp_project_copy / "tests" / "data"
-        test_data.mkdir(parents=True)
-        (test_data / "pytest-of-user").mkdir()
-        (test_data / "pytest-of-user-1").mkdir()
+        test_data.mkdir(parents=True, exist_ok=True)
+        (test_data / "pytest-of-user").mkdir(exist_ok=True)
+        (test_data / "pytest-of-user-1").mkdir(exist_ok=True)
         
         removed, failed = cleanup.cleanup_test_temp_dirs(dry_run=False)
         

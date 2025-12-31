@@ -90,17 +90,18 @@ python development_tools/run_development_tools.py help
 - **Use case**: Standard quality checks, daily development workflow
 
 ### 3.3. Tier 3: Full Audit - `audit --full`
-- **Duration**: ~9-10 minutes (coverage tools dominate at ~460s)
+- **Duration**: ~6-7 minutes (coverage tools run in parallel, reducing total time from ~460s to ~365s)
 - **Tools**: Everything in Tier 1 & 2 PLUS tools >10s (or groups containing tools >10s):
-  - **Coverage group** (runs sequentially, ~460s):
+  - **Coverage tools** (run in parallel, ~365s max):
     - `run_test_coverage` - Full test coverage execution (~365s, >10s)
-    - `generate_dev_tools_coverage` - Dev tools test coverage (~94s, >10s)
-    - `analyze_test_markers` - Test marker analysis (~2s, but part of coverage group)
+    - `generate_dev_tools_coverage` - Dev tools test coverage (~94s, >10s, runs in parallel with main tests)
+  - **Coverage-dependent tools** (run sequentially after coverage completes, ~7s):
+    - `analyze_test_markers` - Test marker analysis (~2s, requires coverage data)
     - `generate_test_coverage_report` - Coverage report generation (~5s, generates TEST_COVERAGE_REPORT.md, HTML, JSON)
-  - **Legacy group** (runs in parallel with coverage group):
+  - **Legacy group** (runs in parallel with coverage tools):
     - `analyze_legacy_references` - Legacy code scanning (~62s, >10s)
     - `generate_legacy_reference_report` - Legacy report generation (~1s, but part of legacy group)
-- **Execution**: Coverage group runs first (sequential), legacy group runs in parallel
+- **Execution**: Coverage tools and legacy group run in parallel; coverage-dependent tools run sequentially after coverage completes
 - **Use case**: Comprehensive analysis, pre-release checks, periodic deep audits
 
 **Note**: All three tiers update the same output files:

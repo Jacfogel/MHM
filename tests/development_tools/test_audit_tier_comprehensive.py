@@ -672,34 +672,92 @@ class TestCentralAggregation:
         reports_dir = dev_tools_dir / "reports"
         reports_dir.mkdir(exist_ok=True)
         
+        # Create domain jsons directories so tool results can be saved
+        (dev_tools_dir / "functions" / "jsons").mkdir(parents=True, exist_ok=True)
+        (dev_tools_dir / "docs" / "jsons").mkdir(parents=True, exist_ok=True)
+        (dev_tools_dir / "reports" / "jsons").mkdir(parents=True, exist_ok=True)
+        (dev_tools_dir / "config" / "jsons").mkdir(parents=True, exist_ok=True)
+        (dev_tools_dir / "ai_work" / "jsons").mkdir(parents=True, exist_ok=True)
+        
         # Save some test tool results first
         save_tool_result('analyze_functions', domain='functions', data={'total': 100}, project_root=temp_project_copy)
         save_tool_result('analyze_documentation', domain='docs', data={'status': 'GOOD'}, project_root=temp_project_copy)
         
-        # Mock all tools to return success
-        def mock_tool(*args, **kwargs):
-            return {'success': True, 'output': '{}', 'data': {}}
+        # Mock all tools to return success and save results
+        def mock_tool_with_save(tool_name, domain, *args, **kwargs):
+            """Mock tool that also saves results like real tools do."""
+            result = {'success': True, 'output': '{}', 'data': {'test': 'data'}}
+            # Save the result like real tools do
+            save_tool_result(tool_name, domain=domain, data=result.get('data', {}), project_root=temp_project_copy)
+            return result
         
         service.run_script = MagicMock(side_effect=lambda name, *args, **kwargs: {'success': True, 'output': '{}', 'data': {}})
-        service.run_system_signals = MagicMock(side_effect=mock_tool)
-        service.run_analyze_documentation = MagicMock(side_effect=mock_tool)
-        service.run_analyze_config = MagicMock(side_effect=mock_tool)
-        service.run_validate = MagicMock(side_effect=mock_tool)
-        service.run_analyze_function_patterns = MagicMock(side_effect=mock_tool)
-        service.run_decision_support = MagicMock(side_effect=mock_tool)
+        # Mock tools to save results
+        service.run_system_signals = MagicMock(side_effect=lambda *args, **kwargs: mock_tool_with_save('analyze_system_signals', 'reports', *args, **kwargs))
+        service.run_analyze_documentation = MagicMock(side_effect=lambda *args, **kwargs: mock_tool_with_save('analyze_documentation', 'docs', *args, **kwargs))
+        service.run_analyze_config = MagicMock(side_effect=lambda *args, **kwargs: mock_tool_with_save('analyze_config', 'config', *args, **kwargs))
+        service.run_validate = MagicMock(side_effect=lambda *args, **kwargs: mock_tool_with_save('analyze_ai_work', 'ai_work', *args, **kwargs))
+        service.run_analyze_function_patterns = MagicMock(side_effect=lambda *args, **kwargs: mock_tool_with_save('analyze_function_patterns', 'functions', *args, **kwargs))
+        service.run_decision_support = MagicMock(side_effect=lambda *args, **kwargs: mock_tool_with_save('decision_support', 'reports', *args, **kwargs))
         
         # Mock report generation
         service._generate_ai_status_document = MagicMock(return_value="# AI Status\n\nTest")
         service._generate_ai_priorities_document = MagicMock(return_value="# AI Priorities\n\nTest")
         service._generate_consolidated_report = MagicMock(return_value="Test Report")
         
+        # Track if _save_audit_results_aggregated is called and catch any exceptions
+        original_save = service._save_audit_results_aggregated
+        save_called = {'called': False, 'exception': None}
+        
+        def tracked_save(tier):
+            save_called['called'] = True
+            try:
+                return original_save(tier)
+            except Exception as e:
+                save_called['exception'] = e
+                raise
+        
+        service._save_audit_results_aggregated = tracked_save
+        
         # Run quick audit
         with patch('time.sleep'):  # Speed up test
             service.run_audit(quick=True)
         
+        # Verify _save_audit_results_aggregated was called
+        assert save_called['called'], "_save_audit_results_aggregated should have been called"
+        if save_called['exception']:
+            raise AssertionError(f"_save_audit_results_aggregated raised exception: {save_called['exception']}")
+        
         # Verify analysis_detailed_results.json exists and contains aggregated results
-        analysis_results_file = reports_dir / "analysis_detailed_results.json"
-        assert analysis_results_file.exists(), "analysis_detailed_results.json should exist"
+        # The file path is determined by audit_config, default is 'development_tools/reports/analysis_detailed_results.json'
+        results_file_path = service.audit_config.get('results_file', 'development_tools/reports/analysis_detailed_results.json')
+        analysis_results_file = (temp_project_copy / results_file_path).resolve()
+        # Also check the reports_dir location as fallback
+        if not analysis_results_file.exists():
+            analysis_results_file = reports_dir / "analysis_detailed_results.json"
+        
+        # Debug: Check if any results were found
+        all_results = get_all_tool_results(project_root=temp_project_copy)
+        debug_info = f"Found {len(all_results)} tool results: {list(all_results.keys())}"
+        
+        # Check if file exists in any possible location
+        possible_paths = [
+            analysis_results_file,
+            reports_dir / "analysis_detailed_results.json",
+            temp_project_copy / "development_tools" / "reports" / "analysis_detailed_results.json",
+        ]
+        
+        found_file = None
+        for path in possible_paths:
+            if path.exists():
+                found_file = path
+                break
+        
+        assert found_file is not None, \
+            f"analysis_detailed_results.json should exist. {debug_info}. Checked paths: {[str(p) for p in possible_paths]}"
+        
+        # Use the found file for further assertions
+        analysis_results_file = found_file
         
         with open(analysis_results_file, 'r', encoding='utf-8') as f:
             analysis_data = json.load(f)

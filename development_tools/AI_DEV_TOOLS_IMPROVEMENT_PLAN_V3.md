@@ -502,6 +502,92 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 
 **Files**: `development_tools/shared/service/audit_orchestration.py`, `development_tools/shared/service/commands.py` (line 535: `generate_directory_trees()`), `development_tools/docs/generate_directory_tree.py`
 
+#### 4.10 Investigate and Fix Missing Error Handling Information in AI_STATUS
+**Status**: PENDING  
+**Priority**: MEDIUM  
+**Issue**: AI_STATUS.md shows only the header `## Error Handling` but no content below it. Error handling information should be displayed but appears to be missing.
+
+**Tasks**:
+- [ ] Review `report_generation.py` to identify where error handling information is generated for AI_STATUS.md
+- [ ] Check if error handling data is being collected but not written to AI_STATUS.md
+- [ ] Verify error handling data exists in `analysis_detailed_results.json`
+- [ ] Compare error handling section in `consolidated_report.txt` vs `AI_STATUS.md` to identify discrepancy
+- [ ] Fix report generation logic to properly include error handling information in AI_STATUS.md
+- [ ] Verify error handling section displays correctly after fix
+
+**Files**: `development_tools/shared/service/report_generation.py`, `development_tools/AI_STATUS.md`, `development_tools/consolidated_report.txt`, `development_tools/reports/analysis_detailed_results.json`
+
+#### 4.11 Investigate Test Coverage Inclusion/Exclusion Consistency
+**Status**: PENDING  
+**Priority**: MEDIUM  
+**Issue**: Need to determine whether overall test coverage includes `development_tools` test coverage or excludes it, and most importantly whether it does so consistently across all reports and tools.
+
+**Tasks**:
+- [ ] Review how test coverage is calculated in `run_test_coverage.py` and `analyze_test_coverage.py`
+- [ ] Check if `development_tools/` is included or excluded from overall coverage calculations
+- [ ] Verify consistency across:
+  - Overall project coverage reports
+  - Development tools coverage reports (separate tracking)
+  - Coverage metrics in `AI_STATUS.md`
+  - Coverage metrics in `consolidated_report.txt`
+  - Coverage metrics in `TEST_COVERAGE_REPORT.md`
+- [ ] Document the inclusion/exclusion policy clearly
+- [ ] Ensure all tools and reports follow the same policy consistently
+- [ ] Update documentation to clarify coverage calculation methodology
+
+**Files**: `development_tools/tests/run_test_coverage.py`, `development_tools/tests/analyze_test_coverage.py`, `development_tools/shared/service/report_generation.py`, `development_tools/AI_STATUS.md`, `development_docs/TEST_COVERAGE_REPORT.md`
+
+#### 4.12 Investigate htmlcov/ Directory Recreation
+**Status**: PENDING  
+**Priority**: MEDIUM  
+**Issue**: `htmlcov/` directory keeps being recreated as an empty top-level directory. This suggests coverage HTML report generation is being triggered but not completing, or cleanup is removing files but not the directory.
+
+**Tasks**:
+- [ ] Review coverage report generation in `run_test_coverage.py` and `generate_test_coverage_report.py`
+- [ ] Check if HTML report generation is being triggered but failing silently
+- [ ] Verify if cleanup logic is removing HTML files but leaving the directory
+- [ ] Check `.gitignore` to ensure `htmlcov/` is properly ignored
+- [ ] Identify what triggers HTML report generation and why it's creating empty directories
+- [ ] Fix the root cause (either complete HTML generation or prevent empty directory creation)
+- [ ] Add cleanup logic to remove empty `htmlcov/` directories if HTML generation is disabled
+
+**Files**: `development_tools/tests/run_test_coverage.py`, `development_tools/tests/generate_test_coverage_report.py`, `.gitignore`
+
+#### 4.13 Investigate .coverage File Locations
+**Status**: PENDING  
+**Priority**: MEDIUM  
+**Issue**: `.coverage` files are appearing in both root directory and `development_tools/tests/` directory. This suggests coverage data collection is happening in multiple locations with different working directories.
+
+**Tasks**:
+- [ ] Review pytest coverage configuration in `pytest.ini` and `conftest.py` files
+- [ ] Check if `--cov` arguments specify different data files or working directories
+- [ ] Identify which test runs create `.coverage` in root vs `development_tools/tests/`
+- [ ] Review `run_test_coverage.py` to see how coverage data file location is configured
+- [ ] Determine if separate coverage files are intentional (separate tracking) or accidental
+- [ ] Standardize coverage data file location (either root or `development_tools/tests/`, not both)
+- [ ] Update `.gitignore` to ensure both locations are ignored if needed
+- [ ] Document the intended coverage data file location
+
+**Files**: `pytest.ini`, `tests/conftest.py`, `development_tools/tests/run_test_coverage.py`, `.gitignore`, `.coverage`, `development_tools/tests/.coverage`
+
+#### 4.14 Investigate Coverage File Creation in development_tools/tests/
+**Status**: PENDING  
+**Priority**: MEDIUM  
+**Issue**: Coverage data files (`.coverage_dev_tools.*`, `.coverage_parallel.*`) are being created in `development_tools/tests/` instead of in `tests/` like before. This suggests a change in working directory or coverage configuration.
+
+**Tasks**:
+- [ ] Review recent changes to coverage configuration or test execution
+- [ ] Check if working directory changed when running development tools tests
+- [ ] Review `run_test_coverage.py` to see how coverage data file paths are determined
+- [ ] Check if `--cov` arguments or `COVERAGE_FILE` environment variable changed
+- [ ] Compare current behavior with historical behavior (when files were created in `tests/`)
+- [ ] Determine if this is intentional (separate dev tools coverage) or accidental
+- [ ] If intentional: Document the separation and ensure `.gitignore` covers both locations
+- [ ] If accidental: Fix coverage configuration to use `tests/` directory as before
+- [ ] Clean up existing coverage files in `development_tools/tests/` if location is corrected
+
+**Files**: `development_tools/tests/run_test_coverage.py`, `pytest.ini`, `tests/conftest.py`, `.gitignore`, `development_tools/tests/.coverage*`
+
 ---
 
 ### Stage 5: Future Enhancements (Low Priority)

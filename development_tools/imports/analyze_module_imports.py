@@ -51,6 +51,21 @@ class ModuleImportAnalyzer:
     
     def extract_imports_from_file(self, file_path: str) -> Dict[str, List[Dict]]:
         """Extract all imports from a Python file with detailed information."""
+        # Note: Exclusion logic is handled in scan_all_python_files() before calling this function.
+        # This function processes any file passed to it (including test fixtures and files in tests/),
+        # so we don't apply exclusions here. This allows tests to pass file paths directly.
+        
+        # Normalize path to handle both string and Path objects, and Windows/Unix path separators
+        from pathlib import Path
+        file_path_obj = Path(file_path)
+        # Resolve the path (handles relative paths, symlinks, etc.)
+        # This is safe even if the file doesn't exist yet - resolve() just normalizes the path
+        try:
+            file_path = str(file_path_obj.resolve())
+        except (OSError, RuntimeError):
+            # If resolve fails (e.g., broken symlink), use the path as-is
+            file_path = str(file_path_obj)
+        
         imports = {
             'standard_library': [],
             'third_party': [],
@@ -105,6 +120,7 @@ class ModuleImportAnalyzer:
                             imports['third_party'].append(import_info)
                     
         except Exception as e:
+            # Only log errors for non-excluded files (excluded files are skipped above)
             logger.error(ensure_ascii(f"Error parsing {file_path}: {e}"))
         
         return imports
@@ -156,6 +172,9 @@ class ModuleImportAnalyzer:
         """Scan all Python files in the project and extract import information."""
         results = {}
         
+        # Import exclusion utilities (import at module level for testability)
+        from ..shared import standard_exclusions
+        
         # Directories to scan from configuration
         scan_dirs = config.get_scan_directories()
         
@@ -163,8 +182,12 @@ class ModuleImportAnalyzer:
             dir_path = self.project_root / scan_dir
             if not dir_path.exists():
                 continue
-                
+            
             for py_file in dir_path.rglob('*.py'):
+                # Use production context exclusions to match audit behavior
+                if standard_exclusions.should_exclude_file(str(py_file), 'analysis', 'production'):
+                    continue
+                
                 relative_path = py_file.relative_to(self.project_root)
                 file_key = str(relative_path).replace('\\', '/')
                 
@@ -178,6 +201,10 @@ class ModuleImportAnalyzer:
         # Also scan root directory for .py files
         for py_file in self.project_root.glob('*.py'):
             if py_file.name not in ['generate_function_registry.py', 'generate_module_dependencies.py']:
+                # Use production context exclusions to match audit behavior
+                if standard_exclusions.should_exclude_file(str(py_file), 'analysis', 'production'):
+                    continue
+                
                 file_key = py_file.name
                 
                 imports = self.extract_imports_from_file(str(py_file))

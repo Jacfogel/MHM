@@ -394,6 +394,9 @@ class CoverageMetricsRegenerator:
                     '--tb=line',  # Use line format for cleaner parallel output
                     '-q',  # Quiet mode - reduces output noise
                     f'--maxfail={self.maxfail}',
+                    # Ignore temp directories to prevent collecting tests from temp files
+                    '--ignore=tests/data/pytest-tmp-*',
+                    '--ignore=tests/data/pytest-of-*',
                     'tests/'
                 ])
             else:
@@ -406,6 +409,9 @@ class CoverageMetricsRegenerator:
                     '--tb=line',
                     '-q',
                     f'--maxfail={self.maxfail}',
+                    # Ignore temp directories to prevent collecting tests from temp files
+                    '--ignore=tests/data/pytest-tmp-*',
+                    '--ignore=tests/data/pytest-of-*',
                     'tests/'
                 ])
             
@@ -435,10 +441,29 @@ class CoverageMetricsRegenerator:
             # Ensure PATH includes Python executable's directory for Windows DLL resolution
             env = self._ensure_python_path_in_env(env)
             if self.parallel:
-                # Use absolute path to ensure coverage.py uses our specified location
+                # CRITICAL: Set COVERAGE_FILE to .coverage_parallel (not .coverage) so shard files aren't auto-combined
+                # pytest-xdist workers will create .coverage_parallel.worker0, .coverage_parallel.worker1, etc.
+                # in the same directory. If we used .coverage, pytest-cov would auto-combine them at the end.
+                # We need the shard files to remain separate so we can combine them with no_parallel coverage.
                 env['COVERAGE_FILE'] = str(parallel_coverage_file.resolve())
+                # Also set COVERAGE_RCFILE to ensure workers use the same config
+                if self.coverage_config_path.exists():
+                    env['COVERAGE_RCFILE'] = str(self.coverage_config_path.resolve())
+                if logger:
+                    logger.debug(f"Set COVERAGE_FILE={env['COVERAGE_FILE']} for parallel execution (shard files will be created as .coverage_parallel.worker* in {parallel_coverage_file.parent})")
             else:
                 env['COVERAGE_FILE'] = str(self.coverage_data_file.resolve())
+            
+            # Set unique pytest temp directory to avoid conflicts when running in parallel with dev tools coverage
+            # Use a unique identifier based on process/coverage type to ensure isolation
+            import uuid
+            unique_id = f"main_{uuid.uuid4().hex[:8]}"
+            pytest_temp_base = self.project_root / "tests" / "data" / f"pytest-tmp-{unique_id}"
+            pytest_temp_base.mkdir(parents=True, exist_ok=True)
+            # Set PYTEST_CACHE_DIR to ensure pytest uses unique cache directory
+            env['PYTEST_CACHE_DIR'] = str(pytest_temp_base / ".pytest_cache")
+            # Also set basetemp via command line argument for tmpdir fixture
+            cmd.append(f'--basetemp={pytest_temp_base}')
             
             # Log the full command for debugging (single log entry instead of truncated + full)
             if logger:
@@ -728,6 +753,9 @@ class CoverageMetricsRegenerator:
                     '--tb=line',
                     '-q',
                     f'--maxfail={self.maxfail}',
+                    # Ignore temp directories to prevent collecting tests from temp files
+                    '--ignore=tests/data/pytest-tmp-*',
+                    '--ignore=tests/data/pytest-of-*',
                     'tests/'
                 ]
                 
@@ -737,6 +765,15 @@ class CoverageMetricsRegenerator:
                 # Ensure PATH includes Python executable's directory for Windows DLL resolution
                 no_parallel_env = self._ensure_python_path_in_env(no_parallel_env)
                 no_parallel_env['COVERAGE_FILE'] = str(no_parallel_coverage_file.resolve())
+                # Set unique pytest temp directory to avoid conflicts when running in parallel with dev tools coverage
+                import uuid
+                unique_id = f"no_parallel_{uuid.uuid4().hex[:8]}"
+                pytest_temp_base = self.project_root / "tests" / "data" / f"pytest-tmp-{unique_id}"
+                pytest_temp_base.mkdir(parents=True, exist_ok=True)
+                # Set PYTEST_CACHE_DIR to ensure pytest uses unique cache directory
+                no_parallel_env['PYTEST_CACHE_DIR'] = str(pytest_temp_base / ".pytest_cache")
+                # Also set basetemp via command line argument for tmpdir fixture
+                no_parallel_cmd.append(f'--basetemp={pytest_temp_base}')
                 
                 # Create log file for no_parallel run (only stdout, stderr merged)
                 # Rotate old log files before creating new ones (keep 1 current + 7 archived = 8 total)
@@ -794,13 +831,20 @@ class CoverageMetricsRegenerator:
                         logger.warning(f"Return code: {no_parallel_result.returncode}, Output length: {len(no_parallel_output)} chars")
                         if no_parallel_result.returncode != 0:
                             # Check for specific Windows error codes
+                            # 0xC0000135 = 3221226505 (STATUS_DLL_NOT_FOUND)
+                            # 0xC0000005 = 3221225477 (STATUS_ACCESS_VIOLATION)
                             if no_parallel_result.returncode == 3221226505:  # 0xC0000135 STATUS_DLL_NOT_FOUND
                                 logger.error(f"Pytest crashed with Windows error 0xC0000135 (STATUS_DLL_NOT_FOUND) - missing DLL required by Python or dependencies")
                                 logger.error(f"This usually indicates: missing system DLL, corrupted Python installation, or PATH issues")
                                 logger.error(f"Check log for details: {no_parallel_stdout_log}")
                                 logger.error(f"Troubleshooting: verify Python installation, check PATH, try reinstalling pytest/dependencies")
+                            elif no_parallel_result.returncode == 3221225477:  # 0xC0000005 STATUS_ACCESS_VIOLATION
+                                logger.error(f"Pytest crashed with Windows error 0xC0000005 (STATUS_ACCESS_VIOLATION) - memory access violation")
+                                logger.error(f"This usually indicates: memory corruption, threading issue, or library conflict (common with Qt/PyQt UI tests)")
+                                logger.error(f"Check log for details: {no_parallel_stdout_log}")
+                                logger.error(f"Troubleshooting: check for UI test issues, threading problems, or library conflicts")
                             else:
-                                logger.warning(f"Pytest exited with non-zero code {no_parallel_result.returncode} - check log for errors: {no_parallel_stdout_log}")
+                                logger.warning(f"Pytest exited with non-zero code {no_parallel_result.returncode} (0x{no_parallel_result.returncode:08X}) - check log for errors: {no_parallel_stdout_log}")
                             # Try to extract any error message from the output
                             if no_parallel_output:
                                 lines = no_parallel_output.split('\n')
@@ -817,11 +861,35 @@ class CoverageMetricsRegenerator:
                 if not no_parallel_output or (not no_parallel_test_results.get('total_tests', 0) and no_parallel_result.returncode != 0):
                     if logger:
                         logger.warning(f"No_parallel tests produced no output - subprocess may have failed silently")
-                        logger.warning(f"Return code: {no_parallel_result.returncode}, Log file exists: {no_parallel_stdout_log.exists()}, Log size: {no_parallel_stdout_log.stat().st_size if no_parallel_stdout_log.exists() else 0} bytes")
+                        logger.warning(f"Return code: {no_parallel_result.returncode} (0x{no_parallel_result.returncode:08X}), Log file exists: {no_parallel_stdout_log.exists()}, Log size: {no_parallel_stdout_log.stat().st_size if no_parallel_stdout_log.exists() else 0} bytes")
+                        # Check for specific Windows error codes that indicate crashes
+                        if no_parallel_result.returncode == 3221225477:  # 0xC0000005 STATUS_ACCESS_VIOLATION
+                            logger.error(f"Pytest crashed with Windows error 0xC0000005 (STATUS_ACCESS_VIOLATION) - memory access violation")
+                            logger.error(f"This usually indicates: memory corruption, threading issue, or library conflict (common with Qt/PyQt UI tests)")
+                            logger.error(f"Check log for details: {no_parallel_stdout_log}")
+                            logger.error(f"Troubleshooting: check for UI test issues, threading problems, or library conflicts")
+                        elif no_parallel_result.returncode == 3221226505:  # 0xC0000135 STATUS_DLL_NOT_FOUND
+                            logger.error(f"Pytest crashed with Windows error 0xC0000135 (STATUS_DLL_NOT_FOUND) - missing DLL required by Python or dependencies")
+                            logger.error(f"This usually indicates: missing system DLL, corrupted Python installation, or PATH issues")
+                            logger.error(f"Check log for details: {no_parallel_stdout_log}")
+                            logger.error(f"Troubleshooting: verify Python installation, check PATH, try reinstalling pytest/dependencies")
                         if no_parallel_stdout_log.exists():
                             log_content = no_parallel_stdout_log.read_text(encoding='utf-8', errors='ignore')
                             if log_content:
                                 logger.warning(f"Log file has {len(log_content)} chars but parser found no tests")
+                                # Try to extract crash information from log
+                                if 'Windows fatal exception' in log_content or 'access violation' in log_content.lower():
+                                    logger.error("Log contains Windows fatal exception - this indicates a crash, not a test failure")
+                                    # Extract the test that crashed
+                                    lines = log_content.split('\n')
+                                    for i, line in enumerate(lines):
+                                        if 'File "' in line and 'test_' in line:
+                                            logger.error(f"Crash occurred in: {line.strip()}")
+                                            # Show a few lines of context
+                                            for j in range(max(0, i-2), min(len(lines), i+3)):
+                                                if j != i:
+                                                    logger.debug(f"  {lines[j].strip()}")
+                                            break
                             else:
                                 logger.warning(f"Log file is empty - subprocess may not have started or output was not captured")
                 
@@ -858,6 +926,10 @@ class CoverageMetricsRegenerator:
                 if logger:
                     if parallel_coverage_file:
                         logger.debug(f"Parallel coverage file path: {parallel_coverage_file}, exists: {parallel_coverage_file.exists()}")
+                        # Also check what files actually exist in that directory
+                        if parallel_coverage_file.parent.exists():
+                            all_files = list(parallel_coverage_file.parent.glob(".coverage*"))
+                            logger.debug(f"All .coverage* files in {parallel_coverage_file.parent}: {[f.name for f in all_files]}")
                     if no_parallel_coverage_file:
                         logger.debug(f"No_parallel coverage file path: {no_parallel_coverage_file}, exists: {no_parallel_coverage_file.exists()}")
                 
@@ -869,12 +941,65 @@ class CoverageMetricsRegenerator:
                 no_parallel_exists = no_parallel_coverage_file and no_parallel_coverage_file.exists()
                 
                 # Check for shard files from parallel execution (pytest-xdist creates these)
-                parallel_shard_files = list(coverage_dir.glob(".coverage.*")) if coverage_dir.exists() else []
-                # Filter out our temporary files and the final combined file
+                # When COVERAGE_FILE is set to .coverage_parallel, workers create .coverage_parallel.worker0, etc.
+                # Shard files should be in the coverage directory (where COVERAGE_FILE points)
+                parallel_shard_files = []
+                if coverage_dir.exists():
+                    # Look for shard files: .coverage_parallel.worker0, .coverage_parallel.worker1, etc.
+                    parallel_shard_files.extend(list(coverage_dir.glob(".coverage_parallel.worker*")))
+                    # Also check for .coverage.worker* files (in case COVERAGE_FILE wasn't set correctly)
+                    parallel_shard_files.extend([f for f in coverage_dir.glob(".coverage.worker*") 
+                                                if f.name not in ['.coverage']])
+                    # Log all .coverage* files found for debugging
+                    if logger:
+                        all_coverage_files = list(coverage_dir.glob(".coverage*"))
+                        logger.debug(f"All .coverage* files in {coverage_dir}: {[f.name for f in all_coverage_files]}")
+                        # Check if .coverage exists (might have been auto-combined)
+                        coverage_file = coverage_dir / ".coverage"
+                        if coverage_file.exists():
+                            file_size = coverage_file.stat().st_size
+                            logger.debug(f"Found .coverage file ({file_size} bytes) - shard files may have been auto-combined")
+                # Filter out the main parallel coverage file (we want shard files, not the combined one)
                 parallel_shard_files = [f for f in parallel_shard_files 
-                                      if not f.name.endswith('.parallel') 
-                                      and not f.name.endswith('.no_parallel')
+                                      if f.name != '.coverage_parallel'
+                                      and f.name != '.coverage_no_parallel'
                                       and f.name != '.coverage']
+                if logger:
+                    logger.debug(f"Found {len(parallel_shard_files)} shard files after filtering: {[f.name for f in parallel_shard_files]}")
+                    
+                # If no shard files found but .coverage exists, it might contain the parallel coverage
+                # Check if we should use .coverage as the parallel coverage source
+                coverage_file = coverage_dir / ".coverage"
+                if not parallel_shard_files and not parallel_exists and coverage_file.exists() and logger:
+                    logger.warning(
+                        f"No shard files found and .coverage_parallel doesn't exist, but .coverage exists. "
+                        f"This suggests pytest-cov may have auto-combined shard files into .coverage. "
+                        f"Will attempt to use .coverage as parallel coverage source."
+                    )
+                
+                # Check project root for shard files (shouldn't be there, but log if found)
+                project_root_shards = []
+                project_root_shards.extend([f for f in self.project_root.glob(".coverage_parallel.worker*")])
+                project_root_shards.extend([f for f in self.project_root.glob(".coverage.worker*") 
+                                           if f.name != '.coverage'])
+                if project_root_shards and logger:
+                    logger.warning(
+                        f"Found {len(project_root_shards)} shard files in project root (should be in {coverage_dir}). "
+                        f"This indicates COVERAGE_FILE environment variable may not have been respected by pytest-xdist workers. "
+                        f"Shard files: {[f.name for f in project_root_shards[:5]]}"
+                    )
+                    # Copy them to the correct location so they can be combined
+                    for shard_file in project_root_shards:
+                        try:
+                            dest_file = coverage_dir / shard_file.name
+                            if not dest_file.exists():
+                                shutil.copy2(shard_file, dest_file)
+                                parallel_shard_files.append(dest_file)
+                                if logger:
+                                    logger.debug(f"Copied misplaced shard file {shard_file.name} from project root to coverage directory")
+                        except Exception as copy_error:
+                            if logger:
+                                logger.warning(f"Failed to copy misplaced shard file {shard_file.name}: {copy_error}")
                 
                 if parallel_exists or no_parallel_exists or parallel_shard_files:
                     if logger:
@@ -893,11 +1018,24 @@ class CoverageMetricsRegenerator:
                         # Also check for shard files from parallel execution
                         files_to_combine = []
                         
+                        # Check for parallel coverage in multiple possible locations
+                        parallel_coverage_source = None
                         if parallel_coverage_file and parallel_coverage_file.exists():
-                            shutil.copy2(parallel_coverage_file, project_root_coverage_parallel)
+                            parallel_coverage_source = parallel_coverage_file
+                        elif not parallel_shard_files:
+                            # If no shard files and no .coverage_parallel, check if .coverage exists
+                            # (pytest-cov might have auto-combined shard files into .coverage)
+                            coverage_file = coverage_dir / ".coverage"
+                            if coverage_file.exists():
+                                parallel_coverage_source = coverage_file
+                                if logger:
+                                    logger.info(f"Using .coverage as parallel coverage source (shard files were likely auto-combined)")
+                        
+                        if parallel_coverage_source:
+                            shutil.copy2(parallel_coverage_source, project_root_coverage_parallel)
                             files_to_combine.append(project_root_coverage_parallel)
                             if logger:
-                                logger.debug(f"Copied parallel coverage file from {parallel_coverage_file} to {project_root_coverage_parallel}")
+                                logger.debug(f"Copied parallel coverage file from {parallel_coverage_source} to {project_root_coverage_parallel}")
                         elif parallel_shard_files:
                             # If main parallel coverage file doesn't exist (e.g., due to timeout),
                             # but shard files exist, we can still combine using shard files
@@ -905,7 +1043,7 @@ class CoverageMetricsRegenerator:
                                 logger.info(f"Parallel coverage file not found (may have timed out), but {len(parallel_shard_files)} shard files exist - will combine shard files")
                         else:
                             if logger:
-                                logger.warning(f"Parallel coverage file not found: {parallel_coverage_file}")
+                                logger.warning(f"Parallel coverage file not found: {parallel_coverage_file}, and no shard files found")
                         
                         if no_parallel_coverage_file and no_parallel_coverage_file.exists():
                             shutil.copy2(no_parallel_coverage_file, project_root_coverage_no_parallel)
@@ -916,7 +1054,7 @@ class CoverageMetricsRegenerator:
                             if logger:
                                 logger.warning(f"No_parallel coverage file not found: {no_parallel_coverage_file}")
                         
-                        # Shard files from parallel execution are already in the coverage directory with .coverage.* naming
+                        # Shard files should already be in the coverage directory (where COVERAGE_FILE points)
                         # They'll be picked up automatically by coverage combine
                         if parallel_shard_files:
                             if logger:
@@ -937,6 +1075,10 @@ class CoverageMetricsRegenerator:
                         if logger:
                             total_files = len(files_to_combine) + len(parallel_shard_files)
                             logger.debug(f"Running coverage combine from {coverage_dir} with {total_files} files to combine")
+                            if parallel_shard_files:
+                                logger.debug(f"Shard files to combine ({len(parallel_shard_files)}): {[f.name for f in parallel_shard_files[:10]]}")
+                            if files_to_combine:
+                                logger.debug(f"Copied files to combine: {[f.name for f in files_to_combine]}")
                         
                         # Run combine from the coverage directory so it finds the .coverage.* files
                         combine_result = subprocess.run(
@@ -961,6 +1103,15 @@ class CoverageMetricsRegenerator:
                                         logger.debug(f"Coverage files found in {coverage_dir}: {[f.name for f in all_files]}")
                         elif logger:
                             logger.info("Successfully combined coverage data from parallel and no_parallel runs")
+                            # Validate that we actually have coverage data (detect silent failures)
+                            if self.coverage_data_file.exists():
+                                file_size = self.coverage_data_file.stat().st_size
+                                if file_size == 0:
+                                    logger.warning("Combined coverage file is empty - combine may have failed silently")
+                                else:
+                                    logger.debug(f"Combined coverage file: {self.coverage_data_file.name} ({file_size} bytes)")
+                            else:
+                                logger.warning("Combined coverage file was not created after combine operation")
                         
                         # Clean up temporary .coverage.* files from project root
                         try:
@@ -1034,6 +1185,18 @@ class CoverageMetricsRegenerator:
                                     if self.analyzer:
                                         coverage_data = self.analyzer.load_coverage_json(coverage_output)
                                         overall_coverage = self.analyzer.extract_overall_from_json(coverage_output)
+                                        
+                                        # Validate coverage percentage - if it's unexpectedly low, warn
+                                        # Expected coverage should be around 70-75% based on historical data
+                                        coverage_pct = overall_coverage.get('overall_coverage', 0)
+                                        if coverage_pct > 0 and coverage_pct < 50:
+                                            logger.warning(
+                                                f"Coverage percentage ({coverage_pct}%) is unexpectedly low. "
+                                                f"Expected ~70-75%. This may indicate parallel coverage data was not included. "
+                                                f"Parallel file exists: {parallel_coverage_file.exists() if parallel_coverage_file else False}, "
+                                                f"No_parallel file exists: {no_parallel_coverage_file.exists() if no_parallel_coverage_file else False}, "
+                                                f"Shard files found: {len(parallel_shard_files)}"
+                                            )
                                     else:
                                         coverage_data = {}
                                         overall_coverage = {}
@@ -1099,6 +1262,10 @@ class CoverageMetricsRegenerator:
             # Note: coverage_output path is relative to project_root, so we need to make it absolute
             coverage_output_abs = coverage_output.resolve()
             dev_cov_config = self.dev_tools_coverage_config_path if self.dev_tools_coverage_config_path.exists() else self.coverage_config_path
+            # Create timestamp for log file
+            from datetime import datetime
+            timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
+            
             cmd = [
                 sys.executable, '-m', 'pytest',
                 '-m', 'not e2e',  # Exclude e2e tests (slow, excluded from regular runs per pytest.ini)
@@ -1110,6 +1277,9 @@ class CoverageMetricsRegenerator:
                 '-q',
                 '--maxfail=10',  # Allow more failures before stopping (some tests may be flaky)
                 '--continue-on-collection-errors',  # Continue even if collection fails
+                # Ignore temp directories to prevent collecting tests from temp files
+                '--ignore=tests/data/pytest-tmp-*',
+                '--ignore=tests/data/pytest-of-*',
                 'tests/development_tools/'
             ]
             
@@ -1123,14 +1293,72 @@ class CoverageMetricsRegenerator:
             env['COVERAGE_FILE'] = str(self.dev_tools_coverage_data_file.resolve())
             if dev_cov_config and dev_cov_config.exists():
                 env['COVERAGE_RCFILE'] = str(dev_cov_config.resolve())
+            # Set unique pytest temp directory to avoid conflicts when running in parallel with main coverage
+            # Use a unique identifier based on process/coverage type to ensure isolation
+            import uuid
+            unique_id = f"dev_tools_{uuid.uuid4().hex[:8]}"
+            pytest_temp_base = self.project_root / "tests" / "data" / f"pytest-tmp-{unique_id}"
+            pytest_temp_base.mkdir(parents=True, exist_ok=True)
+            # Set PYTEST_CACHE_DIR to ensure pytest uses unique cache directory
+            env['PYTEST_CACHE_DIR'] = str(pytest_temp_base / ".pytest_cache")
+            # Also set basetemp via command line argument for tmpdir fixture
+            cmd.append(f'--basetemp={pytest_temp_base}')
             
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                cwd=self.project_root,
-                env=env
-            )
+            # Set up stdout logging for dev tools coverage (similar to main coverage)
+            # Rotate old log files before creating new ones (keep 1 current + 7 archived = 8 total)
+            self._rotate_log_files('pytest_dev_tools_stdout', max_versions=8)
+            
+            dev_tools_stdout_log = self.coverage_logs_dir / f"pytest_dev_tools_stdout_{timestamp}.log"
+            dev_tools_stdout_log.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Run pytest and capture output to both stdout and log file
+            try:
+                result = subprocess.run(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,  # Merge stderr into stdout
+                    text=True,
+                    cwd=self.project_root,
+                    env=env,
+                    timeout=720  # 12 minutes timeout
+                )
+                # Ensure stdout is not None
+                if result.stdout is None:
+                    result.stdout = ""
+                if result.stderr is None:
+                    result.stderr = ""
+                # Write to log file
+                with open(dev_tools_stdout_log, 'w', encoding='utf-8', errors='replace') as log_file:
+                    log_file.write(result.stdout)
+                    if result.stderr and result.stderr != result.stdout:
+                        log_file.write("\n\n=== STDERR ===\n")
+                        log_file.write(result.stderr)
+            except subprocess.TimeoutExpired:
+                if logger:
+                    logger.error(f"Dev tools coverage pytest timed out after 12 minutes")
+                with open(dev_tools_stdout_log, 'w', encoding='utf-8', errors='replace') as log_file:
+                    log_file.write("ERROR: pytest timed out after 12 minutes\n")
+                # Create a fake result object for error handling
+                class FakeResult:
+                    returncode = 1
+                    stdout = "ERROR: pytest timed out after 12 minutes\n"
+                    stderr = ""
+                result = FakeResult()
+            except Exception as e:
+                if logger:
+                    logger.error(f"Error running dev tools coverage pytest: {e}", exc_info=True)
+                with open(dev_tools_stdout_log, 'w', encoding='utf-8', errors='replace') as log_file:
+                    log_file.write(f"ERROR: Exception running pytest: {e}\n")
+                # Create a fake result object for error handling
+                class FakeResult:
+                    returncode = 1
+                    stdout = f"ERROR: Exception running pytest: {e}\n"
+                    stderr = ""
+                result = FakeResult()
+            
+            if logger:
+                log_size = dev_tools_stdout_log.stat().st_size if dev_tools_stdout_log.exists() else 0
+                logger.info(f"Saved dev tools pytest output to {dev_tools_stdout_log} ({log_size} bytes)")
             
             # Parse coverage results (even if pytest exited with non-zero code, coverage may still be available)
             if self.analyzer:
@@ -1165,6 +1393,9 @@ class CoverageMetricsRegenerator:
                         logger.warning(f"Dev tools coverage pytest exited with code {result.returncode} and no coverage data could be extracted")
                         if result.stderr:
                             logger.warning(f"Pytest stderr: {result.stderr[:500]}")
+                        if result.stdout:
+                            # Log more of stdout to see what happened
+                            logger.warning(f"Pytest stdout (last 1000 chars): {result.stdout[-1000:]}")
             
             # If still no coverage data, check if the file was created
             if not overall_coverage.get('overall_coverage') and not coverage_output.exists():
@@ -1175,7 +1406,11 @@ class CoverageMetricsRegenerator:
                         # Look for coverage summary in stdout
                         if 'TOTAL' in result.stdout:
                             logger.info("Coverage data found in stdout but JSON not created")
-                        logger.debug(f"Pytest stdout (last 500 chars): {result.stdout[-500:]}")
+                        # Log more of stdout to diagnose the issue
+                        logger.warning(f"Pytest stdout (last 1000 chars): {result.stdout[-1000:]}")
+                        # Also log first part to see if there are early errors
+                        if len(result.stdout) > 1000:
+                            logger.warning(f"Pytest stdout (first 500 chars): {result.stdout[:500]}")
                     if result.stderr:
                         logger.warning(f"Pytest stderr: {result.stderr[:500]}")
             
@@ -1562,13 +1797,20 @@ class CoverageMetricsRegenerator:
             coverage_results = self.run_dev_tools_coverage()
             
             if not coverage_results:
-                logger.error("Failed to get dev tools coverage data - run_dev_tools_coverage returned empty result")
-                return {}
+                error_msg = "Failed to get dev tools coverage data - run_dev_tools_coverage returned empty result"
+                logger.error(error_msg)
+                print(f"ERROR: {error_msg}", file=sys.stderr)
+                sys.exit(1)
             
             # Check if coverage was actually collected
             if not coverage_results.get('coverage_collected', False):
-                logger.error("Dev tools coverage analysis completed but no coverage data was collected - tests may not have run")
-                return {}
+                error_msg = "Dev tools coverage analysis completed but no coverage data was collected - tests may not have run"
+                logger.error(error_msg)
+                # Print to stdout so run_script() can capture it
+                print(f"ERROR: {error_msg}")
+                # Still return the results dict so caller can check coverage_collected flag
+                # Exit with non-zero code to indicate failure
+                sys.exit(1)
             
             # Generate summary for dev tools
             if self.report_generator:

@@ -282,6 +282,11 @@ When adding new tasks, follow this format:
 - *Why it helps*: Improves debugging capabilities and ensures important test information is captured
 - *Estimated effort*: Medium
 
+**Investigate test log rotation only saving 1 backup and no archives**
+- *What it means*: Review test log rotation behavior to understand why only 1 backup is being saved and why archives are not being created. This includes checking log rotation configuration, backup retention settings, and archive creation logic.
+- *Why it helps*: Ensures proper log retention for debugging historical issues and prevents log files from growing unbounded
+- *Estimated effort*: Small/Medium
+
 
 
 

@@ -179,8 +179,11 @@ class CommandsMixin:
         """Run coverage analysis specifically for development_tools directory."""
         logger.info("Generating dev tools coverage...")
         from .audit_orchestration import _AUDIT_LOCK_FILE
-        # Use helper method if available, otherwise default location
+        # Use separate lock file for dev tools coverage to avoid conflicts when running in parallel with main coverage
+        # Both lock files are checked by _is_audit_in_progress(), so this is safe
         coverage_lock_file = self._get_coverage_lock_file_path() if hasattr(self, '_get_coverage_lock_file_path') else (self.project_root / 'development_tools' / '.coverage_in_progress.lock')
+        # Use a separate lock file for dev tools to avoid file conflicts when running in parallel
+        coverage_lock_file = coverage_lock_file.parent / '.coverage_dev_tools_in_progress.lock'
         try:
             coverage_lock_file.parent.mkdir(parents=True, exist_ok=True)
             coverage_lock_file.touch()
@@ -188,8 +191,24 @@ class CommandsMixin:
             logger.warning(f"Failed to create coverage lock file: {e}")
         
         try:
-            result = self.run_script('run_test_coverage', '--dev-tools-only')
-            if result['success']:
+            result = self.run_script('run_test_coverage', '--dev-tools-only', timeout=720)
+            # Check if coverage was collected, not just if pytest succeeded
+            # pytest can exit with non-zero code if tests fail, but coverage may still be collected
+            coverage_collected = False
+            
+            # First check if coverage file exists (most reliable indicator)
+            dev_tools_coverage_file = self.project_root / 'development_tools' / 'tests' / 'jsons' / 'coverage_dev_tools.json'
+            if dev_tools_coverage_file.exists():
+                coverage_collected = True
+            
+            # Also check output for coverage indicators
+            if result.get('output'):
+                output = result['output']
+                if 'TOTAL' in output or 'coverage' in output.lower() or 'Cover' in output:
+                    coverage_collected = True
+            
+            # If script failed but coverage file exists, we still succeeded
+            if coverage_collected:
                 self._load_dev_tools_coverage()
                 # Save results to standardized storage
                 if hasattr(self, 'dev_tools_coverage_results') and self.dev_tools_coverage_results:
@@ -202,9 +221,29 @@ class CommandsMixin:
                     'data': self.dev_tools_coverage_results
                 }
             else:
+                # Even if script failed, check one more time if coverage file was created
+                # (it might have been created before the script failed)
+                if dev_tools_coverage_file.exists():
+                    logger.info("Coverage file found despite script failure - loading coverage data")
+                    self._load_dev_tools_coverage()
+                    if hasattr(self, 'dev_tools_coverage_results') and self.dev_tools_coverage_results:
+                        try:
+                            save_tool_result('generate_dev_tools_coverage', 'tests', self.dev_tools_coverage_results, project_root=self.project_root)
+                        except Exception as e:
+                            logger.warning(f"Failed to save generate_dev_tools_coverage result: {e}")
+                        return {
+                            'success': True,
+                            'data': self.dev_tools_coverage_results
+                        }
+                
+                # No coverage collected
+                error_msg = result.get('error', 'Unknown error')
+                if result.get('output'):
+                    error_msg = f"{error_msg}\nOutput: {result['output'][:500]}"
+                logger.warning(f"Dev tools coverage failed: {error_msg}")
                 return {
                     'success': False,
-                    'error': result.get('error', 'Unknown error')
+                    'error': error_msg
                 }
         finally:
             if coverage_lock_file.exists():

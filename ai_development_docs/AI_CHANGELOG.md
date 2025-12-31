@@ -36,6 +36,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-31 - Test Coverage Calculation Fix **COMPLETED**
+- Fixed test coverage calculation that was incorrectly reporting 37-45% instead of ~72-73%. Enhanced shard file detection for pytest-xdist workers and added fallback to use `.coverage` when shard files are auto-combined.
+- Added validation to detect unexpectedly low coverage and log diagnostic information. Fixed `test_central_aggregation_includes_all_tool_results` test failure.
+- Coverage now correctly reports ~72-73% in audit runs, ensuring accurate metrics.
+
+### 2025-12-30 - Parallel Test Coverage Execution **COMPLETED**
+- Implemented parallel execution of main and dev tools test coverage, reducing full audit time by ~95 seconds (~460s to ~365s). Coverage tools now run concurrently using separate lock files and unique temp directories.
+- Fixed import file mismatch errors by adding unique pytest temp directories per process and `pytest_ignore_collect` hook to filter temp directories during test collection.
+- Added dev tools coverage stdout logging and log rotation (keeps 8 versions). Excluded pytest temp directories from analysis to prevent parsing errors in development tools logs.
+
 ### 2025-12-28 - Fix Test Log Rotation Issues **COMPLETED**
 - Fixed test log rotation that was creating truncated backups and failing to rotate `test_consolidated.log`. Implemented robust rotation with file locking checks, non-blocking timeout, and retry logic for Windows file locking issues.
 - Rotation now only runs in main process (not workers), uses log file header timestamps for time-based detection, and creates complete backups (~0.89 MB for test_run.log, ~0.45 MB for test_consolidated.log).
