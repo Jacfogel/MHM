@@ -38,6 +38,45 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-31 - Development Tools Investigation Tasks and Test Fixes **COMPLETED**
+- **Feature**: Completed investigation tasks from improvement plan: removed redundant "Symbol: unused-import" bullet points from unused imports report, consolidated `generate_error_handling_recommendations.py` into `analyze_error_handling.py`, and fixed multiple test failures discovered during investigation.
+- **Technical Changes**:
+  - **Task 1 - Removed redundant symbol display**: Removed conditional block in `generate_unused_imports_report.py` (lines 207-210) that added "Symbol: `{symbol}`" lines to the report, as the symbol field is just a pylint message ID and adds noise without useful information
+  - **Task 2 - Consolidated error handling recommendations**: Moved `generate_recommendations()` function from standalone `generate_error_handling_recommendations.py` directly into `analyze_error_handling.py` as `_generate_recommendations()` method, removed tool registration from `tool_metadata.py` and `tool_wrappers.py`, updated documentation references, updated tests to test the inlined method, and deleted the standalone file
+  - **Task 2 - Reviewed generate_function_docstrings.py**: Documented that this tool modifies code (adds docstrings) and should be renamed to `fix_function_docstrings.py` or `add_function_docstrings.py` in the future (noted in improvement plan for future work)
+  - **Test fixes**: Fixed 6 test failures discovered during investigation:
+    - Fixed `test_decision_support.py` (4 tests) - `test_main_default_args`, `test_main_include_tests`, `test_main_include_dev_tools`, `test_main_both_flags`): Corrected patch targets from `development_tools.reports.decision_support.scan_all_functions` to `@patch.object(decision_support_module, 'scan_all_functions')` to patch where the function is used in the module namespace
+    - Fixed `test_supporting_tools.py::test_system_signals_recent_activity_lists_changes`: Updated assertion to check that all entries are non-empty strings instead of requiring slashes (root-level files like `run_tests.py` are valid), and improved `analyze_system_signals.py` to filter deleted files from git status and git diff output
+    - Fixed `test_audit_tier_comprehensive.py::test_central_aggregation_includes_all_tool_results`: Initialized `results_cache` and populated it in mock tools so `_save_audit_results_aggregated` has data to aggregate
+  - **Coverage warning improvement**: Fixed misleading coverage warning message to capture file existence status BEFORE cleanup, so diagnostics show accurate information about what files were actually found
+- **Impact**: Unused imports report is cleaner and more readable, error handling recommendations are now part of analysis (aligning with naming conventions), test suite is more stable with 6 previously failing tests now passing, and coverage diagnostics are more accurate. This addresses items 2.2 and 2.8 from `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`.
+- **Files**: 
+  - `development_tools/imports/generate_unused_imports_report.py` (removed symbol display)
+  - `development_tools/error_handling/analyze_error_handling.py` (added recommendations generation)
+  - `development_tools/error_handling/generate_error_handling_recommendations.py` (deleted - functionality moved)
+  - `development_tools/shared/tool_metadata.py` (removed tool registration)
+  - `development_tools/shared/service/tool_wrappers.py` (removed tool registration)
+  - `development_tools/reports/analyze_system_signals.py` (filter deleted files)
+  - `tests/development_tools/test_decision_support.py` (fixed patch targets)
+  - `tests/development_tools/test_supporting_tools.py` (updated assertion)
+  - `tests/development_tools/test_audit_tier_comprehensive.py` (initialized results_cache)
+  - `tests/development_tools/test_generate_error_handling_recommendations.py` (updated to test inlined method)
+  - `development_tools/tests/run_test_coverage.py` (improved coverage warning diagnostics)
+  - `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` (updated documentation)
+  - `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` (updated documentation)
+  - `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md` (documented findings)
+
+### 2025-12-31 - Improved Recommendation Quality in Development Tools **COMPLETED**
+- **Feature**: Enhanced recommendation generation in `report_generation.py` to improve accuracy, specificity, and actionability. Fixed unused imports recommendation to only suggest "Obvious Unused" imports (not test mocking, Qt testing, etc.), improved config validation deduplication using (tool_name, issue_type) tuples, simplified priority ordering with fixed tier system (tier * 100 + insertion_order), added validation helper to check for stale data and suspicious recommendations, and enhanced all recommendations with standard format including Action, Effort, Why this matters, and Commands where applicable.
+- **Technical Changes**:
+  - Fixed unused imports recommendation logic (lines 2193-2273): Only creates recommendation when `obvious_unused > 0`, updated text to only mention obvious unused count, added validation with data source checking
+  - Improved config validation deduplication (lines 2010-2090): Uses regex to extract tool names and issue types, prevents duplicates using (tool_name, issue_type) tuples, limits display to top 3 unique recommendations
+  - Simplified priority ordering (lines 1534-1608): Replaced dynamic tier counters with fixed formula `tier * 100 + insertion_order` for predictable ordering (Tier 1: 100-199, Tier 2: 200-299, etc.)
+  - Added `validate_recommendation()` helper function (lines 1550-1581): Checks for empty reasons, suspicious counts, and stale data sources, logs warnings for suspicious recommendations
+  - Enhanced recommendation specificity: Added standard format (Action, Effort, Why this matters, Command) to complexity, legacy, coverage, development tools coverage, handler classes, and config validation recommendations
+- **Impact**: Recommendations are now more accurate (only suggest actionable items), properly deduplicated, consistently ordered, and include actionable steps with effort estimates and context. This addresses item 1.1 "Improve Recommendation Quality" from `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`.
+- **Files**: `development_tools/shared/service/report_generation.py`
+
 ### 2025-12-31 - Test Isolation Fixes: Prevented File Regeneration During Test Runs **COMPLETED**
 - **Issue Resolution**: Fixed test isolation issues that were causing status files (`AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.txt`, `UNUSED_IMPORTS_REPORT.md`) to be regenerated in the project root during test runs, violating test isolation principles.
 - **Technical Changes**:

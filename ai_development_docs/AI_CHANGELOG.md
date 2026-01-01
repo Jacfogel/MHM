@@ -36,6 +36,18 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-31 - Development Tools Investigation Tasks and Test Fixes **COMPLETED**
+- Removed redundant "Symbol: unused-import" bullet points from unused imports report (Task 2.2), consolidated `generate_error_handling_recommendations.py` into `analyze_error_handling.py` to align with naming conventions (Task 2.8)
+- Fixed 6 test failures: corrected patch targets in `test_decision_support.py` (4 tests), updated assertion in `test_supporting_tools.py`, initialized `results_cache` in `test_audit_tier_comprehensive.py`, improved deleted file filtering in `analyze_system_signals.py`
+- Improved coverage warning diagnostics to capture file existence before cleanup for accurate reporting
+- Files: `development_tools/imports/generate_unused_imports_report.py`, `development_tools/error_handling/analyze_error_handling.py`, multiple test files, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md` (addresses items 2.2 and 2.8)
+
+### 2025-12-31 - Improved Recommendation Quality in Development Tools **COMPLETED**
+- Fixed unused imports recommendation to only suggest "Obvious Unused" imports (not test mocking/Qt testing false positives), improved config validation deduplication using (tool_name, issue_type) tuples, simplified priority ordering with fixed tier system
+- Added recommendation validation helper to check for stale data and suspicious counts, enhanced all recommendations with standard format (Action, Effort, Why this matters, Commands)
+- Recommendations now more accurate, properly deduplicated, consistently ordered, and include actionable steps with effort estimates
+- Files: `development_tools/shared/service/report_generation.py` (addresses item 1.1 from AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md)
+
 ### 2025-12-31 - Test Isolation Fixes: Prevented File Regeneration During Tests **COMPLETED**
 - Fixed test isolation issues preventing status files from being regenerated during test runs - tests now use proper temporary directories and fixtures
 - Updated `run_tests.py` to consistently exclude e2e tests from both parallel and serial runs, fixed `run_generate_unused_imports_report` to pass `--project-root` to subprocesses

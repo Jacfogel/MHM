@@ -206,8 +206,6 @@ class UnusedImportsReportGenerator:
                     
                     for item in sorted(file_items, key=lambda x: x.get('line', 0)):
                         lines.append(f"- **Line {item.get('line', 0)}**: {item.get('message', '')}")
-                        if item.get('symbol'):
-                            lines.append(f"  - Symbol: `{item.get('symbol', '')}`")
                     lines.append("")
         
         # Recommendations

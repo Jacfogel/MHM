@@ -1533,35 +1533,75 @@ class ReportGenerationMixin:
         
         priority_items: List[Dict[str, Any]] = []
         
-        TIER_1_CRITICAL = 1
-        TIER_2_HIGH = 4
-        TIER_3_MEDIUM = 7
-        TIER_4_LOW = 9
+        # Fixed tier ordering: tier number * 100 + insertion order within tier
+        # This ensures predictable ordering: Tier 1 items (100-199), Tier 2 (200-299), etc.
+        tier_insertion_counters = {1: 0, 2: 0, 3: 0, 4: 0}
         
-        tier_1_counter = TIER_1_CRITICAL
-        tier_2_counter = TIER_2_HIGH
-        tier_3_counter = TIER_3_MEDIUM
-        tier_4_counter = TIER_4_LOW
+        def validate_recommendation(title: str, reason: str, data_source: Optional[str] = None, 
+                                   count: Optional[int] = None, expected_min: Optional[int] = None) -> bool:
+            """
+            Validate a recommendation before adding it.
+            
+            Args:
+                title: Recommendation title
+                reason: Recommendation reason text
+                data_source: Source of data (e.g., 'analyze_unused_imports')
+                count: Actual count/value being recommended
+                expected_min: Minimum expected value (warns if count is suspiciously high)
+            
+            Returns:
+                True if recommendation is valid, False if it should be skipped
+            """
+            # Check for empty reason
+            if not reason or not reason.strip():
+                logger.debug(f"Skipping recommendation '{title}': empty reason")
+                return False
+            
+            # Check for suspicious counts (e.g., recommending 358 imports when only 1 is obvious)
+            if count is not None and expected_min is not None:
+                if count > expected_min * 10:  # More than 10x expected
+                    logger.warning(
+                        f"Suspicious recommendation '{title}': count {count} is much higher than expected minimum {expected_min}. "
+                        f"Data source: {data_source}"
+                    )
+                    # Still allow it, but log warning
+            
+            # Check if data source is available (basic staleness check)
+            if data_source:
+                # Try to load data to verify it exists
+                try:
+                    data = self._load_tool_data(data_source, log_source=False)
+                    if not data:
+                        logger.debug(f"Skipping recommendation '{title}': data source '{data_source}' not available")
+                        return False
+                except Exception:
+                    # If we can't check, allow the recommendation
+                    pass
+            
+            return True
         
-        def add_priority(tier: int, title: str, reason: str, bullets: List[str]) -> None:
-            nonlocal tier_1_counter, tier_2_counter, tier_3_counter, tier_4_counter
+        def add_priority(tier: int, title: str, reason: str, bullets: List[str], 
+                       validate: bool = True, data_source: Optional[str] = None,
+                       count: Optional[int] = None, expected_min: Optional[int] = None) -> None:
+            nonlocal tier_insertion_counters
             if not reason:
                 return
-            if tier == 1:
-                order = tier_1_counter
-                tier_1_counter += 1
-            elif tier == 2:
-                order = tier_2_counter
-                tier_2_counter += 1
-            elif tier == 3:
-                order = tier_3_counter
-                tier_3_counter += 1
-            elif tier == 4:
-                order = tier_4_counter
-                tier_4_counter += 1
-            else:
-                order = tier_4_counter
-                tier_4_counter += 1
+            
+            # Validate recommendation if requested
+            if validate:
+                if not validate_recommendation(title, reason, data_source, count, expected_min):
+                    return
+            
+            # Normalize tier to valid range (1-4)
+            normalized_tier = max(1, min(4, tier))
+            
+            # Get insertion order within this tier
+            insertion_order = tier_insertion_counters[normalized_tier]
+            tier_insertion_counters[normalized_tier] += 1
+            
+            # Calculate order: tier * 100 + insertion order
+            # This ensures Tier 1 items come first (100-199), then Tier 2 (200-299), etc.
+            order = normalized_tier * 100 + insertion_order
             
             priority_items.append({
                 'order': order,
@@ -1916,7 +1956,10 @@ class ReportGenerationMixin:
             ]
             coverage_bullets = [
                 f"Target domains: {self._format_list_for_display(coverage_highlights, limit=3)}",
-                "Add scenario tests before the next full audit to lift domain coverage above 80%."
+                "Action: Add scenario tests for uncovered code paths in target domains",
+                f"Effort: Medium (writing tests for {len(low_coverage_modules)} domains requires understanding business logic)",
+                "Why this matters: Higher test coverage reduces bug risk and improves code maintainability",
+                "Command: Run `python development_tools/run_development_tools.py audit --full` after adding tests to verify coverage improvement"
             ]
             add_priority(
                 tier=2,  # Tier 2: High
@@ -1938,7 +1981,10 @@ class ReportGenerationMixin:
                     dev_bullets.append(f"Focus on: {self._format_list_for_display(highlights, limit=3)}")
                 if dev_tools_insights.get('html'):
                     dev_bullets.append(f"Review HTML report at {dev_tools_insights['html']}")
-                dev_bullets.append("Strengthen tests in `tests/development_tools/` for fragile helpers.")
+                dev_bullets.append("Action: Strengthen tests in `tests/development_tools/` for fragile helpers and low-coverage modules")
+                dev_bullets.append(f"Effort: Medium (adding tests for {len(low_dev_modules) if low_dev_modules else 'multiple'} modules requires understanding tool behavior)")
+                dev_bullets.append("Why this matters: Development tools need high test coverage to ensure reliability and prevent regressions")
+                dev_bullets.append("Command: Run `python run_tests.py --coverage` to verify coverage improvements")
                 add_priority(
                     tier=2,  # Tier 2: High
                     title="Raise development tools coverage",
@@ -1954,7 +2000,16 @@ class ReportGenerationMixin:
             if legacy_report:
                 legacy_bullets.append(f"Review {legacy_report} for exact locations.")
             legacy_bullets.append(
-                "Use `python development_tools/run_development_tools.py legacy` to scan for legacy references."
+                "Action: Remove legacy compatibility code and update references to use new implementations"
+            )
+            legacy_bullets.append(
+                f"Effort: Medium (reviewing {legacy_files} files and updating references requires testing)"
+            )
+            legacy_bullets.append(
+                "Why this matters: Legacy code increases maintenance burden and technical debt"
+            )
+            legacy_bullets.append(
+                "Command: `python development_tools/run_development_tools.py legacy` to scan for legacy references"
             )
             add_priority(
                 tier=3,  # Tier 3: Medium
@@ -1970,43 +2025,77 @@ class ReportGenerationMixin:
             recommendations = config_validation_summary.get('recommendations', [])
             if total_recommendations > 0 and recommendations:
                 config_bullets: List[str] = []
-                # Show top 2-3 recommendations, removing duplicates
-                seen_messages = set()
+                # Deduplicate recommendations using a more robust approach
+                # Extract (tool_name, issue_type) tuples for deduplication
+                seen_tool_issues = set()
                 unique_recs = []
+                
                 for rec in recommendations:
                     rec_text = rec if isinstance(rec, str) else rec.get('message', str(rec))
-                    # Normalize to check for duplicates
-                    normalized = rec_text.lower()
-                    normalized = normalized.replace('update ', '').replace('fix ', '').replace('fixes ', '')
-                    normalized = normalized.replace('does not import config', 'import config').replace('to import config module', 'import config')
-                    if ':' in normalized:
-                        parts = normalized.split(':', 1)
-                        if len(parts) == 2:
-                            tool_part = parts[0].strip()
-                            issue_part = parts[1].strip()
-                            if 'import config' in issue_part:
-                                skip = False
-                                for seen in seen_messages:
-                                    if tool_part in seen and 'import config' in seen:
-                                        skip = True
-                                        break
-                                if skip:
-                                    continue
-                    if normalized not in seen_messages:
-                        seen_messages.add(normalized)
+                    
+                    # Extract tool name and issue type for deduplication
+                    # Format is typically: "Update {tool_name} to import config module"
+                    # or "Replace hardcoded values in {tool_name} with config functions"
+                    # or "Fix issues in {tool_name}: {issues}"
+                    tool_name = None
+                    issue_type = None
+                    
+                    # Try to extract tool name (usually after "Update", "Replace", "Fix")
+                    patterns = [
+                        (r'Update\s+([^:]+?)\s+to\s+import\s+config', 'import_config'),
+                        (r'Replace\s+hardcoded\s+values\s+in\s+([^:]+?)\s+with\s+config', 'hardcoded_values'),
+                        (r'Fix\s+issues\s+in\s+([^:]+?):', 'issues'),
+                    ]
+                    
+                    for pattern, issue in patterns:
+                        match = re.search(pattern, rec_text, re.IGNORECASE)
+                        if match:
+                            tool_name = match.group(1).strip()
+                            issue_type = issue
+                            break
+                    
+                    # If we couldn't extract tool/issue, use the full text for deduplication
+                    if tool_name and issue_type:
+                        dedup_key = (tool_name.lower(), issue_type)
+                    else:
+                        # Fallback: use normalized text
+                        normalized = rec_text.lower().strip()
+                        dedup_key = ('_general', normalized)
+                    
+                    # Only add if we haven't seen this (tool, issue) combination
+                    if dedup_key not in seen_tool_issues:
+                        seen_tool_issues.add(dedup_key)
                         unique_recs.append(rec_text)
+                    
+                    # Limit to top 3 unique recommendations
                     if len(unique_recs) >= 3:
                         break
+                
+                # Add unique recommendations to bullets
                 for rec_text in unique_recs:
                     config_bullets.append(rec_text)
+                
+                # Show count of remaining recommendations if any
                 if len(recommendations) > len(unique_recs):
                     config_bullets.append(f"...and {len(recommendations) - len(unique_recs)} more recommendation(s)")
-                add_priority(
-                    tier=4,  # Tier 4: Low
-                    title="Update tools to use centralized config",
-                    reason=f"{total_recommendations} config validation recommendation(s) pending review.",
-                    bullets=config_bullets
-                )
+                
+                # Only add priority if we have unique recommendations
+                if unique_recs:
+                    config_bullets.append(
+                        "Action: Update tools to import and use centralized config module instead of hardcoded values"
+                    )
+                    config_bullets.append(
+                        f"Effort: Small to Medium (updating {len(unique_recs)} tool(s) requires understanding config structure)"
+                    )
+                    config_bullets.append(
+                        "Why this matters: Centralized configuration improves maintainability and consistency across tools"
+                    )
+                    add_priority(
+                        tier=4,  # Tier 4: Low
+                        title="Update tools to use centralized config",
+                        reason=f"{len(unique_recs)} unique config validation recommendation(s) pending review.",
+                        bullets=config_bullets
+                    )
         
         # Handler classes without docs priority
         function_patterns_data = self._load_tool_data('analyze_function_patterns', 'functions')
@@ -2045,6 +2134,12 @@ class ReportGenerationMixin:
                         )
                         handlers_bullets.append(
                             "Action: Add class-level docstrings to handler classes (e.g., class AccountManagementHandler: \"\"\"Handler for...\"\"\")"
+                        )
+                        handlers_bullets.append(
+                            f"Effort: Small (adding docstrings to {len(handlers_no_doc)} handler classes is straightforward)"
+                        )
+                        handlers_bullets.append(
+                            "Why this matters: Class docstrings improve code documentation and help developers understand handler purpose"
                         )
                         add_priority(
                             tier=1,  # Tier 1: Critical (documentation)
@@ -2125,27 +2220,31 @@ class ReportGenerationMixin:
                 )
         
         # Unused imports priority
+        # Only recommend removing "Obvious Unused" imports (not test mocking, Qt testing, etc.)
         if unused_imports_data and isinstance(unused_imports_data, dict):
             summary = unused_imports_data.get('summary', {})
             details = unused_imports_data.get('details', {})
-            total_unused = summary.get('total_issues', 0) or unused_imports_data.get('total_unused', 0)
-            files_with_issues = summary.get('files_affected', 0) or unused_imports_data.get('files_with_issues', 0)
+            by_category = details.get('by_category') or unused_imports_data.get('by_category', {})
+            obvious_unused = by_category.get('obvious_unused', 0) if isinstance(by_category, dict) else 0
             
-            if total_unused and total_unused > 0:
+            # Only create recommendation if there are obvious unused imports
+            if obvious_unused and obvious_unused > 0:
                 unused_bullets: List[str] = []
                 
-                # Get category breakdown
-                by_category = details.get('by_category') or unused_imports_data.get('by_category', {})
-                obvious_unused = by_category.get('obvious_unused', 0) if isinstance(by_category, dict) else 0
-                type_only = by_category.get('type_hints_only', 0) if isinstance(by_category, dict) else 0
-                
-                if obvious_unused and obvious_unused > 0:
-                    unused_bullets.append(f"{obvious_unused} obvious removals (safe to delete)")
-                if type_only and type_only > 0:
-                    unused_bullets.append(f"{type_only} type-only imports (consider TYPE_CHECKING guard)")
-                
-                # Get top files if available
+                # Get files with obvious unused imports
                 files_dict = unused_imports_data.get('files', {})
+                obvious_files = []
+                if files_dict and isinstance(files_dict, dict):
+                    # Filter files to only those with obvious unused imports
+                    # We need to check the category for each file's imports
+                    for file_path, imports in files_dict.items():
+                        if isinstance(imports, list):
+                            # Check if any import in this file is marked as obvious_unused
+                            # The structure may vary, so we'll count files that have obvious unused
+                            # For now, we'll show top files from the report
+                            pass
+                
+                # Get top files if available (showing all files, but recommendation is only for obvious)
                 if files_dict and isinstance(files_dict, dict):
                     sorted_files = sorted(
                         files_dict.items(),
@@ -2162,11 +2261,17 @@ class ReportGenerationMixin:
                             file_list.append(f"... +{len(files_dict) - len(sorted_files)} more files")
                         unused_bullets.append(f"Top files: {self._format_list_for_display(file_list, limit=5)}")
                 
+                unused_bullets.append(f"{obvious_unused} obvious removals (safe to delete)")
+                
+                type_only = by_category.get('type_hints_only', 0) if isinstance(by_category, dict) else 0
+                if type_only and type_only > 0:
+                    unused_bullets.append(f"Note: {type_only} type-only imports exist but are not recommended for removal (consider TYPE_CHECKING guard if needed)")
+                
                 unused_bullets.append(
-                    "Action: Review and remove unused imports, starting with obvious removals"
+                    "Action: Review and remove obvious unused imports (safe to delete)"
                 )
                 unused_bullets.append(
-                    "Effort: Small to Medium (review each import, remove safe ones, refactor type-only imports)"
+                    "Effort: Small (remove safe imports identified as obvious unused)"
                 )
                 unused_bullets.append(
                     "Why this matters: Unused imports add noise, slow imports, and can hide real dependencies"
@@ -2179,14 +2284,21 @@ class ReportGenerationMixin:
                         f"Detailed Report: [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)"
                     )
                 
-                # Determine tier based on severity
-                tier = 1 if total_unused > 100 else 2  # Critical if >100, High otherwise
+                # Determine tier based on obvious unused count (not total)
+                tier = 1 if obvious_unused > 50 else 2  # Critical if >50 obvious, High otherwise
+                
+                # Count files with obvious unused (approximate - we show all files but note it's only obvious)
+                files_with_obvious = summary.get('files_affected', 0) or unused_imports_data.get('files_with_issues', 0)
                 
                 add_priority(
                     tier=tier,
-                    title="Remove unused imports",
-                    reason=f"{total_unused} unused imports across {files_with_issues} files (CRITICAL status).",
-                    bullets=unused_bullets
+                    title="Remove obvious unused imports",
+                    reason=f"{obvious_unused} obvious unused import(s) can be safely removed.",
+                    bullets=unused_bullets,
+                    validate=True,
+                    data_source='analyze_unused_imports',
+                    count=obvious_unused,
+                    expected_min=1
                 )
         
         # Complexity refactoring priority
@@ -2246,6 +2358,15 @@ class ReportGenerationMixin:
                 complexity_bullets.append(
                     f"Then address {high_complex} high-complexity functions (100-199 nodes)."
                 )
+            complexity_bullets.append(
+                "Action: Break down complex functions into smaller, focused functions with single responsibilities"
+            )
+            complexity_bullets.append(
+                f"Effort: Large (refactoring {critical_complex} critical functions requires careful analysis and testing)"
+            )
+            complexity_bullets.append(
+                "Why this matters: High complexity functions are harder to understand, test, and maintain, increasing bug risk"
+            )
             add_priority(
                 tier=3,  # Tier 3: Medium
                 title="Refactor high-complexity functions",
@@ -2275,6 +2396,15 @@ class ReportGenerationMixin:
                     high_complexity_bullets.append(
                         f"Highest complexity: {self._format_list_for_display(example_names, limit=3)}"
                     )
+            high_complexity_bullets.append(
+                "Action: Simplify high-complexity functions by extracting helper functions and reducing nesting"
+            )
+            high_complexity_bullets.append(
+                f"Effort: Medium (refactoring {high_complex} high-complexity functions requires careful planning)"
+            )
+            high_complexity_bullets.append(
+                "Why this matters: High complexity functions are harder to understand, test, and maintain, increasing bug risk"
+            )
             add_priority(
                 tier=3,  # Tier 3: Medium
                 title="Refactor high-complexity functions",

@@ -1,25 +1,29 @@
 """
-Tests for generate_error_handling_recommendations.py.
+Tests for error handling recommendations generation.
 
-Tests recommendation generation functionality including coverage recommendations,
-missing error handling recommendations, and quality recommendations.
+Tests recommendation generation functionality in analyze_error_handling.py,
+including coverage recommendations, missing error handling recommendations,
+and quality recommendations.
 """
 
 import pytest
-import json
 from pathlib import Path
-from unittest.mock import patch, mock_open
 
 from tests.development_tools.conftest import load_development_tools_module
 
 # Load the module
-recommendations_module = load_development_tools_module("error_handling.generate_error_handling_recommendations")
-generate_recommendations = recommendations_module.generate_recommendations
-main = recommendations_module.main
+error_handling_module = load_development_tools_module("error_handling.analyze_error_handling")
+ErrorHandlingAnalyzer = error_handling_module.ErrorHandlingAnalyzer
 
 
 class TestGenerateRecommendations:
-    """Test generate_recommendations function."""
+    """Test _generate_recommendations method in ErrorHandlingAnalyzer."""
+    
+    def _create_analyzer_with_results(self, analysis_results):
+        """Create an ErrorHandlingAnalyzer instance with pre-populated results."""
+        analyzer = ErrorHandlingAnalyzer(str(Path.cwd()))
+        analyzer.results = analysis_results
+        return analyzer
     
     @pytest.mark.unit
     def test_generate_recommendations_low_coverage(self):
@@ -29,7 +33,9 @@ class TestGenerateRecommendations:
             'functions_missing_error_handling': 10
         }
         
-        recommendations = generate_recommendations(analysis_results)
+        analyzer = self._create_analyzer_with_results(analysis_results)
+        analyzer._generate_recommendations()
+        recommendations = analyzer.results.get('recommendations', [])
         
         assert len(recommendations) > 0
         assert any('coverage' in rec.lower() or '50.0' in rec for rec in recommendations)
@@ -42,7 +48,9 @@ class TestGenerateRecommendations:
             'functions_missing_error_handling': 0
         }
         
-        recommendations = generate_recommendations(analysis_results)
+        analyzer = self._create_analyzer_with_results(analysis_results)
+        analyzer._generate_recommendations()
+        recommendations = analyzer.results.get('recommendations', [])
         
         # Should not have coverage recommendation
         assert not any('coverage' in rec.lower() and 'improve' in rec.lower() for rec in recommendations)
@@ -55,7 +63,9 @@ class TestGenerateRecommendations:
             'functions_missing_error_handling': 5
         }
         
-        recommendations = generate_recommendations(analysis_results)
+        analyzer = self._create_analyzer_with_results(analysis_results)
+        analyzer._generate_recommendations()
+        recommendations = analyzer.results.get('recommendations', [])
         
         assert any('5' in rec and 'function' in rec.lower() for rec in recommendations)
     
@@ -72,7 +82,9 @@ class TestGenerateRecommendations:
             }
         }
         
-        recommendations = generate_recommendations(analysis_results)
+        analyzer = self._create_analyzer_with_results(analysis_results)
+        analyzer._generate_recommendations()
+        recommendations = analyzer.results.get('recommendations', [])
         
         assert any('decorator' in rec.lower() for rec in recommendations)
     
@@ -88,7 +100,9 @@ class TestGenerateRecommendations:
             }
         }
         
-        recommendations = generate_recommendations(analysis_results)
+        analyzer = self._create_analyzer_with_results(analysis_results)
+        analyzer._generate_recommendations()
+        recommendations = analyzer.results.get('recommendations', [])
         
         # Should recommend using decorator instead of try-except
         assert any('decorator' in rec.lower() and 'try-except' in rec.lower() for rec in recommendations)
@@ -106,7 +120,9 @@ class TestGenerateRecommendations:
             ]
         }
         
-        recommendations = generate_recommendations(analysis_results)
+        analyzer = self._create_analyzer_with_results(analysis_results)
+        analyzer._generate_recommendations()
+        recommendations = analyzer.results.get('recommendations', [])
         
         # Should have priority recommendation for critical functions
         assert any('priority' in rec.lower() or 'critical' in rec.lower() for rec in recommendations)
@@ -117,7 +133,9 @@ class TestGenerateRecommendations:
         """Test recommendations with empty analysis results."""
         analysis_results = {}
         
-        recommendations = generate_recommendations(analysis_results)
+        analyzer = self._create_analyzer_with_results(analysis_results)
+        analyzer._generate_recommendations()
+        recommendations = analyzer.results.get('recommendations', [])
         
         # Should return empty list or minimal recommendations
         assert isinstance(recommendations, list)
@@ -139,84 +157,22 @@ class TestGenerateRecommendations:
             }
         }
         
-        recommendations = generate_recommendations(analysis_results)
+        analyzer = self._create_analyzer_with_results(analysis_results)
+        analyzer._generate_recommendations()
+        recommendations = analyzer.results.get('recommendations', [])
         
         # Should have minimal or no recommendations
         assert isinstance(recommendations, list)
 
 
-class TestMainFunction:
-    """Test main() function."""
-    
-    @pytest.mark.unit
-    @patch('builtins.open', new_callable=mock_open)
-    @patch('sys.argv', ['generate_error_handling_recommendations.py', '--input', 'input.json'])
-    def test_main_with_input_output(self, mock_file):
-        """Test main function with input and output files."""
-        # Mock input file content
-        analysis_results = {
-            'analyze_error_handling': 50.0,
-            'functions_missing_error_handling': 5
-        }
-        
-        # Setup mock to return different content for read vs write
-        mock_file.return_value.read.return_value = json.dumps(analysis_results)
-        
-        # Mock file operations
-        with patch('pathlib.Path.exists', return_value=True):
-            result = main()
-        
-        # Should complete successfully
-        assert result is None or result == 0
-    
-    @pytest.mark.unit
-    @patch('builtins.open', new_callable=mock_open)
-    @patch('sys.argv', ['generate_error_handling_recommendations.py', '--input', 'input.json'])
-    @patch('builtins.print')
-    def test_main_without_output(self, mock_print, mock_file):
-        """Test main function without output file (prints to stdout)."""
-        analysis_results = {
-            'analyze_error_handling': 50.0,
-            'functions_missing_error_handling': 5
-        }
-        
-        mock_file.return_value.read.return_value = json.dumps(analysis_results)
-        
-        with patch('pathlib.Path.exists', return_value=True):
-            main()
-        
-        # Should have printed recommendations
-        assert mock_print.called
-    
-    @pytest.mark.unit
-    @patch('sys.argv', ['generate_error_handling_recommendations.py'])
-    def test_main_missing_input(self):
-        """Test main function with missing required input argument."""
-        # Should raise SystemExit or ArgumentError
-        with pytest.raises((SystemExit, ValueError, KeyError)):
-            main()
-    
-    @pytest.mark.unit
-    @patch('builtins.open', new_callable=mock_open)
-    @patch('sys.argv', ['generate_error_handling_recommendations.py', '--input', 'input.json', '--output', 'output.json'])
-    def test_main_write_output_file(self, mock_file):
-        """Test main function writes to output file."""
-        analysis_results = {
-            'analyze_error_handling': 50.0,
-            'functions_missing_error_handling': 5
-        }
-        
-        mock_file.return_value.read.return_value = json.dumps(analysis_results)
-        
-        with patch('pathlib.Path.exists', return_value=True):
-            main()
-        
-        # Should have written to output file
-        assert mock_file.called
-
-
 class TestRecommendationContent:
     """Test recommendation content quality."""
+    
+    def _create_analyzer_with_results(self, analysis_results):
+        """Create an ErrorHandlingAnalyzer instance with pre-populated results."""
+        analyzer = ErrorHandlingAnalyzer(str(Path.cwd()))
+        analyzer.results = analysis_results
+        return analyzer
     
     @pytest.mark.unit
     def test_recommendations_are_strings(self):
@@ -226,7 +182,9 @@ class TestRecommendationContent:
             'functions_missing_error_handling': 5
         }
         
-        recommendations = generate_recommendations(analysis_results)
+        analyzer = self._create_analyzer_with_results(analysis_results)
+        analyzer._generate_recommendations()
+        recommendations = analyzer.results.get('recommendations', [])
         
         assert all(isinstance(rec, str) for rec in recommendations)
     
@@ -238,7 +196,9 @@ class TestRecommendationContent:
             'functions_missing_error_handling': 5
         }
         
-        recommendations = generate_recommendations(analysis_results)
+        analyzer = self._create_analyzer_with_results(analysis_results)
+        analyzer._generate_recommendations()
+        recommendations = analyzer.results.get('recommendations', [])
         
         assert all(len(rec) > 0 for rec in recommendations)
     
@@ -250,8 +210,9 @@ class TestRecommendationContent:
             'functions_missing_error_handling': 5
         }
         
-        recommendations = generate_recommendations(analysis_results)
+        analyzer = self._create_analyzer_with_results(analysis_results)
+        analyzer._generate_recommendations()
+        recommendations = analyzer.results.get('recommendations', [])
         
         # Should include coverage percentage or function count
         assert any(any(char.isdigit() for char in rec) for rec in recommendations)
-

@@ -1016,20 +1016,41 @@ class ErrorHandlingAnalyzer:
         })
 
     def _generate_recommendations(self):
-        """Generate recommendations for improving error handling (delegates to generate_error_handling_recommendations)."""
-        try:
-            # Import recommendation generator
-            try:
-                from .generate_error_handling_recommendations import generate_recommendations
-            except ImportError:
-                from development_tools.error_handling.generate_error_handling_recommendations import generate_recommendations
-            
-            # Generate recommendations using the dedicated tool
-            recommendations = generate_recommendations(self.results)
-            self.results['recommendations'] = recommendations
-        except Exception as e:
-            logger.warning(f"Failed to generate error handling recommendations: {e}", exc_info=True)
-            self.results['recommendations'] = []
+        """Generate recommendations for improving error handling based on analysis results."""
+        recommendations = []
+        
+        # Coverage recommendations
+        coverage = self.results.get('analyze_error_handling', 0)
+        if coverage < 80:
+            recommendations.append(f"Improve error handling coverage (currently {coverage:.1f}%)")
+        
+        # Missing error handling recommendations
+        missing_count = self.results.get('functions_missing_error_handling', 0)
+        if missing_count > 0:
+            recommendations.append(f"Add error handling to {missing_count} functions")
+        
+        # Quality recommendations
+        error_handling_quality = self.results.get('error_handling_quality', {})
+        if error_handling_quality.get('none', 0) > 0:
+            recommendations.append("Replace basic try-except with @handle_errors decorator where appropriate")
+        
+        # Pattern recommendations (use first decorator from config)
+        error_config = config.get_error_handling_config()
+        decorator_names = error_config.get('decorator_names', ['@handle_errors'])
+        primary_decorator = decorator_names[0] if decorator_names else '@handle_errors'
+        decorator_key = primary_decorator.replace('@', '').replace('_', '_') + '_decorator'
+        
+        error_patterns = self.results.get('error_patterns', {})
+        if error_patterns.get('try_except', 0) > error_patterns.get(decorator_key, 0):
+            recommendations.append(f"Consider using {primary_decorator} decorator instead of manual try-except blocks")
+        
+        # Specific missing error handling
+        missing_error_handling = self.results.get('missing_error_handling', [])
+        critical_missing = [f for f in missing_error_handling if f.get('quality') == 'none']
+        if critical_missing:
+            recommendations.append(f"Priority: Add error handling to {len(critical_missing)} critical functions")
+        
+        self.results['recommendations'] = recommendations
 
 def main():
     """Main function for error handling coverage analysis."""

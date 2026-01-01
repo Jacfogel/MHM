@@ -43,23 +43,31 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 ### Stage 1: Quality & Accuracy Improvements (HIGH PRIORITY)
 
 #### 1.1 Improve Recommendation Quality
-**Status**: PENDING  
+**Status**: COMPLETE ✅  
 **Priority**: HIGH  
 **Issue**: Recommendations have quality issues: redundancy, lack of specificity, inconsistent ordering, potential false positives.
 
-**Key Issues**:
-- Unused imports recommendation misleading (recommends removing 356 imports, but 0 in "Obvious Unused" category)
-- Config validation recommendations duplicated
-- Priority ordering uses complex dynamic logic
-- Recommendations lack actionable steps and context
+**Implementation Complete (2025-12-31)**:
+- ✅ Fixed unused imports recommendation logic - only suggests removing "Obvious Unused" imports (not test mocking, Qt testing, etc.)
+- ✅ Fixed config validation recommendation deduplication using (tool_name, issue_type) tuples with regex extraction
+- ✅ Simplified priority ordering with fixed tier system (tier * 100 + insertion_order) for predictable ordering
+- ✅ Enhanced recommendation specificity - all recommendations now include Action, Effort, Why this matters, and Commands where applicable
+- ✅ Added recommendation validation helper function to check for stale data and suspicious counts
+- ✅ Improved context - all recommendations include impact assessment, effort estimates, and actionable steps
+
+**Key Issues Resolved**:
+- ✅ Unused imports recommendation now only shows when obvious_unused > 0 (was recommending 356 imports when only 1 was obvious)
+- ✅ Config validation recommendations properly deduplicated using tool name and issue type
+- ✅ Priority ordering now uses fixed tiers (Tier 1: 100-199, Tier 2: 200-299, etc.) instead of dynamic counters
+- ✅ All recommendations include actionable steps, effort estimates, and context
 
 **Tasks**:
-- [ ] Review unused imports recommendation logic - only suggest removing "Obvious Unused" imports
-- [ ] Fix config validation recommendation redundancy (deduplication)
-- [ ] Simplify priority ordering with fixed tiers instead of dynamic logic
-- [ ] Enhance recommendation specificity (add actionable steps, file paths, effort estimates)
-- [ ] Add recommendation validation (remove stale recommendations)
-- [ ] Improve context (impact assessment, effort estimates, related recommendations)
+- [x] Review unused imports recommendation logic - only suggest removing "Obvious Unused" imports
+- [x] Fix config validation recommendation redundancy (deduplication)
+- [x] Simplify priority ordering with fixed tiers instead of dynamic logic
+- [x] Enhance recommendation specificity (add actionable steps, file paths, effort estimates)
+- [x] Add recommendation validation (remove stale recommendations)
+- [x] Improve context (impact assessment, effort estimates, related recommendations)
 
 **Files**: `development_tools/shared/service/report_generation.py`, `development_tools/config/analyze_config.py`
 
@@ -103,9 +111,20 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 **Files**: `development_tools/config/analyze_config.py` (validation logic updated), `tests/ui/test_account_creation_ui.py` (crash fix), `tests/development_tools/test_decision_support.py` (test updates)
 
 #### 2.2 Investigate "Symbol: unused-import" bullet points
-**Status**: PENDING  
+**Status**: COMPLETE ✅  
 **Effort**: Small  
 **Description**: Check if these serve a purpose or are redundant noise in `UNUSED_IMPORTS_REPORT.md`.
+
+**Implementation Complete (2025-12-31)**:
+- ✅ **Investigation**: Confirmed that "Symbol: `unused-import`" lines are redundant
+  - The symbol field from pylint is just the message ID (`unused-import`), not the actual symbol name
+  - The message already identifies the unused import (e.g., "Unused List imported from typing")
+  - It adds noise without providing useful information
+- ✅ **Fix**: Removed symbol display from report generation (lines 209-210 in `generate_unused_imports_report.py`)
+- ✅ **Verification**: Regenerated unused imports report - redundant bullets are gone
+- ✅ **Note**: Symbol field kept in data structure for potential future use, just not displayed
+
+**Files**: `development_tools/imports/generate_unused_imports_report.py` (lines 209-210 removed)
 
 #### 2.3 Enhance System Health Analysis
 **Status**: COMPLETE ✅  
@@ -229,24 +248,52 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 - ✅ Old files ready for deletion: `generate_test_coverage.py`, `generate_test_coverage_reports.py`, `COVERAGE_TOOLS_ANALYSIS.md`
 
 #### 2.8 Review generate_* Tools That Don't Create .md Files
-**Status**: PENDING  
+**Status**: COMPLETE ✅  
 **Priority**: MEDIUM  
 **Issue**: Most `generate_*` tools create markdown report files (`.md`), but two tools don't follow this pattern:
 - `generate_error_handling_recommendations.py` - Generates recommendations (could be incorporated into analyzer)
 - `generate_function_docstrings.py` - Actually modifies code (should be `fix_*` or `add_*` pattern)
 
-**Tasks**:
-- [ ] Review `generate_error_handling_recommendations.py`:
-  - [ ] Evaluate if it should be incorporated into `analyze_error_handling.py` (recommendations are already generated there)
-  - [ ] Check if standalone tool adds value or creates redundancy
-  - [ ] If redundant: Consolidate into analyzer; if valuable: Keep but consider renaming
-- [ ] Review `generate_function_docstrings.py`:
-  - [ ] Evaluate renaming to `fix_function_docstrings.py` or `add_function_docstrings.py` (matches `fix_*` pattern for code modifications)
-  - [ ] Consider if it should be `fix_*` (repairs missing docs) vs `add_*` (adds new content)
-  - [ ] Update tool metadata and documentation if renamed
-- [ ] Document naming convention: `generate_*` should create artifacts (typically `.md` files), not modify code
+**Investigation Complete (2025-12-31)**:
 
-**Files**: `development_tools/error_handling/generate_error_handling_recommendations.py`, `development_tools/error_handling/analyze_error_handling.py`, `development_tools/functions/generate_function_docstrings.py`
+**1. `generate_error_handling_recommendations.py`**:
+- ✅ **Implementation Complete (2025-12-31)**: **Option C - Moved function into `analyze_error_handling.py`** ✅
+  - ✅ Moved `generate_recommendations()` function directly into `analyze_error_handling.py` as part of `_generate_recommendations()` method
+  - ✅ Removed tool registration from `tool_metadata.py` and `tool_wrappers.py`
+  - ✅ Updated documentation references in `DEVELOPMENT_TOOLS_GUIDE.md` and `AI_DEVELOPMENT_TOOLS_GUIDE.md`
+  - ✅ Updated test file `test_generate_error_handling_recommendations.py` to test the method directly (all 11 tests passing)
+  - ✅ Deleted `generate_error_handling_recommendations.py` file
+  - ✅ **Rationale**: Recommendations are part of analysis, not artifact generation. `generate_*` prefix should be reserved for creating artifacts (like .md files). Moving the function into the analyzer simplifies the codebase and aligns with naming conventions.
+
+**2. `generate_function_docstrings.py`**:
+- ✅ **Functionality**: **MODIFIES CODE** by adding docstrings to functions (line 224 writes to files)
+- ✅ **Naming Issue**: Should follow `fix_*` pattern (repairs missing docs) or `add_*` pattern (adds new content)
+- ✅ **Current Behavior**: Scans Python files, detects function types, and adds appropriate docstrings where missing
+- ✅ **Recommendation**: **Rename to `fix_function_docstrings.py`** - Better matches naming convention:
+  - `fix_*` pattern is for cleanup/repair operations (this repairs missing documentation)
+  - `generate_*` should be reserved for creating artifacts (like .md files), not modifying code
+  - Tool is marked as `experimental` tier, so renaming is low-risk
+
+**Naming Convention Clarification**:
+- ✅ **`generate_*`**: Should create artifacts (typically `.md` files), not modify code
+- ✅ **`fix_*`**: Cleanup/repair operations (removal, cleanup, repairs like adding missing docs)
+- ✅ **`add_*`**: Alternative naming for tools that add new content (less common in current codebase)
+
+**Implementation Tasks** (if renaming `generate_function_docstrings.py`):
+- [ ] Rename file: `generate_function_docstrings.py` → `fix_function_docstrings.py`
+- [ ] Update `SCRIPT_REGISTRY` entry in `tool_wrappers.py`
+- [ ] Update `tool_metadata.py` entry
+- [ ] Update all references in documentation
+- [ ] Update function/class names if needed
+- [ ] Verify all tests still pass
+
+**Files**: 
+- `development_tools/error_handling/analyze_error_handling.py` (now contains recommendations generation)
+- `development_tools/error_handling/generate_error_handling_recommendations.py` (deleted - functionality moved to analyze_error_handling.py)
+- `development_tools/functions/generate_function_docstrings.py` (reviewed, rename recommended)
+- `development_tools/shared/tool_metadata.py` (removed tool registration)
+- `development_tools/shared/service/tool_wrappers.py` (removed tool registration)
+- `tests/development_tools/test_generate_error_handling_recommendations.py` (updated to test inlined method)
 
 #### 2.9 Investigate Caching to Accelerate Test Coverage Generation
 **Status**: PENDING  

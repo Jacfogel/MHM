@@ -61,6 +61,20 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+**Investigate Pytest Failures in Development Tools Test Suite**
+- *What it means*: Investigate and fix intermittent test failures and pytest crashes in the development tools test suite. Currently experiencing: (1) flaky test `test_central_aggregation_includes_all_tool_results` that passes individually but sometimes fails in full suite (likely race condition), and (2) pytest crash with Windows error 0xC0000135 (STATUS_DLL_NOT_FOUND) indicating missing DLL required by Python or dependencies.
+- *Why it helps*: Ensures test suite reliability, prevents false negatives that can mask real issues, and addresses system-level environment problems that may affect development workflow
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Investigate `test_central_aggregation_includes_all_tool_results` flakiness - test passes individually but fails in full suite with "Found 0 tool results: []" error
+  - [ ] Check for race conditions or timing issues in test setup/teardown
+  - [ ] Verify test isolation and ensure files are properly flushed before assertions
+  - [ ] Investigate pytest crash (0xC0000135 - STATUS_DLL_NOT_FOUND) - Windows system-level error indicating missing DLL
+  - [ ] Check Python installation integrity and PATH environment variable
+  - [ ] Verify pytest and dependency installations are complete
+  - [ ] Consider adding retry logic or fixing root cause for flaky test
+  - [ ] Document findings and solutions
+
 **AI Chatbot Actionability Sprint** - Plan and implement actionable AI responses
 - *What it means*: Improve AI chat quality and enable robust task/message/profile CRUD, with awareness of recent automated messages and targeted, non-conflicting suggestions.
 - *Why it helps*: Addresses the user's biggest friction and increases real utility.

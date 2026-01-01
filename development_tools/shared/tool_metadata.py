@@ -251,13 +251,6 @@ _TOOLS: Dict[str, ToolInfo] = {
         trust="stable",
         description="Generates reports from error handling analysis results.",
     ),
-    "generate_error_handling_recommendations": ToolInfo(
-        name="generate_error_handling_recommendations",
-        path="development_tools/error_handling/generate_error_handling_recommendations.py",
-        tier="supporting",
-        trust="stable",
-        description="Generates recommendations for improving error handling based on analysis results.",
-    ),
     "analyze_functions": ToolInfo(
         name="analyze_functions",
         path="development_tools/functions/analyze_functions.py",

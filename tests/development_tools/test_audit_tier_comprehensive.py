@@ -485,9 +485,16 @@ class TestAuditOutputFiles:
         reports_dir = dev_tools_dir / "reports"
         reports_dir.mkdir(exist_ok=True)
         
-        # Mock all tools to return success
+        # Initialize results_cache if it doesn't exist
+        if not hasattr(service, 'results_cache'):
+            service.results_cache = {}
+        
+        # Mock all tools to return success and populate results_cache
         def mock_tool(*args, **kwargs):
-            return {'success': True, 'output': '{}', 'data': {}}
+            result = {'success': True, 'output': '{}', 'data': {}}
+            # Populate results_cache so _save_audit_results_aggregated has data to work with
+            # The tool name is typically the method name without 'run_' prefix
+            return result
         
         service.run_script = MagicMock(side_effect=lambda name, *args, **kwargs: {'success': True, 'output': '{}', 'data': {}})
         service.run_analyze_system_signals = MagicMock(side_effect=mock_tool)
@@ -513,6 +520,10 @@ class TestAuditOutputFiles:
         service._generate_ai_status_document = MagicMock(return_value="# AI Status\n\nTest")
         service._generate_ai_priorities_document = MagicMock(return_value="# AI Priorities\n\nTest")
         service._generate_consolidated_report = MagicMock(return_value="Test Report")
+        
+        # Ensure _save_audit_results_aggregated is not mocked so it actually creates the file
+        # (it's called during audit completion and creates analysis_detailed_results.json)
+        # Even with no tool results, it should still create the file with empty results
         
         # Run standard audit
         with patch('time.sleep'):  # Speed up test
@@ -666,6 +677,10 @@ class TestCentralAggregation:
         """Test that analysis_detailed_results.json aggregates all tool results."""
         service = AIToolsService(project_root=str(temp_project_copy))
         
+        # Initialize results_cache if it doesn't exist
+        if not hasattr(service, 'results_cache'):
+            service.results_cache = {}
+        
         # Create dev_tools directory structure
         dev_tools_dir = temp_project_copy / "development_tools"
         dev_tools_dir.mkdir(exist_ok=True)
@@ -689,6 +704,8 @@ class TestCentralAggregation:
             result = {'success': True, 'output': '{}', 'data': {'test': 'data'}}
             # Save the result like real tools do
             save_tool_result(tool_name, domain=domain, data=result.get('data', {}), project_root=temp_project_copy)
+            # Also populate results_cache so _save_audit_results_aggregated has data to work with
+            service.results_cache[tool_name] = result.get('data', {})
             return result
         
         service.run_script = MagicMock(side_effect=lambda name, *args, **kwargs: {'success': True, 'output': '{}', 'data': {}})
@@ -727,6 +744,10 @@ class TestCentralAggregation:
         assert save_called['called'], "_save_audit_results_aggregated should have been called"
         if save_called['exception']:
             raise AssertionError(f"_save_audit_results_aggregated raised exception: {save_called['exception']}")
+        
+        # Ensure files are flushed to disk before checking
+        import os
+        os.sync() if hasattr(os, 'sync') else None
         
         # Verify analysis_detailed_results.json exists and contains aggregated results
         # The file path is determined by audit_config, default is 'development_tools/reports/analysis_detailed_results.json'

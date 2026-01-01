@@ -33,7 +33,6 @@ SCRIPT_REGISTRY = {
     'generate_directory_tree': 'docs/generate_directory_tree.py',
     'analyze_error_handling': 'error_handling/analyze_error_handling.py',
     'generate_error_handling_report': 'error_handling/generate_error_handling_report.py',
-    'generate_error_handling_recommendations': 'error_handling/generate_error_handling_recommendations.py',
     'analyze_functions': 'functions/analyze_functions.py',
     'analyze_function_patterns': 'functions/analyze_function_patterns.py',
     'analyze_package_exports': 'functions/analyze_package_exports.py',

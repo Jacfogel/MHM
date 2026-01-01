@@ -1102,7 +1102,15 @@ class CoverageMetricsRegenerator:
                                     if all_files:
                                         logger.debug(f"Coverage files found in {coverage_dir}: {[f.name for f in all_files]}")
                         elif logger:
-                            logger.info("Successfully combined coverage data from parallel and no_parallel runs")
+                            # Log what was actually combined for debugging
+                            combine_info = []
+                            if parallel_coverage_source:
+                                combine_info.append(f"parallel source: {parallel_coverage_source.name}")
+                            if parallel_shard_files:
+                                combine_info.append(f"{len(parallel_shard_files)} shard files")
+                            if no_parallel_coverage_file and no_parallel_coverage_file.exists():
+                                combine_info.append(f"no_parallel: {no_parallel_coverage_file.name}")
+                            logger.info(f"Successfully combined coverage data from parallel and no_parallel runs ({', '.join(combine_info) if combine_info else 'no sources found'})")
                             # Validate that we actually have coverage data (detect silent failures)
                             if self.coverage_data_file.exists():
                                 file_size = self.coverage_data_file.stat().st_size
@@ -1132,6 +1140,11 @@ class CoverageMetricsRegenerator:
                                 project_root_coverage_no_parallel.unlink()
                         except Exception:
                             pass
+                    
+                    # Capture file existence status BEFORE cleanup for later validation
+                    parallel_file_existed = parallel_coverage_file.exists() if parallel_coverage_file else False
+                    no_parallel_file_existed = no_parallel_coverage_file.exists() if no_parallel_coverage_file else False
+                    shard_files_count = len(parallel_shard_files) if 'parallel_shard_files' in locals() else 0
                     
                     # Clean up temporary coverage files from original locations
                     # Also clean up process-specific files (e.g., .coverage_parallel.DESKTOP-*.X.*)
@@ -1193,9 +1206,9 @@ class CoverageMetricsRegenerator:
                                             logger.warning(
                                                 f"Coverage percentage ({coverage_pct}%) is unexpectedly low. "
                                                 f"Expected ~70-75%. This may indicate parallel coverage data was not included. "
-                                                f"Parallel file exists: {parallel_coverage_file.exists() if parallel_coverage_file else False}, "
-                                                f"No_parallel file exists: {no_parallel_coverage_file.exists() if no_parallel_coverage_file else False}, "
-                                                f"Shard files found: {len(parallel_shard_files)}"
+                                                f"Parallel file existed before cleanup: {parallel_file_existed}, "
+                                                f"No_parallel file existed before cleanup: {no_parallel_file_existed}, "
+                                                f"Shard files found: {shard_files_count}"
                                             )
                                     else:
                                         coverage_data = {}

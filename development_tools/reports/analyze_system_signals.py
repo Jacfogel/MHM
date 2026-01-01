@@ -380,6 +380,13 @@ class SystemSignalsAnalyzer:
                     for line in status_result.stdout.strip().split('\n'):
                         if line.strip():
                             # Git status format: "XY filename" where XY is status code
+                            # X = staged status, Y = unstaged status
+                            # D = deleted, M = modified, A = added, etc.
+                            status_code = line.strip()[:2]
+                            # Skip deleted files (D in either position)
+                            if 'D' in status_code:
+                                continue
+                            
                             # Extract filename (skip status code)
                             parts = line.strip().split(None, 1)
                             if len(parts) >= 2:
@@ -392,8 +399,9 @@ class SystemSignalsAnalyzer:
                 logger.debug(f"Failed to get git status: {e}")
             
             # Get files changed in last commit (if any)
+            # Use --diff-filter to exclude deleted files
             try:
-                diff_result = subprocess.run(['git', 'diff', '--name-only', 'HEAD~1', 'HEAD'], 
+                diff_result = subprocess.run(['git', 'diff', '--name-only', '--diff-filter=d', 'HEAD~1', 'HEAD'], 
                                            capture_output=True, text=True, cwd=self.project_root)
                 if diff_result.returncode == 0:
                     for line in diff_result.stdout.strip().split('\n'):
@@ -402,7 +410,7 @@ class SystemSignalsAnalyzer:
             except Exception:
                 # If HEAD~1 doesn't exist (new repo), just use HEAD
                 try:
-                    diff_result = subprocess.run(['git', 'diff', '--name-only', 'HEAD'], 
+                    diff_result = subprocess.run(['git', 'diff', '--name-only', '--diff-filter=d', 'HEAD'], 
                                                capture_output=True, text=True, cwd=self.project_root)
                     if diff_result.returncode == 0:
                         for line in diff_result.stdout.strip().split('\n'):
@@ -416,6 +424,11 @@ class SystemSignalsAnalyzer:
             for file_path in changed_files:
                 # Normalize path separators
                 file_path_normalized = file_path.replace('\\', '/')
+                
+                # Skip if file doesn't exist (deleted files)
+                full_path = self.project_root / file_path_normalized
+                if not full_path.exists():
+                    continue
                 
                 # Skip if excluded by standard exclusions
                 if should_exclude_file(file_path_normalized, context='recent_changes'):

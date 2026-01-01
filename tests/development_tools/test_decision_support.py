@@ -247,7 +247,7 @@ class TestMain:
     """Test main function."""
     
     @pytest.mark.unit
-    @patch('development_tools.reports.decision_support.scan_all_functions')
+    @patch.object(decision_support_module, 'scan_all_functions')
     @patch('development_tools.reports.decision_support.print_dashboard')
     @patch('sys.argv', ['decision_support.py'])
     def test_main_default_args(self, mock_print, mock_scan):
@@ -259,7 +259,7 @@ class TestMain:
         mock_print.assert_called_once_with([])
     
     @pytest.mark.unit
-    @patch('development_tools.reports.decision_support.scan_all_functions')
+    @patch.object(decision_support_module, 'scan_all_functions')
     @patch('development_tools.reports.decision_support.print_dashboard')
     @patch('sys.argv', ['decision_support.py', '--include-tests'])
     def test_main_include_tests(self, mock_print, mock_scan):
@@ -271,7 +271,7 @@ class TestMain:
         mock_print.assert_called_once_with([])
     
     @pytest.mark.unit
-    @patch('development_tools.reports.decision_support.scan_all_functions')
+    @patch.object(decision_support_module, 'scan_all_functions')
     @patch('development_tools.reports.decision_support.print_dashboard')
     @patch('sys.argv', ['decision_support.py', '--include-dev-tools'])
     def test_main_include_dev_tools(self, mock_print, mock_scan):
@@ -283,7 +283,7 @@ class TestMain:
         mock_print.assert_called_once_with([])
     
     @pytest.mark.unit
-    @patch('development_tools.reports.decision_support.scan_all_functions')
+    @patch.object(decision_support_module, 'scan_all_functions')
     @patch('development_tools.reports.decision_support.print_dashboard')
     @patch('sys.argv', ['decision_support.py', '--include-tests', '--include-dev-tools'])
     def test_main_both_flags(self, mock_print, mock_scan):
