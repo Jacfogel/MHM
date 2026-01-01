@@ -7,6 +7,7 @@ written once at the end, not during tool execution.
 """
 
 import sys
+import time
 from pathlib import Path
 import pytest
 
@@ -15,12 +16,12 @@ project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from tests.development_tools.conftest import demo_project_root, load_development_tools_module
+from tests.development_tools.conftest import load_development_tools_module, temp_project_copy
 
 
 @pytest.mark.integration
 @pytest.mark.no_parallel
-def test_status_files_written_only_at_end_of_audit(demo_project_root):
+def test_status_files_written_only_at_end_of_audit(temp_project_copy):
     """
     Verify that status files are only written at the end of audit execution.
     
@@ -28,12 +29,14 @@ def test_status_files_written_only_at_end_of_audit(demo_project_root):
     1. Monitors file modification times during audit
     2. Verifies files are only written once at the end
     3. Confirms no mid-audit writes occur
+    
+    Uses temp_project_copy for complete test isolation.
     """
     # Use conftest helper to load module properly
     service_module = load_development_tools_module("shared.service")
     AIToolsService = service_module.AIToolsService
     
-    project_root = Path(demo_project_root)
+    project_root = Path(temp_project_copy)
     
     # Create status file paths
     ai_status_file = project_root / "development_tools" / "AI_STATUS.md"
@@ -85,17 +88,19 @@ def test_status_files_written_only_at_end_of_audit(demo_project_root):
 
 @pytest.mark.integration
 @pytest.mark.no_parallel
-def test_status_files_not_written_during_tool_execution(demo_project_root):
+def test_status_files_not_written_during_tool_execution(temp_project_copy):
     """
     Verify that status files are NOT written during individual tool execution.
     
     This test runs individual tools and confirms they don't write status files.
+    
+    Uses temp_project_copy for complete test isolation.
     """
     # Use conftest helper to load module properly
     service_module = load_development_tools_module("shared.service")
     AIToolsService = service_module.AIToolsService
     
-    project_root = Path(demo_project_root)
+    project_root = Path(temp_project_copy)
     
     # Create status file paths
     ai_status_file = project_root / "development_tools" / "AI_STATUS.md"

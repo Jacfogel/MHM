@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-31 07:37:19
+> **Last Generated**: 2025-12-31 18:22:46
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 399
 - **Files with Unused Imports**: 127
-- **Total Unused Imports**: 357
+- **Total Unused Imports**: 358
 
 ## Breakdown by Category
 
@@ -20,7 +20,7 @@
 - **Star Imports**: 0 imports
 - **Test Mocking**: 145 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 154 imports
+- **Test Infrastructure**: 155 imports
 - **Production Test Mocking**: 3 imports
 - **Ui Imports**: 0 imports
 
@@ -1419,9 +1419,11 @@
 
 ### `tests/development_tools/test_status_file_timing.py`
 
-**Count**: 1 unused import(s)
+**Count**: 2 unused import(s)
 
-- **Line 18**: Unused demo_project_root imported from tests.development_tools.conftest
+- **Line 10**: Unused import time
+  - Symbol: `unused-import`
+- **Line 19**: Unused temp_project_copy imported from tests.development_tools.conftest
   - Symbol: `unused-import`
 
 ### `tests/integration/test_account_management.py`

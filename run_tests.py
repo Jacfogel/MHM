@@ -702,12 +702,14 @@ def main():
         cmd.extend(["tests/"])
         description = "All Tests (Unit, Integration, Behavior, UI)"
     
-    # Add marker filters (combine mode filter with no_parallel exclusion if needed)
+    # Add marker filters (combine mode filter with no_parallel and e2e exclusion if needed)
     marker_parts = []
     if mode_marker_filter:
         marker_parts.append(mode_marker_filter)
     if exclude_no_parallel:
         marker_parts.append("not no_parallel")
+    # Always exclude e2e tests from regular runs (they are slow and should only run explicitly)
+    marker_parts.append("not e2e")
     
     if marker_parts:
         # Combine all marker filters with "and"
@@ -749,11 +751,12 @@ def main():
         no_parallel_cmd = [sys.executable, "-m", "pytest"]
         
         # Build marker filter: combine no_parallel with mode filter if present
+        # Always exclude e2e tests (they are slow and should only run explicitly)
         if mode_marker_filter:
-            # Combine markers: e.g., "no_parallel and not slow" or "no_parallel and slow"
-            no_parallel_cmd.extend(["-m", f"no_parallel and {mode_marker_filter}"])
+            # Combine markers: e.g., "no_parallel and not slow and not e2e" or "no_parallel and slow and not e2e"
+            no_parallel_cmd.extend(["-m", f"no_parallel and {mode_marker_filter} and not e2e"])
         else:
-            no_parallel_cmd.extend(["-m", "no_parallel"])  # Only run no_parallel tests
+            no_parallel_cmd.extend(["-m", "no_parallel and not e2e"])  # Only run no_parallel tests, exclude e2e
         
         # Copy test selection from main command (directory paths)
         if args.mode == "fast":

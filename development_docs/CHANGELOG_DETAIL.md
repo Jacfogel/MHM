@@ -38,6 +38,18 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-31 - Test Isolation Fixes: Prevented File Regeneration During Test Runs **COMPLETED**
+- **Issue Resolution**: Fixed test isolation issues that were causing status files (`AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.txt`, `UNUSED_IMPORTS_REPORT.md`) to be regenerated in the project root during test runs, violating test isolation principles.
+- **Technical Changes**:
+  - Fixed `test_analysis_validation_framework.py` to use `tmp_path` fixture instead of defaulting to actual project root when creating `AIToolsService` instances
+  - Updated `test_status_file_timing.py` to use `temp_project_copy` fixture instead of shared `demo_project_root` for better isolation
+  - Fixed `run_tests.py` to consistently exclude `e2e` tests from both parallel and serial (no_parallel) test runs by explicitly adding `"not e2e"` to marker filters
+  - Updated `run_generate_unused_imports_report` in `tool_wrappers.py` to pass `--project-root` argument to subprocess calls, ensuring tools use the correct project root
+  - Added safeguard in `create_output_file()` to block writes to real project root during tests, only allowing writes to test/temp directories
+  - Improved test directory detection to handle Windows temp paths correctly (AppData\Local\Temp, pytest temp directories)
+- **Impact**: Tests now maintain proper isolation - no files are regenerated in the project root during test runs. All 3979 tests pass in ~5 minutes without hanging. Full audit still works correctly and properly regenerates files when run explicitly.
+- **Files**: `tests/development_tools/test_analysis_validation_framework.py`, `tests/development_tools/test_status_file_timing.py`, `run_tests.py`, `development_tools/shared/service/tool_wrappers.py`, `development_tools/shared/file_rotation.py`
+
 ### 2025-12-31 - DIRECTORY_TREE.md Regeneration Fix and Test Isolation Improvements **COMPLETED**
 - **Issue Resolution**: Fixed `DIRECTORY_TREE.md` being regenerated during test runs by correcting test isolation in `test_main_integration_demo_project`. The test was patching the wrong config module path, causing it to use the real project root instead of the test fixture directory.
 - **Technical Changes**:

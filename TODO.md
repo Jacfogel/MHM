@@ -346,6 +346,30 @@ When adding new tasks, follow this format:
 - *Why it helps*: Ensures proper log retention for debugging historical issues and prevents log files from growing unbounded
 - *Estimated effort*: Small/Medium
 
+**Investigate test log pollution of production logs**
+- *What it means*: Review test logging behavior to understand why test logs are appearing in production log files (e.g., `logs/app.log`, `logs/ai.log`, `logs/communication_manager.log`). Tests should write to test-specific log files in `tests/logs/` and not pollute production logs.
+- *Why it helps*: Keeps production logs clean and focused on actual application behavior, making debugging easier and preventing confusion from test artifacts
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Review test logging configuration and log file paths
+  - [ ] Check if tests are using production loggers instead of test loggers
+  - [ ] Verify that test fixtures properly isolate logging
+  - [ ] Identify which tests are writing to production logs
+  - [ ] Fix test logging to use test-specific log files only
+  - [ ] Add safeguards to prevent tests from writing to production logs
+
+**Investigate why running tests terminates the active service**
+- *What it means*: Review test execution behavior to understand why running the test suite causes the active MHM service to terminate. Tests should not interfere with a running service instance.
+- *Why it helps*: Allows running tests while the service is active, improving development workflow and preventing unexpected service interruptions
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Review test setup/teardown that might affect service state
+  - [ ] Check if tests are modifying shared resources (ports, files, locks) that the service uses
+  - [ ] Identify which tests or test fixtures cause service termination
+  - [ ] Review file locking, port binding, or other resource conflicts
+  - [ ] Fix test isolation to prevent interference with running services
+  - [ ] Add safeguards to detect and prevent test interference with active services
+
 
 
 

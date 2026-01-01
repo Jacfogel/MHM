@@ -1,37 +1,6 @@
 {
   "runs": [
     {
-      "timestamp": "2025-12-27T03:05:33.380882",
-      "tier": "full",
-      "tier_number": 3,
-      "tool_timings": {
-        "analyze_system_signals": 1.0755467414855957,
-        "analyze_config": 1.1711773872375488,
-        "analyze_ai_work": 1.2347376346588135,
-        "analyze_documentation": 1.5547828674316406,
-        "analyze_function_patterns": 1.8375999927520752,
-        "decision_support": 2.353851556777954,
-        "quick_status": 1.1013858318328857,
-        "analyze_functions": 2.815882444381714,
-        "analyze_error_handling": 3.62575364112854,
-        "analyze_function_registry": 2.848872423171997,
-        "analyze_module_imports": 2.8809244632720947,
-        "analyze_dependency_patterns": 3.143897294998169,
-        "analyze_module_dependencies": 5.077624320983887,
-        "analyze_unused_imports": 9.044036388397217,
-        "generate_unused_imports_report": 1.2684807777404785,
-        "analyze_documentation_sync": 12.564057111740112,
-        "analyze_package_exports": 17.214688301086426,
-        "run_test_coverage": 378.35013484954834,
-        "generate_dev_tools_coverage": 197.91388273239136,
-        "analyze_test_markers": 1.8754229545593262,
-        "generate_test_coverage_report": 0.9472229480743408,
-        "analyze_legacy_references": 5.285291910171509,
-        "generate_legacy_reference_report": 1.0026240348815918
-      },
-      "total_time": 656.1878786087036
-    },
-    {
       "timestamp": "2025-12-27T03:20:24.985712",
       "tier": "full",
       "tier_number": 3,
@@ -1543,6 +1512,37 @@
         "generate_test_coverage_report": 0.9432406425476074
       },
       "total_time": 1273.4027564525604
+    },
+    {
+      "timestamp": "2025-12-31T18:30:31.416568",
+      "tier": "full",
+      "tier_number": 3,
+      "tool_timings": {
+        "analyze_system_signals": 1.2351710796356201,
+        "analyze_config": 1.410771131515503,
+        "analyze_ai_work": 1.489147424697876,
+        "analyze_documentation": 2.3090782165527344,
+        "analyze_function_patterns": 2.724924087524414,
+        "decision_support": 2.822488784790039,
+        "quick_status": 1.1609089374542236,
+        "analyze_functions": 3.387773275375366,
+        "analyze_error_handling": 4.085175275802612,
+        "analyze_module_imports": 2.0626301765441895,
+        "analyze_dependency_patterns": 1.3226351737976074,
+        "analyze_module_dependencies": 2.834575653076172,
+        "analyze_function_registry": 3.0735690593719482,
+        "analyze_unused_imports": 2.734117031097412,
+        "generate_unused_imports_report": 1.2087767124176025,
+        "analyze_documentation_sync": 10.70732569694519,
+        "analyze_package_exports": 14.795535326004028,
+        "analyze_legacy_references": 80.58721780776978,
+        "generate_legacy_reference_report": 2.419759750366211,
+        "generate_dev_tools_coverage": 294.45862317085266,
+        "run_test_coverage": 455.36383509635925,
+        "analyze_test_markers": 2.021432638168335,
+        "generate_test_coverage_report": 1.0965070724487305
+      },
+      "total_time": 895.3119785785675
     }
   ]
 }

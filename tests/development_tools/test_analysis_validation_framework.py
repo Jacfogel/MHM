@@ -285,14 +285,15 @@ class TestFunctionCountingAccuracy:
     """
     
     @pytest.mark.unit
-    def test_function_counting_uses_canonical_method(self):
+    def test_function_counting_uses_canonical_method(self, tmp_path):
         """Verify that canonical metrics prioritize analyze_functions."""
         try:
             from development_tools.shared.service.data_loading import DataLoadingMixin
             from development_tools.shared.service import AIToolsService
             
             # Create a minimal service instance to test canonical metrics
-            service = AIToolsService()
+            # Use temporary directory to ensure test isolation
+            service = AIToolsService(project_root=str(tmp_path))
             
             # Mock results cache with analyze_functions data
             service.results_cache = {
@@ -386,7 +387,7 @@ class TestThresholdValidation:
             pytest.skip(f"Could not load config file: {e}")
     
     @pytest.mark.unit
-    def test_threshold_consistency_in_reports(self):
+    def test_threshold_consistency_in_reports(self, tmp_path):
         """Verify thresholds are used consistently in report generation."""
         try:
             from development_tools.shared.service.report_generation import ReportGenerationMixin
@@ -394,7 +395,8 @@ class TestThresholdValidation:
             from development_tools import config
             config.load_external_config()
             
-            service = AIToolsService()
+            # Use temporary directory to ensure test isolation
+            service = AIToolsService(project_root=str(tmp_path))
             
             # Check that report generation uses config thresholds
             assert hasattr(service, '_generate_ai_status_document'), \

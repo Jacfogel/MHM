@@ -189,12 +189,27 @@ def create_output_file(file_path: Union[str, Path], content: str, rotate: bool =
     # Check if we're writing to a test directory (should allow) or real project (should protect)
     def _is_test_directory(path: Path) -> bool:
         """Check if path is within a test directory."""
-        path_str = str(path).replace('\\', '/')
-        test_indicators = [
-            '/tests/', '/test/', '/tmp/', '/temp/', '/pytest-', '/pytest_of_',
-            'tests/data/', 'tests/fixtures/', 'tests/temp/', 'demo_project'
-        ]
-        return any(indicator in path_str for indicator in test_indicators)
+        try:
+            path_str = str(path).replace('\\', '/').lower()
+            test_indicators = [
+                '/tests/', '/test/', '/tmp/', '/temp/', '/pytest-', '/pytest_of_',
+                'tests/data/', 'tests/fixtures/', 'tests/temp/', 'demo_project',
+                'appdata/local/temp', 'appdata/local/tmp',  # Windows temp directories
+                'pytest-', 'pytest_of_',  # pytest temp directories (case-insensitive)
+            ]
+            # Check for common temp directory patterns (but be more specific)
+            if any(indicator in path_str for indicator in test_indicators):
+                return True
+            # Check if path is in a typical Windows temp location (AppData\Local\Temp)
+            if 'appdata' in path_str and ('temp' in path_str or 'tmp' in path_str):
+                return True
+            # Check if path contains pytest temp directory patterns
+            if 'pytest' in path_str and ('temp' in path_str or 'tmp' in path_str):
+                return True
+            return False
+        except Exception:
+            # If we can't determine, be conservative and assume it's not a test directory
+            return False
     
     # Get the real project root from config to check if we're writing to it
     is_real_project = False
@@ -381,6 +396,65 @@ def create_output_file(file_path: Union[str, Path], content: str, rotate: bool =
     
     # Check status files (existing logic)
     if file_name in status_files:
+        # During tests, ensure we're not writing to the real project root
+        # Check if we're in a test environment and writing to real project
+        if os.environ.get('PYTEST_CURRENT_TEST') or os.environ.get('MHM_TESTING') == '1':
+            # Determine the actual path we'll be writing to
+            write_path = None
+            if project_root is not None:
+                project_root_path = Path(project_root) if not isinstance(project_root, Path) else project_root
+                # Resolve the full path we'll write to
+                if isinstance(file_path, str):
+                    file_path_obj = Path(file_path)
+                else:
+                    file_path_obj = file_path
+                if not file_path_obj.is_absolute():
+                    write_path = project_root_path / file_path_obj
+                else:
+                    write_path = file_path_obj
+            else:
+                # Use resolved_path if available, otherwise try to resolve file_path
+                try:
+                    write_path = resolved_path.resolve() if hasattr(resolved_path, 'resolve') else Path(resolved_path)
+                except:
+                    try:
+                        write_path = Path(file_path).resolve()
+                    except:
+                        write_path = Path(file_path)
+            
+            # Only block if we're writing to the actual project root (not just any non-test directory)
+            # Check if write_path is within the real project root
+            if write_path:
+                try:
+                    # Get the real project root from config
+                    from ..config import config
+                    real_project_root = Path(config.get_project_root()).resolve()
+                    write_path_resolved = write_path.resolve() if hasattr(write_path, 'resolve') else Path(write_path)
+                    
+                    # Check if write_path is within real project root AND not a test directory
+                    is_in_real_project = (
+                        real_project_root in write_path_resolved.parents or
+                        str(write_path_resolved).startswith(str(real_project_root))
+                    )
+                    
+                    if is_in_real_project and not _is_test_directory(write_path_resolved):
+                        # We're in a test but writing to real project - block it
+                        logger.warning(f"[TEST ISOLATION] Blocking {file_name} write to real project during test. Path: {write_path_resolved}. Use temporary directories.")
+                        raise RuntimeError(f"Cannot write {file_name} to real project during tests - use temporary directories for test isolation")
+                except (ImportError, AttributeError):
+                    # If we can't determine real project root, fall back to test directory check
+                    if not _is_test_directory(write_path):
+                        logger.debug(f"[TEST ISOLATION] Cannot determine real project root, but path {write_path} doesn't look like a test directory. Allowing write.")
+                        # Don't block if we can't determine - be lenient
+                    pass
+                except RuntimeError:
+                    # Re-raise our blocking exception
+                    raise
+                except Exception as e:
+                    # If check fails, log but don't block (defensive - don't break tests)
+                    logger.debug(f"[TEST ISOLATION] Error checking test isolation for {file_name}: {e}")
+                    pass
+        
         # Check if audit is in progress by looking for the global flag in operations module
         try:
             import sys

@@ -36,6 +36,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-12-31 - Test Isolation Fixes: Prevented File Regeneration During Tests **COMPLETED**
+- Fixed test isolation issues preventing status files from being regenerated during test runs - tests now use proper temporary directories and fixtures
+- Updated `run_tests.py` to consistently exclude e2e tests from both parallel and serial runs, fixed `run_generate_unused_imports_report` to pass `--project-root` to subprocesses
+- Added safeguard in `create_output_file()` to block writes to real project root during tests, improved Windows temp directory detection
+- All 3979 tests pass in ~5 minutes, no files regenerated during test runs, full audit still works correctly when run explicitly
+- Files: `tests/development_tools/test_analysis_validation_framework.py`, `tests/development_tools/test_status_file_timing.py`, `run_tests.py`, `development_tools/shared/service/tool_wrappers.py`, `development_tools/shared/file_rotation.py`
+
 ### 2025-12-31 - DIRECTORY_TREE.md Regeneration Fix **COMPLETED**
 - Fixed `DIRECTORY_TREE.md` being regenerated during test runs by correcting test isolation in `test_main_integration_demo_project` - test now properly patches config module where it's imported
 - Improved safeguard logging in `file_rotation.py` with more aggressive DIRECTORY_TREE detection patterns

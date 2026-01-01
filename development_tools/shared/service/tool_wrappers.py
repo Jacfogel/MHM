@@ -997,7 +997,7 @@ class ToolWrappersMixin:
         """Run generate_unused_imports_report to generate markdown report from analysis results."""
         logger.info("Generating unused imports report...")
         script_path = Path(__file__).resolve().parent.parent.parent / 'imports' / 'generate_unused_imports_report.py'
-        cmd = [sys.executable, str(script_path)]
+        cmd = [sys.executable, str(script_path), '--project-root', str(self.project_root)]
         
         try:
             result_proc = subprocess.run(

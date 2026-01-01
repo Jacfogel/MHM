@@ -579,7 +579,26 @@ The Error Handling section now displays complete information matching consolidat
 
 **Files**: `development_tools/tests/run_test_coverage.py`, `pytest.ini`, `tests/conftest.py`, `.gitignore`, `development_tools/tests/.coverage*`
 
-#### 4.14 Investigate and Verify Pyright "Duplicate Declaration" Fixes
+#### 4.14 Investigate Fixture Status File Regeneration
+**Status**: PENDING  
+**Priority**: MEDIUM  
+**Issue**: Status files in `tests/fixtures/development_tools_demo/` (`AI_PRIORITIES.md`, `AI_STATUS.md`, `consolidated_report.txt`) were last regenerated over a week ago. These fixture files should be updated when the demo project structure changes or when status file formats change, but they may not be getting regenerated as expected.
+
+**Tasks**:
+- [ ] Check when fixture status files were last modified (file timestamps)
+- [ ] Review if there's a process or script that should regenerate these files
+- [ ] Determine if fixture files should be updated:
+  - When demo project structure changes
+  - When status file formats change
+  - During fixture setup/validation
+  - Manually when needed
+- [ ] Check if fixture files are used by tests and if stale files cause issues
+- [ ] Create or update process to regenerate fixture status files when needed
+- [ ] Document when and how fixture status files should be updated
+
+**Files**: `tests/fixtures/development_tools_demo/AI_PRIORITIES.md`, `tests/fixtures/development_tools_demo/AI_STATUS.md`, `tests/fixtures/development_tools_demo/consolidated_report.txt`, `tests/development_tools/conftest.py`
+
+#### 4.15 Investigate and Verify Pyright "Duplicate Declaration" Fixes
 **Status**: PENDING  
 **Priority**: HIGH  
 **Issue**: Pyright reports "duplicate declaration" errors for several functions/variables. Initial fixes were attempted but reverted - full investigation needed to determine if these are true duplicates or serve different purposes.
