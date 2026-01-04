@@ -417,8 +417,8 @@ def _send_confirmation_code(user_id: str, confirmation_code: str, channel_type: 
         # channel_type is used for message context (which channel is being linked)
         
         # Send via communication manager
-        from communication.core.channel_orchestrator import get_communication_manager
-        comm_manager = get_communication_manager()
+        from communication.core.channel_orchestrator import CommunicationManager
+        comm_manager = CommunicationManager()
         
         if comm_manager:
             message = f"""Hello!
@@ -435,42 +435,15 @@ Thank you,
 MHM Team"""
             
             # Send via email channel (confirmation codes are always sent via email for security)
-            # Use async helper if available, otherwise sync
-            import asyncio
-            try:
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    # If loop is running, schedule it
-                    success = asyncio.run_coroutine_threadsafe(
-                        comm_manager.send_message(
-                            channel_name='email',
-                            recipient=recipient,
-                            message=message,
-                            message_type="account_linking",
-                            channel_preference='email'
-                        ),
-                        loop
-                    ).result(timeout=10)
-                else:
-                    success = loop.run_until_complete(
-                        comm_manager.send_message(
-                            channel_name='email',
-                            recipient=recipient,
-                            message=message,
-                            message_type="account_linking",
-                            channel_preference='email'
-                        )
-                    )
-            except Exception as async_error:
-                logger.warning(f"Async send failed, trying sync: {async_error}")
-                # Fallback to sync if async fails
-                success = comm_manager.send_message_sync(
-                    channel_name='email',
-                    recipient=recipient,
-                    message=message,
-                    message_type="account_linking",
-                    channel_preference='email'
-                )
+            # Use send_message_sync which handles async/sync conversion internally
+            # This avoids creating unawaited coroutines and RuntimeWarnings
+            success = comm_manager.send_message_sync(
+                channel_name='email',
+                recipient=recipient,
+                message=message,
+                message_type="account_linking",
+                channel_preference='email'
+            )
             
             if success:
                 logger.info(f"Sent confirmation code to {recipient} for user {user_id}")

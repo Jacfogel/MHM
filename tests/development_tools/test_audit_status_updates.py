@@ -336,6 +336,21 @@ class TestAuditStatusUpdates:
         service.run_analyze_function_registry = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
         service.run_analyze_module_dependencies = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
         
+        # CRITICAL: Mock ALL Tier 1 and Tier 2 tools that could be called
+        # These were missing and causing real tools to run, leading to memory leaks
+        # Tier 1 tools
+        service.run_quick_status = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
+        service.run_analyze_function_patterns = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
+        service.run_validate = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
+        # Tier 2 tools
+        service.run_analyze_package_exports = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
+        service.run_unused_imports = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
+        service.run_analyze_module_imports = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
+        service.run_analyze_dependency_patterns = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
+        service.run_generate_unused_imports_report = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
+        # run_script is used for analyze_config and quick_status
+        service.run_script = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
+        
         # Run standard audit (Tier 2)
         with patch('time.sleep'):
             service.run_audit(quick=False, full=False)

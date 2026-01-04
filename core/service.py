@@ -606,7 +606,7 @@ class MHMService:
         """Get the actual message content that will be sent."""
         try:
             # Use the same logic as _send_predefined_message to get the message
-            from core.schedule_utilities import get_current_time_periods_with_validation, get_current_day_names
+            from core.schedule_management import get_current_time_periods_with_validation, get_current_day_names
             from core.message_management import get_recent_messages
             from pathlib import Path
             from core.config import get_user_data_dir

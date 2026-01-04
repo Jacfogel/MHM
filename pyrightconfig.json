@@ -13,6 +13,10 @@
   "reportGeneralTypeIssues": "warning",
   "reportUnboundVariable": "error",
   
+  // Exclude noisy __all__ definition issues (Category C)
+  // These are often intentional for backward compatibility or dynamic exports
+  "reportUnsupportedDunderAll": "none",
+  
   // Exclude paths - directories that shouldn't be type-checked
   "exclude": [
     "**/__pycache__",

@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-04 - Memory Leak Fix: Test Mocking and Parallel Execution Stability **COMPLETED**
+- Fixed critical memory leak in parallel test execution causing worker crashes at 94% memory - root cause was `test_full_audit_status_reflects_final_results` running real tools instead of mocks
+- Added mocks for all missing Tier 1 and Tier 2 tools, fixed race condition in `temp_project_copy` fixture, and fixed preferences test cache issue
+- Test suite now runs successfully with 3975 tests passing, no worker crashes, memory stays below 90%, test execution time improved from 25+ seconds to <6 seconds
+- Files: `tests/development_tools/test_audit_status_updates.py`, `development_tools/shared/service/audit_orchestration.py`, `tests/development_tools/conftest.py`, `tests/ui/test_account_creation_ui.py`
+
 ### 2025-12-31 - Development Tools Investigation Tasks and Test Fixes **COMPLETED**
 - Removed redundant "Symbol: unused-import" bullet points from unused imports report (Task 2.2), consolidated `generate_error_handling_recommendations.py` into `analyze_error_handling.py` to align with naming conventions (Task 2.8)
 - Fixed 6 test failures: corrected patch targets in `test_decision_support.py` (4 tests), updated assertion in `test_supporting_tools.py`, initialized `results_cache` in `test_audit_tier_comprehensive.py`, improved deleted file filtering in `analyze_system_signals.py`

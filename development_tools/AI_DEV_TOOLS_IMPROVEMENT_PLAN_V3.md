@@ -779,6 +779,57 @@ The Error Handling section now displays complete information matching consolidat
 **Files**: `development_tools/tests/analyze_test_markers.py`, `development_tools/tests/fix_test_markers.py`
 
 #### 5.9 Create New Tools to Fill Identified Gaps
+
+#### 5.10 Explore Integrating Memory Profiler Functionality into Development Tools
+**Status**: PENDING  
+**Priority**: LOW  
+**Effort**: Medium  
+**Issue**: Memory profiler (`scripts/testing/memory_profiler.py`) provides valuable test memory analysis capabilities that could be integrated into the development tools suite for ongoing monitoring and optimization.
+
+**Current Capabilities** (in `scripts/testing/memory_profiler.py`):
+- Real-time memory monitoring during test execution
+- Per-test memory usage tracking
+- Worker process monitoring (pytest-xdist)
+- Memory spike detection and automatic termination
+- Partial results saving for long-running test suites
+- Worker test assignment extraction
+- Cross-run analysis and pattern identification
+
+**Potential Integration Options**:
+1. **New Analysis Tool**: `analyze_test_memory_usage.py`
+   - Run memory profiling during test execution
+   - Generate memory usage reports (per-test, per-module, trends)
+   - Identify memory-heavy tests and patterns
+   - Provide recommendations for optimization
+   - Could be Tier 2 or Tier 3 tool
+
+2. **Enhanced Test Coverage Tool**: Extend `run_test_coverage.py` or `generate_test_coverage_report.py`
+   - Add memory usage metrics alongside coverage metrics
+   - Track memory trends over time
+   - Identify tests with both low coverage and high memory usage
+
+3. **Standalone Monitoring Tool**: `monitor_test_resources.py`
+   - Monitor memory, CPU, and other resources during test execution
+   - Provide real-time alerts for resource exhaustion
+   - Generate resource usage reports
+
+**Considerations**:
+- Memory profiling adds overhead to test execution
+- Should be optional (not run by default in quick audits)
+- May require `psutil` dependency (already used in memory_profiler.py)
+- Integration should preserve existing standalone functionality
+- Consider whether this belongs in development tools or remains as testing utility
+
+**Tasks**:
+- [ ] Evaluate if memory profiling belongs in development tools or should remain as testing utility
+- [ ] If integrating, decide on approach (new tool vs. enhancement to existing tools)
+- [ ] Design tool interface and output format (JSON + report)
+- [ ] Implement memory profiling tool following development tools patterns
+- [ ] Add tests using synthetic fixture project
+- [ ] Update tool metadata and documentation
+- [ ] Consider adding to appropriate audit tier (likely Tier 2 or Tier 3)
+
+**Files**: `scripts/testing/memory_profiler.py`, `development_tools/` (new tool location TBD)
 **Status**: PENDING  
 **Effort**: Large  
 **Description**: Implement new tools based on gap analysis (29 gaps identified across 6 domains).
@@ -830,6 +881,7 @@ The Error Handling section now displays complete information matching consolidat
 5. Automate TODO Sync Cleanup (Stage 5.6) - Moved to lower priority
 6. Address Missing Category Markers Trend (Stage 5.8) - Monitor and address
 7. New tool creation based on gap analysis (Stage 5.9)
+8. Explore integrating memory profiler functionality (Stage 5.10) - Evaluate integration approach
 
 ---
 

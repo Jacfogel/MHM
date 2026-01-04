@@ -61,6 +61,8 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+
+
 **Investigate Pytest Failures in Development Tools Test Suite**
 - *What it means*: Investigate and fix intermittent test failures and pytest crashes in the development tools test suite. Currently experiencing: (1) flaky test `test_central_aggregation_includes_all_tool_results` that passes individually but sometimes fails in full suite (likely race condition), and (2) pytest crash with Windows error 0xC0000135 (STATUS_DLL_NOT_FOUND) indicating missing DLL required by Python or dependencies.
 - *Why it helps*: Ensures test suite reliability, prevents false negatives that can mask real issues, and addresses system-level environment problems that may affect development workflow
@@ -296,12 +298,11 @@ When adding new tasks, follow this format:
   - [ ] Document the check in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) (contributor notes)
 
 **Investigate Intermittent Test Failures**
-- *What it means*: Investigate and fix two test failures that appear intermittently: `test_comprehensive_context_includes_recent_sent_messages_and_checkin_status` (AI context test) and `test_full_account_lifecycle_real_behavior` (account creation integration test). These failures may be related to timing, race conditions, or test isolation issues.
+- *What it means*: Investigate and fix test failures that appear intermittently. Currently monitoring: `test_comprehensive_context_includes_recent_sent_messages_and_checkin_status` (AI context test). Note: `test_full_account_lifecycle_real_behavior` was fixed with cache clearing.
 - *Why it helps*: Ensures test suite reliability and prevents false negatives that can mask real issues
 - *Estimated effort*: Small/Medium
 - *Subtasks*:
   - [ ] Investigate `test_comprehensive_context_includes_recent_sent_messages_and_checkin_status` failure (assertion that "Recent automated messages sent to them:" is in content)
-  - [ ] Investigate `test_full_account_lifecycle_real_behavior` failure (assertion that preferences categories persist after account-only save)
   tests/ui/test_category_management_dialog.py::TestCategoryManagementDialogRealBehavior::test_save_category_settings_persists_to_disk - AssertionError: Saved categories should match selected categories (order ma...
   tests/behavior/test_webhook_handler_behavior.py::TestWebhookHandlerBehavior::test_handle_webhook_event_routes_application_deauthorized - AssertionError: User should be welcomed
   - [ ] Check for timing/race condition issues in test setup or teardown
@@ -383,6 +384,7 @@ When adding new tasks, follow this format:
   - [ ] Review file locking, port binding, or other resource conflicts
   - [ ] Fix test isolation to prevent interference with running services
   - [ ] Add safeguards to detect and prevent test interference with active services
+
 
 
 

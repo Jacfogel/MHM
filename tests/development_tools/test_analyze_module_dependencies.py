@@ -81,7 +81,17 @@ class TestScanAllPythonFiles:
         
         assert isinstance(results, dict)
         # Should find at least demo_module.py
-        assert any('demo_module' in key for key in results.keys())
+        # Keys might be full paths, so check both the key and convert to string
+        found_demo = False
+        for key in results.keys():
+            key_str = str(key)
+            if 'demo_module' in key_str:
+                found_demo = True
+                break
+        
+        assert found_demo, \
+            f"Expected to find demo_module.py in scan results. " \
+            f"Found {len(results)} files: {list(results.keys())[:10]}"
 
 
 class TestParseModuleDependencies:

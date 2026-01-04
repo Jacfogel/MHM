@@ -442,7 +442,26 @@ def temp_project_copy(demo_project_root):
     """Create a temporary copy of the demo project for destructive tests."""
     with tempfile.TemporaryDirectory() as tmpdir:
         copy_path = Path(tmpdir) / "demo_project"
-        shutil.copytree(demo_project_root, copy_path)
+        # Handle race conditions in parallel execution where files might be deleted
+        # during copytree by retrying with error handling
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                shutil.copytree(demo_project_root, copy_path, dirs_exist_ok=True)
+                break
+            except (OSError, shutil.Error) as e:
+                if attempt == max_retries - 1:
+                    # Last attempt - re-raise the error
+                    raise
+                # Wait a bit and retry (files might be locked or deleted in parallel)
+                import time
+                time.sleep(0.1 * (attempt + 1))
+                # Remove partial copy if it exists
+                if copy_path.exists():
+                    try:
+                        shutil.rmtree(copy_path, ignore_errors=True)
+                    except Exception:
+                        pass
         yield copy_path
 
 

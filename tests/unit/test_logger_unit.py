@@ -534,6 +534,10 @@ class TestEnsureLogsDirectory:
             
             ensure_logs_directory()
             
+            # Small delay to ensure file system operations complete
+            import time
+            time.sleep(0.1)
+            
             # Verify directories were created (use the dict directly to avoid any mock issues)
             assert os.path.exists(base_dir), f"Should create base directory at {base_dir}"
             assert os.path.exists(backup_dir), f"Should create backup directory at {backup_dir}"

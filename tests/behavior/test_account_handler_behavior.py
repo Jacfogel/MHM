@@ -255,6 +255,12 @@ class TestAccountHandlerBehavior:
         existing_username = 'existinguser'
         TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
         
+        # Rebuild user index to ensure user is discoverable
+        from core.user_data_manager import rebuild_user_index
+        rebuild_user_index()
+        import time
+        time.sleep(0.1)  # Brief delay for index to be written
+        
         parsed_command = ParsedCommand(
             intent='create_account',
             entities={'username': existing_username},
@@ -394,14 +400,20 @@ class TestAccountHandlerBehavior:
         # Create existing user with email
         existing_username = 'linktestuser'
         user_id = TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
-        
+
+        # Rebuild user index to ensure user is discoverable
+        from core.user_data_manager import rebuild_user_index
+        rebuild_user_index()
+        import time
+        time.sleep(0.1)  # Brief delay for index to be written
+
         # Add email to user account
         from core.user_data_handlers import update_user_account
         update_user_account(user_id, {'email': 'test@example.com'})
-        
+
         # Clear pending operations
         _pending_link_operations.clear()
-        
+
         discord_user_id = "333444555666777888"
         parsed_command = ParsedCommand(
             intent='link_account',
@@ -413,11 +425,11 @@ class TestAccountHandlerBehavior:
             confidence=0.9,
             original_message='link account'
         )
-        
+
         with patch('communication.command_handlers.account_handler._send_confirmation_code') as mock_send:
             mock_send.return_value = True
             response = handler.handle(discord_user_id, parsed_command)
-        
+
         # Assert: Should send confirmation code
         assert response.completed is False, "Should not complete without code"
         assert 'confirmation code' in response.message.lower(), "Should mention confirmation code"
@@ -440,6 +452,13 @@ class TestAccountHandlerBehavior:
         # Create existing user with email
         existing_username = 'linkverifyuser'
         TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
+        
+        # Rebuild user index to ensure user is discoverable
+        from core.user_data_manager import rebuild_user_index
+        rebuild_user_index()
+        import time
+        time.sleep(0.1)  # Brief delay for index to be written
+        
         user_id = get_user_id_by_identifier(existing_username)
         assert user_id is not None, "User should be created"
         
@@ -535,6 +554,12 @@ class TestAccountHandlerBehavior:
         existing_username = 'existscheckuser'
         TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
         
+        # Rebuild user index to ensure user is discoverable
+        from core.user_data_manager import rebuild_user_index
+        rebuild_user_index()
+        import time
+        time.sleep(0.1)  # Brief delay for index to be written
+        
         # Test username exists
         assert handler._username_exists(existing_username), "Should find existing username"
         assert handler._username_exists(existing_username.upper()), "Should be case-insensitive"
@@ -550,6 +575,12 @@ class TestAccountHandlerBehavior:
         # Create user with known username
         existing_username = 'getiduser'
         TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
+        
+        # Rebuild user index to ensure user is discoverable
+        from core.user_data_manager import rebuild_user_index
+        rebuild_user_index()
+        import time
+        time.sleep(0.1)  # Brief delay for index to be written
         
         # Get actual user ID
         user_id = get_user_id_by_identifier(existing_username)
@@ -654,14 +685,20 @@ class TestAccountHandlerBehavior:
         # Create existing user with different email (to test linking)
         existing_username = 'emaillinkuser'
         user_id = TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
-        
+
+        # Rebuild user index to ensure user is discoverable
+        from core.user_data_manager import rebuild_user_index
+        rebuild_user_index()
+        import time
+        time.sleep(0.1)  # Brief delay for index to be written
+
         # Add different email to user account (not the one we're linking)
         from core.user_data_handlers import update_user_account
         update_user_account(user_id, {'email': 'existing@example.com'})
-        
+
         # Clear pending operations
         _pending_link_operations.clear()
-        
+
         # Try to link to new email (different from existing)
         email_address = 'linktest@example.com'
         parsed_command = ParsedCommand(
@@ -674,9 +711,9 @@ class TestAccountHandlerBehavior:
             confidence=0.9,
             original_message='link account'
         )
-        
+
         response = handler.handle(email_address, parsed_command)
-        
+
         # Assert: Should reject if email already linked (or proceed if not)
         # The handler checks if email is already linked to a different account
         assert response.completed is False, "Should not complete immediately"
@@ -694,14 +731,20 @@ class TestAccountHandlerBehavior:
         # Create existing user with different Discord ID and email
         existing_username = 'alreadylinkeduser'
         user_id = TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
-        
+
+        # Rebuild user index to ensure user is discoverable
+        from core.user_data_manager import rebuild_user_index
+        rebuild_user_index()
+        import time
+        time.sleep(0.1)  # Brief delay for index to be written
+
         # Link to different Discord ID and add email (needed for confirmation code)
         from core.user_data_handlers import update_user_account
         update_user_account(user_id, {
             'discord_user_id': '999888777666555444',
             'email': 'test@example.com'
         })
-        
+
         # Try to link to new Discord ID (different from existing)
         new_discord_id = "111222333444555666"
         parsed_command = ParsedCommand(
@@ -714,13 +757,13 @@ class TestAccountHandlerBehavior:
             confidence=0.9,
             original_message='link account'
         )
-        
+
         # The handler checks if Discord ID is already linked to a different account
         # However, if the existing Discord ID is the same as the one being linked, it allows it
         # In this test, we're linking a different Discord ID, so it should check
         # But the actual behavior may allow linking if the check doesn't match exactly
         response = handler.handle(new_discord_id, parsed_command)
-        
+
         # Assert: The handler should either reject or proceed based on the check
         # If it proceeds, it will try to send confirmation code (which may fail without email)
         # If it rejects, it will show "already linked" message
@@ -740,11 +783,17 @@ class TestAccountHandlerBehavior:
         # Create existing user with different email
         existing_username = 'alreadylinkedemailuser'
         user_id = TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
-        
+
+        # Rebuild user index to ensure user is discoverable
+        from core.user_data_manager import rebuild_user_index
+        rebuild_user_index()
+        import time
+        time.sleep(0.1)  # Brief delay for index to be written
+
         # Link to different email
         from core.user_data_handlers import update_user_account
         update_user_account(user_id, {'email': 'existing@example.com'})
-        
+
         # Try to link to new email
         new_email = 'newemail@example.com'
         parsed_command = ParsedCommand(
@@ -757,9 +806,9 @@ class TestAccountHandlerBehavior:
             confidence=0.9,
             original_message='link account'
         )
-        
+
         response = handler.handle(new_email, parsed_command)
-        
+
         # Assert: Should reject already linked account
         assert response.completed is False, "Should not complete with already linked account"
         assert 'already linked' in response.message.lower(), "Should indicate already linked"
@@ -775,7 +824,13 @@ class TestAccountHandlerBehavior:
         # Create existing user
         existing_username = 'invalidpendinguser'
         user_id = TestUserFactory.create_basic_user(existing_username, test_data_dir=test_data_dir)
-        
+
+        # Rebuild user index to ensure user is discoverable
+        from core.user_data_manager import rebuild_user_index
+        rebuild_user_index()
+        import time
+        time.sleep(0.1)  # Brief delay for index to be written
+
         # Set up wrong pending operation
         discord_user_id = "666777888999000111"
         _pending_link_operations[discord_user_id] = {
@@ -785,7 +840,7 @@ class TestAccountHandlerBehavior:
             'confirmation_code': '123456',
             'channel_type': 'discord'
         }
-        
+
         parsed_command = ParsedCommand(
             intent='link_account',
             entities={
@@ -797,9 +852,9 @@ class TestAccountHandlerBehavior:
             confidence=0.9,
             original_message='link account'
         )
-        
+
         response = handler.handle(discord_user_id, parsed_command)
-        
+
         # Assert: Should reject invalid pending operation
         assert response.completed is False, "Should not complete with invalid pending operation"
         assert 'no pending' in response.message.lower() or 'start over' in response.message.lower(), "Should indicate need to start over"

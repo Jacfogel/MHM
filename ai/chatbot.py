@@ -675,9 +675,10 @@ class AIChatBotSingleton:
                         words = text.split()
                         snippet = " ".join(words[:10]) + ("…" if len(words) > 10 else "")
                         context_parts.append(f"  - Previously ({timestamp}): A {category} message: \"{snippet}\"")
-        except Exception:
+        except Exception as e:
             # Non-blocking: if anything goes wrong, just skip this context addition
-            pass
+            # Log the error for debugging (especially in test environments)
+            logger.debug(f"Could not include recent sent messages in context for user {user_id}: {e}", exc_info=True)
 
         # Most recent task reminder (natural language)
         try:
@@ -1011,6 +1012,8 @@ Additional Instructions:
 
         if mode is None:
             mode = self._detect_mode(user_prompt)
+        if mode is None:
+            mode = "chat"
         mode = mode.lower()
         if mode != "chat" and not mode.startswith("command"):
             mode = "chat"

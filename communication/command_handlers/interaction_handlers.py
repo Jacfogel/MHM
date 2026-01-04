@@ -41,7 +41,7 @@ class InteractionHandler(ABC):
         pass
     
     @abstractmethod
-    @handle_errors("handling task management interaction", default_return=InteractionResponse("Error handling task management", "error"))
+    @handle_errors("handling task management interaction", default_return=InteractionResponse("Error handling task management", False))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
         """Handle the interaction and return a response"""
         pass
@@ -1507,7 +1507,7 @@ class HelpHandler(InteractionHandler):
         else:
             return InteractionResponse("I'm here to help! Try 'help' for general help or 'commands' for a list of commands.", True)
     
-    @handle_errors("handling general help", default_return=InteractionResponse("Error providing help", "error"))
+    @handle_errors("handling general help", default_return=InteractionResponse("Error providing help", False))
     def _handle_general_help(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle general help request"""
         topic = entities.get('topic', 'general')
@@ -1635,7 +1635,7 @@ class HelpHandler(InteractionHandler):
         
         return InteractionResponse(response, True)
     
-    @handle_errors("handling examples", default_return=InteractionResponse("Error providing examples", "error"))
+    @handle_errors("handling examples", default_return=InteractionResponse("Error providing examples", False))
     def _handle_examples(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle examples request"""
         category = entities.get('category', 'general')
@@ -2081,7 +2081,8 @@ class ScheduleManagementHandler(InteractionHandler):
             # Format response
             days_str = ', '.join(days) if days != ['ALL'] else 'all days'
             status = "active" if active else "inactive"
-            response = f"✅ Added new schedule period '{period_name}' to {category.title()}:\n"
+            category_title = category.title() if category else "schedule"
+            response = f"✅ Added new schedule period '{period_name}' to {category_title}:\n"
             response += f"  • Time: {start_time} - {end_time}\n"
             response += f"  • Days: {days_str}\n"
             response += f"  • Status: {status}"

@@ -37,6 +37,10 @@ class TestResponseTrackingBehavior:
         # Arrange - Mock file path to use test directory
         checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
         
+        # Clean up any existing file from previous test runs
+        if os.path.exists(checkins_file):
+            os.remove(checkins_file)
+        
         # Act - Store response with mocked file path
         with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
             store_user_response(user_id, response_data, "checkin")
@@ -65,6 +69,10 @@ class TestResponseTrackingBehavior:
         # Arrange - Mock file path to use test directory
         checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
         
+        # Clean up any existing file from previous test runs
+        if os.path.exists(checkins_file):
+            os.remove(checkins_file)
+        
         # Act - Store multiple responses with mocked file path
         with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
             store_user_response(user_id, response1, "checkin")
@@ -91,6 +99,10 @@ class TestResponseTrackingBehavior:
         
         # Arrange - Mock file path to use test directory
         chat_file = os.path.join(test_data_dir, "users", user_id, "chat_interactions.json")
+        
+        # Clean up any existing file from previous test runs
+        if os.path.exists(chat_file):
+            os.remove(chat_file)
         
         # Act - Store chat interaction with mocked file path
         with patch('core.response_tracking.get_user_file_path', return_value=chat_file):
@@ -470,6 +482,10 @@ class TestResponseTrackingBehavior:
         # Arrange - Mock file path to use test directory
         checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
         
+        # Clean up any existing file from previous test runs
+        if os.path.exists(checkins_file):
+            os.remove(checkins_file)
+        
         # Store initial data
         with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
             initial_data = {"mood": 7, "energy": 8, "notes": "Initial entry"}
@@ -597,19 +613,23 @@ class TestResponseTrackingIntegration:
     @pytest.mark.no_parallel
     def test_response_tracking_concurrent_access_safety(self, test_data_dir):
         """Test that response tracking handles concurrent access safely.
-        
+
         Marked as no_parallel because it modifies shared checkins.json file.
         """
         import time
         import os
         user_id = "test-user-concurrent"
-        
+
         # Arrange - Mock file path to use test directory
         checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
-        
+
         # Ensure directory exists
         os.makedirs(os.path.dirname(checkins_file), exist_ok=True)
         
+        # Clean up any existing file from previous test runs
+        if os.path.exists(checkins_file):
+            os.remove(checkins_file)
+
         # Create initial data with explicit timestamp to control sorting
         with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
             store_user_response(user_id, {"mood": 5, "timestamp": "2025-01-01 10:00:00"}, "checkin")

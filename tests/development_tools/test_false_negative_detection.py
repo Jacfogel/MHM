@@ -268,26 +268,56 @@ This references existing file:
             use_cache=False
         )
         
+        # Verify test file exists before running analysis
+        assert test_doc.exists(), f"Test file should exist at {test_doc}"
+        
+        # Check what files the analyzer would scan
+        doc_paths = analyzer.scan_documentation_paths()
+        scanned_files = list(doc_paths.keys())
+        
         # Run analysis
         results = analyzer.check_path_drift()
         
         # Find our test file in results
         test_file_path = str(test_doc.relative_to(project_dir))
         test_file_path_win = test_file_path.replace('/', '\\')
+        test_file_name = test_doc.name  # Just the filename
         
         found_test_file = False
         found_issues = []
         
         for file_path, issues in results.items():
-            if test_file_path in file_path or test_file_path_win in file_path:
+            file_path_str = str(file_path)
+            # Check multiple path formats for Windows/Unix compatibility
+            if (test_file_path in file_path_str or 
+                test_file_path_win in file_path_str or 
+                test_file_name in file_path_str or
+                'test_doc.md' in file_path_str):
                 found_test_file = True
                 found_issues = issues if isinstance(issues, list) else []
                 break
         
+        # If file wasn't found in results, check if it was scanned at all
+        file_was_scanned = any(
+            test_file_path in f or test_file_path_win in f or test_file_name in f or 'test_doc.md' in f
+            for f in scanned_files
+        )
+        
         # Verify we found issues
-        assert found_test_file, \
+        assert found_test_file or file_was_scanned, \
             f"Expected to find path drift issues in {test_file_path}. " \
-            f"Files in results: {list(results.keys())}"
+            f"Files scanned: {scanned_files[:10]}. " \
+            f"Files in results: {list(results.keys())[:20]}. " \
+            f"Test file exists: {test_doc.exists()}, path: {test_doc}"
+        
+        # If file was scanned but has no issues, that's also a problem
+        if file_was_scanned and not found_test_file:
+            # File was scanned but no issues found - check if paths were extracted
+            test_file_paths = doc_paths.get(test_file_path) or doc_paths.get(test_file_path_win) or []
+            assert len(test_file_paths) > 0, \
+                f"Test file was scanned but no paths extracted. " \
+                f"Expected to find references to 'core/missing_file.py' and 'ui/nonexistent.py'. " \
+                f"Extracted paths: {test_file_paths}"
         
         # Verify we found broken references
         assert len(found_issues) > 0, \

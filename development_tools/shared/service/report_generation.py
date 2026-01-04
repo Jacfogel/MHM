@@ -5,6 +5,7 @@ Contains methods for generating AI_STATUS.md, AI_PRIORITIES.md, and consolidated
 These methods are large (~4,300 lines total) and generate comprehensive status reports.
 """
 
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -35,6 +36,63 @@ class ReportGenerationMixin:
         # Default matches development_tools_config.json for backward compatibility
         results_file_path = (self.audit_config or {}).get('results_file', 'development_tools/reports/analysis_detailed_results.json')
         return self._resolve_report_path(results_file_path)
+    
+    def _is_test_directory(self, path: Path) -> bool:
+        """Check if path is within a test directory to avoid loading large result files.
+        
+        This is critical for preventing memory leaks in parallel test execution.
+        """
+        try:
+            path_str = str(path.resolve()).replace('\\', '/').lower()
+            
+            # Check for Windows temp directories (most common case for pytest-xdist)
+            # Windows temp dirs are typically: C:\Users\...\AppData\Local\Temp\...
+            if 'appdata' in path_str and ('temp' in path_str or 'tmp' in path_str):
+                return True
+            
+            # Check for pytest temp directories (pytest-xdist creates these)
+            if 'pytest' in path_str and ('temp' in path_str or 'tmp' in path_str):
+                return True
+            
+            # Check for common temp directory patterns
+            test_indicators = [
+                '/tmp', '/temp',  # Unix-style temp
+                '/tests/', '/test/',  # Test directories
+                'tests/data/', 'tests/fixtures/', 'tests/temp/',
+                'demo_project',  # Demo project used in tests
+                'pytest-', 'pytest_of_',  # pytest temp directories
+            ]
+            if any(indicator in path_str for indicator in test_indicators):
+                return True
+            
+            # Additional check: if path contains a tempfile pattern (tmpXXXXXX)
+            import re
+            if re.search(r'[\\/]tmp[a-z0-9]{6,}[\\/]', path_str):
+                return True
+            
+            return False
+        except Exception as e:
+            # If we can't determine, be conservative and assume it's not a test directory
+            # But log it so we can debug
+            logger.debug(f"Error checking if path is test directory ({path}): {e}")
+            return False
+    
+    def _load_results_file_safe(self) -> Optional[Dict]:
+        """Load analysis_detailed_results.json if it exists and we're not in a test directory.
+        
+        Returns None if in test directory or file doesn't exist to prevent loading large files in tests.
+        """
+        if self._is_test_directory(self.project_root):
+            return None
+        results_file = self._get_results_file_path()
+        if not results_file.exists():
+            return None
+        try:
+            import json
+            with open(results_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            return None
     
     def _generate_ai_status_document(self) -> str:
         """Generate AI-optimized status document."""
@@ -208,14 +266,11 @@ class ReportGenerationMixin:
         high = metrics.get('high', 'Unknown') if metrics else 'Unknown'
         critical = metrics.get('critical', 'Unknown') if metrics else 'Unknown'
         
-        # Try loading from cache if Unknown
+        # Try loading from cache if Unknown (skip in test directories to prevent memory issues)
         if total_functions == 'Unknown' or moderate == 'Unknown':
             try:
-                import json
-                results_file = self._get_results_file_path()
-                if results_file.exists():
-                    with open(results_file, 'r', encoding='utf-8') as f:
-                        cached_data = json.load(f)
+                cached_data = self._load_results_file_safe()
+                if cached_data:
                     if 'results' in cached_data and 'analyze_functions' in cached_data['results']:
                         func_data = cached_data['results']['analyze_functions']
                         if 'data' in func_data:
@@ -290,11 +345,8 @@ class ReportGenerationMixin:
         # Fallback to cached results
         if (doc_coverage == 'Unknown' or doc_coverage is None) and functions_without_docstrings is None:
             try:
-                import json
-                results_file = self._get_results_file_path()
-                if results_file.exists():
-                    with open(results_file, 'r', encoding='utf-8') as f:
-                        cached_data = json.load(f)
+                cached_data = self._load_results_file_safe()
+                if cached_data:
                     if 'results' in cached_data and 'analyze_functions' in cached_data['results']:
                         func_data = cached_data['results']['analyze_functions']
                         if 'data' in func_data:
@@ -351,11 +403,8 @@ class ReportGenerationMixin:
         # Fallback to cached results
         if not missing_docs:
             try:
-                import json
-                results_file = self._get_results_file_path()
-                if results_file.exists():
-                    with open(results_file, 'r', encoding='utf-8') as f:
-                        cached_data = json.load(f)
+                cached_data = self._load_results_file_safe()
+                if cached_data:
                     if 'results' in cached_data and 'analyze_function_registry' in cached_data['results']:
                         func_reg_data = cached_data['results']['analyze_function_registry']
                         if 'data' in func_reg_data:
@@ -400,13 +449,8 @@ class ReportGenerationMixin:
         error_with_handling = None
         if not error_metrics or error_coverage == 'Unknown':
             try:
-                import json
-                # Get results file path from config
-                results_file = self._get_results_file_path()
-                if results_file.exists():
-                    with open(results_file, 'r', encoding='utf-8') as f:
-                        cached_data = json.load(f)
-                    if 'results' in cached_data and 'analyze_error_handling' in cached_data['results']:
+                cached_data = self._load_results_file_safe()
+                if cached_data and 'results' in cached_data and 'analyze_error_handling' in cached_data['results']:
                         error_data = cached_data['results']['analyze_error_handling']
                         if 'data' in error_data:
                             cached_metrics = error_data['data']
@@ -440,13 +484,8 @@ class ReportGenerationMixin:
         # Doc sync status
         if not doc_sync_summary:
             try:
-                import json
-                # Get results file path from config
-                results_file = self._get_results_file_path()
-                if results_file.exists():
-                    with open(results_file, 'r', encoding='utf-8') as f:
-                        cached_data = json.load(f)
-                    if 'results' in cached_data and 'analyze_documentation' in cached_data['results']:
+                cached_data = self._load_results_file_safe()
+                if cached_data and 'results' in cached_data and 'analyze_documentation' in cached_data['results']:
                         doc_sync_data = cached_data['results']['analyze_documentation']
                         if 'data' in doc_sync_data:
                             cached_metrics = doc_sync_data['data']
@@ -830,72 +869,61 @@ class ReportGenerationMixin:
         else:
             # Try to load cached error handling data
             try:
-                import json
-                # Get results file path from config
-                results_file = self._get_results_file_path()
-                if results_file.exists():
-                    with open(results_file, 'r', encoding='utf-8') as f:
-                        cached_data = json.load(f)
-                    if 'results' in cached_data and 'analyze_error_handling' in cached_data['results']:
-                        error_data = cached_data['results']['analyze_error_handling']
-                        if 'data' in error_data:
-                            error_metrics = error_data['data']
+                cached_data = self._load_results_file_safe()
+                if cached_data and 'results' in cached_data and 'analyze_error_handling' in cached_data['results']:
+                    error_data = cached_data['results']['analyze_error_handling']
+                    if 'data' in error_data:
+                        error_metrics = error_data['data']
+                    else:
+                        # Try loading from standardized output storage
+                        from ..output_storage import load_tool_result
+                        loaded_data = load_tool_result('analyze_error_handling', 'error_handling', project_root=self.project_root)
+                        if loaded_data:
+                            error_metrics = loaded_data
                         else:
-                            # Try loading from standardized output storage
-                            from ..output_storage import load_tool_result
-                            loaded_data = load_tool_result('analyze_error_handling', 'error_handling', project_root=self.project_root)
-                            if loaded_data:
-                                error_metrics = loaded_data
-                            else:
-                                error_metrics = None
+                            error_metrics = None
+                    
+                    if error_metrics:
+                        error_details = error_metrics.get('details', {})
+                        def get_error_field(field_name, default=None):
+                            return error_details.get(field_name, error_metrics.get(field_name, default))
                         
-                        if error_metrics:
-                            error_details = error_metrics.get('details', {})
-                            def get_error_field(field_name, default=None):
-                                return error_details.get(field_name, error_metrics.get(field_name, default))
+                        coverage = get_error_field('analyze_error_handling') or get_error_field('error_handling_coverage', 'Unknown')
+                        if coverage != 'Unknown':
+                            lines.append(f"- **Error Handling Coverage**: {coverage:.1f}%")
+                            lines.append(f"- **Functions with Error Handling**: {get_error_field('functions_with_error_handling', 'Unknown')}")
+                            lines.append(f"- **Functions Missing Error Handling**: {get_error_field('functions_missing_error_handling', 'Unknown')}")
                             
-                            coverage = get_error_field('analyze_error_handling') or get_error_field('error_handling_coverage', 'Unknown')
-                            if coverage != 'Unknown':
-                                lines.append(f"- **Error Handling Coverage**: {coverage:.1f}%")
-                                lines.append(f"- **Functions with Error Handling**: {get_error_field('functions_with_error_handling', 'Unknown')}")
-                                lines.append(f"- **Functions Missing Error Handling**: {get_error_field('functions_missing_error_handling', 'Unknown')}")
-                                
-                                # Add Phase 1 and Phase 2 if available
-                                phase1_total = get_error_field('phase1_total', 0)
-                                if phase1_total > 0:
-                                    phase1_by_priority = get_error_field('phase1_by_priority', {}) or {}
-                                    if not isinstance(phase1_by_priority, dict):
-                                        phase1_by_priority = {}
-                                    priority_counts = []
-                                    if phase1_by_priority.get('high', 0) > 0:
-                                        priority_counts.append(f"{phase1_by_priority['high']} high")
-                                    if phase1_by_priority.get('medium', 0) > 0:
-                                        priority_counts.append(f"{phase1_by_priority['medium']} medium")
-                                    if phase1_by_priority.get('low', 0) > 0:
-                                        priority_counts.append(f"{phase1_by_priority['low']} low")
-                                    priority_text = ', '.join(priority_counts) if priority_counts else '0'
-                                    lines.append(f"- **Phase 1 Candidates**: {phase1_total} functions need decorator replacement ({priority_text} priority)")
-                                
-                                phase2_total = get_error_field('phase2_total', 0)
-                                if phase2_total > 0:
-                                    phase2_by_type = get_error_field('phase2_by_type', {}) or {}
-                                    if not isinstance(phase2_by_type, dict):
-                                        phase2_by_type = {}
-                                    type_counts = [f"{count} {exc_type}" for exc_type, count in sorted(phase2_by_type.items(), key=lambda x: x[1], reverse=True)[:3]]
-                                    type_text = ', '.join(type_counts) if type_counts else '0'
-                                    if len(phase2_by_type) > 3:
-                                        type_text += f", ... +{len(phase2_by_type) - 3} more"
-                                    lines.append(f"- **Phase 2 Exceptions**: {phase2_total} generic exception raises need categorization ({type_text})")
-                            else:
-                                lines.append("- **Error Handling**: Run `python development_tools/run_development_tools.py audit` for detailed metrics")
+                            # Add Phase 1 and Phase 2 if available
+                            phase1_total = get_error_field('phase1_total', 0)
+                            if phase1_total > 0:
+                                phase1_by_priority = get_error_field('phase1_by_priority', {}) or {}
+                                if not isinstance(phase1_by_priority, dict):
+                                    phase1_by_priority = {}
+                                priority_counts = []
+                                if phase1_by_priority.get('high', 0) > 0:
+                                    priority_counts.append(f"{phase1_by_priority['high']} high")
+                                if phase1_by_priority.get('medium', 0) > 0:
+                                    priority_counts.append(f"{phase1_by_priority['medium']} medium")
+                                if phase1_by_priority.get('low', 0) > 0:
+                                    priority_counts.append(f"{phase1_by_priority['low']} low")
+                                priority_text = ', '.join(priority_counts) if priority_counts else '0'
+                                lines.append(f"- **Phase 1 Candidates**: {phase1_total} functions need decorator replacement ({priority_text} priority)")
+                            
+                            phase2_total = get_error_field('phase2_total', 0)
+                            if phase2_total > 0:
+                                phase2_by_type = get_error_field('phase2_by_type', {}) or {}
+                                if not isinstance(phase2_by_type, dict):
+                                    phase2_by_type = {}
+                                type_counts = [f"{count} {exc_type}" for exc_type, count in sorted(phase2_by_type.items(), key=lambda x: x[1], reverse=True)[:3]]
+                                type_text = ', '.join(type_counts) if type_counts else '0'
+                                if len(phase2_by_type) > 3:
+                                    type_text += f", ... +{len(phase2_by_type) - 3} more"
+                                lines.append(f"- **Phase 2 Exceptions**: {phase2_total} generic exception raises need categorization ({type_text})")
                         else:
                             lines.append("- **Error Handling**: Run `python development_tools/run_development_tools.py audit` for detailed metrics")
-                    else:
-                        lines.append("- **Error Handling**: Run `python development_tools/run_development_tools.py audit` for detailed metrics")
-                else:
-                    lines.append("- **Error Handling**: Run `python development_tools/run_development_tools.py audit` for detailed metrics")
             except Exception:
-                lines.append("- **Error Handling**: Run `python development_tools/run_development_tools.py audit` for detailed metrics")
+                pass
         
         lines.append("")
         lines.append("## Test Coverage")
@@ -1143,11 +1171,8 @@ class ReportGenerationMixin:
             # Try to load cached system signals
             signals_loaded = False
             try:
-                import json
-                results_file = self._get_results_file_path()
-                if results_file.exists():
-                    with open(results_file, 'r', encoding='utf-8') as f:
-                        cached_data = json.load(f)
+                cached_data = self._load_results_file_safe()
+                if cached_data:
                     # LEGACY COMPATIBILITY: Check for both new and old key names
                     # Removal plan: Remove 'system_signals' key check after 2025-03-01 if no references found
                     # Detection pattern: "system_signals" in cached_data['results']
@@ -2617,12 +2642,8 @@ class ReportGenerationMixin:
             # Fallback to direct cache file access if tool data loader didn't find it
             if not validation_output:
                 try:
-                    import json
-                    results_file = self._get_results_file_path()
-                    if results_file.exists():
-                        with open(results_file, 'r', encoding='utf-8') as f:
-                            cached_data = json.load(f)
-                        if 'results' in cached_data and 'analyze_ai_work' in cached_data['results']:
+                    cached_data = self._load_results_file_safe()
+                    if cached_data and 'results' in cached_data and 'analyze_ai_work' in cached_data['results']:
                             validation_result = cached_data['results']['analyze_ai_work']
                             if 'data' in validation_result:
                                 data = validation_result['data']
@@ -2870,28 +2891,24 @@ class ReportGenerationMixin:
         # If still Unknown, try loading from analyze_functions or decision_support cache
         if moderate == 'Unknown' or high == 'Unknown':
             try:
-                import json
-                results_file = self._get_results_file_path()
-                if results_file.exists():
-                    with open(results_file, 'r', encoding='utf-8') as f:
-                        cached_data = json.load(f)
-                    if 'results' in cached_data and 'analyze_functions' in cached_data['results']:
-                        func_data = cached_data['results']['analyze_functions']
-                        if 'data' in func_data:
-                            cached_metrics_raw = func_data['data']
-                            if 'details' in cached_metrics_raw and isinstance(cached_metrics_raw.get('details'), dict):
-                                cached_metrics = cached_metrics_raw['details']
-                            else:
-                                cached_metrics = cached_metrics_raw
-                            if moderate == 'Unknown':
-                                moderate = cached_metrics.get('moderate_complexity', 'Unknown')
-                            if high == 'Unknown':
-                                high = cached_metrics.get('high_complexity', 'Unknown')
-                            if critical == 'Unknown':
-                                critical = cached_metrics.get('critical_complexity', 'Unknown')
-                            if total_funcs == 'Unknown':
-                                total_funcs = cached_metrics.get('total_functions', 'Unknown')
-                    if (moderate == 'Unknown' or high == 'Unknown') and 'results' in cached_data and 'decision_support' in cached_data['results']:
+                cached_data = self._load_results_file_safe()
+                if cached_data and 'results' in cached_data and 'analyze_functions' in cached_data['results']:
+                    func_data = cached_data['results']['analyze_functions']
+                    if 'data' in func_data:
+                        cached_metrics_raw = func_data['data']
+                        if 'details' in cached_metrics_raw and isinstance(cached_metrics_raw.get('details'), dict):
+                            cached_metrics = cached_metrics_raw['details']
+                        else:
+                            cached_metrics = cached_metrics_raw
+                        if moderate == 'Unknown':
+                            moderate = cached_metrics.get('moderate_complexity', 'Unknown')
+                        if high == 'Unknown':
+                            high = cached_metrics.get('high_complexity', 'Unknown')
+                        if critical == 'Unknown':
+                            critical = cached_metrics.get('critical_complexity', 'Unknown')
+                        if total_funcs == 'Unknown':
+                            total_funcs = cached_metrics.get('total_functions', 'Unknown')
+                if (moderate == 'Unknown' or high == 'Unknown') and cached_data and 'results' in cached_data and 'decision_support' in cached_data['results']:
                         ds_data = cached_data['results']['decision_support']
                         if 'data' in ds_data and 'decision_support_metrics' in ds_data['data']:
                             ds_metrics = ds_data['data']['decision_support_metrics']
@@ -3776,23 +3793,19 @@ class ReportGenerationMixin:
         # If still unknown, try loading from cache
         if high_complexity == 'Unknown' or high_complexity is None:
             try:
-                import json
-                results_file = self._get_results_file_path()
-                if results_file.exists():
-                    with open(results_file, 'r', encoding='utf-8') as f:
-                        cached_data = json.load(f)
-                    if 'results' in cached_data and 'analyze_functions' in cached_data['results']:
-                        func_data = cached_data['results']['analyze_functions']
-                        if 'data' in func_data:
-                            cached_metrics = func_data['data']
-                            function_metrics_details['high_complexity'] = cached_metrics.get('high_complexity', 'Unknown')
-                            function_metrics_details['critical_complexity'] = cached_metrics.get('critical_complexity', 'Unknown')
-                            function_metrics_details['moderate_complexity'] = cached_metrics.get('moderate_complexity', 'Unknown')
-                            if 'critical_complexity_examples' in cached_metrics:
-                                function_metrics_details['critical_complexity_examples'] = cached_metrics.get('critical_complexity_examples', [])
-                            if 'high_complexity_examples' in cached_metrics:
-                                function_metrics_details['high_complexity_examples'] = cached_metrics.get('high_complexity_examples', [])
-                    if function_metrics.get('high_complexity') == 'Unknown' and 'results' in cached_data and 'decision_support' in cached_data['results']:
+                cached_data = self._load_results_file_safe()
+                if cached_data and 'results' in cached_data and 'analyze_functions' in cached_data['results']:
+                    func_data = cached_data['results']['analyze_functions']
+                    if 'data' in func_data:
+                        cached_metrics = func_data['data']
+                        function_metrics_details['high_complexity'] = cached_metrics.get('high_complexity', 'Unknown')
+                        function_metrics_details['critical_complexity'] = cached_metrics.get('critical_complexity', 'Unknown')
+                        function_metrics_details['moderate_complexity'] = cached_metrics.get('moderate_complexity', 'Unknown')
+                        if 'critical_complexity_examples' in cached_metrics:
+                            function_metrics_details['critical_complexity_examples'] = cached_metrics.get('critical_complexity_examples', [])
+                        if 'high_complexity_examples' in cached_metrics:
+                            function_metrics_details['high_complexity_examples'] = cached_metrics.get('high_complexity_examples', [])
+                if cached_data and function_metrics.get('high_complexity') == 'Unknown' and 'results' in cached_data and 'decision_support' in cached_data['results']:
                         ds_data = cached_data['results']['decision_support']
                         if 'data' in ds_data and 'decision_support_metrics' in ds_data['data']:
                             ds_metrics = ds_data['data']['decision_support_metrics']
@@ -4173,11 +4186,8 @@ class ReportGenerationMixin:
             system_signals_data = self.system_signals
         else:
             try:
-                import json
-                results_file = self._get_results_file_path()
-                if results_file.exists():
-                    with open(results_file, 'r', encoding='utf-8') as f:
-                        cached_data = json.load(f)
+                cached_data = self._load_results_file_safe()
+                if cached_data:
                     # LEGACY COMPATIBILITY: Check for both new and old key names
                     # Removal plan: Remove 'system_signals' key check after 2025-03-01 if no references found
                     # Detection pattern: "system_signals" in cached_data['results']

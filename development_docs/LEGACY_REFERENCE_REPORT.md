@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-31 20:43:46
+> **Last Generated**: 2026-01-04 06:13:53
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 7
 **Legacy Compatibility Markers Detected**: 24
@@ -51,12 +51,12 @@
 ### development_tools\shared\service\report_generation.py
 **Issues Found**: 2
 
-- **Line 1151**: `# LEGACY COMPATIBILITY:`
+- **Line 1176**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Check for both new and old key names
   ```
 
-- **Line 4181**: `# LEGACY COMPATIBILITY:`
+- **Line 4191**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Check for both new and old key names
   ```
@@ -117,17 +117,17 @@
   # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
   ```
 
-- **Line 501**: `# LEGACY COMPATIBILITY:`
+- **Line 529**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
   ```
 
-- **Line 565**: `# LEGACY COMPATIBILITY:`
+- **Line 593**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
   ```
 
-- **Line 917**: `# LEGACY COMPATIBILITY:`
+- **Line 1017**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
   ```

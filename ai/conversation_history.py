@@ -264,6 +264,8 @@ class ConversationHistory:
             sessions = self._sessions.get(user_id, [])
             for session in sessions:
                 if session.session_id == session_id:
+                    if session.messages is None:
+                        return []
                     return session.messages.copy()
             
             return []

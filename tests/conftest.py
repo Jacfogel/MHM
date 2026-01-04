@@ -1117,6 +1117,43 @@ def setup_consolidated_test_logging():
         os.environ['LOG_UI_FILE'] = worker_consolidated
         os.environ['LOG_FILE_OPS_FILE'] = worker_consolidated
         os.environ['LOG_SCHEDULER_FILE'] = worker_consolidated
+        
+        # CRITICAL: Update test_logger to write to per-worker test_run log file
+        # test_logger was set up at import time with test_run.log, but in parallel mode
+        # we need it to write to test_run_gw*.log so [WORKER-TEST] entries are captured
+        # test_logger is already a global variable, so we can reference it directly
+        if test_logger:
+            # CRITICAL: Ensure logger level is at least INFO to capture [WORKER-TEST] entries
+            # These are essential for debugging memory leaks, regardless of verbose setting
+            if test_logger.level > logging.INFO:
+                test_logger.setLevel(logging.INFO)
+            
+            # Find and update the existing file handler instead of removing/recreating
+            # This preserves any other handlers (like console handler) and avoids timing issues
+            file_handler_found = False
+            for handler in list(test_logger.handlers):
+                if isinstance(handler, logging.FileHandler):
+                    # Close the old file handler
+                    handler.close()
+                    test_logger.removeHandler(handler)
+                    file_handler_found = True
+            
+            # Add new file handler for per-worker log file
+            worker_test_run_handler = logging.FileHandler(test_run_log_file, encoding='utf-8', mode='a')
+            # CRITICAL: Always set handler to INFO level to capture [WORKER-TEST] entries
+            # These are essential for debugging memory leaks, regardless of verbose setting
+            worker_test_run_handler.setLevel(logging.INFO)
+            
+            # Use same formatter as before
+            # PytestContextLogFormatter is defined at module level (line 434)
+            # Reference it from the current module's globals to avoid UnboundLocalError in parallel mode
+            import sys
+            current_module = sys.modules[__name__]
+            formatter = current_module.PytestContextLogFormatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            )
+            worker_test_run_handler.setFormatter(formatter)
+            test_logger.addHandler(worker_test_run_handler)
     else:
         # Sequential mode: point all component loggers to the consolidated log
         consolidated_path = str(consolidated_log_file)
@@ -3176,6 +3213,43 @@ def pytest_sessionstart(session):
     if not os.environ.get('PYTEST_XDIST_WORKER'):
         test_logger.debug(f"Starting test session with {len(session.items)} tests")
         test_logger.debug(f"Test log file: {test_log_file}")
+        
+        # Register atexit handler for crash recovery
+        import atexit
+        def crash_recovery_handler():
+            """Ensure cleanup on unexpected exit."""
+            try:
+                from communication.core.channel_orchestrator import CommunicationManager
+                if CommunicationManager._instance is not None:
+                    test_logger.warning("Crash recovery: Cleaning up CommunicationManager on unexpected exit")
+                    try:
+                        CommunicationManager._instance.stop_all()
+                    except Exception:
+                        pass
+                    CommunicationManager._instance = None
+            except (ImportError, ModuleNotFoundError):
+                pass
+            except Exception as e:
+                test_logger.warning(f"Error in crash recovery handler: {e}")
+        
+        atexit.register(crash_recovery_handler)
+
+        
+        # Diagnostic logging for DLL error investigation (0xC0000135 - STATUS_DLL_NOT_FOUND)
+        try:
+            import sys
+            import pytest
+            test_logger.debug(f"Python executable: {sys.executable}")
+            test_logger.debug(f"Python version: {sys.version}")
+            test_logger.debug(f"Python path: {sys.path[:3]}...")  # First 3 entries only
+            test_logger.debug(f"Pytest version: {pytest.__version__}")
+            try:
+                import pytest_xdist
+                test_logger.debug(f"Pytest-xdist version: {pytest_xdist.__version__}")
+            except (ImportError, AttributeError):
+                test_logger.debug("Pytest-xdist: not available")
+        except Exception as e:
+            test_logger.warning(f"Failed to log diagnostic information: {e}")
 
 def _consolidate_worker_logs():
     """Consolidate per-worker log files into main log files at the end of parallel test runs.
@@ -3206,6 +3280,18 @@ def _consolidate_worker_logs():
         if not (worker_test_run_logs or worker_consolidated_logs):
             return
         
+        # CRITICAL: Backup worker log files BEFORE consolidation for debugging memory leaks
+        # This allows us to analyze which tests each worker ran even after consolidation
+        backup_dir = logs_dir / "worker_logs_backup"
+        backup_dir.mkdir(exist_ok=True)
+        for log_file in worker_test_run_logs + worker_consolidated_logs:
+            try:
+                backup_path = backup_dir / log_file.name
+                import shutil
+                shutil.copy2(log_file, backup_path)
+            except Exception as e:
+                test_logger.debug(f"Failed to backup worker log {log_file}: {e}")
+        
         test_logger.info("Consolidating worker log files into main log files...")
         
         # Consolidate test_run logs
@@ -3226,23 +3312,35 @@ def _consolidate_worker_logs():
                             import time
                             max_retries = 5
                             retry_delay = 0.2  # 200ms between retries
-                            content = None
                             
                             for attempt in range(max_retries):
                                 try:
-                                    # Read in chunks to avoid memory issues with huge files
-                                    # Limit to 50MB per worker log to prevent hanging
+                                    # Stream file content in chunks to avoid loading entire file into memory
+                                    # Limit to 50MB per worker log to prevent memory issues
                                     max_size = 50 * 1024 * 1024  # 50MB
                                     file_size = worker_log.stat().st_size
+                                    chunk_size = 1024 * 1024  # 1MB chunks for streaming
+                                    
                                     if file_size > max_size:
                                         test_logger.warning(f"Worker log {worker_log.name} is {file_size / (1024*1024):.1f}MB, truncating to last 50MB")
-                                        # Read only the last 50MB
+                                        # Read only the last 50MB in streaming chunks
                                         with open(worker_log, 'rb') as f:
                                             f.seek(-max_size, 2)  # Seek to 50MB from end
-                                            content = f.read().decode('utf-8', errors='replace')
+                                            while True:
+                                                chunk = f.read(chunk_size)
+                                                if not chunk:
+                                                    break
+                                                main_file.write(chunk.decode('utf-8', errors='replace'))
+                                                main_file.flush()  # Flush to disk to free memory
                                     else:
+                                        # Stream entire file in chunks to avoid memory accumulation
                                         with open(worker_log, 'r', encoding='utf-8') as worker_file:
-                                            content = worker_file.read()
+                                            while True:
+                                                chunk = worker_file.read(chunk_size)
+                                                if not chunk:
+                                                    break
+                                                main_file.write(chunk)
+                                                main_file.flush()  # Flush to disk to free memory
                                     break  # Success, exit retry loop
                                 except (IOError, PermissionError, OSError) as e:
                                     if attempt < max_retries - 1:
@@ -3251,17 +3349,13 @@ def _consolidate_worker_logs():
                                     else:
                                         # Last attempt failed, log warning and skip this file
                                         test_logger.warning(f"Failed to read worker log {worker_log.name} after {max_retries} attempts: {e}")
-                                        content = f"# Error: Could not read {worker_log.name} - file may be locked\n"
+                                        main_file.write(f"# Error: Could not read {worker_log.name} - file may be locked\n")
                                         break
-                            
-                            if content.strip():
-                                main_file.write(content)
-                                if not content.endswith('\n'):
-                                    main_file.write('\n')
                         except Exception as e:
                             main_file.write(f"# Error reading {worker_log.name}: {e}\n")
                             test_logger.warning(f"Error reading worker log {worker_log.name}: {e}")
                         main_file.write(f"\n# --- End Worker {worker_id} ---\n\n")
+                        main_file.flush()  # Ensure worker section is written before next
                 
                 test_logger.info(f"Consolidated {len(worker_test_run_logs)} worker test_run logs into {main_test_run_log.name}")
             except Exception as e:
@@ -3289,35 +3383,32 @@ def _consolidate_worker_logs():
                             
                             for attempt in range(max_retries):
                                 try:
-                                    # Read in chunks to avoid memory issues with huge files
-                                    # Limit to 10MB per worker log to prevent hanging (reduced from 50MB)
+                                    # Stream file content in chunks to avoid loading entire file into memory
+                                    # Limit to 10MB per worker log to prevent memory issues
                                     max_size = 10 * 1024 * 1024  # 10MB
                                     file_size = worker_log.stat().st_size
+                                    chunk_size = 1024 * 1024  # 1MB chunks for streaming
+                                    
                                     if file_size > max_size:
                                         test_logger.warning(f"Worker log {worker_log.name} is {file_size / (1024*1024):.1f}MB, truncating to last 10MB")
-                                        # Read only the last 10MB in chunks to avoid memory issues
+                                        # Read only the last 10MB in streaming chunks
                                         with open(worker_log, 'rb') as f:
                                             f.seek(-max_size, 2)  # Seek to 10MB from end
-                                            # Read in 1MB chunks to avoid loading entire file into memory
-                                            chunk_size = 1024 * 1024  # 1MB chunks
-                                            content_parts = []
                                             while True:
                                                 chunk = f.read(chunk_size)
                                                 if not chunk:
                                                     break
-                                                content_parts.append(chunk.decode('utf-8', errors='replace'))
-                                            content = ''.join(content_parts)
+                                                main_file.write(chunk.decode('utf-8', errors='replace'))
+                                                main_file.flush()  # Flush to disk to free memory
                                     else:
-                                        # For smaller files, read in chunks too to be consistent
-                                        chunk_size = 1024 * 1024  # 1MB chunks
-                                        content_parts = []
+                                        # Stream entire file in chunks to avoid memory accumulation
                                         with open(worker_log, 'r', encoding='utf-8') as worker_file:
                                             while True:
                                                 chunk = worker_file.read(chunk_size)
                                                 if not chunk:
                                                     break
-                                                content_parts.append(chunk)
-                                        content = ''.join(content_parts)
+                                                main_file.write(chunk)
+                                                main_file.flush()  # Flush to disk to free memory
                                     break  # Success, exit retry loop
                                 except (IOError, PermissionError, OSError) as e:
                                     if attempt < max_retries - 1:
@@ -3326,13 +3417,8 @@ def _consolidate_worker_logs():
                                     else:
                                         # Last attempt failed, log warning and skip this file
                                         test_logger.warning(f"Failed to read worker log {worker_log.name} after {max_retries} attempts: {e}")
-                                        content = f"# Error: Could not read {worker_log.name} - file may be locked\n"
+                                        main_file.write(f"# Error: Could not read {worker_log.name} - file may be locked\n")
                                         break
-                            
-                            if content.strip():
-                                main_file.write(content)
-                                if not content.endswith('\n'):
-                                    main_file.write('\n')
                         except Exception as e:
                             main_file.write(f"# Error reading {worker_log.name}: {e}\n")
                             test_logger.warning(f"Error reading worker log {worker_log.name}: {e}")
@@ -3396,15 +3482,50 @@ def _consolidate_worker_logs():
 
 
 def pytest_sessionfinish(session, exitstatus):
-    """Log test session finish, check for log rotation, and consolidate worker logs if running in parallel mode."""
+    """Log test session finish, check for log rotation, consolidate worker logs, and handle crash recovery."""
     test_logger.info(f"Test session finished with exit status: {exitstatus}")
     if hasattr(session, 'testscollected'):
         test_logger.info(f"Tests collected: {session.testscollected}")
+
+    # Only run in main process
+    if os.environ.get('PYTEST_XDIST_WORKER'):
+        return
+
+    # Detect crash (non-zero exit status that's not a normal failure)
+    # Exit status 1 = tests failed (normal), 2 = interrupted (normal), 3 = internal error (crash)
+    if exitstatus == 3:
+        test_logger.error("Test session crashed (internal error) - saving crash diagnostics")
+
+        # Save crash diagnostics
+        crash_log_file = Path("tests/logs/crash_diagnostics.log")
+        try:
+            crash_log_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(crash_log_file, 'a', encoding='utf-8') as f:
+                f.write(f"\n{'='*80}\n")
+                f.write(f"CRASH DETECTED: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(f"Exit Status: {exitstatus}\n")
+                f.write(f"Tests Run: {getattr(session, 'testsfailed', 0)} failed, {getattr(session, 'testscollected', 0)} collected\n")
+                f.write(f"{'='*80}\n")
+        except Exception as e:
+            test_logger.warning(f"Could not save crash diagnostics: {e}")
     
+    # Ensure cleanup even on crash
+    try:
+        from communication.core.channel_orchestrator import CommunicationManager
+        if CommunicationManager._instance is not None:
+            test_logger.debug("Session finish: Ensuring CommunicationManager cleanup")
+            try:
+                CommunicationManager._instance.stop_all()
+            except Exception:
+                pass
+            CommunicationManager._instance = None
+    except (ImportError, ModuleNotFoundError):
+        pass
+    except Exception as e:
+        test_logger.warning(f"Error during session finish cleanup: {e}")
+
     # Consolidate worker logs FIRST (this can make main log files huge)
-    # Only in main process (not in workers)
-    if not os.environ.get('PYTEST_XDIST_WORKER'):
-        _consolidate_worker_logs()
+    _consolidate_worker_logs()
     
     # NOTE: Log rotation only happens at session START in setup_consolidated_test_logging.
     # We do NOT rotate at session end because:
@@ -3421,8 +3542,16 @@ def pytest_runtest_setup(item):
     start_time = datetime.now()
     _test_start_times[test_id] = start_time
     timestamp = start_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]  # Include milliseconds
+    
+    # Include worker ID if running in parallel mode
+    worker_id = os.environ.get('PYTEST_XDIST_WORKER', 'main')
+    
+    # CRITICAL: Always log test starts with worker ID at INFO level for worker tracking
+    # This is essential for debugging memory leaks - we need to know which worker ran which test
+    test_logger.info(f"[WORKER-TEST] [{worker_id}] START: {test_id}")
+    
     # Use DEBUG level to reduce log noise - only visible with TEST_VERBOSE_LOGS=2
-    test_logger.debug(f"[TEST-START] {timestamp} - {test_id}")
+    test_logger.debug(f"[TEST-START] [{worker_id}] {timestamp} - {test_id}")
 
 def pytest_runtest_teardown(item, nextitem):
     """Log when a test ends with timestamp and duration (DEBUG level only)."""
@@ -3458,12 +3587,21 @@ def pytest_runtest_logreport(report):
             # Don't log passed tests at other levels - they're not interesting
         elif report.failed:
             # Always log failures - these are important
-            test_logger.error(f"[TEST-RESULT] {timestamp} - FAILED: {report.nodeid}")
+            worker_id = os.environ.get('PYTEST_XDIST_WORKER', 'main')
+            # CRITICAL: Also log at INFO level for worker tracking (even failures)
+            test_logger.info(f"[WORKER-TEST] [{worker_id}] FAILED: {report.nodeid}")
+            test_logger.error(f"[TEST-RESULT] [{worker_id}] {timestamp} - FAILED: {report.nodeid}")
             if report.longrepr:
                 test_logger.error(f"Error details: {report.longrepr}")
         elif report.skipped:
             # Always log skips - these might indicate issues
-            test_logger.warning(f"[TEST-RESULT] {timestamp} - SKIPPED: {report.nodeid}")
+            worker_id = os.environ.get('PYTEST_XDIST_WORKER', 'main')
+            test_logger.warning(f"[TEST-RESULT] [{worker_id}] {timestamp} - SKIPPED: {report.nodeid}")
+        elif report.passed:
+            # CRITICAL: Log passed tests at INFO level for worker tracking (memory leak debugging)
+            # This is essential to know which tests each worker ran
+            worker_id = os.environ.get('PYTEST_XDIST_WORKER', 'main')
+            test_logger.info(f"[WORKER-TEST] [{worker_id}] PASSED: {report.nodeid}")
 
 @pytest.fixture(scope="session", autouse=True)
 def cleanup_communication_manager():
@@ -3483,7 +3621,38 @@ def cleanup_communication_manager():
             from communication.core.channel_orchestrator import CommunicationManager
             if CommunicationManager._instance is not None:
                 test_logger.debug("Cleaning up CommunicationManager singleton...")
-                CommunicationManager._instance.stop_all()
+                # Add timeout wrapper to prevent hanging
+                import signal
+                import sys
+                
+                # On Windows, use threading timeout instead of signal
+                stop_complete = threading.Event()
+                stop_error = [None]
+                
+                def stop_worker():
+                    try:
+                        CommunicationManager._instance.stop_all()
+                    except Exception as e:
+                        stop_error[0] = e
+                    finally:
+                        stop_complete.set()
+                
+                stop_thread = threading.Thread(target=stop_worker, daemon=True)
+                stop_thread.start()
+                
+                # Wait up to 10 seconds for stop_all to complete
+                if not stop_complete.wait(timeout=10.0):
+                    test_logger.warning("CommunicationManager.stop_all() timed out after 10 seconds - forcing cleanup")
+                    # Force cleanup even if stop_all didn't complete
+                    try:
+                        CommunicationManager._instance._running = False
+                        if hasattr(CommunicationManager._instance, '_channels_dict'):
+                            CommunicationManager._instance._channels_dict.clear()
+                    except Exception:
+                        pass
+                elif stop_error[0]:
+                    test_logger.warning(f"Error during stop_all(): {stop_error[0]}")
+                
                 CommunicationManager._instance = None
                 test_logger.debug("CommunicationManager cleanup completed")
         except (ImportError, ModuleNotFoundError):
@@ -3497,9 +3666,9 @@ def cleanup_communication_manager():
     cleanup_thread = threading.Thread(target=do_cleanup, daemon=True)
     cleanup_thread.start()
     
-    # Wait up to 5 seconds for cleanup to complete
-    if not cleanup_complete.wait(timeout=5.0):
-        test_logger.warning("CommunicationManager cleanup timed out after 5 seconds")
+    # Wait up to 15 seconds for cleanup to complete (increased from 5 to account for stop_all timeout)
+    if not cleanup_complete.wait(timeout=15.0):
+        test_logger.warning("CommunicationManager cleanup timed out after 15 seconds")
     elif cleanup_error[0]:
         test_logger.warning(f"Error during CommunicationManager cleanup: {cleanup_error[0]}")
 
@@ -3527,6 +3696,48 @@ def cleanup_conversation_manager():
         pass
     except Exception as e:
         test_logger.warning(f"Error clearing conversation manager state: {e}")
+
+
+@pytest.fixture(autouse=True)
+def cleanup_conversation_history():
+    """Clean up ConversationHistory singleton state before and after each test.
+    
+    This prevents conversation history from accumulating across tests, which was
+    causing memory leaks in batch runs (especially batch 8 with AI conversation tests).
+    """
+    # Clear state before test
+    try:
+        from ai.conversation_history import get_conversation_history
+        history = get_conversation_history()
+        if history is not None:
+            # Clear all sessions for all users
+            if hasattr(history, '_sessions'):
+                history._sessions.clear()
+            if hasattr(history, '_active_sessions'):
+                history._active_sessions.clear()
+    except (ImportError, ModuleNotFoundError):
+        # Silently skip if AI modules aren't available
+        pass
+    except Exception as e:
+        test_logger.warning(f"Error clearing conversation history state: {e}")
+    
+    yield
+    
+    # Clear state after test
+    try:
+        from ai.conversation_history import get_conversation_history
+        history = get_conversation_history()
+        if history is not None:
+            # Clear all sessions for all users
+            if hasattr(history, '_sessions'):
+                history._sessions.clear()
+            if hasattr(history, '_active_sessions'):
+                history._active_sessions.clear()
+    except (ImportError, ModuleNotFoundError):
+        # Silently skip if AI modules aren't available
+        pass
+    except Exception as e:
+        test_logger.warning(f"Error clearing conversation history state: {e}")
 
 @pytest.fixture(autouse=True)
 def cleanup_singletons():
@@ -3565,6 +3776,10 @@ def cleanup_singletons():
             from ai.chatbot import AIChatBotSingleton
             if 'ai_chatbot' in original_instances:
                 AIChatBotSingleton._instance = original_instances['ai_chatbot']
+                # Also clear the locks_by_user defaultdict which can accumulate
+                if AIChatBotSingleton._instance is not None:
+                    if hasattr(AIChatBotSingleton._instance, '_locks_by_user'):
+                        AIChatBotSingleton._instance._locks_by_user.clear()
         except (ImportError, AttributeError):
             pass
         
@@ -3578,33 +3793,101 @@ def cleanup_singletons():
         # Clear cache instances (not restore - caches should be fresh for each test)
         try:
             import ai.cache_manager as cache_module
-            if hasattr(cache_module, '_response_cache'):
+            # Clear caches if they exist and have a clear method
+            if hasattr(cache_module, '_response_cache') and cache_module._response_cache is not None:
+                if hasattr(cache_module._response_cache, 'clear'):
+                    cache_module._response_cache.clear()
                 cache_module._response_cache = None
-            if hasattr(cache_module, '_context_cache'):
+            if hasattr(cache_module, '_context_cache') and cache_module._context_cache is not None:
+                if hasattr(cache_module._context_cache, 'clear'):
+                    cache_module._context_cache.clear()
                 cache_module._context_cache = None
         except (ImportError, AttributeError):
             pass
 
 @pytest.fixture(autouse=True)
 def cleanup_communication_threads():
-    """Clean up CommunicationManager threads between tests to prevent crashes."""
+    """
+    Lightweight cleanup of CommunicationManager state between tests.
+    
+    This fixture performs only lightweight state clearing to prevent resource
+    accumulation. Full cleanup with thread joins and async operations is handled
+    by the session-scoped cleanup_communication_manager fixture at the end of
+    the test session.
+    
+    Rationale: Per-test cleanup must be fast and non-blocking. Calling stop_all()
+    after every test causes resource exhaustion (threads, file handles, memory)
+    that accumulates over hundreds of tests, eventually making the system unresponsive.
+    """
     yield
     
-    # Clean up CommunicationManager threads after each test
-    # Only stop channels that are running to avoid breaking tests that need the manager
+    # Lightweight state clearing only - no blocking operations
+    # Full cleanup is handled by cleanup_communication_manager fixture at session end
     try:
         from communication.core.channel_orchestrator import CommunicationManager
         if CommunicationManager._instance is not None:
-            # Stop all channels to clean up threads, but don't destroy the instance
-            # This prevents thread leaks while allowing the manager to persist
             try:
-                # Only stop if there are active channels
-                if hasattr(CommunicationManager._instance, '_channels_dict') and CommunicationManager._instance._channels_dict:
-                    CommunicationManager._instance.stop_all()
+                # Only clear state without blocking operations
+                # This prevents resource accumulation while keeping cleanup fast
+                if hasattr(CommunicationManager._instance, '_channels_dict'):
+                    # Clear channels dict to prevent state leakage between tests
+                    # This is safe because channels will be recreated if needed
+                    CommunicationManager._instance._channels_dict.clear()
             except Exception:
-                pass  # Ignore errors during cleanup
+                pass  # Ignore errors during lightweight cleanup
     except (ImportError, ModuleNotFoundError):
         # Silently skip if core/communication modules aren't available (e.g., development tools tests)
         pass
     except Exception:
         pass  # Ignore other errors
+
+@pytest.fixture(autouse=True)
+def periodic_memory_cleanup(request):
+    """
+    Periodic memory cleanup to prevent accumulation during long test runs.
+    
+    Performs garbage collection every N tests to help prevent memory accumulation.
+    This is especially important for long-running test suites and parallel execution.
+    """
+    yield
+    
+    # Run garbage collection more frequently to prevent memory accumulation
+    # Reduced from every 100 tests to every 20 tests for better memory management
+    # This is especially important for parallel test execution with pytest-xdist
+    test_count = getattr(periodic_memory_cleanup, '_test_count', 0) + 1
+    periodic_memory_cleanup._test_count = test_count
+    
+    # More frequent GC for parallel runs, less frequent for sequential
+    import os
+    is_parallel = 'PYTEST_XDIST_WORKER' in os.environ
+    gc_interval = 5 if is_parallel else 20  # Every 5 tests in parallel (more aggressive), 20 in sequential
+    
+    if test_count % gc_interval == 0:
+        import gc
+        # Force garbage collection to free up memory
+        collected = gc.collect()
+        if collected > 0:
+            test_logger.debug(f"Garbage collection freed {collected} objects after {test_count} tests")
+        
+        # Also clear any module-level caches that might accumulate
+        try:
+            # Clear AI caches
+            import ai.cache_manager as cache_module
+            if hasattr(cache_module, '_response_cache') and cache_module._response_cache is not None:
+                if hasattr(cache_module._response_cache, 'clear'):
+                    cache_module._response_cache.clear()
+            if hasattr(cache_module, '_context_cache') and cache_module._context_cache is not None:
+                if hasattr(cache_module._context_cache, 'clear'):
+                    cache_module._context_cache.clear()
+        except (ImportError, AttributeError):
+            pass
+        
+        # Clear AI chatbot locks dictionary (defaultdict can accumulate)
+        try:
+            from ai.chatbot import AIChatBotSingleton
+            if AIChatBotSingleton._instance is not None:
+                if hasattr(AIChatBotSingleton._instance, '_locks_by_user'):
+                    # Clear old locks to prevent accumulation
+                    AIChatBotSingleton._instance._locks_by_user.clear()
+        except (ImportError, AttributeError):
+            pass

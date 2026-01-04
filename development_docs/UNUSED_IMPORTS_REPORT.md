@@ -2,21 +2,21 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-31 20:42:47
+> **Last Generated**: 2026-01-04 06:13:35
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 398
-- **Files with Unused Imports**: 126
-- **Total Unused Imports**: 357
+- **Files with Unused Imports**: 127
+- **Total Unused Imports**: 359
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 1 imports
+- **Obvious Unused**: 2 imports
 - **Type Hints Only**: 0 imports
 - **Re Exports**: 0 imports
-- **Conditional Imports**: 0 imports
+- **Conditional Imports**: 1 imports
 - **Star Imports**: 0 imports
 - **Test Mocking**: 145 imports
 - **Qt Testing**: 54 imports
@@ -33,6 +33,22 @@
 **Count**: 1 unused import(s)
 
 - **Line 20**: Unused List imported from typing
+
+### `run_tests.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 20**: Unused import atexit
+
+## Conditional Imports
+
+**Recommendation**: Review carefully - these may be for optional dependencies.
+
+### `tests/ui/test_signal_handler_integration.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 34**: Unused QtWidgets imported from PySide6
 
 ## Test Mocking
 
@@ -351,8 +367,8 @@
 
 **Count**: 2 unused import(s)
 
-- **Line 19**: Unused patch imported from unittest.mock
-- **Line 19**: Unused MagicMock imported from unittest.mock
+- **Line 40**: Unused patch imported from unittest.mock
+- **Line 40**: Unused MagicMock imported from unittest.mock
 
 ### `tests/ui/test_task_crud_dialog.py`
 
@@ -638,9 +654,9 @@
 
 **Count**: 3 unused import(s)
 
-- **Line 20**: Unused QLineEdit imported from PySide6.QtWidgets
-- **Line 21**: Unused Qt imported from PySide6.QtCore
-- **Line 22**: Unused QTest imported from PySide6.QtTest
+- **Line 41**: Unused QLineEdit imported from PySide6.QtWidgets
+- **Line 42**: Unused Qt imported from PySide6.QtCore
+- **Line 43**: Unused QTest imported from PySide6.QtTest
 
 ### `tests/ui/test_task_crud_dialog.py`
 

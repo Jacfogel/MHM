@@ -11,9 +11,30 @@ Tests cover:
 - Import availability for signal-related classes
 - Real signal emission (not just direct method calls)
 """
-from tests.conftest import ensure_qt_runtime
+# Import ensure_qt_runtime - use relative import since we're in tests/ui/
+import sys
+from pathlib import Path
 
-ensure_qt_runtime()
+# Add tests directory to path if needed
+tests_dir = Path(__file__).parent.parent
+if str(tests_dir) not in sys.path:
+    sys.path.insert(0, str(tests_dir))
+
+try:
+    from conftest import ensure_qt_runtime
+    ensure_qt_runtime()
+except ImportError:
+    # Fallback: try absolute import
+    try:
+        from tests.conftest import ensure_qt_runtime
+        ensure_qt_runtime()
+    except ImportError:
+        # If both fail, try to import Qt directly
+        try:
+            from PySide6 import QtWidgets  # noqa: F401
+            from PySide6.QtWidgets import QApplication  # noqa: F401
+        except (ImportError, OSError):
+            pytest.skip("Qt runtime not available", allow_module_level=True)
 
 import pytest
 from unittest.mock import patch, MagicMock
@@ -22,13 +43,21 @@ from PySide6.QtCore import Qt
 from PySide6.QtTest import QTest
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def qapp():
-    """Create QApplication instance for UI testing."""
+    """Create QApplication instance for UI testing.
+    
+    Changed from session scope to function scope to prevent Qt object accumulation
+    across tests, which was causing memory leaks in batch runs.
+    """
     app = QApplication.instance()
     if app is None:
         app = QApplication([])
     yield app
+    # Cleanup: Process any pending events and ensure widgets are destroyed
+    app.processEvents()
+    # Note: We don't quit the app here because other tests might need it
+    # The app will be cleaned up when the process exits
 
 
 class TestAccountCreatorDialogSignalHandlers:

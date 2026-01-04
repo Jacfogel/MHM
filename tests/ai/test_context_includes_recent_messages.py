@@ -19,7 +19,10 @@ class TestAIContextRecentMessages:
         cleanup_test_data_environment(self.test_dir)
 
     def test_comprehensive_context_includes_recent_sent_messages_and_checkin_status(self, monkeypatch):
+        # Set both TEST_DATA_DIR and MHM_TEST_DATA_DIR to ensure path resolution works correctly
+        monkeypatch.setenv("TEST_DATA_DIR", self.test_data_dir)
         monkeypatch.setenv("MHM_TEST_DATA_DIR", self.test_data_dir)
+        monkeypatch.setenv("MHM_TESTING", "1")
         user_id = "user_recent_msgs"
         # Ensure check-ins are enabled for this test (required for check-in status to appear)
         from tests.test_utilities import TestUserFactory

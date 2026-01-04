@@ -144,6 +144,13 @@ def save_tool_result(tool_name: str, domain: Optional[str] = None, data: Dict[st
     try:
         with open(result_file, 'w', encoding='utf-8') as f:
             json.dump(result_data, f, indent=2)
+            f.flush()  # Ensure data is written to disk
+            if hasattr(f, 'fileno'):
+                try:
+                    import os
+                    os.fsync(f.fileno())  # Force sync to disk on Unix
+                except (OSError, AttributeError):
+                    pass  # fsync not available or not needed on Windows
         logger.info(f"Saved tool result: {result_file} (archive_count={archive_count}, data_size={len(str(result_data))} chars)")
     except Exception as e:
         logger.error(f"Failed to write tool result file {result_file}: {e}")
@@ -391,10 +398,24 @@ def get_all_tool_results(project_root: Optional[Path] = None) -> Dict[str, Dict[
         for result_file in jsons_dir.glob("*_results.json"):
             tool_name = result_file.stem.replace('_results', '')
             
+            # Verify file exists and has non-zero size before attempting to read
+            if not result_file.exists():
+                logger.debug(f"Skipping missing result file: {result_file}")
+                continue
+            
             try:
+                # Check file size to avoid reading empty files
+                if result_file.stat().st_size == 0:
+                    logger.debug(f"Skipping empty result file: {result_file}")
+                    continue
+                
                 with open(result_file, 'r', encoding='utf-8') as f:
                     result_data = json.load(f)
                 all_results[tool_name] = result_data
+            except FileNotFoundError:
+                # File was deleted between existence check and open - skip gracefully
+                logger.debug(f"Result file disappeared: {result_file}")
+                continue
             except (json.JSONDecodeError, IOError) as e:
                 logger.warning(f"Failed to load result from {result_file}: {e}")
                 continue

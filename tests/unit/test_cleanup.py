@@ -23,6 +23,9 @@ from core.logger import get_component_logger
 
 logger = get_component_logger('main')
 
+# Define project root for this module
+project_root = Path(__file__).parent.parent.parent
+
 class CleanupManager:
     """Manages test data cleanup and isolation."""
     

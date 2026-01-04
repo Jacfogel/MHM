@@ -1021,15 +1021,26 @@ class CoverageMetricsRegenerator:
                         # Check for parallel coverage in multiple possible locations
                         parallel_coverage_source = None
                         if parallel_coverage_file and parallel_coverage_file.exists():
-                            parallel_coverage_source = parallel_coverage_file
+                            # Check if file has content (not empty)
+                            file_size = parallel_coverage_file.stat().st_size
+                            if file_size > 0:
+                                parallel_coverage_source = parallel_coverage_file
+                                if logger:
+                                    logger.debug(f"Using {parallel_coverage_file.name} as parallel coverage source ({file_size} bytes)")
+                            elif logger:
+                                logger.warning(f"Parallel coverage file {parallel_coverage_file.name} exists but is empty ({file_size} bytes) - shard files may not have been combined")
                         elif not parallel_shard_files:
                             # If no shard files and no .coverage_parallel, check if .coverage exists
-                            # (pytest-cov might have auto-combined shard files into .coverage)
+                            # (pytest-cov might have auto-combined shard files into .coverage if COVERAGE_FILE wasn't set)
                             coverage_file = coverage_dir / ".coverage"
                             if coverage_file.exists():
-                                parallel_coverage_source = coverage_file
-                                if logger:
-                                    logger.info(f"Using .coverage as parallel coverage source (shard files were likely auto-combined)")
+                                file_size = coverage_file.stat().st_size
+                                if file_size > 0:
+                                    parallel_coverage_source = coverage_file
+                                    if logger:
+                                        logger.info(f"Using .coverage as parallel coverage source (fallback - COVERAGE_FILE may not have been set correctly, {file_size} bytes)")
+                                elif logger:
+                                    logger.warning(f".coverage exists but is empty ({file_size} bytes)")
                         
                         if parallel_coverage_source:
                             shutil.copy2(parallel_coverage_source, project_root_coverage_parallel)

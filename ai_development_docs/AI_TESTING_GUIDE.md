@@ -300,3 +300,33 @@ Routing:
 This AI file should not duplicate those manuals. It only tells you **which** manual to use and **when**.
 
 For high-level AI subsystem behavior that these tests validate, see [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md).
+
+---
+
+## 9. Memory Profiling and Resource Management
+
+During parallel test execution, system memory usage can reach 95-98%, which is normal but should be understood and monitored.
+
+**Why memory gets high:**
+- pytest-xdist workers (6 workers × ~1-2GB each = 6-12GB)
+- Test data accumulation, Python objects, file handles
+- Windows memory management behavior
+
+**Current mitigations:**
+- Streaming log consolidation
+- Periodic garbage collection (every 100 tests)
+- Critical memory termination (auto-terminate at 98%)
+- Resource monitoring (warnings at 90%, critical at 95%)
+
+**Tools:**
+- `scripts/testing/test_memory_profiler.py` - Profile memory usage per test
+- `scripts/testing/verify_process_cleanup.py` - Verify process cleanup works
+- `scripts/testing/read_backup_results.py` - Read backup test results
+
+**Recommendations:**
+- Monitor but don't panic - high memory is expected during parallel tests
+- Reduce workers if needed (`--workers 2` instead of 4 or 6)
+- Run tests in smaller batches (`--mode fast`)
+- Profile memory-heavy tests to identify optimization opportunities
+
+For detailed explanations and usage examples, see section 9 in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).

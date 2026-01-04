@@ -687,3 +687,132 @@ When in doubt:
 1. Start here to understand the overall framework.
 2. Follow routing in this section to pick the correct manual guide.
 3. Update both sides (automated and manual tests) when you make significant changes to behavior.
+
+---
+
+## 9. Memory Profiling and Resource Management
+
+During parallel test execution, system memory usage can reach 95-98%, which is normal but should be understood and monitored. This section explains why memory usage gets high and how to profile and manage it.
+
+### 9.1. Why System Memory Usage Gets High
+
+When running tests in parallel with `-n 6` (or `-n 4`), you have:
+
+- **1 main pytest process** (~500MB)
+- **6 worker processes** (gw0, gw1, gw2, gw3, gw4, gw5) or 4 workers
+- Each worker loads the entire test suite and application code into memory
+- Each worker maintains its own Python interpreter, loaded modules, and test fixtures
+
+**Memory per worker:** ~500MB - 2GB depending on:
+- Number of tests loaded
+- Size of test fixtures
+- Application code size
+- Imported modules
+
+**Total for 6 workers:** ~3GB - 12GB just for pytest processes  
+**Total for 4 workers:** ~2GB - 8GB just for pytest processes
+
+**Additional factors:**
+- **Test data accumulation:** User data files in `tests/data/users/`, temporary files, log files, cached objects
+- **Python object accumulation:** Test fixtures, imported modules, cached objects, circular references
+- **File handles and resources:** Log files, test data files, network connections
+- **Windows memory management:** Memory may be marked as "available" but not immediately freed
+
+**Total can easily reach 95%+ on systems with 8-16GB RAM** during parallel test execution.
+
+### 9.2. Current Mitigations
+
+The test suite includes several mitigations to manage memory:
+
+1. **Streaming Log Consolidation** - Prevents loading entire log files into memory
+2. **Periodic Garbage Collection** - Runs `gc.collect()` every 100 tests via `periodic_memory_cleanup` fixture
+3. **Lightweight Cleanup** - Clears state without blocking operations
+4. **Critical Memory Termination** - Automatically terminates if memory > 98% (configurable via `--critical-memory-limit`)
+5. **Resource Monitoring** - Warns when memory > 90%, critical at > 95%
+
+### 9.3. Memory Profiling Tools
+
+To identify which tests are consuming excessive memory, use the memory profiler:
+
+```powershell
+# Profile all tests
+python scripts/testing/memory_profiler.py
+
+# Profile specific test file
+python scripts/testing/memory_profiler.py tests/unit/test_user_management.py
+
+# Profile with parallel execution
+python scripts/testing/memory_profiler.py --workers 4
+
+# Show top 20 memory-heavy tests
+python scripts/testing/memory_profiler.py --top 20
+```
+
+The profiler will:
+1. Run tests while monitoring memory usage (main process + all worker processes)
+2. Track memory per test
+3. Display top memory-heavy tests with peak/average memory
+4. Save detailed report to `tests/logs/memory_profile_detailed.json`
+
+**Understanding the output:**
+- **Peak (MB)**: Maximum memory used during test execution
+- **Avg (MB)**: Average memory during test execution
+- **Samples**: Number of memory measurements taken
+- **Thresholds**: < 200 MB (normal), 200-500 MB (moderate), 500-1000 MB (high), > 1000 MB (very high)
+
+**Note:** The profiler automatically discovers and monitors pytest-xdist worker processes, providing accurate total memory usage (main + workers).
+
+### 9.4. Process Cleanup Verification
+
+To verify that process cleanup is working correctly after test runs:
+
+```powershell
+# Check for orphaned pytest processes
+python scripts/testing/verify_process_cleanup.py
+
+# Monitor continuously (Ctrl+C to stop)
+python scripts/testing/verify_process_cleanup.py --watch
+```
+
+This script verifies:
+1. Process tree termination works (taskkill /F /T /PID)
+2. Orphaned pytest workers are cleaned up
+3. No Python processes remain after test runs
+
+If orphaned processes are found, the script displays their PIDs and command lines for investigation.
+
+### 9.5. Reading Backup Test Results
+
+When tests are interrupted or fail, partial results are saved. To read backup test results:
+
+```powershell
+# List all backup files
+python scripts/testing/read_backup_results.py
+
+# Read specific backup file
+python scripts/testing/read_backup_results.py backups/junit_results_20260101_044613.xml
+
+# Read latest backup
+python scripts/testing/read_backup_results.py --latest
+```
+
+Backup files are stored in `tests/logs/backups/`:
+- **JUnit XML files:** `junit_results_YYYYMMDD_HHMMSS.xml` - Complete test results
+- **Partial results:** `partial_results_{phase}_{mode}_{timestamp}.json` - Interrupted test run data
+
+### 9.6. Recommendations
+
+When memory usage gets high (>95%):
+
+1. **Monitor but don't panic** - High memory during parallel tests is expected
+2. **Use critical memory termination** - Already enabled at 98% to prevent crashes
+3. **Reduce workers if needed** - Use `--workers 2` instead of 4 or 6 if memory is constrained
+4. **Run tests in smaller batches** - Use `--mode fast` or specific test categories
+5. **Close other applications** - Free up memory before running full test suite
+6. **Profile memory-heavy tests** - Use the memory profiler to identify and optimize problematic tests
+
+If you were previously running with 6 workers without issues but now experience high memory, recent changes that could affect this:
+- New test fixtures or larger test data
+- Additional imports or modules loaded
+- Changes to cleanup mechanisms
+- Log file consolidation changes

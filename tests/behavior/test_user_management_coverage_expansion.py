@@ -163,6 +163,10 @@ class TestUserManagementCoverageExpansion:
     
     def test_load_account_data_real_behavior(self):
         """Test loading account data with real behavior."""
+        # Clear cache to avoid stale data from previous tests
+        from core.user_management import clear_user_caches
+        clear_user_caches()
+        
         # Arrange - Create test account file
         test_account = {
             "user_id": self.test_user_id,
@@ -189,6 +193,10 @@ class TestUserManagementCoverageExpansion:
     
     def test_load_account_data_auto_create_real_behavior(self):
         """Test auto-creating account data when file doesn't exist."""
+        # Clear cache to avoid stale data from previous tests
+        from core.user_management import clear_user_caches
+        clear_user_caches()
+        
         # Arrange - User directory exists but no account file
         os.makedirs(self.test_user_dir, exist_ok=True)
         

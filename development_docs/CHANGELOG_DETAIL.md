@@ -38,6 +38,22 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-04 - Memory Leak Fix: Test Mocking and Parallel Execution Stability **COMPLETED**
+- **Feature**: Fixed critical memory leak in parallel test execution that was causing worker crashes at 94% system memory. Root cause was `test_full_audit_status_reflects_final_results` running real tools instead of mocks, causing memory accumulation when multiple workers executed real audit tools simultaneously.
+- **Technical Changes**:
+  - **Root Cause**: Test was only mocking some tools, not all tools that `run_audit()` calls. Missing mocks included `run_analyze_package_exports`, `run_unused_imports`, `run_analyze_function_patterns`, `run_analyze_module_imports`, `run_analyze_dependency_patterns`, `run_generate_unused_imports_report`, and `run_script`. Real tools were loading large files from disk, causing memory spikes in parallel execution.
+  - **Fix Applied**: Added mocks for all missing Tier 1 and Tier 2 tools in `test_full_audit_status_reflects_final_results`. Test now runs in 5.84s (was 25.65s) with 0.00s tool execution time.
+  - **Additional Fixes**:
+    - Fixed race condition in `temp_project_copy` fixture: Added retry logic with exponential backoff to handle files being deleted during `copytree` in parallel execution.
+    - Fixed preferences test failure: Added cache clearing and explicit preferences reload to ensure preferences persist correctly after partial saves.
+  - **Enhanced Logging**: Added detailed logging in `_reload_all_cache_data()` to track memory leak prevention, including project root paths, test directory detection, and file loading operations.
+- **Impact**: Memory leak resolved - test suite now runs successfully with 3975 tests passing, no worker crashes, and memory staying below 90%. Test execution time improved from 25+ seconds to <6 seconds for the problematic test. All tests pass consistently in parallel execution.
+- **Files**: 
+  - `tests/development_tools/test_audit_status_updates.py` (added missing mocks)
+  - `development_tools/shared/service/audit_orchestration.py` (enhanced logging)
+  - `tests/development_tools/conftest.py` (fixed race condition in `temp_project_copy`)
+  - `tests/ui/test_account_creation_ui.py` (fixed cache issue in preferences test)
+
 ### 2025-12-31 - Development Tools Investigation Tasks and Test Fixes **COMPLETED**
 - **Feature**: Completed investigation tasks from improvement plan: removed redundant "Symbol: unused-import" bullet points from unused imports report, consolidated `generate_error_handling_recommendations.py` into `analyze_error_handling.py`, and fixed multiple test failures discovered during investigation.
 - **Technical Changes**:
