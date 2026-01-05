@@ -294,14 +294,19 @@ class TestChannelManagementDialogCoverageExpansion:
             'discord_id': '123456789'
         }
         
+        # Bind the real methods to the mock so they actually execute
+        dialog.save_channel_settings = lambda: ChannelManagementDialog.save_channel_settings(dialog)
+        
         with patch('ui.dialogs.channel_management_dialog.get_user_data') as mock_get_data, \
              patch('ui.dialogs.channel_management_dialog.QMessageBox.critical') as mock_critical:
             
             mock_get_data.side_effect = Exception("Database error")
             
-            # Call the actual method
-            ChannelManagementDialog.save_channel_settings(dialog)
+            # Call _on_save_clicked which handles the error and shows dialog
+            # The decorator on save_channel_settings will catch the exception and return False
+            ChannelManagementDialog._on_save_clicked(dialog)
             
+            # Verify error dialog was shown
             mock_critical.assert_called_once()
             assert "Failed to save channel settings" in mock_critical.call_args[0][2]
             dialog.reject.assert_called_once()

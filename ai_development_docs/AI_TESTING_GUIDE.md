@@ -308,7 +308,7 @@ For high-level AI subsystem behavior that these tests validate, see [SYSTEM_AI_G
 During parallel test execution, system memory usage can reach 95-98%, which is normal but should be understood and monitored.
 
 **Why memory gets high:**
-- pytest-xdist workers (6 workers × ~1-2GB each = 6-12GB)
+- pytest-xdist workers (6 workers x ~1-2GB each = 6-12GB)
 - Test data accumulation, Python objects, file handles
 - Windows memory management behavior
 
@@ -319,7 +319,7 @@ During parallel test execution, system memory usage can reach 95-98%, which is n
 - Resource monitoring (warnings at 90%, critical at 95%)
 
 **Tools:**
-- `scripts/testing/test_memory_profiler.py` - Profile memory usage per test
+- `scripts/testing/memory_profiler.py` - Profile memory usage per test
 - `scripts/testing/verify_process_cleanup.py` - Verify process cleanup works
 - `scripts/testing/read_backup_results.py` - Read backup test results
 

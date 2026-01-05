@@ -17,7 +17,6 @@ import re
 import logging
 import signal
 import json
-import atexit
 from pathlib import Path
 from typing import Dict, Optional, List
 from core.error_handling import handle_errors
@@ -654,6 +653,7 @@ def run_command(cmd, description, progress_interval: int = 30, capture_output: b
     _captured_output_lines = []
     
     # Register signal handlers for graceful shutdown
+    @handle_errors("signal handler", default_return=None)
     def signal_handler(signum, frame):
         interrupt_handler(signum, frame)
     

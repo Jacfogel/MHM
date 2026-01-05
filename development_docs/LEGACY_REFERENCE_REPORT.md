@@ -2,10 +2,10 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-04 06:13:53
+> **Last Generated**: 2026-01-04 17:41:36
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 7
-**Legacy Compatibility Markers Detected**: 24
+**Total Files with Issues**: 8
+**Legacy Compatibility Markers Detected**: 25
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
@@ -146,7 +146,15 @@
   ```
 
 ## Legacy Parameters
-**Files Affected**: 1
+**Files Affected**: 2
+
+### development_tools\docs\fix_documentation_ascii.py
+**Issues Found**: 1
+
+- **Line 161**: `dry_run=args.dry_run`
+  ```
+  result = fixer.fix_ascii(dry_run=args.dry_run)
+  ```
 
 ### development_tools\shared\service\commands.py
 **Issues Found**: 3

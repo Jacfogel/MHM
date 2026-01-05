@@ -16,7 +16,7 @@ Usage:
 
 import sys
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -49,7 +49,7 @@ class DocumentationASCIIFixer:
         else:
             self.project_root = Path(config.get_project_root()).resolve()
     
-    def fix_ascii(self, dry_run: bool = False) -> Dict[str, any]:
+    def fix_ascii(self, dry_run: bool = False) -> Dict[str, Any]:
         """Fix non-ASCII characters in documentation files.
         
         Handles common typographic characters that should be replaced with ASCII equivalents.
@@ -77,6 +77,16 @@ class DocumentationASCIIFixer:
             '\u2193': 'v',  # Down arrow
             # Ellipsis
             '\u2026': '...',  # Horizontal ellipsis
+            # Mathematical symbols
+            '\u00D7': 'x',  # Multiplication sign (×)
+            '\u00B0': 'deg',  # Degree symbol (°)
+            '\u00B1': '+/-',  # Plus-minus sign (±)
+            '\u00F7': '/',  # Division sign (÷)
+            # Typographic symbols
+            '\u2022': '*',  # Bullet (•)
+            '\u2122': '(TM)',  # Trademark symbol (™)
+            '\u00AE': '(R)',  # Registered trademark symbol (®)
+            '\u00A9': '(C)',  # Copyright symbol (©)
             # Common emojis (standard replacements for documentation)
             '\u2705': '[OK]',  # Check mark button
             '\u274C': '[FAIL]',  # Cross mark

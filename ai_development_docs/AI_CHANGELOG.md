@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-04 - Code Quality Improvements: Error Handling, Documentation, and Cleanup **COMPLETED**
+- Addressed multiple code quality issues: added error handling to missing functions (signal_handler, _on_save_clicked), removed unused imports (atexit, List), fixed documentation drift (removed broken file references, fixed path in AI_TESTING_GUIDE.md)
+- Enhanced ASCII fixer to handle common symbols (×, °, ±, ÷, •, ™, ®, ©) and updated error handling analyzer to exclude __init__ methods from Phase 1 recommendations
+- Fixed test failure in test_save_channel_settings_exception_handling by properly binding real methods to mocks
+- Files: channel_management_dialog.py, run_tests.py, generate_test_coverage_report.py, fix_documentation_ascii.py, analyze_error_handling.py, TODO.md, AI_TESTING_GUIDE.md
+
 ### 2026-01-04 - Memory Leak Fix: Test Mocking and Parallel Execution Stability **COMPLETED**
 - Fixed critical memory leak in parallel test execution causing worker crashes at 94% memory - root cause was `test_full_audit_status_reflects_final_results` running real tools instead of mocks
 - Added mocks for all missing Tier 1 and Tier 2 tools, fixed race condition in `temp_project_copy` fixture, and fixed preferences test cache issue
@@ -46,7 +52,7 @@ Guidelines:
 - Removed redundant "Symbol: unused-import" bullet points from unused imports report (Task 2.2), consolidated `generate_error_handling_recommendations.py` into `analyze_error_handling.py` to align with naming conventions (Task 2.8)
 - Fixed 6 test failures: corrected patch targets in `test_decision_support.py` (4 tests), updated assertion in `test_supporting_tools.py`, initialized `results_cache` in `test_audit_tier_comprehensive.py`, improved deleted file filtering in `analyze_system_signals.py`
 - Improved coverage warning diagnostics to capture file existence before cleanup for accurate reporting
-- Files: `development_tools/imports/generate_unused_imports_report.py`, `development_tools/error_handling/analyze_error_handling.py`, multiple test files, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md` (addresses items 2.2 and 2.8)
+- Files: `development_tools/imports/generate_unused_imports_report.py`, `development_tools/error_handling/analyze_error_handling.py`, multiple test files, [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md) (addresses items 2.2 and 2.8)
 
 ### 2025-12-31 - Improved Recommendation Quality in Development Tools **COMPLETED**
 - Fixed unused imports recommendation to only suggest "Obvious Unused" imports (not test mocking/Qt testing false positives), improved config validation deduplication using (tool_name, issue_type) tuples, simplified priority ordering with fixed tier system
@@ -73,7 +79,7 @@ Guidelines:
 - Added detection patterns to `development_tools_config.json` for legacy parameter cleanup tracking
 - Added investigation tasks to `AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md` for duplicate function declarations that need proper investigation (generate_dependency_report, tool_wrappers methods)
 - Added TODO items for evaluating complementary development tools (ruff, radon, pydeps, bandit, pip-audit, vulture, pre-commit) to determine if they should replace or complement existing development tools
-- Files: `core/service.py`, `ai/chatbot.py`, `ai/context_builder.py`, `ai/conversation_history.py`, `development_tools/shared/service/data_loading.py`, `development_tools/shared/file_rotation.py`, `development_tools/shared/service/commands.py`, `development_tools/config/development_tools_config.json`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`, `TODO.md`
+- Files: `core/service.py`, `ai/chatbot.py`, `ai/context_builder.py`, `ai/conversation_history.py`, `development_tools/shared/service/data_loading.py`, `development_tools/shared/file_rotation.py`, `development_tools/shared/service/commands.py`, `development_tools/config/development_tools_config.json`, [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md), [TODO.md](TODO.md)
 
 ### 2025-12-31 - Config Validation and Function Metrics Standardization **COMPLETED**
 - Fixed config validation false positives by detecting entry point scripts that delegate config to `AIToolsService`. Standardized function metrics by having both `analyze_functions` and `decision_support` use shared `categorize_functions()` logic.

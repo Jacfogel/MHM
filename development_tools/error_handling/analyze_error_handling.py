@@ -613,9 +613,15 @@ class ErrorHandlingAnalyzer:
                 
                 # Only mark as Phase 1 candidate if it has generic Exception handlers
                 # Specific exception handlers (ValueError, KeyError, discord.Forbidden, etc.) are appropriate to keep
-                if has_generic_exception_handler:
+                # Exclude __init__ methods - both decorators and try-except patterns are valid for __init__
+                # (decorators work fine since __init__ implicitly returns None; try-except with log-and-re-raise is also appropriate)
+                if has_generic_exception_handler and func_name != '__init__':
                     analysis['is_phase1_candidate'] = True
                     analysis['error_handling_quality'] = 'basic'
+                elif func_name == '__init__':
+                    # __init__ methods with try-except are appropriate - both decorator and try-except patterns are valid
+                    analysis['is_phase1_candidate'] = False
+                    analysis['error_handling_quality'] = 'good'
                 else:
                     # Has try-except but only catches specific exceptions - this is appropriate
                     analysis['is_phase1_candidate'] = False

@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-01-04 06:21:52",
+  "last_generated": "2026-01-04 17:48:41",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-01-04T06:21:52.542696",
+  "timestamp": "2026-01-04T17:48:41.570187",
   "successful": [
     "analyze_functions",
     "analyze_function_patterns",
@@ -44,13 +44,13 @@
           "files_affected": 0
         },
         "details": {
-          "total_functions": 1509,
+          "total_functions": 1510,
           "moderate_complexity": 149,
           "high_complexity": 142,
           "critical_complexity": 132,
           "undocumented": 0,
           "undocumented_examples": [],
-          "handlers": 842,
+          "handlers": 843,
           "tests": 65,
           "utilities": 0,
           "critical_complexity_examples": [
@@ -161,17 +161,11 @@
               "function": "set_contact_info",
               "file": "channel_selection_widget.py",
               "complexity": 0
-            },
-            {
-              "name": "signal_handler",
-              "function": "signal_handler",
-              "file": "run_tests.py",
-              "complexity": 0
             }
           ]
         }
       },
-      "timestamp": "2026-01-04T06:13:18.930435"
+      "timestamp": "2026-01-04T17:41:01.379771"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -343,7 +337,7 @@
             {
               "file": "ui/dialogs/channel_management_dialog.py",
               "class": "ChannelManagementDialog",
-              "methods": 4,
+              "methods": 5,
               "has_doc": false
             },
             {
@@ -1302,6 +1296,11 @@
             },
             {
               "file": "ui/dialogs/channel_management_dialog.py",
+              "function": "_on_save_clicked",
+              "has_doc": true
+            },
+            {
+              "file": "ui/dialogs/channel_management_dialog.py",
               "function": "save_channel_settings",
               "has_doc": false
             },
@@ -2124,7 +2123,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-04T06:13:11.114487"
+      "timestamp": "2026-01-04T17:40:53.182847"
     },
     "analyze_function_registry": {
       "success": true,
@@ -2846,7 +2845,7 @@
                 "name": "initialize__register_events"
               },
               {
-                "complexity": 2137,
+                "complexity": 2143,
                 "file": "run_tests.py",
                 "has_docstring": true,
                 "name": "run_command"
@@ -3224,12 +3223,6 @@
                 "name": "initialize__register_commands"
               },
               {
-                "complexity": 451,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\dialogs\\channel_management_dialog.py",
-                "has_docstring": false,
-                "name": "save_channel_settings"
-              },
-              {
                 "complexity": 448,
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\core\\channel_orchestrator.py",
                 "has_docstring": true,
@@ -3252,6 +3245,12 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\command_handlers\\analytics_handler.py",
                 "has_docstring": true,
                 "name": "_handle_task_analytics"
+              },
+              {
+                "complexity": 433,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\dialogs\\channel_management_dialog.py",
+                "has_docstring": false,
+                "name": "save_channel_settings"
               },
               {
                 "complexity": 432,
@@ -3440,6 +3439,12 @@
                 "name": "_handle_add_schedule_period"
               },
               {
+                "complexity": 388,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\dialogs\\channel_management_dialog.py",
+                "has_docstring": true,
+                "name": "__init__"
+              },
+              {
                 "complexity": 386,
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\message_processing\\conversation_flow_manager.py",
                 "has_docstring": true,
@@ -3564,12 +3569,6 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\user_data_handlers.py",
                 "has_docstring": true,
                 "name": "_save_user_data__check_cross_file_invariants"
-              },
-              {
-                "complexity": 363,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\dialogs\\channel_management_dialog.py",
-                "has_docstring": true,
-                "name": "__init__"
               },
               {
                 "complexity": 361,
@@ -4306,7 +4305,7 @@
             ],
             "undocumented_other_total": 29
           },
-          "coverage": 92.89,
+          "coverage": 92.83,
           "errors": [],
           "extra": {
             "count": 1399,
@@ -5901,7 +5900,7 @@
             }
           },
           "missing": {
-            "count": 1411,
+            "count": 1412,
             "files": {
               "C:\\Users\\Julie\\projects\\MHM\\MHM\\ai\\cache_manager.py": [
                 "__init__",
@@ -7085,6 +7084,7 @@
               ],
               "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\dialogs\\channel_management_dialog.py": [
                 "__init__",
+                "_on_save_clicked",
                 "get_selected_channel",
                 "load_user_channel_data",
                 "save_channel_settings",
@@ -18589,6 +18589,7 @@
                   "docstring": "",
                   "methods": [
                     "__init__",
+                    "_on_save_clicked",
                     "save_channel_settings",
                     "get_selected_channel",
                     "set_selected_channel"
@@ -18605,6 +18606,13 @@
                   ],
                   "docstring": "Initialize the object.",
                   "name": "__init__"
+                },
+                {
+                  "args": [
+                    "self"
+                  ],
+                  "docstring": "Wrapper to handle save button click and show error dialog if needed.",
+                  "name": "_on_save_clicked"
                 },
                 {
                   "args": [
@@ -22063,15 +22071,15 @@
             "classes_found": 159,
             "files_scanned": 107,
             "functions_documented": 1411,
-            "functions_found": 1519
+            "functions_found": 1520
           }
         },
         "summary": {
           "files_affected": 0,
-          "total_issues": 2810
+          "total_issues": 2811
         }
       },
-      "timestamp": "2026-01-04T06:13:23.183293"
+      "timestamp": "2026-01-04T17:41:05.973662"
     },
     "analyze_package_exports": {
       "success": true,
@@ -29038,14 +29046,11 @@
     "analyze_ascii_compliance": {
       "success": true,
       "data": {
-        "files": {
-          "development_docs/CHANGELOG_DETAIL.md": 1,
-          "ai_development_docs/AI_TESTING_GUIDE.md": 1
-        },
-        "file_count": 2,
-        "total_issues": 2
+        "files": {},
+        "file_count": 0,
+        "total_issues": 0
       },
-      "timestamp": "2026-01-04T06:13:27.746681"
+      "timestamp": "2026-01-04T17:41:10.027493"
     },
     "analyze_documentation": {
       "success": true,
@@ -29086,7 +29091,7 @@
                 "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.1907059918422044,
+              "similarity_score": 0.19070183305205538,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -29098,7 +29103,7 @@
                 "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.2542514250122042,
+              "similarity_score": 0.254499548475762,
               "suggestion": "Consider consolidating testing documentation into a single TESTING_GUIDE.md"
             },
             {
@@ -29251,7 +29256,7 @@
               ]
             },
             "TODO.md": {
-              "content_length": 26938,
+              "content_length": 21626,
               "header_info": "# TODO.md - MHM Project Tasks\n\n> **File**: `TODO.md`\n> **Audience**: Human Developer (Beginner Programmer) and AI collaborators\n> **Purpose**: Current development priorities and planned improvements  ",
               "section_count": 9,
               "sections": [
@@ -29299,7 +29304,7 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 167208,
+              "content_length": 167291,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n\n\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent ch",
               "section_count": 197,
               "sections": [
@@ -29431,7 +29436,7 @@
               ]
             },
             "ai_development_docs/AI_TESTING_GUIDE.md": {
-              "content_length": 11320,
+              "content_length": 11315,
               "header_info": "# AI Testing Guide\n\n> **File**: `ai_development_docs/AI_TESTING_GUIDE.md`  \n> **Pair**: [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)  \n> **Audience**: AI collaborators and tools  \n> **Purpose**: Routing",
               "section_count": 10,
               "sections": [
@@ -29499,7 +29504,7 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 1008708,
+              "content_length": 1008710,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
               "section_count": 350,
               "sections": [
@@ -29734,55 +29739,34 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-01-04T06:13:09.002160"
+      "timestamp": "2026-01-04T17:40:50.698280"
     },
     "analyze_documentation_sync": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 12,
-          "files_affected": 2,
-          "status": "FAIL"
+          "total_issues": 0,
+          "files_affected": 0,
+          "status": "PASS"
         },
         "details": {
           "paired_doc_issues": 0,
-          "path_drift_issues": 7,
-          "ascii_compliance_issues": 2,
+          "path_drift_issues": 0,
+          "ascii_compliance_issues": 0,
           "heading_numbering_issues": 0,
           "missing_address_issues": 0,
-          "unconverted_link_issues": 3,
-          "path_drift_files": [
-            "TODO.md",
-            "ai_development_docs\\AI_TESTING_GUIDE.md"
-          ],
+          "unconverted_link_issues": 0,
+          "path_drift_files": [],
           "paired_docs": {},
           "path_drift": {
-            "files": {
-              "TODO.md": 6,
-              "ai_development_docs\\AI_TESTING_GUIDE.md": 1
-            },
-            "total_issues": 7,
-            "detailed_issues": {
-              "TODO.md": [
-                "Missing file: EXISTING_TOOLS_COMPARISON.md",
-                "Missing file: COMPLEMENTARY_TOOLS_GUIDE.md",
-                "Missing file: analyze_functions.py",
-                "Missing file: analyze_functions.py",
-                "Missing file: analyze_module_dependencies.py",
-                "Missing file: analyze_module_dependencies.py"
-              ],
-              "ai_development_docs\\AI_TESTING_GUIDE.md": [
-                "Missing file: scripts/testing/test_memory_profiler.py"
-              ]
-            }
+            "files": {},
+            "total_issues": 0,
+            "detailed_issues": {}
           },
           "ascii_compliance": {
-            "files": {
-              "development_docs/CHANGELOG_DETAIL.md": 1,
-              "ai_development_docs/AI_TESTING_GUIDE.md": 1
-            },
-            "file_count": 2,
-            "total_issues": 2
+            "files": {},
+            "file_count": 0,
+            "total_issues": 0
           },
           "heading_numbering": {
             "files": {},
@@ -29795,15 +29779,13 @@
             "total_issues": 0
           },
           "unconverted_links": {
-            "files": {
-              "ai_development_docs/AI_CHANGELOG.md": 3
-            },
-            "file_count": 1,
-            "total_issues": 3
+            "files": {},
+            "file_count": 0,
+            "total_issues": 0
           }
         }
       },
-      "timestamp": "2026-01-04T06:13:35.892932"
+      "timestamp": "2026-01-04T17:41:17.049538"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -29812,7 +29794,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2026-01-04T06:13:29.677456"
+      "timestamp": "2026-01-04T17:41:11.213928"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -29821,100 +29803,65 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2026-01-04T06:13:34.469964"
+      "timestamp": "2026-01-04T17:41:15.997944"
     },
     "analyze_path_drift": {
       "success": true,
       "data": {
-        "files": {
-          "TODO.md": 6,
-          "ai_development_docs\\AI_TESTING_GUIDE.md": 1
-        },
-        "total_issues": 7,
-        "detailed_issues": {
-          "TODO.md": [
-            "Missing file: EXISTING_TOOLS_COMPARISON.md",
-            "Missing file: COMPLEMENTARY_TOOLS_GUIDE.md",
-            "Missing file: analyze_functions.py",
-            "Missing file: analyze_functions.py",
-            "Missing file: analyze_module_dependencies.py",
-            "Missing file: analyze_module_dependencies.py"
-          ],
-          "ai_development_docs\\AI_TESTING_GUIDE.md": [
-            "Missing file: scripts/testing/test_memory_profiler.py"
-          ]
-        }
+        "files": {},
+        "total_issues": 0,
+        "detailed_issues": {}
       },
-      "timestamp": "2026-01-04T06:13:26.301022"
+      "timestamp": "2026-01-04T17:41:08.868734"
     },
     "analyze_unconverted_links": {
       "success": true,
       "data": {
-        "files": {
-          "ai_development_docs/AI_CHANGELOG.md": 3
-        },
-        "file_count": 1,
-        "total_issues": 3
+        "files": {},
+        "file_count": 0,
+        "total_issues": 0
       },
-      "timestamp": "2026-01-04T06:13:35.817510"
+      "timestamp": "2026-01-04T17:41:17.040681"
     },
     "analyze_error_handling": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 1,
-          "files_affected": 2
+          "total_issues": 0,
+          "files_affected": 0
         },
         "details": {
-          "total_functions": 1496,
-          "functions_with_try_except": 604,
-          "functions_with_error_handling": 1495,
-          "functions_with_decorators": 1483,
-          "functions_missing_error_handling": 1,
-          "analyze_error_handling": 99.93315508021391,
+          "total_functions": 1497,
+          "functions_with_try_except": 602,
+          "functions_with_error_handling": 1497,
+          "functions_with_decorators": 1485,
+          "functions_missing_error_handling": 0,
+          "analyze_error_handling": 100.0,
           "error_patterns": {
-            "handle_errors_decorator": 1576,
-            "try_except": 689,
+            "handle_errors_decorator": 1578,
+            "try_except": 687,
             "handle_configuration_error": 4,
             "ConfigurationError": 6,
             "ValidationError": 15,
-            "handle_communication_error": 4,
             "error_handler_usage": 8,
+            "handle_communication_error": 4,
             "handle_network_error": 5,
             "handle_validation_error": 2,
             "handle_ai_error": 16,
             "AIError": 2,
-            "handle_file_error": 3,
             "DataError": 12,
-            "safe_file_operation": 1,
+            "FileOperationError": 10,
             "CommunicationError": 2,
+            "handle_file_error": 3,
             "MHMError": 2,
-            "FileOperationError": 10
+            "safe_file_operation": 1
           },
-          "missing_error_handling": [
-            {
-              "file": "ui\\dialogs\\channel_management_dialog.py",
-              "function": "__init__",
-              "line": 16,
-              "quality": "none"
-            },
-            {
-              "file": "run_tests.py",
-              "function": "signal_handler",
-              "line": 657,
-              "quality": "none"
-            }
-          ],
+          "missing_error_handling": [],
           "error_handling_quality": {
-            "excellent": 1483,
-            "good": 11,
-            "none": 2
+            "excellent": 1485,
+            "good": 12
           },
-          "recommendations": [
-            "Add error handling to 1 functions",
-            "Replace basic try-except with @handle_errors decorator where appropriate",
-            "Priority: Add error handling to 2 critical functions"
-          ],
+          "recommendations": [],
           "phase1_candidates": [],
           "phase1_total": 0,
           "phase1_by_priority": {},
@@ -29922,12 +29869,6 @@
           "phase2_total": 0,
           "phase2_by_type": {},
           "worst_modules": [
-            {
-              "module": "root",
-              "coverage": 95.83333333333334,
-              "missing": 1,
-              "total": 24
-            },
             {
               "module": "auto_cleanup.py",
               "coverage": 100.0,
@@ -29951,11 +29892,17 @@
               "coverage": 100.0,
               "missing": 0,
               "total": 14
+            },
+            {
+              "module": "config.py",
+              "coverage": 100.0,
+              "missing": 0,
+              "total": 20
             }
           ]
         }
       },
-      "timestamp": "2026-01-04T06:13:19.403365"
+      "timestamp": "2026-01-04T17:41:01.657317"
     },
     "analyze_test_coverage": {
       "success": true,
@@ -29966,32 +29913,32 @@
         },
         "details": {
           "overall": {
-            "coverage": 73.0,
+            "coverage": 72.9,
             "statements": 27169,
-            "covered": 19829,
-            "missed": 7340,
-            "generated": "2026-01-04T06:21:44.804019"
+            "covered": 19814,
+            "missed": 7355,
+            "generated": "2026-01-04T17:48:34.408892"
           },
           "modules": [
             {
               "module": "communication",
               "coverage": 69.9,
-              "missed": 2634
+              "missed": 2632
             },
             {
               "module": "ui",
-              "coverage": 73.0,
-              "missed": 1672
+              "coverage": 72.9,
+              "missed": 1674
             },
             {
               "module": "core",
-              "coverage": 73.6,
-              "missed": 2542
+              "coverage": 73.4,
+              "missed": 2564
             },
             {
               "module": "ai",
-              "coverage": 78.1,
-              "missed": 377
+              "coverage": 78.5,
+              "missed": 370
             },
             {
               "module": "tasks",
@@ -30012,13 +29959,13 @@
             },
             {
               "path": "ui/ui_app_qt.py",
-              "coverage": 51.2,
-              "missing": 676
+              "coverage": 50.9,
+              "missing": 680
             },
             {
               "path": "communication/core/channel_orchestrator.py",
-              "coverage": 60.7,
-              "missing": 403
+              "coverage": 60.8,
+              "missing": 402
             },
             {
               "path": "ui/widgets/checkin_settings_widget.py",
@@ -30033,7 +29980,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-04T06:21:48.276723"
+      "timestamp": "2026-01-04T17:48:37.578686"
     },
     "analyze_test_markers": {
       "success": true,
@@ -30041,15 +29988,15 @@
         "missing_count": 0,
         "missing": []
       },
-      "timestamp": "2026-01-04T06:21:51.193821"
+      "timestamp": "2026-01-04T17:48:40.462935"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "overall": {
-          "overall_coverage": 42.8,
-          "total_statements": 19749,
-          "total_missed": 11292
+          "overall_coverage": 42.9,
+          "total_statements": 19752,
+          "total_missed": 11278
         },
         "modules": {
           "development_tools\\__init__.py": {
@@ -30201,8 +30148,8 @@
           },
           "development_tools\\config\\config.py": {
             "statements": 320,
-            "missed": 56,
-            "coverage": 82,
+            "missed": 55,
+            "coverage": 83,
             "missing_lines": [
               "44",
               "47",
@@ -30220,7 +30167,6 @@
               "333",
               "343",
               "352",
-              "369",
               "378",
               "387",
               "396",
@@ -30261,7 +30207,7 @@
               "757",
               "759"
             ],
-            "covered": 264
+            "covered": 265
           },
           "development_tools\\docs\\__init__.py": {
             "statements": 0,
@@ -30272,50 +30218,51 @@
           },
           "development_tools\\docs\\analyze_ascii_compliance.py": {
             "statements": 106,
-            "missed": 39,
-            "coverage": 63,
+            "missed": 40,
+            "coverage": 62,
             "missing_lines": [
               "27",
               "35",
               "41",
               "42",
-              "163",
-              "176",
-              "177",
-              "178",
-              "179",
-              "212",
-              "213",
-              "214",
-              "219",
-              "220",
+              "153",
+              "173",
+              "186",
+              "187",
+              "188",
+              "189",
               "222",
-              "239",
-              "240",
-              "242",
-              "244",
-              "247",
-              "248",
+              "223",
+              "224",
+              "229",
+              "230",
+              "232",
               "249",
               "250",
-              "251",
+              "252",
               "254",
               "257",
               "258",
               "259",
               "260",
               "261",
-              "262",
-              "263",
               "264",
-              "266",
               "267",
               "268",
               "269",
+              "270",
               "271",
-              "273"
+              "272",
+              "273",
+              "274",
+              "276",
+              "277",
+              "278",
+              "279",
+              "281",
+              "283"
             ],
-            "covered": 67
+            "covered": 66
           },
           "development_tools\\docs\\analyze_documentation.py": {
             "statements": 301,
@@ -30672,8 +30619,8 @@
           },
           "development_tools\\docs\\analyze_path_drift.py": {
             "statements": 382,
-            "missed": 124,
-            "coverage": 68,
+            "missed": 139,
+            "coverage": 64,
             "missing_lines": [
               "28",
               "43",
@@ -30685,16 +30632,22 @@
               "106",
               "153",
               "166",
+              "170",
               "174",
+              "178",
+              "182",
               "186",
               "190",
+              "194",
               "198",
+              "204",
               "209",
               "210",
               "212",
               "216",
               "220",
               "224",
+              "228",
               "232",
               "236",
               "246",
@@ -30705,6 +30658,7 @@
               "275",
               "279",
               "283",
+              "292",
               "294",
               "302",
               "304",
@@ -30730,6 +30684,9 @@
               "417",
               "421",
               "433",
+              "438",
+              "439",
+              "440",
               "443",
               "444",
               "445",
@@ -30760,6 +30717,10 @@
               "528",
               "529",
               "549",
+              "553",
+              "574",
+              "575",
+              "579",
               "611",
               "612",
               "613",
@@ -30772,6 +30733,7 @@
               "635",
               "636",
               "638",
+              "691",
               "701",
               "702",
               "704",
@@ -30800,7 +30762,7 @@
               "770",
               "772"
             ],
-            "covered": 258
+            "covered": 243
           },
           "development_tools\\docs\\analyze_unconverted_links.py": {
             "statements": 280,
@@ -31035,23 +30997,23 @@
               "32",
               "33",
               "34",
-              "120",
-              "121",
-              "122",
-              "125",
-              "126",
-              "127",
-              "128",
+              "130",
               "131",
               "132",
-              "143",
-              "145",
-              "146",
-              "148",
-              "150",
-              "151",
+              "135",
+              "136",
+              "137",
+              "138",
+              "141",
+              "142",
               "153",
-              "155"
+              "155",
+              "156",
+              "158",
+              "160",
+              "161",
+              "163",
+              "165"
             ],
             "covered": 39
           },
@@ -31297,7 +31259,7 @@
               "225",
               "230",
               "231",
-              "244",
+              "250",
               "257",
               "258",
               "270",
@@ -31577,9 +31539,9 @@
             "covered": 0
           },
           "development_tools\\error_handling\\analyze_error_handling.py": {
-            "statements": 567,
-            "missed": 269,
-            "coverage": 53,
+            "statements": 570,
+            "missed": 272,
+            "coverage": 52,
             "missing_lines": [
               "25",
               "31",
@@ -31694,26 +31656,23 @@
               "610",
               "611",
               "612",
-              "616",
-              "617",
               "618",
+              "619",
+              "620",
               "621",
-              "622",
+              "623",
+              "624",
               "627",
               "628",
-              "691",
-              "695",
-              "699",
+              "633",
+              "634",
+              "697",
+              "701",
               "705",
-              "706",
-              "707",
-              "708",
               "711",
               "712",
               "713",
               "714",
-              "715",
-              "716",
               "717",
               "718",
               "719",
@@ -31724,132 +31683,138 @@
               "724",
               "725",
               "726",
+              "727",
               "728",
+              "729",
+              "730",
+              "731",
               "732",
-              "733",
               "734",
-              "737",
               "738",
-              "741",
-              "742",
-              "745",
-              "746",
-              "749",
-              "750",
+              "739",
+              "740",
+              "743",
+              "744",
+              "747",
+              "748",
               "751",
-              "754",
+              "752",
               "755",
               "756",
               "757",
-              "759",
+              "760",
+              "761",
+              "762",
               "763",
               "765",
-              "766",
-              "768",
               "769",
               "771",
               "772",
-              "773",
               "774",
-              "776",
+              "775",
+              "777",
+              "778",
+              "779",
               "780",
-              "781",
-              "784",
-              "785",
-              "788",
-              "789",
+              "782",
+              "786",
+              "787",
               "790",
               "791",
               "794",
+              "795",
               "796",
               "797",
-              "799",
               "800",
               "802",
-              "804",
-              "812",
-              "822",
-              "823",
-              "833",
-              "835",
-              "846",
-              "847",
+              "803",
+              "805",
+              "806",
+              "808",
+              "810",
+              "818",
+              "828",
+              "829",
+              "839",
+              "841",
+              "852",
               "853",
-              "860",
-              "861",
-              "901",
-              "902",
-              "905",
-              "906",
+              "859",
+              "866",
+              "867",
               "907",
-              "910",
+              "908",
+              "911",
               "912",
               "913",
-              "915",
               "916",
               "918",
               "919",
               "921",
               "922",
-              "923",
+              "924",
               "925",
-              "926",
+              "927",
               "928",
               "929",
               "931",
               "932",
-              "940",
-              "943",
-              "944",
-              "947",
+              "934",
+              "935",
+              "937",
+              "938",
+              "946",
               "949",
               "950",
-              "951",
-              "952",
-              "954",
-              "966",
-              "967",
-              "968",
-              "971",
+              "953",
+              "955",
+              "956",
+              "957",
+              "958",
+              "960",
               "972",
+              "973",
+              "974",
               "977",
               "978",
-              "979",
-              "994",
-              "1057",
-              "1059",
-              "1060",
-              "1061",
-              "1062",
+              "983",
+              "984",
+              "985",
+              "1000",
               "1063",
-              "1064",
+              "1065",
               "1066",
+              "1067",
+              "1068",
               "1069",
               "1070",
-              "1071",
               "1072",
               "1075",
               "1076",
               "1077",
+              "1078",
               "1081",
               "1082",
               "1083",
-              "1086",
               "1087",
               "1088",
               "1089",
-              "1091",
               "1092",
+              "1093",
               "1094",
               "1095",
+              "1097",
               "1098",
               "1100",
-              "1103",
+              "1101",
               "1104",
-              "1105",
               "1106",
-              "1107",
-              "1109"
+              "1109",
+              "1110",
+              "1111",
+              "1112",
+              "1113",
+              "1115"
             ],
             "covered": 298
           },
@@ -36020,7 +35985,7 @@
           },
           "development_tools\\shared\\service\\audit_orchestration.py": {
             "statements": 736,
-            "missed": 279,
+            "missed": 276,
             "coverage": 62,
             "missing_lines": [
               "34",
@@ -36090,15 +36055,9 @@
               "258",
               "259",
               "260",
-              "269",
-              "270",
-              "271",
               "276",
               "277",
               "278",
-              "283",
-              "284",
-              "285",
               "291",
               "298",
               "299",
@@ -36279,7 +36238,10 @@
               "1089",
               "1090",
               "1091",
-              "1105",
+              "1106",
+              "1107",
+              "1108",
+              "1109",
               "1110",
               "1111",
               "1112",
@@ -36287,10 +36249,10 @@
               "1131",
               "1134",
               "1135",
-              "1146",
-              "1147",
-              "1148",
-              "1149",
+              "1151",
+              "1152",
+              "1153",
+              "1154",
               "1155",
               "1156",
               "1170",
@@ -36303,7 +36265,7 @@
               "1215",
               "1216"
             ],
-            "covered": 457
+            "covered": 460
           },
           "development_tools\\shared\\service\\commands.py": {
             "statements": 613,
@@ -37636,8 +37598,8 @@
           },
           "development_tools\\shared\\service\\report_generation.py": {
             "statements": 2983,
-            "missed": 1845,
-            "coverage": 38,
+            "missed": 1824,
+            "coverage": 39,
             "missing_lines": [
               "30",
               "32",
@@ -37745,9 +37707,6 @@
               "328",
               "329",
               "330",
-              "347",
-              "348",
-              "349",
               "350",
               "351",
               "352",
@@ -37765,13 +37724,7 @@
               "365",
               "366",
               "367",
-              "371",
-              "372",
-              "373",
               "374",
-              "376",
-              "377",
-              "378",
               "379",
               "380",
               "381",
@@ -37837,8 +37790,6 @@
               "595",
               "599",
               "603",
-              "618",
-              "619",
               "621",
               "622",
               "623",
@@ -37847,8 +37798,8 @@
               "633",
               "641",
               "642",
-              "645",
-              "646",
+              "650",
+              "651",
               "654",
               "655",
               "656",
@@ -38091,13 +38042,9 @@
               "1116",
               "1118",
               "1138",
-              "1146",
-              "1147",
+              "1149",
+              "1150",
               "1157",
-              "1166",
-              "1167",
-              "1168",
-              "1169",
               "1179",
               "1180",
               "1181",
@@ -38729,7 +38676,6 @@
               "2831",
               "2859",
               "2877",
-              "2879",
               "2881",
               "2896",
               "2897",
@@ -39209,16 +39155,12 @@
               "3763",
               "3780",
               "3781",
-              "3785",
               "3786",
               "3787",
               "3788",
               "3789",
               "3790",
               "3791",
-              "3795",
-              "3796",
-              "3797",
               "3798",
               "3799",
               "3800",
@@ -39229,7 +39171,6 @@
               "3805",
               "3806",
               "3807",
-              "3808",
               "3809",
               "3810",
               "3811",
@@ -39426,9 +39367,9 @@
               "4213",
               "4214",
               "4228",
-              "4238",
-              "4239",
-              "4240",
+              "4242",
+              "4243",
+              "4244",
               "4265",
               "4266",
               "4276",
@@ -39485,7 +39426,7 @@
               "4359",
               "4360"
             ],
-            "covered": 1138
+            "covered": 1159
           },
           "development_tools\\shared\\service\\tool_wrappers.py": {
             "statements": 828,
@@ -41142,8 +41083,8 @@
           },
           "development_tools\\tests\\run_test_coverage.py": {
             "statements": 1084,
-            "missed": 808,
-            "coverage": 25,
+            "missed": 800,
+            "coverage": 26,
             "missing_lines": [
               "37",
               "44",
@@ -41848,14 +41789,6 @@
               "1664",
               "1665",
               "1667",
-              "1684",
-              "1713",
-              "1714",
-              "1716",
-              "1717",
-              "1718",
-              "1719",
-              "1720",
               "1723",
               "1724",
               "1725",
@@ -41954,14 +41887,14 @@
               "1926",
               "1927"
             ],
-            "covered": 276
+            "covered": 284
           }
         },
         "coverage_collected": true,
         "output_file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_tools\\tests\\jsons\\coverage_dev_tools.json",
         "html_dir": null
       },
-      "timestamp": "2026-01-04T06:18:59.589213"
+      "timestamp": "2026-01-04T17:46:14.705556"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -44923,7 +44856,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-04T06:13:23.555093"
+      "timestamp": "2026-01-04T17:41:06.359642"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -44934,16 +44867,16 @@
         },
         "details": {
           "files_scanned": 107,
-          "total_imports": 1467,
+          "total_imports": 1466,
           "documented_dependencies": 366,
-          "standard_library": 432,
+          "standard_library": 431,
           "third_party": 218,
           "local_imports": 817,
           "missing_files": [],
           "missing_sections": []
         }
       },
-      "timestamp": "2026-01-04T06:13:27.239603"
+      "timestamp": "2026-01-04T17:41:10.168722"
     },
     "analyze_module_imports": {
       "success": true,
@@ -56897,13 +56830,6 @@
                   ]
                 },
                 {
-                  "module": "atexit",
-                  "as_name": null,
-                  "imported_items": [
-                    "atexit"
-                  ]
-                },
-                {
                   "module": "pathlib",
                   "as_name": null,
                   "imported_items": [
@@ -57009,23 +56935,21 @@
                 }
               ]
             },
-            "total_imports": 27
+            "total_imports": 26
           }
         }
       },
-      "timestamp": "2026-01-04T06:13:18.218903"
+      "timestamp": "2026-01-04T17:41:00.519087"
     },
     "analyze_unused_imports": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 359,
-          "files_affected": 127,
+          "total_issues": 357,
+          "files_affected": 125,
           "status": "CRITICAL"
         },
         "files": {
-          "development_tools/tests/generate_test_coverage_report.py": 1,
-          "run_tests.py": 1,
           "tests/ui/test_signal_handler_integration.py": 6,
           "tests/ai/test_ai_functionality_manual.py": 2,
           "tests/ai/test_cache_manager.py": 1,
@@ -57105,6 +57029,7 @@
           "tests/unit/test_user_data_manager.py": 5,
           "tests/unit/test_user_management.py": 3,
           "tests/unit/test_user_preferences.py": 4,
+          "development_tools/tests/run_test_coverage.py": 1,
           "tests/ai/test_ai_core.py": 1,
           "tests/ai/test_context_includes_recent_messages.py": 1,
           "tests/behavior/test_checkin_expiry_semantics.py": 1,
@@ -57123,6 +57048,7 @@
           "tests/development_tools/test_analyze_missing_addresses.py": 4,
           "tests/development_tools/test_analyze_unconverted_links.py": 2,
           "tests/development_tools/test_audit_status_updates.py": 1,
+          "tests/development_tools/test_audit_tier_comprehensive.py": 1,
           "tests/development_tools/test_audit_tier_e2e_verification.py": 1,
           "tests/development_tools/test_documentation_sync_checker.py": 1,
           "tests/development_tools/test_error_scenarios.py": 1,
@@ -57147,29 +57073,12 @@
           "tests/ui/test_dialogs.py": 1,
           "tests/unit/test_file_locking.py": 1,
           "tests/unit/test_scripts_exclusion_policy.py": 1,
-          "development_tools/tests/run_test_coverage.py": 1,
-          "tests/development_tools/test_audit_tier_comprehensive.py": 1,
           "communication/core/channel_orchestrator.py": 1,
           "communication/core/factory.py": 2
         },
         "details": {
           "findings": {
-            "obvious_unused": [
-              {
-                "file": "development_tools/tests/generate_test_coverage_report.py",
-                "line": 20,
-                "column": 0,
-                "message": "Unused List imported from typing",
-                "symbol": "unused-import"
-              },
-              {
-                "file": "run_tests.py",
-                "line": 20,
-                "column": 0,
-                "message": "Unused import atexit",
-                "symbol": "unused-import"
-              }
-            ],
+            "obvious_unused": [],
             "type_hints_only": [],
             "re_exports": [],
             "conditional_imports": [
@@ -58581,6 +58490,13 @@
             ],
             "test_infrastructure": [
               {
+                "file": "development_tools/tests/run_test_coverage.py",
+                "line": 22,
+                "column": 0,
+                "message": "Unused import json",
+                "symbol": "unused-import"
+              },
+              {
                 "file": "tests/ai/test_ai_core.py",
                 "line": 8,
                 "column": 0,
@@ -58975,6 +58891,13 @@
               {
                 "file": "tests/development_tools/test_audit_status_updates.py",
                 "line": 14,
+                "column": 0,
+                "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_audit_tier_comprehensive.py",
+                "line": 85,
                 "column": 0,
                 "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
                 "symbol": "unused-import"
@@ -59643,20 +59566,6 @@
                 "column": 0,
                 "message": "Unused Path imported from pathlib",
                 "symbol": "unused-import"
-              },
-              {
-                "file": "development_tools/tests/run_test_coverage.py",
-                "line": 22,
-                "column": 0,
-                "message": "Unused import json",
-                "symbol": "unused-import"
-              },
-              {
-                "file": "tests/development_tools/test_audit_tier_comprehensive.py",
-                "line": 85,
-                "column": 0,
-                "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
-                "symbol": "unused-import"
               }
             ],
             "production_test_mocking": [
@@ -59686,13 +59595,13 @@
           },
           "stats": {
             "files_scanned": 398,
-            "files_with_issues": 127,
-            "total_unused": 359,
-            "cache_hits": 395,
+            "files_with_issues": 125,
+            "total_unused": 357,
+            "cache_hits": 398,
             "cache_misses": 0
           },
           "by_category": {
-            "obvious_unused": 2,
+            "obvious_unused": 0,
             "type_hints_only": 0,
             "re_exports": 0,
             "conditional_imports": 1,
@@ -59706,17 +59615,63 @@
           "files_scanned": 398
         }
       },
-      "timestamp": "2026-01-04T06:13:34.649320"
+      "timestamp": "2026-01-04T17:41:10.230499"
     },
     "analyze_legacy_references": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 24,
-          "files_affected": 8
+          "total_issues": 25,
+          "files_affected": 9
         },
         "details": {
           "findings": {
+            "legacy_parameters": [
+              [
+                "development_tools\\docs\\fix_documentation_ascii.py",
+                "#!/usr/bin/env python3\n# TOOL_TIER: core\n# TOOL_PORTABILITY: portable\n\n\"\"\"\nDocumentation ASCII Fixer\n\nFixes non-ASCII characters in documentation files by replacing them with ASCII equivalents.\n\nConfiguration is loaded from external config file (development_tools_config.json)\nif available, making this tool portable across different projects.\n\nUsage:\n    python docs/fix_documentation_ascii.py [--dry-run]\n\"\"\"\n\nimport sys\nfrom pathlib import Path\nfrom typing import Dict, Optional, Any\n\n# Add project root to path for core module imports\nproject_root = Path(__file__).parent.parent.parent\nif str(project_root) not in sys.path:\n    sys.path.insert(0, str(project_root))\n\nfrom core.logger import get_component_logger\n\n# Handle both relative and absolute imports\ntry:\n    from .. import config\n    from ..shared.constants import ASCII_COMPLIANCE_FILES\nexcept ImportError:\n    from development_tools import config\n    from development_tools.shared.constants import ASCII_COMPLIANCE_FILES\n\n# Ensure external config is loaded\nconfig.load_external_config()\n\nlogger = get_component_logger(\"development_tools\")\n\n\nclass DocumentationASCIIFixer:\n    \"\"\"Fixes non-ASCII characters in documentation files.\"\"\"\n    \n    def __init__(self, project_root: Optional[str] = None):\n        \"\"\"Initialize the documentation ASCII fixer.\"\"\"\n        if project_root:\n            self.project_root = Path(project_root).resolve()\n        else:\n            self.project_root = Path(config.get_project_root()).resolve()\n    \n    def fix_ascii(self, dry_run: bool = False) -> Dict[str, Any]:\n        \"\"\"Fix non-ASCII characters in documentation files.\n        \n        Handles common typographic characters that should be replaced with ASCII equivalents.\n        \"\"\"\n        REPLACEMENTS = {\n            # Smart quotes (single)\n            '\\u2018': \"'\",  # Left single quotation mark\n            '\\u2019': \"'\",  # Right single quotation mark\n            '\\u201A': \"'\",  # Single low-9 quotation mark\n            '\\u201B': \"'\",  # Single high-reversed-9 quotation mark\n            # Smart quotes (double)\n            '\\u201C': '\"',  # Left double quotation mark\n            '\\u201D': '\"',  # Right double quotation mark\n            '\\u201E': '\"',  # Double low-9 quotation mark\n            '\\u201F': '\"',  # Double high-reversed-9 quotation mark\n            # Dashes and hyphens\n            '\\u2011': '-',  # Non-breaking hyphen\n            '\\u2013': '-',  # En dash\n            '\\u2014': '-',  # Em dash\n            '\\u2015': '--',  # Horizontal bar\n            # Arrows\n            '\\u2192': '->',  # Right arrow\n            '\\u2190': '<-',  # Left arrow\n            '\\u2191': '^',  # Up arrow\n            '\\u2193': 'v',  # Down arrow\n            # Ellipsis\n            '\\u2026': '...',  # Horizontal ellipsis\n            # Mathematical symbols\n            '\\u00D7': 'x',  # Multiplication sign (\u00d7)\n            '\\u00B0': 'deg',  # Degree symbol (\u00b0)\n            '\\u00B1': '+/-',  # Plus-minus sign (\u00b1)\n            '\\u00F7': '/',  # Division sign (\u00f7)\n            # Typographic symbols\n            '\\u2022': '*',  # Bullet (\u2022)\n            '\\u2122': '(TM)',  # Trademark symbol (\u2122)\n            '\\u00AE': '(R)',  # Registered trademark symbol (\u00ae)\n            '\\u00A9': '(C)',  # Copyright symbol (\u00a9)\n            # Common emojis (standard replacements for documentation)\n            '\\u2705': '[OK]',  # Check mark button\n            '\\u274C': '[FAIL]',  # Cross mark\n            '\\u26A0': '[WARNING]',  # Warning sign\n            '\\U0001F41B': '[BUG]',  # Bug emoji\n            '\\U0001F4A1': '[IDEA]',  # Light bulb\n            '\\U0001F4DD': '[NOTE]',  # Memo\n            # Spaces (various Unicode spaces -> regular space)\n            '\\u202F': ' ',  # Narrow no-break space\n            '\\u00A0': ' ',  # Non-breaking space\n            '\\u2009': ' ',  # Thin space\n            '\\u2008': ' ',  # Punctuation space\n            '\\u2007': ' ',  # Figure space\n            '\\u2006': ' ',  # Six-per-em space\n            '\\u2005': ' ',  # Four-per-em space\n            '\\u2004': ' ',  # Three-per-em space\n            '\\u2003': ' ',  # Em space\n            '\\u2002': ' ',  # En space\n            '\\u2001': ' ',  # Em quad\n            '\\u2000': ' ',  # En quad\n        }\n        \n        files_updated = 0\n        replacements_made = 0\n        errors = 0\n        \n        for file_path_str in ASCII_COMPLIANCE_FILES:\n            file_path = self.project_root / file_path_str\n            if not file_path.exists():\n                continue\n            \n            try:\n                with open(file_path, 'r', encoding='utf-8') as f:\n                    content = f.read()\n                \n                original_content = content\n                file_replacements = 0\n                \n                for non_ascii, ascii_replacement in REPLACEMENTS.items():\n                    if non_ascii in content:\n                        count = content.count(non_ascii)\n                        content = content.replace(non_ascii, ascii_replacement)\n                        file_replacements += count\n                \n                if content != original_content:\n                    if not dry_run:\n                        with open(file_path, 'w', encoding='utf-8') as f:\n                            f.write(content)\n                        files_updated += 1\n                    else:\n                        # In dry-run mode, still count files that would be updated\n                        files_updated += 1\n                    replacements_made += file_replacements\n            except Exception as e:\n                errors += 1\n                if logger:\n                    logger.error(f\"Error processing {file_path_str}: {e}\")\n        \n        return {'files_updated': files_updated, 'replacements_made': replacements_made, 'errors': errors}\n\n\ndef main():\n    \"\"\"Main entry point.\"\"\"\n    import argparse\n    \n    parser = argparse.ArgumentParser(description='Fix non-ASCII characters in documentation')\n    parser.add_argument('--dry-run', action='store_true', help='Show what would be changed without making changes')\n    \n    args = parser.parse_args()\n    \n    fixer = DocumentationASCIIFixer()\n    result = fixer.fix_ascii(dry_run=args.dry_run)\n    \n    print(f\"\\nFix ASCII: Updated {result['files_updated']} files, Made {result['replacements_made']} replacements, Errors {result['errors']}\")\n    \n    return 0 if result['errors'] == 0 else 1\n\n\nif __name__ == \"__main__\":\n    sys.exit(main())\n\n",
+                [
+                  {
+                    "pattern": "dry_run=args.dry_run",
+                    "match": "dry_run=args.dry_run",
+                    "line": 161,
+                    "line_content": "result = fixer.fix_ascii(dry_run=args.dry_run)",
+                    "start": 6196,
+                    "end": 6216
+                  }
+                ]
+              ],
+              [
+                "development_tools\\shared\\service\\commands.py",
+                "\"\"\"\nCommand execution methods for AIToolsService.\n\nContains methods for executing various CLI commands (docs, validate, config, etc.)\n\"\"\"\n\nfrom datetime import datetime\nfrom typing import Dict, List, Optional\n\nfrom core.logger import get_component_logger\n\nlogger = get_component_logger(\"development_tools\")\n\n# Import output storage\nfrom ..output_storage import save_tool_result\n\n\nclass CommandsMixin:\n    \"\"\"Mixin class providing command execution methods to AIToolsService.\"\"\"\n    \n    def run_docs(self):\n        \"\"\"Update all documentation (OPTIONAL - not essential for audit)\"\"\"\n        logger.info(\"Starting documentation update...\")\n        logger.info(\"Updating documentation...\")\n        logger.info(\"=\" * 50)\n        success = True\n        \n        # Generate function registry\n        try:\n            logger.info(\"  - Generating function registry...\")\n            result = self.run_script(\"generate_function_registry\")\n            if result['success']:\n                logger.info(\"  - Function registry generated successfully\")\n            else:\n                logger.error(f\"  - Function registry generation failed: {result['error']}\")\n                success = False\n        except Exception as exc:\n            logger.error(f\"  - Function registry generation failed: {exc}\")\n            success = False\n        \n        # Generate module dependencies\n        try:\n            logger.info(\"  - Generating module dependencies...\")\n            result = self.run_script(\"generate_module_dependencies\")\n            if result['success']:\n                logger.info(\"  - Module dependencies generated successfully\")\n            else:\n                logger.error(f\"  - Module dependencies generation failed: {result['error']}\")\n                success = False\n        except Exception as exc:\n            logger.error(f\"  - Module dependencies generation failed: {exc}\")\n            success = False\n        \n        # Generate directory trees\n        # NOTE: Static documentation (DIRECTORY_TREE, FUNCTION_REGISTRY, MODULE_DEPENDENCIES)\n        # should ONLY be generated via the 'docs' command, NOT during audits.\n        try:\n            logger.info(\"  - Generating directory trees...\")\n            self.generate_directory_trees()\n        except Exception as exc:\n            logger.error(f\"  - Directory tree generation failed: {exc}\")\n            success = False\n        \n        # Run documentation sync check\n        try:\n            logger.info(\"  - Checking documentation sync...\")\n            if not self._run_doc_sync_check('--check'):\n                success = False\n        except Exception as exc:\n            logger.error(f\"  - Documentation sync check failed: {exc}\")\n            success = False\n        \n        logger.info(\"=\" * 50)\n        if success:\n            logger.info(\"Completed documentation update successfully!\")\n        else:\n            logger.warning(\"Completed documentation update with issues.\")\n        return success\n    \n    def run_validate(self):\n        \"\"\"Validate AI-generated work (simple command)\"\"\"\n        logger.info(\"Analyzing AI work...\")\n        logger.info(\"=\" * 50)\n        # Use --json flag to prevent multiline print output from being captured\n        result = self.run_script('analyze_ai_work', '--json')\n        if result['success']:\n            self.validation_results = result\n            try:\n                data = result.get('data')\n                if not data and result.get('output'):\n                    try:\n                        import json\n                        data = json.loads(result.get('output', ''))\n                    except (json.JSONDecodeError, TypeError):\n                        data = {\n                            'success': result.get('success', False),\n                            'output': result.get('output', ''),\n                            'error': result.get('error', ''),\n                            'returncode': result.get('returncode', 0)\n                        }\n                if data:\n                    save_tool_result('analyze_ai_work', 'ai_work', data, project_root=self.project_root)\n            except Exception as e:\n                logger.debug(f\"Failed to save analyze_ai_work results: {e}\")\n            logger.info(\"=\" * 50)\n            logger.info(\"Validation completed successfully!\")\n            return True\n        else:\n            logger.error(f\"Validation failed: {result['error']}\")\n            return False\n    \n    def run_config(self):\n        \"\"\"Check configuration consistency (simple command)\"\"\"\n        logger.info(\"Running analyze_config...\")\n        logger.info(\"=\" * 50)\n        result = self.run_script('analyze_config')\n        if result['success']:\n            output = result.get('output', '')\n            if output:\n                try:\n                    import json\n                    lines = output.strip().split('\\n')\n                    json_start = None\n                    for i in range(len(lines) - 1, -1, -1):\n                        if lines[i].strip().startswith('{'):\n                            json_start = i\n                            break\n                    if json_start is not None:\n                        json_output = '\\n'.join(lines[json_start:])\n                        json_data = json.loads(json_output)\n                        try:\n                            save_tool_result('analyze_config', 'config', json_data, project_root=self.project_root)\n                            logger.debug(\"Regenerated analyze_config_results.json\")\n                        except Exception as e:\n                            logger.warning(f\"Failed to save analyze_config result: {e}\")\n                    else:\n                        json_data = json.loads(output)\n                        save_tool_result('analyze_config', 'config', json_data, project_root=self.project_root)\n                        logger.debug(\"Regenerated analyze_config_results.json\")\n                except (json.JSONDecodeError, ValueError) as e:\n                    logger.warning(f\"Failed to parse analyze_config JSON output: {e}\")\n                    logger.debug(f\"Output was: {output[:500]}...\")\n                print(output)\n            else:\n                logger.warning(\"No output from analyze_config script\")\n            return True\n        else:\n            logger.error(f\"Configuration check failed: {result['error']}\")\n            return False\n    \n    def run_workflow(self, task_type: str, task_data: Optional[Dict] = None) -> bool:\n        \"\"\"Run workflow with audit-first protocol\"\"\"\n        logger.info(f\"Running workflow: {task_type}\")\n        logger.info(\"=\" * 50)\n        if not self.check_trigger_requirements(task_type):\n            return False\n        audit_results = self.run_audit_first(task_type)\n        if not audit_results['success']:\n            logger.error(f\"Audit failed: {audit_results['error']}\")\n            return False\n        task_success = self.execute_task(task_type, task_data)\n        if task_success:\n            validation_results = self.validate_work(task_type, task_data or {})\n            self.show_validation_report(validation_results)\n        return task_success\n    \n    def run_version_sync(self, scope: str = 'docs'):\n        \"\"\"Sync version numbers\"\"\"\n        logger.info(f\"Syncing versions for scope: {scope}\")\n        logger.info(\"=\" * 50)\n        result = self.run_script('fix_version_sync', 'sync', '--scope', scope)\n        if result['success']:\n            self.fix_version_sync_results = result\n            logger.info(\"Version sync completed!\")\n            return True\n        else:\n            logger.error(f\"Version sync failed: {result['error']}\")\n            return False\n    \n    def run_dev_tools_coverage(self) -> Dict:\n        \"\"\"Run coverage analysis specifically for development_tools directory.\"\"\"\n        logger.info(\"Generating dev tools coverage...\")\n        from .audit_orchestration import _AUDIT_LOCK_FILE\n        # Use separate lock file for dev tools coverage to avoid conflicts when running in parallel with main coverage\n        # Both lock files are checked by _is_audit_in_progress(), so this is safe\n        coverage_lock_file = self._get_coverage_lock_file_path() if hasattr(self, '_get_coverage_lock_file_path') else (self.project_root / 'development_tools' / '.coverage_in_progress.lock')\n        # Use a separate lock file for dev tools to avoid file conflicts when running in parallel\n        coverage_lock_file = coverage_lock_file.parent / '.coverage_dev_tools_in_progress.lock'\n        try:\n            coverage_lock_file.parent.mkdir(parents=True, exist_ok=True)\n            coverage_lock_file.touch()\n        except Exception as e:\n            logger.warning(f\"Failed to create coverage lock file: {e}\")\n        \n        try:\n            result = self.run_script('run_test_coverage', '--dev-tools-only', timeout=720)\n            # Check if coverage was collected, not just if pytest succeeded\n            # pytest can exit with non-zero code if tests fail, but coverage may still be collected\n            coverage_collected = False\n            \n            # First check if coverage file exists (most reliable indicator)\n            dev_tools_coverage_file = self.project_root / 'development_tools' / 'tests' / 'jsons' / 'coverage_dev_tools.json'\n            if dev_tools_coverage_file.exists():\n                coverage_collected = True\n            \n            # Also check output for coverage indicators\n            if result.get('output'):\n                output = result['output']\n                if 'TOTAL' in output or 'coverage' in output.lower() or 'Cover' in output:\n                    coverage_collected = True\n            \n            # If script failed but coverage file exists, we still succeeded\n            if coverage_collected:\n                self._load_dev_tools_coverage()\n                # Save results to standardized storage\n                if hasattr(self, 'dev_tools_coverage_results') and self.dev_tools_coverage_results:\n                    try:\n                        save_tool_result('generate_dev_tools_coverage', 'tests', self.dev_tools_coverage_results, project_root=self.project_root)\n                    except Exception as e:\n                        logger.warning(f\"Failed to save generate_dev_tools_coverage result: {e}\")\n                return {\n                    'success': True,\n                    'data': self.dev_tools_coverage_results\n                }\n            else:\n                # Even if script failed, check one more time if coverage file was created\n                # (it might have been created before the script failed)\n                if dev_tools_coverage_file.exists():\n                    logger.info(\"Coverage file found despite script failure - loading coverage data\")\n                    self._load_dev_tools_coverage()\n                    if hasattr(self, 'dev_tools_coverage_results') and self.dev_tools_coverage_results:\n                        try:\n                            save_tool_result('generate_dev_tools_coverage', 'tests', self.dev_tools_coverage_results, project_root=self.project_root)\n                        except Exception as e:\n                            logger.warning(f\"Failed to save generate_dev_tools_coverage result: {e}\")\n                        return {\n                            'success': True,\n                            'data': self.dev_tools_coverage_results\n                        }\n                \n                # No coverage collected\n                error_msg = result.get('error', 'Unknown error')\n                if result.get('output'):\n                    error_msg = f\"{error_msg}\\nOutput: {result['output'][:500]}\"\n                logger.warning(f\"Dev tools coverage failed: {error_msg}\")\n                return {\n                    'success': False,\n                    'error': error_msg\n                }\n        finally:\n            if coverage_lock_file.exists():\n                try:\n                    coverage_lock_file.unlink()\n                except Exception as e:\n                    logger.warning(f\"Failed to remove coverage lock file: {e}\")\n    \n    def run_status(self, skip_status_files: bool = False):\n        \"\"\"Generate status snapshot (cached data, no audit)\"\"\"\n        logger.info(\"Generating status snapshot...\")\n        logger.info(\"=\" * 50)\n        \n        if not skip_status_files:\n            # Get status file paths from config\n            try:\n                from .. import config\n                status_config = config.get_status_config()\n                status_files_config = status_config.get('status_files', {})\n                # Use default from STATUS config if status_files_config is empty (matches default config)\n                if not status_files_config:\n                    # Fallback to default STATUS config values for backward compatibility\n                    from ..config.config import STATUS\n                    status_files_config = STATUS.get('status_files', {})\n                ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')\n                ai_priorities_path = status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')\n                consolidated_report_path = status_files_config.get('consolidated_report', 'development_tools/consolidated_report.txt')\n            except (ImportError, AttributeError, KeyError):\n                # Fallback to default STATUS config values for backward compatibility\n                try:\n                    from ..config.config import STATUS\n                    status_files_default = STATUS.get('status_files', {})\n                    ai_status_path = status_files_default.get('ai_status', 'development_tools/AI_STATUS.md')\n                    ai_priorities_path = status_files_default.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')\n                    consolidated_report_path = status_files_default.get('consolidated_report', 'development_tools/consolidated_report.txt')\n                except (ImportError, AttributeError):\n                    # Last resort fallback\n                    ai_status_path = 'development_tools/AI_STATUS.md'\n                    ai_priorities_path = 'development_tools/AI_PRIORITIES.md'\n                    consolidated_report_path = 'development_tools/consolidated_report.txt'\n            \n            try:\n                ai_status = self._generate_ai_status_document()\n                from ..file_rotation import create_output_file\n                ai_status_file = create_output_file(ai_status_path, ai_status, project_root=self.project_root)\n                logger.info(f\"Generated: {ai_status_file}\")\n            except Exception as e:\n                logger.warning(f\"Error generating AI_STATUS document: {e}\")\n            \n            try:\n                ai_priorities = self._generate_ai_priorities_document()\n                from ..file_rotation import create_output_file\n                ai_priorities_file = create_output_file(ai_priorities_path, ai_priorities, project_root=self.project_root)\n                logger.info(f\"Generated: {ai_priorities_file}\")\n            except Exception as e:\n                logger.warning(f\"Error generating AI_PRIORITIES document: {e}\")\n            \n            try:\n                consolidated_report = self._generate_consolidated_report()\n                from ..file_rotation import create_output_file\n                consolidated_file = create_output_file(consolidated_report_path, consolidated_report, project_root=self.project_root)\n                logger.info(f\"Generated: {consolidated_file}\")\n            except Exception as e:\n                logger.warning(f\"Error generating consolidated report: {e}\")\n        \n        logger.info(\"=\" * 50)\n        logger.info(\"Status snapshot completed!\")\n    \n    def run_documentation_sync(self):\n        \"\"\"Run documentation sync check\"\"\"\n        logger.info(\"Running documentation sync check...\")\n        logger.info(\"=\" * 50)\n        success = self._run_doc_sync_check('--check')\n        if success:\n            logger.info(\"Documentation sync check completed!\")\n        else:\n            logger.warning(\"Documentation sync check completed with issues.\")\n        return success\n    \n    def run_documentation_fix(self, fix_type: str = 'all', dry_run: bool = False) -> bool:\n        \"\"\"Run documentation fix operations\"\"\"\n        logger.info(f\"Running documentation fix: {fix_type}\")\n        logger.info(\"=\" * 50)\n        args = []\n        if dry_run:\n            args.append('--dry-run')\n        if fix_type == 'all':\n            args.append('--all')\n        elif fix_type == 'ascii' or fix_type == 'fix-ascii':\n            args.append('--fix-ascii')\n        elif fix_type == 'number-headings':\n            args.append('--number-headings')\n        elif fix_type == 'add-addresses':\n            args.append('--add-addresses')\n        elif fix_type == 'convert-links':\n            args.append('--convert-links')\n        result = self.run_script('fix_documentation', *args)\n        if result['success']:\n            logger.info(\"Documentation fix completed!\")\n            return True\n        else:\n            error_msg = result.get('error', '').strip()\n            returncode = result.get('returncode')\n            if not error_msg:\n                if returncode is not None:\n                    error_msg = f\"Script exited with code {returncode}\"\n                else:\n                    error_msg = \"Unknown error (no error message or return code)\"\n            logger.error(f\"Documentation fix failed: {error_msg}\")\n            if result.get('output'):\n                logger.debug(f\"Script output: {result['output'][:200]}\")\n            return False\n    \n    def run_coverage_regeneration(self):\n        \"\"\"Regenerate test coverage data\"\"\"\n        logger.info(\"Generating test coverage...\")\n        logger.info(\"=\" * 50)\n        from .audit_orchestration import _AUDIT_LOCK_FILE\n        # Use helper method if available, otherwise default location\n        coverage_lock_file = self._get_coverage_lock_file_path() if hasattr(self, '_get_coverage_lock_file_path') else (self.project_root / 'development_tools' / '.coverage_in_progress.lock')\n        try:\n            coverage_lock_file.parent.mkdir(parents=True, exist_ok=True)\n            coverage_lock_file.touch()\n        except Exception as e:\n            logger.warning(f\"Failed to create coverage lock file: {e}\")\n        \n        try:\n            # Run test coverage execution (TEST_COVERAGE_REPORT.md is now generated by generate_test_coverage_report tool)\n            # Use 20 minutes timeout (1200s) to allow pytest to complete\n            # The script itself sets a 15-minute timeout for pytest, so we need\n            # a bit more time for script overhead and pytest execution\n            # Note: --update-plan flag is kept for backward compatibility but does nothing\n            result = self.run_script('run_test_coverage', timeout=1200)\n            if result['success']:\n                \n                # Save coverage results to standardized storage\n                # Load coverage data (will check archive if main file was rotated)\n                try:\n                    coverage_data = self._load_coverage_summary()\n                    if coverage_data:\n                        # _load_coverage_summary() returns 'coverage' not 'percent_covered'\n                        overall_coverage = coverage_data.get('overall', {}).get('coverage', 'N/A')\n                        modules_count = len(coverage_data.get('modules', []))\n                        logger.debug(f\"Loaded coverage data: overall={overall_coverage}%, modules={modules_count}\")\n                        from ..result_format import normalize_to_standard_format\n                        from ..output_storage import save_tool_result\n                        # coverage_data from _load_coverage_summary() has 'overall', 'modules', 'worst_files'\n                        # This matches the format expected by normalize_to_standard_format for analyze_test_coverage\n                        standard_format = normalize_to_standard_format('analyze_test_coverage', coverage_data)\n                        save_tool_result('analyze_test_coverage', 'tests', standard_format, project_root=self.project_root)\n                        logger.info(f\"Saved analyze_test_coverage results to standardized storage (coverage: {overall_coverage}%)\")\n                    else:\n                        logger.warning(\"No coverage data available to save - _load_coverage_summary() returned None (coverage.json may not exist or be empty)\")\n                except Exception as save_error:\n                    logger.warning(f\"Failed to save analyze_test_coverage results: {save_error}\")\n                    import traceback\n                    logger.debug(f\"Traceback: {traceback.format_exc()}\")\n                \n                \n                return True\n            else:\n                logger.error(f\"Test coverage regeneration failed: {result['error']}\")\n                return False\n        finally:\n            if coverage_lock_file.exists():\n                try:\n                    coverage_lock_file.unlink()\n                except Exception as e:\n                    logger.warning(f\"Failed to remove coverage lock file: {e}\")\n    \n    def run_legacy_cleanup(self):\n        \"\"\"Run legacy reference cleanup\"\"\"\n        logger.info(\"Starting legacy cleanup...\")\n        logger.info(\"=\" * 50)\n        success = self._run_legacy_cleanup_scan()\n        if success:\n            logger.info(\"Legacy cleanup completed!\")\n        else:\n            logger.warning(\"Legacy cleanup completed with issues.\")\n        return success\n    \n    def run_cleanup(self, cache: bool = False, test_data: bool = False,\n                    reports: bool = False, all: bool = False,\n                    coverage: bool = False, all_cleanup: bool = False,\n                    dry_run: bool = False):\n        \"\"\"Clean up generated files and caches\"\"\"\n        logger.info(\"Starting cleanup...\")\n        logger.info(\"=\" * 50)\n        \n        # LEGACY COMPATIBILITY: Support for 'all_cleanup', 'coverage', and 'dry_run' parameters\n        # These parameters were added to match CLI interface but 'all' should be used instead of 'all_cleanup'\n        # Removal plan: Remove 'all_cleanup', 'coverage', and 'dry_run' parameters after 2026-02-01 if no references found\n        # Detection pattern: \"all_cleanup=\", \"coverage=args.coverage\", \"dry_run=args.dry_run\"\n        if all_cleanup:\n            logger.warning(\"LEGACY: all_cleanup parameter used - use 'all' parameter instead\")\n        if coverage:\n            logger.warning(\"LEGACY: coverage parameter used - functionality not yet implemented\")\n        if dry_run:\n            logger.warning(\"LEGACY: dry_run parameter used - functionality not yet implemented\")\n        \n        if all or all_cleanup:\n            cache = True\n            test_data = True\n            reports = True\n            coverage = True\n        \n        if cache:\n            logger.info(\"Cleaning cache files...\")\n            # Clean cache files logic would go here\n        \n        if test_data:\n            logger.info(\"Cleaning test data...\")\n            # Clean test data logic would go here\n        \n        if reports:\n            logger.info(\"Cleaning report files...\")\n            # Clean report files logic would go here\n        \n        if coverage:\n            logger.info(\"Cleaning coverage files...\")\n            # Clean coverage files logic would go here\n        \n        if dry_run:\n            logger.info(\"DRY RUN MODE - No files were actually removed\")\n        \n        logger.info(\"Cleanup completed!\")\n    \n    def run_analyze_system_signals(self):\n        \"\"\"Run system signals analysis\"\"\"\n        logger.info(\"Analyzing system signals...\")\n        logger.info(\"=\" * 50)\n        result = self.run_script('analyze_system_signals', '--json')\n        if result['success']:\n            output = result.get('output', '')\n            if output:\n                try:\n                    import json\n                    # Try to find JSON in the output (might have extra text)\n                    # Look for JSON object/array boundaries\n                    json_start = output.find('{')\n                    if json_start == -1:\n                        json_start = output.find('[')\n                    if json_start != -1:\n                        json_end = output.rfind('}') + 1\n                        if json_end == 0:\n                            json_end = output.rfind(']') + 1\n                        if json_end > json_start:\n                            json_str = output[json_start:json_end]\n                            data = json.loads(json_str)\n                        else:\n                            data = json.loads(output)\n                    else:\n                        data = json.loads(output)\n                    self.system_signals = data\n                    try:\n                        save_tool_result('analyze_system_signals', 'reports', data, project_root=self.project_root)\n                    except Exception as e:\n                        logger.debug(f\"Failed to save analyze_system_signals result: {e}\")\n                except json.JSONDecodeError as e:\n                    logger.warning(f\"analyze_system_signals output could not be parsed as JSON: {e}\")\n                    logger.debug(f\"analyze_system_signals raw output (first 500 chars): {output[:500]}\")\n            logger.info(\"System signals analysis completed!\")\n            return True\n        else:\n            logger.error(f\"System signals analysis failed: {result.get('error', 'Unknown error')}\")\n            return False\n    \n    # LEGACY COMPATIBILITY: Wrapper for backward compatibility with tests and existing code\n    # Removal plan: Remove after 2025-03-01 if no references found\n    # Detection pattern: \"run_system_signals\"\n    def run_system_signals(self):\n        \"\"\"Run system signals analysis (legacy wrapper - use run_analyze_system_signals instead)\"\"\"\n        logger.warning(\"LEGACY: run_system_signals() called - use run_analyze_system_signals() instead\")\n        return self.run_analyze_system_signals()\n    \n    def run_test_markers(self, action: str = 'check', dry_run: bool = False) -> Dict:\n        \"\"\"Run test markers analysis or fix\"\"\"\n        logger.info(f\"Analyzing test markers: {action}\")\n        logger.info(\"=\" * 50)\n        args = []\n        if action == 'check':\n            args.append('--check')\n        elif action == 'analyze':\n            args.append('--analyze')\n        elif action == 'fix':\n            args.append('--fix')\n        if dry_run:\n            args.append('--dry-run')\n        # Always request JSON output for parsing\n        args.append('--json')\n        \n        result = self.run_script('analyze_test_markers', *args)\n        \n        # The script returns exit code 1 if markers are missing (which is valid data, not a failure)\n        # So we check for output rather than just success\n        output = result.get('output', '')\n        if output:\n            try:\n                import json\n                data = json.loads(output)\n                result['data'] = data\n                result['success'] = True  # Mark as success if we got valid JSON\n                try:\n                    save_tool_result('analyze_test_markers', 'tests', data, project_root=self.project_root)\n                except Exception as e:\n                    logger.debug(f\"Failed to save analyze_test_markers result: {e}\")\n                logger.info(\"Test markers analysis completed!\")\n            except json.JSONDecodeError as e:\n                logger.error(f\"Test markers analysis failed: Could not parse JSON output: {e}\")\n                logger.debug(f\"Output was: {output[:200]}\")\n                result['success'] = False\n                result['error'] = f\"Could not parse JSON output: {e}\"\n        elif result.get('error'):\n            error_msg = result['error']\n            logger.error(f\"Test markers analysis failed: {error_msg}\")\n            if result.get('output'):\n                logger.debug(f\"Script stdout: {result['output'][:500]}\")\n            result['success'] = False\n        else:\n            error_msg = f\"No output received (returncode: {result.get('returncode')})\"\n            logger.error(f\"Test markers analysis failed: {error_msg}\")\n            if result.get('error'):\n                logger.debug(f\"Script stderr: {result['error'][:500]}\")\n            result['success'] = False\n            result['error'] = error_msg\n        \n        return result\n    \n    def run_unused_imports(self):\n        \"\"\"Run unused imports analysis (analysis only)\"\"\"\n        logger.info(\"Analyzing unused imports...\")\n        logger.info(\"=\" * 50)\n        result = self.run_analyze_unused_imports()\n        if result.get('success'):\n            logger.info(\"Unused imports analysis completed!\")\n        else:\n            logger.warning(f\"Unused imports analysis completed with issues: {result.get('error', 'Unknown error')}\")\n        return result\n    \n    def run_unused_imports_report(self):\n        \"\"\"Run unused imports report generation (generates markdown report from analysis results)\"\"\"\n        logger.info(\"=\" * 50)\n        result = self.run_generate_unused_imports_report()\n        if result.get('success'):\n            logger.info(\"Unused imports report generated successfully!\")\n        else:\n            logger.warning(f\"Unused imports report generation completed with issues: {result.get('error', 'Unknown error')}\")\n        return result\n    \n    def generate_directory_trees(self):\n        \"\"\"Generate directory tree documentation.\n        \n        NOTE: This should ONLY be called from the 'docs' command, NOT during audits.\n        Static documentation should not be regenerated during audit runs.\n        The safeguard in create_output_file() will automatically prevent writes during audits/tests.\n        \"\"\"\n        logger.info(\"Generating directory trees...\")\n        try:\n            result = self.run_script('generate_directory_tree')\n            if result['success']:\n                logger.info(\"Directory trees generated successfully!\")\n                return True\n            else:\n                logger.error(f\"Directory tree generation failed: {result['error']}\")\n                return False\n        except RuntimeError as e:\n            # Handle safeguard blocking (from create_output_file)\n            if \"Cannot write\" in str(e) and \"DIRECTORY_TREE.md\" in str(e):\n                logger.warning(f\"Skipping DIRECTORY_TREE.md generation: {e}\")\n                return False\n            raise\n    \n    def check_trigger_requirements(self, task_type: str) -> bool:\n        \"\"\"Check if trigger requirements are met for a task\"\"\"\n        # Implementation would check workflow config\n        return True\n    \n    def run_audit_first(self, task_type: str) -> Dict:\n        \"\"\"Run audit first as required by protocol\"\"\"\n        logger.info(\"Running audit-first protocol...\")\n        audit_success = self._run_quick_audit_tools()\n        return {\n            'success': audit_success,\n            'error': '' if audit_success else 'Audit failed'\n        }\n    \n    def execute_task(self, task_type: str, task_data: Optional[Dict] = None) -> bool:\n        \"\"\"Execute the specific task\"\"\"\n        if task_type == 'documentation':\n            return self._execute_documentation_task()\n        elif task_type == 'function_registry':\n            return self._execute_function_registry_task()\n        elif task_type == 'module_dependencies':\n            return self._execute_module_dependencies_task()\n        else:\n            logger.error(f\"Unknown task type: {task_type}\")\n            return False\n    \n    def validate_work(self, work_type: str, work_data: Dict) -> Dict:\n        \"\"\"Validate the work before presenting\"\"\"\n        logger.info(\"Validating work...\")\n        # Use --json flag to prevent multiline print output from being captured\n        result = self.run_script('analyze_ai_work', '--work-type', work_type, '--json')\n        if result['success']:\n            return self.validate_audit_results({'output': result['output']})\n        else:\n            return {\n                'completeness': 0.0,\n                'accuracy': 0.0,\n                'consistency': 0.0,\n                'actionable': 0.0,\n                'overall': 0.0,\n                'issues': [f\"Validation failed: {result['error']}\"]\n            }\n    \n    def validate_audit_results(self, results: Dict) -> Dict:\n        \"\"\"Validate audit results\"\"\"\n        return {\n            'completeness': 95.0,\n            'accuracy': 90.0,\n            'consistency': 85.0,\n            'actionable': 80.0,\n            'overall': 87.5,\n            'issues': []\n        }\n    \n    def show_validation_report(self, validation_results: Dict):\n        \"\"\"Show validation report\"\"\"\n        print(\"\\n\" + \"=\" * 50)\n        print(\"VALIDATION REPORT\")\n        print(\"=\" * 50)\n        scores = [\n            f\"Completeness: {validation_results['completeness']:.1f}%\",\n            f\"Accuracy: {validation_results['accuracy']:.1f}%\",\n            f\"Consistency: {validation_results['consistency']:.1f}%\",\n            f\"Actionable: {validation_results['actionable']:.1f}%\"\n        ]\n        overall = validation_results['overall']\n        status = \"PASSED\" if overall >= 80.0 else \"NEEDS IMPROVEMENT\"\n        print(f\"Overall Score: {overall:.1f}% - {status}\")\n        print(\"\\nComponent Scores:\")\n        for score in scores:\n            print(f\"  {score}\")\n        if validation_results['issues']:\n            print(\"\\nIssues Found:\")\n            for issue in validation_results['issues']:\n                print(f\"  [ISSUE] {issue}\")\n    \n    def print_audit_summary(self, successful: List, failed: List, results: Dict):\n        \"\"\"Print concise audit summary\"\"\"\n        print(\"\\n\" + \"=\" * 80)\n        print(\"AUDIT SUMMARY\")\n        print(\"=\" * 80)\n        print(f\"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\")\n        print(f\"Successful: {len(successful)}\")\n        print(f\"Failed: {len(failed)}\")\n        if failed:\n            print(f\"\\n[CRITICAL] Failed audits: {', '.join(failed)}\")\n        key_metrics = self._extract_key_metrics(results)\n        if key_metrics:\n            print(\"\\nKey Metrics:\")\n            for metric, value in key_metrics.items():\n                print(f\"  {metric}: {value}\")\n        # Default to generic path relative to project root (no development_tools/ assumption)\n        results_file = (self.audit_config or {}).get('results_file', 'reports/analysis_detailed_results.json')\n        print(f\"\\nDetailed results saved to: {results_file}\")\n        if self.audit_config.get('prioritize_issues', False):\n            print(f\"Critical issues saved to: {self.audit_config['issues_file']}\")\n    \n    def _execute_documentation_task(self) -> bool:\n        \"\"\"Execute documentation update task\"\"\"\n        logger.info(\"Updating documentation...\")\n        result = self.run_script('generate_documentation')\n        return result['success']\n    \n    def _execute_function_registry_task(self) -> bool:\n        \"\"\"Execute function registry task\"\"\"\n        logger.info(\"Updating function registry...\")\n        result = self.run_script('generate_function_registry')\n        return result['success']\n    \n    def _execute_module_dependencies_task(self) -> bool:\n        \"\"\"Execute module dependencies task\"\"\"\n        logger.info(\"Updating module dependencies...\")\n        result = self.run_script('generate_module_dependencies')\n        return result['success']\n    \n    def _run_doc_sync_check(self, *args) -> bool:\n        \"\"\"Run all documentation sync checks and aggregate results.\"\"\"\n        all_results = {}\n        \n        # Run paired documentation sync\n        # Note: analyze_documentation_sync.py logs this message itself, so we don't duplicate it here\n        result = self.run_script('analyze_documentation_sync', *args)\n        if result.get('output') or result.get('success'):\n            all_results['paired_docs'] = self._parse_documentation_sync_output(result.get('output', ''))\n        else:\n            logger.warning(f\"analyze_documentation_sync failed: {result.get('error', 'Unknown error')}\")\n        \n        # Run path drift analysis\n        logger.info(\"  - Analyzing path drift...\")\n        result = self.run_analyze_path_drift()\n        if result.get('data'):\n            all_results['path_drift'] = result.get('data', {})\n        elif result.get('output') or result.get('success'):\n            all_results['path_drift'] = self._parse_path_drift_output(result.get('output', ''))\n        else:\n            logger.warning(f\"analyze_path_drift failed: {result.get('error', 'Unknown error')}\")\n        \n        # Run ASCII compliance check\n        logger.info(\"  - Analyzing ASCII compliance...\")\n        result = self.run_script('analyze_ascii_compliance', '--json')\n        # Track this sub-tool as run\n        if hasattr(self, '_tools_run_in_current_tier'):\n            self._tools_run_in_current_tier.add('analyze_ascii_compliance')\n        try:\n            cache_file = self.project_root / \"development_tools\" / \"docs\" / \"jsons\" / \".analyze_ascii_compliance_cache.json\"\n            ascii_result = self._load_mtime_cached_tool_results(\n                'analyze_ascii_compliance',\n                'docs',\n                cache_file,\n                result,\n                self._parse_ascii_compliance_output\n            )\n            all_results['ascii_compliance'] = ascii_result\n        except Exception as e:\n            logger.debug(f\"Failed to load ASCII compliance: {e}, falling back to parsing output\")\n            if result.get('output') or result.get('success'):\n                ascii_result = self._parse_ascii_compliance_output(result.get('output', ''))\n                all_results['ascii_compliance'] = ascii_result\n                try:\n                    save_tool_result('analyze_ascii_compliance', 'docs', ascii_result, project_root=self.project_root)\n                except Exception as save_error:\n                    logger.debug(f\"Failed to save ASCII compliance results: {save_error}\")\n            else:\n                logger.warning(f\"analyze_ascii_compliance failed: {result.get('error', 'Unknown error')}\")\n        \n        # Run heading numbering check\n        logger.info(\"  - Analyzing heading numbering...\")\n        result = self.run_script('analyze_heading_numbering', '--json')\n        # Track this sub-tool as run\n        if hasattr(self, '_tools_run_in_current_tier'):\n            self._tools_run_in_current_tier.add('analyze_heading_numbering')\n        try:\n            cache_file = self.project_root / \"development_tools\" / \"docs\" / \"jsons\" / \".analyze_heading_numbering_cache.json\"\n            heading_result = self._load_mtime_cached_tool_results(\n                'analyze_heading_numbering',\n                'docs',\n                cache_file,\n                result,\n                self._parse_heading_numbering_output\n            )\n            all_results['heading_numbering'] = heading_result\n        except Exception as e:\n            logger.debug(f\"Failed to load heading numbering: {e}, falling back to parsing output\")\n            if result.get('output') or result.get('success'):\n                heading_result = self._parse_heading_numbering_output(result.get('output', ''))\n                all_results['heading_numbering'] = heading_result\n                try:\n                    save_tool_result('analyze_heading_numbering', 'docs', heading_result, project_root=self.project_root)\n                except Exception as save_error:\n                    logger.debug(f\"Failed to save heading numbering results: {save_error}\")\n            else:\n                logger.warning(f\"analyze_heading_numbering failed: {result.get('error', 'Unknown error')}\")\n        \n        # Run missing addresses check\n        logger.info(\"  - Analyzing missing addresses...\")\n        result = self.run_script('analyze_missing_addresses', '--json')\n        # Track this sub-tool as run\n        if hasattr(self, '_tools_run_in_current_tier'):\n            self._tools_run_in_current_tier.add('analyze_missing_addresses')\n        try:\n            cache_file = self.project_root / \"development_tools\" / \"docs\" / \"jsons\" / \".analyze_missing_addresses_cache.json\"\n            missing_result = self._load_mtime_cached_tool_results(\n                'analyze_missing_addresses',\n                'docs',\n                cache_file,\n                result,\n                self._parse_missing_addresses_output\n            )\n            all_results['missing_addresses'] = missing_result\n        except Exception as e:\n            logger.debug(f\"Failed to load missing addresses: {e}, falling back to parsing output\")\n            if result.get('output') or result.get('success'):\n                missing_result = self._parse_missing_addresses_output(result.get('output', ''))\n                all_results['missing_addresses'] = missing_result\n                try:\n                    save_tool_result('analyze_missing_addresses', 'docs', missing_result, project_root=self.project_root)\n                except Exception as save_error:\n                    logger.debug(f\"Failed to save missing addresses results: {save_error}\")\n            else:\n                logger.warning(f\"analyze_missing_addresses failed: {result.get('error', 'Unknown error')}\")\n        \n        # Run unconverted links check\n        logger.info(\"  - Analyzing unconverted links...\")\n        result = self.run_script('analyze_unconverted_links', '--json')\n        # Track this sub-tool as run\n        if hasattr(self, '_tools_run_in_current_tier'):\n            self._tools_run_in_current_tier.add('analyze_unconverted_links')\n        try:\n            cache_file = self.project_root / \"development_tools\" / \"docs\" / \"jsons\" / \".analyze_unconverted_links_cache.json\"\n            links_result = self._load_mtime_cached_tool_results(\n                'analyze_unconverted_links',\n                'docs',\n                cache_file,\n                result,\n                self._parse_unconverted_links_output\n            )\n            all_results['unconverted_links'] = links_result\n        except Exception as e:\n            logger.debug(f\"Failed to load unconverted links: {e}, falling back to parsing output\")\n            if result.get('output') or result.get('success'):\n                links_result = self._parse_unconverted_links_output(result.get('output', ''))\n                all_results['unconverted_links'] = links_result\n                try:\n                    save_tool_result('analyze_unconverted_links', 'docs', links_result, project_root=self.project_root)\n                except Exception as save_error:\n                    logger.debug(f\"Failed to save unconverted links results: {save_error}\")\n            else:\n                logger.warning(f\"analyze_unconverted_links failed: {result.get('error', 'Unknown error')}\")\n        \n        # Aggregate all results\n        summary = self._aggregate_doc_sync_results(all_results)\n        self.docs_sync_results = {'success': True, 'summary': summary, 'all_results': all_results}\n        self.docs_sync_summary = summary\n        logger.info(f\"Documentation sync summary: {summary.get('status', 'UNKNOWN')} - {summary.get('total_issues', 0)} total issues\")\n        return True\n    \n    def _run_legacy_cleanup_scan(self, *args) -> bool:\n        \"\"\"Run legacy cleanup and store structured results.\"\"\"\n        result = self.run_script('fix_legacy_references', *args)\n        if result.get('success'):\n            summary = self._parse_legacy_output(result.get('output', ''))\n            result['summary'] = summary\n            self.legacy_cleanup_results = result\n            self.legacy_cleanup_summary = summary\n            return True\n        if result.get('output'):\n            logger.info(result['output'])\n        if result.get('error'):\n            logger.error(result['error'])\n        return False\n",
+                [
+                  {
+                    "pattern": "all_cleanup=",
+                    "match": "all_cleanup=",
+                    "line": 441,
+                    "line_content": "# Detection pattern: \"all_cleanup=\", \"coverage=args.coverage\", \"dry_run=args.dry_run\"",
+                    "start": 22430,
+                    "end": 22442
+                  },
+                  {
+                    "pattern": "coverage=args.coverage",
+                    "match": "coverage=args.coverage",
+                    "line": 441,
+                    "line_content": "# Detection pattern: \"all_cleanup=\", \"coverage=args.coverage\", \"dry_run=args.dry_run\"",
+                    "start": 22446,
+                    "end": 22468
+                  },
+                  {
+                    "pattern": "dry_run=args.dry_run",
+                    "match": "dry_run=args.dry_run",
+                    "line": 441,
+                    "line_content": "# Detection pattern: \"all_cleanup=\", \"coverage=args.coverage\", \"dry_run=args.dry_run\"",
+                    "start": 22472,
+                    "end": 22492
+                  }
+                ]
+              ]
+            ],
             "legacy_compatibility_markers": [
               [
                 "development_tools\\reports\\analyze_system_signals.py",
@@ -59928,46 +59883,14 @@
                   }
                 ]
               ]
-            ],
-            "legacy_parameters": [
-              [
-                "development_tools\\shared\\service\\commands.py",
-                "\"\"\"\nCommand execution methods for AIToolsService.\n\nContains methods for executing various CLI commands (docs, validate, config, etc.)\n\"\"\"\n\nfrom datetime import datetime\nfrom typing import Dict, List, Optional\n\nfrom core.logger import get_component_logger\n\nlogger = get_component_logger(\"development_tools\")\n\n# Import output storage\nfrom ..output_storage import save_tool_result\n\n\nclass CommandsMixin:\n    \"\"\"Mixin class providing command execution methods to AIToolsService.\"\"\"\n    \n    def run_docs(self):\n        \"\"\"Update all documentation (OPTIONAL - not essential for audit)\"\"\"\n        logger.info(\"Starting documentation update...\")\n        logger.info(\"Updating documentation...\")\n        logger.info(\"=\" * 50)\n        success = True\n        \n        # Generate function registry\n        try:\n            logger.info(\"  - Generating function registry...\")\n            result = self.run_script(\"generate_function_registry\")\n            if result['success']:\n                logger.info(\"  - Function registry generated successfully\")\n            else:\n                logger.error(f\"  - Function registry generation failed: {result['error']}\")\n                success = False\n        except Exception as exc:\n            logger.error(f\"  - Function registry generation failed: {exc}\")\n            success = False\n        \n        # Generate module dependencies\n        try:\n            logger.info(\"  - Generating module dependencies...\")\n            result = self.run_script(\"generate_module_dependencies\")\n            if result['success']:\n                logger.info(\"  - Module dependencies generated successfully\")\n            else:\n                logger.error(f\"  - Module dependencies generation failed: {result['error']}\")\n                success = False\n        except Exception as exc:\n            logger.error(f\"  - Module dependencies generation failed: {exc}\")\n            success = False\n        \n        # Generate directory trees\n        # NOTE: Static documentation (DIRECTORY_TREE, FUNCTION_REGISTRY, MODULE_DEPENDENCIES)\n        # should ONLY be generated via the 'docs' command, NOT during audits.\n        try:\n            logger.info(\"  - Generating directory trees...\")\n            self.generate_directory_trees()\n        except Exception as exc:\n            logger.error(f\"  - Directory tree generation failed: {exc}\")\n            success = False\n        \n        # Run documentation sync check\n        try:\n            logger.info(\"  - Checking documentation sync...\")\n            if not self._run_doc_sync_check('--check'):\n                success = False\n        except Exception as exc:\n            logger.error(f\"  - Documentation sync check failed: {exc}\")\n            success = False\n        \n        logger.info(\"=\" * 50)\n        if success:\n            logger.info(\"Completed documentation update successfully!\")\n        else:\n            logger.warning(\"Completed documentation update with issues.\")\n        return success\n    \n    def run_validate(self):\n        \"\"\"Validate AI-generated work (simple command)\"\"\"\n        logger.info(\"Analyzing AI work...\")\n        logger.info(\"=\" * 50)\n        # Use --json flag to prevent multiline print output from being captured\n        result = self.run_script('analyze_ai_work', '--json')\n        if result['success']:\n            self.validation_results = result\n            try:\n                data = result.get('data')\n                if not data and result.get('output'):\n                    try:\n                        import json\n                        data = json.loads(result.get('output', ''))\n                    except (json.JSONDecodeError, TypeError):\n                        data = {\n                            'success': result.get('success', False),\n                            'output': result.get('output', ''),\n                            'error': result.get('error', ''),\n                            'returncode': result.get('returncode', 0)\n                        }\n                if data:\n                    save_tool_result('analyze_ai_work', 'ai_work', data, project_root=self.project_root)\n            except Exception as e:\n                logger.debug(f\"Failed to save analyze_ai_work results: {e}\")\n            logger.info(\"=\" * 50)\n            logger.info(\"Validation completed successfully!\")\n            return True\n        else:\n            logger.error(f\"Validation failed: {result['error']}\")\n            return False\n    \n    def run_config(self):\n        \"\"\"Check configuration consistency (simple command)\"\"\"\n        logger.info(\"Running analyze_config...\")\n        logger.info(\"=\" * 50)\n        result = self.run_script('analyze_config')\n        if result['success']:\n            output = result.get('output', '')\n            if output:\n                try:\n                    import json\n                    lines = output.strip().split('\\n')\n                    json_start = None\n                    for i in range(len(lines) - 1, -1, -1):\n                        if lines[i].strip().startswith('{'):\n                            json_start = i\n                            break\n                    if json_start is not None:\n                        json_output = '\\n'.join(lines[json_start:])\n                        json_data = json.loads(json_output)\n                        try:\n                            save_tool_result('analyze_config', 'config', json_data, project_root=self.project_root)\n                            logger.debug(\"Regenerated analyze_config_results.json\")\n                        except Exception as e:\n                            logger.warning(f\"Failed to save analyze_config result: {e}\")\n                    else:\n                        json_data = json.loads(output)\n                        save_tool_result('analyze_config', 'config', json_data, project_root=self.project_root)\n                        logger.debug(\"Regenerated analyze_config_results.json\")\n                except (json.JSONDecodeError, ValueError) as e:\n                    logger.warning(f\"Failed to parse analyze_config JSON output: {e}\")\n                    logger.debug(f\"Output was: {output[:500]}...\")\n                print(output)\n            else:\n                logger.warning(\"No output from analyze_config script\")\n            return True\n        else:\n            logger.error(f\"Configuration check failed: {result['error']}\")\n            return False\n    \n    def run_workflow(self, task_type: str, task_data: Optional[Dict] = None) -> bool:\n        \"\"\"Run workflow with audit-first protocol\"\"\"\n        logger.info(f\"Running workflow: {task_type}\")\n        logger.info(\"=\" * 50)\n        if not self.check_trigger_requirements(task_type):\n            return False\n        audit_results = self.run_audit_first(task_type)\n        if not audit_results['success']:\n            logger.error(f\"Audit failed: {audit_results['error']}\")\n            return False\n        task_success = self.execute_task(task_type, task_data)\n        if task_success:\n            validation_results = self.validate_work(task_type, task_data or {})\n            self.show_validation_report(validation_results)\n        return task_success\n    \n    def run_version_sync(self, scope: str = 'docs'):\n        \"\"\"Sync version numbers\"\"\"\n        logger.info(f\"Syncing versions for scope: {scope}\")\n        logger.info(\"=\" * 50)\n        result = self.run_script('fix_version_sync', 'sync', '--scope', scope)\n        if result['success']:\n            self.fix_version_sync_results = result\n            logger.info(\"Version sync completed!\")\n            return True\n        else:\n            logger.error(f\"Version sync failed: {result['error']}\")\n            return False\n    \n    def run_dev_tools_coverage(self) -> Dict:\n        \"\"\"Run coverage analysis specifically for development_tools directory.\"\"\"\n        logger.info(\"Generating dev tools coverage...\")\n        from .audit_orchestration import _AUDIT_LOCK_FILE\n        # Use separate lock file for dev tools coverage to avoid conflicts when running in parallel with main coverage\n        # Both lock files are checked by _is_audit_in_progress(), so this is safe\n        coverage_lock_file = self._get_coverage_lock_file_path() if hasattr(self, '_get_coverage_lock_file_path') else (self.project_root / 'development_tools' / '.coverage_in_progress.lock')\n        # Use a separate lock file for dev tools to avoid file conflicts when running in parallel\n        coverage_lock_file = coverage_lock_file.parent / '.coverage_dev_tools_in_progress.lock'\n        try:\n            coverage_lock_file.parent.mkdir(parents=True, exist_ok=True)\n            coverage_lock_file.touch()\n        except Exception as e:\n            logger.warning(f\"Failed to create coverage lock file: {e}\")\n        \n        try:\n            result = self.run_script('run_test_coverage', '--dev-tools-only', timeout=720)\n            # Check if coverage was collected, not just if pytest succeeded\n            # pytest can exit with non-zero code if tests fail, but coverage may still be collected\n            coverage_collected = False\n            \n            # First check if coverage file exists (most reliable indicator)\n            dev_tools_coverage_file = self.project_root / 'development_tools' / 'tests' / 'jsons' / 'coverage_dev_tools.json'\n            if dev_tools_coverage_file.exists():\n                coverage_collected = True\n            \n            # Also check output for coverage indicators\n            if result.get('output'):\n                output = result['output']\n                if 'TOTAL' in output or 'coverage' in output.lower() or 'Cover' in output:\n                    coverage_collected = True\n            \n            # If script failed but coverage file exists, we still succeeded\n            if coverage_collected:\n                self._load_dev_tools_coverage()\n                # Save results to standardized storage\n                if hasattr(self, 'dev_tools_coverage_results') and self.dev_tools_coverage_results:\n                    try:\n                        save_tool_result('generate_dev_tools_coverage', 'tests', self.dev_tools_coverage_results, project_root=self.project_root)\n                    except Exception as e:\n                        logger.warning(f\"Failed to save generate_dev_tools_coverage result: {e}\")\n                return {\n                    'success': True,\n                    'data': self.dev_tools_coverage_results\n                }\n            else:\n                # Even if script failed, check one more time if coverage file was created\n                # (it might have been created before the script failed)\n                if dev_tools_coverage_file.exists():\n                    logger.info(\"Coverage file found despite script failure - loading coverage data\")\n                    self._load_dev_tools_coverage()\n                    if hasattr(self, 'dev_tools_coverage_results') and self.dev_tools_coverage_results:\n                        try:\n                            save_tool_result('generate_dev_tools_coverage', 'tests', self.dev_tools_coverage_results, project_root=self.project_root)\n                        except Exception as e:\n                            logger.warning(f\"Failed to save generate_dev_tools_coverage result: {e}\")\n                        return {\n                            'success': True,\n                            'data': self.dev_tools_coverage_results\n                        }\n                \n                # No coverage collected\n                error_msg = result.get('error', 'Unknown error')\n                if result.get('output'):\n                    error_msg = f\"{error_msg}\\nOutput: {result['output'][:500]}\"\n                logger.warning(f\"Dev tools coverage failed: {error_msg}\")\n                return {\n                    'success': False,\n                    'error': error_msg\n                }\n        finally:\n            if coverage_lock_file.exists():\n                try:\n                    coverage_lock_file.unlink()\n                except Exception as e:\n                    logger.warning(f\"Failed to remove coverage lock file: {e}\")\n    \n    def run_status(self, skip_status_files: bool = False):\n        \"\"\"Generate status snapshot (cached data, no audit)\"\"\"\n        logger.info(\"Generating status snapshot...\")\n        logger.info(\"=\" * 50)\n        \n        if not skip_status_files:\n            # Get status file paths from config\n            try:\n                from .. import config\n                status_config = config.get_status_config()\n                status_files_config = status_config.get('status_files', {})\n                # Use default from STATUS config if status_files_config is empty (matches default config)\n                if not status_files_config:\n                    # Fallback to default STATUS config values for backward compatibility\n                    from ..config.config import STATUS\n                    status_files_config = STATUS.get('status_files', {})\n                ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')\n                ai_priorities_path = status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')\n                consolidated_report_path = status_files_config.get('consolidated_report', 'development_tools/consolidated_report.txt')\n            except (ImportError, AttributeError, KeyError):\n                # Fallback to default STATUS config values for backward compatibility\n                try:\n                    from ..config.config import STATUS\n                    status_files_default = STATUS.get('status_files', {})\n                    ai_status_path = status_files_default.get('ai_status', 'development_tools/AI_STATUS.md')\n                    ai_priorities_path = status_files_default.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')\n                    consolidated_report_path = status_files_default.get('consolidated_report', 'development_tools/consolidated_report.txt')\n                except (ImportError, AttributeError):\n                    # Last resort fallback\n                    ai_status_path = 'development_tools/AI_STATUS.md'\n                    ai_priorities_path = 'development_tools/AI_PRIORITIES.md'\n                    consolidated_report_path = 'development_tools/consolidated_report.txt'\n            \n            try:\n                ai_status = self._generate_ai_status_document()\n                from ..file_rotation import create_output_file\n                ai_status_file = create_output_file(ai_status_path, ai_status, project_root=self.project_root)\n                logger.info(f\"Generated: {ai_status_file}\")\n            except Exception as e:\n                logger.warning(f\"Error generating AI_STATUS document: {e}\")\n            \n            try:\n                ai_priorities = self._generate_ai_priorities_document()\n                from ..file_rotation import create_output_file\n                ai_priorities_file = create_output_file(ai_priorities_path, ai_priorities, project_root=self.project_root)\n                logger.info(f\"Generated: {ai_priorities_file}\")\n            except Exception as e:\n                logger.warning(f\"Error generating AI_PRIORITIES document: {e}\")\n            \n            try:\n                consolidated_report = self._generate_consolidated_report()\n                from ..file_rotation import create_output_file\n                consolidated_file = create_output_file(consolidated_report_path, consolidated_report, project_root=self.project_root)\n                logger.info(f\"Generated: {consolidated_file}\")\n            except Exception as e:\n                logger.warning(f\"Error generating consolidated report: {e}\")\n        \n        logger.info(\"=\" * 50)\n        logger.info(\"Status snapshot completed!\")\n    \n    def run_documentation_sync(self):\n        \"\"\"Run documentation sync check\"\"\"\n        logger.info(\"Running documentation sync check...\")\n        logger.info(\"=\" * 50)\n        success = self._run_doc_sync_check('--check')\n        if success:\n            logger.info(\"Documentation sync check completed!\")\n        else:\n            logger.warning(\"Documentation sync check completed with issues.\")\n        return success\n    \n    def run_documentation_fix(self, fix_type: str = 'all', dry_run: bool = False) -> bool:\n        \"\"\"Run documentation fix operations\"\"\"\n        logger.info(f\"Running documentation fix: {fix_type}\")\n        logger.info(\"=\" * 50)\n        args = []\n        if dry_run:\n            args.append('--dry-run')\n        if fix_type == 'all':\n            args.append('--all')\n        elif fix_type == 'ascii' or fix_type == 'fix-ascii':\n            args.append('--fix-ascii')\n        elif fix_type == 'number-headings':\n            args.append('--number-headings')\n        elif fix_type == 'add-addresses':\n            args.append('--add-addresses')\n        elif fix_type == 'convert-links':\n            args.append('--convert-links')\n        result = self.run_script('fix_documentation', *args)\n        if result['success']:\n            logger.info(\"Documentation fix completed!\")\n            return True\n        else:\n            error_msg = result.get('error', '').strip()\n            returncode = result.get('returncode')\n            if not error_msg:\n                if returncode is not None:\n                    error_msg = f\"Script exited with code {returncode}\"\n                else:\n                    error_msg = \"Unknown error (no error message or return code)\"\n            logger.error(f\"Documentation fix failed: {error_msg}\")\n            if result.get('output'):\n                logger.debug(f\"Script output: {result['output'][:200]}\")\n            return False\n    \n    def run_coverage_regeneration(self):\n        \"\"\"Regenerate test coverage data\"\"\"\n        logger.info(\"Generating test coverage...\")\n        logger.info(\"=\" * 50)\n        from .audit_orchestration import _AUDIT_LOCK_FILE\n        # Use helper method if available, otherwise default location\n        coverage_lock_file = self._get_coverage_lock_file_path() if hasattr(self, '_get_coverage_lock_file_path') else (self.project_root / 'development_tools' / '.coverage_in_progress.lock')\n        try:\n            coverage_lock_file.parent.mkdir(parents=True, exist_ok=True)\n            coverage_lock_file.touch()\n        except Exception as e:\n            logger.warning(f\"Failed to create coverage lock file: {e}\")\n        \n        try:\n            # Run test coverage execution (TEST_COVERAGE_REPORT.md is now generated by generate_test_coverage_report tool)\n            # Use 20 minutes timeout (1200s) to allow pytest to complete\n            # The script itself sets a 15-minute timeout for pytest, so we need\n            # a bit more time for script overhead and pytest execution\n            # Note: --update-plan flag is kept for backward compatibility but does nothing\n            result = self.run_script('run_test_coverage', timeout=1200)\n            if result['success']:\n                \n                # Save coverage results to standardized storage\n                # Load coverage data (will check archive if main file was rotated)\n                try:\n                    coverage_data = self._load_coverage_summary()\n                    if coverage_data:\n                        # _load_coverage_summary() returns 'coverage' not 'percent_covered'\n                        overall_coverage = coverage_data.get('overall', {}).get('coverage', 'N/A')\n                        modules_count = len(coverage_data.get('modules', []))\n                        logger.debug(f\"Loaded coverage data: overall={overall_coverage}%, modules={modules_count}\")\n                        from ..result_format import normalize_to_standard_format\n                        from ..output_storage import save_tool_result\n                        # coverage_data from _load_coverage_summary() has 'overall', 'modules', 'worst_files'\n                        # This matches the format expected by normalize_to_standard_format for analyze_test_coverage\n                        standard_format = normalize_to_standard_format('analyze_test_coverage', coverage_data)\n                        save_tool_result('analyze_test_coverage', 'tests', standard_format, project_root=self.project_root)\n                        logger.info(f\"Saved analyze_test_coverage results to standardized storage (coverage: {overall_coverage}%)\")\n                    else:\n                        logger.warning(\"No coverage data available to save - _load_coverage_summary() returned None (coverage.json may not exist or be empty)\")\n                except Exception as save_error:\n                    logger.warning(f\"Failed to save analyze_test_coverage results: {save_error}\")\n                    import traceback\n                    logger.debug(f\"Traceback: {traceback.format_exc()}\")\n                \n                \n                return True\n            else:\n                logger.error(f\"Test coverage regeneration failed: {result['error']}\")\n                return False\n        finally:\n            if coverage_lock_file.exists():\n                try:\n                    coverage_lock_file.unlink()\n                except Exception as e:\n                    logger.warning(f\"Failed to remove coverage lock file: {e}\")\n    \n    def run_legacy_cleanup(self):\n        \"\"\"Run legacy reference cleanup\"\"\"\n        logger.info(\"Starting legacy cleanup...\")\n        logger.info(\"=\" * 50)\n        success = self._run_legacy_cleanup_scan()\n        if success:\n            logger.info(\"Legacy cleanup completed!\")\n        else:\n            logger.warning(\"Legacy cleanup completed with issues.\")\n        return success\n    \n    def run_cleanup(self, cache: bool = False, test_data: bool = False,\n                    reports: bool = False, all: bool = False,\n                    coverage: bool = False, all_cleanup: bool = False,\n                    dry_run: bool = False):\n        \"\"\"Clean up generated files and caches\"\"\"\n        logger.info(\"Starting cleanup...\")\n        logger.info(\"=\" * 50)\n        \n        # LEGACY COMPATIBILITY: Support for 'all_cleanup', 'coverage', and 'dry_run' parameters\n        # These parameters were added to match CLI interface but 'all' should be used instead of 'all_cleanup'\n        # Removal plan: Remove 'all_cleanup', 'coverage', and 'dry_run' parameters after 2026-02-01 if no references found\n        # Detection pattern: \"all_cleanup=\", \"coverage=args.coverage\", \"dry_run=args.dry_run\"\n        if all_cleanup:\n            logger.warning(\"LEGACY: all_cleanup parameter used - use 'all' parameter instead\")\n        if coverage:\n            logger.warning(\"LEGACY: coverage parameter used - functionality not yet implemented\")\n        if dry_run:\n            logger.warning(\"LEGACY: dry_run parameter used - functionality not yet implemented\")\n        \n        if all or all_cleanup:\n            cache = True\n            test_data = True\n            reports = True\n            coverage = True\n        \n        if cache:\n            logger.info(\"Cleaning cache files...\")\n            # Clean cache files logic would go here\n        \n        if test_data:\n            logger.info(\"Cleaning test data...\")\n            # Clean test data logic would go here\n        \n        if reports:\n            logger.info(\"Cleaning report files...\")\n            # Clean report files logic would go here\n        \n        if coverage:\n            logger.info(\"Cleaning coverage files...\")\n            # Clean coverage files logic would go here\n        \n        if dry_run:\n            logger.info(\"DRY RUN MODE - No files were actually removed\")\n        \n        logger.info(\"Cleanup completed!\")\n    \n    def run_analyze_system_signals(self):\n        \"\"\"Run system signals analysis\"\"\"\n        logger.info(\"Analyzing system signals...\")\n        logger.info(\"=\" * 50)\n        result = self.run_script('analyze_system_signals', '--json')\n        if result['success']:\n            output = result.get('output', '')\n            if output:\n                try:\n                    import json\n                    # Try to find JSON in the output (might have extra text)\n                    # Look for JSON object/array boundaries\n                    json_start = output.find('{')\n                    if json_start == -1:\n                        json_start = output.find('[')\n                    if json_start != -1:\n                        json_end = output.rfind('}') + 1\n                        if json_end == 0:\n                            json_end = output.rfind(']') + 1\n                        if json_end > json_start:\n                            json_str = output[json_start:json_end]\n                            data = json.loads(json_str)\n                        else:\n                            data = json.loads(output)\n                    else:\n                        data = json.loads(output)\n                    self.system_signals = data\n                    try:\n                        save_tool_result('analyze_system_signals', 'reports', data, project_root=self.project_root)\n                    except Exception as e:\n                        logger.debug(f\"Failed to save analyze_system_signals result: {e}\")\n                except json.JSONDecodeError as e:\n                    logger.warning(f\"analyze_system_signals output could not be parsed as JSON: {e}\")\n                    logger.debug(f\"analyze_system_signals raw output (first 500 chars): {output[:500]}\")\n            logger.info(\"System signals analysis completed!\")\n            return True\n        else:\n            logger.error(f\"System signals analysis failed: {result.get('error', 'Unknown error')}\")\n            return False\n    \n    # LEGACY COMPATIBILITY: Wrapper for backward compatibility with tests and existing code\n    # Removal plan: Remove after 2025-03-01 if no references found\n    # Detection pattern: \"run_system_signals\"\n    def run_system_signals(self):\n        \"\"\"Run system signals analysis (legacy wrapper - use run_analyze_system_signals instead)\"\"\"\n        logger.warning(\"LEGACY: run_system_signals() called - use run_analyze_system_signals() instead\")\n        return self.run_analyze_system_signals()\n    \n    def run_test_markers(self, action: str = 'check', dry_run: bool = False) -> Dict:\n        \"\"\"Run test markers analysis or fix\"\"\"\n        logger.info(f\"Analyzing test markers: {action}\")\n        logger.info(\"=\" * 50)\n        args = []\n        if action == 'check':\n            args.append('--check')\n        elif action == 'analyze':\n            args.append('--analyze')\n        elif action == 'fix':\n            args.append('--fix')\n        if dry_run:\n            args.append('--dry-run')\n        # Always request JSON output for parsing\n        args.append('--json')\n        \n        result = self.run_script('analyze_test_markers', *args)\n        \n        # The script returns exit code 1 if markers are missing (which is valid data, not a failure)\n        # So we check for output rather than just success\n        output = result.get('output', '')\n        if output:\n            try:\n                import json\n                data = json.loads(output)\n                result['data'] = data\n                result['success'] = True  # Mark as success if we got valid JSON\n                try:\n                    save_tool_result('analyze_test_markers', 'tests', data, project_root=self.project_root)\n                except Exception as e:\n                    logger.debug(f\"Failed to save analyze_test_markers result: {e}\")\n                logger.info(\"Test markers analysis completed!\")\n            except json.JSONDecodeError as e:\n                logger.error(f\"Test markers analysis failed: Could not parse JSON output: {e}\")\n                logger.debug(f\"Output was: {output[:200]}\")\n                result['success'] = False\n                result['error'] = f\"Could not parse JSON output: {e}\"\n        elif result.get('error'):\n            error_msg = result['error']\n            logger.error(f\"Test markers analysis failed: {error_msg}\")\n            if result.get('output'):\n                logger.debug(f\"Script stdout: {result['output'][:500]}\")\n            result['success'] = False\n        else:\n            error_msg = f\"No output received (returncode: {result.get('returncode')})\"\n            logger.error(f\"Test markers analysis failed: {error_msg}\")\n            if result.get('error'):\n                logger.debug(f\"Script stderr: {result['error'][:500]}\")\n            result['success'] = False\n            result['error'] = error_msg\n        \n        return result\n    \n    def run_unused_imports(self):\n        \"\"\"Run unused imports analysis (analysis only)\"\"\"\n        logger.info(\"Analyzing unused imports...\")\n        logger.info(\"=\" * 50)\n        result = self.run_analyze_unused_imports()\n        if result.get('success'):\n            logger.info(\"Unused imports analysis completed!\")\n        else:\n            logger.warning(f\"Unused imports analysis completed with issues: {result.get('error', 'Unknown error')}\")\n        return result\n    \n    def run_unused_imports_report(self):\n        \"\"\"Run unused imports report generation (generates markdown report from analysis results)\"\"\"\n        logger.info(\"=\" * 50)\n        result = self.run_generate_unused_imports_report()\n        if result.get('success'):\n            logger.info(\"Unused imports report generated successfully!\")\n        else:\n            logger.warning(f\"Unused imports report generation completed with issues: {result.get('error', 'Unknown error')}\")\n        return result\n    \n    def generate_directory_trees(self):\n        \"\"\"Generate directory tree documentation.\n        \n        NOTE: This should ONLY be called from the 'docs' command, NOT during audits.\n        Static documentation should not be regenerated during audit runs.\n        The safeguard in create_output_file() will automatically prevent writes during audits/tests.\n        \"\"\"\n        logger.info(\"Generating directory trees...\")\n        try:\n            result = self.run_script('generate_directory_tree')\n            if result['success']:\n                logger.info(\"Directory trees generated successfully!\")\n                return True\n            else:\n                logger.error(f\"Directory tree generation failed: {result['error']}\")\n                return False\n        except RuntimeError as e:\n            # Handle safeguard blocking (from create_output_file)\n            if \"Cannot write\" in str(e) and \"DIRECTORY_TREE.md\" in str(e):\n                logger.warning(f\"Skipping DIRECTORY_TREE.md generation: {e}\")\n                return False\n            raise\n    \n    def check_trigger_requirements(self, task_type: str) -> bool:\n        \"\"\"Check if trigger requirements are met for a task\"\"\"\n        # Implementation would check workflow config\n        return True\n    \n    def run_audit_first(self, task_type: str) -> Dict:\n        \"\"\"Run audit first as required by protocol\"\"\"\n        logger.info(\"Running audit-first protocol...\")\n        audit_success = self._run_quick_audit_tools()\n        return {\n            'success': audit_success,\n            'error': '' if audit_success else 'Audit failed'\n        }\n    \n    def execute_task(self, task_type: str, task_data: Optional[Dict] = None) -> bool:\n        \"\"\"Execute the specific task\"\"\"\n        if task_type == 'documentation':\n            return self._execute_documentation_task()\n        elif task_type == 'function_registry':\n            return self._execute_function_registry_task()\n        elif task_type == 'module_dependencies':\n            return self._execute_module_dependencies_task()\n        else:\n            logger.error(f\"Unknown task type: {task_type}\")\n            return False\n    \n    def validate_work(self, work_type: str, work_data: Dict) -> Dict:\n        \"\"\"Validate the work before presenting\"\"\"\n        logger.info(\"Validating work...\")\n        # Use --json flag to prevent multiline print output from being captured\n        result = self.run_script('analyze_ai_work', '--work-type', work_type, '--json')\n        if result['success']:\n            return self.validate_audit_results({'output': result['output']})\n        else:\n            return {\n                'completeness': 0.0,\n                'accuracy': 0.0,\n                'consistency': 0.0,\n                'actionable': 0.0,\n                'overall': 0.0,\n                'issues': [f\"Validation failed: {result['error']}\"]\n            }\n    \n    def validate_audit_results(self, results: Dict) -> Dict:\n        \"\"\"Validate audit results\"\"\"\n        return {\n            'completeness': 95.0,\n            'accuracy': 90.0,\n            'consistency': 85.0,\n            'actionable': 80.0,\n            'overall': 87.5,\n            'issues': []\n        }\n    \n    def show_validation_report(self, validation_results: Dict):\n        \"\"\"Show validation report\"\"\"\n        print(\"\\n\" + \"=\" * 50)\n        print(\"VALIDATION REPORT\")\n        print(\"=\" * 50)\n        scores = [\n            f\"Completeness: {validation_results['completeness']:.1f}%\",\n            f\"Accuracy: {validation_results['accuracy']:.1f}%\",\n            f\"Consistency: {validation_results['consistency']:.1f}%\",\n            f\"Actionable: {validation_results['actionable']:.1f}%\"\n        ]\n        overall = validation_results['overall']\n        status = \"PASSED\" if overall >= 80.0 else \"NEEDS IMPROVEMENT\"\n        print(f\"Overall Score: {overall:.1f}% - {status}\")\n        print(\"\\nComponent Scores:\")\n        for score in scores:\n            print(f\"  {score}\")\n        if validation_results['issues']:\n            print(\"\\nIssues Found:\")\n            for issue in validation_results['issues']:\n                print(f\"  [ISSUE] {issue}\")\n    \n    def print_audit_summary(self, successful: List, failed: List, results: Dict):\n        \"\"\"Print concise audit summary\"\"\"\n        print(\"\\n\" + \"=\" * 80)\n        print(\"AUDIT SUMMARY\")\n        print(\"=\" * 80)\n        print(f\"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\")\n        print(f\"Successful: {len(successful)}\")\n        print(f\"Failed: {len(failed)}\")\n        if failed:\n            print(f\"\\n[CRITICAL] Failed audits: {', '.join(failed)}\")\n        key_metrics = self._extract_key_metrics(results)\n        if key_metrics:\n            print(\"\\nKey Metrics:\")\n            for metric, value in key_metrics.items():\n                print(f\"  {metric}: {value}\")\n        # Default to generic path relative to project root (no development_tools/ assumption)\n        results_file = (self.audit_config or {}).get('results_file', 'reports/analysis_detailed_results.json')\n        print(f\"\\nDetailed results saved to: {results_file}\")\n        if self.audit_config.get('prioritize_issues', False):\n            print(f\"Critical issues saved to: {self.audit_config['issues_file']}\")\n    \n    def _execute_documentation_task(self) -> bool:\n        \"\"\"Execute documentation update task\"\"\"\n        logger.info(\"Updating documentation...\")\n        result = self.run_script('generate_documentation')\n        return result['success']\n    \n    def _execute_function_registry_task(self) -> bool:\n        \"\"\"Execute function registry task\"\"\"\n        logger.info(\"Updating function registry...\")\n        result = self.run_script('generate_function_registry')\n        return result['success']\n    \n    def _execute_module_dependencies_task(self) -> bool:\n        \"\"\"Execute module dependencies task\"\"\"\n        logger.info(\"Updating module dependencies...\")\n        result = self.run_script('generate_module_dependencies')\n        return result['success']\n    \n    def _run_doc_sync_check(self, *args) -> bool:\n        \"\"\"Run all documentation sync checks and aggregate results.\"\"\"\n        all_results = {}\n        \n        # Run paired documentation sync\n        # Note: analyze_documentation_sync.py logs this message itself, so we don't duplicate it here\n        result = self.run_script('analyze_documentation_sync', *args)\n        if result.get('output') or result.get('success'):\n            all_results['paired_docs'] = self._parse_documentation_sync_output(result.get('output', ''))\n        else:\n            logger.warning(f\"analyze_documentation_sync failed: {result.get('error', 'Unknown error')}\")\n        \n        # Run path drift analysis\n        logger.info(\"  - Analyzing path drift...\")\n        result = self.run_analyze_path_drift()\n        if result.get('data'):\n            all_results['path_drift'] = result.get('data', {})\n        elif result.get('output') or result.get('success'):\n            all_results['path_drift'] = self._parse_path_drift_output(result.get('output', ''))\n        else:\n            logger.warning(f\"analyze_path_drift failed: {result.get('error', 'Unknown error')}\")\n        \n        # Run ASCII compliance check\n        logger.info(\"  - Analyzing ASCII compliance...\")\n        result = self.run_script('analyze_ascii_compliance', '--json')\n        # Track this sub-tool as run\n        if hasattr(self, '_tools_run_in_current_tier'):\n            self._tools_run_in_current_tier.add('analyze_ascii_compliance')\n        try:\n            cache_file = self.project_root / \"development_tools\" / \"docs\" / \"jsons\" / \".analyze_ascii_compliance_cache.json\"\n            ascii_result = self._load_mtime_cached_tool_results(\n                'analyze_ascii_compliance',\n                'docs',\n                cache_file,\n                result,\n                self._parse_ascii_compliance_output\n            )\n            all_results['ascii_compliance'] = ascii_result\n        except Exception as e:\n            logger.debug(f\"Failed to load ASCII compliance: {e}, falling back to parsing output\")\n            if result.get('output') or result.get('success'):\n                ascii_result = self._parse_ascii_compliance_output(result.get('output', ''))\n                all_results['ascii_compliance'] = ascii_result\n                try:\n                    save_tool_result('analyze_ascii_compliance', 'docs', ascii_result, project_root=self.project_root)\n                except Exception as save_error:\n                    logger.debug(f\"Failed to save ASCII compliance results: {save_error}\")\n            else:\n                logger.warning(f\"analyze_ascii_compliance failed: {result.get('error', 'Unknown error')}\")\n        \n        # Run heading numbering check\n        logger.info(\"  - Analyzing heading numbering...\")\n        result = self.run_script('analyze_heading_numbering', '--json')\n        # Track this sub-tool as run\n        if hasattr(self, '_tools_run_in_current_tier'):\n            self._tools_run_in_current_tier.add('analyze_heading_numbering')\n        try:\n            cache_file = self.project_root / \"development_tools\" / \"docs\" / \"jsons\" / \".analyze_heading_numbering_cache.json\"\n            heading_result = self._load_mtime_cached_tool_results(\n                'analyze_heading_numbering',\n                'docs',\n                cache_file,\n                result,\n                self._parse_heading_numbering_output\n            )\n            all_results['heading_numbering'] = heading_result\n        except Exception as e:\n            logger.debug(f\"Failed to load heading numbering: {e}, falling back to parsing output\")\n            if result.get('output') or result.get('success'):\n                heading_result = self._parse_heading_numbering_output(result.get('output', ''))\n                all_results['heading_numbering'] = heading_result\n                try:\n                    save_tool_result('analyze_heading_numbering', 'docs', heading_result, project_root=self.project_root)\n                except Exception as save_error:\n                    logger.debug(f\"Failed to save heading numbering results: {save_error}\")\n            else:\n                logger.warning(f\"analyze_heading_numbering failed: {result.get('error', 'Unknown error')}\")\n        \n        # Run missing addresses check\n        logger.info(\"  - Analyzing missing addresses...\")\n        result = self.run_script('analyze_missing_addresses', '--json')\n        # Track this sub-tool as run\n        if hasattr(self, '_tools_run_in_current_tier'):\n            self._tools_run_in_current_tier.add('analyze_missing_addresses')\n        try:\n            cache_file = self.project_root / \"development_tools\" / \"docs\" / \"jsons\" / \".analyze_missing_addresses_cache.json\"\n            missing_result = self._load_mtime_cached_tool_results(\n                'analyze_missing_addresses',\n                'docs',\n                cache_file,\n                result,\n                self._parse_missing_addresses_output\n            )\n            all_results['missing_addresses'] = missing_result\n        except Exception as e:\n            logger.debug(f\"Failed to load missing addresses: {e}, falling back to parsing output\")\n            if result.get('output') or result.get('success'):\n                missing_result = self._parse_missing_addresses_output(result.get('output', ''))\n                all_results['missing_addresses'] = missing_result\n                try:\n                    save_tool_result('analyze_missing_addresses', 'docs', missing_result, project_root=self.project_root)\n                except Exception as save_error:\n                    logger.debug(f\"Failed to save missing addresses results: {save_error}\")\n            else:\n                logger.warning(f\"analyze_missing_addresses failed: {result.get('error', 'Unknown error')}\")\n        \n        # Run unconverted links check\n        logger.info(\"  - Analyzing unconverted links...\")\n        result = self.run_script('analyze_unconverted_links', '--json')\n        # Track this sub-tool as run\n        if hasattr(self, '_tools_run_in_current_tier'):\n            self._tools_run_in_current_tier.add('analyze_unconverted_links')\n        try:\n            cache_file = self.project_root / \"development_tools\" / \"docs\" / \"jsons\" / \".analyze_unconverted_links_cache.json\"\n            links_result = self._load_mtime_cached_tool_results(\n                'analyze_unconverted_links',\n                'docs',\n                cache_file,\n                result,\n                self._parse_unconverted_links_output\n            )\n            all_results['unconverted_links'] = links_result\n        except Exception as e:\n            logger.debug(f\"Failed to load unconverted links: {e}, falling back to parsing output\")\n            if result.get('output') or result.get('success'):\n                links_result = self._parse_unconverted_links_output(result.get('output', ''))\n                all_results['unconverted_links'] = links_result\n                try:\n                    save_tool_result('analyze_unconverted_links', 'docs', links_result, project_root=self.project_root)\n                except Exception as save_error:\n                    logger.debug(f\"Failed to save unconverted links results: {save_error}\")\n            else:\n                logger.warning(f\"analyze_unconverted_links failed: {result.get('error', 'Unknown error')}\")\n        \n        # Aggregate all results\n        summary = self._aggregate_doc_sync_results(all_results)\n        self.docs_sync_results = {'success': True, 'summary': summary, 'all_results': all_results}\n        self.docs_sync_summary = summary\n        logger.info(f\"Documentation sync summary: {summary.get('status', 'UNKNOWN')} - {summary.get('total_issues', 0)} total issues\")\n        return True\n    \n    def _run_legacy_cleanup_scan(self, *args) -> bool:\n        \"\"\"Run legacy cleanup and store structured results.\"\"\"\n        result = self.run_script('fix_legacy_references', *args)\n        if result.get('success'):\n            summary = self._parse_legacy_output(result.get('output', ''))\n            result['summary'] = summary\n            self.legacy_cleanup_results = result\n            self.legacy_cleanup_summary = summary\n            return True\n        if result.get('output'):\n            logger.info(result['output'])\n        if result.get('error'):\n            logger.error(result['error'])\n        return False\n",
-                [
-                  {
-                    "pattern": "all_cleanup=",
-                    "match": "all_cleanup=",
-                    "line": 441,
-                    "line_content": "# Detection pattern: \"all_cleanup=\", \"coverage=args.coverage\", \"dry_run=args.dry_run\"",
-                    "start": 22430,
-                    "end": 22442
-                  },
-                  {
-                    "pattern": "coverage=args.coverage",
-                    "match": "coverage=args.coverage",
-                    "line": 441,
-                    "line_content": "# Detection pattern: \"all_cleanup=\", \"coverage=args.coverage\", \"dry_run=args.dry_run\"",
-                    "start": 22446,
-                    "end": 22468
-                  },
-                  {
-                    "pattern": "dry_run=args.dry_run",
-                    "match": "dry_run=args.dry_run",
-                    "line": 441,
-                    "line_content": "# Detection pattern: \"all_cleanup=\", \"coverage=args.coverage\", \"dry_run=args.dry_run\"",
-                    "start": 22472,
-                    "end": 22492
-                  }
-                ]
-              ]
             ]
           },
-          "files_with_issues": 8,
-          "legacy_markers": 24,
+          "files_with_issues": 9,
+          "legacy_markers": 25,
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md"
         }
       },
-      "timestamp": "2026-01-04T06:13:51.407939"
+      "timestamp": "2026-01-04T17:41:34.994037"
     },
     "analyze_config": {
       "success": true,
@@ -60035,7 +59958,7 @@
           }
         }
       },
-      "timestamp": "2026-01-04T06:16:20.872114"
+      "timestamp": "2026-01-04T17:43:50.259768"
     },
     "analyze_ai_work": {
       "success": true,
@@ -60050,14 +59973,14 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-01-04T06:13:08.479133"
+      "timestamp": "2026-01-04T17:40:50.252015"
     },
     "analyze_system_signals": {
       "success": true,
       "data": {
-        "timestamp": "2026-01-04T06:13:06.866951",
+        "timestamp": "2026-01-04T17:40:48.819897",
         "system_health": {
-          "overall_status": "ISSUES",
+          "overall_status": "CRITICAL",
           "core_files": {
             "run_mhm.py": "OK",
             "core/service.py": "OK",
@@ -60073,56 +59996,59 @@
             "user": "OK",
             "tests": "OK"
           },
-          "last_audit": "2026-01-04T06:05:38.887218",
+          "last_audit": "2026-01-04T17:37:54.854358",
           "audit_freshness": "<1 hour",
           "test_coverage_status": "Unknown",
-          "documentation_sync_status": "Issues",
+          "documentation_sync_status": "Synchronized",
           "health_indicators": [
-            "Audit data is very recent (<1 hour)"
+            "Audit data is very recent (<1 hour)",
+            "Documentation is synchronized"
           ],
           "recommendations": [
-            "Run `python development_tools/run_development_tools.py doc-fix` to address documentation issues"
+            "Review logs/errors.log for recent error details"
           ],
           "warnings": [],
           "errors": [],
           "severity_levels": {
             "INFO": [],
-            "WARNING": [
-              "Documentation has 12 sync issue(s)"
-            ],
-            "CRITICAL": []
+            "WARNING": [],
+            "CRITICAL": [
+              "Recent errors detected in logs/errors.log (last hour)"
+            ]
           }
         },
         "recent_activity": {
           "recent_changes": [
-            "tests/development_tools/conftest.py",
             "communication/command_handlers/account_handler.py",
-            "tests/development_tools/test_audit_status_updates.py",
+            "tests/behavior/test_backup_manager_behavior.py",
             "development_tools/shared/output_storage.py",
-            "run_tests.py",
-            "communication/message_processing/interaction_manager.py",
-            "tests/ui/test_signal_handler_integration.py",
-            "development_tools/reports/analyze_system_signals.py",
+            "tests/behavior/test_account_handler_behavior.py",
+            "tests/behavior/test_response_tracking_behavior.py",
             "development_tools/error_handling/analyze_error_handling.py",
-            "development_tools/shared/service/report_generation.py"
+            "core/service.py",
+            "tests/behavior/test_user_management_coverage_expansion.py",
+            "development_tools/docs/fix_documentation_ascii.py",
+            "tests/development_tools/test_false_negative_detection.py"
           ],
           "git_status": "Modified",
           "last_commit": null,
           "uncommitted_changes": true
         },
-        "critical_alerts": [],
+        "critical_alerts": [
+          "CRITICAL: Recent errors in logs/errors.log"
+        ],
         "performance_indicators": {
           "log_file_sizes": {
             "ai.log": "0.0MB",
-            "ai_dev_tools.log": "0.0MB",
-            "app.log": "0.0MB",
+            "ai_dev_tools.log": "0.2MB",
+            "app.log": "0.1MB",
             "communication_manager.log": "0.0MB",
             "discord.log": "0.0MB",
             "email.log": "0.0MB",
             "errors.log": "0.0MB",
             "file_ops.log": "0.0MB",
             "message.log": "0.0MB",
-            "scheduler.log": "0.1MB",
+            "scheduler.log": "0.0MB",
             "ui.log": "0.0MB",
             "user_activity.log": "0.0MB"
           },
@@ -60130,21 +60056,21 @@
           "memory_usage": "Unknown"
         }
       },
-      "timestamp": "2026-01-04T06:13:07.103375"
+      "timestamp": "2026-01-04T17:40:49.009662"
     },
     "decision_support": {
       "success": true,
       "data": {
-        "total_functions": 1509,
+        "total_functions": 1510,
         "moderate_complexity": 149,
         "high_complexity": 142,
         "critical_complexity": 132,
-        "undocumented": 6,
+        "undocumented": 5,
         "decision_support_items": 5,
         "decision_support_sample": [
           "[COMPLEXITY] Functions needing attention: 423",
           "[CRITICAL] Critical Complexity (>199 nodes): 132",
-          "[DOC] Undocumented Handlers: 6",
+          "[DOC] Undocumented Handlers: 5",
           "[DUPE] Duplicate Function Names: 145",
           "- [CRITICAL] Refactor critical complexity functions immediately."
         ],
@@ -60256,21 +60182,15 @@
             "function": "set_contact_info",
             "file": "channel_selection_widget.py",
             "complexity": 0
-          },
-          {
-            "name": "signal_handler",
-            "function": "signal_handler",
-            "file": "run_tests.py",
-            "complexity": 0
           }
         ]
       },
-      "timestamp": "2026-01-04T06:13:13.075300"
+      "timestamp": "2026-01-04T17:40:54.416256"
     },
     "quick_status": {
       "success": true,
       "data": {
-        "timestamp": "2026-01-04T06:13:14.008651",
+        "timestamp": "2026-01-04T17:40:55.244590",
         "system_health": {
           "core_files": {
             "run_mhm.py": "OK",
@@ -60290,7 +60210,7 @@
         },
         "documentation_status": {
           "coverage": "Unknown",
-          "recent_audit": "2026-01-04T06:05:38.813519",
+          "recent_audit": "2026-01-04T17:37:54.796993",
           "key_files": {
             "README.md": "OK",
             "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -60303,27 +60223,16 @@
         "critical_issues": [],
         "action_items": [],
         "recent_activity": {
-          "last_audit": "2026-01-04T06:05:38.813519",
+          "last_audit": "2026-01-04T17:37:54.796993",
           "recent_changes": [
             "run_tests.py",
-            "requirements.txt",
-            "pytest.ini",
-            "pyrightconfig.json",
-            "core/service.py",
-            "communication/message_processing/interaction_manager.py",
-            "communication/communication_channels/discord/event_handler.py",
-            "communication/communication_channels/discord/api_client.py",
-            "communication/communication_channels/base/command_registry.py",
-            "communication/communication_channels/base/base_channel.py",
-            "communication/command_handlers/interaction_handlers.py",
-            "communication/command_handlers/account_handler.py",
             "ai_development_docs/AI_TESTING_GUIDE.md",
             "ai_development_docs/AI_CHANGELOG.md",
-            "ai/conversation_history.py"
+            "TODO.md"
           ]
         }
       },
-      "timestamp": "2026-01-04T06:13:14.269740"
+      "timestamp": "2026-01-04T17:40:55.509564"
     },
     "system_signals": {
       "success": true,
@@ -60392,16 +60301,16 @@
     "decision_support_metrics": {
       "success": true,
       "data": {
-        "total_functions": 1509,
+        "total_functions": 1510,
         "moderate_complexity": 149,
         "high_complexity": 142,
         "critical_complexity": 132,
-        "undocumented": 6,
+        "undocumented": 5,
         "decision_support_items": 5,
         "decision_support_sample": [
           "[COMPLEXITY] Functions needing attention: 423",
           "[CRITICAL] Critical Complexity (>199 nodes): 132",
-          "[DOC] Undocumented Handlers: 6",
+          "[DOC] Undocumented Handlers: 5",
           "[DUPE] Duplicate Function Names: 145",
           "- [CRITICAL] Refactor critical complexity functions immediately."
         ],
@@ -60513,16 +60422,10 @@
             "function": "set_contact_info",
             "file": "channel_selection_widget.py",
             "complexity": 0
-          },
-          {
-            "name": "signal_handler",
-            "function": "signal_handler",
-            "file": "run_tests.py",
-            "complexity": 0
           }
         ]
       },
-      "timestamp": "2026-01-04T06:21:52.542696"
+      "timestamp": "2026-01-04T17:48:41.570187"
     }
   }
 }

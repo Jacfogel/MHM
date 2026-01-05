@@ -2,18 +2,18 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-04 06:13:35
+> **Last Generated**: 2026-01-04 17:41:11
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 398
-- **Files with Unused Imports**: 127
-- **Total Unused Imports**: 359
+- **Files with Unused Imports**: 125
+- **Total Unused Imports**: 357
 
 ## Breakdown by Category
 
-- **Obvious Unused**: 2 imports
+- **Obvious Unused**: 0 imports
 - **Type Hints Only**: 0 imports
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 1 imports
@@ -23,22 +23,6 @@
 - **Test Infrastructure**: 154 imports
 - **Production Test Mocking**: 3 imports
 - **Ui Imports**: 0 imports
-
-## Obvious Unused
-
-**Recommendation**: These imports can likely be safely removed.
-
-### `development_tools/tests/generate_test_coverage_report.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 20**: Unused List imported from typing
-
-### `run_tests.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 20**: Unused import atexit
 
 ## Conditional Imports
 

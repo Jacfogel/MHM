@@ -38,6 +38,17 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-04 - Code Quality Improvements: Error Handling, Documentation, and Cleanup **COMPLETED**
+- **Feature**: Addressed multiple code quality issues identified in AI_PRIORITIES.md: stabilized documentation drift, added error handling to missing functions, removed unused imports, fixed ASCII compliance, and improved error handling analyzer logic.
+- **Technical Changes**:
+  - **Error Handling**: Added `@handle_errors` decorator to `signal_handler` in `run_tests.py` and `_on_save_clicked` in `channel_management_dialog.py`. Removed redundant try-except blocks from `get_selected_channel` and `set_selected_channel` (they already had decorators). Updated error handling analyzer to exclude `__init__` methods from Phase 1 recommendations since both decorator and try-except patterns are valid for constructors.
+  - **Documentation**: Removed broken references to non-existent files (EXISTING_TOOLS_COMPARISON.md, COMPLEMENTARY_TOOLS_GUIDE.md) from TODO.md. Fixed broken file path reference in AI_TESTING_GUIDE.md (test_memory_profiler.py → memory_profiler.py). Moved "Evaluate and Integrate Complementary Development Tools" task to AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md (Section 2.9).
+  - **Code Cleanup**: Removed unused `atexit` import from `run_tests.py` and unused `List` import from `generate_test_coverage_report.py`.
+  - **ASCII Compliance**: Fixed multiplication symbol (×) in AI_TESTING_GUIDE.md. Enhanced ASCII fixer to handle additional common symbols: degree (°), plus-minus (±), division (÷), bullet (•), trademark (™), registered (®), and copyright (©).
+  - **Test Fixes**: Fixed `test_save_channel_settings_exception_handling` by properly binding real methods to mock instances so decorators execute correctly.
+- **Impact**: Improved code quality, documentation accuracy, and test reliability. Error handling is now consistent across flagged functions, documentation paths are correct, and the ASCII fixer can automatically handle more common non-ASCII characters in future runs.
+- **Files**: `ui/dialogs/channel_management_dialog.py`, `run_tests.py`, `development_tools/tests/generate_test_coverage_report.py`, `development_tools/docs/fix_documentation_ascii.py`, `development_tools/docs/analyze_ascii_compliance.py`, `development_tools/error_handling/analyze_error_handling.py`, `tests/ui/test_channel_management_dialog_coverage_expansion.py`, `TODO.md`, `ai_development_docs/AI_TESTING_GUIDE.md`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`
+
 ### 2026-01-04 - Memory Leak Fix: Test Mocking and Parallel Execution Stability **COMPLETED**
 - **Feature**: Fixed critical memory leak in parallel test execution that was causing worker crashes at 94% system memory. Root cause was `test_full_audit_status_reflects_final_results` running real tools instead of mocks, causing memory accumulation when multiple workers executed real audit tools simultaneously.
 - **Technical Changes**:
@@ -126,7 +137,7 @@ When adding new changes, follow this format:
   - Fixed missing `tool_name` parameter in `normalize_to_standard_format()` calls in `development_tools/shared/service/data_loading.py` (4 instances)
   - Updated `file_rotation.py` type annotations to accept `Union[str, Path]` instead of just `str` for file path parameters
   - Updated `run_cleanup()` method signature in `development_tools/shared/service/commands.py` to accept `coverage`, `all_cleanup`, and `dry_run` parameters to match CLI interface
-  - Renamed duplicate variables: `complexity_bullets` → `high_complexity_bullets` in `report_generation.py` (separate code paths), `FakeResult` → `FakeResultException` in `run_test_coverage.py` (separate exception handlers)
+  - Renamed duplicate variables: `complexity_bullets` -> `high_complexity_bullets` in `report_generation.py` (separate code paths), `FakeResult` -> `FakeResultException` in `run_test_coverage.py` (separate exception handlers)
 - **Legacy Compatibility Markers**: Added proper `# LEGACY COMPATIBILITY:` markers to `run_cleanup()` method parameters with logging when legacy paths are exercised. Added detection patterns to `development_tools_config.json` for automated legacy cleanup tracking. Removal plan: Remove `all_cleanup`, `coverage`, and `dry_run` parameters after 2026-02-01 if no references found.
 - **Investigation Tasks**: Added section 4.14 to `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md` for investigating duplicate function declarations that need proper analysis:
   - `generate_dependency_report()` exists twice in `analyze_module_dependencies.py` (needs investigation to determine if both needed or should be merged, and to convert print() to logger usage)
