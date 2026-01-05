@@ -405,13 +405,16 @@ class TestUtilitiesDemo:
             assert True, "User creation succeeded, data loading issue needs investigation"
         else:
             checkin_settings = user_data2['preferences'].get('checkin_settings', {})
-            custom_questions = checkin_settings.get('custom_questions', [])
+            questions = checkin_settings.get('questions', {})
             
             # Verify complex check-in structure
             # The feature enablement is now stored in account.features.checkins
             assert user_data2['account']['features']['checkins'] == 'enabled', "Check-ins should be enabled"
-            # The checkin_settings has custom_questions as a list
-            assert len(custom_questions) > 0, "Should have check-in questions"
+            # The checkin_settings has questions as a dict with enabled flags
+            assert len(questions) > 0, "Should have check-in questions configured"
+            # Verify at least some questions are enabled
+            enabled_questions = [key for key, data in questions.items() if data.get('enabled', False)]
+            assert len(enabled_questions) > 0, "Should have at least one enabled check-in question"
         
         # Scenario 3: User with minimal data (like real users who don't fill out much)
         success3 = TestUserFactory.create_user_with_limited_data("minimal_data_user", test_data_dir=test_data_dir)

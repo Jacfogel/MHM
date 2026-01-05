@@ -40,7 +40,7 @@ class TestQuantitativeAnalyticsExpansion:
                 "sleep_quality": {"enabled": True, "type": "scale_1_5"},
                 "anxiety_level": {"enabled": True, "type": "scale_1_5"},
                 "focus_level": {"enabled": True, "type": "scale_1_5"},
-                "sleep_hours": {"enabled": True, "type": "number"},
+                "sleep_schedule": {"enabled": True, "type": "time_pair"},
                 # Non-quantitative fields should be ignored
                 "ate_breakfast": {"enabled": True, "type": "yes_no"},
                 "exercise": {"enabled": True, "type": "yes_no"}
@@ -64,7 +64,7 @@ class TestQuantitativeAnalyticsExpansion:
                 "sleep_quality": 4,
                 "anxiety_level": 1,
                 "focus_level": 4,
-                "sleep_hours": 7.5,
+                "sleep_schedule": {"sleep_time": "23:30", "wake_time": "07:00"},  # 7.5 hours
                 "ate_breakfast": "yes",
                 "exercise": "no"
             },
@@ -76,7 +76,7 @@ class TestQuantitativeAnalyticsExpansion:
                 "sleep_quality": 3,
                 "anxiety_level": 2,
                 "focus_level": 3,
-                "sleep_hours": 6.0,
+                "sleep_schedule": {"sleep_time": "01:00", "wake_time": "07:00"},  # 6.0 hours
                 "ate_breakfast": "no",
                 "exercise": "yes"
             },
@@ -88,7 +88,7 @@ class TestQuantitativeAnalyticsExpansion:
                 "sleep_quality": 5,
                 "anxiety_level": 1,
                 "focus_level": 5,
-                "sleep_hours": 8.0,
+                "sleep_schedule": {"sleep_time": "23:00", "wake_time": "07:00"},  # 8.0 hours
                 "ate_breakfast": "yes",
                 "exercise": "yes"
             }
@@ -102,14 +102,14 @@ class TestQuantitativeAnalyticsExpansion:
         
         # Act - Get quantitative summaries with explicit enabled fields (use actual_user_id)
         analytics = CheckinAnalytics()
-        enabled_fields = ['mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level', 'sleep_hours', 'ate_breakfast', 'exercise']
+        enabled_fields = ['mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level', 'sleep_schedule', 'ate_breakfast', 'exercise']
         summaries = analytics.get_quantitative_summaries(actual_user_id, days=30, enabled_fields=enabled_fields)
         
         # Assert - Verify all quantitative fields are included
         assert "error" not in summaries, f"Should not have error: {summaries}"
         
         # Check that all quantitative fields are present
-        expected_fields = ['mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level', 'sleep_hours', 'ate_breakfast', 'exercise']
+        expected_fields = ['mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level', 'sleep_schedule', 'ate_breakfast', 'exercise']
         for field in expected_fields:
             assert field in summaries, f"Should include {field} in analytics"
             
@@ -130,9 +130,10 @@ class TestQuantitativeAnalyticsExpansion:
         assert summaries['mood']['min'] == 3, "Mood min should be 3"
         assert summaries['mood']['max'] == 5, "Mood max should be 5"
         
-        assert summaries['sleep_hours']['average'] == 7.17, "Sleep hours average should be ~7.17"
-        assert summaries['sleep_hours']['min'] == 6.0, "Sleep hours min should be 6.0"
-        assert summaries['sleep_hours']['max'] == 8.0, "Sleep hours max should be 8.0"
+        # sleep_schedule is converted to hours for analytics
+        assert abs(summaries['sleep_schedule']['average'] - 7.17) < 0.1, f"Sleep schedule average should be ~7.17, got {summaries['sleep_schedule']['average']}"
+        assert abs(summaries['sleep_schedule']['min'] - 6.0) < 0.1, f"Sleep schedule min should be 6.0, got {summaries['sleep_schedule']['min']}"
+        assert abs(summaries['sleep_schedule']['max'] - 8.0) < 0.1, f"Sleep schedule max should be 8.0, got {summaries['sleep_schedule']['max']}"
     
     @pytest.mark.behavior
     @pytest.mark.analytics
@@ -178,7 +179,7 @@ class TestQuantitativeAnalyticsExpansion:
                 "sleep_quality": 4,  # Should be ignored
                 "anxiety_level": 1,
                 "focus_level": 4,  # Should be ignored
-                "sleep_hours": 7.5
+                "sleep_schedule": {"sleep_time": "23:30", "wake_time": "07:00"}  # 7.5 hours
             }
         ]
         
@@ -190,14 +191,14 @@ class TestQuantitativeAnalyticsExpansion:
         
         # Act - Get quantitative summaries with explicit enabled fields (use actual_user_id)
         analytics = CheckinAnalytics()
-        enabled_fields = ['mood', 'stress_level', 'anxiety_level', 'sleep_hours']
+        enabled_fields = ['mood', 'stress_level', 'anxiety_level', 'sleep_schedule']
         summaries = analytics.get_quantitative_summaries(actual_user_id, days=30, enabled_fields=enabled_fields)
         
         # Assert - Verify only enabled fields are included
         assert "error" not in summaries, f"Should not have error: {summaries}"
         
         # Check enabled fields are present
-        enabled_fields = ['mood', 'stress_level', 'anxiety_level', 'sleep_hours']
+        enabled_fields = ['mood', 'stress_level', 'anxiety_level', 'sleep_schedule']
         for field in enabled_fields:
             assert field in summaries, f"Should include enabled field {field}"
         
@@ -246,14 +247,14 @@ class TestQuantitativeAnalyticsExpansion:
                 "timestamp": (now - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'),
                 "mood": 4,
                 "energy": 3,
-                # Missing: stress_level, sleep_quality, anxiety_level, focus_level, sleep_hours
+                # Missing: stress_level, sleep_quality, anxiety_level, focus_level, sleep_schedule
             },
             {
                 "timestamp": now.strftime('%Y-%m-%d %H:%M:%S'),
                 "mood": 3,
                 "stress_level": 2,
                 "sleep_quality": 4,
-                # Missing: energy, anxiety_level, focus_level, sleep_hours
+                # Missing: energy, anxiety_level, focus_level, sleep_schedule
             }
         ]
         
@@ -265,7 +266,7 @@ class TestQuantitativeAnalyticsExpansion:
         
         # Act - Get quantitative summaries with explicit enabled fields (use actual_user_id)
         analytics = CheckinAnalytics()
-        enabled_fields = ['mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level', 'sleep_hours', 'ate_breakfast', 'exercise']
+        enabled_fields = ['mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level', 'sleep_schedule', 'ate_breakfast', 'exercise']
         summaries = analytics.get_quantitative_summaries(actual_user_id, days=30, enabled_fields=enabled_fields)
         
         # Assert - Verify only fields with data are included
@@ -280,7 +281,7 @@ class TestQuantitativeAnalyticsExpansion:
         # Check fields without data are not included
         assert 'anxiety_level' not in summaries, "Should not include anxiety_level (no data)"
         assert 'focus_level' not in summaries, "Should not include focus_level (no data)"
-        assert 'sleep_hours' not in summaries, "Should not include sleep_hours (no data)"
+        assert 'sleep_schedule' not in summaries, "Should not include sleep_schedule (no data)"
         
         # Verify counts are correct
         assert summaries['mood']['count'] == 2, "Mood should have count of 2"
@@ -345,7 +346,7 @@ class TestQuantitativeAnalyticsExpansion:
         
         # Act - Get quantitative summaries with explicit enabled fields (use actual_user_id)
         analytics = CheckinAnalytics()
-        enabled_fields = ['mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level', 'sleep_hours', 'ate_breakfast', 'exercise']
+        enabled_fields = ['mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level', 'sleep_schedule', 'ate_breakfast', 'exercise']
         summaries = analytics.get_quantitative_summaries(actual_user_id, days=30, enabled_fields=enabled_fields)
         
         # Assert - Verify fields are processed correctly
@@ -426,7 +427,7 @@ class TestQuantitativeAnalyticsExpansion:
         
         # Act - Get quantitative summaries with explicit enabled fields (use actual_user_id)
         analytics = CheckinAnalytics()
-        enabled_fields = ['mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level', 'sleep_hours', 'ate_breakfast', 'exercise']
+        enabled_fields = ['mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level', 'sleep_schedule', 'ate_breakfast', 'exercise']
         summaries = analytics.get_quantitative_summaries(actual_user_id, days=30, enabled_fields=enabled_fields)
         
         # Assert - Verify only valid data is processed

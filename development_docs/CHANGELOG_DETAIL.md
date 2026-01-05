@@ -38,13 +38,64 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-04 - Check-in Questions Enhancement: New Questions, Custom Questions, and Sleep Schedule **COMPLETED**
+- **Feature**: Enhanced the check-in system with new predefined questions, replaced sleep_hours with sleep_schedule (time_pair type), implemented custom question system with templates, and updated analytics to handle all new question types.
+- **Technical Changes**:
+  - **New Predefined Questions**: Added four new questions to `questions.json` and corresponding responses to `responses.json`:
+    - `hopelessness_level` (scale_1_5): "How hopeless are you feeling today on a scale of 1 to 5?"
+    - `irritability_level` (scale_1_5): "How irritable are you feeling today on a scale of 1 to 5?"
+    - `motivation_level` (scale_1_5): "How motivated do you feel to do tasks today on a scale of 1 to 5?"
+    - `treatment_adherence` (yes_no): "Did you follow your treatment plan today?"
+  - **Sleep Quality Update**: Modified `sleep_quality` question text to clarify it's about feeling "rested" rather than sleep quality: "How rested do you feel today on a scale of 1 to 5? (1=not rested at all, 5=very well rested)"
+  - **Sleep Schedule Replacement**: Replaced `sleep_hours` (number type) with `sleep_schedule` (time_pair type) that asks for both sleep time and wake time. Implemented `_parse_time_pair_response()` and `_normalize_time()` methods in `checkin_dynamic_manager.py` to handle various time formats (12-hour, 24-hour, with/without AM/PM).
+  - **Custom Question System**: Implemented full CRUD operations for custom questions:
+    - `get_custom_questions()`, `save_custom_question()`, `delete_custom_question()` methods in `DynamicCheckinManager`
+    - Custom questions stored in user preferences under `checkin_settings.custom_questions`
+    - Custom questions merged with predefined questions in `get_all_questions()` and `get_question_definition()`
+    - Updated `get_enabled_questions_for_ui()` to accept `user_id` parameter and include custom questions
+  - **Question Templates**: Created `question_templates.json` with templates for common questions (CPAP use, medical device use, therapy session) that users can use as starting points for custom questions
+  - **UI Updates**: 
+    - Updated `checkin_settings_widget.py` to use `sleep_schedule` instead of `sleep_hours` in checkbox mappings
+    - Enhanced `add_new_question()` method with full dialog for creating custom questions (question text, display name, type, category)
+    - Updated `get_checkin_settings()` and `set_question_checkboxes()` to handle custom questions via `get_enabled_questions_for_ui(user_id)`
+    - Updated `checkin_management_dialog.py` to preserve `custom_questions` when saving settings
+  - **Conversation Flow**: Updated `conversation_flow_manager.py`:
+    - Added new `CHECKIN_` constants for new questions (HOPELESSNESS, IRRITABILITY, MOTIVATION, TREATMENT, SLEEP_SCHEDULE)
+    - Updated `QUESTION_STATES` mapping to include new questions and `sleep_schedule`, removed `sleep_hours`
+    - Modified `_start_dynamic_checkin()` to include custom questions from user preferences when building `enabled_questions`
+    - Updated `_get_question_text()` and `_validate_response()` to accept and pass `user_id` to `dynamic_checkin_manager`
+  - **Analytics Updates**: Updated `checkin_analytics.py`:
+    - Added `_calculate_sleep_duration()` helper to calculate sleep duration in hours from sleep_schedule time pairs
+    - Modified `get_sleep_analysis()` to use `sleep_schedule` and calculate duration from it (removed all `sleep_hours` references)
+    - Updated `get_habit_analysis()` to include `treatment_adherence`
+    - Updated `get_quantitative_summaries()` to handle new scale questions and `sleep_schedule` (converts time pairs to hours for analytics)
+    - Updated `_calculate_sleep_score()` to use `sleep_schedule` and the new duration calculation
+  - **Testing**: Created comprehensive test suite `tests/behavior/test_checkin_questions_enhancement.py` with tests for:
+    - New predefined questions (existence, validation, responses)
+    - Sleep schedule time_pair validation and duration calculation
+    - Custom question CRUD operations
+    - Sleep quality question text update
+    - Analytics with new questions and sleep_schedule
+- **Impact**: Users can now track additional mental health metrics (hopelessness, irritability, motivation), treatment adherence, and more accurate sleep tracking via time pairs. The custom question system allows users to create personalized questions (e.g., CPAP use) with optional templates. Sleep quality question is clearer about measuring "rested" feeling. Analytics properly handle all new question types and calculate sleep duration from time pairs.
+- **Files**: 
+  - `resources/default_checkin/questions.json` (added new questions, updated sleep_quality, replaced sleep_hours with sleep_schedule)
+  - `resources/default_checkin/responses.json` (added responses for new questions)
+  - `resources/default_checkin/question_templates.json` (new file with templates)
+  - `core/checkin_dynamic_manager.py` (time_pair validation, custom question CRUD, get_enabled_questions_for_ui with user_id)
+  - `core/checkin_analytics.py` (sleep_schedule handling, new questions in analytics)
+  - `communication/message_processing/conversation_flow_manager.py` (new question states, custom question inclusion, user_id passing)
+  - `ui/widgets/checkin_settings_widget.py` (sleep_schedule checkbox, custom question dialog, user_id in get_enabled_questions_for_ui calls)
+  - `ui/dialogs/checkin_management_dialog.py` (preserve custom_questions on save)
+  - `ui/designs/checkin_settings_widget.ui` (removed sleep_hours checkbox, added sleep_schedule checkbox)
+  - `tests/behavior/test_checkin_questions_enhancement.py` (new comprehensive test suite)
+
 ### 2026-01-04 - Code Quality Improvements: Error Handling, Documentation, and Cleanup **COMPLETED**
 - **Feature**: Addressed multiple code quality issues identified in AI_PRIORITIES.md: stabilized documentation drift, added error handling to missing functions, removed unused imports, fixed ASCII compliance, and improved error handling analyzer logic.
 - **Technical Changes**:
   - **Error Handling**: Added `@handle_errors` decorator to `signal_handler` in `run_tests.py` and `_on_save_clicked` in `channel_management_dialog.py`. Removed redundant try-except blocks from `get_selected_channel` and `set_selected_channel` (they already had decorators). Updated error handling analyzer to exclude `__init__` methods from Phase 1 recommendations since both decorator and try-except patterns are valid for constructors.
-  - **Documentation**: Removed broken references to non-existent files (EXISTING_TOOLS_COMPARISON.md, COMPLEMENTARY_TOOLS_GUIDE.md) from TODO.md. Fixed broken file path reference in AI_TESTING_GUIDE.md (test_memory_profiler.py → memory_profiler.py). Moved "Evaluate and Integrate Complementary Development Tools" task to AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md (Section 2.9).
+  - **Documentation**: Removed broken references to non-existent files (EXISTING_TOOLS_COMPARISON.md, COMPLEMENTARY_TOOLS_GUIDE.md) from TODO.md. Fixed broken file path reference in AI_TESTING_GUIDE.md (test_memory_profiler.py -> memory_profiler.py). Moved "Evaluate and Integrate Complementary Development Tools" task to AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md (Section 2.9).
   - **Code Cleanup**: Removed unused `atexit` import from `run_tests.py` and unused `List` import from `generate_test_coverage_report.py`.
-  - **ASCII Compliance**: Fixed multiplication symbol (×) in AI_TESTING_GUIDE.md. Enhanced ASCII fixer to handle additional common symbols: degree (°), plus-minus (±), division (÷), bullet (•), trademark (™), registered (®), and copyright (©).
+  - **ASCII Compliance**: Fixed multiplication symbol (x) in AI_TESTING_GUIDE.md. Enhanced ASCII fixer to handle additional common symbols: degree (deg), plus-minus (+/-), division (/), bullet (-), trademark (TM), registered (R), and copyright (C).
   - **Test Fixes**: Fixed `test_save_channel_settings_exception_handling` by properly binding real methods to mock instances so decorators execute correctly.
 - **Impact**: Improved code quality, documentation accuracy, and test reliability. Error handling is now consistent across flagged functions, documentation paths are correct, and the ASCII fixer can automatically handle more common non-ASCII characters in future runs.
 - **Files**: `ui/dialogs/channel_management_dialog.py`, `run_tests.py`, `development_tools/tests/generate_test_coverage_report.py`, `development_tools/docs/fix_documentation_ascii.py`, `development_tools/docs/analyze_ascii_compliance.py`, `development_tools/error_handling/analyze_error_handling.py`, `tests/ui/test_channel_management_dialog_coverage_expansion.py`, `TODO.md`, `ai_development_docs/AI_TESTING_GUIDE.md`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`

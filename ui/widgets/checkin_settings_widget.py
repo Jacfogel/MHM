@@ -76,7 +76,7 @@ class CheckinSettingsWidget(QWidget):
             self.ui.checkBox_sleep_quality,
             self.ui.checkBox_stress_level,
             self.ui.checkBox_anxiety_level,
-            self.ui.checkBox_sleep_hours,
+            self.ui.checkBox_sleep_schedule,
             self.ui.checkBox_medication,
             self.ui.checkBox_breakfast,
             self.ui.checkBox_exercise,
@@ -127,8 +127,8 @@ class CheckinSettingsWidget(QWidget):
         # Import the dynamic checkin manager
         from core.checkin_dynamic_manager import dynamic_checkin_manager
         
-        # Get all available questions from the dynamic manager
-        available_questions = dynamic_checkin_manager.get_enabled_questions_for_ui()
+        # Get all available questions from the dynamic manager (include custom questions)
+        available_questions = dynamic_checkin_manager.get_enabled_questions_for_ui(self.user_id)
         
         # Map question keys to checkboxes
         question_mapping = {
@@ -139,7 +139,7 @@ class CheckinSettingsWidget(QWidget):
             'sleep_quality': self.ui.checkBox_sleep_quality,
             'stress_level': self.ui.checkBox_stress_level,
             'anxiety_level': self.ui.checkBox_anxiety_level,
-            'sleep_hours': self.ui.checkBox_sleep_hours,
+            'sleep_schedule': self.ui.checkBox_sleep_schedule,
             'medication_taken': self.ui.checkBox_medication,
             'ate_breakfast': self.ui.checkBox_breakfast,
             'exercise': self.ui.checkBox_exercise,
@@ -161,8 +161,8 @@ class CheckinSettingsWidget(QWidget):
         # Import the dynamic checkin manager
         from core.checkin_dynamic_manager import dynamic_checkin_manager
         
-        # Get the default enabled state from the dynamic manager
-        available_questions = dynamic_checkin_manager.get_enabled_questions_for_ui()
+        # Get the default enabled state from the dynamic manager (include custom questions)
+        available_questions = dynamic_checkin_manager.get_enabled_questions_for_ui(self.user_id)
         question_data = available_questions.get(question_key, {})
         return question_data.get('enabled', False)
     
@@ -277,50 +277,126 @@ class CheckinSettingsWidget(QWidget):
     
     @handle_errors("adding new question")
     def add_new_question(self):
-        """Add a new check-in question.
+        """Add a new check-in question."""
+        if not self.user_id:
+            QMessageBox.warning(self, "No User", "Cannot add custom questions without a user ID.")
+            return
         
-        TODO: Implement custom question creation functionality.
-        - Store custom questions in user preferences (checkin_settings.custom_questions)
-        - Support question types: scale_1_5, yes_no, number, optional_text
-        - Add validation rules for custom questions
-        - Integrate with DynamicCheckinManager to include custom questions in flow
-        - See development_docs/PLANS.md "Dynamic Check-in Questions Plan" for full requirements
-        """
-        from PySide6.QtWidgets import QInputDialog, QMessageBox
+        from PySide6.QtWidgets import QInputDialog, QMessageBox, QDialog, QVBoxLayout, QLabel, QLineEdit, QComboBox, QPushButton, QDialogButtonBox
+        from core.checkin_dynamic_manager import dynamic_checkin_manager
         
-        # Get question text from user
-        question_text, ok = QInputDialog.getText(
-            self, 
-            "Add New Question", 
-            "Enter your custom check-in question:"
-        )
+        # Create a simple dialog for question creation
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Add Custom Check-in Question")
+        layout = QVBoxLayout(dialog)
         
-        if ok and question_text.strip():
-            # TODO: Implement actual custom question creation
-            # This requires:
-            # 1. Question type selection dialog (scale_1_5, yes_no, number, optional_text)
-            # 2. Validation rules configuration
-            # 3. Storage in user preferences (checkin_settings.custom_questions)
-            # 4. Integration with DynamicCheckinManager
-            # 5. UI updates to show custom questions in the list
+        # Question text input
+        layout.addWidget(QLabel("Question Text:"))
+        question_text_edit = QLineEdit()
+        question_text_edit.setPlaceholderText("Enter your question...")
+        layout.addWidget(question_text_edit)
+        
+        # Question type selection
+        layout.addWidget(QLabel("Question Type:"))
+        type_combo = QComboBox()
+        type_combo.addItems(["scale_1_5", "yes_no", "number", "optional_text", "time_pair"])
+        layout.addWidget(type_combo)
+        
+        # Category selection
+        layout.addWidget(QLabel("Category:"))
+        category_combo = QComboBox()
+        categories = dynamic_checkin_manager.get_categories()
+        category_combo.addItems(list(categories.keys()) if categories else ["mood", "health", "sleep", "social", "reflection"])
+        layout.addWidget(category_combo)
+        
+        # Display name input
+        layout.addWidget(QLabel("Display Name (for UI):"))
+        display_name_edit = QLineEdit()
+        display_name_edit.setPlaceholderText("Leave empty to use question text")
+        layout.addWidget(display_name_edit)
+        
+        # Buttons
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        button_box.accepted.connect(dialog.accept)
+        button_box.rejected.connect(dialog.reject)
+        layout.addWidget(button_box)
+        
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            question_text = question_text_edit.text().strip()
+            if not question_text:
+                QMessageBox.warning(self, "Empty Question", "Please enter a question text.")
+                return
             
-            QMessageBox.information(
-                self, 
-                "Custom Questions Coming Soon", 
-                f"Custom question functionality is planned for future updates.\n\n"
-                f"Your question: '{question_text}'\n\n"
-                "This feature will allow you to:\n"
-                "• Create custom check-in questions\n"
-                "• Choose question types (scale, yes/no, number, text)\n"
-                "• Set validation rules\n"
-                "• Include custom questions in your check-ins"
-            )
-        elif ok and not question_text.strip():
-            QMessageBox.warning(
-                self, 
-                "Empty Question", 
-                "Please enter a question."
-            )
+            question_type = type_combo.currentText()
+            category = category_combo.currentText()
+            display_name = display_name_edit.text().strip() or question_text
+            
+            # Generate a unique question key
+            import re
+            question_key = re.sub(r'[^a-z0-9_]', '_', question_text.lower()[:50])
+            question_key = f"custom_{question_key}"
+            
+            # Check if key already exists
+            existing_custom = dynamic_checkin_manager.get_custom_questions(self.user_id)
+            counter = 1
+            original_key = question_key
+            while question_key in existing_custom:
+                question_key = f"{original_key}_{counter}"
+                counter += 1
+            
+            # Build validation rules based on type
+            validation = {}
+            if question_type == 'scale_1_5':
+                validation = {
+                    "min": 1,
+                    "max": 5,
+                    "error_message": f"Please enter a number between 1 and 5 for {display_name}."
+                }
+            elif question_type == 'number':
+                validation = {
+                    "min": 0,
+                    "max": 100,
+                    "error_message": f"Please enter a number for {display_name}."
+                }
+            elif question_type == 'yes_no':
+                validation = {
+                    "error_message": f"Please answer with yes/no, y/n, or similar for {display_name}."
+                }
+            elif question_type == 'optional_text':
+                validation = {
+                    "error_message": f"This is optional - you can just press enter to skip {display_name}."
+                }
+            elif question_type == 'time_pair':
+                validation = {
+                    "error_message": f"Please provide both times in HH:MM format (e.g., '23:30' and '07:00') for {display_name}."
+                }
+            
+            # Create question definition
+            question_def = {
+                'type': question_type,
+                'question_text': question_text,
+                'ui_display_name': display_name,
+                'category': category,
+                'validation': validation,
+                'enabled': True  # Enable by default when created
+            }
+            
+            # Save the custom question
+            if dynamic_checkin_manager.save_custom_question(self.user_id, question_key, question_def):
+                QMessageBox.information(
+                    self,
+                    "Question Added",
+                    f"Custom question '{display_name}' has been added successfully.\n\n"
+                    "You can enable/disable it in the check-in questions list."
+                )
+                # Reload the question checkboxes to show the new question
+                self.load_existing_data()
+            else:
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    "Failed to save the custom question. Please try again."
+                )
     
     @handle_errors("undoing last question delete")
     def undo_last_question_delete(self):
@@ -355,7 +431,7 @@ class CheckinSettingsWidget(QWidget):
             'sleep_quality': self.ui.checkBox_sleep_quality,
             'stress_level': self.ui.checkBox_stress_level,
             'anxiety_level': self.ui.checkBox_anxiety_level,
-            'sleep_hours': self.ui.checkBox_sleep_hours,
+            'sleep_schedule': self.ui.checkBox_sleep_schedule,
             'medication_taken': self.ui.checkBox_medication,
             'ate_breakfast': self.ui.checkBox_breakfast,
             'exercise': self.ui.checkBox_exercise,
@@ -363,8 +439,8 @@ class CheckinSettingsWidget(QWidget):
             'daily_reflection': self.ui.checkBox_reflection_notes
         }
         
-        # Get available questions from dynamic manager for labels
-        available_questions = dynamic_checkin_manager.get_enabled_questions_for_ui()
+        # Get available questions from dynamic manager for labels (include custom questions)
+        available_questions = dynamic_checkin_manager.get_enabled_questions_for_ui(self.user_id)
         
         for question_key, checkbox in question_mapping.items():
             if question_key in available_questions:
@@ -372,6 +448,9 @@ class CheckinSettingsWidget(QWidget):
                     'enabled': checkbox.isChecked(),
                     'label': available_questions[question_key].get('ui_display_name', question_key)
                 }
+        
+        # Custom questions are stored separately in checkin_settings.custom_questions
+        # They're handled by DynamicCheckinManager and included in enabled_questions automatically
         
         return {
             'time_periods': time_periods,

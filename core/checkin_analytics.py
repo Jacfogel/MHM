@@ -179,7 +179,8 @@ class CheckinAnalytics:
             'medication_taken': 'Medication',
             'exercise': 'Exercise',
             'hydration': 'Hydration',
-            'social_interaction': 'Social Interaction'
+            'social_interaction': 'Social Interaction',
+            'treatment_adherence': 'Treatment Adherence'
         }
         
         habit_stats = {}
@@ -218,8 +219,8 @@ class CheckinAnalytics:
         
         sleep_data = []
         for checkin in checkins:
-            # Check for any sleep-related data (quality or hours)
-            has_sleep_data = 'sleep_quality' in checkin or 'sleep_hours' in checkin
+            # Check for any sleep-related data (quality or schedule)
+            has_sleep_data = 'sleep_quality' in checkin or 'sleep_schedule' in checkin
             if has_sleep_data:
                 try:
                     timestamp = datetime.strptime(checkin['timestamp'], '%Y-%m-%d %H:%M:%S')
@@ -231,8 +232,12 @@ class CheckinAnalytics:
                     # Add available sleep data
                     if 'sleep_quality' in checkin:
                         sleep_entry['quality'] = checkin['sleep_quality']
-                    if 'sleep_hours' in checkin:
-                        sleep_entry['hours'] = checkin['sleep_hours']
+                    if 'sleep_schedule' in checkin:
+                        schedule = checkin['sleep_schedule']
+                        if isinstance(schedule, dict) and 'sleep_time' in schedule and 'wake_time' in schedule:
+                            sleep_duration = self._calculate_sleep_duration(schedule['sleep_time'], schedule['wake_time'])
+                            if sleep_duration is not None:
+                                sleep_entry['hours'] = sleep_duration
                     
                     sleep_data.append(sleep_entry)
                 except (ValueError, TypeError):
@@ -383,7 +388,7 @@ class CheckinAnalytics:
             data_types["quantitative"] = True
         
         # Check for sleep data
-        sleep_data = [c for c in checkins if 'sleep_quality' in c or 'sleep_hours' in c]
+        sleep_data = [c for c in checkins if 'sleep_quality' in c or 'sleep_schedule' in c]
         if sleep_data:
             data_types["sleep"] = True
             data_types["quantitative"] = True
@@ -422,12 +427,12 @@ class CheckinAnalytics:
         candidate_fields = [
             # Scale 1-5 questions
             'mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 
-            'focus_level',
+            'focus_level', 'hopelessness_level', 'irritability_level', 'motivation_level',
             # Number questions  
-            'sleep_hours',
+            'sleep_schedule',
             # Yes/No questions (converted to 0/1 for analytics)
             'ate_breakfast', 'brushed_teeth', 'medication_taken', 'exercise', 
-            'hydration', 'social_interaction'
+            'hydration', 'social_interaction', 'treatment_adherence'
         ]
 
         # If enabled_fields is not provided, check user preferences first, then fall back to auto-detection
@@ -482,6 +487,13 @@ class CheckinAnalytics:
                         v_raw = c[field]
                         # Skip 'SKIPPED' responses to avoid analytics inaccuracies
                         if v_raw == 'SKIPPED':
+                            continue
+                        # Handle sleep_schedule specially (convert to hours)
+                        if field == 'sleep_schedule' and isinstance(v_raw, dict):
+                            if 'sleep_time' in v_raw and 'wake_time' in v_raw:
+                                duration = self._calculate_sleep_duration(v_raw['sleep_time'], v_raw['wake_time'])
+                                if duration is not None:
+                                    values.append(duration)
                             continue
                         # Handle yes/no questions by converting to 0/1
                         if isinstance(v_raw, bool):
@@ -758,15 +770,47 @@ class CheckinAnalytics:
         
         return (total_completion / total_possible) * 100
     
+    @handle_errors("calculating sleep duration", default_return=None)
+    def _calculate_sleep_duration(self, sleep_time: str, wake_time: str) -> Optional[float]:
+        """Calculate sleep duration in hours from sleep_time and wake_time (HH:MM format)."""
+        try:
+            from datetime import datetime, timedelta
+            
+            # Parse times
+            sleep_dt = datetime.strptime(sleep_time, '%H:%M')
+            wake_dt = datetime.strptime(wake_time, '%H:%M')
+            
+            # Calculate duration (handle overnight sleep)
+            if wake_dt < sleep_dt:
+                # Sleep spans midnight
+                duration = (wake_dt + timedelta(days=1) - sleep_dt).total_seconds() / 3600
+            else:
+                duration = (wake_dt - sleep_dt).total_seconds() / 3600
+            
+            return round(duration, 1)
+        except (ValueError, TypeError):
+            return None
+    
     @handle_errors("calculating sleep score", default_return=50.0)
     def _calculate_sleep_score(self, checkins: List[Dict]) -> float:
         """Calculate sleep score (0-100)"""
         sleep_records = []
         for checkin in checkins:
-            if 'sleep_hours' in checkin and 'sleep_quality' in checkin:
-                hours = checkin['sleep_hours']
+            hours = None
+            quality = None
+            
+            # Get sleep quality
+            if 'sleep_quality' in checkin:
                 quality = checkin['sleep_quality']
-                
+            
+            # Get sleep hours from sleep_schedule
+            if 'sleep_schedule' in checkin:
+                schedule = checkin['sleep_schedule']
+                if isinstance(schedule, dict) and 'sleep_time' in schedule and 'wake_time' in schedule:
+                    hours = self._calculate_sleep_duration(schedule['sleep_time'], schedule['wake_time'])
+            
+            # Need both hours and quality to calculate score
+            if hours is not None and quality is not None:
                 # Score based on hours (optimal: 7-9 hours)
                 if 7 <= hours <= 9:
                     hour_score = 100

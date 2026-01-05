@@ -87,10 +87,12 @@ class TestDynamicCheckinManager:
         assert value is False
         assert error is None
         
-        # Test number questions
-        is_valid, value, error = dynamic_checkin_manager.validate_answer('sleep_hours', '7.5')
+        # Test time_pair questions (sleep_schedule replaced sleep_hours)
+        is_valid, value, error = dynamic_checkin_manager.validate_answer('sleep_schedule', '23:00 and 07:00')
         assert is_valid is True
-        assert value == 7.5
+        assert isinstance(value, dict)
+        assert 'sleep_time' in value
+        assert 'wake_time' in value
         assert error is None
     
     def test_build_next_question_with_response(self):

@@ -36,9 +36,16 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-04 - Check-in Questions Enhancement: New Questions, Custom Questions, and Sleep Schedule **COMPLETED**
+- Added new predefined questions: hopelessness_level, irritability_level, motivation_level (1-5 scales), and treatment_adherence (yes/no)
+- Replaced sleep_hours with sleep_schedule (time_pair type) asking for sleep time and wake time; updated sleep_quality to clarify "rested" feeling
+- Implemented custom question system: users can create, save, and manage custom questions with templates (CPAP use, medical devices, therapy sessions)
+- Updated analytics to handle sleep_schedule (calculates duration from time pairs) and new questions; added comprehensive tests
+- Files: questions.json, responses.json, checkin_dynamic_manager.py, checkin_analytics.py, conversation_flow_manager.py, checkin_settings_widget.py, question_templates.json
+
 ### 2026-01-04 - Code Quality Improvements: Error Handling, Documentation, and Cleanup **COMPLETED**
 - Addressed multiple code quality issues: added error handling to missing functions (signal_handler, _on_save_clicked), removed unused imports (atexit, List), fixed documentation drift (removed broken file references, fixed path in AI_TESTING_GUIDE.md)
-- Enhanced ASCII fixer to handle common symbols (×, °, ±, ÷, •, ™, ®, ©) and updated error handling analyzer to exclude __init__ methods from Phase 1 recommendations
+- Enhanced ASCII fixer to handle common symbols (x, deg, +/-, /, -, TM, R, C) and updated error handling analyzer to exclude __init__ methods from Phase 1 recommendations
 - Fixed test failure in test_save_channel_settings_exception_handling by properly binding real methods to mocks
 - Files: channel_management_dialog.py, run_tests.py, generate_test_coverage_report.py, fix_documentation_ascii.py, analyze_error_handling.py, TODO.md, AI_TESTING_GUIDE.md
 

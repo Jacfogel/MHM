@@ -403,12 +403,33 @@ class TestDiscordBotBehavior:
             assert "no check-in questions are enabled" in start_resp.message.lower()
             return
 
-        r1 = handle_user_message(internal_uid, "4", "discord")
-        assert r1 and r1.message and (not r1.completed)
-        r2 = handle_user_message(internal_uid, "5", "discord")
-        assert r2 and r2.message and (not r2.completed)
-        r3 = handle_user_message(internal_uid, "Feeling okay today", "discord")
-        assert r3 and r3.message and r3.completed
+        # Answer questions until check-in completes
+        # The user has 5 questions enabled: mood, energy, ate_breakfast, medication_taken, sleep_quality
+        # Question order is randomized, so we need to detect question type from response and answer appropriately
+        from core.checkin_dynamic_manager import dynamic_checkin_manager
+        
+        responses = []
+        max_responses = 15  # Safety limit (5 questions + retries)
+        for i in range(max_responses):
+            # Try "4" first (works for scale_1_5 questions)
+            resp = handle_user_message(internal_uid, "4", "discord")
+            assert resp and resp.message, f"Response {i+1} should have a message"
+            responses.append(resp)
+            
+            if resp.completed:
+                # Check-in completed successfully
+                break
+            
+            # If validation failed, try "yes" for yes/no questions
+            if not resp.completed and ("please enter" in resp.message.lower() or "invalid" in resp.message.lower() or "yes/no" in resp.message.lower()):
+                resp = handle_user_message(internal_uid, "yes", "discord")
+                assert resp and resp.message, f"Response {i+1} (retry) should have a message"
+                responses.append(resp)
+                if resp.completed:
+                    break
+        
+        # Verify check-in completed
+        assert responses[-1].completed, f"Check-in should have completed after {len(responses)} responses. Last message: {responses[-1].message[:100]}"
 
     @pytest.mark.communication
     @pytest.mark.behavior

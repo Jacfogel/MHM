@@ -20,6 +20,7 @@ import os
 import json
 from pathlib import Path
 from datetime import datetime, timedelta
+from typing import Optional
 from ai.chatbot import get_ai_chatbot
 from core.logger import get_component_logger
 from core.user_data_handlers import get_user_data
@@ -46,7 +47,7 @@ CHECKIN_BREAKFAST = 102
 CHECKIN_ENERGY = 103
 CHECKIN_TEETH = 104
 CHECKIN_SLEEP_QUALITY = 105
-CHECKIN_SLEEP_HOURS = 106
+CHECKIN_SLEEP_SCHEDULE = 106
 CHECKIN_ANXIETY = 107
 CHECKIN_FOCUS = 108
 CHECKIN_MEDICATION = 109
@@ -55,6 +56,10 @@ CHECKIN_HYDRATION = 111
 CHECKIN_SOCIAL = 112
 CHECKIN_STRESS = 113
 CHECKIN_REFLECTION = 114
+CHECKIN_HOPELESSNESS = 115
+CHECKIN_IRRITABILITY = 116
+CHECKIN_MOTIVATION = 117
+CHECKIN_TREATMENT = 118
 CHECKIN_COMPLETE = 200
 
 # Idle expiry threshold for check-in flows (2 hours)
@@ -67,7 +72,7 @@ QUESTION_STATES = {
     'energy': CHECKIN_ENERGY,
     'brushed_teeth': CHECKIN_TEETH,
     'sleep_quality': CHECKIN_SLEEP_QUALITY,
-    'sleep_hours': CHECKIN_SLEEP_HOURS,
+    'sleep_schedule': CHECKIN_SLEEP_SCHEDULE,
     'anxiety_level': CHECKIN_ANXIETY,
     'focus_level': CHECKIN_FOCUS,
     'medication_taken': CHECKIN_MEDICATION,
@@ -75,7 +80,11 @@ QUESTION_STATES = {
     'hydration': CHECKIN_HYDRATION,
     'social_interaction': CHECKIN_SOCIAL,
     'stress_level': CHECKIN_STRESS,
-    'daily_reflection': CHECKIN_REFLECTION
+    'daily_reflection': CHECKIN_REFLECTION,
+    'hopelessness_level': CHECKIN_HOPELESSNESS,
+    'irritability_level': CHECKIN_IRRITABILITY,
+    'motivation_level': CHECKIN_MOTIVATION,
+    'treatment_adherence': CHECKIN_TREATMENT
 }
 
 class ConversationManager:
@@ -386,6 +395,16 @@ class ConversationManager:
         checkin_prefs = prefs_result.get('preferences', {}).get('checkin_settings', {})
         enabled_questions = checkin_prefs.get('questions', {})
         
+        # Merge custom questions into enabled_questions
+        custom_questions = checkin_prefs.get('custom_questions', {})
+        for custom_key, custom_def in custom_questions.items():
+            # Only include if enabled
+            if custom_def.get('enabled', False):
+                enabled_questions[custom_key] = {
+                    'enabled': True,
+                    'label': custom_def.get('ui_display_name', custom_key)
+                }
+        
         # Use weighted selection for question order
         question_order = self._select_checkin_questions_with_weighting(user_id, enabled_questions)
         
@@ -408,7 +427,7 @@ class ConversationManager:
         
         # Compose user-requested intro plus first question
         first_question_key = question_order[0]
-        first_question_text = self._get_question_text(first_question_key, {})
+        first_question_text = self._get_question_text(first_question_key, {}, user_id)
         intro = (
             "🌟 Check-in Time! 🌟\n\n"
             "Hi! It's time for your check-in. This helps me understand how you're doing and provide better support.\n\n"
@@ -454,8 +473,8 @@ class ConversationManager:
         question_key = question_order[current_index]
         question_data = user_state.get('data', {})
         
-        # Get question text based on type
-        question_text = self._get_question_text(question_key, question_data)
+        # Get question text based on type (pass user_id for custom questions)
+        question_text = self._get_question_text(question_key, question_data, user_id)
         
         # Update state to current question
         user_state['state'] = QUESTION_STATES.get(question_key, CHECKIN_START)
@@ -463,13 +482,13 @@ class ConversationManager:
         return (question_text, False)
 
     @handle_errors("getting question text", default_return="Please answer this question:")
-    def _get_question_text(self, question_key: str, previous_data: dict) -> str:
+    def _get_question_text(self, question_key: str, previous_data: dict, user_id: Optional[str] = None) -> str:
         """Get appropriate question text based on question type and previous responses"""
         # Import the dynamic checkin manager
         from core.checkin_dynamic_manager import dynamic_checkin_manager
         
-        # Get the question text from the dynamic manager
-        question_text = dynamic_checkin_manager.get_question_text(question_key)
+        # Get the question text from the dynamic manager (pass user_id for custom questions)
+        question_text = dynamic_checkin_manager.get_question_text(question_key, user_id)
         
         # If this is not the first question and we have previous data, 
         # check if we should add a response statement
@@ -547,8 +566,8 @@ class ConversationManager:
 
         question_key = question_order[current_index]
 
-        # Validate and store the response
-        validation_result = self._validate_response(question_key, message_text)
+        # Validate and store the response (pass user_id for custom questions)
+        validation_result = self._validate_response(question_key, message_text, user_id)
         if not validation_result['valid']:
             return (validation_result['message'], False)
 
@@ -567,13 +586,13 @@ class ConversationManager:
         return self._get_next_question(user_id, user_state)
 
     @handle_errors("validating response", default_return={'valid': False, 'value': None, 'message': "I didn't understand that response. Please try again."})
-    def _validate_response(self, question_key: str, response: str) -> dict:
+    def _validate_response(self, question_key: str, response: str, user_id: Optional[str] = None) -> dict:
         """Validate user response based on question type using dynamic manager"""
         # Import the dynamic checkin manager
         from core.checkin_dynamic_manager import dynamic_checkin_manager
         
-        # Use the dynamic manager to validate the response
-        is_valid, value, error_message = dynamic_checkin_manager.validate_answer(question_key, response)
+        # Use the dynamic manager to validate the response (pass user_id for custom questions)
+        is_valid, value, error_message = dynamic_checkin_manager.validate_answer(question_key, response, user_id)
         
         return {
             'valid': is_valid,
@@ -773,11 +792,11 @@ class ConversationManager:
             
             # Define question categories for variety
             question_categories = {
-                'mood': ['mood', 'energy', 'stress_level', 'anxiety_level'],
-                'health': ['ate_breakfast', 'brushed_teeth', 'medication_taken', 'exercise', 'hydration'],
-                'sleep': ['sleep_quality', 'sleep_hours'],
+                'mood': ['mood', 'energy', 'stress_level', 'anxiety_level', 'hopelessness_level', 'irritability_level'],
+                'health': ['ate_breakfast', 'brushed_teeth', 'medication_taken', 'exercise', 'hydration', 'treatment_adherence'],
+                'sleep': ['sleep_quality', 'sleep_schedule'],
                 'social': ['social_interaction'],
-                'reflection': ['focus_level', 'daily_reflection']
+                'reflection': ['focus_level', 'daily_reflection', 'motivation_level']
             }
             
             # Calculate weights for each question

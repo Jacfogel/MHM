@@ -1463,7 +1463,13 @@ class TestUserFactory:
                     "enabled": True,
                     "frequency": "daily",
                     "reminder_time": "09:00",
-                    "custom_questions": ["How are you feeling?", "Did you eat today?", "Did you take your medication?", "How did you sleep?", "Did you exercise?"]
+                    "questions": {
+                        "mood": {"enabled": True, "type": "scale_1_5"},
+                        "energy": {"enabled": True, "type": "scale_1_5"},
+                        "ate_breakfast": {"enabled": True, "type": "yes_no"},
+                        "medication_taken": {"enabled": True, "type": "yes_no"},
+                        "sleep_quality": {"enabled": True, "type": "scale_1_5"}
+                    }
                 },
                 "task_settings": {
                     "enabled": False,
@@ -1521,7 +1527,13 @@ class TestUserFactory:
                     "enabled": True,
                     "frequency": "daily",
                     "reminder_time": "09:00",
-                    "custom_questions": ["How are you feeling?", "Did you eat today?", "Did you take your medication?", "How did you sleep?", "Did you exercise?"]
+                    "questions": {
+                        "mood": {"enabled": True, "type": "scale_1_5"},
+                        "energy": {"enabled": True, "type": "scale_1_5"},
+                        "ate_breakfast": {"enabled": True, "type": "yes_no"},
+                        "medication_taken": {"enabled": True, "type": "yes_no"},
+                        "sleep_quality": {"enabled": True, "type": "scale_1_5"}
+                    }
                 },
                 "task_settings": {
                     "enabled": False,

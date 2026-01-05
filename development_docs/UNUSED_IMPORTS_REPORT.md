@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-04 17:41:11
+> **Last Generated**: 2026-01-05 00:03:25
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 398
-- **Files with Unused Imports**: 125
-- **Total Unused Imports**: 357
+- **Total Files Scanned**: 400
+- **Files with Unused Imports**: 124
+- **Total Unused Imports**: 356
 
 ## Breakdown by Category
 
@@ -20,7 +20,7 @@
 - **Star Imports**: 0 imports
 - **Test Mocking**: 145 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 154 imports
+- **Test Infrastructure**: 153 imports
 - **Production Test Mocking**: 3 imports
 - **Ui Imports**: 0 imports
 
@@ -931,12 +931,6 @@
 - **Line 10**: Unused import tempfile
 - **Line 11**: Unused Path imported from pathlib
 - **Line 14**: Unused test_config_path imported from tests.development_tools.conftest
-
-### `tests/development_tools/test_audit_status_updates.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 14**: Unused temp_project_copy imported from tests.development_tools.conftest
 
 ### `tests/development_tools/test_audit_tier_comprehensive.py`
 

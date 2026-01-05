@@ -134,8 +134,14 @@ class CheckinManagementDialog(QDialog):
             # Get current preferences and update check-in settings
             prefs_result = get_user_data(self.user_id, 'preferences')
             prefs = prefs_result.get('preferences') or {}
+            
+            # Preserve custom_questions if they exist
+            existing_checkin_settings = prefs.get('checkin_settings', {})
+            custom_questions = existing_checkin_settings.get('custom_questions', {})
+            
             prefs['checkin_settings'] = {
-                'questions': checkin_settings.get('questions', {})
+                'questions': checkin_settings.get('questions', {}),
+                'custom_questions': custom_questions  # Preserve custom questions
             }
             
             # Save updated preferences

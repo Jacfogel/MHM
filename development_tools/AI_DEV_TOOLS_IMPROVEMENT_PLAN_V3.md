@@ -89,6 +89,35 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 
 **Files**: `development_tools/ai_work/analyze_ai_work.py`, `tests/development_tools/`
 
+#### 1.3 Enhance Quick Wins Recommendations with File Details
+**Status**: PENDING  
+**Priority**: MEDIUM  
+**Issue**: Quick Wins section for ASCII compliance and file address metadata only shows counts and commands, but doesn't list specific files or provide verification guidance.
+
+**Current Behavior**:
+- Shows: "Fix 17 ASCII compliance issue(s) in 2 file(s) - run `python development_tools/run_development_tools.py doc-fix --fix-ascii`"
+- Shows: "Add file address metadata to 1 file(s) missing addresses - run `python development_tools/run_development_tools.py doc-fix --add-addresses`"
+- Missing: Specific file paths, top issues, verification guidance
+
+**Desired Behavior**:
+- List top 3-5 files with issues (or all if fewer than 5)
+- Show issue counts per file
+- Advise using automated fixes with verification step
+- Include guidance to verify fixes resolved issues and apply manual fixes if needed
+
+**Tasks**:
+- [ ] Update `_generate_ai_priorities_document()` in `report_generation.py` to extract file paths from ASCII compliance data
+- [ ] Update `_generate_ai_priorities_document()` to extract file paths from missing addresses data
+- [ ] Enhance Quick Wins format to show:
+  - Top files with issues (limit to 3-5 files, or all if fewer)
+  - Issue counts per file
+  - Automated fix command
+  - Verification guidance: "Run the automated fix, then verify issues are resolved. If not, apply manual fixes."
+- [ ] Test with actual data to ensure file paths are correctly extracted and displayed
+- [ ] Update format for all doc-fix related Quick Wins (ASCII, addresses, headings, links) for consistency
+
+**Files**: `development_tools/shared/service/report_generation.py` (lines 2530-2556), `development_tools/docs/analyze_ascii_compliance.py`, `development_tools/docs/analyze_missing_addresses.py`
+
 ---
 
 ### Stage 2: Tool Enhancements & Consistency
@@ -707,7 +736,45 @@ The Error Handling section now displays complete information matching consolidat
 
 **Files**: `tests/fixtures/development_tools_demo/AI_PRIORITIES.md`, `tests/fixtures/development_tools_demo/AI_STATUS.md`, `tests/fixtures/development_tools_demo/consolidated_report.txt`, `tests/development_tools/conftest.py`
 
-#### 4.15 Investigate and Verify Pyright "Duplicate Declaration" Fixes
+#### 4.15 Investigate and Fix test_audit_status_updates.py Memory Leak
+**Status**: PENDING  
+**Priority**: HIGH  
+**Issue**: `tests/development_tools/test_audit_status_updates.py` is completely commented out as it appears to be the source of a memory leak. The test file needs investigation to determine if it can be fixed or requires complete replacement.
+
+**Current State**:
+- Entire test file (375 lines) is commented out
+- File contains tests for verifying status files only update at end of audit
+- Tests use extensive mocking and file tracking which may be causing memory issues
+- Tests were disabled due to memory leak concerns
+
+**Investigation Tasks**:
+- [ ] Review commented-out test code to understand what it was testing
+- [ ] Identify potential memory leak sources:
+  - [ ] File tracking mechanisms (`create_output_file` tracking)
+  - [ ] Mock object creation and retention
+  - [ ] File system operations in temp directories
+  - [ ] Service instance creation and cleanup
+- [ ] Check if memory leak is due to:
+  - [ ] Test isolation issues (files not cleaned up)
+  - [ ] Mock objects not being garbage collected
+  - [ ] Service instances retaining references
+  - [ ] File tracking data structures growing unbounded
+- [ ] Evaluate options:
+  - [ ] **Option A**: Fix existing tests by addressing memory leak sources
+  - [ ] **Option B**: Rewrite tests with simpler approach (less mocking, better cleanup)
+  - [ ] **Option C**: Replace with integration tests that verify behavior differently
+  - [ ] **Option D**: Remove tests if functionality is covered elsewhere
+- [ ] If fixing: Implement proper cleanup (fixtures, teardown, context managers)
+- [ ] If rewriting: Design simpler test approach that avoids memory issues
+- [ ] If replacing: Create new tests that verify status file update behavior without memory overhead
+- [ ] Verify no memory leaks with new/fixed tests (run with memory profiler)
+- [ ] Ensure test isolation (tests don't affect each other or real project files)
+
+**Files**: `tests/development_tools/test_audit_status_updates.py`, `development_tools/shared/service/audit_orchestration.py`, `development_tools/shared/service/report_generation.py`
+
+**Note**: These tests verify important behavior (status files only written at end of audit), so functionality should be preserved even if implementation changes.
+
+#### 4.16 Investigate and Verify Pyright "Duplicate Declaration" Fixes
 **Status**: PENDING  
 **Priority**: HIGH  
 **Issue**: Pyright reports "duplicate declaration" errors for several functions/variables. Initial fixes were attempted but reverted - full investigation needed to determine if these are true duplicates or serve different purposes.
@@ -923,11 +990,13 @@ The Error Handling section now displays complete information matching consolidat
 ### Short Term (Next 2 Weeks)
 1. ✅ Fix Config Validation Issues (Stage 2.1) - COMPLETE
 2. ✅ Standardize Function Metrics (Stage 3.3) - COMPLETE
-3. Investigate "Symbol: unused-import" bullet points (Stage 2.2) - Small effort
-4. Investigate Legacy Reference Count Discrepancy (Stage 5.7) - Small effort, needs investigation
-5. Enhance tool analysis capabilities (Stage 2.3-2.8)
-6. Standardize metrics (Stage 3.4)
-7. Investigate and fix validation warnings (Stage 4.1-4.2)
+3. **Investigate and Fix test_audit_status_updates.py Memory Leak (Stage 4.15)** - HIGH PRIORITY, test file completely commented out
+4. **Enhance Quick Wins Recommendations with File Details (Stage 1.3)** - MEDIUM PRIORITY, improves actionability
+5. Investigate "Symbol: unused-import" bullet points (Stage 2.2) - Small effort
+6. Investigate Legacy Reference Count Discrepancy (Stage 5.7) - Small effort, needs investigation
+7. Enhance tool analysis capabilities (Stage 2.3-2.8)
+8. Standardize metrics (Stage 3.4)
+9. Investigate and fix validation warnings (Stage 4.1-4.2)
 
 ### Medium Term (Next Month)
 1. Complete tool enhancements (Stage 2)

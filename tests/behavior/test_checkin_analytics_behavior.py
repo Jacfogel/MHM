@@ -199,9 +199,16 @@ class TestCheckinAnalyticsSleepAnalysisBehavior:
         
         for i in range(30):
             date = base_date + timedelta(days=i)
+            # Calculate sleep times for 7, 8, 9 hour durations
+            hours = 7.0 + (i % 3)  # 7, 8, 9 hours
+            sleep_time = f"{23 - int(hours - 7):02d}:00"  # 23:00, 22:00, 21:00
+            wake_time = "07:00"
             checkins.append({
                 'timestamp': date.strftime('%Y-%m-%d %H:%M:%S'),
-                'sleep_hours': 7.0 + (i % 3),  # 7, 8, 9 hours
+                'sleep_schedule': {
+                    'sleep_time': sleep_time,
+                    'wake_time': wake_time
+                },
                 'sleep_quality': 3 + (i % 3),  # 3, 4, 5 quality
                 'user_id': 'test_user'
             })
@@ -273,7 +280,10 @@ class TestCheckinAnalyticsWellnessScoreBehavior:
                 'exercise': 1,
                 'hydration': 1,
                 'social_interaction': 1,
-                'sleep_hours': 8.0,  # Good sleep
+                'sleep_schedule': {
+                    'sleep_time': '23:00',
+                    'wake_time': '07:00'
+                },
                 'sleep_quality': 4,
                 'user_id': 'test_user'
             })

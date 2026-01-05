@@ -41,8 +41,8 @@ class TestComprehensiveQuantitativeAnalytics:
                 "sleep_quality": {"enabled": True, "type": "scale_1_5"},
                 "anxiety_level": {"enabled": True, "type": "scale_1_5"},
                 "focus_level": {"enabled": True, "type": "scale_1_5"},
-                # Number questions
-                "sleep_hours": {"enabled": True, "type": "number"},
+                # Time pair questions
+                "sleep_schedule": {"enabled": True, "type": "time_pair"},
                 # Yes/No questions (should be converted to 0/1)
                 "ate_breakfast": {"enabled": True, "type": "yes_no"},
                 "brushed_teeth": {"enabled": True, "type": "yes_no"},
@@ -73,8 +73,8 @@ class TestComprehensiveQuantitativeAnalytics:
                 "sleep_quality": 4,
                 "anxiety_level": 1,
                 "focus_level": 4,
-                # Number questions
-                "sleep_hours": 7.5,
+                # Time pair questions (7.5 hours)
+                "sleep_schedule": {"sleep_time": "23:30", "wake_time": "07:00"},
                 # Yes/No questions
                 "ate_breakfast": "yes",
                 "brushed_teeth": "yes",
@@ -94,8 +94,8 @@ class TestComprehensiveQuantitativeAnalytics:
                 "sleep_quality": 3,
                 "anxiety_level": 2,
                 "focus_level": 3,
-                # Number questions
-                "sleep_hours": 6.0,
+                # Time pair questions (6.0 hours)
+                "sleep_schedule": {"sleep_time": "01:00", "wake_time": "07:00"},
                 # Yes/No questions
                 "ate_breakfast": "no",
                 "brushed_teeth": "yes",
@@ -118,7 +118,7 @@ class TestComprehensiveQuantitativeAnalytics:
         analytics = CheckinAnalytics()
         enabled_fields = [
             'mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 
-            'focus_level', 'sleep_hours', 'ate_breakfast', 'brushed_teeth', 
+            'focus_level', 'sleep_schedule', 'ate_breakfast', 'brushed_teeth', 
             'medication_taken', 'exercise', 'hydration', 'social_interaction'
         ]
         summaries = analytics.get_quantitative_summaries(actual_user_id, days=30, enabled_fields=enabled_fields)
@@ -130,8 +130,8 @@ class TestComprehensiveQuantitativeAnalytics:
         expected_fields = [
             # Scale 1-5 questions
             'mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level',
-            # Number questions
-            'sleep_hours',
+            # Time pair questions
+            'sleep_schedule',
             # Yes/No questions (converted to 0/1)
             'ate_breakfast', 'brushed_teeth', 'medication_taken', 'exercise', 'hydration', 'social_interaction'
         ]
@@ -155,10 +155,11 @@ class TestComprehensiveQuantitativeAnalytics:
         assert summaries['mood']['min'] == 3, "Mood min should be 3"
         assert summaries['mood']['max'] == 4, "Mood max should be 4"
         
-        # Verify specific calculations for number questions
-        assert summaries['sleep_hours']['average'] == 6.75, "Sleep hours average should be 6.75"
-        assert summaries['sleep_hours']['min'] == 6.0, "Sleep hours min should be 6.0"
-        assert summaries['sleep_hours']['max'] == 7.5, "Sleep hours max should be 7.5"
+        # Verify specific calculations for time_pair questions (converted to hours)
+        # sleep_schedule is converted to hours for analytics
+        assert abs(summaries['sleep_schedule']['average'] - 6.75) < 0.1, f"Sleep schedule average should be ~6.75, got {summaries['sleep_schedule']['average']}"
+        assert abs(summaries['sleep_schedule']['min'] - 6.0) < 0.1, f"Sleep schedule min should be 6.0, got {summaries['sleep_schedule']['min']}"
+        assert abs(summaries['sleep_schedule']['max'] - 7.5) < 0.1, f"Sleep schedule max should be 7.5, got {summaries['sleep_schedule']['max']}"
         
         # Verify specific calculations for yes/no questions (converted to 0/1)
         assert summaries['ate_breakfast']['average'] == 0.5, "Breakfast average should be 0.5 (1 yes, 1 no)"

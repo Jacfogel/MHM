@@ -38,8 +38,8 @@
     },
     "sleep_quality": {
       "type": "scale_1_5",
-      "question_text": "How well did you sleep last night on a scale of 1 to 5? (1=terrible, 5=excellent)",
-      "ui_display_name": "Sleep quality (1-5 scale)",
+      "question_text": "How rested do you feel today on a scale of 1 to 5? (1=not rested at all, 5=very well rested)",
+      "ui_display_name": "Sleep quality / Rest (1-5 scale)",
       "enabled_by_default": true,
       "category": "sleep",
       "validation": {
@@ -48,16 +48,14 @@
         "error_message": "Please enter a number between 1 and 5 for sleep quality."
       }
     },
-    "sleep_hours": {
-      "type": "number",
-      "question_text": "How many hours did you sleep last night? (enter a number)",
-      "ui_display_name": "Hours of sleep (number)",
+    "sleep_schedule": {
+      "type": "time_pair",
+      "question_text": "What time did you go to sleep last night and what time did you wake up? (e.g., '11:30 PM' and '7:00 AM' or '23:30' and '07:00')",
+      "ui_display_name": "Sleep schedule (time pair)",
       "enabled_by_default": false,
       "category": "sleep",
       "validation": {
-        "min": 0,
-        "max": 24,
-        "error_message": "Please enter a number between 0 and 24 for hours of sleep."
+        "error_message": "Please provide both sleep time and wake time in HH:MM format (e.g., '23:30' and '07:00')."
       }
     },
     "anxiety_level": {
@@ -152,6 +150,52 @@
       "category": "reflection",
       "validation": {
         "error_message": "This is optional - you can just press enter to skip."
+      }
+    },
+    "hopelessness_level": {
+      "type": "scale_1_5",
+      "question_text": "How hopeless are you feeling today on a scale of 1 to 5? (1=not hopeless at all, 5=very hopeless)",
+      "ui_display_name": "Hopelessness level (1-5 scale)",
+      "enabled_by_default": false,
+      "category": "mood",
+      "validation": {
+        "min": 1,
+        "max": 5,
+        "error_message": "Please enter a number between 1 and 5 for hopelessness level."
+      }
+    },
+    "irritability_level": {
+      "type": "scale_1_5",
+      "question_text": "How irritable are you feeling today on a scale of 1 to 5? (1=very calm, 5=very irritable)",
+      "ui_display_name": "Irritability level (1-5 scale)",
+      "enabled_by_default": false,
+      "category": "mood",
+      "validation": {
+        "min": 1,
+        "max": 5,
+        "error_message": "Please enter a number between 1 and 5 for irritability level."
+      }
+    },
+    "motivation_level": {
+      "type": "scale_1_5",
+      "question_text": "How motivated do you feel to do tasks today on a scale of 1 to 5? (1=not motivated at all, 5=very motivated)",
+      "ui_display_name": "Motivation level (1-5 scale)",
+      "enabled_by_default": false,
+      "category": "reflection",
+      "validation": {
+        "min": 1,
+        "max": 5,
+        "error_message": "Please enter a number between 1 and 5 for motivation level."
+      }
+    },
+    "treatment_adherence": {
+      "type": "yes_no",
+      "question_text": "Did you follow your treatment plan today? (yes/no)",
+      "ui_display_name": "Treatment adherence (yes/no)",
+      "enabled_by_default": false,
+      "category": "health",
+      "validation": {
+        "error_message": "Please answer with yes/no, y/n, or similar."
       }
     }
   },

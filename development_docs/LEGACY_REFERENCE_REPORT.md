@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-04 17:41:36
+> **Last Generated**: 2026-01-05 00:05:15
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 8
 **Legacy Compatibility Markers Detected**: 25
@@ -66,22 +66,22 @@
 
 - **Line 71**: `# LEGACY COMPATIBILITY:`
   ```
-  # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
+  #         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
   ```
 
 - **Line 160**: `# LEGACY COMPATIBILITY:`
   ```
-  # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
+  #         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
   ```
 
 - **Line 247**: `# LEGACY COMPATIBILITY:`
   ```
-  # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
+  #         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
   ```
 
 - **Line 329**: `# LEGACY COMPATIBILITY:`
   ```
-  # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
+  #         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
   ```
 
 ### tests\development_tools\test_audit_tier_comprehensive.py

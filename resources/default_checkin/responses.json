@@ -211,6 +211,116 @@
         "No problem - sometimes solitude is exactly what we need.",
         "That's fine - social interaction isn't always necessary or possible. Quality over quantity."
       ]
+    },
+    "hopelessness_level": {
+      "1": [
+        "That's wonderful that you're not feeling hopeless today. This positive outlook is valuable.",
+        "It's great that you're feeling hopeful. This kind of perspective can help you navigate challenges.",
+        "I'm glad you're not experiencing hopelessness today. This clarity can help you move forward.",
+        "That's excellent - feeling hopeful is a good foundation for making progress."
+      ],
+      "2": [
+        "You're feeling a little bit of hopelessness today, but it's manageable. Remember that feelings can change.",
+        "I hear that you're experiencing some hopelessness. It's okay to feel this way sometimes.",
+        "You're dealing with some hopelessness today. Remember that this feeling doesn't define your future.",
+        "There's a bit of hopelessness present today. Sometimes acknowledging it is the first step toward feeling better."
+      ],
+      "3": [
+        "You're experiencing moderate hopelessness today. Remember that this feeling is temporary and you have support.",
+        "I can see you're feeling somewhat hopeless. It's okay to feel this way, and it won't last forever.",
+        "You're dealing with moderate hopelessness today. Remember that difficult feelings are valid and temporary.",
+        "There's a moderate level of hopelessness today. Remember that you don't have to face this alone."
+      ],
+      "4": [
+        "You're feeling quite hopeless today. Remember that this feeling is temporary and you have support available.",
+        "I can see you're experiencing significant hopelessness. Remember that you don't have to face this alone.",
+        "You're dealing with high levels of hopelessness today. Remember that support is available and this feeling will pass.",
+        "There's significant hopelessness present today. Remember that difficult feelings are temporary and you have resources to help."
+      ],
+      "5": [
+        "I can see you're feeling extremely hopeless today. Remember that this feeling is temporary and you will get through this.",
+        "You're experiencing intense hopelessness right now. Remember that you don't have to face this alone - support is available.",
+        "I hear that you're feeling very hopeless today. Remember that hopelessness is a signal that you need care and support.",
+        "You're dealing with extreme hopelessness today. Remember that this difficult moment will pass, and you're stronger than you know."
+      ]
+    },
+    "irritability_level": {
+      "1": [
+        "That's wonderful that you're feeling very calm today. This peaceful state is valuable.",
+        "It's great that you're not experiencing irritability. This calm energy can help you approach the day with clarity.",
+        "I'm glad you're feeling calm and not irritable today. This peaceful state is a good foundation.",
+        "That's excellent - feeling calm and not irritable is a great way to start the day."
+      ],
+      "2": [
+        "You're feeling a little bit irritable today, but it's manageable. Remember that feelings can change.",
+        "I hear that you're experiencing some irritability. It's okay to feel this way sometimes.",
+        "You're dealing with some irritability today. Remember that this feeling doesn't define your whole day.",
+        "There's a bit of irritability present today. Sometimes acknowledging it helps us manage it better."
+      ],
+      "3": [
+        "You're experiencing moderate irritability today. Remember that this feeling is temporary and you can manage it.",
+        "I can see you're feeling somewhat irritable. It's okay to feel this way, and it won't last forever.",
+        "You're dealing with moderate irritability today. Remember that difficult feelings are valid and temporary.",
+        "There's a moderate level of irritability today. Remember that you can take steps to manage this feeling."
+      ],
+      "4": [
+        "You're feeling quite irritable today. Remember that this feeling is temporary and you can take steps to manage it.",
+        "I can see you're experiencing significant irritability. Remember that you can use strategies to help manage this.",
+        "You're dealing with high levels of irritability today. Remember that this feeling will pass and you have tools to help.",
+        "There's significant irritability present today. Remember that difficult feelings are temporary and you can find ways to cope."
+      ],
+      "5": [
+        "I can see you're feeling extremely irritable today. Remember that this feeling is temporary and you will get through this.",
+        "You're experiencing intense irritability right now. Remember that you don't have to face this alone - support is available.",
+        "I hear that you're feeling very irritable today. Remember that irritability is a signal that you need care and support.",
+        "You're dealing with extreme irritability today. Remember that this difficult moment will pass, and you have resources to help."
+      ]
+    },
+    "motivation_level": {
+      "1": [
+        "I understand you're feeling very unmotivated today. Remember that motivation can come and go, and that's okay.",
+        "You're experiencing very low motivation today. Sometimes rest is what we need most.",
+        "I hear that you're not feeling motivated at all. Remember that it's okay to have days like this.",
+        "You're dealing with very low motivation today. Remember that motivation isn't always necessary to take small steps."
+      ],
+      "2": [
+        "You're feeling a little bit motivated today, but it's low. Remember that even small amounts of motivation can help.",
+        "I hear that you're experiencing some motivation, though it's limited. Every bit counts.",
+        "You're dealing with low motivation today. Remember that motivation can build gradually.",
+        "There's a bit of motivation present today. Sometimes starting small can help build more motivation."
+      ],
+      "3": [
+        "You're experiencing moderate motivation today. That's a solid foundation to work with.",
+        "I can see you're feeling somewhat motivated. This level can help you accomplish things.",
+        "You're dealing with moderate motivation today. This is a good place to be for getting things done.",
+        "There's a moderate level of motivation today. You can use this energy to make progress."
+      ],
+      "4": [
+        "Great! You have good motivation today. This is a perfect time to tackle things that matter to you.",
+        "Excellent! Your motivation is high and you're ready to take on tasks.",
+        "Wonderful! You're feeling motivated today. This positive energy can help you accomplish great things.",
+        "That's fantastic! Your motivation levels are strong today. You're in a great position to make progress."
+      ],
+      "5": [
+        "Amazing! You're absolutely bursting with motivation today. This kind of energy is wonderful!",
+        "Incredible! You're feeling super motivated today. This high motivation can help you achieve amazing things!",
+        "Outstanding! Your motivation is through the roof today. This kind of enthusiasm is contagious!",
+        "Brilliant! You're absolutely charged up with motivation today. This kind of energy can move mountains!"
+      ]
+    },
+    "treatment_adherence": {
+      "true": [
+        "Great job following your treatment plan today! You're prioritizing your health and well-being.",
+        "Excellent! You're staying on top of your treatment plan. This consistency is important.",
+        "Wonderful! Following your treatment plan is an important part of self-care.",
+        "That's fantastic! You're being responsible about your treatment needs."
+      ],
+      "false": [
+        "No worries about not following your treatment plan today. Sometimes we miss things, and that's human.",
+        "That's okay - treatment adherence can be challenging to maintain consistently.",
+        "No problem - sometimes we miss parts of our treatment plan. Remember to get back on track when you can.",
+        "That's fine - treatment adherence can be difficult. Tomorrow is a new opportunity to follow your plan."
+      ]
     }
   },
   "transition_phrases": [

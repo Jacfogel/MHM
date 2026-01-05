@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-01-04 17:48:41",
+  "last_generated": "2026-01-05 00:10:56",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-01-04T17:48:41.570187",
+  "timestamp": "2026-01-05T00:10:56.987672",
   "successful": [
     "analyze_functions",
     "analyze_function_patterns",
@@ -40,17 +40,17 @@
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 423,
+          "total_issues": 426,
           "files_affected": 0
         },
         "details": {
-          "total_functions": 1510,
-          "moderate_complexity": 149,
-          "high_complexity": 142,
-          "critical_complexity": 132,
+          "total_functions": 1517,
+          "moderate_complexity": 148,
+          "high_complexity": 144,
+          "critical_complexity": 134,
           "undocumented": 0,
           "undocumented_examples": [],
-          "handlers": 843,
+          "handlers": 847,
           "tests": 65,
           "utilities": 0,
           "critical_complexity_examples": [
@@ -165,7 +165,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-04T17:41:01.379771"
+      "timestamp": "2026-01-05T00:03:02.170114"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -897,6 +897,11 @@
             {
               "file": "core/checkin_dynamic_manager.py",
               "function": "_load_data",
+              "has_doc": true
+            },
+            {
+              "file": "core/checkin_dynamic_manager.py",
+              "function": "save_custom_question",
               "has_doc": true
             },
             {
@@ -2123,7 +2128,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-04T17:40:53.182847"
+      "timestamp": "2026-01-05T00:02:53.309883"
     },
     "analyze_function_registry": {
       "success": true,
@@ -2893,6 +2898,12 @@
                 "name": "_send_predefined_message"
               },
               {
+                "complexity": 845,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\checkin_analytics.py",
+                "has_docstring": true,
+                "name": "get_quantitative_summaries"
+              },
+              {
                 "complexity": 825,
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\command_handlers\\interaction_handlers.py",
                 "has_docstring": true,
@@ -2921,12 +2932,6 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ai\\chatbot.py",
                 "has_docstring": true,
                 "name": "generate_response"
-              },
-              {
-                "complexity": 780,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\checkin_analytics.py",
-                "has_docstring": true,
-                "name": "get_quantitative_summaries"
               },
               {
                 "complexity": 751,
@@ -3055,6 +3060,12 @@
                 "name": "get_user_suggestions"
               },
               {
+                "complexity": 577,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\widgets\\checkin_settings_widget.py",
+                "has_docstring": true,
+                "name": "add_new_question"
+              },
+              {
                 "complexity": 565,
                 "file": "run_tests.py",
                 "has_docstring": true,
@@ -3119,6 +3130,12 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\command_handlers\\profile_handler.py",
                 "has_docstring": true,
                 "name": "_handle_show_profile"
+              },
+              {
+                "complexity": 515,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\checkin_analytics.py",
+                "has_docstring": true,
+                "name": "get_sleep_analysis"
               },
               {
                 "complexity": 515,
@@ -3199,12 +3216,6 @@
                 "name": "schedule_all_users_immediately"
               },
               {
-                "complexity": 466,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\checkin_analytics.py",
-                "has_docstring": true,
-                "name": "get_sleep_analysis"
-              },
-              {
                 "complexity": 464,
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\checkin_dynamic_manager.py",
                 "has_docstring": true,
@@ -3239,6 +3250,12 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\message_management.py",
                 "has_docstring": true,
                 "name": "get_recent_messages"
+              },
+              {
+                "complexity": 437,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\checkin_dynamic_manager.py",
+                "has_docstring": true,
+                "name": "validate_answer"
               },
               {
                 "complexity": 435,
@@ -3283,7 +3300,7 @@
                 "name": "update_task"
               },
               {
-                "complexity": 425,
+                "complexity": 427,
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\message_processing\\conversation_flow_manager.py",
                 "has_docstring": true,
                 "name": "_handle_checkin"
@@ -3421,6 +3438,12 @@
                 "name": "handle_error"
               },
               {
+                "complexity": 390,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\message_processing\\conversation_flow_manager.py",
+                "has_docstring": true,
+                "name": "_select_checkin_questions_with_weighting"
+              },
+              {
                 "complexity": 389,
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\user_data_manager.py",
                 "has_docstring": true,
@@ -3446,12 +3469,6 @@
               },
               {
                 "complexity": 386,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\message_processing\\conversation_flow_manager.py",
-                "has_docstring": true,
-                "name": "_select_checkin_questions_with_weighting"
-              },
-              {
-                "complexity": 386,
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\ui_app_qt.py",
                 "has_docstring": true,
                 "name": "send_checkin_prompt"
@@ -3473,12 +3490,6 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\scheduler.py",
                 "has_docstring": true,
                 "name": "cleanup_task_reminders"
-              },
-              {
-                "complexity": 380,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\checkin_dynamic_manager.py",
-                "has_docstring": true,
-                "name": "validate_answer"
               },
               {
                 "complexity": 380,
@@ -3521,6 +3532,12 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\communication_channels\\discord\\bot.py",
                 "has_docstring": true,
                 "name": "_check_dns_resolution"
+              },
+              {
+                "complexity": 372,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\dialogs\\checkin_management_dialog.py",
+                "has_docstring": true,
+                "name": "save_checkin_settings"
               },
               {
                 "complexity": 368,
@@ -3641,12 +3658,6 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\scheduler.py",
                 "has_docstring": true,
                 "name": "run_daily_scheduler"
-              },
-              {
-                "complexity": 349,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\dialogs\\checkin_management_dialog.py",
-                "has_docstring": true,
-                "name": "save_checkin_settings"
               },
               {
                 "complexity": 345,
@@ -4025,15 +4036,9 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\widgets\\tag_widget.py",
                 "has_docstring": true,
                 "name": "add_tag"
-              },
-              {
-                "complexity": 288,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\ui_app_qt.py",
-                "has_docstring": true,
-                "name": "start_service"
               }
             ],
-            "high_complexity_total": 1087,
+            "high_complexity_total": 1096,
             "undocumented_handlers": [
               {
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\core\\channel_orchestrator.py",
@@ -4305,7 +4310,7 @@
             ],
             "undocumented_other_total": 29
           },
-          "coverage": 92.83,
+          "coverage": 92.4,
           "errors": [],
           "extra": {
             "count": 1399,
@@ -5900,7 +5905,7 @@
             }
           },
           "missing": {
-            "count": 1412,
+            "count": 1419,
             "files": {
               "C:\\Users\\Julie\\projects\\MHM\\MHM\\ai\\cache_manager.py": [
                 "__init__",
@@ -6523,6 +6528,7 @@
                 "_calculate_mood_score",
                 "_calculate_overall_completion",
                 "_calculate_sleep_consistency",
+                "_calculate_sleep_duration",
                 "_calculate_sleep_score",
                 "_calculate_streak",
                 "_get_energy_distribution",
@@ -6547,17 +6553,23 @@
               "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\checkin_dynamic_manager.py": [
                 "__init__",
                 "_load_data",
+                "_normalize_time",
                 "_parse_numerical_response",
+                "_parse_time_pair_response",
                 "build_next_question_with_response",
+                "delete_custom_question",
                 "get_all_questions",
                 "get_categories",
+                "get_custom_questions",
                 "get_enabled_questions_for_ui",
                 "get_question_definition",
+                "get_question_templates",
                 "get_question_text",
                 "get_question_type",
                 "get_question_validation",
                 "get_response_statement",
                 "get_transition_phrase",
+                "save_custom_question",
                 "validate_answer"
               ],
               "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\config.py": [
@@ -12613,7 +12625,8 @@
                   "args": [
                     "self",
                     "question_key",
-                    "previous_data"
+                    "previous_data",
+                    "user_id"
                   ],
                   "docstring": "Get appropriate question text based on question type and previous responses",
                   "name": "_get_question_text"
@@ -12632,7 +12645,8 @@
                   "args": [
                     "self",
                     "question_key",
-                    "response"
+                    "response",
+                    "user_id"
                   ],
                   "docstring": "Validate user response based on question type using dynamic manager",
                   "name": "_validate_response"
@@ -13532,6 +13546,7 @@
                     "_calculate_mood_score",
                     "_calculate_energy_score",
                     "_calculate_habit_score",
+                    "_calculate_sleep_duration",
                     "_calculate_sleep_score",
                     "_get_score_level",
                     "_get_wellness_recommendations"
@@ -13738,6 +13753,15 @@
                 {
                   "args": [
                     "self",
+                    "sleep_time",
+                    "wake_time"
+                  ],
+                  "docstring": "Calculate sleep duration in hours from sleep_time and wake_time (HH:MM format).",
+                  "name": "_calculate_sleep_duration"
+                },
+                {
+                  "args": [
+                    "self",
                     "checkins"
                   ],
                   "docstring": "Calculate sleep score (0-100)",
@@ -13781,8 +13805,14 @@
                     "build_next_question_with_response",
                     "validate_answer",
                     "_parse_numerical_response",
+                    "_parse_time_pair_response",
+                    "_normalize_time",
                     "get_enabled_questions_for_ui",
-                    "get_categories"
+                    "get_categories",
+                    "get_custom_questions",
+                    "save_custom_question",
+                    "delete_custom_question",
+                    "get_question_templates"
                   ],
                   "name": "DynamicCheckinManager"
                 }
@@ -13805,22 +13835,25 @@
                 {
                   "args": [
                     "self",
-                    "question_key"
+                    "question_key",
+                    "user_id"
                   ],
-                  "docstring": "Get the definition for a specific question.",
+                  "docstring": "Get the definition for a specific question.\n        \n        Checks custom questions first (if user_id provided), then predefined questions.",
                   "name": "get_question_definition"
                 },
                 {
                   "args": [
-                    "self"
+                    "self",
+                    "user_id"
                   ],
-                  "docstring": "Get all question definitions.",
+                  "docstring": "Get all question definitions, merging predefined and custom questions.\n        \n        Custom questions take precedence over predefined questions with the same key.",
                   "name": "get_all_questions"
                 },
                 {
                   "args": [
                     "self",
-                    "question_key"
+                    "question_key",
+                    "user_id"
                   ],
                   "docstring": "Get the question text for a specific question.",
                   "name": "get_question_text"
@@ -13871,7 +13904,8 @@
                   "args": [
                     "self",
                     "question_key",
-                    "answer"
+                    "answer",
+                    "user_id"
                   ],
                   "docstring": "Validate an answer for a specific question.",
                   "name": "validate_answer"
@@ -13886,9 +13920,26 @@
                 },
                 {
                   "args": [
-                    "self"
+                    "self",
+                    "answer"
                   ],
-                  "docstring": "Get questions formatted for UI display with enabled_by_default status.",
+                  "docstring": "Parse sleep time and wake time from user response.\n        \n        Supports formats like:\n        - \"11:30 PM and 7:00 AM\"\n        - \"23:30 and 07:00\"\n        - \"11:30pm, 7:00am\"\n        - \"11:30 PM, 7:00 AM\"",
+                  "name": "_parse_time_pair_response"
+                },
+                {
+                  "args": [
+                    "self",
+                    "time_str"
+                  ],
+                  "docstring": "Normalize time string to HH:MM format (24-hour).\n        \n        Supports formats like:\n        - \"11:30 PM\" -> \"23:30\"\n        - \"7:00 AM\" -> \"07:00\"\n        - \"23:30\" -> \"23:30\"\n        - \"7:00\" -> \"07:00\" (assumes AM if no AM/PM)",
+                  "name": "_normalize_time"
+                },
+                {
+                  "args": [
+                    "self",
+                    "user_id"
+                  ],
+                  "docstring": "Get questions formatted for UI display with enabled_by_default status.\n        \n        Includes both predefined and custom questions if user_id is provided.",
                   "name": "get_enabled_questions_for_ui"
                 },
                 {
@@ -13897,6 +13948,40 @@
                   ],
                   "docstring": "Get all question categories.",
                   "name": "get_categories"
+                },
+                {
+                  "args": [
+                    "self",
+                    "user_id"
+                  ],
+                  "docstring": "Get custom questions for a specific user from preferences.",
+                  "name": "get_custom_questions"
+                },
+                {
+                  "args": [
+                    "self",
+                    "user_id",
+                    "question_key",
+                    "question_def"
+                  ],
+                  "docstring": "Save a custom question to user preferences.",
+                  "name": "save_custom_question"
+                },
+                {
+                  "args": [
+                    "self",
+                    "user_id",
+                    "question_key"
+                  ],
+                  "docstring": "Delete a custom question from user preferences.",
+                  "name": "delete_custom_question"
+                },
+                {
+                  "args": [
+                    "self"
+                  ],
+                  "docstring": "Get available question templates for creating custom questions.",
+                  "name": "get_question_templates"
                 }
               ]
             },
@@ -20765,7 +20850,7 @@
                   "args": [
                     "self"
                   ],
-                  "docstring": "Add a new check-in question.\n        \n        TODO: Implement custom question creation functionality.\n        - Store custom questions in user preferences (checkin_settings.custom_questions)\n        - Support question types: scale_1_5, yes_no, number, optional_text\n        - Add validation rules for custom questions\n        - Integrate with DynamicCheckinManager to include custom questions in flow\n        - See development_docs/PLANS.md \"Dynamic Check-in Questions Plan\" for full requirements",
+                  "docstring": "Add a new check-in question.",
                   "name": "add_new_question"
                 },
                 {
@@ -22069,17 +22154,17 @@
           },
           "totals": {
             "classes_found": 159,
-            "files_scanned": 107,
+            "files_scanned": 108,
             "functions_documented": 1411,
-            "functions_found": 1520
+            "functions_found": 1527
           }
         },
         "summary": {
           "files_affected": 0,
-          "total_issues": 2811
+          "total_issues": 2818
         }
       },
-      "timestamp": "2026-01-04T17:41:05.973662"
+      "timestamp": "2026-01-05T00:03:08.353254"
     },
     "analyze_package_exports": {
       "success": true,
@@ -29050,7 +29135,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2026-01-04T17:41:10.027493"
+      "timestamp": "2026-01-05T00:03:13.477087"
     },
     "analyze_documentation": {
       "success": true,
@@ -29091,7 +29176,7 @@
                 "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.19070183305205538,
+              "similarity_score": 0.19058038419561082,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -29304,20 +29389,20 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 167291,
+              "content_length": 168953,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n\n\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent ch",
-              "section_count": 197,
+              "section_count": 199,
               "sections": [
                 "Introduction",
                 "Overview",
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2026-01-04 - Check-in Questions Enhancement: New Questions, Custom Questions, and Sleep Schedule **COMPLETED**",
+                "2026-01-04 - Code Quality Improvements: Error Handling, Documentation, and Cleanup **COMPLETED**",
                 "2026-01-04 - Memory Leak Fix: Test Mocking and Parallel Execution Stability **COMPLETED**",
                 "2025-12-31 - Development Tools Investigation Tasks and Test Fixes **COMPLETED**",
-                "2025-12-31 - Improved Recommendation Quality in Development Tools **COMPLETED**",
-                "2025-12-31 - Test Isolation Fixes: Prevented File Regeneration During Tests **COMPLETED**",
-                "2025-12-31 - DIRECTORY_TREE.md Regeneration Fix **COMPLETED**"
+                "2025-12-31 - Improved Recommendation Quality in Development Tools **COMPLETED**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -29504,9 +29589,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 1008710,
+              "content_length": 1016972,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 350,
+              "section_count": 352,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -29514,10 +29599,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2026-01-04 - Check-in Questions Enhancement: New Questions, Custom Questions, and Sleep Schedule **COMPLETED**",
+                "2026-01-04 - Code Quality Improvements: Error Handling, Documentation, and Cleanup **COMPLETED**",
                 "2026-01-04 - Memory Leak Fix: Test Mocking and Parallel Execution Stability **COMPLETED**",
-                "2025-12-31 - Development Tools Investigation Tasks and Test Fixes **COMPLETED**",
-                "2025-12-31 - Improved Recommendation Quality in Development Tools **COMPLETED**",
-                "2025-12-31 - Test Isolation Fixes: Prevented File Regeneration During Test Runs **COMPLETED**"
+                "2025-12-31 - Development Tools Investigation Tasks and Test Fixes **COMPLETED**"
               ]
             },
             "development_docs/PLANS.md": {
@@ -29739,7 +29824,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-01-04T17:40:50.698280"
+      "timestamp": "2026-01-05T00:02:49.664042"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -29785,7 +29870,7 @@
           }
         }
       },
-      "timestamp": "2026-01-04T17:41:17.049538"
+      "timestamp": "2026-01-05T00:03:26.112086"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -29794,7 +29879,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2026-01-04T17:41:11.213928"
+      "timestamp": "2026-01-05T00:03:14.829873"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -29803,7 +29888,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2026-01-04T17:41:15.997944"
+      "timestamp": "2026-01-05T00:03:24.642005"
     },
     "analyze_path_drift": {
       "success": true,
@@ -29812,7 +29897,7 @@
         "total_issues": 0,
         "detailed_issues": {}
       },
-      "timestamp": "2026-01-04T17:41:08.868734"
+      "timestamp": "2026-01-05T00:03:12.200145"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -29821,7 +29906,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2026-01-04T17:41:17.040681"
+      "timestamp": "2026-01-05T00:03:25.942395"
     },
     "analyze_error_handling": {
       "success": true,
@@ -29831,34 +29916,34 @@
           "files_affected": 0
         },
         "details": {
-          "total_functions": 1497,
-          "functions_with_try_except": 602,
-          "functions_with_error_handling": 1497,
-          "functions_with_decorators": 1485,
+          "total_functions": 1504,
+          "functions_with_try_except": 607,
+          "functions_with_error_handling": 1504,
+          "functions_with_decorators": 1492,
           "functions_missing_error_handling": 0,
           "analyze_error_handling": 100.0,
           "error_patterns": {
-            "handle_errors_decorator": 1578,
-            "try_except": 687,
+            "handle_errors_decorator": 1585,
+            "try_except": 692,
             "handle_configuration_error": 4,
             "ConfigurationError": 6,
             "ValidationError": 15,
-            "error_handler_usage": 8,
             "handle_communication_error": 4,
+            "error_handler_usage": 8,
             "handle_network_error": 5,
             "handle_validation_error": 2,
             "handle_ai_error": 16,
-            "AIError": 2,
-            "DataError": 12,
-            "FileOperationError": 10,
             "CommunicationError": 2,
+            "DataError": 12,
             "handle_file_error": 3,
+            "FileOperationError": 10,
             "MHMError": 2,
+            "AIError": 2,
             "safe_file_operation": 1
           },
           "missing_error_handling": [],
           "error_handling_quality": {
-            "excellent": 1485,
+            "excellent": 1492,
             "good": 12
           },
           "recommendations": [],
@@ -29885,13 +29970,13 @@
               "module": "checkin_analytics.py",
               "coverage": 100.0,
               "missing": 0,
-              "total": 26
+              "total": 27
             },
             {
               "module": "checkin_dynamic_manager.py",
               "coverage": 100.0,
               "missing": 0,
-              "total": 14
+              "total": 20
             },
             {
               "module": "config.py",
@@ -29902,7 +29987,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-04T17:41:01.657317"
+      "timestamp": "2026-01-05T00:03:02.822132"
     },
     "analyze_test_coverage": {
       "success": true,
@@ -29914,31 +29999,31 @@
         "details": {
           "overall": {
             "coverage": 72.9,
-            "statements": 27169,
-            "covered": 19814,
-            "missed": 7355,
-            "generated": "2026-01-04T17:48:34.408892"
+            "statements": 27388,
+            "covered": 19965,
+            "missed": 7423,
+            "generated": "2026-01-05T00:10:47.861379"
           },
           "modules": [
             {
               "module": "communication",
               "coverage": 69.9,
-              "missed": 2632
+              "missed": 2635
             },
             {
               "module": "ui",
-              "coverage": 72.9,
-              "missed": 1674
+              "coverage": 72.4,
+              "missed": 1725
             },
             {
               "module": "core",
-              "coverage": 73.4,
-              "missed": 2564
+              "coverage": 73.7,
+              "missed": 2577
             },
             {
               "module": "ai",
               "coverage": 78.5,
-              "missed": 370
+              "missed": 371
             },
             {
               "module": "tasks",
@@ -29953,34 +30038,34 @@
           ],
           "worst_files": [
             {
+              "path": "ui/widgets/checkin_settings_widget.py",
+              "coverage": 46.3,
+              "missing": 123
+            },
+            {
               "path": "communication/communication_channels/discord/bot.py",
               "coverage": 47.0,
               "missing": 632
             },
             {
               "path": "ui/ui_app_qt.py",
-              "coverage": 50.9,
-              "missing": 680
+              "coverage": 51.2,
+              "missing": 676
+            },
+            {
+              "path": "core/file_locking.py",
+              "coverage": 59.4,
+              "missing": 52
             },
             {
               "path": "communication/core/channel_orchestrator.py",
-              "coverage": 60.8,
-              "missing": 402
-            },
-            {
-              "path": "ui/widgets/checkin_settings_widget.py",
-              "coverage": 61.3,
-              "missing": 67
-            },
-            {
-              "path": "core/service.py",
-              "coverage": 61.5,
-              "missing": 268
+              "coverage": 60.7,
+              "missing": 403
             }
           ]
         }
       },
-      "timestamp": "2026-01-04T17:48:37.578686"
+      "timestamp": "2026-01-05T00:10:51.332432"
     },
     "analyze_test_markers": {
       "success": true,
@@ -29988,15 +30073,15 @@
         "missing_count": 0,
         "missing": []
       },
-      "timestamp": "2026-01-04T17:48:40.462935"
+      "timestamp": "2026-01-05T00:10:55.628575"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "overall": {
-          "overall_coverage": 42.9,
+          "overall_coverage": 42.5,
           "total_statements": 19752,
-          "total_missed": 11278
+          "total_missed": 11356
         },
         "modules": {
           "development_tools\\__init__.py": {
@@ -30148,13 +30233,9 @@
           },
           "development_tools\\config\\config.py": {
             "statements": 320,
-            "missed": 55,
-            "coverage": 83,
+            "missed": 50,
+            "coverage": 84,
             "missing_lines": [
-              "44",
-              "47",
-              "48",
-              "49",
               "56",
               "58",
               "59",
@@ -30167,6 +30248,7 @@
               "333",
               "343",
               "352",
+              "369",
               "378",
               "387",
               "396",
@@ -30186,7 +30268,6 @@
               "466",
               "467",
               "468",
-              "531",
               "568",
               "578",
               "579",
@@ -30202,12 +30283,11 @@
               "636",
               "675",
               "705",
-              "726",
               "753",
               "757",
               "759"
             ],
-            "covered": 265
+            "covered": 270
           },
           "development_tools\\docs\\__init__.py": {
             "statements": 0,
@@ -30619,8 +30699,8 @@
           },
           "development_tools\\docs\\analyze_path_drift.py": {
             "statements": 382,
-            "missed": 139,
-            "coverage": 64,
+            "missed": 124,
+            "coverage": 68,
             "missing_lines": [
               "28",
               "43",
@@ -30632,22 +30712,16 @@
               "106",
               "153",
               "166",
-              "170",
               "174",
-              "178",
-              "182",
               "186",
               "190",
-              "194",
               "198",
-              "204",
               "209",
               "210",
               "212",
               "216",
               "220",
               "224",
-              "228",
               "232",
               "236",
               "246",
@@ -30658,7 +30732,6 @@
               "275",
               "279",
               "283",
-              "292",
               "294",
               "302",
               "304",
@@ -30684,9 +30757,6 @@
               "417",
               "421",
               "433",
-              "438",
-              "439",
-              "440",
               "443",
               "444",
               "445",
@@ -30717,10 +30787,6 @@
               "528",
               "529",
               "549",
-              "553",
-              "574",
-              "575",
-              "579",
               "611",
               "612",
               "613",
@@ -30733,7 +30799,6 @@
               "635",
               "636",
               "638",
-              "691",
               "701",
               "702",
               "704",
@@ -30762,7 +30827,7 @@
               "770",
               "772"
             ],
-            "covered": 243
+            "covered": 258
           },
           "development_tools\\docs\\analyze_unconverted_links.py": {
             "statements": 280,
@@ -34812,8 +34877,8 @@
           },
           "development_tools\\reports\\system_signals.py": {
             "statements": 281,
-            "missed": 163,
-            "coverage": 42,
+            "missed": 166,
+            "coverage": 41,
             "missing_lines": [
               "24",
               "34",
@@ -34839,8 +34904,11 @@
               "163",
               "166",
               "170",
+              "179",
               "183",
               "194",
+              "209",
+              "211",
               "232",
               "233",
               "253",
@@ -34979,7 +35047,7 @@
               "481",
               "483"
             ],
-            "covered": 118
+            "covered": 115
           },
           "development_tools\\run_dev_tools.py": {
             "statements": 6,
@@ -35219,8 +35287,8 @@
           },
           "development_tools\\shared\\common.py": {
             "statements": 107,
-            "missed": 51,
-            "coverage": 52,
+            "missed": 39,
+            "coverage": 64,
             "missing_lines": [
               "22",
               "24",
@@ -35248,20 +35316,11 @@
               "127",
               "128",
               "134",
-              "142",
-              "143",
-              "144",
-              "145",
-              "146",
-              "147",
-              "148",
-              "149",
               "150",
               "151",
               "152",
               "153",
               "154",
-              "155",
               "156",
               "157",
               "158",
@@ -35269,17 +35328,14 @@
               "160",
               "161",
               "162",
-              "163",
-              "164",
-              "165",
               "174"
             ],
-            "covered": 56
+            "covered": 68
           },
           "development_tools\\shared\\constants.py": {
             "statements": 107,
-            "missed": 24,
-            "coverage": 78,
+            "missed": 18,
+            "coverage": 83,
             "missing_lines": [
               "19",
               "21",
@@ -35291,22 +35347,16 @@
               "52",
               "53",
               "54",
-              "61",
-              "68",
-              "75",
-              "231",
-              "239",
               "259",
               "261",
               "262",
               "264",
               "266",
               "267",
-              "280",
               "293",
               "296"
             ],
-            "covered": 83
+            "covered": 89
           },
           "development_tools\\shared\\exclusion_utilities.py": {
             "statements": 52,
@@ -36912,8 +36962,8 @@
           },
           "development_tools\\shared\\service\\data_loading.py": {
             "statements": 844,
-            "missed": 678,
-            "coverage": 20,
+            "missed": 680,
+            "coverage": 19,
             "missing_lines": [
               "54",
               "55",
@@ -36962,6 +37012,8 @@
               "241",
               "242",
               "243",
+              "248",
+              "249",
               "250",
               "251",
               "252",
@@ -37594,12 +37646,12 @@
               "1216",
               "1219"
             ],
-            "covered": 166
+            "covered": 164
           },
           "development_tools\\shared\\service\\report_generation.py": {
             "statements": 2983,
-            "missed": 1824,
-            "coverage": 39,
+            "missed": 1922,
+            "coverage": 36,
             "missing_lines": [
               "30",
               "32",
@@ -37637,8 +37689,12 @@
               "116",
               "117",
               "127",
+              "132",
               "133",
               "134",
+              "135",
+              "136",
+              "137",
               "139",
               "140",
               "152",
@@ -37703,6 +37759,7 @@
               "303",
               "304",
               "305",
+              "310",
               "326",
               "328",
               "329",
@@ -37745,6 +37802,7 @@
               "419",
               "420",
               "421",
+              "428",
               "433",
               "434",
               "436",
@@ -37768,6 +37826,9 @@
               "475",
               "476",
               "477",
+              "486",
+              "487",
+              "488",
               "489",
               "490",
               "491",
@@ -37781,6 +37842,7 @@
               "517",
               "518",
               "519",
+              "526",
               "530",
               "531",
               "532",
@@ -37823,6 +37885,7 @@
               "735",
               "736",
               "738",
+              "744",
               "749",
               "750",
               "751",
@@ -38024,10 +38087,15 @@
               "1070",
               "1071",
               "1073",
+              "1085",
+              "1086",
+              "1087",
               "1091",
               "1094",
               "1095",
               "1097",
+              "1100",
+              "1101",
               "1103",
               "1104",
               "1105",
@@ -38041,10 +38109,39 @@
               "1114",
               "1116",
               "1118",
+              "1120",
+              "1126",
+              "1127",
+              "1128",
+              "1131",
+              "1132",
+              "1133",
+              "1136",
+              "1137",
               "1138",
+              "1141",
+              "1142",
+              "1143",
+              "1144",
+              "1145",
+              "1146",
+              "1147",
+              "1148",
               "1149",
               "1150",
+              "1152",
+              "1156",
               "1157",
+              "1159",
+              "1160",
+              "1161",
+              "1162",
+              "1164",
+              "1165",
+              "1166",
+              "1167",
+              "1168",
+              "1169",
               "1179",
               "1180",
               "1181",
@@ -38095,8 +38192,12 @@
               "1269",
               "1270",
               "1271",
+              "1283",
               "1284",
               "1285",
+              "1286",
+              "1287",
+              "1288",
               "1290",
               "1291",
               "1299",
@@ -38546,6 +38647,8 @@
               "2389",
               "2392",
               "2395",
+              "2402",
+              "2403",
               "2404",
               "2409",
               "2410",
@@ -38558,6 +38661,10 @@
               "2419",
               "2420",
               "2421",
+              "2424",
+              "2427",
+              "2430",
+              "2433",
               "2455",
               "2456",
               "2457",
@@ -38631,6 +38738,13 @@
               "2627",
               "2628",
               "2631",
+              "2639",
+              "2640",
+              "2641",
+              "2643",
+              "2644",
+              "2645",
+              "2646",
               "2647",
               "2648",
               "2649",
@@ -38646,8 +38760,12 @@
               "2690",
               "2691",
               "2692",
+              "2703",
               "2704",
               "2705",
+              "2706",
+              "2707",
+              "2708",
               "2710",
               "2711",
               "2720",
@@ -38705,6 +38823,7 @@
               "2923",
               "2924",
               "2925",
+              "2930",
               "2935",
               "2936",
               "2938",
@@ -39262,6 +39381,7 @@
               "3971",
               "3972",
               "3973",
+              "3980",
               "3981",
               "3988",
               "3989",
@@ -39270,6 +39390,7 @@
               "4008",
               "4010",
               "4013",
+              "4017",
               "4024",
               "4036",
               "4037",
@@ -39309,10 +39430,15 @@
               "4094",
               "4095",
               "4096",
+              "4108",
+              "4109",
+              "4110",
               "4114",
               "4117",
               "4118",
               "4120",
+              "4123",
+              "4124",
               "4126",
               "4127",
               "4128",
@@ -39326,6 +39452,7 @@
               "4137",
               "4139",
               "4141",
+              "4143",
               "4148",
               "4149",
               "4150",
@@ -39352,6 +39479,7 @@
               "4174",
               "4176",
               "4177",
+              "4186",
               "4194",
               "4195",
               "4196",
@@ -39364,12 +39492,34 @@
               "4204",
               "4205",
               "4206",
+              "4211",
               "4213",
               "4214",
+              "4217",
+              "4218",
+              "4221",
+              "4222",
+              "4223",
+              "4226",
+              "4227",
               "4228",
+              "4233",
+              "4234",
+              "4235",
+              "4236",
+              "4237",
+              "4238",
+              "4239",
+              "4240",
+              "4241",
               "4242",
               "4243",
               "4244",
+              "4247",
+              "4248",
+              "4249",
+              "4250",
+              "4251",
               "4265",
               "4266",
               "4276",
@@ -39426,7 +39576,7 @@
               "4359",
               "4360"
             ],
-            "covered": 1159
+            "covered": 1061
           },
           "development_tools\\shared\\service\\tool_wrappers.py": {
             "statements": 828,
@@ -40166,11 +40316,17 @@
           },
           "development_tools\\shared\\service\\utilities.py": {
             "statements": 363,
-            "missed": 193,
-            "coverage": 47,
+            "missed": 210,
+            "coverage": 42,
             "missing_lines": [
+              "18",
+              "20",
               "21",
+              "23",
               "24",
+              "26",
+              "27",
+              "28",
               "35",
               "36",
               "41",
@@ -40197,6 +40353,7 @@
               "92",
               "93",
               "94",
+              "103",
               "111",
               "115",
               "121",
@@ -40242,6 +40399,10 @@
               "210",
               "214",
               "223",
+              "230",
+              "231",
+              "232",
+              "233",
               "235",
               "240",
               "241",
@@ -40286,8 +40447,12 @@
               "285",
               "286",
               "293",
+              "308",
+              "309",
               "310",
+              "311",
               "312",
+              "313",
               "314",
               "319",
               "320",
@@ -40322,6 +40487,8 @@
               "371",
               "372",
               "373",
+              "376",
+              "377",
               "379",
               "381",
               "392",
@@ -40363,12 +40530,12 @@
               "459",
               "460"
             ],
-            "covered": 170
+            "covered": 153
           },
           "development_tools\\shared\\standard_exclusions.py": {
             "statements": 114,
-            "missed": 25,
-            "coverage": 78,
+            "missed": 21,
+            "coverage": 82,
             "missing_lines": [
               "28",
               "30",
@@ -40390,13 +40557,9 @@
               "136",
               "210",
               "273",
-              "277",
-              "294",
-              "330",
-              "361",
-              "369"
+              "277"
             ],
-            "covered": 89
+            "covered": 93
           },
           "development_tools\\shared\\tool_guide.py": {
             "statements": 131,
@@ -41894,7 +42057,7 @@
         "output_file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_tools\\tests\\jsons\\coverage_dev_tools.json",
         "html_dir": null
       },
-      "timestamp": "2026-01-04T17:46:14.705556"
+      "timestamp": "2026-01-05T00:09:07.127632"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -41949,12 +42112,15 @@
             },
             {
               "file": "core/checkin_dynamic_manager.py",
-              "local_imports": 3,
+              "local_imports": 6,
               "third_party_imports": 0,
               "modules": [
                 "core.logger",
                 "core.error_handling",
-                "core.file_operations"
+                "core.file_operations",
+                "core.user_data_handlers",
+                "core.user_data_handlers",
+                "core.user_data_handlers"
               ]
             },
             {
@@ -43269,7 +43435,7 @@
             },
             {
               "file": "ui/widgets/checkin_settings_widget.py",
-              "local_imports": 9,
+              "local_imports": 10,
               "third_party_imports": 2,
               "modules": [
                 "ui.generated.checkin_settings_widget_pyqt",
@@ -43278,6 +43444,7 @@
                 "core.error_handling",
                 "core.logger",
                 "ui.widgets.period_row_widget",
+                "core.checkin_dynamic_manager",
                 "core.checkin_dynamic_manager",
                 "core.checkin_dynamic_manager",
                 "core.checkin_dynamic_manager"
@@ -43971,6 +44138,18 @@
                 "core.user_data_handlers",
                 "core.config",
                 "core.config"
+              ]
+            },
+            {
+              "file": "core/checkin_dynamic_manager.py",
+              "import_count": 6,
+              "modules": [
+                "core.logger",
+                "core.error_handling",
+                "core.file_operations",
+                "core.user_data_handlers",
+                "core.user_data_handlers",
+                "core.user_data_handlers"
               ]
             },
             {
@@ -44744,7 +44923,7 @@
             },
             {
               "file": "ui/widgets/checkin_settings_widget.py",
-              "import_count": 9,
+              "import_count": 10,
               "modules": [
                 "ui.generated.checkin_settings_widget_pyqt",
                 "core.ui_management",
@@ -44752,6 +44931,7 @@
                 "core.error_handling",
                 "core.logger",
                 "ui.widgets.period_row_widget",
+                "core.checkin_dynamic_manager",
                 "core.checkin_dynamic_manager",
                 "core.checkin_dynamic_manager",
                 "core.checkin_dynamic_manager"
@@ -44856,27 +45036,30 @@
           ]
         }
       },
-      "timestamp": "2026-01-04T17:41:06.359642"
+      "timestamp": "2026-01-05T00:03:09.580233"
     },
     "analyze_module_dependencies": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 0,
+          "total_issues": 2,
           "files_affected": 0
         },
         "details": {
-          "files_scanned": 107,
-          "total_imports": 1466,
+          "files_scanned": 108,
+          "total_imports": 1476,
           "documented_dependencies": 366,
-          "standard_library": 431,
+          "standard_library": 436,
           "third_party": 218,
-          "local_imports": 817,
+          "local_imports": 822,
+          "missing_dependencies": 1,
           "missing_files": [],
-          "missing_sections": []
+          "missing_sections": [
+            "create_backup.py"
+          ]
         }
       },
-      "timestamp": "2026-01-04T17:41:10.168722"
+      "timestamp": "2026-01-05T00:03:14.745952"
     },
     "analyze_module_imports": {
       "success": true,
@@ -45179,6 +45362,14 @@
                     "List",
                     "Optional"
                   ]
+                },
+                {
+                  "module": "datetime",
+                  "as_name": null,
+                  "imported_items": [
+                    "datetime",
+                    "timedelta"
+                  ]
                 }
               ],
               "third_party": [],
@@ -45213,7 +45404,7 @@
                 }
               ]
             },
-            "total_imports": 7
+            "total_imports": 8
           },
           "core/checkin_dynamic_manager.py": {
             "imports": {
@@ -45241,6 +45432,20 @@
                   "imported_items": [
                     "Path"
                   ]
+                },
+                {
+                  "module": "re",
+                  "as_name": null,
+                  "imported_items": [
+                    "re"
+                  ]
+                },
+                {
+                  "module": "re",
+                  "as_name": null,
+                  "imported_items": [
+                    "re"
+                  ]
                 }
               ],
               "third_party": [],
@@ -45265,10 +45470,33 @@
                   "imported_items": [
                     "load_json_data"
                   ]
+                },
+                {
+                  "module": "core.user_data_handlers",
+                  "as_name": null,
+                  "imported_items": [
+                    "get_user_data"
+                  ]
+                },
+                {
+                  "module": "core.user_data_handlers",
+                  "as_name": null,
+                  "imported_items": [
+                    "get_user_data",
+                    "update_user_preferences"
+                  ]
+                },
+                {
+                  "module": "core.user_data_handlers",
+                  "as_name": null,
+                  "imported_items": [
+                    "get_user_data",
+                    "update_user_preferences"
+                  ]
                 }
               ]
             },
-            "total_imports": 6
+            "total_imports": 11
           },
           "core/config.py": {
             "imports": {
@@ -51067,6 +51295,13 @@
                   ]
                 },
                 {
+                  "module": "typing",
+                  "as_name": null,
+                  "imported_items": [
+                    "Optional"
+                  ]
+                },
+                {
                   "module": "datetime",
                   "as_name": null,
                   "imported_items": [
@@ -51292,7 +51527,7 @@
                 }
               ]
             },
-            "total_imports": 35
+            "total_imports": 36
           },
           "communication/message_processing/interaction_manager.py": {
             "imports": {
@@ -55092,7 +55327,15 @@
           },
           "ui/widgets/checkin_settings_widget.py": {
             "imports": {
-              "standard_library": [],
+              "standard_library": [
+                {
+                  "module": "re",
+                  "as_name": null,
+                  "imported_items": [
+                    "re"
+                  ]
+                }
+              ],
               "third_party": [
                 {
                   "module": "PySide6.QtWidgets",
@@ -55107,7 +55350,14 @@
                   "as_name": null,
                   "imported_items": [
                     "QInputDialog",
-                    "QMessageBox"
+                    "QMessageBox",
+                    "QDialog",
+                    "QVBoxLayout",
+                    "QLabel",
+                    "QLineEdit",
+                    "QComboBox",
+                    "QPushButton",
+                    "QDialogButtonBox"
                   ]
                 }
               ],
@@ -55176,10 +55426,17 @@
                   "imported_items": [
                     "dynamic_checkin_manager"
                   ]
+                },
+                {
+                  "module": "core.checkin_dynamic_manager",
+                  "as_name": null,
+                  "imported_items": [
+                    "dynamic_checkin_manager"
+                  ]
                 }
               ]
             },
-            "total_imports": 11
+            "total_imports": 13
           },
           "ui/widgets/dynamic_list_container.py": {
             "imports": {
@@ -56658,6 +56915,22 @@
             },
             "total_imports": 6
           },
+          "create_backup.py": {
+            "imports": {
+              "standard_library": [],
+              "third_party": [],
+              "local": [
+                {
+                  "module": "core.backup_manager",
+                  "as_name": null,
+                  "imported_items": [
+                    "BackupManager"
+                  ]
+                }
+              ]
+            },
+            "total_imports": 1
+          },
           "run_headless_service.py": {
             "imports": {
               "standard_library": [
@@ -56939,14 +57212,14 @@
           }
         }
       },
-      "timestamp": "2026-01-04T17:41:00.519087"
+      "timestamp": "2026-01-05T00:03:01.652438"
     },
     "analyze_unused_imports": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 357,
-          "files_affected": 125,
+          "total_issues": 356,
+          "files_affected": 124,
           "status": "CRITICAL"
         },
         "files": {
@@ -57047,8 +57320,6 @@
           "tests/development_tools/test_analyze_heading_numbering.py": 2,
           "tests/development_tools/test_analyze_missing_addresses.py": 4,
           "tests/development_tools/test_analyze_unconverted_links.py": 2,
-          "tests/development_tools/test_audit_status_updates.py": 1,
-          "tests/development_tools/test_audit_tier_comprehensive.py": 1,
           "tests/development_tools/test_audit_tier_e2e_verification.py": 1,
           "tests/development_tools/test_documentation_sync_checker.py": 1,
           "tests/development_tools/test_error_scenarios.py": 1,
@@ -57057,7 +57328,6 @@
           "tests/development_tools/test_fix_documentation_ascii.py": 2,
           "tests/development_tools/test_fix_documentation_headings.py": 1,
           "tests/development_tools/test_fix_documentation_links.py": 1,
-          "tests/development_tools/test_fix_project_cleanup.py": 2,
           "tests/development_tools/test_generate_consolidated_report.py": 1,
           "tests/development_tools/test_generate_directory_tree.py": 2,
           "tests/development_tools/test_generate_function_registry.py": 1,
@@ -57073,6 +57343,8 @@
           "tests/ui/test_dialogs.py": 1,
           "tests/unit/test_file_locking.py": 1,
           "tests/unit/test_scripts_exclusion_policy.py": 1,
+          "tests/development_tools/test_audit_tier_comprehensive.py": 1,
+          "tests/development_tools/test_fix_project_cleanup.py": 2,
           "communication/core/channel_orchestrator.py": 1,
           "communication/core/factory.py": 2
         },
@@ -58889,20 +59161,6 @@
                 "symbol": "unused-import"
               },
               {
-                "file": "tests/development_tools/test_audit_status_updates.py",
-                "line": 14,
-                "column": 0,
-                "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
-                "symbol": "unused-import"
-              },
-              {
-                "file": "tests/development_tools/test_audit_tier_comprehensive.py",
-                "line": 85,
-                "column": 0,
-                "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
-                "symbol": "unused-import"
-              },
-              {
                 "file": "tests/development_tools/test_audit_tier_e2e_verification.py",
                 "line": 45,
                 "column": 0,
@@ -59003,20 +59261,6 @@
               {
                 "file": "tests/development_tools/test_fix_documentation_links.py",
                 "line": 11,
-                "column": 0,
-                "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
-                "symbol": "unused-import"
-              },
-              {
-                "file": "tests/development_tools/test_fix_project_cleanup.py",
-                "line": 9,
-                "column": 0,
-                "message": "Unused import tempfile",
-                "symbol": "unused-import"
-              },
-              {
-                "file": "tests/development_tools/test_fix_project_cleanup.py",
-                "line": 13,
                 "column": 0,
                 "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
                 "symbol": "unused-import"
@@ -59566,6 +59810,27 @@
                 "column": 0,
                 "message": "Unused Path imported from pathlib",
                 "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_audit_tier_comprehensive.py",
+                "line": 85,
+                "column": 0,
+                "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_fix_project_cleanup.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused import tempfile",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_fix_project_cleanup.py",
+                "line": 13,
+                "column": 0,
+                "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
               }
             ],
             "production_test_mocking": [
@@ -59594,10 +59859,10 @@
             "ui_imports": []
           },
           "stats": {
-            "files_scanned": 398,
-            "files_with_issues": 125,
-            "total_unused": 357,
-            "cache_hits": 398,
+            "files_scanned": 400,
+            "files_with_issues": 124,
+            "total_unused": 356,
+            "cache_hits": 396,
             "cache_misses": 0
           },
           "by_category": {
@@ -59608,14 +59873,14 @@
             "star_imports": 0,
             "test_mocking": 145,
             "qt_testing": 54,
-            "test_infrastructure": 154,
+            "test_infrastructure": 153,
             "production_test_mocking": 3,
             "ui_imports": 0
           },
-          "files_scanned": 398
+          "files_scanned": 400
         }
       },
-      "timestamp": "2026-01-04T17:41:10.230499"
+      "timestamp": "2026-01-05T00:03:24.804994"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -59747,39 +60012,39 @@
               ],
               [
                 "tests\\development_tools\\test_audit_status_updates.py",
-                "\"\"\"\nTests for audit status file updates.\n\nVerifies that AI_STATUS.md and AI_PRIORITIES.md are only written\nonce at the end of audit execution, not during tool execution.\n\"\"\"\n\nimport os\nimport time\nimport pytest\nfrom pathlib import Path\nfrom unittest.mock import patch, MagicMock\n\nfrom tests.development_tools.conftest import load_development_tools_module, temp_project_copy\n\n# Load the service module\nservice_module = load_development_tools_module(\"shared.service\")\nAIToolsService = service_module.AIToolsService\n\n\nclass TestAuditStatusUpdates:\n    \"\"\"Test that status files only update at end of audit.\"\"\"\n    \n    @pytest.mark.unit\n    @pytest.mark.regression\n    def test_status_files_not_updated_during_audit(self, temp_project_copy, monkeypatch):\n        \"\"\"Test that AI_STATUS and AI_PRIORITIES do not update during audit execution.\n        \n        Note: This test uses temp_project_copy for isolation. The test verifies that\n        status files are only written at the end of audit execution, not during tool runs.\n        \"\"\"\n        # Create temporary status files\n        dev_tools_dir = temp_project_copy / \"development_tools\"\n        dev_tools_dir.mkdir(exist_ok=True)\n        \n        status_file = dev_tools_dir / \"AI_STATUS.md\"\n        priorities_file = dev_tools_dir / \"AI_PRIORITIES.md\"\n        \n        # Create initial files with old content\n        status_file.write_text(\"# Old Status\\n\")\n        priorities_file.write_text(\"# Old Priorities\\n\")\n        \n        # Get initial modification times\n        initial_status_mtime = os.path.getmtime(status_file)\n        initial_priorities_mtime = os.path.getmtime(priorities_file)\n        \n        # Track calls to create_output_file\n        create_output_file_calls = []\n        \n        def track_create_output_file(file_path, content, rotate=True, max_versions=None):\n            \"\"\"Track calls to create_output_file.\"\"\"\n            create_output_file_calls.append((str(file_path), time.time()))\n            # Actually create the file to simulate real behavior\n            file_path_obj = Path(file_path)\n            file_path_obj.parent.mkdir(parents=True, exist_ok=True)\n            file_path_obj.write_text(content)\n            return file_path_obj\n        \n        # Create service instance\n        service = AIToolsService(project_root=str(temp_project_copy))\n        \n        # Mock the tool execution methods to avoid actually running tools\n        def mock_run_tool(*args, **kwargs):\n            \"\"\"Mock tool execution that doesn't write status files.\"\"\"\n            return {'success': True, 'output': '{}', 'data': {}}\n        \n        # Patch tool execution methods\n        service.run_analyze_functions = MagicMock(side_effect=mock_run_tool)\n        service.run_analyze_documentation_sync = MagicMock(side_effect=mock_run_tool)\n        service.run_analyze_system_signals = MagicMock(side_effect=mock_run_tool)\n        # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility\n        service.run_system_signals = MagicMock(side_effect=mock_run_tool)\n        service.run_analyze_documentation = MagicMock(side_effect=mock_run_tool)\n        service.run_analyze_error_handling = MagicMock(side_effect=mock_run_tool)\n        service.run_decision_support = MagicMock(side_effect=mock_run_tool)\n        service.run_analyze_config = MagicMock(side_effect=mock_run_tool)\n        service.run_analyze_ai_work = MagicMock(side_effect=mock_run_tool)\n        service.run_analyze_function_registry = MagicMock(side_effect=mock_run_tool)\n        service.run_analyze_module_dependencies = MagicMock(side_effect=mock_run_tool)\n        \n        # Patch create_output_file to track calls\n        file_rotation_module = load_development_tools_module(\"shared.file_rotation\")\n        monkeypatch.setattr(file_rotation_module, \"create_output_file\", track_create_output_file)\n        \n        # Run quick audit (Tier 1)\n        with patch('time.sleep'):  # Speed up test\n            service.run_audit(quick=True)\n        \n        # Verify status files were written at the end\n        # Check for both relative and absolute paths\n        # Note: During parallel execution, files may be written multiple times due to timing,\n        # but the key assertion is that files exist and have content\n        status_writes = [c for c in create_output_file_calls if 'AI_STATUS.md' in c[0] or 'AI_STATUS' in c[0]]\n        priorities_writes = [c for c in create_output_file_calls if 'AI_PRIORITIES.md' in c[0] or 'AI_PRIORITIES' in c[0]]\n        \n        # If no writes tracked, check if files were actually created (may have been written directly)\n        # Wait a moment for file system to sync (important for parallel execution)\n        if len(status_writes) == 0 or len(priorities_writes) == 0:\n            time.sleep(0.1)\n            if status_file.exists() and priorities_file.exists():\n                # Files were created, which is the important part\n                if len(status_writes) == 0:\n                    status_writes = [('status_file_created', time.time())]\n                if len(priorities_writes) == 0:\n                    priorities_writes = [('priorities_file_created', time.time())]\n        \n        # The key assertion is that files exist and have content, not exact write count\n        # (write count may vary in parallel execution due to timing)\n        assert len(status_writes) >= 1 or status_file.exists(), \\\n            f\"Expected AI_STATUS.md to be written or exist. Writes: {len(status_writes)}, Exists: {status_file.exists()}. Calls: {create_output_file_calls}\"\n        assert len(priorities_writes) >= 1 or priorities_file.exists(), \\\n            f\"Expected AI_PRIORITIES.md to be written or exist. Writes: {len(priorities_writes)}, Exists: {priorities_file.exists()}. Calls: {create_output_file_calls}\"\n        \n        # Verify files exist and have new content\n        assert status_file.exists(), \"AI_STATUS.md should exist\"\n        assert priorities_file.exists(), \"AI_PRIORITIES.md should exist\"\n        \n        # Verify files have content (more reliable than mtime on fast systems)\n        status_content = status_file.read_text()\n        priorities_content = priorities_file.read_text()\n        \n        assert len(status_content) > 0, \"AI_STATUS.md should have content\"\n        assert len(priorities_content) > 0, \"AI_PRIORITIES.md should have content\"\n        \n        # Verify modification times changed (files were written) - allow for same-second writes\n        final_status_mtime = os.path.getmtime(status_file)\n        final_priorities_mtime = os.path.getmtime(priorities_file)\n        \n        # Files should exist and have content (mtime may be same if written in same second)\n        assert final_status_mtime >= initial_status_mtime, \"AI_STATUS.md should have been updated\"\n        assert final_priorities_mtime >= initial_priorities_mtime, \"AI_PRIORITIES.md should have been updated\"\n    \n    @pytest.mark.unit\n    @pytest.mark.regression\n    def test_complexity_numbers_consistent(self, temp_project_copy, monkeypatch):\n        \"\"\"Verify complexity metrics remain stable throughout audit.\"\"\"\n        # Create service instance\n        service = AIToolsService(project_root=str(temp_project_copy))\n        \n        # Track complexity metrics during audit\n        complexity_metrics = []\n        \n        def mock_analyze_functions(*args, **kwargs):\n            \"\"\"Mock analyze_functions that returns consistent complexity metrics.\"\"\"\n            return {\n                'success': True,\n                'output': '{}',\n                'data': {\n                    'total_functions': 100,\n                    'high_complexity': 10,\n                    'medium_complexity': 20,\n                    'low_complexity': 70\n                }\n            }\n        \n        # Mock all tools\n        service.run_analyze_functions = MagicMock(side_effect=mock_analyze_functions)\n        service.run_analyze_documentation_sync = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        service.run_analyze_system_signals = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility\n        service.run_system_signals = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        \n        # Mock data loading to return the mock function data\n        def mock_load_tool_data(tool_name, domain=None, log_source=True):\n            if tool_name == 'analyze_functions':\n                return {\n                    'total_functions': 100,\n                    'high_complexity': 10,\n                    'medium_complexity': 20,\n                    'low_complexity': 70,\n                    'moderate_complexity': 20,\n                    'critical_complexity': 0\n                }\n            return {}\n        \n        service._load_tool_data = MagicMock(side_effect=mock_load_tool_data)\n        \n        # Patch _generate_ai_status_document to capture complexity metrics\n        original_generate = service._generate_ai_status_document\n\n        def capture_complexity():\n            \"\"\"Capture complexity metrics when status is generated.\"\"\"\n            try:\n                result = original_generate()\n            except Exception as e:\n                # If original fails, return minimal valid status document\n                result = \"# AI Status\\n\\nTotal functions: 100\\nHigh complexity: 10\"\n            # Extract complexity numbers from status document\n            # Check for function-related content (numbers may be formatted differently)\n            import re\n            # Look for function counts and complexity mentions\n            function_match = re.search(r'(\\d+)\\s*(?:total\\s*)?functions?', result, re.IGNORECASE)\n            complexity_match = re.search(r'(\\d+)\\s*(?:high|critical)\\s*complexity', result, re.IGNORECASE)\n            if function_match and complexity_match:\n                total = function_match.group(1)\n                high = complexity_match.group(1)\n                complexity_metrics.append((total, high))\n            # Also check for simple number presence as fallback\n            elif '100' in result or '10' in result or 'function' in result.lower():\n                # At least verify status was generated with some content\n                complexity_metrics.append(('captured', 'status_generated'))\n            return result\n\n        service._generate_ai_status_document = capture_complexity\n        \n        # Run quick audit\n        with patch('time.sleep'):\n            service.run_audit(quick=True)\n        \n        # Verify complexity metrics were captured (status was generated)\n        assert len(complexity_metrics) > 0, f\"Complexity metrics should be captured. Status document may not contain expected format. Captured: {complexity_metrics}\"\n        \n        # Verify all captured metrics are the same (no mid-audit changes)\n        # Only check consistency if we have actual numeric metrics (not just 'captured' marker)\n        numeric_metrics = [m for m in complexity_metrics if m[0] != 'captured']\n        if len(numeric_metrics) > 1:\n            first_metrics = numeric_metrics[0]\n            for metrics in numeric_metrics[1:]:\n                assert metrics == first_metrics, f\"Complexity metrics should remain consistent. First: {first_metrics}, Found: {metrics}\"\n    \n    @pytest.mark.unit\n    @pytest.mark.regression\n    def test_doc_sync_status_stable(self, temp_project_copy, monkeypatch):\n        \"\"\"Confirm doc sync status doesn't flip between FAIL/GOOD during audit.\"\"\"\n        # Create service instance\n        service = AIToolsService(project_root=str(temp_project_copy))\n        \n        # Track doc sync status during audit\n        doc_sync_statuses = []\n        \n        def mock_doc_sync(*args, **kwargs):\n            \"\"\"Mock doc sync that returns consistent status.\"\"\"\n            return {\n                'success': True,\n                'output': '{}',\n                'data': {\n                    'status': 'GOOD',\n                    'total_pairs': 10,\n                    'synced_pairs': 10,\n                    'unsynced_pairs': 0\n                }\n            }\n        \n        service.run_analyze_functions = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        service.run_analyze_documentation_sync = MagicMock(side_effect=mock_doc_sync)\n        service.run_analyze_system_signals = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility\n        service.run_system_signals = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        \n        # Patch _generate_ai_status_document to capture doc sync status\n        original_generate = service._generate_ai_status_document\n\n        def capture_doc_sync():\n            \"\"\"Capture doc sync status when status is generated.\"\"\"\n            try:\n                result = original_generate()\n            except Exception:\n                # If original fails, return minimal valid status document\n                result = \"# AI Status\\n\\nDoc sync: GOOD\"\n            # Extract doc sync status from status document\n            if 'GOOD' in result:\n                doc_sync_statuses.append('GOOD')\n            elif 'FAIL' in result:\n                doc_sync_statuses.append('FAIL')\n            return result\n\n        service._generate_ai_status_document = capture_doc_sync\n        \n        # Run quick audit\n        with patch('time.sleep'):\n            service.run_audit(quick=True)\n        \n        # Verify doc sync status was captured\n        assert len(doc_sync_statuses) > 0, \"Doc sync status should be captured\"\n        \n        # Verify status doesn't flip (all should be the same)\n        if len(doc_sync_statuses) > 1:\n            first_status = doc_sync_statuses[0]\n            for status in doc_sync_statuses[1:]:\n                assert status == first_status, f\"Doc sync status should remain stable, got {doc_sync_statuses}\"\n    \n    @pytest.mark.integration\n    @pytest.mark.regression\n    def test_full_audit_status_reflects_final_results(self, temp_project_copy, monkeypatch):\n        \"\"\"Test with full audit to ensure status files reflect final audit results.\"\"\"\n        # Create service instance\n        service = AIToolsService(project_root=str(temp_project_copy))\n        \n        # Create mock results that should appear in final status\n        mock_results = {\n            'analyze_functions': {'total_functions': 150, 'high_complexity': 15},\n            'analyze_documentation_sync': {'status': 'GOOD', 'total_pairs': 20},\n            'analyze_system_signals': {'overall_status': 'OK'},  # Use new name\n            'system_signals': {'overall_status': 'OK'}  # Legacy name for compatibility\n        }\n        \n        def mock_tool(tool_name):\n            \"\"\"Create mock tool function.\"\"\"\n            def tool_func(*args, **kwargs):\n                return {\n                    'success': True,\n                    'output': '{}',\n                    'data': mock_results.get(tool_name, {})\n                }\n            return tool_func\n        \n        # Mock all tools with specific results\n        # Create wrapper functions that store results in cache\n        def mock_with_cache(tool_name):\n            \"\"\"Create mock tool that stores result in cache.\"\"\"\n            def tool_func(*args, **kwargs):\n                result = mock_tool(tool_name)(*args, **kwargs)\n                # Store in results_cache so status generation can access it\n                if not hasattr(service, 'results_cache'):\n                    service.results_cache = {}\n                if isinstance(result, dict) and 'data' in result:\n                    service.results_cache[tool_name] = result['data']\n                # Track that this tool was run\n                if not hasattr(service, '_tools_run_in_current_tier'):\n                    service._tools_run_in_current_tier = set()\n                service._tools_run_in_current_tier.add(tool_name)\n                return result\n            return tool_func\n        \n        service.run_analyze_functions = MagicMock(side_effect=mock_with_cache('analyze_functions'))\n        service.run_analyze_documentation_sync = MagicMock(side_effect=mock_with_cache('analyze_documentation_sync'))\n        # Use analyze_system_signals (renamed from system_signals)\n        service.run_analyze_system_signals = MagicMock(side_effect=mock_with_cache('analyze_system_signals'))\n        # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility\n        service.run_system_signals = MagicMock(side_effect=mock_with_cache('system_signals'))\n        service.run_analyze_documentation = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        service.run_analyze_error_handling = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        service.run_decision_support = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        service.run_analyze_config = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        service.run_analyze_ai_work = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        service.run_analyze_function_registry = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        service.run_analyze_module_dependencies = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        \n        # CRITICAL: Mock ALL Tier 1 and Tier 2 tools that could be called\n        # These were missing and causing real tools to run, leading to memory leaks\n        # Tier 1 tools\n        service.run_quick_status = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        service.run_analyze_function_patterns = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        service.run_validate = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        # Tier 2 tools\n        service.run_analyze_package_exports = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        service.run_unused_imports = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        service.run_analyze_module_imports = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        service.run_analyze_dependency_patterns = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        service.run_generate_unused_imports_report = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        # run_script is used for analyze_config and quick_status\n        service.run_script = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        \n        # Run standard audit (Tier 2)\n        with patch('time.sleep'):\n            service.run_audit(quick=False, full=False)\n        \n        # Verify status files were created\n        status_file = temp_project_copy / \"development_tools\" / \"AI_STATUS.md\"\n        priorities_file = temp_project_copy / \"development_tools\" / \"AI_PRIORITIES.md\"\n        \n        assert status_file.exists(), \"AI_STATUS.md should exist after audit\"\n        assert priorities_file.exists(), \"AI_PRIORITIES.md should exist after audit\"\n        \n        # Verify status file contains final results\n        status_content = status_file.read_text()\n        # Check that mock results appear in status (may be formatted differently)\n        # At minimum, verify file has substantial content\n        assert len(status_content) > 100, \"Status file should contain substantial content\"\n        \n        # Verify priorities file exists and has content\n        priorities_content = priorities_file.read_text()\n        assert len(priorities_content) > 50, \"Priorities file should contain content\"\n\n",
+                "# \"\"\"\n# Tests for audit status file updates.\n\n# Verifies that AI_STATUS.md and AI_PRIORITIES.md are only written\n# once at the end of audit execution, not during tool execution.\n# \"\"\"\n\n# import os\n# import time\n# import pytest\n# from pathlib import Path\n# from unittest.mock import patch, MagicMock\n\n# from tests.development_tools.conftest import load_development_tools_module, temp_project_copy\n\n# # Load the service module\n# service_module = load_development_tools_module(\"shared.service\")\n# AIToolsService = service_module.AIToolsService\n\n\n# class TestAuditStatusUpdates:\n#     \"\"\"Test that status files only update at end of audit.\"\"\"\n    \n#     @pytest.mark.unit\n#     @pytest.mark.regression\n#     def test_status_files_not_updated_during_audit(self, temp_project_copy, monkeypatch):\n#         \"\"\"Test that AI_STATUS and AI_PRIORITIES do not update during audit execution.\n        \n#         Note: This test uses temp_project_copy for isolation. The test verifies that\n#         status files are only written at the end of audit execution, not during tool runs.\n#         \"\"\"\n#         # Create temporary status files\n#         dev_tools_dir = temp_project_copy / \"development_tools\"\n#         dev_tools_dir.mkdir(exist_ok=True)\n        \n#         status_file = dev_tools_dir / \"AI_STATUS.md\"\n#         priorities_file = dev_tools_dir / \"AI_PRIORITIES.md\"\n        \n#         # Create initial files with old content\n#         status_file.write_text(\"# Old Status\\n\")\n#         priorities_file.write_text(\"# Old Priorities\\n\")\n        \n#         # Get initial modification times\n#         initial_status_mtime = os.path.getmtime(status_file)\n#         initial_priorities_mtime = os.path.getmtime(priorities_file)\n        \n#         # Track calls to create_output_file\n#         create_output_file_calls = []\n        \n#         def track_create_output_file(file_path, content, rotate=True, max_versions=None):\n#             \"\"\"Track calls to create_output_file.\"\"\"\n#             create_output_file_calls.append((str(file_path), time.time()))\n#             # Actually create the file to simulate real behavior\n#             file_path_obj = Path(file_path)\n#             file_path_obj.parent.mkdir(parents=True, exist_ok=True)\n#             file_path_obj.write_text(content)\n#             return file_path_obj\n        \n#         # Create service instance\n#         service = AIToolsService(project_root=str(temp_project_copy))\n        \n#         # Mock the tool execution methods to avoid actually running tools\n#         def mock_run_tool(*args, **kwargs):\n#             \"\"\"Mock tool execution that doesn't write status files.\"\"\"\n#             return {'success': True, 'output': '{}', 'data': {}}\n        \n#         # Patch tool execution methods\n#         service.run_analyze_functions = MagicMock(side_effect=mock_run_tool)\n#         service.run_analyze_documentation_sync = MagicMock(side_effect=mock_run_tool)\n#         service.run_analyze_system_signals = MagicMock(side_effect=mock_run_tool)\n#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility\n#         service.run_system_signals = MagicMock(side_effect=mock_run_tool)\n#         service.run_analyze_documentation = MagicMock(side_effect=mock_run_tool)\n#         service.run_analyze_error_handling = MagicMock(side_effect=mock_run_tool)\n#         service.run_decision_support = MagicMock(side_effect=mock_run_tool)\n#         service.run_analyze_config = MagicMock(side_effect=mock_run_tool)\n#         service.run_analyze_ai_work = MagicMock(side_effect=mock_run_tool)\n#         service.run_analyze_function_registry = MagicMock(side_effect=mock_run_tool)\n#         service.run_analyze_module_dependencies = MagicMock(side_effect=mock_run_tool)\n        \n#         # Patch create_output_file to track calls\n#         file_rotation_module = load_development_tools_module(\"shared.file_rotation\")\n#         monkeypatch.setattr(file_rotation_module, \"create_output_file\", track_create_output_file)\n        \n#         # Run quick audit (Tier 1)\n#         with patch('time.sleep'):  # Speed up test\n#             service.run_audit(quick=True)\n        \n#         # Verify status files were written at the end\n#         # Check for both relative and absolute paths\n#         # Note: During parallel execution, files may be written multiple times due to timing,\n#         # but the key assertion is that files exist and have content\n#         status_writes = [c for c in create_output_file_calls if 'AI_STATUS.md' in c[0] or 'AI_STATUS' in c[0]]\n#         priorities_writes = [c for c in create_output_file_calls if 'AI_PRIORITIES.md' in c[0] or 'AI_PRIORITIES' in c[0]]\n        \n#         # If no writes tracked, check if files were actually created (may have been written directly)\n#         # Wait a moment for file system to sync (important for parallel execution)\n#         if len(status_writes) == 0 or len(priorities_writes) == 0:\n#             time.sleep(0.1)\n#             if status_file.exists() and priorities_file.exists():\n#                 # Files were created, which is the important part\n#                 if len(status_writes) == 0:\n#                     status_writes = [('status_file_created', time.time())]\n#                 if len(priorities_writes) == 0:\n#                     priorities_writes = [('priorities_file_created', time.time())]\n        \n#         # The key assertion is that files exist and have content, not exact write count\n#         # (write count may vary in parallel execution due to timing)\n#         assert len(status_writes) >= 1 or status_file.exists(), \\\n#             f\"Expected AI_STATUS.md to be written or exist. Writes: {len(status_writes)}, Exists: {status_file.exists()}. Calls: {create_output_file_calls}\"\n#         assert len(priorities_writes) >= 1 or priorities_file.exists(), \\\n#             f\"Expected AI_PRIORITIES.md to be written or exist. Writes: {len(priorities_writes)}, Exists: {priorities_file.exists()}. Calls: {create_output_file_calls}\"\n        \n#         # Verify files exist and have new content\n#         assert status_file.exists(), \"AI_STATUS.md should exist\"\n#         assert priorities_file.exists(), \"AI_PRIORITIES.md should exist\"\n        \n#         # Verify files have content (more reliable than mtime on fast systems)\n#         status_content = status_file.read_text()\n#         priorities_content = priorities_file.read_text()\n        \n#         assert len(status_content) > 0, \"AI_STATUS.md should have content\"\n#         assert len(priorities_content) > 0, \"AI_PRIORITIES.md should have content\"\n        \n#         # Verify modification times changed (files were written) - allow for same-second writes\n#         final_status_mtime = os.path.getmtime(status_file)\n#         final_priorities_mtime = os.path.getmtime(priorities_file)\n        \n#         # Files should exist and have content (mtime may be same if written in same second)\n#         assert final_status_mtime >= initial_status_mtime, \"AI_STATUS.md should have been updated\"\n#         assert final_priorities_mtime >= initial_priorities_mtime, \"AI_PRIORITIES.md should have been updated\"\n    \n#     @pytest.mark.unit\n#     @pytest.mark.regression\n#     def test_complexity_numbers_consistent(self, temp_project_copy, monkeypatch):\n#         \"\"\"Verify complexity metrics remain stable throughout audit.\"\"\"\n#         # Create service instance\n#         service = AIToolsService(project_root=str(temp_project_copy))\n        \n#         # Track complexity metrics during audit\n#         complexity_metrics = []\n        \n#         def mock_analyze_functions(*args, **kwargs):\n#             \"\"\"Mock analyze_functions that returns consistent complexity metrics.\"\"\"\n#             return {\n#                 'success': True,\n#                 'output': '{}',\n#                 'data': {\n#                     'total_functions': 100,\n#                     'high_complexity': 10,\n#                     'medium_complexity': 20,\n#                     'low_complexity': 70\n#                 }\n#             }\n        \n#         # Mock all tools\n#         service.run_analyze_functions = MagicMock(side_effect=mock_analyze_functions)\n#         service.run_analyze_documentation_sync = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n#         service.run_analyze_system_signals = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility\n#         service.run_system_signals = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        \n#         # Mock data loading to return the mock function data\n#         def mock_load_tool_data(tool_name, domain=None, log_source=True):\n#             if tool_name == 'analyze_functions':\n#                 return {\n#                     'total_functions': 100,\n#                     'high_complexity': 10,\n#                     'medium_complexity': 20,\n#                     'low_complexity': 70,\n#                     'moderate_complexity': 20,\n#                     'critical_complexity': 0\n#                 }\n#             return {}\n        \n#         service._load_tool_data = MagicMock(side_effect=mock_load_tool_data)\n        \n#         # Patch _generate_ai_status_document to capture complexity metrics\n#         original_generate = service._generate_ai_status_document\n\n#         def capture_complexity():\n#             \"\"\"Capture complexity metrics when status is generated.\"\"\"\n#             try:\n#                 result = original_generate()\n#             except Exception as e:\n#                 # If original fails, return minimal valid status document\n#                 result = \"# AI Status\\n\\nTotal functions: 100\\nHigh complexity: 10\"\n#             # Extract complexity numbers from status document\n#             # Check for function-related content (numbers may be formatted differently)\n#             import re\n#             # Look for function counts and complexity mentions\n#             function_match = re.search(r'(\\d+)\\s*(?:total\\s*)?functions?', result, re.IGNORECASE)\n#             complexity_match = re.search(r'(\\d+)\\s*(?:high|critical)\\s*complexity', result, re.IGNORECASE)\n#             if function_match and complexity_match:\n#                 total = function_match.group(1)\n#                 high = complexity_match.group(1)\n#                 complexity_metrics.append((total, high))\n#             # Also check for simple number presence as fallback\n#             elif '100' in result or '10' in result or 'function' in result.lower():\n#                 # At least verify status was generated with some content\n#                 complexity_metrics.append(('captured', 'status_generated'))\n#             return result\n\n#         service._generate_ai_status_document = capture_complexity\n        \n#         # Run quick audit\n#         with patch('time.sleep'):\n#             service.run_audit(quick=True)\n        \n#         # Verify complexity metrics were captured (status was generated)\n#         assert len(complexity_metrics) > 0, f\"Complexity metrics should be captured. Status document may not contain expected format. Captured: {complexity_metrics}\"\n        \n#         # Verify all captured metrics are the same (no mid-audit changes)\n#         # Only check consistency if we have actual numeric metrics (not just 'captured' marker)\n#         numeric_metrics = [m for m in complexity_metrics if m[0] != 'captured']\n#         if len(numeric_metrics) > 1:\n#             first_metrics = numeric_metrics[0]\n#             for metrics in numeric_metrics[1:]:\n#                 assert metrics == first_metrics, f\"Complexity metrics should remain consistent. First: {first_metrics}, Found: {metrics}\"\n    \n#     @pytest.mark.unit\n#     @pytest.mark.regression\n#     def test_doc_sync_status_stable(self, temp_project_copy, monkeypatch):\n#         \"\"\"Confirm doc sync status doesn't flip between FAIL/GOOD during audit.\"\"\"\n#         # Create service instance\n#         service = AIToolsService(project_root=str(temp_project_copy))\n        \n#         # Track doc sync status during audit\n#         doc_sync_statuses = []\n        \n#         def mock_doc_sync(*args, **kwargs):\n#             \"\"\"Mock doc sync that returns consistent status.\"\"\"\n#             return {\n#                 'success': True,\n#                 'output': '{}',\n#                 'data': {\n#                     'status': 'GOOD',\n#                     'total_pairs': 10,\n#                     'synced_pairs': 10,\n#                     'unsynced_pairs': 0\n#                 }\n#             }\n        \n#         service.run_analyze_functions = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n#         service.run_analyze_documentation_sync = MagicMock(side_effect=mock_doc_sync)\n#         service.run_analyze_system_signals = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility\n#         service.run_system_signals = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        \n#         # Patch _generate_ai_status_document to capture doc sync status\n#         original_generate = service._generate_ai_status_document\n\n#         def capture_doc_sync():\n#             \"\"\"Capture doc sync status when status is generated.\"\"\"\n#             try:\n#                 result = original_generate()\n#             except Exception:\n#                 # If original fails, return minimal valid status document\n#                 result = \"# AI Status\\n\\nDoc sync: GOOD\"\n#             # Extract doc sync status from status document\n#             if 'GOOD' in result:\n#                 doc_sync_statuses.append('GOOD')\n#             elif 'FAIL' in result:\n#                 doc_sync_statuses.append('FAIL')\n#             return result\n\n#         service._generate_ai_status_document = capture_doc_sync\n        \n#         # Run quick audit\n#         with patch('time.sleep'):\n#             service.run_audit(quick=True)\n        \n#         # Verify doc sync status was captured\n#         assert len(doc_sync_statuses) > 0, \"Doc sync status should be captured\"\n        \n#         # Verify status doesn't flip (all should be the same)\n#         if len(doc_sync_statuses) > 1:\n#             first_status = doc_sync_statuses[0]\n#             for status in doc_sync_statuses[1:]:\n#                 assert status == first_status, f\"Doc sync status should remain stable, got {doc_sync_statuses}\"\n    \n#     @pytest.mark.integration\n#     @pytest.mark.regression\n#     def test_full_audit_status_reflects_final_results(self, temp_project_copy, monkeypatch):\n#         \"\"\"Test with full audit to ensure status files reflect final audit results.\"\"\"\n#         # Create service instance\n#         service = AIToolsService(project_root=str(temp_project_copy))\n        \n#         # Create mock results that should appear in final status\n#         mock_results = {\n#             'analyze_functions': {'total_functions': 150, 'high_complexity': 15},\n#             'analyze_documentation_sync': {'status': 'GOOD', 'total_pairs': 20},\n#             'analyze_system_signals': {'overall_status': 'OK'},  # Use new name\n#             'system_signals': {'overall_status': 'OK'}  # Legacy name for compatibility\n#         }\n        \n#         def mock_tool(tool_name):\n#             \"\"\"Create mock tool function.\"\"\"\n#             def tool_func(*args, **kwargs):\n#                 return {\n#                     'success': True,\n#                     'output': '{}',\n#                     'data': mock_results.get(tool_name, {})\n#                 }\n#             return tool_func\n        \n#         # Mock all tools with specific results\n#         # Create wrapper functions that store results in cache\n#         def mock_with_cache(tool_name):\n#             \"\"\"Create mock tool that stores result in cache.\"\"\"\n#             def tool_func(*args, **kwargs):\n#                 result = mock_tool(tool_name)(*args, **kwargs)\n#                 # Store in results_cache so status generation can access it\n#                 if not hasattr(service, 'results_cache'):\n#                     service.results_cache = {}\n#                 if isinstance(result, dict) and 'data' in result:\n#                     service.results_cache[tool_name] = result['data']\n#                 # Track that this tool was run\n#                 if not hasattr(service, '_tools_run_in_current_tier'):\n#                     service._tools_run_in_current_tier = set()\n#                 service._tools_run_in_current_tier.add(tool_name)\n#                 return result\n#             return tool_func\n        \n#         service.run_analyze_functions = MagicMock(side_effect=mock_with_cache('analyze_functions'))\n#         service.run_analyze_documentation_sync = MagicMock(side_effect=mock_with_cache('analyze_documentation_sync'))\n#         # Use analyze_system_signals (renamed from system_signals)\n#         service.run_analyze_system_signals = MagicMock(side_effect=mock_with_cache('analyze_system_signals'))\n#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility\n#         service.run_system_signals = MagicMock(side_effect=mock_with_cache('system_signals'))\n#         service.run_analyze_documentation = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n#         service.run_analyze_error_handling = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n#         service.run_decision_support = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n#         service.run_analyze_config = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n#         service.run_analyze_ai_work = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n#         service.run_analyze_function_registry = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n#         service.run_analyze_module_dependencies = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        \n#         # CRITICAL: Mock ALL Tier 1 and Tier 2 tools that could be called\n#         # These were missing and causing real tools to run, leading to memory leaks\n#         # Tier 1 tools\n#         service.run_quick_status = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n#         service.run_analyze_function_patterns = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n#         service.run_validate = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n#         # Tier 2 tools\n#         service.run_analyze_package_exports = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n#         service.run_unused_imports = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n#         service.run_analyze_module_imports = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n#         service.run_analyze_dependency_patterns = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n#         service.run_generate_unused_imports_report = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n#         # run_script is used for analyze_config and quick_status\n#         service.run_script = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})\n        \n#         # Run standard audit (Tier 2)\n#         with patch('time.sleep'):\n#             service.run_audit(quick=False, full=False)\n        \n#         # Verify status files were created\n#         status_file = temp_project_copy / \"development_tools\" / \"AI_STATUS.md\"\n#         priorities_file = temp_project_copy / \"development_tools\" / \"AI_PRIORITIES.md\"\n        \n#         assert status_file.exists(), \"AI_STATUS.md should exist after audit\"\n#         assert priorities_file.exists(), \"AI_PRIORITIES.md should exist after audit\"\n        \n#         # Verify status file contains final results\n#         status_content = status_file.read_text()\n#         # Check that mock results appear in status (may be formatted differently)\n#         # At minimum, verify file has substantial content\n#         assert len(status_content) > 100, \"Status file should contain substantial content\"\n        \n#         # Verify priorities file exists and has content\n#         priorities_content = priorities_file.read_text()\n#         assert len(priorities_content) > 50, \"Priorities file should contain content\"\n\n",
                 [
                   {
                     "pattern": "# LEGACY COMPATIBILITY:",
                     "match": "# LEGACY COMPATIBILITY:",
                     "line": 71,
-                    "line_content": "# LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility",
-                    "start": 2900,
-                    "end": 2923
+                    "line_content": "#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility",
+                    "start": 3010,
+                    "end": 3033
                   },
                   {
                     "pattern": "# LEGACY COMPATIBILITY:",
                     "match": "# LEGACY COMPATIBILITY:",
                     "line": 160,
-                    "line_content": "# LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility",
-                    "start": 8133,
-                    "end": 8156
+                    "line_content": "#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility",
+                    "start": 8393,
+                    "end": 8416
                   },
                   {
                     "pattern": "# LEGACY COMPATIBILITY:",
                     "match": "# LEGACY COMPATIBILITY:",
                     "line": 247,
-                    "line_content": "# LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility",
-                    "start": 12508,
-                    "end": 12531
+                    "line_content": "#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility",
+                    "start": 12918,
+                    "end": 12941
                   },
                   {
                     "pattern": "# LEGACY COMPATIBILITY:",
                     "match": "# LEGACY COMPATIBILITY:",
                     "line": 329,
-                    "line_content": "# LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility",
-                    "start": 16530,
-                    "end": 16553
+                    "line_content": "#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility",
+                    "start": 17082,
+                    "end": 17105
                   }
                 ]
               ],
@@ -59890,7 +60155,7 @@
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md"
         }
       },
-      "timestamp": "2026-01-04T17:41:34.994037"
+      "timestamp": "2026-01-05T00:05:12.429185"
     },
     "analyze_config": {
       "success": true,
@@ -59958,7 +60223,7 @@
           }
         }
       },
-      "timestamp": "2026-01-04T17:43:50.259768"
+      "timestamp": "2026-01-05T00:08:50.025539"
     },
     "analyze_ai_work": {
       "success": true,
@@ -59973,14 +60238,14 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-01-04T17:40:50.252015"
+      "timestamp": "2026-01-05T00:02:48.900801"
     },
     "analyze_system_signals": {
       "success": true,
       "data": {
-        "timestamp": "2026-01-04T17:40:48.819897",
+        "timestamp": "2026-01-05T00:02:47.209657",
         "system_health": {
-          "overall_status": "CRITICAL",
+          "overall_status": "ISSUES",
           "core_files": {
             "run_mhm.py": "OK",
             "core/service.py": "OK",
@@ -59996,53 +60261,51 @@
             "user": "OK",
             "tests": "OK"
           },
-          "last_audit": "2026-01-04T17:37:54.854358",
-          "audit_freshness": "<1 hour",
+          "last_audit": "2026-01-04T22:12:56.767627",
+          "audit_freshness": "<24 hours",
           "test_coverage_status": "Unknown",
           "documentation_sync_status": "Synchronized",
           "health_indicators": [
-            "Audit data is very recent (<1 hour)",
+            "Audit data is recent (1 hours ago)",
             "Documentation is synchronized"
           ],
           "recommendations": [
-            "Review logs/errors.log for recent error details"
+            "Check logs/errors.log for recent errors"
           ],
           "warnings": [],
           "errors": [],
           "severity_levels": {
             "INFO": [],
-            "WARNING": [],
-            "CRITICAL": [
-              "Recent errors detected in logs/errors.log (last hour)"
-            ]
+            "WARNING": [
+              "Errors detected in logs/errors.log (last 24 hours)"
+            ],
+            "CRITICAL": []
           }
         },
         "recent_activity": {
           "recent_changes": [
-            "communication/command_handlers/account_handler.py",
-            "tests/behavior/test_backup_manager_behavior.py",
-            "development_tools/shared/output_storage.py",
-            "tests/behavior/test_account_handler_behavior.py",
-            "tests/behavior/test_response_tracking_behavior.py",
-            "development_tools/error_handling/analyze_error_handling.py",
-            "core/service.py",
-            "tests/behavior/test_user_management_coverage_expansion.py",
-            "development_tools/docs/fix_documentation_ascii.py",
-            "tests/development_tools/test_false_negative_detection.py"
+            "tests/behavior/test_utilities_demo.py",
+            "ui/widgets/checkin_settings_widget.py",
+            "communication/message_processing/conversation_flow_manager.py",
+            "development_tools/tests/generate_test_coverage_report.py",
+            "tests/behavior/test_comprehensive_quantitative_analytics.py",
+            "ui/dialogs/channel_management_dialog.py",
+            "tests/behavior/test_quantitative_analytics_expansion.py",
+            "run_tests.py",
+            "tests/behavior/test_discord_bot_behavior.py",
+            "tests/test_utilities.py"
           ],
           "git_status": "Modified",
           "last_commit": null,
           "uncommitted_changes": true
         },
-        "critical_alerts": [
-          "CRITICAL: Recent errors in logs/errors.log"
-        ],
+        "critical_alerts": [],
         "performance_indicators": {
           "log_file_sizes": {
             "ai.log": "0.0MB",
-            "ai_dev_tools.log": "0.2MB",
-            "app.log": "0.1MB",
-            "communication_manager.log": "0.0MB",
+            "ai_dev_tools.log": "0.0MB",
+            "app.log": "0.2MB",
+            "communication_manager.log": "0.1MB",
             "discord.log": "0.0MB",
             "email.log": "0.0MB",
             "errors.log": "0.0MB",
@@ -60056,20 +60319,20 @@
           "memory_usage": "Unknown"
         }
       },
-      "timestamp": "2026-01-04T17:40:49.009662"
+      "timestamp": "2026-01-05T00:02:47.444620"
     },
     "decision_support": {
       "success": true,
       "data": {
-        "total_functions": 1510,
-        "moderate_complexity": 149,
-        "high_complexity": 142,
-        "critical_complexity": 132,
+        "total_functions": 1517,
+        "moderate_complexity": 148,
+        "high_complexity": 144,
+        "critical_complexity": 134,
         "undocumented": 5,
         "decision_support_items": 5,
         "decision_support_sample": [
-          "[COMPLEXITY] Functions needing attention: 423",
-          "[CRITICAL] Critical Complexity (>199 nodes): 132",
+          "[COMPLEXITY] Functions needing attention: 426",
+          "[CRITICAL] Critical Complexity (>199 nodes): 134",
           "[DOC] Undocumented Handlers: 5",
           "[DUPE] Duplicate Function Names: 145",
           "- [CRITICAL] Refactor critical complexity functions immediately."
@@ -60185,12 +60448,12 @@
           }
         ]
       },
-      "timestamp": "2026-01-04T17:40:54.416256"
+      "timestamp": "2026-01-05T00:02:54.566453"
     },
     "quick_status": {
       "success": true,
       "data": {
-        "timestamp": "2026-01-04T17:40:55.244590",
+        "timestamp": "2026-01-05T00:02:55.452455",
         "system_health": {
           "core_files": {
             "run_mhm.py": "OK",
@@ -60210,7 +60473,7 @@
         },
         "documentation_status": {
           "coverage": "Unknown",
-          "recent_audit": "2026-01-04T17:37:54.796993",
+          "recent_audit": "2026-01-04T22:12:56.696054",
           "key_files": {
             "README.md": "OK",
             "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -60223,16 +60486,20 @@
         "critical_issues": [],
         "action_items": [],
         "recent_activity": {
-          "last_audit": "2026-01-04T17:37:54.796993",
+          "last_audit": "2026-01-04T22:12:56.696054",
           "recent_changes": [
             "run_tests.py",
+            "create_backup.py",
+            "core/checkin_dynamic_manager.py",
+            "core/checkin_analytics.py",
+            "communication/message_processing/conversation_flow_manager.py",
             "ai_development_docs/AI_TESTING_GUIDE.md",
             "ai_development_docs/AI_CHANGELOG.md",
             "TODO.md"
           ]
         }
       },
-      "timestamp": "2026-01-04T17:40:55.509564"
+      "timestamp": "2026-01-05T00:02:55.681839"
     },
     "system_signals": {
       "success": true,
@@ -60301,15 +60568,15 @@
     "decision_support_metrics": {
       "success": true,
       "data": {
-        "total_functions": 1510,
-        "moderate_complexity": 149,
-        "high_complexity": 142,
-        "critical_complexity": 132,
+        "total_functions": 1517,
+        "moderate_complexity": 148,
+        "high_complexity": 144,
+        "critical_complexity": 134,
         "undocumented": 5,
         "decision_support_items": 5,
         "decision_support_sample": [
-          "[COMPLEXITY] Functions needing attention: 423",
-          "[CRITICAL] Critical Complexity (>199 nodes): 132",
+          "[COMPLEXITY] Functions needing attention: 426",
+          "[CRITICAL] Critical Complexity (>199 nodes): 134",
           "[DOC] Undocumented Handlers: 5",
           "[DUPE] Duplicate Function Names: 145",
           "- [CRITICAL] Refactor critical complexity functions immediately."
@@ -60425,7 +60692,7 @@
           }
         ]
       },
-      "timestamp": "2026-01-04T17:48:41.570187"
+      "timestamp": "2026-01-05T00:10:56.987672"
     }
   }
 }
