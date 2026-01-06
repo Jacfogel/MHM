@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-05 00:03:25
+> **Last Generated**: 2026-01-05 21:28:48
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 400
-- **Files with Unused Imports**: 124
-- **Total Unused Imports**: 356
+- **Files with Unused Imports**: 125
+- **Total Unused Imports**: 357
 
 ## Breakdown by Category
 
@@ -22,7 +22,7 @@
 - **Qt Testing**: 54 imports
 - **Test Infrastructure**: 153 imports
 - **Production Test Mocking**: 3 imports
-- **Ui Imports**: 0 imports
+- **Ui Imports**: 1 imports
 
 ## Conditional Imports
 
@@ -1289,6 +1289,16 @@
 
 - **Line 5**: Unused get_available_channels imported from core.config
 - **Line 5**: Unused get_channel_class_mapping imported from core.config
+
+## Ui Imports
+
+**Recommendation**: These Qt imports are required for UI functionality. Keep them.
+
+### `ui/widgets/checkin_settings_widget.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 3**: Unused QComboBox imported from PySide6.QtWidgets
 
 ## Overall Recommendations
 

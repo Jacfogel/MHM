@@ -15,9 +15,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QCheckBox, QGridLayout, QGroupBox,
-    QHBoxLayout, QPushButton, QScrollArea, QSizePolicy,
-    QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QPushButton,
+    QScrollArea, QSizePolicy, QVBoxLayout, QWidget)
 
 class Ui_Form_checkin_settings(object):
     def setupUi(self, Form_checkin_settings):
@@ -91,9 +90,9 @@ class Ui_Form_checkin_settings(object):
         self.verticalLayout_groupBox_checkin_questions.setObjectName(u"verticalLayout_groupBox_checkin_questions")
         self.scrollArea_checkin_questions = QScrollArea(self.groupBox_checkin_questions)
         self.scrollArea_checkin_questions.setObjectName(u"scrollArea_checkin_questions")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
         sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setVerticalStretch(1)
         sizePolicy2.setHeightForWidth(self.scrollArea_checkin_questions.sizePolicy().hasHeightForWidth())
         self.scrollArea_checkin_questions.setSizePolicy(sizePolicy2)
         self.scrollArea_checkin_questions.setWidgetResizable(True)
@@ -101,86 +100,6 @@ class Ui_Form_checkin_settings(object):
         self.widget_checkin_questions_container.setObjectName(u"widget_checkin_questions_container")
         self.widget_checkin_questions_container.setGeometry(QRect(0, 0, 906, 165))
         self.widget_checkin_questions_container.setAutoFillBackground(True)
-        self.gridLayout = QGridLayout(self.widget_checkin_questions_container)
-        self.gridLayout.setObjectName(u"gridLayout")
-        self.checkBox_mood = QCheckBox(self.widget_checkin_questions_container)
-        self.checkBox_mood.setObjectName(u"checkBox_mood")
-
-        self.gridLayout.addWidget(self.checkBox_mood, 0, 0, 1, 1)
-
-        self.checkBox_brushed_teeth = QCheckBox(self.widget_checkin_questions_container)
-        self.checkBox_brushed_teeth.setObjectName(u"checkBox_brushed_teeth")
-
-        self.gridLayout.addWidget(self.checkBox_brushed_teeth, 0, 1, 1, 1)
-
-        self.checkBox_exercise = QCheckBox(self.widget_checkin_questions_container)
-        self.checkBox_exercise.setObjectName(u"checkBox_exercise")
-
-        self.gridLayout.addWidget(self.checkBox_exercise, 0, 2, 1, 1)
-
-        self.checkBox_stress_level = QCheckBox(self.widget_checkin_questions_container)
-        self.checkBox_stress_level.setObjectName(u"checkBox_stress_level")
-
-        self.gridLayout.addWidget(self.checkBox_stress_level, 1, 0, 1, 1)
-
-        self.checkBox_sleep_schedule = QCheckBox(self.widget_checkin_questions_container)
-        self.checkBox_sleep_schedule.setObjectName(u"checkBox_sleep_schedule")
-
-        self.gridLayout.addWidget(self.checkBox_sleep_schedule, 1, 1, 1, 1)
-
-        self.checkBox_social_interaction = QCheckBox(self.widget_checkin_questions_container)
-        self.checkBox_social_interaction.setObjectName(u"checkBox_social_interaction")
-
-        self.gridLayout.addWidget(self.checkBox_social_interaction, 1, 2, 1, 1)
-
-        self.checkBox_energy_level = QCheckBox(self.widget_checkin_questions_container)
-        self.checkBox_energy_level.setObjectName(u"checkBox_energy_level")
-
-        self.gridLayout.addWidget(self.checkBox_energy_level, 2, 0, 1, 1)
-
-        self.checkBox_medication = QCheckBox(self.widget_checkin_questions_container)
-        self.checkBox_medication.setObjectName(u"checkBox_medication")
-
-        self.gridLayout.addWidget(self.checkBox_medication, 2, 1, 1, 1)
-
-        self.checkBox_reflection_notes = QCheckBox(self.widget_checkin_questions_container)
-        self.checkBox_reflection_notes.setObjectName(u"checkBox_reflection_notes")
-
-        self.gridLayout.addWidget(self.checkBox_reflection_notes, 2, 2, 1, 1)
-
-        self.checkBox_sleep_quality = QCheckBox(self.widget_checkin_questions_container)
-        self.checkBox_sleep_quality.setObjectName(u"checkBox_sleep_quality")
-
-        self.gridLayout.addWidget(self.checkBox_sleep_quality, 3, 0, 1, 1)
-
-        self.checkBox_breakfast = QCheckBox(self.widget_checkin_questions_container)
-        self.checkBox_breakfast.setObjectName(u"checkBox_breakfast")
-
-        self.gridLayout.addWidget(self.checkBox_breakfast, 3, 1, 1, 1)
-
-        self.widget_checkin_element_placeholder = QWidget(self.widget_checkin_questions_container)
-        self.widget_checkin_element_placeholder.setObjectName(u"widget_checkin_element_placeholder")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(0)
-        sizePolicy3.setHeightForWidth(self.widget_checkin_element_placeholder.sizePolicy().hasHeightForWidth())
-        self.widget_checkin_element_placeholder.setSizePolicy(sizePolicy3)
-        self.horizontalLayout_5 = QHBoxLayout(self.widget_checkin_element_placeholder)
-        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
-        self.horizontalLayout_5.setContentsMargins(0, 0, 10, 0)
-
-        self.gridLayout.addWidget(self.widget_checkin_element_placeholder, 3, 2, 1, 1)
-
-        self.checkBox_anxiety_level = QCheckBox(self.widget_checkin_questions_container)
-        self.checkBox_anxiety_level.setObjectName(u"checkBox_anxiety_level")
-
-        self.gridLayout.addWidget(self.checkBox_anxiety_level, 4, 0, 1, 1)
-
-        self.checkBox_hydrated = QCheckBox(self.widget_checkin_questions_container)
-        self.checkBox_hydrated.setObjectName(u"checkBox_hydrated")
-
-        self.gridLayout.addWidget(self.checkBox_hydrated, 4, 1, 1, 1)
-
         self.scrollArea_checkin_questions.setWidget(self.widget_checkin_questions_container)
 
         self.verticalLayout_groupBox_checkin_questions.addWidget(self.scrollArea_checkin_questions)
@@ -208,6 +127,7 @@ class Ui_Form_checkin_settings(object):
 
         self.verticalLayout_groupBox_checkin_questions.addWidget(self.widget_checkin_questions_buttons, 0, Qt.AlignmentFlag.AlignLeft)
 
+        self.verticalLayout_groupBox_checkin_questions.setStretch(0, 1)
 
         self.verticalLayout_Form_checkin_settings.addWidget(self.groupBox_checkin_questions)
 
@@ -224,19 +144,6 @@ class Ui_Form_checkin_settings(object):
         self.pushButton_add_new_checkin_time_period.setText(QCoreApplication.translate("Form_checkin_settings", u"Add New Period", None))
         self.pushButton_undo_last__checkin_time_period_delete.setText(QCoreApplication.translate("Form_checkin_settings", u"Undo Last Delete", None))
         self.groupBox_checkin_questions.setTitle(QCoreApplication.translate("Form_checkin_settings", u"Check-in Questions", None))
-        self.checkBox_mood.setText(QCoreApplication.translate("Form_checkin_settings", u"Mood (1-5 scale) (default)", None))
-        self.checkBox_brushed_teeth.setText(QCoreApplication.translate("Form_checkin_settings", u"Brushed teeth (yes/no)", None))
-        self.checkBox_exercise.setText(QCoreApplication.translate("Form_checkin_settings", u"Did exercise (yes/no)", None))
-        self.checkBox_stress_level.setText(QCoreApplication.translate("Form_checkin_settings", u"Stress level (1-5 scale) (default)", None))
-        self.checkBox_sleep_schedule.setText(QCoreApplication.translate("Form_checkin_settings", u"Sleep schedule (time pair)", None))
-        self.checkBox_social_interaction.setText(QCoreApplication.translate("Form_checkin_settings", u"Had social interaction (yes/no)", None))
-        self.checkBox_energy_level.setText(QCoreApplication.translate("Form_checkin_settings", u"Energy level (1-5 scale) (default)", None))
-        self.checkBox_medication.setText(QCoreApplication.translate("Form_checkin_settings", u"Took medication (yes/no)", None))
-        self.checkBox_reflection_notes.setText(QCoreApplication.translate("Form_checkin_settings", u"Brief reflection/notes (text)", None))
-        self.checkBox_sleep_quality.setText(QCoreApplication.translate("Form_checkin_settings", u"Sleep quality (1-5 scale) (default)", None))
-        self.checkBox_breakfast.setText(QCoreApplication.translate("Form_checkin_settings", u"Had breakfast (yes/no)", None))
-        self.checkBox_anxiety_level.setText(QCoreApplication.translate("Form_checkin_settings", u"Anxiety level (1-5 scale)", None))
-        self.checkBox_hydrated.setText(QCoreApplication.translate("Form_checkin_settings", u"Staying hydrated (yes/no)", None))
         self.pushButton_add_new_checkin_question.setText(QCoreApplication.translate("Form_checkin_settings", u"Add New Element", None))
         self.pushButton_undo_last_checkin_question_delete.setText(QCoreApplication.translate("Form_checkin_settings", u"Undo Last Delete", None))
     # retranslateUi

@@ -66,34 +66,34 @@
     },
     "sleep_quality": {
       "1": [
-        "I'm sorry you had such terrible sleep last night. Poor sleep can really affect how we feel during the day.",
-        "That sounds like a really rough night. Remember that one bad night doesn't define your sleep patterns.",
-        "I hear that sleep was really difficult last night. Sometimes just getting through the day after poor sleep is an accomplishment.",
-        "You had a terrible night's sleep. Remember to be gentle with yourself today - you're doing the best you can."
+        "I'm sorry you're feeling so unrested today. It's really hard when we don't feel well-rested, and it can affect everything else.",
+        "That sounds really difficult - feeling so unrested can make everything feel harder. Remember to be gentle with yourself today.",
+        "I hear that you're feeling very unrested. Sometimes just acknowledging how we feel helps us be kinder to ourselves.",
+        "You're feeling really unrested today. Remember that it's okay to take things easier when you're not well-rested - you're doing the best you can."
       ],
       "2": [
-        "Your sleep wasn't great last night. Remember that rest quality can vary, and tomorrow night might be better.",
-        "I can see you didn't sleep well. Sometimes just acknowledging poor sleep helps us be kinder to ourselves.",
-        "Your sleep was pretty rough last night. Remember that one night doesn't determine your overall sleep health.",
-        "You had a difficult night's sleep. It's okay to take things easier today when you're not well-rested."
+        "You're feeling somewhat unrested today. Remember that rest levels can vary, and tomorrow might feel better.",
+        "I can see you're not feeling very rested. Sometimes just acknowledging this helps us adjust our expectations for the day.",
+        "You're feeling a bit unrested today. Remember that one day doesn't determine how you'll feel overall.",
+        "You're not feeling very well-rested. It's okay to take things easier today when you're not at your most rested."
       ],
       "3": [
-        "Your sleep was okay last night. Sometimes 'adequate' sleep is exactly what we need to get through the day.",
-        "You had decent sleep last night. That should give you a solid foundation for today.",
-        "Your sleep quality was moderate. You should have enough energy to handle what comes your way.",
-        "You slept reasonably well last night. That's a good baseline to work with today."
+        "You're feeling moderately rested today. Sometimes feeling adequately rested is exactly what we need to get through the day.",
+        "You're feeling reasonably rested today. That should give you a solid foundation for what comes your way.",
+        "You're feeling decently rested. You should have enough energy to handle what the day brings.",
+        "You're feeling reasonably well-rested today. That's a good baseline to work with."
       ],
       "4": [
-        "Great! You had good sleep last night. That should give you plenty of energy for today.",
-        "Excellent! Your sleep quality was high last night. You're well-rested and ready to take on the day.",
-        "Wonderful! You slept really well last night. This kind of rest sets you up for a productive day.",
-        "Fantastic! Your sleep was excellent last night. You're in a great position to make the most of today."
+        "Great! You're feeling well-rested today. That should give you plenty of energy for whatever comes your way.",
+        "Excellent! You're feeling very well-rested today. You're ready to take on the day with good energy.",
+        "Wonderful! You're feeling really well-rested today. This kind of rest sets you up for a productive day.",
+        "Fantastic! You're feeling very well-rested today. You're in a great position to make the most of today."
       ],
       "5": [
-        "Amazing! You had absolutely perfect sleep last night. This kind of rest is the foundation for an incredible day!",
-        "Incredible! Your sleep quality was outstanding last night. You're well-rested and ready to conquer the world!",
-        "Outstanding! You had the best possible sleep last night. This kind of rest can power amazing achievements!",
-        "Brilliant! Your sleep was absolutely perfect last night. You're in the best possible position for a great day!"
+        "Amazing! You're feeling absolutely perfectly rested today. This kind of rest is the foundation for an incredible day!",
+        "Incredible! You're feeling outstandingly well-rested today. You're ready to conquer the world!",
+        "Outstanding! You're feeling the best possible level of rest today. This kind of rest can power amazing achievements!",
+        "Brilliant! You're feeling absolutely perfectly rested today. You're in the best possible position for a great day!"
       ]
     },
     "stress_level": {

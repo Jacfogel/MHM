@@ -41,189 +41,185 @@
             ]
         },
         {
-            "messages": [
-              {
-                "message": "Word of the day: Sonder – The realization that each passerby has a life as rich and complex as your own.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000001"
-              },
-              {
-                "message": "Word of the day: Liminal – Relating to a threshold or in-between state, where one phase is ending and another is beginning.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000002"
-              },
-              {
-                "message": "Word of the day: Petrichor – The earthy, comforting smell that rises when rain falls on dry ground.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000003"
-              },
-              {
-                "message": "Word of the day: Palimpsest – Something that has been reused or altered but still bears visible traces of its earlier form.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000004"
-              },
-              {
-                "message": "Word of the day: Susurrus – A soft, whispering or rustling sound, like leaves in a gentle breeze.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000005"
-              },
-              {
-                "message": "Word of the day: Syzygy – A rare alignment of celestial bodies; also used for any unusual, meaningful alignment in life.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000006"
-              },
-              {
-                "message": "Word of the day: Anodyne – Something that soothes, relieves, or eases pain, whether physical or emotional.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000007"
-              },
-              {
-                "message": "Word of the day: Eudaimonia – A deep sense of flourishing and living in alignment with your values, not just surface-level happiness.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000008"
-              },
-              {
-                "message": "Word of the day: Ineffable – Too great, complex, or beautiful to be expressed fully in words.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000009"
-              },
-              {
-                "message": "Word of the day: Saudade – A bittersweet longing for something or someone that is absent, mixed with gratitude that it existed at all.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000000a"
-              },
-              {
-                "message": "Word of the day: Hiraeth – A deep homesickness or yearning for a place, time, or way of being that may never have fully existed.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000000b"
-              },
-              {
-                "message": "Word of the day: Mellifluous – Having a smooth, rich, and pleasing sound, especially a voice or piece of music.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000000c"
-              },
-              {
-                "message": "Word of the day: Evanescent – Fading quickly, like a passing mood, a rainbow, or a small perfect moment.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000000d"
-              },
-              {
-                "message": "Word of the day: Halcyon – Describing a time in the past that felt calm, peaceful, and gently golden in memory.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000000e"
-              },
-              {
-                "message": "Word of the day: Chiaroscuro – The strong contrast between light and dark; also the emotional contrast in complicated experiences.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000000f"
-              },
-              {
-                "message": "Word of the day: Lacuna – A gap, missing piece, or empty space in a text, memory, or period of life.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000010"
-              },
-              {
-                "message": "Word of the day: Catharsis – A release of strong emotions that brings a sense of relief or clarity afterwards.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000011"
-              },
-              {
-                "message": "Word of the day: Limerence – An intense, involuntary infatuation often marked by obsessive thinking and a longing for reciprocation.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000012"
-              },
-              {
-                "message": "Word of the day: Weltschmerz – A feeling of world-weariness or sadness about the gap between reality and how things could be.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000013"
-              },
-              {
-                "message": "Word of the day: Schadenfreude – The uncomfortable but real feeling of amusement or satisfaction at another’s misfortune.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000014"
-              },
-              {
-                "message": "Word of the day: Raconteur – Someone who is especially skilled at telling engaging, vivid, or entertaining stories.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000015"
-              },
-              {
-                "message": "Word of the day: Numinous – Having a strong sense of the sacred, mysterious, or spiritually significant.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000016"
-              },
-              {
-                "message": "Word of the day: Apogee – The highest point or peak of something, like a project, relationship, or journey.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000017"
-              },
-              {
-                "message": "Word of the day: Zenith – The most successful, powerful, or satisfying moment in a process or period of life.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000018"
-              },
-              {
-                "message": "Word of the day: Nadir – The lowest point or most challenging moment in a situation or emotional journey.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000019"
-              },
-              {
-                "message": "Word of the day: Bricolage – Creating something new by improvising with whatever materials, ideas, or tools are already at hand.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000001a"
-              },
-              {
-                "message": "Word of the day: Ephemeral – Lasting for a very short time, yet often memorable because of its briefness.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000001b"
-              },
-              {
-                "message": "Word of the day: Quotidian – Belonging to the everyday; ordinary, routine, or commonplace, sometimes in a comforting way.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000001c"
-              },
-              {
-                "message": "Word of the day: Seraphic – Radiating calm, gentle happiness or seeming almost angelically peaceful.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000001d"
-              },
-              {
-                "message": "Word of the day: Paracosm – A detailed, imaginary world or inner universe, often created for comfort, play, or exploration.",
-                "days": ["ALL"],
-                "time_periods": ["ALL"],
-                "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000001e"
-              }
-            ]
-          }
+            "message": "Word of the day: Sonder - The realization that each passerby has a life as rich and complex as your own.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000001"
+        },
+        {
+            "message": "Word of the day: Liminal - Relating to a threshold or in-between state, where one phase is ending and another is beginning.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000002"
+        },
+        {
+            "message": "Word of the day: Petrichor - The earthy, comforting smell that rises when rain falls on dry ground.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000003"
+        },
+        {
+            "message": "Word of the day: Palimpsest - Something that has been reused or altered but still bears visible traces of its earlier form.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000004"
+        },
+        {
+            "message": "Word of the day: Susurrus - A soft, whispering or rustling sound, like leaves in a gentle breeze.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000005"
+        },
+        {
+            "message": "Word of the day: Syzygy - A rare alignment of celestial bodies; also used for any unusual, meaningful alignment in life.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000006"
+        },
+        {
+            "message": "Word of the day: Anodyne - Something that soothes, relieves, or eases pain, whether physical or emotional.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000007"
+        },
+        {
+            "message": "Word of the day: Eudaimonia - A deep sense of flourishing and living in alignment with your values, not just surface-level happiness.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000008"
+        },
+        {
+            "message": "Word of the day: Ineffable - Too great, complex, or beautiful to be expressed fully in words.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000009"
+        },
+        {
+            "message": "Word of the day: Saudade - A bittersweet longing for something or someone that is absent, mixed with gratitude that it existed at all.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000000a"
+        },
+        {
+            "message": "Word of the day: Hiraeth - A deep homesickness or yearning for a place, time, or way of being that may never have fully existed.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000000b"
+        },
+        {
+            "message": "Word of the day: Mellifluous - Having a smooth, rich, and pleasing sound, especially a voice or piece of music.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000000c"
+        },
+        {
+            "message": "Word of the day: Evanescent - Fading quickly, like a passing mood, a rainbow, or a small perfect moment.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000000d"
+        },
+        {
+            "message": "Word of the day: Halcyon - Describing a time in the past that felt calm, peaceful, and gently golden in memory.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000000e"
+        },
+        {
+            "message": "Word of the day: Chiaroscuro - The strong contrast between light and dark; also the emotional contrast in complicated experiences.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000000f"
+        },
+        {
+            "message": "Word of the day: Lacuna - A gap, missing piece, or empty space in a text, memory, or period of life.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000010"
+        },
+        {
+            "message": "Word of the day: Catharsis - A release of strong emotions that brings a sense of relief or clarity afterwards.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000011"
+        },
+        {
+            "message": "Word of the day: Limerence - An intense, involuntary infatuation often marked by obsessive thinking and a longing for reciprocation.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000012"
+        },
+        {
+            "message": "Word of the day: Weltschmerz - A feeling of world-weariness or sadness about the gap between reality and how things could be.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000013"
+        },
+        {
+            "message": "Word of the day: Schadenfreude - The uncomfortable but real feeling of amusement or satisfaction at another's misfortune.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000014"
+        },
+        {
+            "message": "Word of the day: Raconteur - Someone who is especially skilled at telling engaging, vivid, or entertaining stories.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000015"
+        },
+        {
+            "message": "Word of the day: Numinous - Having a strong sense of the sacred, mysterious, or spiritually significant.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000016"
+        },
+        {
+            "message": "Word of the day: Apogee - The highest point or peak of something, like a project, relationship, or journey.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000017"
+        },
+        {
+            "message": "Word of the day: Zenith - The most successful, powerful, or satisfying moment in a process or period of life.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000018"
+        },
+        {
+            "message": "Word of the day: Nadir - The lowest point or most challenging moment in a situation or emotional journey.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-000000000019"
+        },
+        {
+            "message": "Word of the day: Bricolage - Creating something new by improvising with whatever materials, ideas, or tools are already at hand.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000001a"
+        },
+        {
+            "message": "Word of the day: Ephemeral - Lasting for a very short time, yet often memorable because of its briefness.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000001b"
+        },
+        {
+            "message": "Word of the day: Quotidian - Belonging to the everyday; ordinary, routine, or commonplace, sometimes in a comforting way.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000001c"
+        },
+        {
+            "message": "Word of the day: Seraphic - Radiating calm, gentle happiness or seeming almost angelically peaceful.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000001d"
+        },
+        {
+            "message": "Word of the day: Paracosm - A detailed, imaginary world or inner universe, often created for comfort, play, or exploration.",
+            "days": ["ALL"],
+            "time_periods": ["ALL"],
+            "message_id": "8c0b0f5b-1d01-4e5e-9c01-00000000001e"
+        }
           
     ]
 }

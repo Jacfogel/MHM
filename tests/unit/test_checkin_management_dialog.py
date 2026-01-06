@@ -432,7 +432,9 @@ class TestCheckinManagementDialogSave:
         dialog.ui.groupBox_checkBox_enable_checkins.setChecked(True)
         test_settings = {
             'time_periods': {'morning': {'name': 'Morning', 'time': '09:00'}},
-            'questions': {'mood': 'How are you feeling?'}
+            'questions': {'mood': {'always_include': True, 'sometimes_include': False}},
+            'min_questions': 1,
+            'max_questions': 1
         }
         
         with patch.object(dialog.checkin_widget, 'get_checkin_settings', return_value=test_settings):
@@ -465,7 +467,12 @@ class TestCheckinManagementDialogSave:
         # Arrange
         dialog.ui.groupBox_checkBox_enable_checkins.setChecked(True)
         
-        with patch.object(dialog.checkin_widget, 'get_checkin_settings', return_value={'time_periods': {}, 'questions': {}}):
+        with patch.object(dialog.checkin_widget, 'get_checkin_settings', return_value={
+            'time_periods': {}, 
+            'questions': {'mood': {'always_include': True, 'sometimes_include': False}},
+            'min_questions': 1,
+            'max_questions': 1
+        }):
             with patch.object(dialog.checkin_widget, 'period_widgets', []):
                 with patch('ui.dialogs.checkin_management_dialog.validate_schedule_periods', return_value=(True, [])):
                     with patch('ui.dialogs.checkin_management_dialog.set_schedule_periods'):

@@ -758,11 +758,15 @@ class ConversationManager:
     @handle_errors("selecting check-in questions with weighted randomization")
     def _select_checkin_questions_with_weighting(self, user_id: str, enabled_questions: dict) -> list:
         """
-        Select check-in questions using weighted randomization to ensure variety.
+        Select check-in questions using weighted randomization with always/sometimes and min/max configuration.
         
         Args:
             user_id: User ID
             enabled_questions: Dictionary of enabled questions from user preferences
+                Each question can have:
+                - 'enabled': bool (whether question is enabled)
+                - 'always_include': bool (whether to always include this question)
+                - 'sometimes_include': bool (whether to sometimes include this question)
             
         Returns:
             List of question keys in selected order
@@ -771,81 +775,132 @@ class ConversationManager:
             import random
             from datetime import datetime, timedelta
             
-            # Get enabled question keys
-            enabled_keys = [key for key, data in enabled_questions.items() if data.get('enabled', False)]
+            # Get user's check-in preferences for min/max settings
+            prefs_result = get_user_data(user_id, 'preferences')
+            checkin_prefs = prefs_result.get('preferences', {}).get('checkin_settings', {})
+            min_questions = checkin_prefs.get('min_questions', 1)
+            max_questions = checkin_prefs.get('max_questions', 8)
             
-            if not enabled_keys:
+            # Separate questions into always, sometimes, and disabled
+            always_questions = []
+            sometimes_questions = []
+            
+            for key, data in enabled_questions.items():
+                if not data.get('enabled', False):
+                    continue
+                
+                if data.get('always_include', False):
+                    always_questions.append(key)
+                elif data.get('sometimes_include', False):
+                    sometimes_questions.append(key)
+                else:
+                    # Default: treat as sometimes if not specified
+                    sometimes_questions.append(key)
+            
+            # Validate min/max constraints
+            total_enabled = len(always_questions) + len(sometimes_questions)
+            if total_enabled == 0:
                 return []
             
-            # If only one question enabled, return it
-            if len(enabled_keys) == 1:
-                return enabled_keys
+            # Ensure min is at least number of always questions (+1 if any sometimes)
+            min_required = len(always_questions)
+            if sometimes_questions and min_required == len(always_questions):
+                min_required = max(min_required, len(always_questions) + 1)
+            min_questions = max(min_questions, min_required, 1)  # Absolute minimum is 1
             
-            # Get recent check-in history to avoid repetition
-            recent_checkins = get_recent_checkins(user_id, limit=5)
-            recently_asked = set()
+            # Ensure max is valid
+            max_questions = min(max_questions, total_enabled)
+            max_questions = max(max_questions, min_questions)
             
-            # Extract recently asked questions from the last 3 check-ins
-            for checkin in recent_checkins[-3:]:
-                if 'questions_asked' in checkin:
-                    recently_asked.update(checkin['questions_asked'])
+            # Start with always questions
+            selected_questions = always_questions.copy()
             
-            # Define question categories for variety
-            question_categories = {
-                'mood': ['mood', 'energy', 'stress_level', 'anxiety_level', 'hopelessness_level', 'irritability_level'],
-                'health': ['ate_breakfast', 'brushed_teeth', 'medication_taken', 'exercise', 'hydration', 'treatment_adherence'],
-                'sleep': ['sleep_quality', 'sleep_schedule'],
-                'social': ['social_interaction'],
-                'reflection': ['focus_level', 'daily_reflection', 'motivation_level']
-            }
+            # If we already have enough, return early
+            if len(selected_questions) >= max_questions:
+                random.shuffle(selected_questions)
+                return selected_questions[:max_questions]
             
-            # Calculate weights for each question
-            question_weights = []
-            
-            for question_key in enabled_keys:
-                weight = 1.0  # Base weight
+            # If we need more questions, select from sometimes questions
+            if sometimes_questions:
+                # Calculate how many more we need
+                remaining_slots = max_questions - len(selected_questions)
+                needed = max(min_questions - len(selected_questions), 0)
                 
-                # Reduce weight for recently asked questions
-                if question_key in recently_asked:
-                    weight *= 0.3  # 70% reduction for recently asked
+                # Get recent check-in history to avoid repetition
+                recent_checkins = get_recent_checkins(user_id, limit=5)
+                recently_asked = set()
                 
-                # Boost weight for questions from underrepresented categories
-                question_category = None
-                for category, questions in question_categories.items():
-                    if question_key in questions:
-                        question_category = category
-                        break
+                # Extract recently asked questions from the last 3 check-ins
+                for checkin in recent_checkins[-3:]:
+                    if 'questions_asked' in checkin:
+                        recently_asked.update(checkin['questions_asked'])
                 
-                if question_category:
-                    # Count how many questions from this category were recently asked
-                    category_recent_count = sum(1 for q in recently_asked if q in question_categories.get(question_category, []))
-                    if category_recent_count == 0:
-                        weight *= 1.5  # Boost for underrepresented categories
-                    elif category_recent_count >= 2:
-                        weight *= 0.7  # Reduce for overrepresented categories
+                # Define question categories for variety
+                question_categories = {
+                    'mood': ['mood', 'energy', 'stress_level', 'anxiety_level', 'hopelessness_level', 'irritability_level'],
+                    'health': ['ate_breakfast', 'brushed_teeth', 'medication_taken', 'exercise', 'hydration', 'treatment_adherence'],
+                    'sleep': ['sleep_quality', 'sleep_schedule'],
+                    'social': ['social_interaction'],
+                    'reflection': ['focus_level', 'daily_reflection', 'motivation_level']
+                }
                 
-                # Add some randomness to prevent predictable patterns
-                weight *= random.uniform(0.8, 1.2)
+                # Calculate weights for sometimes questions
+                question_weights = []
                 
-                question_weights.append((question_key, weight))
+                for question_key in sometimes_questions:
+                    weight = 1.0  # Base weight
+                    
+                    # Reduce weight for recently asked questions
+                    if question_key in recently_asked:
+                        weight *= 0.3  # 70% reduction for recently asked
+                    
+                    # Boost weight for questions from underrepresented categories
+                    question_category = None
+                    for category, questions in question_categories.items():
+                        if question_key in questions:
+                            question_category = category
+                            break
+                    
+                    if question_category:
+                        # Count how many questions from this category were recently asked
+                        category_recent_count = sum(1 for q in recently_asked if q in question_categories.get(question_category, []))
+                        if category_recent_count == 0:
+                            weight *= 1.5  # Boost for underrepresented categories
+                        elif category_recent_count >= 2:
+                            weight *= 0.7  # Reduce for overrepresented categories
+                    
+                    # Add some randomness to prevent predictable patterns
+                    weight *= random.uniform(0.8, 1.2)
+                    
+                    question_weights.append((question_key, weight))
+                
+                # Sort by weight (highest first)
+                question_weights.sort(key=lambda x: x[1], reverse=True)
+                
+                # Select enough questions to meet minimum, up to maximum
+                num_to_select = min(remaining_slots, len(sometimes_questions))
+                num_to_select = max(num_to_select, needed)  # Ensure we meet minimum
+                
+                selected_sometimes = [q[0] for q in question_weights[:num_to_select]]
+                selected_questions.extend(selected_sometimes)
             
-            # Sort by weight (highest first) and take top questions
-            question_weights.sort(key=lambda x: x[1], reverse=True)
-            
-            # Select questions (limit to reasonable number, e.g., 5-8 questions)
-            max_questions = min(len(enabled_keys), 8)
-            selected_questions = [q[0] for q in question_weights[:max_questions]]
-            
-            # Shuffle the final order for additional randomness
+            # Shuffle the final order for additional randomness (but keep always questions distributed)
             random.shuffle(selected_questions)
             
-            logger.debug(f"Selected {len(selected_questions)} check-in questions for user {user_id}: {selected_questions}")
+            # Ensure we don't exceed max
+            selected_questions = selected_questions[:max_questions]
+            
+            logger.debug(f"Selected {len(selected_questions)} check-in questions for user {user_id} (always: {len(always_questions)}, sometimes: {len(sometimes_questions)}): {selected_questions}")
             
             return selected_questions
             
         except Exception as e:
             logger.error(f"Error selecting check-in questions with weighting: {e}")
-            # Fallback to simple random selection
+            # Fallback: return all enabled questions
+            enabled_keys = [key for key, data in enabled_questions.items() if data.get('enabled', False)]
+            if not enabled_keys:
+                return []
+            import random
             return random.sample(enabled_keys, min(len(enabled_keys), 6))
 
     @handle_errors("handling task reminder follow-up", default_return=("I'm having trouble with the reminder setup. Please try again.", True))

@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-01-05 00:10:56",
+  "last_generated": "2026-01-05 21:36:32",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-01-05T00:10:56.987672",
+  "timestamp": "2026-01-05T21:36:32.869415",
   "successful": [
     "analyze_functions",
     "analyze_function_patterns",
@@ -40,17 +40,17 @@
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 426,
+          "total_issues": 433,
           "files_affected": 0
         },
         "details": {
-          "total_functions": 1517,
-          "moderate_complexity": 148,
-          "high_complexity": 144,
-          "critical_complexity": 134,
+          "total_functions": 1530,
+          "moderate_complexity": 151,
+          "high_complexity": 147,
+          "critical_complexity": 135,
           "undocumented": 0,
           "undocumented_examples": [],
-          "handlers": 847,
+          "handlers": 851,
           "tests": 65,
           "utilities": 0,
           "critical_complexity_examples": [
@@ -165,7 +165,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-05T00:03:02.170114"
+      "timestamp": "2026-01-05T21:28:27.429660"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -287,7 +287,7 @@
             {
               "file": "ui/widgets/checkin_settings_widget.py",
               "class": "CheckinSettingsWidget",
-              "methods": 16,
+              "methods": 28,
               "has_doc": true
             },
             {
@@ -2128,7 +2128,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-05T00:02:53.309883"
+      "timestamp": "2026-01-05T21:28:17.782502"
     },
     "analyze_function_registry": {
       "success": true,
@@ -2868,6 +2868,12 @@
                 "name": "handle_message"
               },
               {
+                "complexity": 1565,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\widgets\\checkin_settings_widget.py",
+                "has_docstring": true,
+                "name": "_show_question_dialog"
+              },
+              {
                 "complexity": 1477,
                 "file": "run_tests.py",
                 "has_docstring": true,
@@ -2890,6 +2896,12 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\command_handlers\\interaction_handlers.py",
                 "has_docstring": true,
                 "name": "_handle_show_profile"
+              },
+              {
+                "complexity": 915,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\widgets\\checkin_settings_widget.py",
+                "has_docstring": true,
+                "name": "set_question_checkboxes"
               },
               {
                 "complexity": 894,
@@ -2976,6 +2988,12 @@
                 "name": "_parse_reminder_periods_from_text"
               },
               {
+                "complexity": 698,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\message_processing\\conversation_flow_manager.py",
+                "has_docstring": true,
+                "name": "_select_checkin_questions_with_weighting"
+              },
+              {
                 "complexity": 696,
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\ui_app_qt.py",
                 "has_docstring": true,
@@ -2998,6 +3016,12 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\widgets\\user_profile_settings_widget.py",
                 "has_docstring": true,
                 "name": "load_existing_data"
+              },
+              {
+                "complexity": 659,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\dialogs\\checkin_management_dialog.py",
+                "has_docstring": true,
+                "name": "save_checkin_settings"
               },
               {
                 "complexity": 657,
@@ -3058,12 +3082,6 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\message_processing\\interaction_manager.py",
                 "has_docstring": true,
                 "name": "get_user_suggestions"
-              },
-              {
-                "complexity": 577,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\widgets\\checkin_settings_widget.py",
-                "has_docstring": true,
-                "name": "add_new_question"
               },
               {
                 "complexity": 565,
@@ -3160,6 +3178,12 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\command_handlers\\interaction_handlers.py",
                 "has_docstring": true,
                 "name": "_handle_create_task"
+              },
+              {
+                "complexity": 502,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\user_data_handlers.py",
+                "has_docstring": true,
+                "name": "update_user_preferences"
               },
               {
                 "complexity": 499,
@@ -3391,12 +3415,6 @@
               },
               {
                 "complexity": 400,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\user_data_handlers.py",
-                "has_docstring": true,
-                "name": "update_user_preferences"
-              },
-              {
-                "complexity": 400,
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\dialogs\\category_management_dialog.py",
                 "has_docstring": true,
                 "name": "save_category_settings"
@@ -3412,6 +3430,12 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\user_data_manager.py",
                 "has_docstring": true,
                 "name": "backup_user_data"
+              },
+              {
+                "complexity": 399,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\widgets\\checkin_settings_widget.py",
+                "has_docstring": true,
+                "name": "_delete_custom_question"
               },
               {
                 "complexity": 397,
@@ -3436,12 +3460,6 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\error_handling.py",
                 "has_docstring": true,
                 "name": "handle_error"
-              },
-              {
-                "complexity": 390,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\message_processing\\conversation_flow_manager.py",
-                "has_docstring": true,
-                "name": "_select_checkin_questions_with_weighting"
               },
               {
                 "complexity": 389,
@@ -3534,10 +3552,16 @@
                 "name": "_check_dns_resolution"
               },
               {
-                "complexity": 372,
+                "complexity": 371,
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\dialogs\\checkin_management_dialog.py",
                 "has_docstring": true,
-                "name": "save_checkin_settings"
+                "name": "__init__"
+              },
+              {
+                "complexity": 369,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\widgets\\checkin_settings_widget.py",
+                "has_docstring": true,
+                "name": "_validate_question_counts"
               },
               {
                 "complexity": 368,
@@ -3604,6 +3628,12 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\dialogs\\task_management_dialog.py",
                 "has_docstring": true,
                 "name": "save_task_settings"
+              },
+              {
+                "complexity": 361,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\widgets\\checkin_settings_widget.py",
+                "has_docstring": true,
+                "name": "undo_last_question_delete"
               },
               {
                 "complexity": 360,
@@ -4006,39 +4036,9 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\widgets\\user_profile_settings_widget.py",
                 "has_docstring": true,
                 "name": "set_checkbox_group"
-              },
-              {
-                "complexity": 293,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\command_handlers\\interaction_handlers.py",
-                "has_docstring": true,
-                "name": "_get_task_candidates"
-              },
-              {
-                "complexity": 292,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\user_data_handlers.py",
-                "has_docstring": true,
-                "name": "_save_user_data__normalize_data"
-              },
-              {
-                "complexity": 291,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\command_handlers\\analytics_handler.py",
-                "has_docstring": true,
-                "name": "_handle_show_analytics"
-              },
-              {
-                "complexity": 291,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\dialogs\\task_crud_dialog.py",
-                "has_docstring": true,
-                "name": "refresh_completed_tasks"
-              },
-              {
-                "complexity": 289,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\widgets\\tag_widget.py",
-                "has_docstring": true,
-                "name": "add_tag"
               }
             ],
-            "high_complexity_total": 1096,
+            "high_complexity_total": 1106,
             "undocumented_handlers": [
               {
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\core\\channel_orchestrator.py",
@@ -4284,6 +4284,10 @@
                 "name": "cleanup_old_requests"
               },
               {
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\widgets\\checkin_settings_widget.py",
+                "name": "on_template_selected"
+              },
+              {
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\widgets\\dynamic_list_container.py",
                 "name": "_add_blank_row"
               },
@@ -4308,9 +4312,9 @@
                 "name": "is_blank"
               }
             ],
-            "undocumented_other_total": 29
+            "undocumented_other_total": 30
           },
-          "coverage": 92.4,
+          "coverage": 91.62,
           "errors": [],
           "extra": {
             "count": 1399,
@@ -5905,7 +5909,7 @@
             }
           },
           "missing": {
-            "count": 1419,
+            "count": 1432,
             "files": {
               "C:\\Users\\Julie\\projects\\MHM\\MHM\\ai\\cache_manager.py": [
                 "__init__",
@@ -7345,6 +7349,18 @@
               ],
               "C:\\Users\\Julie\\projects\\MHM\\MHM\\ui\\widgets\\checkin_settings_widget.py": [
                 "__init__",
+                "_clear_category_groups",
+                "_clear_dynamic_question_checkboxes",
+                "_delete_custom_question",
+                "_edit_custom_question",
+                "_on_always_toggled",
+                "_on_max_changed",
+                "_on_min_changed",
+                "_on_sometimes_toggled",
+                "_refresh_question_display",
+                "_setup_question_count_controls",
+                "_show_question_dialog",
+                "_validate_question_counts",
                 "add_new_period",
                 "add_new_question",
                 "connect_question_checkboxes",
@@ -7353,6 +7369,7 @@
                 "get_default_question_state",
                 "load_existing_data",
                 "on_question_toggled",
+                "on_template_selected",
                 "remove_period_row",
                 "set_checkin_settings",
                 "set_question_checkboxes",
@@ -12693,7 +12710,7 @@
                     "user_id",
                     "enabled_questions"
                   ],
-                  "docstring": "Select check-in questions using weighted randomization to ensure variety.\n        \n        Args:\n            user_id: User ID\n            enabled_questions: Dictionary of enabled questions from user preferences\n            \n        Returns:\n            List of question keys in selected order",
+                  "docstring": "Select check-in questions using weighted randomization with always/sometimes and min/max configuration.\n        \n        Args:\n            user_id: User ID\n            enabled_questions: Dictionary of enabled questions from user preferences\n                Each question can have:\n                - 'enabled': bool (whether question is enabled)\n                - 'always_include': bool (whether to always include this question)\n                - 'sometimes_include': bool (whether to sometimes include this question)\n            \n        Returns:\n            List of question keys in selected order",
                   "name": "_select_checkin_questions_with_weighting"
                 },
                 {
@@ -20735,15 +20752,27 @@
                     "showEvent",
                     "setup_connections",
                     "connect_question_checkboxes",
+                    "_setup_question_count_controls",
+                    "_validate_question_counts",
+                    "_on_min_changed",
+                    "_on_max_changed",
                     "on_question_toggled",
                     "load_existing_data",
+                    "_refresh_question_display",
                     "set_question_checkboxes",
+                    "_on_always_toggled",
+                    "_on_sometimes_toggled",
+                    "_clear_category_groups",
+                    "_clear_dynamic_question_checkboxes",
                     "get_default_question_state",
                     "find_lowest_available_period_number",
                     "add_new_period",
                     "remove_period_row",
                     "undo_last_time_period_delete",
                     "add_new_question",
+                    "_show_question_dialog",
+                    "_edit_custom_question",
+                    "_delete_custom_question",
                     "undo_last_question_delete",
                     "get_checkin_settings",
                     "set_checkin_settings"
@@ -20766,7 +20795,7 @@
                     "self",
                     "event"
                   ],
-                  "docstring": "Handle widget show event.\n        \n        Called when the widget becomes visible. Currently just calls the parent\n        implementation but can be extended for initialization that needs to happen\n        when the widget is shown.\n        \n        Args:\n            event: The show event object",
+                  "docstring": "Handle widget show event.\n        \n        Called when the widget becomes visible. Re-validate question counts to ensure\n        spinboxes have correct ranges when the dialog is shown.\n        \n        Args:\n            event: The show event object",
                   "name": "showEvent"
                 },
                 {
@@ -20785,6 +20814,37 @@
                 },
                 {
                   "args": [
+                    "self"
+                  ],
+                  "docstring": "Add min/max question count controls below the questions list.",
+                  "name": "_setup_question_count_controls"
+                },
+                {
+                  "args": [
+                    "self",
+                    "skip_min_adjust"
+                  ],
+                  "docstring": "Validate min/max question counts based on enabled questions.\n        \n        Args:\n            skip_min_adjust: If True, don't adjust min value even if it's below min_required.\n                             Used when max is reduced below min to allow min to match max.",
+                  "name": "_validate_question_counts"
+                },
+                {
+                  "args": [
+                    "self",
+                    "value"
+                  ],
+                  "docstring": "Handle minimum questions value change - adjust max if needed.",
+                  "name": "_on_min_changed"
+                },
+                {
+                  "args": [
+                    "self",
+                    "value"
+                  ],
+                  "docstring": "Handle maximum questions value change - adjust min if needed.",
+                  "name": "_on_max_changed"
+                },
+                {
+                  "args": [
                     "self",
                     "checked"
                   ],
@@ -20800,11 +20860,50 @@
                 },
                 {
                   "args": [
+                    "self"
+                  ],
+                  "docstring": "Refresh the question display from current in-memory state.\n        \n        Similar to tag_widget.refresh_tag_list() - updates display without reloading from preferences.",
+                  "name": "_refresh_question_display"
+                },
+                {
+                  "args": [
                     "self",
                     "questions"
                   ],
-                  "docstring": "Set question checkboxes based on saved preferences.",
+                  "docstring": "Set question checkboxes based on saved preferences.\n        \n        Groups questions by category and creates Always/Sometimes checkboxes for each.",
                   "name": "set_question_checkboxes"
+                },
+                {
+                  "args": [
+                    "self",
+                    "question_key",
+                    "checked"
+                  ],
+                  "docstring": "Handle always checkbox toggle - ensure sometimes is unchecked if always is checked.",
+                  "name": "_on_always_toggled"
+                },
+                {
+                  "args": [
+                    "self",
+                    "question_key",
+                    "checked"
+                  ],
+                  "docstring": "Handle sometimes checkbox toggle - ensure always is unchecked if sometimes is checked.",
+                  "name": "_on_sometimes_toggled"
+                },
+                {
+                  "args": [
+                    "self"
+                  ],
+                  "docstring": "Remove all category group boxes.",
+                  "name": "_clear_category_groups"
+                },
+                {
+                  "args": [
+                    "self"
+                  ],
+                  "docstring": "Remove all dynamically created question checkboxes.",
+                  "name": "_clear_dynamic_question_checkboxes"
                 },
                 {
                   "args": [
@@ -20855,6 +20954,31 @@
                 },
                 {
                   "args": [
+                    "self",
+                    "question_key",
+                    "question_def"
+                  ],
+                  "docstring": "Show dialog for adding or editing a custom question.\n        \n        Args:\n            question_key: If provided, edit existing question; otherwise create new\n            question_def: Existing question definition (for editing)",
+                  "name": "_show_question_dialog"
+                },
+                {
+                  "args": [
+                    "self",
+                    "question_key"
+                  ],
+                  "docstring": "Edit an existing custom question.",
+                  "name": "_edit_custom_question"
+                },
+                {
+                  "args": [
+                    "self",
+                    "question_key"
+                  ],
+                  "docstring": "Delete a custom question.",
+                  "name": "_delete_custom_question"
+                },
+                {
+                  "args": [
                     "self"
                   ],
                   "docstring": "Undo the last question deletion.",
@@ -20874,6 +20998,13 @@
                   ],
                   "docstring": "Set the check-in settings.",
                   "name": "set_checkin_settings"
+                },
+                {
+                  "args": [
+                    "index"
+                  ],
+                  "docstring": "",
+                  "name": "on_template_selected"
                 }
               ]
             },
@@ -22156,15 +22287,15 @@
             "classes_found": 159,
             "files_scanned": 108,
             "functions_documented": 1411,
-            "functions_found": 1527
+            "functions_found": 1540
           }
         },
         "summary": {
           "files_affected": 0,
-          "total_issues": 2818
+          "total_issues": 2831
         }
       },
-      "timestamp": "2026-01-05T00:03:08.353254"
+      "timestamp": "2026-01-05T21:28:34.532761"
     },
     "analyze_package_exports": {
       "success": true,
@@ -29135,7 +29266,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2026-01-05T00:03:13.477087"
+      "timestamp": "2026-01-05T21:28:40.280348"
     },
     "analyze_documentation": {
       "success": true,
@@ -29176,7 +29307,7 @@
                 "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.19058038419561082,
+              "similarity_score": 0.19054364159519277,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -29341,7 +29472,7 @@
               ]
             },
             "TODO.md": {
-              "content_length": 21626,
+              "content_length": 24809,
               "header_info": "# TODO.md - MHM Project Tasks\n\n> **File**: `TODO.md`\n> **Audience**: Human Developer (Beginner Programmer) and AI collaborators\n> **Purpose**: Current development priorities and planned improvements  ",
               "section_count": 9,
               "sections": [
@@ -29389,20 +29520,20 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 168953,
+              "content_length": 169670,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n\n\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent ch",
-              "section_count": 199,
+              "section_count": 200,
               "sections": [
                 "Introduction",
                 "Overview",
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2026-01-04 - Check-in Settings UI Improvements: Min/Max Validation and Question Management **PARTIAL**",
                 "2026-01-04 - Check-in Questions Enhancement: New Questions, Custom Questions, and Sleep Schedule **COMPLETED**",
                 "2026-01-04 - Code Quality Improvements: Error Handling, Documentation, and Cleanup **COMPLETED**",
                 "2026-01-04 - Memory Leak Fix: Test Mocking and Parallel Execution Stability **COMPLETED**",
-                "2025-12-31 - Development Tools Investigation Tasks and Test Fixes **COMPLETED**",
-                "2025-12-31 - Improved Recommendation Quality in Development Tools **COMPLETED**"
+                "2025-12-31 - Development Tools Investigation Tasks and Test Fixes **COMPLETED**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -29589,9 +29720,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 1016972,
+              "content_length": 1020641,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 352,
+              "section_count": 353,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -29599,10 +29730,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2026-01-04 - Check-in Settings UI Improvements: Min/Max Validation and Question Management **PARTIAL**",
                 "2026-01-04 - Check-in Questions Enhancement: New Questions, Custom Questions, and Sleep Schedule **COMPLETED**",
                 "2026-01-04 - Code Quality Improvements: Error Handling, Documentation, and Cleanup **COMPLETED**",
-                "2026-01-04 - Memory Leak Fix: Test Mocking and Parallel Execution Stability **COMPLETED**",
-                "2025-12-31 - Development Tools Investigation Tasks and Test Fixes **COMPLETED**"
+                "2026-01-04 - Memory Leak Fix: Test Mocking and Parallel Execution Stability **COMPLETED**"
               ]
             },
             "development_docs/PLANS.md": {
@@ -29824,7 +29955,7 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-01-05T00:02:49.664042"
+      "timestamp": "2026-01-05T21:28:13.303696"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -29870,7 +30001,7 @@
           }
         }
       },
-      "timestamp": "2026-01-05T00:03:26.112086"
+      "timestamp": "2026-01-05T21:28:53.312842"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -29879,7 +30010,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2026-01-05T00:03:14.829873"
+      "timestamp": "2026-01-05T21:28:41.577819"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -29888,7 +30019,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2026-01-05T00:03:24.642005"
+      "timestamp": "2026-01-05T21:28:52.090383"
     },
     "analyze_path_drift": {
       "success": true,
@@ -29897,7 +30028,7 @@
         "total_issues": 0,
         "detailed_issues": {}
       },
-      "timestamp": "2026-01-05T00:03:12.200145"
+      "timestamp": "2026-01-05T21:28:38.976681"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -29906,7 +30037,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2026-01-05T00:03:25.942395"
+      "timestamp": "2026-01-05T21:28:53.299493"
     },
     "analyze_error_handling": {
       "success": true,
@@ -29916,15 +30047,15 @@
           "files_affected": 0
         },
         "details": {
-          "total_functions": 1504,
-          "functions_with_try_except": 607,
-          "functions_with_error_handling": 1504,
-          "functions_with_decorators": 1492,
+          "total_functions": 1517,
+          "functions_with_try_except": 610,
+          "functions_with_error_handling": 1517,
+          "functions_with_decorators": 1504,
           "functions_missing_error_handling": 0,
           "analyze_error_handling": 100.0,
           "error_patterns": {
-            "handle_errors_decorator": 1585,
-            "try_except": 692,
+            "handle_errors_decorator": 1597,
+            "try_except": 695,
             "handle_configuration_error": 4,
             "ConfigurationError": 6,
             "ValidationError": 15,
@@ -29933,18 +30064,18 @@
             "handle_network_error": 5,
             "handle_validation_error": 2,
             "handle_ai_error": 16,
-            "CommunicationError": 2,
-            "DataError": 12,
-            "handle_file_error": 3,
             "FileOperationError": 10,
+            "CommunicationError": 2,
             "MHMError": 2,
-            "AIError": 2,
-            "safe_file_operation": 1
+            "handle_file_error": 3,
+            "safe_file_operation": 1,
+            "DataError": 12,
+            "AIError": 2
           },
           "missing_error_handling": [],
           "error_handling_quality": {
-            "excellent": 1492,
-            "good": 12
+            "excellent": 1504,
+            "good": 13
           },
           "recommendations": [],
           "phase1_candidates": [],
@@ -29987,7 +30118,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-05T00:03:02.822132"
+      "timestamp": "2026-01-05T21:28:27.872494"
     },
     "analyze_test_coverage": {
       "success": true,
@@ -29998,32 +30129,32 @@
         },
         "details": {
           "overall": {
-            "coverage": 72.9,
-            "statements": 27388,
-            "covered": 19965,
-            "missed": 7423,
-            "generated": "2026-01-05T00:10:47.861379"
+            "coverage": 72.6,
+            "statements": 27902,
+            "covered": 20245,
+            "missed": 7657,
+            "generated": "2026-01-05T21:36:24.624360"
           },
           "modules": [
             {
               "module": "communication",
-              "coverage": 69.9,
-              "missed": 2635
+              "coverage": 70.0,
+              "missed": 2643
             },
             {
               "module": "ui",
-              "coverage": 72.4,
-              "missed": 1725
+              "coverage": 70.3,
+              "missed": 1993
             },
             {
               "module": "core",
-              "coverage": 73.7,
-              "missed": 2577
+              "coverage": 74.2,
+              "missed": 2530
             },
             {
               "module": "ai",
-              "coverage": 78.5,
-              "missed": 371
+              "coverage": 78.2,
+              "missed": 376
             },
             {
               "module": "tasks",
@@ -30039,8 +30170,8 @@
           "worst_files": [
             {
               "path": "ui/widgets/checkin_settings_widget.py",
-              "coverage": 46.3,
-              "missing": 123
+              "coverage": 43.8,
+              "missing": 372
             },
             {
               "path": "communication/communication_channels/discord/bot.py",
@@ -30049,23 +30180,23 @@
             },
             {
               "path": "ui/ui_app_qt.py",
-              "coverage": 51.2,
-              "missing": 676
-            },
-            {
-              "path": "core/file_locking.py",
-              "coverage": 59.4,
-              "missing": 52
+              "coverage": 50.9,
+              "missing": 680
             },
             {
               "path": "communication/core/channel_orchestrator.py",
-              "coverage": 60.7,
-              "missing": 403
+              "coverage": 60.8,
+              "missing": 402
+            },
+            {
+              "path": "core/service.py",
+              "coverage": 61.5,
+              "missing": 268
             }
           ]
         }
       },
-      "timestamp": "2026-01-05T00:10:51.332432"
+      "timestamp": "2026-01-05T21:36:27.540039"
     },
     "analyze_test_markers": {
       "success": true,
@@ -30073,15 +30204,15 @@
         "missing_count": 0,
         "missing": []
       },
-      "timestamp": "2026-01-05T00:10:55.628575"
+      "timestamp": "2026-01-05T21:36:31.771279"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "overall": {
           "overall_coverage": 42.5,
-          "total_statements": 19752,
-          "total_missed": 11356
+          "total_statements": 19768,
+          "total_missed": 11361
         },
         "modules": {
           "development_tools\\__init__.py": {
@@ -30233,9 +30364,13 @@
           },
           "development_tools\\config\\config.py": {
             "statements": 320,
-            "missed": 50,
-            "coverage": 84,
+            "missed": 56,
+            "coverage": 82,
             "missing_lines": [
+              "44",
+              "47",
+              "48",
+              "49",
               "56",
               "58",
               "59",
@@ -30268,6 +30403,7 @@
               "466",
               "467",
               "468",
+              "531",
               "568",
               "578",
               "579",
@@ -30283,11 +30419,12 @@
               "636",
               "675",
               "705",
+              "726",
               "753",
               "757",
               "759"
             ],
-            "covered": 270
+            "covered": 264
           },
           "development_tools\\docs\\__init__.py": {
             "statements": 0,
@@ -31604,9 +31741,9 @@
             "covered": 0
           },
           "development_tools\\error_handling\\analyze_error_handling.py": {
-            "statements": 570,
-            "missed": 272,
-            "coverage": 52,
+            "statements": 586,
+            "missed": 287,
+            "coverage": 51,
             "missing_lines": [
               "25",
               "31",
@@ -31721,167 +31858,182 @@
               "610",
               "611",
               "612",
-              "618",
               "619",
               "620",
               "621",
+              "622",
               "623",
-              "624",
-              "627",
-              "628",
-              "633",
-              "634",
-              "697",
-              "701",
-              "705",
-              "711",
-              "712",
-              "713",
-              "714",
-              "717",
-              "718",
-              "719",
-              "720",
-              "721",
-              "722",
-              "723",
-              "724",
-              "725",
-              "726",
+              "625",
+              "626",
+              "629",
+              "630",
+              "635",
+              "636",
+              "699",
+              "703",
+              "707",
               "727",
               "728",
               "729",
-              "730",
-              "731",
               "732",
-              "734",
-              "738",
-              "739",
-              "740",
-              "743",
-              "744",
+              "735",
+              "742",
+              "745",
+              "746",
               "747",
-              "748",
-              "751",
-              "752",
+              "749",
+              "750",
+              "753",
               "755",
-              "756",
               "757",
-              "760",
               "761",
               "762",
               "763",
-              "765",
+              "764",
+              "767",
+              "768",
               "769",
+              "770",
               "771",
               "772",
+              "773",
               "774",
               "775",
+              "776",
               "777",
               "778",
               "779",
               "780",
+              "781",
               "782",
-              "786",
-              "787",
+              "784",
+              "788",
+              "789",
               "790",
-              "791",
+              "793",
               "794",
-              "795",
-              "796",
               "797",
-              "800",
+              "798",
+              "801",
               "802",
-              "803",
               "805",
               "806",
-              "808",
+              "807",
               "810",
-              "818",
+              "811",
+              "812",
+              "813",
+              "815",
+              "819",
+              "821",
+              "822",
+              "824",
+              "825",
+              "827",
               "828",
               "829",
-              "839",
+              "830",
+              "832",
+              "836",
+              "837",
+              "840",
               "841",
+              "844",
+              "845",
+              "846",
+              "847",
+              "850",
               "852",
               "853",
-              "859",
-              "866",
-              "867",
-              "907",
-              "908",
-              "911",
-              "912",
-              "913",
+              "855",
+              "856",
+              "858",
+              "860",
+              "868",
+              "878",
+              "879",
+              "889",
+              "891",
+              "902",
+              "903",
+              "909",
               "916",
-              "918",
-              "919",
-              "921",
-              "922",
-              "924",
-              "925",
-              "927",
-              "928",
-              "929",
-              "931",
-              "932",
-              "934",
-              "935",
-              "937",
-              "938",
-              "946",
-              "949",
-              "950",
-              "953",
-              "955",
-              "956",
+              "917",
               "957",
               "958",
-              "960",
+              "961",
+              "962",
+              "963",
+              "966",
+              "968",
+              "969",
+              "971",
               "972",
-              "973",
               "974",
+              "975",
               "977",
               "978",
-              "983",
+              "979",
+              "981",
+              "982",
               "984",
               "985",
+              "987",
+              "988",
+              "996",
+              "999",
               "1000",
-              "1063",
-              "1065",
-              "1066",
-              "1067",
-              "1068",
-              "1069",
-              "1070",
-              "1072",
-              "1075",
-              "1076",
-              "1077",
-              "1078",
-              "1081",
-              "1082",
-              "1083",
-              "1087",
-              "1088",
-              "1089",
-              "1092",
-              "1093",
-              "1094",
-              "1095",
-              "1097",
-              "1098",
-              "1100",
-              "1101",
-              "1104",
-              "1106",
-              "1109",
-              "1110",
-              "1111",
-              "1112",
+              "1003",
+              "1005",
+              "1006",
+              "1007",
+              "1008",
+              "1010",
+              "1022",
+              "1023",
+              "1024",
+              "1027",
+              "1028",
+              "1033",
+              "1034",
+              "1035",
+              "1050",
               "1113",
-              "1115"
+              "1115",
+              "1116",
+              "1117",
+              "1118",
+              "1119",
+              "1120",
+              "1122",
+              "1125",
+              "1126",
+              "1127",
+              "1128",
+              "1131",
+              "1132",
+              "1133",
+              "1137",
+              "1138",
+              "1139",
+              "1142",
+              "1143",
+              "1144",
+              "1145",
+              "1147",
+              "1148",
+              "1150",
+              "1151",
+              "1154",
+              "1156",
+              "1159",
+              "1160",
+              "1161",
+              "1162",
+              "1163",
+              "1165"
             ],
-            "covered": 298
+            "covered": 299
           },
           "development_tools\\error_handling\\generate_error_handling_report.py": {
             "statements": 108,
@@ -35287,8 +35439,8 @@
           },
           "development_tools\\shared\\common.py": {
             "statements": 107,
-            "missed": 39,
-            "coverage": 64,
+            "missed": 51,
+            "coverage": 52,
             "missing_lines": [
               "22",
               "24",
@@ -35316,11 +35468,20 @@
               "127",
               "128",
               "134",
+              "142",
+              "143",
+              "144",
+              "145",
+              "146",
+              "147",
+              "148",
+              "149",
               "150",
               "151",
               "152",
               "153",
               "154",
+              "155",
               "156",
               "157",
               "158",
@@ -35328,14 +35489,17 @@
               "160",
               "161",
               "162",
+              "163",
+              "164",
+              "165",
               "174"
             ],
-            "covered": 68
+            "covered": 56
           },
           "development_tools\\shared\\constants.py": {
             "statements": 107,
-            "missed": 18,
-            "coverage": 83,
+            "missed": 24,
+            "coverage": 78,
             "missing_lines": [
               "19",
               "21",
@@ -35347,16 +35511,22 @@
               "52",
               "53",
               "54",
+              "61",
+              "68",
+              "75",
+              "231",
+              "239",
               "259",
               "261",
               "262",
               "264",
               "266",
               "267",
+              "280",
               "293",
               "296"
             ],
-            "covered": 89
+            "covered": 83
           },
           "development_tools\\shared\\exclusion_utilities.py": {
             "statements": 52,
@@ -35370,7 +35540,7 @@
           },
           "development_tools\\shared\\file_rotation.py": {
             "statements": 342,
-            "missed": 199,
+            "missed": 200,
             "coverage": 42,
             "missing_lines": [
               "26",
@@ -35561,6 +35731,7 @@
               "542",
               "543",
               "545",
+              "556",
               "561",
               "586",
               "589",
@@ -35573,7 +35744,7 @@
               "601",
               "603"
             ],
-            "covered": 143
+            "covered": 142
           },
           "development_tools\\shared\\fix_project_cleanup.py": {
             "statements": 280,
@@ -36035,7 +36206,7 @@
           },
           "development_tools\\shared\\service\\audit_orchestration.py": {
             "statements": 736,
-            "missed": 276,
+            "missed": 281,
             "coverage": 62,
             "missing_lines": [
               "34",
@@ -36105,10 +36276,15 @@
               "258",
               "259",
               "260",
+              "269",
+              "270",
+              "271",
               "276",
               "277",
               "278",
-              "291",
+              "283",
+              "284",
+              "285",
               "298",
               "299",
               "303",
@@ -36315,7 +36491,7 @@
               "1215",
               "1216"
             ],
-            "covered": 460
+            "covered": 455
           },
           "development_tools\\shared\\service\\commands.py": {
             "statements": 613,
@@ -37650,8 +37826,8 @@
           },
           "development_tools\\shared\\service\\report_generation.py": {
             "statements": 2983,
-            "missed": 1922,
-            "coverage": 36,
+            "missed": 1893,
+            "coverage": 37,
             "missing_lines": [
               "30",
               "32",
@@ -37764,6 +37940,9 @@
               "328",
               "329",
               "330",
+              "347",
+              "348",
+              "349",
               "350",
               "351",
               "352",
@@ -37781,7 +37960,13 @@
               "365",
               "366",
               "367",
+              "371",
+              "372",
+              "373",
               "374",
+              "376",
+              "377",
+              "378",
               "379",
               "380",
               "381",
@@ -38110,34 +38295,10 @@
               "1116",
               "1118",
               "1120",
-              "1126",
-              "1127",
-              "1128",
-              "1131",
-              "1132",
-              "1133",
-              "1136",
-              "1137",
               "1138",
-              "1141",
-              "1142",
-              "1143",
-              "1144",
-              "1145",
               "1146",
               "1147",
-              "1148",
-              "1149",
-              "1150",
-              "1152",
-              "1156",
               "1157",
-              "1159",
-              "1160",
-              "1161",
-              "1162",
-              "1164",
-              "1165",
               "1166",
               "1167",
               "1168",
@@ -38665,6 +38826,7 @@
               "2427",
               "2430",
               "2433",
+              "2447",
               "2455",
               "2456",
               "2457",
@@ -38714,6 +38876,7 @@
               "2535",
               "2542",
               "2556",
+              "2563",
               "2572",
               "2573",
               "2574",
@@ -38794,6 +38957,7 @@
               "2831",
               "2859",
               "2877",
+              "2879",
               "2881",
               "2896",
               "2897",
@@ -39274,12 +39438,16 @@
               "3763",
               "3780",
               "3781",
+              "3785",
               "3786",
               "3787",
               "3788",
               "3789",
               "3790",
               "3791",
+              "3795",
+              "3796",
+              "3797",
               "3798",
               "3799",
               "3800",
@@ -39290,6 +39458,7 @@
               "3805",
               "3806",
               "3807",
+              "3808",
               "3809",
               "3810",
               "3811",
@@ -39381,6 +39550,7 @@
               "3971",
               "3972",
               "3973",
+              "3979",
               "3980",
               "3981",
               "3988",
@@ -39479,7 +39649,6 @@
               "4174",
               "4176",
               "4177",
-              "4186",
               "4194",
               "4195",
               "4196",
@@ -39492,34 +39661,12 @@
               "4204",
               "4205",
               "4206",
-              "4211",
               "4213",
               "4214",
-              "4217",
-              "4218",
-              "4221",
-              "4222",
-              "4223",
-              "4226",
-              "4227",
               "4228",
-              "4233",
-              "4234",
-              "4235",
-              "4236",
-              "4237",
               "4238",
               "4239",
               "4240",
-              "4241",
-              "4242",
-              "4243",
-              "4244",
-              "4247",
-              "4248",
-              "4249",
-              "4250",
-              "4251",
               "4265",
               "4266",
               "4276",
@@ -39576,7 +39723,7 @@
               "4359",
               "4360"
             ],
-            "covered": 1061
+            "covered": 1090
           },
           "development_tools\\shared\\service\\tool_wrappers.py": {
             "statements": 828,
@@ -40316,17 +40463,11 @@
           },
           "development_tools\\shared\\service\\utilities.py": {
             "statements": 363,
-            "missed": 210,
-            "coverage": 42,
+            "missed": 197,
+            "coverage": 46,
             "missing_lines": [
-              "18",
-              "20",
               "21",
-              "23",
               "24",
-              "26",
-              "27",
-              "28",
               "35",
               "36",
               "41",
@@ -40353,7 +40494,6 @@
               "92",
               "93",
               "94",
-              "103",
               "111",
               "115",
               "121",
@@ -40447,12 +40587,8 @@
               "285",
               "286",
               "293",
-              "308",
-              "309",
               "310",
-              "311",
               "312",
-              "313",
               "314",
               "319",
               "320",
@@ -40487,8 +40623,6 @@
               "371",
               "372",
               "373",
-              "376",
-              "377",
               "379",
               "381",
               "392",
@@ -40530,12 +40664,12 @@
               "459",
               "460"
             ],
-            "covered": 153
+            "covered": 166
           },
           "development_tools\\shared\\standard_exclusions.py": {
             "statements": 114,
-            "missed": 21,
-            "coverage": 82,
+            "missed": 25,
+            "coverage": 78,
             "missing_lines": [
               "28",
               "30",
@@ -40557,9 +40691,13 @@
               "136",
               "210",
               "273",
-              "277"
+              "277",
+              "294",
+              "330",
+              "361",
+              "369"
             ],
-            "covered": 93
+            "covered": 89
           },
           "development_tools\\shared\\tool_guide.py": {
             "statements": 131,
@@ -41246,7 +41384,7 @@
           },
           "development_tools\\tests\\run_test_coverage.py": {
             "statements": 1084,
-            "missed": 800,
+            "missed": 798,
             "coverage": 26,
             "missing_lines": [
               "37",
@@ -41257,11 +41395,9 @@
               "59",
               "106",
               "112",
-              "119",
               "139",
               "146",
               "157",
-              "164",
               "208",
               "209",
               "210",
@@ -42050,14 +42186,14 @@
               "1926",
               "1927"
             ],
-            "covered": 284
+            "covered": 286
           }
         },
         "coverage_collected": true,
         "output_file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_tools\\tests\\jsons\\coverage_dev_tools.json",
         "html_dir": null
       },
-      "timestamp": "2026-01-05T00:09:07.127632"
+      "timestamp": "2026-01-05T21:34:42.591391"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -43435,8 +43571,8 @@
             },
             {
               "file": "ui/widgets/checkin_settings_widget.py",
-              "local_imports": 10,
-              "third_party_imports": 2,
+              "local_imports": 14,
+              "third_party_imports": 5,
               "modules": [
                 "ui.generated.checkin_settings_widget_pyqt",
                 "core.ui_management",
@@ -43444,6 +43580,10 @@
                 "core.error_handling",
                 "core.logger",
                 "ui.widgets.period_row_widget",
+                "core.checkin_dynamic_manager",
+                "core.checkin_dynamic_manager",
+                "core.checkin_dynamic_manager",
+                "core.checkin_dynamic_manager",
                 "core.checkin_dynamic_manager",
                 "core.checkin_dynamic_manager",
                 "core.checkin_dynamic_manager",
@@ -43930,6 +44070,9 @@
             {
               "file": "ui/widgets/checkin_settings_widget.py",
               "dependencies": [
+                "PySide6.QtWidgets",
+                "PySide6.QtCore",
+                "PySide6.QtCore",
                 "PySide6.QtWidgets",
                 "PySide6.QtWidgets"
               ]
@@ -44923,7 +45066,7 @@
             },
             {
               "file": "ui/widgets/checkin_settings_widget.py",
-              "import_count": 10,
+              "import_count": 14,
               "modules": [
                 "ui.generated.checkin_settings_widget_pyqt",
                 "core.ui_management",
@@ -44931,6 +45074,10 @@
                 "core.error_handling",
                 "core.logger",
                 "ui.widgets.period_row_widget",
+                "core.checkin_dynamic_manager",
+                "core.checkin_dynamic_manager",
+                "core.checkin_dynamic_manager",
+                "core.checkin_dynamic_manager",
                 "core.checkin_dynamic_manager",
                 "core.checkin_dynamic_manager",
                 "core.checkin_dynamic_manager",
@@ -45036,7 +45183,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-05T00:03:09.580233"
+      "timestamp": "2026-01-05T21:28:36.235895"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -45047,11 +45194,11 @@
         },
         "details": {
           "files_scanned": 108,
-          "total_imports": 1476,
+          "total_imports": 1484,
           "documented_dependencies": 366,
-          "standard_library": 436,
-          "third_party": 218,
-          "local_imports": 822,
+          "standard_library": 437,
+          "third_party": 221,
+          "local_imports": 826,
           "missing_dependencies": 1,
           "missing_files": [],
           "missing_sections": [
@@ -45059,7 +45206,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-05T00:03:14.745952"
+      "timestamp": "2026-01-05T21:28:42.573893"
     },
     "analyze_module_imports": {
       "success": true,
@@ -51337,6 +51484,13 @@
                     "datetime",
                     "timedelta"
                   ]
+                },
+                {
+                  "module": "random",
+                  "as_name": null,
+                  "imported_items": [
+                    "random"
+                  ]
                 }
               ],
               "third_party": [],
@@ -51527,7 +51681,7 @@
                 }
               ]
             },
-            "total_imports": 36
+            "total_imports": 37
           },
           "communication/message_processing/interaction_manager.py": {
             "imports": {
@@ -55342,22 +55496,54 @@
                   "as_name": null,
                   "imported_items": [
                     "QWidget",
-                    "QMessageBox"
+                    "QMessageBox",
+                    "QCheckBox",
+                    "QHBoxLayout",
+                    "QPushButton",
+                    "QVBoxLayout",
+                    "QGroupBox",
+                    "QLabel",
+                    "QSpinBox",
+                    "QComboBox",
+                    "QFormLayout"
+                  ]
+                },
+                {
+                  "module": "PySide6.QtCore",
+                  "as_name": null,
+                  "imported_items": [
+                    "Qt"
+                  ]
+                },
+                {
+                  "module": "PySide6.QtCore",
+                  "as_name": null,
+                  "imported_items": [
+                    "QTimer"
                   ]
                 },
                 {
                   "module": "PySide6.QtWidgets",
                   "as_name": null,
                   "imported_items": [
-                    "QInputDialog",
-                    "QMessageBox",
                     "QDialog",
                     "QVBoxLayout",
+                    "QHBoxLayout",
                     "QLabel",
                     "QLineEdit",
                     "QComboBox",
                     "QPushButton",
-                    "QDialogButtonBox"
+                    "QDialogButtonBox",
+                    "QFormLayout",
+                    "QGroupBox",
+                    "QTextEdit"
+                  ]
+                },
+                {
+                  "module": "PySide6.QtWidgets",
+                  "as_name": null,
+                  "imported_items": [
+                    "QMessageBox"
                   ]
                 }
               ],
@@ -55433,10 +55619,38 @@
                   "imported_items": [
                     "dynamic_checkin_manager"
                   ]
+                },
+                {
+                  "module": "core.checkin_dynamic_manager",
+                  "as_name": null,
+                  "imported_items": [
+                    "dynamic_checkin_manager"
+                  ]
+                },
+                {
+                  "module": "core.checkin_dynamic_manager",
+                  "as_name": null,
+                  "imported_items": [
+                    "dynamic_checkin_manager"
+                  ]
+                },
+                {
+                  "module": "core.checkin_dynamic_manager",
+                  "as_name": null,
+                  "imported_items": [
+                    "dynamic_checkin_manager"
+                  ]
+                },
+                {
+                  "module": "core.checkin_dynamic_manager",
+                  "as_name": null,
+                  "imported_items": [
+                    "dynamic_checkin_manager"
+                  ]
                 }
               ]
             },
-            "total_imports": 13
+            "total_imports": 20
           },
           "ui/widgets/dynamic_list_container.py": {
             "imports": {
@@ -57212,14 +57426,14 @@
           }
         }
       },
-      "timestamp": "2026-01-05T00:03:01.652438"
+      "timestamp": "2026-01-05T21:28:26.860958"
     },
     "analyze_unused_imports": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 356,
-          "files_affected": 124,
+          "total_issues": 357,
+          "files_affected": 125,
           "status": "CRITICAL"
         },
         "files": {
@@ -57320,6 +57534,7 @@
           "tests/development_tools/test_analyze_heading_numbering.py": 2,
           "tests/development_tools/test_analyze_missing_addresses.py": 4,
           "tests/development_tools/test_analyze_unconverted_links.py": 2,
+          "tests/development_tools/test_audit_tier_comprehensive.py": 1,
           "tests/development_tools/test_audit_tier_e2e_verification.py": 1,
           "tests/development_tools/test_documentation_sync_checker.py": 1,
           "tests/development_tools/test_error_scenarios.py": 1,
@@ -57328,6 +57543,7 @@
           "tests/development_tools/test_fix_documentation_ascii.py": 2,
           "tests/development_tools/test_fix_documentation_headings.py": 1,
           "tests/development_tools/test_fix_documentation_links.py": 1,
+          "tests/development_tools/test_fix_project_cleanup.py": 2,
           "tests/development_tools/test_generate_consolidated_report.py": 1,
           "tests/development_tools/test_generate_directory_tree.py": 2,
           "tests/development_tools/test_generate_function_registry.py": 1,
@@ -57343,10 +57559,9 @@
           "tests/ui/test_dialogs.py": 1,
           "tests/unit/test_file_locking.py": 1,
           "tests/unit/test_scripts_exclusion_policy.py": 1,
-          "tests/development_tools/test_audit_tier_comprehensive.py": 1,
-          "tests/development_tools/test_fix_project_cleanup.py": 2,
           "communication/core/channel_orchestrator.py": 1,
-          "communication/core/factory.py": 2
+          "communication/core/factory.py": 2,
+          "ui/widgets/checkin_settings_widget.py": 1
         },
         "details": {
           "findings": {
@@ -59161,6 +59376,13 @@
                 "symbol": "unused-import"
               },
               {
+                "file": "tests/development_tools/test_audit_tier_comprehensive.py",
+                "line": 85,
+                "column": 0,
+                "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
+              },
+              {
                 "file": "tests/development_tools/test_audit_tier_e2e_verification.py",
                 "line": 45,
                 "column": 0,
@@ -59261,6 +59483,20 @@
               {
                 "file": "tests/development_tools/test_fix_documentation_links.py",
                 "line": 11,
+                "column": 0,
+                "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_fix_project_cleanup.py",
+                "line": 9,
+                "column": 0,
+                "message": "Unused import tempfile",
+                "symbol": "unused-import"
+              },
+              {
+                "file": "tests/development_tools/test_fix_project_cleanup.py",
+                "line": 13,
                 "column": 0,
                 "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
                 "symbol": "unused-import"
@@ -59810,27 +60046,6 @@
                 "column": 0,
                 "message": "Unused Path imported from pathlib",
                 "symbol": "unused-import"
-              },
-              {
-                "file": "tests/development_tools/test_audit_tier_comprehensive.py",
-                "line": 85,
-                "column": 0,
-                "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
-                "symbol": "unused-import"
-              },
-              {
-                "file": "tests/development_tools/test_fix_project_cleanup.py",
-                "line": 9,
-                "column": 0,
-                "message": "Unused import tempfile",
-                "symbol": "unused-import"
-              },
-              {
-                "file": "tests/development_tools/test_fix_project_cleanup.py",
-                "line": 13,
-                "column": 0,
-                "message": "Unused temp_project_copy imported from tests.development_tools.conftest",
-                "symbol": "unused-import"
               }
             ],
             "production_test_mocking": [
@@ -59856,13 +60071,21 @@
                 "symbol": "unused-import"
               }
             ],
-            "ui_imports": []
+            "ui_imports": [
+              {
+                "file": "ui/widgets/checkin_settings_widget.py",
+                "line": 3,
+                "column": 0,
+                "message": "Unused QComboBox imported from PySide6.QtWidgets",
+                "symbol": "unused-import"
+              }
+            ]
           },
           "stats": {
             "files_scanned": 400,
-            "files_with_issues": 124,
-            "total_unused": 356,
-            "cache_hits": 396,
+            "files_with_issues": 125,
+            "total_unused": 357,
+            "cache_hits": 399,
             "cache_misses": 0
           },
           "by_category": {
@@ -59875,12 +60098,12 @@
             "qt_testing": 54,
             "test_infrastructure": 153,
             "production_test_mocking": 3,
-            "ui_imports": 0
+            "ui_imports": 1
           },
           "files_scanned": 400
         }
       },
-      "timestamp": "2026-01-05T00:03:24.804994"
+      "timestamp": "2026-01-05T21:28:47.708459"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -60155,7 +60378,7 @@
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md"
         }
       },
-      "timestamp": "2026-01-05T00:05:12.429185"
+      "timestamp": "2026-01-05T21:29:25.846885"
     },
     "analyze_config": {
       "success": true,
@@ -60223,7 +60446,7 @@
           }
         }
       },
-      "timestamp": "2026-01-05T00:08:50.025539"
+      "timestamp": "2026-01-05T21:31:58.264346"
     },
     "analyze_ai_work": {
       "success": true,
@@ -60238,12 +60461,12 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-01-05T00:02:48.900801"
+      "timestamp": "2026-01-05T21:28:12.887306"
     },
     "analyze_system_signals": {
       "success": true,
       "data": {
-        "timestamp": "2026-01-05T00:02:47.209657",
+        "timestamp": "2026-01-05T21:28:11.304249",
         "system_health": {
           "overall_status": "ISSUES",
           "core_files": {
@@ -60261,12 +60484,12 @@
             "user": "OK",
             "tests": "OK"
           },
-          "last_audit": "2026-01-04T22:12:56.767627",
-          "audit_freshness": "<24 hours",
+          "last_audit": "2026-01-05T21:19:25.502589",
+          "audit_freshness": "<1 hour",
           "test_coverage_status": "Unknown",
           "documentation_sync_status": "Synchronized",
           "health_indicators": [
-            "Audit data is recent (1 hours ago)",
+            "Audit data is very recent (<1 hour)",
             "Documentation is synchronized"
           ],
           "recommendations": [
@@ -60284,16 +60507,16 @@
         },
         "recent_activity": {
           "recent_changes": [
-            "tests/behavior/test_utilities_demo.py",
-            "ui/widgets/checkin_settings_widget.py",
+            "tests/behavior/test_checkin_analytics_behavior.py",
             "communication/message_processing/conversation_flow_manager.py",
-            "development_tools/tests/generate_test_coverage_report.py",
+            "tests/test_utilities.py",
             "tests/behavior/test_comprehensive_quantitative_analytics.py",
-            "ui/dialogs/channel_management_dialog.py",
-            "tests/behavior/test_quantitative_analytics_expansion.py",
-            "run_tests.py",
-            "tests/behavior/test_discord_bot_behavior.py",
-            "tests/test_utilities.py"
+            "tests/development_tools/test_audit_status_updates.py",
+            "development_tools/error_handling/analyze_error_handling.py",
+            "core/checkin_analytics.py",
+            "create_backup.py",
+            "tests/unit/test_checkin_management_dialog.py",
+            "ui/dialogs/checkin_management_dialog.py"
           ],
           "git_status": "Modified",
           "last_commit": null,
@@ -60303,36 +60526,36 @@
         "performance_indicators": {
           "log_file_sizes": {
             "ai.log": "0.0MB",
-            "ai_dev_tools.log": "0.0MB",
-            "app.log": "0.2MB",
+            "ai_dev_tools.log": "0.1MB",
+            "app.log": "0.6MB",
             "communication_manager.log": "0.1MB",
             "discord.log": "0.0MB",
             "email.log": "0.0MB",
-            "errors.log": "0.0MB",
-            "file_ops.log": "0.0MB",
+            "errors.log": "0.6MB",
+            "file_ops.log": "0.3MB",
             "message.log": "0.0MB",
-            "scheduler.log": "0.0MB",
-            "ui.log": "0.0MB",
+            "scheduler.log": "0.2MB",
+            "ui.log": "0.1MB",
             "user_activity.log": "0.0MB"
           },
           "cache_status": "Unknown",
           "memory_usage": "Unknown"
         }
       },
-      "timestamp": "2026-01-05T00:02:47.444620"
+      "timestamp": "2026-01-05T21:28:11.565478"
     },
     "decision_support": {
       "success": true,
       "data": {
-        "total_functions": 1517,
-        "moderate_complexity": 148,
-        "high_complexity": 144,
-        "critical_complexity": 134,
+        "total_functions": 1530,
+        "moderate_complexity": 151,
+        "high_complexity": 147,
+        "critical_complexity": 135,
         "undocumented": 5,
         "decision_support_items": 5,
         "decision_support_sample": [
-          "[COMPLEXITY] Functions needing attention: 426",
-          "[CRITICAL] Critical Complexity (>199 nodes): 134",
+          "[COMPLEXITY] Functions needing attention: 433",
+          "[CRITICAL] Critical Complexity (>199 nodes): 135",
           "[DOC] Undocumented Handlers: 5",
           "[DUPE] Duplicate Function Names: 145",
           "- [CRITICAL] Refactor critical complexity functions immediately."
@@ -60448,12 +60671,12 @@
           }
         ]
       },
-      "timestamp": "2026-01-05T00:02:54.566453"
+      "timestamp": "2026-01-05T21:28:18.794201"
     },
     "quick_status": {
       "success": true,
       "data": {
-        "timestamp": "2026-01-05T00:02:55.452455",
+        "timestamp": "2026-01-05T21:28:19.684851",
         "system_health": {
           "core_files": {
             "run_mhm.py": "OK",
@@ -60473,7 +60696,7 @@
         },
         "documentation_status": {
           "coverage": "Unknown",
-          "recent_audit": "2026-01-04T22:12:56.696054",
+          "recent_audit": "2026-01-05T21:19:25.432852",
           "key_files": {
             "README.md": "OK",
             "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -60486,10 +60709,12 @@
         "critical_issues": [],
         "action_items": [],
         "recent_activity": {
-          "last_audit": "2026-01-04T22:12:56.696054",
+          "last_audit": "2026-01-05T21:19:25.432852",
           "recent_changes": [
             "run_tests.py",
             "create_backup.py",
+            "core/user_data_handlers.py",
+            "core/message_management.py",
             "core/checkin_dynamic_manager.py",
             "core/checkin_analytics.py",
             "communication/message_processing/conversation_flow_manager.py",
@@ -60499,7 +60724,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-05T00:02:55.681839"
+      "timestamp": "2026-01-05T21:28:19.911831"
     },
     "system_signals": {
       "success": true,
@@ -60568,15 +60793,15 @@
     "decision_support_metrics": {
       "success": true,
       "data": {
-        "total_functions": 1517,
-        "moderate_complexity": 148,
-        "high_complexity": 144,
-        "critical_complexity": 134,
+        "total_functions": 1530,
+        "moderate_complexity": 151,
+        "high_complexity": 147,
+        "critical_complexity": 135,
         "undocumented": 5,
         "decision_support_items": 5,
         "decision_support_sample": [
-          "[COMPLEXITY] Functions needing attention: 426",
-          "[CRITICAL] Critical Complexity (>199 nodes): 134",
+          "[COMPLEXITY] Functions needing attention: 433",
+          "[CRITICAL] Critical Complexity (>199 nodes): 135",
           "[DOC] Undocumented Handlers: 5",
           "[DUPE] Duplicate Function Names: 145",
           "- [CRITICAL] Refactor critical complexity functions immediately."
@@ -60692,7 +60917,7 @@
           }
         ]
       },
-      "timestamp": "2026-01-05T00:10:56.987672"
+      "timestamp": "2026-01-05T21:36:32.869415"
     }
   }
 }

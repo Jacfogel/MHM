@@ -29,8 +29,8 @@ When adding new tasks, follow this format:
 - **TODO.md is for TODOs only** - completed tasks should be documented in CHANGELOG files and removed from TODO.md
 
 
-**Note**: Phase 1: Enhanced Task & Check-in Systems is tracked in PLANS.md. 
-**Note**: Mood-Aware Support Calibration items (Safety Net Response Library, Task Breakdown Prompt Experiments, Context-Aware Reminder Content Mapping, Mood Re-evaluation Cadence Guidelines) are tracked in PLANS.md under "Mood-Aware Support Calibration" plan.
+**Note**: Phase 1: Enhanced Task & Check-in Systems is tracked in [PLANS.md](development_docs/PLANS.md). 
+**Note**: Mood-Aware Support Calibration items (Safety Net Response Library, Task Breakdown Prompt Experiments, Context-Aware Reminder Content Mapping, Mood Re-evaluation Cadence Guidelines) are tracked in [PLANS.md](development_docs/PLANS.md) under "Mood-Aware Support Calibration" plan.
 
 **Nightly No-Shim Validation Runs**
 - *What it means*: Run the full suite with `ENABLE_TEST_DATA_SHIM=0` nightly to validate underlying stability.
@@ -62,6 +62,19 @@ When adding new tasks, follow this format:
 ## High Priority
 
 
+
+**Fix Check-in Management Dialog Test Failures** [OK]
+- *What it means*: Two unit tests in `tests/unit/test_checkin_management_dialog.py` are failing after recent changes to `save_checkin_settings()` method. Tests expect `set_schedule_periods()` and `update_user_account()` to be called, but they're not being called (0 times instead of 1). This is likely due to new validation logic added during check-in settings UI improvements that may be causing early returns or preventing the save from completing.
+- *Why it helps*: Ensures test suite reliability and validates that check-in settings are properly saved with all required operations
+- *Estimated effort*: Small/Medium
+- *Status*: [OK] **COMPLETED** - Fixed by updating test data to include required `always_include`/`sometimes_include` fields in question data. The validation logic was correct; tests needed to provide valid question data that passes validation.
+- *Subtasks*:
+  - [x] Investigate `test_save_checkin_settings_saves_successfully` failure - Expected 'set_schedule_periods' to have been called once. Called 0 times
+  - [x] Investigate `test_save_checkin_settings_updates_account_features` failure - Expected 'update_user_account' to have been called once. Called 0 times
+  - [x] Review `save_checkin_settings()` method in `ui/dialogs/checkin_management_dialog.py` to identify why functions aren't being called
+  - [x] Check if new validation logic (min/max question counts, enabled questions check) is causing early returns
+  - [x] Update tests to account for new validation requirements or fix method to ensure functions are called when validation passes
+  - [x] Verify tests pass after fixes
 
 **Investigate Pytest Failures in Development Tools Test Suite**
 - *What it means*: Investigate and fix intermittent test failures and pytest crashes in the development tools test suite. Currently experiencing: (1) flaky test `test_central_aggregation_includes_all_tool_results` that passes individually but sometimes fails in full suite (likely race condition), and (2) pytest crash with Windows error 0xC0000135 (STATUS_DLL_NOT_FOUND) indicating missing DLL required by Python or dependencies.
@@ -154,6 +167,18 @@ When adding new tasks, follow this format:
 
 ### User Experience Improvements
 
+**Investigate Check-in Settings UI Issues**
+- *What it means*: Fix two outstanding issues in the check-in management dialog: (1) Maximum spinbox cannot be reduced below minimum value - it should dynamically adjust minimum to match when maximum is reduced, similar to how minimum adjustment works in reverse; (2) Questions section blanks out visually when adding or deleting custom questions, even though the data is preserved correctly.
+- *Why it helps*: Improves user experience by making the UI more intuitive and preventing visual glitches that can be confusing
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Investigate why maximum spinbox value cannot be reduced below minimum - current attempts to block signals and adjust constraints haven't resolved the issue
+  - [ ] Test different approaches: QSpinBox valueChanged signal handling, validation timing, constraint management
+  - [ ] Investigate why questions section blanks during add/delete operations - attempts to hide/show scroll area and container widget haven't resolved the issue
+  - [ ] Test alternative approaches: QTimer deferred updates, widget update strategies, layout management during rebuilds
+  - [ ] Review how other widgets (e.g., tag_widget, dynamic_list_container) handle similar dynamic add/delete operations without blanking
+  - [ ] Consider using QStackedWidget or other container strategies to prevent visual blanking
+  - [ ] Document findings and implement working solution
 
 **Improve Natural Language Processing Accuracy**
 - *What it means*: Refine parsing patterns and thresholds to better recognize intents and entities

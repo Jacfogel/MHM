@@ -2,67 +2,68 @@
 
 > **File**: `development_docs/TEST_COVERAGE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-05 00:10:56
+> **Last Generated**: 2026-01-05 21:36:32
 > **Source**: `python development_tools/tests/generate_test_coverage.py --update-plan` - Coverage Metrics Regenerator
 
 ## Current Status
 
-### **Overall Coverage: 72.9%**
-- **Total Statements**: 27,388
-- **Covered Statements**: 19,965
-- **Uncovered Statements**: 7,423
+### **Overall Coverage: 72.6%**
+- **Total Statements**: 27,902
+- **Covered Statements**: 20,245
+- **Uncovered Statements**: 7,657
 - **Goal**: Expand to **80%+ coverage** for comprehensive reliability
 
 ### **Coverage Summary by Category**
 - **Excellent (93% avg)**: 59 modules
-- **Good (72% avg)**: 39 modules
-- **Moderate (51% avg)**: 4 modules
+- **Good (72% avg)**: 40 modules
+- **Moderate (47% avg)**: 3 modules
 
 ### **Detailed Module Coverage**
-- **X ui\widgets\checkin_settings_widget.py**: 46% (106/229 lines)
+- **X ui\widgets\checkin_settings_widget.py**: 44% (290/662 lines)
 - **X communication\communication_channels\discord\bot.py**: 47% (561/1193 lines)
-- **X ui\ui_app_qt.py**: 51% (710/1386 lines)
-- **X core\file_locking.py**: 59% (76/128 lines)
-- **! communication\core\channel_orchestrator.py**: 61% (622/1025 lines)
+- **X ui\ui_app_qt.py**: 51% (706/1386 lines)
+- **! communication\core\channel_orchestrator.py**: 61% (623/1025 lines)
 - **! communication\command_handlers\interaction_handlers.py**: 62% (930/1500 lines)
 - **! core\service.py**: 62% (429/697 lines)
+- **! core\file_locking.py**: 63% (81/128 lines)
 - **! ui\dialogs\schedule_editor_dialog.py**: 63% (151/238 lines)
 - **! communication\message_processing\interaction_manager.py**: 64% (332/517 lines)
-- **! ai\chatbot.py**: 65% (547/839 lines)
-- **! core\logger.py**: 65% (465/711 lines)
-- **! core\scheduler.py**: 65% (618/951 lines)
+- **! ai\chatbot.py**: 65% (542/839 lines)
+- **! core\logger.py**: 66% (470/711 lines)
+- **! core\scheduler.py**: 66% (623/951 lines)
 - **! ui\widgets\dynamic_list_container.py**: 66% (134/203 lines)
 - **! communication\communication_channels\email\bot.py**: 67% (147/219 lines)
 - **! ui\widgets\channel_selection_widget.py**: 67% (55/82 lines)
 - **! ui\dialogs\account_creator_dialog.py**: 68% (443/648 lines)
 - **! ui\widgets\user_profile_settings_widget.py**: 70% (201/286 lines)
-- **! core\user_data_handlers.py**: 71% (560/788 lines)
-- **! core\user_data_manager.py**: 71% (610/865 lines)
-- **! communication\message_processing\conversation_flow_manager.py**: 72% (420/583 lines)
+- **! core\user_data_handlers.py**: 71% (567/797 lines)
+- **! core\user_data_manager.py**: 71% (617/865 lines)
+- **! communication\message_processing\conversation_flow_manager.py**: 72% (443/615 lines)
 - **! core\message_management.py**: 72% (281/389 lines)
 - **! ui\dialogs\task_crud_dialog.py**: 72% (154/215 lines)
 - **! communication\command_handlers\analytics_handler.py**: 73% (335/462 lines)
 - **! communication\communication_channels\discord\webhook_handler.py**: 73% (109/149 lines)
+- **! ui\dialogs\task_completion_dialog.py**: 73% (83/114 lines)
 - **! ui\generate_ui_files.py**: 73% (46/63 lines)
 - **! communication\message_processing\command_parser.py**: 74% (267/363 lines)
 - **! core\checkin_analytics.py**: 74% (352/476 lines)
-- **! ui\dialogs\task_completion_dialog.py**: 74% (84/114 lines)
-- **! core\backup_manager.py**: 75% (327/436 lines)
-- **! core\user_management.py**: 75% (548/735 lines)
 - **! ui\widgets\dynamic_list_field.py**: 75% (90/120 lines)
 - **! core\auto_cleanup.py**: 76% (300/396 lines)
+- **! core\backup_manager.py**: 76% (333/436 lines)
 - **! core\config.py**: 76% (324/424 lines)
 - **! communication\command_handlers\profile_handler.py**: 77% (193/252 lines)
-- **! core\error_handling.py**: 77% (292/377 lines)
 - **! core\file_auditor.py**: 77% (70/91 lines)
+- **! core\user_management.py**: 77% (566/735 lines)
 - **! ui\dialogs\task_edit_dialog.py**: 77% (300/392 lines)
-- **! core\checkin_dynamic_manager.py**: 78% (252/323 lines)
+- **! core\error_handling.py**: 78% (293/377 lines)
 - **! ai\conversation_history.py**: 79% (167/212 lines)
 - **! communication\command_handlers\schedule_handler.py**: 79% (207/262 lines)
+- **! core\checkin_dynamic_manager.py**: 79% (254/323 lines)
 - **! core\file_operations.py**: 79% (311/396 lines)
 - **! core\service_utilities.py**: 79% (115/145 lines)
 - **! ui\dialogs\user_profile_dialog.py**: 79% (207/261 lines)
 - *** communication\core\channel_monitor.py**: 80% (109/136 lines)
+- *** ui\dialogs\checkin_management_dialog.py**: 80% (128/160 lines)
 - *** core\schedule_management.py**: 81% (247/305 lines)
 - *** communication\communication_channels\base\message_formatter.py**: 82% (95/116 lines)
 - *** communication\communication_channels\discord\welcome_handler.py**: 82% (32/39 lines)
@@ -71,7 +72,6 @@
 - *** communication\command_handlers\task_handler.py**: 83% (309/374 lines)
 - *** communication\communication_channels\base\base_channel.py**: 83% (55/66 lines)
 - *** core\headless_service.py**: 83% (177/212 lines)
-- *** ui\dialogs\checkin_management_dialog.py**: 85% (102/120 lines)
 - *** core\schemas.py**: 86% (260/301 lines)
 - *** ui\widgets\tag_widget.py**: 86% (184/213 lines)
 - *** ui\widgets\period_row_widget.py**: 87% (212/244 lines)

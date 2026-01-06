@@ -44,16 +44,38 @@ class CheckinManagementDialog(QDialog):
                 features = account.get('features', {})
                 checkins_enabled = features.get('checkins') == 'enabled'
             self.ui.groupBox_checkBox_enable_checkins.setChecked(checkins_enabled)
-            # Add the check-in settings widget to the placeholder
+            # Create check-in settings widget
             self.checkin_widget = CheckinSettingsWidget(self, self.user_id)
-            layout = self.ui.widget_placeholder_checkin_settings.layout()
-            # Remove any existing widgets
-            while layout.count():
-                item = layout.takeAt(0)
+            
+            # Get references to the group boxes
+            questions_group = self.checkin_widget.ui.groupBox_checkin_questions
+            periods_group = self.checkin_widget.ui.groupBox_checkin_time_periods
+            
+            # Remove periods group from original layout (keep questions in widget for now)
+            original_layout = self.checkin_widget.ui.verticalLayout_Form_checkin_settings
+            original_layout.removeWidget(periods_group)
+            
+            # Hide periods in the widget (we'll show it in the frequency tab)
+            periods_group.setVisible(False)
+            
+            # Add the entire widget to questions tab (so it stays active)
+            questions_layout = self.ui.widget_placeholder_checkin_settings.layout()
+            while questions_layout.count():
+                item = questions_layout.takeAt(0)
                 w = item.widget()
                 if w:
                     w.setParent(None)
-            layout.addWidget(self.checkin_widget)
+            questions_layout.addWidget(self.checkin_widget)
+            
+            # Show periods group in frequency tab
+            periods_group.setVisible(True)
+            frequency_layout = self.ui.widget_placeholder_frequency_settings.layout()
+            while frequency_layout.count():
+                item = frequency_layout.takeAt(0)
+                w = item.widget()
+                if w:
+                    w.setParent(None)
+            frequency_layout.addWidget(periods_group)
             # Connect Save/Cancel
             self.ui.buttonBox_save_cancel.accepted.connect(self.save_checkin_settings)
             self.ui.buttonBox_save_cancel.rejected.connect(self.reject)
@@ -113,6 +135,76 @@ class CheckinManagementDialog(QDialog):
                 if not is_valid:
                     QMessageBox.warning(self, "Validation Error", errors[0])
                     return
+                
+                # Validate min/max question counts
+                min_questions = checkin_settings.get('min_questions', 1)
+                max_questions = checkin_settings.get('max_questions', 8)
+                
+                # Count always and sometimes questions
+                questions = checkin_settings.get('questions', {})
+                always_count = sum(1 for q in questions.values() if q.get('always_include', False))
+                sometimes_count = sum(1 for q in questions.values() if q.get('sometimes_include', False))
+                total_enabled = always_count + sometimes_count
+                
+                # Ensure at least one question is enabled if check-ins are enabled
+                if total_enabled == 0:
+                    QMessageBox.warning(
+                        self,
+                        "No Questions Enabled",
+                        "Please enable at least one question (Always or Sometimes) before saving."
+                    )
+                    return
+                
+                # Calculate minimum required
+                # Minimum must be at least always_count (doesn't depend on sometimes questions)
+                min_required = max(always_count, 1)
+                
+                # Calculate maximum allowed: if sometimes questions > 0, max is total_enabled - 1
+                # Otherwise, max is total_enabled
+                if sometimes_count > 0:
+                    max_allowed = total_enabled - 1
+                else:
+                    max_allowed = total_enabled
+                
+                # Minimum maximum: if sometimes questions > 0, minimum max is always_count + 1
+                # Otherwise, minimum max is just always_count
+                if sometimes_count > 0:
+                    min_maximum = always_count + 1
+                else:
+                    min_maximum = always_count
+                min_maximum = max(min_maximum, min_required)  # Must be at least min_required
+                
+                # Ensure max_allowed is at least min_maximum
+                max_allowed = max(max_allowed, min_maximum)
+                
+                if min_questions < min_required:
+                    QMessageBox.warning(
+                        self,
+                        "Invalid Minimum",
+                        f"Minimum questions ({min_questions}) must be at least {min_required} "
+                        f"(number of 'always' questions: {always_count})."
+                    )
+                    return
+                
+                if max_questions < min_questions:
+                    QMessageBox.warning(
+                        self,
+                        "Invalid Maximum",
+                        f"Maximum questions ({max_questions}) must be >= minimum ({min_questions})."
+                    )
+                    return
+                
+                if max_questions > max_allowed:
+                    QMessageBox.warning(
+                        self,
+                        "Invalid Maximum",
+                        f"Maximum questions ({max_questions}) cannot exceed {max_allowed} "
+                        f"(total enabled questions: {total_enabled}" +
+                        (f", minus 1 because you have 'sometimes' questions enabled" if sometimes_count > 0 else "") +
+                        ")."
+                    )
+                    return
+            
             # Note: We always save time periods, even when disabled, so users don't lose their work
             # If check-ins are disabled, the periods will be saved but not used by the system
 
@@ -141,7 +233,9 @@ class CheckinManagementDialog(QDialog):
             
             prefs['checkin_settings'] = {
                 'questions': checkin_settings.get('questions', {}),
-                'custom_questions': custom_questions  # Preserve custom questions
+                'custom_questions': custom_questions,  # Preserve custom questions
+                'min_questions': checkin_settings.get('min_questions', 1),
+                'max_questions': checkin_settings.get('max_questions', 8)
             }
             
             # Save updated preferences

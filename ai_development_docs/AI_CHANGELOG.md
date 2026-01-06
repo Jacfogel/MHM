@@ -36,6 +36,22 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-05 - Multiple Fixes: Message File Creation, Error Handling Analyzer, and Path Drift **COMPLETED**
+- Fixed three issues: message files not created for new categories, nested functions incorrectly flagged as Phase 1 candidates, broken path references in TODO.md
+- Message files: fixed malformed JSON (nested messages array) in word_of_the_day.json, added programmatic nested structure detection, added safeguard in update_user_preferences
+- Error handling: added `_is_nested_function()` detection to exclude nested functions from Phase 1 candidates (they can't use decorators)
+- Path drift: fixed 2 incomplete file path references in TODO.md to use full relative paths
+- Impact: users automatically get message files when opting into categories; error handling reports show 0 Phase 1 candidates (was 1 false positive); path drift shows 0 issues for TODO.md
+- Files: resources/default_messages/word_of_the_day.json, core/message_management.py, core/user_data_handlers.py, development_tools/error_handling/analyze_error_handling.py, TODO.md
+
+### 2026-01-04 - Check-in Settings UI Improvements: Min/Max Validation and Question Management **PARTIAL**
+- [OK] FIXED: New questions now appear in UI list (dynamic display via get_enabled_questions_for_ui)
+- [OK] FIXED: Custom questions appear in list and are toggleable/editable/deletable (full CRUD UI)
+- [OK] FIXED: Add custom question dialog improved with template support (templates load and populate fields)
+- Enhanced with "Always" and "Sometimes" options, category grouping, min/max validation
+- Two outstanding issues from enhancements: max spinbox adjustment and visual blanking during add/delete
+- Files: checkin_settings_widget.py, checkin_management_dialog.py, questions.json, question_templates.json
+
 ### 2026-01-04 - Check-in Questions Enhancement: New Questions, Custom Questions, and Sleep Schedule **COMPLETED**
 - Added new predefined questions: hopelessness_level, irritability_level, motivation_level (1-5 scales), and treatment_adherence (yes/no)
 - Replaced sleep_hours with sleep_schedule (time_pair type) asking for sleep time and wake time; updated sleep_quality to clarify "rested" feeling

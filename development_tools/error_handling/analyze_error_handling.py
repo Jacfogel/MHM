@@ -615,7 +615,9 @@ class ErrorHandlingAnalyzer:
                 # Specific exception handlers (ValueError, KeyError, discord.Forbidden, etc.) are appropriate to keep
                 # Exclude __init__ methods - both decorators and try-except patterns are valid for __init__
                 # (decorators work fine since __init__ implicitly returns None; try-except with log-and-re-raise is also appropriate)
-                if has_generic_exception_handler and func_name != '__init__':
+                # Exclude nested functions - they cannot use decorators, so try-except is the appropriate pattern
+                is_nested_function = self._is_nested_function(func_node, content, func_start)
+                if has_generic_exception_handler and func_name != '__init__' and not is_nested_function:
                     analysis['is_phase1_candidate'] = True
                     analysis['error_handling_quality'] = 'basic'
                 elif func_name == '__init__':
@@ -703,6 +705,54 @@ class ErrorHandlingAnalyzer:
         # Check for data operations
         if any(op in content_lower for op in ['parse(', 'serialize(', 'deserialize(', 'validate(']):
             return True
+        
+        return False
+    
+    def _is_nested_function(self, func_node: ast.FunctionDef, content: str, func_start_line: int) -> bool:
+        """
+        Check if a function is nested inside another function.
+        
+        Nested functions cannot use decorators, so they should be excluded from Phase 1 candidates.
+        We detect nested functions by checking indentation level - nested functions have more
+        indentation than top-level or class-level functions.
+        
+        Args:
+            func_node: AST node for the function
+            content: Full file content
+            func_start_line: Line number where function starts (1-indexed)
+            
+        Returns:
+            True if function appears to be nested inside another function
+        """
+        lines = content.split('\n')
+        if func_start_line < 1 or func_start_line > len(lines):
+            return False
+        
+        # Get the function definition line
+        func_def_line = lines[func_start_line - 1]
+        
+        # Count leading spaces (indentation)
+        leading_spaces = len(func_def_line) - len(func_def_line.lstrip())
+        
+        # Top-level functions start at column 0
+        # Class methods typically start at column 4 (one level of indentation)
+        # Nested functions will have more indentation (typically 8+ spaces for nested inside method)
+        # Use a threshold: if indentation is >= 8 spaces, check if it's nested inside a function
+        
+        if leading_spaces >= 8:
+            # Check if there's a function definition before this one at a lower indentation
+            # Look back up to 100 lines to find the containing function
+            for i in range(max(0, func_start_line - 100), func_start_line - 1):
+                line = lines[i]
+                stripped = line.lstrip()
+                # Check for function definitions (def or async def)
+                if stripped.startswith('def ') or stripped.startswith('async def '):
+                    prev_indent = len(line) - len(stripped)
+                    # If previous function has less indentation, this is likely nested inside it
+                    # Allow for class methods (4 spaces) vs nested functions (8+ spaces)
+                    if prev_indent < leading_spaces and prev_indent <= 4:
+                        # Found a function at lower indentation - this is likely nested
+                        return True
         
         return False
     

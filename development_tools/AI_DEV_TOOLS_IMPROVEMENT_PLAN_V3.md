@@ -821,6 +821,55 @@ The Error Handling section now displays complete information matching consolidat
 
 **Risk**: Medium - Duplicate code may indicate missing functionality or code that needs consolidation.
 
+#### 4.17 Investigate Intermittent Low Coverage Percentage Warning
+**Status**: PENDING  
+**Priority**: HIGH  
+**Issue**: Recurring but intermittent warning: "Coverage percentage (47.2%) is unexpectedly low. Expected ~70-75%. This may indicate parallel coverage data was not included." Warning appears sporadically during coverage generation, suggesting a race condition or timing issue with parallel coverage data collection/merging.
+
+**Warning Details**:
+- Coverage percentage: 47.2% (expected ~70-75%)
+- Parallel file existed before cleanup: True
+- No_parallel file existed before cleanup: True
+- Shard files found: 0
+- Issue is intermittent (not consistently reproducible)
+
+**Potential Root Causes**:
+- Parallel coverage data files not being properly merged before analysis
+- Race condition in coverage file cleanup/merging process
+- Timing issue where coverage analysis runs before parallel data is fully collected
+- Shard files (from pytest-xdist) not being detected or included in merge
+- Coverage data file paths or naming inconsistencies
+
+**Investigation Tasks**:
+- [ ] Review coverage data collection and merging logic in `run_test_coverage.py`
+- [ ] Check timing of coverage file cleanup vs. analysis execution
+- [ ] Investigate why shard files are found as 0 when parallel execution occurred
+- [ ] Review pytest-xdist coverage data file naming and detection logic
+- [ ] Check if coverage file paths are consistent between parallel and no_parallel runs
+- [ ] Review coverage data merging process for parallel test execution
+- [ ] Add detailed logging around coverage file detection and merging
+- [ ] Verify coverage file existence checks are working correctly
+- [ ] Test with controlled parallel execution to reproduce issue consistently
+- [ ] Check if issue correlates with specific test patterns or test counts
+- [ ] Review coverage data file cleanup timing and ensure it happens after merge
+
+**Potential Fixes**:
+- [ ] Ensure coverage data merge completes before analysis runs
+- [ ] Add retry logic or wait mechanism for coverage file availability
+- [ ] Fix shard file detection if it's not finding parallel coverage files
+- [ ] Improve coverage file path resolution for parallel execution
+- [ ] Add validation to verify all expected coverage files exist before analysis
+- [ ] Enhance error handling and logging around coverage data collection
+
+**Files**: 
+- `development_tools/tests/run_test_coverage.py` (coverage data collection and merging)
+- `development_tools/tests/analyze_test_coverage.py` (coverage analysis that triggers warning)
+- `development_tools/tests/generate_test_coverage_report.py` (coverage report generation)
+- `pytest.ini` (pytest-xdist and coverage configuration)
+- `tests/conftest.py` (coverage configuration)
+
+**Risk**: High - Incorrect coverage percentages reduce trust in metrics and can mask actual coverage issues.
+
 ---
 
 ### Stage 5: Future Enhancements (Low Priority)

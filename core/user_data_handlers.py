@@ -1340,11 +1340,28 @@ def update_user_preferences(user_id: str, updates: Dict[str, Any], *, auto_creat
                 if added_categories:
                     try:
                         result_files = ensure_user_message_files(user_id, list(added_categories))
-                        logger.info(
-                            f"Category update for user {user_id}: created {result_files.get('files_created')} message files for {len(added_categories)} new categories (directory_created={result_files.get('directory_created')})"
-                        )
+                        if result_files.get('success'):
+                            logger.info(
+                                f"Category update for user {user_id}: created {result_files.get('files_created')} message files for {len(added_categories)} new categories (directory_created={result_files.get('directory_created')})"
+                            )
+                        else:
+                            logger.warning(
+                                f"Category update for user {user_id}: message file creation partially failed - created {result_files.get('files_created')}/{len(added_categories)} files"
+                            )
                     except Exception as e:
-                        logger.error(f"Error creating message files for user {user_id} after category update: {e}")
+                        logger.error(f"Error creating message files for user {user_id} after category update: {e}", exc_info=True)
+                else:
+                    # Even if no categories were added, ensure all current categories have message files
+                    # This is a safeguard in case files were deleted or never created
+                    if new_categories:
+                        try:
+                            result_files = ensure_user_message_files(user_id, list(new_categories))
+                            if result_files.get('files_created', 0) > 0:
+                                logger.info(
+                                    f"Category update for user {user_id}: created {result_files.get('files_created')} missing message files for existing categories"
+                                )
+                        except Exception as e:
+                            logger.warning(f"Error ensuring message files for user {user_id} existing categories: {e}")
                 # When categories exist, ensure automated_messages feature is enabled for discoverability
                 # Handled by cross-file invariants in save_user_data() two-phase approach
                 pass

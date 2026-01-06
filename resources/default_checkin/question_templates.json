@@ -3,8 +3,8 @@
     "cpap_used": {
       "key": "cpap_used",
       "type": "yes_no",
-      "question_text": "Did you use your CPAP machine last night? (yes/no)",
-      "ui_display_name": "CPAP use (yes/no)",
+      "question_text": "Did you use your CPAP machine last night?",
+      "ui_display_name": "CPAP use",
       "category": "health",
       "validation": {
         "error_message": "Please answer with yes/no, y/n, or similar."
@@ -14,8 +14,8 @@
     "therapy_session": {
       "key": "therapy_session",
       "type": "yes_no",
-      "question_text": "Did you attend your therapy session today? (yes/no)",
-      "ui_display_name": "Therapy session (yes/no)",
+      "question_text": "Did you attend your therapy session today?",
+      "ui_display_name": "Therapy session",
       "category": "health",
       "validation": {
         "error_message": "Please answer with yes/no, y/n, or similar."
@@ -25,9 +25,9 @@
     "meditation_practice": {
       "key": "meditation_practice",
       "type": "yes_no",
-      "question_text": "Did you practice meditation today? (yes/no)",
-      "ui_display_name": "Meditation practice (yes/no)",
-      "category": "reflection",
+      "question_text": "Did you practice meditation today?",
+      "ui_display_name": "Meditation practice",
+      "category": "activities",
       "validation": {
         "error_message": "Please answer with yes/no, y/n, or similar."
       },
@@ -36,8 +36,8 @@
     "physical_therapy": {
       "key": "physical_therapy",
       "type": "yes_no",
-      "question_text": "Did you do your recommended physical therapy exercises today? (yes/no)",
-      "ui_display_name": "Physical therapy exercises (yes/no)",
+      "question_text": "Did you do your recommended physical therapy exercises today?",
+      "ui_display_name": "Physical therapy exercises",
       "category": "health",
       "validation": {
         "error_message": "Please answer with yes/no, y/n, or similar."
@@ -47,8 +47,8 @@
     "medical_device_use": {
       "key": "medical_device_use",
       "type": "yes_no",
-      "question_text": "Did you use your prescribed medical device today? (yes/no)",
-      "ui_display_name": "Medical device use (yes/no)",
+      "question_text": "Did you use your prescribed medical device today?",
+      "ui_display_name": "Medical device use",
       "category": "health",
       "validation": {
         "error_message": "Please answer with yes/no, y/n, or similar."
