@@ -741,6 +741,8 @@ The Error Handling section now displays complete information matching consolidat
 **Priority**: HIGH  
 **Issue**: `tests/development_tools/test_audit_status_updates.py` is completely commented out as it appears to be the source of a memory leak. The test file needs investigation to determine if it can be fixed or requires complete replacement.
 
+'tests\development_tools\test_audit_tier_comprehensive.py' has also been completely commented out for the same reason.
+
 **Current State**:
 - Entire test file (375 lines) is commented out
 - File contains tests for verifying status files only update at end of audit

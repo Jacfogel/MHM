@@ -36,6 +36,15 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-07 - Notebook Feature: Core Implementation Complete and Search Fix **COMPLETED**
+- Completed Milestone 1 (Foundations): shared tag system, notebook schemas, data handlers, CRUD operations, command handler with V0 commands (`!n`, `!recent`, `!show`, `!append`, `!tag`, `!untag`, `!s`, `!pin`, `!archive`)
+- Completed Milestone 2 (Lists): list operations and commands (`!l new`, `!l add`, `!l show`, `!l done/undo`, `!l remove`)
+- Completed Milestone 3 (Organization Views): group support and smart views (`!group`, `!pinned`, `!inbox`, `!t <tag>`)
+- Fixed `search_entries()` bug: `dict.fromkeys()` failed on unhashable Entry objects; changed to use entry ID set for deduplication
+- Search commands (`!s`, `search`) now work correctly, finding entries by title, body, or list items
+- Created comprehensive test plan: 15 detailed subtasks covering all notebook functionality
+- Files: `notebook/notebook_data_manager.py`, `notebook/notebook_data_handlers.py`, `notebook/schemas.py`, `core/tags.py`, `communication/command_handlers/notebook_handler.py`, `tasks/task_management.py`
+
 ### 2026-01-05 - Multiple Fixes: Message File Creation, Error Handling Analyzer, and Path Drift **COMPLETED**
 - Fixed three issues: message files not created for new categories, nested functions incorrectly flagged as Phase 1 candidates, broken path references in TODO.md
 - Message files: fixed malformed JSON (nested messages array) in word_of_the_day.json, added programmatic nested structure detection, added safeguard in update_user_preferences

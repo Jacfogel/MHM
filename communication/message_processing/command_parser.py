@@ -304,6 +304,100 @@ class EnhancedCommandParser:
                 r'overall\s+wellness',
                 r'wellness\s+(?:for\s+)?(\d+)\s+days?',
             ],
+            # Notebook Patterns
+            'create_note': [
+                r'^!n\s+(.+)$',
+                r'^n\s+(.+)$',
+                r'note\s+(.+)',
+                r'new\s+note\s+(.+)',
+                r'create\s+note\s+(.+)',
+            ],
+            'list_recent_entries': [
+                r'^!recent(?:\s+(\d+))?$',
+                r'^recent(?:\s+(\d+))?$',
+                r'recent\s+entries?(?:\s+(\d+))?',
+                r'show\s+recent(?:\s+(\d+))?',
+            ],
+            'show_entry': [
+                r'^!show\s+(.+)$',
+                r'^show\s+(.+)$',
+                r'display\s+(.+)',
+                r'view\s+(.+)',
+            ],
+            'append_to_entry': [
+                r'^!append\s+(\S+)\s+(.+)$',
+                r'^append\s+(\S+)\s+(.+)$',
+                r'add\s+to\s+(\S+)\s+(.+)',
+            ],
+            'add_tags_to_entry': [
+                r'^!tag\s+(\S+)\s+(.+)$',
+                r'^tag\s+(\S+)\s+(.+)$',
+                r'add\s+tags?\s+to\s+(\S+)\s+(.+)',
+            ],
+            'remove_tags_from_entry': [
+                r'^!untag\s+(\S+)\s+(.+)$',
+                r'^untag\s+(\S+)\s+(.+)$',
+                r'remove\s+tags?\s+from\s+(\S+)\s+(.+)',
+            ],
+            'search_entries': [
+                r'^!s\s+(.+)$',
+                r'^s\s+(.+)$',
+                r'search\s+(.+)',
+                r'find\s+(.+)',
+            ],
+            'pin_entry': [
+                r'^!pin\s+(.+)$',
+                r'^pin\s+(.+)$',
+            ],
+            'unpin_entry': [
+                r'^!unpin\s+(.+)$',
+                r'^unpin\s+(.+)$',
+            ],
+            'archive_entry': [
+                r'^!archive\s+(.+)$',
+                r'^archive\s+(.+)$',
+            ],
+            'unarchive_entry': [
+                r'^!unarchive\s+(.+)$',
+                r'^unarchive\s+(.+)$',
+            ],
+            'create_list': [
+                r'^!l\s+new\s+(.+)$',
+                r'^l\s+new\s+(.+)$',
+                r'new\s+list\s+(.+)',
+            ],
+            'add_list_item': [
+                r'^!l\s+add\s+(\S+)\s+(.+)$',
+                r'^l\s+add\s+(\S+)\s+(.+)$',
+            ],
+            'toggle_list_item_done': [
+                r'^!l\s+done\s+(\S+)\s+(\d+)$',
+                r'^l\s+done\s+(\S+)\s+(\d+)$',
+            ],
+            'remove_list_item': [
+                r'^!l\s+remove\s+(\S+)\s+(\d+)$',
+                r'^l\s+remove\s+(\S+)\s+(\d+)$',
+            ],
+            'set_entry_group': [
+                r'^!group\s+(\S+)\s+(.+)$',
+                r'^group\s+(\S+)\s+(.+)$',
+            ],
+            'list_entries_by_group': [
+                r'^!group\s+(.+)$',
+                r'^group\s+(.+)$',
+            ],
+            'list_pinned_entries': [
+                r'^!pinned$',
+                r'^pinned$',
+            ],
+            'list_inbox_entries': [
+                r'^!inbox$',
+                r'^inbox$',
+            ],
+            'list_entries_by_tag': [
+                r'^!t\s+(.+)$',
+                r'^t\s+(.+)$',
+            ],
         }
         
         # Compile patterns for performance
@@ -647,6 +741,115 @@ class EnhancedCommandParser:
             if match.groups():
                 category = match.group(1).strip()
                 entities['category'] = category
+        
+        # Notebook Entity Extraction
+        elif intent == 'create_note':
+            if match.groups():
+                content = match.group(1).strip()
+                # Check for title | body format
+                if '|' in content:
+                    parts = content.split('|', 1)
+                    entities['title'] = parts[0].strip()
+                    entities['body'] = parts[1].strip()
+                else:
+                    # Just body, no title
+                    entities['body'] = content
+        
+        elif intent == 'list_recent_entries':
+            if match.groups():
+                limit = match.group(1)
+                try:
+                    entities['limit'] = int(limit)
+                except (ValueError, TypeError):
+                    entities['limit'] = 5
+            else:
+                entities['limit'] = 5
+        
+        elif intent == 'show_entry':
+            if match.groups():
+                entities['entry_ref'] = match.group(1).strip()
+        
+        elif intent == 'append_to_entry':
+            if len(match.groups()) >= 2:
+                entities['entry_ref'] = match.group(1).strip()
+                entities['text'] = match.group(2).strip()
+        
+        elif intent == 'add_tags_to_entry':
+            if len(match.groups()) >= 2:
+                entities['entry_ref'] = match.group(1).strip()
+                # Parse tags from text (supports #tag and space-separated)
+                tag_text = match.group(2).strip()
+                tags = []
+                # Extract #tags
+                tags.extend(re.findall(r'#(\w+)', tag_text))
+                # Extract space-separated tags
+                remaining = re.sub(r'#\w+', '', tag_text).strip()
+                if remaining:
+                    tags.extend(remaining.split())
+                entities['tags'] = tags
+        
+        elif intent == 'remove_tags_from_entry':
+            if len(match.groups()) >= 2:
+                entities['entry_ref'] = match.group(1).strip()
+                tag_text = match.group(2).strip()
+                tags = []
+                tags.extend(re.findall(r'#(\w+)', tag_text))
+                remaining = re.sub(r'#\w+', '', tag_text).strip()
+                if remaining:
+                    tags.extend(remaining.split())
+                entities['tags'] = tags
+        
+        elif intent == 'search_entries':
+            if match.groups():
+                entities['query'] = match.group(1).strip()
+        
+        elif intent in ['pin_entry', 'unpin_entry', 'archive_entry', 'unarchive_entry']:
+            if match.groups():
+                entities['entry_ref'] = match.group(1).strip()
+        
+        elif intent == 'create_list':
+            if match.groups():
+                content = match.group(1).strip()
+                # Parse title and tags
+                from core.tags import parse_tags_from_text
+                title, tags = parse_tags_from_text(content)
+                entities['title'] = title
+                if tags:
+                    entities['tags'] = tags
+        
+        elif intent == 'add_list_item':
+            if len(match.groups()) >= 2:
+                entities['entry_ref'] = match.group(1).strip()
+                entities['item_text'] = match.group(2).strip()
+        
+        elif intent == 'toggle_list_item_done':
+            if len(match.groups()) >= 2:
+                entities['entry_ref'] = match.group(1).strip()
+                try:
+                    entities['item_index'] = int(match.group(2))
+                except (ValueError, TypeError):
+                    pass
+        
+        elif intent == 'remove_list_item':
+            if len(match.groups()) >= 2:
+                entities['entry_ref'] = match.group(1).strip()
+                try:
+                    entities['item_index'] = int(match.group(2))
+                except (ValueError, TypeError):
+                    pass
+        
+        elif intent == 'set_entry_group':
+            if len(match.groups()) >= 2:
+                entities['entry_ref'] = match.group(1).strip()
+                entities['group'] = match.group(2).strip()
+        
+        elif intent == 'list_entries_by_group':
+            if match.groups():
+                entities['group'] = match.group(1).strip()
+        
+        elif intent == 'list_entries_by_tag':
+            if match.groups():
+                entities['tag'] = match.group(1).strip()
         
         return entities
     

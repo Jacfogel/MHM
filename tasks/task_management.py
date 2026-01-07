@@ -695,33 +695,16 @@ def cleanup_task_reminders(user_id: str, task_id: str) -> bool:
 
 @handle_errors("adding user task tag")
 def add_user_task_tag(user_id: str, tag: str) -> bool:
-    """Add a new tag to the user's task settings."""
+    """Add a new tag to the user's tag list (shared tag system)."""
     try:
         if not user_id or not tag:
             logger.error("User ID and tag are required for adding task tag")
             return False
         
-        from core.user_data_handlers import save_user_data
+        # Use shared tag system
+        from core.tags import add_user_tag
         
-        preferences_result = get_user_data(user_id, 'preferences')
-        preferences_data = preferences_result.get('preferences', {}) if preferences_result else {}
-        task_settings = preferences_data.get('task_settings', {})
-        tags = task_settings.get('tags', [])
-        
-        if tag not in tags:
-            tags.append(tag)
-            task_settings['tags'] = tags
-            preferences_data['task_settings'] = task_settings
-            
-            if save_user_data(user_id, 'preferences', preferences_data):
-                logger.info(f"Added tag '{tag}' for user {user_id}")
-                return True
-            else:
-                logger.error(f"Failed to save tag for user {user_id}")
-                return False
-        else:
-            logger.debug(f"Tag '{tag}' already exists for user {user_id}")
-            return True
+        return add_user_tag(user_id, tag)
             
     except Exception as e:
         logger.error(f"Error adding task tag for user {user_id}: {e}")
@@ -729,52 +712,29 @@ def add_user_task_tag(user_id: str, tag: str) -> bool:
 
 @handle_errors("setting up default task tags")
 def setup_default_task_tags(user_id: str) -> bool:
-    """Set up default task tags for a user when task management is first enabled."""
+    """
+    Set up default tags for a user when task management is first enabled.
+    This initializes the tags directory and tags.json with default tags if they don't exist.
+    """
     try:
         if not user_id:
             logger.error("User ID is required for setting up default task tags")
             return False
         
-        from core.user_data_handlers import save_user_data
+        from core.tags import get_user_tags
         
-        # Default tags to set up
-        default_tags = ["work", "personal", "health"]
+        # Check if user already has tags (this will create tags directory and file if needed)
+        existing_tags = get_user_tags(user_id)
         
-        # CRITICAL: Retry reading preferences to handle race conditions where file might not be fully written
-        import time
-        preferences_data = {}
-        max_retries = 5
-        for attempt in range(max_retries):
-            preferences_result = get_user_data(user_id, 'preferences')
-            preferences_data = preferences_result.get('preferences', {}) if preferences_result else {}
-            # Ensure we have a valid preferences dict with at least channel field before proceeding
-            if preferences_data and isinstance(preferences_data, dict):
-                # Check if channel exists (indicates file was fully written)
-                if 'channel' in preferences_data or attempt == max_retries - 1:
-                    break
-            if attempt < max_retries - 1:
-                time.sleep(0.1)  # 100ms delay between retries
-        
-        task_settings = preferences_data.get('task_settings', {})
-        existing_tags = task_settings.get('tags', [])
-        
-        # Only add default tags if no tags exist yet
-        if not existing_tags:
-            task_settings['tags'] = default_tags
-            preferences_data['task_settings'] = task_settings
-            
-            # CRITICAL: Ensure we preserve all existing preferences fields (channel, categories, etc.)
-            # save_user_data returns a dict of {data_type: success_bool}
-            result = save_user_data(user_id, {'preferences': preferences_data})
-            if result.get('preferences', False):
-                logger.info(f"Set up default task tags for user {user_id}: {default_tags}")
-                return True
-            else:
-                logger.error(f"Failed to save default task tags for user {user_id}")
-                return False
-        else:
-            logger.debug(f"User {user_id} already has task tags, skipping default setup")
+        # If tags already exist, no need to set up defaults
+        if existing_tags:
+            logger.debug(f"User {user_id} already has tags, skipping default setup")
             return True
+        
+        # Tags were just initialized with defaults from resources/default_tags.json
+        # No additional setup needed - the lazy initialization already handled it
+        logger.info(f"Tags initialized for user {user_id} with default tags from resources")
+        return True
             
     except Exception as e:
         logger.error(f"Error setting up default task tags for user {user_id}: {e}")
@@ -782,33 +742,16 @@ def setup_default_task_tags(user_id: str) -> bool:
 
 @handle_errors("removing user task tag")
 def remove_user_task_tag(user_id: str, tag: str) -> bool:
-    """Remove a tag from the user's task settings."""
+    """Remove a tag from the user's tag list (shared tag system)."""
     try:
         if not user_id or not tag:
             logger.error("User ID and tag are required for removing task tag")
             return False
         
-        from core.user_data_handlers import save_user_data
+        # Use shared tag system
+        from core.tags import remove_user_tag
         
-        preferences_result = get_user_data(user_id, 'preferences')
-        preferences_data = preferences_result.get('preferences', {}) if preferences_result else {}
-        task_settings = preferences_data.get('task_settings', {})
-        tags = task_settings.get('tags', [])
-        
-        if tag in tags:
-            tags.remove(tag)
-            task_settings['tags'] = tags
-            preferences_data['task_settings'] = task_settings
-            
-            if save_user_data(user_id, 'preferences', preferences_data):
-                logger.info(f"Removed tag '{tag}' for user {user_id}")
-                return True
-            else:
-                logger.error(f"Failed to save tag removal for user {user_id}")
-                return False
-        else:
-            logger.debug(f"Tag '{tag}' not found for user {user_id}")
-            return True
+        return remove_user_tag(user_id, tag)
             
     except Exception as e:
         logger.error(f"Error removing task tag for user {user_id}: {e}")

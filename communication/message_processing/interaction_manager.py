@@ -438,7 +438,7 @@ class InteractionManager:
                 return response
             
             # Don't enhance well-structured or report-style responses (avoid length limits/truncation)
-            # Includes help/commands, task ops, check-ins, profile/schedule/analytics/status/messages, and stats
+            # Includes help/commands, task ops, check-ins, profile/schedule/analytics/status/messages, notebook, and stats
             excluded_intents = {
                 'help', 'commands', 'examples',
                 'checkin_history', 'start_checkin', 'checkin_status',
@@ -448,7 +448,15 @@ class InteractionManager:
                 'show_schedule', 'schedule_status',
                 'show_analytics', 'analytics',
                 'messages', 'show_messages',
-                'status'
+                'status',
+                # Notebook intents - structured responses that shouldn't be AI-enhanced
+                'create_note', 'create_list', 'create_journal',
+                'list_recent_entries', 'show_entry', 'append_to_entry', 'set_entry_body',
+                'add_tags_to_entry', 'remove_tags_from_entry', 'search_entries',
+                'pin_entry', 'unpin_entry', 'archive_entry', 'unarchive_entry',
+                'add_list_item', 'toggle_list_item_done', 'remove_list_item',
+                'set_entry_group', 'list_entries_by_group', 'list_pinned_entries',
+                'list_inbox_entries', 'list_entries_by_tag'
             }
             intent = parsed_command.intent or ''
             if intent in excluded_intents or any(k in intent for k in ['profile', 'schedule', 'analytics', 'messages']):

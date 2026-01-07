@@ -38,6 +38,35 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-07 - Notebook Feature: Core Implementation Complete and Search Fix **COMPLETED**
+- **Feature**: Completed core notebook feature implementation (Milestones 1-3) and fixed critical search functionality bug
+  1. **Milestone 1 - Foundations + V0 Notes (COMPLETED)**:
+     - Created shared tag system (`core/tags.py`) with normalization, validation, and lazy initialization
+     - Refactored task tag system to use shared module
+     - Created notebook module structure with Pydantic schemas (`Entry`, `ListItem`)
+     - Implemented data handlers with lazy initialization (directories/files created on first use)
+     - Implemented full CRUD operations in data manager (create, read, update, search)
+     - Created command handler (`NotebookHandler`) with all V0 commands (`!n`, `!recent`, `!show`, `!append`, `!tag`, `!untag`, `!s`, `!pin`, `!archive`)
+     - Registered handler and added command patterns to parser
+     - Fixed issues: "Untitled" notes (use body as title), timestamp format standardization, AI enhancement override prevention
+  2. **Milestone 2 - Lists (COMPLETED)**:
+     - Implemented list operations (`add_list_item`, `toggle_list_item_done`, `remove_list_item`)
+     - Added list commands (`!l new`, `!l add`, `!l show`, `!l done/undo`, `!l remove`)
+  3. **Milestone 3 - Organization Views (COMPLETED)**:
+     - Implemented group support (`set_group`, `list_by_group`)
+     - Implemented smart views (`list_pinned`, `list_inbox`, `list_by_tag`)
+     - Added view commands (`!group`, `!pinned`, `!inbox`, `!t <tag>`)
+  4. **Search Functionality Fix**: Fixed `search_entries()` returning 0 results due to `dict.fromkeys()` attempting to use unhashable `Entry` objects. Changed deduplication logic to use entry IDs instead (set of IDs to track duplicates). This fixes `!s` and `search` commands that were not finding entries.
+  5. **Test Plan**: Created comprehensive test plan breaking down notebook feature testing into 15 detailed subtasks covering data handlers, data manager (CRUD/search/lists/views), command handlers, tag system, and integration tests
+- **Technical Details**:
+  - `notebook/notebook_data_manager.py`: Changed `list(dict.fromkeys(matching_entries))` to use `set` of entry IDs for deduplication (Entry objects are Pydantic models and not hashable)
+  - All search tests now pass: `search_entries('...', 'meeting')`, `search_entries('...', 'project')`, `search_entries('...', 'like')` all return expected results
+  - Timestamp format standardized to `'%Y-%m-%d %H:%M:%S'` across all notebook operations
+  - Tags registered in `user_data_handlers` as core data type with lazy initialization from `resources/default_tags.json`
+- **Background**: This work implements the notebook feature (notes, lists, journal entries) that enables users to capture and organize information via Discord commands. The feature includes full CRUD operations, search, tagging, grouping, and smart views (pinned, inbox, tag-based).
+- **Impact**: Users can now capture notes, create and manage lists, search entries, organize with tags and groups, and use smart views - all via Discord commands. Search commands (`!s`, `search`) now work correctly, finding entries by title, body, or list items. Comprehensive test plan provides clear roadmap for ensuring feature reliability.
+- **Files**: `notebook/notebook_data_manager.py`, `notebook/notebook_data_handlers.py`, `notebook/schemas.py`, `core/tags.py`, `communication/command_handlers/notebook_handler.py`, `tasks/task_management.py`
+
 ### 2026-01-05 - Multiple Fixes: Message File Creation, Error Handling Analyzer, and Path Drift **COMPLETED**
 - **Feature**: Fixed three issues identified during development tools audit and user message category opt-in:
   1. **Message File Creation**: User message files were not automatically created when opting into new automated message categories

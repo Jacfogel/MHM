@@ -686,7 +686,8 @@ def get_user_file_path(user_id: str, file_type: str) -> str:
         'checkins': 'checkins.json',
         'chat_interactions': 'chat_interactions.json',
         'sent_messages': 'messages/sent_messages.json',
-        'conversation_history': 'conversation_history.json'
+        'conversation_history': 'conversation_history.json',
+        'tags': 'tags.json'
     }
     return str(Path(user_dir) / file_mapping.get(file_type, f'{file_type}.json'))
 

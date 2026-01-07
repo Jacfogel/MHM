@@ -332,6 +332,7 @@ def create_user_files(user_id, categories, user_preferences=None):
     _create_user_files__schedules_file(user_id, categories, user_prefs, tasks_enabled, checkins_enabled)
     _create_user_files__log_files(user_id)
     _create_user_files__sent_messages_file(user_id)
+    # Note: tags/ and notebook/ directories are created lazily on first use (not during account creation)
     
     if tasks_enabled:
         _create_user_files__task_files(user_id)

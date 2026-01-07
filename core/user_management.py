@@ -60,6 +60,13 @@ USER_DATA_LOADERS = {
         'default_fields': [],
         'metadata_fields': ['last_updated'],
         'description': 'User schedule and timing preferences'
+    },
+    'tags': {
+        'loader': None,  # Will be set after function definition
+        'file_type': 'tags',
+        'default_fields': ['tags'],
+        'metadata_fields': ['created_at', 'updated_at'],
+        'description': 'User tags for tasks and notebook entries'
     }
 }
 
@@ -113,7 +120,7 @@ def register_default_loaders() -> None:
     """Ensure required loaders are registered (idempotent).
 
     Mutates the shared USER_DATA_LOADERS in-place, setting any missing/None
-    loader entries for: account, preferences, context, schedules.
+    loader entries for: account, preferences, context, schedules, tags.
     """
     # Local imports of loader functions are already in this module
     required = [
@@ -121,6 +128,7 @@ def register_default_loaders() -> None:
         ('preferences', _get_user_data__load_preferences, 'preferences'),
         ('context', _get_user_data__load_context, 'user_context'),
         ('schedules', _get_user_data__load_schedules, 'schedules'),
+        ('tags', _get_user_data__load_tags, 'tags'),
     ]
     
     # Track which loaders are being registered for batch logging
@@ -592,6 +600,44 @@ def _save_user_data__save_schedules(user_id: str, schedules_data: Dict[str, Any]
     
     logger.debug(f"Schedules data saved for user {user_id}")
     return True
+
+@handle_errors("loading user tags data", default_return=None)
+def _get_user_data__load_tags(user_id: str, auto_create: bool = True) -> Optional[Dict[str, Any]]:
+    """Load user tags data from tags.json."""
+    if not user_id:
+        logger.error("_get_user_data__load_tags called with None user_id")
+        return None
+    
+    try:
+        from core.tags import load_user_tags
+        tags_data = load_user_tags(user_id)
+        # load_user_tags returns {} on error or for new users (lazy init creates file)
+        # Return empty dict with default structure if file doesn't exist yet (for auto_create=True)
+        # Return None only if there was an actual error
+        if not tags_data and not auto_create:
+            return None
+        # Ensure we always return a dict with at least the expected structure
+        if not tags_data:
+            # For new users, return empty structure (file will be created on first save)
+            return {'tags': [], 'metadata': {}}
+        return tags_data
+    except Exception as e:
+        logger.error(f"Error loading tags for user {user_id}: {e}")
+        return None
+
+@handle_errors("saving user tags data")
+def _save_user_data__save_tags(user_id: str, tags_data: Dict[str, Any]) -> bool:
+    """Save user tags data to tags.json."""
+    if not user_id:
+        logger.error("_save_user_data__save_tags called with None user_id")
+        return False
+    
+    try:
+        from core.tags import save_user_tags
+        return save_user_tags(user_id, tags_data)
+    except Exception as e:
+        logger.error(f"Error saving tags for user {user_id}: {e}")
+        return False
 
 @handle_errors("updating user schedules")
 def update_user_schedules(user_id: str, schedules_data: Dict[str, Any]) -> bool:

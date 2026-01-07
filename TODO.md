@@ -241,6 +241,7 @@ When adding new tasks, follow this format:
 - *Current Status*: 20 modules completed (486 new tests added total, all passing) - see changelogs for details
   - **Latest additions** (2025-01-14): `user/user_preferences.py` (26 tests), `core/ui_management.py` (27 tests), `ai/prompt_manager.py` (49 tests)
 - *Next Targets*:
+  - [ ] **Add comprehensive notebook feature tests** - Test data handlers, data manager (CRUD, search, lists, views), command handlers, tag system, and integration workflows (see `.cursor/plans/notebook_feature_implementation_ce88ed1a.plan.md` milestone 1.12a-1.12o)
   - [ ] Expand coverage for `ui/ui_app_qt.py` (33% coverage, 1095 lines) - Large module
   - [ ] Expand coverage for `core/scheduler.py` (65% -> 80%+)
   - [ ] Add comprehensive tests for remaining communication modules

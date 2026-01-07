@@ -2667,13 +2667,21 @@ INTERACTION_HANDLERS = {
     'HelpHandler': HelpHandler(),
     'ScheduleManagementHandler': ScheduleManagementHandler(),
     'AnalyticsHandler': AnalyticsHandler(),
+    'NotebookHandler': None,  # Will be imported below to avoid circular imports
     'AccountManagementHandler': None,  # Will be imported below to avoid circular imports
 }
 
 @handle_errors("getting interaction handler", default_return=None)
 def get_interaction_handler(intent: str) -> Optional[InteractionHandler]:
     """Get the appropriate handler for an intent"""
-    # Lazy import AccountManagementHandler to avoid circular imports
+    # Lazy import handlers to avoid circular imports
+    if 'NotebookHandler' not in INTERACTION_HANDLERS or INTERACTION_HANDLERS['NotebookHandler'] is None:
+        try:
+            from communication.command_handlers.notebook_handler import NotebookHandler
+            INTERACTION_HANDLERS['NotebookHandler'] = NotebookHandler()
+        except Exception as e:
+            logger.warning(f"Could not import NotebookHandler: {e}")
+    
     if 'AccountManagementHandler' not in INTERACTION_HANDLERS or INTERACTION_HANDLERS['AccountManagementHandler'] is None:
         try:
             from communication.command_handlers.account_handler import AccountManagementHandler
@@ -2689,7 +2697,14 @@ def get_interaction_handler(intent: str) -> Optional[InteractionHandler]:
 @handle_errors("getting all handlers", default_return={})
 def get_all_handlers() -> Dict[str, InteractionHandler]:
     """Get all registered handlers"""
-    # Ensure AccountManagementHandler is loaded
+    # Ensure handlers are loaded
+    if 'NotebookHandler' not in INTERACTION_HANDLERS or INTERACTION_HANDLERS['NotebookHandler'] is None:
+        try:
+            from communication.command_handlers.notebook_handler import NotebookHandler
+            INTERACTION_HANDLERS['NotebookHandler'] = NotebookHandler()
+        except Exception as e:
+            logger.warning(f"Could not import NotebookHandler: {e}")
+    
     if 'AccountManagementHandler' not in INTERACTION_HANDLERS or INTERACTION_HANDLERS['AccountManagementHandler'] is None:
         try:
             from communication.command_handlers.account_handler import AccountManagementHandler

@@ -1750,17 +1750,17 @@ class TestAccountCreatorDialogCreateAccountBehavior:
         success = dialog.create_account(account_data)
         assert success, "Account creation should succeed"
 
-        # Assert: Default tags should be set up
+        # Assert: Default tags should be set up (tags are now stored in tags.json, not preferences)
         from core.user_management import get_user_id_by_identifier
+        from core.tags import get_user_tags
         import time
         time.sleep(0.1)  # Brief delay for index update
         user_id = get_user_id_by_identifier(unique_username)
         assert user_id is not None, "User ID should be found"
         
-        preferences_data = get_user_data(user_id, 'preferences')
-        preferences = preferences_data.get('preferences', {})
-        task_settings = preferences.get('task_settings', {})
-        tags = task_settings.get('tags', [])
+        # Tags are now stored in data/users/<user_id>/tags.json via lazy initialization
+        # setup_default_task_tags() calls get_user_tags() which triggers lazy initialization
+        tags = get_user_tags(user_id)
         assert len(tags) > 0, "Default tags should be set up"
         # Default tags typically include 'work', 'personal', etc.
         assert any('work' in tag.lower() or 'personal' in tag.lower() for tag in tags), "Default tags should include common tags"

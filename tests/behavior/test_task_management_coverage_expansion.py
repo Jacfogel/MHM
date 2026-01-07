@@ -1117,24 +1117,13 @@ class TestTaskManagementCoverageExpansion:
 
     def test_add_user_task_tag_new_tag_real_behavior(self, mock_user_data_dir, user_id):
         """Test adding a new task tag."""
-        with patch('tasks.task_management.get_user_data') as mock_get_user_data, \
-             patch('core.user_data_handlers.save_user_data') as mock_save_user_data:
-            
-            mock_get_user_data.return_value = {
-                'preferences': {'task_settings': {'tags': ['work', 'personal']}}
-            }
-            mock_save_user_data.return_value = {'preferences': True}
+        with patch('core.tags.add_user_tag') as mock_add_user_tag:
+            mock_add_user_tag.return_value = True
             
             result = add_user_task_tag(user_id, 'health')
             
             assert result is True
-            mock_save_user_data.assert_called_once()
-            
-            # Verify the call included the new tag
-            call_args = mock_save_user_data.call_args[0]
-            assert call_args[0] == user_id
-            assert call_args[1] == 'preferences'
-            assert 'health' in call_args[2]['task_settings']['tags']
+            mock_add_user_tag.assert_called_once_with(user_id, 'health')
 
     def test_add_user_task_tag_existing_tag_real_behavior(self, mock_user_data_dir, user_id):
         """Test adding an existing task tag."""
@@ -1161,24 +1150,13 @@ class TestTaskManagementCoverageExpansion:
 
     def test_remove_user_task_tag_real_behavior(self, mock_user_data_dir, user_id):
         """Test removing a task tag."""
-        with patch('tasks.task_management.get_user_data') as mock_get_user_data, \
-             patch('core.user_data_handlers.save_user_data') as mock_save_user_data:
-            
-            mock_get_user_data.return_value = {
-                'preferences': {'task_settings': {'tags': ['work', 'personal', 'health']}}
-            }
-            mock_save_user_data.return_value = {'preferences': True}
+        with patch('core.tags.remove_user_tag') as mock_remove_user_tag:
+            mock_remove_user_tag.return_value = True
             
             result = remove_user_task_tag(user_id, 'health')
             
             assert result is True
-            mock_save_user_data.assert_called_once()
-            
-            # Verify the call excluded the removed tag
-            call_args = mock_save_user_data.call_args[0]
-            assert call_args[0] == user_id
-            assert call_args[1] == 'preferences'
-            assert 'health' not in call_args[2]['task_settings']['tags']
+            mock_remove_user_tag.assert_called_once_with(user_id, 'health')
 
     def test_remove_user_task_tag_not_found_real_behavior(self, mock_user_data_dir, user_id):
         """Test removing a non-existent task tag."""
@@ -1193,40 +1171,33 @@ class TestTaskManagementCoverageExpansion:
 
     def test_setup_default_task_tags_new_user_real_behavior(self, mock_user_data_dir, user_id):
         """Test setting up default task tags for new user."""
-        with patch('tasks.task_management.get_user_data') as mock_get_user_data, \
-             patch('core.user_data_handlers.save_user_data') as mock_save_user_data:
-            
-            mock_get_user_data.return_value = {'preferences': {'task_settings': {'tags': []}}}
-            mock_save_user_data.return_value = {'preferences': True}
-            
-            result = setup_default_task_tags(user_id)
-            
-            assert result is True
-            mock_save_user_data.assert_called_once()
-            
-            # Verify default tags were added
-            # save_user_data signature: (user_id, data_updates) where data_updates is a dict
-            call_args = mock_save_user_data.call_args[0]
-            assert len(call_args) >= 2, f"Expected at least 2 arguments, got {len(call_args)}"
-            user_id_arg = call_args[0]
-            data_updates = call_args[1]
-            assert user_id_arg == user_id, f"Expected user_id {user_id}, got {user_id_arg}"
-            assert 'preferences' in data_updates, f"Expected 'preferences' in data_updates, got {list(data_updates.keys())}"
-            default_tags = data_updates['preferences']['task_settings']['tags']
-            assert 'work' in default_tags
-            assert 'personal' in default_tags
-            assert 'health' in default_tags
+        # The function now uses lazy initialization via core.tags.get_user_tags()
+        # which creates tags.json with default tags if they don't exist
+        # We test that the function succeeds and tags are initialized
+        from core.tags import get_user_tags
+        
+        result = setup_default_task_tags(user_id)
+        
+        assert result is True
+        
+        # Verify tags were initialized (lazy initialization creates default tags)
+        tags = get_user_tags(user_id)
+        assert len(tags) > 0, "Default tags should be initialized"
+        # Default tags from resources/default_tags.json should include common tags
+        assert any('work' in tag.lower() or 'personal' in tag.lower() or 'health' in tag.lower() for tag in tags), \
+            f"Default tags should include common tags, got: {tags}"
 
     def test_setup_default_task_tags_existing_user_real_behavior(self, mock_user_data_dir, user_id):
         """Test setting up default task tags for user with existing tags."""
-        with patch('tasks.task_management.get_user_data') as mock_get_user_data:
-            mock_get_user_data.return_value = {
-                'preferences': {'task_settings': {'tags': ['work', 'custom']}}
-            }
-            
-            result = setup_default_task_tags(user_id)
-            
-            assert result is True
+        # First, create some existing tags
+        from core.tags import add_user_tag
+        add_user_tag(user_id, 'work')
+        add_user_tag(user_id, 'custom')
+        
+        # Now test that setup_default_task_tags returns True (tags already exist)
+        result = setup_default_task_tags(user_id)
+        
+        assert result is True
 
     def test_setup_default_task_tags_empty_user_id_real_behavior(self, mock_user_data_dir):
         """Test setting up default task tags with empty user ID."""
