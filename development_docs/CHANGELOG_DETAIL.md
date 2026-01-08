@@ -38,6 +38,44 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-08 - Task Creation Flow Fixes, Note Creation Verification, and Documentation Updates **COMPLETED**
+- **Feature**: Fixed task creation flow routing, improved date/time parsing, verified note creation flows, and updated documentation
+  1. **Task Creation Flow Fixes**:
+     - Fixed `TaskManagementHandler` in both `task_handler.py` and `interaction_handlers.py` to properly route to due date flow when no valid due date exists
+     - Added explicit date validation (`datetime.strptime`) to ensure `due_date` is in `YYYY-MM-DD` format before proceeding
+     - Improved date/time parsing to handle natural language expressions like "in X days", "next Tuesday", "Friday at noon", "in X hours"
+     - Fixed reminder flow to only prompt when a valid due date is present (previously prompted even without due date)
+     - Added `_parse_time_string()` method to both handlers for consistent time parsing (handles "noon", "midnight", "10am", "2pm", etc.)
+  2. **Note Creation Verification**:
+     - Verified note creation flow correctly prompts with button-style format ("What would you like to add as the body text? [Skip] [Cancel]") when only title provided
+     - Verified Skip and Cancel buttons work correctly to exit note body flow
+     - Updated `NOTES_PLAN.md` to mark note creation as "In Progress" with verified components documented
+  3. **Documentation Updates**:
+     - Updated `NOTES_PLAN.md` with recent fixes: note body flow prompt format, flow expiration (10 minutes), flow interference detection, task creation flow fixes
+     - Updated `.cursor/plans/notebook_feature_implementation_ce88ed1a.plan.md` with same fixes and verification status
+     - Added task to investigate and deduplicate duplicate `TaskManagementHandler` classes (found in both `task_handler.py` and `interaction_handlers.py`)
+     - Corrected verification status: marked flow expiration and interference detection as "not yet verified" (implemented but not tested)
+- **Impact**: Task creation now correctly prompts for due date when none is provided, and reminder prompts only appear when a valid due date exists. Improved natural language date/time parsing makes task creation more user-friendly. Note creation flows verified to work correctly with button-style prompts. Documentation accurately reflects current implementation status and testing needs.
+- **Files**: `communication/command_handlers/task_handler.py`, `communication/command_handlers/interaction_handlers.py`, `development_docs/NOTES_PLAN.md`, `.cursor/plans/notebook_feature_implementation_ce88ed1a.plan.md`
+
+### 2026-01-14 - Notebook Feature Documentation: Status Updates and Testing Roadmap **COMPLETED**
+- **Feature**: Updated notebook feature planning documents with current implementation status, recent fixes, testing requirements, and remaining work
+  1. **NOTES_PLAN.md Updates**:
+     - Added "Recent Fixes & Improvements" section documenting regex pattern fixes, multi-line input support, button handler implementation, slash command conversion fixes, and flow state clearing improvements
+     - Updated "Command Implementation Status" with completed features, known issues, and command support matrix (bang/slash/natural text)
+     - Added "Testing Status" section listing what needs testing (command patterns, flow states, multi-line input, button interactions, edge cases)
+  2. **notebook_feature_implementation_ce88ed1a.plan.md Updates**:
+     - Added "Recent Implementation Fixes" section documenting architectural fixes, multi-line support, Discord button interactions, and flow state management
+     - Updated Step 1.6 status to show command parser integration is complete
+     - Added "Current Status Summary" section with implementation completion status, testing requirements, and remaining work (edit sessions, skip integration, AI extraction)
+     - Updated milestone statuses to reflect current completion state
+- **Technical Details**:
+  - Both documents now accurately reflect: what's been completed (including recent fixes), what needs testing, what's left to implement, and known issues/limitations
+  - Documentation provides clear roadmap for testing and future development work
+- **Background**: The notebook feature implementation (Milestones 1-3) is functionally complete, but documentation needed to be updated to reflect current status, recent architectural fixes, and provide clear testing roadmap
+- **Impact**: Planning documents now serve as accurate reference for current implementation status and next steps. Clear testing requirements documented for comprehensive notebook feature validation. Future development work (edit sessions, skip integration, AI extraction) clearly identified.
+- **Files**: `development_docs/NOTES_PLAN.md`, `.cursor/plans/notebook_feature_implementation_ce88ed1a.plan.md`
+
 ### 2026-01-07 - Notebook Feature: Core Implementation Complete and Search Fix **COMPLETED**
 - **Feature**: Completed core notebook feature implementation (Milestones 1-3) and fixed critical search functionality bug
   1. **Milestone 1 - Foundations + V0 Notes (COMPLETED)**:

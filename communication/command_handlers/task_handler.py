@@ -14,7 +14,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from tasks.task_management import (
     create_task, load_active_tasks, complete_task, delete_task, update_task,
-    get_user_task_stats, get_tasks_due_soon
+    get_user_task_stats, get_tasks_due_soon, restore_task, load_completed_tasks
 )
 
 from .base_handler import InteractionHandler, InteractionResponse, ParsedCommand
@@ -28,7 +28,7 @@ class TaskManagementHandler(InteractionHandler):
     @handle_errors("checking if can handle intent")
     def can_handle(self, intent: str) -> bool:
         """Check if this handler can handle the given intent."""
-        return intent in ['create_task', 'list_tasks', 'complete_task', 'delete_task', 'update_task', 'task_stats']
+        return intent in ['create_task', 'list_tasks', 'complete_task', 'uncomplete_task', 'delete_task', 'update_task', 'task_stats']
     
     @handle_errors("handling task management interaction", default_return=InteractionResponse("I'm having trouble with task management right now. Please try again.", True))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
@@ -42,6 +42,8 @@ class TaskManagementHandler(InteractionHandler):
             return self._handle_list_tasks(user_id, entities)
         elif intent == 'complete_task':
             return self._handle_complete_task(user_id, entities)
+        elif intent == 'uncomplete_task':
+            return self._handle_uncomplete_task(user_id, entities)
         elif intent == 'delete_task':
             return self._handle_delete_task(user_id, entities)
         elif intent == 'update_task':
@@ -65,14 +67,39 @@ class TaskManagementHandler(InteractionHandler):
         # Extract other task properties
         description = entities.get('description', '')
         due_date = entities.get('due_date')
+        due_time = entities.get('due_time')  # Extract time if present (e.g., "Friday at noon")
         priority = entities.get('priority', 'medium')
         tags = entities.get('tags', [])
         recurrence_pattern = entities.get('recurrence_pattern')
         recurrence_interval = entities.get('recurrence_interval', 1)
         
-        # Convert relative dates to proper dates
+        # Convert relative dates to proper dates and extract time
+        valid_due_time = None
         if due_date:
+            # If due_date contains time info (e.g., "Friday at noon"), parse it
+            # Extract time from patterns like "next Tuesday at 11:00", "Friday at noon", "at 11:00"
+            time_match = re.search(r'(?:next\s+)?(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?|noon|midnight)', due_date.lower())
+            if not time_match:
+                # Also check for standalone "at [time]" pattern
+                time_match = re.search(r'at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?|noon|midnight)', due_date.lower())
+            
+            if time_match:
+                time_str = time_match.group(1)
+                # Parse time to HH:MM format
+                parsed_time = self._parse_time_string(time_str)
+                if parsed_time:
+                    valid_due_time = parsed_time
+                # Remove time from due_date string for date parsing
+                due_date = re.sub(r'\s+at\s+.*', '', due_date, flags=re.IGNORECASE)
+            
+            # Parse the date
             due_date = self._handle_create_task__parse_relative_date(due_date)
+        
+        # If due_time was extracted separately, use it
+        if due_time and not valid_due_time:
+            parsed_time = self._parse_time_string(due_time)
+            if parsed_time:
+                valid_due_time = parsed_time
         
         # Validate priority
         valid_priorities = ['low', 'medium', 'high', 'urgent', 'critical']
@@ -86,21 +113,24 @@ class TaskManagementHandler(InteractionHandler):
             logger.warning(f"Invalid recurrence_pattern '{recurrence_pattern}' provided, ignoring")
             recurrence_pattern = None
         
-        # Validate due_date format if provided
-        if due_date:
+        # Validate due_date format if provided (due_date was already parsed above)
+        valid_due_date = None
+        if due_date and due_date.strip():  # Check for None, empty string, or whitespace-only
             try:
-                # Try to parse the date to validate format
+                # Validate the parsed date format
                 datetime.strptime(due_date, '%Y-%m-%d')
+                valid_due_date = due_date
             except ValueError:
-                logger.warning(f"Invalid due_date format '{due_date}', expected YYYY-MM-DD")
-                # Try to parse relative date
-                due_date = self._handle_create_task__parse_relative_date(due_date)
+                # Still invalid after parsing - treat as no due date
+                logger.warning(f"Could not parse due_date '{due_date}' to valid date format, treating as no due date")
+                valid_due_date = None
         
         # Create the task with enhanced properties
         task_data = {
             'title': title,
             'description': description,
-            'due_date': due_date,
+            'due_date': valid_due_date,
+            'due_time': valid_due_time if valid_due_date else None,  # Only set time if we have a valid date
             'priority': priority,
             'tags': tags
         }
@@ -115,8 +145,11 @@ class TaskManagementHandler(InteractionHandler):
         
         if task_id:
             response = f"✅ Task created: '{title}'"
-            if due_date:
-                response += f" (due: {due_date})"
+            if valid_due_date:
+                due_display = valid_due_date
+                if valid_due_time:
+                    due_display += f" at {valid_due_time}"
+                response += f" (due: {due_display})"
             if priority != 'medium':
                 response += f" (priority: {priority})"
             if tags:
@@ -127,23 +160,78 @@ class TaskManagementHandler(InteractionHandler):
                     interval_text = f"every {recurrence_pattern[:-2]}"  # Remove 'ly' for singular
                 response += f" (repeats: {interval_text})"
             
-            # Ask about reminder periods and start follow-up flow
             from communication.message_processing.conversation_flow_manager import conversation_manager
-            conversation_manager.start_task_reminder_followup(user_id, task_id)
             
-            response += "\n\nWould you like to set reminder periods for this task?"
-            
-            return InteractionResponse(
-                response, 
-                completed=False,
-                suggestions=["30 minutes to an hour before", "3 to 5 hours before", "1 to 2 days before", "No reminders needed"]
-            )
+            # If no valid due date/time, ask for it first
+            # Explicitly check for None, empty string, or invalid date
+            if valid_due_date is None or not valid_due_date or not valid_due_date.strip():
+                logger.debug(f"Task {task_id} has no valid due date (valid_due_date={valid_due_date}), starting due date flow")
+                conversation_manager.start_task_due_date_flow(user_id, task_id)
+                response += "\n\nWhat would you like to add as the due date and/or time for this task? [Skip] [Cancel]"
+                return InteractionResponse(
+                    response,
+                    completed=False,
+                    suggestions=["Skip", "Cancel"]
+                )
+            else:
+                # Task has valid due date - ask about reminder periods with context-aware options
+                logger.debug(f"Task {task_id} has valid due date ({valid_due_date}), starting reminder flow")
+                conversation_manager.start_task_reminder_followup(user_id, task_id)
+                reminder_suggestions = conversation_manager._generate_context_aware_reminder_suggestions(user_id, task_id)
+                response += "\n\nWould you like to set custom reminder periods for this task?"
+                return InteractionResponse(
+                    response,
+                    completed=False,
+                    suggestions=reminder_suggestions
+                )
         else:
             return InteractionResponse("❌ Failed to create task. Please try again.", True)
     
+    @handle_errors("parsing time string", default_return=None)
+    def _parse_time_string(self, time_str: str) -> Optional[str]:
+        """Parse time string to HH:MM format"""
+        import re
+        time_str_lower = time_str.lower().strip()
+        
+        # Handle "noon" and "midnight"
+        if time_str_lower == 'noon':
+            return '12:00'
+        elif time_str_lower == 'midnight':
+            return '00:00'
+        
+        # Pattern for time like "10am", "10:30am", "2pm", "14:00"
+        time_patterns = [
+            r'(\d{1,2}):(\d{2})\s*(am|pm)?',  # "10:30am" or "14:30"
+            r'(\d{1,2})\s*(am|pm)',  # "10am" or "2pm"
+        ]
+        
+        for pattern in time_patterns:
+            match = re.search(pattern, time_str_lower)
+            if match:
+                groups = match.groups()
+                hour = int(groups[0])
+                minute = int(groups[1]) if len(groups) > 1 and groups[1] and groups[1].isdigit() else 0
+                
+                # Check for AM/PM
+                if len(groups) > 2 and groups[-1]:
+                    am_pm = groups[-1].lower()
+                    if am_pm == 'pm' and hour != 12:
+                        hour += 12
+                    elif am_pm == 'am' and hour == 12:
+                        hour = 0
+                elif hour < 12 and 'pm' in time_str_lower:
+                    hour += 12
+                elif hour == 12 and 'am' in time_str_lower:
+                    hour = 0
+                
+                return f"{hour:02d}:{minute:02d}"
+        
+        return None
+
     @handle_errors("parsing relative date")
     def _handle_create_task__parse_relative_date(self, date_str: str) -> str:
         """Convert relative date strings to proper dates"""
+        import re
         date_str_lower = date_str.lower().strip()
         today = datetime.now()
         
@@ -162,6 +250,62 @@ class TaskManagementHandler(InteractionHandler):
             else:
                 next_month = today.replace(month=today.month + 1)
             return next_month.strftime('%Y-%m-%d')
+        elif date_str_lower.startswith('in '):
+            # Parse "in X hours", "in X days", or "in X weeks"
+            hours_match = re.search(r'in\s+(\d+)\s+hours?', date_str_lower)
+            if hours_match:
+                hours = int(hours_match.group(1))
+                target_datetime = today + timedelta(hours=hours)
+                return target_datetime.strftime('%Y-%m-%d')
+            days_match = re.search(r'in\s+(\d+)\s+days?', date_str_lower)
+            if days_match:
+                days = int(days_match.group(1))
+                target_date = today + timedelta(days=days)
+                return target_date.strftime('%Y-%m-%d')
+            weeks_match = re.search(r'in\s+(\d+)\s+weeks?', date_str_lower)
+            if weeks_match:
+                weeks = int(weeks_match.group(1))
+                target_date = today + timedelta(weeks=weeks)
+                return target_date.strftime('%Y-%m-%d')
+        elif date_str_lower.startswith('next '):
+            # Parse "next Tuesday", "next Monday", etc.
+            days_of_week = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+            day_match = re.search(r'next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)', date_str_lower)
+            if day_match:
+                day_name = day_match.group(1).lower()
+                day_index = days_of_week.index(day_name)
+                # Find next occurrence of this day (always next week since "next" is specified)
+                days_ahead = (day_index - today.weekday()) % 7
+                if days_ahead == 0:  # Today is that day, use next week
+                    days_ahead = 7
+                else:
+                    # Add 7 to get next week's occurrence (since "next" means next week, not this week)
+                    days_ahead += 7
+                target_date = today + timedelta(days=days_ahead)
+                return target_date.strftime('%Y-%m-%d')
+            # If "next" doesn't match a day, try other "next" patterns
+            elif 'next week' in date_str_lower:
+                next_week = today + timedelta(days=7)
+                return next_week.strftime('%Y-%m-%d')
+            elif 'next month' in date_str_lower:
+                if today.month == 12:
+                    next_month = today.replace(year=today.year + 1, month=1)
+                else:
+                    next_month = today.replace(month=today.month + 1)
+                return next_month.strftime('%Y-%m-%d')
+        elif re.match(r'(monday|tuesday|wednesday|thursday|friday|saturday|sunday)', date_str_lower):
+            # Parse day of week (e.g., "Friday", "Friday at noon") - without "next"
+            days_of_week = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+            day_match = re.search(r'(monday|tuesday|wednesday|thursday|friday|saturday|sunday)', date_str_lower)
+            if day_match:
+                day_name = day_match.group(1).lower()
+                day_index = days_of_week.index(day_name)
+                # Find next occurrence of this day
+                days_ahead = (day_index - today.weekday()) % 7
+                if days_ahead == 0:  # Today is that day, use next week
+                    days_ahead = 7
+                target_date = today + timedelta(days=days_ahead)
+                return target_date.strftime('%Y-%m-%d')
         else:
             # Return as-is if it's already a proper date or unknown format
             return date_str

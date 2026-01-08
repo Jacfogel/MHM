@@ -71,11 +71,16 @@ Add:
 - `kind` (`note` | `list` | `journal` | ...)
 - `title` (optional for quick capture notes)
 - `body` (text; may be empty for lists)
-- `tags` (list[str])
-- `group` (optional string; e.g., `work`, `health`, `home`)
+- `tags` (list[str]) - multiple labels for detailed categorization (e.g., `["#work", "#urgent", "project:alpha"]`)
+- `group` (optional string; e.g., `work`, `health`, `home`) - single high-level category for broad organization
 - `pinned` (bool)
 - `archived` (bool)
 - `created_at`, `updated_at` (ISO timestamps)
+
+**Groups vs Tags:**
+- **Groups**: Single optional string - used for broad, high-level organization (one group per entry)
+- **Tags**: List of strings - used for detailed labeling and fine-grained filtering (multiple tags per entry)
+- Example: A note might have `group: "work"` (broad category) and `tags: ["#meeting", "#urgent", "project:alpha"]` (detailed labels)
 
 ### List items (when `kind == "list"`)
 Each item:
@@ -96,38 +101,48 @@ Each item:
 ## Command Set (Discord-first, channel-agnostic)
 
 ### V0 (must-have)
-- `!n <text>`  
-  Create a quick note (no title).  
-- `!n <title> | <body>`  
-  Create note with title/body split.  
-- `!recent [N]`  
+- `!n <text>` or `!note <text>`  
+  Create a quick note. If only title provided, prompts for body text (5 min timeout, can skip with `!skip`).  
+- `!n <title> : <body>` or `!n <title>\n<body>`  
+  Create note with title/body split (colon or newline separator).  
+- `!recent [N]` or `!r [N]`  
   Show last N updated entries (notes + lists + journal).  
+- `!recentn [N]`, `!rnote [N]`, `!shownotes [N]`, etc.  
+  Show recent notes only.  
 - `!show <id_or_title>`  
-  Display one entry.  
-- `!append <id_or_title> <text>`  
-  Append text to entry body.  
+  Display one entry (works for both notes and tasks).  
+- `!append <id_or_title> <text>`, `!add <id_or_title> <text>`, `!addto <id_or_title> <text>`  
+  Append text to entry body (works for both notes and tasks).  
 - `!tag <id_or_title> <tags...>`  
-  Add tags (supports `#tag`, `area:home`, etc.).  
+  Add tags (supports `#tag`, `area:home`, etc.; works for both notes and tasks).  
 - `!untag <id_or_title> <tags...>`  
-  Remove tags.  
-- `!s <query>`  
-  Search entries (V0: substring).  
-- `!pin <id_or_title>` / `!unpin <id_or_title>`  
-- `!archive <id_or_title>` / `!unarchive <id_or_title>`
+  Remove tags (works for both notes and tasks).  
+- `!search <query>` or `!s <query>`  
+  Search entries (V0: substring; works for both notes and tasks).  
+- `!pin <id_or_title>` / `!unpin <id_or_title>` (notes only)  
+- `!archive <id_or_title>` / `!unarchive <id_or_title>` (notes only)
 
 ### V1 (lists)
-- `!l new <title> [tags...]`
+- `!l <title>`, `!list <title>`, `!nl <title>`, `!newlist <title>`, `!createlist <title>`, etc.  
+  Create list. If no items provided, prompts for items (comma/semicolon/newline separated). End with `!end`, `/end`, or `end`.  
+- `!l <title> : <item1>, <item2>, ...` or `!l <title>\n<item1>\n<item2>...`  
+  Create list with initial items in command.  
 - `!l add <id_or_title> <item text>`
-- `!l show <id_or_title>`
+- `!l show <id_or_title>` or `!show <id_or_title>` (works for lists too)
 - `!l done <id_or_title> <item#>`
-- `!l undo <id_or_title> <item#>`
+- `!l undo <id_or_title> <item#>` or `!l undo <id_or_title> <item#>`
 
 ### V2 (organization)
-- `!group <id_or_title> <groupname>`
-- `!group <groupname>` (show group view)
-- `!t <tag>` (show tag view)
-- `!pinned`
-- `!inbox` (untagged, unarchived recent items)
+- `!group <id_or_title> <groupname>`  
+  Set group on entry.  
+- `!group <groupname>`  
+  Show entries in group.  
+- `!tag <tag>` or `!t <tag>`  
+  Show entries with tag (works for both notes and tasks).  
+- `!pinned`  
+  Show pinned entries.  
+- `!inbox`  
+  Show untagged, unarchived recent items (works for both notes and tasks).
 
 ### Editing sessions (phone-friendly, recommended)
 - `!edit <id_or_title>`  
@@ -346,6 +361,132 @@ If you follow this structure, the migration is **not** a rewrite—just a backen
 10. edit sessions
 11. skip integrations
 12. AI extraction
+
+---
+
+## Current Implementation Status
+
+### Milestone Completion Summary
+- **Milestone 1 (Foundations + V0 Notes)**: ✅ **COMPLETED** - Core infrastructure, data handlers, command handler, and basic commands all implemented
+- **Milestone 2 (Lists)**: ✅ **COMPLETED** - List operations and commands fully implemented
+- **Milestone 3 (Organization Views)**: ✅ **COMPLETED** - Group support, smart views (pinned, inbox, tag view) implemented
+- **Milestone 4 (Edit Sessions)**: ⏳ **PENDING** - Not yet implemented
+- **Milestone 5 (Skip Integration)**: ⏳ **PENDING** - Not yet implemented
+- **Milestone 6 (AI Extraction)**: ⏳ **PENDING** - Not yet implemented
+
+### Recent Fixes & Improvements ✅
+- **Regex Pattern Fix**: Removed `!` prefix from all regex patterns in `command_parser.py` to match messages after prefix stripping
+- **Multi-line Support**: Added `re.DOTALL` flag to regex compilation to support newline-separated note bodies and list items
+- **Button Handler**: Added Discord button interaction handler for suggestion buttons (`suggestion_` custom_ids)
+- **Slash Command Conversion**: Fixed slash command conversion to strip `!` prefix before passing to parser (prevents recursion)
+- **Flow State Clearing**: Added early flow clearing when commands (`/` or `!`) are detected, preventing flow keywords from interfering
+- **Command Definition Cleanup**: Made `mapped_message` optional in `CommandDefinition`, removed redundant entries, relying on regex patterns for aliases
+- **Flow Keywords**: Removed flow-specific keywords (`skip`, `end`, `endlist`) from command detection, allowing `ConversationManager` to handle them properly
+- **Note Body Flow Prompt**: Updated note creation prompt to use button-style format: "What would you like to add as the body text? [Skip] [Cancel]" with `suggestions=["Skip", "Cancel"]` for consistent UX
+- **Flow Expiration**: Increased all conversation flow timeouts from 5 minutes to 10 minutes (note body, list items, task due date, task reminder flows) to prevent premature expiration
+- **Flow Interference Detection**: Added unrelated message detection in flow handlers (`_handle_note_body_flow`, `_handle_list_items_flow`, `_handle_task_due_date_flow`, `_handle_task_reminder_followup`) - if user sends a command or greeting while in a flow, the flow is cleared to allow normal command processing
+- **Task Creation Flow Fixes**: Fixed task creation to properly route to due date flow when no valid due date exists, and only prompt for reminder periods when a valid due date is present. Added explicit date validation and improved date/time parsing for natural language expressions
+
+### Command Implementation Status
+
+#### In Progress
+- **Note Creation**: `!n`, `!note`, `!nn`, `!newn`, `!createnote`, etc. with `:` or newline separator
+- **Note Flow State**: Prompts for body text when only title provided (10 min timeout, `[Skip]` and `[Cancel]` button support)
+  - ✅ **Verified**: Flow correctly prompts with button-style format when only title provided
+  - ⏳ **Not yet verified**: Flow expires after 10 minutes of inactivity
+  - ⏳ **Not yet verified**: Flow clears when unrelated commands are sent (allows normal command processing)
+  - ✅ **Verified**: Skip and Cancel buttons work correctly to exit flow
+- **List Creation**: `!l`, `!list`, `!newlist`, `!createlist`, etc. with flow support for items
+- **List Flow State**: Prompts for list items (comma/semicolon/newline separated, `!end` to finish)
+- **Recent Views**: `!recent`, `!r`, `!recentn`, `!rnote`, `!shownotes` patterns
+- **Entry Display**: `!show <id_or_title>` (works for both notes and tasks)
+- **Append Operations**: `!append`, `!add`, `!addto` (works for both notes and tasks)
+- **Tag Operations**: `!tag`, `!untag` (works for both notes and tasks)
+- **Search**: `!search`, `!s` (works for both notes and tasks)
+- **Note Actions**: `!pin`, `!unpin`, `!archive`, `!unarchive` (notes only)
+- **List Operations**: `!l add`, `!l done`, `!l undo`, `!l remove`
+- **Smart Views**: `!pinned`, `!inbox`, `!t <tag>`, `!group <groupname>`
+- **Group Management**: `!group <id_or_title> <groupname>` (set group)
+
+#### Known Issues ⚠️
+- **Set Entry Body**: Handler exists (`set_entry_body`) but no command patterns (`!set` or similar) - needs implementation
+- **Create Journal**: Handler exists (`create_journal`) but no command patterns - needs implementation
+- **Slash Commands**: Notebook commands work via slash commands through conversion logic, but not explicitly registered in `_command_definitions` (may affect discoverability)
+- **Group Command Ambiguity**: `!group <entry> <group>` vs `!group <group>` - parser may incorrectly route single-word group names
+- **TaskManagementHandler Duplication**: Two `TaskManagementHandler` classes exist (`task_handler.py` and `interaction_handlers.py`) - need to investigate which is used and consolidate to prevent maintenance issues
+
+### Command Support Matrix
+- **Bang commands (`!command`)**: ✅ Fully supported
+- **Slash commands (`/command`)**: ✅ Supported via conversion logic (works but not explicitly registered)
+- **Natural text (no prefix)**: ✅ Mostly supported via regex patterns (~83% coverage)
+
+### Generalization Status
+Many commands now work for both tasks and notes:
+- `!show <id_or_title>` - works for both
+- `!append`, `!add`, `!addto` - works for both
+- `!tag`, `!untag` - works for both
+- `!search`, `!s` - works for both
+- `!inbox` - works for both
+- `!tag <tag>`, `!t <tag>` - works for both
+
+Task-specific: `!complete`, `!uncomplete` (tasks only)  
+Note-specific: `!pin`, `!unpin`, `!archive`, `!unarchive` (notes only)
+
+---
+
+## Testing Status & Next Steps
+
+### Testing Status ⏳
+**All tests are pending** - Test directory structure exists (`tests/notebook/`) but comprehensive test coverage has not been written yet.
+
+#### Priority Testing Areas
+1. **Command Patterns** (High Priority)
+   - Test all bang command variations (`!n`, `!nn`, `!newn`, etc.)
+   - Test slash command conversion (`/n` → `!n`)
+   - Test natural text recognition
+   - Test multi-line input (newline-separated bodies/items)
+   - Test flow states (note body prompt, list items prompt)
+   - Test flow keywords (`skip`, `end`, `cancel`)
+
+2. **Flow State Management** (High Priority)
+   - Test note body flow: title-only → prompt → body collection → timeout
+   - Test list items flow: title-only → prompt → items collection → `!end`
+   - Test flow clearing when commands are sent
+   - Test button interactions (Skip, Cancel, End buttons)
+
+3. **Command Generalization** (Medium Priority)
+   - Test commands that work for both tasks and notes (`!show`, `!append`, `!tag`, `!search`, `!inbox`)
+   - Test task-specific commands (`!complete`, `!uncomplete`)
+   - Test note-specific commands (`!pin`, `!archive`)
+
+4. **Data Operations** (Medium Priority)
+   - Test CRUD operations (create, read, update, delete)
+   - Test tag normalization and validation
+   - Test search functionality
+   - Test list operations (add item, toggle done, remove item)
+
+5. **Edge Cases** (Low Priority)
+   - Test invalid entry references
+   - Test duplicate titles
+   - Test empty inputs
+   - Test very long entries
+   - Test special characters in titles/bodies
+
+### Implementation Remaining
+
+#### High Priority
+1. **Comprehensive Test Suite** - Write tests for all implemented functionality
+2. **Set Entry Body Command** - Add `!set <id_or_title> <text>` pattern to trigger `set_entry_body`
+3. **Create Journal Command** - Add command patterns for journal creation
+4. **TaskManagementHandler Deduplication** - Investigate and consolidate duplicate `TaskManagementHandler` classes in `communication/command_handlers/task_handler.py` and `communication/command_handlers/interaction_handlers.py`. Determine which one is actively used (likely `interaction_handlers.py` based on registration), merge functionality, and remove duplicate code to prevent maintenance issues and ensure consistent behavior.
+
+#### Medium Priority
+4. **Edit Sessions (Milestone 4)** - Implement `!edit` command with flow state
+5. **Slash Command Registration** - Explicitly register notebook commands in `_command_definitions` for better discoverability
+
+#### Low Priority
+6. **Skip Integration (Milestone 5)** - Task skip tracking and notebook integration
+7. **AI Extraction (Milestone 6)** - Natural language intent extraction
 
 ---
 

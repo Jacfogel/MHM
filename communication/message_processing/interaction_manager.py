@@ -19,7 +19,7 @@ from communication.message_processing.command_parser import get_enhanced_command
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from communication.command_handlers.interaction_handlers import get_interaction_handler, get_all_handlers
 from ai.chatbot import get_ai_chatbot
-from communication.message_processing.conversation_flow_manager import conversation_manager
+from communication.message_processing.conversation_flow_manager import conversation_manager, FLOW_TASK_REMINDER
 
 logger = get_component_logger('communication_manager')
 interaction_logger = logger
@@ -28,9 +28,15 @@ interaction_logger = logger
 @dataclass
 class CommandDefinition:
     name: str
-    mapped_message: str
     description: str
+    mapped_message: Optional[str] = None
     is_flow: bool = False
+    
+    def get_mapped_message(self) -> str:
+        """Get the mapped message, defaulting to !{name} if not specified."""
+        if self.mapped_message is not None:
+            return self.mapped_message
+        return f"!{self.name}"
 
 class InteractionManager:
     """Main manager for handling user interactions across all channels"""
@@ -48,23 +54,76 @@ class InteractionManager:
             self.fallback_to_chat = True        # Whether to fall back to contextual chat
             
             # Channel-agnostic command definitions for discoverability across channels
+            # All commands work with both /command and !command prefixes
             self._command_definitions: List[CommandDefinition] = [
-            CommandDefinition("start", "start", "Get started with MHM - receive welcome message and setup instructions", is_flow=False),
-            CommandDefinition("tasks", "show my tasks", "Show your tasks", is_flow=False),
-            CommandDefinition("profile", "show profile", "Show your profile", is_flow=False),
-            CommandDefinition("schedule", "show schedule", "Show your schedules", is_flow=False),
-            CommandDefinition("messages", "show messages", "Show your messages", is_flow=False),
-            CommandDefinition("analytics", "show analytics", "Show wellness analytics and insights", is_flow=False),
-            CommandDefinition("status", "status", "Show system/user status", is_flow=False),
-            CommandDefinition("help", "help", "Show help and examples", is_flow=False),
-            CommandDefinition("checkin", "start checkin", "Start a check-in", is_flow=True),
-            CommandDefinition("restart", "restart checkin", "Restart check-in (clears current)", is_flow=True),
-            CommandDefinition("clear", "clear flows", "Clear stuck conversation flows", is_flow=True),
-            CommandDefinition("cancel", "/cancel", "Cancel current flow", is_flow=False),
+                # Core system commands
+                CommandDefinition("start", "start", "Get started with MHM", is_flow=False),
+                CommandDefinition("help", "help", "Show help and examples", is_flow=False),
+                CommandDefinition("status", "status", "Show system/user status", is_flow=False),
+                
+                # Core data views
+                CommandDefinition("tasks", "show my tasks", "Show your tasks", is_flow=False),
+                CommandDefinition("profile", "show profile", "Show your profile", is_flow=False),
+                CommandDefinition("schedule", "show schedule", "Show your schedules", is_flow=False),
+                CommandDefinition("messages", "show messages", "Show your messages", is_flow=False),
+                CommandDefinition("analytics", "show analytics", "Show wellness analytics", is_flow=False),
+                
+                # Flow commands
+                CommandDefinition("checkin", "start checkin", "Start a check-in", is_flow=True),
+                CommandDefinition("restart", "restart checkin", "Restart check-in", is_flow=True),
+                CommandDefinition("clear", "clear flows", "Clear stuck conversation flows", is_flow=True),
+                CommandDefinition("cancel", "Cancel current flow", is_flow=False),
+                
+                # Note creation (common aliases only - others handled by regex patterns)
+                CommandDefinition("n", "Create a note", is_flow=False),
+                CommandDefinition("note", "Create a note", is_flow=False),
+                
+                # Task creation (common aliases only - others handled by regex patterns)
+                CommandDefinition("task", "Create a task", is_flow=False),
+                
+                # List creation (common aliases only - others handled by regex patterns)
+                CommandDefinition("l", "Create or manage a list", is_flow=False),
+                CommandDefinition("list", "Create a list", is_flow=False),
+                
+                # Entry viewing
+                CommandDefinition("show", "Show an entry by ID or title", is_flow=False),
+                CommandDefinition("recent", "Show recent entries", is_flow=False),
+                CommandDefinition("r", "Show recent entries", is_flow=False),
+                CommandDefinition("pinned", "Show pinned entries", is_flow=False),
+                CommandDefinition("inbox", "Show inbox entries", is_flow=False),
+                
+                # Note-specific views (common aliases only - others handled by regex patterns)
+                CommandDefinition("recentn", "Show recent notes", is_flow=False),
+                CommandDefinition("rnote", "Show recent notes", is_flow=False),
+                
+                # Entry modification
+                CommandDefinition("append", "Append text to an entry", is_flow=False),
+                CommandDefinition("add", "Add text to an entry", is_flow=False),
+                CommandDefinition("addto", "Add text to an entry", is_flow=False),
+                
+                # Tags and groups
+                CommandDefinition("tag", "Add tags or view entries by tag", is_flow=False),
+                CommandDefinition("untag", "Remove tags from an entry", is_flow=False),
+                CommandDefinition("t", "Show entries by tag", is_flow=False),
+                CommandDefinition("group", "Set or view entries by group", is_flow=False),
+                
+                # Search
+                CommandDefinition("search", "Search entries", is_flow=False),
+                CommandDefinition("s", "Search entries", is_flow=False),
+                
+                # Note-specific actions
+                CommandDefinition("pin", "Pin an entry", is_flow=False),
+                CommandDefinition("unpin", "Unpin an entry", is_flow=False),
+                CommandDefinition("archive", "Archive an entry", is_flow=False),
+                CommandDefinition("unarchive", "Unarchive an entry", is_flow=False),
+                
+                # Task-specific actions
+                CommandDefinition("complete", "Complete a task", is_flow=False),
+                CommandDefinition("uncomplete", "Uncomplete a task", is_flow=False),
             ]
 
             # Build the legacy map for quick lookup, derived from definitions
-            self.slash_command_map = {f"/{c.name}": c.mapped_message for c in self._command_definitions}
+            self.slash_command_map = {f"/{c.name}": c.get_mapped_message() for c in self._command_definitions}
         except Exception as e:
             logger.error(f"Error initializing interaction manager: {e}")
             raise
@@ -93,6 +152,11 @@ class InteractionManager:
         # Handle explicit slash-commands first to preserve legacy flow behavior
         message_stripped = message.strip() if message else ""
         logger.info(f"COMMAND_DETECTION: Processing message '{message_stripped[:50]}...' for user {user_id}")
+        
+        # Check if user is in an active conversation flow
+        user_state = conversation_manager.user_states.get(user_id, {"flow": 0, "state": 0, "data": {}})
+        logger.info(f"FLOW_CHECK: User {user_id} flow state: {user_state.get('flow', 'None')} (type: {type(user_state.get('flow'))})")
+        
         # Optional prefix processing for channel-agnostic handling
         if message_stripped.startswith("/"):
             logger.info(f"SLASH_COMMAND: Detected slash command '{message_stripped}' for user {user_id}")
@@ -101,10 +165,18 @@ class InteractionManager:
             parts = lowered.split()
             cmd_name = parts[0][1:] if parts and parts[0].startswith('/') else ''
 
-            # /cancel remains universal and handled by conversation manager
-            if cmd_name == 'cancel':
-                reply_text, completed = conversation_manager.handle_inbound_message(user_id, '/cancel')
+            # /cancel and /skip are flow keywords - handle them via conversation manager
+            if cmd_name in ['cancel', 'skip']:
+                # Always delegate to conversation manager (handles both in-flow and not-in-flow cases)
+                reply_text, completed = conversation_manager.handle_inbound_message(user_id, message_stripped)
                 return InteractionResponse(reply_text, completed)
+            
+            # If message starts with / or !, it's a command - clear any active flow first
+            # (but skip/cancel were handled above)
+            if user_state["flow"] != 0 and cmd_name not in ['cancel', 'skip']:
+                logger.info(f"User {user_id} in flow {user_state['flow']} but sent command '{message_stripped}', clearing flow")
+                conversation_manager.user_states.pop(user_id, None)
+                conversation_manager._save_user_states()
 
             # Look up command definition
             cmd_def = next((c for c in self._command_definitions if c.name == cmd_name), None)
@@ -128,13 +200,33 @@ class InteractionManager:
                 else:
                     return InteractionResponse(f"Flow '{cmd_name}' is not available yet.", True)
 
-            # Otherwise, map to single-turn intent via mapped message
-            for key, mapped in self.slash_command_map.items():
-                if lowered == key or lowered.startswith(key + ' '):
-                    return self.handle_message(user_id, mapped, channel_type)
-
-            # Unknown slash command → drop prefix and continue to structured parsing below
-            message = message_stripped[1:]
+            # If command is registered, use mapped message preserving arguments
+            if cmd_def:
+                # If mapped_message is None, the command definition is just for discoverability
+                # Drop the prefix and continue parsing (don't recursively convert)
+                if cmd_def.mapped_message is None:
+                    # Command definition exists but no mapping - drop prefix and parse normally
+                    message = message_stripped[1:]  # Drop the '/' prefix
+                else:
+                    # Use mapped message and append args if present
+                    if len(message_stripped) > len(cmd_name) + 1:
+                        args = message_stripped[len(cmd_name) + 1:].strip()  # Everything after "/command"
+                        converted_message = cmd_def.get_mapped_message()
+                        # Strip ! prefix if present (parser expects messages without prefix)
+                        if converted_message.startswith('!'):
+                            converted_message = converted_message[1:]
+                        if args:
+                            converted_message += ' ' + args
+                    else:
+                        converted_message = cmd_def.get_mapped_message()
+                        # Strip ! prefix if present (parser expects messages without prefix)
+                        if converted_message.startswith('!'):
+                            converted_message = converted_message[1:]
+                    # Continue parsing with converted message
+                    message = converted_message
+            else:
+                # Unknown slash command → drop prefix and continue to structured parsing below
+                message = message_stripped[1:]
 
         elif message_stripped.startswith("!"):
             # Handle bang-prefixed commands (like !tasks, !help, etc.)
@@ -143,6 +235,19 @@ class InteractionManager:
             # Extract the command name after '!'
             parts = lowered.split()
             cmd_name = parts[0][1:] if parts and parts[0].startswith('!') else ''
+
+            # !cancel and !skip are flow keywords - handle them via conversation manager
+            if cmd_name in ['cancel', 'skip']:
+                # Always delegate to conversation manager (handles both in-flow and not-in-flow cases)
+                reply_text, completed = conversation_manager.handle_inbound_message(user_id, message_stripped)
+                return InteractionResponse(reply_text, completed)
+            
+            # If message starts with !, it's a command - clear any active flow first
+            # (but skip/cancel were handled above)
+            if user_state["flow"] != 0 and cmd_name not in ['cancel', 'skip']:
+                logger.info(f"User {user_id} in flow {user_state['flow']} but sent command '{message_stripped}', clearing flow")
+                conversation_manager.user_states.pop(user_id, None)
+                conversation_manager._save_user_states()
 
             # Look up command definition
             cmd_def = next((c for c in self._command_definitions if c.name == cmd_name), None)
@@ -167,8 +272,23 @@ class InteractionManager:
                     return InteractionResponse(f"Flow '{cmd_name}' is not available yet.", True)
 
             # For non-flow commands, handle them directly using the mapped message
+            # Preserve arguments if present
             elif cmd_def:
-                return self.handle_message(user_id, cmd_def.mapped_message, channel_type)
+                # If mapped_message is None, the command definition is just for discoverability
+                # Drop the prefix and continue parsing (don't recursively call handle_message)
+                if cmd_def.mapped_message is None:
+                    # Command definition exists but no mapping - drop prefix and parse normally
+                    message = message_stripped[1:]  # Drop the '!' prefix
+                else:
+                    # Extract arguments from original message (everything after command name)
+                    if len(message_stripped) > len(cmd_name) + 1:
+                        args = message_stripped[len(cmd_name) + 1:].strip()  # Everything after "!command"
+                        converted_message = cmd_def.get_mapped_message()
+                        if args:
+                            converted_message += ' ' + args
+                    else:
+                        converted_message = cmd_def.get_mapped_message()
+                    return self.handle_message(user_id, converted_message, channel_type)
 
             # Unknown bang command → drop prefix and continue to structured parsing below
             message = message_stripped[1:]
@@ -177,12 +297,25 @@ class InteractionManager:
         user_state = conversation_manager.user_states.get(user_id, {"flow": 0, "state": 0, "data": {}})
         logger.info(f"FLOW_CHECK: User {user_id} flow state: {user_state.get('flow', 'None')} (type: {type(user_state.get('flow'))})")
         if user_state["flow"] != 0:
-            # User is in a flow, but check if they're trying to issue a command
-            # Commands should bypass the flow and be processed normally
+            # User is in a flow - check for flow keywords first (skip, cancel, end)
             message_lower = message.strip().lower()
+            
+            # Flow keywords should always be handled by conversation manager, not parsed as commands
+            flow_keywords = ['skip', 'cancel', 'end', 'endlist']
+            if message_lower in flow_keywords or any(message_lower == keyword for keyword in flow_keywords):
+                # User is using a flow keyword - let conversation manager handle it
+                logger.info(f"User {user_id} in flow {user_state['flow']} used flow keyword '{message_lower}', delegating to conversation manager")
+                reply_text, completed = conversation_manager.handle_inbound_message(user_id, message)
+                return InteractionResponse(reply_text, completed)
+            
+            # Check if they're trying to issue a command (other than flow keywords)
+            # Commands should bypass the flow and be processed normally
             command_keywords = ['update task', 'complete task', 'delete task', 'show tasks', 'list tasks', 
-                               'create task', 'add task', 'new task', '/cancel', 'cancel']
-            is_command = any(message_lower.startswith(keyword) for keyword in command_keywords)
+                               'create task', 'add task', 'new task',
+                               '/n ', '!n ', 'n ', '/note ', '!note ', 'note ', '/nn ', 
+                               '!nn ', 'nn ', '/newn ', '!newn ', 'newn ', '/newnote ', '!newnote ', 'newnote ',
+                               '/show ', '!show ', 'show ', '/recent', '!recent', 'recent', '/r ', '!r ', 'r ']
+            is_command = any(message_lower == keyword or message_lower.startswith(keyword + ' ') for keyword in command_keywords)
             
             if is_command:
                 # User is issuing a command, clear the flow and process the command
@@ -193,7 +326,22 @@ class InteractionManager:
                 # User is in a flow and not issuing a command, let conversation manager handle it
                 logger.info(f"User {user_id} in active flow {user_state['flow']}, delegating to conversation manager")
                 reply_text, completed = conversation_manager.handle_inbound_message(user_id, message)
-                return InteractionResponse(reply_text, completed)
+                response = InteractionResponse(reply_text, completed)
+                
+                # Refresh user state after conversation manager may have updated it
+                updated_user_state = conversation_manager.user_states.get(user_id, {"flow": 0, "state": 0, "data": {}})
+                
+                # Add context-aware suggestions for reminder flow
+                # Check both if currently in reminder flow OR if response contains reminder prompt
+                if (updated_user_state.get('flow') == FLOW_TASK_REMINDER or 
+                    (not completed and "Would you like to set custom reminder periods" in reply_text)):
+                    task_id = updated_user_state.get('data', {}).get('task_id')
+                    if task_id:
+                        reminder_suggestions = conversation_manager._generate_context_aware_reminder_suggestions(user_id, task_id)
+                        if reminder_suggestions:
+                            response.suggestions = reminder_suggestions
+                
+                return response
         
         logger.info(f"User {user_id} not in active flow or command detected, proceeding with command parsing")
         
@@ -359,7 +507,7 @@ class InteractionManager:
         try:
             result = {}
             for c in self._command_definitions:
-                result[c.name] = c.mapped_message
+                result[c.name] = c.get_mapped_message()
             return result
         except Exception as e:
             logger.error(f"Error getting slash command map: {e}")
@@ -370,7 +518,7 @@ class InteractionManager:
         """Return canonical command definitions: name, mapped_message, description."""
         try:
             return [
-                {"name": c.name, "mapped_message": c.mapped_message, "description": c.description}
+                {"name": c.name, "mapped_message": c.get_mapped_message(), "description": c.description}
                 for c in self._command_definitions
             ]
         except Exception as e:

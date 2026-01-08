@@ -51,6 +51,15 @@ class EnhancedCommandParser:
         # Rule-based patterns for common intents
         self.intent_patterns = {
             'create_task': [
+                r'^nt\s+(.+)$',
+                r'^ntask\s+(.+)$',
+                r'^newt\s+(.+)$',
+                r'^newtask\s+(.+)$',
+                r'^ct\s+(.+)$',
+                r'^ctask\s+(.+)$',
+                r'^createtask\s+(.+)$',
+                r'^createt\s+(.+)$',
+                r'^task\s+(.+)$',
                 r'create\s+(?:a\s+)?task\s+(?:to\s+)?(.+)',
                 r'add\s+(?:a\s+)?task\s+(?:to\s+)?(.+)',
                 r'new\s+task\s+(?:to\s+)?(.+)',
@@ -71,6 +80,7 @@ class EnhancedCommandParser:
                 r'show\s+me\s+my\s+tasks?',
             ],
             'complete_task': [
+                r'^complete\s+(.+)$',
                 r'complete\s+(?:task\s+)?(\d+|[^0-9]+)',
                 r'done\s+(?:task\s+)?(\d+|[^0-9]+)',
                 r'finished\s+(?:task\s+)?(\d+|[^0-9]+)',
@@ -306,47 +316,69 @@ class EnhancedCommandParser:
             ],
             # Notebook Patterns
             'create_note': [
-                r'^!n\s+(.+)$',
+                r'^nn\s+(.+)$',
+                r'^nnote\s+(.+)$',
+                r'^newn\s+(.+)$',
+                r'^newnote\s+(.+)$',
+                r'^cn\s+(.+)$',
+                r'^cnote\s+(.+)$',
+                r'^createnote\s+(.+)$',
+                r'^createn\s+(.+)$',
                 r'^n\s+(.+)$',
+                r'^note\s+(.+)$',
+                r'^n\s+(.+)$',
+                r'^note\s+(.+)',
                 r'note\s+(.+)',
                 r'new\s+note\s+(.+)',
-                r'create\s+note\s+(.+)',
+                r'create\s+note\s+(?:about\s+)?(.+)',  # Match "create note about X" without hallucinating details
             ],
             'list_recent_entries': [
-                r'^!recent(?:\s+(\d+))?$',
+                r'^recent(?:\s+(\d+))?$',
+                r'^r(?:\s+(\d+))?$',
                 r'^recent(?:\s+(\d+))?$',
                 r'recent\s+entries?(?:\s+(\d+))?',
                 r'show\s+recent(?:\s+(\d+))?',
             ],
+            'list_recent_notes': [
+                r'^recentn(?:\s+(\d+))?$',
+                r'^rnote(?:\s+(\d+))?$',
+                r'^rnotes(?:\s+(\d+))?$',
+                r'^recentnote(?:\s+(\d+))?$',
+                r'^recentnotes(?:\s+(\d+))?$',
+                r'^shown(?:\s+(\d+))?$',
+                r'^shownote(?:\s+(\d+))?$',
+                r'^shownotes(?:\s+(\d+))?$',
+            ],
             'show_entry': [
-                r'^!show\s+(.+)$',
                 r'^show\s+(.+)$',
                 r'display\s+(.+)',
                 r'view\s+(.+)',
             ],
             'append_to_entry': [
-                r'^!append\s+(\S+)\s+(.+)$',
                 r'^append\s+(\S+)\s+(.+)$',
+                r'^add\s+(\S+)\s+(.+)$',
+                r'^addto\s+(\S+)\s+(.+)$',
                 r'add\s+to\s+(\S+)\s+(.+)',
             ],
             'add_tags_to_entry': [
-                r'^!tag\s+(\S+)\s+(.+)$',
+                r'^tag\s+(\S+)\s+(.+)$',
                 r'^tag\s+(\S+)\s+(.+)$',
                 r'add\s+tags?\s+to\s+(\S+)\s+(.+)',
             ],
             'remove_tags_from_entry': [
-                r'^!untag\s+(\S+)\s+(.+)$',
+                r'^untag\s+(\S+)\s+(.+)$',
                 r'^untag\s+(\S+)\s+(.+)$',
                 r'remove\s+tags?\s+from\s+(\S+)\s+(.+)',
             ],
             'search_entries': [
-                r'^!s\s+(.+)$',
+                r'^search\s+(.+)$',
+                r'^s\s+(.+)$',
                 r'^s\s+(.+)$',
                 r'search\s+(.+)',
                 r'find\s+(.+)',
             ],
             'pin_entry': [
-                r'^!pin\s+(.+)$',
+                r'^pin\s+(.+)$',
                 r'^pin\s+(.+)$',
             ],
             'unpin_entry': [
@@ -354,56 +386,71 @@ class EnhancedCommandParser:
                 r'^unpin\s+(.+)$',
             ],
             'archive_entry': [
-                r'^!archive\s+(.+)$',
+                r'^archive\s+(.+)$',
                 r'^archive\s+(.+)$',
             ],
             'unarchive_entry': [
-                r'^!unarchive\s+(.+)$',
+                r'^unarchive\s+(.+)$',
                 r'^unarchive\s+(.+)$',
             ],
             'create_list': [
-                r'^!l\s+new\s+(.+)$',
+                r'^l\s+(.+)$',
+                r'^list\s+(.+)$',
+                r'^nl\s+(.+)$',
+                r'^nlist\s+(.+)$',
+                r'^newl\s+(.+)$',
+                r'^newlist\s+(.+)$',
+                r'^cl\s+(.+)$',
+                r'^clist\s+(.+)$',
+                r'^createlist\s+(.+)$',
+                r'^createl\s+(.+)$',
+                r'^l\s+new\s+(.+)$',
                 r'^l\s+new\s+(.+)$',
                 r'new\s+list\s+(.+)',
             ],
             'add_list_item': [
-                r'^!l\s+add\s+(\S+)\s+(.+)$',
+                r'^l\s+add\s+(\S+)\s+(.+)$',
                 r'^l\s+add\s+(\S+)\s+(.+)$',
             ],
             'toggle_list_item_done': [
-                r'^!l\s+done\s+(\S+)\s+(\d+)$',
+                r'^l\s+done\s+(\S+)\s+(\d+)$',
                 r'^l\s+done\s+(\S+)\s+(\d+)$',
             ],
+            'toggle_list_item_undone': [
+                r'^l\s+undo\s+(\S+)\s+(\d+)$',
+                r'^l\s+undo\s+(\S+)\s+(\d+)$',
+            ],
             'remove_list_item': [
-                r'^!l\s+remove\s+(\S+)\s+(\d+)$',
+                r'^l\s+remove\s+(\S+)\s+(\d+)$',
                 r'^l\s+remove\s+(\S+)\s+(\d+)$',
             ],
             'set_entry_group': [
-                r'^!group\s+(\S+)\s+(.+)$',
+                r'^group\s+(\S+)\s+(.+)$',
                 r'^group\s+(\S+)\s+(.+)$',
             ],
             'list_entries_by_group': [
-                r'^!group\s+(.+)$',
+                r'^group\s+(.+)$',
                 r'^group\s+(.+)$',
             ],
             'list_pinned_entries': [
-                r'^!pinned$',
+                r'^pinned$',
                 r'^pinned$',
             ],
             'list_inbox_entries': [
-                r'^!inbox$',
+                r'^inbox$',
                 r'^inbox$',
             ],
             'list_entries_by_tag': [
-                r'^!t\s+(.+)$',
+                r'^t\s+(.+)$',
                 r'^t\s+(.+)$',
             ],
         }
         
         # Compile patterns for performance
+        # Use DOTALL flag so . matches newlines (for multi-line command input)
         self.compiled_patterns = {}
         for intent, patterns in self.intent_patterns.items():
-            self.compiled_patterns[intent] = [re.compile(pattern, re.IGNORECASE) for pattern in patterns]
+            self.compiled_patterns[intent] = [re.compile(pattern, re.IGNORECASE | re.DOTALL) for pattern in patterns]
     
     
     @handle_errors("parsing command", default_return=ParsingResult(
@@ -746,16 +793,23 @@ class EnhancedCommandParser:
         elif intent == 'create_note':
             if match.groups():
                 content = match.group(1).strip()
-                # Check for title | body format
-                if '|' in content:
-                    parts = content.split('|', 1)
+                # Check for title : body format or newline separator
+                if ':' in content and '\n' not in content:
+                    # Single line with colon separator
+                    parts = content.split(':', 1)
                     entities['title'] = parts[0].strip()
-                    entities['body'] = parts[1].strip()
+                    entities['body'] = parts[1].strip() if len(parts) > 1 else None
+                elif '\n' in content:
+                    # Multi-line: first line is title, rest is body
+                    lines = content.split('\n', 1)
+                    entities['title'] = lines[0].strip()
+                    entities['body'] = lines[1].strip() if len(lines) > 1 else None
                 else:
-                    # Just body, no title
-                    entities['body'] = content
+                    # Just title/body, no separator - will prompt for body in flow
+                    entities['title'] = content
+                    entities['body'] = None
         
-        elif intent == 'list_recent_entries':
+        elif intent in ['list_recent_entries', 'list_recent_notes']:
             if match.groups():
                 limit = match.group(1)
                 try:
@@ -810,9 +864,35 @@ class EnhancedCommandParser:
         elif intent == 'create_list':
             if match.groups():
                 content = match.group(1).strip()
+                # Check for title : items or newline separator
+                if ':' in content and '\n' not in content:
+                    # Single line with colon separator
+                    parts = content.split(':', 1)
+                    title = parts[0].strip()
+                    items_text = parts[1].strip() if len(parts) > 1 else ''
+                    # Parse items (comma, semicolon separated)
+                    items = []
+                    if ',' in items_text:
+                        items = [item.strip() for item in items_text.split(',')]
+                    elif ';' in items_text:
+                        items = [item.strip() for item in items_text.split(';')]
+                    elif items_text:
+                        items = [items_text]
+                    entities['items'] = items
+                elif '\n' in content:
+                    # Multi-line: first line is title, rest are items
+                    lines = content.split('\n')
+                    title = lines[0].strip()
+                    items = [line.strip() for line in lines[1:] if line.strip()]
+                    entities['items'] = items
+                else:
+                    # Just title, no items - will prompt in flow
+                    title = content
+                    entities['items'] = []
+                
                 # Parse title and tags
                 from core.tags import parse_tags_from_text
-                title, tags = parse_tags_from_text(content)
+                title, tags = parse_tags_from_text(title)
                 entities['title'] = title
                 if tags:
                     entities['tags'] = tags
@@ -822,13 +902,16 @@ class EnhancedCommandParser:
                 entities['entry_ref'] = match.group(1).strip()
                 entities['item_text'] = match.group(2).strip()
         
-        elif intent == 'toggle_list_item_done':
+        elif intent in ['toggle_list_item_done', 'toggle_list_item_undone']:
             if len(match.groups()) >= 2:
                 entities['entry_ref'] = match.group(1).strip()
                 try:
                     entities['item_index'] = int(match.group(2))
                 except (ValueError, TypeError):
                     pass
+                # For undone, set done=False
+                if intent == 'toggle_list_item_undone':
+                    entities['done'] = False
         
         elif intent == 'remove_list_item':
             if len(match.groups()) >= 2:
@@ -859,8 +942,15 @@ class EnhancedCommandParser:
         try:
             entities = {}
             
-            # Extract due date
+            # Extract due date - order matters! More specific patterns first
             due_patterns = [
+                r'in\s+(\d+)\s+hours?',  # "in 48 hours", "in 1 hour" - check before days
+                r'in\s+(\d+)\s+days?',  # "in 11 days", "in 1 day", "in 6 days"
+                r'in\s+(\d+)\s+weeks?',  # "in 2 weeks", "in 1 week"
+                r'next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?|noon|midnight)',  # "next Tuesday at 11:00"
+                r'next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)',  # "next Tuesday", "next Monday"
+                r'(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?|noon|midnight)',  # "Friday at noon", "Monday at 2pm"
+                r'(monday|tuesday|wednesday|thursday|friday|saturday|sunday)',  # "Friday", "Monday"
                 r'tomorrow',
                 r'next\s+week',
                 r'next\s+month',
@@ -868,11 +958,28 @@ class EnhancedCommandParser:
                 r'by\s+(\w+\s+\d+)',
             ]
             
-            for pattern in due_patterns:
+            # Try to find the longest/best match by checking all patterns and picking the best one
+            best_match = None
+            best_pattern_index = -1
+            
+            for i, pattern in enumerate(due_patterns):
                 match = re.search(pattern, title, re.IGNORECASE)
                 if match:
-                    entities['due_date'] = match.group(0)
-                    break
+                    # Prefer earlier patterns (more specific) and longer matches
+                    if best_match is None or len(match.group(0)) > len(best_match.group(0)) or i < best_pattern_index:
+                        best_match = match
+                        best_pattern_index = i
+            
+            if best_match:
+                entities['due_date'] = best_match.group(0)
+                # If pattern has time component (day of week + time), extract time separately
+                # Check if this is a "next [day] at [time]" or "[day] at [time]" pattern
+                if len(best_match.groups()) >= 2:
+                    # Pattern like "next Tuesday at 11:00" - group(1) is day, group(2) is time
+                    # Pattern like "Friday at noon" - group(1) is day, group(2) is time
+                    if best_match.group(2):  # Time component exists
+                        time_str = best_match.group(2).strip()
+                        entities['due_time'] = time_str
             
             # Extract priority
             priority_patterns = {

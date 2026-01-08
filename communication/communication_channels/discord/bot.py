@@ -880,6 +880,83 @@ class DiscordBot(BaseChannel):
                         # The view is attached to the message, so discord.py will handle it automatically
                         # We just need to let it pass through
                         return
+                    
+                    # Handle suggestion buttons (from InteractionResponse suggestions)
+                    elif custom_id.startswith('suggestion_'):
+                        try:
+                            # Acknowledge the interaction first (required by Discord)
+                            await interaction.response.defer()
+                            
+                            # Get the button label from the interaction component
+                            button_label = None
+                            if hasattr(interaction, 'component') and interaction.component:
+                                button_label = getattr(interaction.component, 'label', None)
+                            
+                            # Fallback: try to get label from interaction data
+                            if not button_label and interaction.data:
+                                button_label = interaction.data.get('label')
+                            
+                            # If we still don't have the label, try to get it from the message components
+                            if not button_label and interaction.message:
+                                for component in interaction.message.components:
+                                    if hasattr(component, 'children'):
+                                        for child in component.children:
+                                            if hasattr(child, 'custom_id') and child.custom_id == custom_id:
+                                                button_label = getattr(child, 'label', None)
+                                                break
+                                    if button_label:
+                                        break
+                            
+                            discord_logger.info(f"Processing suggestion button '{button_label}' (custom_id: {custom_id})")
+                            
+                            if button_label:
+                                # Get internal user ID
+                                discord_user_id = str(interaction.user.id)
+                                from core.user_management import get_user_id_by_identifier
+                                internal_user_id = get_user_id_by_identifier(discord_user_id)
+                                
+                                if internal_user_id:
+                                    # Process the button label as a user message
+                                    # Use the label as-is (lowercase) - flow handlers will handle skip/cancel
+                                    button_message = button_label.lower().strip()
+                                    discord_logger.info(f"Processing button click as message '{button_message}' for user {internal_user_id}")
+                                    
+                                    from communication.message_processing.interaction_manager import handle_user_message
+                                    response = handle_user_message(internal_user_id, button_message, "discord")
+                                    
+                                    # Send the response using followup (since we already deferred)
+                                    # Create embed if rich_data is provided
+                                    embed = None
+                                    if response.rich_data:
+                                        embed = self._create_discord_embed(response.message, response.rich_data)
+                                    
+                                    # Create view with buttons if suggestions are provided
+                                    view = None
+                                    if response.suggestions:
+                                        view = self._create_action_row(response.suggestions)
+                                    
+                                    # Send response via followup
+                                    if embed and view:
+                                        await interaction.followup.send(content=response.message or None, embed=embed, view=view)
+                                    elif embed:
+                                        await interaction.followup.send(content=response.message or None, embed=embed)
+                                    elif view:
+                                        await interaction.followup.send(content=response.message, view=view)
+                                    else:
+                                        await interaction.followup.send(content=response.message)
+                                else:
+                                    discord_logger.warning(f"No internal user ID found for Discord user {discord_user_id}")
+                                    await interaction.followup.send("❌ User account not found. Please try again.", ephemeral=True)
+                            else:
+                                discord_logger.warning(f"Could not extract button label from suggestion button {custom_id}")
+                                await interaction.followup.send("❌ Could not process button click. Please try typing the command instead.", ephemeral=True)
+                        except Exception as e:
+                            discord_logger.error(f"Error handling suggestion button (custom_id: {custom_id}): {e}", exc_info=True)
+                            try:
+                                await interaction.followup.send("❌ An error occurred processing your button click. Please try typing the command instead.", ephemeral=True)
+                            except Exception as followup_error:
+                                discord_logger.error(f"Error sending followup message: {followup_error}", exc_info=True)
+                        return
                 
                 # Let other component interactions fall through to default handling
                 # (buttons from other parts of the system)
@@ -1421,13 +1498,13 @@ class DiscordBot(BaseChannel):
         
         # Send to the channel
         if embed and view:
-            await channel.send(embed=embed, view=view)
+            await channel.send(content=message or None, embed=embed, view=view)
         elif embed:
-            await channel.send(embed=embed)
+            await channel.send(content=message or None, embed=embed)
         elif view:
-            await channel.send(message, view=view)
+            await channel.send(content=message, view=view)
         else:
-            await channel.send(message)
+            await channel.send(content=message)
         
         logger.info(f"Message sent to Discord channel {channel.id}")
         discord_logger.info("Discord channel message sent", 
@@ -1514,13 +1591,13 @@ class DiscordBot(BaseChannel):
                     
                     if user:
                         if embed and view:
-                            await user.send(embed=embed, view=view)
+                            await user.send(content=message or None, embed=embed, view=view)
                         elif embed:
-                            await user.send(embed=embed)
+                            await user.send(content=message or None, embed=embed)
                         elif view:
-                            await user.send(message, view=view)
+                            await user.send(content=message, view=view)
                         else:
-                            await user.send(message)
+                            await user.send(content=message)
                         # Log detailed message information (consolidated from two separate logs)
                         logger.info(f"Discord DM sent | {{\"user_id\": \"{discord_user_id}\", \"message_length\": {len(message)}, \"has_embed\": {bool(embed)}, \"has_components\": {bool(view)}, \"message_preview\": \"{message[:50]}...\"}}")
                         return True
@@ -1546,13 +1623,13 @@ class DiscordBot(BaseChannel):
                 
                 if user:
                     if embed and view:
-                        await user.send(embed=embed, view=view)
+                        await user.send(content=message or None, embed=embed, view=view)
                     elif embed:
-                        await user.send(embed=embed)
+                        await user.send(content=message or None, embed=embed)
                     elif view:
-                        await user.send(message, view=view)
+                        await user.send(content=message, view=view)
                     else:
-                        await user.send(message)
+                        await user.send(content=message)
                     logger.info(f"Discord DM sent directly | {{\"discord_user_id\": \"{discord_user_id}\", \"message_length\": {len(message)}, \"has_embed\": {bool(embed)}, \"has_components\": {bool(view)}, \"message_preview\": \"{message[:50]}...\"}}")
                     return True
                 else:
@@ -1568,11 +1645,11 @@ class DiscordBot(BaseChannel):
             channel = self.bot.get_channel(channel_id)
             if channel:
                 if embed and view:
-                    await channel.send(embed=embed, view=view)
+                    await channel.send(content=message or None, embed=embed, view=view)
                 elif embed:
-                    await channel.send(embed=embed)
+                    await channel.send(content=message or None, embed=embed)
                 elif view:
-                    await channel.send(message, view=view)
+                    await channel.send(content=message, view=view)
                 else:
                     await channel.send(message)
                 logger.info(f"Message sent to Discord channel {recipient}")

@@ -37,6 +37,9 @@ logger = get_component_logger('communication_manager')
 FLOW_NONE = 0
 FLOW_CHECKIN = 1
 FLOW_TASK_REMINDER = 2
+FLOW_NOTE_BODY = 3
+FLOW_LIST_ITEMS = 4
+FLOW_TASK_DUE_DATE = 5
 
 
 
@@ -217,8 +220,8 @@ class ConversationManager:
                 # Initialize dynamic check-in flow based on user preferences
                 return self._start_dynamic_checkin(user_id)
 
-            elif message_text.lower().startswith("/cancel"):
-                return ("Nothing to cancel. You're not in a conversation flow.", True)
+            elif message_text.lower().strip() in ['skip', '!skip', '/skip', 'cancel', '!cancel', '/cancel']:
+                return ("Nothing to skip/cancel. You're not in a conversation flow.", True)
 
             else:
                 # Default to contextual chat for all other messages
@@ -242,7 +245,14 @@ class ConversationManager:
                 self.user_states.pop(user_id, None)
                 self._save_user_states()
                 return ("", True)  # Return empty to let command be processed
+            # Not a command, handle as reminder followup response
             return self._handle_task_reminder_followup(user_id, user_state, message_text)
+        elif flow == FLOW_NOTE_BODY:
+            return self._handle_note_body_flow(user_id, user_state, message_text)
+        elif flow == FLOW_LIST_ITEMS:
+            return self._handle_list_items_flow(user_id, user_state, message_text)
+        elif flow == FLOW_TASK_DUE_DATE:
+            return self._handle_task_due_date_flow(user_id, user_state, message_text)
         else:
             # Unknown flow - reset to default contextual chat
             self.user_states.pop(user_id, None)
@@ -923,8 +933,36 @@ class ConversationManager:
                 self._save_user_states()
                 return ("I couldn't find the task to update. The task was created successfully.", True)
             
-            # Check if user wants to skip reminders
+            # Check for timeout first (10 minutes)
+            started_at_str = user_state.get('started_at')
+            if started_at_str:
+                try:
+                    started_at = datetime.fromisoformat(started_at_str)
+                    if datetime.now() - started_at > timedelta(minutes=10):
+                        self.user_states.pop(user_id, None)
+                        self._save_user_states()
+                        return ("⏱️ Reminder flow expired. Task was created successfully. You can add reminders later by updating the task.", True)
+                except (ValueError, TypeError):
+                    pass
+            
             message_lower = message_text.lower().strip()
+            
+            # Check if message is clearly unrelated to reminder flow (commands or unrelated content)
+            unrelated_patterns = [
+                r'^/(n|note|nn|newn|newnote|task|t|nt|ntask|newt|newtask|ct|ctask|createtask|createt|l|list|newl|newlist|cl|createlist|createl)',
+                r'^!(n|note|nn|newn|newnote|task|t|nt|ntask|newt|newtask|ct|ctask|createtask|createt|l|list|newl|newlist|cl|createlist|createl)',
+                r'^(create|add|new|show|list|complete|delete|update).*(task|note|list)',
+                r'^(hi|hello|hey|thanks|thank you|bye|goodbye)',
+            ]
+            import re
+            if any(re.match(pattern, message_lower) for pattern in unrelated_patterns):
+                # Message is clearly unrelated - clear flow and let it be processed normally
+                logger.info(f"User {user_id} in reminder flow sent unrelated message '{message_text}', clearing flow")
+                self.user_states.pop(user_id, None)
+                self._save_user_states()
+                return ("", True)  # Empty response to let command be processed normally
+            
+            # Check if user wants to skip reminders
             skip_patterns = ["no reminders", "no reminder", "no", "skip", "none", "not needed", "don't need", "don't want"]
             if any(pattern in message_lower for pattern in skip_patterns):
                 # User doesn't want reminders - clear flow
@@ -963,11 +1001,22 @@ class ConversationManager:
                 self._save_user_states()
                 return ("I couldn't find the task to update. The task was created successfully.", True)
             
-            if not task.get('due_date'):
+            due_date_str = task.get('due_date')
+            if not due_date_str:
                 # Task has no due date, can't set reminder periods
                 self.user_states.pop(user_id, None)
                 self._save_user_states()
                 return ("This task doesn't have a due date, so I can't set reminder periods. You can add a due date and reminders later by updating the task.", True)
+            
+            # Validate that due_date is in proper format (YYYY-MM-DD)
+            try:
+                datetime.strptime(due_date_str, '%Y-%m-%d')
+            except ValueError:
+                # Invalid date format - can't set reminders
+                logger.warning(f"Task {task_id} has invalid due_date format '{due_date_str}', cannot set reminders")
+                self.user_states.pop(user_id, None)
+                self._save_user_states()
+                return ("This task has an invalid due date format, so I can't set reminder periods. You can update the due date and add reminders later.", True)
             
             if reminder_periods:
                 # Update task with reminder periods
@@ -1165,19 +1214,540 @@ class ConversationManager:
         
         return reminder_periods
 
+    @handle_errors("starting task due date flow", default_return=None)
+    def start_task_due_date_flow(self, user_id: str, task_id: str) -> None:
+        """
+        Start a task due date/time flow.
+        Called by task handler after creating a task without a due date.
+        """
+        self.user_states[user_id] = {
+            "flow": FLOW_TASK_DUE_DATE,
+            "state": 0,
+            "data": {"task_id": task_id},
+            "started_at": datetime.now().isoformat()
+        }
+        self._save_user_states()
+        logger.debug(f"Started task due date flow for user {user_id}, task {task_id}")
+
     @handle_errors("starting task reminder follow-up flow", default_return=None)
     def start_task_reminder_followup(self, user_id: str, task_id: str) -> None:
         """
         Start a task reminder follow-up flow.
-        Called by task handler after creating a task.
+        Called by task handler after creating a task with a due date.
         """
         self.user_states[user_id] = {
             "flow": FLOW_TASK_REMINDER,
             "state": 0,
-            "data": {"task_id": task_id}
+            "data": {"task_id": task_id},
+            "started_at": datetime.now().isoformat()
         }
         self._save_user_states()
         logger.debug(f"Started task reminder follow-up flow for user {user_id}, task {task_id}")
+
+    @handle_errors("generating context-aware reminder suggestions", default_return=["Skip"])
+    def _generate_context_aware_reminder_suggestions(self, user_id: str, task_id: str) -> list[str]:
+        """
+        Generate reminder period suggestions based on task's due date/time.
+        
+        Examples:
+        - Task due in 6 days (no time) -> "1 to 2 days before", "3 to 4 days before"
+        - Task due in 12 days at 10:00 AM -> "1 to 2 hours before", "1 to 2 days before", "3 to 5 days before"
+        """
+        from tasks.task_management import get_task_by_id
+        
+        task = get_task_by_id(user_id, task_id)
+        if not task or not task.get('due_date'):
+            return ["Skip"]
+        
+        due_date_str = task.get('due_date')
+        due_time_str = task.get('due_time')
+        
+        try:
+            # Parse due date
+            due_date = datetime.strptime(due_date_str, '%Y-%m-%d')
+            
+            # Parse time if provided, otherwise use current time of day
+            if due_time_str and due_time_str.strip():
+                try:
+                    time_parts = due_time_str.strip().split(':')
+                    due_date = due_date.replace(hour=int(time_parts[0]), minute=int(time_parts[1]) if len(time_parts) > 1 else 0)
+                    has_time = True
+                except (ValueError, IndexError):
+                    # Invalid time format, use current time of day
+                    now = datetime.now()
+                    due_date = due_date.replace(hour=now.hour, minute=now.minute)
+                    has_time = False
+            else:
+                # No time specified, use current time of day
+                now = datetime.now()
+                due_date = due_date.replace(hour=now.hour, minute=now.minute)
+                has_time = False
+            
+            # Calculate days until due
+            now = datetime.now()
+            days_until = (due_date - now).days
+            hours_until = (due_date - now).total_seconds() / 3600
+            
+            suggestions = []
+            
+            if days_until < 0:
+                # Task is overdue or due today - offer short-term reminders
+                if has_time and hours_until > 0:
+                    suggestions.append("30 minutes to an hour before")
+                    if hours_until > 2:
+                        suggestions.append("1 to 2 hours before")
+                suggestions.append("Skip")
+            elif days_until == 0:
+                # Due today
+                if has_time and hours_until > 1:
+                    suggestions.append("30 minutes to an hour before")
+                    if hours_until > 3:
+                        suggestions.append("1 to 2 hours before")
+                suggestions.append("Skip")
+            elif days_until <= 2:
+                # Due in 1-2 days
+                if has_time:
+                    suggestions.append("1 to 2 hours before")
+                suggestions.append("1 day before")
+                suggestions.append("Skip")
+            elif days_until <= 7:
+                # Due in 3-7 days
+                suggestions.append("1 to 2 days before")
+                suggestions.append("3 to 4 days before")
+                suggestions.append("Skip")
+            elif days_until <= 14:
+                # Due in 8-14 days
+                if has_time:
+                    suggestions.append("1 to 2 hours before")
+                suggestions.append("1 to 2 days before")
+                suggestions.append("3 to 5 days before")
+                suggestions.append("Skip")
+            else:
+                # Due in more than 2 weeks
+                suggestions.append("1 to 2 days before")
+                suggestions.append("3 to 5 days before")
+                if days_until > 21:
+                    suggestions.append("1 week before")
+                suggestions.append("Skip")
+            
+            return suggestions[:4]  # Limit to 4 suggestions (Discord button limit)
+        except Exception as e:
+            logger.error(f"Error generating context-aware reminder suggestions: {e}", exc_info=True)
+            return ["1 to 2 days before", "Skip"]
+
+    @handle_errors("handling task due date flow", default_return=("I'm having trouble with the due date flow. Please try again.", True))
+    def _handle_task_due_date_flow(self, user_id: str, user_state: dict, message_text: str) -> tuple[str, bool]:
+        """Handle continuation of task due date/time flow."""
+        from tasks.task_management import get_task_by_id, update_task
+        
+        message_lower = message_text.lower().strip()
+        
+        # Check for timeout first (10 minutes)
+        started_at_str = user_state.get('started_at')
+        if started_at_str:
+            try:
+                started_at = datetime.fromisoformat(started_at_str)
+                if datetime.now() - started_at > timedelta(minutes=10):
+                    self.user_states.pop(user_id, None)
+                    self._save_user_states()
+                    return ("⏱️ Due date flow expired. Task was created without a due date. You can add one later by updating the task.", True)
+            except (ValueError, TypeError):
+                pass
+        
+        # Check for skip/cancel commands
+        skip_keywords = ['skip', '!skip', '/skip']
+        cancel_keywords = ['cancel', '!cancel', '/cancel']
+        
+        # Handle cancel - abort due date setting
+        if any(message_lower == keyword or message_lower.startswith(keyword + ' ') for keyword in cancel_keywords):
+            task_id = user_state.get('data', {}).get('task_id')
+            self.user_states.pop(user_id, None)
+            self._save_user_states()
+            return (f"❌ Due date setting cancelled. Task was created without a due date.", True)
+        
+        # Handle skip - continue without due date
+        if any(message_lower == keyword or message_lower.startswith(keyword + ' ') for keyword in skip_keywords):
+            task_id = user_state.get('data', {}).get('task_id')
+            self.user_states.pop(user_id, None)
+            self._save_user_states()
+            return (f"✅ Task created without a due date. You can add one later by updating the task.", True)
+        
+        # Check if message is clearly unrelated to due date flow (commands or unrelated content)
+        unrelated_patterns = [
+            r'^/(n|note|nn|newn|newnote|task|t|nt|ntask|newt|newtask|ct|ctask|createtask|createt|l|list|newl|newlist|cl|createlist|createl)',
+            r'^!(n|note|nn|newn|newnote|task|t|nt|ntask|newt|newtask|ct|ctask|createtask|createt|l|list|newl|newlist|cl|createlist|createl)',
+            r'^(create|add|new|show|list|complete|delete|update).*(task|note|list)',
+            r'^(hi|hello|hey|thanks|thank you|bye|goodbye)',
+        ]
+        import re
+        if any(re.match(pattern, message_lower) for pattern in unrelated_patterns):
+            # Message is clearly unrelated - clear flow and let it be processed normally
+            logger.info(f"User {user_id} in due date flow sent unrelated message '{message_text}', clearing flow")
+            self.user_states.pop(user_id, None)
+            self._save_user_states()
+            return ("", True)  # Empty response to let command be processed normally
+        
+        # Parse date/time from user input
+        task_id = user_state.get('data', {}).get('task_id')
+        if not task_id:
+            self.user_states.pop(user_id, None)
+            self._save_user_states()
+            return ("❌ Could not find task. Please try creating the task again.", True)
+        
+        # Parse date/time from message
+        parsed_date, parsed_time = self._parse_date_time_from_text(message_text)
+        
+        if not parsed_date:
+            # Couldn't parse date - ask for clarification
+            return (
+                "I'm not sure what date/time you'd like. Please specify something like:\n"
+                "- 'tomorrow'\n"
+                "- 'next week'\n"
+                "- 'Monday at 2pm'\n"
+                "- '2026-01-15 10:00'\n"
+                "- Or say 'skip' to continue without a due date",
+                False
+            )
+        
+        # Update task with due date/time
+        update_data = {'due_date': parsed_date}
+        if parsed_time:
+            update_data['due_time'] = parsed_time
+        
+        try:
+            update_result = update_task(user_id, task_id, update_data)
+            if not update_result:
+                self.user_states.pop(user_id, None)
+                self._save_user_states()
+                return ("❌ Failed to update task with due date. The task was created successfully. You can add a due date later by updating the task.", True)
+            
+            # Clear flow
+            self.user_states.pop(user_id, None)
+            self._save_user_states()
+            
+            # Now ask about reminder periods with context-aware options
+            self.start_task_reminder_followup(user_id, task_id)
+            reminder_suggestions = self._generate_context_aware_reminder_suggestions(user_id, task_id)
+            
+            due_text = parsed_date
+            if parsed_time:
+                due_text += f" at {parsed_time}"
+            
+            response = f"✅ Due date set: {due_text}\n\nWould you like to set custom reminder periods for this task?"
+            return (response, False)  # Not completed - reminder flow is active
+        except Exception as e:
+            logger.error(f"Error updating task with due date: {e}", exc_info=True)
+            self.user_states.pop(user_id, None)
+            self._save_user_states()
+            return ("❌ Failed to update task with due date. The task was created successfully. You can add a due date later by updating the task.", True)
+
+    @handle_errors("parsing date and time from text", default_return=(None, None))
+    def _parse_date_time_from_text(self, text: str) -> tuple[Optional[str], Optional[str]]:
+        """
+        Parse date and time from natural language text.
+        
+        Returns: (date_str in YYYY-MM-DD format, time_str in HH:MM format or None)
+        """
+        import re
+        from datetime import datetime, timedelta
+        
+        text_lower = text.lower().strip()
+        today = datetime.now()
+        
+        # Try to parse relative dates first
+        if text_lower == 'today':
+            return (today.strftime('%Y-%m-%d'), None)
+        elif text_lower == 'tomorrow':
+            tomorrow = today + timedelta(days=1)
+            return (tomorrow.strftime('%Y-%m-%d'), None)
+        elif text_lower.startswith('tomorrow'):
+            # "tomorrow at 10am" or "tomorrow 2pm"
+            tomorrow = today + timedelta(days=1)
+            time_str = self._parse_time_from_text(text_lower)
+            return (tomorrow.strftime('%Y-%m-%d'), time_str)
+        elif 'next week' in text_lower:
+            next_week = today + timedelta(days=7)
+            time_str = self._parse_time_from_text(text_lower)
+            return (next_week.strftime('%Y-%m-%d'), time_str)
+        elif 'next month' in text_lower:
+            if today.month == 12:
+                next_month = today.replace(year=today.year + 1, month=1)
+            else:
+                next_month = today.replace(month=today.month + 1)
+            time_str = self._parse_time_from_text(text_lower)
+            return (next_month.strftime('%Y-%m-%d'), time_str)
+        
+        # Try to parse date patterns like "Monday", "Jan 15", "2026-01-15"
+        # Day of week
+        days_of_week = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+        for i, day in enumerate(days_of_week):
+            if day in text_lower:
+                # Find next occurrence of this day
+                days_ahead = (i - today.weekday()) % 7
+                if days_ahead == 0:  # Today is that day, use next week
+                    days_ahead = 7
+                target_date = today + timedelta(days=days_ahead)
+                time_str = self._parse_time_from_text(text_lower)
+                return (target_date.strftime('%Y-%m-%d'), time_str)
+        
+        # Try to parse YYYY-MM-DD format
+        date_match = re.search(r'(\d{4}-\d{2}-\d{2})', text)
+        if date_match:
+            date_str = date_match.group(1)
+            time_str = self._parse_time_from_text(text_lower)
+            return (date_str, time_str)
+        
+        # Try to parse relative days like "in 3 days", "in 2 weeks"
+        days_match = re.search(r'in\s+(\d+)\s+days?', text_lower)
+        if days_match:
+            days = int(days_match.group(1))
+            target_date = today + timedelta(days=days)
+            time_str = self._parse_time_from_text(text_lower)
+            return (target_date.strftime('%Y-%m-%d'), time_str)
+        
+        weeks_match = re.search(r'in\s+(\d+)\s+weeks?', text_lower)
+        if weeks_match:
+            weeks = int(weeks_match.group(1))
+            target_date = today + timedelta(weeks=weeks)
+            time_str = self._parse_time_from_text(text_lower)
+            return (target_date.strftime('%Y-%m-%d'), time_str)
+        
+        # If we can't parse, return None
+        return (None, None)
+
+    @handle_errors("parsing time from text", default_return=None)
+    def _parse_time_from_text(self, text: str) -> Optional[str]:
+        """
+        Parse time from natural language text.
+        
+        Examples:
+        - "10am", "10:00am", "10:30am" -> "10:00", "10:30"
+        - "2pm", "14:00" -> "14:00"
+        - "at 3pm" -> "15:00"
+        """
+        import re
+        
+        text_lower = text.lower().strip()
+        
+        # Pattern for time like "10am", "10:30am", "2pm", "14:00"
+        time_patterns = [
+            r'(\d{1,2}):(\d{2})\s*(am|pm)?',  # "10:30am" or "14:30"
+            r'(\d{1,2})\s*(am|pm)',  # "10am" or "2pm"
+            r'at\s+(\d{1,2}):(\d{2})',  # "at 10:30"
+            r'at\s+(\d{1,2})\s*(am|pm)',  # "at 10am"
+        ]
+        
+        for pattern in time_patterns:
+            match = re.search(pattern, text_lower)
+            if match:
+                groups = match.groups()
+                hour = int(groups[0])
+                minute = int(groups[1]) if len(groups) > 1 and groups[1] and groups[1].isdigit() else 0
+                
+                # Check for AM/PM
+                if len(groups) > 2 and groups[-1]:
+                    am_pm = groups[-1].lower()
+                    if am_pm == 'pm' and hour != 12:
+                        hour += 12
+                    elif am_pm == 'am' and hour == 12:
+                        hour = 0
+                elif hour < 12 and 'pm' in text_lower:
+                    hour += 12
+                elif hour == 12 and 'am' in text_lower:
+                    hour = 0
+                
+                return f"{hour:02d}:{minute:02d}"
+        
+        return None
+
+    @handle_errors("handling note body flow", default_return=("I'm having trouble with the note flow. Please try again.", True))
+    def _handle_note_body_flow(self, user_id: str, user_state: dict, message_text: str) -> tuple[str, bool]:
+        """Handle continuation of note body flow."""
+        message_lower = message_text.lower().strip()
+        
+        # Check for timeout first (10 minutes)
+        started_at_str = user_state.get('started_at')
+        if started_at_str:
+            try:
+                started_at = datetime.fromisoformat(started_at_str)
+                if datetime.now() - started_at > timedelta(minutes=10):
+                    # Flow expired
+                    self.user_states.pop(user_id, None)
+                    self._save_user_states()
+                    return ("⏱️ Note flow expired. Please start over with `!n <title>`", True)
+            except (ValueError, TypeError):
+                pass
+        
+        # Check for skip/cancel commands
+        skip_keywords = ['skip', '!skip', '/skip']
+        cancel_keywords = ['cancel', '!cancel', '/cancel']
+        
+        # Handle cancel - abort note creation entirely
+        if any(message_lower == keyword or message_lower.startswith(keyword + ' ') for keyword in cancel_keywords):
+            # User wants to cancel - abort note creation
+            flow_data = user_state.get('data', {})
+            title = flow_data.get('title', '')
+            
+            # Clear flow state
+            self.user_states.pop(user_id, None)
+            self._save_user_states()
+            
+            return (f"❌ Note creation cancelled. '{title}' was not saved.", True)
+        
+        # Handle skip - create note without body
+        if any(message_lower == keyword or message_lower.startswith(keyword + ' ') for keyword in skip_keywords):
+            # User wants to skip body - create note with just title
+            flow_data = user_state.get('data', {})
+            title = flow_data.get('title', '')
+            tags = flow_data.get('tags', [])
+            group = flow_data.get('group')
+            
+            # Clear flow state
+            self.user_states.pop(user_id, None)
+            self._save_user_states()
+            
+            # Create note without body
+            from notebook.notebook_data_manager import create_note
+            entry = create_note(user_id, title=title, body=None, tags=tags, group=group)
+            
+            if entry:
+                short_id = str(entry.id)[:6]
+                return (f"✅ Note created: '{title}' ({entry.kind[0]}-{short_id})", True)
+            else:
+                return ("❌ Failed to create note. Please try again.", True)
+        
+        # Check if message is clearly unrelated to note body flow (commands or unrelated content)
+        unrelated_patterns = [
+            r'^/(task|t|nt|ntask|newt|newtask|ct|ctask|createtask|createt|l|list|newl|newlist|cl|createlist|createl)',
+            r'^!(task|t|nt|ntask|newt|newtask|ct|ctask|createtask|createt|l|list|newl|newlist|cl|createlist|createl)',
+            r'^(create|add|new|show|list|complete|delete|update).*(task|list)',
+            r'^(hi|hello|hey|thanks|thank you|bye|goodbye)',
+        ]
+        import re
+        if any(re.match(pattern, message_lower) for pattern in unrelated_patterns):
+            # Message is clearly unrelated - clear flow and let it be processed normally
+            logger.info(f"User {user_id} in note body flow sent unrelated message '{message_text}', clearing flow")
+            self.user_states.pop(user_id, None)
+            self._save_user_states()
+            return ("", True)  # Empty response to let command be processed normally
+        
+        # User's message is the body - create the note directly
+        flow_data = user_state.get('data', {})
+        title = flow_data.get('title', '')
+        tags = flow_data.get('tags', [])
+        group = flow_data.get('group')
+        body = message_text
+        
+        # Clear flow state
+        self.user_states.pop(user_id, None)
+        self._save_user_states()
+        
+        # Create note using notebook manager
+        from notebook.notebook_data_manager import create_note
+        from core.tags import parse_tags_from_text
+        
+        # Parse tags from body if present
+        if body:
+            body, parsed_tags = parse_tags_from_text(body)
+            tags.extend(parsed_tags)
+        
+        entry = create_note(user_id, title=title, body=body, tags=tags, group=group)
+        
+        if entry:
+            short_id = str(entry.id)[:6]
+            kind_prefix = entry.kind[0]
+            response = f"✅ Note created: '{title}' ({kind_prefix}-{short_id})"
+            if entry.tags:
+                response += f"\nTags: {', '.join(entry.tags)}"
+            return (response, True)
+        else:
+            return ("❌ Failed to create note. Please try again.", True)
+
+    @handle_errors("handling list items flow", default_return=("I'm having trouble with the list flow. Please try again.", True))
+    def _handle_list_items_flow(self, user_id: str, user_state: dict, message_text: str) -> tuple[str, bool]:
+        """Handle continuation of list items flow."""
+        message_lower = message_text.lower().strip()
+        
+        # Check for end commands
+        end_keywords = ['end', '!end', '/end', 'endlist', '!endlist', '/endlist', 'endl', '!endl', '/endl']
+        if any(message_lower == keyword or message_lower.startswith(keyword + ' ') for keyword in end_keywords):
+            # User wants to end list creation
+            flow_data = user_state.get('data', {})
+            title = flow_data.get('title', '')
+            items = flow_data.get('items', [])
+            tags = flow_data.get('tags', [])
+            group = flow_data.get('group')
+            
+            # Clear flow state
+            self.user_states.pop(user_id, None)
+            self._save_user_states()
+            
+            # Create list with collected items
+            from notebook.notebook_data_manager import create_list
+            list_items = [{'text': item.strip(), 'done': False} for item in items if item.strip()]
+            entry = create_list(user_id, title=title, tags=tags, group=group, items=list_items)
+            
+            if entry:
+                short_id = str(entry.id)[:6]
+                return (f"✅ List created: '{title}' ({entry.kind[0]}-{short_id}) with {len(list_items)} items", True)
+            else:
+                return ("❌ Failed to create list. Please try again.", True)
+        
+        # Check for timeout first (10 minutes)
+        started_at_str = user_state.get('started_at')
+        if started_at_str:
+            try:
+                started_at = datetime.fromisoformat(started_at_str)
+                if datetime.now() - started_at > timedelta(minutes=10):
+                    # Flow expired
+                    self.user_states.pop(user_id, None)
+                    self._save_user_states()
+                    return ("⏱️ List flow expired. Please start over with `!l <title>`", True)
+            except (ValueError, TypeError):
+                pass
+        
+        # Check if message is clearly unrelated to list items flow (commands or unrelated content)
+        unrelated_patterns = [
+            r'^/(n|note|nn|newn|newnote|task|t|nt|ntask|newt|newtask|ct|ctask|createtask|createt)',
+            r'^!(n|note|nn|newn|newnote|task|t|nt|ntask|newt|newtask|ct|ctask|createtask|createt)',
+            r'^(create|add|new|show|list|complete|delete|update).*(task|note)',
+            r'^(hi|hello|hey|thanks|thank you|bye|goodbye)',
+        ]
+        import re
+        if any(re.match(pattern, message_lower) for pattern in unrelated_patterns):
+            # Message is clearly unrelated - clear flow and let it be processed normally
+            logger.info(f"User {user_id} in list items flow sent unrelated message '{message_text}', clearing flow")
+            self.user_states.pop(user_id, None)
+            self._save_user_states()
+            return ("", True)  # Empty response to let command be processed normally
+        
+        # Parse items from message (comma, semicolon, or newline separated)
+        items_text = message_text
+        items = []
+        # Try comma first
+        if ',' in items_text:
+            items = [item.strip() for item in items_text.split(',')]
+        # Then semicolon
+        elif ';' in items_text:
+            items = [item.strip() for item in items_text.split(';')]
+        # Then newline
+        elif '\n' in items_text:
+            items = [item.strip() for item in items_text.split('\n')]
+        else:
+            # Single item
+            items = [items_text.strip()]
+        
+        # Add to flow data
+        flow_data = user_state.get('data', {})
+        existing_items = flow_data.get('items', [])
+        existing_items.extend([item for item in items if item])
+        flow_data['items'] = existing_items
+        user_state['data'] = flow_data
+        self.user_states[user_id] = user_state
+        self._save_user_states()
+        
+        item_count = len(existing_items)
+        return (f"📋 Added {len(items)} item(s). Total: {item_count} items.\n\nAdd more items, or type `!end`, `/end`, or 'end' to finish the list.", False)
 
 # Create a global instance for convenience:
 conversation_manager = ConversationManager()

@@ -61,7 +61,18 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
-
+**Audit Flow State Expiration and Interference Prevention**
+- *What it means*: Review all flow states (note flows, task flows, check-in flows, task reminder flows) to ensure they have appropriate time-based expiries and don't interfere with each other or automated messages. Active flow states should delay the start of scheduled automated flows/messages for a brief period of inactivity (e.g., 5-10 minutes) to prevent conflicts.
+- *Why it helps*: Prevents flows from interfering with each other, ensures automated messages don't interrupt active user conversations, and maintains a smooth user experience
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Review all flow states and their expiration logic (note body, list items, task due date, task reminder, check-in)
+  - [ ] Verify expiration times are appropriate (currently 10 minutes for note/task flows, 2 hours for check-ins)
+  - [ ] Ensure flow handlers detect and clear flows for unrelated messages (commands, greetings, etc.)
+  - [ ] Add logic to delay scheduled automated messages/flows when user is in an active flow
+  - [ ] Add logic to delay scheduled automated messages/flows for a brief period after flow completion (e.g., 5-10 minutes)
+  - [ ] Test flow interference scenarios (active note flow + scheduled check-in, active task flow + scheduled reminder, etc.)
+  - [ ] Document flow state management and interference prevention logic
 
 **Fix Check-in Management Dialog Test Failures** [OK]
 - *What it means*: Two unit tests in `tests/unit/test_checkin_management_dialog.py` are failing after recent changes to `save_checkin_settings()` method. Tests expect `set_schedule_periods()` and `update_user_account()` to be called, but they're not being called (0 times instead of 1). This is likely due to new validation logic added during check-in settings UI improvements that may be causing early returns or preventing the save from completing.

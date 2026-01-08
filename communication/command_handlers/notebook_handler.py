@@ -8,7 +8,7 @@ viewing, updating, and searching notebook entries (notes, lists, journal).
 """
 
 from typing import Dict, List, Any, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 from uuid import UUID
 
 from core.logger import get_component_logger
@@ -39,10 +39,10 @@ class NotebookHandler(InteractionHandler):
             return False
         return intent in [
             'create_note', 'create_list', 'create_journal',
-            'list_recent_entries', 'show_entry', 'append_to_entry', 'set_entry_body',
+            'list_recent_entries', 'list_recent_notes', 'show_entry', 'append_to_entry', 'set_entry_body',
             'add_tags_to_entry', 'remove_tags_from_entry', 'search_entries',
             'pin_entry', 'unpin_entry', 'archive_entry', 'unarchive_entry',
-            'add_list_item', 'toggle_list_item_done', 'remove_list_item',
+            'add_list_item', 'toggle_list_item_done', 'toggle_list_item_undone', 'remove_list_item',
             'set_entry_group', 'list_entries_by_group', 'list_pinned_entries',
             'list_inbox_entries', 'list_entries_by_tag'
         ]
@@ -85,8 +85,12 @@ class NotebookHandler(InteractionHandler):
             return self._handle_add_list_item(user_id, entities)
         elif intent == 'toggle_list_item_done':
             return self._handle_toggle_list_item_done(user_id, entities)
+        elif intent == 'toggle_list_item_undone':
+            return self._handle_toggle_list_item_done(user_id, entities, done=False)
         elif intent == 'remove_list_item':
             return self._handle_remove_list_item(user_id, entities)
+        elif intent == 'list_recent_notes':
+            return self._handle_list_recent(user_id, entities, notes_only=True)
         elif intent == 'set_entry_group':
             return self._handle_set_group(user_id, entities)
         elif intent == 'list_entries_by_group':
@@ -104,10 +108,49 @@ class NotebookHandler(InteractionHandler):
     @handle_errors("handling create note")
     def _handle_create_note(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle note creation."""
+        from communication.message_processing.conversation_flow_manager import (
+            FLOW_NOTE_BODY, conversation_manager
+        )
+        
         title = entities.get('title')
         body = entities.get('body')
         tags = entities.get('tags', [])
         group = entities.get('group')
+        
+        # Check if user is in a note body flow (continuing from previous prompt)
+        # This shouldn't happen here since flow is handled in conversation_manager,
+        # but handle it just in case
+        user_state = conversation_manager.user_states.get(user_id, {})
+        if user_state.get('flow') == FLOW_NOTE_BODY and body:
+            # Flow was already handled, but we have the body now
+            flow_data = user_state.get('data', {})
+            title = flow_data.get('title', title)
+            tags = flow_data.get('tags', tags)
+            group = flow_data.get('group', group)
+        
+        # If no body provided and we have a title, start flow to prompt for it
+        if not body and title:
+            # Parse tags from title first
+            title, parsed_tags = parse_tags_from_text(title)
+            tags.extend(parsed_tags)
+            
+            # Start flow to prompt for body
+            conversation_manager.user_states[user_id] = {
+                'flow': FLOW_NOTE_BODY,
+                'state': 0,
+                'data': {
+                    'title': title,
+                    'tags': tags,
+                    'group': group
+                },
+                'started_at': datetime.now().isoformat()
+            }
+            conversation_manager._save_user_states()
+            return InteractionResponse(
+                f"📝 Note title: '{title}'\n\nWhat would you like to add as the body text? [Skip] [Cancel]",
+                False,
+                suggestions=["Skip", "Cancel"]
+            )
         
         # If no title but body exists, use body as title (for simple notes like "!n My quick thought")
         if not title and body:
@@ -139,6 +182,10 @@ class NotebookHandler(InteractionHandler):
     @handle_errors("handling create list")
     def _handle_create_list(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle list creation."""
+        from communication.message_processing.conversation_flow_manager import (
+            FLOW_LIST_ITEMS, conversation_manager
+        )
+        
         title = entities.get('title')
         tags = entities.get('tags', [])
         group = entities.get('group')
@@ -147,11 +194,38 @@ class NotebookHandler(InteractionHandler):
         if not title:
             return InteractionResponse("What would you like to name the list?", False)
         
+        # If no items provided, start flow to collect them
+        if not items:
+            # Parse tags from title first
+            from core.tags import parse_tags_from_text
+            title, parsed_tags = parse_tags_from_text(title)
+            tags.extend(parsed_tags)
+            
+            # Start flow to prompt for items
+            conversation_manager.user_states[user_id] = {
+                'flow': FLOW_LIST_ITEMS,
+                'state': 0,
+                'data': {
+                    'title': title,
+                    'tags': tags,
+                    'group': group,
+                    'items': []
+                },
+                'started_at': datetime.now().isoformat()
+            }
+            conversation_manager._save_user_states()
+            return InteractionResponse(
+                f"📋 List: '{title}'\n\nAdd list items (separated by commas, semicolons, or new lines). Type `!end`, `/end`, or 'end' to finish.",
+                False,
+                suggestions=["End List", "Cancel"]
+            )
+        
+        # Items provided, create list immediately
         entry = create_list(user_id, title=title, tags=tags, group=group, items=items)
         
         if entry:
             short_id = self._format_entry_id(entry)
-            response = f"✅ List created: '{title}' ({short_id})"
+            response = f"✅ List created: '{title}' ({short_id}) with {len(items)} items"
             if entry.tags:
                 response += f"\nTags: {', '.join(entry.tags)}"
             return InteractionResponse(response, True)
@@ -179,7 +253,7 @@ class NotebookHandler(InteractionHandler):
 
     # Read handlers
     @handle_errors("handling list recent")
-    def _handle_list_recent(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
+    def _handle_list_recent(self, user_id: str, entities: Dict[str, Any], notes_only: bool = False) -> InteractionResponse:
         """Handle listing recent entries."""
         n = entities.get('limit', 5)
         if isinstance(n, str):
@@ -190,10 +264,14 @@ class NotebookHandler(InteractionHandler):
         
         entries = list_recent(user_id, n=n)
         
-        if not entries:
-            return InteractionResponse("No recent entries found.", True)
+        # Filter to notes only if requested
+        if notes_only:
+            entries = [e for e in entries if e.kind == 'note']
         
-        response_parts = [f"📝 Recent entries ({len(entries)}):"]
+        if not entries:
+            return InteractionResponse("No recent entries found." if not notes_only else "No recent notes found.", True)
+        
+        response_parts = [f"📝 Recent {'notes' if notes_only else 'entries'} ({len(entries)}):"]
         for entry in entries:
             short_id = self._format_entry_id(entry)
             title = entry.title or 'Untitled'
