@@ -2323,7 +2323,7 @@ class ReportGenerationMixin:
                     validate=True,
                     data_source='analyze_unused_imports',
                     count=obvious_unused,
-                    expected_min=1
+                    expected_min=None  # No minimum expectation - any number of obvious unused imports is valid
                 )
         
         # Complexity refactoring priority

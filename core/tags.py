@@ -50,14 +50,14 @@ def normalize_tags(tags: List[str]) -> List[str]:
 def validate_tag(tag: str) -> None:
     """
     Validates a single normalized tag for length and allowed characters.
-    Raises ValueError if invalid.
+    Raises ValidationError if invalid.
     """
     if not isinstance(tag, str) or not tag:
-        raise ValueError("Tag cannot be empty or non-string.")
+        raise ValidationError("Tag cannot be empty or non-string.")
     if len(tag) > 50:
-        raise ValueError("Tag cannot exceed 50 characters.")
+        raise ValidationError("Tag cannot exceed 50 characters.")
     if not re.fullmatch(r"^[a-z0-9\-_:]+$", tag):
-        raise ValueError("Tag contains invalid characters. Only lowercase alphanumeric, hyphens, underscores, and colons are allowed.")
+        raise ValidationError("Tag contains invalid characters. Only lowercase alphanumeric, hyphens, underscores, and colons are allowed.")
 
 @handle_errors("parsing tags from text", default_return=("", []))
 def parse_tags_from_text(text: str) -> Tuple[str, List[str]]:

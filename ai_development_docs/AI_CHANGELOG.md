@@ -36,19 +36,25 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-09 - Test Suite Fixes: Discord Bot, Command Parsing, and Task Completion **COMPLETED**
+- Fixed 8 test failures: Discord bot assertions, checkin expiry command handling, task reminder followup import, task completion entity extraction, and help command parsing
+- Improved command parser with early pattern checking for "help" and "list_tasks", direct string matching for "help", and better entity extraction for task identifiers
+- All 3970 tests now passing (1 skipped) - test suite reliability significantly improved
+- Files: `tests/behavior/test_discord_bot_behavior.py`, `communication/command_handlers/task_handler.py`, `communication/message_processing/command_parser.py`, `communication/message_processing/conversation_flow_manager.py`
+
 ### 2026-01-08 - Task Creation Flow Fixes, Note Creation Verification, and Documentation Updates **COMPLETED**
 - Fixed task creation flow to properly route to due date flow when no valid due date exists, preventing reminder prompts for tasks without dates
 - Improved natural language date/time parsing for task creation (handles "in X days", "next Tuesday", "Friday at noon", etc.)
 - Updated both `TaskManagementHandler` classes (`task_handler.py` and `interaction_handlers.py`) with consistent date validation and time parsing
 - Verified note creation flow: button-style prompts work correctly, Skip/Cancel buttons function properly
 - Updated notebook feature documentation with recent fixes and verification status, added task to investigate duplicate TaskManagementHandler classes
-- Files: `communication/command_handlers/task_handler.py`, `communication/command_handlers/interaction_handlers.py`, `development_docs/NOTES_PLAN.md`
+- Files: `communication/command_handlers/task_handler.py`, `communication/command_handlers/interaction_handlers.py`, [NOTES_PLAN.md](development_docs/NOTES_PLAN.md)
 
 ### 2026-01-14 - Notebook Feature Documentation: Status Updates and Testing Roadmap **COMPLETED**
 - Updated NOTES_PLAN.md and notebook_feature_implementation_ce88ed1a.plan.md with current implementation status, recent fixes, testing requirements, and remaining work
 - Documents now accurately reflect: completed features (including recent architectural fixes), testing needs (command patterns, flow states, multi-line input, button interactions), and future work (edit sessions, skip integration, AI extraction)
 - Provides clear roadmap for comprehensive notebook feature testing and future development
-- Files: `development_docs/NOTES_PLAN.md`, `.cursor/plans/notebook_feature_implementation_ce88ed1a.plan.md`
+- Files: [NOTES_PLAN.md](development_docs/NOTES_PLAN.md), `.cursor/plans/notebook_feature_implementation_ce88ed1a.plan.md`
 
 ### 2026-01-07 - Notebook Feature: Core Implementation Complete and Search Fix **COMPLETED**
 - Completed Milestone 1 (Foundations): shared tag system, notebook schemas, data handlers, CRUD operations, command handler with V0 commands (`!n`, `!recent`, `!show`, `!append`, `!tag`, `!untag`, `!s`, `!pin`, `!archive`)

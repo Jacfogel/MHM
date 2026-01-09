@@ -38,6 +38,33 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-09 - Test Suite Fixes: Discord Bot, Command Parsing, and Task Completion **COMPLETED**
+- **Feature**: Fixed 8 test failures across multiple test suites, improving test reliability and ensuring all tests pass
+  1. **Discord Bot Test Fixes** (3 tests):
+     - Updated test assertions in `tests/behavior/test_discord_bot_behavior.py` to match actual Discord API implementation
+     - Changed assertions from positional arguments to keyword arguments (`content=message` instead of `message`)
+     - Tests: `test_send_to_channel_sends_message`, `test_send_to_channel_sends_with_view`, `test_send_to_channel_sends_with_embed`
+  2. **Checkin Expiry Test Fixes** (2 tests):
+     - Added explicit handling for `/tasks` and `!tasks` commands in `conversation_flow_manager.py` to bypass parser issues
+     - Commands now directly call `TaskManagementHandler` with `list_tasks` intent, ensuring proper delegation
+     - Tests: `test_slash_command_expires_and_hands_off`, `test_bang_command_expires_and_hands_off`
+  3. **Task Reminder Followup Test Fix** (1 test):
+     - Added missing `import re` to `communication/command_handlers/task_handler.py`
+     - Fixed `NameError` that was causing `_handle_create_task` to return error response instead of proper `InteractionResponse`
+     - Test: `test_task_creation_starts_reminder_followup_flow`
+  4. **Task Completion Test Fixes** (2-3 tests):
+     - Fixed entity extraction in `command_parser.py` to strip "task " prefix from identifiers
+     - "complete task 1" now correctly extracts "1" instead of "task 1", allowing proper numeric task lookup
+     - Tests: `test_discord_task_create_update_complete`, `test_discord_response_after_task_reminder`
+  5. **Command Parser Improvements**:
+     - Added early pattern checking for "help" and "list_tasks" to ensure they take precedence
+     - Added direct string equality check for "help" command before pattern matching
+     - Improved pattern matching logic to use `.match()` for anchored patterns
+     - Updated `list_tasks` patterns to be more explicit and added to high-confidence intents
+     - Fixed entity extraction to handle "task " prefix in task identifiers
+- **Impact**: All 3970 tests now pass (1 skipped). Test suite reliability improved, ensuring proper command parsing and task management functionality works correctly. Fixed critical issues with command delegation during checkin flows and task completion parsing.
+- **Files**: `tests/behavior/test_discord_bot_behavior.py`, `communication/command_handlers/task_handler.py`, `communication/message_processing/command_parser.py`, `communication/message_processing/conversation_flow_manager.py`
+
 ### 2026-01-08 - Task Creation Flow Fixes, Note Creation Verification, and Documentation Updates **COMPLETED**
 - **Feature**: Fixed task creation flow routing, improved date/time parsing, verified note creation flows, and updated documentation
   1. **Task Creation Flow Fixes**:
@@ -133,8 +160,8 @@ When adding new changes, follow this format:
       - Nested functions with try-except blocks are now marked as appropriate error handling pattern, not candidates for decorator replacement
   - **Path Drift**:
     - Updated `TODO.md`:
-      - Line 67: `test_checkin_management_dialog.py` → `tests/unit/test_checkin_management_dialog.py`
-      - Line 74: `checkin_management_dialog.py` → `ui/dialogs/checkin_management_dialog.py`
+      - Line 67: `test_checkin_management_dialog.py` -> `tests/unit/test_checkin_management_dialog.py`
+      - Line 74: `checkin_management_dialog.py` -> `ui/dialogs/checkin_management_dialog.py`
 - **Impact**: 
   - Users opting into new message categories (e.g., `word_of_the_day`) now automatically receive properly formatted message files in their messages subdirectory. The system is more robust against malformed default message files and handles edge cases in category comparison logic. Manual fix applied to affected user (`05187f39-64a0-4766-a152-59738af01e97`) to restore missing `word_of_the_day.json` file.
   - Eliminates false positives in error handling reports. The nested function `on_template_selected` in `checkin_settings_widget.py` (line 748) was incorrectly flagged; reports now correctly show 0 Phase 1 candidates. This improves report accuracy and prevents unnecessary refactoring recommendations.

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-06 02:24:34
+> **Last Generated**: 2026-01-09 02:01:13
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 8
 **Legacy Compatibility Markers Detected**: 25
@@ -89,47 +89,47 @@
 
 - **Line 122**: `# LEGACY COMPATIBILITY:`
   ```
-  # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
+  #         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
   ```
 
 - **Line 181**: `# LEGACY COMPATIBILITY:`
   ```
-  # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
+  #         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
   ```
 
 - **Line 244**: `# LEGACY COMPATIBILITY:`
   ```
-  # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
+  #         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
   ```
 
 - **Line 319**: `# LEGACY COMPATIBILITY:`
   ```
-  # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
+  #         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
   ```
 
 - **Line 369**: `# LEGACY COMPATIBILITY:`
   ```
-  # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
+  #         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
   ```
 
 - **Line 437**: `# LEGACY COMPATIBILITY:`
   ```
-  # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
+  #         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
   ```
 
 - **Line 529**: `# LEGACY COMPATIBILITY:`
   ```
-  # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
+  #         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
   ```
 
 - **Line 593**: `# LEGACY COMPATIBILITY:`
   ```
-  # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
+  #         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
   ```
 
 - **Line 1017**: `# LEGACY COMPATIBILITY:`
   ```
-  # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
+  #         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
   ```
 
 ### tests\development_tools\test_path_drift_integration.py

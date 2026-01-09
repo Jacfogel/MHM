@@ -32,6 +32,7 @@ class CommandDefinition:
     mapped_message: Optional[str] = None
     is_flow: bool = False
     
+    @handle_errors("getting mapped message", default_return="!unknown")
     def get_mapped_message(self) -> str:
         """Get the mapped message, defaulting to !{name} if not specified."""
         if self.mapped_message is not None:

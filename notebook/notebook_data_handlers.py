@@ -4,9 +4,8 @@ Notebook data handlers for loading and saving notebook entries.
 Handles JSON persistence for notebook entries with lazy directory creation.
 """
 
-import json
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List
 from datetime import datetime
 
 from core.logger import get_component_logger

@@ -9,12 +9,13 @@ listing, completing, deleting, updating, and getting statistics for tasks.
 
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
+import re
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from tasks.task_management import (
     create_task, load_active_tasks, complete_task, delete_task, update_task,
-    get_user_task_stats, get_tasks_due_soon, restore_task, load_completed_tasks
+    get_user_task_stats, get_tasks_due_soon
 )
 
 from .base_handler import InteractionHandler, InteractionResponse, ParsedCommand
@@ -53,7 +54,7 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return InteractionResponse(f"I don't understand that task command. Try: {', '.join(self.get_examples())}", True)
     
-    @handle_errors("handling task creation")
+    @handle_errors("handling task creation", default_return=InteractionResponse("I'm having trouble creating your task. Please try again.", True))
     def _handle_create_task(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle task creation"""
         title = entities.get('title')

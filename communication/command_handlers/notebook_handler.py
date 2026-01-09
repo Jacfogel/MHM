@@ -7,9 +7,8 @@ This module handles all notebook-related interactions including creating,
 viewing, updating, and searching notebook entries (notes, lists, journal).
 """
 
-from typing import Dict, List, Any, Optional
-from datetime import datetime, timedelta
-from uuid import UUID
+from typing import Dict, List, Any
+from datetime import datetime
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
@@ -18,13 +17,13 @@ from core.tags import parse_tags_from_text
 from communication.command_handlers.interaction_handlers import InteractionHandler
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from notebook.notebook_data_manager import (
-    create_entry, get_entry, list_recent, append_to_entry_body, set_entry_body,
+    get_entry, list_recent, append_to_entry_body, set_entry_body,
     add_tags, remove_tags, search_entries, pin_entry, archive_entry,
     add_list_item, toggle_list_item_done, remove_list_item,
     set_group, list_by_group, list_pinned, list_inbox, list_by_tag,
     create_note, create_list, create_journal
 )
-from notebook.schemas import Entry, EntryKind
+from notebook.schemas import Entry
 
 logger = get_component_logger('communication_manager')
 handlers_logger = logger
@@ -588,12 +587,14 @@ class NotebookHandler(InteractionHandler):
         return InteractionResponse("\n".join(response_parts), True)
 
     # Helper methods
+    @handle_errors("formatting entry ID", default_return="unknown")
     def _format_entry_id(self, entry: Entry) -> str:
         """Format entry ID as short ID (e.g., n-3f2a9c)."""
         short_id = str(entry.id)[:6]
         kind_prefix = entry.kind[0]  # 'n', 'l', or 'j'
         return f"{kind_prefix}-{short_id}"
 
+    @handle_errors("formatting entry response", default_return="Error formatting entry")
     def _format_entry_response(self, entry: Entry) -> str:
         """Formats a single entry for display."""
         short_id = self._format_entry_id(entry)
@@ -620,10 +621,12 @@ class NotebookHandler(InteractionHandler):
         
         return "\n".join(response_parts)
 
+    @handle_errors("getting notebook help", default_return="Notebook commands help unavailable")
     def get_help(self) -> str:
         """Get help text for notebook commands."""
         return "Manage your personal notes, lists, and journal entries. Use `!n` to create notes, `!l` for lists, `!recent` to see recent entries, and `!s` to search."
 
+    @handle_errors("getting notebook examples", default_return=[])
     def get_examples(self) -> List[str]:
         """Get example commands for notebook."""
         return [

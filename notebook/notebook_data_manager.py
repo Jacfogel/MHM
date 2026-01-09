@@ -6,12 +6,12 @@ Provides high-level API for managing notebook entries (notes, lists, journal).
 
 import uuid
 from datetime import datetime
-from typing import List, Optional, Dict, Any, Union
+from typing import List, Optional, Dict, Any
 from pydantic import ValidationError
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.tags import normalize_tags, parse_tags_from_text
+from core.tags import normalize_tags
 
 from notebook.schemas import Entry, ListItem, EntryKind, TIMESTAMP_FORMAT
 from notebook.notebook_data_handlers import load_entries, save_entries

@@ -12,7 +12,6 @@ from pydantic import BaseModel, Field, ConfigDict, field_validator, model_valida
 
 from core.tags import normalize_tags, validate_tag
 from core.logger import get_component_logger
-from core.error_handling import handle_errors
 
 logger = get_component_logger('notebook_schemas')
 

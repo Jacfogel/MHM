@@ -552,6 +552,30 @@ class ConversationManager:
                 self._save_user_states()
                 return ("Check-in canceled. You can start again anytime with /checkin", True)
 
+            # Handle /tasks and !tasks explicitly to ensure proper delegation
+            if stripped in ["/tasks", "!tasks"]:
+                # Expire check-in flow
+                self.user_states.pop(user_id, None)
+                self._save_user_states()
+                # Directly call task handler to avoid parsing issues
+                try:
+                    from communication.command_handlers.task_handler import TaskManagementHandler
+                    handler = TaskManagementHandler()
+                    # Create a parsed command for list_tasks
+                    from communication.command_handlers.shared_types import ParsedCommand
+                    parsed_cmd = ParsedCommand("list_tasks", {}, 1.0, "show my tasks")
+                    response = handler.handle(user_id, parsed_cmd)
+                    return (response.message, response.completed)
+                except Exception as e:
+                    logger.error(f"Error handling /tasks command during checkin: {e}")
+                    # Fallback to normal delegation
+                    try:
+                        from communication.message_processing.interaction_manager import handle_user_message
+                        response = handle_user_message(user_id, message_text, "discord")
+                        return (response.message, response.completed)
+                    except Exception:
+                        return ("I've closed the current check-in. What would you like to do? Try /tasks, /messages, /profile, or /status.", True)
+
             # Expire current check-in and delegate to interaction manager
             try:
                 self.user_states.pop(user_id, None)

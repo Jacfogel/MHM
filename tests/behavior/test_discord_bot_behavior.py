@@ -1432,7 +1432,7 @@ class TestDiscordBotAdditionalBehavior:
         
         # Assert: Should send message
         assert result is True, "Should return True on success"
-        mock_channel.send.assert_called_once_with("Test message")
+        mock_channel.send.assert_called_once_with(content="Test message")
 
     @pytest.mark.communication
     @pytest.mark.behavior
@@ -1454,7 +1454,7 @@ class TestDiscordBotAdditionalBehavior:
             
             # Assert: Should send with embed
             assert result is True, "Should return True on success"
-            mock_channel.send.assert_called_once_with(embed=mock_embed)
+            mock_channel.send.assert_called_once_with(content="Test message", embed=mock_embed)
 
     @pytest.mark.communication
     @pytest.mark.behavior
@@ -1476,7 +1476,7 @@ class TestDiscordBotAdditionalBehavior:
             
             # Assert: Should send with view
             assert result is True, "Should return True on success"
-            mock_channel.send.assert_called_once_with("Test message", view=mock_view)
+            mock_channel.send.assert_called_once_with(content="Test message", view=mock_view)
 
     @pytest.mark.communication
     @pytest.mark.behavior

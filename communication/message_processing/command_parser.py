@@ -70,14 +70,17 @@ class EnhancedCommandParser:
                 r'schedule\s+(.+?)(?:\s+tomorrow|\s+next\s+week|\s+on\s+\w+)',
             ],
             'list_tasks': [
-                r'show\s+(?:my\s+)?tasks?',
-                r'list\s+(?:my\s+)?tasks?',
-                r'what\s+(?:are\s+)?(?:my\s+)?tasks?',
+                r'^show\s+my\s+tasks?$',  # Match "show my tasks" first (more specific)
+                r'^show\s+tasks?$',  # Then match "show tasks"
+                r'^list\s+my\s+tasks?$',
+                r'^list\s+tasks?$',
+                r'^what\s+are\s+my\s+tasks?$',
+                r'^what\s+are\s+tasks?$',
                 r'^my\s+tasks?$',
-                r'tasks?\s+due',
-                r'what\s+do\s+i\s+have\s+to\s+do\s+(?:today|tomorrow)',
-                r'what\s+are\s+my\s+tasks?\s+(?:for\s+today|for\s+tomorrow)',
-                r'show\s+me\s+my\s+tasks?',
+                r'^tasks?\s+due$',
+                r'^what\s+do\s+i\s+have\s+to\s+do\s+(?:today|tomorrow)$',
+                r'^what\s+are\s+my\s+tasks?\s+(?:for\s+today|for\s+tomorrow)$',
+                r'^show\s+me\s+my\s+tasks?$',
             ],
             'complete_task': [
                 r'^complete\s+(.+)$',
@@ -198,14 +201,14 @@ class EnhancedCommandParser:
                 r'show\s+my\s+stats',
             ],
             'help': [
-                r'help',
-                r'help\s+(tasks?|check.?in|profile)',
-                r'what\s+can\s+you\s+do',
-                r'how\s+do\s+i\s+use\s+this',
-                r'how\s+do\s+i\s+create\s+a\s+task',
-                r'how\s+do\s+i\s+create\s+tasks?',
-                r'how\s+to\s+create\s+a\s+task',
-                r'how\s+to\s+create\s+tasks?',
+                r'^help$',  # Exact match for "help" - check first
+                r'^help\s+(tasks?|check.?in|profile)$',
+                r'^what\s+can\s+you\s+do$',
+                r'^how\s+do\s+i\s+use\s+this$',
+                r'^how\s+do\s+i\s+create\s+a\s+task$',
+                r'^how\s+do\s+i\s+create\s+tasks?$',
+                r'^how\s+to\s+create\s+a\s+task$',
+                r'^how\s+to\s+create\s+tasks?$',
             ],
             'commands': [
                 r'commands?',
@@ -350,9 +353,9 @@ class EnhancedCommandParser:
                 r'^shownotes(?:\s+(\d+))?$',
             ],
             'show_entry': [
-                r'^show\s+(.+)$',
-                r'display\s+(.+)',
-                r'view\s+(.+)',
+                r'^show\s+(?!my\s+tasks?$|me\s+my\s+tasks?$)(.+)$',  # Exclude "show my tasks" - handled by list_tasks
+                r'^display\s+(?!my\s+tasks?$)(.+)$',
+                r'^view\s+(?!my\s+tasks?$)(.+)$',
             ],
             'append_to_entry': [
                 r'^append\s+(\S+)\s+(.+)$',
@@ -502,10 +505,48 @@ class EnhancedCommandParser:
         """Parse using rule-based patterns"""
         message_lower = message.lower().strip()
         
-        # Check each intent pattern
+        # Special handling: Check high-priority patterns first to ensure they take precedence
+        # Check help patterns first (simple, common command) - use exact match check
+        if message_lower == 'help':
+            # Direct match for simple "help" command to avoid any pattern issues
+            return ParsingResult(
+                ParsedCommand('help', {}, 1.0, message),
+                1.0, "rule_based"
+            )
+        
+        # Check other help patterns
+        if 'help' in self.compiled_patterns:
+            for pattern in self.compiled_patterns['help']:
+                match = pattern.match(message_lower)
+                if match:
+                    entities = self._extract_entities_rule_based('help', match, message)
+                    confidence = self._calculate_confidence('help', match, message)
+                    
+                    return ParsingResult(
+                        ParsedCommand('help', entities, confidence, message),
+                        confidence, "rule_based"
+                    )
+        
+        # Check list_tasks patterns second to ensure they take precedence over show_entry patterns
+        if 'list_tasks' in self.compiled_patterns:
+            for pattern in self.compiled_patterns['list_tasks']:
+                match = pattern.match(message_lower)
+                if match:
+                    entities = self._extract_entities_rule_based('list_tasks', match, message)
+                    confidence = self._calculate_confidence('list_tasks', match, message)
+                    
+                    return ParsingResult(
+                        ParsedCommand('list_tasks', entities, confidence, message),
+                        confidence, "rule_based"
+                    )
+        
+        # Check each intent pattern (excluding help and list_tasks which were already checked)
         for intent, patterns in self.compiled_patterns.items():
+            if intent in ['help', 'list_tasks']:  # Skip, already checked above
+                continue
             for pattern in patterns:
-                match = pattern.search(message_lower)
+                # Use match() for patterns that start with ^, search() for others
+                match = pattern.match(message_lower) if pattern.pattern.startswith('^') else pattern.search(message_lower)
                 if match:
                     entities = self._extract_entities_rule_based(intent, match, message)
                     confidence = self._calculate_confidence(intent, match, message)
@@ -674,6 +715,10 @@ class EnhancedCommandParser:
             # Extract task identifier
             if match.groups():
                 identifier = match.group(1).strip()
+                
+                # Strip "task " prefix if present (e.g., "task 1" -> "1")
+                if identifier.lower().startswith('task '):
+                    identifier = identifier[5:].strip()  # Remove "task " prefix
                 
                 # Handle natural language patterns for task completion
                 if intent == 'complete_task' and identifier.lower() in ['that task', 'the task', 'this task']:
@@ -1111,9 +1156,13 @@ class EnhancedCommandParser:
                 base_confidence = 1.0
             
             # Boost confidence for specific intents
-            high_confidence_intents = ['help', 'commands', 'examples', 'checkin_history', 'completion_rate', 'task_weekly_stats']
+            high_confidence_intents = ['help', 'commands', 'examples', 'checkin_history', 'completion_rate', 'task_weekly_stats', 'list_tasks']
             if intent in high_confidence_intents:
                 base_confidence = min(1.0, base_confidence + 0.1)
+            
+            # Ensure help gets maximum confidence for exact match
+            if intent == 'help' and match.group(0).lower() == message.lower().strip():
+                base_confidence = 1.0
             
             # Reduce confidence for very short matches
             if len(match.group(0)) < 5:
