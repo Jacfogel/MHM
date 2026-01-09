@@ -272,8 +272,8 @@ class TestAnalyticsHandlerBehavior:
     @pytest.mark.communication
     @pytest.mark.analytics
     @pytest.mark.file_io
-    @patch('core.response_tracking.get_recent_checkins')
-    def test_analytics_handler_checkin_history_success(self, mock_get_checkins, test_data_dir):
+    @patch('core.checkin_analytics.CheckinAnalytics')
+    def test_analytics_handler_checkin_history_success(self, mock_analytics_class, test_data_dir):
         """Test that AnalyticsHandler shows check-in history successfully."""
         handler = AnalyticsHandler()
         user_id = "test_user_analytics_history"
@@ -281,19 +281,22 @@ class TestAnalyticsHandlerBehavior:
         # Create test user
         assert self._create_test_user(user_id, enable_checkins=True, test_data_dir=test_data_dir), "Failed to create test user"
         
-        # Mock check-ins
-        mock_get_checkins.return_value = [
+        # Create mock analytics instance
+        mock_analytics_instance = mock_analytics_class.return_value
+        
+        # Mock check-in history (formatted as returned by get_checkin_history)
+        mock_analytics_instance.get_checkin_history.return_value = [
             {
-                'timestamp': '2025-01-01 10:00:00',
+                'date': '2025-01-01',
                 'mood': 4,
                 'energy': 3,
-                'responses': {'How are you?': 'Good'}
+                'timestamp': '2025-01-01 10:00:00'
             },
             {
-                'timestamp': '2025-01-02 10:00:00',
+                'date': '2025-01-02',
                 'mood': 5,
                 'energy': 4,
-                'responses': {'How are you?': 'Great'}
+                'timestamp': '2025-01-02 10:00:00'
             }
         ]
         
@@ -314,18 +317,16 @@ class TestAnalyticsHandlerBehavior:
         assert "history" in response.message.lower() or "check-in" in response.message.lower(), "Should mention check-in history"
         assert "mood" in response.message.lower(), "Should include mood information"
         
-        # Verify actual system changes: Check that get_recent_checkins was called with correct parameters
-        mock_get_checkins.assert_called_once()
-        call_args = mock_get_checkins.call_args
-        assert call_args[0][0] == user_id, "Should call get_recent_checkins with correct user_id"
-        assert call_args[1].get('limit') == 30 if call_args[1] else len(call_args[0]) > 1, "Should use default limit of 30"
+        # Verify that CheckinAnalytics was instantiated and get_checkin_history was called
+        mock_analytics_class.assert_called_once()
+        mock_analytics_instance.get_checkin_history.assert_called_once_with(user_id, 30)
     
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.analytics
     @pytest.mark.file_io
-    @patch('core.response_tracking.get_recent_checkins')
-    def test_analytics_handler_checkin_history_no_checkins(self, mock_get_checkins, test_data_dir):
+    @patch('core.checkin_analytics.CheckinAnalytics')
+    def test_analytics_handler_checkin_history_no_checkins(self, mock_analytics_class, test_data_dir):
         """Test that AnalyticsHandler handles case with no check-ins."""
         handler = AnalyticsHandler()
         user_id = "test_user_analytics_history_none"
@@ -333,8 +334,11 @@ class TestAnalyticsHandlerBehavior:
         # Create test user
         assert self._create_test_user(user_id, enable_checkins=True, test_data_dir=test_data_dir), "Failed to create test user"
         
-        # Mock check-ins to return empty
-        mock_get_checkins.return_value = []
+        # Create mock analytics instance
+        mock_analytics_instance = mock_analytics_class.return_value
+        
+        # Mock check-ins to return empty list
+        mock_analytics_instance.get_checkin_history.return_value = []
         
         # Create a parsed command for check-in history
         parsed_command = ParsedCommand(

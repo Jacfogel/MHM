@@ -349,36 +349,31 @@ class AnalyticsHandler(InteractionHandler):
         days = entities.get('days', 30)
         
         try:
-            from core.response_tracking import get_recent_checkins
-            checkins = get_recent_checkins(user_id, limit=days)
+            from core.checkin_analytics import CheckinAnalytics
+            analytics = CheckinAnalytics()
             
-            if not checkins:
+            checkin_history = analytics.get_checkin_history(user_id, days)
+            # Handle error case (dict with 'error' key) or empty list
+            if isinstance(checkin_history, dict) and 'error' in checkin_history:
+                return InteractionResponse("You don't have enough check-in data for history yet. Try completing some check-ins first!", True)
+            
+            if not checkin_history:
                 return InteractionResponse("You haven't completed any check-ins yet. Try starting one with '/checkin'!", True)
             
-            response = f"**📊 Check-in History (Last {len(checkins)} check-ins):**\n\n"
-            
-            for i, checkin in enumerate(checkins[:10]):  # Show last 10
-                timestamp = checkin.get('timestamp', 'Unknown')
-                mood = checkin.get('mood', 'N/A')
-                energy = checkin.get('energy', 'N/A')
+            response = f"**📅 Check-in History (Last {days} days):**\n\n"
+            for checkin in checkin_history[:5]:  # Show last 5 check-ins
+                date = checkin.get('date', 'Unknown date')
+                mood = checkin.get('mood', 'No mood recorded')
+                energy = checkin.get('energy', 'No energy recorded')
                 
-                response += f"**{i+1}.** {timestamp}\n"
-                response += f"   😊 Mood: {mood}/5 | ⚡ Energy: {energy}/5\n"
-                
-                # Add some key responses if available
-                responses = checkin.get('responses', {})
-                if responses:
-                    for question, answer in list(responses.items())[:2]:  # Show first 2 responses
-                        response += f"   • {question}: {answer}\n"
-                response += "\n"
+                # Display mood and energy together if both are available
+                if energy != 'No energy recorded':
+                    response += f"📅 {date}: 😊 Mood {mood}/5 | ⚡ Energy {energy}/5\n"
+                else:
+                    response += f"📅 {date}: 😊 Mood {mood}/5\n"
             
-            if len(checkins) > 10:
-                response += f"... and {len(checkins) - 10} more check-ins\n\n"
-            
-            response += "💡 **Tip**: Use 'mood trends' to see your mood patterns over time!"
-            
-            # Truncate response if too long for Discord
-            response = self._truncate_response(response)
+            if len(checkin_history) > 5:
+                response += f"... and {len(checkin_history) - 5} more check-ins\n"
             
             return InteractionResponse(response, True)
             

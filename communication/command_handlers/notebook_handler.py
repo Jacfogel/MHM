@@ -14,7 +14,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.tags import parse_tags_from_text
 
-from communication.command_handlers.interaction_handlers import InteractionHandler
+from communication.command_handlers.base_handler import InteractionHandler
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from notebook.notebook_data_manager import (
     get_entry, list_recent, append_to_entry_body, set_entry_body,

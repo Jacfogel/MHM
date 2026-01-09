@@ -984,9 +984,23 @@ def run_command(cmd, description, progress_interval: int = 30, capture_output: b
             results['warnings'] = int(warnings_match.group(1))
         
         # Extract failures from short test summary
+        # Try multiple patterns to catch different pytest output formats
+        failures_text = ''
+        
+        # Pattern 1: Standard pytest format "FAILED tests/path.py::TestClass::test_method"
         failures_section = re.search(r'FAILED\s+(.+?)(?=\n\n|\n===|$)', output_plain, re.DOTALL)
         if failures_section:
             failures_text = failures_section.group(1).strip()
+        else:
+            # Pattern 2: Look for "FAILURES" section header followed by test names
+            failures_header = re.search(r'FAILURES\s*=\s*={3,}\s*\n(.+?)(?=\n={3,}|\n\n|$)', output_plain, re.DOTALL)
+            if failures_header:
+                failures_text = failures_header.group(1).strip()
+            else:
+                # Pattern 3: Extract individual FAILED lines (for parallel execution)
+                failed_lines = re.findall(r'FAILED\s+([^\s]+::[^\s]+)', output_plain)
+                if failed_lines:
+                    failures_text = '\n'.join(failed_lines)
         
         # Also extract failure details from JUnit XML if available (even when interrupted)
         failure_details = []
@@ -1216,12 +1230,75 @@ def print_combined_summary(parallel_results: Optional[Dict], no_parallel_results
         test_logger.info(f"TEST SUITE COUNTS - Total: {p_total} tests ({parallel_res.get('passed', 0)} passed, {parallel_res.get('failed', 0)} failed, {parallel_res.get('skipped', 0)} skipped)")
     
     # Show failures details
+    # Collect failure details from both sources: failures_text and failure_details
+    # Priority: Use failure_details from JUnit XML (most reliable), fall back to failures_text
+    failure_details_to_print = []
+    seen_tests = set()  # Track which tests we've already printed to avoid duplicates
+    
+    # First, add structured failure details from JUnit XML (most reliable source)
+    if parallel_results and isinstance(parallel_results, dict):
+        parallel_failure_details = parallel_results.get('failure_details', [])
+        if parallel_failure_details:
+            for failure_detail in parallel_failure_details:
+                test_name = failure_detail.get('test', 'Unknown test')
+                if test_name not in seen_tests:
+                    seen_tests.add(test_name)
+                    message = failure_detail.get('message', '')
+                    details = failure_detail.get('details', '')
+                    failure_info = f"{test_name}"
+                    if message:
+                        failure_info += f"\n  Message: {message[:200]}"  # Truncate long messages
+                    if details:
+                        # Truncate very long details but keep first few lines
+                        details_lines = details.split('\n')[:10]  # First 10 lines
+                        details_preview = '\n'.join(details_lines)
+                        if len(details) > len(details_preview):
+                            details_preview += "\n  ... (truncated)"
+                        failure_info += f"\n  Details:\n{details_preview}"
+                    failure_details_to_print.append(('Parallel Tests', failure_info))
+    
+    if no_parallel_results and isinstance(no_parallel_results, dict):
+        serial_failure_details = no_parallel_results.get('failure_details', [])
+        if serial_failure_details:
+            for failure_detail in serial_failure_details:
+                test_name = failure_detail.get('test', 'Unknown test')
+                if test_name not in seen_tests:
+                    seen_tests.add(test_name)
+                    message = failure_detail.get('message', '')
+                    details = failure_detail.get('details', '')
+                    failure_info = f"{test_name}"
+                    if message:
+                        failure_info += f"\n  Message: {message[:200]}"  # Truncate long messages
+                    if details:
+                        # Truncate very long details but keep first few lines
+                        details_lines = details.split('\n')[:10]  # First 10 lines
+                        details_preview = '\n'.join(details_lines)
+                        if len(details) > len(details_preview):
+                            details_preview += "\n  ... (truncated)"
+                        failure_info += f"\n  Details:\n{details_preview}"
+                    failure_details_to_print.append(('Serial Tests', failure_info))
+    
+    # Also add failures from failures_text (parsed from output) if not already covered
     if all_failures:
-        print(f"\nFAILURES:")
         for source, failure_text in all_failures:
             if failure_text:
-                print(f"\nFrom {source}:")
-                print(failure_text)
+                # Extract test names from failure_text to check for duplicates
+                test_names_in_text = re.findall(r'([^\s]+::[^\s]+)', failure_text)
+                # Only add if we haven't seen these tests already
+                if not any(test_name in seen_tests for test_name in test_names_in_text):
+                    failure_details_to_print.append((source, failure_text))
+    
+    # Print all failures
+    if failure_details_to_print:
+        print(f"\n{RED}FAILURES:{RESET}")
+        for source, failure_info in failure_details_to_print:
+            print(f"\n{RED}From {source}:{RESET}")
+            print(failure_info)
+    elif combined['failed'] > 0:
+        # If we have failures but couldn't extract details, at least show the count
+        print(f"\n{RED}FAILURES:{RESET}")
+        print(f"  {combined['failed']} test(s) failed, but failure details could not be extracted.")
+        print(f"  Check {_partial_results_file} or {_backups_dir.name}/ for detailed failure information.")
     
     # Show warnings details
     if all_warnings:

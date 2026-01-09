@@ -318,6 +318,9 @@
       "legacy_compatibility_markers": [
         "# LEGACY COMPATIBILITY:"
       ],
+      "task_handler_legacy_imports": [
+        "from communication.command_handlers.interaction_handlers import TaskManagementHandler"
+      ],
       "legacy_parameters": [
         "all_cleanup=",
         "coverage=args.coverage",
@@ -335,7 +338,8 @@
       "import bot.discord": "import communication.communication_channels.discord",
       "import bot.email": "import communication.communication_channels.email",
       "LegacyChannelWrapper": "direct channel access",
-      "_create_legacy_channel_access(": "direct channel access ("
+      "_create_legacy_channel_access(": "direct channel access (",
+      "from communication.command_handlers.interaction_handlers import TaskManagementHandler": "from communication.command_handlers.task_handler import TaskManagementHandler"
     },
     "log_locations": [
       "logs/",

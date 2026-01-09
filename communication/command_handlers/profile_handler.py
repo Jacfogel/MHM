@@ -254,13 +254,16 @@ class ProfileHandler(InteractionHandler):
             context_data['notes_for_ai'] = notes
             updates.append('notes for AI')
         
-                # Email update (stored in account data)
+        # Email update (stored in account data)
         if 'email' in entities:
             account_result = get_user_data(user_id, 'account')
             account_data = account_result.get('account', {}) if account_result else {}
             account_data['email'] = entities['email']
-            # Note: Using save_user_data instead of individual save function
-            updates.append('email')
+            # Save account data separately since it's stored in a different data type
+            if save_user_data(user_id, 'account', account_data):
+                updates.append('email')
+            else:
+                return InteractionResponse("❌ Failed to update email. Please try again.", True)
         
         # Save updates
         if updates:
@@ -301,84 +304,136 @@ class ProfileHandler(InteractionHandler):
     def _format_profile_text(self, account_data: Dict[str, Any], context_data: Dict[str, Any], preferences_data: Dict[str, Any]) -> str:
         """Create a clean, readable profile string for channels like Discord."""
         try:
-            lines: List[str] = ["**Your Profile:**"]
-
-            # Basic info
-            name = (context_data or {}).get('preferred_name', 'Not set')
-            gender_identity = (context_data or {}).get('gender_identity', [])
-            date_of_birth = (context_data or {}).get('date_of_birth', 'Not set')
-            lines.append(f"- Name: {name}")
-            if isinstance(gender_identity, list):
-                gender_str = ', '.join(gender_identity) if gender_identity else 'Not set'
-            else:
-                gender_str = gender_identity or 'Not set'
-            lines.append(f"- Gender Identity: {gender_str}")
+            response = "**Your Profile:**\n"
+            
+            # Basic info - always show, even if empty
+            # Ensure we have dicts, not None
+            context_data = context_data or {}
+            account_data = account_data or {}
+            preferences_data = preferences_data or {}
+            
+            # Always add basic fields - these are required
+            name = context_data.get('preferred_name') or 'Not set'
+            gender_identity = context_data.get('gender_identity', [])
+            date_of_birth = context_data.get('date_of_birth')
+            
+            response += f"- Name: {name}\n"
+            
+            # Format gender identity (can be a list)
+            try:
+                if isinstance(gender_identity, list) and gender_identity:
+                    gender_str = ', '.join(str(g) for g in gender_identity)
+                elif isinstance(gender_identity, str):
+                    gender_str = gender_identity
+                else:
+                    gender_str = 'Not set'
+            except Exception:
+                gender_str = 'Not set'
+            response += f"- Gender Identity: {gender_str}\n"
+            
             if date_of_birth and date_of_birth != 'Not set':
-                lines.append(f"- Date of Birth: {date_of_birth}")
-
-            # Account info
-            if account_data:
-                email = account_data.get('email', 'Not set')
-                status = account_data.get('account_status', 'Unknown')
-                lines.append(f"- Email: {email}")
-                lines.append(f"- Status: {status}")
-
+                response += f"- Date of Birth: {date_of_birth}\n"
+            
+            # Account info - always show, even if empty
+            email = account_data.get('email') or 'Not set'
+            status = account_data.get('account_status') or 'Unknown'
+            response += f"- Email: {email}\n"
+            response += f"- Status: {status}\n"
+            
             # Health & Medical Information
-            custom_fields = (context_data or {}).get('custom_fields', {}) or {}
-            health_conditions = custom_fields.get('health_conditions', []) or []
-            medications = custom_fields.get('medications_treatments', []) or []
-            allergies = custom_fields.get('allergies_sensitivities', []) or []
-            if health_conditions:
-                lines.append(f"- Health Conditions: {', '.join(health_conditions)}")
-            if medications:
-                lines.append(f"- Medications/Treatments: {', '.join(medications)}")
-            if allergies:
-                lines.append(f"- Allergies/Sensitivities: {', '.join(allergies)}")
-
-            # Interests & Goals
-            interests = (context_data or {}).get('interests', []) or []
-            goals = (context_data or {}).get('goals', []) or []
-            if interests:
-                lines.append(f"- Interests: {', '.join(interests)}")
-            if goals:
-                lines.append(f"- Goals: {', '.join(goals)}")
-
-            # Loved Ones/Support Network (show up to 3)
-            loved_ones = (context_data or {}).get('loved_ones', []) or []
-            if loved_ones:
-                lines.append("- Support Network:")
-                for person in loved_ones[:3]:
-                    pname = person.get('name', 'Unknown')
-                    ptype = person.get('type') or person.get('role') or ''
-                    rels = person.get('relationships') or []
-                    rel_str = f" ({', '.join(rels)})" if rels else ''
-                    type_str = f" [{ptype}]" if ptype else ''
-                    lines.append(f"  • {pname}{type_str}{rel_str}")
-                if len(loved_ones) > 3:
-                    lines.append(f"  ... and {len(loved_ones) - 3} more")
-
-            # Notes for AI (preview)
-            notes = (context_data or {}).get('notes_for_ai', []) or []
-            if notes and isinstance(notes, list) and notes[0]:
-                preview = notes[0]
-                if isinstance(preview, str):
-                    short = preview[:100] + ('...' if len(preview) > 100 else '')
-                    lines.append(f"- Notes for AI: {short}")
-
-            # Account features
-            if account_data:
+            try:
+                if context_data:
+                    custom_fields = context_data.get('custom_fields', {})
+                    
+                    # Health conditions
+                    health_conditions = custom_fields.get('health_conditions', [])
+                    if health_conditions:
+                        response += f"- Health Conditions: {', '.join(str(h) for h in health_conditions)}\n"
+                    
+                    # Medications
+                    medications = custom_fields.get('medications_treatments', [])
+                    if medications:
+                        response += f"- Medications/Treatments: {', '.join(str(m) for m in medications)}\n"
+                    
+                    # Allergies
+                    allergies = custom_fields.get('allergies_sensitivities', [])
+                    if allergies:
+                        response += f"- Allergies/Sensitivities: {', '.join(str(a) for a in allergies)}\n"
+            except Exception as e:
+                logger.warning(f"Error formatting health information: {e}")
+            
+            # Interests
+            try:
+                interests = context_data.get('interests', [])
+                if interests:
+                    response += f"- Interests: {', '.join(str(i) for i in interests)}\n"
+            except Exception as e:
+                logger.warning(f"Error formatting interests: {e}")
+            
+            # Goals
+            try:
+                goals = context_data.get('goals', [])
+                if goals:
+                    response += f"- Goals: {', '.join(str(g) for g in goals)}\n"
+            except Exception as e:
+                logger.warning(f"Error formatting goals: {e}")
+            
+            # Loved Ones/Support Network
+            try:
+                loved_ones = context_data.get('loved_ones', [])
+                if loved_ones:
+                    response += f"- Support Network:\n"
+                    for person in loved_ones[:3]:  # Show first 3
+                        if isinstance(person, dict):
+                            name = person.get('name', 'Unknown')
+                            person_type = person.get('type', '')
+                            relationships = person.get('relationships', [])
+                            rel_str = f" ({', '.join(str(r) for r in relationships)})" if relationships else ""
+                            response += f"  • {name} - {person_type}{rel_str}\n"
+                    if len(loved_ones) > 3:
+                        response += f"  ... and {len(loved_ones) - 3} more\n"
+            except Exception as e:
+                logger.warning(f"Error formatting loved ones: {e}")
+            
+            # Notes for AI
+            try:
+                notes = context_data.get('notes_for_ai', [])
+                if notes and notes[0]:
+                    response += f"- Notes for AI: {str(notes[0])[:100]}{'...' if len(str(notes[0])) > 100 else ''}\n"
+            except Exception as e:
+                logger.warning(f"Error formatting notes: {e}")
+            
+            # Account features - always show
+            try:
                 features = account_data.get('features', {}) or {}
                 checkins_enabled = features.get('checkins') == 'enabled'
                 tasks_enabled = features.get('task_management') == 'enabled'
-                lines.append("")
-                lines.append("**Account Features:**")
-                lines.append(f"- Check-ins: {'Enabled' if checkins_enabled else 'Disabled'}")
-                lines.append(f"- Tasks: {'Enabled' if tasks_enabled else 'Disabled'}")
-
-            return "\n".join(lines)
+                response += f"\n**Account Features:**\n"
+                response += f"- Check-ins: {'Enabled' if checkins_enabled else 'Disabled'}\n"
+                response += f"- Tasks: {'Enabled' if tasks_enabled else 'Disabled'}\n"
+            except Exception as e:
+                logger.warning(f"Error formatting account features: {e}")
+                # Ensure we still show account features section even on error
+                response += f"\n**Account Features:**\n"
+                response += f"- Check-ins: Unknown\n"
+                response += f"- Tasks: Unknown\n"
+            
+            return response
         except Exception as e:
-            logger.error(f"Error formatting profile text: {e}")
-            return "Error formatting profile information."
+            logger.error(f"Error formatting profile text: {e}", exc_info=True)
+            # Return at least the header and basic fields even on error
+            try:
+                fallback = "**Your Profile:**\n"
+                fallback += f"- Name: Not set\n"
+                fallback += f"- Gender Identity: Not set\n"
+                fallback += f"- Email: Not set\n"
+                fallback += f"- Status: Unknown\n"
+                fallback += f"\n**Account Features:**\n"
+                fallback += f"- Check-ins: Unknown\n"
+                fallback += f"- Tasks: Unknown\n"
+                return fallback
+            except Exception:
+                return "**Your Profile:**\nError loading profile information."
     
     @handle_errors("getting profile handler help")
     def get_help(self) -> str:

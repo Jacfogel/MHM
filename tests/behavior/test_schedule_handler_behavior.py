@@ -626,8 +626,10 @@ class TestScheduleHandlerBehavior:
         
         # Verify response
         assert isinstance(response, InteractionResponse), "Should return InteractionResponse"
-        assert response.completed, "Response should be completed"
-        assert "not found" in response.message.lower() or "available" in response.message.lower(), "Should indicate period not found"
+        # When period is not found but category/period_name are provided, should return interactive flow with suggestions
+        assert not response.completed, "Response should not be completed (interactive flow with suggestions)"
+        assert "not found" in response.message.lower() or "what times should" in response.message.lower(), "Should indicate period not found or prompt for times"
+        assert response.suggestions is not None and len(response.suggestions) > 0, "Should provide suggestions for times"
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -698,9 +700,10 @@ class TestScheduleHandlerBehavior:
         
         # Verify response
         assert isinstance(response, InteractionResponse), "Should return InteractionResponse"
-        assert response.completed, "Response should be completed"
-        assert "no changes" in response.message.lower() or "current" in response.message.lower(), "Should indicate no changes specified"
-        mock_set_periods.assert_called_once(), "Should still call set_schedule_periods (even if no changes)"
+        assert not response.completed, "Response should not be completed (interactive flow with suggestions)"
+        assert "no changes" in response.message.lower() or "what would you like to update" in response.message.lower() or "current" in response.message.lower(), "Should indicate no changes specified or prompt for updates"
+        # When no changes are specified, should provide suggestions for what can be updated
+        assert response.suggestions is not None and len(response.suggestions) > 0, "Should provide suggestions for updates"
     
     @pytest.mark.behavior
     @pytest.mark.communication

@@ -371,14 +371,23 @@ class ScheduleManagementHandler(InteractionHandler):
         try:
             from core.schedule_management import get_schedule_time_periods, set_schedule_periods
             
-            # Get existing periods
+            # Get existing periods FIRST to check if period exists
             periods = get_schedule_time_periods(user_id, category)
             
+            # Check if period exists BEFORE providing curated suggestions
             if period_name not in periods:
                 return InteractionResponse(
-                    f"Schedule period '{period_name}' not found in {category.title()}. "
-                    f"Available periods: {', '.join(periods.keys())}",
-                    True
+                    f"I couldn't find a '{period_name}' period in {category.title()}. What times should it use?",
+                    completed=False,
+                    suggestions=["from 9am to 11am", "from 7pm to 9pm"]
+                )
+            
+            # Curated suggestions when target is identified and exists, but times/days/active are missing
+            if not any([new_start_time, new_end_time, new_days, new_active]):
+                return InteractionResponse(
+                    f"What would you like to update for '{period_name}' in {category.title()}?",
+                    completed=False,
+                    suggestions=["from 9am to 11am", "days Monday,Tuesday"]
                 )
             
             # Get current period data
@@ -437,7 +446,8 @@ class ScheduleManagementHandler(InteractionHandler):
                 return InteractionResponse(
                     f"No changes specified for period '{period_name}'. "
                     f"Current settings: {current_period['start_time']} - {current_period['end_time']}",
-                    True
+                    completed=False,
+                    suggestions=["from 9am to 11am", "active off"]
                 )
                 
         except Exception as e:

@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-09 02:00:31
+> **Last Generated**: 2026-01-09 05:27:38
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
 - **Total Files Scanned**: 410
-- **Files with Unused Imports**: 124
-- **Total Unused Imports**: 356
+- **Files with Unused Imports**: 125
+- **Total Unused Imports**: 357
 
 ## Breakdown by Category
 
@@ -21,7 +21,7 @@
 - **Test Mocking**: 145 imports
 - **Qt Testing**: 54 imports
 - **Test Infrastructure**: 152 imports
-- **Production Test Mocking**: 3 imports
+- **Production Test Mocking**: 4 imports
 - **Ui Imports**: 1 imports
 
 ## Conditional Imports
@@ -74,8 +74,8 @@
 
 **Count**: 2 unused import(s)
 
-- **Line 18**: Unused get_user_data imported from core.user_data_handlers
-- **Line 18**: Unused save_user_data imported from core.user_data_handlers
+- **Line 21**: Unused get_user_data imported from core.user_data_handlers
+- **Line 21**: Unused save_user_data imported from core.user_data_handlers
 
 ### `tests/behavior/test_logger_coverage_expansion.py`
 
@@ -1270,6 +1270,12 @@
 ## Production Test Mocking
 
 **Recommendation**: These imports are required in production code for test mocking. Keep them.
+
+### `communication/command_handlers/interaction_handlers.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 18**: Unused save_user_data imported from core.user_data_handlers
 
 ### `communication/core/channel_orchestrator.py`
 

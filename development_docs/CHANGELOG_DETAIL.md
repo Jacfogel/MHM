@@ -38,7 +38,30 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
-### 2026-01-09 - Test Suite Fixes: Discord Bot, Command Parsing, and Task Completion **COMPLETED**
+### 2026-01-09 - Command Handler Consolidation and Profile Formatting Fixes **COMPLETED**
+- **Feature**: Consolidated duplicate command handler implementations across `interaction_handlers.py` (monolithic) and separate handler files, fixed profile display formatting to match test expectations, and improved test runner failure display reliability.
+- **Changes**:
+  1. **Base Class Consolidation**: Removed duplicate `InteractionHandler` base class from `interaction_handlers.py`, standardized all handlers to import from `base_handler.py`. Fixed `notebook_handler.py` import.
+  2. **TaskManagementHandler Consolidation**: Merged implementations (added default recurrence pattern and repeat_after_completion support from `interaction_handlers.py` to `task_handler.py`), updated registry to use lazy import, updated all imports to use `task_handler.py`, removed duplicate class from `interaction_handlers.py`, added detection pattern to legacy cleanup tool.
+  3. **Other Handler Consolidations**: Consolidated `CheckinHandler`, `ProfileHandler`, `ScheduleManagementHandler`, and `AnalyticsHandler` by removing duplicates from `interaction_handlers.py`, updating registry to lazy imports, and ensuring all imports use separate handler files.
+  4. **Registry Refactoring**: Cleaned up `interaction_handlers.py` to only contain registry dictionary, lazy import logic, and `HelpHandler` (which has no separate file). All other handlers now use lazy imports from separate files.
+  5. **Test Updates**: Updated test imports in `test_interaction_handlers_behavior.py` and `test_interaction_handlers_coverage_expansion.py` to import handlers from separate files instead of `interaction_handlers.py`.
+  6. **Profile Formatting Fixes** (3 test failures resolved):
+     - Replaced emoji formatting with bullet point format (`- Name:`, `- Gender Identity:`, etc.) in `_format_profile_text()` method
+     - Updated all profile fields (Name, Gender Identity, Email, Status, Health Conditions, Medications, Allergies, Interests, Goals, Support Network, Notes for AI, Account Features) to use consistent bullet point formatting
+     - Fixed fallback error handling to also use bullet points instead of emojis
+     - Tests fixed: `test_profile_no_duplicate_formatting`, `test_profile_text_formatter_direct`, `test_profile_display_format`
+  7. **Test Runner Failure Display Improvements**:
+     - Enhanced `run_tests.py` to more reliably extract and display test failures from pytest output
+     - Improved regex patterns for capturing failures across different pytest output formats (standard FAILED lines, FAILURES sections, parallel execution output)
+     - Prioritized structured `failure_details` from JUnit XML for more reliable failure reporting
+     - Added deduplication logic to prevent duplicate failure messages
+     - Implemented truncation for long error messages and stack traces to improve console readability
+     - Added fallback message when failure details cannot be extracted but failures are detected
+- **Impact**: Eliminates code duplication, improves maintainability, establishes consistent handler organization pattern. Reduces `interaction_handlers.py` from ~2800 lines to ~160 lines (registry and HelpHandler only). All handlers now follow the same pattern: separate file, import from `base_handler.py`, lazy-loaded via registry. Profile display now uses consistent bullet point formatting matching test expectations. Test runner now consistently displays failure details, making debugging easier. All 3970 tests now pass (0 failed, 1 skipped). Command handler consolidation plan reviewed and confirmed complete.
+- **Files**: `communication/command_handlers/interaction_handlers.py`, `communication/command_handlers/task_handler.py`, `communication/command_handlers/checkin_handler.py`, `communication/command_handlers/profile_handler.py`, `communication/command_handlers/schedule_handler.py`, `communication/command_handlers/analytics_handler.py`, `communication/command_handlers/notebook_handler.py`, `communication/command_handlers/base_handler.py`, `communication/message_processing/interaction_manager.py`, `tests/behavior/test_interaction_handlers_behavior.py`, `tests/behavior/test_interaction_handlers_coverage_expansion.py`, `run_tests.py`, `development_tools/config/development_tools_config.json`, `archive/command_handlers_consolidation_20260109_025944/` (backup)
+
+ ### 2026-01-09 - Test Suite Fixes: Discord Bot, Command Parsing, and Task Completion **COMPLETED**
 - **Feature**: Fixed 8 test failures across multiple test suites, improving test reliability and ensuring all tests pass
   1. **Discord Bot Test Fixes** (3 tests):
      - Updated test assertions in `tests/behavior/test_discord_bot_behavior.py` to match actual Discord API implementation

@@ -23,6 +23,9 @@ from .base_handler import InteractionHandler, InteractionResponse, ParsedCommand
 logger = get_component_logger('communication_manager')
 handlers_logger = logger
 
+# Pending confirmations (simple in-memory store)
+PENDING_DELETIONS: Dict[str, str] = {}
+
 class TaskManagementHandler(InteractionHandler):
     """Handler for task management interactions"""
     
@@ -73,6 +76,24 @@ class TaskManagementHandler(InteractionHandler):
         tags = entities.get('tags', [])
         recurrence_pattern = entities.get('recurrence_pattern')
         recurrence_interval = entities.get('recurrence_interval', 1)
+        
+        # If no recurrence pattern specified, check user's default settings
+        if not recurrence_pattern:
+            try:
+                from core.user_data_handlers import get_user_data
+                user_data = get_user_data(user_id, 'preferences')
+                preferences = user_data.get('preferences', {})
+                task_settings = preferences.get('task_settings', {})
+                recurring_settings = task_settings.get('recurring_settings', {})
+                
+                # Use default pattern if available
+                default_pattern = recurring_settings.get('default_recurrence_pattern')
+                if default_pattern:
+                    recurrence_pattern = default_pattern
+                    recurrence_interval = recurring_settings.get('default_recurrence_interval', 1)
+            except Exception as e:
+                # If there's an error loading preferences, continue without defaults
+                pass
         
         # Convert relative dates to proper dates and extract time
         valid_due_time = None
@@ -140,7 +161,18 @@ class TaskManagementHandler(InteractionHandler):
         if recurrence_pattern:
             task_data['recurrence_pattern'] = recurrence_pattern
             task_data['recurrence_interval'] = recurrence_interval
-            task_data['repeat_after_completion'] = True
+            
+            # Use default repeat_after_completion setting if available
+            try:
+                from core.user_data_handlers import get_user_data
+                user_data = get_user_data(user_id, 'preferences')
+                preferences = user_data.get('preferences', {})
+                task_settings = preferences.get('task_settings', {})
+                recurring_settings = task_settings.get('recurring_settings', {})
+                task_data['repeat_after_completion'] = recurring_settings.get('default_repeat_after_completion', True)
+            except Exception as e:
+                # Default to True if there's an error loading preferences
+                task_data['repeat_after_completion'] = True
         
         task_id = create_task(user_id=user_id, **task_data)
         
@@ -359,7 +391,7 @@ class TaskManagementHandler(InteractionHandler):
         
         # Apply filter type
         if filter_type == 'due_soon':
-            filtered_tasks = get_tasks_due_soon(user_id, days=7)
+            filtered_tasks = get_tasks_due_soon(user_id, days_ahead=7)
         elif filter_type == 'overdue':
             today = datetime.now().strftime('%Y-%m-%d')
             filtered_tasks = [task for task in filtered_tasks if task.get('due_date') and task['due_date'] < today]
@@ -565,14 +597,54 @@ class TaskManagementHandler(InteractionHandler):
         """Handle task completion"""
         task_identifier = entities.get('task_identifier')
         if not task_identifier:
-            return InteractionResponse(
-                "Which task would you like to complete? Please specify the task number or name.",
-                completed=False
-            )
+            # If no specific task mentioned, suggest the most likely task
+            tasks = load_active_tasks(user_id)
+            if not tasks:
+                return InteractionResponse(
+                    "Which task would you like to complete? You currently have no active tasks. "
+                    "You can create a task or list your tasks to choose one.",
+                    completed=False,
+                    suggestions=["list tasks", "cancel"]
+                )
+            
+            # Find the most urgent task (overdue, then high priority, then due soon)
+            suggested_task = self._handle_complete_task__find_most_urgent_task(tasks)
+            
+            if suggested_task:
+                # Suggest the most urgent task
+                task_title = suggested_task.get('title', 'Unknown Task')
+                task_id = suggested_task.get('task_id', '')
+                short_id = task_id[:8] if task_id else ''
+                
+                response = f"💡 **Did you want to complete this task?**\n\n"
+                response += f"**{task_title}**\n"
+                
+                # Add task details
+                if suggested_task.get('due_date'):
+                    response += f"📅 Due: {suggested_task['due_date']}\n"
+                if suggested_task.get('priority'):
+                    response += f"⚡ Priority: {suggested_task['priority'].title()}\n"
+                
+                response += f"\n**To complete it:**\n"
+                response += f"• Reply: `complete task {short_id}`\n"
+                response += f"• Or: `complete task \"{task_title}\"`\n"
+                response += f"• Or: `list tasks` to see all your tasks"
+                
+                return InteractionResponse(response, completed=False)
+            else:
+                return InteractionResponse(
+                    "Which task would you like to complete? Please specify the task number or name, or use 'list tasks' to see all your tasks.",
+                    completed=False
+                )
         
-        # Try to find the task
+        # Try to find task with disambiguation
         tasks = load_active_tasks(user_id)
-        task = self._handle_complete_task__find_task_by_identifier(tasks, task_identifier)
+        candidates = self._get_task_candidates(tasks, task_identifier)
+        if len(candidates) > 1:
+            preview = "\n".join([f"{i+1}. {t['title']}" for i, t in enumerate(candidates[:5])])
+            suffix = "\nIf you meant one of these, reply with 'complete task <number>'."
+            return InteractionResponse(f"I found multiple matching tasks:\n{preview}{suffix}", completed=False)
+        task = candidates[0] if candidates else None
         
         if not task:
             return InteractionResponse("❌ Task not found. Please check the task number or name.", True)
@@ -588,19 +660,45 @@ class TaskManagementHandler(InteractionHandler):
         """Handle task deletion"""
         task_identifier = entities.get('task_identifier')
         if not task_identifier:
-            return InteractionResponse(
-                "Which task would you like to delete? Please specify the task number or name.",
-                completed=False
-            )
+            # If user confirms without identifier, use pending deletion if available
+            pending_id = PENDING_DELETIONS.pop(user_id, None)
+            if pending_id:
+                if delete_task(user_id, pending_id):
+                    return InteractionResponse("🗑️ Deleted.", True)
+                return InteractionResponse("❌ Failed to delete task. Please try again.", True)
+            else:
+                return InteractionResponse(
+                    "Which task would you like to delete? Please specify the task number or name.",
+                    completed=False
+                )
         
-        # Try to find the task
+        # Try to find task with disambiguation
         tasks = load_active_tasks(user_id)
-        task = self._handle_delete_task__find_task_by_identifier(tasks, task_identifier)
+        candidates = self._get_task_candidates(tasks, task_identifier)
+        if len(candidates) > 1:
+            preview = "\n".join([f"{i+1}. {t['title']}" for i, t in enumerate(candidates[:5])])
+            suffix = "\nIf you meant one of these, reply with 'delete task <number>'."
+            return InteractionResponse(f"I found multiple matching tasks:\n{preview}{suffix}", completed=False)
+        task = candidates[0] if candidates else None
         
         if not task:
             return InteractionResponse("❌ Task not found. Please check the task number or name.", True)
         
-        # Delete the task
+        # For name-based selection, require a simple confirmation step
+        # Only numeric IDs and exact task IDs allow immediate deletion
+        identifier_str = str(task_identifier).strip().lower()
+        is_numeric = identifier_str.isdigit()
+        is_exact_id = identifier_str in [str(task.get('task_id','')).lower(), str(task.get('id','')).lower()]
+        if not is_numeric and not is_exact_id:
+            # Name-based deletion requires confirmation
+            PENDING_DELETIONS[user_id] = task.get('task_id', task.get('id'))
+            title = task.get('title', 'this task')
+            return InteractionResponse(
+                f"Confirm delete: {title}. Reply 'confirm delete' to proceed.",
+                completed=False
+            )
+
+        # Delete immediately for numeric or id-based selection
         if delete_task(user_id, task.get('task_id', task.get('id'))):
             return InteractionResponse(f"🗑️ Deleted: {task['title']}", True)
         else:
@@ -616,9 +714,14 @@ class TaskManagementHandler(InteractionHandler):
                 completed=False
             )
         
-        # Try to find the task
+        # Try to find the task with disambiguation
         tasks = load_active_tasks(user_id)
-        task = self._handle_update_task__find_task_by_identifier(tasks, task_identifier)
+        candidates = self._get_task_candidates(tasks, task_identifier)
+        if len(candidates) > 1:
+            preview = "\n".join([f"{i+1}. {t['title']}" for i, t in enumerate(candidates[:5])])
+            suffix = "\nIf you meant one of these, reply with 'update task <number> due date <date>' (or other field)."
+            return InteractionResponse(f"I found multiple matching tasks:\n{preview}{suffix}", completed=False)
+        task = candidates[0] if candidates else None
         
         if not task:
             return InteractionResponse("❌ Task not found. Please check the task number or name.", True)
@@ -740,6 +843,13 @@ class TaskManagementHandler(InteractionHandler):
             if task.get('task_id') == identifier or task.get('id') == identifier:
                 return task
         
+        # Try as short ID (8-character prefix)
+        if isinstance(identifier, str) and len(identifier) == 8:
+            for task in tasks:
+                tid = task.get('task_id', '')
+                if tid.startswith(identifier):
+                    return task
+        
         # Try as number
         try:
             task_num = int(identifier)
@@ -803,6 +913,91 @@ class TaskManagementHandler(InteractionHandler):
     def _handle_update_task__find_task_by_identifier(self, tasks: List[Dict], identifier: str) -> Optional[Dict]:
         """Find a task by number, name, or task_id - delegates to shared method."""
         return self._find_task_by_identifier(tasks, identifier)
+    
+    @handle_errors("getting task candidates", default_return=[])
+    def _get_task_candidates(self, tasks: List[Dict], identifier: str) -> List[Dict]:
+        """Return candidate tasks matching identifier by id, number, or name."""
+        matches: List[Dict] = []
+        # Exact id
+        for t in tasks:
+            if identifier == t.get('task_id') or identifier == t.get('id'):
+                return [t]
+        # Short id
+        if isinstance(identifier, str) and len(identifier) == 8:
+            for t in tasks:
+                tid = t.get('task_id', '')
+                if tid.startswith(identifier):
+                    matches.append(t)
+            if matches:
+                return matches
+        # Number
+        try:
+            n = int(identifier)
+            if 1 <= n <= len(tasks):
+                return [tasks[n-1]]
+        except ValueError:
+            # Invalid number format - continue to name-based matching
+            pass
+        # Name-based
+        ident = str(identifier).lower().strip()
+        exact = [t for t in tasks if t.get('title','').lower() == ident]
+        if exact:
+            return exact
+        contains = [t for t in tasks if ident in t.get('title','').lower()]
+        if contains:
+            return contains
+        words = set(ident.split())
+        word_hits = [t for t in tasks if words & set(t.get('title','').lower().split())]
+        if word_hits:
+            return word_hits
+        return []
+    
+    @handle_errors("finding most urgent task", default_return=None)
+    def _handle_complete_task__find_most_urgent_task(self, tasks: List[Dict]) -> Optional[Dict]:
+        """Find the most urgent task based on priority and due date"""
+        if not tasks:
+            return None
+        
+        today = datetime.now().strftime('%Y-%m-%d')
+        
+        # Priority order: overdue > critical > high > medium > low
+        priority_order = {'critical': 5, 'high': 4, 'medium': 3, 'low': 2}
+        
+        most_urgent = None
+        highest_score = -1
+        
+        for task in tasks:
+            score = 0
+            
+            # Check if overdue (highest priority)
+            due_date = task.get('due_date')
+            if due_date and due_date < today:
+                score += 1000  # Overdue tasks get highest priority
+            
+            # Add priority score
+            priority = task.get('priority', 'medium')
+            score += priority_order.get(priority, 0)
+            
+            # Add due date proximity bonus (closer = higher score)
+            if due_date:
+                try:
+                    due_dt = datetime.strptime(due_date, '%Y-%m-%d')
+                    today_dt = datetime.strptime(today, '%Y-%m-%d')
+                    days_until_due = (due_dt - today_dt).days
+                    if days_until_due <= 0:  # Due today or overdue
+                        score += 50
+                    elif days_until_due <= 1:  # Due tomorrow
+                        score += 30
+                    elif days_until_due <= 3:  # Due this week
+                        score += 10
+                except ValueError:
+                    pass  # Invalid date format, ignore
+            
+            if score > highest_score:
+                highest_score = score
+                most_urgent = task
+        
+        return most_urgent
     
     @handle_errors("getting help")
     def get_help(self) -> str:

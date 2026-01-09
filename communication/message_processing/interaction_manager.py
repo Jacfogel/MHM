@@ -349,7 +349,7 @@ class InteractionManager:
         # Simple confirm-delete shortcut: bypass parsing
         if message.strip().lower() == "confirm delete":
             try:
-                from communication.command_handlers.interaction_handlers import TaskManagementHandler
+                from communication.command_handlers.task_handler import TaskManagementHandler
                 from communication.command_handlers.shared_types import ParsedCommand
                 handler = TaskManagementHandler()
                 resp = handler._handle_delete_task(user_id, {"task_identifier": None})
@@ -360,7 +360,7 @@ class InteractionManager:
         # Simple complete-task prompt shortcut (no identifier provided)
         if message.strip().lower() == "complete task":
             try:
-                from communication.command_handlers.interaction_handlers import TaskManagementHandler
+                from communication.command_handlers.task_handler import TaskManagementHandler
                 from communication.command_handlers.shared_types import ParsedCommand
                 handler = TaskManagementHandler()
                 resp = handler._handle_complete_task(user_id, {})

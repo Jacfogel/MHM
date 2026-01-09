@@ -145,14 +145,14 @@ from .command_handlers.base_handler import InteractionHandler
 from .command_handlers.analytics_handler import AnalyticsHandler
 
 # Command handlers - interaction handlers (medium usage)
+from .command_handlers.task_handler import TaskManagementHandler
+from .command_handlers.checkin_handler import CheckinHandler
+from .command_handlers.profile_handler import ProfileHandler
+from .command_handlers.schedule_handler import ScheduleManagementHandler
 from .command_handlers.interaction_handlers import (
-    TaskManagementHandler,
     get_all_handlers,
     get_interaction_handler,
-    CheckinHandler,
-    ProfileHandler,
     HelpHandler,
-    ScheduleManagementHandler,
 )
 
 # Discord channel - lazy import to avoid circular dependencies

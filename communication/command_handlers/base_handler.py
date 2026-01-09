@@ -8,7 +8,7 @@ that all command handlers inherit from and use.
 """
 
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Optional
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
@@ -22,20 +22,16 @@ class InteractionHandler(ABC):
     
     @abstractmethod
     @handle_errors("checking if can handle intent", default_return=False)
-    def can_handle(self, parsed_command) -> bool:
+    def can_handle(self, intent: str) -> bool:
         """
-        Check if this handler can handle the given parsed command with validation.
+        Check if this handler can handle the given intent.
         
-        NOTE: Subclasses should validate parsed_command (check for None, type, etc.) 
-        before proceeding with their logic.
+        Args:
+            intent: The intent string to check (e.g., 'create_task', 'show_profile')
         
         Returns:
             bool: True if can handle, False otherwise
         """
-        # Base validation - subclasses should call super().can_handle() or implement their own
-        if parsed_command is None:
-            logger.error("Received None as parsed_command")
-            return False
         pass
     
     @abstractmethod
@@ -143,12 +139,16 @@ class InteractionHandler(ABC):
         return True
     
     @handle_errors("creating error response", default_return=None)
-    def _create_error_response(self, error_message: str, user_id: str = None) -> InteractionResponse:
+    def _create_error_response(self, error_message: str, user_id: Optional[str] = None) -> Optional[InteractionResponse]:
         """
         Create a standardized error response with validation.
         
+        Args:
+            error_message: The error message to include
+            user_id: Optional user ID for logging
+        
         Returns:
-            InteractionResponse: Error response, None if failed
+            InteractionResponse: Error response, or None if inputs are invalid
         """
         # Validate error_message
         if not error_message or not isinstance(error_message, str):
@@ -163,10 +163,8 @@ class InteractionHandler(ABC):
         if user_id is not None and not isinstance(user_id, str):
             logger.error(f"Invalid user_id: {user_id}")
             return None
-        """Create a standardized error response"""
+        
         try:
-            from communication.command_handlers.shared_types import InteractionResponse
-            
             return InteractionResponse(
                 message=f"I'm sorry, I encountered an error: {error_message}",
                 completed=False,
@@ -174,9 +172,4 @@ class InteractionHandler(ABC):
             )
         except Exception as e:
             logger.error(f"Error creating error response: {e}")
-            # Return minimal response as fallback
-            return InteractionResponse(
-                message="I'm sorry, I encountered an error processing your request.",
-                completed=False,
-                error="Response creation failed"
-            )
+            return None

@@ -87,7 +87,7 @@ class TestTaskSuggestionRelevance:
         Note: Currently parser requires identifier + update text. This test verifies
         the handler's behavior when called directly with missing identifier.
         """
-        from communication.command_handlers.interaction_handlers import TaskManagementHandler
+        from communication.command_handlers.task_handler import TaskManagementHandler
         from communication.message_processing.command_parser import ParsedCommand
         
         user_id = "test_update_no_id"

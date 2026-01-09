@@ -7,10 +7,12 @@ import pytest
 from unittest.mock import patch, Mock
 from datetime import datetime, timedelta
 
-from communication.command_handlers.interaction_handlers import (
-    TaskManagementHandler, CheckinHandler, ProfileHandler,
-    ScheduleManagementHandler, AnalyticsHandler, HelpHandler
-)
+from communication.command_handlers.task_handler import TaskManagementHandler
+from communication.command_handlers.checkin_handler import CheckinHandler
+from communication.command_handlers.profile_handler import ProfileHandler
+from communication.command_handlers.schedule_handler import ScheduleManagementHandler
+from communication.command_handlers.analytics_handler import AnalyticsHandler
+from communication.command_handlers.interaction_handlers import HelpHandler
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from core.user_data_handlers import get_user_data, save_user_data
 from tasks.task_management import create_task, load_active_tasks

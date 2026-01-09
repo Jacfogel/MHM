@@ -9,10 +9,13 @@ side effects rather than just returning values.
 import pytest
 
 # Import the modules we're testing
+from communication.command_handlers.task_handler import TaskManagementHandler
+from communication.command_handlers.checkin_handler import CheckinHandler
+from communication.command_handlers.profile_handler import ProfileHandler
+from communication.command_handlers.schedule_handler import ScheduleManagementHandler
+from communication.command_handlers.analytics_handler import AnalyticsHandler
 from communication.command_handlers.interaction_handlers import (
-    TaskManagementHandler, CheckinHandler, ProfileHandler,
-    ScheduleManagementHandler, AnalyticsHandler, HelpHandler,
-    get_interaction_handler, get_all_handlers
+    HelpHandler, get_interaction_handler, get_all_handlers
 )
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from core.user_data_handlers import get_user_data, save_user_data

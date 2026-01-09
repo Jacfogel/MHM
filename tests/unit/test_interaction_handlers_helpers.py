@@ -8,7 +8,7 @@ helper methods and utility functions.
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timedelta
-from communication.command_handlers.interaction_handlers import TaskManagementHandler
+from communication.command_handlers.task_handler import TaskManagementHandler
 
 
 @pytest.mark.unit
@@ -67,7 +67,8 @@ class TestTaskManagementHandlerHelpers:
             {'title': 'Task 2', 'due_date': '2024-12-30'}
         ]
         
-        with patch('communication.command_handlers.interaction_handlers.get_tasks_due_soon', return_value=[tasks[0]]):
+        # Patch where the function is imported/used, not where it's defined
+        with patch('communication.command_handlers.task_handler.get_tasks_due_soon', return_value=[tasks[0]]):
             result = self.handler._handle_list_tasks__apply_filters("user", tasks, 'due_soon', None, None)
             assert len(result) == 1, "Should return only due soon tasks"
             assert result[0]['title'] == 'Task 1', "Should return correct task"

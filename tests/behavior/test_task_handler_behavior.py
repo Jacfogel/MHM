@@ -291,7 +291,7 @@ class TestTaskHandlerBehavior:
         response = handler.handle(user_id, parsed_command)
         assert isinstance(response, InteractionResponse), "Should return InteractionResponse"
         assert response.completed, "Response should be completed"
-        mock_due_soon.assert_called_once_with(user_id, days=7)
+        mock_due_soon.assert_called_once_with(user_id, days_ahead=7)
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -393,9 +393,9 @@ class TestTaskHandlerBehavior:
         
         parsed_command = ParsedCommand(
             intent="delete_task",
-            entities={'task_identifier': 'Task 1'},
+            entities={'task_identifier': '1'},  # Use numeric identifier for immediate deletion
             confidence=0.9,
-            original_message="delete task 'Task 1'"
+            original_message="delete task 1"
         )
         
         response = handler.handle(user_id, parsed_command)
