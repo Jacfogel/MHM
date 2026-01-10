@@ -38,6 +38,25 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-10 - Notebook Short ID Format Update: Removed Dash for Mobile-Friendly Typing **COMPLETED**
+- **Feature**: Updated notebook short ID format from `n-123abc` to `n123abc` (removed dash) for easier mobile typing. Updated all implementation code, tests, and documentation to use the new format. Removed backward compatibility as requested by user.
+- **Changes**:
+  1. **Implementation Code Updates**:
+     - Updated `notebook/notebook_validation.py`: `format_short_id()` now returns `f"{prefix}{fragment}"` (no dash), `parse_short_id()` parses no-dash format, `is_valid_entry_reference()` validates no-dash format, updated docstrings to reflect new format
+     - Updated `communication/command_handlers/notebook_handler.py`: `_format_entry_id()` formats as `f"{kind_prefix}{short_id}"` (no dash), updated help examples
+     - Updated `notebook/notebook_data_manager.py`: `_find_entry_by_ref()` parses no-dash format with comment noting "no dash - mobile-friendly format"
+  2. **Test Code Updates**:
+     - Updated `tests/behavior/test_notebook_handler_behavior.py`: Changed all short ID formats from `n-123abc` to `n123abc`, updated test assertions, fixed all test cases that create short IDs manually
+     - Updated `tests/unit/test_notebook_validation.py`: Updated validation tests to use new format, fixed `test_format_short_id()` to check for prefix without dash, updated `test_is_valid_entry_reference_with_title()` with improved validation logic
+     - Updated `tests/integration/test_notebook_validation_integration.py`: Fixed all short ID creation to use new format (no dash)
+  3. **Validation Logic Improvements**:
+     - Updated `is_valid_entry_reference()` to only check invalid prefix pattern for strings <= 9 chars (short IDs are max 9: prefix + 8 hex), allowing long title strings like `'a' * 100` to be valid as title references
+  4. **Documentation Updates**:
+     - Updated `development_docs/NOTES_PLAN.md`: Documented new format, noted backward compatibility removed, updated examples
+     - Updated docstrings in validation functions to reflect new format
+- **Impact**: Short IDs are now easier to type on mobile devices (no dash required). All code, tests, and documentation consistently use the new format. Test suite: 4074 passed, 1 failed (unrelated account creation UI test), 1 skipped. All notebook-related tests passing.
+- **Files**: `notebook/notebook_validation.py`, `communication/command_handlers/notebook_handler.py`, `notebook/notebook_data_manager.py`, `tests/behavior/test_notebook_handler_behavior.py`, `tests/unit/test_notebook_validation.py`, `tests/integration/test_notebook_validation_integration.py`, `development_docs/NOTES_PLAN.md`
+
 ### 2026-01-09 - Notebook Validation System Implementation and Testing **COMPLETED**
 - **Feature**: Implemented comprehensive validation system for notebook feature with proper separation of concerns, error handling compliance, and extensive test coverage. Refactored validation architecture to use shared general validators while keeping notebook-specific validation separate.
 - **Changes**:

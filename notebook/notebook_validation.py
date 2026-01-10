@@ -42,7 +42,7 @@ def is_valid_entry_reference(ref: str) -> bool:
     
     Entry references can be:
     - Full UUID strings
-    - Short IDs (e.g., 'n-3f2a9c', 'l-91ab20')
+    - Short IDs (e.g., 'n3f2a9c', 'l91ab20' - no dash for easier mobile typing)
     - Short ID fragments (e.g., '3f2a9c')
     - Non-empty title strings
     
@@ -70,16 +70,16 @@ def is_valid_entry_reference(ref: str) -> bool:
     if uuid_pattern.match(ref):
         return True
     
-    # Check if it looks like a short ID with prefix but is invalid (e.g., 'n-12345' - too short)
-    # Reject invalid short ID formats explicitly
-    invalid_short_id_prefix = re.compile(r'^[nlj]-[0-9a-f]{1,5}$', re.IGNORECASE)
+    # Check if it looks like a short ID with prefix but is invalid (e.g., 'n12345' - too short)
+    # Reject invalid short ID formats explicitly (no dash - mobile-friendly format)
+    invalid_short_id_prefix = re.compile(r'^[nlj][0-9a-f]{1,5}$', re.IGNORECASE)
     if invalid_short_id_prefix.match(ref):
         logger.warning(f"Short ID fragment too short: {ref} (minimum {MIN_SHORT_ID_LENGTH} characters)")
         return False
     
-    # Check if it's a valid short ID with prefix (e.g., 'n-3f2a9c')
+    # Check if it's a valid short ID with prefix (e.g., 'n3f2a9c' - no dash for easier mobile typing)
     # Fragment must be at least MIN_SHORT_ID_LENGTH characters
-    short_id_with_prefix = re.compile(rf'^[nlj]-[0-9a-f]{{{MIN_SHORT_ID_LENGTH},{MAX_SHORT_ID_LENGTH}}}$', re.IGNORECASE)
+    short_id_with_prefix = re.compile(rf'^[nlj][0-9a-f]{{{MIN_SHORT_ID_LENGTH},{MAX_SHORT_ID_LENGTH}}}$', re.IGNORECASE)
     if short_id_with_prefix.match(ref):
         return True
     
@@ -89,11 +89,17 @@ def is_valid_entry_reference(ref: str) -> bool:
     if short_id_fragment.match(ref):
         return True
     
-    # Check if it looks like a short ID with invalid prefix (e.g., 'x-3f2a9c')
-    invalid_prefix_pattern = re.compile(r'^[a-z]-[0-9a-f]+$', re.IGNORECASE)
-    if invalid_prefix_pattern.match(ref):
-        logger.warning(f"Invalid short ID prefix: {ref} (must be n, l, or j)")
-        return False
+    # Check if it looks like a short ID with invalid prefix (e.g., 'x3f2a9c')
+    # Only check if it's short enough to be a short ID (max 9 chars: prefix + 8 hex)
+    # Longer strings are likely titles, not short IDs
+    if len(ref) <= 9:
+        invalid_prefix_pattern = re.compile(r'^[a-z][0-9a-f]+$', re.IGNORECASE)
+        if invalid_prefix_pattern.match(ref):
+            # Check if prefix is valid (n, l, j)
+            prefix = ref[0].lower()
+            if prefix not in ['n', 'l', 'j']:
+                logger.warning(f"Invalid short ID prefix: {ref} (must be n, l, or j)")
+                return False
     
     # Any other non-empty string is valid as a title reference
     # (actual matching will be done by data manager)
@@ -106,7 +112,7 @@ def parse_short_id(ref: str) -> Optional[Tuple[str, str]]:
     Parse a short ID reference into (prefix, fragment) tuple.
     
     Args:
-        ref: Short ID reference (e.g., 'n-3f2a9c' or '3f2a9c')
+        ref: Short ID reference (e.g., 'n3f2a9c' or '3f2a9c' - no dash for easier mobile typing)
         
     Returns:
         Tuple of (prefix, fragment) if valid, None otherwise
@@ -117,10 +123,11 @@ def parse_short_id(ref: str) -> Optional[Tuple[str, str]]:
     
     ref = ref.strip().lower()
     
-    # Check for prefix format (e.g., 'n-3f2a9c')
-    if '-' in ref and len(ref.split('-')) == 2:
-        prefix, fragment = ref.split('-')
-        if prefix in PREFIX_TO_KIND and len(fragment) >= MIN_SHORT_ID_LENGTH:
+    # Check for prefix format (e.g., 'n3f2a9c' - no dash for easier mobile typing)
+    if len(ref) > 1 and ref[0] in PREFIX_TO_KIND:
+        prefix = ref[0]
+        fragment = ref[1:]
+        if len(fragment) >= MIN_SHORT_ID_LENGTH and re.match(r'^[0-9a-f]+$', fragment):
             return (prefix, fragment)
     
     # Check for fragment-only format (e.g., '3f2a9c')
@@ -140,7 +147,7 @@ def format_short_id(entry_id: UUID, kind: EntryKind) -> Optional[str]:
         kind: Entry kind ('note', 'list', or 'journal')
         
     Returns:
-        Short ID string (e.g., 'n-3f2a9c') or None if invalid
+        Short ID string (e.g., 'n3f2a9c' - no dash for easier mobile typing) or None if invalid
     """
     if not isinstance(entry_id, UUID):
         logger.warning(f"Entry ID must be a UUID, got {type(entry_id).__name__}")
@@ -153,7 +160,8 @@ def format_short_id(entry_id: UUID, kind: EntryKind) -> Optional[str]:
     prefix = ENTRY_KIND_PREFIXES[kind]
     fragment = str(entry_id).replace('-', '')[:MAX_SHORT_ID_LENGTH]
     
-    return f"{prefix}-{fragment}"
+    # No dash for easier mobile typing (e.g., n3f2a9c instead of n-3f2a9c)
+    return f"{prefix}{fragment}"
 
 
 @handle_errors("validating entry title", default_return=False)

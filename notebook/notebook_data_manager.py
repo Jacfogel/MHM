@@ -52,13 +52,13 @@ def _find_entry_by_ref(entries: List[Entry], ref: str) -> Optional[Entry]:
         if str(entry.id) == ref:
             return entry
 
-    # 2. Try short ID fragment (e.g., 'n-3f2a9c' or '3f2a9c')
-    # Extract fragment if prefixed
+    # 2. Try short ID fragment (e.g., 'n3f2a9c' or '3f2a9c')
+    # Extract fragment if prefixed (no dash - mobile-friendly format)
     short_fragment = ref_lower
-    if '-' in ref_lower and len(ref_lower.split('-')) == 2:
-        prefix, frag = ref_lower.split('-')
-        if prefix in ['n', 'l', 'j']:  # note, list, journal
-            short_fragment = frag
+    if len(ref_lower) > 1 and ref_lower[0] in ['n', 'l', 'j']:
+        # Format without dash (e.g., 'n3f2a9c')
+        prefix = ref_lower[0]
+        short_fragment = ref_lower[1:]
     
     if len(short_fragment) >= 6:  # Minimum length for short ID lookup
         matching_entries = [
@@ -369,9 +369,10 @@ def set_group(user_id: str, ref: str, group: Optional[str]) -> Optional[Entry]:
 
 # Search operations
 @handle_errors("searching entries", default_return=[])
-def search_entries(user_id: str, query: str, limit: int = 10) -> List[Entry]:
+def search_entries(user_id: str, query: str, limit: int = 100) -> List[Entry]:
     """
     Searches entries by case-insensitive substring across title, body, and list item texts.
+    Returns up to limit entries (pagination handled in handler).
     """
     if not user_id:
         logger.error("User ID is required for search.")
@@ -386,6 +387,10 @@ def search_entries(user_id: str, query: str, limit: int = 10) -> List[Entry]:
     
     matching_entries: List[Entry] = []
     for entry in entries:
+        # Skip archived entries from search
+        if entry.archived:
+            continue
+            
         # Check title
         if entry.title and query_lower in entry.title.lower():
             matching_entries.append(entry)
@@ -510,24 +515,24 @@ def remove_list_item(user_id: str, ref: str, item_index: int) -> Optional[Entry]
 
 # Organization operations
 @handle_errors("listing entries by group", default_return=[])
-def list_by_group(user_id: str, group: str, limit: int = 20) -> List[Entry]:
-    """Lists entries in a specific group."""
+def list_by_group(user_id: str, group: str, limit: int = 100) -> List[Entry]:
+    """Lists entries in a specific group - up to limit (pagination handled in handler)."""
     entries = load_entries(user_id)
     matching = [e for e in entries if e.group and e.group.lower() == group.lower()]
     matching.sort(key=lambda e: datetime.strptime(e.updated_at, TIMESTAMP_FORMAT) if isinstance(e.updated_at, str) else datetime.min, reverse=True)
     return matching[:limit]
 
 @handle_errors("listing pinned entries", default_return=[])
-def list_pinned(user_id: str) -> List[Entry]:
-    """Lists all pinned entries."""
+def list_pinned(user_id: str, limit: int = 100) -> List[Entry]:
+    """Lists pinned entries (up to limit - pagination handled in handler)."""
     entries = load_entries(user_id)
     pinned = [e for e in entries if e.pinned and not e.archived]
     pinned.sort(key=lambda e: datetime.strptime(e.updated_at, TIMESTAMP_FORMAT) if isinstance(e.updated_at, str) else datetime.min, reverse=True)
-    return pinned
+    return pinned[:limit]
 
 @handle_errors("listing inbox entries", default_return=[])
-def list_inbox(user_id: str, days: int = 30) -> List[Entry]:
-    """Lists inbox entries (untagged, unarchived, recent)."""
+def list_inbox(user_id: str, days: int = 30, limit: int = 100) -> List[Entry]:
+    """Lists inbox entries (untagged, unarchived, recent) - up to limit (pagination handled in handler)."""
     entries = load_entries(user_id)
     cutoff = datetime.now().timestamp() - (days * 24 * 60 * 60)
     
@@ -545,11 +550,19 @@ def list_inbox(user_id: str, days: int = 30) -> List[Entry]:
                 inbox.append(e)
     
     inbox.sort(key=lambda e: datetime.strptime(e.updated_at, TIMESTAMP_FORMAT) if isinstance(e.updated_at, str) else datetime.min, reverse=True)
-    return inbox
+    return inbox[:limit]
+
+@handle_errors("listing archived entries", default_return=[])
+def list_archived(user_id: str, limit: int = 100) -> List[Entry]:
+    """Lists archived entries - up to limit (pagination handled in handler)."""
+    entries = load_entries(user_id)
+    archived = [e for e in entries if e.archived]
+    archived.sort(key=lambda e: datetime.strptime(e.updated_at, TIMESTAMP_FORMAT) if isinstance(e.updated_at, str) else datetime.min, reverse=True)
+    return archived[:limit]
 
 @handle_errors("listing entries by tag", default_return=[])
-def list_by_tag(user_id: str, tag: str, limit: int = 20) -> List[Entry]:
-    """Lists entries with a specific tag."""
+def list_by_tag(user_id: str, tag: str, limit: int = 100) -> List[Entry]:
+    """Lists entries with a specific tag - up to limit (pagination handled in handler)."""
     from core.tags import normalize_tag
     
     entries = load_entries(user_id)

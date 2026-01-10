@@ -36,6 +36,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-10 - Notebook Short ID Format Update: Removed Dash for Mobile-Friendly Typing **COMPLETED**
+- Updated notebook short ID format from `n-123abc` to `n123abc` (removed dash) for easier mobile typing
+- Updated all implementation code (`notebook_validation.py`, `notebook_handler.py`, `notebook_data_manager.py`) to use new format
+- Updated all tests (behavior, unit, integration) to use new format, fixed validation logic for long title strings
+- Removed backward compatibility as requested - old dash format no longer supported
+- Test suite: 4074 passed, 1 failed (unrelated account creation UI test), 1 skipped - all notebook tests passing
+- Files: `notebook/notebook_validation.py`, `communication/command_handlers/notebook_handler.py`, `notebook/notebook_data_manager.py`, test files, `development_docs/NOTES_PLAN.md`
+
 ### 2026-01-09 - Notebook Validation System Implementation and Testing **COMPLETED**
 - Implemented comprehensive validation system for notebook feature with proper separation of concerns (general validators in `core/user_data_validation.py`, notebook-specific in `notebook/notebook_validation.py`)
 - Enhanced data manager validation: added length checks to append/set operations, list item validation, search query validation, user_id validation

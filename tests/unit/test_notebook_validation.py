@@ -42,13 +42,13 @@ class TestEntryReferenceValidation:
     @pytest.mark.unit
     @pytest.mark.critical
     def test_is_valid_entry_reference_with_short_id_prefix(self):
-        """Test short ID with prefix format (e.g., 'n-3f2a9c')."""
+        """Test short ID with prefix format (e.g., 'n3f2a9c' - no dash for easier mobile typing)."""
         valid_refs = [
-            'n-3f2a9c',
-            'l-91ab20',
-            'j-0c77e2',
-            'N-ABCDEF',  # Case insensitive
-            'n-12345678'  # Max length
+            'n3f2a9c',
+            'l91ab20',
+            'j0c77e2',
+            'NABCDEF',  # Case insensitive
+            'n12345678'  # Max length
         ]
         
         for ref in valid_refs:
@@ -78,12 +78,14 @@ class TestEntryReferenceValidation:
             'My Note',
             'Shopping List',
             'A',
-            'a' * 100  # Long title
+            'a' * 100,  # Long title (should be valid - longer than max short ID length)
+            'Meeting Notes',  # Normal title
+            '123abc',  # Looks like short ID fragment but not matching exact pattern
         ]
         
         for ref in valid_refs:
             result = is_valid_entry_reference(ref)
-            assert result is True, f"Title reference {ref} should be valid"
+            assert result is True, f"Title reference '{ref[:50]}...' should be valid"
     
     @pytest.mark.unit
     @pytest.mark.regression
@@ -92,8 +94,8 @@ class TestEntryReferenceValidation:
         invalid_refs = [
             '',  # Empty
             '   ',  # Whitespace only
-            'n-12345',  # Too short fragment
-            'x-3f2a9c',  # Invalid prefix
+            'n12345',  # Too short fragment (less than 6 chars)
+            'x3f2a9c',  # Invalid prefix (not n, l, or j)
             None,  # None value
             123,  # Non-string
         ]
@@ -110,12 +112,12 @@ class TestShortIDParsing:
     @pytest.mark.critical
     @pytest.mark.smoke
     def test_parse_short_id_with_prefix(self):
-        """Test parsing short ID with prefix."""
+        """Test parsing short ID with prefix (no dash format for easier mobile typing)."""
         test_cases = [
-            ('n-3f2a9c', ('n', '3f2a9c')),
-            ('l-91ab20', ('l', '91ab20')),
-            ('j-0c77e2', ('j', '0c77e2')),
-            ('N-ABCDEF', ('n', 'abcdef')),  # Case normalization
+            ('n3f2a9c', ('n', '3f2a9c')),
+            ('l91ab20', ('l', '91ab20')),
+            ('j0c77e2', ('j', '0c77e2')),
+            ('NABCDEF', ('n', 'abcdef')),  # Case normalization
         ]
         
         for ref, expected in test_cases:
@@ -142,8 +144,8 @@ class TestShortIDParsing:
         """Test parsing invalid short ID formats."""
         invalid_refs = [
             '',  # Empty
-            'n-12345',  # Too short
-            'x-3f2a9c',  # Invalid prefix
+            'n12345',  # Too short (less than 6 chars)
+            'x3f2a9c',  # Invalid prefix (not n, l, or j)
             'not-a-short-id',  # Not a short ID
             None,  # None value
             123,  # Non-string
@@ -156,14 +158,16 @@ class TestShortIDParsing:
     @pytest.mark.unit
     @pytest.mark.critical
     def test_format_short_id(self):
-        """Test formatting UUID to short ID."""
+        """Test formatting UUID to short ID (no dash format for easier mobile typing)."""
         test_uuid = uuid4()
         
         for kind, prefix in ENTRY_KIND_PREFIXES.items():
             result = format_short_id(test_uuid, kind)
             assert result is not None, f"Should format short ID for {kind}"
-            assert result.startswith(f"{prefix}-"), f"Short ID should start with {prefix}-"
-            assert len(result.split('-')[1]) >= MIN_SHORT_ID_LENGTH, "Fragment should meet minimum length"
+            assert result.startswith(prefix), f"Short ID should start with {prefix} (no dash)"
+            # Fragment is everything after the prefix (no dash separator)
+            fragment = result[1:]  # Skip the prefix character
+            assert len(fragment) >= MIN_SHORT_ID_LENGTH, "Fragment should meet minimum length"
     
     @pytest.mark.unit
     @pytest.mark.regression

@@ -21,7 +21,7 @@ from notebook.notebook_data_manager import (
     add_tags, remove_tags, search_entries, pin_entry, archive_entry,
     add_list_item, toggle_list_item_done, remove_list_item,
     set_group, list_by_group, list_pinned, list_inbox, list_by_tag,
-    create_note, create_list, create_journal
+    list_archived, create_note, create_list, create_journal
 )
 from notebook.schemas import Entry
 
@@ -43,7 +43,7 @@ class NotebookHandler(InteractionHandler):
             'pin_entry', 'unpin_entry', 'archive_entry', 'unarchive_entry',
             'add_list_item', 'toggle_list_item_done', 'toggle_list_item_undone', 'remove_list_item',
             'set_entry_group', 'list_entries_by_group', 'list_pinned_entries',
-            'list_inbox_entries', 'list_entries_by_tag'
+            'list_inbox_entries', 'list_entries_by_tag', 'list_archived_entries'
         ]
 
     @handle_errors("handling notebook interaction", default_return=InteractionResponse("I'm having trouble with your notebook right now. Please try again.", True))
@@ -100,6 +100,8 @@ class NotebookHandler(InteractionHandler):
             return self._handle_list_inbox(user_id)
         elif intent == 'list_entries_by_tag':
             return self._handle_list_by_tag(user_id, entities)
+        elif intent == 'list_archived_entries':
+            return self._handle_list_archived(user_id, entities)
         else:
             return InteractionResponse(f"I don't understand that notebook command. Try: {', '.join(self.get_examples())}", True)
 
@@ -382,22 +384,38 @@ class NotebookHandler(InteractionHandler):
     def _handle_search_entries(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle searching entries."""
         query = entities.get('query')
+        offset = entities.get('offset', 0)
+        limit = entities.get('limit', 5)
         
         if not query:
             return InteractionResponse("What would you like to search for?", False)
         
-        entries = search_entries(user_id, query)
+        entries = search_entries(user_id, query, limit=100)  # Get all matches, paginate in handler
         
         if not entries:
             return InteractionResponse(f"No entries found matching '{query}'.", True)
         
-        response_parts = [f"🔍 Found {len(entries)} entries:"]
-        for entry in entries:
+        total = len(entries)
+        paginated = entries[offset:offset + limit]
+        has_more = offset + limit < total
+        
+        response_parts = [f"🔍 Found {total} entries:"]
+        for entry in paginated:
             short_id = self._format_entry_id(entry)
             title = entry.title or 'Untitled'
             response_parts.append(f"• {title} ({short_id})")
         
-        return InteractionResponse("\n".join(response_parts), True)
+        if has_more:
+            remaining = total - (offset + limit)
+            response_parts.append(f"\n... and {remaining} more")
+        
+        suggestions = []
+        if has_more:
+            # Add "Show More" button with pagination info
+            next_offset = offset + limit
+            suggestions.append(f"Show More ({min(limit, remaining)} more)")
+        
+        return InteractionResponse("\n".join(response_parts), True, suggestions=suggestions if suggestions else None)
 
     @handle_errors("handling pin entry")
     def _handle_pin_entry(self, user_id: str, entities: Dict[str, Any], pinned: bool) -> InteractionResponse:
@@ -527,79 +545,179 @@ class NotebookHandler(InteractionHandler):
     def _handle_list_by_group(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle listing entries by group."""
         group = entities.get('group')
+        offset = entities.get('offset', 0)
+        limit = entities.get('limit', 5)
         
         if not group:
             return InteractionResponse("Which group?", False)
         
-        entries = list_by_group(user_id, group)
+        entries = list_by_group(user_id, group, limit=100)  # Get all matches, paginate in handler
         
         if not entries:
             return InteractionResponse(f"No entries found in group '{group}'.", True)
         
-        response_parts = [f"📁 Group '{group}' ({len(entries)} entries):"]
-        for entry in entries:
+        total = len(entries)
+        paginated = entries[offset:offset + limit]
+        has_more = offset + limit < total
+        
+        response_parts = [f"📁 Group '{group}' ({total} entries):"]
+        for entry in paginated:
             short_id = self._format_entry_id(entry)
             response_parts.append(f"• {entry.title or 'Untitled'} ({short_id})")
         
-        return InteractionResponse("\n".join(response_parts), True)
+        if has_more:
+            remaining = total - (offset + limit)
+            response_parts.append(f"\n... and {remaining} more")
+        
+        suggestions = []
+        if has_more:
+            remaining = total - (offset + limit)
+            suggestions.append(f"Show More ({min(limit, remaining)} more)")
+        
+        return InteractionResponse("\n".join(response_parts), True, suggestions=suggestions if suggestions else None)
 
     @handle_errors("handling list pinned")
-    def _handle_list_pinned(self, user_id: str) -> InteractionResponse:
+    def _handle_list_pinned(self, user_id: str, entities: Dict[str, Any] = None) -> InteractionResponse:
         """Handle listing pinned entries."""
-        entries = list_pinned(user_id)
+        if entities is None:
+            entities = {}
+        offset = entities.get('offset', 0)
+        limit = entities.get('limit', 5)
+        
+        entries = list_pinned(user_id, limit=100)  # Get up to 100, paginate in handler
         
         if not entries:
             return InteractionResponse("No pinned entries found.", True)
         
-        response_parts = [f"📌 Pinned entries ({len(entries)}):"]
-        for entry in entries:
+        total = len(entries)
+        paginated = entries[offset:offset + limit]
+        has_more = offset + limit < total
+        
+        response_parts = [f"📌 Pinned entries ({total}):"]
+        for entry in paginated:
             short_id = self._format_entry_id(entry)
             response_parts.append(f"• {entry.title or 'Untitled'} ({short_id})")
         
-        return InteractionResponse("\n".join(response_parts), True)
+        if has_more:
+            remaining = total - (offset + limit)
+            response_parts.append(f"\n... and {remaining} more")
+        
+        suggestions = []
+        if has_more:
+            remaining = total - (offset + limit)
+            suggestions.append(f"Show More ({min(limit, remaining)} more)")
+        
+        return InteractionResponse("\n".join(response_parts), True, suggestions=suggestions if suggestions else None)
 
     @handle_errors("handling list inbox")
-    def _handle_list_inbox(self, user_id: str) -> InteractionResponse:
+    def _handle_list_inbox(self, user_id: str, entities: Dict[str, Any] = None) -> InteractionResponse:
         """Handle listing inbox entries."""
-        entries = list_inbox(user_id)
+        if entities is None:
+            entities = {}
+        offset = entities.get('offset', 0)
+        limit = entities.get('limit', 5)
+        
+        entries = list_inbox(user_id, limit=100)  # Get up to 100, paginate in handler
         
         if not entries:
             return InteractionResponse("Inbox is empty.", True)
         
-        response_parts = [f"📥 Inbox ({len(entries)} entries):"]
-        for entry in entries:
+        total = len(entries)
+        paginated = entries[offset:offset + limit]
+        has_more = offset + limit < total
+        
+        response_parts = [f"📥 Inbox ({total} entries):"]
+        for entry in paginated:
             short_id = self._format_entry_id(entry)
             response_parts.append(f"• {entry.title or 'Untitled'} ({short_id})")
         
-        return InteractionResponse("\n".join(response_parts), True)
+        if has_more:
+            remaining = total - (offset + limit)
+            response_parts.append(f"\n... and {remaining} more")
+        
+        suggestions = []
+        if has_more:
+            remaining = total - (offset + limit)
+            suggestions.append(f"Show More ({min(limit, remaining)} more)")
+        
+        return InteractionResponse("\n".join(response_parts), True, suggestions=suggestions if suggestions else None)
 
     @handle_errors("handling list by tag")
     def _handle_list_by_tag(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle listing entries by tag."""
         tag = entities.get('tag')
+        offset = entities.get('offset', 0)
+        limit = entities.get('limit', 5)
         
         if not tag:
             return InteractionResponse("Which tag?", False)
         
-        entries = list_by_tag(user_id, tag)
+        entries = list_by_tag(user_id, tag, limit=100)  # Get all matches, paginate in handler
         
         if not entries:
             return InteractionResponse(f"No entries found with tag '{tag}'.", True)
         
-        response_parts = [f"🏷️ Tag '{tag}' ({len(entries)} entries):"]
-        for entry in entries:
+        total = len(entries)
+        paginated = entries[offset:offset + limit]
+        has_more = offset + limit < total
+        
+        response_parts = [f"🏷️ Tag '{tag}' ({total} entries):"]
+        for entry in paginated:
             short_id = self._format_entry_id(entry)
             response_parts.append(f"• {entry.title or 'Untitled'} ({short_id})")
         
-        return InteractionResponse("\n".join(response_parts), True)
+        if has_more:
+            remaining = total - (offset + limit)
+            response_parts.append(f"\n... and {remaining} more")
+        
+        suggestions = []
+        if has_more:
+            remaining = total - (offset + limit)
+            suggestions.append(f"Show More ({min(limit, remaining)} more)")
+        
+        return InteractionResponse("\n".join(response_parts), True, suggestions=suggestions if suggestions else None)
+
+    @handle_errors("handling list archived")
+    def _handle_list_archived(self, user_id: str, entities: Dict[str, Any] = None) -> InteractionResponse:
+        """Handle listing archived entries."""
+        if entities is None:
+            entities = {}
+        offset = entities.get('offset', 0)
+        limit = entities.get('limit', 5)
+        
+        entries = list_archived(user_id, limit=100)  # Get all matches, paginate in handler
+        
+        if not entries:
+            return InteractionResponse("No archived entries found.", True)
+        
+        total = len(entries)
+        paginated = entries[offset:offset + limit]
+        has_more = offset + limit < total
+        
+        response_parts = [f"🗄️ Archived entries ({total}):"]
+        for entry in paginated:
+            short_id = self._format_entry_id(entry)
+            kind_icon = {'note': '📄', 'list': '📋', 'journal': '📔'}.get(entry.kind, '📝')
+            response_parts.append(f"{kind_icon} {entry.title or 'Untitled'} ({short_id})")
+        
+        if has_more:
+            remaining = total - (offset + limit)
+            response_parts.append(f"\n... and {remaining} more")
+        
+        suggestions = []
+        if has_more:
+            remaining = total - (offset + limit)
+            suggestions.append(f"Show More ({min(limit, remaining)} more)")
+        
+        return InteractionResponse("\n".join(response_parts), True, suggestions=suggestions if suggestions else None)
 
     # Helper methods
     @handle_errors("formatting entry ID", default_return="unknown")
     def _format_entry_id(self, entry: Entry) -> str:
-        """Format entry ID as short ID (e.g., n-3f2a9c)."""
-        short_id = str(entry.id)[:6]
+        """Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing)."""
+        short_id = str(entry.id).replace('-', '')[:6]
         kind_prefix = entry.kind[0]  # 'n', 'l', or 'j'
-        return f"{kind_prefix}-{short_id}"
+        return f"{kind_prefix}{short_id}"
 
     @handle_errors("formatting entry response", default_return="Error formatting entry")
     def _format_entry_response(self, entry: Entry) -> str:
@@ -640,7 +758,7 @@ class NotebookHandler(InteractionHandler):
             "!n My quick thought",
             "!n Meeting Notes | Discuss project X, follow up on Y",
             "!recent",
-            "!show n-123abc",
+            "!show n123abc",
             "!append My thought | More details here",
             "!tag My thought #idea #work",
             "!s project X",

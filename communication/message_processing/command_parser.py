@@ -329,11 +329,31 @@ class EnhancedCommandParser:
                 r'^createn\s+(.+)$',
                 r'^n\s+(.+)$',
                 r'^note\s+(.+)$',
-                r'^n\s+(.+)$',
-                r'^note\s+(.+)',
                 r'note\s+(.+)',
                 r'new\s+note\s+(.+)',
                 r'create\s+note\s+(?:about\s+)?(.+)',  # Match "create note about X" without hallucinating details
+            ],
+            'create_journal': [
+                r'^j\s+(.+)$',
+                r'^journal\s+(.+)$',
+                r'^nj\s+(.+)$',
+                r'^njournal\s+(.+)$',
+                r'^newj\s+(.+)$',
+                r'^newjournal\s+(.+)$',
+                r'^cj\s+(.+)$',
+                r'^cjournal\s+(.+)$',
+                r'^createjournal\s+(.+)$',
+                r'^createj\s+(.+)$',
+                r'new\s+journal\s+(.+)',
+                r'create\s+journal\s+(?:entry\s+)?(.+)',
+            ],
+            'set_entry_body': [
+                r'^set\s+(\S+)\s+(.+)$',
+                r'^set\s+(\S+)\s+(.+)$',
+                r'^replace\s+(\S+)\s+(.+)$',
+                r'^update\s+(\S+)\s+(.+)$',
+                r'set\s+body\s+of\s+(\S+)\s+to\s+(.+)',
+                r'replace\s+body\s+of\s+(\S+)\s+with\s+(.+)',
             ],
             'list_recent_entries': [
                 r'^recent(?:\s+(\d+))?$',
@@ -445,7 +465,14 @@ class EnhancedCommandParser:
             ],
             'list_entries_by_tag': [
                 r'^t\s+(.+)$',
-                r'^t\s+(.+)$',
+                r'^tag\s+(.+)$',
+                r'^tag\s+(.+)$',
+            ],
+            'list_archived_entries': [
+                r'^archived$',
+                r'^archive$',
+                r'^show\s+archived$',
+                r'^list\s+archived$',
             ],
         }
         
@@ -873,6 +900,28 @@ class EnhancedCommandParser:
                 entities['entry_ref'] = match.group(1).strip()
                 entities['text'] = match.group(2).strip()
         
+        elif intent == 'set_entry_body':
+            if len(match.groups()) >= 2:
+                entities['entry_ref'] = match.group(1).strip()
+                entities['text'] = match.group(2).strip()
+                entities['body'] = match.group(2).strip()  # Also set body for consistency
+        
+        elif intent == 'create_journal':
+            if match.groups():
+                content = match.group(1).strip()
+                # Check for title : body format or newline separator (same as note)
+                if ':' in content and '\n' not in content:
+                    parts = content.split(':', 1)
+                    entities['title'] = parts[0].strip()
+                    entities['body'] = parts[1].strip() if len(parts) > 1 else None
+                elif '\n' in content:
+                    lines = content.split('\n', 1)
+                    entities['title'] = lines[0].strip()
+                    entities['body'] = lines[1].strip() if len(lines) > 1 else None
+                else:
+                    entities['title'] = content
+                    entities['body'] = None
+        
         elif intent == 'add_tags_to_entry':
             if len(match.groups()) >= 2:
                 entities['entry_ref'] = match.group(1).strip()
@@ -978,6 +1027,10 @@ class EnhancedCommandParser:
         elif intent == 'list_entries_by_tag':
             if match.groups():
                 entities['tag'] = match.group(1).strip()
+        
+        elif intent == 'list_archived_entries':
+            # No entities needed, just list all archived
+            pass
         
         return entities
     

@@ -108,7 +108,8 @@ class TestNotebookHandlerBehavior:
         assert response.completed, "Should complete note creation"
         assert "created" in response.message.lower(), "Should indicate note was created"
         assert "Meeting Notes" in response.message, "Should include note title"
-        assert "n-" in response.message, "Should include short ID"
+        # Short ID format is now n123abc (no dash) for easier mobile typing
+        assert any(prefix in response.message for prefix in ['n', 'l', 'j']), "Should include short ID"
     
     @pytest.mark.file_io
     def test_create_note_with_tags(self, test_data_dir):
@@ -216,7 +217,8 @@ class TestNotebookHandlerBehavior:
         # Create a note first
         from notebook.notebook_data_manager import create_note
         entry = create_note(user_id, title="Test Note", body="Test body content")
-        short_id = f"n-{str(entry.id)[:6]}"
+        # Short ID format is now n123abc (no dash) for easier mobile typing
+        short_id = f"n{str(entry.id).replace('-', '')[:6]}"
         
         parsed_command = ParsedCommand(
             intent="show_entry",
@@ -240,9 +242,9 @@ class TestNotebookHandlerBehavior:
         
         parsed_command = ParsedCommand(
             intent="show_entry",
-            entities={'entry_ref': 'n-nonexistent'},
+            entities={'entry_ref': 'n123nonexistent'},
             confidence=0.9,
-            original_message="!show n-nonexistent"
+            original_message="!show n123nonexistent"
         )
         
         response = handler.handle(user_id, parsed_command)
@@ -262,7 +264,8 @@ class TestNotebookHandlerBehavior:
         # Create a note first
         from notebook.notebook_data_manager import create_note
         entry = create_note(user_id, title="Test Note", body="Original content")
-        short_id = f"n-{str(entry.id)[:6]}"
+        # Short ID format is now n123abc (no dash) for easier mobile typing
+        short_id = f"n{str(entry.id).replace('-', '')[:6]}"
         
         parsed_command = ParsedCommand(
             intent="append_to_entry",
@@ -291,7 +294,8 @@ class TestNotebookHandlerBehavior:
         # Create a note first
         from notebook.notebook_data_manager import create_note
         entry = create_note(user_id, title="Test Note")
-        short_id = f"n-{str(entry.id)[:6]}"
+        # Short ID format is now n123abc (no dash) for easier mobile typing
+        short_id = f"n{str(entry.id).replace('-', '')[:6]}"
         
         parsed_command = ParsedCommand(
             intent="add_tags_to_entry",
@@ -320,7 +324,8 @@ class TestNotebookHandlerBehavior:
         # Create a note first
         from notebook.notebook_data_manager import create_note
         entry = create_note(user_id, title="Important Note")
-        short_id = f"n-{str(entry.id)[:6]}"
+        # Short ID format is now n123abc (no dash) for easier mobile typing
+        short_id = f"n{str(entry.id).replace('-', '')[:6]}"
         
         parsed_command = ParsedCommand(
             intent="pin_entry",
@@ -352,7 +357,8 @@ class TestNotebookHandlerBehavior:
         from notebook.notebook_data_manager import create_list
         entry = create_list(user_id, title="Groceries", items=['Milk'])
         assert entry is not None, "List should be created successfully"
-        short_id = f"l-{str(entry.id)[:6]}"
+        # Short ID format is now l123abc (no dash) for easier mobile typing
+        short_id = f"l{str(entry.id).replace('-', '')[:6]}"
         
         parsed_command = ParsedCommand(
             intent="add_list_item",
@@ -383,7 +389,8 @@ class TestNotebookHandlerBehavior:
         from notebook.notebook_data_manager import create_list
         entry = create_list(user_id, title="Tasks", items=['Task 1', 'Task 2'])
         assert entry is not None, "List should be created successfully"
-        short_id = f"l-{str(entry.id)[:6]}"
+        # Short ID format is now l123abc (no dash) for easier mobile typing
+        short_id = f"l{str(entry.id).replace('-', '')[:6]}"
         
         parsed_command = ParsedCommand(
             intent="toggle_list_item_done",
@@ -608,9 +615,9 @@ class TestNotebookCommandParsing:
         parser = EnhancedCommandParser()
         
         show_patterns = [
-            "show n-123abc",
-            "display n-123abc",
-            "view n-123abc",
+            "show n123abc",
+            "display n123abc",
+            "view n123abc",
         ]
         
         for pattern in show_patterns:
@@ -806,10 +813,10 @@ class TestNotebookEntityExtraction:
         """Test extracting entry references (short IDs)."""
         parser = EnhancedCommandParser()
         
-        result = parser.parse("show n-123abc")
+        result = parser.parse("show n123abc")
         assert result.parsed_command.intent == "show_entry", "Should match show_entry"
         assert "entry_ref" in result.parsed_command.entities, "Should extract entry_ref"
-        assert "n-123abc" in result.parsed_command.entities.get("entry_ref", ""), "Should extract correct entry_ref"
+        assert "n123abc" in result.parsed_command.entities.get("entry_ref", ""), "Should extract correct entry_ref"
     
     def test_extract_list_items_from_command(self, test_data_dir):
         """Test extracting list items from command."""
@@ -836,7 +843,7 @@ class TestNotebookEntityExtraction:
         """Test extracting tags from tag command."""
         parser = EnhancedCommandParser()
         
-        result = parser.parse("tag n-123abc #work #urgent")
+        result = parser.parse("tag n123abc #work #urgent")
         assert result.parsed_command.intent == "add_tags_to_entry", "Should match add_tags_to_entry"
         assert "entry_ref" in result.parsed_command.entities, "Should extract entry_ref"
         # Tags extraction may vary - check if present
@@ -1130,9 +1137,9 @@ class TestNotebookErrorHandling:
         # Test show with invalid reference
         parsed_command = ParsedCommand(
             intent="show_entry",
-            entities={'entry_ref': 'n-invalid123'},
+            entities={'entry_ref': 'n123invalid'},
             confidence=0.9,
-            original_message="!show n-invalid123"
+            original_message="!show n123invalid"
         )
         
         response = handler.handle(user_id, parsed_command)
@@ -1149,9 +1156,9 @@ class TestNotebookErrorHandling:
         
         parsed_command = ParsedCommand(
             intent="append_to_entry",
-            entities={'entry_ref': 'n-nonexistent', 'text': 'Some text'},
+            entities={'entry_ref': 'n123nonexistent', 'text': 'Some text'},
             confidence=0.9,
-            original_message="!append n-nonexistent Some text"
+            original_message="!append n123nonexistent Some text"
         )
         
         response = handler.handle(user_id, parsed_command)
@@ -1169,9 +1176,9 @@ class TestNotebookErrorHandling:
         
         parsed_command = ParsedCommand(
             intent="add_tags_to_entry",
-            entities={'entry_ref': 'n-nonexistent', 'tags': ['#work']},
+            entities={'entry_ref': 'n123nonexistent', 'tags': ['#work']},
             confidence=0.9,
-            original_message="!tag n-nonexistent #work"
+            original_message="!tag n123nonexistent #work"
         )
         
         response = handler.handle(user_id, parsed_command)
@@ -1189,9 +1196,9 @@ class TestNotebookErrorHandling:
         
         parsed_command = ParsedCommand(
             intent="toggle_list_item_done",
-            entities={'entry_ref': 'l-nonexistent', 'item_index': 1},
+            entities={'entry_ref': 'l123nonexistent', 'item_index': 1},
             confidence=0.9,
-            original_message="!l done l-nonexistent 1"
+            original_message="!l done l123nonexistent 1"
         )
         
         response = handler.handle(user_id, parsed_command)

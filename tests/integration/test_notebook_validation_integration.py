@@ -79,7 +79,8 @@ class TestNotebookValidationIntegration:
         # Create a note first
         entry = create_note(user_id, title='Test Note', body='Initial body')
         assert entry is not None, "Note should be created"
-        short_id = f"n-{str(entry.id)[:6]}"
+        # Short ID format is now n123abc (no dash) for easier mobile typing
+        short_id = f"n{str(entry.id).replace('-', '')[:6]}"
         
         # Valid append should succeed
         updated = append_to_entry_body(user_id, short_id, 'More text')
@@ -99,7 +100,8 @@ class TestNotebookValidationIntegration:
         # Create a note first
         entry = create_note(user_id, title='Test Note', body='Initial body')
         assert entry is not None, "Note should be created"
-        short_id = f"n-{str(entry.id)[:6]}"
+        # Short ID format is now n123abc (no dash) for easier mobile typing
+        short_id = f"n{str(entry.id).replace('-', '')[:6]}"
         
         # Valid body should succeed
         updated = set_entry_body(user_id, short_id, 'New body text')
@@ -119,7 +121,8 @@ class TestNotebookValidationIntegration:
         # Create a list first
         entry = create_list(user_id, title='Test List', items=['Item 1'])
         assert entry is not None, "List should be created"
-        short_id = f"l-{str(entry.id)[:6]}"
+        # Short ID format is now l123abc (no dash) for easier mobile typing
+        short_id = f"l{str(entry.id).replace('-', '')[:6]}"
         
         # Valid item should succeed
         updated = add_list_item(user_id, short_id, 'Item 2')
@@ -142,7 +145,8 @@ class TestNotebookValidationIntegration:
         # Create a note first
         entry = create_note(user_id, title='Test Note')
         assert entry is not None, "Note should be created"
-        short_id = f"n-{str(entry.id)[:6]}"
+        # Short ID format is now n123abc (no dash) for easier mobile typing
+        short_id = f"n{str(entry.id).replace('-', '')[:6]}"
         
         # Valid group should succeed
         updated = set_group(user_id, short_id, 'work')
@@ -222,7 +226,8 @@ class TestNotebookValidationIntegration:
         assert updated is None, "Invalid reference should fail"
         
         # Try with valid reference
-        short_id = f"n-{str(entry.id)[:6]}"
+        # Short ID format is now n123abc (no dash) for easier mobile typing
+        short_id = f"n{str(entry.id).replace('-', '')[:6]}"
         updated = append_to_entry_body(user_id, short_id, 'More text')
         assert updated is not None, "Valid reference should succeed"
     

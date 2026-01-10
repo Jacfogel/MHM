@@ -143,6 +143,8 @@ Each item:
   Show pinned entries.  
 - `!inbox`  
   Show untagged, unarchived recent items (works for both notes and tasks).
+- `!archived` or `!archive`  
+  Show archived entries (notebook entries only).
 
 ### Editing sessions (phone-friendly, recommended)
 - `!edit <id_or_title>`  
@@ -423,12 +425,51 @@ If you follow this structure, the migration is **not** a rewrite—just a backen
 - **Smart Views**: `!pinned`, `!inbox`, `!t <tag>`, `!group <groupname>`
 - **Group Management**: `!group <id_or_title> <groupname>` (set group)
 
-#### Known Issues ⚠️
-- **Set Entry Body**: Handler exists (`set_entry_body`) but no command patterns (`!set` or similar) - needs implementation
-- **Create Journal**: Handler exists (`create_journal`) but no command patterns - needs implementation
-- **Slash Commands**: Notebook commands work via slash commands through conversion logic, but not explicitly registered in `_command_definitions` (may affect discoverability)
+#### Known Issues & Opportunities for Improvement ⚠️
+
+**High Priority Issues:**
+- ~~**Set Entry Body Command**: Handler exists (`set_entry_body`) but no command patterns (`!set` or similar) - needs implementation~~ ✅ **FIXED** - Added `!set`, `!replace`, `!update` command patterns
+- ~~**Create Journal Commands**: Handler exists (`create_journal`) but no command patterns - needs implementation~~ ✅ **FIXED** - Added `!j`, `!journal`, `!newjournal`, etc. command patterns
+- ~~**Short ID Format**: Currently uses dash (`n-123abc`) which is harder to type on mobile - should remove dash for better mobile UX~~ ✅ **FIXED** - Changed to `n123abc` format (no dash), backward compatible with old format
 - **Group Command Ambiguity**: `!group <entry> <group>` vs `!group <group>` - parser may incorrectly route single-word group names
-- **TaskManagementHandler Duplication**: Two `TaskManagementHandler` classes exist (`task_handler.py` and `interaction_handlers.py`) - need to investigate which is used and consolidate to prevent maintenance issues
+
+**User Experience Issues:**
+- **Edit Sessions (Milestone 4)**: Not implemented - users can't easily rewrite long notes (must use `!set` or `!append`)
+- **No Bulk Operations**: Can't tag multiple entries at once, or perform other bulk actions
+- **Error Messages**: Some error messages could be more actionable (e.g., suggest similar entry IDs when not found)
+- **Search Feedback**: No helpful feedback when search returns no results (just "No entries found")
+- **Command Discovery**: No help system for discovering notebook commands (e.g., `!help notebook`)
+- **Journal Visual Distinction**: Journal entries look identical to notes in responses (no visual distinction)
+- **Group vs Tag Clarity**: Group vs tag distinction might be unclear to users (single group vs multiple tags)
+- **Command Consistency**: Some commands note-specific (`!pin`, `!archive`) while others are shared (could be confusing)
+- **List Command Prefix**: List operations use `!l` prefix while note operations don't (inconsistent)
+
+**Technical Debt:**
+- **Search Module**: Search logic in `notebook_data_manager.py` instead of separate `notebook_search.py` (plan suggested abstraction)
+- **Short ID Formatting**: Logic duplicated between handler and validation - should centralize in `core/ids.py`
+- **Task Short IDs**: Tasks don't have short IDs - should implement centralized ID system (`core/ids.py`) for both tasks and notebook entries
+- **Pattern Duplication**: Some regex patterns duplicated (e.g., `r'^n\s+(.+)$'` appears twice in create_note patterns)
+- **Slash Command Registration**: Notebook commands work via conversion but not explicitly registered (affects discoverability)
+- **Flow State Persistence**: Currently in-memory with JSON backup - could be improved
+- **Pagination**: Search, inbox, pinned, group, and tag views don't support pagination - **TODO**: Add "Show More" buttons and pagination support
+
+**Robustness & Scalability:**
+- **Concurrent Access**: No validation for concurrent access (multiple users/devices)
+- **File Operation Retry**: No retry logic for file operations (though atomic writes reduce risk)
+- **Migration System**: Schema versioning exists but no migration logic for schema changes
+- **Backup/Restore**: No backup/restore mechanism for notebook data
+- **Performance**: No indexing for large datasets (plan mentioned `entries_index.json` as optional)
+- **Performance Tests**: No performance tests (large datasets, concurrent access)
+- **Integration Tests**: No integration tests with actual Discord bot
+
+**AI Integration:**
+- **AI Chatbot Access**: AI chatbot does not currently have access to notebook entries in context
+- **AI Intent Extraction (Milestone 6)**: Not implemented - natural language intent extraction pending
+- **AI Fallback**: Falls back to AI chatbot when commands unclear, but AI may not understand notebook-specific intents
+
+**Documentation:**
+- **User Documentation**: No user-facing documentation (how to use notebook commands)
+- **API Documentation**: No API documentation for data manager functions
 
 ### Command Support Matrix
 - **Bang commands (`!command`)**: ✅ Fully supported
@@ -446,6 +487,119 @@ Many commands now work for both tasks and notes:
 
 Task-specific: `!complete`, `!uncomplete` (tasks only)  
 Note-specific: `!pin`, `!unpin`, `!archive`, `!unarchive` (notes only)
+
+---
+
+## Implementation Details & Behavior
+
+### Recent Entries Behavior
+- **Default Limit**: Shows 5 most recently updated entries by default
+- **Custom Limit**: Users can specify limit with `!recent N` (e.g., `!recent 10`)
+- **Sorting**: Entries sorted by `updated_at` timestamp (most recent first)
+- **Archived Entries**: Archived entries are **excluded** from recent by default
+- **Including Archived**: Can include archived entries by calling `list_recent(user_id, n=5, include_archived=True)` programmatically (no command pattern yet)
+- **What if More Notes Exist**: Only shows the N most recent (doesn't indicate if more exist - acceptable for recent view)
+- **Tasks Included**: ❌ **NO** - Only notebook entries (notes, lists, journal) are included. Tasks are stored separately and don't appear in notebook queries.
+
+### Inbox vs Recent - Key Differences
+- **Recent (`!recent`)**: Shows N most recently updated entries (default 5), sorted by `updated_at`, excludes archived
+- **Inbox (`!inbox`)**: Shows **untagged, unarchived** entries updated within last 30 days (default 5, paginated), sorted by `updated_at`
+  - **Purpose**: Inbox is for "uncategorized" items that need attention/tagging
+  - **Filter**: Must have NO tags AND not be archived AND updated within 30 days
+  - **Use Case**: Quick way to see items that haven't been organized yet
+  - **Pagination**: Shows 5 at a time with "Show More" button if more exist
+
+### Archiving Behavior
+- **What Archiving Does**: Sets `archived=True` flag on entry (entry still exists in storage)
+- **Effect on Queries**: 
+  - Archived entries excluded from `!recent` by default
+  - Archived entries excluded from `!search` results
+  - Archived entries excluded from `!inbox` view
+  - Archived entries excluded from `!pinned` view
+  - Archived entries excluded from `!group` and `!tag` views
+- **Accessing Archived**: 
+  - Can still access archived entries directly by ID (`!show <id>`)
+  - Use `!archived` or `!archive` to list archived entries (shows 5 at a time, paginated)
+- **Unarchiving**: Use `!unarchive <id>` to restore entry to normal views
+- **Pagination**: All list views (archived, inbox, pinned, group, tag, search) show 5 entries at a time with "Show More" button if more exist
+- **Default Display**: All queries show 5 entries initially, with pagination support to view more
+
+### Short ID Format
+- **Current Format**: `n123abc` (kind prefix + 6-8 hex characters, **no dash**)
+- **Change Made**: Removed dash for easier mobile typing (changed from `n-123abc` to `n123abc`)
+- **Backward Compatibility**: **REMOVED** - No longer supports dash format (user will update files manually)
+- **Examples**: `n123abc` (note), `l91ab20` (list), `j0c77e2` (journal)
+- **Task Short IDs**: Tasks currently use full UUIDs (`task_id`), not short IDs - **TODO**: Implement centralized short ID system for tasks (e.g., `t123abc`)
+
+### Adding Tags and Groups
+
+**Tags** (`!tag <id_or_title> <tags...>`):
+- **How it works**: Use `!tag <entry_id> #work #urgent` or `!tag <entry_id> work urgent`
+- **Supported formats**: `#tag` format or plain text (both normalized to lowercase)
+- **Works for**: ✅ Notes, ✅ Lists, ✅ Journal entries
+- **Works for Tasks**: ⚠️ **PARTIAL** - Tasks have tags in their schema, but `!tag` command only works for notebook entries. Tasks need to use `update task <id> tags <tags>` or have tags added during creation.
+- **Multiple tags**: Can add multiple tags at once: `!tag n123abc #work #urgent project:alpha`
+- **Tag normalization**: All tags normalized to lowercase, duplicates removed automatically
+
+**Groups** (`!group <id_or_title> <groupname>`):
+- **How it works**: Use `!group <entry_id> work` to set a group
+- **Single group**: Each entry can have only ONE group (unlike tags which can have multiple)
+- **Works for**: ✅ Notes, ✅ Lists, ✅ Journal entries
+- **Works for Tasks**: ❌ **NO** - Tasks don't have a `group` field in their schema
+- **Viewing by group**: Use `!group <groupname>` (without entry ID) to see all entries in that group (shows 5 at a time, paginated)
+- **Group vs Tags**: 
+  - **Group**: Single high-level category (e.g., "work", "health", "home")
+  - **Tags**: Multiple detailed labels (e.g., `["#meeting", "#urgent", "project:alpha"]`)
+
+### Tasks in Notebook Queries
+- **Tasks are NOT included** in notebook queries (`!recent`, `!search`, `!inbox`, `!pinned`, `!group`, `!tag`, `!archived`)
+- **Why**: Tasks are stored separately (`tasks/active_tasks.json`) from notebook entries (`notebook/entries.json`)
+  - `load_entries()` only loads from `notebook/entries.json`
+  - Tasks are managed by `tasks/task_management.py` and stored in `tasks/active_tasks.json`
+- **Commands that work for both**: Some commands like `!show`, `!append`, `!tag` work for both tasks and notebook entries, but the queries themselves are separate
+- **Future consideration**: 
+  - **Long-term plan**: Move to SQLite or unified database system that contains tasks, notebook entries, events (future feature), etc.
+  - **Laying groundwork**: Shared modules (`core/tags.py`, `core/user_data_validation.py`) are already in place for cross-feature functionality
+  - **Unified queries**: When migrating to database, unified queries can be implemented to include both tasks and notebook entries in single results
+  - **Current state**: Separate systems by design, but architecture supports future unification
+
+### Pagination and Limits
+- **All list queries are paginated**: Every query shows 5 entries at a time by default
+- **Data manager limits**: Functions fetch up to 100 matching entries, then handlers paginate to show 5 at a time
+- **"Show More" button**: When more entries exist, a "Show More" button appears (needs button click handler implementation)
+- **Commands with pagination**:
+  - `!search` - Shows 5 results at a time
+  - `!inbox` - Shows 5 entries at a time
+  - `!archived` - Shows 5 entries at a time
+  - `!pinned` - Shows 5 entries at a time
+  - `!group <groupname>` - Shows 5 entries at a time
+  - `!tag <tag>` - Shows 5 entries at a time
+  - `!recent` - Shows N entries (default 5, user can specify)
+
+**Examples**:
+```
+!tag n123abc #work #urgent          # Add tags to note
+!group n123abc work                  # Set group on note
+!tag l91ab20 groceries shopping     # Add tags to list
+!group l91ab20 home                  # Set group on list
+!tag j0c77e2 reflection              # Add tags to journal entry
+!group j0c77e2 personal              # Set group on journal entry
+```
+
+### AI Chatbot Integration
+- **Fallback Behavior**: When commands are unclear, system falls back to AI chatbot (`generate_contextual_response`)
+- **AI Command Parsing**: AI can parse natural language into notebook intents via `EnhancedCommandParser._ai_enhanced_parse`
+- **AI Context Access**: **Currently AI chatbot does NOT have access to notebook entries** in context
+  - AI sees: user profile, check-ins, tasks, schedules, conversation history
+  - AI does NOT see: notebook entries, notes, lists, journal entries
+- **AI Command Awareness**: AI prompt includes notebook actions (`create_note`, `create_list`, `create_journal`, `list_recent_entries`, `show_entry`, `append_to_entry`, `add_tags_to_entry`, `remove_tags_from_entry`, `search_entries`, `pin_entry`, `unpin_entry`, `archive_entry`) but AI may not always recognize them in natural language
+- **Multiple Commands**: **System does NOT handle multiple commands in a single message** - parser processes one command at a time
+  - Example: "delete n123abc and add potatoes to l123abc" would only process the first command
+  - **Workaround**: User must send separate messages for each command
+- **AI Intent Extraction (Milestone 6)**: Planned but not implemented - would allow conversational notebook actions and better multi-command handling
+- **Recommendation**: 
+  - Add recent notebook entries to AI context for better contextual responses
+  - Consider implementing multi-command parsing (split by "and", "then", etc.)
 
 ---
 
@@ -573,9 +727,10 @@ python -m pytest tests/behavior/test_notebook_handler_behavior.py --cov=notebook
 #### High Priority
 1. ~~**Comprehensive Test Suite**~~ ✅ **COMPLETED** - Comprehensive test suite with 54 tests covering all implemented functionality, entity extraction, flow state edge cases, and error handling
 2. ~~**Validation System**~~ ✅ **COMPLETED** - Implemented comprehensive validation system with proper separation of concerns (general validators in `core/user_data_validation.py`, notebook-specific in `notebook/notebook_validation.py`), error handling compliance, and extensive test coverage (28 unit validation + 10 unit error handling + 13 integration tests)
-3. **Set Entry Body Command** - Add `!set <id_or_title> <text>` pattern to trigger `set_entry_body`
-4. **Create Journal Command** - Add command patterns for journal creation
-5. ~~**TaskManagementHandler Deduplication**~~ ✅ **COMPLETED** - Consolidated duplicate `TaskManagementHandler` classes (see CHANGELOG_DETAIL.md for details)
+3. ~~**Set Entry Body Command**~~ ✅ **COMPLETED** - Added `!set`, `!replace`, `!update` command patterns to trigger `set_entry_body`
+4. ~~**Create Journal Command**~~ ✅ **COMPLETED** - Added `!j`, `!journal`, `!newjournal`, `!createjournal` and other aliases
+5. ~~**Short ID Format**~~ ✅ **COMPLETED** - Removed dash from short ID format (`n123abc` instead of `n-123abc`) for easier mobile typing, maintained backward compatibility
+6. ~~**TaskManagementHandler Deduplication**~~ ✅ **COMPLETED** - Consolidated duplicate `TaskManagementHandler` classes (see CHANGELOG_DETAIL.md for details)
 
 #### Medium Priority
 4. **Edit Sessions (Milestone 4)** - Implement `!edit` command with flow state
