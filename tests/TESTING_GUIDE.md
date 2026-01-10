@@ -440,7 +440,7 @@ Recommended pattern (subject to alignment with the actual `pytest.ini`):
 
 - **Feature markers** (zero or more):
   - `tasks`, `scheduler`, `checkins`, `messages`, `analytics`,
-    `user_management`, `communication`, `ai`, etc.
+    `user_management`, `communication`, `ai`, `notebook`, etc.
 
 - **Speed markers**:
   - `slow` (long-running > 1s, excluded from fast runs).

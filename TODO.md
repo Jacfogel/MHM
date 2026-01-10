@@ -252,7 +252,7 @@ When adding new tasks, follow this format:
 - *Current Status*: 20 modules completed (486 new tests added total, all passing) - see changelogs for details
   - **Latest additions** (2025-01-14): `user/user_preferences.py` (26 tests), `core/ui_management.py` (27 tests), `ai/prompt_manager.py` (49 tests)
 - *Next Targets*:
-  - [ ] **Add comprehensive notebook feature tests** - Test data handlers, data manager (CRUD, search, lists, views), command handlers, tag system, and integration workflows (see `.cursor/plans/notebook_feature_implementation_ce88ed1a.plan.md` milestone 1.12a-1.12o)
+  - [x] **Add comprehensive notebook feature tests** ✅ **COMPLETED** - Added 54 comprehensive tests covering data handlers, data manager (CRUD, search, lists, views), command handlers, tag system, entity extraction, flow state edge cases, and error handling (see `tests/behavior/test_notebook_handler_behavior.py`)
   - [ ] Expand coverage for `ui/ui_app_qt.py` (33% coverage, 1095 lines) - Large module
   - [ ] Expand coverage for `core/scheduler.py` (65% -> 80%+)
   - [ ] Add comprehensive tests for remaining communication modules
@@ -282,6 +282,7 @@ When adding new tasks, follow this format:
 - *Estimated effort*: Small/Medium
 - *Subtasks*:
   - [ ] Investigate `test_comprehensive_context_includes_recent_sent_messages_and_checkin_status` failure (assertion that "Recent automated messages sent to them:" is in content)
+  tests/behavior/test_checkin_questions_enhancement.py::TestCustomQuestions::test_delete_custom_question
   tests/ui/test_category_management_dialog.py::TestCategoryManagementDialogRealBehavior::test_save_category_settings_persists_to_disk - AssertionError: Saved categories should match selected categories (order ma...
   tests/behavior/test_webhook_handler_behavior.py::TestWebhookHandlerBehavior::test_handle_webhook_event_routes_application_deauthorized - AssertionError: User should be welcomed
   - [ ] Check for timing/race condition issues in test setup or teardown

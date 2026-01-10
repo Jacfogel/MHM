@@ -166,15 +166,15 @@ class InteractionManager:
             parts = lowered.split()
             cmd_name = parts[0][1:] if parts and parts[0].startswith('/') else ''
 
-            # /cancel and /skip are flow keywords - handle them via conversation manager
-            if cmd_name in ['cancel', 'skip']:
+            # /cancel, /skip, /end, /endlist are flow keywords - handle them via conversation manager
+            if cmd_name in ['cancel', 'skip', 'end', 'endlist', 'endl']:
                 # Always delegate to conversation manager (handles both in-flow and not-in-flow cases)
                 reply_text, completed = conversation_manager.handle_inbound_message(user_id, message_stripped)
                 return InteractionResponse(reply_text, completed)
             
             # If message starts with / or !, it's a command - clear any active flow first
-            # (but skip/cancel were handled above)
-            if user_state["flow"] != 0 and cmd_name not in ['cancel', 'skip']:
+            # (but skip/cancel/end were handled above)
+            if user_state["flow"] != 0 and cmd_name not in ['cancel', 'skip', 'end', 'endlist', 'endl']:
                 logger.info(f"User {user_id} in flow {user_state['flow']} but sent command '{message_stripped}', clearing flow")
                 conversation_manager.user_states.pop(user_id, None)
                 conversation_manager._save_user_states()
@@ -237,15 +237,15 @@ class InteractionManager:
             parts = lowered.split()
             cmd_name = parts[0][1:] if parts and parts[0].startswith('!') else ''
 
-            # !cancel and !skip are flow keywords - handle them via conversation manager
-            if cmd_name in ['cancel', 'skip']:
+            # !cancel, !skip, !end, !endlist are flow keywords - handle them via conversation manager
+            if cmd_name in ['cancel', 'skip', 'end', 'endlist', 'endl']:
                 # Always delegate to conversation manager (handles both in-flow and not-in-flow cases)
                 reply_text, completed = conversation_manager.handle_inbound_message(user_id, message_stripped)
                 return InteractionResponse(reply_text, completed)
             
             # If message starts with !, it's a command - clear any active flow first
-            # (but skip/cancel were handled above)
-            if user_state["flow"] != 0 and cmd_name not in ['cancel', 'skip']:
+            # (but skip/cancel/end were handled above)
+            if user_state["flow"] != 0 and cmd_name not in ['cancel', 'skip', 'end', 'endlist', 'endl']:
                 logger.info(f"User {user_id} in flow {user_state['flow']} but sent command '{message_stripped}', clearing flow")
                 conversation_manager.user_states.pop(user_id, None)
                 conversation_manager._save_user_states()
@@ -302,7 +302,8 @@ class InteractionManager:
             message_lower = message.strip().lower()
             
             # Flow keywords should always be handled by conversation manager, not parsed as commands
-            flow_keywords = ['skip', 'cancel', 'end', 'endlist']
+            # Include both with and without prefixes since message may have prefix stripped
+            flow_keywords = ['skip', 'cancel', 'end', 'endlist', 'endl', '!end', '/end', '!endlist', '/endlist', '!endl', '/endl']
             if message_lower in flow_keywords or any(message_lower == keyword for keyword in flow_keywords):
                 # User is using a flow keyword - let conversation manager handle it
                 logger.info(f"User {user_id} in flow {user_state['flow']} used flow keyword '{message_lower}', delegating to conversation manager")

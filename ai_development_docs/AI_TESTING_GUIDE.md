@@ -194,7 +194,7 @@ Marker standards (must stay aligned with `pytest.ini` and section 6 in [TESTING_
   - `unit`, `integration`, `behavior`, or `ui`.
 - Add feature markers as needed, for example:
   - `tasks`, `scheduler`, `checkins`, `messages`, `analytics`,
-    `user_management`, `communication`, `ai`.
+    `user_management`, `communication`, `ai`, `notebook`.
 - Use:
   - `slow` for long-running tests.
   - `fast` (optional) for very quick tests.

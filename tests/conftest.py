@@ -3113,6 +3113,9 @@ def pytest_ignore_collect(collection_path, config):
 
 def pytest_configure(config):
     """Configure pytest for MHM testing and suppress collection warnings for development tools implementation classes."""
+    # Register custom markers to avoid warnings
+    config.addinivalue_line("markers", "notebook: Notebook functionality tests (notes, lists, journal entries)")
+    
     # Suppress PytestCollectionWarning for development tools implementation classes
     # These warnings are emitted during collection, so we need to filter them in the hook
     # Note: pytest is already imported at module level, don't import it again here

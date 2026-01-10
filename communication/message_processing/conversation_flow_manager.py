@@ -1708,12 +1708,17 @@ class ConversationManager:
             
             # Create list with collected items
             from notebook.notebook_data_manager import create_list
-            list_items = [{'text': item.strip(), 'done': False} for item in items if item.strip()]
-            entry = create_list(user_id, title=title, tags=tags, group=group, items=list_items)
+            # items from flow_data are already strings, create_list expects List[str]
+            item_strings = [item.strip() for item in items if item.strip()]
+            # Ensure at least one item (create_list will add default if empty, but better to be explicit)
+            if not item_strings:
+                # User ended flow without adding items - create list with placeholder
+                item_strings = ["New item"]
+            entry = create_list(user_id, title=title, tags=tags, group=group, items=item_strings)
             
             if entry:
                 short_id = str(entry.id)[:6]
-                return (f"✅ List created: '{title}' ({entry.kind[0]}-{short_id}) with {len(list_items)} items", True)
+                return (f"✅ List created: '{title}' ({entry.kind[0]}-{short_id}) with {len(item_strings)} items", True)
             else:
                 return ("❌ Failed to create list. Please try again.", True)
         

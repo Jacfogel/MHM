@@ -105,8 +105,15 @@ def create_entry(
         if items:
             for i, item_data in enumerate(items):
                 try:
-                    list_items.append(ListItem(order=i, **item_data))
-                except ValidationError as e:
+                    # item_data might be a dict (from create_list) or already a ListItem
+                    if isinstance(item_data, dict):
+                        # Extract order if present, otherwise use index
+                        item_order = item_data.pop('order', i)
+                        list_items.append(ListItem(order=item_order, **item_data))
+                    else:
+                        # Already a ListItem or other type - convert
+                        list_items.append(item_data)
+                except (ValidationError, TypeError, ValueError) as e:
                     logger.error(f"Invalid list item data: {item_data} - {e}")
                     return None
         entry_data["items"] = list_items
@@ -148,13 +155,18 @@ def create_list(
     items: Optional[List[str]] = None
 ) -> Optional[Entry]:
     """Creates a list entry with initial items."""
+    if not items:
+        # List must have at least one item - use a default placeholder
+        items = ["New item"]
+    
     list_items = []
-    if items:
-        for i, item_text in enumerate(items):
-            list_items.append({"text": item_text, "order": i})
-    else:
-        # List must have at least one item
-        list_items.append({"text": "", "order": 0})
+    for i, item_text in enumerate(items):
+        if item_text and item_text.strip():  # Only add non-empty items
+            list_items.append({"text": item_text.strip(), "order": i})
+    
+    # Ensure at least one item (shouldn't happen if items was provided, but safety check)
+    if not list_items:
+        list_items.append({"text": "New item", "order": 0})
     
     return create_entry(user_id, 'list', title=title, tags=tags, group=group, items=list_items)
 
