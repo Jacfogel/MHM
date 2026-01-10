@@ -127,6 +127,13 @@ class NotebookHandler(InteractionHandler):
             tags = flow_data.get('tags', tags)
             group = flow_data.get('group', group)
         
+        # If both title and body are missing, prompt for title
+        if not title and not body:
+            return InteractionResponse(
+                "📝 What would you like to name this note? (You can add body text after)",
+                False
+            )
+        
         # If no body provided and we have a title, start flow to prompt for it
         if not body and title:
             # Parse tags from title first

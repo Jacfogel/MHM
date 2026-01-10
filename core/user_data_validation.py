@@ -6,7 +6,7 @@ context, and schedules data.
 
 import re
 import os
-from typing import Dict, Any, Tuple, List
+from typing import Dict, Any, Tuple, List, Optional
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 
@@ -94,6 +94,82 @@ def validate_schedule_periods__validate_time_format(time_str: str) -> bool:
     else:
         logger.warning(f"Time format validation failed: invalid format for '{time_str}'")
     return is_valid
+
+# ---------------------------------------------------------------------------
+# General string validation helpers
+# ---------------------------------------------------------------------------
+
+@handle_errors("validating string length", default_return=False)
+def is_valid_string_length(text: Optional[str], max_length: int, field_name: str = "string", allow_none: bool = False) -> bool:
+    """
+    Validate that a string is within the specified maximum length.
+    
+    Args:
+        text: String to validate (can be None if allow_none=True)
+        max_length: Maximum allowed length
+        field_name: Name of the field being validated (for error messages)
+        allow_none: Whether None values are allowed
+        
+    Returns:
+        True if string length is valid, False otherwise
+    """
+    if text is None:
+        return allow_none
+    
+    if not isinstance(text, str):
+        logger.warning(f"{field_name} must be a string, got {type(text).__name__}")
+        return False
+    
+    text = text.strip()
+    
+    if len(text) > max_length:
+        logger.warning(f"{field_name} exceeds maximum length of {max_length} characters")
+        return False
+    
+    return True
+
+
+@handle_errors("validating category name", default_return=False)
+def is_valid_category_name(name: Optional[str], max_length: int = 50, field_name: str = "category", allow_none: bool = True) -> bool:
+    """
+    Validate that a category/group name is valid.
+    
+    Category names should be simple identifiers: alphanumeric, spaces, hyphens, underscores.
+    This is used for grouping/categorizing items (e.g., notebook groups, task categories).
+    
+    Args:
+        name: Category name to validate (can be None if allow_none=True)
+        max_length: Maximum allowed length (default: 50)
+        field_name: Name of the field being validated (for error messages)
+        allow_none: Whether None values are allowed (default: True)
+        
+    Returns:
+        True if category name is valid, False otherwise
+    """
+    if name is None:
+        return allow_none
+    
+    if not isinstance(name, str):
+        logger.warning(f"{field_name} must be a string, got {type(name).__name__}")
+        return False
+    
+    name = name.strip()
+    
+    if not name:
+        logger.warning(f"{field_name} cannot be empty (use None instead)")
+        return False
+    
+    if len(name) > max_length:
+        logger.warning(f"{field_name} exceeds maximum length of {max_length} characters")
+        return False
+    
+    # Category names should be simple identifiers (alphanumeric, spaces, hyphens, underscores)
+    if not re.match(r'^[a-zA-Z0-9\s\-_]+$', name):
+        logger.warning(f"{field_name} contains invalid characters. Only alphanumeric, spaces, hyphens, and underscores are allowed.")
+        return False
+    
+    return True
+
 
 @handle_errors("converting to title case", default_return="")
 def _shared__title_case(text: str) -> str:

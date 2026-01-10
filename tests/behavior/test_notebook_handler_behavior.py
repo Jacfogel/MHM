@@ -1264,9 +1264,9 @@ class TestNotebookErrorHandling:
         
         response = handler.handle(user_id, parsed_command)
         assert isinstance(response, InteractionResponse), "Should return InteractionResponse"
-        # Should handle long title gracefully (may truncate or accept)
-        if response.completed:
-            assert "created" in response.message.lower(), "Should indicate note was created"
+        # Should reject very long title (exceeds MAX_TITLE_LENGTH of 200)
+        # Note: Handler may set completed=True even on validation errors, so check message instead
+        assert "error" in response.message.lower() or "invalid" in response.message.lower() or "failed" in response.message.lower(), f"Should indicate validation error, got: {response.message}"
     
     @pytest.mark.file_io
     def test_create_entry_with_special_characters(self, test_data_dir):

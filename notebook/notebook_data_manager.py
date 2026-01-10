@@ -15,6 +15,15 @@ from core.tags import normalize_tags
 
 from notebook.schemas import Entry, ListItem, EntryKind, TIMESTAMP_FORMAT
 from notebook.notebook_data_handlers import load_entries, save_entries
+from notebook.notebook_validation import (
+    is_valid_entry_reference,
+    is_valid_entry_group,
+    is_valid_entry_kind,
+    normalize_list_item_index,
+    validate_entry_content,
+    MAX_BODY_LENGTH
+)
+from core.user_data_validation import is_valid_string_length
 
 logger = get_component_logger('notebook_data_manager')
 
@@ -31,6 +40,11 @@ def _save_updated_entry(user_id: str, entry: Entry, all_entries: List[Entry]) ->
 @handle_errors("finding entry by reference", default_return=None)
 def _find_entry_by_ref(entries: List[Entry], ref: str) -> Optional[Entry]:
     """Finds an entry by full UUID, short ID fragment, or title."""
+    # Validate reference format
+    if not is_valid_entry_reference(ref):
+        logger.warning(f"Invalid entry reference format: {ref}")
+        return None
+    
     ref_lower = ref.lower().strip()
 
     # 1. Try full UUID
@@ -85,6 +99,17 @@ def create_entry(
     """
     if not user_id:
         logger.error("User ID is required to create an entry.")
+        return None
+    
+    # Validate entry kind
+    if not is_valid_entry_kind(kind):
+        logger.error(f"Invalid entry kind: {kind}")
+        return None
+    
+    # Validate entry content
+    is_valid, error_msg = validate_entry_content(title=title, body=body, kind=kind)
+    if not is_valid:
+        logger.error(f"Invalid entry content: {error_msg}")
         return None
 
     normalized_tags = normalize_tags(tags or [])
@@ -206,6 +231,15 @@ def list_recent(user_id: str, n: int = 5, include_archived: bool = False) -> Lis
 @handle_errors("appending to entry body")
 def append_to_entry_body(user_id: str, ref: str, text: str) -> Optional[Entry]:
     """Appends text to an entry's body."""
+    if not user_id:
+        logger.error("User ID is required to append to entry body.")
+        return None
+    
+    # Validate text length
+    if not is_valid_string_length(text, MAX_BODY_LENGTH, field_name="Appended text", allow_none=False):
+        logger.error(f"Text to append exceeds maximum length of {MAX_BODY_LENGTH} characters")
+        return None
+    
     entries = load_entries(user_id)
     entry = _find_entry_by_ref(entries, ref)
     
@@ -215,6 +249,13 @@ def append_to_entry_body(user_id: str, ref: str, text: str) -> Optional[Entry]:
     
     if entry.kind == 'list':
         logger.error("Cannot append to list entry body. Use add_list_item instead.")
+        return None
+    
+    # Check if combined length would exceed limit
+    current_body = entry.body or ""
+    combined_length = len(current_body) + len("\n") + len(text)
+    if combined_length > MAX_BODY_LENGTH:
+        logger.error(f"Combined body length would exceed maximum of {MAX_BODY_LENGTH} characters")
         return None
     
     if entry.body:
@@ -227,6 +268,15 @@ def append_to_entry_body(user_id: str, ref: str, text: str) -> Optional[Entry]:
 @handle_errors("setting entry body")
 def set_entry_body(user_id: str, ref: str, text: str) -> Optional[Entry]:
     """Sets (replaces) an entry's body."""
+    if not user_id:
+        logger.error("User ID is required to set entry body.")
+        return None
+    
+    # Validate text length
+    if not is_valid_string_length(text, MAX_BODY_LENGTH, field_name="Entry body", allow_none=True):
+        logger.error(f"Body text exceeds maximum length of {MAX_BODY_LENGTH} characters")
+        return None
+    
     entries = load_entries(user_id)
     entry = _find_entry_by_ref(entries, ref)
     
@@ -302,6 +352,11 @@ def archive_entry(user_id: str, ref: str, archived: bool = True) -> Optional[Ent
 @handle_errors("setting entry group")
 def set_group(user_id: str, ref: str, group: Optional[str]) -> Optional[Entry]:
     """Sets the group for an entry."""
+    # Validate group if provided
+    if group is not None and not is_valid_entry_group(group):
+        logger.error(f"Invalid group name: {group}")
+        return None
+    
     entries = load_entries(user_id)
     entry = _find_entry_by_ref(entries, ref)
     
@@ -313,12 +368,17 @@ def set_group(user_id: str, ref: str, group: Optional[str]) -> Optional[Entry]:
     return _save_updated_entry(user_id, entry, entries)
 
 # Search operations
+@handle_errors("searching entries", default_return=[])
 def search_entries(user_id: str, query: str, limit: int = 10) -> List[Entry]:
     """
     Searches entries by case-insensitive substring across title, body, and list item texts.
     """
-    if not user_id or not query:
-        logger.error("User ID and query are required for search.")
+    if not user_id:
+        logger.error("User ID is required for search.")
+        return []
+    
+    if not query or not isinstance(query, str) or not query.strip():
+        logger.error("Search query cannot be empty.")
         return []
 
     entries = load_entries(user_id)
@@ -367,6 +427,15 @@ def search_entries(user_id: str, query: str, limit: int = 10) -> List[Entry]:
 @handle_errors("adding list item")
 def add_list_item(user_id: str, ref: str, text: str) -> Optional[Entry]:
     """Adds an item to a list entry."""
+    if not user_id:
+        logger.error("User ID is required to add list item.")
+        return None
+    
+    # Validate list item text (should not be empty)
+    if not text or not text.strip():
+        logger.error("List item text cannot be empty")
+        return None
+    
     entries = load_entries(user_id)
     entry = _find_entry_by_ref(entries, ref)
     
@@ -381,7 +450,7 @@ def add_list_item(user_id: str, ref: str, text: str) -> Optional[Entry]:
     if not entry.items:
         entry.items = []
     
-    new_item = ListItem(text=text, order=len(entry.items))
+    new_item = ListItem(text=text.strip(), order=len(entry.items))
     entry.items.append(new_item)
     
     return _save_updated_entry(user_id, entry, entries)
@@ -400,12 +469,14 @@ def toggle_list_item_done(user_id: str, ref: str, item_index: int, done: bool = 
         logger.error(f"Entry '{ref}' is not a list entry or has no items.")
         return None
     
-    if item_index < 0 or item_index >= len(entry.items):
+    # Normalize item index (handles both 0-based and 1-based)
+    normalized_index = normalize_list_item_index(item_index, len(entry.items))
+    if normalized_index is None:
         logger.error(f"Invalid item index {item_index} for list '{ref}'")
         return None
     
-    entry.items[item_index].done = done
-    entry.items[item_index].updated_at = datetime.now().strftime(TIMESTAMP_FORMAT)
+    entry.items[normalized_index].done = done
+    entry.items[normalized_index].updated_at = datetime.now().strftime(TIMESTAMP_FORMAT)
     
     return _save_updated_entry(user_id, entry, entries)
 
@@ -423,11 +494,13 @@ def remove_list_item(user_id: str, ref: str, item_index: int) -> Optional[Entry]
         logger.error(f"Entry '{ref}' is not a list entry or has no items.")
         return None
     
-    if item_index < 0 or item_index >= len(entry.items):
+    # Normalize item index (handles both 0-based and 1-based)
+    normalized_index = normalize_list_item_index(item_index, len(entry.items))
+    if normalized_index is None:
         logger.error(f"Invalid item index {item_index} for list '{ref}'")
         return None
     
-    entry.items.pop(item_index)
+    entry.items.pop(normalized_index)
     # Reorder remaining items
     for i, item in enumerate(entry.items):
         item.order = i

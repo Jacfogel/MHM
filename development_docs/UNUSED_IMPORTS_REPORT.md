@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-09 05:27:38
+> **Last Generated**: 2026-01-10 03:06:52
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 410
-- **Files with Unused Imports**: 125
-- **Total Unused Imports**: 357
+- **Total Files Scanned**: 412
+- **Files with Unused Imports**: 126
+- **Total Unused Imports**: 360
 
 ## Breakdown by Category
 
@@ -18,9 +18,9 @@
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 1 imports
 - **Star Imports**: 0 imports
-- **Test Mocking**: 145 imports
+- **Test Mocking**: 147 imports
 - **Qt Testing**: 54 imports
-- **Test Infrastructure**: 152 imports
+- **Test Infrastructure**: 153 imports
 - **Production Test Mocking**: 4 imports
 - **Ui Imports**: 1 imports
 
@@ -89,6 +89,13 @@
 
 - **Line 10**: Unused patch imported from unittest.mock
 - **Line 10**: Unused MagicMock imported from unittest.mock
+
+### `tests/behavior/test_notebook_handler_behavior.py`
+
+**Count**: 2 unused import(s)
+
+- **Line 9**: Unused patch imported from unittest.mock
+- **Line 9**: Unused MagicMock imported from unittest.mock
 
 ### `tests/behavior/test_profile_handler_behavior.py`
 
@@ -789,6 +796,12 @@
 - **Line 11**: Unused import json
 - **Line 14**: Unused Path imported from pathlib
 - **Line 18**: Unused TestUserFactory imported from tests.test_utilities
+
+### `tests/behavior/test_notebook_handler_behavior.py`
+
+**Count**: 1 unused import(s)
+
+- **Line 10**: Unused datetime imported from datetime
 
 ### `tests/behavior/test_task_error_handling.py`
 

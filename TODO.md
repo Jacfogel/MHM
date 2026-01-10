@@ -252,7 +252,8 @@ When adding new tasks, follow this format:
 - *Current Status*: 20 modules completed (486 new tests added total, all passing) - see changelogs for details
   - **Latest additions** (2025-01-14): `user/user_preferences.py` (26 tests), `core/ui_management.py` (27 tests), `ai/prompt_manager.py` (49 tests)
 - *Next Targets*:
-  - [x] **Add comprehensive notebook feature tests** ✅ **COMPLETED** - Added 54 comprehensive tests covering data handlers, data manager (CRUD, search, lists, views), command handlers, tag system, entity extraction, flow state edge cases, and error handling (see `tests/behavior/test_notebook_handler_behavior.py`)
+  - [x] **Add comprehensive notebook feature tests** [OK] **COMPLETED** - Added 54 comprehensive tests covering data handlers, data manager (CRUD, search, lists, views), command handlers, tag system, entity extraction, flow state edge cases, and error handling (see `tests/behavior/test_notebook_handler_behavior.py`)
+  - [x] **Implement notebook validation system** [OK] **COMPLETED** - Implemented comprehensive validation system with proper separation of concerns (general validators in `core/user_data_validation.py`, notebook-specific in `notebook/notebook_validation.py`), error handling compliance, and extensive test coverage (28 unit validation + 10 unit error handling + 13 integration tests). All 51 validation tests passing.
   - [ ] Expand coverage for `ui/ui_app_qt.py` (33% coverage, 1095 lines) - Large module
   - [ ] Expand coverage for `core/scheduler.py` (65% -> 80%+)
   - [ ] Add comprehensive tests for remaining communication modules
@@ -285,6 +286,7 @@ When adding new tasks, follow this format:
   tests/behavior/test_checkin_questions_enhancement.py::TestCustomQuestions::test_delete_custom_question
   tests/ui/test_category_management_dialog.py::TestCategoryManagementDialogRealBehavior::test_save_category_settings_persists_to_disk - AssertionError: Saved categories should match selected categories (order ma...
   tests/behavior/test_webhook_handler_behavior.py::TestWebhookHandlerBehavior::test_handle_webhook_event_routes_application_deauthorized - AssertionError: User should be welcomed
+  test_scan_all_python_files_demo_project 
   - [ ] Check for timing/race condition issues in test setup or teardown
   - [ ] Verify test isolation and data cleanup between test runs
   - [ ] Add retry logic or fix root cause if identified
