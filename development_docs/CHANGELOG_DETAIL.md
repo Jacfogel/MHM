@@ -38,6 +38,37 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-11 - Legacy Code Cleanup and Cache Invalidation Enhancement **COMPLETED**
+- **Feature**: Completed comprehensive legacy code cleanup, reducing legacy markers from 25 to 0 across 8 files, and enhanced cache invalidation to handle config-based pattern changes in development tools.
+- **Changes**:
+  1. **Legacy Code Removal**:
+     - Removed `development_tools/reports/system_signals.py` (legacy file, replaced by `analyze_system_signals.py`)
+     - Removed `run_system_signals()` wrapper method from `development_tools/shared/service/commands.py`
+     - Updated all references from `system_signals` to `analyze_system_signals` across CLI interface, test files, and tool metadata
+     - Removed legacy `all_cleanup` parameter from `run_cleanup()` method
+     - Updated test files to remove commented-out legacy compatibility code
+     - Fixed documentation path drift: updated 3 references in `AI_DEVELOPMENT_TOOLS_GUIDE.md` from `system_signals.py` to `analyze_system_signals.py`
+  2. **Cache Invalidation Enhancement**:
+     - Enhanced `MtimeFileCache` in `development_tools/shared/mtime_cache.py` to track config file mtime and automatically invalidate cache when `development_tools_config.json` changes
+     - Added `_check_config_staleness()` method to compare config mtime with cached mtime and clear cache if stale
+     - Added `_update_config_mtime_in_cache()` to store current config mtime in cache metadata
+     - Modified `__init__` to call `_check_config_staleness()` after loading cache
+     - Modified `save_cache()` to update config mtime before saving
+  3. **Legacy Analyzer Cache Filtering**:
+     - Fixed `analyze_legacy_references.py` to filter cached results to only include pattern types currently in config
+     - Added validation: `if pattern_type in self.legacy_patterns` before using cached results
+     - Prevents stale cached results from showing removed patterns (e.g., `dry_run`, `coverage`) after config updates
+  4. **Documentation Fixes**:
+     - Fixed unconverted links in `AI_CHANGELOG.md` (automated via `doc-fix --convert-links`)
+     - Fixed documentation path drift in `AI_DEVELOPMENT_TOOLS_GUIDE.md` (3 references updated)
+- **Impact**: 
+  - **Legacy markers reduced from 25 to 0** across 8 files → **0 files with issues**
+  - Cache invalidation now works correctly when config changes, preventing stale analysis results
+  - Legacy analyzer properly filters cached results against current config patterns
+  - All development tools now automatically invalidate cache when `development_tools_config.json` changes
+- **Files**: `development_tools/shared/mtime_cache.py`, `development_tools/legacy/analyze_legacy_references.py`, `development_tools/shared/service/commands.py`, `development_tools/shared/cli_interface.py`, `development_tools/shared/tool_metadata.py`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, test files, `development_tools/config/development_tools_config.json`
+- **Testing**: Legacy reference report now shows 0 issues (previously 25 markers in 8 files). Cache invalidation verified working via mtime comparison tests.
+
 ### 2026-01-10 - Notebook Short ID Format Update: Removed Dash for Mobile-Friendly Typing **COMPLETED**
 - **Feature**: Updated notebook short ID format from `n-123abc` to `n123abc` (removed dash) for easier mobile typing. Updated all implementation code, tests, and documentation to use the new format. Removed backward compatibility as requested by user.
 - **Changes**:

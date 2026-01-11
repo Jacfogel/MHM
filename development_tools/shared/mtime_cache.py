@@ -37,6 +37,9 @@ try:
 except ImportError:
     logger = None
 
+# Cache metadata key for config file mtime
+_CONFIG_MTIME_KEY = '__config_mtime__'
+
 
 class MtimeFileCache:
     """
@@ -72,8 +75,88 @@ class MtimeFileCache:
         self.domain = domain
         self.use_standardized_storage = tool_name is not None and domain is not None
         
+        # Get config file path for cache invalidation
+        self.config_file_path = self._get_config_file_path()
+        
         if self.use_cache:
             self._load_cache()
+            # Check if config file changed and invalidate cache if needed
+            self._check_config_staleness()
+    
+    def _get_config_file_path(self) -> Optional[Path]:
+        """
+        Get the path to the development_tools_config.json file.
+        
+        Returns:
+            Path to config file if found, None otherwise
+        """
+        try:
+            # Try to get the config file path that was actually loaded
+            import development_tools.config.config as config_module
+            if hasattr(config_module, '_config_file_path') and config_module._config_file_path:
+                return config_module._config_file_path
+        except Exception:
+            pass
+        
+        # Fallback: try to find it using the same logic as config loading
+        try:
+            config_file = self.project_root / 'development_tools' / 'config' / 'development_tools_config.json'
+            if not config_file.exists():
+                config_file = self.project_root / 'development_tools_config.json'
+            if config_file.exists():
+                return config_file
+        except Exception:
+            pass
+        
+        return None
+    
+    def _check_config_staleness(self) -> None:
+        """
+        Check if config file has changed since cache was created.
+        If so, clear the cache to force regeneration with new config.
+        """
+        if not self.config_file_path or not self.config_file_path.exists():
+            return
+        
+        try:
+            # Get current config file mtime
+            current_config_mtime = self.config_file_path.stat().st_mtime
+            
+            # Check cached config mtime
+            cached_config_mtime = None
+            if _CONFIG_MTIME_KEY in self.cache_data:
+                cached_config_mtime = self.cache_data[_CONFIG_MTIME_KEY].get('mtime')
+            
+            # If config file is newer than cached mtime, clear cache
+            if cached_config_mtime is not None and current_config_mtime > cached_config_mtime:
+                if logger:
+                    logger.info(
+                        f"Config file changed (mtime: {current_config_mtime} > {cached_config_mtime}), "
+                        f"invalidating cache for {self.tool_name or 'tool'}"
+                    )
+                self.clear_cache()
+                # Update config mtime in cache immediately
+                self._update_config_mtime_in_cache()
+            elif cached_config_mtime is None:
+                # No cached config mtime (first run or cache was cleared), store current mtime
+                self._update_config_mtime_in_cache()
+        except Exception as e:
+            if logger:
+                logger.debug(f"Error checking config file staleness: {e}")
+    
+    def _update_config_mtime_in_cache(self) -> None:
+        """Store current config file mtime in cache metadata."""
+        if not self.config_file_path or not self.config_file_path.exists():
+            return
+        
+        try:
+            config_mtime = self.config_file_path.stat().st_mtime
+            self.cache_data[_CONFIG_MTIME_KEY] = {
+                'mtime': config_mtime,
+                'results': {}  # Empty results, just storing mtime
+            }
+        except Exception:
+            pass
     
     def _load_cache(self) -> None:
         """Load cache from disk if it exists."""
@@ -115,6 +198,9 @@ class MtimeFileCache:
         """Save cache to disk."""
         if not self.use_cache:
             return
+        
+        # Update config mtime in cache before saving
+        self._update_config_mtime_in_cache()
         
         if self.use_standardized_storage:
             # Use standardized storage

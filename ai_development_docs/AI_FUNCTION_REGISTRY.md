@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-26 05:27:24
+> **Last Generated**: 2026-01-11 00:33:39
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,11 +10,11 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 96.2% [OK] EXCELLENT**
-- **Total Functions**: 1507
-- **Total Methods**: 1144
-- **Documented**: 2549/2651
-- **Files Scanned**: 107
+### **Documentation Coverage: 96.1% [OK] EXCELLENT**
+- **Total Functions**: 1525
+- **Total Methods**: 1133
+- **Documented**: 2554/2658
+- **Files Scanned**: 110
 
 ## [DECISION TREES] **Decision Trees for AI Context**
 
@@ -24,12 +24,12 @@ User Data Operations Decision Tree:
 +-- Core Data Access
 |   +-- `core/user_data_handlers.py` - Primary data access (21 functions)
 |   +-- `core/user_data_manager.py` - Data management (64 functions)
-|   `-- `core/user_data_validation.py` - Validation (6/9 functions)
+|   `-- `core/user_data_validation.py` - Validation (8/11 functions)
 +-- User Context
 |   +-- `user/user_context.py` - User context management (20 functions)
 |   `-- `user/user_preferences.py` - User preferences (20 functions)
 `-- User Management
-    `-- `core/user_management.py` - Account operations (42/43 functions)
+    `-- `core/user_management.py` - Account operations (44/45 functions)
 ```
 
 ### **[AI] Need AI/Chatbot Functionality?**
@@ -40,9 +40,9 @@ AI Operations Decision Tree:
 |   `-- `user/context_manager.py` - Context for AI (24 functions)
 +-- Command Parsing
 |   +-- `communication/message_processing/command_parser.py` - Natural language parsing (30 functions)
-|   `-- `communication/command_handlers/interaction_handlers.py` - Command handlers (158 functions)
+|   `-- `communication/command_handlers/interaction_handlers.py` - Command handlers (20 functions)
 `-- Interaction Management
-    `-- `communication/message_processing/interaction_manager.py` - Main interaction flow (37/40 functions)
+    `-- `communication/message_processing/interaction_manager.py` - Main interaction flow (39/42 functions)
 ```
 
 ### **[COMM] Need Communication/Channels?**
@@ -56,7 +56,7 @@ Communication Decision Tree:
 |   +-- `communication/communication_channels/discord/bot.py` - Discord integration (40 functions)
 |   `-- `communication/communication_channels/email/bot.py` - Email integration (14 functions)
 `-- Conversation Flow
-    `-- `communication/message_processing/conversation_flow_manager.py` - Conversation management (54/58 functions)
+    `-- `communication/message_processing/conversation_flow_manager.py` - Conversation management (68/72 functions)
 ```
 
 ### **[UI] Need UI/User Interface?**
@@ -94,7 +94,7 @@ Core System Decision Tree:
 
 ## [PATTERNS] **Key Function Patterns**
 
-### **Handler Pattern** (14 found)
+### **Handler Pattern** (9 found)
 **Purpose**: Handle specific user intents or operations
 **Location**: `communication/command_handlers/account_handler.py`, `communication/command_handlers/analytics_handler.py`, `communication/command_handlers/base_handler.py`
 **Pattern**: 
@@ -106,7 +106,7 @@ Core System Decision Tree:
 - `AccountManagementHandler` (communication/command_handlers/account_handler.py)
 - `AnalyticsHandler` (communication/command_handlers/analytics_handler.py)
 - `InteractionHandler` (communication/command_handlers/base_handler.py)
-- ... and 11 more
+- ... and 6 more
 
 ### **Widget Pattern** (7 found)
 **Purpose**: Reusable UI components
@@ -177,7 +177,7 @@ Core System Decision Tree:
 
 ### **Data Access Patterns**
 - **User Data**: `core/user_data_handlers.py` - User data operations (21 functions)
-- **Validation**: `core/user_data_validation.py` - Data validation (6/9 functions)
+- **Validation**: `core/user_data_validation.py` - Data validation (8/11 functions)
 - **File Operations**: `core/file_operations.py` - File I/O (16 functions)
 
 ### **Communication Patterns**
@@ -190,14 +190,14 @@ Core System Decision Tree:
 - `ui/widgets/dynamic_list_container.py` - 18/22 functions undocumented (18% coverage)
 - `core/schemas.py` - 18/32 functions undocumented (44% coverage)
 - `ui/widgets/dynamic_list_field.py` - 12/20 functions undocumented (40% coverage)
-- `ui/dialogs/channel_management_dialog.py` - 7/9 functions undocumented (22% coverage)
+- `ui/dialogs/channel_management_dialog.py` - 7/11 functions undocumented (36% coverage)
 - `ui/widgets/channel_selection_widget.py` - 6/16 functions undocumented (62% coverage)
 - `ui/widgets/category_selection_widget.py` - 4/6 functions undocumented (33% coverage)
 
 ### **Medium Priority** (Partial Coverage)
 - `ui/dialogs/task_management_dialog.py` - 4/8 functions undocumented (50% coverage)
 - `ui/dialogs/category_management_dialog.py` - 4/12 functions undocumented (67% coverage)
-- `core/user_data_validation.py` - 3/9 functions undocumented (67% coverage)
+- `core/user_data_validation.py` - 3/11 functions undocumented (73% coverage)
 
 
 
@@ -217,11 +217,11 @@ Core System Decision Tree:
 
 ### **Complexity Metrics**
 Most complex functions (may need refactoring):
-1. [OK] `ai/chatbot.py::_create_comprehensive_context_prompt()` - Complexity: 2192
-2. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2158
-3. [OK] `core/user_data_handlers.py::get_user_data()` - Complexity: 2130
-4. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 1976
-5. [OK] `run_tests.py::print_combined_summary()` - Complexity: 1344
+1. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2604
+2. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2554
+3. [OK] `ai/chatbot.py::_create_comprehensive_context_prompt()` - Complexity: 2208
+4. [OK] `run_tests.py::run_command()` - Complexity: 2200
+5. [OK] `communication/message_processing/command_parser.py::_extract_entities_rule_based()` - Complexity: 2140
 
 
 ### **Pattern Recognition**
@@ -231,12 +231,12 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (26 files, 781 functions)
-- `communication/` - Communication channels and message processing (37 files, 818 functions)
+- `core/` - System utilities and data management (27 files, 811 functions)
+- `communication/` - Communication channels and message processing (38 files, 756 functions)
 - `ai/` - AI chatbot functionality (7 files, 189 functions)
-- `ui/` - User interface components (28 files, 766 functions)
+- `ui/` - User interface components (28 files, 793 functions)
 - `user/` - User context and preferences (4 files, 64 functions)
 - `tasks/` - Task management system (2 files, 21 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: 2025-12-26 05:27:24
+> **Last Updated**: 2026-01-11 00:33:39

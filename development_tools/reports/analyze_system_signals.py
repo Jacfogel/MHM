@@ -76,14 +76,6 @@ class SystemSignalsAnalyzer:
         }
         return signals
     
-    # LEGACY COMPATIBILITY: Alias for backward compatibility
-    # Removal plan: Remove after 2025-03-01 if no references found
-    # Detection pattern: "generate_system_signals"
-    def generate_system_signals(self) -> Dict[str, Any]:
-        """Generate comprehensive system signals (alias for analyze_system_signals)"""
-        logger.warning("LEGACY: generate_system_signals() called - use analyze_system_signals() instead")
-        return self.analyze_system_signals()
-    
     def _check_system_health(self) -> Dict[str, Any]:
         """Check comprehensive system health indicators with actionable insights"""
         health = {

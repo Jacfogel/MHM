@@ -429,24 +429,12 @@ class CommandsMixin:
     
     def run_cleanup(self, cache: bool = False, test_data: bool = False,
                     reports: bool = False, all: bool = False,
-                    coverage: bool = False, all_cleanup: bool = False,
-                    dry_run: bool = False):
+                    coverage: bool = False, dry_run: bool = False):
         """Clean up generated files and caches"""
         logger.info("Starting cleanup...")
         logger.info("=" * 50)
         
-        # LEGACY COMPATIBILITY: Support for 'all_cleanup', 'coverage', and 'dry_run' parameters
-        # These parameters were added to match CLI interface but 'all' should be used instead of 'all_cleanup'
-        # Removal plan: Remove 'all_cleanup', 'coverage', and 'dry_run' parameters after 2026-02-01 if no references found
-        # Detection pattern: "all_cleanup=", "coverage=args.coverage", "dry_run=args.dry_run"
-        if all_cleanup:
-            logger.warning("LEGACY: all_cleanup parameter used - use 'all' parameter instead")
-        if coverage:
-            logger.warning("LEGACY: coverage parameter used - functionality not yet implemented")
-        if dry_run:
-            logger.warning("LEGACY: dry_run parameter used - functionality not yet implemented")
-        
-        if all or all_cleanup:
+        if all:
             cache = True
             test_data = True
             reports = True
@@ -513,13 +501,6 @@ class CommandsMixin:
             logger.error(f"System signals analysis failed: {result.get('error', 'Unknown error')}")
             return False
     
-    # LEGACY COMPATIBILITY: Wrapper for backward compatibility with tests and existing code
-    # Removal plan: Remove after 2025-03-01 if no references found
-    # Detection pattern: "run_system_signals"
-    def run_system_signals(self):
-        """Run system signals analysis (legacy wrapper - use run_analyze_system_signals instead)"""
-        logger.warning("LEGACY: run_system_signals() called - use run_analyze_system_signals() instead")
-        return self.run_analyze_system_signals()
     
     def run_test_markers(self, action: str = 'check', dry_run: bool = False) -> Dict:
         """Run test markers analysis or fix"""

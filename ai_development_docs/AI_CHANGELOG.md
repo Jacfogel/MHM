@@ -36,13 +36,20 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-11 - Legacy Code Cleanup and Cache Invalidation Enhancement **COMPLETED**
+- Completed legacy code cleanup: reduced legacy markers from 25 to 0 across 8 files, removed `system_signals.py` legacy file, updated all references to use `analyze_system_signals`
+- Enhanced `MtimeFileCache` to automatically invalidate cache when `development_tools_config.json` changes (tracks config mtime, clears cache if stale)
+- Fixed legacy analyzer to filter cached results against current config patterns, preventing stale results from removed patterns (e.g., `dry_run`, `coverage`)
+- Fixed documentation issues: path drift in `AI_DEVELOPMENT_TOOLS_GUIDE.md`, unconverted links in `AI_CHANGELOG.md`
+- **Impact**: Legacy reference report now shows 0 issues (was 25 markers in 8 files). All development tools now properly handle config-based cache invalidation.
+
 ### 2026-01-10 - Notebook Short ID Format Update: Removed Dash for Mobile-Friendly Typing **COMPLETED**
 - Updated notebook short ID format from `n-123abc` to `n123abc` (removed dash) for easier mobile typing
 - Updated all implementation code (`notebook_validation.py`, `notebook_handler.py`, `notebook_data_manager.py`) to use new format
 - Updated all tests (behavior, unit, integration) to use new format, fixed validation logic for long title strings
 - Removed backward compatibility as requested - old dash format no longer supported
 - Test suite: 4074 passed, 1 failed (unrelated account creation UI test), 1 skipped - all notebook tests passing
-- Files: `notebook/notebook_validation.py`, `communication/command_handlers/notebook_handler.py`, `notebook/notebook_data_manager.py`, test files, `development_docs/NOTES_PLAN.md`
+- Files: `notebook/notebook_validation.py`, `communication/command_handlers/notebook_handler.py`, `notebook/notebook_data_manager.py`, test files, [NOTES_PLAN.md](development_docs/NOTES_PLAN.md)
 
 ### 2026-01-09 - Notebook Validation System Implementation and Testing **COMPLETED**
 - Implemented comprehensive validation system for notebook feature with proper separation of concerns (general validators in `core/user_data_validation.py`, notebook-specific in `notebook/notebook_validation.py`)

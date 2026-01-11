@@ -119,8 +119,6 @@ class TestPathDriftIntegration:
         service.run_analyze_functions = MagicMock(side_effect=mock_tool)
         service.run_analyze_documentation_sync = MagicMock(side_effect=mock_tool)
         service.run_analyze_system_signals = MagicMock(side_effect=mock_tool)
-        # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
-        service.run_system_signals = MagicMock(side_effect=mock_tool)
         service.run_analyze_documentation = MagicMock(side_effect=mock_tool)
         service.run_analyze_error_handling = MagicMock(side_effect=mock_tool)
         service.run_decision_support = MagicMock(side_effect=mock_tool)
@@ -167,8 +165,6 @@ class TestPathDriftIntegration:
         service.run_analyze_functions = MagicMock(side_effect=mock_tool)
         service.run_analyze_documentation_sync = MagicMock(side_effect=mock_tool)
         service.run_analyze_system_signals = MagicMock(side_effect=mock_tool)
-        # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
-        service.run_system_signals = MagicMock(side_effect=mock_tool)
         service.run_analyze_documentation = MagicMock(side_effect=mock_tool)
         service.run_analyze_error_handling = MagicMock(side_effect=mock_tool)
         service.run_decision_support = MagicMock(side_effect=mock_tool)

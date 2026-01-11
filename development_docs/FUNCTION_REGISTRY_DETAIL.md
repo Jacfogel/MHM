@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-26 05:27:24
+> **Last Generated**: 2026-01-11 00:33:39
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 96.2% [OK] COMPLETED**
-- **Files Scanned**: 107
-- **Functions Found**: 1507
-- **Methods Found**: 1144
-- **Classes Found**: 159
-- **Total Items**: 2651
-- **Functions Documented**: 1444
-- **Methods Documented**: 1105
-- **Classes Documented**: 124
-- **Total Documented**: 2549
+### **Function Documentation Coverage: 96.1% [OK] COMPLETED**
+- **Files Scanned**: 110
+- **Functions Found**: 1525
+- **Methods Found**: 1133
+- **Classes Found**: 154
+- **Total Items**: 2658
+- **Functions Documented**: 1460
+- **Methods Documented**: 1094
+- **Classes Documented**: 119
+- **Total Documented**: 2554
 - **Template-Generated**: 4
-- **Last Updated**: 2025-12-26
+- **Last Updated**: 2026-01-11
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -39,13 +39,13 @@
 
 ## Function Categories
 
-### **Core System Functions** (524)
+### **Core System Functions** (547)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (428)
+### **Communication Functions** (397)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (391)
+### **User Interface Functions** (405)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (32)
@@ -757,8 +757,12 @@ Returns:
 **Functions:**
 - [OK] `_create_error_response(self, error_message, user_id)` - Create a standardized error response with validation.
 
+Args:
+    error_message: The error message to include
+    user_id: Optional user ID for logging
+
 Returns:
-    InteractionResponse: Error response, None if failed
+    InteractionResponse: Error response, or None if inputs are invalid
 - [OK] `_validate_parsed_command(self, parsed_command)` - Validate that parsed command is properly formatted with enhanced validation.
 
 Returns:
@@ -767,10 +771,10 @@ Returns:
 
 Returns:
     bool: True if valid, False otherwise
-- [OK] `can_handle(self, parsed_command)` - Check if this handler can handle the given parsed command with validation.
+- [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
 
-NOTE: Subclasses should validate parsed_command (check for None, type, etc.) 
-before proceeding with their logic.
+Args:
+    intent: The intent string to check (e.g., 'create_task', 'show_profile')
 
 Returns:
     bool: True if can handle, False otherwise
@@ -790,8 +794,12 @@ Returns:
 - [OK] `InteractionHandler` - Abstract base class for interaction handlers
   - [OK] `InteractionHandler._create_error_response(self, error_message, user_id)` - Create a standardized error response with validation.
 
+Args:
+    error_message: The error message to include
+    user_id: Optional user ID for logging
+
 Returns:
-    InteractionResponse: Error response, None if failed
+    InteractionResponse: Error response, or None if inputs are invalid
   - [OK] `InteractionHandler._validate_parsed_command(self, parsed_command)` - Validate that parsed command is properly formatted with enhanced validation.
 
 Returns:
@@ -800,10 +808,10 @@ Returns:
 
 Returns:
     bool: True if valid, False otherwise
-  - [OK] `InteractionHandler.can_handle(self, parsed_command)` - Check if this handler can handle the given parsed command with validation.
+  - [OK] `InteractionHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
 
-NOTE: Subclasses should validate parsed_command (check for None, type, etc.) 
-before proceeding with their logic.
+Args:
+    intent: The intent string to check (e.g., 'create_task', 'show_profile')
 
 Returns:
     bool: True if can handle, False otherwise
@@ -841,116 +849,18 @@ Returns:
 
 #### `communication/command_handlers/interaction_handlers.py`
 **Functions:**
-- [OK] `_get_field_scale(self, field)` - Determine the scale for a field (1-5 scale, or None for other types)
-
-Returns:
-    int: Scale value (5 for 1-5 scale fields, None for other types)
-- [OK] `_get_task_candidates(self, tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
-- [OK] `_handle_add_schedule_period(self, user_id, entities)` - Add a new schedule period with enhanced options
-- [OK] `_handle_add_schedule_period__parse_time_format(self, time_str)` - Parse various time formats and convert to standard format
-- [OK] `_handle_checkin_history(self, user_id, entities)` - Show check-in history
-- [OK] `_handle_checkin_status(self, user_id)` - Handle check-in status request
 - [OK] `_handle_commands_list(self, user_id)` - Handle commands list request
-- [OK] `_handle_complete_task(self, user_id, entities)` - Handle task completion
-- [OK] `_handle_complete_task__find_most_urgent_task(self, tasks)` - Find the most urgent task based on priority and due date
-- [OK] `_handle_complete_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id
-- [OK] `_handle_completion_rate(self, user_id, entities)` - Show completion rate
-- [OK] `_handle_continue_checkin(self, user_id, entities)` - Handle continuing a check-in
-- [OK] `_handle_create_task(self, user_id, entities)` - Handle task creation
-- [OK] `_handle_create_task__parse_relative_date(self, date_str)` - Convert relative date strings to proper dates
-- [OK] `_handle_delete_task(self, user_id, entities)` - Handle task deletion
-- [OK] `_handle_delete_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id
-- [OK] `_handle_edit_schedule_period(self, user_id, entities)` - Edit an existing schedule period with enhanced options
-- [OK] `_handle_edit_schedule_period__parse_time_format(self, time_str)` - Parse various time formats and convert to standard format
-- [OK] `_handle_energy_trends(self, user_id, entities)` - Show energy trends analysis
 - [OK] `_handle_examples(self, user_id, entities)` - Handle examples request
 - [OK] `_handle_general_help(self, user_id, entities)` - Handle general help request
-- [OK] `_handle_habit_analysis(self, user_id, entities)` - Show habit analysis
-- [OK] `_handle_list_tasks(self, user_id, entities)` - Handle task listing with enhanced filtering and details
-- [OK] `_handle_list_tasks__apply_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter)` - Apply filters to tasks and return filtered list.
-- [OK] `_handle_list_tasks__build_filter_info(self, filter_type, priority_filter, tag_filter)` - Build filter information list.
-- [OK] `_handle_list_tasks__build_response(self, task_list, filter_info, total_tasks)` - Build the main task list response.
-- [OK] `_handle_list_tasks__create_rich_data(self, filter_info, tasks)` - Create rich data for Discord embeds.
-- [OK] `_handle_list_tasks__format_due_date(self, due_date)` - Format due date with urgency indicator.
-- [OK] `_handle_list_tasks__format_list(self, tasks)` - Format task list with enhanced details.
-- [OK] `_handle_list_tasks__generate_suggestions(self, tasks, filter_info)` - Generate contextual suggestions based on current state.
-- [OK] `_handle_list_tasks__get_suggestion(self, tasks)` - Get contextual show suggestion based on task analysis.
-- [OK] `_handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter)` - Get appropriate response when no tasks match filters.
-- [OK] `_handle_list_tasks__sort_tasks(self, tasks)` - Sort tasks by priority and due date.
 - [OK] `_handle_messages(self, user_id)` - Handle messages request with message history and settings
-- [OK] `_handle_mood_trends(self, user_id, entities)` - Show mood trends analysis
-- [OK] `_handle_profile_stats(self, user_id)` - Handle profile statistics
-- [OK] `_handle_quant_summary(self, user_id, entities)` - Show per-field quantitative summaries for opted-in fields.
-- [OK] `_handle_schedule_status(self, user_id, entities)` - Show status of schedules
-- [OK] `_handle_show_analytics(self, user_id, entities)` - Show comprehensive analytics overview
-- [OK] `_handle_show_profile(self, user_id)` - Handle showing user profile with comprehensive personalization data
-- [OK] `_handle_show_schedule(self, user_id, entities)` - Show schedule for a specific category or all categories
-- [OK] `_handle_sleep_analysis(self, user_id, entities)` - Show sleep analysis
-- [OK] `_handle_start_checkin(self, user_id)` - Handle starting a check-in by delegating to conversation manager
 - [OK] `_handle_status(self, user_id)` - Handle status request with detailed system information
-- [OK] `_handle_task_stats(self, user_id, entities)` - Handle task statistics with dynamic time periods
-- [OK] `_handle_update_profile(self, user_id, entities)` - Handle comprehensive profile updates
-- [OK] `_handle_update_schedule(self, user_id, entities)` - Update schedule settings
-- [OK] `_handle_update_task(self, user_id, entities)` - Handle task updates
-- [OK] `_handle_update_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id
-- [OK] `_handle_wellness_score(self, user_id, entities)` - Show wellness score
-- [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent
-- [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
-- [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
-- [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
-- [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
-- [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
 - [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
 - [OK] `get_all_handlers()` - Get all registered handlers
-- [OK] `get_examples(self)` - Get example commands for this handler
-- [OK] `get_examples(self)` - Get example commands for task management.
-- [OK] `get_examples(self)` - Get example commands for check-ins.
-- [OK] `get_examples(self)` - Get example commands for profile management.
 - [OK] `get_examples(self)` - Get example commands for help.
-- [OK] `get_examples(self)` - Get example commands for schedule management.
-- [OK] `get_examples(self)` - Get example commands for analytics.
-- [OK] `get_help(self)` - Get help text for this handler
-- [OK] `get_help(self)` - Get help text for task management commands.
-- [OK] `get_help(self)` - Get help text for check-in commands.
-- [OK] `get_help(self)` - Get help text for profile management commands.
 - [OK] `get_help(self)` - Get help text for help commands.
-- [OK] `get_help(self)` - Get help text for schedule management commands.
-- [OK] `get_help(self)` - Get help text for analytics commands.
 - [OK] `get_interaction_handler(intent)` - Get the appropriate handler for an intent
-- [OK] `handle(self, user_id, parsed_command)` - Handle the interaction and return a response
-- [OK] `handle(self, user_id, parsed_command)` - Handle task management interactions.
-- [OK] `handle(self, user_id, parsed_command)` - Handle check-in interactions.
-- [OK] `handle(self, user_id, parsed_command)` - Handle profile management interactions.
 - [OK] `handle(self, user_id, parsed_command)` - Handle help and command information interactions.
-- [OK] `handle(self, user_id, parsed_command)` - Handle schedule management interactions.
-- [OK] `handle(self, user_id, parsed_command)` - Handle analytics and insights interactions.
 **Classes:**
-- [OK] `AnalyticsHandler` - Handler for analytics and insights interactions
-  - [OK] `AnalyticsHandler._get_field_scale(self, field)` - Determine the scale for a field (1-5 scale, or None for other types)
-
-Returns:
-    int: Scale value (5 for 1-5 scale fields, None for other types)
-  - [OK] `AnalyticsHandler._handle_checkin_history(self, user_id, entities)` - Show check-in history
-  - [OK] `AnalyticsHandler._handle_completion_rate(self, user_id, entities)` - Show completion rate
-  - [OK] `AnalyticsHandler._handle_energy_trends(self, user_id, entities)` - Show energy trends analysis
-  - [OK] `AnalyticsHandler._handle_habit_analysis(self, user_id, entities)` - Show habit analysis
-  - [OK] `AnalyticsHandler._handle_mood_trends(self, user_id, entities)` - Show mood trends analysis
-  - [OK] `AnalyticsHandler._handle_quant_summary(self, user_id, entities)` - Show per-field quantitative summaries for opted-in fields.
-  - [OK] `AnalyticsHandler._handle_show_analytics(self, user_id, entities)` - Show comprehensive analytics overview
-  - [OK] `AnalyticsHandler._handle_sleep_analysis(self, user_id, entities)` - Show sleep analysis
-  - [OK] `AnalyticsHandler._handle_wellness_score(self, user_id, entities)` - Show wellness score
-  - [OK] `AnalyticsHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
-  - [OK] `AnalyticsHandler.get_examples(self)` - Get example commands for analytics.
-  - [OK] `AnalyticsHandler.get_help(self)` - Get help text for analytics commands.
-  - [OK] `AnalyticsHandler.handle(self, user_id, parsed_command)` - Handle analytics and insights interactions.
-- [OK] `CheckinHandler` - Handler for check-in interactions
-  - [OK] `CheckinHandler._handle_checkin_status(self, user_id)` - Handle check-in status request
-  - [OK] `CheckinHandler._handle_continue_checkin(self, user_id, entities)` - Handle continuing a check-in
-  - [OK] `CheckinHandler._handle_start_checkin(self, user_id)` - Handle starting a check-in by delegating to conversation manager
-  - [OK] `CheckinHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
-  - [OK] `CheckinHandler.get_examples(self)` - Get example commands for check-ins.
-  - [OK] `CheckinHandler.get_help(self)` - Get help text for check-in commands.
-  - [OK] `CheckinHandler.handle(self, user_id, parsed_command)` - Handle check-in interactions.
 - [OK] `HelpHandler` - Handler for help and command information
   - [OK] `HelpHandler._handle_commands_list(self, user_id)` - Handle commands list request
   - [OK] `HelpHandler._handle_examples(self, user_id, entities)` - Handle examples request
@@ -961,58 +871,65 @@ Returns:
   - [OK] `HelpHandler.get_examples(self)` - Get example commands for help.
   - [OK] `HelpHandler.get_help(self)` - Get help text for help commands.
   - [OK] `HelpHandler.handle(self, user_id, parsed_command)` - Handle help and command information interactions.
-- [OK] `InteractionHandler` - Abstract base class for interaction handlers
-  - [OK] `InteractionHandler.can_handle(self, intent)` - Check if this handler can handle the given intent
-  - [OK] `InteractionHandler.get_examples(self)` - Get example commands for this handler
-  - [OK] `InteractionHandler.get_help(self)` - Get help text for this handler
-  - [OK] `InteractionHandler.handle(self, user_id, parsed_command)` - Handle the interaction and return a response
-- [OK] `ProfileHandler` - Handler for profile management interactions
-  - [OK] `ProfileHandler._handle_profile_stats(self, user_id)` - Handle profile statistics
-  - [OK] `ProfileHandler._handle_show_profile(self, user_id)` - Handle showing user profile with comprehensive personalization data
-  - [OK] `ProfileHandler._handle_update_profile(self, user_id, entities)` - Handle comprehensive profile updates
-  - [OK] `ProfileHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
-  - [OK] `ProfileHandler.get_examples(self)` - Get example commands for profile management.
-  - [OK] `ProfileHandler.get_help(self)` - Get help text for profile management commands.
-  - [OK] `ProfileHandler.handle(self, user_id, parsed_command)` - Handle profile management interactions.
-- [OK] `ScheduleManagementHandler` - Handler for schedule management interactions
-  - [OK] `ScheduleManagementHandler._handle_add_schedule_period(self, user_id, entities)` - Add a new schedule period with enhanced options
-  - [OK] `ScheduleManagementHandler._handle_add_schedule_period__parse_time_format(self, time_str)` - Parse various time formats and convert to standard format
-  - [OK] `ScheduleManagementHandler._handle_edit_schedule_period(self, user_id, entities)` - Edit an existing schedule period with enhanced options
-  - [OK] `ScheduleManagementHandler._handle_edit_schedule_period__parse_time_format(self, time_str)` - Parse various time formats and convert to standard format
-  - [OK] `ScheduleManagementHandler._handle_schedule_status(self, user_id, entities)` - Show status of schedules
-  - [OK] `ScheduleManagementHandler._handle_show_schedule(self, user_id, entities)` - Show schedule for a specific category or all categories
-  - [OK] `ScheduleManagementHandler._handle_update_schedule(self, user_id, entities)` - Update schedule settings
-  - [OK] `ScheduleManagementHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
-  - [OK] `ScheduleManagementHandler.get_examples(self)` - Get example commands for schedule management.
-  - [OK] `ScheduleManagementHandler.get_help(self)` - Get help text for schedule management commands.
-  - [OK] `ScheduleManagementHandler.handle(self, user_id, parsed_command)` - Handle schedule management interactions.
-- [OK] `TaskManagementHandler` - Handler for task management interactions
-  - [OK] `TaskManagementHandler._get_task_candidates(self, tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
-  - [OK] `TaskManagementHandler._handle_complete_task(self, user_id, entities)` - Handle task completion
-  - [OK] `TaskManagementHandler._handle_complete_task__find_most_urgent_task(self, tasks)` - Find the most urgent task based on priority and due date
-  - [OK] `TaskManagementHandler._handle_complete_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id
-  - [OK] `TaskManagementHandler._handle_create_task(self, user_id, entities)` - Handle task creation
-  - [OK] `TaskManagementHandler._handle_create_task__parse_relative_date(self, date_str)` - Convert relative date strings to proper dates
-  - [OK] `TaskManagementHandler._handle_delete_task(self, user_id, entities)` - Handle task deletion
-  - [OK] `TaskManagementHandler._handle_delete_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id
-  - [OK] `TaskManagementHandler._handle_list_tasks(self, user_id, entities)` - Handle task listing with enhanced filtering and details
-  - [OK] `TaskManagementHandler._handle_list_tasks__apply_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter)` - Apply filters to tasks and return filtered list.
-  - [OK] `TaskManagementHandler._handle_list_tasks__build_filter_info(self, filter_type, priority_filter, tag_filter)` - Build filter information list.
-  - [OK] `TaskManagementHandler._handle_list_tasks__build_response(self, task_list, filter_info, total_tasks)` - Build the main task list response.
-  - [OK] `TaskManagementHandler._handle_list_tasks__create_rich_data(self, filter_info, tasks)` - Create rich data for Discord embeds.
-  - [OK] `TaskManagementHandler._handle_list_tasks__format_due_date(self, due_date)` - Format due date with urgency indicator.
-  - [OK] `TaskManagementHandler._handle_list_tasks__format_list(self, tasks)` - Format task list with enhanced details.
-  - [OK] `TaskManagementHandler._handle_list_tasks__generate_suggestions(self, tasks, filter_info)` - Generate contextual suggestions based on current state.
-  - [OK] `TaskManagementHandler._handle_list_tasks__get_suggestion(self, tasks)` - Get contextual show suggestion based on task analysis.
-  - [OK] `TaskManagementHandler._handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter)` - Get appropriate response when no tasks match filters.
-  - [OK] `TaskManagementHandler._handle_list_tasks__sort_tasks(self, tasks)` - Sort tasks by priority and due date.
-  - [OK] `TaskManagementHandler._handle_task_stats(self, user_id, entities)` - Handle task statistics with dynamic time periods
-  - [OK] `TaskManagementHandler._handle_update_task(self, user_id, entities)` - Handle task updates
-  - [OK] `TaskManagementHandler._handle_update_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id
-  - [OK] `TaskManagementHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
-  - [OK] `TaskManagementHandler.get_examples(self)` - Get example commands for task management.
-  - [OK] `TaskManagementHandler.get_help(self)` - Get help text for task management commands.
-  - [OK] `TaskManagementHandler.handle(self, user_id, parsed_command)` - Handle task management interactions.
+
+#### `communication/command_handlers/notebook_handler.py`
+**Functions:**
+- [OK] `_format_entry_id(self, entry)` - Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing).
+- [OK] `_format_entry_response(self, entry)` - Formats a single entry for display.
+- [OK] `_handle_add_list_item(self, user_id, entities)` - Handle adding item to list.
+- [OK] `_handle_add_tags(self, user_id, entities)` - Handle adding tags to entry.
+- [OK] `_handle_append_to_entry(self, user_id, entities)` - Handle appending to entry body.
+- [OK] `_handle_archive_entry(self, user_id, entities, archived)` - Handle archiving/unarchiving entry.
+- [OK] `_handle_create_journal(self, user_id, entities)` - Handle journal entry creation.
+- [OK] `_handle_create_list(self, user_id, entities)` - Handle list creation.
+- [OK] `_handle_create_note(self, user_id, entities)` - Handle note creation.
+- [OK] `_handle_list_archived(self, user_id, entities)` - Handle listing archived entries.
+- [OK] `_handle_list_by_group(self, user_id, entities)` - Handle listing entries by group.
+- [OK] `_handle_list_by_tag(self, user_id, entities)` - Handle listing entries by tag.
+- [OK] `_handle_list_inbox(self, user_id, entities)` - Handle listing inbox entries.
+- [OK] `_handle_list_pinned(self, user_id, entities)` - Handle listing pinned entries.
+- [OK] `_handle_list_recent(self, user_id, entities, notes_only)` - Handle listing recent entries.
+- [OK] `_handle_pin_entry(self, user_id, entities, pinned)` - Handle pinning/unpinning entry.
+- [OK] `_handle_remove_list_item(self, user_id, entities)` - Handle removing item from list.
+- [OK] `_handle_remove_tags(self, user_id, entities)` - Handle removing tags from entry.
+- [OK] `_handle_search_entries(self, user_id, entities)` - Handle searching entries.
+- [OK] `_handle_set_entry_body(self, user_id, entities)` - Handle setting entry body.
+- [OK] `_handle_set_group(self, user_id, entities)` - Handle setting entry group.
+- [OK] `_handle_show_entry(self, user_id, entities)` - Handle showing an entry.
+- [OK] `_handle_toggle_list_item_done(self, user_id, entities)` - Handle toggling list item done status.
+- [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
+- [OK] `get_examples(self)` - Get example commands for notebook.
+- [OK] `get_help(self)` - Get help text for notebook commands.
+- [OK] `handle(self, user_id, parsed_command)` - Handle notebook interactions.
+**Classes:**
+- [OK] `NotebookHandler` - Handler for notebook management interactions.
+  - [OK] `NotebookHandler._format_entry_id(self, entry)` - Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing).
+  - [OK] `NotebookHandler._format_entry_response(self, entry)` - Formats a single entry for display.
+  - [OK] `NotebookHandler._handle_add_list_item(self, user_id, entities)` - Handle adding item to list.
+  - [OK] `NotebookHandler._handle_add_tags(self, user_id, entities)` - Handle adding tags to entry.
+  - [OK] `NotebookHandler._handle_append_to_entry(self, user_id, entities)` - Handle appending to entry body.
+  - [OK] `NotebookHandler._handle_archive_entry(self, user_id, entities, archived)` - Handle archiving/unarchiving entry.
+  - [OK] `NotebookHandler._handle_create_journal(self, user_id, entities)` - Handle journal entry creation.
+  - [OK] `NotebookHandler._handle_create_list(self, user_id, entities)` - Handle list creation.
+  - [OK] `NotebookHandler._handle_create_note(self, user_id, entities)` - Handle note creation.
+  - [OK] `NotebookHandler._handle_list_archived(self, user_id, entities)` - Handle listing archived entries.
+  - [OK] `NotebookHandler._handle_list_by_group(self, user_id, entities)` - Handle listing entries by group.
+  - [OK] `NotebookHandler._handle_list_by_tag(self, user_id, entities)` - Handle listing entries by tag.
+  - [OK] `NotebookHandler._handle_list_inbox(self, user_id, entities)` - Handle listing inbox entries.
+  - [OK] `NotebookHandler._handle_list_pinned(self, user_id, entities)` - Handle listing pinned entries.
+  - [OK] `NotebookHandler._handle_list_recent(self, user_id, entities, notes_only)` - Handle listing recent entries.
+  - [OK] `NotebookHandler._handle_pin_entry(self, user_id, entities, pinned)` - Handle pinning/unpinning entry.
+  - [OK] `NotebookHandler._handle_remove_list_item(self, user_id, entities)` - Handle removing item from list.
+  - [OK] `NotebookHandler._handle_remove_tags(self, user_id, entities)` - Handle removing tags from entry.
+  - [OK] `NotebookHandler._handle_search_entries(self, user_id, entities)` - Handle searching entries.
+  - [OK] `NotebookHandler._handle_set_entry_body(self, user_id, entities)` - Handle setting entry body.
+  - [OK] `NotebookHandler._handle_set_group(self, user_id, entities)` - Handle setting entry group.
+  - [OK] `NotebookHandler._handle_show_entry(self, user_id, entities)` - Handle showing an entry.
+  - [OK] `NotebookHandler._handle_toggle_list_item_done(self, user_id, entities)` - Handle toggling list item done status.
+  - [OK] `NotebookHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
+  - [OK] `NotebookHandler.get_examples(self)` - Get example commands for notebook.
+  - [OK] `NotebookHandler.get_help(self)` - Get help text for notebook commands.
+  - [OK] `NotebookHandler.handle(self, user_id, parsed_command)` - Handle notebook interactions.
 
 #### `communication/command_handlers/profile_handler.py`
 **Functions:**
@@ -1079,7 +996,9 @@ Args:
     
 Returns:
     Task dictionary if found, None otherwise
+- [OK] `_get_task_candidates(self, tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
 - [OK] `_handle_complete_task(self, user_id, entities)` - Handle task completion
+- [OK] `_handle_complete_task__find_most_urgent_task(self, tasks)` - Find the most urgent task based on priority and due date
 - [OK] `_handle_complete_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id - delegates to shared method.
 - [OK] `_handle_create_task(self, user_id, entities)` - Handle task creation
 - [OK] `_handle_create_task__parse_relative_date(self, date_str)` - Convert relative date strings to proper dates
@@ -1099,6 +1018,7 @@ Returns:
 - [OK] `_handle_task_stats(self, user_id, entities)` - Handle task statistics with dynamic time periods
 - [OK] `_handle_update_task(self, user_id, entities)` - Handle task updates
 - [OK] `_handle_update_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id - delegates to shared method.
+- [OK] `_parse_time_string(self, time_str)` - Parse time string to HH:MM format
 - [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
 - [OK] `get_examples(self)` - Get example commands for task management.
 - [OK] `get_help(self)` - Get help text for task management commands.
@@ -1115,7 +1035,9 @@ Args:
     
 Returns:
     Task dictionary if found, None otherwise
+  - [OK] `TaskManagementHandler._get_task_candidates(self, tasks, identifier)` - Return candidate tasks matching identifier by id, number, or name.
   - [OK] `TaskManagementHandler._handle_complete_task(self, user_id, entities)` - Handle task completion
+  - [OK] `TaskManagementHandler._handle_complete_task__find_most_urgent_task(self, tasks)` - Find the most urgent task based on priority and due date
   - [OK] `TaskManagementHandler._handle_complete_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id - delegates to shared method.
   - [OK] `TaskManagementHandler._handle_create_task(self, user_id, entities)` - Handle task creation
   - [OK] `TaskManagementHandler._handle_create_task__parse_relative_date(self, date_str)` - Convert relative date strings to proper dates
@@ -1135,6 +1057,7 @@ Returns:
   - [OK] `TaskManagementHandler._handle_task_stats(self, user_id, entities)` - Handle task statistics with dynamic time periods
   - [OK] `TaskManagementHandler._handle_update_task(self, user_id, entities)` - Handle task updates
   - [OK] `TaskManagementHandler._handle_update_task__find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id - delegates to shared method.
+  - [OK] `TaskManagementHandler._parse_time_string(self, time_str)` - Parse time string to HH:MM format
   - [OK] `TaskManagementHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
   - [OK] `TaskManagementHandler.get_examples(self)` - Get example commands for task management.
   - [OK] `TaskManagementHandler.get_help(self)` - Get help text for task management commands.
@@ -2039,11 +1962,19 @@ Returns:
 - [OK] `_complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
 - [OK] `_expire_inactive_checkins(self, user_id)` - Remove stale check-in flows that have been idle beyond the allowed window.
 - [OK] `_generate_completion_message(self, user_id, data)` - Generate a personalized completion message based on responses
+- [OK] `_generate_context_aware_reminder_suggestions(self, user_id, task_id)` - Generate reminder period suggestions based on task's due date/time.
+
+Examples:
+- Task due in 6 days (no time) -> "1 to 2 days before", "3 to 4 days before"
+- Task due in 12 days at 10:00 AM -> "1 to 2 hours before", "1 to 2 days before", "3 to 5 days before"
 - [OK] `_get_next_question(self, user_id, user_state)` - Get the next question in the check-in flow
 - [OK] `_get_personalized_welcome(self, user_id, question_count)` - Generate a personalized welcome message based on user history
-- [OK] `_get_question_text(self, question_key, previous_data)` - Get appropriate question text based on question type and previous responses
+- [OK] `_get_question_text(self, question_key, previous_data, user_id)` - Get appropriate question text based on question type and previous responses
 - [OK] `_handle_checkin(self, user_id, user_state, message_text)` - Enhanced check-in flow with dynamic questions and better validation
 - [OK] `_handle_command_during_checkin(self, user_id, message_text)` - Handle common commands while user is in a checkin flow
+- [OK] `_handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
+- [OK] `_handle_note_body_flow(self, user_id, user_state, message_text)` - Handle continuation of note body flow.
+- [OK] `_handle_task_due_date_flow(self, user_id, user_state, message_text)` - Handle continuation of task due date/time flow.
 - [OK] `_handle_task_reminder_followup(self, user_id, user_state, message_text)` - Handle user's response to reminder period question after task creation.
 
 Parses natural language responses like:
@@ -2052,6 +1983,9 @@ Parses natural language responses like:
 - "1 to 2 days before"
 - "No reminders needed" / "No" / "Skip"
 - [OK] `_load_user_states(self)` - Load user states from disk with comprehensive logging
+- [OK] `_parse_date_time_from_text(self, text)` - Parse date and time from natural language text.
+
+Returns: (date_str in YYYY-MM-DD format, time_str in HH:MM format or None)
 - [OK] `_parse_reminder_periods_from_text(self, user_id, task_id, text)` - Parse reminder periods from natural language text.
 
 Examples:
@@ -2060,17 +1994,27 @@ Examples:
 - "1 to 2 days before" -> reminder 1-2 days before due date
 
 Returns list of reminder period dicts with date, start_time, end_time.
+- [OK] `_parse_time_from_text(self, text)` - Parse time from natural language text.
+
+Examples:
+- "10am", "10:00am", "10:30am" -> "10:00", "10:30"
+- "2pm", "14:00" -> "14:00"
+- "at 3pm" -> "15:00"
 - [OK] `_save_user_states(self)` - Save user states to disk with comprehensive logging and error handling
-- [OK] `_select_checkin_questions_with_weighting(self, user_id, enabled_questions)` - Select check-in questions using weighted randomization to ensure variety.
+- [OK] `_select_checkin_questions_with_weighting(self, user_id, enabled_questions)` - Select check-in questions using weighted randomization with always/sometimes and min/max configuration.
 
 Args:
     user_id: User ID
     enabled_questions: Dictionary of enabled questions from user preferences
+        Each question can have:
+        - 'enabled': bool (whether question is enabled)
+        - 'always_include': bool (whether to always include this question)
+        - 'sometimes_include': bool (whether to sometimes include this question)
     
 Returns:
     List of question keys in selected order
 - [OK] `_start_dynamic_checkin(self, user_id)` - Start a dynamic check-in flow based on user preferences with weighted question selection
-- [OK] `_validate_response(self, question_key, response)` - Validate user response based on question type using dynamic manager
+- [OK] `_validate_response(self, question_key, response, user_id)` - Validate user response based on question type using dynamic manager
 - [OK] `clear_all_states(self)` - Clear all user states - primarily for testing.
 - [OK] `clear_stuck_flows(self, user_id)` - Clear any stuck conversation flows for a user.
 This is a safety mechanism to reset flow state when it gets stuck.
@@ -2108,8 +2052,10 @@ Returns:
     tuple[str, bool]: Response message and completion status (always True for this flow)
 - [MISSING] `start_profile_flow(self, user_id)` - No description
 - [MISSING] `start_schedule_flow(self, user_id)` - No description
+- [OK] `start_task_due_date_flow(self, user_id, task_id)` - Start a task due date/time flow.
+Called by task handler after creating a task without a due date.
 - [OK] `start_task_reminder_followup(self, user_id, task_id)` - Start a task reminder follow-up flow.
-Called by task handler after creating a task.
+Called by task handler after creating a task with a due date.
 - [OK] `start_tasks_flow(self, user_id)` - Starter for a future tasks multi-step flow (placeholder).
 **Classes:**
 - [MISSING] `ConversationManager` - No description
@@ -2117,11 +2063,19 @@ Called by task handler after creating a task.
   - [OK] `ConversationManager._complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
   - [OK] `ConversationManager._expire_inactive_checkins(self, user_id)` - Remove stale check-in flows that have been idle beyond the allowed window.
   - [OK] `ConversationManager._generate_completion_message(self, user_id, data)` - Generate a personalized completion message based on responses
+  - [OK] `ConversationManager._generate_context_aware_reminder_suggestions(self, user_id, task_id)` - Generate reminder period suggestions based on task's due date/time.
+
+Examples:
+- Task due in 6 days (no time) -> "1 to 2 days before", "3 to 4 days before"
+- Task due in 12 days at 10:00 AM -> "1 to 2 hours before", "1 to 2 days before", "3 to 5 days before"
   - [OK] `ConversationManager._get_next_question(self, user_id, user_state)` - Get the next question in the check-in flow
   - [OK] `ConversationManager._get_personalized_welcome(self, user_id, question_count)` - Generate a personalized welcome message based on user history
-  - [OK] `ConversationManager._get_question_text(self, question_key, previous_data)` - Get appropriate question text based on question type and previous responses
+  - [OK] `ConversationManager._get_question_text(self, question_key, previous_data, user_id)` - Get appropriate question text based on question type and previous responses
   - [OK] `ConversationManager._handle_checkin(self, user_id, user_state, message_text)` - Enhanced check-in flow with dynamic questions and better validation
   - [OK] `ConversationManager._handle_command_during_checkin(self, user_id, message_text)` - Handle common commands while user is in a checkin flow
+  - [OK] `ConversationManager._handle_list_items_flow(self, user_id, user_state, message_text)` - Handle continuation of list items flow.
+  - [OK] `ConversationManager._handle_note_body_flow(self, user_id, user_state, message_text)` - Handle continuation of note body flow.
+  - [OK] `ConversationManager._handle_task_due_date_flow(self, user_id, user_state, message_text)` - Handle continuation of task due date/time flow.
   - [OK] `ConversationManager._handle_task_reminder_followup(self, user_id, user_state, message_text)` - Handle user's response to reminder period question after task creation.
 
 Parses natural language responses like:
@@ -2130,6 +2084,9 @@ Parses natural language responses like:
 - "1 to 2 days before"
 - "No reminders needed" / "No" / "Skip"
   - [OK] `ConversationManager._load_user_states(self)` - Load user states from disk with comprehensive logging
+  - [OK] `ConversationManager._parse_date_time_from_text(self, text)` - Parse date and time from natural language text.
+
+Returns: (date_str in YYYY-MM-DD format, time_str in HH:MM format or None)
   - [OK] `ConversationManager._parse_reminder_periods_from_text(self, user_id, task_id, text)` - Parse reminder periods from natural language text.
 
 Examples:
@@ -2138,17 +2095,27 @@ Examples:
 - "1 to 2 days before" -> reminder 1-2 days before due date
 
 Returns list of reminder period dicts with date, start_time, end_time.
+  - [OK] `ConversationManager._parse_time_from_text(self, text)` - Parse time from natural language text.
+
+Examples:
+- "10am", "10:00am", "10:30am" -> "10:00", "10:30"
+- "2pm", "14:00" -> "14:00"
+- "at 3pm" -> "15:00"
   - [OK] `ConversationManager._save_user_states(self)` - Save user states to disk with comprehensive logging and error handling
-  - [OK] `ConversationManager._select_checkin_questions_with_weighting(self, user_id, enabled_questions)` - Select check-in questions using weighted randomization to ensure variety.
+  - [OK] `ConversationManager._select_checkin_questions_with_weighting(self, user_id, enabled_questions)` - Select check-in questions using weighted randomization with always/sometimes and min/max configuration.
 
 Args:
     user_id: User ID
     enabled_questions: Dictionary of enabled questions from user preferences
+        Each question can have:
+        - 'enabled': bool (whether question is enabled)
+        - 'always_include': bool (whether to always include this question)
+        - 'sometimes_include': bool (whether to sometimes include this question)
     
 Returns:
     List of question keys in selected order
   - [OK] `ConversationManager._start_dynamic_checkin(self, user_id)` - Start a dynamic check-in flow based on user preferences with weighted question selection
-  - [OK] `ConversationManager._validate_response(self, question_key, response)` - Validate user response based on question type using dynamic manager
+  - [OK] `ConversationManager._validate_response(self, question_key, response, user_id)` - Validate user response based on question type using dynamic manager
   - [OK] `ConversationManager.clear_all_states(self)` - Clear all user states - primarily for testing.
   - [OK] `ConversationManager.clear_stuck_flows(self, user_id)` - Clear any stuck conversation flows for a user.
 This is a safety mechanism to reset flow state when it gets stuck.
@@ -2186,8 +2153,10 @@ Returns:
     tuple[str, bool]: Response message and completion status (always True for this flow)
   - [MISSING] `ConversationManager.start_profile_flow(self, user_id)` - No description
   - [MISSING] `ConversationManager.start_schedule_flow(self, user_id)` - No description
+  - [OK] `ConversationManager.start_task_due_date_flow(self, user_id, task_id)` - Start a task due date/time flow.
+Called by task handler after creating a task without a due date.
   - [OK] `ConversationManager.start_task_reminder_followup(self, user_id, task_id)` - Start a task reminder follow-up flow.
-Called by task handler after creating a task.
+Called by task handler after creating a task with a due date.
   - [OK] `ConversationManager.start_tasks_flow(self, user_id)` - Starter for a future tasks multi-step flow (placeholder).
 
 #### `communication/message_processing/interaction_manager.py`
@@ -2209,6 +2178,7 @@ Called by task handler after creating a task.
 - [OK] `get_available_commands(self, user_id)` - Get list of available commands for the user
 - [OK] `get_command_definitions(self)` - Return canonical command definitions: name, mapped_message, description.
 - [OK] `get_interaction_manager()` - Get the global interaction manager instance
+- [OK] `get_mapped_message(self)` - Get the mapped message, defaulting to !{name} if not specified.
 - [OK] `get_slash_command_map(self)` - Expose slash command mappings without coupling callers to internals.
 Returns a dict like {'tasks': 'show my tasks', ...} suitable for Discord registration.
 - [OK] `get_user_suggestions(self, user_id, context)` - Get personalized suggestions for the user
@@ -2225,6 +2195,7 @@ Returns:
 - [MISSING] `parse_due(task)` - No description
 **Classes:**
 - [MISSING] `CommandDefinition` - No description
+  - [OK] `CommandDefinition.get_mapped_message(self)` - Get the mapped message, defaulting to !{name} if not specified.
 - [OK] `InteractionManager` - Main manager for handling user interactions across all channels
   - [OK] `InteractionManager.__init__(self)` - Special Python method
   - [MISSING] `InteractionManager._augment_suggestions(self, parsed_command, response)` - No description
@@ -2498,6 +2469,7 @@ This class provides analytics and insights from check-in data.
 - [OK] `_calculate_mood_score(self, checkins)` - Calculate mood score (0-100)
 - [OK] `_calculate_overall_completion(self, habit_stats)` - Calculate overall habit completion rate
 - [OK] `_calculate_sleep_consistency(self, hours)` - Calculate sleep consistency (lower variance = more consistent)
+- [OK] `_calculate_sleep_duration(self, sleep_time, wake_time)` - Calculate sleep duration in hours from sleep_time and wake_time (HH:MM format).
 - [OK] `_calculate_sleep_score(self, checkins)` - Calculate sleep score (0-100)
 - [OK] `_calculate_streak(self, checkins, habit_key)` - Calculate current and best streaks for a habit
 - [OK] `_get_energy_distribution(self, energies)` - Calculate distribution of energy scores
@@ -2548,6 +2520,7 @@ This class provides analytics and insights from check-in data.
   - [OK] `CheckinAnalytics._calculate_mood_score(self, checkins)` - Calculate mood score (0-100)
   - [OK] `CheckinAnalytics._calculate_overall_completion(self, habit_stats)` - Calculate overall habit completion rate
   - [OK] `CheckinAnalytics._calculate_sleep_consistency(self, hours)` - Calculate sleep consistency (lower variance = more consistent)
+  - [OK] `CheckinAnalytics._calculate_sleep_duration(self, sleep_time, wake_time)` - Calculate sleep duration in hours from sleep_time and wake_time (HH:MM format).
   - [OK] `CheckinAnalytics._calculate_sleep_score(self, checkins)` - Calculate sleep score (0-100)
   - [OK] `CheckinAnalytics._calculate_streak(self, checkins, habit_key)` - Calculate current and best streaks for a habit
   - [OK] `CheckinAnalytics._get_energy_distribution(self, energies)` - Calculate distribution of energy scores
@@ -2593,34 +2566,82 @@ Only includes fields that appear in the data and are in enabled_fields if provid
 **Functions:**
 - [OK] `__init__(self)` - Initialize the dynamic check-in manager.
 - [OK] `_load_data(self)` - Load questions and responses data from JSON files.
+- [OK] `_normalize_time(self, time_str)` - Normalize time string to HH:MM format (24-hour).
+
+Supports formats like:
+- "11:30 PM" -> "23:30"
+- "7:00 AM" -> "07:00"
+- "23:30" -> "23:30"
+- "7:00" -> "07:00" (assumes AM if no AM/PM)
 - [OK] `_parse_numerical_response(self, answer)` - Parse numerical responses including written numbers, decimals, and mixed formats.
+- [OK] `_parse_time_pair_response(self, answer)` - Parse sleep time and wake time from user response.
+
+Supports formats like:
+- "11:30 PM and 7:00 AM"
+- "23:30 and 07:00"
+- "11:30pm, 7:00am"
+- "11:30 PM, 7:00 AM"
 - [OK] `build_next_question_with_response(self, question_key, previous_question_key, previous_answer)` - Build the next question text with a response statement from the previous answer.
-- [OK] `get_all_questions(self)` - Get all question definitions.
+- [OK] `delete_custom_question(self, user_id, question_key)` - Delete a custom question from user preferences.
+- [OK] `get_all_questions(self, user_id)` - Get all question definitions, merging predefined and custom questions.
+
+Custom questions take precedence over predefined questions with the same key.
 - [OK] `get_categories(self)` - Get all question categories.
-- [OK] `get_enabled_questions_for_ui(self)` - Get questions formatted for UI display with enabled_by_default status.
-- [OK] `get_question_definition(self, question_key)` - Get the definition for a specific question.
-- [OK] `get_question_text(self, question_key)` - Get the question text for a specific question.
+- [OK] `get_custom_questions(self, user_id)` - Get custom questions for a specific user from preferences.
+- [OK] `get_enabled_questions_for_ui(self, user_id)` - Get questions formatted for UI display with enabled_by_default status.
+
+Includes both predefined and custom questions if user_id is provided.
+- [OK] `get_question_definition(self, question_key, user_id)` - Get the definition for a specific question.
+
+Checks custom questions first (if user_id provided), then predefined questions.
+- [OK] `get_question_templates(self)` - Get available question templates for creating custom questions.
+- [OK] `get_question_text(self, question_key, user_id)` - Get the question text for a specific question.
 - [OK] `get_question_type(self, question_key)` - Get the type of a specific question.
 - [OK] `get_question_validation(self, question_key)` - Get validation rules for a specific question.
 - [OK] `get_response_statement(self, question_key, answer_value)` - Get a random response statement for a question answer.
 - [OK] `get_transition_phrase(self)` - Get a random transition phrase.
-- [OK] `validate_answer(self, question_key, answer)` - Validate an answer for a specific question.
+- [OK] `save_custom_question(self, user_id, question_key, question_def)` - Save a custom question to user preferences.
+- [OK] `validate_answer(self, question_key, answer, user_id)` - Validate an answer for a specific question.
 **Classes:**
 - [OK] `DynamicCheckinManager` - Manages dynamic check-in questions and responses loaded from JSON files.
   - [OK] `DynamicCheckinManager.__init__(self)` - Initialize the dynamic check-in manager.
   - [OK] `DynamicCheckinManager._load_data(self)` - Load questions and responses data from JSON files.
+  - [OK] `DynamicCheckinManager._normalize_time(self, time_str)` - Normalize time string to HH:MM format (24-hour).
+
+Supports formats like:
+- "11:30 PM" -> "23:30"
+- "7:00 AM" -> "07:00"
+- "23:30" -> "23:30"
+- "7:00" -> "07:00" (assumes AM if no AM/PM)
   - [OK] `DynamicCheckinManager._parse_numerical_response(self, answer)` - Parse numerical responses including written numbers, decimals, and mixed formats.
+  - [OK] `DynamicCheckinManager._parse_time_pair_response(self, answer)` - Parse sleep time and wake time from user response.
+
+Supports formats like:
+- "11:30 PM and 7:00 AM"
+- "23:30 and 07:00"
+- "11:30pm, 7:00am"
+- "11:30 PM, 7:00 AM"
   - [OK] `DynamicCheckinManager.build_next_question_with_response(self, question_key, previous_question_key, previous_answer)` - Build the next question text with a response statement from the previous answer.
-  - [OK] `DynamicCheckinManager.get_all_questions(self)` - Get all question definitions.
+  - [OK] `DynamicCheckinManager.delete_custom_question(self, user_id, question_key)` - Delete a custom question from user preferences.
+  - [OK] `DynamicCheckinManager.get_all_questions(self, user_id)` - Get all question definitions, merging predefined and custom questions.
+
+Custom questions take precedence over predefined questions with the same key.
   - [OK] `DynamicCheckinManager.get_categories(self)` - Get all question categories.
-  - [OK] `DynamicCheckinManager.get_enabled_questions_for_ui(self)` - Get questions formatted for UI display with enabled_by_default status.
-  - [OK] `DynamicCheckinManager.get_question_definition(self, question_key)` - Get the definition for a specific question.
-  - [OK] `DynamicCheckinManager.get_question_text(self, question_key)` - Get the question text for a specific question.
+  - [OK] `DynamicCheckinManager.get_custom_questions(self, user_id)` - Get custom questions for a specific user from preferences.
+  - [OK] `DynamicCheckinManager.get_enabled_questions_for_ui(self, user_id)` - Get questions formatted for UI display with enabled_by_default status.
+
+Includes both predefined and custom questions if user_id is provided.
+  - [OK] `DynamicCheckinManager.get_question_definition(self, question_key, user_id)` - Get the definition for a specific question.
+
+Checks custom questions first (if user_id provided), then predefined questions.
+  - [OK] `DynamicCheckinManager.get_question_templates(self)` - Get available question templates for creating custom questions.
+  - [OK] `DynamicCheckinManager.get_question_text(self, question_key, user_id)` - Get the question text for a specific question.
   - [OK] `DynamicCheckinManager.get_question_type(self, question_key)` - Get the type of a specific question.
   - [OK] `DynamicCheckinManager.get_question_validation(self, question_key)` - Get validation rules for a specific question.
   - [OK] `DynamicCheckinManager.get_response_statement(self, question_key, answer_value)` - Get a random response statement for a question answer.
   - [OK] `DynamicCheckinManager.get_transition_phrase(self)` - Get a random transition phrase.
-  - [OK] `DynamicCheckinManager.validate_answer(self, question_key, answer)` - Validate an answer for a specific question.
+  - [OK] `DynamicCheckinManager.save_custom_question(self, user_id, question_key, question_def)` - Save a custom question to user preferences.
+  - [OK] `DynamicCheckinManager.validate_answer(self, question_key, answer, user_id)` - Validate an answer for a specific question.
 
 #### `core/config.py`
 **Functions:**
@@ -4216,6 +4237,73 @@ Args:
     interval: Time interval in seconds between allowed operations
   - [OK] `Throttler.should_run(self)` - Check if enough time has passed since the last run to allow another execution.
 
+#### `core/tags.py`
+**Functions:**
+- [OK] `_load_default_tags_from_resources()` - Load default tags from resources/default_tags.json.
+
+Returns:
+    List of default tag strings, empty list if file not found or invalid
+- [OK] `add_user_tag(user_id, tag)` - Add a tag to user's tag list (lazy initialization).
+
+Args:
+    user_id: User ID
+    tag: Tag to add
+    
+Returns:
+    True if successful, False otherwise
+- [OK] `ensure_tags_initialized(user_id)` - Ensure tags.json is initialized for a user (lazy creation).
+This is called when tasks are enabled or when the first notebook entry is created,
+whichever happens first. Safe to call multiple times.
+
+Args:
+    user_id: User ID
+- [OK] `ensure_user_dir_for_tags(user_id)` - Ensure user directory exists for tags (lazy creation).
+Tags are stored as tags.json in the root user directory, like checkins.json and schedules.json.
+
+Args:
+    user_id: User ID
+    
+Returns:
+    Path to user directory, or None if failed
+- [OK] `get_user_tags(user_id)` - Get list of user's tags (lazy initialization).
+
+Args:
+    user_id: User ID
+    
+Returns:
+    List of normalized tag strings
+- [OK] `load_user_tags(user_id)` - Load user tags data from tags.json (lazy initialization).
+Creates directory and file with default tags if they don't exist.
+
+Args:
+    user_id: User ID
+    
+Returns:
+    Dictionary with tags data: {'tags': [...], 'metadata': {...}}
+- [OK] `normalize_tag(tag)` - Normalizes a single tag by stripping whitespace, lowercasing, and optionally removing a leading '#'.
+- [OK] `normalize_tags(tags)` - Normalizes a list of tags and removes duplicates.
+- [OK] `parse_tags_from_text(text)` - Extracts tags (e.g., #tag, key:value) from a text string and returns the cleaned text and normalized tags.
+- [OK] `remove_user_tag(user_id, tag)` - Remove a tag from user's tag list.
+
+Args:
+    user_id: User ID
+    tag: Tag to remove
+    
+Returns:
+    True if successful, False otherwise
+- [OK] `save_user_tags(user_id, tags_data)` - Save user tags data to tags.json (lazy initialization).
+Tags are now registered in USER_DATA_LOADERS, so this function can be called
+directly or through save_user_data().
+
+Args:
+    user_id: User ID
+    tags_data: Dictionary with tags data
+    
+Returns:
+    True if successful, False otherwise
+- [OK] `validate_tag(tag)` - Validates a single normalized tag for length and allowed characters.
+Raises ValidationError if invalid.
+
 #### `core/ui_management.py`
 **Functions:**
 - [OK] `add_period_widget_to_layout(layout, period_name, period_data, category, parent_widget, widget_list, delete_callback)` - Add a period widget to a layout with proper display formatting.
@@ -4548,6 +4636,19 @@ Returns:
 #### `core/user_data_validation.py`
 **Functions:**
 - [OK] `_shared__title_case(text)` - Convert text to title case with special handling for technical terms.
+- [OK] `is_valid_category_name(name, max_length, field_name, allow_none)` - Validate that a category/group name is valid.
+
+Category names should be simple identifiers: alphanumeric, spaces, hyphens, underscores.
+This is used for grouping/categorizing items (e.g., notebook groups, task categories).
+
+Args:
+    name: Category name to validate (can be None if allow_none=True)
+    max_length: Maximum allowed length (default: 50)
+    field_name: Name of the field being validated (for error messages)
+    allow_none: Whether None values are allowed (default: True)
+    
+Returns:
+    True if category name is valid, False otherwise
 - [OK] `is_valid_discord_id(discord_id)` - Validate Discord user ID format.
 
 Discord user IDs are snowflakes (numeric IDs) that are 17-19 digits long.
@@ -4560,6 +4661,16 @@ Returns:
     bool: True if valid Discord ID format or empty, False otherwise
 - [MISSING] `is_valid_email(email)` - No description
 - [MISSING] `is_valid_phone(phone)` - No description
+- [OK] `is_valid_string_length(text, max_length, field_name, allow_none)` - Validate that a string is within the specified maximum length.
+
+Args:
+    text: String to validate (can be None if allow_none=True)
+    max_length: Maximum allowed length
+    field_name: Name of the field being validated (for error messages)
+    allow_none: Whether None values are allowed
+    
+Returns:
+    True if string length is valid, False otherwise
 - [OK] `validate_new_user_data(user_id, data_updates)` - Validate complete dataset required for a brand-new user.
 - [OK] `validate_personalization_data(data)` - Validate *context/personalization* structure.
 
@@ -4583,6 +4694,7 @@ Returns:
 - [OK] `_get_user_data__load_context(user_id, auto_create)` - Load user context data from user_context.json.
 - [OK] `_get_user_data__load_preferences(user_id, auto_create)` - Load user preferences data from preferences.json.
 - [OK] `_get_user_data__load_schedules(user_id, auto_create)` - Load user schedules data from schedules.json.
+- [OK] `_get_user_data__load_tags(user_id, auto_create)` - Load user tags data from tags.json.
 - [OK] `_get_user_id_by_identifier__by_chat_id(chat_id)` - Helper function: Get user ID by chat ID.
 - [OK] `_get_user_id_by_identifier__by_discord_user_id(discord_user_id)` - Helper function: Get user ID by Discord user ID using the user index for fast lookup.
 - [OK] `_get_user_id_by_identifier__by_email(email)` - Helper function: Get user ID by email using the user index for fast lookup.
@@ -4593,6 +4705,7 @@ Returns:
 - [OK] `_save_user_data__save_context(user_id, context_data)` - Save user context data to user_context.json.
 - [OK] `_save_user_data__save_preferences(user_id, preferences_data)` - Save user preferences data to preferences.json.
 - [OK] `_save_user_data__save_schedules(user_id, schedules_data)` - Save user schedules data to schedules.json.
+- [OK] `_save_user_data__save_tags(user_id, tags_data)` - Save user tags data to tags.json.
 - [OK] `add_personalization_item(user_id, field, item)` - Add an item to a list field in personalization data using centralized system.
 - [OK] `clear_personalization_cache(user_id)` - Clear the personalization cache for a specific user or all users.
 - [OK] `clear_user_caches(user_id)` - Clear user data caches.
@@ -4633,7 +4746,7 @@ Args:
 - [OK] `register_default_loaders()` - Ensure required loaders are registered (idempotent).
 
 Mutates the shared USER_DATA_LOADERS in-place, setting any missing/None
-loader entries for: account, preferences, context, schedules.
+loader entries for: account, preferences, context, schedules, tags.
 - [OK] `remove_personalization_item(user_id, field, item)` - Remove an item from a list field in personalization data using centralized system.
 - [OK] `update_channel_preferences(user_id, updates, auto_create)` - Update channel preferences without triggering category schedule creation.
 - [OK] `update_personalization_field(user_id, field, value)` - Update a specific field in personalization data using centralized system.
@@ -4642,6 +4755,8 @@ loader entries for: account, preferences, context, schedules.
 - [OK] `update_user_schedules(user_id, schedules_data)` - Update user schedules data.
 
 ### `root/` - Root Files
+
+#### `create_backup.py`
 
 #### `run_headless_service.py`
 **Functions:**
@@ -4678,6 +4793,23 @@ Returns:
 
 #### `run_tests.py`
 **Functions:**
+- [OK] `check_critical_resources(resources)` - Check if resources exceed critical thresholds requiring termination.
+- [OK] `check_resource_warnings(resources)` - Check if resources exceed warning thresholds.
+- [OK] `cleanup_orphaned_pytest_processes()` - Find and kill any orphaned pytest worker processes on Windows.
+
+Returns:
+    int: Number of orphaned processes found and killed
+- [OK] `detect_stuck_process(last_output_time, current_time, threshold)` - Detect if process appears stuck (no output for extended period).
+- [OK] `extract_failures_from_junit_xml(xml_path)` - Extract detailed failure information from JUnit XML.
+
+Returns a list of dicts with 'test', 'message', and 'type' keys.
+- [OK] `extract_pytest_session_info(output_text)` - Extract pytest session information from output text.
+- [OK] `extract_results_from_output(output_text)` - Extract test results from pytest output text when JUnit XML is unavailable.
+- [OK] `interrupt_handler(signum, frame)` - Handle interrupt signals (Ctrl+C) gracefully.
+- [OK] `kill_process_tree_windows(pid)` - Kill a process and all its children on Windows.
+
+Returns:
+    bool: True if taskkill succeeded, False otherwise
 - [OK] `main()` - Main entry point for MHM test runner.
 
 Parses command-line arguments and executes pytest with appropriate configuration
@@ -4685,6 +4817,7 @@ based on the selected test mode (all, fast, unit, integration, behavior, ui, slo
 
 Returns:
     int: Exit code (0 for success, 1 for failure)
+- [OK] `monitor_resources()` - Monitor system resource usage and return metrics.
 - [OK] `parse_junit_xml(xml_path)` - Parse JUnit XML report to extract test statistics.
 
 Returns a dictionary with: passed, failed, skipped, warnings, errors, total
@@ -4696,17 +4829,19 @@ Args:
     description: Test mode description
 - [OK] `print_test_mode_info()` - Print helpful information about test modes.
 - [OK] `read_output(pipe, queue_obj)` - Read from pipe and put lines in queue, also write to terminal.
-- [OK] `run_command(cmd, description, progress_interval, capture_output)` - Run a command and return results with periodic progress logs.
+- [OK] `run_command(cmd, description, progress_interval, capture_output, test_context)` - Run a command and return results with periodic progress logs.
 
 Args:
     cmd: Command to run
     description: Description for progress messages
     progress_interval: Seconds between progress updates
     capture_output: If True, capture results via JUnit XML (always True in practice)
+    test_context: Optional dict with test run context (mode, phase, config, etc.)
 
 Returns:
     dict with 'success', 'output', 'results', 'duration', 'warnings', 'failures' keys
 - [OK] `run_static_logging_check()` - Run the static logging enforcement script before executing tests.
+- [OK] `save_partial_results(junit_xml_path, interrupted, output_text, test_context)` - Save partial test results from JUnit XML, falling back to output text parsing.
 - [OK] `setup_test_logger()` - Set up logger for test duration logging.
 
 Creates a logger for test run duration logging and ensures the tests/logs
@@ -4714,6 +4849,7 @@ directory exists. Returns a configured logger instance.
 
 Returns:
     logging.Logger: Configured logger instance for test runs
+- [MISSING] `signal_handler(signum, frame)` - No description
 
 ### `tasks/` - Task Management
 
@@ -4723,7 +4859,7 @@ Returns:
 **Functions:**
 - [OK] `_calculate_next_due_date(completion_date, recurrence_pattern, recurrence_interval, repeat_after_completion)` - Calculate the next due date for a recurring task.
 - [OK] `_create_next_recurring_task_instance(user_id, completed_task)` - Create the next instance of a recurring task when the current one is completed.
-- [OK] `add_user_task_tag(user_id, tag)` - Add a new tag to the user's task settings.
+- [OK] `add_user_task_tag(user_id, tag)` - Add a new tag to the user's tag list (shared tag system).
 - [OK] `are_tasks_enabled(user_id)` - Check if task management is enabled for a user.
 - [OK] `cleanup_task_reminders(user_id, task_id)` - Clean up all reminders for a specific task.
 - [OK] `complete_task(user_id, task_id, completion_data)` - Mark a task as completed.
@@ -4741,12 +4877,13 @@ Returns:
 Returns:
     List[Dict[str, Any]]: List of active tasks, empty list if failed
 - [OK] `load_completed_tasks(user_id)` - Load completed tasks for a user.
-- [OK] `remove_user_task_tag(user_id, tag)` - Remove a tag from the user's task settings.
+- [OK] `remove_user_task_tag(user_id, tag)` - Remove a tag from the user's tag list (shared tag system).
 - [OK] `restore_task(user_id, task_id)` - Restore a completed task to active status.
 - [OK] `save_active_tasks(user_id, tasks)` - Save active tasks for a user.
 - [OK] `save_completed_tasks(user_id, tasks)` - Save completed tasks for a user.
 - [OK] `schedule_task_reminders(user_id, task_id, reminder_periods)` - Schedule reminders for a specific task based on its reminder periods.
-- [OK] `setup_default_task_tags(user_id)` - Set up default task tags for a user when task management is first enabled.
+- [OK] `setup_default_task_tags(user_id)` - Set up default tags for a user when task management is first enabled.
+This initializes the tags directory and tags.json with default tags if they don't exist.
 - [OK] `update_task(user_id, task_id, updates)` - Update an existing task.
 **Classes:**
 - [OK] `TaskManagementError` - Custom exception for task management errors.
@@ -4923,6 +5060,7 @@ Args:
 #### `ui/dialogs/channel_management_dialog.py`
 **Functions:**
 - [OK] `__init__(self, parent, user_id)` - Initialize the object.
+- [OK] `_on_save_clicked(self)` - Wrapper to handle save button click and show error dialog if needed.
 - [MISSING] `get_selected_channel(self)` - No description
 - [MISSING] `load_user_channel_data()` - No description
 - [MISSING] `save_channel_settings(self)` - No description
@@ -4930,6 +5068,7 @@ Args:
 **Classes:**
 - [MISSING] `ChannelManagementDialog` - No description
   - [OK] `ChannelManagementDialog.__init__(self, parent, user_id)` - Initialize the object.
+  - [OK] `ChannelManagementDialog._on_save_clicked(self)` - Wrapper to handle save button click and show error dialog if needed.
   - [MISSING] `ChannelManagementDialog.get_selected_channel(self)` - No description
   - [MISSING] `ChannelManagementDialog.save_channel_settings(self)` - No description
   - [MISSING] `ChannelManagementDialog.set_selected_channel(self, channel, value)` - No description
@@ -5735,30 +5874,47 @@ Args:
 #### `ui/widgets/checkin_settings_widget.py`
 **Functions:**
 - [OK] `__init__(self, parent, user_id)` - Initialize the object.
+- [OK] `_clear_category_groups(self)` - Remove all category group boxes.
+- [OK] `_clear_dynamic_question_checkboxes(self)` - Remove all dynamically created question checkboxes.
+- [OK] `_delete_custom_question(self, question_key)` - Delete a custom question.
+- [OK] `_edit_custom_question(self, question_key)` - Edit an existing custom question.
+- [OK] `_on_always_toggled(self, question_key, checked)` - Handle always checkbox toggle - ensure sometimes is unchecked if always is checked.
+- [OK] `_on_max_changed(self, value)` - Handle maximum questions value change - adjust min if needed.
+- [OK] `_on_min_changed(self, value)` - Handle minimum questions value change - adjust max if needed.
+- [OK] `_on_sometimes_toggled(self, question_key, checked)` - Handle sometimes checkbox toggle - ensure always is unchecked if sometimes is checked.
+- [OK] `_refresh_question_display(self)` - Refresh the question display from current in-memory state.
+
+Similar to tag_widget.refresh_tag_list() - updates display without reloading from preferences.
+- [OK] `_setup_question_count_controls(self)` - Add min/max question count controls below the questions list.
+- [OK] `_show_question_dialog(self, question_key, question_def)` - Show dialog for adding or editing a custom question.
+
+Args:
+    question_key: If provided, edit existing question; otherwise create new
+    question_def: Existing question definition (for editing)
+- [OK] `_validate_question_counts(self, skip_min_adjust)` - Validate min/max question counts based on enabled questions.
+
+Args:
+    skip_min_adjust: If True, don't adjust min value even if it's below min_required.
+                     Used when max is reduced below min to allow min to match max.
 - [OK] `add_new_period(self, checked, period_name, period_data)` - Add a new time period using the PeriodRowWidget.
 - [OK] `add_new_question(self)` - Add a new check-in question.
-
-TODO: Implement custom question creation functionality.
-- Store custom questions in user preferences (checkin_settings.custom_questions)
-- Support question types: scale_1_5, yes_no, number, optional_text
-- Add validation rules for custom questions
-- Integrate with DynamicCheckinManager to include custom questions in flow
-- See development_docs/PLANS.md "Dynamic Check-in Questions Plan" for full requirements
 - [OK] `connect_question_checkboxes(self)` - Connect all question checkboxes to track changes.
 - [OK] `find_lowest_available_period_number(self)` - Find the lowest available integer (2+) that's not currently used in period names.
 - [OK] `get_checkin_settings(self)` - Get the current check-in settings.
 - [OK] `get_default_question_state(self, question_key)` - Get default enabled state for a question.
 - [OK] `load_existing_data(self)` - Load existing check-in data.
 - [OK] `on_question_toggled(self, checked)` - Handle question checkbox toggle.
+- [MISSING] `on_template_selected(index)` - No description
 - [OK] `remove_period_row(self, row_widget)` - Remove a period row and store it for undo.
 - [OK] `set_checkin_settings(self, settings)` - Set the check-in settings.
 - [OK] `set_question_checkboxes(self, questions)` - Set question checkboxes based on saved preferences.
+
+Groups questions by category and creates Always/Sometimes checkboxes for each.
 - [OK] `setup_connections(self)` - Setup signal connections.
 - [OK] `showEvent(self, event)` - Handle widget show event.
 
-Called when the widget becomes visible. Currently just calls the parent
-implementation but can be extended for initialization that needs to happen
-when the widget is shown.
+Called when the widget becomes visible. Re-validate question counts to ensure
+spinboxes have correct ranges when the dialog is shown.
 
 Args:
     event: The show event object
@@ -5767,15 +5923,30 @@ Args:
 **Classes:**
 - [OK] `CheckinSettingsWidget` - Widget for check-in settings configuration.
   - [OK] `CheckinSettingsWidget.__init__(self, parent, user_id)` - Initialize the object.
+  - [OK] `CheckinSettingsWidget._clear_category_groups(self)` - Remove all category group boxes.
+  - [OK] `CheckinSettingsWidget._clear_dynamic_question_checkboxes(self)` - Remove all dynamically created question checkboxes.
+  - [OK] `CheckinSettingsWidget._delete_custom_question(self, question_key)` - Delete a custom question.
+  - [OK] `CheckinSettingsWidget._edit_custom_question(self, question_key)` - Edit an existing custom question.
+  - [OK] `CheckinSettingsWidget._on_always_toggled(self, question_key, checked)` - Handle always checkbox toggle - ensure sometimes is unchecked if always is checked.
+  - [OK] `CheckinSettingsWidget._on_max_changed(self, value)` - Handle maximum questions value change - adjust min if needed.
+  - [OK] `CheckinSettingsWidget._on_min_changed(self, value)` - Handle minimum questions value change - adjust max if needed.
+  - [OK] `CheckinSettingsWidget._on_sometimes_toggled(self, question_key, checked)` - Handle sometimes checkbox toggle - ensure always is unchecked if sometimes is checked.
+  - [OK] `CheckinSettingsWidget._refresh_question_display(self)` - Refresh the question display from current in-memory state.
+
+Similar to tag_widget.refresh_tag_list() - updates display without reloading from preferences.
+  - [OK] `CheckinSettingsWidget._setup_question_count_controls(self)` - Add min/max question count controls below the questions list.
+  - [OK] `CheckinSettingsWidget._show_question_dialog(self, question_key, question_def)` - Show dialog for adding or editing a custom question.
+
+Args:
+    question_key: If provided, edit existing question; otherwise create new
+    question_def: Existing question definition (for editing)
+  - [OK] `CheckinSettingsWidget._validate_question_counts(self, skip_min_adjust)` - Validate min/max question counts based on enabled questions.
+
+Args:
+    skip_min_adjust: If True, don't adjust min value even if it's below min_required.
+                     Used when max is reduced below min to allow min to match max.
   - [OK] `CheckinSettingsWidget.add_new_period(self, checked, period_name, period_data)` - Add a new time period using the PeriodRowWidget.
   - [OK] `CheckinSettingsWidget.add_new_question(self)` - Add a new check-in question.
-
-TODO: Implement custom question creation functionality.
-- Store custom questions in user preferences (checkin_settings.custom_questions)
-- Support question types: scale_1_5, yes_no, number, optional_text
-- Add validation rules for custom questions
-- Integrate with DynamicCheckinManager to include custom questions in flow
-- See development_docs/PLANS.md "Dynamic Check-in Questions Plan" for full requirements
   - [OK] `CheckinSettingsWidget.connect_question_checkboxes(self)` - Connect all question checkboxes to track changes.
   - [OK] `CheckinSettingsWidget.find_lowest_available_period_number(self)` - Find the lowest available integer (2+) that's not currently used in period names.
   - [OK] `CheckinSettingsWidget.get_checkin_settings(self)` - Get the current check-in settings.
@@ -5785,12 +5956,13 @@ TODO: Implement custom question creation functionality.
   - [OK] `CheckinSettingsWidget.remove_period_row(self, row_widget)` - Remove a period row and store it for undo.
   - [OK] `CheckinSettingsWidget.set_checkin_settings(self, settings)` - Set the check-in settings.
   - [OK] `CheckinSettingsWidget.set_question_checkboxes(self, questions)` - Set question checkboxes based on saved preferences.
+
+Groups questions by category and creates Always/Sometimes checkboxes for each.
   - [OK] `CheckinSettingsWidget.setup_connections(self)` - Setup signal connections.
   - [OK] `CheckinSettingsWidget.showEvent(self, event)` - Handle widget show event.
 
-Called when the widget becomes visible. Currently just calls the parent
-implementation but can be extended for initialization that needs to happen
-when the widget is shown.
+Called when the widget becomes visible. Re-validate question counts to ensure
+spinboxes have correct ranges when the dialog is shown.
 
 Args:
     event: The show event object

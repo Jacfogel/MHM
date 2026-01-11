@@ -68,8 +68,6 @@
 #         service.run_analyze_functions = MagicMock(side_effect=mock_run_tool)
 #         service.run_analyze_documentation_sync = MagicMock(side_effect=mock_run_tool)
 #         service.run_analyze_system_signals = MagicMock(side_effect=mock_run_tool)
-#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
-#         service.run_system_signals = MagicMock(side_effect=mock_run_tool)
 #         service.run_analyze_documentation = MagicMock(side_effect=mock_run_tool)
 #         service.run_analyze_error_handling = MagicMock(side_effect=mock_run_tool)
 #         service.run_decision_support = MagicMock(side_effect=mock_run_tool)
@@ -157,8 +155,6 @@
 #         service.run_analyze_functions = MagicMock(side_effect=mock_analyze_functions)
 #         service.run_analyze_documentation_sync = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
 #         service.run_analyze_system_signals = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
-#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
-#         service.run_system_signals = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
         
 #         # Mock data loading to return the mock function data
 #         def mock_load_tool_data(tool_name, domain=None, log_source=True):
@@ -244,8 +240,6 @@
 #         service.run_analyze_functions = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
 #         service.run_analyze_documentation_sync = MagicMock(side_effect=mock_doc_sync)
 #         service.run_analyze_system_signals = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
-#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
-#         service.run_system_signals = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
         
 #         # Patch _generate_ai_status_document to capture doc sync status
 #         original_generate = service._generate_ai_status_document
@@ -326,8 +320,6 @@
 #         service.run_analyze_documentation_sync = MagicMock(side_effect=mock_with_cache('analyze_documentation_sync'))
 #         # Use analyze_system_signals (renamed from system_signals)
 #         service.run_analyze_system_signals = MagicMock(side_effect=mock_with_cache('analyze_system_signals'))
-#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
-#         service.run_system_signals = MagicMock(side_effect=mock_with_cache('system_signals'))
 #         service.run_analyze_documentation = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
 #         service.run_analyze_error_handling = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})
 #         service.run_decision_support = MagicMock(return_value={'success': True, 'output': '{}', 'data': {}})

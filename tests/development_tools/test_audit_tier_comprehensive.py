@@ -119,8 +119,6 @@
 #         # Mock Tier 1 tools
 #         service.run_script = MagicMock(side_effect=lambda name, *args, **kwargs: {'success': True, 'output': '{}', 'data': {}})
 #         service.run_analyze_system_signals = MagicMock(side_effect=mock_tool('analyze_system_signals'))
-#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
-#         service.run_system_signals = MagicMock(side_effect=mock_tool('system_signals'))
 #         service.run_analyze_documentation = MagicMock(side_effect=mock_tool('analyze_documentation'))
 #         service.run_analyze_config = MagicMock(side_effect=mock_tool('analyze_config'))
 #         service.run_validate = MagicMock(side_effect=mock_tool('analyze_ai_work'))
@@ -146,8 +144,7 @@
 #             result = service.run_audit(quick=True)
         
 #         # Verify Tier 1 tools were called
-#         # Note: run_system_signals is a legacy wrapper for run_analyze_system_signals
-#         assert 'system_signals' in tools_called or 'analyze_system_signals' in tools_called, "Tier 1 tool analyze_system_signals should be called"
+#         assert 'analyze_system_signals' in tools_called, "Tier 1 tool analyze_system_signals should be called"
 #         assert 'analyze_documentation' in tools_called, "Tier 1 tool analyze_documentation should be called"
         
 #         # Verify Tier 2 tools were NOT called
@@ -178,8 +175,6 @@
 #         # Mock all tools
 #         service.run_script = MagicMock(side_effect=lambda name, *args, **kwargs: {'success': True, 'output': '{}', 'data': {}})
 #         service.run_analyze_system_signals = MagicMock(side_effect=mock_tool('analyze_system_signals'))
-#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
-#         service.run_system_signals = MagicMock(side_effect=mock_tool('system_signals'))
 #         service.run_analyze_documentation = MagicMock(side_effect=mock_tool('analyze_documentation'))
 #         service.run_analyze_config = MagicMock(side_effect=mock_tool('analyze_config'))
 #         service.run_validate = MagicMock(side_effect=mock_tool('analyze_ai_work'))
@@ -210,8 +205,7 @@
 #             result = service.run_audit(quick=False, full=False)
         
 #         # Verify Tier 1 tools were called
-#         # Note: run_system_signals is a legacy wrapper for run_analyze_system_signals
-#         assert 'system_signals' in tools_called or 'analyze_system_signals' in tools_called, "Tier 1 tool analyze_system_signals should be called"
+#         assert 'analyze_system_signals' in tools_called, "Tier 1 tool analyze_system_signals should be called"
         
 #         # Verify Tier 2 tools were called
 #         assert 'analyze_functions' in tools_called, "Tier 2 tool analyze_functions should be called"
@@ -241,8 +235,6 @@
 #         # Mock all tools
 #         service.run_script = MagicMock(side_effect=lambda name, *args, **kwargs: {'success': True, 'output': '{}', 'data': {}})
 #         service.run_analyze_system_signals = MagicMock(side_effect=mock_tool('analyze_system_signals'))
-#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
-#         service.run_system_signals = MagicMock(side_effect=mock_tool('system_signals'))
 #         service.run_analyze_documentation = MagicMock(side_effect=mock_tool('analyze_documentation'))
 #         service.run_analyze_config = MagicMock(side_effect=mock_tool('analyze_config'))
 #         service.run_validate = MagicMock(side_effect=mock_tool('analyze_ai_work'))
@@ -275,8 +267,7 @@
 #             result = service.run_audit(quick=False, full=True)
         
 #         # Verify Tier 1 tools were called
-#         # Note: run_system_signals is a legacy wrapper for run_analyze_system_signals
-#         assert 'system_signals' in tools_called or 'analyze_system_signals' in tools_called, "Tier 1 tool analyze_system_signals should be called"
+#         assert 'analyze_system_signals' in tools_called, "Tier 1 tool analyze_system_signals should be called"
         
 #         # Verify Tier 2 tools were called
 #         assert 'analyze_functions' in tools_called, "Tier 2 tool analyze_functions should be called"
@@ -316,8 +307,6 @@
         
 #         service.run_script = MagicMock(side_effect=mock_run_script)
 #         service.run_analyze_system_signals = MagicMock(side_effect=mock_tool('analyze_system_signals'))
-#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
-#         service.run_system_signals = MagicMock(side_effect=mock_tool('system_signals'))
 #         service.run_analyze_documentation = MagicMock(side_effect=mock_tool('analyze_documentation'))
 #         service.run_validate = MagicMock(side_effect=mock_tool('analyze_ai_work'))
 #         service.run_analyze_function_patterns = MagicMock(side_effect=mock_tool('analyze_function_patterns'))
@@ -343,8 +332,7 @@
 #             service.run_audit(quick=False, full=False)
         
 #         # Verify Tier 1 tools were called
-#         # Note: run_system_signals is a legacy wrapper for run_analyze_system_signals
-#         assert 'system_signals' in tools_called or 'analyze_system_signals' in tools_called, "Tier 1 tool analyze_system_signals should be called in Tier 2"
+#         assert 'analyze_system_signals' in tools_called, "Tier 1 tool analyze_system_signals should be called in Tier 2"
 #         assert 'analyze_documentation' in tools_called, "Tier 1 tool analyze_documentation should be called in Tier 2"
 #         assert 'analyze_config' in script_calls, "Tier 1 tool analyze_config should be called in Tier 2 (via run_script)"
     
@@ -366,8 +354,6 @@
 #         # Mock all tools
 #         service.run_script = MagicMock(side_effect=lambda name, *args, **kwargs: {'success': True, 'output': '{}', 'data': {}})
 #         service.run_analyze_system_signals = MagicMock(side_effect=mock_tool('analyze_system_signals'))
-#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
-#         service.run_system_signals = MagicMock(side_effect=mock_tool('system_signals'))
 #         service.run_analyze_documentation = MagicMock(side_effect=mock_tool('analyze_documentation'))
 #         service.run_analyze_config = MagicMock(side_effect=mock_tool('analyze_config'))
 #         service.run_validate = MagicMock(side_effect=mock_tool('analyze_ai_work'))
@@ -400,8 +386,7 @@
 #             service.run_audit(quick=False, full=True)
         
 #         # Verify Tier 1 tools were called
-#         # Note: run_system_signals is a legacy wrapper for run_analyze_system_signals
-#         assert 'system_signals' in tools_called or 'analyze_system_signals' in tools_called, "Tier 1 tool analyze_system_signals should be called in Tier 3"
+#         assert 'analyze_system_signals' in tools_called, "Tier 1 tool analyze_system_signals should be called in Tier 3"
 #         assert 'analyze_documentation' in tools_called, "Tier 1 tool analyze_documentation should be called in Tier 3"
         
 #         # Verify Tier 2 tools were called
@@ -434,8 +419,6 @@
         
 #         service.run_script = MagicMock(side_effect=lambda name, *args, **kwargs: {'success': True, 'output': '{}', 'data': {}})
 #         service.run_analyze_system_signals = MagicMock(side_effect=mock_tool)
-#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
-#         service.run_system_signals = MagicMock(side_effect=mock_tool)
 #         service.run_analyze_documentation = MagicMock(side_effect=mock_tool)
 #         service.run_analyze_config = MagicMock(side_effect=mock_tool)
 #         service.run_validate = MagicMock(side_effect=mock_tool)
@@ -526,8 +509,6 @@
         
 #         service.run_script = MagicMock(side_effect=lambda name, *args, **kwargs: {'success': True, 'output': '{}', 'data': {}})
 #         service.run_analyze_system_signals = MagicMock(side_effect=mock_tool)
-#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
-#         service.run_system_signals = MagicMock(side_effect=mock_tool)
 #         service.run_analyze_documentation = MagicMock(side_effect=mock_tool)
 #         service.run_analyze_config = MagicMock(side_effect=mock_tool)
 #         service.run_validate = MagicMock(side_effect=mock_tool)
@@ -590,8 +571,6 @@
         
 #         service.run_script = MagicMock(side_effect=lambda name, *args, **kwargs: {'success': True, 'output': '{}', 'data': {}})
 #         service.run_analyze_system_signals = MagicMock(side_effect=mock_tool)
-#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
-#         service.run_system_signals = MagicMock(side_effect=mock_tool)
 #         service.run_analyze_documentation = MagicMock(side_effect=mock_tool)
 #         service.run_analyze_config = MagicMock(side_effect=mock_tool)
 #         service.run_validate = MagicMock(side_effect=mock_tool)
@@ -765,7 +744,6 @@
         
 #         service.run_script = MagicMock(side_effect=lambda name, *args, **kwargs: {'success': True, 'output': '{}', 'data': {}})
 #         # Mock tools to save results
-#         service.run_system_signals = MagicMock(side_effect=lambda *args, **kwargs: mock_tool_with_save('analyze_system_signals', 'reports', *args, **kwargs))
 #         service.run_analyze_documentation = MagicMock(side_effect=lambda *args, **kwargs: mock_tool_with_save('analyze_documentation', 'docs', *args, **kwargs))
 #         service.run_analyze_config = MagicMock(side_effect=lambda *args, **kwargs: mock_tool_with_save('analyze_config', 'config', *args, **kwargs))
 #         service.run_validate = MagicMock(side_effect=lambda *args, **kwargs: mock_tool_with_save('analyze_ai_work', 'ai_work', *args, **kwargs))
@@ -905,7 +883,6 @@
 #             return {'success': True, 'output': '{}', 'data': {}}
         
 #         service.run_script = MagicMock(side_effect=lambda name, *args, **kwargs: {'success': True, 'output': '{}', 'data': {}})
-#         service.run_system_signals = MagicMock(side_effect=mock_tool)
 #         service.run_analyze_documentation = MagicMock(side_effect=mock_tool)
 #         service.run_analyze_config = MagicMock(side_effect=mock_tool)
 #         service.run_validate = MagicMock(side_effect=mock_tool)
@@ -1014,8 +991,6 @@
 #         service.run_analyze_functions = MagicMock(return_value={'success': True, 'data': {}})
 #         service.run_analyze_documentation = MagicMock(return_value={'success': True, 'data': {}})
 #         service.run_analyze_system_signals = MagicMock(return_value={'success': True, 'data': {}})
-#         # LEGACY COMPATIBILITY: Also mock legacy wrapper for backward compatibility
-#         service.run_system_signals = MagicMock(return_value={'success': True, 'data': {}})
         
 #         # Run tools independently
 #         result1 = service.run_analyze_functions()

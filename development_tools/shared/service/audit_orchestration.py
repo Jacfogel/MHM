@@ -776,16 +776,7 @@ class AuditOrchestrationMixin:
                 }
             
             if hasattr(self, 'system_signals') and self.system_signals:
-                # Store with new key
                 cached_data['results']['analyze_system_signals'] = {
-                    'success': True,
-                    'data': self.system_signals,
-                    'timestamp': datetime.now().isoformat()
-                }
-                # LEGACY COMPATIBILITY: Also store with old key for backward compatibility
-                # Removal plan: Remove 'system_signals' key storage after 2025-03-01 if no references found
-                # Detection pattern: "system_signals" in cached_data['results']
-                cached_data['results']['system_signals'] = {
                     'success': True,
                     'data': self.system_signals,
                     'timestamp': datetime.now().isoformat()

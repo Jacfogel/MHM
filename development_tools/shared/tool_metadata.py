@@ -328,12 +328,12 @@ _TOOLS: Dict[str, ToolInfo] = {
         trust="advisory",
         description="Fast cached snapshot that depends on recent audits.",
     ),
-    "system_signals": ToolInfo(
-        name="system_signals",
-        path="development_tools/reports/system_signals.py",
+    "analyze_system_signals": ToolInfo(
+        name="analyze_system_signals",
+        path="development_tools/reports/analyze_system_signals.py",
         tier="supporting",
         trust="advisory",
-        description="Collects OS/process health signals for reports.",
+        description="Analyzes system health and status signals for reports.",
     ),
     "decision_support": ToolInfo(
         name="decision_support",

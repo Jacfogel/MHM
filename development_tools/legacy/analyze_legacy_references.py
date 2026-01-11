@@ -232,8 +232,10 @@ class LegacyReferenceAnalyzer:
             if cached_result is not None:
                 cache_stats['hits'] += 1
                 # Cached result is a dict with pattern_type -> matches
+                # Filter to only include pattern types that are currently in config
                 for pattern_type, matches in cached_result.items():
-                    if matches:
+                    # Only use cached results for patterns that are still in the current config
+                    if pattern_type in self.legacy_patterns and matches:
                         # Need to read content for the tuple format
                         try:
                             with open(py_file, 'r', encoding='utf-8') as f:
@@ -275,8 +277,10 @@ class LegacyReferenceAnalyzer:
             if cached_result is not None:
                 cache_stats['hits'] += 1
                 # Cached result is a dict with pattern_type -> matches
+                # Filter to only include pattern types that are currently in config
                 for pattern_type, matches in cached_result.items():
-                    if matches:
+                    # Only use cached results for patterns that are still in the current config
+                    if pattern_type in self.legacy_patterns and matches:
                         # Need to read content for the tuple format
                         try:
                             with open(md_file, 'r', encoding='utf-8') as f:

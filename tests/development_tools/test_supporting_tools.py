@@ -17,8 +17,8 @@ def quick_status_module():
 
 @pytest.fixture
 def system_signals_module():
-    """Load the system_signals module with helpers from conftest."""
-    return load_development_tools_module("system_signals")
+    """Load the analyze_system_signals module with helpers from conftest."""
+    return load_development_tools_module("analyze_system_signals")
 
 
 @pytest.fixture
@@ -100,8 +100,8 @@ def test_quick_status_recent_activity_tracks_recent_files(tmp_path, quick_status
 
 @pytest.mark.unit
 def test_system_signals_reports_missing_directories(tmp_path, system_signals_module, monkeypatch):
-    """SystemSignalsGenerator should mark missing directories as warnings."""
-    generator = system_signals_module.SystemSignalsGenerator()
+    """SystemSignalsAnalyzer should mark missing directories as warnings."""
+    generator = system_signals_module.SystemSignalsAnalyzer()
     generator.project_root = tmp_path
 
     # Create mandatory core files
@@ -136,8 +136,8 @@ def test_system_signals_reports_missing_directories(tmp_path, system_signals_mod
 
 @pytest.mark.unit
 def test_system_signals_recent_activity_lists_changes(tmp_path, system_signals_module, monkeypatch):
-    """SystemSignalsGenerator recent activity should include modified files."""
-    generator = system_signals_module.SystemSignalsGenerator()
+    """SystemSignalsAnalyzer recent activity should include modified files."""
+    generator = system_signals_module.SystemSignalsAnalyzer()
     generator.project_root = tmp_path
 
     tracked_dir = tmp_path / "core"
@@ -147,7 +147,7 @@ def test_system_signals_recent_activity_lists_changes(tmp_path, system_signals_m
     os.utime(tracked_file, None)
 
     monkeypatch.setattr(
-        system_signals_module.SystemSignalsGenerator,
+        system_signals_module.SystemSignalsAnalyzer,
         "_get_git_recent_threshold",
         lambda self: datetime.now() - timedelta(days=1),
         raising=False,

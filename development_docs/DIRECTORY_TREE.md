@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2025-12-31 07:24:23
+> **Last Generated**: 2026-01-11 00:33:52
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -11,13 +11,13 @@
 Folder PATH listing
 Volume serial number is 5EAC-07BC
 C:.
-|   .coverage
 |   .cursorignore
 |   .env
 |   .env.example
 |   .gitattributes
 |   .gitignore
 |   ARCHITECTURE.md
+|   create_backup.py
 |   DEVELOPMENT_WORKFLOW.md
 |   DOCUMENTATION_GUIDE.md
 |   HOW_TO_RUN.md
@@ -33,6 +33,8 @@ C:.
 |   TODO.md
 |   
 +---.cursor
+|   |   worktrees.json
+|   |   
 |   +---commands
 |   |       ai-functionality-tests.md
 |   |       audit.md
@@ -48,11 +50,9 @@ C:.
 |   |       triage-issue.md
 |   |       
 |   +---plans
-|   |   |   development_tools_improvements_100d5451.plan.md
-|   |   |   investigate_directory_tree_regeneration_and_missing_error_handling_in_ai_status_afb9c695.plan.md
-|   |   |   investigate_legacy_reference_and_test_marker_discrepancies_e12573f6.plan.md
-|   |   |   review_shared_utility_modules_e4e53381.plan.md
-|   |   |   validate_analysis_logic_and_issue_detection_accuracy_e79bbf5e.plan.md
+|   |   |   command_handler_consolidation_19c82b25.plan.md
+|   |   |   notebook_feature_implementation_ce88ed1a.plan.md
+|   |   |   systematic_pyright_review_6d01910c.plan.md
 |   |   |   
 |   |   \---archive
     (archived files)
@@ -104,6 +104,7 @@ C:.
 |   |   |   base_handler.py
 |   |   |   checkin_handler.py
 |   |   |   interaction_handlers.py
+|   |   |   notebook_handler.py
 |   |   |   profile_handler.py
 |   |   |   schedule_handler.py
 |   |   |   shared_types.py
@@ -134,6 +135,7 @@ C:.
 |   |   schemas.py
 |   |   service.py
 |   |   service_utilities.py
+|   |   tags.py
 |   |   ui_management.py
 |   |   user_data_handlers.py
 |   |   user_data_manager.py
@@ -158,6 +160,7 @@ C:.
 |   |   FUNCTION_REGISTRY_DETAIL.md
 |   |   LEGACY_REFERENCE_REPORT.md
 |   |   MODULE_DEPENDENCIES_DETAIL.md
+|   |   NOTES_PLAN.md
 |   |   PLANS.md
 |   |   TEST_COVERAGE_REPORT.md
 |   |   UNUSED_IMPORTS_REPORT.md
@@ -203,12 +206,30 @@ C:.
 |   |   
 |   +---archive
     (archived files)
++---mhm.egg-info
+|       dependency_links.txt
+|       PKG-INFO
+|       requires.txt
+|       SOURCES.txt
+|       top_level.txt
+|       
++---notebook
+|   |   notebook_data_handlers.py
+|   |   notebook_data_manager.py
+|   |   notebook_validation.py
+|   |   schemas.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+    (Python cache files)
 +---resources
 |   |   assistant_system_prompt.txt
+|   |   default_tags.json
 |   |   presets.json
 |   |   
 |   +---default_checkin
 |   |       questions.json
+|   |       question_templates.json
 |   |       responses.json
 |   |       
 |   \---default_messages
@@ -260,9 +281,20 @@ C:.
 |   |       
 |   +---testing
 |   |   |   analyze_documentation_overlap.py
+|   |   |   analyze_memory_leak.py
+|   |   |   consolidate_worker_logs.py
+|   |   |   cross_reference_worker_runs.py
+|   |   |   debug_memory_leak.py
+|   |   |   extract_worker_tests_from_profiler_output.py
+|   |   |   extract_worker_test_assignments.py
+|   |   |   investigate_memory_leak.py
+|   |   |   memory_profiler.py
+|   |   |   parse_worker_from_terminal.py
+|   |   |   read_backup_results.py
 |   |   |   script_test_user_data_analysis.py
 |   |   |   script_test_utils_functions.py
 |   |   |   validate_config.py
+|   |   |   verify_process_cleanup.py
 |   |   |   
 |   |   \---ai
 |   |           script_test_ai_with_clear_cache.py

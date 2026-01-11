@@ -322,9 +322,7 @@
         "from communication.command_handlers.interaction_handlers import TaskManagementHandler"
       ],
       "legacy_parameters": [
-        "all_cleanup=",
-        "coverage=args.coverage",
-        "dry_run=args.dry_run"
+        "all_cleanup="
       ]
     },
     "replacement_mappings": {

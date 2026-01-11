@@ -169,7 +169,7 @@ def _system_signals_command(service: "AIToolsService", argv: Sequence[str]) -> i
         print("Usage: system-signals")
         return 0
 
-    success = service.run_system_signals()
+    success = service.run_analyze_system_signals()
     return 0 if success else 1
 
 
@@ -314,8 +314,9 @@ def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     result = service.run_cleanup(
         cache=args.cache,
         test_data=args.test_data,
+        reports=False,
+        all=args.all,
         coverage=args.coverage,
-        all_cleanup=args.all,
         dry_run=args.dry_run
     )
     

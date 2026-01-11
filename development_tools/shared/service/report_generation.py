@@ -1173,16 +1173,10 @@ class ReportGenerationMixin:
             try:
                 cached_data = self._load_results_file_safe()
                 if cached_data:
-                    # LEGACY COMPATIBILITY: Check for both new and old key names
-                    # Removal plan: Remove 'system_signals' key check after 2025-03-01 if no references found
-                    # Detection pattern: "system_signals" in cached_data['results']
                     signals_data = None
                     if 'results' in cached_data:
                         if 'analyze_system_signals' in cached_data['results']:
                             signals_data = cached_data['results']['analyze_system_signals']
-                        elif 'system_signals' in cached_data['results']:
-                            logger.debug("LEGACY: Using 'system_signals' key from cached data - migrate to 'analyze_system_signals'")
-                            signals_data = cached_data['results']['system_signals']
                     
                     if signals_data:
                         if 'data' in signals_data:
@@ -4188,16 +4182,10 @@ class ReportGenerationMixin:
             try:
                 cached_data = self._load_results_file_safe()
                 if cached_data:
-                    # LEGACY COMPATIBILITY: Check for both new and old key names
-                    # Removal plan: Remove 'system_signals' key check after 2025-03-01 if no references found
-                    # Detection pattern: "system_signals" in cached_data['results']
                     signals_result = None
                     if 'results' in cached_data:
                         if 'analyze_system_signals' in cached_data['results']:
                             signals_result = cached_data['results']['analyze_system_signals']
-                        elif 'system_signals' in cached_data['results']:
-                            logger.debug("LEGACY: Using 'system_signals' key from cached data - migrate to 'analyze_system_signals'")
-                            signals_result = cached_data['results']['system_signals']
                     
                     if signals_result:
                         if 'data' in signals_result:
