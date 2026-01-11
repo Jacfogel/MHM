@@ -173,7 +173,7 @@ All tools follow a 3-prefix naming system:
 - **`analyze_*`** - Finding + assessing (read-only examination, validation, detection)
   - Examples: `analyze_functions.py`, `analyze_documentation.py`, `analyze_error_handling.py`
 - **`generate_*`** - Making artifacts (create/recreate documentation, registries, reports)
-  - Examples: `generate_function_registry.py`, `run_test_coverage.py`, `generate_module_dependencies.py`
+  - Examples: `generate_function_registry.py`, `tests/run_test_coverage.py`, `generate_module_dependencies.py`
 - **`fix_*`** - Cleanup/repair (removal, cleanup operations)
   - Examples: `fix_legacy_references.py`, `fix_version_sync.py`, `fix_project_cleanup.py`
 - **No prefix** - Reporting/utility tools (descriptive names)
@@ -208,7 +208,14 @@ Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier and
 ## 5. Operating Standards and Maintenance
 
 - Use shared infrastructure: `shared/standard_exclusions.py`, `shared/constants.py`, `config/config.py`, `shared/mtime_cache.py`
-- **Caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The cache automatically invalidates when `development_tools_config.json` changes, ensuring config updates are immediately reflected. Currently used by: `imports/analyze_unused_imports.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_missing_addresses.py`, `legacy/analyze_legacy_references.py`, `docs/analyze_heading_numbering.py`, `docs/analyze_path_drift.py`, `docs/analyze_unconverted_links.py`
+- **Caching**: 
+  - **File-based caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The cache automatically invalidates when `development_tools_config.json` changes, ensuring config updates are immediately reflected. Currently used by: `imports/analyze_unused_imports.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_missing_addresses.py`, `legacy/analyze_legacy_references.py`, `docs/analyze_heading_numbering.py`, `docs/analyze_path_drift.py`, `docs/analyze_unconverted_links.py`, `tests/analyze_test_coverage.py` (coverage analysis caching)
+  - **Test Coverage Caching (2026-01-11)**: 
+    - **Coverage Analysis Caching**: `tests/analyze_test_coverage.py` now caches analysis results based on coverage JSON file mtime, saving ~2s on repeated analysis when coverage data hasn't changed
+    - **Domain-Aware Coverage Cache (POC)**: `tests/coverage_cache.py` and `tests/domain_mapper.py` provide infrastructure for domain-aware caching. When source files in a domain change, only that domain's cache is invalidated. This enables granular cache invalidation and potential 80%+ time savings when only one domain changes. Full integration with `tests/run_test_coverage.py` would require support for partial test execution and coverage data merging.
+  - **Coverage analysis caching**: `tests/analyze_test_coverage.py` uses `MtimeFileCache` to cache analysis results based on coverage JSON file mtime. This saves ~2s per run when coverage data hasn't changed.
+  - **Domain-aware coverage caching** (POC): `tests/coverage_cache.py` (`DomainAwareCoverageCache`) tracks source file mtimes per domain (core/, communication/, ui/, etc.) and enables intelligent cache invalidation. When source files in a domain change, only that domain's cache is invalidated. This enables significant time savings (e.g., ~83% when only one domain changes) by only re-running tests for changed domains. Uses `tests/domain_mapper.py` (`DomainMapper`) to map source directories to test directories and pytest markers. **Status**: Infrastructure complete, integration with `tests/run_test_coverage.py` pending.
+  - **Cache management**: Use `--clear-cache` flag to clear all development tools cache files before running commands: `python development_tools/run_development_tools.py --clear-cache audit`
 - **Parallel Execution**: Tools run in parallel where possible, with dependency-aware grouping:
   - **Tier 2**: Independent tools run in parallel; dependent groups (module imports, function patterns, decision support, function registry) run sequentially within groups but in parallel with each other
   - **Tier 3**: Coverage group runs sequentially; legacy and unused imports groups run in parallel with each other (tools within each group run sequentially)

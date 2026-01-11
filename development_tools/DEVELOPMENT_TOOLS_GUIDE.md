@@ -204,10 +204,10 @@ Ensure directories listed in `development_tools/shared/constants.py` remain accu
 All tools follow a 3-prefix naming system established in Phase 7:
 
 - **`analyze_*`** - Finding + assessing (read-only examination, validation, detection)
-  - Examples: `analyze_functions.py`, `analyze_documentation.py`, `analyze_error_handling.py`, `analyze_test_coverage.py`
+  - Examples: `analyze_functions.py`, `analyze_documentation.py`, `analyze_error_handling.py`, `tests/analyze_test_coverage.py`
   - These tools examine code/documentation and report findings without modifying anything
 - **`generate_*`** - Making artifacts (create/recreate documentation, registries, reports)
-  - Examples: `generate_function_registry.py`, `run_test_coverage.py`, `generate_module_dependencies.py`
+  - Examples: `generate_function_registry.py`, `tests/run_test_coverage.py`, `generate_module_dependencies.py`
   - These tools create or regenerate documentation and report files
 - **`fix_*`** - Cleanup/repair (removal, cleanup operations)
   - Examples: `fix_legacy_references.py`, `fix_version_sync.py`, `fix_project_cleanup.py`
@@ -254,8 +254,10 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 | imports/analyze_dependency_patterns.py | core | stable | Analyzes dependency patterns, circular dependencies, and risk areas. Extracted from generate_module_dependencies.py after M7.4 completion (2025-12-02). Provides pattern analysis, circular dependency detection, risk area detection, and critical dependency finding. |
 | legacy/fix_legacy_references.py | core | stable | Finds/validates LEGACY COMPATIBILITY usage before cleanup. Legacy patterns and mappings load from external config. [OK] **HAS TESTS (Phase 3)**: 10 tests in `tests/development_tools/test_legacy_reference_cleanup.py` |
 | tests/run_test_coverage.py | core | stable | Orchestrates coverage execution (pytest runs) and artifact management. Executes tests and collects coverage data. Accepts pytest command, coverage config, and artifact directories via external config. [OK] **HAS TESTS (Phase 3)**: 10 tests in `tests/development_tools/test_regenerate_coverage_metrics.py` |
-| analyze_test_coverage.py | core | stable | Parses coverage output and performs coverage analysis. Pure analysis tool that works with existing coverage data. |
-| generate_test_coverage_report.py | core | stable | Generates coverage reports (TEST_COVERAGE_REPORT.md, JSON, HTML) from analysis results. Uses TestCoverageReportGenerator class to create reports from coverage.json. |
+| tests/analyze_test_coverage.py | core | stable | Parses coverage output and performs coverage analysis. Pure analysis tool that works with existing coverage data. Now includes caching support (2026-01-11) - caches analysis results based on coverage JSON file mtime. |
+| tests/generate_test_coverage_report.py | core | stable | Generates coverage reports (TEST_COVERAGE_REPORT.md, JSON, HTML) from analysis results. Uses TestCoverageReportGenerator class to create reports from coverage.json. |
+| tests/domain_mapper.py | core | stable | Maps source code directories to test directories and pytest markers for domain-aware caching. Provides `DomainMapper` class to identify which tests cover which source domains. Used by `tests/coverage_cache.py` for intelligent cache invalidation. |
+| tests/coverage_cache.py | core | stable | Domain-aware cache for test coverage data. Provides `DomainAwareCoverageCache` class that tracks source file mtimes per domain and only invalidates cache for domains with changed source files. POC implementation (2026-01-11) - infrastructure ready for integration with `tests/run_test_coverage.py`. |
 | analyze_error_handling.py | core | stable | Audits decorator usage and exception handling depth. Refactored during Batch 3 decomposition to keep only analysis methods. Decorator names and exception classes load from external config. Generates recommendations internally as part of analysis. |
 | generate_error_handling_report.py | supporting | stable | Generates error handling reports from analysis results. Extracted from analyze_error_handling.py during Batch 3 decomposition. |
 | analyze_functions.py | core | stable | AST discovery utility supporting registries and audits. Configurable scan roots and filters via external config. Enhanced with function/class discovery logic from generate_function_registry.py. |
@@ -284,7 +286,11 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 ## 5. Operating Standards and Maintenance
 
 - Follow the audit-first workflow (see [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)) before touching documentation or infrastructure
-- **Caching Infrastructure**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The utility handles cache loading, saving, and validation automatically. Currently used by: `analyze_unused_imports.py`, `analyze_ascii_compliance.py`, `analyze_missing_addresses.py`, `analyze_legacy_references.py`. Other analyzers that scan files (e.g., `analyze_path_drift.py`, `analyze_unconverted_links.py`, `analyze_heading_numbering.py`) could benefit from this utility as well.
+- **Caching Infrastructure**: 
+  - **File-based caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The utility handles cache loading, saving, and validation automatically. Currently used by: `imports/analyze_unused_imports.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_missing_addresses.py`, `legacy/analyze_legacy_references.py`, `docs/analyze_heading_numbering.py`, `docs/analyze_path_drift.py`, `docs/analyze_unconverted_links.py`, `tests/analyze_test_coverage.py` (coverage analysis caching). The cache automatically invalidates when `development_tools_config.json` changes, ensuring config updates are immediately reflected.
+  - **Test Coverage Caching (2026-01-11)**: 
+    - **Coverage Analysis Caching**: `tests/analyze_test_coverage.py` now caches analysis results based on coverage JSON file mtime, saving ~2s on repeated analysis when coverage data hasn't changed.
+    - **Domain-Aware Coverage Cache (POC)**: `tests/coverage_cache.py` (`DomainAwareCoverageCache`) and `tests/domain_mapper.py` (`DomainMapper`) provide infrastructure for domain-aware caching. When source files in a domain change, only that domain's cache is invalidated. This enables granular cache invalidation and potential 80%+ time savings when only one domain changes. Full integration with `tests/run_test_coverage.py` would require support for partial test execution (pytest marker filtering) and coverage data merging. Cache location: `development_tools/tests/.coverage_cache/domain_coverage_cache.json`.
 - **Parallel Execution**: Tools run in parallel where possible to reduce audit time:
   - **Tier 2**: Independent tools (5 tools) run in parallel; dependent groups run sequentially within groups but in parallel with each other
   - **Tier 3**: Coverage tools (main tests and dev tools tests) run in parallel (~365s max); legacy group runs in parallel with coverage tools; coverage-dependent tools (marker analysis, report generation) run sequentially after coverage completes

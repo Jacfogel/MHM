@@ -37,6 +37,16 @@ except ImportError:
         sys.path.insert(0, str(project_root))
     from development_tools import config
 
+# Import caching utilities
+try:
+    from development_tools.shared.mtime_cache import MtimeFileCache
+except ImportError:
+    # Fallback for when run as script
+    try:
+        from ..shared.mtime_cache import MtimeFileCache
+    except ImportError:
+        MtimeFileCache = None
+
 # Load external config on module import (safe to call multiple times)
 config.load_external_config()
 
@@ -46,9 +56,27 @@ logger = get_component_logger("development_tools")
 class TestCoverageAnalyzer:
     """Analyzes test coverage data from pytest/coverage output."""
     
-    def __init__(self, project_root: str = "."):
-        """Initialize coverage analyzer."""
+    def __init__(self, project_root: str = ".", use_cache: bool = True):
+        """
+        Initialize coverage analyzer.
+        
+        Args:
+            project_root: Root directory of the project
+            use_cache: Whether to use caching for analysis results (default: True)
+        """
         self.project_root = Path(project_root).resolve()
+        self.use_cache = use_cache
+        
+        # Initialize cache for analysis results
+        if MtimeFileCache and self.use_cache:
+            self.cache = MtimeFileCache(
+                project_root=self.project_root,
+                use_cache=True,
+                tool_name='analyze_test_coverage',
+                domain='tests'
+            )
+        else:
+            self.cache = None
     
     def parse_coverage_output(self, output: str) -> Dict[str, Dict[str, any]]:
         """Parse the coverage output to extract module-specific metrics."""
@@ -243,17 +271,41 @@ class TestCoverageAnalyzer:
         return categories
     
     def analyze_coverage(self, coverage_output: Optional[str] = None, 
-                        coverage_json_path: Optional[Path] = None) -> Dict[str, Any]:
+                        coverage_json_path: Optional[Path] = None,
+                        use_cache: bool = True) -> Dict[str, Any]:
         """
         Analyze coverage data from either text output or JSON file.
         
         Args:
             coverage_output: Optional text output from pytest coverage
             coverage_json_path: Optional path to coverage.json file
+            use_cache: Whether to use caching for analysis results (default: True)
             
         Returns:
             Dictionary with 'modules' and 'overall' keys containing analysis results
         """
+        # Determine the coverage JSON file path for caching
+        json_file_for_cache = None
+        if coverage_json_path and coverage_json_path.exists():
+            json_file_for_cache = coverage_json_path
+        elif not coverage_output:
+            # Try to find coverage.json in default location
+            default_json = self.project_root / "development_tools" / "tests" / "jsons" / "coverage.json"
+            if not default_json.exists():
+                default_json = self.project_root / "coverage.json"
+            if default_json.exists():
+                json_file_for_cache = default_json
+        
+        # Try to use cache if we have a JSON file and caching is enabled
+        if use_cache and json_file_for_cache and json_file_for_cache.exists() and self.cache:
+            # Check if we have cached results for this coverage JSON file
+            cached_results = self.cache.get_cached(json_file_for_cache)
+            if cached_results is not None:
+                if logger:
+                    logger.debug(f"Using cached analysis results for {json_file_for_cache.relative_to(self.project_root)}")
+                return cached_results
+        
+        # Analyze coverage data (cache miss or caching disabled)
         coverage_data = {}
         overall_data = {}
         
@@ -269,17 +321,26 @@ class TestCoverageAnalyzer:
             # Try to find coverage.json in project root
             default_json = self.project_root / "coverage.json"
             if default_json.exists():
-                coverage_data = self._load_coverage_json(default_json)
-                overall_data = self._extract_overall_from_json(default_json)
+                coverage_data = self.load_coverage_json(default_json)
+                overall_data = self.extract_overall_from_json(default_json)
         
         # Categorize modules
         categories = self.categorize_modules(coverage_data)
         
-        return {
+        results = {
             'modules': coverage_data,
             'overall': overall_data,
             'categories': categories
         }
+        
+        # Cache results if we have a JSON file and caching is enabled
+        if use_cache and json_file_for_cache and json_file_for_cache.exists() and self.cache:
+            self.cache.cache_results(json_file_for_cache, results)
+            self.cache.save_cache()
+            if logger:
+                logger.debug(f"Cached analysis results for {json_file_for_cache.relative_to(self.project_root)}")
+        
+        return results
 
 
 def main():

@@ -36,6 +36,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-11 - Test Coverage Caching Implementation and Domain-Aware Cache POC **COMPLETED**
+- Implemented coverage analysis caching in `analyze_test_coverage.py` using `MtimeFileCache` - saves ~2s per run when coverage data unchanged
+- Created domain-aware coverage cache POC: `domain_mapper.py` maps source directories to test directories/markers, `coverage_cache.py` tracks source file mtimes per domain for granular invalidation
+- Moved test-specific caching modules from `shared/` to `tests/` directory, updated all imports and documentation
+- Fixed test failure (`test_view_log_file_opens_log_file`) and documentation path drift issues
+- **Status**: Coverage analysis caching working, domain-aware infrastructure complete (POC). Integration with `run_test_coverage.py` for partial test execution remains as future work.
+
 ### 2026-01-11 - Development Tools Cache Management Improvements **COMPLETED**
 - Added `--clear-cache` global flag to `run_development_tools.py` for easy cache invalidation before commands
 - Removed all `cache_file` parameter references from `MtimeFileCache` and all 7 tools - now exclusively uses standardized storage (`tool_name` + `domain`)

@@ -2,14 +2,14 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-11 04:05:13
+> **Last Generated**: 2026-01-11 05:18:59
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
 
-- **Total Files Scanned**: 411
-- **Files with Unused Imports**: 126
-- **Total Unused Imports**: 360
+- **Total Files Scanned**: 413
+- **Files with Unused Imports**: 125
+- **Total Unused Imports**: 359
 
 ## Breakdown by Category
 
@@ -18,7 +18,7 @@
 - **Re Exports**: 0 imports
 - **Conditional Imports**: 1 imports
 - **Star Imports**: 0 imports
-- **Test Mocking**: 147 imports
+- **Test Mocking**: 146 imports
 - **Qt Testing**: 54 imports
 - **Test Infrastructure**: 153 imports
 - **Production Test Mocking**: 4 imports
@@ -379,12 +379,6 @@
 
 - **Line 18**: Unused Mock imported from unittest.mock
 - **Line 18**: Unused MagicMock imported from unittest.mock
-
-### `tests/ui/test_ui_app_qt_main.py`
-
-**Count**: 1 unused import(s)
-
-- **Line 11**: Unused MagicMock imported from unittest.mock
 
 ### `tests/ui/test_ui_button_verification.py`
 

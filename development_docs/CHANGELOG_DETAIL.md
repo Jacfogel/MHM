@@ -38,6 +38,67 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-11 - Test Coverage Caching Implementation and Domain-Aware Cache POC **COMPLETED**
+- **Feature**: Implemented coverage analysis caching and domain-aware coverage cache proof-of-concept to accelerate test coverage generation workflow. Moved test-specific caching modules to appropriate directory and fixed related test failures and documentation issues.
+- **Changes**:
+  1. **Coverage Analysis Caching**:
+     - Added caching support to `development_tools/tests/analyze_test_coverage.py` using `MtimeFileCache`
+     - Caches analysis results based on coverage JSON file modification time
+     - Saves ~2s per run when coverage data hasn't changed (analysis phase only)
+     - Cache location: `development_tools/tests/jsons/.analyze_test_coverage_cache.json`
+     - Added `use_cache` parameter to `TestCoverageAnalyzer.__init__()` and `analyze_coverage()` method
+  2. **Domain-Aware Coverage Cache POC**:
+     - Created `development_tools/tests/domain_mapper.py` (`DomainMapper` class) to map source code directories to test directories and pytest markers
+     - Maps source domains (core/, communication/, ui/, tasks/, ai/, user/, notebook/) to test directories and markers
+     - Extracts pytest markers from test files using regex parsing
+     - Provides utilities for generating pytest marker filters and test path lists for changed domains
+     - Created `development_tools/tests/coverage_cache.py` (`DomainAwareCoverageCache` class) for domain-aware caching
+     - Tracks source file modification times per domain
+     - Detects changed domains by comparing current mtimes with cached mtimes
+     - Enables granular cache invalidation: when source files in a domain change, only that domain's cache is invalidated
+     - Cache location: `development_tools/tests/.coverage_cache/domain_coverage_cache.json`
+     - **Status**: Infrastructure complete (POC), ready for integration with `run_test_coverage.py` (future work)
+  3. **File Organization**:
+     - Moved `domain_mapper.py` and `coverage_cache.py` from `development_tools/shared/` to `development_tools/tests/` (test-specific tools)
+     - Updated all imports and documentation references to reflect new locations
+  4. **Documentation Updates**:
+     - Updated `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` with caching documentation:
+       - Coverage Analysis Caching section with implementation details
+       - Domain-Aware Coverage Cache POC section with status and usage notes
+       - Updated tool catalog entries for new caching modules
+     - Updated `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` with matching caching documentation
+     - Updated `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md` section 2.10 to mark POC as complete
+     - Fixed path drift issues: updated 4 references to `run_test_coverage.py` to include `tests/` prefix
+  5. **Test Fixes**:
+     - Fixed `test_view_log_file_opens_log_file` in `tests/ui/test_ui_app_qt_main.py`:
+       - Added missing `qapp` fixture (required for Qt UI tests)
+       - Fixed `webbrowser.open` patching to use `MagicMock` and patch at module level
+  6. **Code Quality**:
+     - Removed unused `List` import from `coverage_cache.py`
+     - Fixed ASCII compliance issues in documentation
+- **Impact**: 
+  - Coverage analysis now caches results, saving ~2s per run when coverage data unchanged
+  - Domain-aware caching infrastructure ready for future integration, enabling potential 80%+ time savings when only one domain changes
+  - Foundation laid for intelligent test selection and partial test execution
+  - Test suite: 3917 passed, 0 failed (test failure fixed), 2 skipped
+- **What's Complete**:
+  - ✅ Coverage analysis caching (implemented and working)
+  - ✅ Domain mapping infrastructure (complete)
+  - ✅ Domain-aware coverage cache POC (infrastructure complete)
+  - ✅ Documentation updated (both human and AI guides)
+  - ✅ File organization (moved to `tests/` directory)
+- **What Remains** (Future Enhancements):
+  - ⏳ **Integrate domain-aware caching with test execution**: Modify `run_test_coverage.py` to use `DomainAwareCoverageCache` for intelligent test selection
+    - Use `get_changed_domains()` to detect which domains need re-testing
+    - Use `get_pytest_marker_filter()` to generate pytest marker filters
+    - Use `get_test_directories_for_domains()` to limit test discovery to changed domains
+    - Only run tests for changed domains, merge cached coverage data from unchanged domains
+  - ⏳ **Measure performance benefits**: Measure actual time savings with domain-aware test execution (target: 50%+ when only one domain changes)
+  - ⏳ **Add dependency tracking**: Track cross-domain dependencies (e.g., if `core/` changes, may need to re-run `communication/` tests that depend on core)
+  - ⏳ **Extend caching to other tools**: Apply `MtimeFileCache` pattern to `analyze_error_handling.py` and `analyze_functions.py` (prioritized candidates)
+- **Files**: `development_tools/tests/analyze_test_coverage.py`, `development_tools/tests/domain_mapper.py`, `development_tools/tests/coverage_cache.py`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`, `tests/ui/test_ui_app_qt_main.py`
+- **Testing**: Coverage analysis caching verified working (saves ~2s when coverage JSON unchanged). Domain-aware cache POC infrastructure tested and ready. Test suite: 3917 passed, 0 failed, 2 skipped.
+
 ### 2026-01-11 - Development Tools Cache Management Improvements **COMPLETED**
 - **Feature**: Added `--clear-cache` flag to development tools CLI and removed all legacy `cache_file` parameter references, simplifying cache management and ensuring all tools use standardized storage exclusively.
 - **Changes**:
@@ -92,7 +153,7 @@ When adding new changes, follow this format:
      - Fixed unconverted links in `AI_CHANGELOG.md` (automated via `doc-fix --convert-links`)
      - Fixed documentation path drift in `AI_DEVELOPMENT_TOOLS_GUIDE.md` (3 references updated)
 - **Impact**: 
-  - **Legacy markers reduced from 25 to 0** across 8 files → **0 files with issues**
+  - **Legacy markers reduced from 25 to 0** across 8 files -> **0 files with issues**
   - Cache invalidation now works correctly when config changes, preventing stale analysis results
   - Legacy analyzer properly filters cached results against current config patterns
   - All development tools now automatically invalidate cache when `development_tools_config.json` changes

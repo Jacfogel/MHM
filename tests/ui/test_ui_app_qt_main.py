@@ -698,14 +698,17 @@ class TestMHMManagerUI:
                             # Verify toggle was called
                             mock_toggle.assert_called_once()
     
-    def test_view_log_file_opens_log_file(self):
+    def test_view_log_file_opens_log_file(self, qapp):
         """Test that view_log_file opens log file."""
         from ui.ui_app_qt import MHMManagerUI
         
-        with patch('ui.ui_app_qt.Ui_ui_app_mainwindow') as mock_ui:
-            with patch('ui.ui_app_qt.QTimer') as mock_timer:
-                with patch('ui.ui_app_qt.Path') as mock_path:
-                    with patch('webbrowser.open') as mock_open:
+        # Patch webbrowser.open before importing/using the UI
+        # Since webbrowser is imported inside view_log_file, we patch it at module level
+        # Use MagicMock to ensure it returns immediately and doesn't block
+        with patch('webbrowser.open', new_callable=MagicMock) as mock_open:
+            with patch('ui.ui_app_qt.Ui_ui_app_mainwindow') as mock_ui:
+                with patch('ui.ui_app_qt.QTimer') as mock_timer:
+                    with patch('ui.ui_app_qt.Path') as mock_path:
                         mock_ui_instance = Mock()
                         mock_ui.return_value = mock_ui_instance
                         mock_timer_instance = Mock()

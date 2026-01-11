@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-01-11 04:14:07",
-  "source": "python development_tools/run_development_tools.py audit --full",
-  "audit_tier": 3,
+  "last_generated": "2026-01-11 05:19:15",
+  "source": "python development_tools/run_development_tools.py audit",
+  "audit_tier": 2,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-01-11T04:14:07.276983",
+  "timestamp": "2026-01-11T05:19:15.051069",
   "successful": [
     "analyze_functions",
     "analyze_function_patterns",
@@ -165,7 +165,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-11T04:04:36.237384"
+      "timestamp": "2026-01-11T05:18:21.268629"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -2123,7 +2123,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-11T04:04:22.264796"
+      "timestamp": "2026-01-11T05:18:06.619464"
     },
     "analyze_function_registry": {
       "success": true,
@@ -21891,7 +21891,7 @@
           "total_issues": 2858
         }
       },
-      "timestamp": "2026-01-11T04:04:47.150325"
+      "timestamp": "2026-01-11T05:18:32.914646"
     },
     "analyze_package_exports": {
       "success": true,
@@ -28858,79 +28858,17 @@
     "analyze_ascii_compliance": {
       "success": true,
       "data": {
-        "files": {
-          "development_docs/CHANGELOG_DETAIL.md": 1
-        },
-        "file_count": 1,
-        "total_issues": 1
+        "files": {},
+        "file_count": 0,
+        "total_issues": 0
       },
-      "timestamp": "2026-01-11T04:04:55.004740"
+      "timestamp": "2026-01-11T05:18:41.172059"
     },
     "analyze_documentation": {
       "success": true,
       "data": {
         "details": {
           "artifacts": [],
-          "consolidation_recommendations": [
-            {
-              "category": "Development Workflow",
-              "files": [
-                "DOCUMENTATION_GUIDE.md",
-                "DEVELOPMENT_WORKFLOW.md",
-                "development_docs/CHANGELOG_DETAIL.md",
-                "development_docs/PLANS.md",
-                "ai_development_docs/AI_SESSION_STARTER.md",
-                "ai_development_docs/AI_ARCHITECTURE.md",
-                "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
-                "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "ai_development_docs/AI_CHANGELOG.md",
-                "ai_development_docs/AI_REFERENCE.md",
-                "ai_development_docs/AI_LOGGING_GUIDE.md",
-                "ai_development_docs/AI_TESTING_GUIDE.md",
-                "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-                "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md",
-                "core/ERROR_HANDLING_GUIDE.md",
-                "logs/LOGGING_GUIDE.md",
-                "tests/TESTING_GUIDE.md",
-                "tests/MANUAL_TESTING_GUIDE.md",
-                "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
-                "tests/MANUAL_DISCORD_TEST_GUIDE.md",
-                "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
-                "communication/COMMUNICATION_GUIDE.md",
-                "communication/communication_channels/discord/DISCORD_GUIDE.md",
-                "scripts/SCRIPTS_GUIDE.md",
-                "ui/UI_GUIDE.md",
-                "ai/SYSTEM_AI_GUIDE.md",
-                "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
-                "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
-              ],
-              "priority": "medium",
-              "similarity_score": 0.1902272637192431,
-              "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
-            },
-            {
-              "category": "Testing",
-              "files": [
-                "ai_development_docs/AI_TESTING_GUIDE.md",
-                "tests/TESTING_GUIDE.md",
-                "tests/MANUAL_TESTING_GUIDE.md",
-                "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md"
-              ],
-              "priority": "medium",
-              "similarity_score": 0.25442328610878756,
-              "suggestion": "Consider consolidating testing documentation into a single TESTING_GUIDE.md"
-            },
-            {
-              "category": "High Section Overlap",
-              "files": [
-                "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
-                "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md"
-              ],
-              "overlap_count": 3,
-              "priority": "medium",
-              "suggestion": "These files share 3 sections - consider consolidating or clearly differentiating their purposes"
-            }
-          ],
           "documents": [
             "ARCHITECTURE.md",
             "DEVELOPMENT_WORKFLOW.md",
@@ -28967,556 +28905,6 @@
             "ui/UI_GUIDE.md"
           ],
           "duplicates": [],
-          "file_purposes": {
-            "ARCHITECTURE.md": {
-              "content_length": 17498,
-              "header_info": "# MHM System Architecture\n\n> **File**: `ARCHITECTURE.md`\n> **Audience**: Human developers building or maintaining the platform  \n> **Purpose**: Explain system design, module responsibilities, and data",
-              "section_count": 9,
-              "sections": [
-                "Introduction",
-                "1. Directory Overview",
-                "2. User Data Model",
-                "2.1. User Data Flow Diagram",
-                "3. Data Handling Patterns",
-                "4. Key Modules and Responsibilities",
-                "5. UI Architecture and Naming Conventions",
-                "6. Channel-Agnostic Architecture",
-                "7. Development Notes"
-              ]
-            },
-            "DEVELOPMENT_WORKFLOW.md": {
-              "content_length": 14260,
-              "header_info": "# Development Workflow Guide\n\n> **File**: `DEVELOPMENT_WORKFLOW.md`  \n> **Audience**: Human developer (beginner programmer)  \n> **Purpose**: Safe development practices and day-to-day procedures  \n> **",
-              "section_count": 32,
-              "sections": [
-                "Introduction",
-                "Quick Reference",
-                "1. Safety First",
-                "1.1. Core Safety Rules",
-                "1.2. Pre-Change Checklist",
-                "2. Virtual Environment Best Practices",
-                "2.1. Why It Matters",
-                "2.2. Common Commands (PowerShell)",
-                "2.3. Troubleshooting",
-                "2.4. Configuration and .env"
-              ]
-            },
-            "DOCUMENTATION_GUIDE.md": {
-              "content_length": 31455,
-              "header_info": "# Documentation Guide\n\n> **File**: `DOCUMENTATION_GUIDE.md`  \n> **Audience**: Developers and contributors  \n> **Purpose**: Organize, author, and maintain project documentation  \n> **Style**: Comprehen",
-              "section_count": 32,
-              "sections": [
-                "Introduction",
-                "Quick Reference",
-                "1. Documentation Categories",
-                "1.1. Human-facing documents",
-                "1.2. AI-facing documents",
-                "1.3. Generated and analytical documentation",
-                "2. Standards and Templates",
-                "2.1. Metadata for `.md` documentation files",
-                "2.2. Metadata for `.mdc` rule files",
-                "2.3. Structure guidelines for human-facing docs"
-              ]
-            },
-            "HOW_TO_RUN.md": {
-              "content_length": 7400,
-              "header_info": "# How to Run MHM\n\n\n> **File**: `HOW_TO_RUN.md`\n> **Audience**: New users and developers setting up the project  \n> **Purpose**: Step-by-step setup and launch instructions  \n> **Style**: Clear, beginne",
-              "section_count": 18,
-              "sections": [
-                "Introduction",
-                "1. Quick Start (Recommended)",
-                "1.1. Step 1: Set up Virtual Environment",
-                "1.2. Step 2: Install Dependencies",
-                "1.3. Step 3: Install the Project in Editable Mode",
-                "1.4. Step 4: Configure Environment (Optional)",
-                "1.5. Step 5: Launch the Application",
-                "2. Alternative Commands",
-                "3. Command Reference (Discord and Chat)",
-                "4. Alternative Launch Methods"
-              ]
-            },
-            "PROJECT_VISION.md": {
-              "content_length": 9684,
-              "header_info": "# MHM Project Vision\n\n\n> **File**: `PROJECT_VISION.md`\n> **Audience**: Human Developer, AI Collaborators, and Future Contributors  \n> **Purpose**: Overarching vision, mission, and long-term direction ",
-              "section_count": 42,
-              "sections": [
-                "Introduction",
-                "1. **Core Vision**",
-                "2. **Mission Statement**",
-                "3. **Core Values**",
-                "3.1. **1. Personalized & Adaptive**",
-                "3.2. **2. Hope-Focused & Supportive**",
-                "3.3. **3. Executive Functioning Support**",
-                "4. **Target Users**",
-                "4.1. **Primary User: You**",
-                "4.2. **Secondary Users: Similar Individuals**"
-              ]
-            },
-            "README.md": {
-              "content_length": 14109,
-              "header_info": "# Mental Health Management (MHM)\n\n> **File**: `README.md`\n> **Audience**: Human developer (beginner-friendly)\n> **Purpose**: High-level overview, navigation, and quick start\n> **Style**: Beginner-frie",
-              "section_count": 17,
-              "sections": [
-                "Introduction",
-                "1. Navigation",
-                "2. Features",
-                "3. Quick Start",
-                "3.1. Headless service commands",
-                "4. Documentation",
-                "5. Architecture",
-                "6. AI Integration (Optional)",
-                "7. Project Structure",
-                "8. License and privacy"
-              ]
-            },
-            "TODO.md": {
-              "content_length": 27098,
-              "header_info": "# TODO.md - MHM Project Tasks\n\n> **File**: `TODO.md`\n> **Audience**: Human Developer (Beginner Programmer) and AI collaborators\n> **Purpose**: Current development priorities and planned improvements  ",
-              "section_count": 9,
-              "sections": [
-                "Introduction",
-                "How to Add New TODOs",
-                "High Priority",
-                "Medium Priority",
-                "User Experience Improvements",
-                "Performance Optimizations",
-                "Low Priority",
-                "Documentation",
-                "Testing"
-              ]
-            },
-            "ai/SYSTEM_AI_GUIDE.md": {
-              "content_length": 17921,
-              "header_info": "# AI System Documentation\n\n> **File**: `ai/SYSTEM_AI_GUIDE.md`\n> **Audience**: Developers and AI collaborators working on MHM's AI system\n> **Purpose**: Explain how the AI subsystem is structured, how",
-              "section_count": 26,
-              "sections": [
-                "Introduction",
-                "1. Overview",
-                "2. High-Level Architecture",
-                "2.1. Core components",
-                "2.2. Request / response flow (simplified)",
-                "3. Entry Points and Modes",
-                "3.1. Main runtime entry points",
-                "3.2. Modes",
-                "3.3. Command parsing integration",
-                "4. Context and Conversation State"
-              ]
-            },
-            "ai_development_docs/AI_ARCHITECTURE.md": {
-              "content_length": 8754,
-              "header_info": "# AI Architecture - Quick Reference\n\n> **File**: `ai_development_docs/AI_ARCHITECTURE.md`  \n> **Pair**: [ARCHITECTURE.md](ARCHITECTURE.md)  \n> **Audience**: AI collaborators and tools  \n> **Purpose**:",
-              "section_count": 8,
-              "sections": [
-                "Introduction",
-                "1. Directory Overview",
-                "2. User Data Model",
-                "3. Data Handling Patterns",
-                "4. Key Modules and Responsibilities",
-                "5. UI Architecture and Naming Conventions",
-                "6. Channel-Agnostic Architecture",
-                "7. Development Notes"
-              ]
-            },
-            "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 179641,
-              "header_info": "# AI Changelog - Brief Summary for AI Context\n\n\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent ch",
-              "section_count": 210,
-              "sections": [
-                "Introduction",
-                "Overview",
-                "How to Update This File",
-                "YYYY-MM-DD - Brief Title **COMPLETED**",
-                "Recent Changes (Most Recent First)",
-                "2026-01-11 - Legacy Code Cleanup and Cache Invalidation Enhancement **COMPLETED**",
-                "2026-01-10 - Notebook Short ID Format Update: Removed Dash for Mobile-Friendly Typing **COMPLETED**",
-                "2026-01-09 - Notebook Validation System Implementation and Testing **COMPLETED**",
-                "2026-01-09 - Comprehensive Notebook Test Suite Creation **COMPLETED**",
-                "2026-01-09 - Command Handler Consolidation and Profile Formatting Fixes **COMPLETED**"
-              ]
-            },
-            "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
-              "content_length": 12042,
-              "header_info": "# AI Development Workflow Guide\n\n> **File**: `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`  \n> **Pair**: [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md)\n> **Audience**: AI collaborators and tool",
-              "section_count": 12,
-              "sections": [
-                "Introduction",
-                "Quick Reference",
-                "1. Safety First",
-                "2. Virtual Environment Best Practices",
-                "3. Development Process",
-                "4. Testing Strategy",
-                "5. Common Tasks",
-                "6. Emergency Procedures",
-                "7. Learning Resources",
-                "8. Success Tips"
-              ]
-            },
-            "ai_development_docs/AI_DOCUMENTATION_GUIDE.md": {
-              "content_length": 13939,
-              "header_info": "# AI Documentation Guide\n\n> **File**: `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`\n> **Pair**: [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md)\n> **Audience**: AI collaborators and tools\n> **Purpos",
-              "section_count": 19,
-              "sections": [
-                "Introduction",
-                "Quick Reference",
-                "1. Documentation Categories",
-                "1.1. Detailed documentation",
-                "1.2. AI-facing documents",
-                "1.3. Generated and analytical docs",
-                "2. Standards and Templates",
-                "2.1. Heading numbering standard",
-                "2.2. Example marking standards",
-                "2.3. File path reference standards"
-              ]
-            },
-            "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md": {
-              "content_length": 8852,
-              "header_info": "# AI Error Handling Guide\n\n> **File**: `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`  \n> **Pair**: [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md)  \n> **Audience**: AI collaborators and too",
-              "section_count": 12,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Design Principles",
-                "2. Architecture Overview",
-                "3. Usage Patterns",
-                "4. Error Categories and Severity",
-                "5. Error Message Guidelines",
-                "6. Configuration and Integration",
-                "7. Testing Error Handling",
-                "8. Monitoring and Debugging",
-                "9. Legacy and Migration"
-              ]
-            },
-            "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md": {
-              "content_length": 6496,
-              "header_info": "# AI Legacy Code Removal Guide\n\n> **File**: `ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md`\n> **Audience**: AI collaborators and developers cleaning up deprecated code paths\n> **Purpose**: Routing an",
-              "section_count": 8,
-              "sections": [
-                "Introduction",
-                "Quick Reference",
-                "1. Standards",
-                "2. Process",
-                "3. Checklist",
-                "4. Tools",
-                "5. Best Practices",
-                "6. Success Criteria"
-              ]
-            },
-            "ai_development_docs/AI_LOGGING_GUIDE.md": {
-              "content_length": 8089,
-              "header_info": "# AI Logging Guide\n\n> **File**: `ai_development_docs/AI_LOGGING_GUIDE.md`  \n> **Pair**: [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)  \n> **Audience**: AI assistants and automation tools  \n> **Purpose**: ",
-              "section_count": 11,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Scope",
-                "2. Logging Architecture",
-                "3. Log Levels and When to Use Them",
-                "4. Component Log Files and Layout",
-                "5. Configuration (Environment Variables)",
-                "6. Log Rotation, Backups, and Archival",
-                "7. Legacy Compatibility Logging Standard",
-                "8. Maintenance and Cleanup",
-                "9. Best Practices"
-              ]
-            },
-            "ai_development_docs/AI_REFERENCE.md": {
-              "content_length": 3776,
-              "header_info": "# AI Reference - Troubleshooting & System Understanding\n\n\n> **File**: `ai_development_docs/AI_REFERENCE.md`\n> **Purpose**: Troubleshooting patterns and deep system understanding for AI collaborators  ",
-              "section_count": 13,
-              "sections": [
-                "Introduction",
-                "1. Troubleshooting Patterns",
-                "1.1. Documentation appears incomplete",
-                "1.2. Code change introduced failures",
-                "1.3. PowerShell command failed",
-                "1.4. User questions accuracy",
-                "2. Communication Patterns",
-                "3. System Understanding",
-                "3.1. Critical files (do not break)",
-                "3.2. Data flow patterns"
-              ]
-            },
-            "ai_development_docs/AI_SESSION_STARTER.md": {
-              "content_length": 6935,
-              "header_info": "# AI Session Starter\n\n> **File**: `ai_development_docs/AI_SESSION_STARTER.md`\n> **Audience**: AI collaborators working on the MHM codebase and docs\n> **Purpose**: Provide a compact starting point for ",
-              "section_count": 8,
-              "sections": [
-                "Introduction",
-                "1. Starting a Session",
-                "2. Core AI References",
-                "3. Safe Change Rules",
-                "4. Typical Tasks and Where to Look",
-                "4.1. \"Help me edit documentation\"",
-                "4.2. \"Help me refactor or clean up code\"",
-                "4.3. \"Help me understand the system\""
-              ]
-            },
-            "ai_development_docs/AI_TESTING_GUIDE.md": {
-              "content_length": 11327,
-              "header_info": "# AI Testing Guide\n\n> **File**: `ai_development_docs/AI_TESTING_GUIDE.md`  \n> **Pair**: [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)  \n> **Audience**: AI collaborators and tools  \n> **Purpose**: Routing",
-              "section_count": 10,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Scope",
-                "2. Test Layout and Types",
-                "3. Fixtures, Utilities, and Safety",
-                "4. Running Automated Tests",
-                "5. Parallel Execution and Coverage",
-                "6. Writing and Extending Tests",
-                "7. Debugging and Troubleshooting",
-                "8. Manual and Channel-Specific Testing Overview",
-                "9. Memory Profiling and Resource Management"
-              ]
-            },
-            "communication/COMMUNICATION_GUIDE.md": {
-              "content_length": 11766,
-              "header_info": "# Communication Module - Channel-Agnostic Architecture\n\n> **File**: `communication/COMMUNICATION_GUIDE.md`  \n> **Audience**: Developers and maintainers working on communication channels and message fl",
-              "section_count": 16,
-              "sections": [
-                "Introduction",
-                "1. Core Principle",
-                "2. Architecture Layers",
-                "2.1. High-Level Flow",
-                "2.2. Message Models",
-                "2.3. Message Processing (`communication/message_processing/`)",
-                "2.4. Channel Base and Adapters (`communication/communication_channels/`)",
-                "3. Key Patterns",
-                "3.1. Error Handling Boundaries",
-                "3.2. Logging"
-              ]
-            },
-            "communication/communication_channels/discord/DISCORD_GUIDE.md": {
-              "content_length": 15924,
-              "header_info": "# Discord Channel Guide\n\n> **File**: `communication/communication_channels/discord/DISCORD_GUIDE.md`  \n> **Audience**: Developers and maintainers working on the Discord channel  \n> **Purpose**: Docume",
-              "section_count": 22,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Scope",
-                "2. Discord Channel Architecture",
-                "3. Bot Lifecycle and Connection Management",
-                "3.1. Startup",
-                "3.2. Shutdown and Disconnects",
-                "4. Message and Interaction Flow",
-                "4.1. Messages",
-                "4.2. Reactions and Membership Events",
-                "4.3. UI Views and Button Callbacks"
-              ]
-            },
-            "core/ERROR_HANDLING_GUIDE.md": {
-              "content_length": 17987,
-              "header_info": "# Error Handling Guide\n\n> **File**: `core/ERROR_HANDLING_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on MHM  \n> **Purpose**: Centralized error handling patterns, categories, and i",
-              "section_count": 24,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Design Principles",
-                "2. Architecture Overview",
-                "2.1. Core types and hierarchy",
-                "2.2. Recovery strategies",
-                "2.3. Error handler and helpers",
-                "2.4. Decorators and utilities",
-                "2.5. Integration with logging",
-                "3. Usage Patterns",
-                "3.1. Decorated functions (preferred)"
-              ]
-            },
-            "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 1053900,
-              "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 362,
-              "sections": [
-                "Introduction",
-                "Overview",
-                "How to Update This File",
-                "How to Add Changes",
-                "YYYY-MM-DD - Brief Title",
-                "Recent Changes (Most Recent First)",
-                "2026-01-11 - Legacy Code Cleanup and Cache Invalidation Enhancement **COMPLETED**",
-                "2026-01-10 - Notebook Short ID Format Update: Removed Dash for Mobile-Friendly Typing **COMPLETED**",
-                "2026-01-09 - Notebook Validation System Implementation and Testing **COMPLETED**",
-                "2026-01-09 - Comprehensive Notebook Test Suite Creation **COMPLETED**"
-              ]
-            },
-            "development_docs/PLANS.md": {
-              "content_length": 58499,
-              "header_info": "# MHM Development Plans\n\n\n> **File**: `development_docs/PLANS.md`\n> **Audience**: Human Developer & AI Collaborators  \n> **Purpose**: Consolidated development plans (grouped, interdependent work) with",
-              "section_count": 45,
-              "sections": [
-                "Introduction",
-                "[ACTIVE] **Current Active Plans**",
-                "**Test Suite Performance Optimization Plan** **ON HOLD**",
-                "**Error Handling Quality Improvement Plan** **IN PROGRESS**",
-                "**AI Chatbot Actionability Sprint** **IN PROGRESS**",
-                "**Discord App/Bot Capabilities Exploration** **PLANNING**",
-                "**Account Management System Improvements** **MOSTLY COMPLETE**",
-                "**Mood-Aware Support Calibration** **PLANNING**",
-                "**2025-09-16 - High Complexity Function Refactoring - Phase 2** **IN PROGRESS**",
-                "**Message Deduplication Advanced Features**"
-              ]
-            },
-            "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md": {
-              "content_length": 18193,
-              "header_info": "# AI Development Tools Guide\n\n> **File**: `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`  \n> **Audience**: AI collaborators and automated tooling  \n> **Purpose**: Routing and constraints for all AI",
-              "section_count": 11,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Scope",
-                "2. Running the Tool Suite",
-                "3. Audit Modes and Outputs",
-                "3.1. Tier 1: Quick Audit - `audit --quick`",
-                "3.2. Tier 2: Standard Audit - `audit` (default)",
-                "3.3. Tier 3: Full Audit - `audit --full`",
-                "4. Tool Catalog and Tiering",
-                "4.1. Naming Conventions",
-                "5. Operating Standards and Maintenance"
-              ]
-            },
-            "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": {
-              "content_length": 30926,
-              "header_info": "# Development Tools Guide\n\n> **File**: `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`  \n> **Audience**: Human maintainers and contributors  \n> **Purpose**: Detailed reference for every development too",
-              "section_count": 17,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Scope",
-                "2. Running the Tool Suite",
-                "2.1. Global Options",
-                "2.2. Command Examples",
-                "2.3. Command Summary",
-                "2.4. Entry Point Expectations",
-                "2.5. Service Architecture",
-                "3. Audit Modes and Outputs",
-                "4. Tool Catalog and Tiering"
-              ]
-            },
-            "logs/LOGGING_GUIDE.md": {
-              "content_length": 11151,
-              "header_info": "# Logging Guide\n\n> **File**: `logs/LOGGING_GUIDE.md`  \n> **Audience**: Developers and maintainers  \n> **Purpose**: Describe logging architecture, behavior, and maintenance tasks for MHM  \n> **Style**:",
-              "section_count": 32,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Scope",
-                "2. Logging Architecture",
-                "2.1. Central logger module",
-                "2.2. Component loggers",
-                "2.3. Format",
-                "3. Log Levels and When to Use Them",
-                "3.1. DEBUG",
-                "3.2. INFO",
-                "3.3. WARNING"
-              ]
-            },
-            "scripts/SCRIPTS_GUIDE.md": {
-              "content_length": 7268,
-              "header_info": "# Scripts Directory\n\n\n> **File**: `scripts/SCRIPTS_GUIDE.md`\n> **Audience**: Developers using MHM utility scripts and tools  \n> **Purpose**: Guide for utility scripts, migration tools, and testing scr",
-              "section_count": 14,
-              "sections": [
-                "Introduction",
-                "Quick Reference",
-                "1. Structure",
-                "2. Available Scripts",
-                "2.1. Project Cleanup (`scripts/`)",
-                "2.2. Testing Tools (`testing/`)",
-                "2.3. AI Testing (`testing/ai/`)",
-                "2.4. Debug Tools (`debug/`)",
-                "2.5. Utilities (`utilities/`)",
-                "2.6. Cleanup Tools (`utilities/cleanup/`)"
-              ]
-            },
-            "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md": {
-              "content_length": 10411,
-              "header_info": "# Development Tools Testing Guide\n\n> **File**: `tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on development tools  \n> **Purpose**: Quick reference f",
-              "section_count": 21,
-              "sections": [
-                "Introduction",
-                "1. Quick Start",
-                "2. Test Suite Structure",
-                "3. Prerequisites",
-                "4. Test Fixtures and Isolation",
-                "4.1. Synthetic Demo Project",
-                "4.2. Test Configuration",
-                "4.3. Temporary Project Copies",
-                "5. Critical Safety Rules",
-                "5.1. Never Modify Real Project Files"
-              ]
-            },
-            "tests/MANUAL_DISCORD_TEST_GUIDE.md": {
-              "content_length": 7077,
-              "header_info": "# Manual Discord Testing Guide\n\n> **File**: `tests/MANUAL_DISCORD_TEST_GUIDE.md`  \n> **Audience**: Developers and AI assistants performing manual Discord testing  \n> **Purpose**: Manual testing proced",
-              "section_count": 10,
-              "sections": [
-                "Introduction",
-                "1. Prerequisites",
-                "2. Task Reminder Follow-up Flow Testing",
-                "2.1. Basic Test Scenarios",
-                "2.2. Edge Cases",
-                "3. Verification Commands",
-                "4. Success Criteria",
-                "5. Known Issues to Watch For",
-                "6. Reporting Results",
-                "7. Quick Test Checklist"
-              ]
-            },
-            "tests/MANUAL_TESTING_GUIDE.md": {
-              "content_length": 11513,
-              "header_info": "# Manual Testing Guide\n\n> **File**: `tests/MANUAL_TESTING_GUIDE.md`  \n> **Audience**: Developers and AI assistants performing manual testing  \n> **Purpose**: Canonical manual testing flows and checkli",
-              "section_count": 26,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Scope",
-                "2. Core Manual Flows",
-                "2.1. Application startup and shutdown",
-                "2.2. Basic configuration and environment",
-                "3. UI Manual Testing",
-                "3.1. Layout and visual checks",
-                "3.2. Navigation and interaction",
-                "3.3. Validation and error feedback",
-                "4. Scheduling & Reminder Manual Tests"
-              ]
-            },
-            "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md": {
-              "content_length": 4945,
-              "header_info": "# System AI Functionality Testing Guide\n\n> **File**: `tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on MHM AI functionality  \n> **Purpose**: Quick",
-              "section_count": 10,
-              "sections": [
-                "Introduction",
-                "1. Quick Start",
-                "2. Test Suite Structure",
-                "3. Prerequisites",
-                "4. Test Data Scenarios",
-                "5. Logging Behavior",
-                "6. Test Features",
-                "7. Test Categories",
-                "8. Known Issues",
-                "9. Cleanup"
-              ]
-            },
-            "tests/TESTING_GUIDE.md": {
-              "content_length": 31078,
-              "header_info": "# Testing Guide\n\n> **File**: `tests/TESTING_GUIDE.md`  \n> **Audience**: Developers and AI assistants working on MHM  \n> **Purpose**: Comprehensive testing framework focused on real behavior, integrati",
-              "section_count": 44,
-              "sections": [
-                "Introduction",
-                "1. Purpose and Scope",
-                "2. Test Layout and Types",
-                "2.1. Discovery rules",
-                "2.2. Test types",
-                "2.3. Where to put new tests",
-                "3. Fixtures, Utilities, and Safety",
-                "3.1. Shared fixtures and hooks",
-                "3.2. Test utilities and helpers",
-                "3.3. Filesystem safety"
-              ]
-            },
-            "ui/UI_GUIDE.md": {
-              "content_length": 7863,
-              "header_info": "# UI Development Guide\n\n> **File**: `ui/UI_GUIDE.md`  \n> **Audience**: Developers working on MHM UI components  \n> **Purpose**: Guide for UI development, generation, and maintenance  \n> **Style**: Tec",
-              "section_count": 5,
-              "sections": [
-                "Introduction",
-                "Quick Reference",
-                "1. UI Generation",
-                "2. File Structure",
-                "3. Usage Pattern"
-              ]
-            }
-          },
           "missing": [],
           "placeholders": [],
           "section_overlaps": {
@@ -29546,27 +28934,87 @@
               "TODO.md",
               "development_docs/CHANGELOG_DETAIL.md"
             ]
-          }
+          },
+          "consolidation_recommendations": [
+            {
+              "category": "Development Workflow",
+              "files": [
+                "DOCUMENTATION_GUIDE.md",
+                "DEVELOPMENT_WORKFLOW.md",
+                "development_docs/CHANGELOG_DETAIL.md",
+                "development_docs/PLANS.md",
+                "ai_development_docs/AI_SESSION_STARTER.md",
+                "ai_development_docs/AI_ARCHITECTURE.md",
+                "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+                "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "ai_development_docs/AI_CHANGELOG.md",
+                "ai_development_docs/AI_REFERENCE.md",
+                "ai_development_docs/AI_LOGGING_GUIDE.md",
+                "ai_development_docs/AI_TESTING_GUIDE.md",
+                "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
+                "ai_development_docs/AI_LEGACY_REMOVAL_GUIDE.md",
+                "core/ERROR_HANDLING_GUIDE.md",
+                "logs/LOGGING_GUIDE.md",
+                "tests/TESTING_GUIDE.md",
+                "tests/MANUAL_TESTING_GUIDE.md",
+                "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md",
+                "tests/MANUAL_DISCORD_TEST_GUIDE.md",
+                "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
+                "communication/COMMUNICATION_GUIDE.md",
+                "communication/communication_channels/discord/DISCORD_GUIDE.md",
+                "scripts/SCRIPTS_GUIDE.md",
+                "ui/UI_GUIDE.md",
+                "ai/SYSTEM_AI_GUIDE.md",
+                "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+                "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
+              ],
+              "priority": "medium",
+              "similarity_score": 0.1903456087325828,
+              "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
+            },
+            {
+              "category": "Testing",
+              "files": [
+                "ai_development_docs/AI_TESTING_GUIDE.md",
+                "tests/TESTING_GUIDE.md",
+                "tests/MANUAL_TESTING_GUIDE.md",
+                "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md"
+              ],
+              "priority": "medium",
+              "similarity_score": 0.25442328610878756,
+              "suggestion": "Consider consolidating testing documentation into a single TESTING_GUIDE.md"
+            },
+            {
+              "category": "High Section Overlap",
+              "files": [
+                "tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md",
+                "tests/SYSTEM_AI_FUNCTIONALITY_TEST_GUIDE.md"
+              ],
+              "overlap_count": 3,
+              "priority": "medium",
+              "suggestion": "These files share 3 sections - consider consolidating or clearly differentiating their purposes"
+            }
+          ]
         },
         "summary": {
           "files_affected": 0,
           "total_issues": 0
         }
       },
-      "timestamp": "2026-01-11T04:04:14.468297"
+      "timestamp": "2026-01-11T05:17:57.882680"
     },
     "analyze_documentation_sync": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 1,
+          "total_issues": 0,
           "files_affected": 0,
-          "status": "FAIL"
+          "status": "PASS"
         },
         "details": {
           "paired_doc_issues": 0,
           "path_drift_issues": 0,
-          "ascii_compliance_issues": 1,
+          "ascii_compliance_issues": 0,
           "heading_numbering_issues": 0,
           "missing_address_issues": 0,
           "unconverted_link_issues": 0,
@@ -29578,11 +29026,9 @@
             "detailed_issues": {}
           },
           "ascii_compliance": {
-            "files": {
-              "development_docs/CHANGELOG_DETAIL.md": 1
-            },
-            "file_count": 1,
-            "total_issues": 1
+            "files": {},
+            "file_count": 0,
+            "total_issues": 0
           },
           "heading_numbering": {
             "files": {},
@@ -29601,7 +29047,7 @@
           }
         }
       },
-      "timestamp": "2026-01-11T04:05:15.963690"
+      "timestamp": "2026-01-11T05:19:02.708739"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -29610,7 +29056,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2026-01-11T04:04:56.440383"
+      "timestamp": "2026-01-11T05:18:42.535126"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -29619,7 +29065,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2026-01-11T04:05:14.661547"
+      "timestamp": "2026-01-11T05:19:01.201303"
     },
     "analyze_path_drift": {
       "success": true,
@@ -29628,7 +29074,7 @@
         "total_issues": 0,
         "detailed_issues": {}
       },
-      "timestamp": "2026-01-11T04:04:53.491412"
+      "timestamp": "2026-01-11T05:18:39.742034"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -29637,7 +29083,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2026-01-11T04:05:15.950469"
+      "timestamp": "2026-01-11T05:19:02.695577"
     },
     "analyze_error_handling": {
       "success": true,
@@ -29659,18 +29105,18 @@
             "handle_configuration_error": 4,
             "ConfigurationError": 6,
             "ValidationError": 18,
-            "error_handler_usage": 8,
             "handle_communication_error": 4,
+            "error_handler_usage": 8,
             "handle_network_error": 5,
             "handle_validation_error": 2,
             "handle_ai_error": 16,
-            "AIError": 2,
-            "safe_file_operation": 1,
-            "MHMError": 2,
-            "DataError": 12,
             "CommunicationError": 2,
+            "FileOperationError": 10,
             "handle_file_error": 3,
-            "FileOperationError": 10
+            "DataError": 12,
+            "AIError": 2,
+            "MHMError": 2,
+            "safe_file_operation": 1
           },
           "missing_error_handling": [],
           "error_handling_quality": {
@@ -29718,7 +29164,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-11T04:04:36.542731"
+      "timestamp": "2026-01-11T05:18:21.501437"
     },
     "analyze_test_coverage": {
       "success": true,
@@ -29729,27 +29175,27 @@
         },
         "details": {
           "overall": {
-            "coverage": 71.9,
+            "coverage": 72.0,
             "statements": 28298,
-            "covered": 20346,
-            "missed": 7952,
-            "generated": "2026-01-11T04:13:54.318828"
+            "covered": 20361,
+            "missed": 7937,
+            "generated": "2026-01-11T05:06:40.784738"
           },
           "modules": [
             {
               "module": "communication",
               "coverage": 68.8,
-              "missed": 2795
+              "missed": 2796
             },
             {
               "module": "ui",
-              "coverage": 70.4,
-              "missed": 1989
+              "coverage": 70.3,
+              "missed": 1992
             },
             {
               "module": "core",
-              "coverage": 73.4,
-              "missed": 2676
+              "coverage": 73.6,
+              "missed": 2657
             },
             {
               "module": "ai",
@@ -29780,8 +29226,8 @@
             },
             {
               "path": "ui/ui_app_qt.py",
-              "coverage": 51.2,
-              "missing": 676
+              "coverage": 51.0,
+              "missing": 679
             },
             {
               "path": "communication/command_handlers/notebook_handler.py",
@@ -29789,14 +29235,14 @@
               "missing": 229
             },
             {
-              "path": "communication/core/channel_orchestrator.py",
-              "coverage": 60.8,
-              "missing": 402
+              "path": "core/file_locking.py",
+              "coverage": 59.4,
+              "missing": 52
             }
           ]
         }
       },
-      "timestamp": "2026-01-11T04:13:58.084054"
+      "timestamp": "2026-01-11T05:06:44.461344"
     },
     "analyze_test_markers": {
       "success": true,
@@ -29804,15 +29250,15 @@
         "missing_count": 0,
         "missing": []
       },
-      "timestamp": "2026-01-11T04:14:05.835090"
+      "timestamp": "2026-01-11T05:06:54.158043"
     },
     "generate_dev_tools_coverage": {
       "success": true,
       "data": {
         "overall": {
-          "overall_coverage": 42.3,
-          "total_statements": 19525,
-          "total_missed": 11259
+          "overall_coverage": 41.6,
+          "total_statements": 19784,
+          "total_missed": 11547
         },
         "modules": {
           "development_tools\\__init__.py": {
@@ -29964,13 +29410,9 @@
           },
           "development_tools\\config\\config.py": {
             "statements": 320,
-            "missed": 56,
-            "coverage": 82,
+            "missed": 46,
+            "coverage": 86,
             "missing_lines": [
-              "44",
-              "47",
-              "48",
-              "49",
               "56",
               "58",
               "59",
@@ -29978,18 +29420,14 @@
               "83",
               "296",
               "299",
-              "310",
               "319",
               "333",
-              "343",
-              "352",
               "369",
               "378",
               "387",
               "396",
               "405",
               "414",
-              "423",
               "432",
               "442",
               "452",
@@ -30015,8 +29453,6 @@
               "587",
               "588",
               "589",
-              "610",
-              "636",
               "675",
               "705",
               "726",
@@ -30024,7 +29460,7 @@
               "757",
               "759"
             ],
-            "covered": 264
+            "covered": 274
           },
           "development_tools\\docs\\__init__.py": {
             "statements": 0,
@@ -30035,13 +29471,14 @@
           },
           "development_tools\\docs\\analyze_ascii_compliance.py": {
             "statements": 105,
-            "missed": 39,
-            "coverage": 63,
+            "missed": 40,
+            "coverage": 62,
             "missing_lines": [
               "27",
               "35",
               "41",
               "42",
+              "156",
               "176",
               "189",
               "190",
@@ -30078,7 +29515,7 @@
               "284",
               "286"
             ],
-            "covered": 66
+            "covered": 65
           },
           "development_tools\\docs\\analyze_documentation.py": {
             "statements": 301,
@@ -31064,7 +30501,7 @@
               "225",
               "230",
               "231",
-              "250",
+              "244",
               "257",
               "258",
               "270",
@@ -34817,8 +34254,8 @@
           },
           "development_tools\\shared\\constants.py": {
             "statements": 107,
-            "missed": 24,
-            "coverage": 78,
+            "missed": 18,
+            "coverage": 83,
             "missing_lines": [
               "19",
               "21",
@@ -34830,22 +34267,16 @@
               "52",
               "53",
               "54",
-              "61",
-              "68",
-              "75",
-              "231",
-              "239",
               "259",
               "261",
               "262",
               "264",
               "266",
               "267",
-              "280",
               "293",
               "296"
             ],
-            "covered": 83
+            "covered": 89
           },
           "development_tools\\shared\\exclusion_utilities.py": {
             "statements": 52,
@@ -35148,7 +34579,6 @@
               "70",
               "99",
               "100",
-              "108",
               "109",
               "110",
               "133",
@@ -35158,6 +34588,7 @@
               "144",
               "145",
               "146",
+              "151",
               "159",
               "160",
               "177",
@@ -35558,8 +34989,8 @@
           },
           "development_tools\\shared\\service\\audit_orchestration.py": {
             "statements": 735,
-            "missed": 394,
-            "coverage": 46,
+            "missed": 391,
+            "coverage": 47,
             "missing_lines": [
               "34",
               "35",
@@ -35929,10 +35360,7 @@
               "1080",
               "1081",
               "1082",
-              "1097",
-              "1098",
-              "1099",
-              "1100",
+              "1096",
               "1101",
               "1102",
               "1103",
@@ -35940,10 +35368,10 @@
               "1122",
               "1125",
               "1126",
-              "1137",
-              "1138",
-              "1139",
-              "1140",
+              "1142",
+              "1143",
+              "1144",
+              "1145",
               "1146",
               "1147",
               "1161",
@@ -35956,7 +35384,7 @@
               "1206",
               "1207"
             ],
-            "covered": 341
+            "covered": 344
           },
           "development_tools\\shared\\service\\commands.py": {
             "statements": 600,
@@ -36591,7 +36019,7 @@
           },
           "development_tools\\shared\\service\\data_loading.py": {
             "statements": 843,
-            "missed": 681,
+            "missed": 679,
             "coverage": 19,
             "missing_lines": [
               "54",
@@ -36699,8 +36127,6 @@
               "369",
               "371",
               "372",
-              "386",
-              "391",
               "392",
               "393",
               "401",
@@ -37276,12 +36702,12 @@
               "1214",
               "1217"
             ],
-            "covered": 162
+            "covered": 164
           },
           "development_tools\\shared\\service\\report_generation.py": {
             "statements": 2972,
-            "missed": 1864,
-            "coverage": 37,
+            "missed": 1913,
+            "coverage": 36,
             "missing_lines": [
               "30",
               "32",
@@ -37482,6 +36908,8 @@
               "595",
               "599",
               "603",
+              "618",
+              "619",
               "621",
               "622",
               "623",
@@ -37490,8 +36918,8 @@
               "633",
               "641",
               "642",
-              "650",
-              "651",
+              "645",
+              "646",
               "654",
               "655",
               "656",
@@ -37740,10 +37168,34 @@
               "1116",
               "1118",
               "1120",
+              "1126",
+              "1127",
+              "1128",
+              "1131",
+              "1132",
+              "1133",
+              "1136",
+              "1137",
               "1138",
+              "1141",
+              "1142",
+              "1143",
+              "1144",
+              "1145",
               "1146",
               "1147",
+              "1148",
+              "1149",
+              "1150",
+              "1152",
+              "1156",
               "1157",
+              "1159",
+              "1160",
+              "1161",
+              "1162",
+              "1164",
+              "1165",
               "1166",
               "1167",
               "1168",
@@ -39077,6 +38529,7 @@
               "4161",
               "4163",
               "4164",
+              "4173",
               "4178",
               "4179",
               "4180",
@@ -39086,12 +38539,34 @@
               "4185",
               "4186",
               "4187",
+              "4192",
               "4194",
               "4195",
+              "4198",
+              "4199",
+              "4202",
+              "4203",
+              "4204",
+              "4207",
+              "4208",
               "4209",
+              "4214",
+              "4215",
+              "4216",
+              "4217",
+              "4218",
               "4219",
               "4220",
               "4221",
+              "4222",
+              "4223",
+              "4224",
+              "4225",
+              "4228",
+              "4229",
+              "4230",
+              "4231",
+              "4232",
               "4246",
               "4247",
               "4257",
@@ -39148,7 +38623,7 @@
               "4340",
               "4341"
             ],
-            "covered": 1108
+            "covered": 1059
           },
           "development_tools\\shared\\service\\tool_wrappers.py": {
             "statements": 826,
@@ -39892,11 +39367,17 @@
           },
           "development_tools\\shared\\service\\utilities.py": {
             "statements": 363,
-            "missed": 246,
-            "coverage": 32,
+            "missed": 253,
+            "coverage": 30,
             "missing_lines": [
+              "18",
+              "20",
               "21",
+              "23",
               "24",
+              "26",
+              "27",
+              "28",
               "35",
               "36",
               "41",
@@ -39923,6 +39404,7 @@
               "92",
               "93",
               "94",
+              "103",
               "111",
               "115",
               "121",
@@ -40142,12 +39624,12 @@
               "459",
               "460"
             ],
-            "covered": 117
+            "covered": 110
           },
           "development_tools\\shared\\standard_exclusions.py": {
             "statements": 114,
-            "missed": 25,
-            "coverage": 78,
+            "missed": 21,
+            "coverage": 82,
             "missing_lines": [
               "28",
               "30",
@@ -40169,13 +39651,9 @@
               "136",
               "210",
               "273",
-              "277",
-              "294",
-              "330",
-              "361",
-              "369"
+              "277"
             ],
-            "covered": 89
+            "covered": 93
           },
           "development_tools\\shared\\tool_guide.py": {
             "statements": 131,
@@ -40338,95 +39816,122 @@
             "covered": 0
           },
           "development_tools\\tests\\analyze_test_coverage.py": {
-            "statements": 168,
-            "missed": 83,
-            "coverage": 51,
+            "statements": 200,
+            "missed": 110,
+            "coverage": 45,
             "missing_lines": [
               "27",
               "34",
               "36",
               "37",
               "38",
-              "81",
-              "82",
-              "92",
-              "93",
-              "102",
-              "103",
-              "104",
-              "105",
-              "123",
-              "124",
-              "125",
-              "126",
-              "143",
-              "146",
+              "43",
+              "45",
+              "46",
+              "47",
+              "48",
+              "79",
+              "109",
+              "110",
+              "120",
+              "121",
+              "130",
+              "131",
+              "132",
+              "133",
               "151",
               "152",
               "153",
               "154",
-              "155",
-              "156",
-              "158",
-              "160",
+              "171",
+              "174",
+              "179",
+              "180",
+              "181",
+              "182",
               "183",
-              "189",
-              "190",
-              "191",
-              "192",
-              "193",
-              "199",
-              "200",
-              "201",
-              "203",
-              "204",
-              "205",
-              "206",
-              "208",
-              "209",
+              "184",
+              "186",
+              "188",
               "211",
-              "213",
-              "257",
-              "258",
-              "260",
-              "262",
-              "263",
-              "264",
-              "266",
-              "267",
-              "270",
-              "271",
-              "272",
-              "273",
-              "276",
-              "278",
-              "287",
+              "217",
+              "218",
+              "219",
+              "220",
+              "221",
+              "227",
+              "228",
+              "229",
+              "231",
+              "232",
+              "233",
+              "234",
+              "236",
+              "237",
+              "239",
+              "241",
+              "288",
               "289",
               "290",
               "291",
-              "292",
+              "293",
               "294",
+              "295",
               "296",
-              "299",
+              "297",
               "300",
-              "301",
               "302",
+              "303",
               "304",
               "305",
               "306",
-              "307",
               "309",
               "310",
-              "311",
+              "312",
               "314",
-              "317",
+              "315",
+              "316",
               "318",
               "319",
-              "320",
               "322",
-              "324"
+              "323",
+              "324",
+              "325",
+              "328",
+              "330",
+              "337",
+              "338",
+              "339",
+              "340",
+              "341",
+              "343",
+              "348",
+              "350",
+              "351",
+              "352",
+              "353",
+              "355",
+              "357",
+              "360",
+              "361",
+              "362",
+              "363",
+              "365",
+              "366",
+              "367",
+              "368",
+              "370",
+              "371",
+              "372",
+              "375",
+              "378",
+              "379",
+              "380",
+              "381",
+              "383",
+              "385"
             ],
-            "covered": 85
+            "covered": 90
           },
           "development_tools\\tests\\analyze_test_markers.py": {
             "statements": 243,
@@ -40679,6 +40184,249 @@
             ],
             "covered": 0
           },
+          "development_tools\\tests\\coverage_cache.py": {
+            "statements": 103,
+            "missed": 103,
+            "coverage": 0,
+            "missing_lines": [
+              "23",
+              "24",
+              "25",
+              "26",
+              "28",
+              "29",
+              "30",
+              "31",
+              "32",
+              "34",
+              "37",
+              "45",
+              "53",
+              "54",
+              "56",
+              "57",
+              "58",
+              "59",
+              "61",
+              "62",
+              "63",
+              "65",
+              "67",
+              "68",
+              "69",
+              "70",
+              "71",
+              "72",
+              "73",
+              "74",
+              "75",
+              "76",
+              "78",
+              "84",
+              "86",
+              "87",
+              "88",
+              "89",
+              "90",
+              "91",
+              "92",
+              "93",
+              "94",
+              "96",
+              "106",
+              "107",
+              "108",
+              "109",
+              "112",
+              "113",
+              "114",
+              "115",
+              "116",
+              "117",
+              "118",
+              "120",
+              "122",
+              "129",
+              "130",
+              "132",
+              "133",
+              "134",
+              "137",
+              "138",
+              "139",
+              "140",
+              "141",
+              "143",
+              "145",
+              "152",
+              "153",
+              "154",
+              "156",
+              "166",
+              "167",
+              "168",
+              "171",
+              "172",
+              "174",
+              "176",
+              "184",
+              "185",
+              "188",
+              "191",
+              "192",
+              "194",
+              "202",
+              "204",
+              "211",
+              "212",
+              "213",
+              "214",
+              "216",
+              "218",
+              "223",
+              "224",
+              "225",
+              "227",
+              "234",
+              "235",
+              "236",
+              "238",
+              "243"
+            ],
+            "covered": 0
+          },
+          "development_tools\\tests\\domain_mapper.py": {
+            "statements": 124,
+            "missed": 124,
+            "coverage": 0,
+            "missing_lines": [
+              "18",
+              "19",
+              "20",
+              "21",
+              "23",
+              "24",
+              "25",
+              "26",
+              "27",
+              "30",
+              "39",
+              "49",
+              "56",
+              "57",
+              "60",
+              "63",
+              "64",
+              "65",
+              "67",
+              "77",
+              "78",
+              "81",
+              "82",
+              "83",
+              "84",
+              "85",
+              "86",
+              "89",
+              "90",
+              "91",
+              "92",
+              "94",
+              "96",
+              "106",
+              "107",
+              "109",
+              "110",
+              "111",
+              "112",
+              "113",
+              "115",
+              "117",
+              "127",
+              "128",
+              "130",
+              "131",
+              "132",
+              "133",
+              "134",
+              "135",
+              "137",
+              "139",
+              "149",
+              "150",
+              "152",
+              "154",
+              "155",
+              "156",
+              "158",
+              "159",
+              "162",
+              "163",
+              "166",
+              "167",
+              "168",
+              "169",
+              "170",
+              "175",
+              "176",
+              "178",
+              "179",
+              "183",
+              "184",
+              "186",
+              "187",
+              "189",
+              "190",
+              "191",
+              "193",
+              "194",
+              "195",
+              "197",
+              "198",
+              "200",
+              "210",
+              "213",
+              "214",
+              "215",
+              "216",
+              "218",
+              "219",
+              "222",
+              "223",
+              "225",
+              "226",
+              "227",
+              "228",
+              "229",
+              "231",
+              "233",
+              "243",
+              "244",
+              "245",
+              "246",
+              "247",
+              "248",
+              "250",
+              "260",
+              "261",
+              "264",
+              "265",
+              "266",
+              "267",
+              "268",
+              "270",
+              "271",
+              "274",
+              "276",
+              "286",
+              "287",
+              "288",
+              "289",
+              "290",
+              "291"
+            ],
+            "covered": 0
+          },
           "development_tools\\tests\\fix_test_markers.py": {
             "statements": 35,
             "missed": 35,
@@ -40862,7 +40610,7 @@
           },
           "development_tools\\tests\\run_test_coverage.py": {
             "statements": 1084,
-            "missed": 810,
+            "missed": 812,
             "coverage": 25,
             "missing_lines": [
               "37",
@@ -40879,9 +40627,11 @@
               "62",
               "106",
               "112",
+              "119",
               "139",
               "146",
               "157",
+              "164",
               "205",
               "206",
               "207",
@@ -41676,14 +41426,14 @@
               "1926",
               "1927"
             ],
-            "covered": 274
+            "covered": 272
           }
         },
         "coverage_collected": true,
         "output_file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_tools\\tests\\jsons\\coverage_dev_tools.json",
         "html_dir": null
       },
-      "timestamp": "2026-01-11T04:11:23.783748"
+      "timestamp": "2026-01-11T05:02:59.164037"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -44741,7 +44491,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-11T04:04:50.556246"
+      "timestamp": "2026-01-11T05:18:36.945775"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -44761,7 +44511,7 @@
           "missing_sections": []
         }
       },
-      "timestamp": "2026-01-11T04:05:01.016387"
+      "timestamp": "2026-01-11T05:18:48.068325"
     },
     "analyze_module_imports": {
       "success": true,
@@ -57202,14 +56952,14 @@
           }
         }
       },
-      "timestamp": "2026-01-11T04:04:35.769250"
+      "timestamp": "2026-01-11T05:18:20.785071"
     },
     "analyze_unused_imports": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 360,
-          "files_affected": 126,
+          "total_issues": 359,
+          "files_affected": 125,
           "status": "CRITICAL"
         },
         "files": {
@@ -57263,7 +57013,6 @@
           "tests/ui/test_task_crud_dialog.py": 2,
           "tests/ui/test_task_management_dialog.py": 4,
           "tests/ui/test_task_settings_widget.py": 6,
-          "tests/ui/test_ui_app_qt_main.py": 1,
           "tests/ui/test_ui_button_verification.py": 2,
           "tests/ui/test_ui_components_headless.py": 1,
           "tests/ui/test_ui_widgets_coverage_expansion.py": 8,
@@ -57996,13 +57745,6 @@
               {
                 "file": "tests/ui/test_task_settings_widget.py",
                 "line": 18,
-                "column": 0,
-                "message": "Unused MagicMock imported from unittest.mock",
-                "symbol": "unused-import"
-              },
-              {
-                "file": "tests/ui/test_ui_app_qt_main.py",
-                "line": 11,
                 "column": 0,
                 "message": "Unused MagicMock imported from unittest.mock",
                 "symbol": "unused-import"
@@ -59880,10 +59622,10 @@
             ]
           },
           "stats": {
-            "files_scanned": 411,
-            "files_with_issues": 126,
-            "total_unused": 360,
-            "cache_hits": 399,
+            "files_scanned": 413,
+            "files_with_issues": 125,
+            "total_unused": 359,
+            "cache_hits": 412,
             "cache_misses": 0
           },
           "by_category": {
@@ -59892,16 +59634,16 @@
             "re_exports": 0,
             "conditional_imports": 1,
             "star_imports": 0,
-            "test_mocking": 147,
+            "test_mocking": 146,
             "qt_testing": 54,
             "test_infrastructure": 153,
             "production_test_mocking": 4,
             "ui_imports": 1
           },
-          "files_scanned": 411
+          "files_scanned": 413
         }
       },
-      "timestamp": "2026-01-11T04:05:12.119018"
+      "timestamp": "2026-01-11T05:18:58.361945"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -59917,7 +59659,7 @@
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md"
         }
       },
-      "timestamp": "2026-01-11T04:06:13.174913"
+      "timestamp": "2026-01-11T04:57:16.692287"
     },
     "analyze_config": {
       "success": true,
@@ -59985,7 +59727,7 @@
           }
         }
       },
-      "timestamp": "2026-01-11T04:10:51.594335"
+      "timestamp": "2026-01-11T04:59:54.733963"
     },
     "analyze_ai_work": {
       "success": true,
@@ -60000,12 +59742,12 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-01-11T04:04:13.930355"
+      "timestamp": "2026-01-11T05:17:57.797320"
     },
     "analyze_system_signals": {
       "success": true,
       "data": {
-        "timestamp": "2026-01-11T04:04:12.022762",
+        "timestamp": "2026-01-11T05:17:56.110615",
         "system_health": {
           "overall_status": "ISSUES",
           "core_files": {
@@ -60023,7 +59765,7 @@
             "user": "OK",
             "tests": "OK"
           },
-          "last_audit": "2026-01-11T04:03:14.938396",
+          "last_audit": "2026-01-11T05:06:55.788055",
           "audit_freshness": "<1 hour",
           "test_coverage_status": "Unknown",
           "documentation_sync_status": "Minor Issues",
@@ -60038,7 +59780,7 @@
           "errors": [],
           "severity_levels": {
             "INFO": [
-              "Documentation has 1 minor sync issue(s)"
+              "Documentation has 3 minor sync issue(s)"
             ],
             "WARNING": [
               "Errors detected in logs/errors.log (last 24 hours)"
@@ -60048,16 +59790,16 @@
         },
         "recent_activity": {
           "recent_changes": [
-            "development_tools/shared/mtime_cache.py",
-            "tests/development_tools/test_audit_status_updates.py",
-            "development_tools/shared/service/data_loading.py",
-            "development_tools/docs/analyze_missing_addresses.py",
-            "development_tools/shared/service/report_generation.py",
             "development_tools/docs/analyze_heading_numbering.py",
-            "development_tools/docs/analyze_path_drift.py",
-            "development_tools/shared/tool_metadata.py",
-            "development_tools/legacy/analyze_legacy_references.py",
-            "tests/development_tools/test_path_drift_integration.py"
+            "development_tools/tests/domain_mapper.py",
+            "development_tools/imports/analyze_unused_imports.py",
+            "development_tools/shared/service/tool_wrappers.py",
+            "development_tools/run_development_tools.py",
+            "development_tools/docs/analyze_ascii_compliance.py",
+            "development_tools/tests/coverage_cache.py",
+            "development_tools/tests/analyze_test_coverage.py",
+            "development_tools/docs/analyze_missing_addresses.py",
+            "development_tools/shared/service/data_loading.py"
           ],
           "git_status": "Modified",
           "last_commit": null,
@@ -60067,9 +59809,9 @@
         "performance_indicators": {
           "log_file_sizes": {
             "ai.log": "0.0MB",
-            "ai_dev_tools.log": "0.2MB",
-            "app.log": "0.1MB",
-            "communication_manager.log": "0.0MB",
+            "ai_dev_tools.log": "0.3MB",
+            "app.log": "0.2MB",
+            "communication_manager.log": "0.1MB",
             "discord.log": "0.0MB",
             "email.log": "0.0MB",
             "errors.log": "0.0MB",
@@ -60083,7 +59825,7 @@
           "memory_usage": "Unknown"
         }
       },
-      "timestamp": "2026-01-11T04:04:12.338335"
+      "timestamp": "2026-01-11T05:17:56.347681"
     },
     "decision_support": {
       "success": true,
@@ -60212,12 +59954,12 @@
           }
         ]
       },
-      "timestamp": "2026-01-11T04:04:23.613882"
+      "timestamp": "2026-01-11T05:18:08.074132"
     },
     "quick_status": {
       "success": true,
       "data": {
-        "timestamp": "2026-01-11T04:04:24.624854",
+        "timestamp": "2026-01-11T05:18:09.191033",
         "system_health": {
           "core_files": {
             "run_mhm.py": "OK",
@@ -60237,7 +59979,7 @@
         },
         "documentation_status": {
           "coverage": "Unknown",
-          "recent_audit": "2026-01-11T04:03:14.874076",
+          "recent_audit": "2026-01-11T05:06:55.715300",
           "key_files": {
             "README.md": "OK",
             "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -60250,7 +59992,7 @@
         "critical_issues": [],
         "action_items": [],
         "recent_activity": {
-          "last_audit": "2026-01-11T04:03:14.874076",
+          "last_audit": "2026-01-11T05:06:55.715300",
           "recent_changes": [
             "communication/message_processing/command_parser.py",
             "communication/command_handlers/notebook_handler.py",
@@ -60258,7 +60000,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-11T04:04:25.033172"
+      "timestamp": "2026-01-11T05:18:09.449344"
     },
     "system_signals": {
       "success": true,
@@ -60451,7 +60193,7 @@
           }
         ]
       },
-      "timestamp": "2026-01-11T04:14:07.276983"
+      "timestamp": "2026-01-11T05:19:15.051069"
     }
   }
 }
