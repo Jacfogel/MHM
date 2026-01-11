@@ -387,17 +387,27 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 **Note**: Cursor IDE Compatibility - All tools are compatible. Ruff and bandit have VS Code extensions (Cursor is VS Code-based), others work via command-line or pre-commit hooks.
 
 #### 2.10 Investigate Caching to Accelerate Test Coverage Generation
-**Status**: PENDING  
+**Status**: PLAN CREATED  
 **Priority**: MEDIUM  
 **Issue**: Test coverage generation can be time-consuming, especially for large codebases. Caching could potentially accelerate coverage collection by reusing coverage data when source files haven't changed.
 
-**Tasks**:
+**Progress**:
+- [x] Created comprehensive caching exploration plan (2026-01-11)
+  - Plan includes domain-aware caching approach using test directory structure and pytest markers (user insight)
+  - Plan documents investigation, evaluation, and implementation phases
+  - Plan file: `.cursor/plans/caching_exploration_for_development_tools_fb102ab8.plan.md`
+- [x] Added `--clear-cache` flag to development tools CLI for easy cache management
+- [x] Removed all legacy `cache_file` parameter references - all tools now use standardized storage exclusively
+
+**Remaining Tasks**:
 - [ ] Investigate current test coverage generation workflow in `run_test_coverage.py`
+- [ ] Build domain mapping infrastructure to map source code directories to test directories and pytest markers
 - [ ] Identify opportunities for caching:
   - [ ] Cache coverage data per file/module based on file hash or modification time
   - [ ] Cache test execution results when source files haven't changed
   - [ ] Cache coverage analysis results (from `analyze_test_coverage.py`)
 - [ ] Evaluate caching strategies:
+  - [ ] Domain-aware caching (per-domain coverage data using test directory structure and pytest markers) - **RECOMMENDED**
   - [ ] File-level caching (per-file coverage data)
   - [ ] Module-level caching (per-module coverage aggregation)
   - [ ] Test-level caching (per-test coverage data)
@@ -405,9 +415,10 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
   - [ ] File modification time checks
   - [ ] Source file hash comparison
   - [ ] Dependency tracking (if imports change, invalidate dependent modules)
+  - [ ] Domain-based invalidation (when source files in domain change, only invalidate that domain's cache)
 - [ ] Assess performance benefits vs. complexity:
   - [ ] Measure current coverage generation time
-  - [ ] Estimate potential time savings with caching
+  - [ ] Estimate potential time savings with caching (target: 50%+ when only one domain changes)
   - [ ] Evaluate cache storage requirements
 - [ ] Design cache storage mechanism:
   - [ ] Determine cache location (e.g., `development_tools/tests/.coverage_cache/`)
@@ -416,7 +427,7 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 - [ ] Implement proof-of-concept if benefits are significant
 - [ ] Document caching strategy and usage
 
-**Files**: `development_tools/tests/run_test_coverage.py`, `development_tools/tests/analyze_test_coverage.py`, `development_tools/tests/generate_test_coverage_report.py`
+**Files**: `development_tools/tests/run_test_coverage.py`, `development_tools/tests/analyze_test_coverage.py`, `development_tools/tests/generate_test_coverage_report.py`, `.cursor/plans/caching_exploration_for_development_tools_fb102ab8.plan.md`
 
 ---
 

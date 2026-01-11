@@ -70,9 +70,12 @@ class HeadingNumberingAnalyzer:
         
         # Caching - use standardized storage
         from development_tools.shared.mtime_cache import MtimeFileCache
-        cache_file = self.project_root / "development_tools" / "docs" / ".heading_numbering_cache.json"  # Legacy fallback
-        self.cache = MtimeFileCache(cache_file, self.project_root, use_cache=use_cache,
-                                    tool_name='analyze_heading_numbering', domain='docs')
+        self.cache = MtimeFileCache(
+            project_root=self.project_root,
+            use_cache=use_cache,
+            tool_name='analyze_heading_numbering',
+            domain='docs'
+        )
     
     def check_heading_numbering(self) -> Dict[str, List[str]]:
         """

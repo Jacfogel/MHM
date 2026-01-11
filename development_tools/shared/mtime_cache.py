@@ -9,9 +9,10 @@ Usage:
     from development_tools.shared.mtime_cache import MtimeFileCache
     
     cache = MtimeFileCache(
-        cache_file=project_root / "development_tools" / "docs" / ".my_cache.json",
         project_root=project_root,
-        use_cache=True
+        use_cache=True,
+        tool_name='my_tool',
+        domain='docs'
     )
     
     # Check if file is cached
@@ -51,7 +52,6 @@ class MtimeFileCache:
     
     def __init__(
         self,
-        cache_file: Path,
         project_root: Path,
         use_cache: bool = True,
         tool_name: Optional[str] = None,
@@ -61,19 +61,20 @@ class MtimeFileCache:
         Initialize the cache.
         
         Args:
-            cache_file: Path to the JSON cache file (legacy - used if tool_name/domain not provided)
             project_root: Root directory of the project (for relative path generation)
             use_cache: Whether to use caching (if False, all operations are no-ops)
-            tool_name: Name of the tool (e.g., 'analyze_ascii_compliance') - if provided, uses standardized storage
-            domain: Domain directory (e.g., 'docs') - if provided with tool_name, uses standardized storage
+            tool_name: Name of the tool (e.g., 'analyze_ascii_compliance') - required for standardized storage
+            domain: Domain directory (e.g., 'docs') - required for standardized storage
         """
-        self.cache_file = cache_file
+        if tool_name is None or domain is None:
+            raise ValueError("tool_name and domain are required for MtimeFileCache")
+        
         self.project_root = project_root.resolve()
         self.use_cache = use_cache
         self.cache_data: Dict[str, Dict[str, Any]] = {}
         self.tool_name = tool_name
         self.domain = domain
-        self.use_standardized_storage = tool_name is not None and domain is not None
+        self.use_standardized_storage = True
         
         # Get config file path for cache invalidation
         self.config_file_path = self._get_config_file_path()
@@ -287,15 +288,16 @@ class MtimeFileCache:
         """Clear all cached data (in memory only, call save_cache() to persist)."""
         self.cache_data = {}
     
-    def get_cache_stats(self) -> Dict[str, int]:
+    def get_cache_stats(self) -> Dict[str, Any]:
         """
         Get statistics about the cache.
         
         Returns:
-            Dictionary with cache statistics (total_entries, etc.)
+            Dictionary with cache statistics (total_entries, tool_name, domain)
         """
         return {
             'total_entries': len(self.cache_data),
-            'cache_file': str(self.cache_file)
+            'tool_name': self.tool_name,
+            'domain': self.domain
         }
 

@@ -3608,17 +3608,10 @@ class ReportGenerationMixin:
                 
                 # Fallback to cache file if no data from JSON output
                 if not file_counts:
-                    cache_file = self.project_root / "development_tools" / "imports" / "jsons" / ".analyze_unused_imports_cache.json"
-                    if not cache_file.exists():
-                        cache_file = self.project_root / "development_tools" / "imports" / ".analyze_unused_imports_cache.json"
-                    
-                    if cache_file.exists():
-                        try:
-                            with open(cache_file, 'r', encoding='utf-8') as f:
-                                cache_data = json.load(f)
-                            if 'data' in cache_data and isinstance(cache_data['data'], dict):
-                                cache_data = cache_data['data']
-                            
+                    try:
+                        from ..output_storage import load_tool_cache
+                        cache_data = load_tool_cache('analyze_unused_imports', 'imports', project_root=self.project_root)
+                        if cache_data:
                             # CRITICAL: Filter out entries for files that no longer exist
                             for file_path_str, file_data in cache_data.items():
                                 if isinstance(file_data, dict):
@@ -3643,8 +3636,8 @@ class ReportGenerationMixin:
                                     except (OSError, ValueError):
                                         # File doesn't exist or error checking, skip it
                                         pass
-                        except Exception:
-                            pass
+                    except Exception:
+                        pass
                 
                 if file_counts:
                     sorted_files = sorted(file_counts.items(), key=lambda x: x[1], reverse=True)[:5]

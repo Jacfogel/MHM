@@ -107,10 +107,12 @@ class PathDriftAnalyzer:
         
         # Caching - use standardized storage
         from development_tools.shared.mtime_cache import MtimeFileCache
-        # cache_file parameter kept for backward compatibility but not used (standardized storage always used)
-        cache_file = self.project_root / "development_tools" / "docs" / ".path_drift_cache.json"
-        self.cache = MtimeFileCache(cache_file, self.project_root, use_cache=use_cache,
-                                    tool_name='analyze_path_drift', domain='docs')
+        self.cache = MtimeFileCache(
+            project_root=self.project_root,
+            use_cache=use_cache,
+            tool_name='analyze_path_drift',
+            domain='docs'
+        )
     
     def _setup_enhanced_filters(self):
         """Setup enhanced filtering patterns to reduce false positives."""

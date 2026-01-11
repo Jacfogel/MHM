@@ -95,9 +95,7 @@ class LegacyReferenceAnalyzer:
         if self.use_cache:
             try:
                 from development_tools.shared.mtime_cache import MtimeFileCache
-                cache_file = self.project_root / "development_tools" / "legacy" / ".analyze_legacy_references_cache.json"
                 self.cache = MtimeFileCache(
-                    cache_file=cache_file,
                     project_root=self.project_root,
                     use_cache=True,
                     tool_name='analyze_legacy_references',

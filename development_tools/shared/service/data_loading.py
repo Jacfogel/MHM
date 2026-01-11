@@ -1098,7 +1098,6 @@ class DataLoadingMixin:
         self, 
         tool_name: str, 
         domain: str, 
-        cache_file: Path, 
         result: Dict,
         parse_output_func: Optional[Callable[[str], Dict[str, Any]]] = None,
         cache_converter_func: Optional[Callable[[Dict[str, Any]], Dict[str, Any]]] = None
@@ -1113,17 +1112,16 @@ class DataLoadingMixin:
         4. Returns results dict
         5. Falls back to parsing output if cache fails
         """
-        from ..output_storage import save_tool_result
+        from ..output_storage import save_tool_result, load_tool_cache
         
-        # Step 1: Load from cache FIRST
+        # Step 1: Load from cache FIRST using standardized storage
         cache_data = None
-        if cache_file.exists():
-            try:
-                with open(cache_file, 'r', encoding='utf-8') as f:
-                    cache_data = json.load(f)
+        try:
+            cache_data = load_tool_cache(tool_name, domain, project_root=self.project_root)
+            if cache_data:
                 logger.debug(f"Loaded {tool_name} from cache (fresh data after execution)")
-            except Exception as cache_error:
-                logger.debug(f"Failed to load {tool_name} from cache: {cache_error}")
+        except Exception as cache_error:
+            logger.debug(f"Failed to load {tool_name} from cache: {cache_error}")
         
         # Step 2: Convert cache format to results format
         if cache_data and isinstance(cache_data, dict):

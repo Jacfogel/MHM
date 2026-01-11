@@ -38,6 +38,36 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-11 - Development Tools Cache Management Improvements **COMPLETED**
+- **Feature**: Added `--clear-cache` flag to development tools CLI and removed all legacy `cache_file` parameter references, simplifying cache management and ensuring all tools use standardized storage exclusively.
+- **Changes**:
+  1. **Cache Clearing Command**:
+     - Added `--clear-cache` global argument to `run_development_tools.py` that clears all cache files before running commands
+     - Implemented `_clear_all_caches()` function that finds and deletes cache files from standardized storage locations (`development_tools/{domain}/jsons/.{tool}_cache.json`)
+     - Removed legacy cache file checks (no longer needed - all tools use standardized storage)
+     - Cache clearing happens before service initialization, ensuring tools start with clean cache when requested
+  2. **Removed Legacy `cache_file` Parameter**:
+     - Removed `cache_file` parameter from `MtimeFileCache.__init__()` - now requires `tool_name` and `domain` for standardized storage
+     - Updated all 7 tools using `MtimeFileCache` to remove `cache_file` variable definitions and parameter passing:
+       - `analyze_ascii_compliance.py`, `analyze_missing_addresses.py`, `analyze_heading_numbering.py`, `analyze_unconverted_links.py`, `analyze_path_drift.py`, `analyze_unused_imports.py`, `analyze_legacy_references.py`
+     - Removed `# Legacy fallback` comments from all tools
+     - Updated `_load_mtime_cached_tool_results()` in `data_loading.py` to use `load_tool_cache()` instead of direct file access
+     - Updated all 6 callers in `commands.py` and `tool_wrappers.py` to remove `cache_file` argument
+     - Updated `report_generation.py` to use `load_tool_cache()` instead of direct file access
+     - Updated `get_cache_stats()` to return `tool_name` and `domain` instead of `cache_file` path
+     - Updated docstring example in `mtime_cache.py` to show standardized storage usage
+  3. **Caching Exploration Plan**:
+     - Created comprehensive plan for exploring caching strategies for test coverage and other development tools
+     - Plan includes domain-aware caching approach using test directory structure and pytest markers (user insight)
+     - Plan documents investigation, evaluation, and implementation phases for caching improvements
+- **Impact**: 
+  - Users can now easily clear all caches with `--clear-cache` flag for fresh runs when needed
+  - All tools now exclusively use standardized storage - no legacy code paths remain
+  - Codebase is cleaner with removed unused `cache_file` parameter and legacy comments
+  - Foundation laid for future caching improvements (test coverage, domain-aware caching)
+- **Files**: `development_tools/run_development_tools.py`, `development_tools/shared/mtime_cache.py`, `development_tools/docs/analyze_*.py` (5 files), `development_tools/imports/analyze_unused_imports.py`, `development_tools/legacy/analyze_legacy_references.py`, `development_tools/shared/service/data_loading.py`, `development_tools/shared/service/commands.py`, `development_tools/shared/service/tool_wrappers.py`, `development_tools/shared/service/report_generation.py`, `.cursor/plans/caching_exploration_for_development_tools_fb102ab8.plan.md`
+- **Testing**: Verified `--clear-cache` flag works correctly (clears 6-7 cache files), quick audit runs successfully after changes, no linter errors
+
 ### 2026-01-11 - Legacy Code Cleanup and Cache Invalidation Enhancement **COMPLETED**
 - **Feature**: Completed comprehensive legacy code cleanup, reducing legacy markers from 25 to 0 across 8 files, and enhanced cache invalidation to handle config-based pattern changes in development tools.
 - **Changes**:

@@ -644,7 +644,6 @@ class ToolWrappersMixin:
             logger.error(f"Error running path drift analyzer: {e}", exc_info=True)
             result = self.run_script("analyze_path_drift", '--json')
             try:
-                cache_file = self.project_root / "development_tools" / "docs" / "jsons" / ".analyze_path_drift_cache.json"
                 def path_drift_converter(file_data: Dict[str, Any]) -> Dict[str, Any]:
                     files_with_issues = {}
                     detailed_issues = {}
@@ -664,7 +663,6 @@ class ToolWrappersMixin:
                 data = self._load_mtime_cached_tool_results(
                     'analyze_path_drift',
                     'docs',
-                    cache_file,
                     result,
                     self._parse_path_drift_output,
                     path_drift_converter
@@ -1389,55 +1387,29 @@ class ToolWrappersMixin:
             result = self.run_script("analyze_path_drift", '--json')
 
             try:
-
-                cache_file = self.project_root / "development_tools" / "docs" / "jsons" / ".analyze_path_drift_cache.json"
-
                 def path_drift_converter(file_data: Dict[str, Any]) -> Dict[str, Any]:
-
                     files_with_issues = {}
-
                     detailed_issues = {}
-
                     total_issues = 0
-
                     for file_path, file_info in file_data.items():
-
                         if isinstance(file_info, dict):
-
                             results = file_info.get('results', [])
-
                             if results:
-
                                 files_with_issues[file_path] = len(results)
-
                                 detailed_issues[file_path] = results
-
                                 total_issues += len(results)
-
                     return {
-
                         'files': files_with_issues,
-
                         'total_issues': total_issues,
-
                         'detailed_issues': detailed_issues
-
                     }
 
                 data = self._load_mtime_cached_tool_results(
-
                     'analyze_path_drift',
-
                     'docs',
-
-                    cache_file,
-
                     result,
-
                     self._parse_path_drift_output,
-
                     path_drift_converter
-
                 )
 
                 if data:

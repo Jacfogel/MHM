@@ -32,6 +32,36 @@ from core.logger import get_component_logger
 logger = get_component_logger("development_tools")
 
 
+def _clear_all_caches(project_root: Path) -> int:
+    """
+    Clear all development tools cache files.
+    
+    Args:
+        project_root: Project root directory
+        
+    Returns:
+        Number of cache files cleared
+    """
+    cache_files_cleared = 0
+    dev_tools_dir = project_root / "development_tools"
+    
+    # Find all cache files in standardized storage: development_tools/{domain}/jsons/.{tool}_cache.json
+    if dev_tools_dir.exists():
+        for domain_dir in dev_tools_dir.iterdir():
+            if domain_dir.is_dir():
+                jsons_dir = domain_dir / "jsons"
+                if jsons_dir.exists():
+                    for cache_file in jsons_dir.glob(".*_cache.json"):
+                        try:
+                            cache_file.unlink()
+                            cache_files_cleared += 1
+                            logger.debug(f"Cleared cache file: {cache_file}")
+                        except Exception as e:
+                            logger.warning(f"Failed to clear cache file {cache_file}: {e}")
+    
+    return cache_files_cleared
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Development tools command-line interface. Shorthand: use run_dev_tools.py instead of run_development_tools.py",
@@ -50,6 +80,11 @@ def _build_parser() -> argparse.ArgumentParser:
         type=str,
         default=None,
         help='Path to config file (default: use built-in config)'
+    )
+    parser.add_argument(
+        '--clear-cache',
+        action='store_true',
+        help='Clear all development tools cache files before running the command'
     )
     return parser
 
@@ -83,6 +118,7 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument('--project-root', type=str, default=None)
     parser.add_argument('--config-path', type=str, default=None)
+    parser.add_argument('--clear-cache', action='store_true')
     parser.add_argument('command', nargs='?')
     
     # Use parse_known_args to separate global args from command args
@@ -93,7 +129,25 @@ def main(argv=None) -> int:
     
     project_root = known_args.project_root
     config_path = known_args.config_path
+    clear_cache = known_args.clear_cache
     command_name = known_args.command
+
+    # Determine project root for cache clearing (before service initialization)
+    if project_root:
+        project_root_path = Path(project_root).resolve()
+    else:
+        # Use the same logic as service initialization
+        project_root_path = Path(__file__).resolve().parent.parent
+
+    # Clear caches if requested
+    if clear_cache:
+        cache_count = _clear_all_caches(project_root_path)
+        if cache_count > 0:
+            print(f"Cleared {cache_count} cache file(s).")
+            logger.info(f"Cleared {cache_count} cache file(s) before running command")
+        else:
+            print("No cache files found to clear.")
+            logger.debug("No cache files found to clear")
 
     if not command_name:
         # Build full parser for help output

@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-11 - Development Tools Cache Management Improvements **COMPLETED**
+- Added `--clear-cache` global flag to `run_development_tools.py` for easy cache invalidation before commands
+- Removed all `cache_file` parameter references from `MtimeFileCache` and all 7 tools - now exclusively uses standardized storage (`tool_name` + `domain`)
+- Created comprehensive caching exploration plan for test coverage and domain-aware caching using test directory structure and pytest markers
+- **Impact**: Cleaner codebase, easier cache management, foundation for future caching improvements
+
 ### 2026-01-11 - Legacy Code Cleanup and Cache Invalidation Enhancement **COMPLETED**
 - Completed legacy code cleanup: reduced legacy markers from 25 to 0 across 8 files, removed `system_signals.py` legacy file, updated all references to use `analyze_system_signals`
 - Enhanced `MtimeFileCache` to automatically invalidate cache when `development_tools_config.json` changes (tracks config mtime, clears cache if stale)

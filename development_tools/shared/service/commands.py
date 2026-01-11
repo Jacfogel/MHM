@@ -743,11 +743,9 @@ class CommandsMixin:
         if hasattr(self, '_tools_run_in_current_tier'):
             self._tools_run_in_current_tier.add('analyze_ascii_compliance')
         try:
-            cache_file = self.project_root / "development_tools" / "docs" / "jsons" / ".analyze_ascii_compliance_cache.json"
             ascii_result = self._load_mtime_cached_tool_results(
                 'analyze_ascii_compliance',
                 'docs',
-                cache_file,
                 result,
                 self._parse_ascii_compliance_output
             )
@@ -771,11 +769,9 @@ class CommandsMixin:
         if hasattr(self, '_tools_run_in_current_tier'):
             self._tools_run_in_current_tier.add('analyze_heading_numbering')
         try:
-            cache_file = self.project_root / "development_tools" / "docs" / "jsons" / ".analyze_heading_numbering_cache.json"
             heading_result = self._load_mtime_cached_tool_results(
                 'analyze_heading_numbering',
                 'docs',
-                cache_file,
                 result,
                 self._parse_heading_numbering_output
             )
@@ -799,11 +795,9 @@ class CommandsMixin:
         if hasattr(self, '_tools_run_in_current_tier'):
             self._tools_run_in_current_tier.add('analyze_missing_addresses')
         try:
-            cache_file = self.project_root / "development_tools" / "docs" / "jsons" / ".analyze_missing_addresses_cache.json"
             missing_result = self._load_mtime_cached_tool_results(
                 'analyze_missing_addresses',
                 'docs',
-                cache_file,
                 result,
                 self._parse_missing_addresses_output
             )
@@ -827,11 +821,9 @@ class CommandsMixin:
         if hasattr(self, '_tools_run_in_current_tier'):
             self._tools_run_in_current_tier.add('analyze_unconverted_links')
         try:
-            cache_file = self.project_root / "development_tools" / "docs" / "jsons" / ".analyze_unconverted_links_cache.json"
             links_result = self._load_mtime_cached_tool_results(
                 'analyze_unconverted_links',
                 'docs',
-                cache_file,
                 result,
                 self._parse_unconverted_links_output
             )
