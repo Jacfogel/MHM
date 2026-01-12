@@ -196,6 +196,22 @@ When adding new tasks, follow this format:
 - *Why it helps*: More reliable command understanding and fewer misinterpretations
 - *Estimated effort*: Medium
 
+**Investigate and Refactor AI Command List Generation**
+- *What it means*: Investigate why there are two separate hardcoded command lists for the AI chatbot (in `ai/prompt_manager.py` and `ai/chatbot.py`) and explore generating these lists dynamically from the handlers' `can_handle()` methods or the command parser's `intent_patterns` dictionary
+- *Why it helps*: Prevents maintenance issues where new commands (like `create_quick_note`) need to be manually added to multiple places, reduces risk of inconsistencies between lists, and ensures the AI always knows about all available commands automatically
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Investigate why there are two separate lists (historical reasons, different use cases, etc.)
+  - [ ] Review how `get_all_handlers()` and handlers' `can_handle()` methods work
+  - [ ] Review how `command_parser.intent_patterns` is structured
+  - [ ] Explore generating command list dynamically from handlers (iterate through handlers, collect all intents from `can_handle()` methods)
+  - [ ] Explore generating command list dynamically from command parser (extract keys from `intent_patterns` dictionary)
+  - [ ] Evaluate pros/cons of each approach (handler-based vs parser-based)
+  - [ ] Determine if both lists serve different purposes or can be consolidated
+  - [ ] Implement dynamic generation and update both locations to use it
+  - [ ] Add tests to ensure command lists stay in sync with actual available commands
+  - [ ] Document the new approach in relevant documentation
+
 **Conversation Flow Management**
 - *What it means*: Improve conversational state transitions and fallbacks to keep interactions smooth
 - *Why it helps*: More predictable user experience and fewer dead-ends

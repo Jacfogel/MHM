@@ -1,175 +1,105 @@
-# Mental Health Management (MHM)
+# Motivational Health Messages (MHM)
 
-> **File**: `README.md`
-> **Audience**: Human developer (beginner-friendly)
-> **Purpose**: High-level overview, navigation, and quick start
-> **Style**: Beginner-friendly overview and navigation
+> **File**: `README.md`  
+> **Audience**: Developers, contributors, and AI development assistants  
+> **Purpose**: High-level project overview, navigation, and orientation  
+> **Style**: Introductory, accurate, and beginner-friendly  
 
-MHM is a personal mental health assistant designed first for a single user and their real life.
-It sends scheduled motivational and health reminders, helps with basic mood/health tracking, and keeps
-everything on your local machine.
+---
 
-Current channels:
+## 1. Overview
 
-- Discord - primary production channel
-- Email - present in the code, still evolving
-- Telegram - present in code but currently disabled
+Motivational Health Messages (MHM) is a personal support and scheduling system designed to reduce daily friction for neurodivergent users, particularly those with ADHD and depression.
 
-The system consists of:
+The system focuses on externalizing reminders, routines, and check-ins, and can optionally use AI to support reflection, task-switching, and emotional regulation.
 
-- A background service that handles scheduling, reminders, and data
-- A PySide6/Qt admin UI used to configure schedules, messages, and users
-- Optional local AI integration via LM Studio for contextual chat responses
+MHM is **not** a clinical or diagnostic tool. It does not provide therapy or medical advice. Its goal is to support day-to-day functioning through structure, gentle encouragement, and consistency.
 
+The project began as a simple reminder system and has grown into a broader personal assistant platform, while remaining grounded in real-world use by its creator.
 
-## 1. Navigation
+> **Scope note:** This README is intentionally high-level. Detailed behavior, design rationale, and operational specifics live in the linked documentation.
 
-Use this section as your main entry point into the docs.
+---
 
-- Project vision and goals: [PROJECT_VISION.md](PROJECT_VISION.md)
-- How to run and troubleshoot: [HOW_TO_RUN.md](HOW_TO_RUN.md)
-- Development workflow: [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md)
-- Architecture overview: [ARCHITECTURE.md](ARCHITECTURE.md)
-- Documentation standards and sync rules: [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md)
-- Development tools (CLI and commands): [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)
-- Testing strategy and commands: [TESTING_GUIDE.md](tests/TESTING_GUIDE.md)
-- Logging: [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)
-- Error handling: [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md)
-- Current plans and priorities: [PLANS.md](development_docs/PLANS.md) and [TODO.md](TODO.md)
-- Change history (short): [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)
-- Change history (detailed): [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md)
+## 2. Navigation (Start Here)
 
+If you are new to the project, use the following paths depending on your goal:
 
-## 2. Features
+- **Understand the purpose and long-term direction**  
+  -> [PROJECT_VISION.md](PROJECT_VISION.md)
 
-- Multi-channel messaging (Discord in production, Email evolving)
-- Automated reminders and basic mood/health tracking
-- Time-period-based schedule system (morning, work, evening, bedtime, etc.)
-- Admin UI for managing users, schedules, and messages
-- Optional AI-powered replies via LM Studio
-- Centralized configuration and logging
-- Centralized error handling wired into logging
-- Modular architecture focused on maintainability and testability
+- **Understand how the system is structured**  
+  -> [ARCHITECTURE.md](ARCHITECTURE.md)
 
+- **Run the system or troubleshoot issues**  
+  -> [HOW_TO_RUN.md](HOW_TO_RUN.md)
 
-## 3. Quick Start
+- **Work on documentation or make changes safely**  
+  -> [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md)  
+  -> [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md)
 
-This is the very short version. For step-by-step instructions and troubleshooting,
-see [HOW_TO_RUN.md](HOW_TO_RUN.md).
+- **Use an AI assistant (Cursor, ChatGPT, etc.) to help with development**  
+  -> [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md)  
+  -> [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md)
 
-1. Clone the repo
+---
 
-   ```powershell
-   git clone https://github.com/Jacfogel/MHM.git
-   cd MHM
-   ```
+## 3. What MHM Currently Supports
 
-2. Create and activate the virtual environment
+This list reflects **implemented functionality**, not aspirational goals.
 
-   ```powershell
-   # Create once
-   python -m venv .venv
+- **Automated Messages**  
+  Scheduled, semi-randomized messages delivered within defined time windows.
 
-   # Activate (Windows, PowerShell)
-   .\.venv\Scripts\Activate.ps1
-   ```
+- **Check-ins**  
+  Lightweight mood and status check-ins for reflection and awareness.
 
-   On macOS/Linux:
+- **Tasks**  
+  Task reminders and task-related messaging to support initiation and follow-through.
 
-   ```bash
-   source .venv/bin/activate
-   ```
+- **Notebook**  
+  Simple note capture for thoughts, context, and reflection.
 
-3. Install dependencies
+- **Optional AI Assistance**  
+  AI can assist with generating responses or reflections, but core functionality does not depend on AI availability.
 
-   ```powershell
-   pip install -r requirements.txt
-   ```
+---
 
-4. Configure environment
+## 4. Communication Channels
 
-   - Copy `.env.example` to `.env`
-   - Fill in required values (Discord token, paths, LM Studio, etc.)
-   - See [HOW_TO_RUN.md](HOW_TO_RUN.md) and comments in `core/config.py` for details
+- **Discord (Primary, Production)**  
+  Discord is the primary supported channel. Most interactive features are designed around Discord's two-way messaging capabilities.
 
-5. Launch the application
+- **Email (Limited Support)**  
+  Email is supported for automated outbound messages only. Interactive features that require two-way communication are limited or unavailable via email.
 
-   ```powershell
-   # For human users (admin UI)
-   python run_mhm.py
+- **Telegram**  
+  Telegram has been almost entirely removed from the project and there are no current plans to reintroduce it.
 
-   # For AI collaborators / headless service
-   python run_headless_service.py start
-   ```
+- **SMS (Exploratory)**  
+  SMS was an original design goal but is not currently implemented due to reliability and cost constraints.
 
-### 3.1. Headless service commands
+---
 
-`run_headless_service.py` is a small command-line wrapper around the headless
-service manager in `core/headless_service.py`.
+## 5. Project Philosophy
 
-Basic actions:
+- **Executive Function First**  
+  Reduce cognitive load rather than adding complexity.
 
-```powershell
-python run_headless_service.py start      # Start the headless service
-python run_headless_service.py stop       # Stop the headless service
-python run_headless_service.py status     # Check if it is running
-python run_headless_service.py info       # Show detailed process info
-```
+- **Adaptive, Not Rigid**  
+  Use semi-random scheduling and contextual behavior to avoid habituation.
 
-Developer-only actions (used mainly from the UI or for debugging):
+- **AI-Forward, Not AI-Dependent**  
+  AI enhances the experience but is never required.
 
-```powershell
-python run_headless_service.py test <user_id> <category>       # Trigger a test message
-python run_headless_service.py reschedule <user_id> <category> # Reschedule messages
-```
+- **Local-First Where Possible**  
+  Favor user control, transparency, and predictable behavior.
 
-These commands use the same underlying backend (`core/service.py`) as the UI.
+For long-term values and direction, see [PROJECT_VISION.md](PROJECT_VISION.md).
 
-If any of these steps fail, go to [HOW_TO_RUN.md](HOW_TO_RUN.md) and the troubleshooting section
-in this README.
+---
 
-
-## 4. Documentation
-
-Key documentation files:
-
-- `README.md` - This file; overview and navigation
-- [HOW_TO_RUN.md](HOW_TO_RUN.md) - Environment setup, configuration, and run commands
-- [ARCHITECTURE.md](ARCHITECTURE.md) - System structure, key modules, and data flows
-- [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) - How to make safe, incremental changes
-- [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) - Documentation standards and sync rules
-- [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) - Logging architecture and patterns
-- [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) - Error handling patterns and recovery rules
-- [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) - Testing strategy and structure
-- [PLANS.md](development_docs/PLANS.md) - Medium/long-term plans and experiments
-- [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) - AI tooling and audit commands
-- [TODO.md](TODO.md) - Practical current priorities and rough task list
-
-AI-facing docs (for tools like Cursor and ChatGPT):
-
-- [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md)
-- [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)
-- [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)
-- [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md)
-- [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md)
-- [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md)
-- [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md)
-- [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md)
-- [AI_REFERENCE.md](ai_development_docs/AI_REFERENCE.md)
-- [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)
-
-Configuration-related files:
-
-- `.env.example` - Template; safe to commit and share
-- `.env` - Real credentials and secrets (local only; ignored by tools)
-- `core/config.py` - Central configuration loader and validation
-- `requirements.txt` - Python dependencies
-
-For how documentation is kept in sync (especially human/AI pairs), see
-[DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md) and [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md).
-
-
-## 5. Architecture
+## 6. Architecture
 
 High-level architecture (details in [ARCHITECTURE.md](ARCHITECTURE.md)):
 
@@ -186,17 +116,21 @@ High-level architecture (details in [ARCHITECTURE.md](ARCHITECTURE.md)):
   where these directories live via `BASE_DATA_DIR`, `USER_INFO_DIR_PATH`, and other
   settings in `core/config.py`.
 
+**Entry points at a glance:**
+- **UI-driven:** `python run_mhm.py` (human administration)
+- **Headless service:** `python run_headless_service.py` (automation / AI tools)
+
 Recent improvements (see change logs for details):
 
 - Centralized error handling with decorators and a shared `ErrorHandler` object
 - Centralized logging via `core/logger.py` with component loggers and rotation
 - More robust configuration loading and validation from `.env`
 - Clearer separation of concerns between core logic, UI, and channel adapters
-- Safer headless service management (`core/headless_service.py` and `run_headless_service.py`) that
-  avoids conflicts with UI-managed services
+- Safer headless service management that avoids conflicts with UI-managed services
 
+---
 
-## 6. AI Integration (Optional)
+## 7. AI Integration (Optional)
 
 MHM can integrate with a local AI model via LM Studio:
 
@@ -204,10 +138,14 @@ MHM can integrate with a local AI model via LM Studio:
   in `.env` / `.env.example` and read by `core/config.py`.
 - If LM Studio is not installed or the model is not available, MHM still works
   as a scheduler/reminder system.
-- For more detail, see the AI sections in [ARCHITECTURE.md](ARCHITECTURE.md), the `ai/` package, and [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md).
+- The headless service supports start/stop/status and diagnostic commands;
+  see [HOW_TO_RUN.md](HOW_TO_RUN.md) for details.
+- For deeper AI details, see the AI sections in [ARCHITECTURE.md](ARCHITECTURE.md),
+  the `ai/` package, and [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md).
 
+---
 
-## 7. Project Structure
+## 8. Project Structure
 
 A simplified view of the repository (names may evolve; see [ARCHITECTURE.md](ARCHITECTURE.md) for details):
 
@@ -215,12 +153,13 @@ A simplified view of the repository (names may evolve; see [ARCHITECTURE.md](ARC
 MHM/
 - ai/                      # AI assistant components
 - ai_development_docs/     # AI-focused documentation
-- development_tools/    # Audit, coverage, and doc tools
+- development_tools/       # Audit, coverage, and doc tools
 - communication/           # Channels and orchestration
 - core/                    # Core service logic and helpers
 - data/                    # User data (gitignored)
 - development_docs/        # Human-facing development docs
 - logs/                    # Application and component logs
+- notebook/                # Notebook Framework
 - resources/               # Message templates and other assets
 - styles/                  # QSS themes for the admin UI
 - tasks/                   # Task/reminder framework
@@ -231,11 +170,12 @@ MHM/
 - run_headless_service.py  # Headless service entry (AI collaborators)
 ```
 
-For deeper explanations of each area and how they connect, see [ARCHITECTURE.md](ARCHITECTURE.md)
-and [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md).
+For deeper explanations, see [ARCHITECTURE.md](ARCHITECTURE.md) and
+[AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md).
 
+---
 
-## 8. License and privacy
+## 9. License and Privacy
 
 This is a personal project focused on one person's mental health and daily life.
 
@@ -243,43 +183,43 @@ This is a personal project focused on one person's mental health and daily life.
 - Do not share real user data, logs, or configuration (`.env`) with anyone.
 - If you reuse patterns or code, strip any personal context and keep privacy in mind.
 
+---
 
-## 9. Notes for beginners
+## 10. Notes for Beginners
 
 This project is deliberately structured to support a beginner developer who is
 learning as they go, with heavy AI assistance.
 
-- Safety first - assume real data and a real machine. Prefer small, reversible
-  changes and keep backups (see [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md) for
-  backup commands and safety rules).
-- Learning-focused - many improvements are an excuse to learn a concept
-  (logging, error handling, scheduling, testing, UI). When in doubt, slow down
-  and understand what is happening instead of blindly copying code.
-- No rush - it is better to make one small, well-understood change per
-  session than a big refactor you cannot debug later.
-- Your control - you decide which improvements to tackle and in what order.
-  Anything that feels too risky can be deferred or skipped.
-- Recent progress - the project now has centralized logging, centralized
-  error handling, clearer configuration, and better documentation. The goal is
-  to keep that momentum without burning out.
+- **Safety first** - Assume real data and a real machine. Prefer small, reversible
+  changes and keep backups (see
+  [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md)).
+- **Learning-focused** - Many improvements exist to learn concepts (logging,
+  error handling, scheduling, testing, UI). Slow down and understand changes.
+- **No rush** - One small, well-understood change per session is better than a
+  large refactor you cannot debug.
+- **Your control** - You decide which improvements to tackle and when.
+- **Recent progress** - Centralized logging, error handling, clearer configuration,
+  and improved documentation.
 
-For current priorities and a history of what has been done recently, see:
+For current priorities and recent history, see:
 
 - [TODO.md](TODO.md)
+- [PLANS.md](development_docs/PLANS.md)
 - [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)
 - [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md)
 
+---
 
-## 10. Troubleshooting
+## 11. Troubleshooting
 
-This section collects a few common issues and practical fixes. For more detail,
-see [HOW_TO_RUN.md](HOW_TO_RUN.md) and the logging/error-handling docs.
+For more detail, see [HOW_TO_RUN.md](HOW_TO_RUN.md) and the logging/error-handling
+documentation.
 
-### 10.1. Virtual environment or Python not recognized
+### 11.1. Virtual environment or Python not recognized
 
 If you see errors like "python is not recognized" or `ModuleNotFoundError`:
 
-1. Make sure the virtual environment exists:
+1. Ensure the virtual environment exists:
 
    ```powershell
    python -m venv .venv
@@ -288,81 +228,65 @@ If you see errors like "python is not recognized" or `ModuleNotFoundError`:
 2. Activate it:
 
    - Windows (PowerShell):
-
      ```powershell
      .\.venv\Scripts\Activate.ps1
      ```
-
    - macOS/Linux:
-
      ```bash
      source .venv/bin/activate
      ```
 
-3. Reinstall dependencies inside `.venv`:
+3. Reinstall dependencies:
 
    ```powershell
    pip install -r requirements.txt --force-reinstall
    ```
 
-You should see `(.venv)` at the start of your shell prompt when it is active.
+### 11.2. Service will not start
 
-### 10.2. Service will not start
-
-1. Confirm your `.env` exists and is based on `.env.example`.
-2. Run the configuration report:
+1. Confirm `.env` exists and is based on `.env.example`.
+2. Run configuration validation:
 
    ```powershell
    python -m core.config
    ```
 
-   or use the `config` command via the AI tools runner (see [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md)).
-
-3. Check that required directories (for example `data/`, `logs/`) exist. They
-   are usually created automatically; if they were deleted, config validation
-   and the service will try to recreate them.
-4. Look at the logs (start with `logs/errors.log` and `logs/app.log`).
-5. Start the service directly and watch the output:
+3. Check logs (`logs/errors.log`, `logs/app.log`).
+4. Start the service directly:
 
    ```powershell
    python run_headless_service.py start
    ```
 
-### 10.3. Messages not sending (Discord)
+### 11.3. Messages not sending (Discord)
 
-1. Check that the service is actually running:
-
+1. Confirm the service is running:
    ```powershell
    python run_headless_service.py status
    ```
+2. Verify `DISCORD_BOT_TOKEN` in `.env`.
+3. Check bot permissions in Discord.
+4. Inspect `logs/discord.log` and `logs/errors.log`.
 
-2. Verify the Discord bot token in `.env` (`DISCORD_BOT_TOKEN`).
-3. Check the bot's role and permissions in your test server.
-4. Inspect `logs/discord.log` and `logs/errors.log` for error messages.
+### 11.4. Discord slash command warnings
 
-### 10.4. Discord slash command warnings
+- Warnings are usually non-fatal.
+- Optionally add `DISCORD_APPLICATION_ID` to `.env`.
 
-If you see warnings about slash command syncing:
-
-- The system usually still works, but the logs may be noisy.
-- You can optionally add `DISCORD_APPLICATION_ID=your_application_id_here` to
-  your `.env`.
-- The application ID is available in the Discord Developer Portal for your bot.
-
-### 10.5. Getting help
+### 11.5. Getting help
 
 If you are stuck:
 
-- Development workflow - see [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md).
-- Architecture - see [ARCHITECTURE.md](ARCHITECTURE.md).
-- Current issues and priorities - see [TODO.md](TODO.md).
-- Recent changes - see [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) and
-  [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md).
+- Workflow: [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md)
+- Architecture: [ARCHITECTURE.md](ARCHITECTURE.md)
+- Priorities: [TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md)
+- Changes: [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md),
+  [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md)
 
-If you are using an AI assistant (Cursor, ChatGPT, etc.), point it at:
+AI assistants should consult:
 
 - [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md)
 - [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)
 - [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md)
 
-before asking it to make non-trivial changes.
+before making non-trivial changes.

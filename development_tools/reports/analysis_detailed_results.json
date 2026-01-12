@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-01-12 00:21:34",
+  "last_generated": "2026-01-12 04:10:45",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-01-12T00:21:34.950584",
+  "timestamp": "2026-01-12T04:10:45.524076",
   "successful": [
     "analyze_functions",
     "analyze_function_patterns",
@@ -44,13 +44,13 @@
           "files_affected": 0
         },
         "details": {
-          "total_functions": 1515,
+          "total_functions": 1516,
           "moderate_complexity": 157,
-          "high_complexity": 148,
-          "critical_complexity": 144,
+          "high_complexity": 147,
+          "critical_complexity": 145,
           "undocumented": 0,
           "undocumented_examples": [],
-          "handlers": 820,
+          "handlers": 821,
           "tests": 65,
           "utilities": 0,
           "critical_complexity_examples": [
@@ -165,7 +165,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-12T00:21:13.160109"
+      "timestamp": "2026-01-12T04:10:25.127813"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -209,7 +209,7 @@
             {
               "file": "communication/command_handlers/notebook_handler.py",
               "class": "NotebookHandler",
-              "methods": 27,
+              "methods": 28,
               "has_doc": true
             },
             {
@@ -2123,7 +2123,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-12T00:21:07.158050"
+      "timestamp": "2026-01-12T04:10:18.281604"
     },
     "analyze_function_registry": {
       "success": true,
@@ -2680,6 +2680,12 @@
                 "name": "handle_message"
               },
               {
+                "complexity": 2298,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\message_processing\\command_parser.py",
+                "has_docstring": true,
+                "name": "_extract_entities_rule_based"
+              },
+              {
                 "complexity": 2208,
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\ai\\chatbot.py",
                 "has_docstring": true,
@@ -2690,12 +2696,6 @@
                 "file": "run_tests.py",
                 "has_docstring": true,
                 "name": "run_command"
-              },
-              {
-                "complexity": 2140,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\message_processing\\command_parser.py",
-                "has_docstring": true,
-                "name": "_extract_entities_rule_based"
               },
               {
                 "complexity": 2130,
@@ -2908,6 +2908,12 @@
                 "name": "_handle_create_task__parse_relative_date"
               },
               {
+                "complexity": 584,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\message_processing\\command_parser.py",
+                "has_docstring": true,
+                "name": "_rule_based_parse"
+              },
+              {
                 "complexity": 583,
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\message_processing\\conversation_flow_manager.py",
                 "has_docstring": true,
@@ -2918,6 +2924,12 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\message_processing\\interaction_manager.py",
                 "has_docstring": true,
                 "name": "get_user_suggestions"
+              },
+              {
+                "complexity": 571,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\message_processing\\command_parser.py",
+                "has_docstring": true,
+                "name": "__init__"
               },
               {
                 "complexity": 565,
@@ -2950,10 +2962,10 @@
                 "name": "get_schedule_time_periods"
               },
               {
-                "complexity": 557,
+                "complexity": 559,
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\message_processing\\command_parser.py",
                 "has_docstring": true,
-                "name": "__init__"
+                "name": "parse"
               },
               {
                 "complexity": 557,
@@ -3088,6 +3100,12 @@
                 "name": "connect_signals"
               },
               {
+                "complexity": 474,
+                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\command_handlers\\notebook_handler.py",
+                "has_docstring": true,
+                "name": "handle"
+              },
+              {
                 "complexity": 468,
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\scheduler.py",
                 "has_docstring": true,
@@ -3098,12 +3116,6 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\checkin_dynamic_manager.py",
                 "has_docstring": true,
                 "name": "_parse_numerical_response"
-              },
-              {
-                "complexity": 458,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\command_handlers\\notebook_handler.py",
-                "has_docstring": true,
-                "name": "handle"
               },
               {
                 "complexity": 455,
@@ -3676,7 +3688,7 @@
                 "name": "edit_tag"
               },
               {
-                "complexity": 321,
+                "complexity": 322,
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\message_processing\\interaction_manager.py",
                 "has_docstring": true,
                 "name": "_enhance_response_with_ai"
@@ -3734,12 +3746,6 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\communication_channels\\discord\\bot.py",
                 "has_docstring": true,
                 "name": "_check_network_connectivity"
-              },
-              {
-                "complexity": 311,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\message_processing\\command_parser.py",
-                "has_docstring": true,
-                "name": "_rule_based_parse"
               },
               {
                 "complexity": 310,
@@ -3860,15 +3866,9 @@
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\config.py",
                 "has_docstring": true,
                 "name": "validate_all_configuration"
-              },
-              {
-                "complexity": 295,
-                "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\core\\config.py",
-                "has_docstring": true,
-                "name": "print_configuration_report"
               }
             ],
-            "high_complexity_total": 1108,
+            "high_complexity_total": 1109,
             "undocumented_handlers": [
               {
                 "file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\communication\\core\\channel_orchestrator.py",
@@ -4144,7 +4144,7 @@
             ],
             "undocumented_other_total": 30
           },
-          "coverage": 95.28,
+          "coverage": 95.22,
           "errors": [],
           "extra": {
             "count": 1429,
@@ -5773,7 +5773,7 @@
             }
           },
           "missing": {
-            "count": 1429,
+            "count": 1430,
             "files": {
               "C:\\Users\\Julie\\projects\\MHM\\MHM\\ai\\cache_manager.py": [
                 "__init__",
@@ -5956,6 +5956,7 @@
                 "_handle_create_journal",
                 "_handle_create_list",
                 "_handle_create_note",
+                "_handle_create_quick_note",
                 "_handle_list_archived",
                 "_handle_list_by_group",
                 "_handle_list_by_tag",
@@ -9057,6 +9058,7 @@
                     "can_handle",
                     "handle",
                     "_handle_create_note",
+                    "_handle_create_quick_note",
                     "_handle_create_list",
                     "_handle_create_journal",
                     "_handle_list_recent",
@@ -9111,6 +9113,15 @@
                   ],
                   "docstring": "Handle note creation.",
                   "name": "_handle_create_note"
+                },
+                {
+                  "args": [
+                    "self",
+                    "user_id",
+                    "entities"
+                  ],
+                  "docstring": "Handle quick note creation - no body text required, automatically grouped as 'Quick Notes'.",
+                  "name": "_handle_create_quick_note"
                 },
                 {
                   "args": [
@@ -21883,15 +21894,15 @@
             "classes_found": 154,
             "files_scanned": 110,
             "functions_documented": 1453,
-            "functions_found": 1525
+            "functions_found": 1526
           }
         },
         "summary": {
           "files_affected": 0,
-          "total_issues": 2858
+          "total_issues": 2859
         }
       },
-      "timestamp": "2026-01-12T00:21:16.207062"
+      "timestamp": "2026-01-12T04:10:27.929303"
     },
     "analyze_package_exports": {
       "success": true,
@@ -28858,13 +28869,11 @@
     "analyze_ascii_compliance": {
       "success": true,
       "data": {
-        "files": {
-          "development_docs/CHANGELOG_DETAIL.md": 1
-        },
-        "file_count": 1,
-        "total_issues": 1
+        "files": {},
+        "file_count": 0,
+        "total_issues": 0
       },
-      "timestamp": "2026-01-12T00:21:19.597416"
+      "timestamp": "2026-01-12T04:10:30.976806"
     },
     "analyze_documentation": {
       "success": true,
@@ -28905,7 +28914,7 @@
                 "development_tools/DEVELOPMENT_TOOLS_GUIDE.md"
               ],
               "priority": "medium",
-              "similarity_score": 0.19029361099724482,
+              "similarity_score": 0.18839944055355745,
               "suggestion": "Consider consolidating into a single DEVELOPMENT_WORKFLOW.md"
             },
             {
@@ -29036,41 +29045,41 @@
               ]
             },
             "PROJECT_VISION.md": {
-              "content_length": 9684,
-              "header_info": "# MHM Project Vision\n\n\n> **File**: `PROJECT_VISION.md`\n> **Audience**: Human Developer, AI Collaborators, and Future Contributors  \n> **Purpose**: Overarching vision, mission, and long-term direction ",
+              "content_length": 9875,
+              "header_info": "# PROJECT_VISION.md\n\n> **File**: `PROJECT_VISION.md`  \n> **Audience**: Human Developer, AI Collaborators, and Future Contributors  \n> **Purpose**: Overarching vision, mission, priorities, and long-ter",
               "section_count": 42,
               "sections": [
                 "Introduction",
                 "1. **Core Vision**",
                 "2. **Mission Statement**",
                 "3. **Core Values**",
-                "3.1. **1. Personalized & Adaptive**",
-                "3.2. **2. Hope-Focused & Supportive**",
-                "3.3. **3. Executive Functioning Support**",
+                "3.1. **Personalized & Adaptive**",
+                "3.2. **Hope-Focused & Supportive**",
+                "3.3. **Executive Functioning Support**",
                 "4. **Target Users**",
                 "4.1. **Primary User: You**",
-                "4.2. **Secondary Users: Similar Individuals**"
+                "4.2. **Secondary Users (Potential)**"
               ]
             },
             "README.md": {
-              "content_length": 14109,
-              "header_info": "# Mental Health Management (MHM)\n\n> **File**: `README.md`\n> **Audience**: Human developer (beginner-friendly)\n> **Purpose**: High-level overview, navigation, and quick start\n> **Style**: Beginner-frie",
+              "content_length": 10542,
+              "header_info": "# Motivational Health Messages (MHM)\n\n> **File**: `README.md`  \n> **Audience**: Developers, contributors, and AI development assistants  \n> **Purpose**: High-level project overview, navigation, and or",
               "section_count": 17,
               "sections": [
                 "Introduction",
-                "1. Navigation",
-                "2. Features",
-                "3. Quick Start",
-                "3.1. Headless service commands",
-                "4. Documentation",
-                "5. Architecture",
-                "6. AI Integration (Optional)",
-                "7. Project Structure",
-                "8. License and privacy"
+                "1. Overview",
+                "2. Navigation (Start Here)",
+                "3. What MHM Currently Supports",
+                "4. Communication Channels",
+                "5. Project Philosophy",
+                "6. Architecture",
+                "7. AI Integration (Optional)",
+                "8. Project Structure",
+                "9. License and Privacy"
               ]
             },
             "TODO.md": {
-              "content_length": 27098,
+              "content_length": 28636,
               "header_info": "# TODO.md - MHM Project Tasks\n\n> **File**: `TODO.md`\n> **Audience**: Human Developer (Beginner Programmer) and AI collaborators\n> **Purpose**: Current development priorities and planned improvements  ",
               "section_count": 9,
               "sections": [
@@ -29118,20 +29127,20 @@
               ]
             },
             "ai_development_docs/AI_CHANGELOG.md": {
-              "content_length": 181797,
+              "content_length": 182633,
               "header_info": "# AI Changelog - Brief Summary for AI Context\n\n\n> **File**: `ai_development_docs/AI_CHANGELOG.md`\n> **Audience**: AI collaborators (Cursor, Codex, etc.)\n> **Purpose**: Lightweight summary of recent ch",
-              "section_count": 213,
+              "section_count": 214,
               "sections": [
                 "Introduction",
                 "Overview",
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2026-01-12 - Quick Note Feature and Command Parsing Improvements **COMPLETED**",
                 "2026-01-12 - Domain-Aware Caching Fixes and Cleanup Command Improvements **COMPLETED**",
                 "2026-01-11 - Test Coverage Caching Implementation and Domain-Aware Cache POC **COMPLETED**",
                 "2026-01-11 - Development Tools Cache Management Improvements **COMPLETED**",
-                "2026-01-11 - Legacy Code Cleanup and Cache Invalidation Enhancement **COMPLETED**",
-                "2026-01-10 - Notebook Short ID Format Update: Removed Dash for Mobile-Friendly Typing **COMPLETED**"
+                "2026-01-11 - Legacy Code Cleanup and Cache Invalidation Enhancement **COMPLETED**"
               ]
             },
             "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md": {
@@ -29318,9 +29327,9 @@
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 1068029,
+              "content_length": 1071732,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 365,
+              "section_count": 366,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -29328,10 +29337,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2026-01-12 - Quick Note Feature, Command Parsing Improvements, and Documentation Updates **COMPLETED**",
                 "2026-01-12 - Domain-Aware Caching Fixes and Cleanup Command Improvements **COMPLETED**",
                 "2026-01-11 - Test Coverage Caching Implementation and Domain-Aware Cache POC **COMPLETED**",
-                "2026-01-11 - Development Tools Cache Management Improvements **COMPLETED**",
-                "2026-01-11 - Legacy Code Cleanup and Cache Invalidation Enhancement **COMPLETED**"
+                "2026-01-11 - Development Tools Cache Management Improvements **COMPLETED**"
               ]
             },
             "development_docs/PLANS.md": {
@@ -29437,20 +29446,20 @@
               ]
             },
             "tests/MANUAL_DISCORD_TEST_GUIDE.md": {
-              "content_length": 7077,
-              "header_info": "# Manual Discord Testing Guide\n\n> **File**: `tests/MANUAL_DISCORD_TEST_GUIDE.md`  \n> **Audience**: Developers and AI assistants performing manual Discord testing  \n> **Purpose**: Manual testing proced",
-              "section_count": 10,
+              "content_length": 5431,
+              "header_info": "# Manual Discord Testing Guide\n\n> **File**: `tests/MANUAL_DISCORD_TEST_GUIDE.md`  \n> **Audience**: Developers and AI assistants performing manual Discord testing  \n> **Purpose**: Quick reference for D",
+              "section_count": 23,
               "sections": [
                 "Introduction",
                 "1. Prerequisites",
-                "2. Task Reminder Follow-up Flow Testing",
-                "2.1. Basic Test Scenarios",
-                "2.2. Edge Cases",
-                "3. Verification Commands",
-                "4. Success Criteria",
-                "5. Known Issues to Watch For",
-                "6. Reporting Results",
-                "7. Quick Test Checklist"
+                "2. Task Reminder Testing",
+                "2.1. Basic Flows",
+                "3. Notebook Feature Testing",
+                "3.1. Important Notes",
+                "3.2. Note Creation",
+                "3.3. Viewing Entries",
+                "3.4. Editing Entries",
+                "3.5. Organization"
               ]
             },
             "tests/MANUAL_TESTING_GUIDE.md": {
@@ -29520,6 +29529,10 @@
           "missing": [],
           "placeholders": [],
           "section_overlaps": {
+            "1. Overview": [
+              "README.md",
+              "ai/SYSTEM_AI_GUIDE.md"
+            ],
             "1. Purpose and Scope": [
               "ai_development_docs/AI_LOGGING_GUIDE.md",
               "ai_development_docs/AI_TESTING_GUIDE.md",
@@ -29553,20 +29566,20 @@
           "total_issues": 0
         }
       },
-      "timestamp": "2026-01-12T00:21:06.401503"
+      "timestamp": "2026-01-12T04:10:17.671598"
     },
     "analyze_documentation_sync": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 1,
+          "total_issues": 0,
           "files_affected": 0,
-          "status": "FAIL"
+          "status": "PASS"
         },
         "details": {
           "paired_doc_issues": 0,
           "path_drift_issues": 0,
-          "ascii_compliance_issues": 1,
+          "ascii_compliance_issues": 0,
           "heading_numbering_issues": 0,
           "missing_address_issues": 0,
           "unconverted_link_issues": 0,
@@ -29578,11 +29591,9 @@
             "detailed_issues": {}
           },
           "ascii_compliance": {
-            "files": {
-              "development_docs/CHANGELOG_DETAIL.md": 1
-            },
-            "file_count": 1,
-            "total_issues": 1
+            "files": {},
+            "file_count": 0,
+            "total_issues": 0
           },
           "heading_numbering": {
             "files": {},
@@ -29601,7 +29612,7 @@
           }
         }
       },
-      "timestamp": "2026-01-12T00:21:25.433400"
+      "timestamp": "2026-01-12T04:10:35.501271"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -29610,7 +29621,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2026-01-12T00:21:21.286887"
+      "timestamp": "2026-01-12T04:10:32.204370"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -29619,7 +29630,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2026-01-12T00:21:23.856454"
+      "timestamp": "2026-01-12T04:10:34.365583"
     },
     "analyze_path_drift": {
       "success": true,
@@ -29628,7 +29639,7 @@
         "total_issues": 0,
         "detailed_issues": {}
       },
-      "timestamp": "2026-01-12T00:21:17.986397"
+      "timestamp": "2026-01-12T04:10:29.635745"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -29637,7 +29648,7 @@
         "file_count": 0,
         "total_issues": 0
       },
-      "timestamp": "2026-01-12T00:21:25.426767"
+      "timestamp": "2026-01-12T04:10:35.491340"
     },
     "analyze_error_handling": {
       "success": true,
@@ -29647,15 +29658,15 @@
           "files_affected": 0
         },
         "details": {
-          "total_functions": 1502,
+          "total_functions": 1503,
           "functions_with_try_except": 617,
-          "functions_with_error_handling": 1502,
-          "functions_with_decorators": 1493,
+          "functions_with_error_handling": 1503,
+          "functions_with_decorators": 1494,
           "functions_missing_error_handling": 0,
           "analyze_error_handling": 100.0,
           "error_patterns": {
-            "handle_errors_decorator": 1588,
-            "try_except": 718,
+            "handle_errors_decorator": 1589,
+            "try_except": 719,
             "handle_configuration_error": 4,
             "ConfigurationError": 6,
             "ValidationError": 18,
@@ -29664,17 +29675,17 @@
             "handle_network_error": 5,
             "handle_validation_error": 2,
             "handle_ai_error": 16,
-            "DataError": 12,
-            "FileOperationError": 10,
-            "MHMError": 2,
-            "safe_file_operation": 1,
-            "handle_file_error": 3,
             "AIError": 2,
-            "CommunicationError": 2
+            "CommunicationError": 2,
+            "MHMError": 2,
+            "FileOperationError": 10,
+            "DataError": 12,
+            "safe_file_operation": 1,
+            "handle_file_error": 3
           },
           "missing_error_handling": [],
           "error_handling_quality": {
-            "excellent": 1493,
+            "excellent": 1494,
             "good": 9
           },
           "recommendations": [],
@@ -29718,7 +29729,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-12T00:21:13.648694"
+      "timestamp": "2026-01-12T04:10:25.566179"
     },
     "analyze_test_coverage": {
       "success": true,
@@ -29729,17 +29740,22 @@
         },
         "details": {
           "overall": {
-            "coverage": 71.8,
-            "statements": 28400,
-            "covered": 20402,
-            "missed": 7998,
+            "coverage": 55.9,
+            "statements": 28471,
+            "covered": 15916,
+            "missed": 12555,
             "generated": null
           },
           "modules": [
             {
               "module": "communication",
-              "coverage": 68.8,
-              "missed": 2819
+              "coverage": 28.0,
+              "missed": 6570
+            },
+            {
+              "module": "ai",
+              "coverage": 31.1,
+              "missed": 1186
             },
             {
               "module": "ui",
@@ -29750,11 +29766,6 @@
               "module": "core",
               "coverage": 73.3,
               "missed": 2694
-            },
-            {
-              "module": "ai",
-              "coverage": 77.9,
-              "missed": 380
             },
             {
               "module": "tasks",
@@ -29769,34 +29780,34 @@
           ],
           "worst_files": [
             {
-              "path": "ui/widgets/checkin_settings_widget.py",
-              "coverage": 43.8,
-              "missing": 372
+              "path": "communication/command_handlers/analytics_handler.py",
+              "coverage": 9.6,
+              "missing": 415
             },
             {
-              "path": "communication/communication_channels/discord/bot.py",
-              "coverage": 45.1,
-              "missing": 683
-            },
-            {
-              "path": "ui/ui_app_qt.py",
-              "coverage": 50.9,
-              "missing": 681
+              "path": "communication/command_handlers/schedule_handler.py",
+              "coverage": 11.4,
+              "missing": 234
             },
             {
               "path": "communication/command_handlers/notebook_handler.py",
-              "coverage": 53.7,
-              "missing": 229
+              "coverage": 13.2,
+              "missing": 452
             },
             {
-              "path": "communication/core/channel_orchestrator.py",
-              "coverage": 60.7,
-              "missing": 403
+              "path": "communication/communication_channels/discord/bot.py",
+              "coverage": 13.2,
+              "missing": 1080
+            },
+            {
+              "path": "communication/communication_channels/discord/checkin_view.py",
+              "coverage": 17.1,
+              "missing": 34
             }
           ]
         }
       },
-      "timestamp": "2026-01-12T00:21:28.364614"
+      "timestamp": "2026-01-12T04:10:38.547996"
     },
     "analyze_test_markers": {
       "success": true,
@@ -29804,7 +29815,7 @@
         "missing_count": 0,
         "missing": []
       },
-      "timestamp": "2026-01-12T00:21:33.734160"
+      "timestamp": "2026-01-12T04:10:44.100038"
     },
     "generate_dev_tools_coverage": {
       "success": true,
@@ -42354,7 +42365,7 @@
         "output_file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_tools\\tests\\jsons\\coverage_dev_tools.json",
         "html_dir": null
       },
-      "timestamp": "2026-01-12T00:21:26.937133"
+      "timestamp": "2026-01-12T04:10:37.127492"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -42949,7 +42960,7 @@
             {
               "file": "communication/command_handlers/notebook_handler.py",
               "local_imports": 8,
-              "third_party_imports": 2,
+              "third_party_imports": 3,
               "modules": [
                 "core.logger",
                 "core.error_handling",
@@ -43998,7 +44009,8 @@
               "file": "communication/command_handlers/notebook_handler.py",
               "dependencies": [
                 "notebook.notebook_data_manager",
-                "notebook.schemas"
+                "notebook.schemas",
+                "notebook.notebook_validation"
               ]
             },
             {
@@ -45412,7 +45424,7 @@
           ]
         }
       },
-      "timestamp": "2026-01-12T00:21:13.689321"
+      "timestamp": "2026-01-12T04:10:25.426449"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -45423,16 +45435,16 @@
         },
         "details": {
           "files_scanned": 110,
-          "total_imports": 1510,
+          "total_imports": 1512,
           "documented_dependencies": 110,
-          "standard_library": 441,
-          "third_party": 231,
+          "standard_library": 442,
+          "third_party": 232,
           "local_imports": 838,
           "missing_files": [],
           "missing_sections": []
         }
       },
-      "timestamp": "2026-01-12T00:21:16.373318"
+      "timestamp": "2026-01-12T04:10:28.056292"
     },
     "analyze_module_imports": {
       "success": true,
@@ -50534,6 +50546,13 @@
                   "imported_items": [
                     "datetime"
                   ]
+                },
+                {
+                  "module": "datetime",
+                  "as_name": null,
+                  "imported_items": [
+                    "datetime"
+                  ]
                 }
               ],
               "third_party": [
@@ -50569,6 +50588,13 @@
                   "as_name": null,
                   "imported_items": [
                     "Entry"
+                  ]
+                },
+                {
+                  "module": "notebook.notebook_validation",
+                  "as_name": null,
+                  "imported_items": [
+                    "format_short_id"
                   ]
                 }
               ],
@@ -50634,7 +50660,7 @@
                 }
               ]
             },
-            "total_imports": 12
+            "total_imports": 14
           },
           "communication/command_handlers/profile_handler.py": {
             "imports": {
@@ -57873,7 +57899,7 @@
           }
         }
       },
-      "timestamp": "2026-01-12T00:21:11.957948"
+      "timestamp": "2026-01-12T04:10:23.734229"
     },
     "analyze_unused_imports": {
       "success": true,
@@ -60538,7 +60564,7 @@
             "files_scanned": 413,
             "files_with_issues": 124,
             "total_unused": 358,
-            "cache_hits": 412,
+            "cache_hits": 413,
             "cache_misses": 0
           },
           "by_category": {
@@ -60556,7 +60582,7 @@
           "files_scanned": 413
         }
       },
-      "timestamp": "2026-01-12T00:21:24.034033"
+      "timestamp": "2026-01-12T04:10:30.586017"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -60572,7 +60598,7 @@
           "report_path": "development_docs/LEGACY_REFERENCE_REPORT.md"
         }
       },
-      "timestamp": "2026-01-12T00:21:31.118495"
+      "timestamp": "2026-01-12T04:10:41.127249"
     },
     "analyze_config": {
       "success": true,
@@ -60640,7 +60666,7 @@
           }
         }
       },
-      "timestamp": "2026-01-12T00:15:07.636320"
+      "timestamp": "2026-01-12T03:51:47.246923"
     },
     "analyze_ai_work": {
       "success": true,
@@ -60655,14 +60681,14 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-01-12T00:21:05.867572"
+      "timestamp": "2026-01-12T04:10:17.216217"
     },
     "analyze_system_signals": {
       "success": true,
       "data": {
-        "timestamp": "2026-01-12T00:21:04.404323",
+        "timestamp": "2026-01-12T04:10:15.628088",
         "system_health": {
-          "overall_status": "CRITICAL",
+          "overall_status": "ISSUES",
           "core_files": {
             "run_mhm.py": "OK",
             "core/service.py": "OK",
@@ -60678,61 +60704,57 @@
             "user": "OK",
             "tests": "OK"
           },
-          "last_audit": "2026-01-12T00:19:27.983055",
+          "last_audit": "2026-01-12T04:09:25.713558",
           "audit_freshness": "<1 hour",
           "test_coverage_status": "Unknown",
-          "documentation_sync_status": "Minor Issues",
+          "documentation_sync_status": "Synchronized",
           "health_indicators": [
-            "Audit data is very recent (<1 hour)"
+            "Audit data is very recent (<1 hour)",
+            "Documentation is synchronized"
           ],
           "recommendations": [
-            "Run `python development_tools/run_development_tools.py doc-sync` to check details",
-            "Review logs/errors.log for recent error details"
+            "Check logs/errors.log for recent errors"
           ],
           "warnings": [],
           "errors": [],
           "severity_levels": {
-            "INFO": [
-              "Documentation has 2 minor sync issue(s)"
+            "INFO": [],
+            "WARNING": [
+              "Errors detected in logs/errors.log (last 24 hours)"
             ],
-            "WARNING": [],
-            "CRITICAL": [
-              "Recent errors detected in logs/errors.log (last hour)"
-            ]
+            "CRITICAL": []
           }
         },
         "recent_activity": {
           "recent_changes": [
-            "development_tools/shared/service/commands.py",
-            "tests/ui/test_ui_app_qt_main.py",
-            "development_tools/run_development_tools.py",
-            "development_tools/shared/cli_interface.py",
-            "development_tools/tests/coverage_cache.py",
-            "development_tools/tests/run_test_coverage.py",
-            "development_tools/tests/domain_mapper.py",
-            "development_tools/tests/analyze_test_coverage.py",
+            "ai/chatbot.py",
+            "communication/message_processing/command_parser.py",
             "development_tools/shared/fix_project_cleanup.py",
-            "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md"
+            "development_tools/shared/service/commands.py",
+            "development_tools/tests/coverage_cache.py",
+            "development_tools/run_development_tools.py",
+            "communication/message_processing/interaction_manager.py",
+            "development_tools/tests/run_test_coverage.py",
+            "communication/command_handlers/notebook_handler.py",
+            "development_tools/shared/cli_interface.py"
           ],
           "git_status": "Modified",
           "last_commit": null,
           "uncommitted_changes": true
         },
-        "critical_alerts": [
-          "CRITICAL: Recent errors in logs/errors.log"
-        ],
+        "critical_alerts": [],
         "performance_indicators": {
           "log_file_sizes": {
             "ai.log": "0.0MB",
-            "ai_dev_tools.log": "0.7MB",
-            "app.log": "0.5MB",
-            "communication_manager.log": "0.1MB",
-            "discord.log": "0.0MB",
+            "ai_dev_tools.log": "0.8MB",
+            "app.log": "0.6MB",
+            "communication_manager.log": "0.2MB",
+            "discord.log": "0.1MB",
             "email.log": "0.0MB",
             "errors.log": "0.0MB",
             "file_ops.log": "0.0MB",
             "message.log": "0.0MB",
-            "scheduler.log": "0.0MB",
+            "scheduler.log": "0.1MB",
             "ui.log": "0.0MB",
             "user_activity.log": "0.0MB"
           },
@@ -60740,20 +60762,20 @@
           "memory_usage": "Unknown"
         }
       },
-      "timestamp": "2026-01-12T00:21:04.606863"
+      "timestamp": "2026-01-12T04:10:15.895423"
     },
     "decision_support": {
       "success": true,
       "data": {
-        "total_functions": 1515,
+        "total_functions": 1516,
         "moderate_complexity": 157,
-        "high_complexity": 148,
-        "critical_complexity": 144,
+        "high_complexity": 147,
+        "critical_complexity": 145,
         "undocumented": 5,
         "decision_support_items": 5,
         "decision_support_sample": [
           "[COMPLEXITY] Functions needing attention: 449",
-          "[CRITICAL] Critical Complexity (>199 nodes): 144",
+          "[CRITICAL] Critical Complexity (>199 nodes): 145",
           "[DOC] Undocumented Handlers: 5",
           "[DUPE] Duplicate Function Names: 103",
           "- [CRITICAL] Refactor critical complexity functions immediately."
@@ -60869,12 +60891,12 @@
           }
         ]
       },
-      "timestamp": "2026-01-12T00:21:08.765418"
+      "timestamp": "2026-01-12T04:10:20.354686"
     },
     "quick_status": {
       "success": true,
       "data": {
-        "timestamp": "2026-01-12T00:21:09.635018",
+        "timestamp": "2026-01-12T04:10:21.399267",
         "system_health": {
           "core_files": {
             "run_mhm.py": "OK",
@@ -60894,7 +60916,7 @@
         },
         "documentation_status": {
           "coverage": "Unknown",
-          "recent_audit": "2026-01-12T00:19:27.927630",
+          "recent_audit": "2026-01-12T04:09:25.656155",
           "key_files": {
             "README.md": "OK",
             "ai_development_docs/AI_CHANGELOG.md": "OK",
@@ -60907,15 +60929,21 @@
         "critical_issues": [],
         "action_items": [],
         "recent_activity": {
-          "last_audit": "2026-01-12T00:19:27.927630",
+          "last_audit": "2026-01-12T04:09:25.656155",
           "recent_changes": [
+            "communication/message_processing/interaction_manager.py",
             "communication/message_processing/command_parser.py",
             "communication/command_handlers/notebook_handler.py",
-            "ai_development_docs/AI_CHANGELOG.md"
+            "ai_development_docs/AI_CHANGELOG.md",
+            "ai/prompt_manager.py",
+            "ai/chatbot.py",
+            "TODO.md",
+            "README.md",
+            "PROJECT_VISION.md"
           ]
         }
       },
-      "timestamp": "2026-01-12T00:21:09.848672"
+      "timestamp": "2026-01-12T04:10:21.672615"
     },
     "system_signals": {
       "success": true,
@@ -60984,15 +61012,15 @@
     "decision_support_metrics": {
       "success": true,
       "data": {
-        "total_functions": 1515,
+        "total_functions": 1516,
         "moderate_complexity": 157,
-        "high_complexity": 148,
-        "critical_complexity": 144,
+        "high_complexity": 147,
+        "critical_complexity": 145,
         "undocumented": 5,
         "decision_support_items": 5,
         "decision_support_sample": [
           "[COMPLEXITY] Functions needing attention: 449",
-          "[CRITICAL] Critical Complexity (>199 nodes): 144",
+          "[CRITICAL] Critical Complexity (>199 nodes): 145",
           "[DOC] Undocumented Handlers: 5",
           "[DUPE] Duplicate Function Names: 103",
           "- [CRITICAL] Refactor critical complexity functions immediately."
@@ -61108,7 +61136,7 @@
           }
         ]
       },
-      "timestamp": "2026-01-12T00:21:34.950584"
+      "timestamp": "2026-01-12T04:10:45.524076"
     }
   }
 }

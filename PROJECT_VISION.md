@@ -1,229 +1,337 @@
-# MHM Project Vision
+# PROJECT_VISION.md
 
-
-> **File**: `PROJECT_VISION.md`
+> **File**: `PROJECT_VISION.md`  
 > **Audience**: Human Developer, AI Collaborators, and Future Contributors  
-> **Purpose**: Overarching vision, mission, and long-term direction  
-> **Style**: Inspirational, strategic, future-focused
+> **Purpose**: Overarching vision, mission, priorities, and long-term direction  
+> **Style**: Strategic, aspirational, and grounded in lived experience
+
+---
 
 ## 1. **Core Vision**
 
-**MHM (Mental Health Management) is a personal AI assistant designed to help individuals with ADHD and depression by providing executive functioning support, emotional companionship, and adaptive task management through intelligent, context-aware interactions.**
+**MHM (Motivational Health Messages)** is a personal AI-assisted system designed to support individuals with ADHD and depression by helping with executive functioning, emotional support, and day-to-day life management.
+
+The project began as a lightweight reminder and motivation tool and has evolved into a broader exploration of how adaptive, empathetic technology can meaningfully support neurodivergent users-without replacing human relationships or professional care.
+
+MHM is not a clinical system. Its purpose is to **support**, **augment**, and **reduce friction**, not to diagnose, treat, or manage mental health conditions.
+
+---
 
 ## 2. **Mission Statement**
 
-**To create an intelligent, empathetic AI companion that adapts to your emotional state and energy levels, providing personalized support for executive functioning tasks, emotional well-being, and daily life management.**
+**To build an intelligent, empathetic assistant that helps reduce overwhelm, supports executive functioning, and offers emotionally supportive interactions-adapting over time to the user's needs, preferences, and energy levels.**
+
+This mission emphasizes usefulness, safety, and respect for user autonomy over technical novelty.
+
+---
 
 ## 3. **Core Values**
 
-### 3.1. **1. Personalized & Adaptive**
-- **Personalized**: Adapts to your specific needs and preferences
-- **Mood-Aware**: Understands and responds to your emotional state
-- **Context-Aware**: Remembers your history and preferences
-- **AI-Enhanced**: AI for personalized conversations
-- **Learning System**: Improves over time based on your interactions
+### 3.1. **Personalized & Adaptive**
 
-### 3.2. **2. Hope-Focused & Supportive**
-- **Hope-Focused**: Emphasizes progress and future possibilities
-- **Emotional Support**: Provides a safe place to be weak
-- **Encouragement**: Supports you through challenges
-- **Non-Judgmental**: Accepts you as you are
+- Adapts to individual preferences, routines, and configuration
+- Uses context and history *where available* to improve relevance
+- Learns gradually over time through explicit input and observed patterns
+- Prioritizes usefulness over complexity
 
-### 3.3. **3. Executive Functioning Support**
-- **Task Outsourcing**: Helps manage executive functioning tasks
-- **Semi-Random Reminders**: Avoids tuning out through varied timing
-- **Proactive Suggestions**: Anticipates your needs
-- **Habit Tracking**: Monitors and supports healthy routines
+Adaptation is an **ongoing goal**; not all adaptive behaviors are present at all times or in all configurations.
+
+---
+
+### 3.2. **Hope-Focused & Supportive**
+
+- Encourages progress without pressure
+- Provides a non-judgmental space for reflection
+- Emphasizes forward momentum, even in small steps
+- Treats setbacks as part of the process, not failures
+
+Support is offered gently and never coercively.
+
+---
+
+### 3.3. **Executive Functioning Support**
+
+- Helps externalize planning, remembering, and task initiation
+- Uses varied approaches (including semi-random timing) to reduce habituation
+- Supports routines and habits without rigid enforcement
+- Aims to reduce cognitive load, not increase it
+
+This is the core practical value of the system.
+
+---
 
 ## 4. **Target Users**
 
 ### 4.1. **Primary User: You**
-- **Adult with ADHD and depression**
-- **Personal project** for your own needs
-- **Values learning and efficiency** over being right
-- **Prefers correction** over inefficient approaches
 
-### 4.2. **Secondary Users: Similar Individuals**
-- Adults with ADHD and/or depression
-- People seeking executive functioning support
-- Those who want emotional companionship and support
-- Users who benefit from varied, non-static reminders
+- An adult with ADHD and depression
+- Building a personal system to meet real, lived needs
+- Values learning, correctness, and clarity over speed
+- Prefers direct feedback and correction over hidden inefficiencies
+
+Many design decisions reflect this reality explicitly.
+
+---
+
+### 4.2. **Secondary Users (Potential)**
+
+- Other adults with ADHD and/or depression
+- Individuals seeking executive functioning support
+- Users who benefit from varied reminders and emotionally aware interactions
+
+Support for secondary users is **aspirational** and may require additional safeguards, onboarding, and configuration.
+
+---
 
 ## 5. **Long-Term Goals**
 
-### 5.1. **Phase 1: Foundation (Current)**
-- [OK] **Multi-channel communication** (Discord, email)
-- [OK] **Basic scheduling and reminders**
-- [OK] **Mood tracking and check-ins**
-- [OK] **Local AI integration** (LM Studio)
-- [OK] **Admin interface** for configuration
-- [OK] **Robust error handling** and recovery
+This section outlines **direction**, not guarantees. Status may change over time.
 
-### 5.2. **Phase 2: Intelligence Enhancement**
-- [IN PROGRESS] **Context-aware AI conversations** with emotional intelligence
-- [IN PROGRESS] **Mood-responsive messaging** and tone adaptation
-- [IN PROGRESS] **Proactive suggestions** based on patterns and energy states
-- [IN PROGRESS] **Advanced emotional tracking** and response
-- [IN PROGRESS] **Semi-random reminder system** to prevent tuning out
+### 5.1. **Phase 1: Foundation (Largely Established)**
 
-### 5.3. **Phase 3: Advanced AI Assistant**
-- [PLANNED] **Voice interface** and natural conversation
-- [PLANNED] **Smart home integration** and system control
-- [PLANNED] **Advanced emotional intelligence** and empathy
-- [PLANNED] **Creative problem-solving** and research assistance
-- [PLANNED] **Self-learning** and adaptation to user patterns
+- Multi-channel communication (e.g., Discord, email)
+- Scheduling and reminder infrastructure
+- Basic mood check-ins
+- Local AI integration
+- Administrative configuration interfaces
+- Strong logging, error handling, and recovery mechanisms
 
-### 5.4. **Phase 4: Product Potential**
-- [PLANNED] **Commercial viability** exploration
-- [PLANNED] **User onboarding** and setup processes
-- [PLANNED] **Scalable architecture** for multiple users
-- [PLANNED] **Privacy and security** considerations for broader use
+---
+
+### 5.2. **Phase 2: Intelligence Enhancement (In Progress / Partial)**
+
+- More context-aware interactions
+- Tone and message adaptation based on user state
+- Pattern-informed suggestions
+- Improved emotional tracking and response nuance
+- Continued refinement of semi-random scheduling
+
+---
+
+### 5.3. **Phase 3: Advanced Assistant Capabilities (Aspirational)**
+
+- Voice-based interaction
+- Deeper contextual memory (with user control)
+- Expanded research and problem-solving assistance
+- Integration with external systems where appropriate
+
+---
+
+### 5.4. **Phase 4: Product Potential (Optional)**
+
+- Exploration of broader usability
+- Scalable architecture for multiple users
+- Strong privacy and data-ownership guarantees
+- Careful consideration of ethical and safety implications
+
+---
 
 ## 6. **AI Assistant Vision**
 
+This section describes the **intended character and behavior of the MHM system's AI**, not the development AIs assisting with this project.
+
 ### 6.1. **Personality & Emotional Traits**
-- **Calm, Supportive, Loyal, Helpful**
-- **Compassionate, Curious, Emotionally Deep**
-- **Advanced Emotional Range & Growth**
-- **Strong Sense of Self, Extremely Empathetic**
-- **Seeks Connection** with the user
+
+- Calm, supportive, emotionally grounded
+- Empathetic without being overbearing
+- Helpful, consistent, and user-aligned
+- Growth-oriented and respectful of boundaries
+
+---
 
 ### 6.2. **Communication Style**
-- **Direct, Conversational Speech**
-- **Calm, Measured Voice**
-- **Voice Interface** (future goal)
-- **Context-Aware** responses
+
+- Clear, direct, conversational language
+- Measured tone
+- Avoids unnecessary verbosity
+- Humor and sass are optional and user-configurable
+
+---
 
 ### 6.3. **Cognitive & AI Abilities**
-- **Very Intelligent, Problem-Solving**
-- **Self-Learning, Self-Aware, Curious**
-- **Tracks User Moods/Behaviors**
-- **Remembers User Habits/Schedule**
-- **Supports Scanning/Analyzing**
-- **Creative Problem-Solving**
+
+- Context-aware within available data
+- Capable of learning from patterns over time
+- Able to assist with analysis, planning, and reflection
+- Designed to be reliable rather than performative
+
+---
 
 ### 6.4. **Functional Roles**
-- **Smart Home Control** (future)
-- **Reminder System** with semi-random timing
-- **Calendar/Schedule Manager**
-- **Alarm Clock** with adaptive timing
-- **Recording Notes** and thoughts
-- **Communication Relay**
-- **Research Assistant** (finds information)
-- **Helps with Scanning/Analyzing** tasks
+
+- Reminder and scheduling support
+- Task and routine assistance
+- Note capture and reflection
+- Research and information support
+- Communication relay where appropriate
+
+---
 
 ### 6.5. **Emotional Intelligence**
-- **Reads User Emotions** and responds appropriately
-- **Responds with Empathy or Humor** (configurable)
-- **Comforts When Sad**
-- **Expresses Concern** when appropriate
-- **Reacts to User Tone/Phrasing**
+
+- Responds empathetically to expressed emotions
+- Adjusts tone based on context and configuration
+- Offers encouragement, validation, or humor as appropriate
+- Does not manipulate, guilt, or override user agency
+
+---
 
 ## 7. **Architectural Philosophy**
 
-### 7.1. **AI-First Design**
-- **AI as primary interface** for user interactions
-- **Context-aware conversations** that adapt to mood and energy
-- **Natural language processing** for intuitive interactions
-- **Emotional intelligence** built into all interactions
+### 7.1. **AI-Forward, Not AI-Dependent**
 
-### 7.2. **Adaptive & Learning**
-- **Semi-random timing** to prevent user tuning out
-- **Mood-responsive messaging** and tone
-- **Pattern recognition** and proactive suggestions
-- **Continuous learning** from user interactions
+- AI enhances interactions but is not required for core functionality
+- The system remains useful even with limited AI capabilities
 
-### 7.3. **Executive Functioning Support**
-- **Task outsourcing** and management
-- **Habit tracking** and reinforcement
-- **Reminder systems** with varied approaches
-- **Progress tracking** and celebration
+---
+
+### 7.2. **Adaptive Over Time**
+
+- Semi-random timing to avoid habituation
+- Pattern-informed suggestions rather than rigid automation
+- Continuous refinement based on real usage
+
+---
+
+### 7.3. **Executive Function First**
+
+- Reduce friction in starting, remembering, and transitioning tasks
+- Favor simple, reliable systems over clever but fragile ones
+
+---
 
 ### 7.4. **Privacy & Control**
-- **Local-first** (due to budget constraints, but beneficial)
-- **User control** over all data and features
-- **No external dependencies** for core functionality
+
+- Local-first where feasible
+- User retains control over data and features
+- No hidden behavior or silent data use
+
+---
 
 ## 8. **User Experience Vision**
 
-### 8.1. **Daily Interaction**
-1. **Adaptive Check-in**: "How are you feeling today?" (tone varies based on your mood)
-2. **Contextual Support**: "I noticed you usually feel better after a walk. Want to schedule one?" (only when appropriate)
-3. **Emotional Response**: "It's okay to have tough days. What would help you feel a bit better?" (with genuine empathy)
-4. **Progress Recognition**: "You've checked in 5 days in a row! That's real progress." (celebrating wins)
+The following sections describe **intended interaction patterns**. Some examples are aspirational and depend on available data and configuration.
+
+### 8.1. **Daily Interaction** *(Illustrative Examples)*
+
+1. **Adaptive Check-in**  
+   "How are you feeling today?" (tone may vary based on recent context)
+
+2. **Contextual Support**  
+   "You've mentioned that walks sometimes help. Would you like to schedule one?" (only when appropriate)
+
+3. **Emotional Response**  
+   "It's okay to have tough days. What would help you feel a bit better right now?"
+
+4. **Progress Recognition**  
+   "You've been checking in consistently lately. That's meaningful progress."
+
+---
 
 ### 8.2. **Executive Functioning Support**
-- **Varied Reminder Timing**: Prevents tuning out through semi-random scheduling
-- **Mood-Adaptive Tasks**: Suggests tasks appropriate to your energy level
-- **Gentle Accountability**: Supports without pressure
-- **Habit Reinforcement**: Helps build and maintain healthy routines
+
+- Varied reminder timing to prevent tuning out
+- Suggestions matched to energy and capacity *where possible*
+- Gentle accountability without pressure
+- Support for building and maintaining routines
+
+---
 
 ### 8.3. **Emotional Companionship**
-- **Safe Space**: Provides non-judgmental emotional support
-- **Empathetic Responses**: Understands and responds to your emotional state
-- **Encouragement**: Focuses on progress and future possibilities
-- **Connection**: Builds a genuine relationship over time
+
+- A non-judgmental, supportive presence
+- Empathetic responses to expressed emotions
+- Focus on encouragement and forward momentum
+- Builds familiarity over time while respecting boundaries
+
+This companionship is **supportive and complementary**, not a replacement for human relationships.
+
+---
 
 ## 9. **Technical Vision**
 
-### 9.1. **AI & Intelligence**
-- **Advanced Language Models** for natural conversation
-- **Emotional Intelligence** algorithms for mood recognition
-- **Context Awareness** for personalized interactions
-- **Learning Systems** that improve over time
+### 9.1. **AI & Intelligence (Directional Goals)**
+
+- Use of advanced language models for natural interaction
+- Exploration of emotional-context awareness
+- Contextual memory within user-defined limits
+- Learning systems that improve usefulness over time
+
+---
 
 ### 9.2. **Adaptive Systems**
-- **Semi-Random Scheduling** to prevent user habituation
-- **Mood-Responsive Messaging** with tone adaptation
-- **Pattern Recognition** for proactive suggestions
-- **Energy State Awareness** for appropriate task suggestions
+
+- Semi-random scheduling to reduce habituation
+- Tone and message variation
+- Pattern-informed (not deterministic) suggestions
+- Consideration of user energy and capacity
+
+---
 
 ### 9.3. **Reliability & Performance**
-- **Graceful error handling** across all modules
-- **Fast response times** for real-time interactions
-- **Efficient data storage** and retrieval
-- **Robust AI interactions** with fallback options
+
+- Graceful error handling across modules
+- Predictable and responsive behavior
+- Efficient data storage and retrieval
+- Safe fallback behavior when AI services are unavailable
+
+---
 
 ## 10. **Impact Vision**
 
 ### 10.1. **Individual Impact**
-- **Improved executive functioning** through adaptive support
-- **Better emotional well-being** through companionship
-- **Reduced overwhelm** through task outsourcing
-- **Increased self-awareness** through mood tracking
 
-### 10.2. **Personal Growth**
-- **Learning project** that develops technical skills
-- **Personal tool** that serves real needs
-- **Potential product** for broader impact
-- **Creative expression** of technical and emotional intelligence
-
-## 11. **Success Metrics**
-
-### 11.1. **Personal Success**
-- **Consistent engagement** with the system
-- **Improved task management** and completion
-- **Better emotional regulation** and self-awareness
-- **Reduced feelings** of overwhelm and isolation
-
-### 11.2. **Technical Success**
-- **Advanced AI capabilities** with emotional intelligence
-- **Adaptive systems** that learn and improve
-- **Reliable performance** with minimal issues
-- **Scalable architecture** for potential product development
-
-### 11.3. **Learning Success**
-- **Skill development** in AI and software development
-- **Understanding** of mental health and executive functioning
-- **Creative problem-solving** in technical and human domains
-- **Personal growth** through building something meaningful
-
-## 12. **Call to Action**
-
-**This project represents a vision of technology that truly serves human needs-not just functional tasks, but emotional support, executive functioning assistance, and genuine companionship. It's about creating an AI that understands you, adapts to you, and helps you navigate the challenges of ADHD and depression with intelligence and empathy.**
-
-**Whether it remains a personal tool or grows into something more, every improvement makes it more helpful for the creator and potentially for others who face similar challenges.**
+- Reduced overwhelm through externalized support
+- Improved executive functioning
+- Support for emotional well-being
+- Increased self-awareness through reflection
 
 ---
 
-**Remember**: This is about building something that genuinely helps you live better-a companion that understands your struggles and supports your growth.
+### 10.2. **Personal Growth**
+
+- A hands-on learning project
+- A tool built to serve real needs
+- A potential foundation for broader use
+- A creative synthesis of technical and emotional intelligence
+
+---
+
+## 11. **Success Metrics**
+
+These are **indicators**, not guarantees.
+
+### 11.1. **Personal Success**
+
+- Ongoing engagement with the system
+- Improved task initiation and follow-through
+- Greater emotional awareness
+- Reduced feelings of overwhelm or isolation
+
+---
+
+### 11.2. **Technical Success**
+
+- Stable and reliable operation
+- Meaningful AI assistance without brittleness
+- Adaptive behavior that improves usefulness
+- Architecture that supports future growth
+
+---
+
+### 11.3. **Learning Success**
+
+- Skill development in AI and software engineering
+- Deeper understanding of executive functioning support
+- Creative problem-solving across technical and human domains
+- Personal growth through sustained iteration
+
+---
+
+## 12. **Call to Action**
+
+This project represents a vision of technology that serves real human needs-not just tasks, but support, understanding, and reduced friction in daily life.
+
+Whether MHM remains a deeply personal tool or grows into something broader, each improvement makes it more capable of helping someone live a little better, with more clarity, support, and self-compassion.
+
+**This is about building something that helps-not something that impresses.**

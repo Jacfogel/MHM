@@ -2,199 +2,394 @@
 
 > **File**: `tests/MANUAL_DISCORD_TEST_GUIDE.md`  
 > **Audience**: Developers and AI assistants performing manual Discord testing  
-> **Purpose**: Manual testing procedures for Discord bot task reminder flows  
-> **Style**: Step-by-step, checklist-focused, actionable  
-> **Parent**: [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md)  
-> This document is subordinate to [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md) and should be kept consistent with its standards and terminology.
+> **Purpose**: Quick reference for Discord bot manual testing  
+> **Style**: Command-focused, concise examples
 
-This guide focuses on **Discord-specific manual flows**, especially task reminder creation and follow-up.  
-The high-level context and when to run these tests are described in section 6 of [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md).
+This guide provides quick test commands for Discord bot features. For detailed testing procedures, see [MANUAL_TESTING_GUIDE.md](tests/MANUAL_TESTING_GUIDE.md).
 
 ---
 
 ## 1. Prerequisites
 
-Before running manual Discord tests:
-
 - [ ] Discord bot is running (`python run_headless_service.py start`)
 - [ ] Bot is connected to your test server
-- [ ] You have a test user account set up
-- [ ] Task management is enabled for your user (if testing task features)
-
-## 2. Task Reminder Follow-up Flow Testing
-
-This section covers testing the reminder period follow-up flow that occurs after task creation.
-
-### 2.1. Basic Test Scenarios
-
-#### Test 1: Basic Reminder Flow - Minutes Before
-1. Send: `create task to call dentist tomorrow at 2pm`
-2. Bot should respond asking about reminder periods
-3. Send: `30 minutes to an hour before`
-4. Bot should confirm reminders were set
-
-**Verify**:
-- Task appears in task list (`show my tasks` or `/tasks`)
-- Task has `reminder_periods` field populated
-- Reminder times are approximately 30-60 minutes before 2pm (1:00-1:30 PM)
-
-#### Test 2: Hours Before Reminder
-1. Send: `create task to buy groceries tomorrow at 3pm`
-2. Bot asks about reminders
-3. Send: `3 to 5 hours before`
-4. Bot confirms
-
-**Expected**: Reminder periods set for 3-5 hours before 3pm (10 AM - 12 PM)
-
-#### Test 3: Days Before Reminder
-1. Send: `create task to prepare presentation next Friday`
-2. Bot asks about reminders
-3. Send: `1 to 2 days before`
-4. Bot confirms
-
-**Expected**: Reminder periods set for 1-2 days before due date
-
-#### Test 4: No Reminders
-1. Send: `create task to water plants tomorrow`
-2. Bot asks about reminders
-3. Send: `no reminders` (or `no`, `skip`, `none`, `not needed`)
-4. Bot acknowledges
-
-**Expected**: Task created, bot responds "Got it! No reminders will be set for this task."
-
-#### Test 5: Task Without Due Date
-1. Send: `create task to organize desk`
-2. Bot asks about reminders
-3. Send: `30 minutes before`
-
-**Expected**: Bot responds that task doesn't have a due date, so reminders can't be set
-
-#### Test 6: Unparseable Response
-1. Send: `create task to call mom tomorrow at 1pm`
-2. Bot asks about reminders
-3. Send: `maybe sometime` (or `later`, `idk`, `whatever`)
-4. Bot asks for clarification
-
-**Expected**: Bot provides examples and asks for clearer response
-
-#### Test 7: Flow Cancellation
-1. Send: `create task to schedule appointment tomorrow`
-2. Bot asks about reminders
-3. Send: `/cancel` (or `cancel`)
-4. Flow should be cancelled
-
-**Expected**: Flow cancelled, task still exists, no reminder periods set
-
-#### Test 8: Multiple Tasks in Sequence
-1. Send: `create task to call dentist tomorrow at 2pm`
-2. Bot asks about reminders
-3. Send: `1 hour before`
-4. Bot confirms
-5. Immediately send: `create task to buy groceries tomorrow at 3pm`
-6. Bot asks about reminders again
-7. Send: `no reminders`
-
-**Expected**: Both tasks created independently, no flow state conflicts
-
-#### Test 9: Natural Language Variations
-Test different ways to express reminder times:
-- `30 minutes to an hour before` [OK]
-- `30 min to 1 hour before` [OK]
-- `3-5 hours before` [OK]
-- `3 to 5 hours before` [OK]
-- `1-2 days before` [OK]
-- `1 day before` [OK]
-- `2 hours before` [OK]
-
-**Expected**: Common variations work, unparseable variations ask for clarification
-
-#### Test 10: Task Update After Creation
-1. Send: `create task to call dentist tomorrow`
-2. Bot asks about reminders
-3. Send: `no reminders`
-4. Bot confirms
-5. Send: `update task call dentist due date tomorrow at 2pm`
-6. Send: `update task call dentist reminder periods 30 minutes before`
-
-**Expected**: Task updated with due date and reminder periods, reminders scheduled
-
-#### Test 11: Reminder Follow-up with Due Time
-1. Send: `create task to attend meeting tomorrow at 3pm`
-2. Bot asks about reminders
-3. Send: `30 minutes to an hour before`
-4. Bot confirms
-
-**Expected**: Reminder times calculated correctly based on due_time (2:00-2:30 PM)
-
-#### Test 12: Reminder Follow-up Without Due Time
-1. Send: `create task to finish report tomorrow`
-2. Bot asks about reminders
-3. Send: `1 hour before`
-4. Bot confirms
-
-**Expected**: Reminder times calculated based on default 9 AM time (8:00 AM)
-
-### 2.2. Edge Cases
-
-- **Very Short Time Window**: Create task due in 1 hour, try to set "30 minutes to an hour before" (should work if reminder time is still in the future)
-- **Past Due Date**: Create task with past due date, try to set reminders (should handle gracefully)
-- **Multiple Reminder Responses**: Send multiple responses before bot processes (only first response should be processed)
-- **Special Characters**: Create task with special characters in title, set reminders (should work correctly)
-
-## 3. Verification Commands
-
-After each test, verify the results:
-
-1. **Check task exists**: `show my tasks` or `/tasks`
-2. **Check task details**: Look for `reminder_periods` in task display
-3. **Check flow state**: Try another command to ensure flow is cleared
-4. **Check logs**: Review `logs/errors.log` for any errors
-
-## 4. Success Criteria
-
-[OK] **All tests pass if**:
-- Task creation always triggers reminder follow-up (when task has due date)
-- Natural language parsing works for common patterns
-- Reminder periods are saved to task
-- Flow completes correctly
-- No flow state leaks between tasks
-- Error handling is graceful
-
-## 5. Known Issues to Watch For
-
-[WARNING] **If you see these, note them**:
-- Reminder periods not saved to task
-- Flow doesn't complete after setting reminders
-- Flow state persists after completion
-- Parsing fails for valid inputs
-- Error messages are unclear
-- Bot doesn't respond to reminder questions
-
-## 6. Reporting Results
-
-After testing, report:
-- [OK] Which tests passed
-- [FAIL] Which tests failed
-- [BUG] Any bugs found
-- [IDEA] Any improvements needed
-- [NOTE] Screenshots/logs of issues
-
-## 7. Quick Test Checklist
-
-- [ ] Test 1: Basic minutes before
-- [ ] Test 2: Hours before
-- [ ] Test 3: Days before
-- [ ] Test 4: No reminders
-- [ ] Test 5: Task without due date
-- [ ] Test 6: Unparseable response
-- [ ] Test 7: Flow cancellation
-- [ ] Test 8: Multiple tasks
-- [ ] Test 9: Natural language variations
-- [ ] Test 10: Task update after creation
-- [ ] Test 11: With due time
-- [ ] Test 12: Without due time
+- [ ] Test user account set up
 
 ---
 
-**Note**: This guide focuses on task reminder follow-up flow. For general Discord integration testing, see the "Discord integration" section in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) (section 9.2).
+## 2. Task Reminder Testing
 
+### 2.1. Basic Flows
+
+**Create task with reminders:**
+```
+create task to call dentist tomorrow at 2pm
+30 minutes to an hour before
+```
+
+**No reminders:**
+```
+create task to water plants tomorrow
+no reminders
+```
+
+**Task without due date:**
+```
+create task to organize desk
+30 minutes before
+```
+*Expected: Error - no due date*
+
+**Flow cancellation:**
+```
+create task to schedule appointment tomorrow
+cancel
+```
+
+**Verify**: Check task list with `show my tasks` or `/tasks`
+
+---
+
+## 3. Notebook Feature Testing
+
+### 3.1. Important Notes
+
+- **Data Location**: `data/users/<user_id>/notebook/entries.json`
+- **Short IDs**: Format is `nxxxxxx` (no dashes)
+- **Flow Buttons**: [Skip], [Cancel], [End List] can be clicked or typed as commands
+- **Natural Language**: `create note about X` works; `new note: X` works (colon-separated now supported)
+
+### 3.2. Note Creation
+
+**Basic notes (prompts for body):**
+
+```
+!n Test note
+[Skip]
+```
+
+```
+/n Test note
+/skip
+```
+
+```
+create note about meeting tomorrow
+[Skip]
+```
+
+---
+
+**Notes with title and body:**
+
+```
+!n Title: Body text here
+```
+
+```
+/n Title: Body text here
+```
+
+```
+!n Multi-line
+note
+with body
+```
+
+```
+create note titled "Meeting notes" with body "Discussed project timeline"
+```
+
+---
+
+**Quick notes (no body, auto-grouped as "Quick Notes"):**
+
+```
+!qn
+```
+
+```
+!qn Project idea
+```
+
+```
+!qnote Reminder
+```
+
+```
+!quickn Meeting notes
+```
+
+```
+!quicknote Shopping list
+```
+
+```
+!q note Quick thought
+```
+
+```
+quick note Important reminder
+```
+
+---
+
+**Notes with tags:**
+
+```
+!n Work task #work #urgent
+[Skip]
+```
+
+```
+!note project:alpha meeting notes
+[Skip]
+```
+
+```
+!qn Work task #work #urgent
+```
+
+### 3.3. Viewing Entries
+
+```
+!recent
+```
+
+```
+!recent 10
+```
+
+```
+/r 5
+```
+
+```
+!show nxxxxxx
+```
+
+```
+/show nxxxxxx
+```
+
+---
+
+### 3.4. Editing Entries
+
+```
+!append nxxxxxx Additional text
+```
+
+```
+!set nxxxxxx New body text
+```
+
+```
+!tag nxxxxxx #work #urgent
+```
+
+```
+!untag nxxxxxx work
+```
+
+---
+
+### 3.5. Organization
+
+```
+!pin nxxxxxx
+```
+
+```
+!unpin nxxxxxx
+```
+
+```
+!archive nxxxxxx
+```
+
+```
+!unarchive nxxxxxx
+```
+
+```
+!group nxxxxxx work
+```
+
+```
+!group Quick Notes
+```
+
+```
+!inbox
+```
+
+```
+!pinned
+```
+
+```
+!archived
+```
+
+### 3.6. Lists
+
+**Create list:**
+
+```
+!l Shopping list
+[End List]
+```
+
+```
+/l Shopping list
+/end
+```
+
+```
+!l Groceries
+milk
+eggs
+bread
+[End List]
+```
+
+---
+
+**List operations:**
+
+```
+!l add lxxxxxx Buy milk
+```
+
+```
+!l done lxxxxxx 1
+```
+
+```
+!l undo lxxxxxx 1
+```
+
+```
+!l remove lxxxxxx 2
+```
+
+---
+
+### 3.7. Journal Entries
+
+```
+!j Today was productive
+```
+
+```
+!journal Daily reflection
+[Skip]
+```
+
+```
+/j Morning thoughts
+/skip
+```
+
+### 3.8. Search
+
+```
+!search project
+```
+
+```
+/s project
+```
+
+```
+!s meeting notes
+```
+
+```
+find work tasks
+```
+
+---
+
+### 3.9. Error Handling
+
+```
+!show invalidid
+```
+*Expected: Error message*
+
+```
+!tag invalidid with work
+```
+*Expected: Error message*
+
+```
+!l done lxxxxxx 99
+```
+*Expected: Error for invalid item index*
+
+---
+
+## 4. Quick Test Checklist
+
+### 4.1. Task Reminders
+- [ ] Create task with minutes/hours/days before reminders
+- [ ] Create task with no reminders
+- [ ] Task without due date (should error)
+- [ ] Flow cancellation
+- [ ] Multiple tasks in sequence
+
+### 4.2. Notebook - Notes
+- [ ] Basic note creation (bang, slash, natural language)
+- [ ] Note with title and body (colon, newline, natural language)
+- [ ] Quick notes (all aliases: qn, qnote, quickn, quicknote, q note, quick note)
+- [ ] Notes with tags (#hash and key:value)
+- [ ] View recent entries
+- [ ] Show entry by ID
+- [ ] Append to entry
+- [ ] Set entry body
+- [ ] Add/remove tags
+- [ ] Pin/unpin
+- [ ] Archive/unarchive
+- [ ] Set group
+- [ ] View by group/inbox/pinned/archived
+
+### 4.3. Notebook - Lists
+- [ ] Create list (title only)
+- [ ] Create list with items
+- [ ] Add list item
+- [ ] Toggle item done/undone
+- [ ] Remove list item
+
+### 4.4. Notebook - Journals
+- [ ] Create journal entry
+
+### 4.5. Notebook - Search & Organization
+- [ ] Search entries
+- [ ] Group management
+- [ ] Organization views (inbox, pinned, archived, by group)
+
+### 4.6. Notebook - Edge Cases
+- [ ] Empty commands
+- [ ] Special characters
+- [ ] Very long content
+- [ ] Invalid entry references
+- [ ] Invalid list item indices
+- [ ] Pagination buttons (known issue - state not preserved)
+
+### 4.7. Verification
+- [ ] Verify entries.json structure and data
+- [ ] Check short IDs have no dashes
+- [ ] Verify groups are set correctly
+- [ ] Verify tags are normalized
+
+---
+
+## 5. Known Issues
+
+- **Pagination Buttons**: "Show More" button click handler doesn't preserve pagination state. Users must re-run the original command to see more results.
+
+---
+
+**Note**: This guide focuses on Discord-specific manual testing. For general testing procedures, see [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).

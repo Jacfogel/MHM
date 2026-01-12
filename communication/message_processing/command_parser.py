@@ -331,7 +331,20 @@ class EnhancedCommandParser:
                 r'^note\s+(.+)$',
                 r'note\s+(.+)',
                 r'new\s+note\s+(.+)',
+                r'create\s+note\s+titled\s+"([^"]+)"\s+with\s+body\s+"([^"]+)"',  # Match "create note titled "X" with body "Y"" (must come before general create note)
+                r'create\s+note\s+titled\s+"([^"]+)"',  # Match "create note titled "X"" (without body)
+                r'create\s+note\s+titled\s+([^\s]+)\s+with\s+body\s+"([^"]+)"',  # Match "create note titled X with body "Y"" (must come before general create note)
                 r'create\s+note\s+(?:about\s+)?(.+)',  # Match "create note about X" without hallucinating details
+                r'new\s+note:\s*(.+)',  # Match "new note: X" (colon-separated)
+                r'note:\s*(.+)',  # Match "note: X" (colon-separated)
+            ],
+            'create_quick_note': [
+                r'^qn\s*(.*)$',  # Match "qn" or "qn <title>" (optional title)
+                r'^qnote\s*(.*)$',  # Match "qnote" or "qnote <title>"
+                r'^quickn\s*(.*)$',  # Match "quickn" or "quickn <title>"
+                r'^quicknote\s*(.*)$',  # Match "quicknote" or "quicknote <title>"
+                r'^q\s+note\s*(.*)$',  # Match "q note" or "q note <title>"
+                r'quick\s+note\s*(.*)$',  # Match "quick note" or "quick note <title>"
             ],
             'create_journal': [
                 r'^j\s+(.+)$',
@@ -508,9 +521,125 @@ class EnhancedCommandParser:
         if rule_result.confidence > AI_RULE_BASED_HIGH_CONFIDENCE_THRESHOLD:
             return rule_result
         
-        # If rule-based parsing has zero confidence, it's clearly not a command - skip AI parsing
-        if rule_result.confidence == 0.0:
+        # For certain intents, prefer rule-based results even with lower confidence to avoid AI misinterpretation
+        # This prevents short patterns like 'r' from being misinterpreted as tasks
+        high_priority_intents = ['list_recent_entries', 'list_recent_notes', 'create_quick_note']
+        if rule_result.parsed_command.intent in high_priority_intents and rule_result.confidence > 0.0:
+            # We have a rule-based match for a high-priority intent - use it even if confidence is lower
             return rule_result
+        
+        # If rule-based parsing has zero confidence, check if it looks like a command
+        # If it contains command-like keywords, still try AI parsing
+        if rule_result.confidence == 0.0:
+            # Check if message contains command-like keywords that suggest it might be a command
+            # Comprehensive list covering all intents with synonyms, misspellings, and related action words
+            command_keywords = [
+                # Entity types (what users are working with)
+                'note', 'notes', 'notebook', 'notebooks',
+                'task', 'tasks', 'todo', 'todos', 'taks', 'taks',  # Common misspellings
+                'list', 'lists', 'lst',  # Common misspelling
+                'journal', 'journals', 'entry', 'entries',
+                'checkin', 'check-in', 'check in', 'checkin', 'chekcin', 'chekin',  # Common misspellings
+                'schedule', 'schedules', 'scedule',  # Common misspelling
+                'profile', 'profiles',
+                'message', 'messages', 'msg', 'msgs',
+                
+                # Action verbs - creation
+                'create', 'creat', 'make', 'mk', 'new', 'add', 'insert', 'start', 'begin', 'initiate',
+                'remind', 'reminder', 'remind me', 'call', 'buy', 'schedule',
+                
+                # Action verbs - viewing/listing
+                'show', 'shw', 'display', 'view', 'see', 'list', 'ls', 'get', 'fetch', 'retrieve',
+                'tell', 'tell me', 'what', 'what are', 'what is', 'what do', 'what can',
+                'how', 'how am', 'how do', 'how has', 'how to',
+                'when', 'when are', 'where', 'where is', 'which',
+                'find', 'search', 'look', 'look for', 'lookup', 'seek',
+                
+                # Action verbs - modification
+                'update', 'updat', 'change', 'modify', 'edit', 'edt', 'alter', 'adjust',
+                'set', 'replace', 'swap', 'switch',
+                'append', 'add to', 'addto', 'attach',
+                
+                # Action verbs - completion/finishing
+                'complete', 'complet', 'finish', 'finis', 'done', 'dn', 'mark done', 'mark complete',
+                'finished', 'complete', 'accomplish',
+                
+                # Action verbs - deletion/removal
+                'delete', 'delet', 'del', 'remove', 'remov', 'rm', 'cancel', 'cancle',  # Common misspellings
+                'drop', 'erase', 'clear', 'eliminate',
+                
+                # Notebook-specific operations
+                'tag', 'tags', 'untag', 'label', 'labels',
+                'group', 'groups', 'categorize', 'category',
+                'pin', 'pinned', 'unpin', 'star', 'bookmark',
+                'archive', 'archived', 'unarchive', 'store', 'hide',
+                'search', 'find', 'lookup',
+                'recent', 'latest', 'newest', 'last',
+                'inbox', 'pinned', 'archived',
+                
+                # List operations
+                'item', 'items', 'check', 'uncheck', 'toggle', 'mark',
+                
+                # Check-in related
+                'check in', 'checkin', 'check-in', 'daily check', 'mood check',
+                'status', 'how am i', 'how are you', 'how am i doing',
+                
+                # Analytics and stats
+                'analytics', 'analys', 'analysis', 'analyze', 'analyse',  # Both spellings
+                'stats', 'statistics', 'stat', 'statistic',
+                'trends', 'trend', 'progress', 'progres',  # Common misspelling
+                'insights', 'insight', 'performance', 'perf',
+                'summary', 'summaries', 'report', 'reports',
+                'history', 'histories', 'past', 'previous',
+                'tracking', 'track', 'monitor', 'monitoring',
+                
+                # Analysis types
+                'mood', 'moods', 'emotion', 'emotions', 'feeling', 'feelings',
+                'habit', 'habits', 'routine', 'routines',
+                'sleep', 'sleeping', 'rest', 'bedtime',
+                'wellness', 'wellbeing', 'well-being', 'health',
+                'completion', 'completion rate', 'rate',
+                
+                # Schedule operations
+                'enable', 'disable', 'turn on', 'turn off', 'activate', 'deactivate',
+                'period', 'periods', 'time', 'times', 'when',
+                
+                # Profile operations
+                'name', 'email', 'gender', 'pronoun', 'pronouns',
+                
+                # Question/help words
+                'help', 'hlp', 'assist', 'support',  # Common misspelling
+                'commands', 'command', 'cmds', 'cmd',
+                'examples', 'example', 'ex', 'sample', 'samples',
+                'how to', 'how do', 'how can', 'how should',
+                'what can', 'what does', 'what is', 'what are',
+                'can you', 'can i', 'could you', 'would you',
+                
+                # Common phrases that indicate commands (when combined with other keywords)
+                'i need', 'i need to', 'i want', 'i want to', 'let me', 'let me know',
+                'show me', 'tell me', 'give me', 'get me', 'can you', 'can i',
+                
+                # Time-related (often part of commands)
+                'today', 'tomorrow', 'yesterday', 'week', 'month', 'year',
+                'due', 'deadline', 'reminder',
+                
+                # Common abbreviations
+                'todo', 'todos', 'td', 'tds',
+            ]
+            message_lower = message.lower()
+            looks_like_command = any(keyword in message_lower for keyword in command_keywords)
+            
+            if looks_like_command:
+                # Message looks like a command but didn't match patterns - try AI parsing
+                logger.debug(f"Message '{message[:50]}...' has 0.0 confidence but contains command keywords, trying AI parsing")
+                ai_result = self._ai_enhanced_parse(message, user_id)
+                if ai_result.confidence >= AI_AI_ENHANCED_CONFIDENCE_THRESHOLD:
+                    return ai_result
+                # If AI parsing also fails, return the unknown result
+                return rule_result
+            else:
+                # Clearly not a command - skip AI parsing
+                return rule_result
         
         # Try AI-enhanced parsing only for ambiguous cases (confidence > 0 but < high threshold)
         ai_result = self._ai_enhanced_parse(message, user_id)
@@ -567,9 +696,48 @@ class EnhancedCommandParser:
                         confidence, "rule_based"
                     )
         
-        # Check each intent pattern (excluding help and list_tasks which were already checked)
+        # Check quick note patterns early to ensure they take precedence over task patterns
+        if 'create_quick_note' in self.compiled_patterns:
+            for pattern in self.compiled_patterns['create_quick_note']:
+                match = pattern.match(message_lower) if pattern.pattern.startswith('^') else pattern.search(message_lower)
+                if match:
+                    entities = self._extract_entities_rule_based('create_quick_note', match, message)
+                    confidence = self._calculate_confidence('create_quick_note', match, message)
+                    
+                    return ParsingResult(
+                        ParsedCommand('create_quick_note', entities, confidence, message),
+                        confidence, "rule_based"
+                    )
+        
+        # Check list_recent_entries patterns early to ensure short patterns like 'r' match before AI parsing
+        if 'list_recent_entries' in self.compiled_patterns:
+            for pattern in self.compiled_patterns['list_recent_entries']:
+                match = pattern.match(message_lower) if pattern.pattern.startswith('^') else pattern.search(message_lower)
+                if match:
+                    entities = self._extract_entities_rule_based('list_recent_entries', match, message)
+                    confidence = self._calculate_confidence('list_recent_entries', match, message)
+                    
+                    return ParsingResult(
+                        ParsedCommand('list_recent_entries', entities, confidence, message),
+                        confidence, "rule_based"
+                    )
+        
+        # Check list_recent_notes patterns early as well
+        if 'list_recent_notes' in self.compiled_patterns:
+            for pattern in self.compiled_patterns['list_recent_notes']:
+                match = pattern.match(message_lower) if pattern.pattern.startswith('^') else pattern.search(message_lower)
+                if match:
+                    entities = self._extract_entities_rule_based('list_recent_notes', match, message)
+                    confidence = self._calculate_confidence('list_recent_notes', match, message)
+                    
+                    return ParsingResult(
+                        ParsedCommand('list_recent_notes', entities, confidence, message),
+                        confidence, "rule_based"
+                    )
+        
+        # Check each intent pattern (excluding help, list_tasks, create_quick_note, list_recent_entries, list_recent_notes which were already checked)
         for intent, patterns in self.compiled_patterns.items():
-            if intent in ['help', 'list_tasks']:  # Skip, already checked above
+            if intent in ['help', 'list_tasks', 'create_quick_note', 'list_recent_entries', 'list_recent_notes']:  # Skip, already checked above
                 continue
             for pattern in patterns:
                 # Use match() for patterns that start with ^, search() for others
@@ -864,22 +1032,47 @@ class EnhancedCommandParser:
         # Notebook Entity Extraction
         elif intent == 'create_note':
             if match.groups():
-                content = match.group(1).strip()
-                # Check for title : body format or newline separator
-                if ':' in content and '\n' not in content:
-                    # Single line with colon separator
-                    parts = content.split(':', 1)
-                    entities['title'] = parts[0].strip()
-                    entities['body'] = parts[1].strip() if len(parts) > 1 else None
-                elif '\n' in content:
-                    # Multi-line: first line is title, rest is body
-                    lines = content.split('\n', 1)
-                    entities['title'] = lines[0].strip()
-                    entities['body'] = lines[1].strip() if len(lines) > 1 else None
+                # Check if this is the "titled ... with body ..." format (has 2 capture groups)
+                # The patterns with "titled" have 2 groups: title and optional body
+                # Check if the pattern that matched is one of the "titled" patterns by checking group count
+                num_groups = len([g for g in match.groups() if g is not None])
+                if len(match.groups()) >= 2:
+                    # Pattern: create note titled "X" with body "Y" (or just "X" without body)
+                    entities['title'] = match.group(1).strip() if match.group(1) else None
+                    # Group 2 might be None if "with body" part wasn't present, but if it is, use it
+                    if match.group(2) is not None and match.group(2).strip():
+                        entities['body'] = match.group(2).strip()
+                    else:
+                        entities['body'] = None
                 else:
-                    # Just title/body, no separator - will prompt for body in flow
-                    entities['title'] = content
-                    entities['body'] = None
+                    # Standard format - single group with content
+                    content = match.group(1).strip()
+                    # Check for title : body format or newline separator
+                    if ':' in content and '\n' not in content:
+                        # Single line with colon separator
+                        parts = content.split(':', 1)
+                        entities['title'] = parts[0].strip()
+                        entities['body'] = parts[1].strip() if len(parts) > 1 else None
+                    elif '\n' in content:
+                        # Multi-line: first line is title, rest is body
+                        lines = content.split('\n', 1)
+                        entities['title'] = lines[0].strip()
+                        entities['body'] = lines[1].strip() if len(lines) > 1 else None
+                    else:
+                        # Just title/body, no separator - will prompt for body in flow
+                        entities['title'] = content
+                        entities['body'] = None
+        
+        elif intent == 'create_quick_note':
+            # Quick notes: optional title, no body expected
+            if match.groups():
+                title = match.group(1).strip() if match.group(1) else None
+                # If title is empty or just whitespace, use None
+                entities['title'] = title if title else None
+            else:
+                entities['title'] = None
+            # Quick notes never have body text
+            entities['body'] = None
         
         elif intent in ['list_recent_entries', 'list_recent_notes']:
             if match.groups():

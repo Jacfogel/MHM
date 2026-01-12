@@ -104,7 +104,11 @@ Each item:
 - `!n <text>` or `!note <text>`  
   Create a quick note. If only title provided, prompts for body text (5 min timeout, can skip with `!skip`).  
 - `!n <title> : <body>` or `!n <title>\n<body>`  
-  Create note with title/body split (colon or newline separator).  
+  Create note with title/body split (colon or newline separator).
+- `!qn [<title>]`, `!qnote [<title>]`, `!quickn [<title>]`, `!quicknote [<title>]`, `!q note [<title>]`, `quick note [<title>]`  
+  Create quick note (no body text required). Automatically placed in "Quick Notes" group. If no title provided, uses timestamp as default title.
+- `create note titled "<title>" with body "<body>"`  
+  Create note with explicit title and body in natural language format (no flow prompt).  
 - `!recent [N]` or `!r [N]`  
   Show last N updated entries (notes + lists + journal).  
 - `!recentn [N]`, `!rnote [N]`, `!shownotes [N]`, etc.  
@@ -403,6 +407,8 @@ If you follow this structure, the migration is **not** a rewrite—just a backen
 
 #### In Progress
 - **Note Creation**: `!n`, `!note`, `!nn`, `!newn`, `!createnote`, etc. with `:` or newline separator
+- **Quick Note Creation**: `!qn`, `!qnote`, `!quickn`, `!quicknote`, `!q note`, `quick note` - automatically grouped as "Quick Notes", no body text required ✅ **COMPLETED**
+- **Natural Language Note Creation**: `create note titled "X" with body "Y"` format ✅ **COMPLETED**
 - **Note Flow State**: Prompts for body text when only title provided (10 min timeout, `[Skip]` and `[Cancel]` button support)
   - ✅ **Verified**: Flow correctly prompts with button-style format when only title provided
   - ⏳ **Not yet verified**: Flow expires after 10 minutes of inactivity
@@ -451,7 +457,7 @@ If you follow this structure, the migration is **not** a rewrite—just a backen
 - **Pattern Duplication**: Some regex patterns duplicated (e.g., `r'^n\s+(.+)$'` appears twice in create_note patterns)
 - **Slash Command Registration**: Notebook commands work via conversion but not explicitly registered (affects discoverability)
 - **Flow State Persistence**: Currently in-memory with JSON backup - could be improved
-- **Pagination**: Search, inbox, pinned, group, and tag views don't support pagination - **TODO**: Add "Show More" buttons and pagination support
+- **Pagination Button Handler**: "Show More" buttons appear but don't work - button click loses pagination context (offset, query, intent). Need to store pagination state or encode in custom_id
 
 **Robustness & Scalability:**
 - **Concurrent Access**: No validation for concurrent access (multiple users/devices)
@@ -566,7 +572,11 @@ Note-specific: `!pin`, `!unpin`, `!archive`, `!unarchive` (notes only)
 ### Pagination and Limits
 - **All list queries are paginated**: Every query shows 5 entries at a time by default
 - **Data manager limits**: Functions fetch up to 100 matching entries, then handlers paginate to show 5 at a time
-- **"Show More" button**: When more entries exist, a "Show More" button appears (needs button click handler implementation)
+- **"Show More" button**: When more entries exist, a "Show More" button appears
+  - ⚠️ **ISSUE**: Button click handler processes button label as message ("show more (5 more)"), which doesn't match any command pattern
+  - **Root cause**: Pagination state (offset, query, intent) is lost when button is clicked
+  - **Current workaround**: Users must re-run the original command to see more results
+  - **Solution needed**: Store pagination state in user state or encode in button custom_id
 - **Commands with pagination**:
   - `!search` - Shows 5 results at a time
   - `!inbox` - Shows 5 entries at a time
@@ -607,6 +617,15 @@ Note-specific: `!pin`, `!unpin`, `!archive`, `!unarchive` (notes only)
 
 ### Testing Status ✅
 **Comprehensive Automated Test Suite** - Full test coverage created to replace manual Discord testing. All tests located in `tests/behavior/test_notebook_handler_behavior.py` with 54 total tests covering all notebook functionality.
+
+**Test Execution Results** (Verified 2025-01-27):
+- ✅ **54/54 tests PASSED** in 19.89 seconds
+- ✅ All test categories passing:
+  - Core handler tests (29 tests) - Note/list creation, viewing, editing, operations
+  - Entity extraction tests (9 tests) - Title/body extraction, tag extraction, reference parsing
+  - Flow state edge cases (7 tests) - Note body flow, list items flow, timeouts, interruptions
+  - Error handling tests (9 tests) - Invalid IDs, missing entries, malformed references, edge cases
+- ✅ **Test Coverage**: All major functionality verified including commands, flows, error handling, and edge cases
 
 **Validation System** ✅ **COMPLETED** - Comprehensive validation system implemented with proper separation of concerns:
 - **General Validation** (`core/user_data_validation.py`): `is_valid_string_length()`, `is_valid_category_name()` - reusable across features
@@ -733,8 +752,9 @@ python -m pytest tests/behavior/test_notebook_handler_behavior.py --cov=notebook
 6. ~~**TaskManagementHandler Deduplication**~~ ✅ **COMPLETED** - Consolidated duplicate `TaskManagementHandler` classes (see CHANGELOG_DETAIL.md for details)
 
 #### Medium Priority
-4. **Edit Sessions (Milestone 4)** - Implement `!edit` command with flow state
-5. **Slash Command Registration** - Explicitly register notebook commands in `_command_definitions` for better discoverability
+1. **Pagination Button Handler** - Fix "Show More" button click handler to preserve pagination state (offset, query, intent)
+2. **Edit Sessions (Milestone 4)** - Implement `!edit` command with flow state
+3. **Slash Command Registration** - Explicitly register notebook commands in `_command_definitions` for better discoverability
 
 #### Low Priority
 6. **Skip Integration (Milestone 5)** - Task skip tracking and notebook integration

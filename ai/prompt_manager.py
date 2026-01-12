@@ -118,7 +118,7 @@ class PromptManager:
                        "For example, if the user says 'create note about meeting', the title should be 'meeting' or 'about meeting', "
                        "NOT 'Meeting with John on Monday at 2pm'. Only include what the user actually said. "
                        "Available actions: create_task, list_tasks, complete_task, delete_task, update_task, task_stats, "
-                       "create_note, create_list, create_journal, list_recent_entries, show_entry, append_to_entry, "
+                       "create_note, create_quick_note, create_list, create_journal, list_recent_entries, show_entry, append_to_entry, "
                        "add_tags_to_entry, remove_tags_from_entry, search_entries, pin_entry, unpin_entry, archive_entry, "
                        "start_checkin, checkin_status, show_profile, update_profile, profile_stats, show_schedule, "
                        "schedule_status, add_schedule_period, show_analytics, mood_trends, habit_analysis, sleep_analysis, "

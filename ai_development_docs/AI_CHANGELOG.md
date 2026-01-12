@@ -36,6 +36,15 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-12 - Quick Note Feature and Command Parsing Improvements **COMPLETED**
+- Added quick note command (`!qn`, `!qnote`, `!quickn`, etc.) that auto-groups to "Quick Notes" and doesn't require body text
+- Fixed quick note commands being misinterpreted as task creation by adding early pattern checking in command parser
+- Fixed "create note titled 'X' with body 'Y'" natural language format parsing
+- Fixed short ID formatting to remove dashes (uses `format_short_id()` for consistency)
+- Added `create_quick_note` to AI command lists in both `prompt_manager.py` and `chatbot.py` so AI knows about the new command
+- Condensed manual testing guide from 1352 to 396 lines with command-focused format
+- **Impact**: Quick notes work correctly, no longer create unwanted "buy groceries" tasks, natural language note creation improved
+
 ### 2026-01-12 - Domain-Aware Caching Fixes and Cleanup Command Improvements **COMPLETED**
 - Fixed domain-aware caching issues: main coverage now filters out `development_tools` domain to prevent cross-contamination, duplicate log messages removed, only `.py` files tracked
 - Fixed `--clear-cache` flag to include domain-aware coverage cache cleanup

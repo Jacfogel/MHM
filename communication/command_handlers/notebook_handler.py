@@ -24,6 +24,7 @@ from notebook.notebook_data_manager import (
     list_archived, create_note, create_list, create_journal
 )
 from notebook.schemas import Entry
+from notebook.notebook_validation import format_short_id
 
 logger = get_component_logger('communication_manager')
 handlers_logger = logger
@@ -37,7 +38,7 @@ class NotebookHandler(InteractionHandler):
         if not intent:
             return False
         return intent in [
-            'create_note', 'create_list', 'create_journal',
+            'create_note', 'create_quick_note', 'create_list', 'create_journal',
             'list_recent_entries', 'list_recent_notes', 'show_entry', 'append_to_entry', 'set_entry_body',
             'add_tags_to_entry', 'remove_tags_from_entry', 'search_entries',
             'pin_entry', 'unpin_entry', 'archive_entry', 'unarchive_entry',
@@ -54,6 +55,8 @@ class NotebookHandler(InteractionHandler):
 
         if intent == 'create_note':
             return self._handle_create_note(user_id, entities)
+        elif intent == 'create_quick_note':
+            return self._handle_create_quick_note(user_id, entities)
         elif intent == 'create_list':
             return self._handle_create_list(user_id, entities)
         elif intent == 'create_journal':
@@ -186,6 +189,39 @@ class NotebookHandler(InteractionHandler):
             return InteractionResponse(response, True)
         else:
             return InteractionResponse("❌ Failed to create note. Please try again.", True)
+
+    @handle_errors("handling create quick note")
+    def _handle_create_quick_note(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
+        """Handle quick note creation - no body text required, automatically grouped as 'Quick Notes'."""
+        from datetime import datetime
+        
+        title = entities.get('title')
+        tags = entities.get('tags', [])
+        # Quick notes are always in "Quick Notes" group
+        group = "Quick Notes"
+        
+        # If no title provided, use a default
+        if not title or not title.strip():
+            # Use timestamp as default title for quick notes
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+            title = f"Quick Note - {timestamp}"
+        
+        # Parse tags from title if present
+        if title:
+            title, parsed_tags = parse_tags_from_text(title)
+            tags.extend(parsed_tags)
+        
+        # Create note with title only, no body, always in "Quick Notes" group
+        entry = create_note(user_id, title=title, body=None, tags=tags, group=group)
+        
+        if entry:
+            short_id = self._format_entry_id(entry)
+            response = f"✅ Quick note created: '{entry.title}' ({short_id})"
+            if entry.tags:
+                response += f"\nTags: {', '.join(entry.tags)}"
+            return InteractionResponse(response, True)
+        else:
+            return InteractionResponse("❌ Failed to create quick note. Please try again.", True)
 
     @handle_errors("handling create list")
     def _handle_create_list(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
@@ -715,9 +751,14 @@ class NotebookHandler(InteractionHandler):
     @handle_errors("formatting entry ID", default_return="unknown")
     def _format_entry_id(self, entry: Entry) -> str:
         """Format entry ID as short ID (e.g., n3f2a9c - no dash for easier mobile typing)."""
-        short_id = str(entry.id).replace('-', '')[:6]
-        kind_prefix = entry.kind[0]  # 'n', 'l', or 'j'
-        return f"{kind_prefix}{short_id}"
+        short_id = format_short_id(entry.id, entry.kind)
+        # Fallback if format_short_id returns None (shouldn't happen, but safety check)
+        if short_id is None:
+            # Fallback to simple format
+            short_id_fragment = str(entry.id).replace('-', '')[:6]
+            kind_prefix = entry.kind[0]  # 'n', 'l', or 'j'
+            return f"{kind_prefix}{short_id_fragment}"
+        return short_id
 
     @handle_errors("formatting entry response", default_return="Error formatting entry")
     def _format_entry_response(self, entry: Entry) -> str:

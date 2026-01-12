@@ -600,7 +600,7 @@ class InteractionManager:
                 'messages', 'show_messages',
                 'status',
                 # Notebook intents - structured responses that shouldn't be AI-enhanced
-                'create_note', 'create_list', 'create_journal',
+                'create_note', 'create_quick_note', 'create_list', 'create_journal',
                 'list_recent_entries', 'show_entry', 'append_to_entry', 'set_entry_body',
                 'add_tags_to_entry', 'remove_tags_from_entry', 'search_entries',
                 'pin_entry', 'unpin_entry', 'archive_entry', 'unarchive_entry',

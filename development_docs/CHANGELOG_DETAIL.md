@@ -38,6 +38,43 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-12 - Quick Note Feature, Command Parsing Improvements, and Documentation Updates **COMPLETED**
+- **Feature**: Added quick note command with automatic grouping, improved command parsing, fixed short ID formatting, and condensed manual testing guide
+- **Changes**:
+  1. **Quick Note Command Implementation**:
+     - Added `create_quick_note` intent with aliases: `!qn`, `!qnote`, `!quickn`, `!quicknote`, `!q note`, `quick note`
+     - Quick notes automatically placed in "Quick Notes" group, no body text required
+     - If no title provided, uses timestamp as default title (e.g., "Quick Note - 2024-01-15 14:30")
+     - Added handler method `_handle_create_quick_note()` in `communication/command_handlers/notebook_handler.py`
+     - Registered intent in `notebook_handler.py` and `interaction_manager.py`
+     - Added early pattern checking in `command_parser.py` to ensure quick note patterns match before task patterns
+  2. **Command Parsing Improvements**:
+     - Fixed "create note titled 'X' with body 'Y'" natural language format - split into separate patterns for better matching
+     - Added early priority checking for `create_quick_note` patterns to prevent misinterpretation as task creation
+     - Fixed entity extraction for "titled with body" format to properly extract both title and body
+  3. **Short ID Formatting Fix**:
+     - Updated `_format_entry_id()` in `notebook_handler.py` to use `format_short_id()` from `notebook_validation.py`
+     - Ensures consistent format without dashes (`n123abc` instead of `n-123abc`) for easier mobile typing
+  4. **AI Command List Updates**:
+     - Added `create_quick_note` to available actions list in `ai/prompt_manager.py` (line 121)
+     - Added `create_quick_note` and full notebook command list to `ai/chatbot.py` fallback prompt (line 979)
+  5. **Documentation Updates**:
+     - Condensed `tests/MANUAL_DISCORD_TEST_GUIDE.md` from 1352 lines to ~396 lines - removed verbose step-by-step instructions, made command-focused with clear separation between test cases
+     - Added comprehensive quick note test section to manual testing guide with all aliases and verification steps
+     - Updated `development_docs/NOTES_PLAN.md` to document quick note command in V0 section and update implementation status
+  6. **Task Creation**:
+     - Added task to `TODO.md` to investigate why there are two separate AI command lists and explore dynamic generation from handlers/parser
+- **Files Changed**:
+  - `communication/message_processing/command_parser.py` - Added quick note patterns, fixed "titled with body" pattern, added early quick note checking
+  - `communication/command_handlers/notebook_handler.py` - Added `_handle_create_quick_note()` method, updated to use `format_short_id()`
+  - `communication/message_processing/interaction_manager.py` - Added `create_quick_note` to intent list
+  - `ai/prompt_manager.py` - Added `create_quick_note` to available actions list
+  - `ai/chatbot.py` - Added `create_quick_note` and full notebook commands to fallback prompt
+  - `tests/MANUAL_DISCORD_TEST_GUIDE.md` - Condensed format, added quick note test section
+  - `development_docs/NOTES_PLAN.md` - Added quick note to command set and implementation status
+  - `TODO.md` - Added task for investigating dynamic command list generation
+- **Impact**: Users can now create quick notes without body text that are automatically organized in "Quick Notes" group. Fixed issue where quick note commands were being misinterpreted as task creation (defaulting to "buy groceries"). Improved command parsing for natural language note creation. Documentation is now more concise and easier to use for manual testing.
+
 ### 2026-01-12 - Domain-Aware Caching Fixes and Cleanup Command Improvements **COMPLETED**
 - **Feature**: Fixed domain-aware caching implementation issues and improved cleanup command to mirror audit structure
 - **Changes**:
@@ -115,13 +152,13 @@ When adding new changes, follow this format:
   - Foundation laid for intelligent test selection and partial test execution
   - Test suite: 3917 passed, 0 failed (test failure fixed), 2 skipped
 - **What's Complete**:
-  - ✅ Coverage analysis caching (implemented and working)
-  - ✅ Domain mapping infrastructure (complete)
-  - ✅ Domain-aware coverage cache POC (infrastructure complete)
-  - ✅ Documentation updated (both human and AI guides)
-  - ✅ File organization (moved to `tests/` directory)
+  - [OK] Coverage analysis caching (implemented and working)
+  - [OK] Domain mapping infrastructure (complete)
+  - [OK] Domain-aware coverage cache POC (infrastructure complete)
+  - [OK] Documentation updated (both human and AI guides)
+  - [OK] File organization (moved to `tests/` directory)
 - **What Remains** (Future Enhancements):
-  - ✅ **Integrate domain-aware caching with test execution**: COMPLETED - `run_test_coverage.py` now uses `DomainAwareCoverageCache` for intelligent test selection
+  - [OK] **Integrate domain-aware caching with test execution**: COMPLETED - `run_test_coverage.py` now uses `DomainAwareCoverageCache` for intelligent test selection
     - Uses `get_changed_domains()` to detect which domains need re-testing
     - Uses `get_pytest_marker_filter()` to generate pytest marker filters
     - Uses `get_test_directories_for_domains()` to limit test discovery to changed domains
@@ -129,22 +166,22 @@ When adding new changes, follow this format:
     - Enabled by default - disable with `--no-domain-cache` flag
     - Supports both serial and parallel test execution modes
     - Integrated with dev tools coverage for complete caching coverage
-  - ✅ **Domain isolation and filtering**: COMPLETED - Main coverage now filters out `development_tools` domain to prevent cross-contamination
+  - [OK] **Domain isolation and filtering**: COMPLETED - Main coverage now filters out `development_tools` domain to prevent cross-contamination
     - Main coverage checks only main coverage domains (core, communication, ui, tasks, ai, user, notebook)
     - Dev tools coverage uses separate domain key and doesn't interfere with main coverage
     - Fixed duplicate log messages (changed to debug level)
     - Only tracks `.py` files (ignores .md, .txt, .json, .log files)
-  - ✅ **Cache management integration**: COMPLETED - Domain-aware cache now included in `--clear-cache` flag and cleanup command
+  - [OK] **Cache management integration**: COMPLETED - Domain-aware cache now included in `--clear-cache` flag and cleanup command
     - `--clear-cache` flag now clears domain-aware coverage cache
     - `cleanup --coverage` command now includes domain-aware cache cleanup
     - Cache location: `development_tools/tests/.coverage_cache/domain_coverage_cache.json`
-  - ✅ **Domain-aware caching fixes and improvements**: COMPLETED - Fixed several issues with domain-aware caching implementation
+  - [OK] **Domain-aware caching fixes and improvements**: COMPLETED - Fixed several issues with domain-aware caching implementation
     - Fixed main coverage incorrectly detecting `development_tools` domain as changed (now filters to only main coverage domains)
     - Fixed duplicate log messages (changed "Domain-aware coverage caching enabled" to debug level)
     - Ensured only `.py` files are tracked for changes (ignores .md, .txt, .json, .log files)
     - Improved domain isolation: main coverage and dev tools coverage use separate domain keys
     - Fixed cache merging logic to properly handle parallel execution scenarios
-  - ✅ **Cleanup command improvements**: COMPLETED - Fixed broken cleanup command and updated to mirror audit structure
+  - [OK] **Cleanup command improvements**: COMPLETED - Fixed broken cleanup command and updated to mirror audit structure
     - Fixed `run_cleanup()` method to properly return result dictionary (was returning None)
     - Added `--full` flag to cleanup command (mirrors audit structure)
     - Default cleanup (`cleanup` with no flags) now only cleans `__pycache__` and temp test files (conservative default)
