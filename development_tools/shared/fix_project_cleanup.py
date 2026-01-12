@@ -121,8 +121,14 @@ class ProjectCleanup:
         except Exception as e:
             return False, f"Error removing {path}: {e}"
     
-    def cleanup_cache_directories(self, dry_run: bool = False) -> Tuple[int, int]:
-        """Remove __pycache__ directories."""
+    def cleanup_cache_directories(self, dry_run: bool = False, include_tool_caches: bool = False) -> Tuple[int, int]:
+        """
+        Remove __pycache__ directories.
+        
+        Args:
+            dry_run: If True, show what would be removed without actually removing
+            include_tool_caches: If True, also clean standardized storage cache files
+        """
         directories = self.find_directories("__pycache__")
         removed = 0
         failed = 0
@@ -137,6 +143,25 @@ class ProjectCleanup:
                 failed += 1
                 if not dry_run:
                     logger.warning(f"  {message}")
+        
+        # Only clean standardized storage cache files if explicitly requested (--full)
+        if include_tool_caches:
+            dev_tools_dir = self.project_root / "development_tools"
+            if dev_tools_dir.exists():
+                for domain_dir in dev_tools_dir.iterdir():
+                    if domain_dir.is_dir():
+                        jsons_dir = domain_dir / "jsons"
+                        if jsons_dir.exists():
+                            for cache_file in jsons_dir.glob(".*_cache.json"):
+                                success, message = self.remove_path(cache_file, dry_run)
+                                if success:
+                                    removed += 1
+                                    if not dry_run:
+                                        logger.info(f"  {message}")
+                                else:
+                                    failed += 1
+                                    if not dry_run:
+                                        logger.warning(f"  {message}")
         
         return removed, failed
     
@@ -160,7 +185,7 @@ class ProjectCleanup:
         return removed, failed
     
     def cleanup_coverage_files(self, dry_run: bool = False) -> Tuple[int, int]:
-        """Remove .coverage files."""
+        """Remove .coverage files and domain-aware coverage cache."""
         files = self.find_files(".coverage")
         removed = 0
         failed = 0
@@ -175,6 +200,21 @@ class ProjectCleanup:
                 failed += 1
                 if not dry_run:
                     logger.warning(f"  {message}")
+        
+        # Also clean up domain-aware coverage cache
+        coverage_cache_dir = self.project_root / "development_tools" / "tests" / ".coverage_cache"
+        if coverage_cache_dir.exists():
+            cache_file = coverage_cache_dir / "domain_coverage_cache.json"
+            if cache_file.exists():
+                success, message = self.remove_path(cache_file, dry_run)
+                if success:
+                    removed += 1
+                    if not dry_run:
+                        logger.info(f"  {message}")
+                else:
+                    failed += 1
+                    if not dry_run:
+                        logger.warning(f"  {message}")
         
         return removed, failed
     
@@ -345,8 +385,22 @@ class ProjectCleanup:
     def cleanup_all(self, dry_run: bool = False, 
                     cache: bool = True, test_data: bool = True, 
                     coverage: bool = True, keep_vscode: bool = False, 
-                    keep_cursor: bool = False) -> Dict:
-        """Run all cleanup operations."""
+                    keep_cursor: bool = False, include_tool_caches: bool = False) -> Dict:
+        """
+        Run all cleanup operations.
+        
+        Args:
+            dry_run: If True, show what would be removed without actually removing
+            cache: Clean cache directories (__pycache__, .pytest_cache)
+            test_data: Clean test data directories
+            coverage: Clean coverage files, logs, and domain-aware coverage cache
+            keep_vscode: Keep VSCode cache directories (not implemented)
+            keep_cursor: Keep Cursor cache directories (not implemented)
+            include_tool_caches: If True, also clean standardized storage cache files (only with --full)
+        
+        Returns:
+            Dictionary with cleanup results for each category
+        """
         results = {
             'cache': {'removed': 0, 'failed': 0},
             'pytest_cache': {'removed': 0, 'failed': 0},
@@ -359,7 +413,7 @@ class ProjectCleanup:
         }
         
         if cache:
-            removed, failed = self.cleanup_cache_directories(dry_run)
+            removed, failed = self.cleanup_cache_directories(dry_run, include_tool_caches=include_tool_caches)
             results['cache'] = {'removed': removed, 'failed': failed}
             results['total_removed'] += removed
             results['total_failed'] += failed

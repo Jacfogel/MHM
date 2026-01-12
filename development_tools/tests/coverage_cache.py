@@ -21,9 +21,25 @@ Usage:
 """
 
 import json
+import os
+import time
 from pathlib import Path
 from typing import Dict, Optional, Set, Any
 from datetime import datetime
+
+# Try to import file locking (Unix/Linux)
+try:
+    import fcntl
+    HAS_FCNTL = True
+except ImportError:
+    HAS_FCNTL = False
+
+# Try to import Windows file locking
+try:
+    import msvcrt
+    HAS_MSVCRT = True
+except ImportError:
+    HAS_MSVCRT = False
 
 try:
     from core.logger import get_component_logger
@@ -63,13 +79,50 @@ class DomainAwareCoverageCache:
         self._load_cache()
     
     def _load_cache(self) -> None:
-        """Load cache from disk."""
+        """Load cache from disk with file locking for thread safety."""
         if self.cache_file.exists():
             try:
-                with open(self.cache_file, 'r', encoding='utf-8') as f:
-                    self.cache_data = json.load(f)
-                if logger:
-                    logger.debug(f"Loaded domain coverage cache with {len(self.cache_data.get('domains', {}))} domains")
+                # Use file locking to prevent race conditions when multiple processes access the cache
+                max_retries = 5
+                retry_delay = 0.1
+                for attempt in range(max_retries):
+                    try:
+                        with open(self.cache_file, 'r', encoding='utf-8') as f:
+                            # Try to acquire shared lock (read lock)
+                            if HAS_FCNTL:
+                                try:
+                                    fcntl.flock(f.fileno(), fcntl.LOCK_SH)
+                                except (OSError, AttributeError):
+                                    pass
+                            elif HAS_MSVCRT:
+                                try:
+                                    msvcrt.locking(f.fileno(), msvcrt.LK_LOCK, 1)
+                                except (OSError, AttributeError):
+                                    pass
+                            
+                            self.cache_data = json.load(f)
+                            
+                            # Release lock if we acquired it
+                            if HAS_FCNTL:
+                                try:
+                                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+                                except (OSError, AttributeError):
+                                    pass
+                            elif HAS_MSVCRT:
+                                try:
+                                    msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+                                except (OSError, AttributeError):
+                                    pass
+                            
+                            if logger:
+                                logger.debug(f"Loaded domain coverage cache with {len(self.cache_data.get('domains', {}))} domains")
+                            break
+                    except (IOError, OSError) as e:
+                        if attempt < max_retries - 1:
+                            time.sleep(retry_delay)
+                            retry_delay *= 2  # Exponential backoff
+                        else:
+                            raise
             except Exception as e:
                 if logger:
                     logger.warning(f"Failed to load domain coverage cache: {e}")
@@ -82,13 +135,60 @@ class DomainAwareCoverageCache:
             }
     
     def _save_cache(self) -> None:
-        """Save cache to disk."""
+        """Save cache to disk with file locking and atomic write for thread safety."""
         try:
+            # Save our current cache data (already contains our updates)
+            # Note: cache_coverage_for_domain() reloads before calling this, so we have latest data
             self.cache_data['last_updated'] = datetime.now().isoformat()
-            with open(self.cache_file, 'w', encoding='utf-8') as f:
-                json.dump(self.cache_data, f, indent=2)
-            if logger:
-                logger.debug(f"Saved domain coverage cache")
+            
+            # Use atomic write: write to temp file, then rename (atomic on most filesystems)
+            temp_file = self.cache_file.with_suffix('.tmp')
+            max_retries = 5
+            retry_delay = 0.1
+            
+            for attempt in range(max_retries):
+                try:
+                    with open(temp_file, 'w', encoding='utf-8') as f:
+                        # Try to acquire exclusive lock (write lock)
+                        if HAS_FCNTL:
+                            try:
+                                fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+                            except (OSError, AttributeError):
+                                pass
+                        elif HAS_MSVCRT:
+                            try:
+                                msvcrt.locking(f.fileno(), msvcrt.LK_LOCK, 1)
+                            except (OSError, AttributeError):
+                                pass
+                        
+                        json.dump(self.cache_data, f, indent=2)
+                        f.flush()  # Ensure data is written before rename
+                        os.fsync(f.fileno())  # Force write to disk
+                        
+                        # Release lock if we acquired it
+                        if HAS_FCNTL:
+                            try:
+                                fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+                            except (OSError, AttributeError):
+                                pass
+                        elif HAS_MSVCRT:
+                            try:
+                                msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+                            except (OSError, AttributeError):
+                                pass
+                    
+                    # Atomic rename (works on Unix and Windows)
+                    temp_file.replace(self.cache_file)
+                    
+                    if logger:
+                        logger.debug(f"Saved domain coverage cache")
+                    break
+                except (IOError, OSError) as e:
+                    if attempt < max_retries - 1:
+                        time.sleep(retry_delay)
+                        retry_delay *= 2  # Exponential backoff
+                    else:
+                        raise
         except Exception as e:
             if logger:
                 logger.warning(f"Failed to save domain coverage cache: {e}")
@@ -96,6 +196,9 @@ class DomainAwareCoverageCache:
     def get_source_file_mtimes(self, domain: str) -> Dict[str, float]:
         """
         Get current modification times for all source files in a domain.
+        
+        Only tracks .py files (Python source files), ignoring documentation,
+        configuration, and log files.
         
         Args:
             domain: Domain name (e.g., 'core')
@@ -108,8 +211,11 @@ class DomainAwareCoverageCache:
         if not source_dir.exists():
             return mtimes
         
-        # Get all Python files in the domain
+        # Get all Python files in the domain (only .py files, ignore other file types)
         for py_file in source_dir.rglob('*.py'):
+            # Skip test files and cache directories
+            if 'test_' in py_file.name or 'tests' in py_file.parts or '.coverage_cache' in py_file.parts:
+                continue
             try:
                 rel_path = str(py_file.relative_to(self.project_root))
                 mtime = py_file.stat().st_mtime
@@ -181,6 +287,10 @@ class DomainAwareCoverageCache:
             domain: Domain name
             coverage_data: Coverage data to cache
         """
+        # Reload cache first to merge with any concurrent updates from other processes
+        # This prevents overwriting changes made by parallel coverage runs
+        self._load_cache()
+        
         if 'domains' not in self.cache_data:
             self.cache_data['domains'] = {}
         

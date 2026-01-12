@@ -79,7 +79,8 @@ class CoverageMetricsRegenerator:
     
     def __init__(self, project_root: str = ".", parallel: bool = True, num_workers: Optional[str] = None,
                  pytest_command: Optional[List[str]] = None, coverage_config: Optional[str] = None,
-                 artifact_directories: Optional[Dict[str, str]] = None, maxfail: Optional[int] = None):
+                 artifact_directories: Optional[Dict[str, str]] = None, maxfail: Optional[int] = None,
+                 use_domain_cache: bool = True):
         """
         Initialize coverage metrics regenerator.
         
@@ -95,6 +96,9 @@ class CoverageMetricsRegenerator:
                                 If None, loads from config or uses defaults.
             maxfail: Optional maximum number of test failures before stopping (default: 10).
                     If None, loads from config or uses default of 10.
+            use_domain_cache: Whether to use domain-aware caching (default: True).
+                              When enabled, only runs tests for changed domains and merges cached data.
+                              Disable with --no-domain-cache flag.
         """
         self.project_root = Path(project_root).resolve()
         
@@ -197,6 +201,25 @@ class CoverageMetricsRegenerator:
         # Import constants from shared.constants
         from development_tools.shared.constants import CORE_MODULES
         self.core_modules = list(CORE_MODULES)
+        
+        # Domain-aware caching (optional)
+        self.use_domain_cache = use_domain_cache
+        self.domain_cache = None
+        self.domain_mapper = None
+        if self.use_domain_cache:
+            try:
+                from development_tools.tests.coverage_cache import DomainAwareCoverageCache
+                from development_tools.tests.domain_mapper import DomainMapper
+                self.domain_cache = DomainAwareCoverageCache(self.project_root)
+                self.domain_mapper = DomainMapper(self.project_root)
+                if logger:
+                    logger.debug("Domain-aware coverage caching enabled")
+            except ImportError as e:
+                if logger:
+                    logger.warning(f"Failed to import domain-aware cache modules: {e}. Domain caching disabled.")
+                self.use_domain_cache = False
+                self.domain_cache = None
+                self.domain_mapper = None
         
         # Initialize analyzer and report generator
         # Try to import if not already available (handles cases where imports failed at module level)
@@ -324,6 +347,64 @@ class CoverageMetricsRegenerator:
             # Directory not empty (maybe concurrent process); leave it alone
             pass
 
+    def _merge_coverage_json(self, coverage_json_1: Dict[str, Any], coverage_json_2: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Merge two coverage JSON dictionaries.
+        
+        Args:
+            coverage_json_1: First coverage JSON (from cache or fresh run)
+            coverage_json_2: Second coverage JSON (from cache or fresh run)
+            
+        Returns:
+            Merged coverage JSON with combined files and recalculated totals
+        """
+        merged = {
+            'files': {},
+            'totals': {
+                'num_statements': 0,
+                'covered_lines': 0,
+                'missing_lines': 0,
+                'percent_covered': 0.0
+            }
+        }
+        
+        # Merge files from both coverage JSONs
+        files_1 = coverage_json_1.get('files', {})
+        files_2 = coverage_json_2.get('files', {})
+        
+        # Add all files from first JSON
+        for file_path, file_data in files_1.items():
+            merged['files'][file_path] = file_data.copy()
+        
+        # Add or merge files from second JSON
+        for file_path, file_data in files_2.items():
+            if file_path in merged['files']:
+                # File exists in both - prefer the one with more recent coverage
+                # For now, prefer file_data from second JSON (assumed to be fresher)
+                merged['files'][file_path] = file_data.copy()
+            else:
+                merged['files'][file_path] = file_data.copy()
+        
+        # Recalculate totals from merged files
+        total_statements = 0
+        total_covered = 0
+        total_missing = 0
+        
+        for file_data in merged['files'].values():
+            summary = file_data.get('summary', {})
+            total_statements += summary.get('num_statements', 0)
+            total_covered += summary.get('covered_lines', 0)
+            total_missing += summary.get('missing_lines', 0)
+        
+        merged['totals']['num_statements'] = total_statements
+        merged['totals']['covered_lines'] = total_covered
+        merged['totals']['missing_lines'] = total_missing
+        
+        if total_statements > 0:
+            merged['totals']['percent_covered'] = round((total_covered / total_statements) * 100, 2)
+        
+        return merged
+    
     def run_coverage_analysis(self) -> Dict[str, Dict[str, any]]:
         """Run pytest coverage analysis and extract metrics."""
         if logger:
@@ -332,16 +413,117 @@ class CoverageMetricsRegenerator:
         # Load coverage configuration from external config
         coverage_config_data = config.get_external_value('coverage', {})
         
+        # Domain-aware caching: check for changed domains
+        changed_domains = set()
+        unchanged_domains = set()
+        cached_coverage_json = None
+        
+        if self.use_domain_cache and self.domain_cache:
+            # Get all changed/unchanged domains, but filter to only main coverage domains
+            # (exclude 'development_tools' which is handled separately)
+            all_changed_domains = self.domain_cache.get_changed_domains()
+            all_unchanged_domains = self.domain_cache.get_unchanged_domains()
+            
+            # Filter to only main coverage domains (exclude development_tools)
+            main_coverage_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
+            changed_domains = all_changed_domains & main_coverage_domains
+            unchanged_domains = all_unchanged_domains & main_coverage_domains
+            
+            # Check if this is the first run (cache is empty for main coverage domains)
+            main_domains_in_cache = {
+                domain for domain in self.domain_cache.cache_data.get('domains', {}).keys()
+                if domain in main_coverage_domains
+            }
+            cache_is_empty = len(main_domains_in_cache) == 0
+            
+            if logger:
+                if cache_is_empty:
+                    logger.info("Domain-aware cache: First run detected (cache is empty) - will cache all domains after test execution")
+                elif changed_domains:
+                    logger.info(f"Domain-aware cache: {len(changed_domains)} domain(s) changed: {sorted(changed_domains)}")
+                if unchanged_domains:
+                    logger.info(f"Domain-aware cache: {len(unchanged_domains)} domain(s) unchanged: {sorted(unchanged_domains)}")
+            
+            # Load cached coverage JSON for unchanged domains
+            if unchanged_domains:
+                # Try to load cached coverage data
+                # We'll need to reconstruct a coverage JSON from cached domain data
+                cached_files = {}
+                for domain in unchanged_domains:
+                    # Only load from main coverage domains (exclude development_tools)
+                    if domain not in main_coverage_domains:
+                        continue
+                    cached_domain_data = self.domain_cache.get_cached_coverage_for_domain(domain)
+                    if cached_domain_data and 'coverage_json' in cached_domain_data:
+                        # Merge files from cached domain coverage
+                        domain_files = cached_domain_data['coverage_json'].get('files', {})
+                        cached_files.update(domain_files)
+                
+                if cached_files:
+                    cached_coverage_json = {
+                        'files': cached_files,
+                        'totals': {
+                            'num_statements': 0,
+                            'covered_lines': 0,
+                            'missing_lines': 0,
+                            'percent_covered': 0.0
+                        }
+                    }
+                    # Recalculate totals
+                    total_statements = sum(f.get('summary', {}).get('num_statements', 0) for f in cached_files.values())
+                    total_covered = sum(f.get('summary', {}).get('covered_lines', 0) for f in cached_files.values())
+                    total_missing = sum(f.get('summary', {}).get('missing_lines', 0) for f in cached_files.values())
+                    cached_coverage_json['totals']['num_statements'] = total_statements
+                    cached_coverage_json['totals']['covered_lines'] = total_covered
+                    cached_coverage_json['totals']['missing_lines'] = total_missing
+                    if total_statements > 0:
+                        cached_coverage_json['totals']['percent_covered'] = round((total_covered / total_statements) * 100, 2)
+                    
+                    if logger:
+                        logger.info(f"Loaded cached coverage for {len(unchanged_domains)} unchanged domain(s) ({len(cached_files)} files)")
+        
+        # Determine if we need to run tests
+        run_tests = True
+        test_filter_args = []
+        
+        if self.use_domain_cache and self.domain_cache and changed_domains:
+            # Only run tests for changed domains
+            if unchanged_domains:
+                # Build pytest filter to only run tests for changed domains
+                # Use marker filter if available
+                marker_filter = self.domain_mapper.get_pytest_marker_filter(changed_domains)
+                test_dirs = self.domain_mapper.get_test_directories_for_domains(changed_domains)
+                
+                if marker_filter:
+                    test_filter_args.extend(['-m', marker_filter])
+                    if logger:
+                        logger.info(f"Using pytest marker filter for changed domains: {marker_filter}")
+                
+                if test_dirs:
+                    # Add test directories to command
+                    test_filter_args.extend(test_dirs)
+                    if logger:
+                        logger.info(f"Limiting test execution to directories: {test_dirs}")
+            else:
+                # All domains changed - run all tests
+                if logger:
+                    logger.info("All domains changed - running full test suite")
+        elif self.use_domain_cache and self.domain_cache and unchanged_domains and not changed_domains:
+            # All domains unchanged - use cache only, skip test execution
+            run_tests = False
+            if logger:
+                logger.info("All domains unchanged - using cached coverage data only (skipping test execution)")
+        
+        # Store coverage.json in development_tools/tests/jsons/ instead of root
+        jsons_dir = self.project_root / "development_tools" / "tests" / "jsons"
+        jsons_dir.mkdir(parents=True, exist_ok=True)
+        coverage_output = jsons_dir / "coverage.json"
+        
         try:
             self.archived_directories.clear()
             self.command_logs.clear()
             self.pytest_stdout_log = None
             self.pytest_stderr_log = None
-            
-            # Store coverage.json in development_tools/tests/jsons/ instead of root
-            jsons_dir = self.project_root / "development_tools" / "tests" / "jsons"
-            jsons_dir.mkdir(parents=True, exist_ok=True)
-            coverage_output = jsons_dir / "coverage.json"
             # Ensure directory exists
             coverage_output.parent.mkdir(parents=True, exist_ok=True)
             # Build coverage arguments dynamically from core modules
@@ -364,6 +546,58 @@ class CoverageMetricsRegenerator:
                         if logger:
                             logger.error(error_msg)
                         raise ValueError(error_msg)
+            
+            # Skip test execution if all domains are unchanged (using cache only)
+            if not run_tests:
+                if logger:
+                    logger.info("Skipping test execution - using cached coverage data only")
+                
+                # Load cached coverage JSON and return it
+                if cached_coverage_json:
+                    # Save cached JSON to coverage_output so analyzer can load it
+                    try:
+                        with open(coverage_output, 'w', encoding='utf-8') as f:
+                            json.dump(cached_coverage_json, f, indent=2)
+                    except Exception as e:
+                        if logger:
+                            logger.warning(f"Failed to save cached coverage JSON: {e}")
+                    
+                    if self.analyzer and coverage_output.exists():
+                        coverage_data = self.analyzer.load_coverage_json(coverage_output)
+                        overall_coverage = self.analyzer.extract_overall_from_json(coverage_output)
+                    else:
+                        # Fallback: extract from cached JSON structure
+                        coverage_data = {}
+                        for file_path, file_data in cached_coverage_json.get('files', {}).items():
+                            summary = file_data.get('summary', {})
+                            coverage_data[file_path] = {
+                                'statements': summary.get('num_statements', 0),
+                                'covered': summary.get('covered_lines', 0),
+                                'missed': summary.get('missing_lines', 0),
+                                'coverage': summary.get('percent_covered', 0.0)
+                            }
+                        overall_coverage = {
+                            'overall_coverage': cached_coverage_json['totals'].get('percent_covered', 0.0),
+                            'total_statements': cached_coverage_json['totals'].get('num_statements', 0),
+                            'total_missed': cached_coverage_json['totals'].get('missing_lines', 0)
+                        }
+                    
+                    return {
+                        'modules': coverage_data,
+                        'overall': overall_coverage,
+                        'coverage_collected': True,
+                        'from_cache': True
+                    }
+                else:
+                    # Fallback: return empty result
+                    if logger:
+                        logger.warning("No cached coverage data available - returning empty result")
+                    return {
+                        'modules': {},
+                        'overall': {},
+                        'coverage_collected': False,
+                        'from_cache': True
+                    }
             
             cmd = [
                 sys.executable, '-m', 'pytest',
@@ -397,8 +631,17 @@ class CoverageMetricsRegenerator:
                     # Ignore temp directories to prevent collecting tests from temp files
                     '--ignore=tests/data/pytest-tmp-*',
                     '--ignore=tests/data/pytest-of-*',
-                    'tests/'
                 ])
+                # Add test directories or default to 'tests/' if no filter specified
+                if test_filter_args and any(not arg.startswith('-') for arg in test_filter_args):
+                    # Filter out marker args (-m) and add only test directories
+                    test_dirs = [arg for arg in test_filter_args if not arg.startswith('-')]
+                    if test_dirs:
+                        cmd.extend(test_dirs)
+                    else:
+                        cmd.append('tests/')
+                else:
+                    cmd.append('tests/')
             else:
                 # Serial mode - generate JSON directly
                 cmd.extend([
@@ -412,8 +655,17 @@ class CoverageMetricsRegenerator:
                     # Ignore temp directories to prevent collecting tests from temp files
                     '--ignore=tests/data/pytest-tmp-*',
                     '--ignore=tests/data/pytest-of-*',
-                    'tests/'
                 ])
+                # Add test directories or default to 'tests/' if no filter specified
+                if test_filter_args and any(not arg.startswith('-') for arg in test_filter_args):
+                    # Filter out marker args (-m) and add only test directories
+                    test_dirs = [arg for arg in test_filter_args if not arg.startswith('-')]
+                    if test_dirs:
+                        cmd.extend(test_dirs)
+                    else:
+                        cmd.append('tests/')
+                else:
+                    cmd.append('tests/')
             
             # Note: When using --cov-config, pytest-cov may still use the data_file from the config
             # even if COVERAGE_FILE is set. We need to ensure the coverage files are created in the
@@ -636,8 +888,18 @@ class CoverageMetricsRegenerator:
             # Always try to load from JSON file if it exists and pytest ran, as it's more accurate
             # Note: In parallel mode, we don't generate JSON here - we'll combine coverage data files and regenerate JSON later
             # So this code will only execute in serial mode or if coverage.json exists from a previous run
+            fresh_coverage_json = None
             if coverage_output.exists() and pytest_ran and not self.parallel:
-                if self.analyzer:
+                # Load fresh coverage JSON
+                try:
+                    with open(coverage_output, 'r', encoding='utf-8') as f:
+                        fresh_coverage_json = json.load(f)
+                except Exception as e:
+                    if logger:
+                        logger.warning(f"Failed to load fresh coverage JSON: {e}")
+                    fresh_coverage_json = None
+                
+                if self.analyzer and fresh_coverage_json:
                     json_data = self.analyzer.load_coverage_json(coverage_output)
                 else:
                     json_data = {}
@@ -655,6 +917,127 @@ class CoverageMetricsRegenerator:
                 if self.analyzer:
                     overall_coverage = self.analyzer.extract_overall_from_json(coverage_output)
                     coverage_collected = bool(overall_coverage.get('overall_coverage'))
+            
+            # Domain-aware caching: merge cached coverage with fresh coverage
+            if self.use_domain_cache and self.domain_cache and cached_coverage_json and fresh_coverage_json:
+                # Merge cached and fresh coverage JSON
+                merged_coverage_json = self._merge_coverage_json(cached_coverage_json, fresh_coverage_json)
+                
+                # Save merged coverage JSON
+                try:
+                    with open(coverage_output, 'w', encoding='utf-8') as f:
+                        json.dump(merged_coverage_json, f, indent=2)
+                    if logger:
+                        logger.info("Merged cached and fresh coverage data")
+                except Exception as e:
+                    if logger:
+                        logger.warning(f"Failed to save merged coverage JSON: {e}")
+                
+                # Reload coverage data from merged JSON
+                if self.analyzer:
+                    coverage_data = self.analyzer.load_coverage_json(coverage_output)
+                    # Recalculate overall from merged JSON
+                    total_statements = merged_coverage_json['totals'].get('num_statements', 0)
+                    total_covered = merged_coverage_json['totals'].get('covered_lines', 0)
+                    if total_statements > 0:
+                        overall_coverage['overall_coverage'] = merged_coverage_json['totals'].get('percent_covered', 0.0)
+                        overall_coverage['total_statements'] = total_statements
+                        overall_coverage['total_missed'] = merged_coverage_json['totals'].get('missing_lines', 0)
+                
+                # Update cache with fresh coverage for changed domains
+                if changed_domains and fresh_coverage_json:
+                    # Extract coverage data for changed domains only
+                    for domain in changed_domains:
+                        # Get files for this domain
+                        domain_files = {}
+                        for file_path, file_data in fresh_coverage_json.get('files', {}).items():
+                            # Check if file belongs to this domain
+                            source_domain = self.domain_mapper.get_source_domain(file_path.replace('\\', '/'))
+                            if source_domain == domain:
+                                domain_files[file_path] = file_data
+                        
+                        if domain_files:
+                            domain_coverage_json = {
+                                'files': domain_files,
+                                'totals': {
+                                    'num_statements': sum(f.get('summary', {}).get('num_statements', 0) for f in domain_files.values()),
+                                    'covered_lines': sum(f.get('summary', {}).get('covered_lines', 0) for f in domain_files.values()),
+                                    'missing_lines': sum(f.get('summary', {}).get('missing_lines', 0) for f in domain_files.values()),
+                                    'percent_covered': 0.0
+                                }
+                            }
+                            # Calculate percent_covered
+                            total_statements = domain_coverage_json['totals']['num_statements']
+                            if total_statements > 0:
+                                domain_coverage_json['totals']['percent_covered'] = round(
+                                    (domain_coverage_json['totals']['covered_lines'] / total_statements) * 100, 2
+                                )
+                            
+                            # Cache domain coverage (reloads cache first to merge with concurrent updates)
+                            self.domain_cache.cache_coverage_for_domain(domain, {
+                                'coverage_json': domain_coverage_json,
+                                'timestamp': datetime.now().isoformat()
+                            })
+                            if logger:
+                                logger.debug(f"Updated cache for domain: {domain}")
+            elif self.use_domain_cache and self.domain_cache and fresh_coverage_json:
+                # Cache coverage for all domains (first run or when cache is empty)
+                # Filter to only main coverage domains (exclude development_tools)
+                main_coverage_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
+                filtered_changed_domains = changed_domains & main_coverage_domains
+                
+                # Check if cache is empty to determine if this is first run
+                main_domains_in_cache = {
+                    domain for domain in self.domain_cache.cache_data.get('domains', {}).keys()
+                    if domain in main_coverage_domains
+                }
+                cache_is_empty = len(main_domains_in_cache) == 0
+                
+                if cache_is_empty or not filtered_changed_domains:
+                    # First run or no changes detected - cache all domains from coverage data
+                    # Extract all domains from coverage JSON files (only main coverage domains)
+                    all_domains_in_coverage = set()
+                    for file_path in fresh_coverage_json.get('files', {}).keys():
+                        source_domain = self.domain_mapper.get_source_domain(file_path.replace('\\', '/'))
+                        if source_domain and source_domain in main_coverage_domains:
+                            all_domains_in_coverage.add(source_domain)
+                    domains_to_cache = all_domains_in_coverage if all_domains_in_coverage else list(main_coverage_domains)
+                else:
+                    domains_to_cache = filtered_changed_domains
+                
+                for domain in domains_to_cache:
+                    # Get files for this domain
+                    domain_files = {}
+                    for file_path, file_data in fresh_coverage_json.get('files', {}).items():
+                        # Check if file belongs to this domain
+                        source_domain = self.domain_mapper.get_source_domain(file_path.replace('\\', '/'))
+                        if source_domain == domain:
+                            domain_files[file_path] = file_data
+                    
+                    if domain_files:
+                        domain_coverage_json = {
+                            'files': domain_files,
+                            'totals': {
+                                'num_statements': sum(f.get('summary', {}).get('num_statements', 0) for f in domain_files.values()),
+                                'covered_lines': sum(f.get('summary', {}).get('covered_lines', 0) for f in domain_files.values()),
+                                'missing_lines': sum(f.get('summary', {}).get('missing_lines', 0) for f in domain_files.values()),
+                                'percent_covered': 0.0
+                            }
+                        }
+                        # Calculate percent_covered
+                        total_statements = domain_coverage_json['totals']['num_statements']
+                        if total_statements > 0:
+                            domain_coverage_json['totals']['percent_covered'] = round(
+                                (domain_coverage_json['totals']['covered_lines'] / total_statements) * 100, 2
+                            )
+                        
+                        # Cache domain coverage
+                        self.domain_cache.cache_coverage_for_domain(domain, {
+                            'coverage_json': domain_coverage_json,
+                            'timestamp': datetime.now().isoformat()
+                        })
+                        if logger:
+                            logger.debug(f"Cached coverage for domain: {domain}")
             
             # Enhanced error detection and reporting
             if result.returncode != 0:
@@ -1206,9 +1589,46 @@ class CoverageMetricsRegenerator:
                                 
                                 # Reload coverage data from the regenerated JSON
                                 if coverage_output.exists():
+                                    # Load fresh coverage JSON for merging
+                                    fresh_coverage_json_parallel = None
+                                    try:
+                                        with open(coverage_output, 'r', encoding='utf-8') as f:
+                                            fresh_coverage_json_parallel = json.load(f)
+                                    except Exception as e:
+                                        if logger:
+                                            logger.warning(f"Failed to load fresh coverage JSON after parallel combine: {e}")
+                                        fresh_coverage_json_parallel = None
+                                    
+                                    # Domain-aware caching: merge cached coverage with fresh coverage (parallel mode)
+                                    if self.use_domain_cache and self.domain_cache and cached_coverage_json and fresh_coverage_json_parallel:
+                                        # Merge cached and fresh coverage JSON
+                                        merged_coverage_json = self._merge_coverage_json(cached_coverage_json, fresh_coverage_json_parallel)
+                                        
+                                        # Save merged coverage JSON
+                                        try:
+                                            with open(coverage_output, 'w', encoding='utf-8') as f:
+                                                json.dump(merged_coverage_json, f, indent=2)
+                                            if logger:
+                                                logger.info("Merged cached and fresh coverage data (parallel mode)")
+                                        except Exception as e:
+                                            if logger:
+                                                logger.warning(f"Failed to save merged coverage JSON: {e}")
+                                        
+                                        # Use merged JSON for analysis
+                                        fresh_coverage_json_parallel = merged_coverage_json
+                                    
                                     if self.analyzer:
                                         coverage_data = self.analyzer.load_coverage_json(coverage_output)
                                         overall_coverage = self.analyzer.extract_overall_from_json(coverage_output)
+                                        
+                                        # Recalculate overall from merged JSON if we merged
+                                        if self.use_domain_cache and self.domain_cache and cached_coverage_json and fresh_coverage_json_parallel:
+                                            total_statements = fresh_coverage_json_parallel['totals'].get('num_statements', 0)
+                                            total_covered = fresh_coverage_json_parallel['totals'].get('covered_lines', 0)
+                                            if total_statements > 0:
+                                                overall_coverage['overall_coverage'] = fresh_coverage_json_parallel['totals'].get('percent_covered', 0.0)
+                                                overall_coverage['total_statements'] = total_statements
+                                                overall_coverage['total_missed'] = fresh_coverage_json_parallel['totals'].get('missing_lines', 0)
                                         
                                         # Validate coverage percentage - if it's unexpectedly low, warn
                                         # Expected coverage should be around 70-75% based on historical data
@@ -1221,6 +1641,67 @@ class CoverageMetricsRegenerator:
                                                 f"No_parallel file existed before cleanup: {no_parallel_file_existed}, "
                                                 f"Shard files found: {shard_files_count}"
                                             )
+                                        
+                                        # Update cache with fresh coverage for changed domains (parallel mode)
+                                        # If changed_domains is empty, cache all domains (first run)
+                                        if self.use_domain_cache and self.domain_cache and fresh_coverage_json_parallel:
+                                            # Filter to only main coverage domains (exclude development_tools)
+                                            main_coverage_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
+                                            filtered_changed_domains = changed_domains & main_coverage_domains
+                                            
+                                            # Check if cache is empty to determine if this is first run
+                                            main_domains_in_cache = {
+                                                domain for domain in self.domain_cache.cache_data.get('domains', {}).keys()
+                                                if domain in main_coverage_domains
+                                            }
+                                            cache_is_empty = len(main_domains_in_cache) == 0
+                                            if cache_is_empty or not filtered_changed_domains:
+                                                # First run or no changes detected - cache all domains from coverage data
+                                                all_domains_in_coverage = set()
+                                                for file_path in fresh_coverage_json_parallel.get('files', {}).keys():
+                                                    source_domain = self.domain_mapper.get_source_domain(file_path.replace('\\', '/'))
+                                                    if source_domain:
+                                                        all_domains_in_coverage.add(source_domain)
+                                                domains_to_cache = all_domains_in_coverage if all_domains_in_coverage else list(main_coverage_domains)
+                                            else:
+                                                domains_to_cache = filtered_changed_domains
+                                            
+                                            if logger and cache_is_empty:
+                                                logger.info(f"Caching coverage for {len(domains_to_cache)} domain(s) (first run)")
+                                            
+                                            for domain in domains_to_cache:
+                                                # Get files for this domain
+                                                domain_files = {}
+                                                for file_path, file_data in fresh_coverage_json_parallel.get('files', {}).items():
+                                                    # Check if file belongs to this domain
+                                                    source_domain = self.domain_mapper.get_source_domain(file_path.replace('\\', '/'))
+                                                    if source_domain == domain:
+                                                        domain_files[file_path] = file_data
+                                                
+                                                if domain_files:
+                                                    domain_coverage_json = {
+                                                        'files': domain_files,
+                                                        'totals': {
+                                                            'num_statements': sum(f.get('summary', {}).get('num_statements', 0) for f in domain_files.values()),
+                                                            'covered_lines': sum(f.get('summary', {}).get('covered_lines', 0) for f in domain_files.values()),
+                                                            'missing_lines': sum(f.get('summary', {}).get('missing_lines', 0) for f in domain_files.values()),
+                                                            'percent_covered': 0.0
+                                                        }
+                                                    }
+                                                    # Calculate percent_covered
+                                                    total_statements = domain_coverage_json['totals']['num_statements']
+                                                    if total_statements > 0:
+                                                        domain_coverage_json['totals']['percent_covered'] = round(
+                                                            (domain_coverage_json['totals']['covered_lines'] / total_statements) * 100, 2
+                                                        )
+                                                    
+                                                    # Cache domain coverage
+                                                    self.domain_cache.cache_coverage_for_domain(domain, {
+                                                        'coverage_json': domain_coverage_json,
+                                                        'timestamp': datetime.now().isoformat()
+                                                    })
+                                                    if logger:
+                                                        logger.debug(f"Updated cache for domain: {domain} (parallel mode)")
                                     else:
                                         coverage_data = {}
                                         overall_coverage = {}
@@ -1273,14 +1754,141 @@ class CoverageMetricsRegenerator:
                 'coverage_collected': False
             }
 
+    def _get_dev_tools_source_mtimes(self) -> Dict[str, float]:
+        """
+        Get current modification times for all Python files in development_tools directory.
+        
+        Returns:
+            Dictionary mapping file paths to modification times
+        """
+        mtimes = {}
+        dev_tools_dir = self.project_root / 'development_tools'
+        if not dev_tools_dir.exists():
+            return mtimes
+        
+        # Get all Python files in development_tools (excluding test files and cache)
+        for py_file in dev_tools_dir.rglob('*.py'):
+            # Skip test files and cache directories
+            if 'test_' in py_file.name or 'tests' in py_file.parts or '.coverage_cache' in py_file.parts:
+                continue
+            try:
+                rel_path = str(py_file.relative_to(self.project_root))
+                mtime = py_file.stat().st_mtime
+                mtimes[rel_path] = mtime
+            except OSError:
+                continue
+        
+        return mtimes
+    
+    def _check_dev_tools_changed(self) -> bool:
+        """
+        Check if development_tools source files have changed since last cache.
+        
+        Returns:
+            True if files have changed, False if unchanged
+        """
+        if not self.use_domain_cache or not self.domain_cache:
+            return True  # If caching disabled, always consider changed
+        
+        # Get current mtimes
+        current_mtimes = self._get_dev_tools_source_mtimes()
+        
+        # Check cache for development_tools domain
+        domains = self.domain_cache.cache_data.get('domains', {})
+        if 'development_tools' not in domains:
+            # No cache exists - consider it changed
+            return True
+        
+        # Get cached mtimes from the domain cache
+        cached_mtimes = domains['development_tools'].get('source_files_mtime', {})
+        if not cached_mtimes:
+            return True
+        
+        # Compare mtimes
+        for file_path, current_mtime in current_mtimes.items():
+            cached_mtime = cached_mtimes.get(file_path)
+            if cached_mtime is None or current_mtime != cached_mtime:
+                return True
+        
+        # Check if any files were removed
+        for file_path in cached_mtimes.keys():
+            if file_path not in current_mtimes:
+                return True
+        
+        return False
+    
     def run_dev_tools_coverage(self) -> Dict[str, Dict[str, any]]:
         """Run pytest coverage analysis specifically for development_tools directory."""
         if logger:
             logger.info("Running pytest coverage analysis for development_tools...")
         
+        # Domain-aware caching: check if dev tools have changed
+        dev_tools_changed = True
+        cached_coverage_json = None
+        
+        if self.use_domain_cache and self.domain_cache:
+            dev_tools_changed = self._check_dev_tools_changed()
+            
+            if not dev_tools_changed:
+                # Load cached coverage data
+                cached_data = self.domain_cache.get_cached_coverage_for_domain('development_tools')
+                if cached_data and 'coverage_json' in cached_data:
+                    cached_coverage_json = cached_data['coverage_json']
+                    if logger:
+                        logger.info("Dev tools unchanged - using cached coverage data (skipping test execution)")
+                else:
+                    # Cache exists but no coverage data - need to run tests
+                    dev_tools_changed = True
+            else:
+                if logger:
+                    logger.info("Dev tools source files changed - will run tests and update cache")
+        
         try:
             coverage_output = self.dev_tools_coverage_json
             coverage_output.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Skip test execution if using cached data
+            if not dev_tools_changed and cached_coverage_json:
+                # Save cached JSON to coverage_output so analyzer can load it
+                try:
+                    with open(coverage_output, 'w', encoding='utf-8') as f:
+                        json.dump(cached_coverage_json, f, indent=2)
+                    if logger:
+                        logger.info("Loaded cached dev tools coverage data")
+                except Exception as e:
+                    if logger:
+                        logger.warning(f"Failed to save cached coverage JSON: {e}")
+                    # Fall through to run tests
+                    dev_tools_changed = True
+            
+            if not dev_tools_changed and cached_coverage_json:
+                # Use cached data
+                if self.analyzer:
+                    coverage_data = self.analyzer.load_coverage_json(coverage_output)
+                    overall_coverage = self.analyzer.extract_overall_from_json(coverage_output)
+                else:
+                    # Fallback: extract from cached JSON structure
+                    coverage_data = {}
+                    for file_path, file_data in cached_coverage_json.get('files', {}).items():
+                        summary = file_data.get('summary', {})
+                        coverage_data[file_path] = {
+                            'statements': summary.get('num_statements', 0),
+                            'covered': summary.get('covered_lines', 0),
+                            'missed': summary.get('missing_lines', 0),
+                            'coverage': summary.get('percent_covered', 0.0)
+                        }
+                    overall_coverage = {
+                        'overall_coverage': cached_coverage_json['totals'].get('percent_covered', 0.0),
+                        'total_statements': cached_coverage_json['totals'].get('num_statements', 0),
+                        'total_missed': cached_coverage_json['totals'].get('missing_lines', 0)
+                    }
+                
+                return {
+                    'modules': coverage_data,
+                    'overall': overall_coverage,
+                    'coverage_collected': True,
+                    'from_cache': True
+                }
             
             # Coverage only for development_tools directory
             # Note: coverage_output path is relative to project_root, so we need to make it absolute
@@ -1438,6 +2046,45 @@ class CoverageMetricsRegenerator:
                     if result.stderr:
                         logger.warning(f"Pytest stderr: {result.stderr[:500]}")
             
+            # Domain-aware caching: cache dev tools coverage if we ran tests
+            if self.use_domain_cache and self.domain_cache and coverage_output.exists() and dev_tools_changed:
+                # Load fresh coverage JSON
+                try:
+                    with open(coverage_output, 'r', encoding='utf-8') as f:
+                        fresh_coverage_json = json.load(f)
+                    
+                    # Manually cache the coverage data for development_tools domain
+                    # (since it's not in the standard domain mapping)
+                    # Reload cache first to get latest data (in case another process updated it)
+                    self.domain_cache._load_cache()
+                    
+                    if 'domains' not in self.domain_cache.cache_data:
+                        self.domain_cache.cache_data['domains'] = {}
+                    
+                    # Get current source file mtimes
+                    source_mtimes = self._get_dev_tools_source_mtimes()
+                    
+                    # Cache using the same structure as other domains
+                    self.domain_cache.cache_data['domains']['development_tools'] = {
+                        'source_files_mtime': source_mtimes,
+                        'coverage_data': {
+                            'coverage_json': fresh_coverage_json,
+                            'timestamp': datetime.now().isoformat()
+                        },
+                        'test_domains': ['tests/development_tools/'],
+                        'test_markers': [],
+                        'last_coverage_run': datetime.now().isoformat()
+                    }
+                    
+                    # Save the cache (with locking to prevent race conditions)
+                    self.domain_cache._save_cache()
+                    
+                    if logger:
+                        logger.debug("Cached dev tools coverage data")
+                except Exception as e:
+                    if logger:
+                        logger.warning(f"Failed to cache dev tools coverage: {e}")
+            
             # Clean up temporary coverage data files after generating report
             self._cleanup_coverage_data_files()
             # Also clean up any process-specific files that may have been created
@@ -1454,7 +2101,8 @@ class CoverageMetricsRegenerator:
                 'overall': overall_coverage,
                 'coverage_collected': bool(coverage_data) or coverage_output.exists(),
                 'output_file': str(coverage_output),
-                'html_dir': None  # HTML reports disabled
+                'html_dir': None,  # HTML reports disabled
+                'from_cache': not dev_tools_changed if self.use_domain_cache and self.domain_cache else False
             }
             
         except Exception as e:
@@ -1907,6 +2555,8 @@ def main():
                        help="Number of parallel workers (default: 'auto' to let pytest-xdist decide, or specify a number)")
     parser.add_argument('--dev-tools-only', action='store_true',
                        help='Run coverage analysis only for development_tools directory (separate evaluation)')
+    parser.add_argument('--no-domain-cache', action='store_true',
+                       help='Disable domain-aware caching (runs all tests regardless of domain changes). Domain-aware caching is enabled by default.')
     
     args = parser.parse_args()
     
@@ -1914,7 +2564,8 @@ def main():
     parallel_enabled = not args.no_parallel
     regenerator = CoverageMetricsRegenerator(
         parallel=parallel_enabled,
-        num_workers=args.workers if parallel_enabled else None
+        num_workers=args.workers if parallel_enabled else None,
+        use_domain_cache=not args.no_domain_cache
     )
     results = regenerator.run(update_plan=args.update_plan, dev_tools_only=args.dev_tools_only)
     

@@ -287,36 +287,58 @@ def _unused_imports_report_command(service: "AIToolsService", argv: Sequence[str
 def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     """Handle cleanup command."""
     parser = argparse.ArgumentParser(prog='cleanup', add_help=False)
-    parser.add_argument('--cache', action='store_true', help='Clean cache directories (__pycache__, .pytest_cache)')
+    parser.add_argument('--full', action='store_true', help='Clean everything including tool caches (default: only __pycache__ and temp test files)')
+    parser.add_argument('--cache', action='store_true', help='Clean cache directories (__pycache__, .pytest_cache) and standardized storage cache files')
     parser.add_argument('--test-data', action='store_true', help='Clean test data directories')
-    parser.add_argument('--coverage', action='store_true', help='Clean coverage files and logs')
-    parser.add_argument('--all', action='store_true', help='Clean all categories (default if no specific category specified)')
+    parser.add_argument('--coverage', action='store_true', help='Clean coverage files, logs, and domain-aware coverage cache')
     parser.add_argument('--dry-run', action='store_true', help='Show what would be removed without actually removing')
     
     if '-h' in argv or '--help' in argv:
-        print("Usage: cleanup [--cache] [--test-data] [--coverage] [--all] [--dry-run]")
-        print("  --cache      Clean cache directories (__pycache__, .pytest_cache)")
+        print("Usage: cleanup [--full] [--cache] [--test-data] [--coverage] [--dry-run]")
+        print("  --full       Clean everything including tool caches (default: only __pycache__ and temp test files)")
+        print("  --cache      Clean cache directories (__pycache__, .pytest_cache) and standardized storage cache files")
         print("  --test-data  Clean test data directories")
-        print("  --coverage   Clean coverage files and logs")
-        print("  --all        Clean all categories (default if no specific category specified)")
+        print("  --coverage   Clean coverage files, logs, and domain-aware coverage cache")
         print("  --dry-run    Show what would be removed without making changes")
+        print()
+        print("Default behavior (no flags): Clean __pycache__ directories and temp test files only")
+        print("Use --full to clean everything including tool caches")
         return 0
     
     try:
         args, unknown = parser.parse_known_args(argv)
         if unknown:
             print(f"Unknown arguments: {unknown}")
-            print("Usage: cleanup [--cache] [--test-data] [--coverage] [--all] [--dry-run]")
+            print("Usage: cleanup [--full] [--cache] [--test-data] [--coverage] [--dry-run]")
             return 2
     except SystemExit:
         return 2
     
+    # If --full is specified, clean everything
+    if args.full:
+        cache = True
+        test_data = True
+        coverage = True
+    else:
+        # Default: only clean __pycache__ and temp test files (light cleanup)
+        # If no flags specified, default to minimal cleanup (cache + test_data only)
+        if not any([args.cache, args.test_data, args.coverage]):
+            cache = True  # Clean __pycache__ directories
+            test_data = True  # Clean temp test files
+            coverage = False  # Don't clean coverage or tool caches by default
+        else:
+            # Use explicit flags if provided
+            cache = args.cache
+            test_data = args.test_data
+            coverage = args.coverage
+    
     result = service.run_cleanup(
-        cache=args.cache,
-        test_data=args.test_data,
+        cache=cache,
+        test_data=test_data,
         reports=False,
-        all=args.all,
-        coverage=args.coverage,
+        all=False,  # Don't use --all flag, we handle it via --full
+        coverage=coverage,
+        full=args.full,
         dry_run=args.dry_run
     )
     

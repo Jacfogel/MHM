@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-12 - Domain-Aware Caching Fixes and Cleanup Command Improvements **COMPLETED**
+- Fixed domain-aware caching issues: main coverage now filters out `development_tools` domain to prevent cross-contamination, duplicate log messages removed, only `.py` files tracked
+- Fixed `--clear-cache` flag to include domain-aware coverage cache cleanup
+- Fixed broken cleanup command (was returning None) and updated to mirror audit structure: default `cleanup` is conservative (only `__pycache__` and temp test files), `cleanup --full` cleans everything including tool caches
+- **Impact**: Domain-aware caching now works correctly with proper domain isolation, cleanup command is functional and follows consistent pattern with audit command
+
 ### 2026-01-11 - Test Coverage Caching Implementation and Domain-Aware Cache POC **COMPLETED**
 - Implemented coverage analysis caching in `analyze_test_coverage.py` using `MtimeFileCache` - saves ~2s per run when coverage data unchanged
 - Created domain-aware coverage cache POC: `domain_mapper.py` maps source directories to test directories/markers, `coverage_cache.py` tracks source file mtimes per domain for granular invalidation

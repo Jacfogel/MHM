@@ -38,6 +38,39 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-12 - Domain-Aware Caching Fixes and Cleanup Command Improvements **COMPLETED**
+- **Feature**: Fixed domain-aware caching implementation issues and improved cleanup command to mirror audit structure
+- **Changes**:
+  1. **Domain-Aware Caching Fixes**:
+     - Fixed main coverage incorrectly detecting `development_tools` domain as changed - now filters to only main coverage domains (core, communication, ui, tasks, ai, user, notebook)
+     - Fixed duplicate log messages by changing "Domain-aware coverage caching enabled" to debug level
+     - Ensured only `.py` files are tracked for changes (ignores .md, .txt, .json, .log files) with explicit filtering in `get_source_file_mtimes()`
+     - Improved domain isolation: main coverage and dev tools coverage use separate domain keys and don't interfere with each other
+     - Fixed cache merging logic to properly handle parallel execution scenarios with domain filtering
+  2. **Cache Management Integration**:
+     - Updated `_clear_all_caches()` in `run_development_tools.py` to include domain-aware coverage cache cleanup
+     - Updated `cleanup_coverage_files()` in `fix_project_cleanup.py` to include domain-aware cache cleanup
+     - Cache location: `development_tools/tests/.coverage_cache/domain_coverage_cache.json`
+  3. **Cleanup Command Fixes and Improvements**:
+     - Fixed `run_cleanup()` method in `commands.py` to properly return result dictionary (was returning None, causing `'NoneType' object has no attribute 'get'` error)
+     - Implemented proper `ProjectCleanup` integration with error handling
+     - Added `--full` flag to cleanup command to mirror audit structure
+     - Changed default behavior: `cleanup` (no flags) now only cleans `__pycache__` directories and temp test files (conservative default)
+     - `cleanup --full` cleans everything including tool caches, coverage files, and domain-aware cache
+     - Tool caches are only cleaned when `--full` is specified (prevents accidental cache clearing during normal cleanup)
+     - Updated help text to reflect new behavior and clarify default vs full cleanup
+  4. **Code Quality**:
+     - Added `include_tool_caches` parameter to `cleanup_cache_directories()` and `cleanup_all()` methods
+     - Improved error handling in cleanup command with try/except blocks
+     - Updated documentation to reflect new cleanup command structure
+- **Impact**: 
+  - Domain-aware caching now works correctly with proper domain isolation, preventing unnecessary test runs
+  - Cleanup command is functional and follows consistent pattern with audit command (default = conservative, --full = everything)
+  - Tool caches are protected from accidental clearing during normal cleanup operations
+  - Cache management is now comprehensive and consistent across all tools
+- **Files**: `development_tools/tests/run_test_coverage.py`, `development_tools/tests/coverage_cache.py`, `development_tools/run_development_tools.py`, `development_tools/shared/fix_project_cleanup.py`, `development_tools/shared/service/commands.py`, `development_tools/shared/cli_interface.py`
+- **Testing**: Domain-aware caching verified working correctly with proper domain filtering. Cleanup command tested and working with both default and --full modes.
+
 ### 2026-01-11 - Test Coverage Caching Implementation and Domain-Aware Cache POC **COMPLETED**
 - **Feature**: Implemented coverage analysis caching and domain-aware coverage cache proof-of-concept to accelerate test coverage generation workflow. Moved test-specific caching modules to appropriate directory and fixed related test failures and documentation issues.
 - **Changes**:
@@ -88,15 +121,37 @@ When adding new changes, follow this format:
   - ✅ Documentation updated (both human and AI guides)
   - ✅ File organization (moved to `tests/` directory)
 - **What Remains** (Future Enhancements):
-  - ⏳ **Integrate domain-aware caching with test execution**: Modify `run_test_coverage.py` to use `DomainAwareCoverageCache` for intelligent test selection
-    - Use `get_changed_domains()` to detect which domains need re-testing
-    - Use `get_pytest_marker_filter()` to generate pytest marker filters
-    - Use `get_test_directories_for_domains()` to limit test discovery to changed domains
-    - Only run tests for changed domains, merge cached coverage data from unchanged domains
-  - ⏳ **Measure performance benefits**: Measure actual time savings with domain-aware test execution (target: 50%+ when only one domain changes)
-  - ⏳ **Add dependency tracking**: Track cross-domain dependencies (e.g., if `core/` changes, may need to re-run `communication/` tests that depend on core)
-  - ⏳ **Extend caching to other tools**: Apply `MtimeFileCache` pattern to `analyze_error_handling.py` and `analyze_functions.py` (prioritized candidates)
-- **Files**: `development_tools/tests/analyze_test_coverage.py`, `development_tools/tests/domain_mapper.py`, `development_tools/tests/coverage_cache.py`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`, `tests/ui/test_ui_app_qt_main.py`
+  - ✅ **Integrate domain-aware caching with test execution**: COMPLETED - `run_test_coverage.py` now uses `DomainAwareCoverageCache` for intelligent test selection
+    - Uses `get_changed_domains()` to detect which domains need re-testing
+    - Uses `get_pytest_marker_filter()` to generate pytest marker filters
+    - Uses `get_test_directories_for_domains()` to limit test discovery to changed domains
+    - Only runs tests for changed domains, merges cached coverage data from unchanged domains
+    - Enabled by default - disable with `--no-domain-cache` flag
+    - Supports both serial and parallel test execution modes
+    - Integrated with dev tools coverage for complete caching coverage
+  - ✅ **Domain isolation and filtering**: COMPLETED - Main coverage now filters out `development_tools` domain to prevent cross-contamination
+    - Main coverage checks only main coverage domains (core, communication, ui, tasks, ai, user, notebook)
+    - Dev tools coverage uses separate domain key and doesn't interfere with main coverage
+    - Fixed duplicate log messages (changed to debug level)
+    - Only tracks `.py` files (ignores .md, .txt, .json, .log files)
+  - ✅ **Cache management integration**: COMPLETED - Domain-aware cache now included in `--clear-cache` flag and cleanup command
+    - `--clear-cache` flag now clears domain-aware coverage cache
+    - `cleanup --coverage` command now includes domain-aware cache cleanup
+    - Cache location: `development_tools/tests/.coverage_cache/domain_coverage_cache.json`
+  - ✅ **Domain-aware caching fixes and improvements**: COMPLETED - Fixed several issues with domain-aware caching implementation
+    - Fixed main coverage incorrectly detecting `development_tools` domain as changed (now filters to only main coverage domains)
+    - Fixed duplicate log messages (changed "Domain-aware coverage caching enabled" to debug level)
+    - Ensured only `.py` files are tracked for changes (ignores .md, .txt, .json, .log files)
+    - Improved domain isolation: main coverage and dev tools coverage use separate domain keys
+    - Fixed cache merging logic to properly handle parallel execution scenarios
+  - ✅ **Cleanup command improvements**: COMPLETED - Fixed broken cleanup command and updated to mirror audit structure
+    - Fixed `run_cleanup()` method to properly return result dictionary (was returning None)
+    - Added `--full` flag to cleanup command (mirrors audit structure)
+    - Default cleanup (`cleanup` with no flags) now only cleans `__pycache__` and temp test files (conservative default)
+    - `cleanup --full` cleans everything including tool caches, coverage files, and domain-aware cache
+    - Tool caches are only cleaned when `--full` is specified (prevents accidental cache clearing)
+    - Updated help text to reflect new behavior
+- **Files**: `development_tools/tests/analyze_test_coverage.py`, `development_tools/tests/domain_mapper.py`, `development_tools/tests/coverage_cache.py`, `development_tools/tests/run_test_coverage.py`, `development_tools/run_development_tools.py`, `development_tools/shared/fix_project_cleanup.py`, `development_tools/shared/service/commands.py`, `development_tools/shared/cli_interface.py`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`, `tests/ui/test_ui_app_qt_main.py`
 - **Testing**: Coverage analysis caching verified working (saves ~2s when coverage JSON unchanged). Domain-aware cache POC infrastructure tested and ready. Test suite: 3917 passed, 0 failed, 2 skipped.
 
 ### 2026-01-11 - Development Tools Cache Management Improvements **COMPLETED**

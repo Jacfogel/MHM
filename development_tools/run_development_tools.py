@@ -35,16 +35,20 @@ logger = get_component_logger("development_tools")
 def _clear_all_caches(project_root: Path) -> int:
     """
     Clear all development tools cache files.
-    
+
+    Includes:
+    - Standardized storage cache files: development_tools/{domain}/jsons/.{tool}_cache.json
+    - Domain-aware coverage cache: development_tools/tests/.coverage_cache/domain_coverage_cache.json
+
     Args:
         project_root: Project root directory
-        
+
     Returns:
         Number of cache files cleared
     """
     cache_files_cleared = 0
     dev_tools_dir = project_root / "development_tools"
-    
+
     # Find all cache files in standardized storage: development_tools/{domain}/jsons/.{tool}_cache.json
     if dev_tools_dir.exists():
         for domain_dir in dev_tools_dir.iterdir():
@@ -58,7 +62,19 @@ def _clear_all_caches(project_root: Path) -> int:
                             logger.debug(f"Cleared cache file: {cache_file}")
                         except Exception as e:
                             logger.warning(f"Failed to clear cache file {cache_file}: {e}")
-    
+
+    # Clear domain-aware coverage cache
+    coverage_cache_dir = dev_tools_dir / "tests" / ".coverage_cache"
+    if coverage_cache_dir.exists():
+        cache_file = coverage_cache_dir / "domain_coverage_cache.json"
+        if cache_file.exists():
+            try:
+                cache_file.unlink()
+                cache_files_cleared += 1
+                logger.debug(f"Cleared domain-aware coverage cache: {cache_file}")
+            except Exception as e:
+                logger.warning(f"Failed to clear domain-aware coverage cache {cache_file}: {e}")
+
     return cache_files_cleared
 
 

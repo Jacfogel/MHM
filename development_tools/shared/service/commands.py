@@ -429,37 +429,51 @@ class CommandsMixin:
     
     def run_cleanup(self, cache: bool = False, test_data: bool = False,
                     reports: bool = False, all: bool = False,
-                    coverage: bool = False, dry_run: bool = False):
+                    coverage: bool = False, full: bool = False,
+                    dry_run: bool = False):
         """Clean up generated files and caches"""
-        logger.info("Starting cleanup...")
-        logger.info("=" * 50)
-        
-        if all:
-            cache = True
-            test_data = True
-            reports = True
-            coverage = True
-        
-        if cache:
-            logger.info("Cleaning cache files...")
-            # Clean cache files logic would go here
-        
-        if test_data:
-            logger.info("Cleaning test data...")
-            # Clean test data logic would go here
-        
-        if reports:
-            logger.info("Cleaning report files...")
-            # Clean report files logic would go here
-        
-        if coverage:
-            logger.info("Cleaning coverage files...")
-            # Clean coverage files logic would go here
-        
-        if dry_run:
-            logger.info("DRY RUN MODE - No files were actually removed")
-        
-        logger.info("Cleanup completed!")
+        try:
+            from development_tools.shared.fix_project_cleanup import ProjectCleanup
+            
+            logger.info("Starting cleanup...")
+            logger.info("=" * 50)
+            
+            # If --full is specified, clean everything including tool caches
+            if full:
+                cache = True
+                test_data = True
+                coverage = True
+            # Legacy --all flag support (for backwards compatibility)
+            elif all:
+                cache = True
+                test_data = True
+                reports = True
+                coverage = True
+            
+            cleanup = ProjectCleanup(self.project_root)
+            results = cleanup.cleanup_all(
+                dry_run=dry_run,
+                cache=cache,
+                test_data=test_data,
+                coverage=coverage,
+                include_tool_caches=full  # Only include tool caches when --full is specified
+            )
+            
+            if dry_run:
+                logger.info("DRY RUN MODE - No files were actually removed")
+            
+            logger.info("Cleanup completed!")
+            
+            return {
+                'success': True,
+                'data': results
+            }
+        except Exception as e:
+            logger.error(f"Cleanup failed: {e}", exc_info=True)
+            return {
+                'success': False,
+                'error': str(e)
+            }
     
     def run_analyze_system_signals(self):
         """Run system signals analysis"""
