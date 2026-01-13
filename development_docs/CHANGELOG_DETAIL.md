@@ -38,6 +38,32 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-13 - Coverage Caching Overhaul and Dev Tools Cache **COMPLETED**
+- **Feature**: Reworked test coverage caching to use test-file selection + merge, preserved merged coverage outputs, and added a dedicated dev tools coverage cache.
+- **Changes**:
+  1. **Test Coverage Caching (Main Suite)**:
+     - Implemented test-file-based caching and selective test execution by domain mappings
+     - Added full-coverage cache reuse when no domains changed
+     - Filtered fresh coverage to changed domains before merging; merged line coverage to avoid drops
+     - Preserved merged `coverage.json` during HTML generation to prevent overwrites
+  2. **Dev Tools Coverage Caching**:
+     - Added `development_tools/tests/dev_tools_coverage_cache.py` to store dev tools coverage JSON and source mtimes
+     - Dev tools coverage now reuses cached data when unchanged
+     - Cache location: `development_tools/tests/jsons/dev_tools_coverage_cache.json`
+  3. **Cache Storage and Cleanup**:
+     - Moved coverage cache files into `development_tools/tests/jsons/` alongside other JSON artifacts
+     - Updated `--clear-cache` and cleanup logic to clear test-file + dev tools caches
+     - Removed legacy domain-aware cache (`development_tools/tests/coverage_cache.py`)
+  4. **Test Discovery and Logging Improvements**:
+     - Excluded `tests/data/` from test discovery and unmapped-test reporting
+     - Clearer cache logging (run counts, unmapped test file warnings)
+     - Added human-readable timestamps/metadata to coverage JSON outputs
+  5. **Documentation Updates**:
+     - Updated AI and human dev tools guides plus improvement plan to reflect test-file + dev tools caching
+- **Impact**: Selective runs remain accurate (~72% coverage), no longer overwritten by regenerated JSON, dev tools coverage skips pytest when unchanged, and cache cleanup is consistent.
+- **Files**: `development_tools/tests/run_test_coverage.py`, `development_tools/tests/test_file_coverage_cache.py`, `development_tools/tests/dev_tools_coverage_cache.py`, `development_tools/tests/domain_mapper.py`, `development_tools/run_development_tools.py`, `development_tools/shared/fix_project_cleanup.py`, `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`
+- **Testing**: Verified via repeated `audit --full` runs (cached/uncached behavior) and selective runs after domain/dev tools changes; one selective run reported a failing behavior test (`tests/behavior/test_discord_task_reminder_followup.py::TestDiscordTaskReminderFollowup::test_discord_reminder_followup_no_reminders`) while coverage still merged.
+
 ### 2026-01-12 - Quick Note Feature, Command Parsing Improvements, and Documentation Updates **COMPLETED**
 - **Feature**: Added quick note command with automatic grouping, improved command parsing, fixed short ID formatting, and condensed manual testing guide
 - **Changes**:

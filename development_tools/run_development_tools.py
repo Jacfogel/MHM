@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # TOOL_TIER: core
 
+# NOTE: This file was modified to test domain-aware coverage cache merging.
+
 """Command-line interface for AI development tools."""
 
 import argparse
@@ -38,7 +40,8 @@ def _clear_all_caches(project_root: Path) -> int:
 
     Includes:
     - Standardized storage cache files: development_tools/{domain}/jsons/.{tool}_cache.json
-    - Domain-aware coverage cache: development_tools/tests/.coverage_cache/domain_coverage_cache.json
+    - Test-file-based coverage cache: development_tools/tests/jsons/test_file_coverage_cache.json
+    - Dev tools coverage cache: development_tools/tests/jsons/dev_tools_coverage_cache.json
 
     Args:
         project_root: Project root directory
@@ -63,17 +66,28 @@ def _clear_all_caches(project_root: Path) -> int:
                         except Exception as e:
                             logger.warning(f"Failed to clear cache file {cache_file}: {e}")
 
-    # Clear domain-aware coverage cache
-    coverage_cache_dir = dev_tools_dir / "tests" / ".coverage_cache"
-    if coverage_cache_dir.exists():
-        cache_file = coverage_cache_dir / "domain_coverage_cache.json"
-        if cache_file.exists():
+    # Clear test-file-based coverage cache (now in jsons/ directory)
+    jsons_dir = dev_tools_dir / "tests" / "jsons"
+    if jsons_dir.exists():
+        # New test-file-based cache
+        test_file_cache_file = jsons_dir / "test_file_coverage_cache.json"
+        if test_file_cache_file.exists():
             try:
-                cache_file.unlink()
+                test_file_cache_file.unlink()
                 cache_files_cleared += 1
-                logger.debug(f"Cleared domain-aware coverage cache: {cache_file}")
+                logger.debug(f"Cleared test-file-based coverage cache: {test_file_cache_file}")
             except Exception as e:
-                logger.warning(f"Failed to clear domain-aware coverage cache {cache_file}: {e}")
+                logger.warning(f"Failed to clear test-file-based coverage cache {test_file_cache_file}: {e}")
+
+        # Dev tools coverage cache
+        dev_tools_cache_file = jsons_dir / "dev_tools_coverage_cache.json"
+        if dev_tools_cache_file.exists():
+            try:
+                dev_tools_cache_file.unlink()
+                cache_files_cleared += 1
+                logger.debug(f"Cleared dev tools coverage cache: {dev_tools_cache_file}")
+            except Exception as e:
+                logger.warning(f"Failed to clear dev tools coverage cache {dev_tools_cache_file}: {e}")
 
     return cache_files_cleared
 

@@ -290,7 +290,7 @@ def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     parser.add_argument('--full', action='store_true', help='Clean everything including tool caches (default: only __pycache__ and temp test files)')
     parser.add_argument('--cache', action='store_true', help='Clean cache directories (__pycache__, .pytest_cache) and standardized storage cache files')
     parser.add_argument('--test-data', action='store_true', help='Clean test data directories')
-    parser.add_argument('--coverage', action='store_true', help='Clean coverage files, logs, and domain-aware coverage cache')
+    parser.add_argument('--coverage', action='store_true', help='Clean coverage files, logs, and test-file-based coverage cache')
     parser.add_argument('--dry-run', action='store_true', help='Show what would be removed without actually removing')
     
     if '-h' in argv or '--help' in argv:
@@ -298,7 +298,7 @@ def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
         print("  --full       Clean everything including tool caches (default: only __pycache__ and temp test files)")
         print("  --cache      Clean cache directories (__pycache__, .pytest_cache) and standardized storage cache files")
         print("  --test-data  Clean test data directories")
-        print("  --coverage   Clean coverage files, logs, and domain-aware coverage cache")
+        print("  --coverage   Clean coverage files, logs, and test-file-based coverage cache")
         print("  --dry-run    Show what would be removed without making changes")
         print()
         print("Default behavior (no flags): Clean __pycache__ directories and temp test files only")

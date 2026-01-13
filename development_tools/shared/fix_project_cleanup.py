@@ -185,7 +185,7 @@ class ProjectCleanup:
         return removed, failed
     
     def cleanup_coverage_files(self, dry_run: bool = False) -> Tuple[int, int]:
-        """Remove .coverage files and domain-aware coverage cache."""
+        """Remove .coverage files and coverage cache files."""
         files = self.find_files(".coverage")
         removed = 0
         failed = 0
@@ -201,12 +201,26 @@ class ProjectCleanup:
                 if not dry_run:
                     logger.warning(f"  {message}")
         
-        # Also clean up domain-aware coverage cache
-        coverage_cache_dir = self.project_root / "development_tools" / "tests" / ".coverage_cache"
-        if coverage_cache_dir.exists():
-            cache_file = coverage_cache_dir / "domain_coverage_cache.json"
-            if cache_file.exists():
-                success, message = self.remove_path(cache_file, dry_run)
+        # Clean up test-file-based coverage cache (now in jsons/ directory)
+        jsons_dir = self.project_root / "development_tools" / "tests" / "jsons"
+        if jsons_dir.exists():
+            # New test-file-based cache
+            test_file_cache_file = jsons_dir / "test_file_coverage_cache.json"
+            if test_file_cache_file.exists():
+                success, message = self.remove_path(test_file_cache_file, dry_run)
+                if success:
+                    removed += 1
+                    if not dry_run:
+                        logger.info(f"  {message}")
+                else:
+                    failed += 1
+                    if not dry_run:
+                        logger.warning(f"  {message}")
+            
+            # Dev tools coverage cache
+            dev_tools_cache_file = jsons_dir / "dev_tools_coverage_cache.json"
+            if dev_tools_cache_file.exists():
+                success, message = self.remove_path(dev_tools_cache_file, dry_run)
                 if success:
                     removed += 1
                     if not dry_run:
@@ -393,7 +407,7 @@ class ProjectCleanup:
             dry_run: If True, show what would be removed without actually removing
             cache: Clean cache directories (__pycache__, .pytest_cache)
             test_data: Clean test data directories
-            coverage: Clean coverage files, logs, and domain-aware coverage cache
+            coverage: Clean coverage files, logs, and test-file-based coverage cache
             keep_vscode: Keep VSCode cache directories (not implemented)
             keep_cursor: Keep Cursor cache directories (not implemented)
             include_tool_caches: If True, also clean standardized storage cache files (only with --full)
@@ -495,4 +509,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

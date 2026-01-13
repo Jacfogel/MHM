@@ -383,7 +383,10 @@ When adding new tasks, follow this format:
   - [ ] Fix test isolation to prevent interference with running services
   - [ ] Add safeguards to detect and prevent test interference with active services
 
-
+**Map unmapped test files to domains - Assign domains for the remaining unmapped test files in the test-file cache**
+- *What it means*: Review the unmapped test files reported by the cache and associate each with one or more domains.
+- *Why it helps*: Improves selective runs and cache accuracy while keeping full runs clean.
+- *Estimated effort*: Small/Medium
 
 
 

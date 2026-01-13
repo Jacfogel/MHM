@@ -387,13 +387,13 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 **Note**: Cursor IDE Compatibility - All tools are compatible. Ruff and bandit have VS Code extensions (Cursor is VS Code-based), others work via command-line or pre-commit hooks.
 
 #### 2.10 Investigate Caching to Accelerate Test Coverage Generation
-**Status**: INTEGRATED - Domain-Aware Caching Enabled by Default  
+**Status**: INTEGRATED - Test-File Caching Enabled by Default  
 **Priority**: MEDIUM  
 **Issue**: Test coverage generation can be time-consuming, especially for large codebases. Caching could potentially accelerate coverage collection by reusing coverage data when source files haven't changed.
 
 **Progress** (2026-01-11):
 - [x] Created comprehensive caching exploration plan
-  - Plan includes domain-aware caching approach using test directory structure and pytest markers (user insight)
+  - Plan includes test-file caching approach using test directory structure and pytest markers (user insight)
   - Plan documents investigation, evaluation, and implementation phases
   - Plan file: `.cursor/plans/caching_exploration_for_development_tools_fb102ab8.plan.md`
 - [x] Added `--clear-cache` flag to development tools CLI for easy cache management
@@ -407,12 +407,14 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
   - Caches analysis results based on coverage JSON file mtime
   - Saves ~2s per run when coverage data hasn't changed
   - Uses standardized storage: `development_tools/tests/jsons/.analyze_test_coverage_cache.json`
-- [x] **Implemented domain-aware coverage cache (POC)**: Created `tests/coverage_cache.py` (`DomainAwareCoverageCache`)
-  - Tracks source file mtimes per domain
-  - Detects changed domains by comparing current mtimes with cached mtimes
-  - Provides utilities for generating pytest filters and test paths for changed domains
-  - Cache location: `development_tools/tests/.coverage_cache/domain_coverage_cache.json`
-  - **Status**: Infrastructure complete, integrated with `run_test_coverage.py` (enabled by default)
+- [x] **Implemented test-file coverage cache (Integrated)**: Added `tests/test_file_coverage_cache.py`
+  - Tracks source file mtimes per domain and maps domains to test files
+  - Runs only test files covering changed domains, merges cached coverage for unchanged tests
+  - Cache location: `development_tools/tests/jsons/test_file_coverage_cache.json`
+  - **Status**: Integrated with `run_test_coverage.py` (enabled by default)
+- [x] **Implemented dev tools coverage cache (Integrated)**: Added `tests/dev_tools_coverage_cache.py`
+  - Caches dev tools coverage JSON keyed by development_tools source mtimes
+  - Cache location: `development_tools/tests/jsons/dev_tools_coverage_cache.json`
 - [x] **Documented caching strategy**: Updated `AI_DEVELOPMENT_TOOLS_GUIDE.md` with caching documentation
   - File-based caching (MtimeFileCache)
   - Coverage analysis caching
@@ -428,43 +430,43 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
     - `analyze_module_imports.py` - Scans import statements (file-based, may have dependencies)
     - `analyze_module_dependencies.py` - Analyzes module dependencies (depends on imports analysis)
 - [x] **Evaluated caching strategies**: 
-  - **Domain-aware caching (RECOMMENDED)**: Implemented POC - tracks source file mtimes per domain, enables granular invalidation
+  - **Test-file caching (RECOMMENDED)**: Tracks source file mtimes per domain, maps to test files, enables granular invalidation
   - **File-level caching**: Already implemented via `MtimeFileCache` for file-based analyzers
   - **Analysis result caching**: Implemented for `analyze_test_coverage.py` - caches analysis results based on coverage JSON mtime
   - **Test execution caching**: Deferred - complex due to coverage data merging requirements
 - [x] **Designed cache storage mechanism**:
   - **Location**: Standardized storage at `development_tools/{domain}/jsons/.{tool}_cache.json` (for file-based caches)
-  - **Domain-aware cache**: `development_tools/tests/.coverage_cache/domain_coverage_cache.json`
+  - **Test-file coverage cache**: `development_tools/tests/jsons/test_file_coverage_cache.json`
+  - **Dev tools coverage cache**: `development_tools/tests/jsons/dev_tools_coverage_cache.json`
   - **Format**: JSON (human-readable, easy to debug)
-  - **Versioning**: Cache version field in domain-aware cache to handle tool changes
+  - **Versioning**: Cache version field in test-file cache to handle tool changes
   - **Invalidation**: File mtime checks (automatic), config file changes (automatic), manual via `--clear-cache` flag
 - [x] **Baseline performance** (from plan and existing data):
   - **Test coverage execution**: ~365s (baseline)
   - **Coverage analysis**: ~2s (now cached, saves ~2s when coverage JSON unchanged)
   - **Report generation**: ~5s
-  - **Potential savings with domain-aware caching**: ~83% when only one domain changes (e.g., only ui/ changes → only run tests/ui/ tests)
+  - **Potential savings with test-file caching**: ~83% when only one domain changes (e.g., only ui/ changes → only run tests covering ui/)
 
 **Progress Updates** (2026-01-12):
-- [x] **Integrated domain-aware caching with test execution**: `run_test_coverage.py` now uses `DomainAwareCoverageCache` for intelligent test selection
+- [x] **Integrated test-file caching with test execution**: `run_test_coverage.py` now uses `TestFileCoverageCache` for intelligent test selection
   - Uses `get_changed_domains()` to detect which domains need re-testing
-  - Uses `get_pytest_marker_filter()` to generate pytest marker filters
-  - Uses `get_test_directories_for_domains()` to limit test discovery to changed domains
-  - Only runs tests for changed domains, merges cached coverage data from unchanged domains
+  - Uses domain mappings to select test files covering changed domains
+  - Only runs those tests, merges cached coverage data from unchanged tests
   - Enabled by default - disable with `--no-domain-cache` flag
   - Supports both serial and parallel test execution modes
-  - Integrated with dev tools coverage for complete caching coverage
+- [x] **Dev tools coverage caching**: `run_test_coverage.py` caches dev tools coverage JSON based on development_tools source mtimes
 - [x] **Fixed domain isolation and filtering**: Main coverage now filters out `development_tools` domain to prevent cross-contamination
   - Main coverage checks only main coverage domains (core, communication, ui, tasks, ai, user, notebook)
   - Dev tools coverage uses separate domain key and doesn't interfere with main coverage
   - Fixed duplicate log messages (changed to debug level)
   - Only tracks `.py` files (ignores .md, .txt, .json, .log files)
-- [x] **Cache management integration**: Domain-aware cache now included in `--clear-cache` flag and cleanup command
-  - `--clear-cache` flag now clears domain-aware coverage cache
-  - `cleanup --coverage` command now includes domain-aware cache cleanup
+- [x] **Cache management integration**: Coverage caches now included in `--clear-cache` flag and cleanup command
+  - `--clear-cache` flag clears test-file and dev tools coverage caches
+  - `cleanup --coverage` includes coverage cache cleanup
   - Cleanup command updated to mirror audit structure (default = conservative, `--full` = everything)
 
 **Remaining Tasks** (Future Enhancements):
-- [ ] **Measure performance benefits**: Measure actual time savings with domain-aware test execution
+- [ ] **Measure performance benefits**: Measure actual time savings with test-file-based test execution
   - Target: 50%+ time savings when only one domain changes (e.g., ~83% when only ui/ changes)
   - Compare full test run vs. domain-filtered test run
   - Document actual performance improvements in changelog
@@ -478,8 +480,8 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
   - Use existing `MtimeFileCache` pattern (already proven effective)
 
 **Files**: 
-- **Infrastructure**: `development_tools/tests/domain_mapper.py`, `development_tools/tests/coverage_cache.py`
-- **Implementation**: `development_tools/tests/analyze_test_coverage.py` (caching added), `development_tools/tests/run_test_coverage.py` (domain-aware caching integrated)
+- **Infrastructure**: `development_tools/tests/domain_mapper.py`, `development_tools/tests/test_file_coverage_cache.py`, `development_tools/tests/dev_tools_coverage_cache.py`
+- **Implementation**: `development_tools/tests/analyze_test_coverage.py` (caching added), `development_tools/tests/run_test_coverage.py` (test-file caching integrated)
 - **Cache Management**: `development_tools/run_development_tools.py` (`--clear-cache` flag), `development_tools/shared/fix_project_cleanup.py` (cleanup command), `development_tools/shared/service/commands.py` (cleanup handler), `development_tools/shared/cli_interface.py` (cleanup CLI)
 - **Documentation**: `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md` (caching section updated), `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` (caching section updated)
 - **Plan**: `.cursor/plans/caching_exploration_for_development_tools_fb102ab8.plan.md`

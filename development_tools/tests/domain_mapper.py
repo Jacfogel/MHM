@@ -2,9 +2,9 @@
 """
 Domain Mapping Infrastructure
 
-Maps source code directories to test directories and pytest markers for domain-aware caching.
-This enables intelligent cache invalidation: when source files in a domain change, only that
-domain's cache is invalidated, not the entire test suite.
+Maps source code directories to test directories and pytest markers for test-file coverage caching.
+This enables selective test execution: when source files in a domain change, only test files
+covering that domain are re-run.
 
 Usage:
     from development_tools.tests.domain_mapper import DomainMapper
@@ -31,7 +31,7 @@ class DomainMapper:
     """
     Maps source code domains to test domains and pytest markers.
     
-    This enables domain-aware caching by identifying which tests cover which source domains.
+    This enables test-file coverage caching by identifying which tests cover which source domains.
     """
     
     # Source domain to test domain mapping

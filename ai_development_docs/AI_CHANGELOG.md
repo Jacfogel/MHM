@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-13 - Coverage Caching Overhaul (Main + Dev Tools) **COMPLETED**
+- Implemented test-file coverage caching with selective test runs and merged line coverage to avoid drops
+- Preserved merged `coverage.json` during HTML generation and moved cache files into `development_tools/tests/jsons/`
+- Added dev tools coverage cache (`dev_tools_coverage_cache.json`) and removed legacy domain-aware cache
+- **Impact**: Selective runs stay accurate (~72%), dev tools pytest skips when unchanged, and cache cleanup is consistent (one selective run had a behavior test failure while coverage still merged)
+
 ### 2026-01-12 - Quick Note Feature and Command Parsing Improvements **COMPLETED**
 - Added quick note command (`!qn`, `!qnote`, `!quickn`, etc.) that auto-groups to "Quick Notes" and doesn't require body text
 - Fixed quick note commands being misinterpreted as task creation by adding early pattern checking in command parser
