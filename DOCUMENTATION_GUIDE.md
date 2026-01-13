@@ -411,12 +411,9 @@ exists relative to the source document.
 It uses enhanced filtering to reduce false positives.
 
 [OK] Good (full paths):
-
-`development_tools/shared/service/core.py`
-
-`core/config.py`
-
-`tests/TESTING_GUIDE.md`
+- `development_tools/shared/service/core.py`
+- `core/config.py`
+- `tests/TESTING_GUIDE.md`
 
 [AVOID] Avoid (ambiguous short names):
 

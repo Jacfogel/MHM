@@ -86,7 +86,7 @@ AI docs should:
 - Format: trailing period and space required.
 
 Exceptions:
-- Changelogs, plan files, and `TODO.md` are excluded from numbering.
+- Changelogs, plan files, and [TODO.md](TODO.md) are excluded from numbering.
 
 ### 3.6. Example marking standards
 
@@ -99,8 +99,12 @@ Mark examples clearly so the path drift checker skips them:
 
 Primary rule: use full paths from project root for file references.
 
-- Prefer: `core/service.py`, `development_tools/run_development_tools.py`, `ai_development_docs/AI_REFERENCE.md`.
-- Avoid ambiguous short names like `config.py`, `operations.py`, `bot.py` unless directory context is 100% obvious.
+- Prefer: `core/service.py`, `development_tools/run_development_tools.py`, and [AI_REFERENCE.md](ai_development_docs/AI_REFERENCE.md).
+- Avoid ambiguous short names unless directory context is 100% obvious.
+[AVOID] Ambiguous short names:
+- `config.py`
+- `operations.py`
+- `bot.py`
 
 Verify that referenced paths exist before asserting them.
 

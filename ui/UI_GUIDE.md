@@ -197,3 +197,26 @@ class MHMManagerUI(QMainWindow):
   1. Save the `.ui` file.
   2. Run `python ui/generate_ui_files.py`.
   3. Fix any broken attribute references in your dialog/widget code.
+
+---
+
+## 4. UI Flow and Signal-Based Updates
+
+MHM UI follows a consistent flow so updates are predictable and maintainable:
+
+- **Flow direction**:
+  - Widgets emit signals upward.
+  - Dialogs validate input and call service or task helpers.
+  - The service updates data and notifies the UI of changes.
+  - The UI refreshes visible state from the source of truth.
+
+- **Signal-based updates (preferred)**:
+  - Use Qt signals to announce changes (`data_changed`, `request_refresh`, `selection_updated`, etc.).
+  - Connect signals in the dialog or main UI shell (`ui/ui_app_qt.py`) rather than wiring widgets directly to each other.
+  - Keep signal payloads small and specific (IDs, minimal state), then re-read full state via helpers.
+
+- **Avoid direct cross-widget state**:
+  - Do not have widgets mutate each other directly.
+  - Route shared updates through the dialog or the main UI controller.
+
+This keeps the UI aligned with the service layer and avoids brittle implicit dependencies.

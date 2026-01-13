@@ -36,8 +36,9 @@ Typical questions and starting points:
 - Configuration and environment variables  
   -> `.env`, `.env.example`, `core/config.py`  
   -> Details: see configuration notes in section 4. Key Modules and Responsibilities in
-     [ARCHITECTURE.md](ARCHITECTURE.md) and section 5. Configuration (Environment Variables) in
-     [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
+     [ARCHITECTURE.md](ARCHITECTURE.md), section 2.4. "Configuration and .env" in
+     [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md), and section 1.4. "Configure Environment (Optional)"
+     in [HOW_TO_RUN.md](HOW_TO_RUN.md).
 
 - Logging and error handling  
   -> `core/logger.py`, `core/error_handling.py`, `logs/`  
@@ -124,7 +125,8 @@ Use this list to anchor AI changes to the right modules.
   background service.  
 - `core/service.py` - background service implementation and lifecycle.  
 - `core/config.py` - configuration loader and validator (reads `.env` via python-dotenv).
-  See section 5. Configuration (Environment Variables) in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).  
+  See section 2.4. "Configuration and .env" in [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) and
+  section 1.4. "Configure Environment (Optional)" in [HOW_TO_RUN.md](HOW_TO_RUN.md).  
 - `core/logger.py` - logging configuration and component loggers. See section 2.
   Logging Architecture in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).  
 - `core/error_handling.py` - shared error handling decorators and integration with logging and

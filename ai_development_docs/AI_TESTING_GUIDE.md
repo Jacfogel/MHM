@@ -87,6 +87,7 @@ Use existing helpers:
 
 Test logging:
 
+- Headline rule: test logging must be isolated. Write only to `tests/logs/` (or test-specific temp locations), never to `logs/` or real user data directories.
 - Two main log files: `test_run.log` (test execution) and `test_consolidated.log` (component logs).
 - `TEST_VERBOSE_LOGS` controls verbosity: 0=WARNING only, 1=INFO for tests, 2=DEBUG for all.
 - Logs rotate at 2MB size or 24-hour intervals (session start/end).

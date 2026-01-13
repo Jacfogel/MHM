@@ -191,7 +191,9 @@ Typical patterns:
 
 If the Windows Task Scheduler becomes polluted during development (for example, from manual experiments), use the dedicated cleanup scripts under `scripts/` (see `scripts/SCRIPTS_GUIDE.md` for details, especially `scripts/cleanup_windows_tasks.py`).
 
-### 3.5. Logging in tests
+### 3.5. Test Logging Isolation (Headline Rule)
+
+Test logging must be isolated from production logs. Tests must write only to `tests/logs/` (or test-specific temp locations), never to `logs/` or user data directories.
 
 Tests should integrate cleanly with the logging system described in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) (see section 2. "Logging Architecture" in that guide).
 

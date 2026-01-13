@@ -38,6 +38,29 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-13 - Documentation Routing, Planning Cleanup, and Legacy Tracking Updates **COMPLETED**
+- **Feature**: Standardized planning docs, expanded AI routing guidance, clarified UI/test patterns, and updated legacy tracking patterns in development tools.
+- **Changes**:
+  1. **Documentation routing fixes**:
+     - Added missing routing links in `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md` for run commands, emergency procedures, and learning resources.
+     - Clarified configuration routing in `ai_development_docs/AI_ARCHITECTURE.md` to point to workflow/run docs instead of logging.
+     - Fixed duplicated "section 2." wording in `ARCHITECTURE.md`.
+  2. **UI & testing guidance**:
+     - Added explicit UI flow + signal-based update patterns in `ui/UI_GUIDE.md`.
+     - Promoted "Test logging isolation" to a headline rule in `tests/TESTING_GUIDE.md` and `ai_development_docs/AI_TESTING_GUIDE.md`.
+  3. **Planning cleanup and task organization**:
+     - Reorganized `TODO.md` by priority, removed completed/overlapping items, updated the channel command registry follow-ups, and refreshed `core.user_management` retirement subtasks.
+     - Refined `development_docs/PLANS.md` content (removed stale sections, consolidated UI testing into UI migration, updated Testing Strategy plan), and extracted the Task System plan into `development_docs/TASKS_PLAN.md`.
+     - Added plan metadata/parent relationships for `development_docs/PLANS.md`, `development_docs/NOTES_PLAN.md`, and `development_docs/TASKS_PLAN.md`, and normalized `.md` links in `development_docs/PLANS.md`.
+  4. **Documentation guide cleanup**:
+     - Fixed link/path drift and unconverted link references in `DOCUMENTATION_GUIDE.md` and `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`.
+  5. **Legacy tracking updates**:
+     - Added legacy inventory tracking patterns in `development_tools/config/development_tools_config.json` and regenerated legacy reporting outputs.
+     - Added a dev tools plan item for the example marking standards checker in `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`.
+- **Impact**: Documentation routing and testing guidance are clearer, plan ownership is explicit, TODO/plan scope is tighter, and legacy reporting now tracks additional compatibility markers.
+- **Files**: `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`, `ai_development_docs/AI_ARCHITECTURE.md`, `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`, `DOCUMENTATION_GUIDE.md`, `ui/UI_GUIDE.md`, `tests/TESTING_GUIDE.md`, `ai_development_docs/AI_TESTING_GUIDE.md`, `ARCHITECTURE.md`, `TODO.md`, `development_docs/PLANS.md`, `development_docs/NOTES_PLAN.md`, `development_docs/TASKS_PLAN.md`, `development_tools/config/development_tools_config.json`, `development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md`, `development_docs/LEGACY_REFERENCE_REPORT.md`
+- **Testing**: Not run (documentation/config updates only).
+
 ### 2026-01-13 - Coverage Caching Overhaul and Dev Tools Cache **COMPLETED**
 - **Feature**: Reworked test coverage caching to use test-file selection + merge, preserved merged coverage outputs, and added a dedicated dev tools coverage cache.
 - **Changes**:

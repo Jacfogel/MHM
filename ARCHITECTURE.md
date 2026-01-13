@@ -72,7 +72,7 @@ This section describes the top-level directories. It should match the actual pro
 - `tests/`  
   Unit, integration, behavior, and UI tests plus fixtures. Test-only data lives under
   `tests/data/`. Logs from test runs may be collected under `tests/logs/`. See section 2.
-  section 2. "Test Layout and Types" and section 3. "Fixtures, Utilities, and Safety" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
+  "Test Layout and Types" and section 3. "Fixtures, Utilities, and Safety" in [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 
 - `ui/`  
   PySide6 admin application:

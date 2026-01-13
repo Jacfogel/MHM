@@ -488,6 +488,20 @@ This document provides a streamlined roadmap focusing on remaining work, organiz
 
 ---
 
+#### 2.11 Add Example Marking Standards Checker
+**Status**: PENDING  
+**Priority**: MEDIUM  
+**Issue**: The doc sync tools rely on example markers to avoid false path drift. We need a validator to flag unmarked examples that include file paths.
+
+**Tasks**:
+- [ ] Add example marking validation to `development_tools/docs/analyze_documentation_sync.py` or create a new validation module
+- [ ] Detect file path references in example contexts that lack `[OK]`, `[AVOID]`, `[GOOD]`, `[BAD]`, `[EXAMPLE]` markers
+- [ ] Validate example headings ("Examples:", "Example Usage:", "Example Code:")
+- [ ] Report unmarked examples with file/line detail
+- [ ] Integrate into `doc-sync` workflow and document the new check
+
+**Files**: `development_tools/docs/analyze_documentation_sync.py`, `development_tools/docs/analyze_documentation.py`, `development_tools/docs/fix_documentation.py`
+
 ### Stage 3: Code Quality & Maintenance
 
 #### 3.1 Standardize Logging Across Development Tools

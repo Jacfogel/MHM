@@ -31,35 +31,11 @@ When adding new tasks, follow this format:
 
 **Note**: Phase 1: Enhanced Task & Check-in Systems is tracked in [PLANS.md](development_docs/PLANS.md). 
 **Note**: Mood-Aware Support Calibration items (Safety Net Response Library, Task Breakdown Prompt Experiments, Context-Aware Reminder Content Mapping, Mood Re-evaluation Cadence Guidelines) are tracked in [PLANS.md](development_docs/PLANS.md) under "Mood-Aware Support Calibration" plan.
-
-**Nightly No-Shim Validation Runs**
-- *What it means*: Run the full suite with `ENABLE_TEST_DATA_SHIM=0` nightly to validate underlying stability.
-- *Why it helps*: Ensures we're not masking issues behind the test-only shim and maintains long-term robustness.
-- *Estimated effort*: Small
-
-**Channel-Agnostic Command Registry Follow-ups**
-- *What it means*: Finalize and monitor the new centralized command system and Discord integrations
-- *Why it helps*: Ensures consistent behavior across channels and prevents regressions
-- *Estimated effort*: Small/Medium
-- *Subtasks*:
-  - [ ] Add behavior tests for dynamic Discord app commands (registration, sync, callback wiring)
-  - [ ] Add behavior tests for classic dynamic commands (skip `help`, ensure mapping works)
-  - [ ] Verify unknown `/` and `!` prefixes fall back to parser and contextual chat
-  - [ ] Ensure user-facing help uses in-app "commands"/slash-commands (no dev-doc references)
-
-**Check-in Flow Behavior & Stability**
-- *What it means*: Ensure active check-ins expire correctly and legacy shims are not used in live flows
-- *Why it helps*: Prevents stale states and confusing interactions during conversations
-- *Estimated effort*: Small/Medium
-- *Subtasks*:
-  - [ ] Monitor logs for legacy compatibility warnings related to check-ins (`start_checkin`, `FLOW_CHECKIN`, `get_recent_checkins`, `store_checkin_response`)
-  - [ ] Verify Discord behavior: after a check-in prompt goes out, send a motivational or task reminder and confirm the flow expires
-  - [x] Consider inactivity-based expiration (30-60 minutes) in addition to outbound-triggered expiry (optional) - Added auto-expiration of stale check-ins after 45 minutes and prune on startup/new starts
-  - [x] Add behavior test for flow expiration after unrelated outbound message
-  - [ ] **Test fixes with real Discord check-in flow and verify flow state persistence** - Restart service and test that check-in flows persist through scheduled message checks
-  - [ ] **Monitor logs for MESSAGE_SELECTION debug info** - Understand why sometimes no messages match (review matching_periods, current_days, and message filtering)
+**Note**: Development tools related tasks have been moved to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md) for centralized planning and tracking. See that document for all development tools improvements, enhancements, and maintenance tasks.
 
 ## High Priority
+
+### Flow & Communication
 
 **Audit Flow State Expiration and Interference Prevention**
 - *What it means*: Review all flow states (note flows, task flows, check-in flows, task reminder flows) to ensure they have appropriate time-based expiries and don't interfere with each other or automated messages. Active flow states should delay the start of scheduled automated flows/messages for a brief period of inactivity (e.g., 5-10 minutes) to prevent conflicts.
@@ -74,32 +50,29 @@ When adding new tasks, follow this format:
   - [ ] Test flow interference scenarios (active note flow + scheduled check-in, active task flow + scheduled reminder, etc.)
   - [ ] Document flow state management and interference prevention logic
 
-**Fix Check-in Management Dialog Test Failures** [OK]
-- *What it means*: Two unit tests in `tests/unit/test_checkin_management_dialog.py` are failing after recent changes to `save_checkin_settings()` method. Tests expect `set_schedule_periods()` and `update_user_account()` to be called, but they're not being called (0 times instead of 1). This is likely due to new validation logic added during check-in settings UI improvements that may be causing early returns or preventing the save from completing.
-- *Why it helps*: Ensures test suite reliability and validates that check-in settings are properly saved with all required operations
+**Check-in Flow Behavior & Stability**
+- *What it means*: Validate end-to-end check-in flow behavior after recent fixes (idle expiry, outbound-triggered expiry, and flow persistence) and ensure legacy shims are not used in live flows.
+- *Why it helps*: Prevents stale states and confusing interactions during conversations.
 - *Estimated effort*: Small/Medium
-- *Status*: [OK] **COMPLETED** - Fixed by updating test data to include required `always_include`/`sometimes_include` fields in question data. The validation logic was correct; tests needed to provide valid question data that passes validation.
 - *Subtasks*:
-  - [x] Investigate `test_save_checkin_settings_saves_successfully` failure - Expected 'set_schedule_periods' to have been called once. Called 0 times
-  - [x] Investigate `test_save_checkin_settings_updates_account_features` failure - Expected 'update_user_account' to have been called once. Called 0 times
-  - [x] Review `save_checkin_settings()` method in `ui/dialogs/checkin_management_dialog.py` to identify why functions aren't being called
-  - [x] Check if new validation logic (min/max question counts, enabled questions check) is causing early returns
-  - [x] Update tests to account for new validation requirements or fix method to ensure functions are called when validation passes
-  - [x] Verify tests pass after fixes
+  - [ ] Monitor logs for legacy compatibility warnings related to check-ins (`start_checkin`, `FLOW_CHECKIN`, `get_recent_checkins`, `store_checkin_response`)
+  - [ ] Verify Discord behavior: after a check-in prompt goes out, send a motivational or task reminder and confirm the flow expires
+  - [x] Consider inactivity-based expiration (30-60 minutes) in addition to outbound-triggered expiry (optional) - Added auto-expiration of stale check-ins after 45 minutes and prune on startup/new starts
+  - [x] Add behavior test for flow expiration after unrelated outbound message
+  - [ ] **Test fixes with real Discord check-in flow and verify flow state persistence** - Restart service and test that check-in flows persist through scheduled message checks
+  - [ ] **Monitor logs for MESSAGE_SELECTION debug info** - Understand why sometimes no messages match (review matching_periods, current_days, and message filtering)
 
-**Investigate Pytest Failures in Development Tools Test Suite**
-- *What it means*: Investigate and fix intermittent test failures and pytest crashes in the development tools test suite. Currently experiencing: (1) flaky test `test_central_aggregation_includes_all_tool_results` that passes individually but sometimes fails in full suite (likely race condition), and (2) pytest crash with Windows error 0xC0000135 (STATUS_DLL_NOT_FOUND) indicating missing DLL required by Python or dependencies.
-- *Why it helps*: Ensures test suite reliability, prevents false negatives that can mask real issues, and addresses system-level environment problems that may affect development workflow
-- *Estimated effort*: Medium
+**Channel-Agnostic Command Registry Follow-ups**
+- *What it means*: Finalize and monitor the new centralized command system and Discord integrations.
+- *Why it helps*: Ensures consistent behavior across channels and prevents regressions.
+- *Estimated effort*: Small/Medium
 - *Subtasks*:
-  - [ ] Investigate `test_central_aggregation_includes_all_tool_results` flakiness - test passes individually but fails in full suite with "Found 0 tool results: []" error
-  - [ ] Check for race conditions or timing issues in test setup/teardown
-  - [ ] Verify test isolation and ensure files are properly flushed before assertions
-  - [ ] Investigate pytest crash (0xC0000135 - STATUS_DLL_NOT_FOUND) - Windows system-level error indicating missing DLL
-  - [ ] Check Python installation integrity and PATH environment variable
-  - [ ] Verify pytest and dependency installations are complete
-  - [ ] Consider adding retry logic or fixing root cause for flaky test
-  - [ ] Document findings and solutions
+  - [ ] Add behavior tests for dynamic Discord app commands (sync + callback wiring; registration already covered in `tests/behavior/test_discord_bot_behavior.py`)
+  - [ ] Add behavior tests for classic dynamic commands (skip `help`, ensure mapping works)
+  - [x] Verify unknown `/` and `!` prefixes fall back to parser and contextual chat (covered in `tests/behavior/test_message_router_behavior.py`)
+  - [x] Ensure user-facing help uses in-app "commands"/slash-commands (no dev-doc references)
+
+### AI & Chatbot
 
 **AI Chatbot Actionability Sprint** - Plan and implement actionable AI responses
 - *What it means*: Improve AI chat quality and enable robust task/message/profile CRUD, with awareness of recent automated messages and targeted, non-conflicting suggestions.
@@ -134,6 +107,15 @@ When adding new tasks, follow this format:
 
 ## Medium Priority
 
+### Quality & Operations
+
+**Nightly No-Shim Validation Runs**
+- *What it means*: Run the full suite with `ENABLE_TEST_DATA_SHIM=0` nightly to validate underlying stability.
+- *Why it helps*: Ensures we're not masking issues behind the test-only shim and maintains long-term robustness.
+- *Estimated effort*: Small
+
+### Documentation
+
 **Update Inter-Documentation References to Include Section Numbers**
 - *What it means*: Update cross-references between documentation files to include section numbers and titles (e.g., "See section 3.2. Logging Architecture in LOGGING_GUIDE.md" instead of just "See LOGGING_GUIDE.md")
 - *Why it helps*: Makes references more precise and easier to navigate, especially with numbered headings now standardized; improves documentation usability
@@ -143,20 +125,6 @@ When adding new tasks, follow this format:
   - [ ] Update references to include section numbers and titles where applicable
   - [ ] Create script or tool to help identify and update references automatically
   - [ ] Update documentation standards to require section numbers in references
-
-**Create Example Marking Standards Checker**
-- *What it means*: Create a validation checker to ensure examples in documentation follow the example marking standards (section 2.6 in `DOCUMENTATION_GUIDE.md`). The checker should validate that examples containing file paths are properly marked with `[OK]`, `[AVOID]`, `[GOOD]`, `[BAD]`, `[EXAMPLE]` markers or are under "Examples:" headings.
-- *Why it helps*: Ensures examples are consistently marked, making the path drift checker more accurate and reducing false positives. Helps maintain documentation quality by catching unmarked examples that should be marked.
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Add example marking validation to `development_tools/docs/analyze_documentation_sync.py` or create new validation module (already using full path)
-  - [ ] Check for file path references in examples that lack proper markers
-  - [ ] Validate that example sections use standard markers (`[OK]`, `[AVOID]`, `[GOOD]`, `[BAD]`, `[EXAMPLE]`)
-  - [ ] Validate that example headings follow standard format ("Examples:", "Example Usage:", "Example Code:")
-  - [ ] Report unmarked examples that contain file paths
-  - [ ] Consider integrating into `doc-sync` workflow as a validation step
-  - [ ] Update documentation to reflect the new validation capability
-
 
 **Systematic Documentation Review and Update**
 - *What it means*: Systematically review and update documentation to ensure information is current and accurate across all documentation files
@@ -171,8 +139,6 @@ When adding new tasks, follow this format:
   - User-facing documentation
   - API documentation
   - Configuration documentation
-
-**Note**: Development tools related tasks have been moved to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md) for centralized planning and tracking. See that document for all development tools improvements, enhancements, and maintenance tasks.
 
 
 
@@ -190,6 +156,8 @@ When adding new tasks, follow this format:
   - [ ] Review how other widgets (e.g., tag_widget, dynamic_list_container) handle similar dynamic add/delete operations without blanking
   - [ ] Consider using QStackedWidget or other container strategies to prevent visual blanking
   - [ ] Document findings and implement working solution
+
+### AI & Conversation
 
 **Improve Natural Language Processing Accuracy**
 - *What it means*: Refine parsing patterns and thresholds to better recognize intents and entities
@@ -259,31 +227,17 @@ When adding new tasks, follow this format:
 - *Why it helps*: Faster recovery when issues occur
 - *Estimated effort*: Small
 
+**Investigate markdown link issues**
+- *What it means*: Some markdown links work in the editor while others don't, even with the same format. Need to investigate why relative paths work for some files but not others.
+- *Why it helps*: Ensures all report links are clickable and functional in the editor
+- *Estimated effort*: Small
+
 ### Testing
 
-**Continue Test Coverage Expansion**
-- *What it means*: Continue expanding test coverage for remaining low-coverage modules
-- *Why it helps*: Increases reliability and change safety for core system components
-- *Estimated effort*: Large
-- *Current Status*: 20 modules completed (486 new tests added total, all passing) - see changelogs for details
-  - **Latest additions** (2025-01-14): `user/user_preferences.py` (26 tests), `core/ui_management.py` (27 tests), `ai/prompt_manager.py` (49 tests)
-- *Next Targets*:
-  - [x] **Add comprehensive notebook feature tests** [OK] **COMPLETED** - Added 54 comprehensive tests covering data handlers, data manager (CRUD, search, lists, views), command handlers, tag system, entity extraction, flow state edge cases, and error handling (see `tests/behavior/test_notebook_handler_behavior.py`)
-  - [x] **Implement notebook validation system** [OK] **COMPLETED** - Implemented comprehensive validation system with proper separation of concerns (general validators in `core/user_data_validation.py`, notebook-specific in `notebook/notebook_validation.py`), error handling compliance, and extensive test coverage (28 unit validation + 10 unit error handling + 13 integration tests). All 51 validation tests passing.
-  - [ ] Expand coverage for `ui/ui_app_qt.py` (33% coverage, 1095 lines) - Large module
-  - [ ] Expand coverage for `core/scheduler.py` (65% -> 80%+)
-  - [ ] Add comprehensive tests for remaining communication modules
-  - [ ] Focus on error handling and edge case coverage
-
-**Add Integration Tests**
-- *What it means*: Add cross-module workflow tests (user lifecycle, scheduling, messaging)
-- *Why it helps*: Verifies real-world flows function correctly
-- *Estimated effort*: Medium
-- Subtasks:
-  - [ ] End-to-end tests for `/checkin` flow via Discord and via plain text
-  - [ ] End-to-end tests for `/status`, `/profile`, `/tasks` via Discord slash commands
-  - [ ] Windows path tests: default messages load and directory creation using normalized separators
-
+**Coverage Expansion Tracking**
+- *What it means*: Track coverage priorities in [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md) and add specific module targets here only when they need explicit follow-up.
+- *Why it helps*: Keeps TODO.md focused while staying aligned with the latest audit-driven priorities.
+- *Estimated effort*: Small
 **CI Guard for Logging Enforcement**
 - *What it means*: Wire the static logging check into CI to enforce ComponentLogger rules automatically.
 - *Why it helps*: Prevents regressions of forbidden logging patterns.
@@ -294,15 +248,13 @@ When adding new tasks, follow this format:
   - [ ] Document the check in [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) (contributor notes)
 
 **Investigate Intermittent Test Failures**
-- *What it means*: Investigate and fix test failures that appear intermittently. Currently monitoring: `test_comprehensive_context_includes_recent_sent_messages_and_checkin_status` (AI context test). Note: `test_full_account_lifecycle_real_behavior` was fixed with cache clearing.
+- *What it means*: Investigate and fix test failures that appear intermittently; keep the suspect list current as flakes are confirmed or resolved.
 - *Why it helps*: Ensures test suite reliability and prevents false negatives that can mask real issues
 - *Estimated effort*: Small/Medium
 - *Subtasks*:
-  - [ ] Investigate `test_comprehensive_context_includes_recent_sent_messages_and_checkin_status` failure (assertion that "Recent automated messages sent to them:" is in content)
-  tests/behavior/test_checkin_questions_enhancement.py::TestCustomQuestions::test_delete_custom_question
-  tests/ui/test_category_management_dialog.py::TestCategoryManagementDialogRealBehavior::test_save_category_settings_persists_to_disk - AssertionError: Saved categories should match selected categories (order ma...
-  tests/behavior/test_webhook_handler_behavior.py::TestWebhookHandlerBehavior::test_handle_webhook_event_routes_application_deauthorized - AssertionError: User should be welcomed
-  test_scan_all_python_files_demo_project 
+  - [ ] Investigate `tests/behavior/test_checkin_questions_enhancement.py::TestCustomQuestions::test_delete_custom_question`
+  - [ ] Investigate `tests/behavior/test_webhook_handler_behavior.py::TestWebhookHandlerBehavior::test_handle_webhook_event_routes_application_deauthorized`
+  - [ ] Investigate `test_scan_all_python_files_demo_project`
   - [ ] Check for timing/race condition issues in test setup or teardown
   - [ ] Verify test isolation and data cleanup between test runs
   - [ ] Add retry logic or fix root cause if identified
@@ -314,14 +266,16 @@ When adding new tasks, follow this format:
 - *Estimated effort*: Medium
 
 **Complete core.user_management Retirement**
-- *What it means*: Fully retire `core.user_management` module by moving remaining functionality to `core.user_data_handlers` and updating all imports. Currently `core.user_data_handlers` re-exports from `core.user_management` as a temporary measure.
+- *What it means*: Fully retire `core.user_management` by moving the remaining registry + loader implementation into `core.user_data_handlers` and updating all imports. Today `core.user_data_handlers` re-exports and delegates to `core.user_management`, and many modules/tests still import the legacy path directly.
 - *Why it helps*: Simplifies codebase structure, removes legacy module, consolidates user data handling in one place
 - *Estimated effort*: Medium
 - *Subtasks*:
-  - [ ] Identify all remaining functionality in `core.user_management` that needs to be moved
-  - [ ] Move implementation to `core.user_data_handlers` 
-  - [ ] Update all imports from `core.user_management` to `core.user_data_handlers`
-  - [ ] Remove `core.user_management` module
+  - [ ] Inventory remaining direct imports of `core.user_management` (core, communication, tests, docs)
+  - [ ] Move the USER_DATA_LOADERS registry and loader registration into `core.user_data_handlers`
+  - [ ] Port remaining helpers that are still implemented only in `core.user_management` (or delete if unused)
+  - [ ] Update `core/__init__.py` exports to prefer `core.user_data_handlers` and remove legacy notes
+  - [ ] Update all imports from `core.user_management` to `core.user_data_handlers` and fix test shims in `tests/conftest.py`
+  - [ ] Remove `core.user_management` and clean up any compatibility wrappers
   - [ ] Update comments in `core.user_data_handlers` that reference the retirement
 
 **Review Communication Module Architecture**
@@ -342,11 +296,6 @@ When adding new tasks, follow this format:
 **Create Development Guidelines**
 - *What it means*: Establish coding standards and best practices
 - *Why it helps*: Consistency and clarity, especially when collaborating with AI tools
-- *Estimated effort*: Small
-
-**Investigate markdown link issues**
-- *What it means*: Some markdown links work in the editor while others don't, even with the same format. Need to investigate why relative paths work for some files but not others.
-- *Why it helps*: Ensures all report links are clickable and functional in the editor
 - *Estimated effort*: Small
 
 **Investigate what shows up in test logs, what doesn't, and why**
@@ -390,3 +339,4 @@ When adding new tasks, follow this format:
 
 
 
+**Investigate repeated reappearance of htmlcov top leel directory**

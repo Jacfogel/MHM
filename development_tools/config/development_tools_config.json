@@ -318,6 +318,21 @@
       "legacy_compatibility_markers": [
         "# LEGACY COMPATIBILITY:"
       ],
+      "legacy_inventory_tracking": [
+        "migrate_legacy_schedule_keys",
+        "(?i)legacy schedule keys",
+        "(?i)legacy schedule format",
+        "(?i)periods wrapper format",
+        "(?i)legacy conversion",
+        "(?i)legacy extraction",
+        "(?i)legacy module",
+        "(?i)legacy path",
+        "(?i)legacy versions",
+        "(?i)legacy channels",
+        "(?i)legacy communication manager",
+        "(?i)backward compatibility",
+        "(?i)compatibility methods"
+      ],
       "task_handler_legacy_imports": [
         "from communication.command_handlers.interaction_handlers import TaskManagementHandler"
       ],

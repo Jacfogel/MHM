@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-13 - Documentation, Planning, and Legacy Tracking Updates **COMPLETED**
+- Filled missing routing links in AI workflow docs, clarified config routing in AI architecture, and fixed a minor ARCHITECTURE.md reference
+- Added UI flow + signal-based update guidance and promoted test logging isolation as a headline rule
+- Reorganized TODO/PLANS, extracted task system plan into `development_docs/TASKS_PLAN.md`, and standardized plan metadata
+- Expanded legacy tracking patterns and regenerated legacy report outputs
+
 ### 2026-01-13 - Coverage Caching Overhaul (Main + Dev Tools) **COMPLETED**
 - Implemented test-file coverage caching with selective test runs and merged line coverage to avoid drops
 - Preserved merged `coverage.json` during HTML generation and moved cache files into `development_tools/tests/jsons/`

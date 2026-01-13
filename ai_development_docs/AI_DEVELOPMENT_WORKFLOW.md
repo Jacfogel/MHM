@@ -21,6 +21,9 @@
   - This AI doc: high-level routing and constraints.
 - When you need more detail, jump to:
   - Running the app and environment commands:
+    - [HOW_TO_RUN.md](HOW_TO_RUN.md), section 1. "Quick Start (Recommended)" and section 4. "Alternative Launch Methods".
+    - [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md), section 2. "Virtual Environment Best Practices".
+    - [ARCHITECTURE.md](ARCHITECTURE.md), section 4. "Key Modules and Responsibilities" (entry points).
   - Testing:
     - [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md) (routing for which tests to run and which commands to use).
   - Logging:
@@ -45,7 +48,13 @@
 - When giving instructions:
   - Prefer small, reversible changes instead of broad refactors.
   - Do not invent new entry points; use the ones documented in:
+    - [HOW_TO_RUN.md](HOW_TO_RUN.md), section 1.5. "Step 5: Launch the Application" and section 4. "Alternative Launch Methods".
+    - [ARCHITECTURE.md](ARCHITECTURE.md), section 4. "Key Modules and Responsibilities" (run_mhm/run_headless).
 - For crashes, confusing errors, or suspected configuration issues, route to:
+  - [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md), section 6. "Emergency Procedures".
+  - [HOW_TO_RUN.md](HOW_TO_RUN.md), section 6. "Troubleshooting".
+  - [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md).
+  - [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md).
 - For the full safety checklist, see section 1. "Safety First" in [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md).
 
 ---
@@ -150,9 +159,17 @@ answer briefly and route to the appropriate AI doc:
 When things look broken or confusing:
 
 - For environment or startup failures:
+  - [HOW_TO_RUN.md](HOW_TO_RUN.md), section 6. "Troubleshooting".
+  - [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md), section 2. "Virtual Environment Best Practices".
 - For unexpected tracebacks, crashes, or repeated errors:
+  - [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md).
+  - [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md).
 - For failing or flaky tests:
+  - [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md).
+  - [TESTING_GUIDE.md](tests/TESTING_GUIDE.md), section 7. "Debugging and Troubleshooting".
 - For documentation that appears inconsistent with behavior:
+  - [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md).
+  - [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md), section 4. "Documentation Synchronization Checklist".
 - For the full emergency checklist, see section 6. "Emergency Procedures" in [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md).
 
 ---
@@ -162,6 +179,8 @@ When things look broken or confusing:
 - Beginners should be pointed to:
   - [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md), section 7. "Learning Resources".
 - For deeper understanding of structure and data flow:
+  - [ARCHITECTURE.md](ARCHITECTURE.md), section 1. "Directory Overview" and section 2. "User Data Model".
+  - [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md) for quick routing.
 - For learning about testing, logging, and error handling:
   - [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md), [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md), and [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) for routing.
 

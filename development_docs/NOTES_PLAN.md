@@ -1,8 +1,11 @@
-> **File**: `development_docs/NOTES_PLAN.md`
-> **Audience**: Human Developer & AI Collaborators
-> **Purpose**: Implementation plan for notebook feature
-
 # MHM Notebook (Unified Entry) Roadmap
+
+> **File**: `development_docs/NOTES_PLAN.md`  
+> **Audience**: Human Developer & AI Collaborators  
+> **Purpose**: Implementation plan for notebook feature  
+> **Style**: Actionable, checklist-focused, roadmap-oriented  
+> **Parent**: [PLANS.md](development_docs/PLANS.md)  
+> This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
 **Purpose:** Add a **global personal notebook** to MHM that works **Discord-first** (phone-friendly), is **channel-agnostic**, and is built to share foundations with Tasks (tags, validation, persistence patterns) **without forcing a big refactor now**.
 
