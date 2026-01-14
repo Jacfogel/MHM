@@ -145,6 +145,8 @@ tests/fixtures/development_tools_demo/development_docs
 tests/fixtures/development_tools_demo/AI_STATUS.md
 tests/fixtures/development_tools_demo/AI_PRIORITIES.md
 tests/fixtures/development_tools_demo/consolidated_report.txt
+tmp_test_data/
+pyright-report.json
 
 # ============================
 # Development tools cache and result files
