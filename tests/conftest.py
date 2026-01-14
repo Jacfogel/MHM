@@ -10,6 +10,7 @@ This file provides:
 """
 
 import pytest
+import sys
 import os
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 # Set environment variable for consolidated logging very early, before any logging initialization
@@ -110,12 +111,18 @@ def setup_logging_isolation():
     # Remove all handlers from root logger to prevent test logs from going to app.log
     root_logger = logging.getLogger()
     for handler in root_logger.handlers[:]:
+        if isinstance(handler, logging.StreamHandler) and handler.stream in (sys.stdout, sys.stderr):
+            root_logger.removeHandler(handler)
+            continue
         handler.close()
         root_logger.removeHandler(handler)
     
     # Also clear any handlers from the main application logger if it exists
     main_logger = logging.getLogger("mhm")
     for handler in main_logger.handlers[:]:
+        if isinstance(handler, logging.StreamHandler) and handler.stream in (sys.stdout, sys.stderr):
+            main_logger.removeHandler(handler)
+            continue
         handler.close()
         main_logger.removeHandler(handler)
     
@@ -1711,10 +1718,16 @@ def isolate_logging():
     
     # Remove all handlers from main loggers to prevent test logs from going to app.log
     for handler in root_logger.handlers[:]:
+        if isinstance(handler, logging.StreamHandler) and handler.stream in (sys.stdout, sys.stderr):
+            root_logger.removeHandler(handler)
+            continue
         handler.close()
         root_logger.removeHandler(handler)
     
     for handler in main_logger.handlers[:]:
+        if isinstance(handler, logging.StreamHandler) and handler.stream in (sys.stdout, sys.stderr):
+            main_logger.removeHandler(handler)
+            continue
         handler.close()
         main_logger.removeHandler(handler)
     

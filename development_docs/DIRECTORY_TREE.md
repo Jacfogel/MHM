@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-11 00:33:52
+> **Last Generated**: 2026-01-14 04:48:11
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -50,6 +50,7 @@ C:.
 |   |       triage-issue.md
 |   |       
 |   +---plans
+|   |   |   caching_exploration_for_development_tools_fb102ab8.plan.md
 |   |   |   command_handler_consolidation_19c82b25.plan.md
 |   |   |   notebook_feature_implementation_ce88ed1a.plan.md
 |   |   |   systematic_pyright_review_6d01910c.plan.md
@@ -162,6 +163,7 @@ C:.
 |   |   MODULE_DEPENDENCIES_DETAIL.md
 |   |   NOTES_PLAN.md
 |   |   PLANS.md
+|   |   TASKS_PLAN.md
 |   |   TEST_COVERAGE_REPORT.md
 |   |   UNUSED_IMPORTS_REPORT.md
 |   |   
@@ -169,7 +171,7 @@ C:.
     (archived files)
 +---development_tools
 |   |   AI_DEVELOPMENT_TOOLS_GUIDE.md
-|   |   AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md
+|   |   AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md
 |   |   AI_PRIORITIES.md
 |   |   AI_STATUS.md
 |   |   consolidated_report.txt

@@ -55,7 +55,6 @@ def get_schedule_time_periods(user_id, category):
     schedules = user_info.get('schedules', {})
     category_data = schedules.get(category, {})
     
-    # Get periods from the wrapper (all data now uses periods wrapper format)
     periods = category_data.get('periods', {}) if isinstance(category_data, dict) else {}
 
     if periods:
@@ -504,7 +503,6 @@ def set_schedule_periods(user_id, category, periods_dict):
     if category not in schedules_data:
         schedules_data[category] = {}
     
-    # All data now uses periods wrapper format - no legacy migration needed
     category_data = schedules_data[category]
     
     # Ensure periods sub-dict exists

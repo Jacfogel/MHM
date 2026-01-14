@@ -296,7 +296,7 @@ class CommunicationManager:
             sender_email = email_match.group(0)
             
             # Map email to user ID
-            from core.user_management import get_user_id_by_identifier
+            from core.user_data_handlers import get_user_id_by_identifier
             user_id = get_user_id_by_identifier(sender_email)
             
             if not user_id:
@@ -1763,3 +1763,4 @@ class CommunicationManager:
             logger.debug(f"Selected message (fallback selection)")
         
         return selected_message
+

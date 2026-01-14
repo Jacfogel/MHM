@@ -266,7 +266,7 @@ class TestMHMManagerUI:
                         ui.update_service_status()
                         mock_ui_instance.label_service_status.setText.assert_called()
     
-    def test_load_user_categories_loads_categories(self, test_data_dir):
+    def test_load_user_categories_loads_categories(self, test_data_dir, qapp):
         """Test that load_user_categories loads user categories correctly."""
         from ui.ui_app_qt import MHMManagerUI
         from tests.test_utilities import TestUserFactory

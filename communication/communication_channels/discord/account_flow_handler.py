@@ -172,7 +172,7 @@ class TimezoneSelect(discord.ui.Select):
             parent_view: The parent FeatureSelectionView to update when selection changes
         """
         # Get common timezones
-        from core.user_management import TIMEZONE_OPTIONS
+        from core.user_data_handlers import TIMEZONE_OPTIONS
         options = [
             discord.SelectOption(label=tz, value=tz, description=f"Set timezone to {tz}", default=(tz == "America/Regina"))
             for tz in TIMEZONE_OPTIONS[:25]  # Discord limit is 25 options
@@ -497,4 +497,5 @@ async def start_account_linking_flow(interaction: discord.Interaction, discord_u
 
 # All helper functions have been moved to the channel-agnostic AccountManagementHandler
 # This file now only contains Discord-specific UI (modals, buttons, interactions)
+
 

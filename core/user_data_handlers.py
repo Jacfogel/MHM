@@ -7,6 +7,7 @@ across all data types (account, preferences, context, schedules, etc.).
 
 import os
 import traceback
+from pathlib import Path
 from typing import Dict, Any, List, Union, Optional
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
@@ -1192,6 +1193,298 @@ def get_all_user_ids() -> List[str]:
     """Return a list of *all* user IDs known to the system."""
     from core.user_management import get_all_user_ids as management_get_all_user_ids
     return management_get_all_user_ids()
+
+
+@handle_errors("creating new user (centralised)", default_return=None)
+def create_new_user(user_data: Dict[str, Any]) -> Optional[str]:
+    """Create a new user via the legacy implementation."""
+    from core.user_management import create_new_user as management_create_user
+    return management_create_user(user_data)
+
+
+@handle_errors("getting user categories", default_return=[])
+def get_user_categories(user_id: str) -> List[str]:
+    """Get user's message categories using centralized data access."""
+    user_data = get_user_data(user_id, 'preferences')
+    if isinstance(user_data, dict):
+        preferences = user_data.get('preferences', {})
+        if isinstance(preferences, dict):
+            categories = preferences.get('categories', [])
+            if isinstance(categories, list):
+                return categories
+    elif isinstance(user_data, list):
+        return user_data
+    return []
+
+
+PREDEFINED_OPTIONS = {
+    "gender_identity": [
+        "Male", "Female", "Non-binary", "Genderfluid", "Agender", "Bigender", "Demiboy", "Demigirl",
+        "Genderqueer", "Two-spirit", "Other", "Prefer not to say"
+    ],
+    "health_conditions": [
+        "ADHD", "Anxiety", "Depression", "Bipolar Disorder", "PTSD",
+        "OCD", "Autism", "Chronic Pain", "Diabetes", "Asthma",
+        "Sleep Disorders", "Eating Disorders", "Substance Use Disorder"
+    ],
+    "medications_treatments": [
+        "Antidepressant", "Anti-anxiety medication", "Stimulant for ADHD",
+        "Mood stabilizer", "Antipsychotic", "Sleep medication",
+        "Therapy", "Counseling", "Support groups", "Exercise",
+        "Meditation", "Yoga", "CPAP", "Inhaler", "Insulin"
+    ],
+    "reminders_needed": [
+        "medications_treatments", "hydration", "movement/stretch breaks",
+        "healthy meals/snacks", "mental health check-ins", "appointments",
+        "exercise", "sleep schedule", "self-care activities"
+    ],
+    "loved_one_types": [
+        "human", "dog", "cat", "bird", "fish", "reptile", "horse",
+        "rabbit", "hamster", "guinea pig", "ferret", "other"
+    ],
+    "relationship_types": [
+        "partner", "spouse", "parent", "child", "sibling", "friend",
+        "roommate", "colleague", "therapist", "doctor", "teacher"
+    ],
+    "interests": [
+        "Reading", "Writing", "Gaming", "Music", "Art", "Cooking",
+        "Baking", "Gardening", "Hiking", "Swimming", "Running",
+        "Yoga", "Meditation", "Photography", "Crafts", "Knitting",
+        "Painting", "Drawing", "Sewing", "Woodworking", "Programming",
+        "Math", "Science", "History", "Languages", "Travel"
+    ],
+    "activities_for_encouragement": [
+        "exercise", "healthy eating", "sleep hygiene", "social activities",
+        "hobbies", "work/projects", "self-care", "therapy appointments",
+        "medication adherence", "stress management"
+    ]
+}
+
+TIMEZONE_OPTIONS = [
+    "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
+    "America/Regina", "America/Toronto", "America/Vancouver", "America/Edmonton",
+    "America/Port_of_Spain", "Europe/London", "Europe/Paris", "Europe/Berlin", "Europe/Rome",
+    "Asia/Tokyo", "Asia/Shanghai", "Asia/Kolkata", "Australia/Sydney",
+    "Pacific/Auckland", "UTC"
+]
+
+_PRESETS_CACHE: Dict[str, List[str]] | None = None
+
+
+@handle_errors("loading presets JSON", default_return=PREDEFINED_OPTIONS)
+def _load_presets_json() -> Dict[str, List[str]]:
+    """Load presets from resources/presets.json (cached)."""
+    global _PRESETS_CACHE
+    if _PRESETS_CACHE is not None:
+        return _PRESETS_CACHE
+
+    import json
+    presets_path = Path(__file__).parent.parent / "resources" / "presets.json"
+    try:
+        with open(presets_path, "r", encoding="utf-8") as f:
+            _PRESETS_CACHE = json.load(f)
+    except FileNotFoundError:
+        logger.warning("presets.json not found - falling back to hard-coded options")
+        _PRESETS_CACHE = PREDEFINED_OPTIONS
+    return _PRESETS_CACHE
+
+
+@handle_errors("getting predefined options", default_return=[])
+def get_predefined_options(field: str) -> List[str]:
+    """Return predefined options for a personalization field."""
+    presets = _load_presets_json()
+    return presets.get(field, [])
+
+
+@handle_errors("getting timezone options", default_return=[])
+def get_timezone_options() -> List[str]:
+    """Get timezone options."""
+    try:
+        import pytz
+        return pytz.all_timezones
+    except ImportError:
+        return TIMEZONE_OPTIONS
+
+
+@handle_errors("getting user id by internal username", default_return=None)
+def _get_user_id_by_identifier__by_internal_username(internal_username: str) -> Optional[str]:
+    """Helper function: Get user ID by internal username using the user index for fast lookup."""
+    if not internal_username:
+        return None
+
+    try:
+        from core.config import BASE_DATA_DIR
+        from core.file_locking import safe_json_read
+        index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
+        index_data = safe_json_read(index_file, default={})
+        if internal_username in index_data:
+            return index_data[internal_username]
+    except Exception as e:
+        logger.warning(f"Error looking up user by internal_username '{internal_username}' in index: {e}")
+
+    logger.debug(f"Falling back to directory scan for internal_username '{internal_username}'")
+    user_ids = get_all_user_ids()
+    for user_id in user_ids:
+        user_data_result = get_user_data(user_id, 'account')
+        account_data = user_data_result.get('account')
+        if account_data and account_data.get('internal_username') == internal_username:
+            return user_id
+    return None
+
+
+@handle_errors("getting user id by email", default_return=None)
+def _get_user_id_by_identifier__by_email(email: str) -> Optional[str]:
+    """Helper function: Get user ID by email using the user index for fast lookup."""
+    if not email:
+        return None
+
+    try:
+        from core.config import BASE_DATA_DIR
+        from core.file_locking import safe_json_read
+        index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
+        index_data = safe_json_read(index_file, default={})
+        email_key = f"email:{email}"
+        if email_key in index_data:
+            return index_data[email_key]
+    except Exception as e:
+        logger.warning(f"Error looking up user by email '{email}' in index: {e}")
+
+    logger.debug(f"Falling back to directory scan for email '{email}'")
+    user_ids = get_all_user_ids()
+    for user_id in user_ids:
+        user_data_result = get_user_data(user_id, 'account')
+        account_data = user_data_result.get('account')
+        if account_data and account_data.get('email') == email:
+            return user_id
+    return None
+
+
+@handle_errors("getting user id by phone", default_return=None)
+def _get_user_id_by_identifier__by_phone(phone: str) -> Optional[str]:
+    """Helper function: Get user ID by phone using the user index for fast lookup."""
+    if not phone:
+        return None
+
+    try:
+        from core.config import BASE_DATA_DIR
+        from core.file_locking import safe_json_read
+        index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
+        index_data = safe_json_read(index_file, default={})
+        phone_key = f"phone:{phone}"
+        if phone_key in index_data:
+            return index_data[phone_key]
+    except Exception as e:
+        logger.warning(f"Error looking up user by phone '{phone}' in index: {e}")
+
+    logger.debug(f"Falling back to directory scan for phone '{phone}'")
+    user_ids = get_all_user_ids()
+    for user_id in user_ids:
+        user_data_result = get_user_data(user_id, 'account')
+        account_data = user_data_result.get('account')
+        if account_data and account_data.get('phone') == phone:
+            return user_id
+    return None
+
+
+@handle_errors("getting user id by chat id", default_return=None)
+def _get_user_id_by_identifier__by_chat_id(chat_id: str) -> Optional[str]:
+    """Helper function: Get user ID by chat ID."""
+    if not chat_id:
+        return None
+
+    user_ids = get_all_user_ids()
+    for user_id in user_ids:
+        user_data_result = get_user_data(user_id, 'account')
+        account_data = user_data_result.get('account')
+        if account_data and account_data.get('chat_id') == chat_id:
+            return user_id
+    return None
+
+
+@handle_errors("getting user id by discord user id", default_return=None)
+def _get_user_id_by_identifier__by_discord_user_id(discord_user_id: str) -> Optional[str]:
+    """Helper function: Get user ID by Discord user ID using the user index for fast lookup."""
+    if not discord_user_id:
+        return None
+
+    try:
+        from core.config import BASE_DATA_DIR
+        from core.file_locking import safe_json_read
+        index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
+        index_data = safe_json_read(index_file, default={})
+        discord_key = f"discord:{discord_user_id}"
+        if discord_key in index_data:
+            return index_data[discord_key]
+    except Exception as e:
+        logger.warning(f"Error looking up user by discord_user_id '{discord_user_id}' in index: {e}")
+
+    logger.debug(f"Falling back to directory scan for discord_user_id '{discord_user_id}'")
+    user_ids = get_all_user_ids()
+    for user_id in user_ids:
+        user_data_result = get_user_data(user_id, 'account')
+        account_data = user_data_result.get('account')
+        if account_data:
+            stored_discord_id = account_data.get("discord_user_id", "")
+            if str(stored_discord_id) == str(discord_user_id):
+                return user_id
+    return None
+
+
+@handle_errors("getting user id by identifier", default_return=None)
+def get_user_id_by_identifier(identifier: str) -> Optional[str]:
+    """
+    Get user ID by any identifier (internal_username, email, discord_user_id, phone).
+    """
+    if not identifier:
+        return None
+
+    try:
+        from core.config import BASE_DATA_DIR
+        from core.file_locking import safe_json_read
+        index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
+        index_data = safe_json_read(index_file, default={})
+        if identifier in index_data:
+            mapped = index_data[identifier]
+            if isinstance(mapped, str) and mapped:
+                return mapped
+            try:
+                users_dir = str(Path(BASE_DATA_DIR) / "users" / identifier)
+                if os.path.isdir(users_dir):
+                    return identifier
+            except Exception:
+                pass
+
+        email_key = f"email:{identifier}"
+        if email_key in index_data:
+            return index_data[email_key]
+
+        discord_key = f"discord:{identifier}"
+        if discord_key in index_data:
+            return index_data[discord_key]
+
+        phone_key = f"phone:{identifier}"
+        if phone_key in index_data:
+            return index_data[phone_key]
+    except Exception as e:
+        logger.warning(f"Error looking up user by identifier '{identifier}' in index: {e}")
+
+    result = _get_user_id_by_identifier__by_internal_username(identifier)
+    if result:
+        return result
+
+    result = _get_user_id_by_identifier__by_email(identifier)
+    if result:
+        return result
+
+    result = _get_user_id_by_identifier__by_discord_user_id(identifier)
+    if result:
+        return result
+
+    result = _get_user_id_by_identifier__by_phone(identifier)
+    if result:
+        return result
+
+    return None
 
 
 @handle_errors("updating user schedules (centralised)", default_return=False)

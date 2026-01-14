@@ -45,7 +45,7 @@ class ScheduleManagementHandler(InteractionHandler):
         
         try:
             from core.schedule_management import get_schedule_time_periods
-            from core.user_management import get_user_categories
+            from core.user_data_handlers import get_user_categories
             
             if category == 'all':
                 # Show schedules for all categories
@@ -188,7 +188,7 @@ class ScheduleManagementHandler(InteractionHandler):
         """Show status of schedules"""
         try:
             from core.schedule_management import get_schedule_time_periods
-            from core.user_management import get_user_categories
+            from core.user_data_handlers import get_user_categories
             
             categories = get_user_categories(user_id)
             response = "**Schedule Status:**\n\n"
@@ -474,3 +474,4 @@ class ScheduleManagementHandler(InteractionHandler):
             "edit work period days to Monday, Tuesday, Wednesday, Thursday, Friday",
             "disable evening period in task schedule"
         ]
+

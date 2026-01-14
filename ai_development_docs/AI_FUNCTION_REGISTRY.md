@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-11 00:33:39
+> **Last Generated**: 2026-01-14 04:48:07
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: AI Collaborators  
 > **Purpose**: Essential function patterns and decision trees for AI context  
@@ -10,10 +10,10 @@
 
 ## [*] **Current Status**
 
-### **Documentation Coverage: 96.1% [OK] EXCELLENT**
-- **Total Functions**: 1525
-- **Total Methods**: 1133
-- **Documented**: 2554/2658
+### **Documentation Coverage: 96.0% [OK] EXCELLENT**
+- **Total Functions**: 1532
+- **Total Methods**: 1135
+- **Documented**: 2561/2667
 - **Files Scanned**: 110
 
 ## [DECISION TREES] **Decision Trees for AI Context**
@@ -22,7 +22,7 @@
 ```
 User Data Operations Decision Tree:
 +-- Core Data Access
-|   +-- `core/user_data_handlers.py` - Primary data access (21 functions)
+|   +-- `core/user_data_handlers.py` - Primary data access (26 functions)
 |   +-- `core/user_data_manager.py` - Data management (64 functions)
 |   `-- `core/user_data_validation.py` - Validation (8/11 functions)
 +-- User Context
@@ -54,7 +54,7 @@ Communication Decision Tree:
 |   `-- `communication/core/factory.py` - Channel creation (6 functions)
 +-- Specific Channels
 |   +-- `communication/communication_channels/discord/bot.py` - Discord integration (40 functions)
-|   `-- `communication/communication_channels/email/bot.py` - Email integration (14 functions)
+|   `-- `communication/communication_channels/email/bot.py` - Email integration (14/16 functions)
 `-- Conversation Flow
     `-- `communication/message_processing/conversation_flow_manager.py` - Conversation management (68/72 functions)
 ```
@@ -176,7 +176,7 @@ Core System Decision Tree:
 - [OK] `core/config.py::__init__()` - Initialization
 
 ### **Data Access Patterns**
-- **User Data**: `core/user_data_handlers.py` - User data operations (21 functions)
+- **User Data**: `core/user_data_handlers.py` - User data operations (26 functions)
 - **Validation**: `core/user_data_validation.py` - Data validation (8/11 functions)
 - **File Operations**: `core/file_operations.py` - File I/O (16 functions)
 
@@ -217,11 +217,11 @@ Core System Decision Tree:
 
 ### **Complexity Metrics**
 Most complex functions (may need refactoring):
-1. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2604
+1. [OK] `communication/communication_channels/discord/bot.py::initialize__register_events()` - Complexity: 2625
 2. [OK] `communication/message_processing/interaction_manager.py::handle_message()` - Complexity: 2554
-3. [OK] `ai/chatbot.py::_create_comprehensive_context_prompt()` - Complexity: 2208
-4. [OK] `run_tests.py::run_command()` - Complexity: 2200
-5. [OK] `communication/message_processing/command_parser.py::_extract_entities_rule_based()` - Complexity: 2140
+3. [OK] `communication/message_processing/command_parser.py::_extract_entities_rule_based()` - Complexity: 2298
+4. [OK] `ai/chatbot.py::_create_comprehensive_context_prompt()` - Complexity: 2208
+5. [OK] `run_tests.py::run_command()` - Complexity: 2200
 
 
 ### **Pattern Recognition**
@@ -231,12 +231,12 @@ Most complex functions (may need refactoring):
 - **Context managers** can be used with `with` statements
 
 ### **File Organization**
-- `core/` - System utilities and data management (27 files, 811 functions)
-- `communication/` - Communication channels and message processing (38 files, 756 functions)
+- `core/` - System utilities and data management (27 files, 816 functions)
+- `communication/` - Communication channels and message processing (38 files, 760 functions)
 - `ai/` - AI chatbot functionality (7 files, 189 functions)
 - `ui/` - User interface components (28 files, 793 functions)
 - `user/` - User context and preferences (4 files, 64 functions)
 - `tasks/` - Task management system (2 files, 21 functions)
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: 2026-01-11 00:33:39
+> **Last Updated**: 2026-01-14 04:48:07

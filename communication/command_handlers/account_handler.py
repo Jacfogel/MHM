@@ -7,7 +7,7 @@ Channel-agnostic handler for account creation and linking operations.
 from typing import Dict, Any, List, Optional
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.user_management import get_user_id_by_identifier, create_new_user
+from core.user_data_handlers import get_user_id_by_identifier, create_new_user
 from core.user_data_handlers import get_user_data, get_all_user_ids, update_user_account
 from core.user_data_manager import update_user_index
 from communication.command_handlers.base_handler import InteractionHandler
@@ -458,4 +458,5 @@ MHM Team"""
     except Exception as e:
         logger.error(f"Error sending confirmation code for user {user_id}: {e}")
         return False
+
 

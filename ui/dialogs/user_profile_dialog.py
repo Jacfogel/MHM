@@ -26,7 +26,7 @@ logger = get_component_logger('ui')
 dialog_logger = logger
 
 # Import core functionality
-from core.user_management import (
+from core.user_data_handlers import (
     get_predefined_options
 )
 from core.user_data_validation import validate_personalization_data

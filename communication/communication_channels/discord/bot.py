@@ -19,7 +19,7 @@ import psutil
 from core.config import DISCORD_BOT_TOKEN, DISCORD_APPLICATION_ID
 from core.logger import get_component_logger
 from communication.communication_channels.base.base_channel import BaseChannel, ChannelType, ChannelStatus, ChannelConfig
-from core.user_management import get_user_id_by_identifier
+from core.user_data_handlers import get_user_id_by_identifier
 from core.error_handling import handle_errors
 
 # Route all Discord module logs to the Discord component logger so they appear in logs/discord.log
@@ -925,7 +925,7 @@ class DiscordBot(BaseChannel):
                             if button_label:
                                 # Get internal user ID
                                 discord_user_id = str(interaction.user.id)
-                                from core.user_management import get_user_id_by_identifier
+                                from core.user_data_handlers import get_user_id_by_identifier
                                 internal_user_id = get_user_id_by_identifier(discord_user_id)
                                 
                                 if internal_user_id:
@@ -987,7 +987,7 @@ class DiscordBot(BaseChannel):
                     mark_as_welcomed,
                     get_welcome_message
                 )
-                from core.user_management import get_user_id_by_identifier
+                from core.user_data_handlers import get_user_id_by_identifier
                 
                 internal_user_id = get_user_id_by_identifier(discord_user_id)
                 
@@ -2153,3 +2153,4 @@ class DiscordBot(BaseChannel):
             return False
         """Send a direct message to a Discord user"""
         return await self.send_message(user_id, message)
+

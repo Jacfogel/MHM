@@ -31,7 +31,7 @@ When adding new tasks, follow this format:
 
 **Note**: Phase 1: Enhanced Task & Check-in Systems is tracked in [PLANS.md](development_docs/PLANS.md). 
 **Note**: Mood-Aware Support Calibration items (Safety Net Response Library, Task Breakdown Prompt Experiments, Context-Aware Reminder Content Mapping, Mood Re-evaluation Cadence Guidelines) are tracked in [PLANS.md](development_docs/PLANS.md) under "Mood-Aware Support Calibration" plan.
-**Note**: Development tools related tasks have been moved to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md) for centralized planning and tracking. See that document for all development tools improvements, enhancements, and maintenance tasks.
+**Note**: Development tools related tasks have been moved to [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) for centralized planning and tracking. See that document for all development tools improvements, enhancements, and maintenance tasks.
 
 ## High Priority
 
@@ -272,11 +272,13 @@ When adding new tasks, follow this format:
 - *Why it helps*: Simplifies codebase structure, removes legacy module, consolidates user data handling in one place
 - *Estimated effort*: Medium
 - *Subtasks*:
-  - [ ] Inventory remaining direct imports of `core.user_management` (core, communication, tests, docs)
+  - [x] Inventory remaining direct imports of `core.user_management` (core, communication, tests, docs)
+  - [x] Update production imports (communication/core/ui) to prefer `core.user_data_handlers`
+  - [x] Port helper implementations for identifiers/categories/presets/timezones into `core.user_data_handlers`
   - [ ] Move the USER_DATA_LOADERS registry and loader registration into `core.user_data_handlers`
-  - [ ] Port remaining helpers that are still implemented only in `core.user_management` (or delete if unused)
+  - [ ] Port remaining helpers still implemented only in `core.user_management` (or delete if unused)
   - [ ] Update `core/__init__.py` exports to prefer `core.user_data_handlers` and remove legacy notes
-  - [ ] Update all imports from `core.user_management` to `core.user_data_handlers` and fix test shims in `tests/conftest.py`
+  - [ ] Update remaining test imports and shims (including `tests/conftest.py`) to stop using `core.user_management`
   - [ ] Remove `core.user_management` and clean up any compatibility wrappers
   - [ ] Update comments in `core.user_data_handlers` that reference the retirement
 

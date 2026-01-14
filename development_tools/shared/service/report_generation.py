@@ -1642,7 +1642,7 @@ class ReportGenerationMixin:
                     f"{paired_doc_issues} paired documentation sets affected alongside drift."
                 )
             drift_details.append(
-                "Action: Fix broken paths in top offender files, then run `python development_tools/run_development_tools.py doc-sync --fix`"
+                "Action: Fix broken paths in top offender files, then run `python development_tools/run_development_tools.py doc-sync`"
             )
             drift_details.append(
                 "Effort: Small (update file paths in documentation, run automated fix tool)"

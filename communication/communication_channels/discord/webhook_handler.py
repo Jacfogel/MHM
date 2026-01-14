@@ -113,7 +113,7 @@ def handle_application_authorized(event_data: Dict[str, Any], bot_instance=None)
             return True
         
         # Check if user already has an account (for logging purposes)
-        from core.user_management import get_user_id_by_identifier
+        from core.user_data_handlers import get_user_id_by_identifier
         internal_user_id = get_user_id_by_identifier(discord_user_id)
         
         if internal_user_id:
@@ -305,4 +305,5 @@ def handle_webhook_event(event_type: str, event_data: Dict[str, Any], bot_instan
     except Exception as e:
         logger.error(f"Error handling webhook event {event_type}: {e}", exc_info=True)
         return False
+
 

@@ -824,7 +824,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
 
         # Get schedule suggestions
         try:
-            from core.user_management import get_user_categories
+            from core.user_data_handlers import get_user_categories
 
             categories = get_user_categories(user_id)
             if categories:
@@ -1051,3 +1051,4 @@ def handle_user_message(user_id: str, message: str, channel_type: str = "discord
     """Convenience function to handle a user message"""
     manager = get_interaction_manager()
     return manager.handle_message(user_id, message, channel_type) 
+

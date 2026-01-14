@@ -4,8 +4,8 @@
 > **Audience**: Human maintainers and contributors
 > **Purpose**: Detailed reference for every development tool, its tiers, trust level, and scope
 > **Style**: Explicit, actionable, high-signal
-> **Pair**: [AI_DEVELOPMENT_TOOLS_GUIDE.md](ai_development_docs/AI_DEVELOPMENT_TOOLS_GUIDE.md)
-> This document is paired with [AI_DEVELOPMENT_TOOLS_GUIDE.md](ai_development_docs/AI_DEVELOPMENT_TOOLS_GUIDE.md). Keep both H2 headings identical and keep the AI doc concise while this guide carries the detailed context.
+> **Pair**: [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)
+> This document is paired with [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md). Keep both H2 headings identical and keep the AI doc concise while this guide carries the detailed context.
 
 ---
 
@@ -14,7 +14,7 @@
 Use this guide when you need:
 - The authoritative human-readable catalog of tools and tiers
 - Rationale behind trust levels and roadmap priorities
-- Links to supporting plans such as [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md)
+- Links to supporting plans such as [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md)
 
 The machine-readable metadata lives in `development_tools/shared/tool_metadata.py` and is surfaced to AI collaborators through the paired guide.
 
@@ -302,7 +302,7 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 - When adding or relocating tools, update:
 - `shared/tool_metadata.py`
 - This guide and the AI guide (paired H2 requirements)
-- [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md) if scope or gaps change
+- [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md) if scope or gaps change
 - Maintain directory integrity (`development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) so automation can locate artifacts; keep generated reports under the paths enumerated in `shared/constants.py`.
 - Use the shared test locations: `tests/development_tools/` for suites and `tests/fixtures/development_tools_demo/` for synthetic inputs.
 - For detailed testing guidance, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
@@ -324,7 +324,7 @@ development_tools/tests/logs/
 ```
 
 - Do not implement bespoke exclusion logic inside individual tools - always import from `shared/standard_exclusions.py` so rules remain centralized.
-- Treat the tooling as a self-contained subproject: track follow-up work in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md), document shipped changes in both changelogs, and keep the AI + human guides synchronized.
+- Treat the tooling as a self-contained subproject: track follow-up work in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), document shipped changes in both changelogs, and keep the AI + human guides synchronized.
 
 Keeping these standards ensures the tooling ecosystem remains predictable for both humans and AI collaborators.
 

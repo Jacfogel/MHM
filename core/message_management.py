@@ -19,9 +19,7 @@ from core.error_handling import (
 )
 from typing import List, Dict, Any, Optional
 
-# Use component logger for message management
 logger = get_component_logger('message')
-message_logger = logger  # Alias for backward compatibility
 
 @handle_errors("getting message categories", default_return=[])
 def get_message_categories():

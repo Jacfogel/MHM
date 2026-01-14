@@ -199,7 +199,7 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 - **Legacy, versioning, signals**: `legacy/fix_legacy_references.py`, `reports/analyze_system_signals.py`, `reports/quick_status.py`, `docs/fix_version_sync.py` (experimental)
 - **Decision & utilities**: `reports/decision_support.py`, `functions/analyze_functions.py`, `functions/generate_function_docstrings.py` (experimental), `config/analyze_config.py`, `shared/file_rotation.py`, `functions/analyze_*` helpers, `shared/tool_guide.py`
 
-Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier and trust matrix.
+Consult [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md) for the detailed tier and trust matrix.
 
 ---
 

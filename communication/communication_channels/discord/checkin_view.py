@@ -48,7 +48,7 @@ def get_checkin_view(user_id: str) -> Optional['discord.ui.View']:
             from communication.message_processing.interaction_manager import handle_user_message
             
             discord_user_id = str(interaction.user.id)
-            from core.user_management import get_user_id_by_identifier
+            from core.user_data_handlers import get_user_id_by_identifier
             internal_user_id = get_user_id_by_identifier(discord_user_id)
             
             if internal_user_id:
@@ -68,7 +68,7 @@ def get_checkin_view(user_id: str) -> Optional['discord.ui.View']:
             from communication.message_processing.interaction_manager import handle_user_message
             
             discord_user_id = str(interaction.user.id)
-            from core.user_management import get_user_id_by_identifier
+            from core.user_data_handlers import get_user_id_by_identifier
             internal_user_id = get_user_id_by_identifier(discord_user_id)
             
             if internal_user_id:
@@ -92,4 +92,5 @@ def get_checkin_view(user_id: str) -> Optional['discord.ui.View']:
             await interaction.response.send_message(more_info, ephemeral=True)
     
     return CheckinView(user_id)
+
 

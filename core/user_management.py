@@ -901,164 +901,12 @@ def create_new_user(user_data: Dict[str, Any]) -> str:
     logger.info(f"Created new user: {user_id} ({user_data.get('internal_username', '')})")
     return user_id
 
-@handle_errors("getting user id by internal username", default_return=None)
-def _get_user_id_by_identifier__by_internal_username(internal_username: str) -> Optional[str]:
-    """Helper function: Get user ID by internal username using the user index for fast lookup."""
-    if not internal_username:
-        return None
-    
-    # Try fast lookup from user index first
-    try:
-        from core.config import BASE_DATA_DIR
-        
-        # Use file locking for user_index.json to prevent race conditions in parallel execution
-        from core.file_locking import safe_json_read
-        index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
-        index_data = safe_json_read(index_file, default={})
-        
-        # Check mapping (fast O(1) lookup)
-        if internal_username in index_data:
-            return index_data[internal_username]
-                
-    except Exception as e:
-        logger.warning(f"Error looking up user by internal_username '{internal_username}' in index: {e}")
-    
-    # Fallback: scan all user directories (slow but reliable)
-    logger.debug(f"Falling back to directory scan for internal_username '{internal_username}'")
-    user_ids = get_all_user_ids()
-    for user_id in user_ids:
-        from core.user_data_handlers import get_user_data
-        user_data_result = get_user_data(user_id, 'account')
-        account_data = user_data_result.get('account')
-        if account_data and account_data.get('internal_username') == internal_username:
-            return user_id
-    
-    return None
+@handle_errors("getting user id by identifier", default_return=None)
+def get_user_id_by_identifier(identifier: str) -> Optional[str]:
+    """Get user ID by any supported identifier."""
+    from core.user_data_handlers import get_user_id_by_identifier as handlers_get_user_id
+    return handlers_get_user_id(identifier)
 
-@handle_errors("getting user id by email", default_return=None)
-def _get_user_id_by_identifier__by_email(email: str) -> Optional[str]:
-    """Helper function: Get user ID by email using the user index for fast lookup."""
-    if not email:
-        return None
-    
-    # Try fast lookup from user index first
-    try:
-        from core.config import BASE_DATA_DIR
-        
-        # Use file locking for user_index.json to prevent race conditions in parallel execution
-        from core.file_locking import safe_json_read
-        index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
-        index_data = safe_json_read(index_file, default={})
-        
-        # Check email mapping (fast O(1) lookup)
-        email_key = f"email:{email}"
-        if email_key in index_data:
-            return index_data[email_key]
-                
-    except Exception as e:
-        logger.warning(f"Error looking up user by email '{email}' in index: {e}")
-    
-    # Fallback: scan all user directories (slow but reliable)
-    logger.debug(f"Falling back to directory scan for email '{email}'")
-    user_ids = get_all_user_ids()
-    for user_id in user_ids:
-        from core.user_data_handlers import get_user_data
-        user_data_result = get_user_data(user_id, 'account')
-        account_data = user_data_result.get('account')
-        if account_data and account_data.get('email') == email:
-            return user_id
-    
-    return None
-
-@handle_errors("getting user id by phone", default_return=None)
-def _get_user_id_by_identifier__by_phone(phone: str) -> Optional[str]:
-    """Helper function: Get user ID by phone using the user index for fast lookup."""
-    if not phone:
-        return None
-    
-    # Try fast lookup from user index first
-    try:
-        from core.config import BASE_DATA_DIR
-        
-        # Use file locking for user_index.json to prevent race conditions in parallel execution
-        from core.file_locking import safe_json_read
-        index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
-        index_data = safe_json_read(index_file, default={})
-        
-        # Check phone mapping (fast O(1) lookup)
-        phone_key = f"phone:{phone}"
-        if phone_key in index_data:
-            return index_data[phone_key]
-                
-    except Exception as e:
-        logger.warning(f"Error looking up user by phone '{phone}' in index: {e}")
-    
-    # Fallback: scan all user directories (slow but reliable)
-    logger.debug(f"Falling back to directory scan for phone '{phone}'")
-    user_ids = get_all_user_ids()
-    for user_id in user_ids:
-        from core.user_data_handlers import get_user_data
-        user_data_result = get_user_data(user_id, 'account')
-        account_data = user_data_result.get('account')
-        if account_data and account_data.get('phone') == phone:
-            return user_id
-    
-    return None
-
-@handle_errors("getting user id by chat id", default_return=None)
-def _get_user_id_by_identifier__by_chat_id(chat_id: str) -> Optional[str]:
-    """Helper function: Get user ID by chat ID."""
-    if not chat_id:
-        return None
-    
-    user_ids = get_all_user_ids()
-    for user_id in user_ids:
-        from core.user_data_handlers import get_user_data
-        user_data_result = get_user_data(user_id, 'account')
-        account_data = user_data_result.get('account')
-        if account_data and account_data.get('chat_id') == chat_id:
-            return user_id
-    
-    return None
-
-@handle_errors("getting user id by discord user id", default_return=None)
-def _get_user_id_by_identifier__by_discord_user_id(discord_user_id: str) -> Optional[str]:
-    """Helper function: Get user ID by Discord user ID using the user index for fast lookup."""
-    if not discord_user_id:
-        return None
-    
-    # Try fast lookup from user index first
-    try:
-        from core.config import BASE_DATA_DIR
-        
-        # Use file locking for user_index.json to prevent race conditions in parallel execution
-        from core.file_locking import safe_json_read
-        index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
-        index_data = safe_json_read(index_file, default={})
-        
-        # Check discord mapping (fast O(1) lookup)
-        discord_key = f"discord:{discord_user_id}"
-        if discord_key in index_data:
-            return index_data[discord_key]
-                
-    except Exception as e:
-        logger.warning(f"Error looking up user by discord_user_id '{discord_user_id}' in index: {e}")
-    
-    # Fallback: scan all user directories (slow but reliable)
-    logger.debug(f"Falling back to directory scan for discord_user_id '{discord_user_id}'")
-    user_ids = get_all_user_ids()
-    for user_id in user_ids:
-        from core.user_data_handlers import get_user_data
-        user_data_result = get_user_data(user_id, 'account')
-        account_data = user_data_result.get('account')
-        if account_data:
-            stored_discord_id = account_data.get("discord_user_id", "")
-            
-            # Handle both string and integer comparisons
-            if str(stored_discord_id) == str(discord_user_id):
-                return user_id
-    
-    return None
 
 @handle_errors("clearing user caches")
 def clear_user_caches(user_id: Optional[str] = None):
@@ -1194,19 +1042,8 @@ logger.info(f"Registered {len(USER_DATA_LOADERS)} data loaders in centralized re
 @handle_errors("getting user categories", default_return=[])
 def get_user_categories(user_id: str) -> List[str]:
     """Get user's message categories using centralized system."""
-    from core.user_data_handlers import get_user_data
-    user_data = get_user_data(user_id, 'preferences')
-    # Extract categories from the preferences structure
-    if isinstance(user_data, dict):
-        preferences = user_data.get('preferences', {})
-        if isinstance(preferences, dict):
-            categories = preferences.get('categories', [])
-            if isinstance(categories, list):
-                return categories
-    # Fallback: if user_data is already a list (legacy format)
-    elif isinstance(user_data, list):
-        return user_data
-    return []
+    from core.user_data_handlers import get_user_categories as handlers_get_categories
+    return handlers_get_categories(user_id)
 
 @handle_errors("getting user data with metadata", default_return={})
 def get_user_data_with_metadata(user_id: str, data_types: Union[str, List[str]] = 'all') -> Dict[str, Any]:
@@ -1219,97 +1056,20 @@ def get_user_data_with_metadata(user_id: str, data_types: Union[str, List[str]] 
 # ============================================================================
 
 # Predefined options for various personalization fields
-PREDEFINED_OPTIONS = {
-    "gender_identity": [
-        "Male", "Female", "Non-binary", "Genderfluid", "Agender", "Bigender", "Demiboy", "Demigirl",
-        "Genderqueer", "Two-spirit", "Other", "Prefer not to say"
-    ],
-    "health_conditions": [
-        "ADHD", "Anxiety", "Depression", "Bipolar Disorder", "PTSD", 
-        "OCD", "Autism", "Chronic Pain", "Diabetes", "Asthma",
-        "Sleep Disorders", "Eating Disorders", "Substance Use Disorder"
-    ],
-    "medications_treatments": [
-        "Antidepressant", "Anti-anxiety medication", "Stimulant for ADHD",
-        "Mood stabilizer", "Antipsychotic", "Sleep medication",
-        "Therapy", "Counseling", "Support groups", "Exercise",
-        "Meditation", "Yoga", "CPAP", "Inhaler", "Insulin"
-    ],
-    "reminders_needed": [
-        "medications_treatments", "hydration", "movement/stretch breaks",
-        "healthy meals/snacks", "mental health check-ins", "appointments",
-        "exercise", "sleep schedule", "self-care activities"
-    ],
-    "loved_one_types": [
-        "human", "dog", "cat", "bird", "fish", "reptile", "horse",
-        "rabbit", "hamster", "guinea pig", "ferret", "other"
-    ],
-    "relationship_types": [
-        "partner", "spouse", "parent", "child", "sibling", "friend",
-        "roommate", "colleague", "therapist", "doctor", "teacher"
-    ],
-    "interests": [
-        "Reading", "Writing", "Gaming", "Music", "Art", "Cooking",
-        "Baking", "Gardening", "Hiking", "Swimming", "Running",
-        "Yoga", "Meditation", "Photography", "Crafts", "Knitting",
-        "Painting", "Drawing", "Sewing", "Woodworking", "Programming",
-        "Math", "Science", "History", "Languages", "Travel"
-    ],
-    "activities_for_encouragement": [
-        "exercise", "healthy eating", "sleep hygiene", "social activities",
-        "hobbies", "work/projects", "self-care", "therapy appointments",
-        "medication adherence", "stress management"
-    ]
-}
-
-# Timezone options (common ones)
-TIMEZONE_OPTIONS = [
-    "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
-    "America/Regina", "America/Toronto", "America/Vancouver", "America/Edmonton",
-    "America/Port_of_Spain", "Europe/London", "Europe/Paris", "Europe/Berlin", "Europe/Rome",
-    "Asia/Tokyo", "Asia/Shanghai", "Asia/Kolkata", "Australia/Sydney",
-    "Pacific/Auckland", "UTC"
-]
-
-# ---------------------------------------------------------------------------
-# PRESET OPTIONS – now loaded from JSON at runtime
-# ---------------------------------------------------------------------------
-
-_PRESETS_CACHE: Dict[str, List[str]] | None = None
-
-
-@handle_errors("loading presets JSON", default_return=PREDEFINED_OPTIONS)
-def _load_presets_json() -> Dict[str, List[str]]:
-    """Load presets from resources/presets.json (cached)."""
-    global _PRESETS_CACHE
-    if _PRESETS_CACHE is not None:
-        return _PRESETS_CACHE
-
-    import json, pkgutil, os
-    presets_path = Path(__file__).parent.parent / "resources" / "presets.json"
-    try:
-        with open(presets_path, "r", encoding="utf-8") as f:
-            _PRESETS_CACHE = json.load(f)
-    except FileNotFoundError:
-        logger.warning("presets.json not found – falling back to hard-coded options")
-        _PRESETS_CACHE = PREDEFINED_OPTIONS  # fallback
-    return _PRESETS_CACHE
-
 
 @handle_errors("getting predefined options", default_return=[])
 def get_predefined_options(field: str) -> List[str]:
     """Return predefined options for a personalization field."""
-    presets = _load_presets_json()
-    return presets.get(field, [])
+    from core.user_data_handlers import get_predefined_options as handlers_get_options
+    return handlers_get_options(field)
 
+
+@handle_errors("getting timezone options", default_return=[])
 def get_timezone_options() -> List[str]:
     """Get timezone options."""
-    try:
-        import pytz
-        return pytz.all_timezones
-    except ImportError:
-        # Fallback to hardcoded list if pytz is not available
-        return TIMEZONE_OPTIONS
+    from core.user_data_handlers import get_timezone_options as handlers_get_timezones
+    return handlers_get_timezones()
+
 
 @handle_errors("creating default personalization data", default_return={})
 def create_default_personalization_data() -> Dict[str, Any]:
@@ -1415,86 +1175,3 @@ def clear_personalization_cache(user_id: Optional[str] = None) -> None:
     """Clear the personalization cache for a specific user or all users."""
     # Use the centralized cache clearing system
     clear_user_caches(user_id)
-
-@handle_errors("getting user id by identifier", default_return=None)
-def get_user_id_by_identifier(identifier: str) -> Optional[str]:
-    """
-    Get user ID by any identifier (internal_username, email, discord_user_id, phone).
-    
-    Automatically detects the identifier type and uses the appropriate lookup method.
-    
-    Args:
-        identifier: The identifier to look up (can be any supported type)
-        
-    Returns:
-        Optional[str]: User ID if found, None otherwise
-    """
-    if not identifier:
-        return None
-    
-    # Try fast lookup from user index first
-    try:
-        from core.config import BASE_DATA_DIR
-        
-        # Use file locking for user_index.json to prevent race conditions in parallel execution
-        from core.file_locking import safe_json_read
-        index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
-        index_data = safe_json_read(index_file, default={})
-        
-        # Check all possible mappings in order of likelihood
-        # 1. Direct internal_username mapping (most common)
-        if identifier in index_data:
-            mapped = index_data[identifier]
-            # If mapping is a UUID/string, return it directly
-            if isinstance(mapped, str) and mapped:
-                return mapped
-            # Some tests write detailed objects instead of UUIDs. In that case, if a user
-            # directory exists with the identifier as the folder name, treat the identifier
-            # itself as the user_id (legacy-style id equal to internal_username).
-            try:
-                users_dir = str(Path(BASE_DATA_DIR) / "users" / identifier)
-                if os.path.isdir(users_dir):
-                    return identifier
-            except Exception:
-                pass
-        
-        # 2. Email mapping
-        email_key = f"email:{identifier}"
-        if email_key in index_data:
-            return index_data[email_key]
-        
-        # 3. Discord user ID mapping
-        discord_key = f"discord:{identifier}"
-        if discord_key in index_data:
-            return index_data[discord_key]
-        
-        # 4. Phone mapping
-        phone_key = f"phone:{identifier}"
-        if phone_key in index_data:
-            return index_data[phone_key]
-                
-    except Exception as e:
-        logger.warning(f"Error looking up user by identifier '{identifier}' in index: {e}")
-    
-    # Fallback: try specific lookup functions
-    # Try internal_username first (most common)
-    result = _get_user_id_by_identifier__by_internal_username(identifier)
-    if result:
-        return result
-    
-    # Try email
-    result = _get_user_id_by_identifier__by_email(identifier)
-    if result:
-        return result
-    
-    # Try discord_user_id
-    result = _get_user_id_by_identifier__by_discord_user_id(identifier)
-    if result:
-        return result
-    
-    # Try phone
-    result = _get_user_id_by_identifier__by_phone(identifier)
-    if result:
-        return result
-    
-    return None 

@@ -1314,7 +1314,7 @@ def get_user_info_for_data_manager(user_id: str) -> Optional[Dict[str, Any]]:
         }
         
         # Get message files
-        from core.user_management import get_user_categories
+        from core.user_data_handlers import get_user_categories
         categories = get_user_categories(user_id)
         
         for category in categories:
@@ -1331,7 +1331,7 @@ def get_user_info_for_data_manager(user_id: str) -> Optional[Dict[str, Any]]:
         return None
 
 # Import get_user_categories from user_management to avoid duplication
-from core.user_management import get_user_categories
+from core.user_data_handlers import get_user_categories
 
 @handle_errors("building user index", default_return={})
 def build_user_index() -> Dict[str, Any]:
@@ -1546,3 +1546,4 @@ def get_user_analytics_summary(user_id: str) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Error getting analytics summary for user {user_id}: {e}")
         return {"error": f"Failed to get analytics: {str(e)}"} 
+

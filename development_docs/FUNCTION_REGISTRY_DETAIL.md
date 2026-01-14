@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-11 00:33:39
+> **Last Generated**: 2026-01-14 04:48:07
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 96.1% [OK] COMPLETED**
+### **Function Documentation Coverage: 96.0% [OK] COMPLETED**
 - **Files Scanned**: 110
-- **Functions Found**: 1525
-- **Methods Found**: 1133
+- **Functions Found**: 1532
+- **Methods Found**: 1135
 - **Classes Found**: 154
-- **Total Items**: 2658
-- **Functions Documented**: 1460
-- **Methods Documented**: 1094
+- **Total Items**: 2667
+- **Functions Documented**: 1466
+- **Methods Documented**: 1095
 - **Classes Documented**: 119
-- **Total Documented**: 2554
+- **Total Documented**: 2561
 - **Template-Generated**: 4
-- **Last Updated**: 2026-01-11
+- **Last Updated**: 2026-01-14
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -39,10 +39,10 @@
 
 ## Function Categories
 
-### **Core System Functions** (547)
+### **Core System Functions** (552)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (397)
+### **Communication Functions** (399)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (405)
@@ -883,6 +883,7 @@ Returns:
 - [OK] `_handle_create_journal(self, user_id, entities)` - Handle journal entry creation.
 - [OK] `_handle_create_list(self, user_id, entities)` - Handle list creation.
 - [OK] `_handle_create_note(self, user_id, entities)` - Handle note creation.
+- [OK] `_handle_create_quick_note(self, user_id, entities)` - Handle quick note creation - no body text required, automatically grouped as 'Quick Notes'.
 - [OK] `_handle_list_archived(self, user_id, entities)` - Handle listing archived entries.
 - [OK] `_handle_list_by_group(self, user_id, entities)` - Handle listing entries by group.
 - [OK] `_handle_list_by_tag(self, user_id, entities)` - Handle listing entries by tag.
@@ -912,6 +913,7 @@ Returns:
   - [OK] `NotebookHandler._handle_create_journal(self, user_id, entities)` - Handle journal entry creation.
   - [OK] `NotebookHandler._handle_create_list(self, user_id, entities)` - Handle list creation.
   - [OK] `NotebookHandler._handle_create_note(self, user_id, entities)` - Handle note creation.
+  - [OK] `NotebookHandler._handle_create_quick_note(self, user_id, entities)` - Handle quick note creation - no body text required, automatically grouped as 'Quick Notes'.
   - [OK] `NotebookHandler._handle_list_archived(self, user_id, entities)` - Handle listing archived entries.
   - [OK] `NotebookHandler._handle_list_by_group(self, user_id, entities)` - Handle listing entries by group.
   - [OK] `NotebookHandler._handle_list_by_tag(self, user_id, entities)` - Handle listing entries by tag.
@@ -1576,6 +1578,7 @@ Args:
     config: Channel configuration object. If None, creates default config
            with email-specific settings (max_retries=3, retry_delay=1.0,
            backoff_multiplier=2.0)
+- [MISSING] `_get_email_config(self)` - No description
 - [OK] `_receive_emails_sync(self)` - Receive emails synchronously - only fetches UNSEEN emails for efficiency
 - [OK] `_receive_emails_sync__extract_body(self, msg)` - Extract plain text body from email message
 - [OK] `channel_type(self)` - Get the channel type for email bot.
@@ -1593,6 +1596,7 @@ Args:
     config: Channel configuration object. If None, creates default config
            with email-specific settings (max_retries=3, retry_delay=1.0,
            backoff_multiplier=2.0)
+  - [MISSING] `EmailBot._get_email_config(self)` - No description
   - [OK] `EmailBot._receive_emails_sync(self)` - Receive emails synchronously - only fetches UNSEEN emails for efficiency
   - [OK] `EmailBot._receive_emails_sync__extract_body(self, msg)` - Extract plain text body from email message
   - [OK] `EmailBot.channel_type(self)` - Get the channel type for email bot.
@@ -4419,14 +4423,19 @@ Returns:
 
 Returns:
     Dict mapping data type to success status
+- [OK] `create_new_user(user_data)` - Create a new user via the legacy implementation.
 - [OK] `get_all_user_ids()` - Get all user IDs with enhanced error handling.
 
 Returns:
     List[str]: List of user IDs, empty list if failed
+- [OK] `get_predefined_options(field)` - Return predefined options via the legacy implementation.
+- [OK] `get_timezone_options()` - Return timezone options via the legacy implementation.
+- [OK] `get_user_categories(user_id)` - Return the user's category list via the legacy implementation.
 - [OK] `get_user_data(user_id, data_types, fields, auto_create, include_metadata, normalize_on_read)` - Get user data with comprehensive validation.
 
 Returns:
     Dict[str, Any]: User data dictionary, empty dict if failed
+- [OK] `get_user_id_by_identifier(identifier)` - Resolve a user ID using the legacy user management helpers.
 - [OK] `register_data_loader(data_type, loader_func, file_type, default_fields, metadata_fields, description)` - Register a data loader with validation.
 
 Returns:

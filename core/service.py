@@ -12,7 +12,6 @@ from core.logger import setup_logging, get_component_logger
 import logging  # kept for tests that patch core.service.logging.getLogger
 setup_logging()
 logger = get_component_logger('main')
-main_logger = logger  # Alias for backward compatibility
 discord_logger = get_component_logger('discord')
 logger.debug("Logging setup successfully.")
 

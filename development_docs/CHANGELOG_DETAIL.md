@@ -38,6 +38,11 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-14 - Legacy Cleanup Progress, Doc Tooling Fix, and Test Repairs
+- **Feature**: Continued legacy retirement by moving identifier/category/preset/timezone helpers into `core/user_data_handlers.py`, delegating legacy accessors in `core/user_management.py`, and updating production imports (communication/core/ui) to use the centralized handlers. Removed legacy logger aliases in `core/service.py` and `core/message_management.py`. Fixed development tools reporting guidance to remove the invalid `doc-sync --fix` instruction in `development_tools/shared/service/report_generation.py`. Updated `tests/behavior/test_schedule_handler_behavior.py` mocks to patch `core.user_data_handlers.get_user_categories` after the import migration and refreshed the `core.user_management` retirement task status in `TODO.md`.
+- **Impact**: Reduced reliance on legacy user management paths, clarified documentation tool guidance, and restored test stability for schedule handler behavior.
+- **Testing**: `python -m pytest tests/behavior/test_schedule_handler_behavior.py::TestScheduleHandlerBehavior::test_schedule_handler_schedule_status tests/unit/test_user_management.py::TestUserManagementEdgeCases::test_get_user_preferences_corrupted_file -vv`
+
 ### 2026-01-14 - Pyright Optional Fixes, Coverage Cache Mapping Fix, and UI Test Stabilization **COMPLETED**
 - **Feature**: Reduced pyright noise with optional-safe updates in core/communication, fixed test-file coverage cache mapping persistence, and stabilized account creation UI integration tests under parallel runs.
 - **Changes**:

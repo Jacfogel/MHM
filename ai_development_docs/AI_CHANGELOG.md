@@ -36,6 +36,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-14 - Legacy Cleanup and Test Fixes **COMPLETED**
+- Moved user identifier/category/preset/timezone helpers into `core/user_data_handlers.py` and delegated legacy accessors in `core/user_management.py`
+- Updated production imports to use `core.user_data_handlers` and removed legacy logger aliases
+- Fixed schedule handler test mocks after import migration; updated TODO task status
+
 ### 2026-01-14 - Pyright Optional Fixes and Coverage Cache Mapping Fix **COMPLETED**
 - Added optional-safe guards/typing across core and communication and updated pyright exclusions (temporary: `development_tools/**`, `tests/**`; permanent: generated UI)
 - Fixed test-file coverage cache mapping persistence (batched load/save) and marked account creation UI integration tests `no_parallel` to avoid shared data races
@@ -51,7 +56,7 @@ Guidelines:
 ### 2026-01-13 - Documentation, Planning, and Legacy Tracking Updates **COMPLETED**
 - Filled missing routing links in AI workflow docs, clarified config routing in AI architecture, and fixed a minor ARCHITECTURE.md reference
 - Added UI flow + signal-based update guidance and promoted test logging isolation as a headline rule
-- Reorganized TODO/PLANS, extracted task system plan into `development_docs/TASKS_PLAN.md`, and standardized plan metadata
+- Reorganized TODO/PLANS, extracted task system plan into [TASKS_PLAN.md](development_docs/TASKS_PLAN.md), and standardized plan metadata
 - Expanded legacy tracking patterns and regenerated legacy report outputs
 
 ### 2026-01-13 - Coverage Caching Overhaul (Main + Dev Tools) **COMPLETED**

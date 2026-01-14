@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QWidget
 from ui.generated.channel_selection_widget_pyqt import Ui_Form_channel_selection
 
-from core.user_management import get_timezone_options
+from core.user_data_handlers import get_timezone_options
 
 # Set up logging
 from core.logger import get_component_logger

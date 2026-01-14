@@ -17,7 +17,7 @@ dialog_logger = logger
 
 # Import core functionality
 from core.user_data_validation import validate_schedule_periods
-from core.user_management import get_user_id_by_identifier
+from core.user_data_handlers import get_user_id_by_identifier
 from core.error_handling import handle_errors
 
 # Import widgets
@@ -954,7 +954,7 @@ class AccountCreatorDialog(QDialog):
         """Update user index for the new user."""
         try:
             from core.user_data_manager import update_user_index
-            from core.user_management import get_user_id_by_identifier
+            from core.user_data_handlers import get_user_id_by_identifier
             from core.user_data_handlers import get_user_data
             import time
             

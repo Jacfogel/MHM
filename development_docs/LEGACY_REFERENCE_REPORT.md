@@ -2,10 +2,10 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-14 03:34:36
+> **Last Generated**: 2026-01-14 05:20:22
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
-**Total Files with Issues**: 38
-**Legacy Compatibility Markers Detected**: 71
+**Total Files with Issues**: 36
+**Legacy Compatibility Markers Detected**: 67
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
@@ -16,7 +16,7 @@
 3. Track the cleanup effort and rerun `python development_tools/run_development_tools.py legacy --clean --dry-run` until this report returns zero issues.
 
 ## Legacy Inventory Tracking
-**Files Affected**: 38
+**Files Affected**: 36
 
 ### communication\command_handlers\account_handler.py
 **Issues Found**: 1
@@ -64,29 +64,11 @@
   ```
 
 ### core\message_management.py
-**Issues Found**: 2
+**Issues Found**: 1
 
-- **Line 24**: `backward compatibility`
-  ```
-  message_logger = logger  # Alias for backward compatibility
-  ```
-
-- **Line 565**: `backward compatibility`
+- **Line 563**: `backward compatibility`
   ```
   Handles multiple timestamp formats for backward compatibility.
-  ```
-
-### core\schedule_management.py
-**Issues Found**: 2
-
-- **Line 58**: `periods wrapper format`
-  ```
-  # Get periods from the wrapper (all data now uses periods wrapper format)
-  ```
-
-- **Line 507**: `periods wrapper format`
-  ```
-  # All data now uses periods wrapper format - no legacy migration needed
   ```
 
 ### core\scheduler.py
@@ -105,33 +87,25 @@
   # If invalid, keep as-is for backward compatibility (tests may set placeholders)
   ```
 
-### core\service.py
-**Issues Found**: 1
-
-- **Line 15**: `backward compatibility`
-  ```
-  main_logger = logger  # Alias for backward compatibility
-  ```
-
 ### core\user_data_handlers.py
 **Issues Found**: 4
 
-- **Line 35**: `legacy module`
+- **Line 36**: `legacy module`
   ```
   # directly.  When we fully retire the legacy module we can move the real
   ```
 
-- **Line 793**: `backward compatibility`
+- **Line 794**: `backward compatibility`
   ```
   # This function is kept for backward compatibility but should primarily be used
   ```
 
-- **Line 1220**: `legacy path`
+- **Line 1513**: `legacy path`
   ```
   outside modules decoupled from the legacy path.
   ```
 
-- **Line 1232**: `legacy versions`
+- **Line 1525**: `legacy versions`
   ```
   # have switched over we can remove the legacy versions (see TODO.md).
   ```
@@ -380,7 +354,7 @@
 ### tests\conftest.py
 **Issues Found**: 1
 
-- **Line 1438**: `backward compatibility`
+- **Line 1445**: `backward compatibility`
   ```
   This function is kept for backward compatibility but does nothing.
   ```
