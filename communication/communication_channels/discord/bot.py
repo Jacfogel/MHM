@@ -1590,14 +1590,12 @@ class DiscordBot(BaseChannel):
                         user = await self.bot.fetch_user(user_id_int)
                     
                     if user:
-                        if embed and view:
-                            await user.send(content=message or None, embed=embed, view=view)
-                        elif embed:
-                            await user.send(content=message or None, embed=embed)
-                        elif view:
-                            await user.send(content=message, view=view)
-                        else:
-                            await user.send(content=message)
+                        send_kwargs: Dict[str, Any] = {"content": message}
+                        if embed:
+                            send_kwargs["embed"] = embed
+                        if view:
+                            send_kwargs["view"] = view
+                        await user.send(**send_kwargs)
                         # Log detailed message information (consolidated from two separate logs)
                         logger.info(f"Discord DM sent | {{\"user_id\": \"{discord_user_id}\", \"message_length\": {len(message)}, \"has_embed\": {bool(embed)}, \"has_components\": {bool(view)}, \"message_preview\": \"{message[:50]}...\"}}")
                         return True
@@ -1622,14 +1620,12 @@ class DiscordBot(BaseChannel):
                     user = await self.bot.fetch_user(user_id_int)
                 
                 if user:
-                    if embed and view:
-                        await user.send(content=message or None, embed=embed, view=view)
-                    elif embed:
-                        await user.send(content=message or None, embed=embed)
-                    elif view:
-                        await user.send(content=message, view=view)
-                    else:
-                        await user.send(content=message)
+                    send_kwargs: Dict[str, Any] = {"content": message}
+                    if embed:
+                        send_kwargs["embed"] = embed
+                    if view:
+                        send_kwargs["view"] = view
+                    await user.send(**send_kwargs)
                     logger.info(f"Discord DM sent directly | {{\"discord_user_id\": \"{discord_user_id}\", \"message_length\": {len(message)}, \"has_embed\": {bool(embed)}, \"has_components\": {bool(view)}, \"message_preview\": \"{message[:50]}...\"}}")
                     return True
                 else:
@@ -1644,14 +1640,12 @@ class DiscordBot(BaseChannel):
             channel_id = int(recipient)
             channel = self.bot.get_channel(channel_id)
             if channel:
-                if embed and view:
-                    await channel.send(content=message or None, embed=embed, view=view)
-                elif embed:
-                    await channel.send(content=message or None, embed=embed)
-                elif view:
-                    await channel.send(content=message, view=view)
-                else:
-                    await channel.send(message)
+                send_kwargs: Dict[str, Any] = {"content": message}
+                if embed:
+                    send_kwargs["embed"] = embed
+                if view:
+                    send_kwargs["view"] = view
+                await channel.send(**send_kwargs)
                 logger.info(f"Message sent to Discord channel {recipient}")
                 discord_logger.info("Discord channel message sent", 
                                   channel_id=recipient, 

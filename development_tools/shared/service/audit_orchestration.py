@@ -35,7 +35,7 @@ def _get_status_file_mtimes(project_root: Path) -> Dict[str, float]:
         status_files_config = status_config.get('status_files', {})
         # Use default from STATUS config if status_files_config is empty (matches default config)
         if not status_files_config:
-            from ..config.config import STATUS
+            from ...config.config import STATUS
             status_files_config = STATUS.get('status_files', {})
         status_files = {
             'AI_STATUS.md': project_root / status_files_config.get('ai_status', 'development_tools/AI_STATUS.md'),
@@ -45,7 +45,7 @@ def _get_status_file_mtimes(project_root: Path) -> Dict[str, float]:
     except (ImportError, AttributeError, KeyError):
         # Fallback to default STATUS config values for backward compatibility
         try:
-            from ..config.config import STATUS
+            from ...config.config import STATUS
             status_files_default = STATUS.get('status_files', {})
             status_files = {
                 'AI_STATUS.md': project_root / status_files_default.get('ai_status', 'development_tools/AI_STATUS.md'),
@@ -245,7 +245,7 @@ class AuditOrchestrationMixin:
                     # Use default from STATUS config if status_files_config is empty (matches default config)
                     if not status_files_config:
                         # Fallback to default STATUS config values for backward compatibility
-                        from ..config.config import STATUS
+                        from ...config.config import STATUS
                         status_files_config = STATUS.get('status_files', {})
                     ai_status_path = status_files_config.get('ai_status', 'development_tools/AI_STATUS.md')
                     ai_priorities_path = status_files_config.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')
@@ -253,7 +253,7 @@ class AuditOrchestrationMixin:
                 except (ImportError, AttributeError, KeyError):
                     # Fallback to default STATUS config values for backward compatibility
                     try:
-                        from ..config.config import STATUS
+                        from ...config.config import STATUS
                         status_files_default = STATUS.get('status_files', {})
                         ai_status_path = status_files_default.get('ai_status', 'development_tools/AI_STATUS.md')
                         ai_priorities_path = status_files_default.get('ai_priorities', 'development_tools/AI_PRIORITIES.md')

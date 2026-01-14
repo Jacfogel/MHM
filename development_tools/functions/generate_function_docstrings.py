@@ -16,7 +16,7 @@ import ast
 import sys
 import re
 from pathlib import Path
-from typing import List, Optional, Dict
+from typing import Any, Dict, List, Optional
 from datetime import datetime
 
 # Add project root to path for core module imports
@@ -37,10 +37,12 @@ logger = get_component_logger("development_tools")
 # Load config at module level
 AUTO_DOC_CONFIG = config.get_generate_function_docstrings_config()
 
-def detect_function_type(file_path: str, func_name: str, decorators: List[str], args: List[str], function_type_detection: Optional[Dict] = None) -> str:
+def detect_function_type(file_path: str, func_name: str, decorators: List[str], args: List[str], function_type_detection: Optional[Dict[str, Any]] = None) -> str:
     """Detect the type of function for template generation using config rules."""
-    if function_type_detection is None:
+    if function_type_detection is None or not isinstance(function_type_detection, dict):
         function_type_detection = AUTO_DOC_CONFIG.get('function_type_detection', {})
+    if not isinstance(function_type_detection, dict):
+        function_type_detection = {}
     
     file_lower = file_path.lower()
     func_lower = func_name.lower()
@@ -94,10 +96,12 @@ def detect_function_type(file_path: str, func_name: str, decorators: List[str], 
     
     return 'regular_function'
 
-def generate_function_template(func_type: str, func_name: str, file_path: str, args: List[str], formatting_rules: Optional[Dict] = None) -> str:
+def generate_function_template(func_type: str, func_name: str, file_path: str, args: List[str], formatting_rules: Optional[Dict[str, Any]] = None) -> str:
     """Generate appropriate documentation template based on function type using config."""
-    if formatting_rules is None:
+    if formatting_rules is None or not isinstance(formatting_rules, dict):
         formatting_rules = AUTO_DOC_CONFIG.get('formatting_rules', {})
+    if not isinstance(formatting_rules, dict):
+        formatting_rules = {}
     
     # Check for custom template in formatting_rules
     if func_type in formatting_rules:

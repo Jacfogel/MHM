@@ -441,7 +441,7 @@ class TestUIAppIntegration:
         assert all(isinstance(sm, ServiceManager) for sm in service_managers), "All should be valid ServiceManager instances"
 
 
-class TestUIAppIntegration:
+class TestUIAppIntegrationExtended:
     """Test UI app integration and complex workflows."""
     
     @pytest.fixture

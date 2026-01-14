@@ -238,6 +238,7 @@ When adding new tasks, follow this format:
 - *What it means*: Track coverage priorities in [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md) and add specific module targets here only when they need explicit follow-up.
 - *Why it helps*: Keeps TODO.md focused while staying aligned with the latest audit-driven priorities.
 - *Estimated effort*: Small
+
 **CI Guard for Logging Enforcement**
 - *What it means*: Wire the static logging check into CI to enforce ComponentLogger rules automatically.
 - *Why it helps*: Prevents regressions of forbidden logging patterns.
@@ -258,7 +259,6 @@ When adding new tasks, follow this format:
   - [ ] Check for timing/race condition issues in test setup or teardown
   - [ ] Verify test isolation and data cleanup between test runs
   - [ ] Add retry logic or fix root cause if identified
-
 
 **Improve AI Terminal Interaction Reliability**
 - *What it means*: Investigate why AI assistants often misinterpret PowerShell output or make incorrect assumptions
@@ -336,7 +336,3 @@ When adding new tasks, follow this format:
 - *What it means*: Review the unmapped test files reported by the cache and associate each with one or more domains.
 - *Why it helps*: Improves selective runs and cache accuracy while keeping full runs clean.
 - *Estimated effort*: Small/Medium
-
-
-
-**Investigate repeated reappearance of htmlcov top leel directory**

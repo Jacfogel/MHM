@@ -749,7 +749,7 @@ class TestMHMManagerUI:
                         mock_dialog.assert_called_once()
                         mock_dialog_instance.show.assert_called_once()
     
-    def test_load_user_categories_loads_categories(self, test_data_dir, qapp):
+    def test_load_user_categories_loads_categories_extended(self, test_data_dir, qapp):
         """Test that load_user_categories loads user categories."""
         from ui.ui_app_qt import MHMManagerUI
         from tests.test_utilities import TestUserFactory
@@ -777,7 +777,7 @@ class TestMHMManagerUI:
                     mock_ui_instance.comboBox_user_categories.clear.assert_called()
                     assert mock_ui_instance.comboBox_user_categories.addItem.call_count >= 0
     
-    def test_on_category_selected_handles_selection(self, qapp):
+    def test_on_category_selected_handles_selection_extended(self, qapp):
         """Test that on_category_selected handles category selection."""
         from ui.ui_app_qt import MHMManagerUI
         
@@ -1156,4 +1156,3 @@ class TestMHMManagerUI:
                             assert mock_set_style.call_count >= 1
                             # Verify it was called with the theme content
                             mock_set_style.assert_any_call(theme_content)
-

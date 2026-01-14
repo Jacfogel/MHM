@@ -1,11 +1,11 @@
 # Development Tools Guide
 
-> **File**: `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`  
-> **Audience**: Human maintainers and contributors  
-> **Purpose**: Detailed reference for every development tool, its tiers, trust level, and scope  
-> **Style**: Explicit, actionable, high-signal  
-> **Pair**: [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)  
-> This document is paired with [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md). Keep both H2 headings identical and keep the AI doc concise while this guide carries the detailed context.
+> **File**: `development_tools/DEVELOPMENT_TOOLS_GUIDE.md`
+> **Audience**: Human maintainers and contributors
+> **Purpose**: Detailed reference for every development tool, its tiers, trust level, and scope
+> **Style**: Explicit, actionable, high-signal
+> **Pair**: [AI_DEVELOPMENT_TOOLS_GUIDE.md](ai_development_docs/AI_DEVELOPMENT_TOOLS_GUIDE.md)
+> This document is paired with [AI_DEVELOPMENT_TOOLS_GUIDE.md](ai_development_docs/AI_DEVELOPMENT_TOOLS_GUIDE.md). Keep both H2 headings identical and keep the AI doc concise while this guide carries the detailed context.
 
 ---
 
@@ -18,7 +18,7 @@ Use this guide when you need:
 
 The machine-readable metadata lives in `development_tools/shared/tool_metadata.py` and is surfaced to AI collaborators through the paired guide.
 
-**Note on Tool Relationships**: These development tools are complementary to other quality tools (Pyright for type checking, ruff/bandit for security/style). They focus on project-specific analysis (error handling patterns, documentation sync, legacy tracking) that no existing tools provide. See [TODO.md](../../TODO.md) for evaluation tasks for complementary tools.
+**Note on Tool Relationships**: These development tools are complementary to other quality tools (Pyright for type checking, ruff/bandit for security/style). They focus on project-specific analysis (error handling patterns, documentation sync, legacy tracking) that no existing tools provide. See [TODO.md](TODO.md) for evaluation tasks for complementary tools.
 
 ---
 
@@ -40,7 +40,7 @@ python development_tools/run_dev_tools.py --project-root /path/to/project status
 python development_tools/run_development_tools.py --config-path /path/to/config.json audit
 
 # Combine both
-python development_tools/run_development_tools.py --project-root . --config-path development_tools_config.json status
+python development_tools/run_development_tools.py --project-root. --config-path development_tools_config.json status
 ```
 
 **Configuration File**: By default, the tools look for `development_tools_config.json` in the project root. This file can override paths, project settings, audit behavior, and other configuration. See `development_tools/development_tools_config.json.example` for a template.
@@ -66,7 +66,6 @@ python development_tools/run_development_tools.py config
 - `audit` - Standard audit (Tier 2, default); regenerates quality checks and cached signals.
 - `audit --quick` - Quick audit (Tier 1); core metrics only (~30-60s).
 - `audit --full` - Full audit (Tier 3); comprehensive analysis including coverage (~10-30min).
-- `quick-audit` - [DEPRECATED] Use `audit --quick` instead.
 - `docs` - regenerates registries, dependency maps, and doc-signals.
 - `doc-sync` - verifies paired doc headings, path drift, ASCII compliance.
 - `config` - prints configuration validation report with tool analysis and recommendations.
@@ -146,14 +145,14 @@ The modular structure provides clear separation of concerns, making the codebase
 
 **Tier 3: Full Audit (`audit --full`)** includes everything in Tier 1 & 2 plus tools >10s (or groups containing tools >10s):
 - **Coverage tools** (run in parallel, ~365s max):
-  - Full pytest execution with coverage regeneration (~365s, >10s)
-  - Dev tools test coverage (~94s, >10s, runs in parallel with main tests)
+- Full pytest execution with coverage regeneration (~365s, >10s)
+- Dev tools test coverage (~94s, >10s, runs in parallel with main tests)
 - **Coverage-dependent tools** (run sequentially after coverage completes, ~7s):
-  - Test marker analysis (~2s, requires coverage data from both test suites)
-  - Coverage report generation (~5s, requires coverage data from both test suites)
+- Test marker analysis (~2s, requires coverage data from both test suites)
+- Coverage report generation (~5s, requires coverage data from both test suites)
 - **Legacy group** (runs in parallel with coverage tools):
-  - Legacy reference scanning (~62s, >10s)
-  - Legacy reference report generation (~1s, but part of legacy group)
+- Legacy reference scanning (~62s, >10s)
+- Legacy reference report generation (~1s, but part of legacy group)
 - Improvement opportunity reports (LEGACY_REFERENCE_REPORT.md, TEST_COVERAGE_REPORT.md, UNUSED_IMPORTS_REPORT.md)
 
 **Performance**: Total full audit time: ~6-7 minutes (coverage tools run in parallel, reducing total time from ~460s to ~365s)
@@ -161,31 +160,31 @@ The modular structure provides clear separation of concerns, making the codebase
 Pipeline artifacts:
 - AI-facing (root): [AI_STATUS.md](development_tools/AI_STATUS.md), `AI_PRIORITIES.md`, `consolidated_report.txt`
 - Domain-specific JSON: `reports/analysis_detailed_results.json`, `error_handling/error_handling_details.json`, `tests/jsons/coverage_dev_tools.json`, `config/analyze_config_results.json`, `imports/.unused_imports_cache.json`
-  - `reports/analysis_detailed_results.json` caches complexity metrics, validation results, and system signals for `status` command
-  - `AI_PRIORITIES.md` includes complexity refactoring priority when critical/high complexity functions exist
+- `reports/analysis_detailed_results.json` caches complexity metrics, validation results, and system signals for `status` command
+- `AI_PRIORITIES.md` includes complexity refactoring priority when critical/high complexity functions exist
 
 **Report Format Standards**:
 - **AI_STATUS.md**: High-level summary including Function Docstring Coverage (with missing count) and Registry Gaps (separate metrics)
-- **AI_PRIORITIES.md**: Actionable priorities with prioritized example lists (functions and handler classes) using ", ... +N" format when there are more items
+- **AI_PRIORITIES.md**: Actionable priorities with prioritized example lists (functions and handler classes) using ",... +N" format when there are more items
 - **consolidated_report.txt**: Comprehensive details including all metrics from AI_STATUS plus detailed example lists in the Function Patterns section
 - Human-facing: [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md), [MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md), [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md), [UNUSED_IMPORTS_REPORT.md](development_docs/UNUSED_IMPORTS_REPORT.md)
 - Coverage: `development_tools/tests/jsons/coverage.json`, `development_tools/tests/jsons/coverage_dev_tools.json`, `development_tools/tests/coverage_html/`, `development_tools/reports/archive/coverage_artifacts/<timestamp>/`
 - Cached snapshots: `status` loads data from `reports/analysis_detailed_results.json` (complexity, validation, system signals); confirm timestamps before trusting
 
-**Tool Output Format (Standard Format - 2025-12-14)**:
-- All 19 analysis tools now output JSON in a standardized structure for consistent data aggregation:
-  ```json
-  {
-    "summary": {
-      "total_issues": <number>,
-      "files_affected": <number>,
-      "status": "<PASS|FAIL|WARN>" (optional)
-    },
-    "details": {
-      // Tool-specific data (original metrics, findings, etc.)
-    }
-  }
-  ```
+**Tool Output Format**:
+- All analysis tools that participate in audit aggregation output JSON in a standardized structure for consistent data aggregation (with normalization/backward-compatibility for tools that still emit legacy shapes):
+```json
+{
+"summary": {
+"total_issues": <number>,
+"files_affected": <number>,
+"status": "<PASS|FAIL|WARN>" (optional)
+},
+"details": {
+// Tool-specific data (original metrics, findings, etc.)
+}
+}
+```
 - Tools support `--json` flag to output standard format directly when run standalone
 - Normalization layer in `development_tools/shared/result_format.py` provides backward compatibility for any legacy formats
 - Report generation code automatically detects and handles standard format, accessing data from `details` section
@@ -201,20 +200,22 @@ Ensure directories listed in `development_tools/shared/constants.py` remain accu
 
 ### 4.1. Naming Conventions
 
-All tools follow a 3-prefix naming system established in Phase 7:
+Most tools follow a 3-prefix naming system established in :
 
 - **`analyze_*`** - Finding + assessing (read-only examination, validation, detection)
-  - Examples: `analyze_functions.py`, `analyze_documentation.py`, `analyze_error_handling.py`, `tests/analyze_test_coverage.py`
-  - These tools examine code/documentation and report findings without modifying anything
+- Examples: `analyze_functions.py`, `analyze_documentation.py`, `analyze_error_handling.py`, `tests/analyze_test_coverage.py`
+- These tools examine code/documentation and report findings without modifying anything
 - **`generate_*`** - Making artifacts (create/recreate documentation, registries, reports)
-  - Examples: `generate_function_registry.py`, `tests/run_test_coverage.py`, `generate_module_dependencies.py`
-  - These tools create or regenerate documentation and report files
+- Examples: `generate_function_registry.py`, `tests/run_test_coverage.py`, `generate_module_dependencies.py`
+- These tools create or regenerate documentation and report files
 - **`fix_*`** - Cleanup/repair (removal, cleanup operations)
-  - Examples: `fix_legacy_references.py`, `fix_version_sync.py`, `fix_project_cleanup.py`
-  - These tools perform cleanup, removal, or repair operations (often support `--dry-run`)
+- Examples: `fix_legacy_references.py`, `fix_version_sync.py`, `fix_project_cleanup.py`
+- These tools perform cleanup, removal, or repair operations (often support `--dry-run`)
 - **No prefix** - Reporting/utility tools (descriptive names)
-  - Examples: `decision_support.py`, `quick_status.py`, `system_signals.py`, `file_rotation.py`, `tool_guide.py`
-  - These are utility or reporting tools that don't fit the analyze/generate/fix pattern
+- Examples: `decision_support.py`, `quick_status.py`, `system_signals.py`, `file_rotation.py`, `tool_guide.py`
+- These are utility or reporting tools that don't fit the analyze/generate/fix pattern
+
+Tools under `development_tools/shared/` (service orchestration, registries, normalization, storage, and other infrastructure) may not fit cleanly into a single prefix category. Prefixes indicate primary intent, not a strict contract.
 
 Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these naming conventions consistently. This makes it easy to understand a tool's purpose at a glance.
 
@@ -237,33 +238,33 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 | shared/standard_exclusions.py | core | stable | Canonical exclusion patterns consumed by all scanners. Loads exclusions from external config. |
 | shared/constants.py | core | stable | Doc pairing metadata, directory maps, and shared enumerations. Loads constants from external config. |
 | shared/common.py | core | stable | IO helpers plus CLI utilities (command grouping, runners). |
-| analyze_documentation_sync.py | core | stable | Validates paired documentation (human vs AI) and detects heading sync issues. Refactored during Batch 2 decomposition to only handle paired doc sync. Parameterized doc roots and metadata schema. [OK] **HAS TESTS (Phase 3)**: 12 tests in `tests/development_tools/test_documentation_sync_checker.py` |
-| docs/analyze_path_drift.py | core | stable | Analyzes path drift between codebase and documentation. Extracted from analyze_documentation_sync.py during Batch 2 decomposition. |
-| docs/analyze_ascii_compliance.py | core | stable | Checks ASCII compliance in documentation files. Extracted from analyze_documentation_sync.py during Batch 2 decomposition. |
-| docs/analyze_heading_numbering.py | core | stable | Validates H2 and H3 heading numbering in documentation. Extracted from analyze_documentation_sync.py during Batch 2 decomposition. |
-| docs/analyze_missing_addresses.py | core | stable | Detects missing file addresses in documentation files. Extracted from analyze_documentation_sync.py during Batch 2 decomposition. |
-| docs/analyze_unconverted_links.py | core | stable | Detects unconverted file path references in documentation. Extracted from analyze_documentation_sync.py during Batch 2 decomposition. |
-| docs/generate_directory_tree.py | core | stable | Generates directory tree reports for documentation. Extracted from analyze_documentation_sync.py during Batch 2 decomposition. |
-| docs/fix_documentation.py | core | stable | Dispatcher that orchestrates all documentation fix operations. Refactored during Batch 2 decomposition to call specialized fixers. [OK] **HAS TESTS (Phase 3)**: Tests in `tests/development_tools/test_documentation_sync_checker.py` |
-| docs/fix_documentation_addresses.py | core | stable | Adds file addresses to documentation files that don't have them. Extracted from fix_documentation.py during Batch 2 decomposition. |
-| docs/fix_documentation_ascii.py | core | stable | Fixes non-ASCII characters in documentation files. Extracted from fix_documentation.py during Batch 2 decomposition. |
-| docs/fix_documentation_headings.py | core | stable | Numbers H2 and H3 headings in documentation files. Extracted from fix_documentation.py during Batch 2 decomposition. |
-| docs/fix_documentation_links.py | core | stable | Converts file path references to markdown links in documentation. Extracted from fix_documentation.py during Batch 2 decomposition. |
-| imports/generate_module_dependencies.py | core | stable | Orchestrates module dependency analysis and generates dependency documentation. Refactored after M7.4 completion (2025-12-02) to use analyze_module_imports.py and analyze_dependency_patterns.py. Accepts custom module prefixes for portability. [OK] **HAS TESTS (Phase 3)**: 11 tests in `tests/development_tools/test_generate_module_dependencies.py` |
-| imports/analyze_module_imports.py | core | stable | Extracts and analyzes imports from Python files. Extracted from generate_module_dependencies.py after M7.4 completion (2025-12-02). Provides import parsing, scanning, reverse dependencies, dependency changes, purpose inference, and import formatting. |
-| imports/analyze_dependency_patterns.py | core | stable | Analyzes dependency patterns, circular dependencies, and risk areas. Extracted from generate_module_dependencies.py after M7.4 completion (2025-12-02). Provides pattern analysis, circular dependency detection, risk area detection, and critical dependency finding. |
-| legacy/fix_legacy_references.py | core | stable | Finds/validates LEGACY COMPATIBILITY usage before cleanup. Legacy patterns and mappings load from external config. [OK] **HAS TESTS (Phase 3)**: 10 tests in `tests/development_tools/test_legacy_reference_cleanup.py` |
-| tests/run_test_coverage.py | core | stable | Orchestrates coverage execution (pytest runs) and artifact management. Executes tests and collects coverage data. Accepts pytest command, coverage config, and artifact directories via external config. [OK] **HAS TESTS (Phase 3)**: 10 tests in `tests/development_tools/test_regenerate_coverage_metrics.py` |
-| tests/analyze_test_coverage.py | core | stable | Parses coverage output and performs coverage analysis. Pure analysis tool that works with existing coverage data. Now includes caching support (2026-01-11) - caches analysis results based on coverage JSON file mtime. |
+| analyze_documentation_sync.py | core | stable | Validates paired documentation (human vs AI) and detects heading sync issues. Parameterized doc roots and metadata schema. 
+| docs/analyze_path_drift.py | core | stable | Analyzes path drift between codebase and documentation. |
+| docs/analyze_ascii_compliance.py | core | stable | Checks ASCII compliance in documentation files. |
+| docs/analyze_heading_numbering.py | core | stable | Validates H2 and H3 heading numbering in documentation. |
+| docs/analyze_missing_addresses.py | core | stable | Detects missing file addresses in documentation files. |
+| docs/analyze_unconverted_links.py | core | stable | Detects unconverted file path references in documentation. |
+| docs/generate_directory_tree.py | core | stable | Generates directory tree reports for documentation. |
+| docs/fix_documentation.py | core | stable | Dispatcher that orchestrates all documentation fix operations.
+| docs/fix_documentation_addresses.py | core | stable | Adds file addresses to documentation files that don't have them. |
+| docs/fix_documentation_ascii.py | core | stable | Fixes non-ASCII characters in documentation files. |
+| docs/fix_documentation_headings.py | core | stable | Numbers H2 and H3 headings in documentation files. |
+| docs/fix_documentation_links.py | core | stable | Converts file path references to markdown links in documentation. |
+| imports/generate_module_dependencies.py | core | stable | Orchestrates module dependency analysis and generates dependency documentation. Accepts custom module prefixes for portability. 
+| imports/analyze_module_imports.py | core | stable | Extracts and analyzes imports from Python files. Provides import parsing, scanning, reverse dependencies, dependency changes, purpose inference, and import formatting. |
+| imports/analyze_dependency_patterns.py | core | stable | Analyzes dependency patterns, circular dependencies, and risk areas. Provides pattern analysis, circular dependency detection, risk area detection, and critical dependency finding. |
+| legacy/fix_legacy_references.py | core | stable | Finds/validates LEGACY COMPATIBILITY usage before cleanup. Legacy patterns and mappings load from external config. 
+| tests/run_test_coverage.py | core | stable | Orchestrates coverage execution (pytest runs) and artifact management. Executes tests and collects coverage data. Accepts pytest command, coverage config, and artifact directories via external config. 
+| tests/analyze_test_coverage.py | core | stable | Parses coverage output and performs coverage analysis. Pure analysis tool that works with existing coverage data. Includes caching support - caches analysis results based on coverage JSON file mtime. |
 | tests/generate_test_coverage_report.py | core | stable | Generates coverage reports (TEST_COVERAGE_REPORT.md, JSON, HTML) from analysis results. Uses TestCoverageReportGenerator class to create reports from coverage.json. |
 | tests/domain_mapper.py | core | stable | Maps source code directories to test directories and pytest markers for test-file coverage caching. Provides `DomainMapper` class to identify which tests cover which source domains. Used by `tests/test_file_coverage_cache.py` for selective test execution. |
 | tests/test_file_coverage_cache.py | core | stable | Test-file-based coverage cache. Tracks domain changes and selects test files to re-run, then merges cached and fresh coverage. Cache location: `development_tools/tests/jsons/test_file_coverage_cache.json`. |
 | tests/dev_tools_coverage_cache.py | core | stable | Dev tools coverage cache for `development_tools` tests. Stores coverage JSON keyed by dev tools source mtimes. Cache location: `development_tools/tests/jsons/dev_tools_coverage_cache.json`. |
-| analyze_error_handling.py | core | stable | Audits decorator usage and exception handling depth. Refactored during Batch 3 decomposition to keep only analysis methods. Decorator names and exception classes load from external config. Generates recommendations internally as part of analysis. |
-| generate_error_handling_report.py | supporting | stable | Generates error handling reports from analysis results. Extracted from analyze_error_handling.py during Batch 3 decomposition. |
+| analyze_error_handling.py | core | stable | Audits decorator usage and exception handling depth. Decorator names and exception classes load from external config. Generates recommendations internally as part of analysis. |
+| generate_error_handling_report.py | supporting | stable | Generates error handling reports from analysis results. |
 | analyze_functions.py | core | stable | AST discovery utility supporting registries and audits. Configurable scan roots and filters via external config. Enhanced with function/class discovery logic from generate_function_registry.py. |
-| analyze_function_patterns.py | core | stable | Analyzes function patterns (handlers, managers, factories, etc.) for AI consumption. Extracted from generate_function_registry.py during Batch 3 decomposition. |
-| generate_function_registry.py | core | stable | Builds the authoritative function registry via AST parsing. Refactored during Batch 3 decomposition to use analyze_functions.py and analyze_function_patterns.py. [OK] **HAS TESTS (Phase 3)**: 12 tests in `tests/development_tools/test_generate_function_registry.py` |
+| analyze_function_patterns.py | core | stable | Analyzes function patterns (handlers, managers, factories, etc.) for AI consumption. |
+| generate_function_registry.py | core | stable | Builds the authoritative function registry via AST parsing. 
 | analyze_documentation.py | supporting | partial | Secondary doc analysis that focuses on corruption/overlap. |
 | analyze_function_registry.py | supporting | partial | Validates generated function registry output. |
 | analyze_module_dependencies.py | supporting | partial | Cross-checks generated dependency graphs for accuracy. |
@@ -271,7 +272,7 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 | analyze_config.py | supporting | partial | Detects configuration drift and missing values across tools. |
 | analyze_ai_work.py | supporting | partial | Lightweight structural validator; advisory results only. |
 | analyze_unused_imports.py | supporting | partial | AST-based unused import detector (analysis only, no report generation). |
-| generate_unused_imports_report.py | supporting | partial | Generates markdown report from unused imports analysis results. Extracted from analyze_unused_imports.py (2025-12-18) to follow naming conventions. |
+| generate_unused_imports_report.py | supporting | partial | Generates markdown report from unused imports analysis results. |
 | quick_status.py | supporting | advisory | Cached status snapshot that depends on the latest audit run. |
 | system_signals.py | supporting | advisory | Collects OS/process health signals for consolidated reports. |
 | decision_support.py | supporting | advisory | Aggregates metrics into improvement priorities. |
@@ -287,28 +288,27 @@ Keep this table synchronized with `shared/tool_metadata.py` and update both when
 ## 5. Operating Standards and Maintenance
 
 - Follow the audit-first workflow (see [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)) before touching documentation or infrastructure
-- **Caching Infrastructure**: 
-  - **File-based caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The utility handles cache loading, saving, and validation automatically. Currently used by: `imports/analyze_unused_imports.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_missing_addresses.py`, `legacy/analyze_legacy_references.py`, `docs/analyze_heading_numbering.py`, `docs/analyze_path_drift.py`, `docs/analyze_unconverted_links.py`, `tests/analyze_test_coverage.py` (coverage analysis caching). The cache automatically invalidates when `development_tools_config.json` changes, ensuring config updates are immediately reflected.
-  - **Test Coverage Caching (2026-01-11)**: 
-    - **Coverage Analysis Caching**: `tests/analyze_test_coverage.py` now caches analysis results based on coverage JSON file mtime, saving ~2s on repeated analysis when coverage data hasn't changed.
-    - **Test-file coverage caching (Integrated, enabled by default)**: `tests/test_file_coverage_cache.py` uses `tests/domain_mapper.py` (`DomainMapper`) to map source directories to test files. When a domain changes, only the test files that cover that domain are re-run, and cached coverage is merged for unchanged tests. Cache file: `development_tools/tests/jsons/test_file_coverage_cache.json`. Disable with `--no-domain-cache`.
-    - **Dev tools coverage caching (Integrated, enabled by default)**: `tests/dev_tools_coverage_cache.py` caches development_tools coverage JSON keyed by dev tools source mtimes. Cache file: `development_tools/tests/jsons/dev_tools_coverage_cache.json`. Disable with `--no-domain-cache`.
+- **Caching Infrastructure**:
+- **File-based caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The utility handles cache loading, saving, and validation automatically. Currently used by: `imports/analyze_unused_imports.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_missing_addresses.py`, `legacy/analyze_legacy_references.py`, `docs/analyze_heading_numbering.py`, `docs/analyze_path_drift.py`, `docs/analyze_unconverted_links.py`, `tests/analyze_test_coverage.py` (coverage analysis caching). The cache automatically invalidates when `development_tools_config.json` changes, ensuring config updates are immediately reflected.
+- **Test Coverage Caching**:
+- **Coverage Analysis Caching**: `tests/analyze_test_coverage.py` Caches analysis results based on coverage JSON file mtime, saving ~2s on repeated analysis when coverage data hasn't changed.
+- **Test-file coverage caching (Integrated, enabled by default)**: `tests/test_file_coverage_cache.py` uses `tests/domain_mapper.py` (`DomainMapper`) to map source directories to test files. When a domain changes, only the test files that cover that domain are re-run, and cached coverage is merged for unchanged tests. Cache file: `development_tools/tests/jsons/test_file_coverage_cache.json`. Disable with `--no-domain-cache`.
+- **Dev tools coverage caching (Integrated, enabled by default)**: `tests/dev_tools_coverage_cache.py` caches development_tools coverage JSON keyed by dev tools source mtimes. Cache file: `development_tools/tests/jsons/dev_tools_coverage_cache.json`. Disable with `--no-domain-cache`.
 - **Parallel Execution**: Tools run in parallel where possible to reduce audit time:
-  - **Tier 2**: Independent tools (5 tools) run in parallel; dependent groups run sequentially within groups but in parallel with each other
-  - **Tier 3**: Coverage tools (main tests and dev tools tests) run in parallel (~365s max); legacy group runs in parallel with coverage tools; coverage-dependent tools (marker analysis, report generation) run sequentially after coverage completes
-  - **Tool Dependencies**: Some tools must run together due to dependencies (e.g., analysis -> report, imports -> patterns/dependencies). Coverage-dependent tools require data from both test suites, so they run after coverage completes. See `development_tools/shared/service/audit_orchestration.py` for dependency groupings.
-- **Output Format Standardization (2025-12-14)**: All 19 analysis tools now output JSON in a standardized structure with `summary` (total_issues, files_affected, status) and `details` (tool-specific data). This enables consistent data aggregation and simplified report generation. Tools support `--json` flag for direct standard format output. The normalization layer in `shared/result_format.py` provides backward compatibility for any legacy formats.
+- **Tier 2**: Independent tools (5 tools) run in parallel; dependent groups run sequentially within groups but in parallel with each other
+- **Tier 3**: Coverage tools (main tests and dev tools tests) run in parallel (~365s max); legacy group runs in parallel with coverage tools; coverage-dependent tools (marker analysis, report generation) run sequentially after coverage completes
+- **Tool Dependencies**: Some tools must run together due to dependencies (e.g., analysis -> report, imports -> patterns/dependencies). Coverage-dependent tools require data from both test suites, so they run after coverage completes. See `development_tools/shared/service/audit_orchestration.py` for dependency groupings.
+- **Output Format Standardization**: All 19 analysis tools output JSON in a standardized structure with `summary` (total_issues, files_affected, status) and `details` (tool-specific data). This enables consistent data aggregation and simplified report generation. Tools support `--json` flag for direct standard format output. The normalization layer in `shared/result_format.py` provides backward compatibility for any legacy formats.
 - When adding or relocating tools, update:
-  - `shared/tool_metadata.py`
-  - This guide and the AI guide (paired H2 requirements)
-  - [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md) if scope or gaps change
+- `shared/tool_metadata.py`
+- This guide and the AI guide (paired H2 requirements)
+- [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md](development_tools/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V3.md) if scope or gaps change
 - Maintain directory integrity (`development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) so automation can locate artifacts; keep generated reports under the paths enumerated in `shared/constants.py`.
 - Use the shared test locations: `tests/development_tools/` for suites and `tests/fixtures/development_tools_demo/` for synthetic inputs.
-- **Phase 3 Complete (2025-11-26)**: All five core analysis tools have comprehensive test coverage (55+ tests total). The synthetic fixture project provides isolated testing environment for all tool tests.
 - For detailed testing guidance, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
 - Context-specific behavior:
-  - `development_tools/config/config.py` defines production / development / testing contexts; commands must honor the active context.
-  - Never hardcode project paths - always resolve via `shared/common.py` helpers.
+- `development_tools/config/config.py` defines production / development / testing contexts; commands must honor the active context.
+- Never hardcode project paths - always resolve via `shared/common.py` helpers.
 - Run `python development_tools/run_development_tools.py doc-sync` after documentation edits to ensure heading parity and ASCII compliance.
 - Treat experimental tools (`docs/fix_version_sync.py`, `functions/generate_function_docstrings.py`, etc.) as opt-in: dry-run first, capture logs, and record findings in [TODO.md](TODO.md) or the improvement plan.
 - Keep file organization portable (mirroring `development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) to support eventual extraction of the suite. The baseline structure should remain:
@@ -378,12 +378,11 @@ All generated JSON files must include standardized metadata fields at the root l
 
 ```json
 {
-  "generated_by": "Tool Name - Tool Description",
-  "last_generated": "YYYY-MM-DD HH:MM:SS",
-  "source": "python development_tools/path/to/tool.py [command]",
-  "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "YYYY-MM-DDTHH:MM:SS.ffffff",
-  ...
+"generated_by": "Tool Name - Tool Description",
+"last_generated": "YYYY-MM-DD HH:MM:SS",
+"source": "python development_tools/path/to/tool.py [command]",
+"note": "This file is auto-generated. Do not edit manually.",
+"timestamp": "YYYY-MM-DDTHH:MM:SS.ffffff",...
 }
 ```
 

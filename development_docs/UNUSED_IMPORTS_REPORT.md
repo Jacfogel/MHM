@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/UNUSED_IMPORTS_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-13 04:37:43
+> **Last Generated**: 2026-01-13 20:55:40
 > **Source**: `python development_tools/run_development_tools.py unused-imports-report` - Unused Imports Report Generator
 
 ## Summary Statistics
@@ -32,7 +32,7 @@
 
 **Count**: 1 unused import(s)
 
-- **Line 34**: Unused QtWidgets imported from PySide6
+- **Line 35**: Unused QtWidgets imported from PySide6
 
 ## Test Mocking
 
@@ -290,11 +290,11 @@
 
 **Count**: 5 unused import(s)
 
-- **Line 21**: Unused MagicMock imported from unittest.mock
-- **Line 33**: Unused create_user_files imported from core.file_operations
-- **Line 33**: Unused get_user_file_path imported from core.file_operations
-- **Line 34**: Unused is_valid_email imported from core.user_data_validation
-- **Line 34**: Unused validate_schedule_periods__validate_time_format imported from core.user_data_validation
+- **Line 22**: Unused MagicMock imported from unittest.mock
+- **Line 34**: Unused create_user_files imported from core.file_operations
+- **Line 34**: Unused get_user_file_path imported from core.file_operations
+- **Line 35**: Unused is_valid_email imported from core.user_data_validation
+- **Line 35**: Unused validate_schedule_periods__validate_time_format imported from core.user_data_validation
 
 ### `tests/ui/test_account_creator_dialog_validation.py`
 
@@ -587,10 +587,10 @@
 
 **Count**: 4 unused import(s)
 
-- **Line 24**: Unused QWidget imported from PySide6.QtWidgets
-- **Line 24**: Unused QMessageBox imported from PySide6.QtWidgets
-- **Line 25**: Unused Qt imported from PySide6.QtCore
-- **Line 25**: Unused QTimer imported from PySide6.QtCore
+- **Line 25**: Unused QWidget imported from PySide6.QtWidgets
+- **Line 25**: Unused QMessageBox imported from PySide6.QtWidgets
+- **Line 26**: Unused Qt imported from PySide6.QtCore
+- **Line 26**: Unused QTimer imported from PySide6.QtCore
 
 ### `tests/ui/test_category_management_dialog.py`
 
@@ -1157,11 +1157,11 @@
 **Count**: 6 unused import(s)
 
 - **Line 20**: Unused import shutil
-- **Line 23**: Unused Path imported from pathlib
-- **Line 36**: Unused CategorySelectionWidget imported from ui.widgets.category_selection_widget
-- **Line 37**: Unused ChannelSelectionWidget imported from ui.widgets.channel_selection_widget
-- **Line 38**: Unused TaskSettingsWidget imported from ui.widgets.task_settings_widget
-- **Line 39**: Unused CheckinSettingsWidget imported from ui.widgets.checkin_settings_widget
+- **Line 24**: Unused Path imported from pathlib
+- **Line 37**: Unused CategorySelectionWidget imported from ui.widgets.category_selection_widget
+- **Line 38**: Unused ChannelSelectionWidget imported from ui.widgets.channel_selection_widget
+- **Line 39**: Unused TaskSettingsWidget imported from ui.widgets.task_settings_widget
+- **Line 40**: Unused CheckinSettingsWidget imported from ui.widgets.checkin_settings_widget
 
 ### `tests/ui/test_dialog_behavior.py`
 

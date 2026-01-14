@@ -234,24 +234,25 @@ def should_exclude_file(file_path, tool_type: str = None, context: str = 'develo
     
     # Convert Path object to string if needed
     file_path_str = str(file_path)
+    normalized_path = file_path_str.replace('\\', '/')
     
     # Explicitly check for pytest temp directories first (most common exclusion during scanning)
     # These are created during parallel test execution and should always be excluded
-    if 'pytest-tmp-' in file_path_str or 'pytest-of-' in file_path_str:
+    if 'pytest-tmp-' in normalized_path or 'pytest-of-' in normalized_path:
         # Only exclude if the path is in tests/data/ (where pytest creates these during parallel execution)
         # This prevents excluding files explicitly passed to extraction functions (like test fixtures)
-        if '/tests/data/' in file_path_str.replace('\\', '/'):
+        if '/tests/data/' in normalized_path:
             return True
     
     # Check generated files patterns (ui/generated/*, etc.)
     for pattern in GENERATED_FILE_PATTERNS:
-        if fnmatch.fnmatch(file_path_str, pattern) or fnmatch.fnmatch(file_path_str, f"*/{pattern}"):
+        if fnmatch.fnmatch(normalized_path, pattern) or fnmatch.fnmatch(normalized_path, f"*/{pattern}"):
             return True
     
     # Check standard exclusions
     for pattern in exclusions:
         # Handle wildcard patterns with fnmatch
-        if fnmatch.fnmatch(file_path_str, pattern) or pattern in file_path_str:
+        if fnmatch.fnmatch(normalized_path, pattern) or pattern in normalized_path:
             return True
     
     return False

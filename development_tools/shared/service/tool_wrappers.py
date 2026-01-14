@@ -1031,7 +1031,7 @@ class ToolWrappersMixin:
             }
         return result
     
-    def run_analyze_error_handling(self) -> Dict:
+    def run_analyze_error_handling_legacy(self) -> Dict:
         """Run analyze_error_handling with structured JSON handling."""
         args = ["--json"]
 
@@ -1130,7 +1130,7 @@ class ToolWrappersMixin:
 
     
 
-    def run_analyze_documentation_sync(self) -> Dict:
+    def run_analyze_documentation_sync_legacy(self) -> Dict:
 
         """Run analyze_documentation_sync with structured data handling."""
 
@@ -1280,7 +1280,7 @@ class ToolWrappersMixin:
 
     
 
-    def run_analyze_path_drift(self) -> Dict:
+    def run_analyze_path_drift_legacy(self) -> Dict:
 
         """Run analyze_path_drift with structured data handling."""
 
@@ -1470,7 +1470,7 @@ class ToolWrappersMixin:
 
     
 
-    def run_generate_legacy_reference_report(self) -> Dict:
+    def run_generate_legacy_reference_report_legacy(self) -> Dict:
 
         """Run generate_legacy_reference_report to create LEGACY_REFERENCE_REPORT.md."""
 
@@ -1642,7 +1642,7 @@ class ToolWrappersMixin:
 
     
 
-    def run_analyze_legacy_references(self) -> Dict:
+    def run_analyze_legacy_references_legacy(self) -> Dict:
 
         """Run analyze_legacy_references with structured data handling."""
 
@@ -1743,5 +1743,3 @@ class ToolWrappersMixin:
                 'returncode': 1
 
             }
-
-

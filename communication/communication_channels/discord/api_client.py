@@ -75,7 +75,7 @@ class DiscordAPIClient:
                 return False
             
             # Prepare send kwargs
-            send_kwargs = {"content": message}
+            send_kwargs: Dict[str, Any] = {"content": message}
             
             if options.embed:
                 send_kwargs["embed"] = options.embed
@@ -133,7 +133,7 @@ class DiscordAPIClient:
                 dm_channel = await user.create_dm()
             
             # Send the message
-            send_kwargs = {"content": message}
+            send_kwargs: Dict[str, Any] = {"content": message}
             if options and options.embed:
                 send_kwargs["embed"] = options.embed
             if options and options.view:

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-13 04:37:55
+> **Last Generated**: 2026-01-13 20:55:47
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 38
 **Legacy Compatibility Markers Detected**: 71
@@ -380,7 +380,7 @@
 ### tests\conftest.py
 **Issues Found**: 1
 
-- **Line 1434**: `backward compatibility`
+- **Line 1438**: `backward compatibility`
   ```
   This function is kept for backward compatibility but does nothing.
   ```
@@ -401,67 +401,67 @@
 ### tests\test_utilities.py
 **Issues Found**: 13
 
-- **Line 528**: `backward compatibility`
+- **Line 483**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 684**: `backward compatibility`
+- **Line 639**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 846**: `backward compatibility`
+- **Line 801**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 959**: `backward compatibility`
+- **Line 914**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1201**: `backward compatibility`
+- **Line 1156**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1225**: `backward compatibility`
+- **Line 1180**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1427**: `backward compatibility`
+- **Line 1382**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1588**: `backward compatibility`
+- **Line 1543**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1737**: `backward compatibility`
+- **Line 1692**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 1886**: `backward compatibility`
+- **Line 1841**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 2033**: `backward compatibility`
+- **Line 1988**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 2180**: `backward compatibility`
+- **Line 2135**: `backward compatibility`
   ```
   # Use real user directory (for backward compatibility)
   ```
 
-- **Line 2620**: `backward compatibility`
+- **Line 2575**: `backward compatibility`
   ```
   # Convenience functions for backward compatibility
   ```

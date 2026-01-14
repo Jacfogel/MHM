@@ -20,6 +20,7 @@ import shutil
 import json
 import logging
 import warnings
+from typing import List, Optional, Type
 import time
 import re
 from pathlib import Path
@@ -427,14 +428,17 @@ setup_qmessagebox_patches()
 # Import the formatter from core.logger instead of duplicating it
 # Note: This import may fail for development tools tests that don't need core modules
 try:
-    from core.logger import PytestContextLogFormatter
+    from core.logger import PytestContextLogFormatter as PytestContextLogFormatter
 except (ImportError, ModuleNotFoundError):
     # Core modules not available (e.g., in development tools tests)
-    # Define a minimal formatter for tests that don't use core.logger
-    class PytestContextLogFormatter(logging.Formatter):
+    # Define a minimal formatter for tests that don't use core.logger available.
+    class _FallbackPytestContextLogFormatter(logging.Formatter):
         """Minimal formatter for tests that don't have core.logger available."""
+
         def __init__(self, fmt=None, datefmt=None):
             super().__init__(fmt=fmt, datefmt=datefmt)
+
+    PytestContextLogFormatter: Type[logging.Formatter] = _FallbackPytestContextLogFormatter
 
 # Global flag to prevent multiple test logging setups
 _test_logging_setup_done = False
@@ -1054,7 +1058,7 @@ def setup_consolidated_test_logging():
             # Use threading to ensure rotation doesn't block test execution
             import threading
             rotation_complete = threading.Event()
-            rotation_error = [None]
+            rotation_error: List[Optional[Exception]] = [None]
             rotation_success = [False]
             
             def do_rotation():
@@ -2952,17 +2956,6 @@ def cleanup_test_users_after_session():
     except Exception:
         pass  # Ignore cleanup errors
 
-@pytest.fixture(scope="function", autouse=True)
-def clear_user_caches_between_tests():
-    """Clear user caches between tests to prevent state pollution."""
-    yield  # Run the test
-    # Clear caches after each test
-    try:
-        from core.user_management import clear_user_caches
-        clear_user_caches()  # Clear all caches
-    except Exception:
-        pass  # Ignore errors during cleanup
-
 @pytest.fixture(scope="function")
 def mock_logger():
     """Mock logger for testing."""
@@ -3247,7 +3240,7 @@ def pytest_sessionstart(session):
             test_logger.debug(f"Python path: {sys.path[:3]}...")  # First 3 entries only
             test_logger.debug(f"Pytest version: {pytest.__version__}")
             try:
-                import pytest_xdist
+                import pytest_xdist  # type: ignore[reportMissingImports]
                 test_logger.debug(f"Pytest-xdist version: {pytest_xdist.__version__}")
             except (ImportError, AttributeError):
                 test_logger.debug("Pytest-xdist: not available")
@@ -3617,7 +3610,7 @@ def cleanup_communication_manager():
     import time
     
     cleanup_complete = threading.Event()
-    cleanup_error = [None]
+    cleanup_error: List[Optional[Exception]] = [None]
     
     def do_cleanup():
         try:
@@ -3630,7 +3623,7 @@ def cleanup_communication_manager():
                 
                 # On Windows, use threading timeout instead of signal
                 stop_complete = threading.Event()
-                stop_error = [None]
+                stop_error: List[Optional[Exception]] = [None]
                 
                 def stop_worker():
                     try:

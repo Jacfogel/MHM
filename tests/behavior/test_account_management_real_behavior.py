@@ -20,7 +20,7 @@ from tests.test_utilities import TestUserFactory
 
 pytestmark = [pytest.mark.behavior, pytest.mark.user_management]
 
-def setup_test_environment(test_data_dir):
+def setup_test_environment():
     """Create isolated test environment with temporary directories"""
     from tests.test_utilities import TestDataManager
     
@@ -871,7 +871,7 @@ def main():
     test_id = str(uuid.uuid4())[:8]
     
     # Setup test environment
-    test_dir, test_data_dir, test_test_data_dir = setup_test_environment(test_data_dir)
+    test_dir, test_data_dir, test_test_data_dir = setup_test_environment()
     
     # Override data paths for testing
     # Note: mock_config fixture already handles this properly
@@ -882,13 +882,29 @@ def main():
     
     all_results = {}
     
-    # Run all tests
-    all_results.update(test_user_data_loading_real_behavior(test_data_dir))
-    all_results.update(test_feature_enablement_real_behavior(test_data_dir))
-    all_results.update(test_category_management_real_behavior(test_data_dir))
-    all_results.update(test_schedule_period_management_real_behavior(test_data_dir))
-    all_results.update(test_integration_scenarios_real_behavior(test_data_dir))
-    all_results.update(test_data_consistency_real_behavior(test_data_dir))
+    # Apply mock_config fixture manually for standalone runs
+    from tests.conftest import mock_config as mock_config_fixture
+    mock_config_ctx = mock_config_fixture(test_data_dir)
+    next(mock_config_ctx)
+    try:
+        def run_test(test_name, func, *args):
+            try:
+                func(*args)
+                all_results[test_name] = "SUCCESS"
+            except Exception as e:
+                all_results[test_name] = f"ERROR: {e}"
+        
+        run_test("test_user_data_loading_real_behavior", test_user_data_loading_real_behavior, test_data_dir, None)
+        run_test("test_feature_enablement_real_behavior", test_feature_enablement_real_behavior, test_data_dir, None)
+        run_test("test_category_management_real_behavior", test_category_management_real_behavior, test_data_dir, None)
+        run_test("test_schedule_period_management_real_behavior", test_schedule_period_management_real_behavior, test_data_dir)
+        run_test("test_integration_scenarios_real_behavior", test_integration_scenarios_real_behavior, test_data_dir)
+        run_test("test_data_consistency_real_behavior", test_data_consistency_real_behavior, test_data_dir, None)
+    finally:
+        try:
+            next(mock_config_ctx)
+        except StopIteration:
+            pass
     
     # Cleanup
     cleanup_test_environment(test_dir)

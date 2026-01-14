@@ -918,7 +918,7 @@ class DataLoadingMixin:
             try:
                 parsed = json.loads(output)
                 from ..result_format import normalize_to_standard_format
-                return normalize_to_standard_format(parsed)
+                return normalize_to_standard_format("analyze_heading_numbering", parsed)
             except (json.JSONDecodeError, ValueError):
                 pass
         # Fall back to text parsing if JSON parsing failed

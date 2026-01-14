@@ -51,7 +51,7 @@ class TestBaseHandlerBehavior:
     def test_base_handler_cannot_be_instantiated_directly(self):
         """Test that InteractionHandler cannot be instantiated directly (abstract class)."""
         with pytest.raises(TypeError, match="Can't instantiate abstract class"):
-            handler = InteractionHandler()
+            handler = InteractionHandler()  # pyright: ignore[reportAbstractUsage]
     
     @pytest.mark.behavior
     @pytest.mark.communication

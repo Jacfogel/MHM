@@ -13,6 +13,7 @@ Tests cover:
 """
 # Import ensure_qt_runtime - use relative import since we're in tests/ui/
 import sys
+import pytest
 from pathlib import Path
 
 # Add tests directory to path if needed
@@ -36,7 +37,6 @@ except ImportError:
         except (ImportError, OSError):
             pytest.skip("Qt runtime not available", allow_module_level=True)
 
-import pytest
 from unittest.mock import patch, MagicMock
 from PySide6.QtWidgets import QApplication, QLineEdit
 from PySide6.QtCore import Qt
@@ -445,4 +445,3 @@ class TestUISignalConnectionIntegrity:
             widget.deleteLater()
         finally:
             sys.excepthook = original_excepthook
-

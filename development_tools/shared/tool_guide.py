@@ -321,7 +321,7 @@ def run_tool_with_guidance(tool_name):
     
     # Run the tool - use SCRIPT_REGISTRY if available, otherwise fall back to hardcoded path
     try:
-        from .tool_wrappers import SCRIPT_REGISTRY
+        from .service.tool_wrappers import SCRIPT_REGISTRY
         script_rel_path = SCRIPT_REGISTRY.get(tool_name)
         if script_rel_path:
             # Use path from registry (relative to development_tools/)

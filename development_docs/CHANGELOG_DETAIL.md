@@ -38,6 +38,26 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-13 - Pyright Cleanup, Dev Tools Exclusions, and Test/Script Fixes **COMPLETED**
+- **Feature**: Eliminated pyright errors with minimal type-safe fixes, tightened dev tools exclusion matching on Windows, and repaired supporting scripts/tests.
+- **Changes**:
+  1. **Pyright cleanup**:
+     - Resolved pyright errors across dev tools, tests, and scripts by adding precise typing, fixing duplicates, and correcting imports.
+     - Standardized discord send kwargs typing to satisfy overloads and avoid invalid call signatures.
+  2. **Dev tools exclusions**:
+     - Normalized paths in `development_tools/shared/standard_exclusions.py` to ensure `tests\data\...` paths are excluded on Windows.
+  3. **Scripts and utilities**:
+     - Restored `scripts/testing/script_test_utils_functions.py` with current module imports.
+     - Updated script imports for shared dev tools modules and user data lookups.
+  4. **Testing**:
+     - Fixed duplicate test names and minor test-only typing/fixture issues.
+     - Recorded test results from full test run and full audit.
+- **Impact**: Type checking is clean, legacy scans avoid temp test data on Windows, and scripts/tests align with current module layout.
+- **Files**: `development_tools/shared/standard_exclusions.py`, `development_tools/shared/service/*.py`, `development_tools/docs/analyze_documentation.py`, `development_tools/error_handling/analyze_error_handling.py`, `development_tools/functions/*.py`, `communication/communication_channels/discord/*.py`, `scripts/*`, `tests/*`, `requirements.txt`.
+- **Testing**:
+  - `python run_tests.py` (parallel + no_parallel; 4081 passed, 1 skipped)
+  - `python development_tools/run_development_tools.py audit --full`
+
 ### 2026-01-13 - Documentation Routing, Planning Cleanup, and Legacy Tracking Updates **COMPLETED**
 - **Feature**: Standardized planning docs, expanded AI routing guidance, clarified UI/test patterns, and updated legacy tracking patterns in development tools.
 - **Changes**:

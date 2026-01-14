@@ -14,7 +14,7 @@ This script analyzes error handling patterns across the codebase to identify:
 import ast
 import sys
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Any, DefaultDict, Dict, List, Optional, Set, TypedDict
 from collections import defaultdict
 import re
 
@@ -39,6 +39,14 @@ logger = get_component_logger("development_tools")
 # Load external config on module import (if not already loaded)
 # Load external config on module import (safe to call multiple times)
 config.load_external_config()
+
+
+class ModuleStats(TypedDict):
+    total_functions: int
+    functions_with_error_handling: int
+    functions_missing_error_handling: int
+    analyze_error_handling: float
+    files: Set[str]
 
 class ErrorHandlingAnalyzer:
     """Analyzes error handling patterns in Python code."""
@@ -945,7 +953,7 @@ class ErrorHandlingAnalyzer:
         phase2_by_type = defaultdict(int)
         
         # Module-level analysis
-        module_stats = defaultdict(lambda: {
+        module_stats: DefaultDict[str, ModuleStats] = defaultdict(lambda: {
             'total_functions': 0,
             'functions_with_error_handling': 0,
             'functions_missing_error_handling': 0,

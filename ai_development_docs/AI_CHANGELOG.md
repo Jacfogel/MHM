@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-13 - Pyright Cleanup and Dev Tools Exclusion Fix **COMPLETED**
+- Cleared all pyright errors with minimal typing/import fixes across dev tools, tests, and scripts
+- Normalized dev tools exclusion matching on Windows paths to keep temp test data out of legacy scans
+- Updated supporting scripts/utilities and added `pyright` to `requirements.txt`
+- Tests run: `python run_tests.py`; audit run: `python development_tools/run_development_tools.py audit --full`
+
 ### 2026-01-13 - Documentation, Planning, and Legacy Tracking Updates **COMPLETED**
 - Filled missing routing links in AI workflow docs, clarified config routing in AI architecture, and fixed a minor ARCHITECTURE.md reference
 - Added UI flow + signal-based update guidance and promoted test logging isolation as a headline rule

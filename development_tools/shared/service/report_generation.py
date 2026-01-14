@@ -375,7 +375,7 @@ class ReportGenerationMixin:
                 else:
                     func_cache = func_cache_raw
                 func_undocumented = func_cache.get('undocumented', 0)
-                if isinstance(func_undocumented, (int, float)) and total_functions > 0:
+                if isinstance(func_undocumented, (int, float)) and isinstance(total_functions, (int, float)) and total_functions > 0:
                     func_documented = total_functions - func_undocumented
                     coverage_pct = (func_documented / total_functions) * 100
                     doc_coverage = f"{coverage_pct:.2f}%"

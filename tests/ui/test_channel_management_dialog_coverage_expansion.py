@@ -245,7 +245,7 @@ class TestChannelManagementDialogCoverageExpansion:
             mock_warning.assert_called_once()
             assert "Discord ID is required" in mock_warning.call_args[0][2]
 
-    def test_save_channel_settings_validation_error_invalid_email(self, mock_user_data):
+    def test_save_channel_settings_validation_error_invalid_email_extended(self, mock_user_data):
         """Test validation error for invalid email format."""
         # Create a mock dialog instance
         dialog = Mock(spec=ChannelManagementDialog)

@@ -31,7 +31,7 @@ def _get_domain_from_tool_name(tool_name: str, project_root: Path) -> str:
     """
     # Import SCRIPT_REGISTRY to map tool names to paths
     try:
-        from ..shared.operations import SCRIPT_REGISTRY
+        from .service import SCRIPT_REGISTRY
         script_path = SCRIPT_REGISTRY.get(tool_name)
         if script_path:
             # Extract domain from path like 'functions/analyze_functions.py'
@@ -421,4 +421,3 @@ def get_all_tool_results(project_root: Optional[Path] = None) -> Dict[str, Dict[
                 continue
     
     return all_results
-

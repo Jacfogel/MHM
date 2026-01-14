@@ -9,7 +9,7 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent.parent
@@ -373,7 +373,7 @@ def _check_content_similarity(docs: Dict[str, str], file_list: List[str]) -> flo
     return sum(similarities) / len(similarities) if similarities else 0.0
 
 
-def _identify_high_overlap_files(docs: Dict[str, str], section_overlaps: Dict[str, List[str]]) -> List[Dict[str, object]]:
+def _identify_high_overlap_files(docs: Dict[str, str], section_overlaps: Dict[str, List[str]]) -> List[Dict[str, Any]]:
     """Identify groups of files with high section overlap."""
     # Count overlaps per file pair
     file_pair_overlaps = defaultdict(int)
@@ -420,9 +420,9 @@ def _identify_high_overlap_files(docs: Dict[str, str], section_overlaps: Dict[st
 def format_summary(
     docs: Dict[str, str],
     missing: List[str],
-    duplicates: List[Dict[str, object]],
-    placeholders: List[Dict[str, object]],
-    artifacts: List[Dict[str, object]],
+    duplicates: List[Dict[str, Any]],
+    placeholders: List[Dict[str, Any]],
+    artifacts: List[Dict[str, Any]],
     include_overlap: bool = False,
 ) -> str:
     blocks: List[str] = []

@@ -12,6 +12,7 @@ This module provides utilities for:
 import os
 import shutil
 import json
+import logging
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any, Optional
@@ -292,17 +293,14 @@ def main():
     
     if args.cleanup_users:
         success = cleanup_manager.cleanup_test_users(args.users)
-        import logging
         logging.getLogger("mhm_tests").info(f"User cleanup: {'SUCCESS' if success else 'FAILED'}")
         
     if args.reset_env:
         success = cleanup_manager.reset_test_environment()
-        import logging
         logging.getLogger("mhm_tests").info(f"Environment reset: {'SUCCESS' if success else 'FAILED'}")
         
     if args.validate:
         results = cleanup_manager.validate_test_data_integrity()
-        import logging
         _logger = logging.getLogger("mhm_tests")
         _logger.info(f"Data integrity: {'VALID' if results['valid'] else 'INVALID'}")
         if results['issues']:

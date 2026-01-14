@@ -359,51 +359,6 @@ class TestUserFactory:
             return False
     
     @staticmethod
-    def create_minimal_user(user_id: str, test_data_dir: str = None) -> bool:
-        """
-        Create a minimal test user with only essential data structures.
-        Use this for tests that don't need full user data (faster than create_basic_user).
-        
-        Args:
-            user_id: Unique identifier for the test user
-            test_data_dir: Test data directory to use (required)
-            
-        Returns:
-            bool: True if user was created successfully, False otherwise
-        """
-        try:
-            if not test_data_dir:
-                raise ValueError("test_data_dir parameter is required")
-            
-            # Create minimal user data - only essential fields
-            user_data = {
-                "internal_username": user_id,
-                "email": f"{user_id}@example.com",
-                "timezone": "UTC",
-                "categories": [],  # No categories for minimal user
-                "channel": {
-                    "type": "email"
-                },
-                "checkin_settings": {
-                    "enabled": False
-                },
-                "task_settings": {
-                    "enabled": False
-                },
-                "preferred_name": f"Minimal User {user_id}"
-            }
-            
-            # Use helper function to create files (will skip schedules and messages since no categories)
-            actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
-            
-            # Verify user creation with proper configuration patching
-            return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
-            
-        except Exception as e:
-            logger.error(f"Error creating minimal user {user_id}: {e}")
-            return False
-    
-    @staticmethod
     def create_discord_user(user_id: str, discord_user_id: str = None, test_data_dir: str = None) -> bool:
         """
         Create a test user specifically configured for Discord testing

@@ -121,7 +121,7 @@ def parse_module_dependencies() -> Dict[str, List[str]]:
     
     return documented
 
-def generate_dependency_report():
+def generate_dependency_report_extended():
     """Generate a comprehensive dependency audit report."""
     logger.info("[SCAN] Scanning all Python files for imports...")
     actual_imports = scan_all_python_files()

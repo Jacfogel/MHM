@@ -23,7 +23,7 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict, List, Optional, Set, TypedDict
 
 # Add project root to path
 # Script is at: development_tools/functions/analyze_package_exports.py
@@ -50,6 +50,13 @@ EXPORT_PATTERNS = AUDIT_EXPORTS_CONFIG.get('export_patterns', [])
 EXPECTED_EXPORTS = AUDIT_EXPORTS_CONFIG.get('expected_exports', {})
 
 logger = get_component_logger("development_tools")
+
+
+class UsageStats(TypedDict):
+    import_count: int
+    import_locations: List[str]
+    import_types: Set[str]
+    module_path: Optional[str]
 
 
 def extract_imports_from_file(file_path: str) -> Dict[str, List[str]]:
@@ -172,9 +179,9 @@ def scan_package_modules(package_name: str) -> Dict[str, List[str]]:
     return dict(package_api)
 
 
-def analyze_imports_for_package(package_name: str) -> Dict[str, Dict]:
+def analyze_imports_for_package(package_name: str) -> Dict[str, UsageStats]:
     """Analyze what's actually imported from a package across the codebase."""
-    usage_stats = defaultdict(lambda: {
+    usage_stats: Dict[str, UsageStats] = defaultdict(lambda: {
         'import_count': 0,
         'import_locations': [],
         'import_types': set(),  # 'from_import', 'direct_import'
@@ -217,7 +224,8 @@ def analyze_imports_for_package(package_name: str) -> Dict[str, Dict]:
         for imp in imports['direct_imports']:
             if imp['package'] == package_name and '.' not in imp['module']:
                 # Direct package import
-                usage_stats[imp['asname']]['import_count'] += 1
+                item_name = imp['asname']
+                usage_stats[item_name]['import_count'] += 1
                 usage_stats[item_name]['import_locations'].append(file_key)
                 usage_stats[item_name]['import_types'].add('direct_import')
     
@@ -590,4 +598,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

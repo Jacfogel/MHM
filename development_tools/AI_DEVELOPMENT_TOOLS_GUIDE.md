@@ -51,7 +51,7 @@ python development_tools/run_development_tools.py help
 - `unused-imports-report` - Generate unused imports report from analysis results
 - `config` - Check configuration consistency
 
-**Additional commands**: `quick-audit` (deprecated - use `audit --quick`), `system-signals`, `validate`, `decision-support`, `workflow`, `trees`, `cleanup`, `version-sync` (experimental)
+**Additional commands**: `system-signals`, `validate`, `decision-support`, `workflow`, `trees`, `cleanup`, `version-sync` (experimental)
 
 **Note**: Test marker analysis is automatically run during `audit --full` when coverage is generated. For fixing markers, use `development_tools/tests/fix_test_markers.py` directly.
 
@@ -115,7 +115,7 @@ python development_tools/run_development_tools.py help
 - **consolidated_report.txt**: Comprehensive details including all metrics from AI_STATUS plus detailed example lists in the Function Patterns section
 
 **Tool Output Format (Standard Format)**:
-- All analysis tools output JSON in a standardized structure:
+- Analysis tools that participate in audit aggregation emit or are normalized to a standardized JSON structure:
   ```json
   {
     "summary": {
@@ -168,7 +168,7 @@ The authoritative table lives in `shared/tool_metadata.py`. Use this guide to pi
 
 ### 4.1. Naming Conventions
 
-All tools follow a 3-prefix naming system:
+Most tools follow prefix-based naming to indicate primary intent; shared and orchestration tools may not:
 
 - **`analyze_*`** - Finding + assessing (read-only examination, validation, detection)
   - Examples: `analyze_functions.py`, `analyze_documentation.py`, `analyze_error_handling.py`
@@ -194,12 +194,10 @@ Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these
 - `shared/` - Shared infrastructure (config, constants, exclusions, metadata)
 
 **Tool Categories**:
-- **Documentation & structure**: `docs/analyze_documentation_sync.py` [OK] (paired doc sync only), `docs/analyze_path_drift.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_heading_numbering.py`, `docs/analyze_missing_addresses.py`, `docs/analyze_unconverted_links.py`, `docs/generate_directory_tree.py`, `docs/fix_documentation.py` [OK] (dispatcher), `docs/fix_documentation_addresses.py`, `docs/fix_documentation_ascii.py`, `docs/fix_documentation_headings.py`, `docs/fix_documentation_links.py`, `functions/generate_function_registry.py` [OK], `functions/analyze_function_patterns.py`, `imports/generate_module_dependencies.py` [OK] (orchestrator), `imports/analyze_module_imports.py` (extracted 2025-12-02), `imports/analyze_dependency_patterns.py` (extracted 2025-12-02), `docs/analyze_documentation.py`
-- **Quality, validation, coverage**: `tests/run_test_coverage.py` [OK], `tests/analyze_test_coverage.py`, `tests/generate_test_coverage_report.py`, `ai_work/analyze_ai_work.py`, `imports/analyze_unused_imports.py`, `imports/generate_unused_imports_report.py`, `error_handling/analyze_error_handling.py`, `error_handling/generate_error_handling_report.py`
-- **Legacy, versioning, signals**: `legacy/fix_legacy_references.py` [OK], `reports/analyze_system_signals.py`, `reports/quick_status.py`, `docs/fix_version_sync.py` (experimental)
+- **Documentation & structure**: `docs/analyze_documentation_sync.py` (paired doc sync only), `docs/analyze_path_drift.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_heading_numbering.py`, `docs/analyze_missing_addresses.py`, `docs/analyze_unconverted_links.py`, `docs/generate_directory_tree.py`, `docs/fix_documentation.py` (dispatcher), `docs/fix_documentation_addresses.py`, `docs/fix_documentation_ascii.py`, `docs/fix_documentation_headings.py`, `docs/fix_documentation_links.py`, `functions/generate_function_registry.py`, `functions/analyze_function_patterns.py`, `imports/generate_module_dependencies.py` (orchestrator), `imports/analyze_module_imports.py`, `imports/analyze_dependency_patterns.py`, `docs/analyze_documentation.py`
+- **Quality, validation, coverage**: `tests/run_test_coverage.py`, `tests/analyze_test_coverage.py`, `tests/generate_test_coverage_report.py`, `ai_work/analyze_ai_work.py`, `imports/analyze_unused_imports.py`, `imports/generate_unused_imports_report.py`, `error_handling/analyze_error_handling.py`, `error_handling/generate_error_handling_report.py`
+- **Legacy, versioning, signals**: `legacy/fix_legacy_references.py`, `reports/analyze_system_signals.py`, `reports/quick_status.py`, `docs/fix_version_sync.py` (experimental)
 - **Decision & utilities**: `reports/decision_support.py`, `functions/analyze_functions.py`, `functions/generate_function_docstrings.py` (experimental), `config/analyze_config.py`, `shared/file_rotation.py`, `functions/analyze_*` helpers, `shared/tool_guide.py`
-
-[OK] = Has comprehensive test coverage (Phase 3)
 
 Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier and trust matrix.
 
@@ -210,8 +208,8 @@ Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier and
 - Use shared infrastructure: `shared/standard_exclusions.py`, `shared/constants.py`, `config/config.py`, `shared/mtime_cache.py`
 - **Caching**: 
   - **File-based caching**: Use `shared/mtime_cache.py` (`MtimeFileCache`) for file-based analyzers to cache results based on file modification times. This significantly speeds up repeated runs by only re-processing changed files. The cache automatically invalidates when `development_tools_config.json` changes, ensuring config updates are immediately reflected. Currently used by: `imports/analyze_unused_imports.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_missing_addresses.py`, `legacy/analyze_legacy_references.py`, `docs/analyze_heading_numbering.py`, `docs/analyze_path_drift.py`, `docs/analyze_unconverted_links.py`, `tests/analyze_test_coverage.py` (coverage analysis caching)
-  - **Test Coverage Caching (2026-01-11)**: 
-    - **Coverage Analysis Caching**: `tests/analyze_test_coverage.py` now caches analysis results based on coverage JSON file mtime, saving ~2s on repeated analysis when coverage data hasn't changed
+  - **Test Coverage Caching**: 
+    - **Coverage Analysis Caching**: `tests/analyze_test_coverage.py` caches analysis results based on coverage JSON file mtime, saving ~2s on repeated analysis when coverage data hasn't changed
     - **Test-file coverage caching** (Integrated, enabled by default): `tests/test_file_coverage_cache.py` uses `tests/domain_mapper.py` (`DomainMapper`) to map source directories to test files. When a domain changes, only the test files that cover that domain are re-run, and cached coverage is merged for unchanged tests. Cache file: `development_tools/tests/jsons/test_file_coverage_cache.json`. Enabled by default; disable with `--no-domain-cache`.
     - **Dev tools coverage caching** (Integrated, enabled by default): `tests/dev_tools_coverage_cache.py` caches `development_tools` coverage JSON keyed by dev tools source mtimes. Cache file: `development_tools/tests/jsons/dev_tools_coverage_cache.json`. Enabled by default; disable with `--no-domain-cache`.
   - **Cache management**: Use `--clear-cache` flag to clear all development tools cache files before running commands: `python development_tools/run_development_tools.py --clear-cache audit`
@@ -223,12 +221,9 @@ Consult `development_tools/DEVELOPMENT_TOOLS_GUIDE.md` for the detailed tier and
 - Never hardcode project paths; derive them from configuration helpers
 - Keep tools isolated from MHM business logic
 - Store tests under `tests/development_tools/` (with fixtures in `tests/fixtures/development_tools_demo/`)
-- **Phase 3 Complete (2025-11-26)**: Core analysis tools now have comprehensive test coverage (55+ tests) using the synthetic fixture project
 - For detailed testing guidance, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md)
-- **Phase 4 Follow-up (2025-11-27)**: Supporting tools `reports/quick_status.py`, `reports/analyze_system_signals.py`, and `shared/file_rotation.py` now have targeted regression tests in `tests/development_tools/test_supporting_tools.py`
-- **Phase 6 Complete (2025-11-28)**: All core tools are now portable via external configuration (`development_tools_config.json`). Tools can be used in other projects with minimal setup.
-- **Standard Format Migration Complete (2025-12-14)**: All 19 analysis tools now output standard format directly. Normalization layer provides backward compatibility. All tests updated to match new format.
-- **Modular Service Architecture Complete (2025-12-14)**: The monolithic operations.py file was refactored into 7 service modules in `development_tools/shared/service/` (`development_tools/shared/service/core.py`, `development_tools/shared/service/utilities.py`, `development_tools/shared/service/data_loading.py`, `development_tools/shared/service/tool_wrappers.py`, `development_tools/shared/service/audit_orchestration.py`, `development_tools/shared/service/report_generation.py`, `development_tools/shared/service/commands.py`) and CLI interface moved to `development_tools/shared/cli_interface.py`. Legacy facade removed. Import `AIToolsService` from `development_tools.shared.service` and `COMMAND_REGISTRY` from `development_tools.shared.cli_interface`.
+
+- All core tools are portable via external configuration (`development_tools_config.json`). Tools can be used in other projects with minimal setup.
 - Preserve the directory structure (`development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) to ease eventual extraction
 - Treat experimental tools cautiously (dry-run first, log outcomes)
 - Keep this guide paired with the human document; update both whenever commands, tiers, or workflows change

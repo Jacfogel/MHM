@@ -87,7 +87,7 @@ class TestNotebookHandlerBehavior:
         assert isinstance(response, InteractionResponse), "Should return InteractionResponse"
         assert not response.completed, "Should prompt for body text"
         assert "body text" in response.message.lower(), "Should ask for body text"
-        assert "Skip" in response.suggestions or "skip" in response.message, "Should offer Skip option"
+        assert "Skip" in (response.suggestions or []) or "skip" in response.message, "Should offer Skip option"
     
     @pytest.mark.file_io
     def test_create_note_with_title_and_body(self, test_data_dir):

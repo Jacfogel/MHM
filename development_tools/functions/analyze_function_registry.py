@@ -10,7 +10,7 @@ import ast
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Set
+from typing import Any, Dict, List, Optional, Tuple, Set, TypedDict
 
 # Add project root to path for core module imports
 # Script is at: development_tools/functions/analyze_function_registry.py
@@ -85,6 +85,13 @@ class ClassRecord:
     line: int
     docstring: str
     methods: Tuple[str, ...]
+
+
+class InventoryEntry(TypedDict):
+    functions: List[FunctionRecord]
+    classes: List[ClassRecord]
+    total_functions: int
+    total_classes: int
 
 
 def decorator_names(node: ast.AST) -> Tuple[str, ...]:
@@ -171,8 +178,8 @@ def extract_functions_and_classes(path: Path, errors: List[str]) -> Tuple[List[F
     return functions, classes
 
 
-def collect_project_inventory(errors: List[str]) -> Dict[str, Dict[str, object]]:
-    inventory: Dict[str, Dict[str, object]] = {}
+def collect_project_inventory(errors: List[str]) -> Dict[str, InventoryEntry]:
+    inventory: Dict[str, InventoryEntry] = {}
     seen: Set[Path] = set()
 
     for source_path in iter_python_sources(config.get_scan_directories(), context="production"):
@@ -250,7 +257,7 @@ def parse_registry_document(path: Path = REGISTRY_PATH) -> Dict[str, Set[str]]:
     return mapping
 
 
-def build_metrics(inventory: Dict[str, Dict[str, object]], registry: Dict[str, Set[str]]) -> Dict[str, object]:
+def build_metrics(inventory: Dict[str, InventoryEntry], registry: Dict[str, Set[str]]) -> Dict[str, Any]:
     missing_by_file: Dict[str, List[str]] = {}
     missing_files: List[str] = []
     missing_count = 0
@@ -296,8 +303,8 @@ def build_metrics(inventory: Dict[str, Dict[str, object]], registry: Dict[str, S
     return result
 
 
-def build_analysis(inventory: Dict[str, Dict[str, object]]) -> Dict[str, object]:
-    high_complexity: List[Dict[str, object]] = []
+def build_analysis(inventory: Dict[str, InventoryEntry]) -> Dict[str, Any]:
+    high_complexity: List[Dict[str, Any]] = []
     undocumented_handlers: List[Dict[str, str]] = []
     undocumented_other: List[Dict[str, str]] = []
     occurrences: Dict[str, Set[str]] = {}
@@ -368,8 +375,8 @@ def build_analysis(inventory: Dict[str, Dict[str, object]]) -> Dict[str, object]
     }
 
 
-def build_registry_sections(inventory: Dict[str, Dict[str, object]], metrics: Dict[str, object]) -> Dict[str, Dict[str, object]]:
-    sections: Dict[str, Dict[str, object]] = {}
+def build_registry_sections(inventory: Dict[str, InventoryEntry], metrics: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    sections: Dict[str, Dict[str, Any]] = {}
 
     missing_by_file = metrics.get("missing_by_file", {})
     for file_path, missing_names in missing_by_file.items():
@@ -426,9 +433,9 @@ def build_registry_sections(inventory: Dict[str, Dict[str, object]], metrics: Di
 
 
 def summarise_audit(
-    inventory: Dict[str, Dict[str, object]],
-    metrics: Dict[str, object],
-    analysis: Dict[str, object],
+    inventory: Dict[str, InventoryEntry],
+    metrics: Dict[str, Any],
+    analysis: Dict[str, Any],
     errors: List[str],
 ) -> str:
     lines: List[str] = []
@@ -671,4 +678,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
