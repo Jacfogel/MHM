@@ -6,7 +6,7 @@ Handles environment variables, validation, and system settings.
 
 import os
 from dotenv import load_dotenv
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 from pathlib import Path
 
 from core.error_handling import (
@@ -17,7 +17,7 @@ from core.error_handling import (
 class ConfigValidationError(Exception):
     """Custom exception for configuration validation errors with detailed information."""
     @handle_errors("initializing config error", default_return=None)
-    def __init__(self, message: str, missing_configs: List[str] = None, warnings: List[str] = None):
+    def __init__(self, message: str, missing_configs: Optional[List[str]] = None, warnings: Optional[List[str]] = None):
         """Initialize the object."""
         super().__init__(message)
         self.missing_configs = missing_configs or []

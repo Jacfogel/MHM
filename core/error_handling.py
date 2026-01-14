@@ -441,7 +441,7 @@ class ErrorHandler:
         self.error_count: Dict[str, int] = {}
         self.max_retries = 3
     
-    def handle_error(self, error: Exception, context: Dict[str, Any] = None, 
+    def handle_error(self, error: Exception, context: Optional[Dict[str, Any]] = None, 
                     operation: str = "unknown", user_friendly: bool = True) -> bool:
         """
         Handle an error with recovery strategies and logging.
@@ -570,7 +570,7 @@ class ErrorHandler:
                 delattr(_logging_lock, 'logging_error')
     
     def _show_user_error(self, error: Exception, context: Dict[str, Any], 
-                        custom_message: str = None):
+                        custom_message: Optional[str] = None):
         """Show user-friendly error message."""
         # This will be implemented to show UI messages when appropriate
         # For now, just log the user-friendly message
@@ -617,7 +617,7 @@ class ErrorHandler:
 # DECORATORS AND UTILITIES
 # ============================================================================
 
-def handle_errors(operation: str = None, context: Dict[str, Any] = None, 
+def handle_errors(operation: Optional[str] = None, context: Optional[Dict[str, Any]] = None, 
                  user_friendly: bool = True, default_return=None):
     """
     Decorator to automatically handle errors in functions.
@@ -703,7 +703,7 @@ def handle_errors(operation: str = None, context: Dict[str, Any] = None,
 
 @handle_errors("safe file operation", default_return=None)
 def safe_file_operation(file_path: str, operation: str = "file operation", 
-                       user_id: str = None, category: str = None):
+                       user_id: Optional[str] = None, category: Optional[str] = None):
     """
     Context manager for safe file operations with automatic error handling.
     
@@ -777,7 +777,7 @@ error_handler = ErrorHandler()
 
 @handle_errors("handling file error", default_return=False)
 def handle_file_error(error: Exception, file_path: str, operation: str, 
-                     user_id: str = None, category: str = None) -> bool:
+                     user_id: Optional[str] = None, category: Optional[str] = None) -> bool:
     """Convenience function for handling file-related errors."""
     context = {
         'file_path': file_path,
@@ -788,7 +788,7 @@ def handle_file_error(error: Exception, file_path: str, operation: str,
 
 @handle_errors("handling communication error", default_return=False)
 def handle_communication_error(error: Exception, channel: str, operation: str, 
-                            user_id: str = None) -> bool:
+                            user_id: Optional[str] = None) -> bool:
     """Convenience function for handling communication errors."""
     context = {
         'channel': channel,
@@ -805,7 +805,7 @@ def handle_configuration_error(error: Exception, setting: str, operation: str) -
     return error_handler.handle_error(error, context, operation)
 
 @handle_errors("handling network error", default_return=False)
-def handle_network_error(error: Exception, operation: str, user_id: str = None) -> bool:
+def handle_network_error(error: Exception, operation: str, user_id: Optional[str] = None) -> bool:
     """Convenience function for handling network errors."""
     context = {
         'user_id': user_id,
@@ -814,7 +814,7 @@ def handle_network_error(error: Exception, operation: str, user_id: str = None) 
     return error_handler.handle_error(error, context, operation)
 
 @handle_errors("handling validation error", default_return=False)
-def handle_validation_error(error: Exception, field: str, operation: str, user_id: str = None) -> bool:
+def handle_validation_error(error: Exception, field: str, operation: str, user_id: Optional[str] = None) -> bool:
     """Convenience function for handling validation errors."""
     context = {
         'field': field,
@@ -823,7 +823,7 @@ def handle_validation_error(error: Exception, field: str, operation: str, user_i
     return error_handler.handle_error(error, context, operation)
 
 @handle_errors("handling AI error", default_return=False)
-def handle_ai_error(error: Exception, operation: str, user_id: str = None) -> bool:
+def handle_ai_error(error: Exception, operation: str, user_id: Optional[str] = None) -> bool:
     """Convenience function for handling AI-related errors."""
     context = {
         'user_id': user_id,

@@ -6,6 +6,7 @@ Uses the channel-agnostic AccountManagementHandler for core logic.
 """
 
 import discord
+from typing import Optional
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from communication.command_handlers.shared_types import ParsedCommand
@@ -247,16 +248,17 @@ class CreateAccountButton(discord.ui.Button):
             logger.info(f"Created new MHM account for Discord user {self.parent_view.discord_user_id}: {self.parent_view.username}")
             # Update the original message to show it's complete (gracefully handle failures)
             try:
-                await interaction.message.edit(
-                    content=f"✅ **Account created successfully!**\n\n"
-                           f"Username: `{self.parent_view.username}`\n"
-                           f"Features enabled:\n"
-                           f"• Task Management: {'✅' if self.parent_view.tasks_enabled else '❌'}\n"
-                           f"• Check-ins: {'✅' if self.parent_view.checkins_enabled else '❌'}\n"
-                           f"• Automated Messages: {'✅' if self.parent_view.messages_enabled else '❌'}\n"
-                           f"• Timezone: {self.parent_view.timezone}",
-                    view=None  # Remove the view
-                )
+                if interaction.message:
+                    await interaction.message.edit(
+                        content=f"✅ **Account created successfully!**\n\n"
+                        f"Username: `{self.parent_view.username}`\n"
+                        f"Features enabled:\n"
+                        f"• Task Management: {'✅' if self.parent_view.tasks_enabled else '❌'}\n"
+                        f"• Check-ins: {'✅' if self.parent_view.checkins_enabled else '❌'}\n"
+                        f"• Automated Messages: {'✅' if self.parent_view.messages_enabled else '❌'}\n"
+                        f"• Timezone: {self.parent_view.timezone}",
+                        view=None  # Remove the view
+                    )
             except Exception as e:
                 logger.debug(f"Could not update original message: {e}")
         else:
@@ -264,7 +266,7 @@ class CreateAccountButton(discord.ui.Button):
 
 
 @handle_errors("starting account creation flow", default_return=None)
-async def start_account_creation_flow(interaction: discord.Interaction, discord_user_id: str, discord_username: str = None):
+async def start_account_creation_flow(interaction: discord.Interaction, discord_user_id: str, discord_username: Optional[str] = None):
     """
     Start the account creation flow via Discord modal.
     

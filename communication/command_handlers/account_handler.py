@@ -391,7 +391,7 @@ def _generate_confirmation_code() -> str:
 
 
 @handle_errors("sending confirmation code", default_return=False)
-def _send_confirmation_code(user_id: str, confirmation_code: str, channel_type: str, channel_identifier: str = None) -> bool:
+def _send_confirmation_code(user_id: str, confirmation_code: str, channel_type: str, channel_identifier: Optional[str] = None) -> bool:
     """
     Send confirmation code via email (for account linking security).
     

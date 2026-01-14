@@ -1,0 +1,34 @@
+{
+    "motivational": {
+        "periods": {
+            "morning": {
+                "active": true,
+                "days": [
+                    "ALL"
+                ],
+                "start_time": "09:00",
+                "end_time": "12:00"
+            }
+        }
+    },
+    "health": {
+        "periods": {
+            "ALL": {
+                "active": true,
+                "days": [
+                    "ALL"
+                ],
+                "start_time": "00:00",
+                "end_time": "23:59"
+            },
+            "Health Message Default": {
+                "active": true,
+                "days": [
+                    "ALL"
+                ],
+                "start_time": "18:00",
+                "end_time": "20:00"
+            }
+        }
+    }
+}

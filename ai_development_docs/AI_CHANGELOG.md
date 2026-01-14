@@ -36,6 +36,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-14 - Pyright Optional Fixes and Coverage Cache Mapping Fix **COMPLETED**
+- Added optional-safe guards/typing across core and communication and updated pyright exclusions (temporary: `development_tools/**`, `tests/**`; permanent: generated UI)
+- Fixed test-file coverage cache mapping persistence (batched load/save) and marked account creation UI integration tests `no_parallel` to avoid shared data races
+- Email bot config lookup now has explicit error handling with safe fallback
+- Observed full test/audit runs; one logger behavior test failed during full coverage run
+
 ### 2026-01-13 - Pyright Cleanup and Dev Tools Exclusion Fix **COMPLETED**
 - Cleared all pyright errors with minimal typing/import fixes across dev tools, tests, and scripts
 - Normalized dev tools exclusion matching on Windows paths to keep temp test data out of legacy scans

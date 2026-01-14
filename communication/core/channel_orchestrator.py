@@ -129,6 +129,10 @@ class CommunicationManager:
     @handle_errors("running async sync", default_return=None)
     def send_message_sync__run_async_sync(self, coro):
         """Run async function synchronously using our managed loop"""
+        if not self._main_loop:
+            self.__init____setup_event_loop()
+        if not self._main_loop:
+            raise RuntimeError("Event loop not initialized for sync execution")
         if self._loop_thread:
             # Submit to running loop
             future = asyncio.run_coroutine_threadsafe(coro, self._main_loop)
@@ -348,7 +352,7 @@ class CommunicationManager:
             logger.error(f"Error sending email response to {recipient_email}: {e}")
 
     @handle_errors("initializing channels from config", default_return=False)
-    def initialize_channels_from_config(self, channel_configs: Dict[str, ChannelConfig] = None):
+    def initialize_channels_from_config(self, channel_configs: Optional[Dict[str, ChannelConfig]] = None):
         """
         Initialize channels from configuration with validation.
         
@@ -385,6 +389,9 @@ class CommunicationManager:
     async def initialize_channels_from_config__initialize_channels_async(self):
         """Async method to initialize all configured channels"""
         logger.debug("Starting async channel initialization.")
+        if not self.channel_configs:
+            logger.error("Channel configs not initialized for async initialization")
+            return False
         
         for name, config in self.channel_configs.items():
             if not config.enabled:
@@ -541,6 +548,9 @@ class CommunicationManager:
     async def _start_all_async(self):
         """Async method to start all configured channels"""
         logger.debug("Starting async channel startup.")
+        if not self.channel_configs:
+            logger.error("Channel configs not initialized for async startup")
+            return False
         
         for name, config in self.channel_configs.items():
             if not config.enabled:
@@ -571,6 +581,9 @@ class CommunicationManager:
     def _start_sync(self):
         """Synchronous method to start all configured channels"""
         logger.debug("Starting sync channel startup.")
+        if not self.channel_configs:
+            logger.error("Channel configs not initialized for sync startup")
+            return False
         
         for name, config in self.channel_configs.items():
             if not config.enabled:

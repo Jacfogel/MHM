@@ -400,7 +400,7 @@ def get_recent_messages(user_id: str, category: Optional[str] = None, limit: int
         return []
 
 @handle_errors("storing sent message", default_return=False)
-def store_sent_message(user_id: str, category: str, message_id: str, message: str, delivery_status: str = "sent", time_period: str = None) -> bool:
+def store_sent_message(user_id: str, category: str, message_id: str, message: str, delivery_status: str = "sent", time_period: Optional[str] = None) -> bool:
     """
     Store sent message in chronological order.
     

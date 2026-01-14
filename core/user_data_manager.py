@@ -968,7 +968,7 @@ class UserDataManager:
             return False
     
     @handle_errors("searching users", default_return=[])
-    def search_users(self, query: str, search_fields: List[str] = None) -> List[Dict[str, Any]]:
+    def search_users(self, query: str, search_fields: Optional[List[str]] = None) -> List[Dict[str, Any]]:
         """
         Search users with validation.
         
@@ -988,6 +988,8 @@ class UserDataManager:
         if search_fields is not None and not isinstance(search_fields, list):
             logger.error(f"Invalid search_fields: {search_fields}")
             return []
+        if search_fields is None:
+            search_fields = ["internal_username", "email", "discord_user_id", "phone"]
         """
         Search for users based on query string and specified fields.
         

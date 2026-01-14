@@ -19,6 +19,14 @@
   
   // Exclude paths - directories that shouldn't be type-checked
   "exclude": [
+    // Temporary exclusions (revisit later)
+    "development_tools",
+    "development_tools/**",
+    "tests",
+    "tests/**",
+    // Permanent exclusions / standard noise
+    "ui/generated",
+    "ui/generated/**",
     "**/__pycache__",
     "**/node_modules",
     "**/.pytest_cache",

@@ -2,6 +2,8 @@
 
 Contains task management utilities and operations for creating,
 updating, and managing user tasks within the MHM system.
+
+This file deliberately modified to test coverage caching.
 """
 
 # Main public API - package-level exports for easier refactoring

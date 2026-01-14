@@ -2,6 +2,8 @@
 
 Contains messaging channels, orchestration logic, command handlers,
 and message processing utilities for multi-channel communication support.
+
+This file deliberately modified to test coverage caching.
 """
 
 # Main public API - package-level exports for easier refactoring

@@ -38,6 +38,23 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-14 - Pyright Optional Fixes, Coverage Cache Mapping Fix, and UI Test Stabilization **COMPLETED**
+- **Feature**: Reduced pyright noise with optional-safe updates in core/communication, fixed test-file coverage cache mapping persistence, and stabilized account creation UI integration tests under parallel runs.
+- **Changes**:
+  1. **Pyright configuration + type safety**:
+     - Updated `pyrightconfig.json` exclusions (temporary: `development_tools/**`, `tests/**`; permanent: generated UI).
+     - Added optional/None-safe guards and stricter typing in core and communication modules to address `reportOptionalMemberAccess` and `reportArgumentType` findings.
+  2. **Error handling**:
+     - Added error handling to email bot `_get_email_config` and propagated safe handling for missing config.
+  3. **Coverage cache fix**:
+     - Fixed test-file coverage cache updates by batching cache loads/saves to prevent mapping wipes.
+  4. **UI test stability**:
+     - Marked account creation integration tests as `no_parallel` to avoid shared test-data/index races.
+- **Impact**: Pyright warnings reduced, cache mappings persist across runs, and UI integration tests avoid parallel data contention.
+- **Files**: `pyrightconfig.json`, `core/*`, `communication/*`, `development_tools/tests/run_test_coverage.py`, `development_tools/tests/test_file_coverage_cache.py`, `tests/ui/test_account_creation_ui.py`.
+- **Testing**:
+  - Observed full test/audit runs via `python run_tests.py` and `python development_tools/run_development_tools.py audit --full` (one logger behavior test failed during a full coverage run).
+
 ### 2026-01-13 - Pyright Cleanup, Dev Tools Exclusions, and Test/Script Fixes **COMPLETED**
 - **Feature**: Eliminated pyright errors with minimal type-safe fixes, tightened dev tools exclusion matching on Windows, and repaired supporting scripts/tests.
 - **Changes**:

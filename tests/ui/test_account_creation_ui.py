@@ -947,6 +947,7 @@ class TestAccountCreationErrorHandling:
         dialog.close()
         dialog.deleteLater()
 
+@pytest.mark.no_parallel
 class TestAccountCreationIntegration:
     """Test integration scenarios for account creation and management."""
     

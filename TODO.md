@@ -253,8 +253,10 @@ When adding new tasks, follow this format:
 - *Why it helps*: Ensures test suite reliability and prevents false negatives that can mask real issues
 - *Estimated effort*: Small/Medium
 - *Subtasks*:
+  - [ ] Investigate `tests/behavior/test_logger_behavior.py::TestLoggerFileOperationsBehavior::test_get_log_file_info_real_behavior`
   - [ ] Investigate `tests/behavior/test_checkin_questions_enhancement.py::TestCustomQuestions::test_delete_custom_question`
   - [ ] Investigate `tests/behavior/test_webhook_handler_behavior.py::TestWebhookHandlerBehavior::test_handle_webhook_event_routes_application_deauthorized`
+  - [ ] Investigate `tests/unit/test_schedule_management.py::TestScheduleManagement::test_schedule_period_lifecycle`
   - [ ] Investigate `test_scan_all_python_files_demo_project`
   - [ ] Check for timing/race condition issues in test setup or teardown
   - [ ] Verify test isolation and data cleanup between test runs

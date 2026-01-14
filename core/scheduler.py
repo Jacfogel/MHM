@@ -85,14 +85,17 @@ class SchedulerManager:
                         task_jobs = 0
                         
                         for job in schedule.jobs:
-                            if hasattr(job.job_func, 'func'):
-                                if job.job_func.func == self.perform_daily_log_archival:
+                            job_func = job.job_func
+                            if not job_func:
+                                continue
+                            if hasattr(job_func, 'func'):
+                                if job_func.func == self.perform_daily_log_archival:
                                     system_jobs += 1
-                                elif job.job_func.func == self.run_full_daily_scheduler:
+                                elif job_func.func == self.run_full_daily_scheduler:
                                     system_jobs += 1
-                                elif job.job_func.func == self.handle_sending_scheduled_message:
+                                elif job_func.func == self.handle_sending_scheduled_message:
                                     user_message_jobs += 1
-                                elif job.job_func.func == self.handle_task_reminder:
+                                elif job_func.func == self.handle_task_reminder:
                                     task_jobs += 1
                         
                         logger.info(f"Scheduler running: {active_jobs} total jobs ({system_jobs} system, {user_message_jobs} message, {task_jobs} task)")
@@ -174,23 +177,29 @@ class SchedulerManager:
         if job is None:
             # Check all jobs for this user and category
             for existing_job in schedule.jobs:
+                job_func = existing_job.job_func
+                if not job_func:
+                    continue
                 # Check if this is a daily scheduler job for this user/category
-                if (hasattr(existing_job.job_func, 'func') and 
-                    existing_job.job_func.func == self.schedule_daily_message_job and 
-                    hasattr(existing_job.job_func, 'keywords') and 
-                    existing_job.job_func.keywords.get('user_id') == user_id and 
-                    existing_job.job_func.keywords.get('category') == category):
+                if (hasattr(job_func, 'func') and 
+                    job_func.func == self.schedule_daily_message_job and 
+                    hasattr(job_func, 'keywords') and 
+                    job_func.keywords.get('user_id') == user_id and 
+                    job_func.keywords.get('category') == category):
                     logger.debug(f"Found existing daily job for user {user_id}, category {category}")
                     return True
             logger.debug(f"No existing daily job found for user {user_id}, category {category}")
             return False
         else:
             # Check specific job
-            if (hasattr(job.job_func, 'func') and 
-                job.job_func.func == self.schedule_daily_message_job and 
-                hasattr(job.job_func, 'keywords') and 
-                job.job_func.keywords.get('user_id') == user_id and 
-                job.job_func.keywords.get('category') == category):
+            job_func = job.job_func
+            if not job_func:
+                return False
+            if (hasattr(job_func, 'func') and 
+                job_func.func == self.schedule_daily_message_job and 
+                hasattr(job_func, 'keywords') and 
+                job_func.keywords.get('user_id') == user_id and 
+                job_func.keywords.get('category') == category):
                 return True
             return False
     
@@ -262,7 +271,10 @@ class SchedulerManager:
             # Count job types for diagnostic purposes
             job_types = {}
             for job in schedule.jobs:
-                job_func_name = job.job_func.__name__
+                job_func = job.job_func
+                if not job_func:
+                    continue
+                job_func_name = getattr(job_func, '__name__', 'UnknownJob')
                 job_types[job_func_name] = job_types.get(job_func_name, 0) + 1
             
             job_type_summary = ", ".join([f"{count} {name}" for name, count in job_types.items()])
@@ -580,7 +592,11 @@ class SchedulerManager:
     def is_time_conflict(self, user_id, schedule_datetime):
         """Checks if there is a time conflict with any existing scheduled jobs for the user."""
         for job in schedule.jobs:
-            if job.job_func.args and job.job_func.args[0] == user_id:
+            job_func = job.job_func
+            if not job_func:
+                continue
+            job_args = getattr(job_func, 'args', None)
+            if job_args and job_args[0] == user_id:
                 job_time = job.next_run
                 # Increase conflict window to 2 hours to prevent multiple messages at similar times
                 if abs((job_time - schedule_datetime).total_seconds()) < 7200:  # 2 hours = 7200 seconds
@@ -644,13 +660,17 @@ class SchedulerManager:
     def log_scheduled_tasks(self):
         """Logs all current and upcoming scheduled tasks in a user-friendly manner."""
         for job in schedule.jobs:
+            job_func = job.job_func
+            if not job_func:
+                continue
             next_run = job.next_run.strftime('%Y-%m-%d %H:%M:%S') if job.next_run else 'None'
-            task_name = job.job_func.__name__ if hasattr(job.job_func, '__name__') else 'Scheduled Task'
-            task_description = str(job.job_func).split('function ')[-1].split(' at ')[0] if 'function' in str(job.job_func) else task_name
+            task_name = job_func.__name__ if hasattr(job_func, '__name__') else 'Scheduled Task'
+            task_description = str(job_func).split('function ')[-1].split(' at ')[0] if 'function' in str(job_func) else task_name
 
             category = 'Generic Task'
-            if hasattr(job.job_func, 'func') and hasattr(job.job_func, 'args') and job.job_func.args:
-                category = job.job_func.args[0]
+            job_args = getattr(job_func, 'args', None)
+            if hasattr(job_func, 'func') and job_args:
+                category = job_args[0]
 
             logger.info(f"Task: {task_description}, Category: {category}, Scheduled at: {job.at_time}, Next run: {next_run}")
 
@@ -693,11 +713,15 @@ class SchedulerManager:
             # Find and remove jobs for this user and category
             jobs_to_remove = []
             for job in schedule.jobs:
-                if (hasattr(job.job_func, 'func') and 
-                    job.job_func.func == self.handle_sending_scheduled_message and
-                    len(job.job_func.args) >= 2 and
-                    job.job_func.args[0] == user_id and 
-                    job.job_func.args[1] == category):
+                job_func = job.job_func
+                if not job_func:
+                    continue
+                job_args = getattr(job_func, 'args', None)
+                if (hasattr(job_func, 'func') and 
+                    job_func.func == self.handle_sending_scheduled_message and
+                    job_args and len(job_args) >= 2 and
+                    job_args[0] == user_id and 
+                    job_args[1] == category):
                     jobs_to_remove.append(job)
             
             # Remove the jobs
@@ -1282,7 +1306,8 @@ class SchedulerManager:
             delay_seconds = (reminder_datetime - datetime.now()).total_seconds()
             
             # Schedule the task reminder
-            schedule.every(delay_seconds).seconds.do(self.handle_task_reminder, user_id=user_id, task_id=task_id)
+            delay_seconds_int = max(1, int(delay_seconds))
+            schedule.every(delay_seconds_int).seconds.do(self.handle_task_reminder, user_id=user_id, task_id=task_id)
             
             logger.info(f"Scheduled one-time task reminder for user {user_id}, task {task_id} at {reminder_datetime}")
             return True
@@ -1323,23 +1348,27 @@ class SchedulerManager:
                     # Jobs created by schedule_task_reminder_at_time use: schedule.every().day.at(time).do(handle_task_reminder, user_id=..., task_id=...)
                     
                     # Check if job function is handle_task_reminder
-                    if hasattr(job.job_func, 'func') and job.job_func.func == self.handle_task_reminder:
+                    job_func = job.job_func
+                    if not job_func:
+                        continue
+                    if hasattr(job_func, 'func') and job_func.func == self.handle_task_reminder:
                         # Check keyword arguments for user_id and task_id
-                        if hasattr(job.job_func, 'keywords'):
-                            kwargs = job.job_func.keywords
+                        if hasattr(job_func, 'keywords'):
+                            kwargs = job_func.keywords
                             if kwargs.get('user_id') == user_id and kwargs.get('task_id') == task_id:
                                 jobs_to_remove.append(job)
                                 logger.debug(f"Found reminder job for task {task_id}, user {user_id}")
                     
                     # Also check positional arguments (some job types may use args instead of keywords)
-                    elif hasattr(job.job_func, 'args') and len(job.job_func.args) >= 2:
-                        args = job.job_func.args
-                        # handle_task_reminder signature: (self, user_id, task_id, ...)
-                        if len(args) >= 2 and args[0] == user_id and args[1] == task_id:
-                            # Verify it's actually handle_task_reminder
-                            if hasattr(job.job_func, 'func') and job.job_func.func == self.handle_task_reminder:
-                                jobs_to_remove.append(job)
-                                logger.debug(f"Found reminder job for task {task_id}, user {user_id} (positional args)")
+                    else:
+                        args = getattr(job_func, 'args', None)
+                        if args and len(args) >= 2:
+                            # handle_task_reminder signature: (self, user_id, task_id, ...)
+                            if len(args) >= 2 and args[0] == user_id and args[1] == task_id:
+                                # Verify it's actually handle_task_reminder
+                                if hasattr(job_func, 'func') and job_func.func == self.handle_task_reminder:
+                                    jobs_to_remove.append(job)
+                                    logger.debug(f"Found reminder job for task {task_id}, user {user_id} (positional args)")
                 
                 except Exception as e:
                     # Skip jobs that can't be inspected
@@ -1391,9 +1420,12 @@ class SchedulerManager:
             for job in schedule.jobs:
                 try:
                     # Check if this is a task reminder job
-                    if hasattr(job.job_func, 'func') and job.job_func.func == self.handle_task_reminder:
-                        if hasattr(job.job_func, 'keywords'):
-                            kwargs = job.job_func.keywords
+                    job_func = job.job_func
+                    if not job_func:
+                        continue
+                    if hasattr(job_func, 'func') and job_func.func == self.handle_task_reminder:
+                        if hasattr(job_func, 'keywords'):
+                            kwargs = job_func.keywords
                             user_id = kwargs.get('user_id')
                             task_id = kwargs.get('task_id')
                             if user_id and task_id:

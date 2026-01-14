@@ -5,7 +5,7 @@ from discord import app_commands
 import asyncio
 import threading
 from discord.ext import commands
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import queue
 import time
 import socket
@@ -45,7 +45,7 @@ class DiscordConnectionStatus(enum.Enum):
 
 class DiscordBot(BaseChannel):
     @handle_errors("initializing Discord bot", default_return=None)
-    def __init__(self, config: ChannelConfig = None):
+    def __init__(self, config: Optional[ChannelConfig] = None):
         # Initialize BaseChannel
         """Initialize the object."""
         if config is None:
@@ -417,7 +417,7 @@ class DiscordBot(BaseChannel):
         return status_info
 
     @handle_errors("updating connection status", default_return=None)
-    def _shared__update_connection_status(self, status: DiscordConnectionStatus, error_info: Dict[str, Any] = None):
+    def _shared__update_connection_status(self, status: DiscordConnectionStatus, error_info: Optional[Dict[str, Any]] = None):
         """Update connection status with detailed error information"""
         # Only log if status actually changed
         if self._connection_status != status:
@@ -508,6 +508,12 @@ class DiscordBot(BaseChannel):
         self._shared__update_connection_status(DiscordConnectionStatus.INITIALIZING)
         
         try:
+            if not DISCORD_BOT_TOKEN:
+                error_msg = "Discord bot token not configured."
+                self._set_status(ChannelStatus.ERROR, error_msg)
+                logger.error(error_msg)
+                return False
+
             # Pre-flight network check
             logger.info("Performing pre-flight network check...")
             if not self._check_network_health():
@@ -607,8 +613,12 @@ class DiscordBot(BaseChannel):
     @handle_errors("running Discord bot main loop")
     async def initialize__bot_main_loop(self):
         """Main bot loop that handles both Discord and command queue"""
+        bot = self.bot
+        if not bot or not DISCORD_BOT_TOKEN:
+            logger.error("Discord bot not initialized or token missing")
+            return
         # Start the Discord bot
-        bot_task = asyncio.create_task(self.bot.start(DISCORD_BOT_TOKEN))
+        bot_task = asyncio.create_task(bot.start(DISCORD_BOT_TOKEN))
         
         # Process command queue concurrently with bot
         command_task = asyncio.create_task(self.initialize__process_command_queue())
@@ -629,15 +639,15 @@ class DiscordBot(BaseChannel):
                     pass
         finally:
             # Ensure bot is properly closed
-            if not self.bot.is_closed():
-                await self.bot.close()
+            if not bot.is_closed():
+                await bot.close()
             
             # Clean up HTTP session to prevent "Unclosed client session" errors
             try:
-                if hasattr(self.bot, '_HTTP') and self.bot._HTTP:
-                    if hasattr(self.bot._HTTP, '_HTTPClient') and self.bot._HTTP._HTTPClient:
-                        if hasattr(self.bot._HTTP._HTTPClient, '_session') and self.bot._HTTP._HTTPClient._session:
-                            await self.bot._HTTP._HTTPClient._session.close()
+                if hasattr(bot, '_HTTP') and bot._HTTP:
+                    if hasattr(bot._HTTP, '_HTTPClient') and bot._HTTP._HTTPClient:
+                        if hasattr(bot._HTTP._HTTPClient, '_session') and bot._HTTP._HTTPClient._session:
+                            await bot._HTTP._HTTPClient._session.close()
                             logger.info("Discord bot HTTP session closed in main loop")
             except Exception as e:
                 logger.debug(f"Error closing HTTP session in main loop (may already be closed): {e}")
@@ -697,9 +707,12 @@ class DiscordBot(BaseChannel):
                 return
             
             self._on_ready_fired = True
+            bot = self.bot
+            if not bot:
+                return
             # Single consolidated log message
-            logger.info(f"Discord Bot logged in as {self.bot.user}")
-            print(f"Discord Bot is online as {self.bot.user}")
+            logger.info(f"Discord Bot logged in as {bot.user}")
+            print(f"Discord Bot is online as {bot.user}")
             
             # Reset reconnect attempts on successful connection
             self._reconnect_attempts = 0
@@ -709,11 +722,11 @@ class DiscordBot(BaseChannel):
             # Sync application (slash) commands
             @handle_errors("syncing Discord application commands", user_friendly=False, default_return=None)
             async def _sync_app_cmds():
-                await self.bot.tree.sync()
+                await bot.tree.sync()
                 logger.info("Discord application commands synced")
             # Schedule on the bot's loop to ensure proper task context
             # Store task reference for proper cleanup during shutdown
-            self._sync_task = self.bot.loop.create_task(_sync_app_cmds())
+            self._sync_task = bot.loop.create_task(_sync_app_cmds())
             
             # Check for new users who have authorized the app (can now DM us)
             # This runs periodically to catch users who authorized while bot was offline
@@ -731,7 +744,7 @@ class DiscordBot(BaseChannel):
                 discord_logger.debug("Bot ready - will welcome users on Discord app authorization (via webhook) or first interaction")
             
             # Schedule the check (non-blocking)
-            self.bot.loop.create_task(_check_new_authorized_users())
+            bot.loop.create_task(_check_new_authorized_users())
             
             # Start webhook server for receiving installation events
             try:
@@ -788,7 +801,7 @@ class DiscordBot(BaseChannel):
             logger.warning("Discord bot disconnected")
             # Use component logger for Discord disconnection events
             discord_logger.warning("Discord bot disconnected", 
-                                 bot_name=str(self.bot.user) if self.bot.user else "unknown",
+                                 bot_name=str(self.bot.user) if self.bot and self.bot.user else "unknown",
                                  reconnect_attempts=self._reconnect_attempts)
             # Don't change status to INITIALIZING - keep it as READY or ERROR
             # This prevents the bot from getting stuck in INITIALIZING state
@@ -811,7 +824,7 @@ class DiscordBot(BaseChannel):
             discord_logger.error("Discord bot error", 
                                event=event, 
                                error_details=error_str[:200],  # Truncate long errors
-                               bot_name=str(self.bot.user) if self.bot.user else "unknown")
+                               bot_name=str(self.bot.user) if self.bot and self.bot.user else "unknown")
             
             # Check if this is a connection-related error
             if any(keyword in error_str.lower() for keyword in ['connection', 'dns', 'timeout', 'network']):
@@ -937,9 +950,9 @@ class DiscordBot(BaseChannel):
                                     
                                     # Send response via followup
                                     if embed and view:
-                                        await interaction.followup.send(content=response.message or None, embed=embed, view=view)
+                                        await interaction.followup.send(content=response.message or "", embed=embed, view=view)
                                     elif embed:
-                                        await interaction.followup.send(content=response.message or None, embed=embed)
+                                        await interaction.followup.send(content=response.message or "", embed=embed)
                                     elif view:
                                         await interaction.followup.send(content=response.message, view=view)
                                     else:
@@ -1080,7 +1093,7 @@ class DiscordBot(BaseChannel):
             discord_logger.debug(f"DISCORD_MESSAGE_RECEIVED: author_id={message.author.id}, content='{message.content[:100]}', channel={message.channel.id}, guild={message.guild.id if message.guild else 'DM'}")
             
             # Don't respond to ourselves
-            if message.author == self.bot.user:
+            if self.bot and message.author == self.bot.user:
                 discord_logger.debug(f"DISCORD_MESSAGE_IGNORED: Message from bot itself, ignoring")
                 return
 
@@ -1466,11 +1479,15 @@ class DiscordBot(BaseChannel):
     @handle_errors("validating Discord user accessibility", user_friendly=False, default_return=False)
     async def _validate_discord_user_accessibility(self, user_id: str) -> bool:
         """Validate if a Discord user ID is still accessible"""
+        bot = self.bot
+        if not bot:
+            logger.error("Discord bot not initialized")
+            return False
         user_id_int = int(user_id)
-        user = self.bot.get_user(user_id_int)
+        user = bot.get_user(user_id_int)
         if not user:
             try:
-                user = await self.bot.fetch_user(user_id_int)
+                user = await bot.fetch_user(user_id_int)
                 return True
             except discord.NotFound:
                 logger.warning(f"Discord user {user_id} not found (404)")
@@ -1481,7 +1498,7 @@ class DiscordBot(BaseChannel):
         return True
 
     @handle_errors("sending message to Discord channel", user_friendly=False, default_return=False)
-    async def _send_to_channel(self, channel, message: str, rich_data: Dict[str, Any] = None, suggestions: List[str] = None) -> bool:
+    async def _send_to_channel(self, channel, message: str, rich_data: Optional[Dict[str, Any]] = None, suggestions: Optional[List[str]] = None) -> bool:
         """Send message directly to a Discord channel (for regular message responses)"""
         rich_data = rich_data or {}
         suggestions = suggestions or []
@@ -1515,13 +1532,17 @@ class DiscordBot(BaseChannel):
         return True
 
     @handle_errors("sending Discord message internally", default_return=False)
-    async def _send_message_internal(self, recipient: str, message: str, rich_data: Dict[str, Any] = None, suggestions: List[str] = None, custom_view = None) -> bool:
+    async def _send_message_internal(self, recipient: str, message: str, rich_data: Optional[Dict[str, Any]] = None, suggestions: Optional[List[str]] = None, custom_view: Optional[Any] = None) -> bool:
         """
         Send Discord message internally with validation.
         
         Returns:
             bool: True if successful, False if failed
         """
+        bot = self.bot
+        if not bot:
+            logger.error("Discord bot not initialized")
+            return False
         # Validate recipient
         if not recipient or not isinstance(recipient, str):
             logger.error(f"Invalid recipient: {recipient}")
@@ -1585,9 +1606,9 @@ class DiscordBot(BaseChannel):
                 
                 if discord_user_id:
                     user_id_int = int(discord_user_id)
-                    user = self.bot.get_user(user_id_int)
+                    user = bot.get_user(user_id_int)
                     if not user:
-                        user = await self.bot.fetch_user(user_id_int)
+                        user = await bot.fetch_user(user_id_int)
                     
                     if user:
                         send_kwargs: Dict[str, Any] = {"content": message}
@@ -1615,9 +1636,9 @@ class DiscordBot(BaseChannel):
             # Send DM directly to Discord user ID (no internal user lookup needed)
             try:
                 user_id_int = int(discord_user_id)
-                user = self.bot.get_user(user_id_int)
+                user = bot.get_user(user_id_int)
                 if not user:
-                    user = await self.bot.fetch_user(user_id_int)
+                    user = await bot.fetch_user(user_id_int)
                 
                 if user:
                     send_kwargs: Dict[str, Any] = {"content": message}
@@ -1638,7 +1659,7 @@ class DiscordBot(BaseChannel):
         # Try as a channel first (preferred method)
         try:
             channel_id = int(recipient)
-            channel = self.bot.get_channel(channel_id)
+            channel = bot.get_channel(channel_id)
             if channel:
                 send_kwargs: Dict[str, Any] = {"content": message}
                 if embed:
@@ -1899,12 +1920,15 @@ class DiscordBot(BaseChannel):
         
         # Additional checks for message sending capability
         try:
+            bot = self.bot
+            if not bot:
+                return False
             # Check if we have the bot user (means we're logged in)
-            if not self.bot.user:
+            if not bot.user:
                 return False
             
             # Check if we have any guilds (servers) we're connected to
-            if not self.bot.guilds:
+            if not bot.guilds:
                 return False
             
             return True
@@ -1917,6 +1941,9 @@ class DiscordBot(BaseChannel):
         """Manually trigger a reconnection attempt"""
         if not self.bot:
             logger.error("Cannot reconnect - bot not initialized")
+            return False
+        if not DISCORD_BOT_TOKEN:
+            logger.error("Cannot reconnect - Discord bot token not configured")
             return False
         
         logger.info("Manual reconnection requested")

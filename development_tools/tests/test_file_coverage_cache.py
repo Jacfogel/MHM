@@ -392,16 +392,19 @@ class TestFileCoverageCache:
         
         return domains
     
-    def update_test_file_mapping(self, test_file: Path) -> None:
+    def update_test_file_mapping(self, test_file: Path, *, reload_cache: bool = True, save_cache: bool = True) -> None:
         """
         Update domain mapping for a test file without caching coverage data.
         Used on first runs to build the mapping without the expensive coverage caching.
         
         Args:
             test_file: Path to test file
+            reload_cache: Whether to reload cache before updating (default: True)
+            save_cache: Whether to persist cache after updating (default: True)
         """
         # Reload cache first to merge with any concurrent updates
-        self._load_cache()
+        if reload_cache:
+            self._load_cache()
         
         test_file_rel = str(test_file.relative_to(self.project_root))
         test_file_domains = self.get_test_files_domains(test_file)
@@ -429,6 +432,9 @@ class TestFileCoverageCache:
             # Update mtimes for this domain
             current_mtimes = self.get_source_file_mtimes(domain)
             self.cache_data['source_files_mtime'][domain].update(current_mtimes)
+
+        if save_cache:
+            self._save_cache()
     
     def cache_test_file_coverage(self, test_file: Path, coverage_data: Dict[str, Any]) -> None:
         """

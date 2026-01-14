@@ -7,7 +7,7 @@ This module handles all notebook-related interactions including creating,
 viewing, updating, and searching notebook entries (notes, lists, journal).
 """
 
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from datetime import datetime
 
 from core.logger import get_component_logger
@@ -613,7 +613,7 @@ class NotebookHandler(InteractionHandler):
         return InteractionResponse("\n".join(response_parts), True, suggestions=suggestions if suggestions else None)
 
     @handle_errors("handling list pinned")
-    def _handle_list_pinned(self, user_id: str, entities: Dict[str, Any] = None) -> InteractionResponse:
+    def _handle_list_pinned(self, user_id: str, entities: Optional[Dict[str, Any]] = None) -> InteractionResponse:
         """Handle listing pinned entries."""
         if entities is None:
             entities = {}
@@ -646,7 +646,7 @@ class NotebookHandler(InteractionHandler):
         return InteractionResponse("\n".join(response_parts), True, suggestions=suggestions if suggestions else None)
 
     @handle_errors("handling list inbox")
-    def _handle_list_inbox(self, user_id: str, entities: Dict[str, Any] = None) -> InteractionResponse:
+    def _handle_list_inbox(self, user_id: str, entities: Optional[Dict[str, Any]] = None) -> InteractionResponse:
         """Handle listing inbox entries."""
         if entities is None:
             entities = {}
@@ -714,7 +714,7 @@ class NotebookHandler(InteractionHandler):
         return InteractionResponse("\n".join(response_parts), True, suggestions=suggestions if suggestions else None)
 
     @handle_errors("handling list archived")
-    def _handle_list_archived(self, user_id: str, entities: Dict[str, Any] = None) -> InteractionResponse:
+    def _handle_list_archived(self, user_id: str, entities: Optional[Dict[str, Any]] = None) -> InteractionResponse:
         """Handle listing archived entries."""
         if entities is None:
             entities = {}

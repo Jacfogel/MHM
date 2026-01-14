@@ -5,7 +5,7 @@ Discord-specific UI adapter for welcome messages.
 Uses the channel-agnostic welcome_manager for core logic.
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 
@@ -41,7 +41,7 @@ def clear_welcomed_status(discord_user_id: str) -> bool:
 
 
 @handle_errors("getting Discord welcome message", default_return="")
-def get_welcome_message(discord_user_id: str, discord_username: str = None, is_authorization: bool = False) -> str:
+def get_welcome_message(discord_user_id: str, discord_username: Optional[str] = None, is_authorization: bool = False) -> str:
     """
     Get a welcome message for a new Discord user.
     

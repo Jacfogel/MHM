@@ -233,6 +233,7 @@ class ScheduleManagementHandler(InteractionHandler):
                 completed=False,
                 suggestions=["Add morning period 9am-11am", "Add work period 8am-5pm weekdays", "Add evening period 7pm-9pm"]
             )
+        category = str(category)
         
         try:
             from core.schedule_management import add_schedule_period, get_schedule_time_periods, set_schedule_periods

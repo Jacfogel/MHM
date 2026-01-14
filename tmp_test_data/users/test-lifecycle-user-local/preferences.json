@@ -1,0 +1,20 @@
+{
+    "categories": [
+        "motivational",
+        "health"
+    ],
+    "channel": {
+        "type": "discord",
+        "contact": "test#1234"
+    },
+    "checkin_settings": {
+        "enabled": true,
+        "questions": [
+            "How are you feeling?"
+        ]
+    },
+    "task_settings": {
+        "enabled": true,
+        "reminder_frequency": "daily"
+    }
+}

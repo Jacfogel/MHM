@@ -49,7 +49,7 @@ class DiscordEventHandler:
     """Handles Discord events and routes them to appropriate handlers"""
     
     @handle_errors("initializing Discord event handler", default_return=None)
-    def __init__(self, bot: discord.Client = None):
+    def __init__(self, bot: Optional[discord.Client] = None):
         """Initialize the Discord event handler"""
         self.bot = bot
         self._event_handlers: Dict[EventType, List[Callable]] = {}
@@ -93,6 +93,9 @@ class DiscordEventHandler:
     @handle_errors("handling Discord ready event")
     async def on_ready(self):
         """Handle Discord ready event"""
+        if not self.bot:
+            logger.warning("Discord bot is ready event received but bot is not initialized")
+            return
         logger.info(f"Discord bot is ready! Logged in as {self.bot.user}")
         
         # Call custom ready handlers
@@ -140,6 +143,8 @@ class DiscordEventHandler:
     @handle_errors("handling Discord message event")
     async def on_message(self, message: discord.Message):
         """Handle Discord message event"""
+        if not self.bot:
+            return
         # Ignore bot messages
         if message.author == self.bot.user:
             return
@@ -233,6 +238,8 @@ class DiscordEventHandler:
     @handle_errors("handling Discord reaction add event")
     async def on_reaction_add(self, reaction: discord.Reaction, user: discord.User):
         """Handle Discord reaction add event"""
+        if not self.bot:
+            return
         # Ignore bot reactions
         if user == self.bot.user:
             return
@@ -255,6 +262,8 @@ class DiscordEventHandler:
     @handle_errors("handling Discord reaction remove event")
     async def on_reaction_remove(self, reaction: discord.Reaction, user: discord.User):
         """Handle Discord reaction remove event"""
+        if not self.bot:
+            return
         # Ignore bot reactions
         if user == self.bot.user:
             return
@@ -323,6 +332,6 @@ class DiscordEventHandler:
 
 # Factory function to get Discord event handler
 @handle_errors("getting Discord event handler")
-def get_discord_event_handler(bot: discord.Client = None) -> DiscordEventHandler:
+def get_discord_event_handler(bot: Optional[discord.Client] = None) -> DiscordEventHandler:
     """Get a Discord event handler instance"""
     return DiscordEventHandler(bot)

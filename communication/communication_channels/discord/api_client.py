@@ -38,7 +38,7 @@ class DiscordAPIClient:
     """Discord API client for handling Discord-specific operations"""
     
     @handle_errors("initializing Discord API client", default_return=None)
-    def __init__(self, bot: discord.Client = None):
+    def __init__(self, bot: Optional[discord.Client] = None):
         """Initialize the Discord API client"""
         self.bot = bot
         self._rate_limit_info = {}
@@ -46,7 +46,7 @@ class DiscordAPIClient:
         self._min_request_interval = 0.1  # 100ms between requests
     
     @handle_errors("sending Discord message", default_return=False)
-    async def send_message(self, recipient: str, message: str, options: SendMessageOptions = None) -> bool:
+    async def send_message(self, recipient: str, message: str, options: Optional[SendMessageOptions] = None) -> bool:
         """
         Send a message to a Discord channel or user
         
@@ -102,7 +102,7 @@ class DiscordAPIClient:
             return False
     
     @handle_errors("sending Discord DM", default_return=False)
-    async def send_dm(self, user_id: str, message: str, options: SendMessageOptions = None) -> bool:
+    async def send_dm(self, user_id: str, message: str, options: Optional[SendMessageOptions] = None) -> bool:
         """
         Send a direct message to a Discord user
         
@@ -242,6 +242,8 @@ class DiscordAPIClient:
             if not channel:
                 return {perm: False for perm in permissions}
             
+            if not self.bot.user:
+                return {perm: False for perm in permissions}
             bot_member = channel.guild.get_member(self.bot.user.id)
             if not bot_member:
                 return {perm: False for perm in permissions}
@@ -271,6 +273,6 @@ class DiscordAPIClient:
 
 # Factory function to get Discord API client
 @handle_errors("getting Discord API client", default_return=None)
-def get_discord_api_client(bot: discord.Client = None) -> DiscordAPIClient:
+def get_discord_api_client(bot: Optional[discord.Client] = None) -> DiscordAPIClient:
     """Get a Discord API client instance"""
     return DiscordAPIClient(bot)

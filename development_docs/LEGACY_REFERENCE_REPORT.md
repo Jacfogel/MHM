@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-13 20:55:47
+> **Last Generated**: 2026-01-14 03:34:36
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 38
 **Legacy Compatibility Markers Detected**: 71
@@ -29,7 +29,7 @@
 ### communication\communication_channels\discord\bot.py
 **Issues Found**: 1
 
-- **Line 656**: `Backward compatibility`
+- **Line 666**: `Backward compatibility`
   ```
   # Backward compatibility: just message
   ```
@@ -37,7 +37,7 @@
 ### communication\core\channel_orchestrator.py
 **Issues Found**: 1
 
-- **Line 1029**: `legacy channels`
+- **Line 1042**: `legacy channels`
   ```
   channel.stop()  # Fallback for any remaining legacy channels
   ```
@@ -92,7 +92,7 @@
 ### core\scheduler.py
 **Issues Found**: 1
 
-- **Line 1245**: `backward compatibility`
+- **Line 1269**: `backward compatibility`
   ```
   Legacy function for backward compatibility.
   ```
@@ -317,7 +317,7 @@
 ### development_tools\shared\standard_exclusions.py
 **Issues Found**: 1
 
-- **Line 314**: `backward compatibility`
+- **Line 315**: `backward compatibility`
   ```
   # For backward compatibility: ALL_GENERATED_FILES contains only exact paths
   ```
@@ -356,7 +356,7 @@
   self.pytest_stdout_log = stdout_log_path  # Keep variable name for backward compatibility
   ```
 
-- **Line 2695**: `backward compatibility`
+- **Line 2703**: `backward compatibility`
   ```
   # Keeping for backward compatibility but it shouldn't be called
   ```

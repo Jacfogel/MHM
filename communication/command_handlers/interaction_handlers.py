@@ -119,7 +119,7 @@ class HelpHandler(InteractionHandler):
                 True
             )
     
-    @handle_errors("handling commands list", default_return=InteractionResponse("Error listing commands", "error"))
+    @handle_errors("handling commands list", default_return=InteractionResponse("Error listing commands", completed=False, error="error"))
     def _handle_commands_list(self, user_id: str) -> InteractionResponse:
         """Handle commands list request"""
         response = "**Complete Command List:**\n\n"

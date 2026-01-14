@@ -7,12 +7,12 @@ import asyncio
 import time
 from email.mime.text import MIMEText
 from email.header import decode_header
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional, Tuple
 
 from core.config import EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD
 from core.logger import get_component_logger
 from communication.communication_channels.base.base_channel import BaseChannel, ChannelType, ChannelStatus, ChannelConfig
-from core.error_handling import handle_errors
+from core.error_handling import handle_errors, ConfigurationError
 
 # Route module-level logs to email component for consistency
 email_logger = get_component_logger('email')
@@ -27,7 +27,7 @@ class EmailBot(BaseChannel):
     _last_timeout_log_time = 0
     _timeout_log_interval = 3600  # 1 hour in seconds
     @handle_errors("initializing email bot", default_return=None)
-    def __init__(self, config: ChannelConfig = None):
+    def __init__(self, config: Optional[ChannelConfig] = None):
         """
         Initialize the EmailBot with configuration.
         
@@ -63,7 +63,7 @@ class EmailBot(BaseChannel):
         self._set_status(ChannelStatus.INITIALIZING)
         
         # Validate configuration
-        if not all([EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD]):
+        if not self._get_email_config():
             error_msg = "Email configuration incomplete. Missing required settings."
             self._set_status(ChannelStatus.ERROR, error_msg)
             return False
@@ -88,16 +88,24 @@ class EmailBot(BaseChannel):
     @handle_errors("testing SMTP connection")
     def initialize__test_smtp_connection(self):
         """Test SMTP connection synchronously"""
+        config = self._get_email_config()
+        if not config:
+            return
+        smtp_server, _, smtp_user, smtp_password = config
         # Use 10 second timeout to prevent indefinite hangs (slightly longer than IMAP for TLS handshake)
-        with smtplib.SMTP_SSL(EMAIL_SMTP_SERVER, 465, timeout=10) as server:
-            server.login(EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD)
+        with smtplib.SMTP_SSL(smtp_server, 465, timeout=10) as server:
+            server.login(smtp_user, smtp_password)
 
     @handle_errors("testing IMAP connection")
     def initialize__test_imap_connection(self):
         """Test IMAP connection synchronously"""
+        config = self._get_email_config()
+        if not config:
+            return
+        _, imap_server, smtp_user, smtp_password = config
         # Use 8 second timeout to match timeout used in _receive_emails_sync
-        with imaplib.IMAP4_SSL(EMAIL_IMAP_SERVER, timeout=8) as mail:
-            mail.login(EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD)
+        with imaplib.IMAP4_SSL(imap_server, timeout=8) as mail:
+            mail.login(smtp_user, smtp_password)
 
     @handle_errors("shutting down email bot", default_return=False)
     async def shutdown(self) -> bool:
@@ -130,17 +138,21 @@ class EmailBot(BaseChannel):
     @handle_errors("sending email synchronously")
     def send_message__send_email_sync(self, recipient: str, message: str, kwargs: dict):
         """Send email synchronously"""
+        config = self._get_email_config()
+        if not config:
+            return
+        smtp_server, _, smtp_user, smtp_password = config
         subject = kwargs.get('subject', 'Personal Assistant Message')
         
         msg = MIMEText(message)
-        msg['From'] = EMAIL_SMTP_USERNAME
+        msg['From'] = smtp_user
         msg['To'] = recipient
         msg['Subject'] = subject
 
         # Use 10 second timeout to prevent indefinite hangs (slightly longer than IMAP for TLS handshake)
-        with smtplib.SMTP_SSL(EMAIL_SMTP_SERVER, 465, timeout=10) as server:
-            server.login(EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD)
-            server.sendmail(EMAIL_SMTP_USERNAME, recipient, msg.as_string())
+        with smtplib.SMTP_SSL(smtp_server, 465, timeout=10) as server:
+            server.login(smtp_user, smtp_password)
+            server.sendmail(smtp_user, recipient, msg.as_string())
 
     @handle_errors("receiving email messages", default_return=[])
     async def receive_messages(self) -> List[Dict[str, Any]]:
@@ -169,16 +181,20 @@ class EmailBot(BaseChannel):
         import socket
         messages = []
         mail = None
+        config = self._get_email_config()
+        if not config:
+            return messages
+        _, imap_server, smtp_user, smtp_password = config
         
         try:
             # Create IMAP connection with socket timeout (8 seconds to leave buffer for overall 10s timeout)
             # Set socket timeout before creating connection
             socket.setdefaulttimeout(8)
-            logger.debug(f"Connecting to IMAP server: {EMAIL_IMAP_SERVER}")
-            mail = imaplib.IMAP4_SSL(EMAIL_IMAP_SERVER, timeout=8)
+            logger.debug(f"Connecting to IMAP server: {imap_server}")
+            mail = imaplib.IMAP4_SSL(imap_server, timeout=8)
             
             logger.debug("Attempting IMAP login")
-            mail.login(EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD)
+            mail.login(smtp_user, smtp_password)
             logger.debug("IMAP login successful")
             
             logger.debug("Selecting inbox")
@@ -271,6 +287,12 @@ class EmailBot(BaseChannel):
         
         logger.debug(f"Email receive operation completed, returning {len(messages)} messages")
         return messages
+
+    @handle_errors("loading email configuration", default_return=None)
+    def _get_email_config(self) -> Optional[Tuple[str, str, str, str]]:
+        if not all([EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD]):
+            raise ConfigurationError("Email configuration incomplete. Missing required settings.")
+        return EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD
     
     @handle_errors("extracting email body text", default_return="")
     def _receive_emails_sync__extract_body(self, msg: email.message.Message) -> str:

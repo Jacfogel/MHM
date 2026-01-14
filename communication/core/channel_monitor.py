@@ -2,7 +2,7 @@
 
 import threading
 import time
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from datetime import datetime
 
 from core.logger import get_component_logger
@@ -191,7 +191,7 @@ class ChannelMonitor:
         return status
 
     @handle_errors("resetting channel failures", default_return=None)
-    def reset_channel_failures(self, channel_name: str = None):
+    def reset_channel_failures(self, channel_name: Optional[str] = None):
         """Reset failure counts for a specific channel or all channels"""
         try:
             if channel_name:

@@ -499,7 +499,7 @@ class EnhancedCommandParser:
     @handle_errors("parsing command", default_return=ParsingResult(
         ParsedCommand("unknown", {}, 0.0, ""), 0.0, "fallback"
     ))
-    def parse(self, message: str, user_id: str = None) -> ParsingResult:
+    def parse(self, message: str, user_id: Optional[str] = None) -> ParsingResult:
         """
         Parse a user message into a structured command.
         
@@ -758,7 +758,7 @@ class EnhancedCommandParser:
         )
     
     @handle_errors("parsing with AI enhancement")
-    def _ai_enhanced_parse(self, message: str, user_id: str = None) -> ParsingResult:
+    def _ai_enhanced_parse(self, message: str, user_id: Optional[str] = None) -> ParsingResult:
         """Parse using AI chatbot capabilities"""
         try:
             # Use existing AI chatbot command parsing

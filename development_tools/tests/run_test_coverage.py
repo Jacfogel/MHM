@@ -1151,7 +1151,9 @@ class CoverageMetricsRegenerator:
                         test_root = self.project_root / 'tests'
                         all_test_files = [tf for tf in test_root.rglob('test_*.py') if self.test_file_cache.is_valid_test_file(tf)]
                         for test_file in all_test_files:
-                            self.test_file_cache.update_test_file_mapping(test_file)
+                            self.test_file_cache.update_test_file_mapping(
+                                test_file, reload_cache=False, save_cache=False
+                            )
                         # Update and save source file mtimes for all domains (critical for change detection)
                         if 'source_files_mtime' not in self.test_file_cache.cache_data:
                             self.test_file_cache.cache_data['source_files_mtime'] = {}
@@ -1169,7 +1171,9 @@ class CoverageMetricsRegenerator:
                         
                         # Update test file mappings (without coverage_data) for test files that ran
                         for test_file in test_files_to_run:
-                            self.test_file_cache.update_test_file_mapping(test_file)
+                            self.test_file_cache.update_test_file_mapping(
+                                test_file, reload_cache=False, save_cache=False
+                            )
                         
                         # Update and save source file mtimes for changed domains (critical for change detection)
                         if 'source_files_mtime' not in self.test_file_cache.cache_data:
@@ -1906,7 +1910,9 @@ class CoverageMetricsRegenerator:
                                                 test_root = self.project_root / 'tests'
                                                 all_test_files = [tf for tf in test_root.rglob('test_*.py') if self.test_file_cache.is_valid_test_file(tf)]
                                                 for test_file in all_test_files:
-                                                    self.test_file_cache.update_test_file_mapping(test_file)
+                                                    self.test_file_cache.update_test_file_mapping(
+                                                        test_file, reload_cache=False, save_cache=False
+                                                    )
                                                 # Update and save source file mtimes for all domains (critical for change detection)
                                                 if 'source_files_mtime' not in self.test_file_cache.cache_data:
                                                     self.test_file_cache.cache_data['source_files_mtime'] = {}
@@ -1924,7 +1930,9 @@ class CoverageMetricsRegenerator:
                                                 
                                                 # Update test file mappings (without coverage_data) for test files that ran
                                                 for test_file in test_files_to_run:
-                                                    self.test_file_cache.update_test_file_mapping(test_file)
+                                                    self.test_file_cache.update_test_file_mapping(
+                                                        test_file, reload_cache=False, save_cache=False
+                                                    )
                                                 
                                                 # Update and save source file mtimes for changed domains (critical for change detection)
                                                 if 'source_files_mtime' not in self.test_file_cache.cache_data:

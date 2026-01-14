@@ -75,8 +75,8 @@ def register_data_loader(
     data_type: str,
     loader_func,
     file_type: str,
-    default_fields: List[str] = None,
-    metadata_fields: List[str] = None,
+    default_fields: Optional[List[str]] = None,
+    metadata_fields: Optional[List[str]] = None,
     description: str = "",
     *,
     force: bool = False,
@@ -652,7 +652,7 @@ def update_user_schedules(user_id: str, schedules_data: Dict[str, Any]) -> bool:
     return result.get('schedules', False)
 
 @handle_errors("creating default schedule periods", default_return={})
-def create_default_schedule_periods(category: str = None) -> Dict[str, Any]:
+def create_default_schedule_periods(category: Optional[str] = None) -> Dict[str, Any]:
     """Create default schedule periods for a new category."""
     if category:
         # Use category-specific naming
@@ -1411,7 +1411,7 @@ def remove_personalization_item(user_id: str, field: str, item: Any) -> bool:
     return True  # Item doesn't exist
 
 @handle_errors("clearing personalization cache", default_return=None)
-def clear_personalization_cache(user_id: str = None) -> None:
+def clear_personalization_cache(user_id: Optional[str] = None) -> None:
     """Clear the personalization cache for a specific user or all users."""
     # Use the centralized cache clearing system
     clear_user_caches(user_id)

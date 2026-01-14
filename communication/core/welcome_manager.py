@@ -6,7 +6,7 @@ Handles welcome messages and onboarding tracking across all channels.
 
 import json
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.config import BASE_DATA_DIR
@@ -100,7 +100,7 @@ def clear_welcomed_status(channel_identifier: str, channel_type: str = 'discord'
 def get_welcome_message(
     channel_identifier: str,
     channel_type: str = 'discord',
-    username: str = None,
+    username: Optional[str] = None,
     is_authorization: bool = False
 ) -> str:
     """
