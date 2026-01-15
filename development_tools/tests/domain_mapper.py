@@ -44,6 +44,7 @@ class DomainMapper:
         'ai': (['tests/ai/'], ['ai']),
         'user': ([], ['user_management']),
         'notebook': ([], ['notebook']),
+        'development_tools': (['tests/development_tools/'], []),
     }
     
     def __init__(self, project_root: Path):
@@ -289,3 +290,33 @@ class DomainMapper:
                 dirs, _ = self.SOURCE_TO_TEST_MAPPING[domain]
                 test_dirs.update(dirs)
         return sorted(test_dirs)
+
+    def infer_domains_from_test_path(self, test_file: Path) -> Set[str]:
+        """
+        Infer test domains from file path/name when markers are missing.
+
+        Args:
+            test_file: Path to test file
+
+        Returns:
+            Set of inferred domain names
+        """
+        path_lower = test_file.as_posix().lower()
+        inferred = set()
+
+        keyword_map = {
+            'development_tools': ['development_tools', 'dev_tools', 'audit', 'coverage', 'verification', 'status'],
+            'communication': ['communication', 'discord', 'email', 'webhook', 'channel', 'command', 'interaction', 'router'],
+            'ai': ['ai', 'chatbot', 'prompt', 'context', 'llm'],
+            'tasks': ['task'],
+            'ui': ['ui', 'dialog', 'widget', 'qt', 'pyside'],
+            'user': ['user', 'profile', 'account', 'preferences'],
+            'notebook': ['notebook', 'note', 'journal', 'list'],
+            'core': ['core', 'service', 'scheduler', 'config', 'logger', 'logging', 'observability', 'error', 'backup', 'file', 'cleanup', 'checkin', 'analytics', 'response'],
+        }
+
+        for domain, keywords in keyword_map.items():
+            if any(keyword in path_lower for keyword in keywords):
+                inferred.add(domain)
+
+        return inferred

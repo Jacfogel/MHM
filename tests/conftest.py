@@ -177,6 +177,10 @@ tests_data_dir.mkdir(exist_ok=True)
 os.environ['TEST_DATA_DIR'] = os.environ.get('TEST_DATA_DIR', str(tests_data_dir))
 # Also set BASE_DATA_DIR for any code that reads it directly
 os.environ['BASE_DATA_DIR'] = str(tests_data_dir)
+# Route service flags to tests/data/flags in test mode
+flags_dir = tests_data_dir / 'flags'
+flags_dir.mkdir(parents=True, exist_ok=True)
+os.environ['MHM_FLAGS_DIR'] = str(flags_dir)
 
 # Import core modules for testing (after logging isolation is set up)
 # Force core config paths to tests/data early so all modules see test isolation

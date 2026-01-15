@@ -38,6 +38,11 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-15 - Test Flags Isolation, Logging Doc Fix, and Domain Mapping Refresh
+- **Feature**: Routed shutdown/test flag files through `core.service_utilities.get_flags_dir()` (used by `core/service.py`, `core/headless_service.py`, and `ui/ui_app_qt.py`) and set `MHM_FLAGS_DIR` to `tests/data/flags` in `tests/conftest.py` to prevent test runs from touching live service flags. Added a small behavior test for flag routing. Aligned `TEST_VERBOSE_LOGS` documentation in `logs/LOGGING_GUIDE.md` with actual test logging levels. Added path-based domain inference and development-tools mapping for test-file coverage caching and regenerated the cache.
+- **Impact**: Running tests no longer stops a live service, logging docs match real behavior, and the test-file cache no longer leaves unmapped tests.
+- **Testing**: `python run_tests.py`, `python -m pytest tests/ui/test_task_management_dialog.py::TestTaskManagementDialogRealBehavior::test_save_task_settings_persists_after_reload -v`, `python development_tools/run_development_tools.py audit --full` (one intermittent UI test failure during coverage run).
+
 ### 2026-01-14 - User Management Retirement Finalized and Dev Tools Cache Cleanup
 - **Feature**: Removed the `core/user_management.py` shim and finalized the user data handler migration by cleaning legacy references in `core/user_data_handlers.py`, `core/user_data_validation.py`, `core/user_data_manager.py`, and `core/__init__.py`. Updated development tools generators to stop emitting `core/user_management` in AI function registries and module dependency summaries, and improved dev tools audit aggregation to prefer the newest tool result when duplicate JSONs exist. Cleared a stale `development_tools/reports/jsons/analyze_package_exports_results.json` and regenerated the AI function registry and consolidated audit outputs. Removed the completed retirement task from `TODO.md`.
 - **Impact**: Fully retires the legacy user management module, keeps generated docs clean, and prevents stale dev tool results from reintroducing removed file references.

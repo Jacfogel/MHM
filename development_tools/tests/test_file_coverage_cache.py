@@ -373,8 +373,9 @@ class TestFileCoverageCache:
         test_files = self.cache_data.get('test_files', {})
         if test_file_rel in test_files:
             cached_domains = test_files[test_file_rel].get('domains', [])
-            domains.update(cached_domains)
-            return domains
+            if cached_domains:
+                domains.update(cached_domains)
+                return domains
         
         # Discover domains from test file location and markers
         # Check test directory
@@ -389,7 +390,10 @@ class TestFileCoverageCache:
         for domain, (_, domain_markers) in self.domain_mapper.SOURCE_TO_TEST_MAPPING.items():
             if test_file_markers & set(domain_markers):
                 domains.add(domain)
-        
+
+        if not domains:
+            domains.update(self.domain_mapper.infer_domains_from_test_path(test_file))
+
         return domains
     
     def update_test_file_mapping(self, test_file: Path, *, reload_cache: bool = True, save_cache: bool = True) -> None:

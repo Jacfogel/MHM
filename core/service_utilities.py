@@ -79,6 +79,22 @@ class InvalidTimeFormatError(Exception):
 # Global throttler instance
 throttler = Throttler(SCHEDULER_INTERVAL)
 
+@handle_errors("getting flags directory", default_return="")
+def get_flags_dir() -> Path:
+    """Get the directory for service flag files."""
+    if os.environ.get("MHM_TESTING") == "1":
+        test_data_dir = os.getenv('TEST_DATA_DIR', str(Path('tests') / 'data'))
+        flags_dir = Path(test_data_dir) / "flags"
+    else:
+        flags_dir = Path(os.getenv('MHM_FLAGS_DIR', str(Path(__file__).parent.parent)))
+
+    try:
+        flags_dir.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+
+    return flags_dir
+
 @handle_errors("creating reschedule request", default_return=False)
 def create_reschedule_request(user_id: str, category: str) -> bool:
     """
@@ -109,16 +125,7 @@ def create_reschedule_request(user_id: str, category: str) -> bool:
     timestamp = int(time.time() * 1000)  # milliseconds for uniqueness
     filename = f"reschedule_request_{user_id}_{category}_{timestamp}.flag"
     
-    # Determine base directory for flag files
-    # In tests, redirect to tests/data/flags to avoid touching real service watchers/logs
-    if os.environ.get("MHM_TESTING") == "1":
-        # Use configurable test data directory
-        from core.config import get_backups_dir
-        base_dir = Path(get_backups_dir()).parent / "flags"
-        os.makedirs(str(base_dir), exist_ok=True)
-    else:
-        # Project root (service watches here) - use configurable approach
-        base_dir = os.getenv('MHM_FLAGS_DIR', str(Path(__file__).parent.parent))
+    base_dir = get_flags_dir()
     request_file = Path(base_dir) / filename
 
     # Write the request file

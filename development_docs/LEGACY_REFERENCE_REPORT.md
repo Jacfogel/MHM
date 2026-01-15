@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-14 21:15:20
+> **Last Generated**: 2026-01-15 00:44:19
 > **Source**: `python development_tools/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 35
 **Legacy Compatibility Markers Detected**: 64
@@ -320,7 +320,7 @@
 ### run_tests.py
 **Issues Found**: 1
 
-- **Line 1785**: `backward compatibility`
+- **Line 2171**: `backward compatibility`
   ```
   # Handle case where parallel_results might be a bool (backward compatibility)
   ```
@@ -336,7 +336,7 @@
 ### tests\conftest.py
 **Issues Found**: 1
 
-- **Line 1444**: `backward compatibility`
+- **Line 1448**: `backward compatibility`
   ```
   This function is kept for backward compatibility but does nothing.
   ```

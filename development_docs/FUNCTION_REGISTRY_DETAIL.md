@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-14 23:28:56
+> **Last Generated**: 2026-01-15 00:39:54
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 96.0% [OK] COMPLETED**
 - **Files Scanned**: 109
-- **Functions Found**: 1515
+- **Functions Found**: 1516
 - **Methods Found**: 1135
 - **Classes Found**: 154
-- **Total Items**: 2650
-- **Functions Documented**: 1449
+- **Total Items**: 2651
+- **Functions Documented**: 1450
 - **Methods Documented**: 1095
 - **Classes Documented**: 119
-- **Total Documented**: 2544
+- **Total Documented**: 2545
 - **Template-Generated**: 4
-- **Last Updated**: 2026-01-14
+- **Last Updated**: 2026-01-15
 
 **Status**: [OK] **EXCELLENT** - All functions have proper documentation
 
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (535)
+### **Core System Functions** (536)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (399)
@@ -4211,6 +4211,7 @@ Args:
     
 Returns:
     bool: True if request was created successfully
+- [OK] `get_flags_dir()` - Get the directory for service flag files.
 - [OK] `get_service_processes()` - Get detailed information about all MHM service processes
 - [OK] `is_headless_service_running()` - Check if a headless MHM service is currently running
 - [OK] `is_service_running()` - Check if the MHM service is currently running

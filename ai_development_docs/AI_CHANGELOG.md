@@ -36,6 +36,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-01-15 - Test Flags Isolation and Coverage Cache Mapping Refresh **COMPLETED**
+- Routed shutdown/test flags through `get_flags_dir()` and set `MHM_FLAGS_DIR` to `tests/data/flags` in `tests/conftest.py` to prevent tests from stopping live services
+- Aligned `TEST_VERBOSE_LOGS` docs in `logs/LOGGING_GUIDE.md` with actual test logging levels
+- Added domain inference + dev tools mapping for test-file coverage caching and regenerated the cache (0 unmapped tests)
+
 ### 2026-01-14 - User Management Retirement Finalized **COMPLETED**
 - Removed the `core/user_management.py` shim and finished the migration cleanup in core user data modules
 - Updated dev tools generators and audit aggregation to stop surfacing legacy `core/user_management` references

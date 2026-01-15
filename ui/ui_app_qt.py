@@ -32,6 +32,7 @@ from core.config import validate_all_configuration
 
 # Import comprehensive error handling
 from core.error_handling import handle_errors
+from core.service_utilities import get_flags_dir
 
 from user.user_context import UserContext
 from core.user_data_handlers import get_all_user_ids
@@ -203,7 +204,7 @@ class ServiceManager:
         logger.info(f"Stop service requested for PID: {pid}")
         
         # Create shutdown request file
-        shutdown_file = Path(__file__).parent.parent / 'shutdown_request.flag'
+        shutdown_file = get_flags_dir() / 'shutdown_request.flag'
         try:
             with open(shutdown_file, 'w') as f:
                 f.write(f"SHUTDOWN_REQUESTED_BY_UI_{time.time()}")
@@ -1567,7 +1568,7 @@ class MHMManagerUI(QMainWindow):
         from pathlib import Path
         
         # Use the same directory structure as the shutdown flag
-        base_dir = Path(__file__).parent.parent  # Go up to MHM root
+        base_dir = get_flags_dir()
         request_file = base_dir / f'test_message_request_{self.current_user}_{category}.flag'
         
         test_request = {

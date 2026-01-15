@@ -2,7 +2,7 @@
 
 > **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-14 23:28:58
+> **Last Generated**: 2026-01-15 00:39:56
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Audience**: AI collaborators
@@ -13,10 +13,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 109
-- **Total Imports**: 1475
-- **Standard Library**: 439 (29.8%)
+- **Total Imports**: 1476
+- **Standard Library**: 439 (29.7%)
 - **Third-Party**: 232 (15.7%)
-- **Local Imports**: 804 (54.5%)
+- **Local Imports**: 805 (54.5%)
 
 ## Dependency Decision Trees
 
@@ -61,7 +61,7 @@ Communication Dependencies:
 ### Need UI Dependencies?
 UI Dependencies:
 - Main Application
-  - ui/ui_app_qt.py <- standard library (datetime, json, os, pathlib), third-party (PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets), logger, config, error_handling, user_context, user_data_handlers (+18 more)
+  - ui/ui_app_qt.py <- standard library (datetime, json, os, pathlib), third-party (PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets), logger, config, error_handling, service_utilities, user_context (+19 more)
 - Dialogs
   - ui/dialogs/account_creator_dialog.py <- standard library (pathlib, time, typing, uuid), third-party (PySide6.QtCore, PySide6.QtWidgets), logger, user_data_validation, user_data_handlers, error_handling, category_selection_widget (+10 more)
   - ui/dialogs/admin_panel.py <- third-party (PySide6.QtCore, PySide6.QtWidgets), logger, error_handling
@@ -121,7 +121,7 @@ External libraries provide channel and UI support.
 
 ### High Coupling
 - `core/user_data_handlers.py` -> 44 local dependencies (heavy coupling)
-- `ui/ui_app_qt.py` -> 42 local dependencies (heavy coupling)
+- `ui/ui_app_qt.py` -> 43 local dependencies (heavy coupling)
 - `communication/command_handlers/analytics_handler.py` -> 33 local dependencies (heavy coupling)
 - `communication/core/channel_orchestrator.py` -> 32 local dependencies (heavy coupling)
 - `communication/message_processing/conversation_flow_manager.py` -> 32 local dependencies (heavy coupling)

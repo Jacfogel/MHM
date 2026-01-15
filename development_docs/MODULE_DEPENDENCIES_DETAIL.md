@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-01-14 23:28:58
+> **Last Generated**: 2026-01-15 00:39:55
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,12 +16,12 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 109
-- **Total Imports Found**: 1475
+- **Total Imports Found**: 1476
 - **Dependencies Documented**: 109 (100% coverage)
-- **Standard Library Imports**: 439 (29.8%)
+- **Standard Library Imports**: 439 (29.7%)
 - **Third-Party Imports**: 232 (15.7%)
-- **Local Imports**: 804 (54.5%)
-- **Last Updated**: 2026-01-14
+- **Local Imports**: 805 (54.5%)
+- **Last Updated**: 2026-01-15
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 439 imports (29.8%)
+- **Standard Library**: 439 imports (29.7%)
 - **Third-Party**: 232 imports (15.7%)
-- **Local**: 804 imports (54.5%)
+- **Local**: 805 imports (54.5%)
 
 ## Module Dependencies by Directory
 
@@ -1598,7 +1598,7 @@
   - **Local**:
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.service_utilities (get_service_processes, is_headless_service_running, is_ui_service_running)` (NEW)
+    - `core.service_utilities (get_flags_dir, get_service_processes, is_headless_service_running, is_ui_service_running)` (NEW)
   - **Standard Library**:
     - `argparse`
     - `json`
@@ -1972,6 +1972,7 @@
     - `core.message_management (get_recent_messages)` (NEW)
     - `core.schedule_management (get_current_day_names, get_current_time_periods_with_validation)` (NEW)
     - `core.scheduler (SchedulerManager)` (NEW)
+    - `core.service_utilities (get_flags_dir)` (NEW)
     - `core.user_data_handlers (get_all_user_ids, get_user_data)` (NEW)
   - **Standard Library**:
     - `atexit`
@@ -1991,7 +1992,7 @@
   - `ui/dialogs/account_creator_dialog.py`
 
 **Dependency Changes**:
-- Added: communication.core.channel_orchestrator, communication.message_processing.conversation_flow_manager, core.auto_cleanup, core.config, core.error_handling, core.file_auditor, core.file_operations, core.logger, core.message_management, core.schedule_management, core.scheduler, core.user_data_handlers
+- Added: communication.core.channel_orchestrator, communication.message_processing.conversation_flow_manager, core.auto_cleanup, core.config, core.error_handling, core.file_auditor, core.file_operations, core.logger, core.message_management, core.schedule_management, core.scheduler, core.service_utilities, core.user_data_handlers
 - Removed: tasks/task_management.py, ui/dialogs/account_creator_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2002,7 +2003,7 @@
 - **Purpose**: Main service orchestration and management
 - **Dependencies**: 
   - **Local**:
-    - `core.config (SCHEDULER_INTERVAL, get_backups_dir)` (NEW)
+    - `core.config (SCHEDULER_INTERVAL)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.file_auditor (record_created)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
@@ -2022,7 +2023,9 @@
   - `core/headless_service.py`
   - `core/schedule_management.py`
   - `core/scheduler.py`
+  - `core/service.py`
   - `ui/dialogs/process_watcher_dialog.py`
+  - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.file_auditor, core.logger
@@ -2903,6 +2906,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger, get_verbose_mode, setup_logging, toggle_verbose_logging)` (NEW)
     - `core.scheduler (SchedulerManager, run_category_scheduler_standalone, run_full_scheduler_standalone, run_user_scheduler_standalone)` (NEW)
+    - `core.service_utilities (get_flags_dir)` (NEW)
     - `core.user_data_handlers (get_all_user_ids, get_user_data, save_user_data, update_user_context)` (NEW)
     - `core.user_data_manager (rebuild_user_index)` (NEW)
     - `core.user_data_validation (_shared__title_case)` (NEW)
@@ -2940,7 +2944,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: communication.core.channel_orchestrator, core.auto_cleanup, core.config, core.error_handling, core.logger, core.scheduler, core.user_data_handlers, core.user_data_manager, core.user_data_validation, tasks.task_management, ui.dialogs.account_creator_dialog, ui.dialogs.category_management_dialog, ui.dialogs.channel_management_dialog, ui.dialogs.checkin_management_dialog, ui.dialogs.message_editor_dialog, ui.dialogs.process_watcher_dialog, ui.dialogs.schedule_editor_dialog, ui.dialogs.task_crud_dialog, ui.dialogs.task_management_dialog, ui.dialogs.user_analytics_dialog, ui.dialogs.user_profile_dialog, ui.generated.admin_panel_pyqt, user.user_context
+- Added: communication.core.channel_orchestrator, core.auto_cleanup, core.config, core.error_handling, core.logger, core.scheduler, core.service_utilities, core.user_data_handlers, core.user_data_manager, core.user_data_validation, tasks.task_management, ui.dialogs.account_creator_dialog, ui.dialogs.category_management_dialog, ui.dialogs.channel_management_dialog, ui.dialogs.checkin_management_dialog, ui.dialogs.message_editor_dialog, ui.dialogs.process_watcher_dialog, ui.dialogs.schedule_editor_dialog, ui.dialogs.task_crud_dialog, ui.dialogs.task_management_dialog, ui.dialogs.user_analytics_dialog, ui.dialogs.user_profile_dialog, ui.generated.admin_panel_pyqt, user.user_context
 - Removed: PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets
 
 <!-- MANUAL_ENHANCEMENT_START -->

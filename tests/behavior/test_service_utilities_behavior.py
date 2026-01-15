@@ -4,10 +4,12 @@ Tests real behavior and side effects of service utility functions.
 """
 
 import pytest
+from pathlib import Path
 from unittest.mock import patch, MagicMock, mock_open
 from core.service_utilities import (
     Throttler,
     create_reschedule_request,
+    get_flags_dir,
     is_service_running,
     wait_for_network,
     load_and_localize_datetime
@@ -126,6 +128,11 @@ class TestServiceUtilitiesBehavior:
         mock_file.assert_not_called()
         mock_json_dump.assert_not_called()
         assert result is False
+
+    def test_get_flags_dir_uses_test_data_dir(self, test_data_dir):
+        """Test that get_flags_dir routes to tests/data/flags in test mode."""
+        flags_dir = get_flags_dir()
+        assert Path(flags_dir) == Path(test_data_dir) / "flags"
     
     def test_is_service_running_checks_actual_processes(self, test_data_dir):
         """Test that is_service_running checks actual system processes."""

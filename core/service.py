@@ -29,6 +29,7 @@ from core.config import validate_and_raise_if_invalid, print_configuration_repor
 from communication.core.channel_orchestrator import CommunicationManager
 from core.config import LOG_MAIN_FILE, USER_INFO_DIR_PATH, get_user_data_dir
 from core.scheduler import SchedulerManager
+from core.service_utilities import get_flags_dir
 from core.file_operations import verify_file_access
 from core.user_data_handlers import get_all_user_ids
 from core.user_data_handlers import get_user_data
@@ -371,7 +372,7 @@ class MHMService:
     def run_service_loop(self):
         """Keep the service running until shutdown is requested"""
         logger.info("Service is now running. Press Ctrl+C to stop.")
-        shutdown_file = Path(__file__).parent.parent / 'shutdown_request.flag'
+        shutdown_file = get_flags_dir() / 'shutdown_request.flag'
         
         # Initialize loop counter outside the main loop
         loop_minutes = 0
@@ -1011,7 +1012,7 @@ class MHMService:
             logger.error(f"Error stopping scheduler manager: {e}")
         
         # Clean up shutdown request file if it exists
-        shutdown_file = Path(__file__).parent.parent / 'shutdown_request.flag'
+        shutdown_file = get_flags_dir() / 'shutdown_request.flag'
         try:
             if shutdown_file.exists():
                 shutdown_file.unlink()

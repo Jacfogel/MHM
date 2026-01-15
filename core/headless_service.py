@@ -15,6 +15,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.service_utilities import (
     get_service_processes, 
+    get_flags_dir,
     is_headless_service_running, 
     is_ui_service_running
 )
@@ -160,7 +161,7 @@ class HeadlessServiceManager:
         """Stop UI-managed services using the service's built-in shutdown mechanism."""
         try:
             # Use the service's built-in shutdown file mechanism
-            shutdown_file = Path(__file__).parent.parent / 'shutdown_request.flag'
+            shutdown_file = get_flags_dir() / 'shutdown_request.flag'
             with open(shutdown_file, 'w') as f:
                 f.write(f"UI_SHUTDOWN_REQUESTED_{time.time()}")
             
@@ -196,7 +197,7 @@ class HeadlessServiceManager:
         
         try:
             # Use the service's built-in shutdown file mechanism
-            shutdown_file = Path(__file__).parent.parent / 'shutdown_request.flag'
+            shutdown_file = get_flags_dir() / 'shutdown_request.flag'
             with open(shutdown_file, 'w') as f:
                 f.write(f"HEADLESS_SHUTDOWN_REQUESTED_{time.time()}")
             
@@ -257,7 +258,7 @@ class HeadlessServiceManager:
         """Send a test message using the service's built-in test message system."""
         try:
             # Use the service's test message request file mechanism
-            base_dir = Path(__file__).parent.parent
+            base_dir = get_flags_dir()
             request_file = base_dir / f'test_message_request_{int(time.time())}.flag'
             
             request_data = {

@@ -257,16 +257,11 @@ When adding new tasks, follow this format:
   - [ ] Investigate `tests/behavior/test_checkin_questions_enhancement.py::TestCustomQuestions::test_delete_custom_question`
   - [ ] Investigate `tests/behavior/test_webhook_handler_behavior.py::TestWebhookHandlerBehavior::test_handle_webhook_event_routes_application_deauthorized`
   - [ ] Investigate `tests/unit/test_schedule_management.py::TestScheduleManagement::test_schedule_period_lifecycle`
+  - [ ] Investigate `tests/ui/test_task_management_dialog.py::TestTaskManagementDialogRealBehavior::test_save_task_settings_persists_after_reload`
   - [ ] Investigate `test_scan_all_python_files_demo_project`
   - [ ] Check for timing/race condition issues in test setup or teardown
   - [ ] Verify test isolation and data cleanup between test runs
   - [ ] Add retry logic or fix root cause if identified
-
-**Improve AI Terminal Interaction Reliability**
-- *What it means*: Investigate why AI assistants often misinterpret PowerShell output or make incorrect assumptions
-- *Why it helps*: Reduces confusion and improves the reliability of AI-assisted development
-- *Estimated effort*: Medium
-
 
 **Review Communication Module Architecture**
 - *What it means*: Review all modules in `communication/` directory to ensure they follow channel-agnostic architecture principles
@@ -310,19 +305,9 @@ When adding new tasks, follow this format:
   - [ ] Fix test logging to use test-specific log files only
   - [ ] Add safeguards to prevent tests from writing to production logs
 
-**Investigate why running tests terminates the active service**
-- *What it means*: Review test execution behavior to understand why running the test suite causes the active MHM service to terminate. Tests should not interfere with a running service instance.
-- *Why it helps*: Allows running tests while the service is active, improving development workflow and preventing unexpected service interruptions
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Review test setup/teardown that might affect service state
-  - [ ] Check if tests are modifying shared resources (ports, files, locks) that the service uses
-  - [ ] Identify which tests or test fixtures cause service termination
-  - [ ] Review file locking, port binding, or other resource conflicts
-  - [ ] Fix test isolation to prevent interference with running services
-  - [ ] Add safeguards to detect and prevent test interference with active services
+**Checkin may not save non-integer results properly**
+- Investigate data saving and analytics for handling of fractions and decimals
 
-**Map unmapped test files to domains - Assign domains for the remaining unmapped test files in the test-file cache**
-- *What it means*: Review the unmapped test files reported by the cache and associate each with one or more domains.
-- *Why it helps*: Improves selective runs and cache accuracy while keeping full runs clean.
-- *Estimated effort*: Small/Medium
+**headless service not working**
+- Investigate and fix
+

@@ -201,10 +201,9 @@ If unset, `core/logger.py` derives sensible defaults under `LOGS_DIR`.
 - `MHM_TESTING`  
   Flag used to indicate tests are running. Logging behavior may adjust (for example, different destinations or verbosity).
 
-- `TEST_VERBOSE_LOGS` - Controls test logging verbosity: `0` (quiet, component WARNING/test WARNING), `1` (medium, component WARNING/test INFO - focuses on test execution without component chatter), `2` (verbose, component DEBUG/test DEBUG).  
-  Controls test logging verbosity:  
-  - `0` (default): Component loggers INFO, Test loggers WARNING (quiet)  
-  - `1` (medium): Component loggers INFO, Test loggers INFO  
+- `TEST_VERBOSE_LOGS` - Controls test logging verbosity:  
+  - `0` (default): Component loggers WARNING, Test loggers WARNING (quiet)  
+  - `1` (medium): Component loggers WARNING, Test loggers INFO (test execution details without component chatter)  
   - `2` (verbose): Component loggers DEBUG, Test loggers DEBUG (full detail)
 
 Other diagnostic and backup environment variables (such as `BACKUP_RETENTION_DAYS` and file-auditor settings) may affect how long logs and backups are kept, but are not logging-exclusive.
